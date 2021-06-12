@@ -285,11 +285,7 @@ namespace Emotion.IO
             if (_asyncLoadingTasks.TryGetValue(name, out Task task))
                 return (Task<T>) task;
 
-            task = Task.Run(() =>
-            {
-                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"AssetLoading Thread {name}";
-                return Get<T>(name);
-            });
+            task = Task.Run(() => Get<T>(name));
             _asyncLoadingTasks.Add(name, task);
             return (Task<T>) task;
         }

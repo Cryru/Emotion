@@ -80,7 +80,7 @@ namespace Emotion.Platform.Implementation.Win32
             // todo: load libraries - if any, probably XInput?
 
             // Initialize audio - Try to create WasApi - otherwise return the fake context so execution can go on.
-            Audio = WasApiAudioAdapter.TryCreate() ?? (IAudioAdapter) new NullAudioAdapter();
+            Audio = WasApiAudioAdapter.TryCreate(this) ?? (IAudioAdapter) new NullAudioAdapter();
             Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
 
             PopulateKeyCodes();

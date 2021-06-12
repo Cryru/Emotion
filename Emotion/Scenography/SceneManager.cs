@@ -124,8 +124,6 @@ namespace Emotion.Scenography
 
         private async Task LoadInternal(Scene scene)
         {
-            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
-
             // Set the current scene to be the loading screen, and get the old one.
             Scene old = QueueSceneSwap(LoadingScreen);
 

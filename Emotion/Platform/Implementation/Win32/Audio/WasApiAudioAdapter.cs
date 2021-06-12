@@ -15,21 +15,23 @@ namespace Emotion.Platform.Implementation.Win32.Audio
     {
         public const int BUFFER_DURATION_MS = 125;
 
-        public static WasApiAudioAdapter TryCreate()
+        public static WasApiAudioAdapter TryCreate(PlatformBase platform)
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioAdapter(enumerator);
+            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioAdapter(platform, enumerator);
             Win32Platform.CheckError("Couldn't create multimedia enumerator.", true);
             return null;
         }
 
         public WasApiAudioDevice DefaultDevice { get; private set; }
 
+        private PlatformBase _platform;
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
 
-        private WasApiAudioAdapter(IMMDeviceEnumerator enumerator)
+        private WasApiAudioAdapter(PlatformBase platform, IMMDeviceEnumerator enumerator)
         {
+            _platform = platform;
             _enumerator = enumerator;
             int error = _enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active, out IMMDeviceCollection collection);
             if (error != 0)
@@ -67,6 +69,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             var thread = new Thread(LayerThread)
             {
                 Priority = ThreadPriority.Highest,
+                IsBackground = true
             };
             thread.Start();
             while (!thread.IsAlive)
@@ -78,7 +81,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         private void LayerThread()
         {
-            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread";
+            if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread";
             const int updateInterval = BUFFER_DURATION_MS / 2;
             while(Engine.Status != EngineStatus.Stopped)
             {
