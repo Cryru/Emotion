@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
+using Emotion.Common;
 using Emotion.Platform;
 using Emotion.Utility;
 using Khronos;
@@ -215,6 +216,8 @@ namespace OpenGL
         // ReSharper disable once UnusedParameter.Local
         private static void DebugCheckErrors(object returnValue)
         {
+            if (!Engine.Configuration.GlDebugMode) return;
+
             if (SuppressingErrors) ClearErrors();
 
             CheckErrors();
