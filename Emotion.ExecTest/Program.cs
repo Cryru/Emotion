@@ -28,7 +28,7 @@ namespace Emotion.ExecTest
             config.AddPlugin(new ImGuiNetPlugin());
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new Program());
+            Engine.SceneManager.SetScene(new UITestScene());
             Engine.Run();
         }
 

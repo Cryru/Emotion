@@ -1,0 +1,58 @@
+﻿#region Using
+
+using System.Collections.Generic;
+using System.Diagnostics;
+
+#endregion
+
+#nullable enable
+
+namespace Emotion.UI
+{
+    public class UIDebugNode
+    {
+        public UIBaseWindow Window;
+
+        public UIDebugNode(UIBaseWindow window)
+        {
+            Window = window;
+        }
+
+        public List<UIDebugNode> SubNodes = new List<UIDebugNode>();
+        public Dictionary<string, object> Metrics = new Dictionary<string, object>();
+    }
+
+    public class UIDebugger
+    {
+        private UIDebugNode? _debugNodeRoot;
+        private Dictionary<UIBaseWindow, UIDebugNode>? _windowToNode;
+
+        public void RecordNewPass(UIBaseWindow root)
+        {
+            _debugNodeRoot = new UIDebugNode(root);
+            _windowToNode ??= new Dictionary<UIBaseWindow, UIDebugNode>();
+            _windowToNode.Clear();
+        }
+
+        public void RecordMetric(UIBaseWindow window, string name, object metric)
+        {
+            if (_windowToNode == null) return;
+
+            if (!_windowToNode.TryGetValue(window, out UIDebugNode? node))
+            {
+                node = new UIDebugNode(window);
+                _windowToNode.Add(window, node);
+
+                UIBaseWindow? windowParent = window.Parent;
+                if (windowParent != null)
+                {
+                    bool found = _windowToNode.TryGetValue(windowParent, out UIDebugNode? parentNode);
+                    Debug.Assert(found && parentNode != null);
+                    parentNode.SubNodes.Add(node);
+                }
+            }
+
+            node.Metrics.Add(name, metric);
+        }
+    }
+}
