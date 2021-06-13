@@ -7,13 +7,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.IO
 {
@@ -42,17 +43,17 @@ namespace Emotion.IO
         /// <summary>
         /// Currently loaded assets.
         /// </summary>
-        protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
+        protected ConcurrentDictionary<string, Asset> _loadedAssets = new();
 
         /// <summary>
         /// A list of asset paths and which asset source can serve them.
         /// </summary>
-        protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
+        protected ConcurrentDictionary<string, AssetSource> _manifest = new();
 
         /// <summary>
         /// A list of asset paths and which asset store handles them.
         /// </summary>
-        protected ConcurrentDictionary<string, IAssetStore> _storage = new ConcurrentDictionary<string, IAssetStore>();
+        protected ConcurrentDictionary<string, IAssetStore> _storage = new();
 
         /// <summary>
         /// List of all loaded assets from all sources.
@@ -150,7 +151,7 @@ namespace Emotion.IO
         /// <param name="name">The name of the asset within any loaded source.</param>
         /// <param name="cache">If set to false the asset will neither be fetched from cache, neither cached.</param>
         /// <returns>The loaded or cached asset.</returns>
-        public T Get<T>(string name, bool cache = true) where T : Asset, new()
+        public T? Get<T>(string name, bool cache = true) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name)) return default;
 
@@ -158,20 +159,17 @@ namespace Emotion.IO
             name = NameToEngineName(name);
 
             // Check if loaded.
-            Asset asset;
+            Asset? asset;
             if (cache)
-            {
-                bool loaded = _loadedAssets.TryGetValue(name, out asset);
                 // If loaded and not disposed - return it.
-                if (loaded && !asset.Disposed)
+                if (_loadedAssets.TryGetValue(name, out asset) && !asset!.Disposed)
                 {
                     Debug.Assert(asset is T, "Asset was requested twice as different types.");
                     return (T) asset;
                 }
-            }
 
             // Get the source which contains it, if any.
-            AssetSource source = GetSource(name);
+            AssetSource? source = GetSource(name);
 
             // Check if the asset was found in any source.
             if (source == null)
@@ -185,7 +183,6 @@ namespace Emotion.IO
             // Load it from the source.
             ReadOnlyMemory<byte> data = source.GetAsset(name);
             if (data.IsEmpty) return default;
-
 
             // Load the asset.
             asset = new T {Name = name};
@@ -212,7 +209,7 @@ namespace Emotion.IO
             name = NameToEngineName(name);
 
             // Find a store which matches the name folder.
-            IAssetStore store = GetStore(name);
+            IAssetStore? store = GetStore(name);
             if (store == null)
                 // If root path and in debug mode, save to the project assets.
                 if (!Engine.Configuration.DebugMode || !_storage.TryGetValue(NameToEngineName(DebugAssetStore.AssetDevPath), out store))
@@ -225,7 +222,6 @@ namespace Emotion.IO
 
                     store = _storage.FirstOrDefault().Value;
                     Engine.Log.Warning($"Tried to store asset {name} but there's no store that services that folder. Saving to debug store \"{store.Folder}\".", MessageSource.AssetLoader);
-                    if (store == null) return false;
                 }
 
             // Store the asset.
@@ -250,10 +246,10 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="name">The name of the asset.</param>
         /// <returns>The source which can load the asset, or null if none.</returns>
-        public AssetSource GetSource(string name)
+        public AssetSource? GetSource(string name)
         {
-            bool assetFound = _manifest.TryGetValue(name, out AssetSource source);
-            return assetFound ? source : null;
+            bool found = _manifest.TryGetValue(name, out AssetSource? source);
+            return found ? source : null;
         }
 
         /// <summary>
@@ -261,14 +257,14 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="name">The name of the asset.</param>
         /// <returns>The store which this asset would end up in, or null if none.</returns>
-        public IAssetStore GetStore(string name)
+        public IAssetStore? GetStore(string name)
         {
             string folder = GetFirstDirectoryName(name);
-            bool found = _storage.TryGetValue(folder, out IAssetStore store);
+            bool found = _storage.TryGetValue(folder, out IAssetStore? store);
             return found ? store : null;
         }
 
-        private Dictionary<string, Task> _asyncLoadingTasks = new Dictionary<string, Task>();
+        private Dictionary<string, Task> _asyncLoadingTasks = new();
 
         /// <summary>
         /// Get a loaded asset by its name or load it asynchronously.
@@ -278,7 +274,7 @@ namespace Emotion.IO
         /// <returns>The loaded or cached asset.</returns>
         public Task<T> GetAsync<T>(string name) where T : Asset, new()
         {
-            if (_asyncLoadingTasks.TryGetValue(name, out Task task))
+            if (_asyncLoadingTasks.TryGetValue(name, out Task? task))
                 return (Task<T>) task;
 
             task = Task.Run(() => Get<T>(name));
@@ -298,14 +294,14 @@ namespace Emotion.IO
             name = NameToEngineName(name);
 
             // Check if the asset is already loaded, if not do nothing. Also remove it from the list.
-            bool loaded = _loadedAssets.TryRemove(name, out Asset asset);
+            bool loaded = _loadedAssets.TryRemove(name, out Asset? asset);
             if (!loaded) return;
 
             // Remove async loading shortcut for this asset, as it will contain the destroyed asset.
             _asyncLoadingTasks.Remove(name);
 
             // Dispose of asset.
-            asset.Dispose();
+            asset!.Dispose();
         }
 
         #endregion
