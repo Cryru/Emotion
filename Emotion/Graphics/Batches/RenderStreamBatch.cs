@@ -310,7 +310,7 @@ namespace Emotion.Graphics.Batches
         protected IntPtr StartMappingFencedBuffer(FencedBufferSource fencedBuffer)
         {
             return (IntPtr) fencedBuffer.CurrentBuffer.DataBuffer.CreateUnsafeMapper((int) fencedBuffer.CurrentBufferOffset, fencedBuffer.CurrentBufferSize,
-                BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapFlushExplicitBit
+                BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapFlushExplicitBit | BufferAccessMask.MapInvalidateRangeBit
             );
         }
 
