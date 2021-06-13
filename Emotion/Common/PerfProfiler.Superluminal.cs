@@ -60,7 +60,7 @@ namespace Emotion.Common
             }
         }
 
-        [DllImport("PerformanceAPI.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "PerformanceAPI_GetAPI")]
+        [DllImport("AssetsNativeLibs/Superluminal/PerformanceAPI.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "PerformanceAPI_GetAPI")]
         private static extern IntPtr SuperluminalGetAPI(int version, ref SuperluminalAPI api);
 
         private static int _frameId;
