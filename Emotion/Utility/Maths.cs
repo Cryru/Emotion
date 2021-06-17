@@ -3,6 +3,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Emotion.Primitives;
 
 #endregion
 
@@ -796,6 +797,13 @@ namespace Emotion.Utility
         public static float AbsSubtract(float vel, float incr = 1.0f)
         {
             return (MathF.Abs(vel) - incr) * MathF.Sign(vel);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 GetPointAlongSegment(Vector2 pointA, Vector2 pointB, float amount01)
+        {
+            var line = new LineSegment(pointA, pointB);
+            return line.PointOnLineAtDistance(line.Length() * amount01);
         }
     }
 }
