@@ -43,6 +43,10 @@ namespace Emotion.UI
         /// </summary>
         public Vector2 ListSpacing { get; set; }
 
+        public bool Visible { get; set; } = true;
+
+        public bool DontTakeSpaceWhenHidden { get; set; }
+
         public float Z { get; set; }
         public Color Background { get; set; }
         public List<UIBaseWindow>? Children { get; set; }
@@ -136,18 +140,37 @@ namespace Emotion.UI
                         }
 
                         break;
+                    case LayoutMode.HorizontalListWrap:
                     case LayoutMode.HorizontalList:
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
                             Vector2 childSize = child.Measure(freeSpace);
+                            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
                             float spaceTaken = childSize.X;
-                            if(i != Children.Count - 1) spaceTaken += scaledSpacing.X;
+                            if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
 
                             freeSpace.X -= spaceTaken;
                             usedSpace.X += spaceTaken;
                             usedSpace.Y = MathF.Max(usedSpace.Y, childSize.Y);
+                        }
+
+                        break;
+                    case LayoutMode.VerticalListWrap:
+                    case LayoutMode.VerticalList:
+                        for (var i = 0; i < Children.Count; i++)
+                        {
+                            UIBaseWindow child = Children[i];
+                            Vector2 childSize = child.Measure(freeSpace);
+                            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+                            float spaceTaken = childSize.Y;
+                            if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
+
+                            freeSpace.Y -= spaceTaken;
+                            usedSpace.Y += spaceTaken;
+                            usedSpace.X = MathF.Max(usedSpace.X, childSize.X);
                         }
 
                         break;
@@ -177,6 +200,7 @@ namespace Emotion.UI
             switch (LayoutMode)
             {
                 case LayoutMode.Free:
+                {
                     for (var i = 0; i < Children.Count; i++)
                     {
                         UIBaseWindow child = Children[i];
@@ -185,8 +209,10 @@ namespace Emotion.UI
                     }
 
                     break;
+                }
                 case LayoutMode.HorizontalListWrap:
                 case LayoutMode.HorizontalList:
+                {
                     Vector2 pen = contentPos;
                     Vector2 sizeLeft = _measuredSize;
                     for (var i = 0; i < Children.Count; i++)
@@ -195,36 +221,52 @@ namespace Emotion.UI
                         Vector2 childSize = child._measuredSize;
                         Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, child.Anchor, childSize);
                         child.Layout(pen + pos, Vector2.Zero);
+                        if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
                         float spaceTaken = childSize.X;
-                        if(i != Children.Count - 1) spaceTaken += scaledSpacing.X;
+                        if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
 
                         pen.X += spaceTaken;
                         sizeLeft.X -= spaceTaken;
                     }
 
                     break;
+                }
                 case LayoutMode.VerticalListWrap:
                 case LayoutMode.VerticalList:
+                {
+                    Vector2 pen = contentPos;
+                    Vector2 sizeLeft = _measuredSize;
                     for (var i = 0; i < Children.Count; i++)
                     {
                         UIBaseWindow child = Children[i];
-                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, _measuredSize, child.Anchor, child._measuredSize);
-                        child.Layout(contentPos + pos, Vector2.Zero);
+                        Vector2 childSize = child._measuredSize;
+                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, child.Anchor, childSize);
+                        child.Layout(pen + pos, Vector2.Zero);
+                        if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+                        float spaceTaken = childSize.Y;
+                        if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
+
+                        pen.Y += spaceTaken;
+                        sizeLeft.Y -= spaceTaken;
                     }
 
                     break;
+                }
             }
         }
 
         public virtual void Render(RenderComposer c)
         {
+            if (!Visible) return;
             c.RenderSprite(Position.ToVec3(), Size, Background);
 
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
                 UIBaseWindow child = Children[i];
+                if (!child.Visible) continue;
                 child.Render(c);
             }
         }

@@ -28,17 +28,20 @@ namespace Emotion.ExecTest
             BasicAnchorTests(UI);
             UI.ClearChildren();
 
+            BasicHorizontalList(UI);
+            UI.ClearChildren();
+
             UI.AddChild(new UIBaseWindow
             {
                 Id = "List",
                 Background = new Color(255, 0, 0),
-               // MaxSize = new Vector2(50, 50),
-               ListSpacing = new Vector2(5, 0),
+                // MaxSize = new Vector2(50, 50),
+                ListSpacing = new Vector2(5, 5),
                 StretchX = true,
                 StretchY = true,
                 ParentAnchor = UIAnchor.CenterCenter,
                 Anchor = UIAnchor.CenterCenter,
-                LayoutMode = LayoutMode.HorizontalList
+                LayoutMode = LayoutMode.VerticalList
             });
             UIBaseWindow list = UI.GetWindowById("List");
             Debug.Assert(list != null);
@@ -47,7 +50,7 @@ namespace Emotion.ExecTest
                 list.AddChild(new UIBaseWindow
                 {
                     MaxSize = new Vector2(20, 20),
-                    Background = new Color(0, 100, 20 * i)
+                    Background = new Color(0, 100, 20 * i),
                 });
             }
 
@@ -128,7 +131,7 @@ namespace Emotion.ExecTest
             {
                 Id = "List",
                 Background = new Color(255, 0, 0),
-                ListSpacing = new Vector2(5, 0),
+                ListSpacing = new Vector2(5, 5),
                 ParentAnchor = UIAnchor.CenterCenter,
                 Anchor = UIAnchor.CenterCenter,
                 LayoutMode = LayoutMode.HorizontalList
@@ -143,7 +146,7 @@ namespace Emotion.ExecTest
                     Background = new Color(0, 100, 20 * i)
                 });
             }
-            
+
             controller.Update();
             controller.UILoadingThread.Wait();
             CompareUI("HorizontalList.xml", controller);
@@ -155,6 +158,21 @@ namespace Emotion.ExecTest
             controller.Update();
             controller.UILoadingThread.Wait();
             CompareUI("HorizontalListStretch.xml", controller);
+
+            list.LayoutMode = LayoutMode.VerticalList;
+            list.InvalidateLayout();
+
+            controller.Update();
+            controller.UILoadingThread.Wait();
+            CompareUI("VerticalListStretch.xml", controller);
+
+            list.StretchX = false;
+            list.StretchY = false;
+            list.InvalidateLayout();
+
+            controller.Update();
+            controller.UILoadingThread.Wait();
+            CompareUI("VerticalList.xml", controller);
         }
     }
 }
