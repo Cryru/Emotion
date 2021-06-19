@@ -230,10 +230,8 @@ namespace Emotion.Graphics.Batches
             else if (_currentTexture == _smoothAtlas?.AtlasPointer) _smoothAtlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
 
             // Range is relative to the mapped range, not the whole buffer.
-            _memory.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytes);
-            _memory.CurrentBuffer.DataBuffer.FinishMapping();
-            _memoryIndices.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytesIndices);
-            _memoryIndices.CurrentBuffer.DataBuffer.FinishMapping();
+            _memory.Flush(mappedBytes);
+            _memoryIndices.Flush(mappedBytesIndices);
 
             // Bind GL state.
             Texture.EnsureBound(_currentTexture);
@@ -297,21 +295,14 @@ namespace Emotion.Graphics.Batches
             if (_dataPointer == IntPtr.Zero)
             {
                 _mapOffsetStart = _memory.CurrentBufferOffset;
-                _dataPointer = StartMappingFencedBuffer(_memory);
+                _dataPointer = _memory.StartMapping();
             }
 
             if (_indexPointer == IntPtr.Zero)
             {
                 _indexMapOffsetStart = _memoryIndices.CurrentBufferOffset;
-                _indexPointer = StartMappingFencedBuffer(_memoryIndices);
+                _indexPointer = _memoryIndices.StartMapping();
             }
-        }
-
-        protected IntPtr StartMappingFencedBuffer(FencedBufferSource fencedBuffer)
-        {
-            return (IntPtr) fencedBuffer.CurrentBuffer.DataBuffer.CreateUnsafeMapper((int) fencedBuffer.CurrentBufferOffset, fencedBuffer.CurrentBufferSize,
-                BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapFlushExplicitBit | BufferAccessMask.MapInvalidateRangeBit
-            );
         }
 
         /// <summary>
