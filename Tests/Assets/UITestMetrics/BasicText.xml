@@ -1,0 +1,17 @@
+﻿<?xml version="1.0"?>
+<ArrayOfValueTupleOfStringRectangle>
+  <ValueTupleOfStringRectangle>
+    <Item2>
+      <Width>1280</Width>
+      <Height>720</Height>
+    </Item2>
+  </ValueTupleOfStringRectangle>
+  <ValueTupleOfStringRectangle>
+    <Item2>
+      <X>490.5</X>
+      <Y>335</Y>
+      <Width>299</Width>
+      <Height>50</Height>
+    </Item2>
+  </ValueTupleOfStringRectangle>
+</ArrayOfValueTupleOfStringRectangle>
