@@ -7,20 +7,11 @@ using Emotion.Graphics;
 
 namespace Emotion.Scenography
 {
-    public class Scene
+    public abstract class Scene
     {
-        public virtual Task LoadAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public virtual void Update()
-        {
-        }
-
-        public virtual void Draw(RenderComposer composer)
-        {
-        }
+        public abstract Task LoadAsync();
+        public abstract void Update();
+        public abstract void Draw(RenderComposer composer);
 
         public virtual void Unload()
         {

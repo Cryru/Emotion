@@ -23,14 +23,12 @@ namespace Emotion.Scenography
 
         public override void Update()
         {
-            base.Update();
             _innerScene.Update();
         }
 
         public override void Draw(RenderComposer composer)
         {
             _innerScene.Draw(composer);
-            base.Draw(composer);
         }
 
         public override void Unload()
