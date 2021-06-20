@@ -272,14 +272,14 @@ namespace Emotion.IO
         /// <typeparam name="T">The type of asset.</typeparam>
         /// <param name="name">The name of the asset within any loaded source.</param>
         /// <returns>The loaded or cached asset.</returns>
-        public Task<T> GetAsync<T>(string name) where T : Asset, new()
+        public Task<T?> GetAsync<T>(string name) where T : Asset, new()
         {
             if (_asyncLoadingTasks.TryGetValue(name, out Task? task))
-                return (Task<T>) task;
+                return (Task<T?>) task;
 
             task = Task.Run(() => Get<T>(name));
             _asyncLoadingTasks.Add(name, task);
-            return (Task<T>) task;
+            return (Task<T?>) task;
         }
 
         /// <summary>

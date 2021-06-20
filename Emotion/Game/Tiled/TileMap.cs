@@ -302,13 +302,13 @@ namespace Emotion.Game.Tiled
             if (TiledMap?.Tilesets == null) return;
             if (TiledMap.Tilesets.Count == 0) return;
 
-            string tileSetFolder = _tilesetFolder ?? AssetLoader.GetDirectoryName(FileName);
+            string tileSetFolder = FileName != null ? _tilesetFolder ?? AssetLoader.GetDirectoryName(FileName) : "";
 
             // Don't load the assets in parallel if running on the draw thread. This might cause a deadlock as assets will wait on
             // the draw thread to wake up in order to upload data.
             bool parallel = !GLThread.IsGLThread();
 
-            var assets = new Task<TextureAsset>[TiledMap.Tilesets.Count];
+            var assets = new Task<TextureAsset?>[TiledMap.Tilesets.Count];
             for (var i = 0; i < assets.Length; i++)
             {
                 string? tilesetFile = TiledMap.Tilesets[i]?.Source;

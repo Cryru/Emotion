@@ -190,7 +190,7 @@ namespace Tests.Classes
                     yOff += MathF.Ceiling(ascent * scaleFactor);
                     var atlasGlyph = new AtlasGlyph( (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, (int) MathF.Round(yOff))
                     {
-                        Location = new Vector2(cd[i].x0, cd[i].y0),
+                        UVLocation = new Vector2(cd[i].x0, cd[i].y0),
                         Size = new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0),
                     };
                     atlasObj.Glyphs[(char) i] = atlasGlyph;
