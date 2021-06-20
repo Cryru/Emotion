@@ -17,7 +17,7 @@ using Emotion.Standard.XML;
 
 namespace Emotion.UI
 {
-    public class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
+    public class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
     {
         #region Properties
 
@@ -47,7 +47,6 @@ namespace Emotion.UI
 
         public bool DontTakeSpaceWhenHidden { get; set; }
 
-        public float Z { get; set; }
         public Color Background { get; set; }
         public List<UIBaseWindow>? Children { get; set; }
         public Vector2 MinSize { get; set; }
@@ -60,18 +59,22 @@ namespace Emotion.UI
 
         #region State
 
-        public Vector2 Position { get; protected set; }
-        public Vector2 Size { get; protected set; }
         public UIBaseWindow? Parent { get; protected set; }
         public UIDebugger? Debugger { get; protected set; }
 
         #endregion
 
         protected bool _updateLayout = true;
+        protected Color _calculatedColor = Color.White;
 
-        public virtual Task Preload()
+        public virtual async Task Preload()
         {
-            return Task.CompletedTask;
+            if (Children != null)
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow? child = Children[i];
+                    await child.Preload();
+                }
         }
 
         public virtual void AddChild(UIBaseWindow child)
@@ -190,7 +193,7 @@ namespace Emotion.UI
             Debugger?.RecordMetric(this, "ContentSize", contentSize);
 
             Size = _measuredSize;
-            Position = contentPos;
+            Position = contentPos.ToVec3(Z);
 
             if (Children == null) return;
 
@@ -257,10 +260,10 @@ namespace Emotion.UI
             }
         }
 
-        public virtual void Render(RenderComposer c)
+        public void Render(RenderComposer c)
         {
             if (!Visible) return;
-            c.RenderSprite(Position.ToVec3(), Size, Background);
+            if (!RenderInternal(c, ref _calculatedColor)) return;
 
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
@@ -269,6 +272,11 @@ namespace Emotion.UI
                 if (!child.Visible) continue;
                 child.Render(c);
             }
+        }
+
+        protected virtual bool RenderInternal(RenderComposer c, ref Color windowColor)
+        {
+            return true;
         }
 
         #region Layout

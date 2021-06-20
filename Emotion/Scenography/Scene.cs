@@ -19,8 +19,8 @@ namespace Emotion.Scenography
 
         public virtual async Task LoadAsync()
         {
+            await UI.PreloadUI();
             UI.Update();
-            await UI.UILoadingThread;
         }
 
         public virtual void Update()

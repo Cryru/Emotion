@@ -28,31 +28,22 @@ namespace Emotion.ExecTest
             BasicAnchorTests(UI);
             UI.ClearChildren();
 
-            BasicHorizontalList(UI);
+            BasicLists(UI);
             UI.ClearChildren();
 
-            UI.AddChild(new UIBaseWindow
+            BasicText(UI);
+            UI.ClearChildren();
+
+            UI.AddChild(new UIText()
             {
-                Id = "List",
-                Background = new Color(255, 0, 0),
-                // MaxSize = new Vector2(50, 50),
-                ListSpacing = new Vector2(5, 5),
-                StretchX = true,
-                StretchY = true,
+                Text = "Hello World!",
+                FontFile = "Fonts/Junction-bold.otf",
+                FontSize = 25,
                 ParentAnchor = UIAnchor.CenterCenter,
                 Anchor = UIAnchor.CenterCenter,
-                LayoutMode = LayoutMode.VerticalList
+                TextShadow = Color.Red,
+                Underline = true
             });
-            UIBaseWindow list = UI.GetWindowById("List");
-            Debug.Assert(list != null);
-            for (var i = 0; i < 10; i++)
-            {
-                list.AddChild(new UIBaseWindow
-                {
-                    MaxSize = new Vector2(20, 20),
-                    Background = new Color(0, 100, 20 * i),
-                });
-            }
 
             await base.LoadAsync();
 
@@ -90,8 +81,8 @@ namespace Emotion.ExecTest
                 MaxSize = new Vector2(50, 50)
             });
 
+            controller.PreloadUI().Wait();
             controller.Update();
-            controller.UILoadingThread.Wait();
             CompareUI("BasicMaxSize.xml", controller);
         }
 
@@ -119,12 +110,12 @@ namespace Emotion.ExecTest
                 anchorIdx++;
             }
 
+            controller.PreloadUI().Wait();
             controller.Update();
-            controller.UILoadingThread.Wait();
             CompareUI("BasicAnchor.xml", controller);
         }
 
-        public static void BasicHorizontalList(UIController controller)
+        public static void BasicLists(UIController controller)
         {
             controller.ClearChildren();
             controller.AddChild(new UIBaseWindow
@@ -147,32 +138,51 @@ namespace Emotion.ExecTest
                 });
             }
 
+            controller.PreloadUI().Wait();
             controller.Update();
-            controller.UILoadingThread.Wait();
             CompareUI("HorizontalList.xml", controller);
 
             list.StretchX = true;
             list.StretchY = true;
             list.InvalidateLayout();
 
+            controller.PreloadUI().Wait();
             controller.Update();
-            controller.UILoadingThread.Wait();
             CompareUI("HorizontalListStretch.xml", controller);
 
             list.LayoutMode = LayoutMode.VerticalList;
             list.InvalidateLayout();
 
+            controller.PreloadUI().Wait();
             controller.Update();
-            controller.UILoadingThread.Wait();
             CompareUI("VerticalListStretch.xml", controller);
 
             list.StretchX = false;
             list.StretchY = false;
             list.InvalidateLayout();
 
+            controller.PreloadUI().Wait();
             controller.Update();
-            controller.UILoadingThread.Wait();
             CompareUI("VerticalList.xml", controller);
+        }
+        
+        public static void BasicText(UIController controller)
+        {
+            controller.ClearChildren();
+            controller.AddChild(new UIText()
+            {
+                Text = "Hello World!",
+                FontFile = "Fonts/Junction-bold.otf",
+                FontSize = 25,
+                ParentAnchor = UIAnchor.CenterCenter,
+                Anchor = UIAnchor.CenterCenter,
+                TextShadow = Color.Red,
+                Underline = true
+            });
+
+            controller.PreloadUI().Wait();
+            controller.Update();
+            CompareUI("BasicText.xml", controller);
         }
     }
 }
