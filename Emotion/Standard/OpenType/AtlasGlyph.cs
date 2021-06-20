@@ -16,15 +16,15 @@ namespace Emotion.Standard.OpenType
         /// <summary>
         /// The location of the glyph within the atlas texture.
         /// </summary>
-        public Vector2 Location { get; set; }
+        public Vector2 UVLocation { get; set; }
 
         /// <summary>
         /// The size of the glyph texture within the atlas texture.
         /// </summary>
-        public Vector2 UV { get; set; }
+        public Vector2 UVSize { get; set; }
 
         /// <summary>
-        /// The size of the glyph.
+        /// The metric size of the glyph.
         /// </summary>
         public Vector2 Size { get; set; }
 
@@ -55,7 +55,7 @@ namespace Emotion.Standard.OpenType
         public float Height { get; protected set; }
 
         /// <summary>
-        /// The height of the glyph, plus the y offset. This is essentially the drawing position of the glyph.
+        /// The height of the glyph, plus the y offset. This is essentially the top-left drawing position of the glyph texture.
         /// </summary>
         public float YBearing { get => YOffset - Height; }
 

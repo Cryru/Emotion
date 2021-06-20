@@ -524,8 +524,8 @@ namespace Emotion.Standard.OpenType
                     }
                 }
 
-                canvasGlyph.Location = atlasRect.Position;
-                canvasGlyph.UV = new Vector2(canvas.Width, canvas.Height);
+                canvasGlyph.UVLocation = atlasRect.Position;
+                canvasGlyph.UVSize = new Vector2(canvas.Width, canvas.Height);
             }
 
 #if RASTERIZER_PROFILER

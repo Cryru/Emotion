@@ -457,7 +457,7 @@ namespace Emotion.Game.Text
                     _layouter.AddToPen(new Vector2(glyphXOffset, 0));
                     Vector2 drawPos = _layouter.AddLetter(charUnicode, out AtlasGlyph g);
 
-                    composer.RenderSprite(Position + drawPos.ToVec3(), g.Size, textColor, FontAtlas.Texture, new Rectangle(g.Location, g.UV));
+                    composer.RenderSprite(Position + drawPos.ToVec3(), g.Size, textColor, FontAtlas.Texture, new Rectangle(g.UVLocation, g.UVSize));
 
                     // Increment character counter.
                     characterCounter++;
