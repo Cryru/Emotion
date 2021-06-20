@@ -61,6 +61,11 @@ namespace Emotion.Game.Tiled
             if (factoryObject != null) Objects.Add(factoryObject);
         }
 
+        protected virtual bool ShouldSpawnObjectLayer(int layerId)
+        {
+            return true;
+        }
+
         protected override void MapPostLoad()
         {
             Objects.Reset(new Rectangle(0, 0, WorldSize));
@@ -70,6 +75,8 @@ namespace Emotion.Game.Tiled
                 // For each layer with objects.
                 for (var i = 0; i < TiledMap.ObjectLayers.Count; i++)
                 {
+                    if (!ShouldSpawnObjectLayer(i)) continue;
+
                     // For each object.
                     for (var j = 0; j < TiledMap.ObjectLayers[i].Objects.Count; j++)
                     {
@@ -103,7 +110,7 @@ namespace Emotion.Game.Tiled
                             TmxObject clone = obj.Clone(); // Don't pollute obj def
                             clone.X = obj.X + layer.OffsetX + coord.X * TiledMap.TileWidth;
                             clone.Y = obj.Y + layer.OffsetY + coord.Y * TiledMap.TileHeight;
-                            CreateObjectInternal(clone, i);
+                            CreateObjectInternal(clone, -i);
                         }
                     }
                 }
@@ -295,13 +302,13 @@ namespace Emotion.Game.Tiled
             if (TiledMap?.Tilesets == null) return;
             if (TiledMap.Tilesets.Count == 0) return;
 
-            string tileSetFolder = _tilesetFolder ?? AssetLoader.GetDirectoryName(FileName);
+            string tileSetFolder = FileName != null ? _tilesetFolder ?? AssetLoader.GetDirectoryName(FileName) : "";
 
             // Don't load the assets in parallel if running on the draw thread. This might cause a deadlock as assets will wait on
             // the draw thread to wake up in order to upload data.
             bool parallel = !GLThread.IsGLThread();
 
-            var assets = new Task<TextureAsset>[TiledMap.Tilesets.Count];
+            var assets = new Task<TextureAsset?>[TiledMap.Tilesets.Count];
             for (var i = 0; i < assets.Length; i++)
             {
                 string? tilesetFile = TiledMap.Tilesets[i]?.Source;

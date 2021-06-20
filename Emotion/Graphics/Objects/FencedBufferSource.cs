@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using Emotion.Common;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -74,12 +76,15 @@ namespace Emotion.Graphics.Objects
 
         private FencedBufferObjects[] _backingBuffers;
         private int[] _fences;
+        private IntPtr _memory;
+        private static int _idx;
 
         public FencedBufferSource(uint size, int backingCount, Func<uint, FencedBufferObjects> backingFactory)
         {
             Size = size;
             BackingBuffersCount = backingCount;
 
+            //Memory = new IntPtr[BackingBuffersCount];
             _backingBuffers = new FencedBufferObjects[BackingBuffersCount];
             for (var i = 0; i < BackingBuffersCount; i++)
             {
@@ -87,6 +92,8 @@ namespace Emotion.Graphics.Objects
             }
 
             _fences = new int[BackingBuffersCount];
+            _memory = UnmanagedMemoryAllocator.MemAllocNamed((int) (BackingBuffersCount * size), $"FencedBufferSource{_idx}");
+            _idx += 1;
         }
 
         /// <summary>
@@ -125,5 +132,51 @@ namespace Emotion.Graphics.Objects
 
             _fences[CurrentBufferIdx] = 0;
         }
+
+#if GL_MAP_BUFFER_RANGE
+        public unsafe IntPtr StartMapping()
+        {
+            return (IntPtr)CurrentBuffer.DataBuffer.CreateUnsafeMapper((int)CurrentBufferOffset, CurrentBufferSize,
+                BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapFlushExplicitBit | BufferAccessMask.MapInvalidateRangeBit
+            );
+        }
+
+        public void Flush(uint sizeInBytes)
+        {
+            CurrentBuffer.DataBuffer.FinishMappingRange(0, sizeInBytes);
+            CurrentBuffer.DataBuffer.FinishMapping();
+        }
+#else
+
+        private IntPtr _currentMappingPtr;
+        private uint _currentMappingStart;
+
+        public IntPtr StartMapping()
+        {
+            if (_currentMappingPtr != IntPtr.Zero)
+            {
+                Debug.Assert(false, "Double buffer map.");
+                return IntPtr.Zero;
+            }
+
+            int fencedBufferIndex = CurrentBufferIdx;
+            _currentMappingStart = CurrentBufferOffset;
+            _currentMappingPtr = IntPtr.Add(_memory, (int) (fencedBufferIndex * Size + _currentMappingStart));
+            return _currentMappingPtr;
+        }
+
+        public void Flush(uint sizeInBytes)
+        {
+            if (_currentMappingPtr == IntPtr.Zero)
+            {
+                Debug.Assert(false, "Flush without buffer map.");
+                return;
+            }
+
+            CurrentBuffer.DataBuffer.UploadPartial(_currentMappingPtr, sizeInBytes, _currentMappingStart);
+            _currentMappingPtr = IntPtr.Zero;
+            _currentMappingStart = 0;
+        }
+#endif
     }
 }

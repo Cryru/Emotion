@@ -177,7 +177,7 @@ namespace Emotion.Graphics
             {
                 Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
                 if (g == null) continue;
-                var uv = new Rectangle(g.Location, g.UV);
+                var uv = new Rectangle(g.UVLocation, g.UVSize);
                 RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
             }
         }

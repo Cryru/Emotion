@@ -430,7 +430,7 @@ namespace Emotion.Standard.OpenType
         /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
         /// <param name="rasterizer">The rasterizer to use.</param>
         /// <returns>A single channel image representing the rendered glyphs at the specified size.</returns>
-        public FontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
+        public FontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
         {
 #if RASTERIZER_PROFILER
             var sw = Stopwatch.StartNew();
@@ -442,7 +442,7 @@ namespace Emotion.Standard.OpenType
             var lastIdx = (int) (firstChar + numChars);
 
             // The scale to render at.
-            float scale = (float) fontSize / Height;
+            float scale = fontSize / Height;
 
             var canvases = new ConcurrentDictionary<int, GlyphRenderer.GlyphCanvas>();
             ParallelWork.FastLoops(Glyphs.Length, (start, end) =>
@@ -524,8 +524,8 @@ namespace Emotion.Standard.OpenType
                     }
                 }
 
-                canvasGlyph.Location = atlasRect.Position;
-                canvasGlyph.UV = new Vector2(canvas.Width, canvas.Height);
+                canvasGlyph.UVLocation = atlasRect.Position;
+                canvasGlyph.UVSize = new Vector2(canvas.Width, canvas.Height);
             }
 
 #if RASTERIZER_PROFILER

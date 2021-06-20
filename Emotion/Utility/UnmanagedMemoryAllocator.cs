@@ -145,6 +145,8 @@ namespace Emotion.Utility
             var dbg = new StringBuilder($"Unmanaged Allocated: {Helpers.FormatByteAmountAsString(AllocatedSize)}");
             for (var i = 0; i < _allocatedMemory.Count; i++)
             {
+                if (i == 0) dbg.Append("\n");
+
                 UnmanagedMemory handle = _allocatedMemory[i];
                 dbg.AppendLine($"{handle.Address} [{handle.Label}]: {Helpers.FormatByteAmountAsString(handle.Size)}");
             }

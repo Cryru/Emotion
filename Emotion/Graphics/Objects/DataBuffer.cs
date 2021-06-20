@@ -114,12 +114,7 @@ namespace Emotion.Graphics.Objects
             }
         }
 
-        /// <summary>
-        /// Upload partial data to the buffer.
-        /// </summary>
-        /// <typeparam name="T">The type of data to upload.</typeparam>
-        /// <param name="data">The data to upload.</param>
-        /// <param name="offset">The offset to upload from.</param>
+        /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)"/>
         public void UploadPartial<T>(T[] data, uint offset = 0)
         {
             // Finish mapping - if it was.
@@ -145,13 +140,20 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="data">The data to upload.</param>
         /// <param name="size">The data's size in bytes.</param>
-        /// <param name="offset">The offset to upload from.</param>
+        /// <param name="offset">The offset to upload to.</param>
         public void UploadPartial(IntPtr data, uint size, uint offset = 0)
         {
             var offsetPtr = (IntPtr) offset;
 
-            EnsureBound(Pointer, Type);
-            Gl.BufferSubData(Type, offsetPtr, size, data);
+            if (Engine.Renderer.Dsa)
+            {
+                Gl.NamedBufferSubData(Pointer, offsetPtr, size, data);
+            }
+            else
+            {
+                EnsureBound(Pointer, Type);
+                Gl.BufferSubData(Type, offsetPtr, size, data);
+            }
         }
 
         #region Mapping
@@ -207,8 +209,6 @@ namespace Emotion.Graphics.Objects
         /// <returns>A mapper used to map data in the buffer.</returns>
         public unsafe Span<T> CreateMapper<T>(int offset = 0, int length = -1)
         {
-            EnsureBound(Pointer, Type);
-
             if (length == -1) length = (int) (Size - offset);
             if (offset + length > Size)
             {
@@ -233,8 +233,6 @@ namespace Emotion.Graphics.Objects
         /// <returns>A mapper used to map data in the buffer.</returns>
         public unsafe byte* CreateUnsafeMapper(int offset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
         {
-            EnsureBound(Pointer, Type);
-
             if (!Mapping) StartMapping(offset, length, mask);
             return !Mapping ? null : _mappingPtr;
         }

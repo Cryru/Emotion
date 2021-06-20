@@ -2,38 +2,16 @@
 
 using System.Threading.Tasks;
 using Emotion.Graphics;
-using Emotion.UI;
 
 #endregion
 
 namespace Emotion.Scenography
 {
-    public class Scene
+    public abstract class Scene
     {
-        public UIController UI
-        {
-            get => _ui ??= new UIController();
-        }
-
-        private UIController _ui;
-
-        public virtual async Task LoadAsync()
-        {
-            await UI.PreloadUI();
-            UI.Update();
-        }
-
-        public virtual void Update()
-        {
-            UI?.Update();
-        }
-
-        public virtual void Draw(RenderComposer composer)
-        {
-            if (UI == null) return;
-            composer.SetUseViewMatrix(false);
-            UI.Render(composer);
-        }
+        public abstract Task LoadAsync();
+        public abstract void Update();
+        public abstract void Draw(RenderComposer composer);
 
         public virtual void Unload()
         {
