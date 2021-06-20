@@ -41,7 +41,7 @@ namespace Tests
             {"tag=StandardText", null},
             {"tag=AnimatedTexture", null},
             {"tag=XML testOnly", null},
-            {"tag=UITests", c => { c.HostSize = new Vector2(1280, 720); }}
+            {"tag=UITests", null}
         };
 
         private static void Main(string[] args)

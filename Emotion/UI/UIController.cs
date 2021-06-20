@@ -19,6 +19,7 @@ namespace Emotion.UI
 
         public UIController()
         {
+            Color = new Color(0, 0, 0, 0);
             Debugger = new UIDebugger();
             Engine.Host.OnResize += Host_OnResize;
         }
@@ -49,8 +50,9 @@ namespace Emotion.UI
                 Debugger?.RecordNewPass(this);
                 Measure(Engine.Renderer.DrawBuffer.Size);
                 Layout(Vector2.Zero, Engine.Renderer.DrawBuffer.Size);
-                _updateLayout = false;
             }
+
+            if (_updateColor) CalculateColor();
         }
 
         protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
@@ -77,12 +79,20 @@ namespace Emotion.UI
 
         public Task UILoadingThread { get; protected set; } = Task.CompletedTask;
         private List<UIBaseWindow> _uiKeepLoaded = new List<UIBaseWindow>();
+        private List<UIBaseWindow> _uiKeepLoadedExplicit = new List<UIBaseWindow>();
         private bool _needPreload = true;
 
         public override void AddChild(UIBaseWindow child)
         {
             AddUIToPreload(child);
             base.AddChild(child);
+        }
+
+        public override void ClearChildren()
+        {
+            base.ClearChildren();
+            _uiKeepLoaded.Clear();
+            _uiKeepLoaded.AddRange(_uiKeepLoadedExplicit);
         }
 
         private void PreloadChildren()
@@ -101,6 +111,7 @@ namespace Emotion.UI
 
         public void AddUIToPreload(UIBaseWindow child)
         {
+            _uiKeepLoadedExplicit.Add(child);
             _uiKeepLoaded.Add(child);
             _needPreload = true;
         }

@@ -23,7 +23,8 @@ namespace Emotion.ExecTest
         {
             var config = new Configurator
             {
-                DebugMode = true
+                DebugMode = true,
+                HostSize = new Vector2(640, 360)
             };
             config.AddPlugin(new ImGuiNetPlugin());
 

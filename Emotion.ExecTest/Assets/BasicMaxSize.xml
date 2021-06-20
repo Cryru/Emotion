@@ -2,14 +2,14 @@
 <ArrayOfValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <Width>1280</Width>
-      <Height>720</Height>
+      <Width>640</Width>
+      <Height>360</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <Width>100</Width>
-      <Height>100</Height>
+      <Width>50</Width>
+      <Height>50</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
 </ArrayOfValueTupleOfStringRectangle>

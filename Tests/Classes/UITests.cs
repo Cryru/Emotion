@@ -41,6 +41,9 @@ namespace Tests.Classes
             BasicText(UI);
             UI.ClearChildren();
 
+            BasicTexture(UI);
+            UI.ClearChildren();
+
             await base.LoadAsync();
         }
 
@@ -69,7 +72,7 @@ namespace Tests.Classes
             controller.ClearChildren();
             controller.AddChild(new UIBaseWindow
             {
-                Background = new Color(255, 0, 0),
+                Color = new Color(255, 0, 0),
                 MaxSize = new Vector2(50, 50)
             });
 
@@ -93,7 +96,7 @@ namespace Tests.Classes
                         Id = $"{anchor} {parentAnchor}",
                         Anchor = anchor,
                         ParentAnchor = parentAnchor,
-                        Background = new Color(50 + anchorIdx * 13 + parentAnchorIdx * 13, anchorIdx * 20, parentAnchorIdx * 20),
+                        Color = new Color(50 + anchorIdx * 13 + parentAnchorIdx * 13, anchorIdx * 20, parentAnchorIdx * 20),
                         MaxSize = new Vector2(25, 25)
                     });
                     parentAnchorIdx++;
@@ -113,7 +116,7 @@ namespace Tests.Classes
             controller.AddChild(new UIBaseWindow
             {
                 Id = "List",
-                Background = new Color(255, 0, 0),
+                Color = new Color(255, 0, 0),
                 ListSpacing = new Vector2(5, 5),
                 ParentAnchor = UIAnchor.CenterCenter,
                 Anchor = UIAnchor.CenterCenter,
@@ -126,7 +129,7 @@ namespace Tests.Classes
                 list.AddChild(new UIBaseWindow
                 {
                     MaxSize = new Vector2(20, 20),
-                    Background = new Color(0, 100, 20 * i)
+                    Color = new Color(0, 100, 20 * i)
                 });
             }
 
@@ -175,6 +178,22 @@ namespace Tests.Classes
             controller.PreloadUI().Wait();
             controller.Update();
             CompareUI("BasicText.xml", controller);
+        }
+
+        public static void BasicTexture(UIController controller)
+        {
+            controller.ClearChildren();
+            controller.AddChild(new UITexture()
+            {
+                TextureFile = "Images/logoAlpha.png",
+                ParentAnchor = UIAnchor.CenterCenter,
+                Anchor = UIAnchor.CenterCenter,
+                RenderSize = new Vector2(50, 50),
+            });
+
+            controller.PreloadUI().Wait();
+            controller.Update();
+            CompareUI("BasicTexture.xml", controller);
         }
     }
 }

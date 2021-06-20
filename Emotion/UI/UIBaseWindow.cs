@@ -47,7 +47,7 @@ namespace Emotion.UI
 
         public bool DontTakeSpaceWhenHidden { get; set; }
 
-        public Color Background { get; set; }
+        public Color Color { get; set; } = Color.White;
         public List<UIBaseWindow>? Children { get; set; }
         public Vector2 MinSize { get; set; }
         public Vector2 MaxSize { get; set; } = new(9999, 9999);
@@ -65,7 +65,8 @@ namespace Emotion.UI
         #endregion
 
         protected bool _updateLayout = true;
-        protected Color _calculatedColor = Color.White;
+        protected bool _updateColor = true;
+        protected Color _calculatedColor;
 
         public virtual async Task Preload()
         {
@@ -94,7 +95,7 @@ namespace Emotion.UI
             if (evict) Children.Remove(win);
         }
 
-        public void ClearChildren()
+        public virtual void ClearChildren()
         {
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
@@ -110,6 +111,17 @@ namespace Emotion.UI
         {
             _updateLayout = true;
             Parent?.InvalidateLayout();
+        }
+
+        public void InvalidateColor()
+        {
+            _updateColor = true;
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.InvalidateColor();
+            }
         }
 
         private Vector2 _measuredSize;
@@ -258,6 +270,22 @@ namespace Emotion.UI
                     break;
                 }
             }
+
+            _updateLayout = false;
+        }
+
+        protected void CalculateColor()
+        {
+            // todo;
+            _calculatedColor = Color;
+            _updateColor = true;
+
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow? child = Children[i];
+                child.CalculateColor();
+            }
         }
 
         public void Render(RenderComposer c)
@@ -276,6 +304,7 @@ namespace Emotion.UI
 
         protected virtual bool RenderInternal(RenderComposer c, ref Color windowColor)
         {
+            c.RenderSprite(Position, Size, windowColor);
             return true;
         }
 

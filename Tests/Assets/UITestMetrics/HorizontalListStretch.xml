@@ -2,97 +2,97 @@
 <ArrayOfValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <Width>1280</Width>
-      <Height>720</Height>
+      <Width>640</Width>
+      <Height>360</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item1>List</Item1>
     <Item2>
-      <X>395</X>
-      <Y>340</Y>
-      <Width>490</Width>
-      <Height>40</Height>
+      <X>197.5</X>
+      <Y>170</Y>
+      <Width>245</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>395</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>197.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>445</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>222.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>495</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>247.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>545</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>272.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>595</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>297.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>645</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>322.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>695</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>347.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>745</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>372.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>795</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>397.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>845</X>
-      <Y>340</Y>
-      <Width>40</Width>
-      <Height>40</Height>
+      <X>422.5</X>
+      <Y>170</Y>
+      <Width>20</Width>
+      <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
 </ArrayOfValueTupleOfStringRectangle>
