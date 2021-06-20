@@ -3,10 +3,8 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Primitives;
-using Emotion.Scenography;
 using Emotion.Test;
 using Emotion.UI;
 using UIDescriptionAsset = Emotion.IO.XMLAsset<(string, Emotion.Primitives.Rectangle)[]>;
@@ -21,30 +19,22 @@ namespace Tests.Classes
         [Test]
         public static void RunUITests()
         {
-            Engine.SceneManager.SetScene(new UITestScene()).Wait();
-        }
-    }
+            var ui = new UIController();
 
-    public class UITestScene : Scene
-    {
-        public override async Task LoadAsync()
-        {
-            BasicMaxSize(UI);
-            UI.ClearChildren();
+            BasicMaxSize(ui);
+            ui.ClearChildren();
 
-            BasicAnchorTests(UI);
-            UI.ClearChildren();
+            BasicAnchorTests(ui);
+            ui.ClearChildren();
 
-            BasicLists(UI);
-            UI.ClearChildren();
+            BasicLists(ui);
+            ui.ClearChildren();
 
-            BasicText(UI);
-            UI.ClearChildren();
+            BasicText(ui);
+            ui.ClearChildren();
 
-            BasicTexture(UI);
-            UI.ClearChildren();
-
-            await base.LoadAsync();
+            BasicTexture(ui);
+            ui.ClearChildren();
         }
 
         private static void CompareUI(string file, UIController controller)
@@ -183,7 +173,7 @@ namespace Tests.Classes
         public static void BasicTexture(UIController controller)
         {
             controller.ClearChildren();
-            controller.AddChild(new UITexture()
+            controller.AddChild(new UITexture
             {
                 TextureFile = "Images/logoAlpha.png",
                 ParentAnchor = UIAnchor.CenterCenter,
