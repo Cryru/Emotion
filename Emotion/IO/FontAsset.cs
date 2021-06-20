@@ -68,8 +68,12 @@ namespace Emotion.IO
         /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
         /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
         /// <param name="smooth">Whether to apply bilinear filtering to the texture. You most likely want this.</param>
+        /// <param name="pixelFont">
+        /// If the font should be rendered pixel perfect. If set to true the font size passed is
+        /// overwritten with the closest one.
+        /// </param>
         /// <returns></returns>
-        public DrawableFontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
+        public DrawableFontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true, bool pixelFont = false)
         {
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
 
@@ -77,9 +81,19 @@ namespace Emotion.IO
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found) return atlas;
 
+            // Scale to closest power of two.
+            float sizeFloat = fontSize;
+            if (pixelFont)
+            {
+                float fontHeight = Font.Height;
+                float scaleFactor = fontHeight / fontSize;
+                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
+                sizeFloat = fontHeight / scaleFactorP2;
+            }
+
             // Load the atlas manually.
             PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-            FontAtlas standardAtlas = Font.GetAtlas(fontSize, firstChar, numChars, _rasterizer);
+            FontAtlas standardAtlas = Font.GetAtlas(sizeFloat, firstChar, numChars, _rasterizer);
             atlas = new DrawableFontAtlas(standardAtlas, smooth);
             PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
 
@@ -88,19 +102,11 @@ namespace Emotion.IO
             return atlas;
         }
 
-        /// <summary>
-        /// Get a font atlas that can be used for text drawing.
-        /// Atlases are cached, so requesting the same one twice will return the same reference.
-        /// </summary>
-        /// <param name="fontSize">The size of the font.</param>
-        /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
-        /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
-        /// <param name="smooth">Whether to apply bilinear filtering to the texture. You most likely want this.</param>
-        /// <returns></returns>
+        /// <inheritdoc cref="GetAtlas(int, uint, int, bool, bool)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DrawableFontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
         {
-            var intFontSize = (int) MathF.Ceiling(fontSize);
+            var intFontSize = (int) MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
             return GetAtlas(intFontSize, firstChar, numChars, smooth);
         }
 
