@@ -1,10 +1,10 @@
 ﻿#region Using
 
-using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Scenography;
 using Emotion.Standard.XML;
@@ -17,12 +17,14 @@ namespace Emotion.ExecTest
 {
     public class UITestScene : Scene
     {
+        public UIController UI = new UIController();
+
         public override async Task LoadAsync()
         {
             UI.Color = new Color(32, 32, 32);
             UI.DrawDebugGrid = true;
 
-            UI.AddChild(new UITexture()
+            UI.AddChild(new UITexture
             {
                 TextureFile = "Images/logoAlpha.png",
                 ParentAnchor = UIAnchor.CenterCenter,
@@ -30,11 +32,20 @@ namespace Emotion.ExecTest
                 RenderSize = new Vector2(50, 50),
             });
 
-            await base.LoadAsync();
-
             (string, Rectangle)[] desc = UI.GetLayoutDescription();
             string txt = XMLFormat.To(desc);
             bool a = true;
+        }
+
+        public override void Update()
+        {
+            UI.Update();
+        }
+
+        public override void Draw(RenderComposer composer)
+        {
+            composer.SetUseViewMatrix(false);
+            UI.Render(composer);
         }
 
         private static void CompareUI(string file, UIController controller)
@@ -56,7 +67,5 @@ namespace Emotion.ExecTest
                 Debug.Assert(idMatches && rectMatches);
             }
         }
-
-
     }
 }
