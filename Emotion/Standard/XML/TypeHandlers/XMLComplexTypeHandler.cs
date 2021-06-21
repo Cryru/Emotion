@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -33,7 +34,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <summary>
         /// The handler for this type's base class (if any).
         /// </summary>
-        private readonly XMLComplexTypeHandler _baseClass;
+        protected XMLComplexTypeHandler _baseClass;
 
         /// <summary>
         /// The default value of the complex type when constructed.
@@ -42,8 +43,18 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public XMLComplexTypeHandler(Type type) : base(type)
         {
+            // Check if the type is excluding any fields.
+            ExcludeMembersAttribute exclusionAttribute = null;
+            object[] exclusions = type.GetCustomAttributes(typeof(ExcludeMembersAttribute), true);
+            if (exclusions.Length > 0) exclusionAttribute = exclusions[0] as ExcludeMembersAttribute;
+
             // Check if inheriting anything.
-            if (Type.BaseType != typeof(object)) _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
+            if (Type.BaseType != null && Type.BaseType != typeof(object))
+            {
+                _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
+                if (_baseClass != null && exclusionAttribute != null) _baseClass = (XMLComplexTypeHandler) _baseClass.DeriveWithExclusions(exclusionAttribute);
+            }
+
             _defaultConstruct = Activator.CreateInstance(type, true);
         }
 
@@ -98,24 +109,28 @@ namespace Emotion.Standard.XML.TypeHandlers
 
                 object propertyVal = field.ReflectionInfo.GetValue(obj);
                 string fieldName = field.Name;
+                object defaultValue = field.DefaultValue;
+
+                // Serialize null as self closing tag.
+                if (propertyVal == null)
+                {
+                    if (defaultValue == null) continue;
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+                    output.Append($"<{fieldName}/>\n");
+                    continue;
+                }
+
+                // If the property value is the same as the default value don't serialize it.
+                if (propertyVal.Equals(defaultValue)) continue;
+
                 bool serialized = field.TypeHandler.Serialize(propertyVal, output, indentation, recursionChecker, fieldName);
 
                 // If not serialized that means the value passed is the default one of the type.
-                // However we want to know if the value is the field's default.
+                // However we want to serialize it in this case, since it isn't the default of the field.
+                // We do so by creating a field tag without contents, which will result in a default for the field-type value.
                 if (serialized) continue;
-
-                object defaultValue = field.DefaultValue;
-                if (propertyVal == null || defaultValue == null)
-                {
-                    if (propertyVal == defaultValue) continue;
-                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-                    output.Append($"<{fieldName}/>\n");
-                }
-                else if (!propertyVal.Equals(defaultValue))
-                {
-                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-                    output.Append($"<{fieldName}></{fieldName}>\n");
-                }
+                output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+                output.Append($"<{fieldName}></{fieldName}>\n");
             }
         }
 
@@ -164,6 +179,20 @@ namespace Emotion.Standard.XML.TypeHandlers
             return _baseClass != null && _baseClass.GetFieldHandler(tag, out handler);
         }
 
+        
+        /// <summary>
+        /// Derive with exclusions recursively down the base type.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override XMLComplexBaseTypeHandler DeriveWithExclusions(ExcludeMembersAttribute exclusions)
+        {
+            var clone = (XMLComplexTypeHandler) MemberwiseClone();
+            clone._exclusions = exclusions.Members;
+            if (clone._baseClass != null) clone._baseClass = (XMLComplexTypeHandler) clone._baseClass.DeriveWithExclusions(exclusions);
+
+            return clone;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected XMLComplexTypeHandler GetDerivedTypeHandler(object obj, out string derivedType)
         {
@@ -181,6 +210,31 @@ namespace Emotion.Standard.XML.TypeHandlers
             // wtf?
             Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {TypeName}", MessageSource.XML);
             return null;
+        }
+
+        public override IEnumerator<XMLFieldHandler> EnumFields()
+        {
+            Dictionary<string, XMLFieldHandler> handlers = _fieldHandlers.Value;
+            foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
+            {
+                XMLFieldHandler fieldHandler = field.Value;
+                if (IsFieldExcluded(fieldHandler)) continue;
+                yield return fieldHandler;
+            }
+
+            XMLComplexTypeHandler baseClass = _baseClass;
+            while (baseClass != null)
+            {
+                handlers = baseClass._fieldHandlers.Value;
+                foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
+                {
+                    XMLFieldHandler fieldHandler = field.Value;
+                    if (baseClass.IsFieldExcluded(fieldHandler)) continue;
+                    yield return fieldHandler;
+                }
+
+                baseClass = baseClass._baseClass;
+            }
         }
 
         public override bool IsRecursiveWith(Type type)

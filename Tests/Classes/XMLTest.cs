@@ -652,5 +652,54 @@ namespace Tests.Classes
             Assert.True(restored.Derived == null);
             Assert.True(restored.Nullable == null);
         }
+
+        public class TypeWithExcludedMembersGrandparent
+        {
+            public int GrandparentNum;
+            public string ExcludedDeepField;
+        }
+
+        public class TypeWithExcludedMembersDirectParent : TypeWithExcludedMembersGrandparent
+        {
+            public int ParentNum;
+            public string ExcludedInheritedField;
+        }
+
+        [ExcludeMembers("ExcludedDirectField", "ExcludedInheritedField", "ExcludedDeepField")]
+        public class TypeWithExcludedMembers : TypeWithExcludedMembersDirectParent
+        {
+            public int Num;
+            public string ExcludedDirectField;
+
+            [ExcludeMembers("GrandparentNum")] public TypeWithExcludedMembersGrandparent NestedClassExclusion;
+        }
+
+        [Test]
+        public void Exclusions()
+        {
+            string xml = XMLFormat.To(new TypeWithExcludedMembers
+            {
+                Num = 1,
+                ParentNum = 2,
+                GrandparentNum = 3,
+                ExcludedDirectField = "Hi",
+                ExcludedInheritedField = "Hii",
+                ExcludedDeepField = "Hiii",
+                NestedClassExclusion = new TypeWithExcludedMembersGrandparent
+                {
+                    GrandparentNum = 99,
+                    ExcludedDeepField = "This one isn't excluded"
+                }
+            });
+            var restored = XMLFormat.From<TypeWithExcludedMembers>(xml);
+            Assert.Equal(restored.Num, 1);
+            Assert.Equal(restored.ParentNum, 2);
+            Assert.Equal(restored.GrandparentNum, 3);
+            Assert.Equal(restored.ExcludedDirectField, "Hi"); // Cant exclude direct fields. Use DontSerialize on them.
+            Assert.True(restored.ExcludedInheritedField == null);
+            Assert.True(restored.ExcludedDeepField == null);
+            Assert.Equal(restored.NestedClassExclusion.GrandparentNum, 0);
+            Assert.Equal(restored.NestedClassExclusion.ExcludedDeepField, "This one isn't excluded");
+        }
     }
 }
