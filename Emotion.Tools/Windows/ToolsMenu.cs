@@ -45,6 +45,7 @@ namespace Emotion.Tools.Windows
             {
                 if (ImGui.MenuItem("Map Viewer")) manager.AddWindow(new MapViewer());
                 if (ImGui.MenuItem("Collision Viewer")) manager.AddWindow(new CollisionViewer());
+                if (ImGui.MenuItem("UI Editor")) manager.AddWindow(new UIEditor());
                 ImGui.EndMenu();
             }
 

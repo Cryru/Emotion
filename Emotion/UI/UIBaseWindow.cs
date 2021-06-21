@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
@@ -17,6 +18,7 @@ using Emotion.Standard.XML;
 
 namespace Emotion.UI
 {
+    [ExcludeMembers("Position", "Size")]
     public class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
     {
         #region Properties
@@ -73,7 +75,7 @@ namespace Emotion.UI
             if (Children != null)
                 for (var i = 0; i < Children.Count; i++)
                 {
-                    UIBaseWindow? child = Children[i];
+                    UIBaseWindow child = Children[i];
                     await child.Preload();
                 }
         }
@@ -495,7 +497,7 @@ namespace Emotion.UI
 
         public override string ToString()
         {
-            return $"{GetType()} {Id} - {base.ToString()}";
+            return $"{GetType().ToString().Replace("Emotion.UI.", "")} {Id}";
         }
 
         #region Enum

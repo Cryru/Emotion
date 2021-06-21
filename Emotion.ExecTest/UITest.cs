@@ -22,7 +22,6 @@ namespace Emotion.ExecTest
         public override async Task LoadAsync()
         {
             UI.Color = new Color(32, 32, 32);
-            UI.DrawDebugGrid = true;
 
             UI.AddChild(new UITexture
             {
