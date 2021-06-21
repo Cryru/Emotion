@@ -13,6 +13,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
         public string Title { get; set; }
 
         public bool Open = true;
+        public bool MenuBar = false;
         public bool CantClose = false;
 
         public Vector2 Position { get; set; }
@@ -27,16 +28,19 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 
         public virtual void OnOpen()
         {
-
         }
 
         public virtual void Render(Vector2 spawnOffset, RenderComposer composer)
         {
             ImGui.SetNextWindowPos(spawnOffset, ImGuiCond.Appearing);
+
+            var flags = ImGuiWindowFlags.AlwaysAutoResize;
+            if (MenuBar) flags |= ImGuiWindowFlags.MenuBar;
+
             if (CantClose)
-                ImGui.Begin(Title, ImGuiWindowFlags.AlwaysAutoResize);
+                ImGui.Begin(Title, flags);
             else
-                ImGui.Begin(Title, ref Open, ImGuiWindowFlags.AlwaysAutoResize);
+                ImGui.Begin(Title, ref Open, flags);
             Position = ImGui.GetWindowPos();
             Size = ImGui.GetWindowSize();
             RenderContent(composer);
@@ -48,7 +52,6 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 
         public virtual void Dispose()
         {
-
         }
     }
 }
