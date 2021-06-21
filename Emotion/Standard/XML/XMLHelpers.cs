@@ -13,6 +13,8 @@ using Emotion.Utility;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.XML
 {
     public static class XMLHelpers
@@ -26,30 +28,30 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Every complex type is analyzed using reflection to determine how to serialize it.
         /// </summary>
-        private static readonly LazyConcurrentDictionary<Type, XMLTypeHandler> Handlers = new LazyConcurrentDictionary<Type, XMLTypeHandler>();
+        private static readonly LazyConcurrentDictionary<Type, XMLTypeHandler?> Handlers = new();
 
         /// <summary>
         /// Type names which are resolved are added here.
         /// </summary>
-        private static readonly LazyConcurrentDictionary<string, Type> ResolvedTypes = new LazyConcurrentDictionary<string, Type>();
+        private static readonly LazyConcurrentDictionary<string, Type?> ResolvedTypes = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static XMLTypeHandler GetTypeHandler(Type type)
+        public static XMLTypeHandler? GetTypeHandler(Type type)
         {
             // Check if type is excluded.
             if (type.GetCustomAttributes(true).Any(x => x is DontSerializeAttribute)) return null;
             return Handlers.GetOrAddValue(type, TypeHandlerFactory);
         }
 
-        private static XMLTypeHandler TypeHandlerFactory(Type type)
+        private static XMLTypeHandler? TypeHandlerFactory(Type type)
         {
             type = GetOpaqueType(type, out bool opaque);
 
             // Index name.
-            string typeName = GetTypeName(type);
-            ResolvedTypes.TryAdd(typeName, new Lazy<Type>(type));
+            string typeName = GetTypeName(type)!;
+            ResolvedTypes.TryAdd(typeName, new Lazy<Type?>(type));
 
-            XMLTypeHandler newHandler = null;
+            XMLTypeHandler? newHandler = null;
 
             // Trivial types.
             if (type.IsPrimitive) newHandler = new XMLPrimitiveTypeHandler(type, opaque);
@@ -62,15 +64,15 @@ namespace Emotion.Standard.XML
                 Type elementType;
                 if (type.IsArray)
                 {
-                    elementType = type.GetElementType();
-                    XMLTypeHandler elementTypeHandler = GetTypeHandler(elementType);
+                    elementType = type.GetElementType()!;
+                    XMLTypeHandler? elementTypeHandler = GetTypeHandler(elementType);
                     if (elementTypeHandler == null) return null; // DontSerialize element type.
                     newHandler = new XMLArrayTypeHandler(type, elementType, elementTypeHandler);
                 }
                 else if (type.GetInterface("IList") != null)
                 {
-                    elementType = type.GetGenericArguments().FirstOrDefault();
-                    XMLTypeHandler elementTypeHandler = GetTypeHandler(elementType);
+                    elementType = type.GetGenericArguments().FirstOrDefault()!;
+                    XMLTypeHandler? elementTypeHandler = GetTypeHandler(elementType);
                     if (elementTypeHandler == null) return null; // DontSerialize element type.
                     newHandler = new XMLListHandler(type, elementType, elementTypeHandler);
                 }
@@ -81,7 +83,7 @@ namespace Emotion.Standard.XML
                     Type keyType = generics[0];
                     Type valueType = generics[1];
                     elementType = KeyValuePairType.MakeGenericType(keyType, valueType);
-                    XMLTypeHandler elementTypeHandler = GetTypeHandler(elementType);
+                    XMLTypeHandler? elementTypeHandler = GetTypeHandler(elementType);
                     newHandler = new XMLDictionaryTypeHandler(type, elementTypeHandler);
                 }
             }
@@ -101,16 +103,16 @@ namespace Emotion.Standard.XML
         /// <param name="typeName">The name of the type.</param>
         /// <returns>The type under that name.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Type GetTypeByName(string typeName)
+        public static Type? GetTypeByName(string typeName)
         {
             return ResolvedTypes.GetOrAddValue(typeName, GetTypeByNameFactory);
         }
 
-        private static Type GetTypeByNameFactory(string typeName)
+        private static Type? GetTypeByNameFactory(string typeName)
         {
             for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
             {
-                Type type = Helpers.AssociatedAssemblies[i].GetType(typeName, false, true);
+                Type? type = Helpers.AssociatedAssemblies[i].GetType(typeName, false, true);
                 if (type == null) continue;
                 return type;
             }
@@ -126,7 +128,7 @@ namespace Emotion.Standard.XML
         /// <param name="full">Whether you want the full name - assembly and type.</param>
         /// <returns>The type name.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetTypeName(Type type, bool full = false)
+        public static string? GetTypeName(Type type, bool full = false)
         {
             if (!type.IsArray && !type.IsGenericType) return full ? type.FullName : type.Name;
 
@@ -134,12 +136,12 @@ namespace Emotion.Standard.XML
             if (type.IsArray)
             {
                 typeName.Append("ArrayOf");
-                typeName.Append(GetTypeName(type.GetElementType()));
+                typeName.Append(GetTypeName(type.GetElementType()!));
                 return typeName.ToString();
             }
 
             Type[] generics = type.GetGenericArguments();
-            string name = full ? type.FullName : type.Name;
+            string? name = full ? type.FullName : type.Name;
             if (name == null) return null;
 
             int genericSeperator = name.IndexOf("`", StringComparison.Ordinal);
@@ -163,7 +165,7 @@ namespace Emotion.Standard.XML
         public static Type GetOpaqueType(Type type, out bool opaque)
         {
             // Nullable types are transparent in XML.
-            Type underNullable = Nullable.GetUnderlyingType(type);
+            Type? underNullable = Nullable.GetUnderlyingType(type);
             if (underNullable != null)
             {
                 opaque = false;
@@ -181,9 +183,9 @@ namespace Emotion.Standard.XML
         /// <param name="property">The reflection handler for the field.</param>
         /// <returns>A handler for the specified field.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static XMLFieldHandler ResolveFieldHandler(Type type, ReflectedMemberHandler property)
+        public static XMLFieldHandler? ResolveFieldHandler(Type type, ReflectedMemberHandler property)
         {
-            XMLTypeHandler typeHandler = GetTypeHandler(type);
+            XMLTypeHandler? typeHandler = GetTypeHandler(type);
             return typeHandler == null ? null : new XMLFieldHandler(property, typeHandler); // TypeHandler is null if an excluded type.
         }
 
@@ -194,9 +196,9 @@ namespace Emotion.Standard.XML
         /// <param name="property">The reflection handler for the field.</param>
         /// <param name="exclusions">The exclusions to apply.</param>
         /// <returns>A handler for the specified field.</returns>
-        public static XMLFieldHandler ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, ExcludeMembersAttribute exclusions = null)
+        public static XMLFieldHandler? ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, ExcludeMembersAttribute? exclusions = null)
         {
-            XMLTypeHandler typeHandler = GetTypeHandler(type);
+            XMLTypeHandler? typeHandler = GetTypeHandler(type);
             if (typeHandler == null) return null;
 
             if (exclusions != null)
@@ -216,11 +218,11 @@ namespace Emotion.Standard.XML
         /// <param name="reader">The XML reader primed just before the tag.</param>
         /// <param name="tag">The read tag.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static XMLTypeHandler GetDerivedTypeHandlerFromXMLTag(XMLReader reader, out string tag)
+        public static XMLTypeHandler? GetDerivedTypeHandlerFromXMLTag(XMLReader reader, out string tag)
         {
-            tag = reader.SerializationReadTagAndTypeAttribute(out string typeAttribute);
+            tag = reader.SerializationReadTagAndTypeAttribute(out string? typeAttribute);
             if (typeAttribute == null) return null;
-            Type derivedType = GetTypeByName(typeAttribute);
+            Type? derivedType = GetTypeByName(typeAttribute);
             if (derivedType != null) return GetTypeHandler(derivedType);
             Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
             return null;

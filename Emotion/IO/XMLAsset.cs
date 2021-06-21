@@ -34,5 +34,13 @@ namespace Emotion.IO
         protected override void DisposeInternal()
         {
         }
+
+        public static XMLAsset<T> CreateFromContent(T content)
+        {
+            return new XMLAsset<T>
+            {
+                Content = content
+            };
+        }
     }
 }

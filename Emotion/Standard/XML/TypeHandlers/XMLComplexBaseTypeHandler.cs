@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
@@ -38,8 +37,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Only serialize properties with public get; set; and who aren't marked as "DontSerialize"
                 MethodInfo readMethod = property.GetMethod;
                 MethodInfo writeMethod = property.SetMethod;
-                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null || !readMethod.IsPublic || !writeMethod.IsPublic ||
-                    property.CustomAttributes.Any(x => x.AttributeType == XMLHelpers.DontSerializeAttributeType)) continue;
+                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null ||
+                    !readMethod.IsPublic || !writeMethod.IsPublic || property.GetCustomAttribute<DontSerializeAttribute>() != null) continue;
 
                 var excludeProp = property.GetCustomAttribute<ExcludeMembersAttribute>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, new ReflectedMemberHandler(property), excludeProp);
@@ -52,7 +51,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 FieldInfo field = fields[i];
 
                 // Exclude fields marked as "DontSerialize"
-                if (field.CustomAttributes.Any(x => x.AttributeType == XMLHelpers.DontSerializeAttributeType)) continue;
+                if (field.GetCustomAttribute<DontSerializeAttribute>() != null) continue;
 
                 var excludeProp = field.GetCustomAttribute<ExcludeMembersAttribute>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(field.FieldType, new ReflectedMemberHandler(field), excludeProp);
@@ -66,7 +65,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         #region Exclusion Support
 
         /// <summary>
-        /// Any applied exclusions.
+        /// Exclusions applied from fields/properties of other classes.
         /// </summary>
         protected HashSet<string> _exclusions;
 
@@ -76,7 +75,8 @@ namespace Emotion.Standard.XML.TypeHandlers
             return _exclusions != null && _exclusions.Contains(fieldHandler.Name);
         }
 
-        public XMLComplexBaseTypeHandler DeriveWithExclusions(ExcludeMembersAttribute exclusions)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual XMLComplexBaseTypeHandler DeriveWithExclusions(ExcludeMembersAttribute exclusions)
         {
             var clone = (XMLComplexBaseTypeHandler) MemberwiseClone();
             clone._exclusions = exclusions.Members;
@@ -84,5 +84,14 @@ namespace Emotion.Standard.XML.TypeHandlers
         }
 
         #endregion
+
+        public virtual IEnumerator<XMLFieldHandler> EnumFields()
+        {
+            Dictionary<string, XMLFieldHandler> handlers = _fieldHandlers.Value;
+            foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
+            {
+                yield return field.Value;
+            }
+        }
     }
 }
