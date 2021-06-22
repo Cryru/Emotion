@@ -38,19 +38,19 @@ namespace Emotion.Standard.XML
             var reader = new XMLReader(xml);
             reader.GoToNextTag();
 
-            // Check if the handler is supposed to be of a derived type. Otherwise use the handler of the requested type.
-            XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(reader, out string tag) ?? requestedType;
+            // Check if the handler is supposed to be of an inherited type. Otherwise use the handler of the requested type.
+            XMLTypeHandler handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(reader, out string tag) ?? requestedType;
             Type headerTagType = XMLHelpers.GetTypeByName(tag);
             if (headerTagType == null || headerTagType != type)
             {
-                Engine.Log.Warning($"Tried to deserialize a document with header type {headerTagType}({tag}) while expecting derivative of {type}.", MessageSource.XML);
+                Engine.Log.Warning($"Tried to deserialize a document with header type {headerTagType}({tag}) while expecting inherited from {type}.", MessageSource.XML);
                 return default;
             }
 
             // Verify whether document is of an assignable type.
             if (!type.IsAssignableFrom(handler.Type))
             {
-                Engine.Log.Warning($"Tried to deserialize a document of type {handler.TypeName} while expecting derivative of {type}.", MessageSource.XML);
+                Engine.Log.Warning($"Tried to deserialize a document of type {handler.TypeName} while expecting inherited from {type}.", MessageSource.XML);
                 return default;
             }
 

@@ -8,14 +8,15 @@ using System.Collections.Generic;
 namespace Emotion.Common.Serialization
 {
     /// <summary>
-    /// Exclude members from serialization of this member object.
+    /// Exclude members from serialization of the class applied to, going down the inheritance.
+    /// If applied to a field it will exclude the members from that field's instance.
     /// If the fields exist in a deserialization document, they will be set.
     /// </summary>
-    public class ExcludeMembersAttribute : Attribute
+    public class DontSerializeMembers : Attribute
     {
         public HashSet<string> Members;
 
-        public ExcludeMembersAttribute(params string[] members)
+        public DontSerializeMembers(params string[] members)
         {
             Members = new HashSet<string>();
             for (var i = 0; i < members.Length; i++)

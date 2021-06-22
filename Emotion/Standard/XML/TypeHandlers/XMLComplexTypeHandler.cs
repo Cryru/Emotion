@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
@@ -44,17 +43,21 @@ namespace Emotion.Standard.XML.TypeHandlers
         public XMLComplexTypeHandler(Type type) : base(type)
         {
             // Check if the type is excluding any fields.
-            ExcludeMembersAttribute exclusionAttribute = null;
-            object[] exclusions = type.GetCustomAttributes(typeof(ExcludeMembersAttribute), true);
-            if (exclusions.Length > 0) exclusionAttribute = exclusions[0] as ExcludeMembersAttribute;
+            DontSerializeMembers exclusion = null;
+            object[] exclusions = type.GetCustomAttributes(typeof(DontSerializeMembers), true);
+            if (exclusions.Length > 0) exclusion = exclusions[0] as DontSerializeMembers;
+            if (exclusion != null) AddExclusions(exclusion);
 
             // Check if inheriting anything.
             if (Type.BaseType != null && Type.BaseType != typeof(object))
             {
                 _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
-                if (_baseClass != null && exclusionAttribute != null) _baseClass = (XMLComplexTypeHandler) _baseClass.DeriveWithExclusions(exclusionAttribute);
+
+                // If we have exclusions then clone the base class handler with them. This will also clone its base class, and so forth.
+                if (_baseClass != null && exclusion != null) _baseClass = (XMLComplexTypeHandler) _baseClass.CloneWithExclusions(exclusion);
             }
 
+            // Create default value reference.
             _defaultConstruct = Activator.CreateInstance(type, true);
         }
 
@@ -84,12 +87,12 @@ namespace Emotion.Standard.XML.TypeHandlers
                 }
             }
 
-            // Handle derived type.
-            XMLComplexTypeHandler typeHandler = GetDerivedTypeHandler(obj, out string derivedType) ?? this;
+            // Handle inherited type.
+            XMLComplexTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string inheritedType) ?? this;
 
             fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-            output.Append(derivedType == null ? $"<{fieldName}>\n" : $"<{fieldName} type=\"{derivedType}\">\n");
+            output.Append(inheritedType == null ? $"<{fieldName}>\n" : $"<{fieldName} type=\"{inheritedType}\">\n");
             typeHandler.SerializeFields(obj, output, indentation + 1, recursionChecker);
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append($"</{fieldName}>\n");
@@ -142,7 +145,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             input.GoToNextTag();
             while (input.Depth >= depth && !input.Finished)
             {
-                XMLTypeHandler derivedHandler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string currentTag);
+                XMLTypeHandler inheritedHandler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string currentTag);
                 var nullValue = false;
                 if (currentTag[^1] == '/')
                 {
@@ -156,10 +159,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                     return newObj;
                 }
 
-                // Derived type.
-                if (derivedHandler != null) field = new XMLFieldHandler(field.ReflectionInfo, derivedHandler);
-
-                object val = nullValue ? null : field.TypeHandler.Deserialize(input);
+                XMLTypeHandler typeHandler = inheritedHandler ?? field.TypeHandler;
+                object val = nullValue ? null : typeHandler.Deserialize(input);
                 field.ReflectionInfo.SetValue(newObj, val);
                 input.GoToNextTag();
             }
@@ -179,31 +180,30 @@ namespace Emotion.Standard.XML.TypeHandlers
             return _baseClass != null && _baseClass.GetFieldHandler(tag, out handler);
         }
 
-        
         /// <summary>
-        /// Derive with exclusions recursively down the base type.
+        /// Clone with exclusions recursively down the inheritance chain.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override XMLComplexBaseTypeHandler DeriveWithExclusions(ExcludeMembersAttribute exclusions)
+        public override XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembers exclusions)
         {
-            var clone = (XMLComplexTypeHandler) MemberwiseClone();
-            clone._exclusions = exclusions.Members;
-            if (clone._baseClass != null) clone._baseClass = (XMLComplexTypeHandler) clone._baseClass.DeriveWithExclusions(exclusions);
+            var clone = (XMLComplexTypeHandler) Clone();
+            clone.AddExclusions(exclusions);
+            if (clone._baseClass != null) clone._baseClass = (XMLComplexTypeHandler) clone._baseClass.CloneWithExclusions(exclusions);
 
             return clone;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected XMLComplexTypeHandler GetDerivedTypeHandler(object obj, out string derivedType)
+        protected XMLComplexTypeHandler GetInheritedTypeHandler(object obj, out string inheritedType)
         {
-            derivedType = null;
+            inheritedType = null;
             Type objType = obj.GetType();
             if (objType == Type) return null;
 
             // Encountering a type which inherits from this type.
             if (Type.IsAssignableFrom(objType))
             {
-                derivedType = XMLHelpers.GetTypeName(objType, true);
+                inheritedType = XMLHelpers.GetTypeName(objType, true);
                 return (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(objType);
             }
 
@@ -239,7 +239,14 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public override bool IsRecursiveWith(Type type)
         {
-            return type.IsAssignableFrom(Type) || _fieldHandlers.Value.Any(x => x.Value.TypeHandler.IsRecursiveWith(type));
+            Dictionary<string, XMLFieldHandler> fields = _fieldHandlers.Value;
+            foreach (KeyValuePair<string, XMLFieldHandler> field in fields)
+            {
+                XMLTypeHandler typeHandler = field.Value.TypeHandler;
+                if (type.IsAssignableFrom(typeHandler.Type) || typeHandler.IsRecursiveWith(type)) return true;
+            }
+
+            return false;
         }
     }
 }

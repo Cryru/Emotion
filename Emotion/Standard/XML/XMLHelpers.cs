@@ -38,13 +38,14 @@ namespace Emotion.Standard.XML
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static XMLTypeHandler? GetTypeHandler(Type type)
         {
-            // Check if type is excluded.
-            if (type.GetCustomAttributes(true).Any(x => x is DontSerializeAttribute)) return null;
             return Handlers.GetOrAddValue(type, TypeHandlerFactory);
         }
 
         private static XMLTypeHandler? TypeHandlerFactory(Type type)
         {
+            // Check if type is excluded.
+            if (type.GetCustomAttributes(true).Any(x => x is DontSerializeAttribute)) return null;
+
             type = GetOpaqueType(type, out bool opaque);
 
             // Index name.
@@ -196,7 +197,7 @@ namespace Emotion.Standard.XML
         /// <param name="property">The reflection handler for the field.</param>
         /// <param name="exclusions">The exclusions to apply.</param>
         /// <returns>A handler for the specified field.</returns>
-        public static XMLFieldHandler? ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, ExcludeMembersAttribute? exclusions = null)
+        public static XMLFieldHandler? ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, DontSerializeMembers? exclusions = null)
         {
             XMLTypeHandler? typeHandler = GetTypeHandler(type);
             if (typeHandler == null) return null;
@@ -204,7 +205,7 @@ namespace Emotion.Standard.XML
             if (exclusions != null)
             {
                 if (typeHandler is XMLComplexBaseTypeHandler complexHandler)
-                    typeHandler = complexHandler.DeriveWithExclusions(exclusions);
+                    typeHandler = complexHandler.CloneWithExclusions(exclusions);
                 else
                     Engine.Log.Warning($"Trying to apply exclusions to {property.Name} but it isn't a complex type.", MessageSource.XML);
             }
@@ -213,18 +214,18 @@ namespace Emotion.Standard.XML
         }
 
         /// <summary>
-        /// Read an XML tag and return the type handler for it if it's a derived type, otherwise return null.
+        /// Read an XML tag and return the type handler for it if it's an inherited type, otherwise return null.
         /// </summary>
         /// <param name="reader">The XML reader primed just before the tag.</param>
         /// <param name="tag">The read tag.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static XMLTypeHandler? GetDerivedTypeHandlerFromXMLTag(XMLReader reader, out string tag)
+        public static XMLTypeHandler? GetInheritedTypeHandlerFromXMLTag(XMLReader reader, out string tag)
         {
             tag = reader.SerializationReadTagAndTypeAttribute(out string? typeAttribute);
             if (typeAttribute == null) return null;
-            Type? derivedType = GetTypeByName(typeAttribute);
-            if (derivedType != null) return GetTypeHandler(derivedType);
-            Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
+            Type? inheritedType = GetTypeByName(typeAttribute);
+            if (inheritedType != null) return GetTypeHandler(inheritedType);
+            Engine.Log.Warning($"Couldn't find inherited type of name {typeAttribute} in array.", MessageSource.XML);
             return null;
         }
     }

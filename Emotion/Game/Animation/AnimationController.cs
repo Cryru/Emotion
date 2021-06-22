@@ -27,7 +27,7 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// The animated texture in which all animations are stored.
         /// </summary>
-        [ExcludeMembers("LoopType", "StartingFrame", "EndingFrame", "TimeBetweenFrames", "CurrentFrameIndex")] // These properties are provided by the current animation node.
+        [DontSerializeMembers("LoopType", "StartingFrame", "EndingFrame", "TimeBetweenFrames", "CurrentFrameIndex")] // These properties are provided by the current animation node.
         public AnimatedTexture AnimTex;
 
         /// <summary>
