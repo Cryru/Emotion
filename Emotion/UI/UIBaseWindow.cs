@@ -18,7 +18,7 @@ using Emotion.Standard.XML;
 
 namespace Emotion.UI
 {
-    [ExcludeMembers("Position", "Size")]
+    [DontSerializeMembers("Position", "Size")]
     public class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
     {
         #region Properties

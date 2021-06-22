@@ -64,29 +64,32 @@ namespace Emotion.Tools.Windows
             int currentClass = _validWindowTypes.IndexOf(_selectedWindow.GetType());
             if (ImGui.Combo("Class", ref currentClass, _validWindowTypesNames, _validWindowTypesNames.Length))
             {
-                var newObj = (UIBaseWindow) TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
+                object newObj = TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
+                if(newObj == null) return;
+                var newWin = (UIBaseWindow) newObj;
+
                 if (_selectedWindow.Parent != null)
                 {
                     int index = _selectedWindow.Parent.Children!.IndexOf(_selectedWindow);
-                    _selectedWindow.Parent.Children[index] = newObj;
+                    _selectedWindow.Parent.Children[index] = newWin;
                 }
                 else
                 {
                     // If changing the root, change the whole asset.
                     Debug.Assert(_selectedWindow == window);
-                    XMLAsset<UIBaseWindow> newAsset = XMLAsset<UIBaseWindow>.CreateFromContent(newObj);
+                    XMLAsset<UIBaseWindow> newAsset = XMLAsset<UIBaseWindow>.CreateFromContent(newWin);
                     newAsset.Name = _currentAsset!.Name;
                     _currentAsset = newAsset;
                 }
 
-                SelectWindow(newObj);
+                SelectWindow(newWin);
             }
 
             IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
             while (fields.MoveNext())
             {
                 XMLFieldHandler field = fields.Current;
-                ImGuiEditorForType(_selectedWindow, field);
+                ImGuiEditorForType(_selectedWindow, field!);
             }
 
             ImGui.EndChild();

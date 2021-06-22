@@ -49,7 +49,7 @@ namespace Emotion.UI
 
             if (_textureFile == null) return;
 
-            if (Smooth != _textureFile.Texture.Smooth) GLThread.ExecuteGLThreadAsync(() => { _textureFile.Texture.Smooth = Smooth; });
+            if (Smooth != _textureFile.Texture.Smooth) GLThread.ExecuteGLThread(() => { _textureFile.Texture.Smooth = Smooth; });
         }
 
         protected override Vector2 InternalMeasure(Vector2 space)

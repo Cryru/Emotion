@@ -63,10 +63,11 @@ namespace Emotion.Tools.Windows
 
         #region Meta Editor
 
-        protected object TransformClass(object window, Type newType)
+        protected object? TransformClass(object window, Type newType)
         {
-            var oldTypeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(window.GetType());
-            var newTypeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(newType);
+            var oldTypeHandler = (XMLComplexBaseTypeHandler?)XMLHelpers.GetTypeHandler(window.GetType());
+            var newTypeHandler = (XMLComplexBaseTypeHandler?)XMLHelpers.GetTypeHandler(newType);
+            if (oldTypeHandler == null || newTypeHandler == null) return null;
 
             object? newTypeObject = Activator.CreateInstance(newType, true);
             Debug.Assert(newTypeObject != null);
@@ -102,9 +103,18 @@ namespace Emotion.Tools.Windows
             switch (typeHandler)
             {
                 case XMLStringTypeHandler:
+                    {
+                        string stringValue = (string)(value ?? "");
+                        if (ImGui.InputText(xmlHandler.Name, ref stringValue, 1000))
+                        {
+                            xmlHandler.ReflectionInfo.SetValue(obj, stringValue);
+                            UnsavedChanges();
+                        }
+                        return;
+                    }
+                case XMLPrimitiveTypeHandler primitive:
                 {
-                    string stringValue = (string) (value ?? "");
-                    if (ImGui.InputText(xmlHandler.Name, ref stringValue, 1000)) xmlHandler.ReflectionInfo.SetValue(obj, stringValue);
+
                     return;
                 }
             }
