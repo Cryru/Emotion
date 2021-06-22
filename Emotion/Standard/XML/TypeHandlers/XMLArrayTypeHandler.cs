@@ -23,7 +23,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public override bool IsRecursiveWith(Type type)
         {
-            return _elementTypeHandler.IsRecursiveWith(type);
+            return _elementTypeHandler.Type.IsAssignableFrom(type) || _elementTypeHandler.IsRecursiveWith(type);
         }
 
         public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
@@ -62,13 +62,13 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             int depth = input.Depth;
             input.GoToNextTag();
-            XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
+            XMLTypeHandler handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
             while (input.Depth >= depth && !input.Finished)
             {
                 object newObj = tag[^1] == '/' ? null : handler.Deserialize(input);
                 backingList.Add(newObj);
                 input.GoToNextTag();
-                handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;
+                handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;
             }
 
             var arr = Array.CreateInstance(_elementType, backingList.Count);

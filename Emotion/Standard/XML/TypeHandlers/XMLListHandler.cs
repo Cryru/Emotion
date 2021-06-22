@@ -23,13 +23,13 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             int depth = input.Depth;
             input.GoToNextTag();
-            XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
+            XMLTypeHandler handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
             while (input.Depth >= depth && !input.Finished)
             {
                 object newObj = tag.Contains("/") ? null : handler.Deserialize(input);
                 backingArr.Add(newObj);
                 input.GoToNextTag();
-                handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;
+                handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;
             }
 
             Type listGenericType = XMLHelpers.ListType.MakeGenericType(_elementType);

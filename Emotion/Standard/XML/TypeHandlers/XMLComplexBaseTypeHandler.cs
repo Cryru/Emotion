@@ -40,7 +40,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null ||
                     !readMethod.IsPublic || !writeMethod.IsPublic || property.GetCustomAttribute<DontSerializeAttribute>() != null) continue;
 
-                var excludeProp = property.GetCustomAttribute<ExcludeMembersAttribute>();
+                var excludeProp = property.GetCustomAttribute<DontSerializeMembers>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, new ReflectedMemberHandler(property), excludeProp);
                 if (handler == null) continue;
                 fieldHandlers.TryAdd(property.Name, handler);
@@ -53,7 +53,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Exclude fields marked as "DontSerialize"
                 if (field.GetCustomAttribute<DontSerializeAttribute>() != null) continue;
 
-                var excludeProp = field.GetCustomAttribute<ExcludeMembersAttribute>();
+                var excludeProp = field.GetCustomAttribute<DontSerializeMembers>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(field.FieldType, new ReflectedMemberHandler(field), excludeProp);
                 if (handler == null) continue;
                 fieldHandlers.TryAdd(field.Name, handler);
@@ -75,11 +75,34 @@ namespace Emotion.Standard.XML.TypeHandlers
             return _exclusions != null && _exclusions.Contains(fieldHandler.Name);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual XMLComplexBaseTypeHandler DeriveWithExclusions(ExcludeMembersAttribute exclusions)
+        protected void AddExclusions(DontSerializeMembers exclusions)
+        {
+            _exclusions ??= new HashSet<string>();
+            foreach (string exclusion in exclusions.Members)
+            {
+                _exclusions.Add(exclusion);
+            }
+        }
+
+        protected XMLComplexBaseTypeHandler Clone()
         {
             var clone = (XMLComplexBaseTypeHandler) MemberwiseClone();
-            clone._exclusions = exclusions.Members;
+            if (clone._exclusions != null)
+            {
+                clone._exclusions = new HashSet<string>();
+                foreach (string exclusion in _exclusions)
+                {
+                    clone._exclusions.Add(exclusion);
+                }
+            }
+            return clone;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembers exclusions)
+        {
+            var clone = Clone();
+            clone.AddExclusions(exclusions);
             return clone;
         }
 

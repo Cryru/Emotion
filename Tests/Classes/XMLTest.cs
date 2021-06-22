@@ -118,15 +118,15 @@ namespace Tests.Classes
             Assert.True(restored.Right == null);
         }
 
-        public class TransformDerived : Transform
+        public class TransformInherited : Transform
         {
             public bool CoolStuff { get; set; }
         }
 
         [Test]
-        public void ComplexTypeRecursiveTypeDerived()
+        public void ComplexTypeRecursiveTypeInherited()
         {
-            string tld = XMLFormat.To(new TransformLink(100, 200, 300, 400, 500) {Left = new TransformDerived {CoolStuff = true, Height = 1100}});
+            string tld = XMLFormat.To(new TransformLink(100, 200, 300, 400, 500) {Left = new TransformInherited {CoolStuff = true, Height = 1100}});
             var restored = XMLFormat.From<TransformLink>(tld);
             Assert.Equal(restored.X, 100);
             Assert.Equal(restored.Y, 200);
@@ -135,7 +135,7 @@ namespace Tests.Classes
             Assert.Equal(restored.Height, 500);
 
             Assert.Equal(restored.Left.Height, 1100);
-            Assert.True(((TransformDerived) restored.Left).CoolStuff);
+            Assert.True(((TransformInherited) restored.Left).CoolStuff);
         }
 
         public class TransformArrayHolder : Transform
@@ -145,7 +145,7 @@ namespace Tests.Classes
 
         [Test]
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
-        public void ComplexTypeRecursiveTypeArrayWithDerived()
+        public void ComplexTypeRecursiveTypeArrayWithInherited()
         {
             string tlda = XMLFormat.To(new TransformArrayHolder
             {
@@ -153,7 +153,7 @@ namespace Tests.Classes
                 Children = new[]
                 {
                     new Transform(1, 2, 3, 4, 5),
-                    new TransformDerived
+                    new TransformInherited
                     {
                         Width = 6,
                         CoolStuff = true
@@ -180,7 +180,7 @@ namespace Tests.Classes
                 Transform child = restored.Children[1];
                 Assert.True(child != null);
                 Assert.Equal(child.Width, 6);
-                Assert.True(((TransformDerived) child).CoolStuff);
+                Assert.True(((TransformInherited) child).CoolStuff);
             }
         }
 
@@ -191,7 +191,7 @@ namespace Tests.Classes
 
         [Test]
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
-        public void ComplexTypeRecursiveListWithDerived()
+        public void ComplexTypeRecursiveListWitInherited()
         {
             string tldl = XMLFormat.To(new TransformListHolder
             {
@@ -199,7 +199,7 @@ namespace Tests.Classes
                 Children = new List<Transform>
                 {
                     new Transform(1, 2, 3, 4, 5),
-                    new TransformDerived
+                    new TransformInherited
                     {
                         Width = 6,
                         CoolStuff = true
@@ -226,7 +226,7 @@ namespace Tests.Classes
                 Transform child = restored.Children[1];
                 Assert.True(child != null);
                 Assert.Equal(child.Width, 6);
-                Assert.True(((TransformDerived) child).CoolStuff);
+                Assert.True(((TransformInherited) child).CoolStuff);
             }
         }
 
@@ -622,7 +622,7 @@ namespace Tests.Classes
             public Rectangle Rect = new Rectangle(1, 2, 3, 4);
             public Transform Transform = new Transform(5, 6, 7, 8, 9);
             public float[] Array = {10, 20.5f, 30};
-            public Positional Derived = new Transform(10, 11, 12, 13);
+            public Positional Inherited = new Transform(10, 11, 12, 13);
             public double? Nullable = 10;
         }
 
@@ -638,7 +638,7 @@ namespace Tests.Classes
                 Rect = new Rectangle(),
                 Transform = null,
                 Array = null,
-                Derived = null,
+                Inherited = null,
                 Nullable = null
             });
             var restored = XMLFormat.From<CustomDefaultsComplex>(xml);
@@ -649,29 +649,40 @@ namespace Tests.Classes
             Assert.Equal(restored.Rect.X, 0);
             Assert.True(restored.Transform == null);
             Assert.True(restored.Array == null);
-            Assert.True(restored.Derived == null);
+            Assert.True(restored.Inherited == null);
             Assert.True(restored.Nullable == null);
+        }
+
+        [DontSerializeMembers("StructInt")]
+        public struct StructMemberWithExclusion
+        {
+            public int StructInt;
+            public bool StructBool;
+            public string StructString;
         }
 
         public class TypeWithExcludedMembersGrandparent
         {
             public int GrandparentNum;
             public string ExcludedDeepField;
+            public bool GrandparentBool;
         }
 
+        [DontSerializeMembers("GrandparentBool")]
         public class TypeWithExcludedMembersDirectParent : TypeWithExcludedMembersGrandparent
         {
             public int ParentNum;
             public string ExcludedInheritedField;
         }
 
-        [ExcludeMembers("ExcludedDirectField", "ExcludedInheritedField", "ExcludedDeepField")]
+        [DontSerializeMembers("ExcludedDirectField", "ExcludedInheritedField", "ExcludedDeepField")]
         public class TypeWithExcludedMembers : TypeWithExcludedMembersDirectParent
         {
             public int Num;
             public string ExcludedDirectField;
 
-            [ExcludeMembers("GrandparentNum")] public TypeWithExcludedMembersGrandparent NestedClassExclusion;
+            [DontSerializeMembers("GrandparentNum")] public TypeWithExcludedMembersDirectParent NestedClassExclusion;
+            [DontSerializeMembers("StructBool")] public StructMemberWithExclusion StructMember;
         }
 
         [Test]
@@ -685,21 +696,40 @@ namespace Tests.Classes
                 ExcludedDirectField = "Hi",
                 ExcludedInheritedField = "Hii",
                 ExcludedDeepField = "Hiii",
-                NestedClassExclusion = new TypeWithExcludedMembersGrandparent
+                NestedClassExclusion = new TypeWithExcludedMembersDirectParent
                 {
                     GrandparentNum = 99,
-                    ExcludedDeepField = "This one isn't excluded"
-                }
+                    ExcludedDeepField = "This one isn't excluded in this case",
+                    GrandparentBool = true
+                },
+                StructMember = new StructMemberWithExclusion()
+                {
+                    StructBool = true,
+                    StructInt = 99,
+                    StructString = "Only member not excluded"
+                },
+                GrandparentBool = true
             });
             var restored = XMLFormat.From<TypeWithExcludedMembers>(xml);
+            // Non-excluded
             Assert.Equal(restored.Num, 1);
             Assert.Equal(restored.ParentNum, 2);
             Assert.Equal(restored.GrandparentNum, 3);
-            Assert.Equal(restored.ExcludedDirectField, "Hi"); // Cant exclude direct fields. Use DontSerialize on them.
+            Assert.Equal(restored.StructMember.StructString, "Only member not excluded");
+            // Excluded by topmost class
+            Assert.True(restored.ExcludedDirectField == null);
             Assert.True(restored.ExcludedInheritedField == null);
             Assert.True(restored.ExcludedDeepField == null);
+            Assert.False(restored.StructMember.StructBool);
+            // Excluded by StructMemberClass
+            Assert.Equal(restored.StructMember.StructInt, 0);
+            // Excluded by DirectParent
+            Assert.False(restored.GrandparentBool);
+            // Excluded by NestedClassExclusion field
             Assert.Equal(restored.NestedClassExclusion.GrandparentNum, 0);
-            Assert.Equal(restored.NestedClassExclusion.ExcludedDeepField, "This one isn't excluded");
+            Assert.Equal(restored.NestedClassExclusion.ExcludedDeepField, "This one isn't excluded in this case");
+            // Excluded by DirectParent class
+            Assert.False(restored.NestedClassExclusion.GrandparentBool);
         }
     }
 }

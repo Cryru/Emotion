@@ -79,7 +79,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             input.GoToNextTag();
             while (input.Depth >= depth && !input.Finished)
             {
-                XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string currentTag);
+                XMLTypeHandler handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string currentTag);
                 switch (currentTag)
                 {
                     case "Key":
