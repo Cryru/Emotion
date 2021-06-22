@@ -101,7 +101,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembers exclusions)
         {
-            var clone = Clone();
+            XMLComplexBaseTypeHandler clone = Clone();
             clone.AddExclusions(exclusions);
             return clone;
         }
