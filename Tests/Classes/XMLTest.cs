@@ -731,5 +731,23 @@ namespace Tests.Classes
             // Excluded by DirectParent class
             Assert.False(restored.NestedClassExclusion.GrandparentBool);
         }
+
+        [Test]
+        public void DeserializeDontSerialize()
+        {
+            string document = "" +
+                              "<TypeWithExcludedMembersDirectParent>\n" +
+                              "<GrandparentBool>true</GrandparentBool>\n" +
+                              "<ExcludedInheritedField>Hi</ExcludedInheritedField>\n" +
+                              "</TypeWithExcludedMembersDirectParent>";
+            var memberExcluded = XMLFormat.From<TypeWithExcludedMembersDirectParent>(document);
+            Assert.False(memberExcluded.GrandparentBool); // Excluded member is not deserialized.
+            Assert.Equal(memberExcluded.ExcludedInheritedField, "Hi"); // Following fields should be deserialized though.
+
+            document = "<ClassWithExcluded>\n<NotMe>true</NotMe>\n<Me>true</Me>\n</ClassWithExcluded>";
+            var memberDontSerialize = XMLFormat.From<ClassWithExcluded>(document);
+            Assert.False(memberDontSerialize.NotMe); // DontSerialize is not deserialized.
+            Assert.True(memberDontSerialize.Me);
+        }
     }
 }

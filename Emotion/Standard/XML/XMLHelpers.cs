@@ -19,7 +19,6 @@ namespace Emotion.Standard.XML
 {
     public static class XMLHelpers
     {
-        public static readonly Type DontSerializeAttributeType = typeof(DontSerializeAttribute);
         public static Type ListType = typeof(List<>);
         public static readonly Type KeyValuePairType = typeof(KeyValuePair<,>);
         public static readonly Type StringType = typeof(string);
@@ -28,7 +27,7 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Every complex type is analyzed using reflection to determine how to serialize it.
         /// </summary>
-        private static readonly LazyConcurrentDictionary<Type, XMLTypeHandler?> Handlers = new();
+        public static readonly LazyConcurrentDictionary<Type, XMLTypeHandler?> Handlers = new();
 
         /// <summary>
         /// Type names which are resolved are added here.
@@ -197,7 +196,7 @@ namespace Emotion.Standard.XML
         /// <param name="property">The reflection handler for the field.</param>
         /// <param name="exclusions">The exclusions to apply.</param>
         /// <returns>A handler for the specified field.</returns>
-        public static XMLFieldHandler? ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, DontSerializeMembers? exclusions = null)
+        public static XMLFieldHandler? ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, DontSerializeMembersAttribute? exclusions = null)
         {
             XMLTypeHandler? typeHandler = GetTypeHandler(type);
             if (typeHandler == null) return null;

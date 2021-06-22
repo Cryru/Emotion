@@ -42,19 +42,13 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public XMLComplexTypeHandler(Type type) : base(type)
         {
-            // Check if the type is excluding any fields.
-            DontSerializeMembers exclusion = null;
-            object[] exclusions = type.GetCustomAttributes(typeof(DontSerializeMembers), true);
-            if (exclusions.Length > 0) exclusion = exclusions[0] as DontSerializeMembers;
-            if (exclusion != null) AddExclusions(exclusion);
-
             // Check if inheriting anything.
             if (Type.BaseType != null && Type.BaseType != typeof(object))
             {
                 _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
 
                 // If we have exclusions then clone the base class handler with them. This will also clone its base class, and so forth.
-                if (_baseClass != null && exclusion != null) _baseClass = (XMLComplexTypeHandler) _baseClass.CloneWithExclusions(exclusion);
+                if (_baseClass != null && _excludedMembersAttribute != null) _baseClass = (XMLComplexTypeHandler) _baseClass.CloneWithExclusions(_excludedMembersAttribute);
             }
 
             // Create default value reference.
@@ -108,7 +102,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
             foreach ((string _, XMLFieldHandler field) in fieldHandlers)
             {
-                if (IsFieldExcluded(field)) continue;
+                if (field.Skip) continue;
 
                 object propertyVal = field.ReflectionInfo.GetValue(obj);
                 string fieldName = field.Name;
@@ -161,7 +155,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
                 XMLTypeHandler typeHandler = inheritedHandler ?? field.TypeHandler;
                 object val = nullValue ? null : typeHandler.Deserialize(input);
-                field.ReflectionInfo.SetValue(newObj, val);
+                if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
                 input.GoToNextTag();
             }
 
@@ -184,12 +178,10 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// Clone with exclusions recursively down the inheritance chain.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembers exclusions)
+        public override XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembersAttribute exclusions)
         {
-            var clone = (XMLComplexTypeHandler) Clone();
-            clone.AddExclusions(exclusions);
+            var clone = (XMLComplexTypeHandler) base.CloneWithExclusions(exclusions);
             if (clone._baseClass != null) clone._baseClass = (XMLComplexTypeHandler) clone._baseClass.CloneWithExclusions(exclusions);
-
             return clone;
         }
 
@@ -218,7 +210,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
             {
                 XMLFieldHandler fieldHandler = field.Value;
-                if (IsFieldExcluded(fieldHandler)) continue;
+                if (fieldHandler.Skip) continue;
                 yield return fieldHandler;
             }
 
@@ -229,7 +221,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
                 {
                     XMLFieldHandler fieldHandler = field.Value;
-                    if (baseClass.IsFieldExcluded(fieldHandler)) continue;
+                    if (fieldHandler.Skip) continue;
                     yield return fieldHandler;
                 }
 
