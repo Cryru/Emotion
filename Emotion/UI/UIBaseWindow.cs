@@ -80,10 +80,14 @@ namespace Emotion.UI
                 }
         }
 
-        public virtual void AddChild(UIBaseWindow child)
+        public virtual void AddChild(UIBaseWindow child, int index = -1)
         {
             Children ??= new List<UIBaseWindow>();
-            Children.Add(child);
+            if (index != -1)
+                Children.Insert(index, child);
+            else
+                Children.Add(child);
+
             child.Parent = this;
             child.InvalidateLayout();
             if (Debugger != null) child.Debugger = Debugger;

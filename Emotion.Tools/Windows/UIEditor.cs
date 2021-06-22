@@ -8,6 +8,7 @@ using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
+using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Tools.Windows.UIEdit;
 using Emotion.UI;
 using ImGuiNET;
@@ -53,27 +54,109 @@ namespace Emotion.Tools.Windows
 
             XMLAsset<UIBaseWindow> asset = _currentAsset;
             UIBaseWindow window = asset.Content;
-            if (_selectedWindow == null) SelectWindow(window);
+
+            // Initial selection.
+            if (_selectedWindow == null)
+            {
+                SelectWindow(window);
+                _ui.ClearChildren();
+                _ui.AddChild(window);
+            }
+
+            ImGui.BeginGroup();
+            if (ImGui.ArrowButton("Left", ImGuiDir.Left))
+            {
+                UIBaseWindow parent = _selectedWindow.Parent;
+                UIBaseWindow? parentParent = parent!.Parent;
+                if (parentParent != null)
+                {
+                    parent.RemoveChild(_selectedWindow);
+                    parentParent.AddChild(_selectedWindow);
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.ArrowButton("Right", ImGuiDir.Right))
+            {
+                UIBaseWindow parent = _selectedWindow.Parent;
+                int index = parent!.Children.IndexOf(_selectedWindow);
+                if (index != 0)
+                {
+                    UIBaseWindow prevChild = parent.Children[index - 1];
+                    parent.RemoveChild(_selectedWindow);
+                    prevChild.AddChild(_selectedWindow);
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.ArrowButton("Up", ImGuiDir.Up))
+            {
+                UIBaseWindow parent = _selectedWindow.Parent;
+                int index = parent!.Children.IndexOf(_selectedWindow);
+                if (index != 0)
+                {
+                    parent.RemoveChild(_selectedWindow);
+                    parent.AddChild(_selectedWindow, index - 1);
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.ArrowButton("Down", ImGuiDir.Down))
+            {
+                UIBaseWindow parent = _selectedWindow.Parent;
+                int index = parent!.Children.IndexOf(_selectedWindow);
+                if (index != parent!.Children.Count - 1)
+                {
+                    parent.RemoveChild(_selectedWindow);
+                    parent.AddChild(_selectedWindow, index + 1);
+                }
+            }
 
             ImGui.BeginChild("Window Tree", new Vector2(400, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
             RenderChildrenTree(window);
             ImGui.EndChild();
+            ImGui.EndGroup();
             ImGui.SameLine();
+
+            ImGui.BeginGroup();
+
+            if (ImGui.Button("Preview"))
+            {
+                _ui.ClearChildren();
+                _ui.AddChild(window);
+            }
 
             ImGui.BeginChild("Window Properties", new Vector2(400, 500), true);
             int currentClass = _validWindowTypes.IndexOf(_selectedWindow.GetType());
             if (ImGui.Combo("Class", ref currentClass, _validWindowTypesNames, _validWindowTypesNames.Length))
             {
-                object newObj = TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
-                if(newObj == null) return;
-                var newWin = (UIBaseWindow) newObj;
-
-                if (_selectedWindow.Parent != null)
+                List<UIBaseWindow> children = new List<UIBaseWindow>();
+                if (_selectedWindow.Children != null)
                 {
-                    int index = _selectedWindow.Parent.Children!.IndexOf(_selectedWindow);
-                    _selectedWindow.Parent.Children[index] = newWin;
+                    children.AddRange(_selectedWindow.Children);
+                    _selectedWindow.ClearChildren();
                 }
-                else
+
+                object newObj = TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
+                if (newObj == null) return;
+                var newWin = (UIBaseWindow) newObj;
+                if (children.Count > 0)
+                    for (var i = 0; i < children.Count; i++)
+                    {
+                        newWin.AddChild(children[i]);
+                    }
+
+                bool root = _selectedWindow.Parent == _ui;
+
+                int index = _selectedWindow.Parent.Children!.IndexOf(_selectedWindow);
+                _selectedWindow.Parent.RemoveChild(_selectedWindow);
+                _selectedWindow.Parent.AddChild(newWin, index);
+
+
+                if (root)
                 {
                     // If changing the root, change the whole asset.
                     Debug.Assert(_selectedWindow == window);
@@ -89,16 +172,12 @@ namespace Emotion.Tools.Windows
             while (fields.MoveNext())
             {
                 XMLFieldHandler field = fields.Current;
+                if (field.Name == "Children") continue;
                 ImGuiEditorForType(_selectedWindow, field!);
             }
 
             ImGui.EndChild();
-
-            if (ImGui.Button("Preview"))
-            {
-                _ui.ClearChildren();
-                _ui.AddChild(window);
-            }
+            ImGui.EndGroup();
 
             _ui.Render(c);
         }
@@ -113,19 +192,37 @@ namespace Emotion.Tools.Windows
         {
             ImGui.PushID($"WindowDepth{idIncrement}");
             var flags = ImGuiTreeNodeFlags.OpenOnArrow;
-            if (window.Children == null) flags |= ImGuiTreeNodeFlags.Leaf;
+            if (window.Children == null || window.Children.Count == 0) flags |= ImGuiTreeNodeFlags.Leaf;
             if (_selectedWindow == window) flags |= ImGuiTreeNodeFlags.Selected;
-            if (_selectedWindow == window || window.Children != null && window.Children.IndexOf(_selectedWindow) != -1) ImGui.SetNextItemOpen(true);
+            if (window.Children != null && window.Children.IndexOf(_selectedWindow) != -1) ImGui.SetNextItemOpen(true);
 
             bool opened = ImGui.TreeNodeEx(window.ToString(), flags);
-            if (ImGui.IsItemClicked()) _selectedWindow = window;
+
+            if (ImGui.IsItemClicked()) SelectWindow(window);
             ImGui.SameLine();
+
             if (ImGui.SmallButton("Add Child"))
             {
                 var newWindow = new UIBaseWindow();
                 window.AddChild(newWindow);
                 SelectWindow(newWindow);
                 UnsavedChanges();
+            }
+
+            if (window.Parent != null && window.Parent != _ui)
+            {
+                ImGui.SameLine();
+                if (ImGui.SmallButton("Delete"))
+                {
+                    var yesNoModal = new YesNoModal(result =>
+                    {
+                        if (!result) return;
+                        window.Parent!.RemoveChild(window);
+                        UnsavedChanges();
+                        ImGui.CloseCurrentPopup();
+                    }, "Delete Window", $"Are you sure you want to delete {window}?");
+                    Parent.AddWindow(yesNoModal);
+                }
             }
 
             if (opened)

@@ -57,10 +57,10 @@ namespace Emotion.UI
         private List<UIBaseWindow> _uiKeepLoadedExplicit = new List<UIBaseWindow>();
         private bool _needPreload = true;
 
-        public override void AddChild(UIBaseWindow child)
+        public override void AddChild(UIBaseWindow child, int index = -1)
         {
             AddUIToPreload(child);
-            base.AddChild(child);
+            base.AddChild(child, index);
         }
 
         public override void ClearChildren()
