@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 
 #endregion
@@ -18,8 +18,19 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// </summary>
         protected Lazy<Dictionary<string, XMLFieldHandler>> _fieldHandlers;
 
+        /// <summary>
+        /// Fields not to be serialized by the type, or member field.
+        /// </summary>
+        protected DontSerializeMembersAttribute _excludedMembersAttribute;
+
         protected XMLComplexBaseTypeHandler(Type type) : base(type)
         {
+            // Check if the type is excluding any fields.
+            DontSerializeMembersAttribute exclusion = null;
+            object[] exclusions = type.GetCustomAttributes(typeof(DontSerializeMembersAttribute), false);
+            if (exclusions.Length > 0) exclusion = exclusions[0] as DontSerializeMembersAttribute;
+            _excludedMembersAttribute = exclusion;
+
             _fieldHandlers = new Lazy<Dictionary<string, XMLFieldHandler>>(IndexFields);
         }
 
@@ -34,86 +45,83 @@ namespace Emotion.Standard.XML.TypeHandlers
             {
                 PropertyInfo property = properties[i];
 
-                // Only serialize properties with public get; set; and who aren't marked as "DontSerialize"
+                // Only serialize properties with public get; set;
                 MethodInfo readMethod = property.GetMethod;
                 MethodInfo writeMethod = property.SetMethod;
-                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null ||
-                    !readMethod.IsPublic || !writeMethod.IsPublic || property.GetCustomAttribute<DontSerializeAttribute>() != null) continue;
+                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null || !readMethod.IsPublic || !writeMethod.IsPublic) continue;
 
-                var excludeProp = property.GetCustomAttribute<DontSerializeMembers>();
+                var excludeProp = property.GetCustomAttribute<DontSerializeMembersAttribute>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, new ReflectedMemberHandler(property), excludeProp);
                 if (handler == null) continue;
-                fieldHandlers.TryAdd(property.Name, handler);
+
+                // Mark members marked as "DontSerialize" or "DontSerializeMembers" as skip.
+                bool skip = property.GetCustomAttribute<DontSerializeAttribute>() != null;
+                string propertyName = property.Name;
+                if (!skip && _excludedMembersAttribute != null && _excludedMembersAttribute.Members.Contains(propertyName)) skip = true;
+                handler.Skip = skip;
+
+                fieldHandlers.TryAdd(propertyName, handler);
             }
 
             for (var i = 0; i < fields.Length; i++)
             {
                 FieldInfo field = fields[i];
 
-                // Exclude fields marked as "DontSerialize"
-                if (field.GetCustomAttribute<DontSerializeAttribute>() != null) continue;
-
-                var excludeProp = field.GetCustomAttribute<DontSerializeMembers>();
+                var excludeProp = field.GetCustomAttribute<DontSerializeMembersAttribute>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(field.FieldType, new ReflectedMemberHandler(field), excludeProp);
                 if (handler == null) continue;
-                fieldHandlers.TryAdd(field.Name, handler);
+
+                bool skip = field.GetCustomAttribute<DontSerializeAttribute>() != null;
+                string fieldName = field.Name;
+                if (!skip && _excludedMembersAttribute != null && _excludedMembersAttribute.Members.Contains(fieldName)) skip = true;
+                handler.Skip = skip;
+
+                fieldHandlers.TryAdd(fieldName, handler);
             }
 
             return fieldHandlers;
         }
 
-        #region Exclusion Support
+        // For debugging purposes.
+        protected XMLComplexBaseTypeHandler _clonedFrom;
 
-        /// <summary>
-        /// Exclusions applied from fields/properties of other classes.
-        /// </summary>
-        protected HashSet<string> _exclusions;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsFieldExcluded(XMLFieldHandler fieldHandler)
+        public virtual XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembersAttribute exclusions)
         {
-            return _exclusions != null && _exclusions.Contains(fieldHandler.Name);
-        }
+            Debug.Assert(exclusions != null);
 
-        protected void AddExclusions(DontSerializeMembers exclusions)
-        {
-            _exclusions ??= new HashSet<string>();
-            foreach (string exclusion in exclusions.Members)
-            {
-                _exclusions.Add(exclusion);
-            }
-        }
-
-        protected XMLComplexBaseTypeHandler Clone()
-        {
             var clone = (XMLComplexBaseTypeHandler) MemberwiseClone();
-            if (clone._exclusions != null)
+            clone._clonedFrom = this;
+
+            // Copy all field handlers to the clone, except the ones that are excluded.
+            Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
+            var cloneHandlers = new Dictionary<string, XMLFieldHandler>();
+            HashSet<string> excludedFields = exclusions.Members;
+            foreach (KeyValuePair<string, XMLFieldHandler> fields in fieldHandlers)
             {
-                clone._exclusions = new HashSet<string>();
-                foreach (string exclusion in _exclusions)
-                {
-                    clone._exclusions.Add(exclusion);
-                }
+                XMLFieldHandler fieldHandler = fields.Value;
+                if (excludedFields.Contains(fields.Key)) fieldHandler = new XMLFieldHandler(fieldHandler.ReflectionInfo, fieldHandler.TypeHandler) {Skip = true};
+                cloneHandlers.Add(fields.Key, fieldHandler);
             }
+
+            clone._fieldHandlers = new Lazy<Dictionary<string, XMLFieldHandler>>(cloneHandlers);
+
             return clone;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembers exclusions)
+        public int FieldCount()
         {
-            XMLComplexBaseTypeHandler clone = Clone();
-            clone.AddExclusions(exclusions);
-            return clone;
+            Dictionary<string, XMLFieldHandler> handlers = _fieldHandlers.Value;
+            return handlers.Count;
         }
-
-        #endregion
 
         public virtual IEnumerator<XMLFieldHandler> EnumFields()
         {
             Dictionary<string, XMLFieldHandler> handlers = _fieldHandlers.Value;
             foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
             {
-                yield return field.Value;
+                XMLFieldHandler fieldHandler = field.Value;
+                if (fieldHandler.Skip) continue;
+                yield return fieldHandler;
             }
         }
     }

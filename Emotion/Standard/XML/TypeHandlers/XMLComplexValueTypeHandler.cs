@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Emotion.Common;
-using Emotion.Common.Serialization;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -20,12 +19,6 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public XMLComplexValueTypeHandler(Type type, bool opaque) : base(type)
         {
-            // Check if the type is excluding any fields.
-            DontSerializeMembers exclusion = null;
-            object[] exclusions = type.GetCustomAttributes(typeof(DontSerializeMembers), true);
-            if (exclusions.Length > 0) exclusion = exclusions[0] as DontSerializeMembers;
-            if (exclusion != null) AddExclusions(exclusion);
-
             // Create default value reference.
             _defaultValue = opaque ? Activator.CreateInstance(type, true) : null;
         }
@@ -41,7 +34,8 @@ namespace Emotion.Standard.XML.TypeHandlers
             Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
             foreach ((string _, XMLFieldHandler field) in fieldHandlers)
             {
-                if (IsFieldExcluded(field)) continue;
+                if (field.Skip) continue;
+
                 object propertyVal = field.ReflectionInfo.GetValue(obj);
                 field.TypeHandler.Serialize(propertyVal, output, indentation + 1, recursionChecker, field.Name);
             }
@@ -68,7 +62,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 }
 
                 object val = field.TypeHandler.Deserialize(input);
-                field.ReflectionInfo.SetValue(newObj, val);
+                if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
                 input.GoToNextTag();
             }
 

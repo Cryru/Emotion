@@ -31,6 +31,11 @@ namespace Emotion.Standard.XML
         /// </summary>
         public object DefaultValue { get; set; }
 
+        /// <summary>
+        /// Whether this field is excluded and should be skipped during deserialization/serialization.
+        /// </summary>
+        public bool Skip { get; set; }
+
         public XMLFieldHandler(ReflectedMemberHandler field, XMLTypeHandler typeHandler)
         {
             ReflectionInfo = field;
