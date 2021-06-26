@@ -3,6 +3,7 @@
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.IO;
@@ -40,16 +41,17 @@ namespace Emotion.UI
         /// </summary>
         public bool Smooth;
 
-        protected TextureAsset _textureFile;
+        [DontSerialize]
+        public TextureAsset TextureAsset { get; protected set; }
 
         public override async Task Preload()
         {
             await base.Preload();
-            _textureFile = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
+            TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
 
-            if (_textureFile == null) return;
+            if (TextureAsset == null) return;
 
-            if (Smooth != _textureFile.Texture.Smooth) GLThread.ExecuteGLThread(() => { _textureFile.Texture.Smooth = Smooth; });
+            if (Smooth != TextureAsset.Texture.Smooth) GLThread.ExecuteGLThread(() => { TextureAsset.Texture.Smooth = Smooth; });
         }
 
         protected override Vector2 InternalMeasure(Vector2 space)
@@ -57,11 +59,11 @@ namespace Emotion.UI
             float scale = GetScale();
             Vector2 size;
             if (RenderSize != null)
-                size = RenderSize.Value;
+                size = RenderSize.Value * scale;
             else if (UV != null)
                 size = UV.Value.Size * scale;
-            else if (_textureFile != null)
-                size = _textureFile.Texture.Size * scale;
+            else if (TextureAsset != null)
+                size = TextureAsset.Texture.Size * scale;
             else
                 size = Vector2.Zero;
 
@@ -71,8 +73,8 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
         {
-            if (_textureFile == null) return base.RenderInternal(c, ref windowColor);
-            c.RenderSprite(Position, Size, windowColor, _textureFile.Texture, UV);
+            if (TextureAsset == null) return base.RenderInternal(c, ref windowColor);
+            c.RenderSprite(Position, Size, windowColor, TextureAsset.Texture, UV);
             return true;
         }
     }

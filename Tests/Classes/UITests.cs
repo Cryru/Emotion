@@ -78,6 +78,20 @@ namespace Tests.Classes
             CompareUI("MarginAnchors.xml", ui);
         }
 
+        [Test]
+        public static void ListsAndOffsetsHorizontal()
+        {
+            var ui = new UIController();
+            CompareUI("ListsAndOffsetsHorizontal.xml", ui);
+        }
+
+        [Test]
+        public static void ListsAndOffsetsVertical()
+        {
+            var ui = new UIController();
+            CompareUI("ListsAndOffsetsVertical.xml", ui);
+        }
+
         private static void CompareUI(string file, UIController controller)
         {
             var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/{file}");

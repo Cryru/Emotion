@@ -286,6 +286,12 @@
     <None Update="Assets\UITestMetrics\HorizontalListStretch.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\UITestMetrics\ListsAndOffsetsHorizontal.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\UITestMetrics\ListsAndOffsetsVertical.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\UITestMetrics\MarginAnchors.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -304,22 +310,28 @@
     <None Update="Assets\uitesttemplates\basictext.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\uitesttemplates\basictexture.xml">
+    <None Update="Assets\uitesttemplates\BasicTexture.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\uitesttemplates\horizontallist.xml">
+    <None Update="Assets\uitesttemplates\HorizontalList.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\uitesttemplates\horizontalliststretch.xml">
+    <None Update="Assets\uitesttemplates\HorizontalListStretch.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\uitesttemplates\ListsAndOffsetsHorizontal.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\uitesttemplates\ListsAndOffsetsVertical.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\uitesttemplates\MarginAnchors.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\uitesttemplates\verticallist.xml">
+    <None Update="Assets\uitesttemplates\VerticalList.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\uitesttemplates\verticalliststretch.xml">
+    <None Update="Assets\uitesttemplates\VerticalListStretch.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="OtherAssets\LoremIpsum.txt">

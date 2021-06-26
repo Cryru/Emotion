@@ -74,6 +74,32 @@ namespace Emotion.Tools.Windows
                 _ui.AddChild(window);
             }
 
+            if (ImGui.Button("Update Preview"))
+            {
+                _ui.ClearChildren();
+                _ui.AddChild(window);
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Delete Selected"))
+            {
+                var yesNoModal = new YesNoModal(result =>
+                {
+                    if (!result) return;
+                    _selectedWindow.Parent!.RemoveChild(_selectedWindow);
+                    UnsavedChanges();
+                    ImGui.CloseCurrentPopup();
+                }, "Delete Window", $"Are you sure you want to delete {_selectedWindow}?");
+                Parent.AddWindow(yesNoModal);
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Duplicate Selected"))
+            {
+                UIBaseWindow newWin =_selectedWindow.Clone();
+                _selectedWindow.Parent.AddChild(newWin);
+            }
+
             ImGui.BeginGroup();
             if (ImGui.ArrowButton("Left", ImGuiDir.Left))
             {
@@ -124,33 +150,6 @@ namespace Emotion.Tools.Windows
                     parent.RemoveChild(_selectedWindow);
                     parent.AddChild(_selectedWindow, index + 1);
                 }
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Preview"))
-            {
-                _ui.ClearChildren();
-                _ui.AddChild(window);
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Delete Selected"))
-            {
-                var yesNoModal = new YesNoModal(result =>
-                {
-                    if (!result) return;
-                    _selectedWindow.Parent!.RemoveChild(_selectedWindow);
-                    UnsavedChanges();
-                    ImGui.CloseCurrentPopup();
-                }, "Delete Window", $"Are you sure you want to delete {_selectedWindow}?");
-                Parent.AddWindow(yesNoModal);
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Duplicate Selected"))
-            {
-                UIBaseWindow newWin =_selectedWindow.Clone();
-                _selectedWindow.Parent.AddChild(newWin);
             }
 
             ImGui.BeginChild("Window Tree", new Vector2(400, 500), true, ImGuiWindowFlags.HorizontalScrollbar);

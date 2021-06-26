@@ -38,7 +38,7 @@ namespace Emotion.UI
         /// <summary>
         /// The text to display.
         /// </summary>
-        public string Text
+        public virtual string Text
         {
             get => _text;
             set
@@ -80,12 +80,12 @@ namespace Emotion.UI
         /// </summary>
         public float UnderlineThickness = 1f;
 
-        private string _text;
-        private FontAsset _fontFile;
-        private DrawableFontAtlas _atlas;
-        private TextLayouterWrap _layouter;
-        private Vector2 _scaledUnderlineOffset;
-        private float _scaledUnderlineThickness;
+        protected string _text;
+        protected FontAsset _fontFile;
+        protected DrawableFontAtlas _atlas;
+        protected TextLayouterWrap _layouter;
+        protected Vector2 _scaledUnderlineOffset;
+        protected float _scaledUnderlineThickness;
 
         public override async Task Preload()
         {

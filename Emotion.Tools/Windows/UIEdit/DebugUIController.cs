@@ -19,6 +19,13 @@ namespace Emotion.Tools.Windows.UIEdit
             Color = new Color(32, 32, 32);
         }
 
+        protected override bool UpdateInternal()
+        {
+            _updateLayout = true;
+            _updateColor = true;
+            return base.UpdateInternal();
+        }
+
         protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
         {
             if (!base.RenderInternal(c, ref windowColor)) return false;

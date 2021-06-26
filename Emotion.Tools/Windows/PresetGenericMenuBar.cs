@@ -276,7 +276,8 @@ namespace Emotion.Tools.Windows
                     if (!name.Contains(".")) name += ".xml";
 
                     _currentFileName = name;
-                    _currentAsset.SaveAs(name);
+                    _currentAsset.Name = name;
+                    _currentAsset.Save();
                     _unsavedChanges = false;
                 }, "File Path");
                 Parent.AddWindow(nameInput);

@@ -13,7 +13,6 @@ namespace Emotion.UI
     public class UIController : UIBaseWindow
     {
         protected bool _updateLayout = true;
-        protected bool _updateColor = true;
 
         public UIController()
         {
@@ -22,16 +21,21 @@ namespace Emotion.UI
             KeepTemplatePreloaded(this);
         }
 
+        public override void InvalidateLayout()
+        {
+            _updateLayout = true;
+        }
+
         private void Host_OnResize(Vector2 obj)
         {
             InvalidateLayout();
             _needPreload = true;
         }
 
-        public void Update()
+        protected override bool UpdateInternal()
         {
             UpdatePreLoading();
-            if (!UILoadingThread.IsCompleted) return;
+            if (!UILoadingThread.IsCompleted) return false;
 
             if (_updateLayout)
             {
@@ -40,9 +44,10 @@ namespace Emotion.UI
 
                 Rectangle r = GetLayoutSpace(Engine.Renderer.DrawBuffer.Size);
                 Layout(r.Position, r.Size);
+                _updateLayout = false;
             }
 
-            if (_updateColor) CalculateColor();
+            return true;
         }
 
         public override void AddChild(UIBaseWindow child, int index = -1)
@@ -50,6 +55,13 @@ namespace Emotion.UI
             if (child == null) return;
             RequestPreload();
             base.AddChild(child, index);
+            child.AttachedToController();
+        }
+
+        public override void RemoveChild(UIBaseWindow win, bool evict = true)
+        {
+            base.RemoveChild(win, evict);
+            win.DetachedFromController();
         }
 
         #region Global Preloading
