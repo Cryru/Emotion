@@ -21,15 +21,15 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <summary>
         /// Fields not to be serialized by the type, or member field.
         /// </summary>
-        protected DontSerializeMembersAttribute _excludedMembersAttribute;
+        protected HashSet<string> _excludedMembers;
 
         protected XMLComplexBaseTypeHandler(Type type) : base(type)
         {
             // Check if the type is excluding any fields.
             DontSerializeMembersAttribute exclusion = null;
             object[] exclusions = type.GetCustomAttributes(typeof(DontSerializeMembersAttribute), false);
-            if (exclusions.Length > 0) exclusion = exclusions[0] as DontSerializeMembersAttribute;
-            _excludedMembersAttribute = exclusion;
+            if (exclusions.Length > 0) {exclusion = exclusions[0] as DontSerializeMembersAttribute;}
+            _excludedMembers = exclusion?.Members;
 
             _fieldHandlers = new Lazy<Dictionary<string, XMLFieldHandler>>(IndexFields);
         }
@@ -37,8 +37,8 @@ namespace Emotion.Standard.XML.TypeHandlers
         protected virtual Dictionary<string, XMLFieldHandler> IndexFields()
         {
             // Gather fields and create field handlers for them.
-            PropertyInfo[] properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            FieldInfo[] fields = Type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            PropertyInfo[] properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            FieldInfo[] fields = Type.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var fieldHandlers = new Dictionary<string, XMLFieldHandler>(properties.Length + fields.Length);
 
             for (var i = 0; i < properties.Length; i++)
@@ -57,7 +57,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Mark members marked as "DontSerialize" or "DontSerializeMembers" as skip.
                 bool skip = property.GetCustomAttribute<DontSerializeAttribute>() != null;
                 string propertyName = property.Name;
-                if (!skip && _excludedMembersAttribute != null && _excludedMembersAttribute.Members.Contains(propertyName)) skip = true;
+                if (!skip && _excludedMembers != null && _excludedMembers.Contains(propertyName)) skip = true;
                 handler.Skip = skip;
 
                 fieldHandlers.TryAdd(propertyName, handler);
@@ -73,7 +73,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
                 bool skip = field.GetCustomAttribute<DontSerializeAttribute>() != null;
                 string fieldName = field.Name;
-                if (!skip && _excludedMembersAttribute != null && _excludedMembersAttribute.Members.Contains(fieldName)) skip = true;
+                if (!skip && _excludedMembers != null && _excludedMembers.Contains(fieldName)) skip = true;
                 handler.Skip = skip;
 
                 fieldHandlers.TryAdd(fieldName, handler);
@@ -85,7 +85,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         // For debugging purposes.
         protected XMLComplexBaseTypeHandler _clonedFrom;
 
-        public virtual XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembersAttribute exclusions)
+        public XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembersAttribute exclusions)
         {
             Debug.Assert(exclusions != null);
 
@@ -114,7 +114,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             return handlers.Count;
         }
 
-        public virtual IEnumerator<XMLFieldHandler> EnumFields()
+        public IEnumerator<XMLFieldHandler> EnumFields()
         {
             Dictionary<string, XMLFieldHandler> handlers = _fieldHandlers.Value;
             foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)

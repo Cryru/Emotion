@@ -46,7 +46,6 @@ namespace Tests
 
         private static void Main(string[] args)
         {
-            Runner.RunAsRunner("tag=UITests", ref args);
             ResultDb.LoadCache();
             var config = new Configurator
             {

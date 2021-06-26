@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using Emotion.Common.Serialization;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
@@ -748,6 +749,49 @@ namespace Tests.Classes
             var memberDontSerialize = XMLFormat.From<ClassWithExcluded>(document);
             Assert.False(memberDontSerialize.NotMe); // DontSerialize is not deserialized.
             Assert.True(memberDontSerialize.Me);
+        }
+
+        public class BaseClassWithVirtualProperty
+        {
+            // ReSharper disable once ConvertToAutoProperty
+            public virtual string Field
+            {
+                get => _backingField;
+                set => _backingField = value;
+            }
+
+            private string _backingField;
+        }
+
+        public class OverrideClass : BaseClassWithVirtualProperty
+        {
+            public override string Field { get => _someOtherBackingField; set => _someOtherBackingField = value; }
+            private string _someOtherBackingField;
+        }
+
+        public class OverrideClassWithDontSerialize : BaseClassWithVirtualProperty
+        {
+            [DontSerialize]
+            public override string Field { get => base.Field; set => base.Field = value; }
+        }
+
+        [Test]
+        public void InheritedFields()
+        {
+            var overridingClass = new OverrideClass()
+            {
+                Field = "Hi"
+            };
+            string document = XMLFormat.To(overridingClass);
+            var rgx = new Regex("Hi");
+            Assert.Equal(rgx.Matches(document).Count, 1);
+
+            var overridingClassWithExclusion = new OverrideClassWithDontSerialize()
+            {
+                Field = "Hi"
+            };
+            document = XMLFormat.To(overridingClassWithExclusion);
+            Assert.Equal(rgx.Matches(document).Count, 0);
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
-using Emotion.Common.Serialization;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -22,7 +21,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             get
             {
                 if (_recursiveType != null) return _recursiveType.Value;
-                _recursiveType = (_baseClass?.RecursiveType ?? false) || IsRecursiveWith(Type);
+                _recursiveType = IsRecursiveWith(Type);
                 return _recursiveType.Value;
             }
             protected set => _recursiveType = value;
@@ -31,24 +30,42 @@ namespace Emotion.Standard.XML.TypeHandlers
         private bool? _recursiveType;
 
         /// <summary>
-        /// The handler for this type's base class (if any).
-        /// </summary>
-        protected XMLComplexTypeHandler _baseClass;
-
-        /// <summary>
         /// The default value of the complex type when constructed.
         /// </summary>
         protected object _defaultConstruct;
 
+
         public XMLComplexTypeHandler(Type type) : base(type)
         {
-            // Check if inheriting anything.
+            // Check if inheriting anything. If so copy its excluded members as well.
             if (Type.BaseType != null && Type.BaseType != typeof(object))
             {
-                _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
+                var baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
+                HashSet<string> baseTypeExcludedMembers = baseClass?._excludedMembers;
+                if (baseTypeExcludedMembers != null)
+                {
+                    if (_excludedMembers == null)
+                    {
+                        _excludedMembers = baseTypeExcludedMembers;
+                    }
+                    else
+                    {
+                        // Copy hashset as not to modify reference of attribute.
+                        var newHashSet = new HashSet<string>();
+                        foreach (string excludedMember in _excludedMembers)
+                        {
+                            newHashSet.Add(excludedMember);
+                        }
 
-                // If we have exclusions then clone the base class handler with them. This will also clone its base class, and so forth.
-                if (_baseClass != null && _excludedMembersAttribute != null) _baseClass = (XMLComplexTypeHandler) _baseClass.CloneWithExclusions(_excludedMembersAttribute);
+                        // Add values from base type.
+                        foreach (string excludedMember in baseTypeExcludedMembers)
+                        {
+                            newHashSet.Add(excludedMember);
+                        }
+
+                        _excludedMembers = newHashSet;
+                    }
+                }
             }
 
             // Create default value reference.
@@ -81,11 +98,11 @@ namespace Emotion.Standard.XML.TypeHandlers
                 }
             }
 
-            // Handle inherited type.
+            // Handle field value being of inherited type.
             XMLComplexTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string inheritedType) ?? this;
 
-            fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            fieldName ??= TypeName;
             output.Append(inheritedType == null ? $"<{fieldName}>\n" : $"<{fieldName} type=\"{inheritedType}\">\n");
             typeHandler.SerializeFields(obj, output, indentation + 1, recursionChecker);
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
@@ -98,7 +115,6 @@ namespace Emotion.Standard.XML.TypeHandlers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
-            _baseClass?.SerializeFields(obj, output, indentation, recursionChecker);
             Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
             foreach ((string _, XMLFieldHandler field) in fieldHandlers)
             {
@@ -147,7 +163,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                     nullValue = true;
                 }
 
-                if (!GetFieldHandler(currentTag, out XMLFieldHandler field))
+                if (!_fieldHandlers.Value.TryGetValue(currentTag, out XMLFieldHandler field))
                 {
                     Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
                     return newObj;
@@ -160,29 +176,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             }
 
             return newObj;
-        }
-
-        /// <summary>
-        /// Get the handler for a field, recursively searches within the base class.
-        /// </summary>
-        /// <param name="tag">The field name.</param>
-        /// <param name="handler">The handler for that field.</param>
-        /// <returns>Whether a handler was found for this field.</returns>
-        protected bool GetFieldHandler(string tag, out XMLFieldHandler handler)
-        {
-            if (_fieldHandlers.Value.TryGetValue(tag, out handler)) return true;
-            return _baseClass != null && _baseClass.GetFieldHandler(tag, out handler);
-        }
-
-        /// <summary>
-        /// Clone with exclusions recursively down the inheritance chain.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembersAttribute exclusions)
-        {
-            var clone = (XMLComplexTypeHandler) base.CloneWithExclusions(exclusions);
-            if (clone._baseClass != null) clone._baseClass = (XMLComplexTypeHandler) clone._baseClass.CloneWithExclusions(exclusions);
-            return clone;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -202,31 +195,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             // wtf?
             Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {TypeName}", MessageSource.XML);
             return null;
-        }
-
-        public override IEnumerator<XMLFieldHandler> EnumFields()
-        {
-            Dictionary<string, XMLFieldHandler> handlers = _fieldHandlers.Value;
-            foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
-            {
-                XMLFieldHandler fieldHandler = field.Value;
-                if (fieldHandler.Skip) continue;
-                yield return fieldHandler;
-            }
-
-            XMLComplexTypeHandler baseClass = _baseClass;
-            while (baseClass != null)
-            {
-                handlers = baseClass._fieldHandlers.Value;
-                foreach (KeyValuePair<string, XMLFieldHandler> field in handlers)
-                {
-                    XMLFieldHandler fieldHandler = field.Value;
-                    if (fieldHandler.Skip) continue;
-                    yield return fieldHandler;
-                }
-
-                baseClass = baseClass._baseClass;
-            }
         }
 
         public override bool IsRecursiveWith(Type type)
