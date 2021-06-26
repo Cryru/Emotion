@@ -1,6 +1,8 @@
 ﻿#region Using
 
 using System;
+using Emotion.Common;
+using Emotion.Standard.Logging;
 
 #endregion
 
@@ -15,7 +17,13 @@ namespace Emotion.Standard.XML.TypeHandlers
         public override object Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
-            return Enum.Parse(Type, readValue);
+            if (Enum.TryParse(Type, readValue, out object? parsed))
+            {
+                return parsed;
+            }
+
+            Engine.Log.Warning($"Couldn't find value {readValue} in enum {Type}.", MessageSource.XML);
+            return null;
         }
     }
 }
