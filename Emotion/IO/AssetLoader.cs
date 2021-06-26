@@ -276,11 +276,16 @@ namespace Emotion.IO
         {
             if (name == null) return Task.FromResult((T?) null);
 
-            if (_asyncLoadingTasks.TryGetValue(name, out Task? task))
-                return (Task<T?>) task;
+            Task? task;
+            lock (_asyncLoadingTasks)
+            {
+                if (_asyncLoadingTasks.TryGetValue(name, out task))
+                    return (Task<T?>) task;
 
-            task = Task.Run(() => Get<T>(name));
-            _asyncLoadingTasks.Add(name, task);
+                task = Task.Run(() => Get<T>(name));
+                _asyncLoadingTasks.Add(name, task);
+            }
+
             return (Task<T?>) task;
         }
 
