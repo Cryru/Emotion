@@ -6,6 +6,8 @@ using Emotion.Standard.Logging;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XMLEnumTypeHandler : XMLPrimitiveTypeHandler
@@ -14,7 +16,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         {
         }
 
-        public override object Deserialize(XMLReader input)
+        public override object? Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
             if (Enum.TryParse(Type, readValue, out object? parsed))
