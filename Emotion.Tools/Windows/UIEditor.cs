@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using Emotion.Common;
+using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.IO;
+using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Tools.Windows.HelpWindows;
@@ -25,6 +28,12 @@ namespace Emotion.Tools.Windows
         private string[] _validWindowTypesNames;
         private XMLComplexBaseTypeHandler _typeHandler;
 
+        /// <summary>
+        /// Blackboard for sub editors spawned by specific fields.
+        /// For instance the UV field can be assigned from frame size and other metrics.
+        /// </summary>
+        private Dictionary<string, object> _subEditorStorage = new();
+
         public UIEditor() : base("UI Editor")
         {
             _validWindowTypes = GetTypesWhichInherit();
@@ -35,6 +44,8 @@ namespace Emotion.Tools.Windows
             {
                 _validWindowTypesNames[i] = _validWindowTypes[i].Name;
             }
+
+            _ui.Margins = new Rectangle(5, 15, 5, 5);
         }
 
         public override void Update()
@@ -67,11 +78,11 @@ namespace Emotion.Tools.Windows
             if (ImGui.ArrowButton("Left", ImGuiDir.Left))
             {
                 UIBaseWindow parent = _selectedWindow.Parent;
-                UIBaseWindow? parentParent = parent!.Parent;
-                if (parentParent != null)
+                UIBaseWindow parentParent = parent!.Parent;
+                if (parentParent != _ui)
                 {
                     parent.RemoveChild(_selectedWindow);
-                    parentParent.AddChild(_selectedWindow);
+                    parentParent!.AddChild(_selectedWindow);
                 }
             }
 
@@ -115,6 +126,33 @@ namespace Emotion.Tools.Windows
                 }
             }
 
+            ImGui.SameLine();
+            if (ImGui.Button("Preview"))
+            {
+                _ui.ClearChildren();
+                _ui.AddChild(window);
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Delete Selected"))
+            {
+                var yesNoModal = new YesNoModal(result =>
+                {
+                    if (!result) return;
+                    _selectedWindow.Parent!.RemoveChild(_selectedWindow);
+                    UnsavedChanges();
+                    ImGui.CloseCurrentPopup();
+                }, "Delete Window", $"Are you sure you want to delete {_selectedWindow}?");
+                Parent.AddWindow(yesNoModal);
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Duplicate Selected"))
+            {
+                UIBaseWindow newWin =_selectedWindow.Clone();
+                _selectedWindow.Parent.AddChild(newWin);
+            }
+
             ImGui.BeginChild("Window Tree", new Vector2(400, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
             RenderChildrenTree(window);
             ImGui.EndChild();
@@ -123,60 +161,149 @@ namespace Emotion.Tools.Windows
 
             ImGui.BeginGroup();
 
-            if (ImGui.Button("Preview"))
-            {
-                _ui.ClearChildren();
-                _ui.AddChild(window);
-            }
+            ImGui.BeginTabBar("TabBar");
 
-            ImGui.BeginChild("Window Properties", new Vector2(400, 500), true);
-            int currentClass = _validWindowTypes.IndexOf(_selectedWindow.GetType());
-            if (ImGui.Combo("Class", ref currentClass, _validWindowTypesNames, _validWindowTypesNames.Length))
+            if (ImGui.BeginTabItem("Window Properties"))
             {
-                List<UIBaseWindow> children = new List<UIBaseWindow>();
-                if (_selectedWindow.Children != null)
+                ImGui.BeginChild("Window Properties", new Vector2(450, 500), true);
+                int currentClass = _validWindowTypes.IndexOf(_selectedWindow.GetType());
+                if (ImGui.Combo("Class", ref currentClass, _validWindowTypesNames, _validWindowTypesNames.Length))
                 {
-                    children.AddRange(_selectedWindow.Children);
-                    _selectedWindow.ClearChildren();
-                }
-
-                object newObj = TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
-                if (newObj == null) return;
-                var newWin = (UIBaseWindow) newObj;
-                if (children.Count > 0)
-                    for (var i = 0; i < children.Count; i++)
+                    // Copy children.
+                    var children = new List<UIBaseWindow>();
+                    if (_selectedWindow.Children != null)
                     {
-                        newWin.AddChild(children[i]);
+                        children.AddRange(_selectedWindow.Children);
+                        _selectedWindow.ClearChildren();
                     }
 
-                bool root = _selectedWindow.Parent == _ui;
+                    // Transform class.
+                    object newObj = TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
+                    if (newObj == null) return;
+                    var newWin = (UIBaseWindow) newObj;
 
-                int index = _selectedWindow.Parent.Children!.IndexOf(_selectedWindow);
-                _selectedWindow.Parent.RemoveChild(_selectedWindow);
-                _selectedWindow.Parent.AddChild(newWin, index);
+                    // Add back children. Should be same order.
+                    if (children.Count > 0)
+                        for (var i = 0; i < children.Count; i++)
+                        {
+                            newWin.AddChild(children[i]);
+                        }
 
+                    // If we modified the root window then we need to recreate the whole asset.
+                    if (_selectedWindow.Parent == _ui)
+                    {
+                        Debug.Assert(_selectedWindow == window);
+                        XMLAsset<UIBaseWindow> newAsset = XMLAsset<UIBaseWindow>.CreateFromContent(newWin);
+                        newAsset.Name = _currentAsset!.Name;
+                        _currentAsset = newAsset;
+                    }
 
-                if (root)
-                {
-                    // If changing the root, change the whole asset.
-                    Debug.Assert(_selectedWindow == window);
-                    XMLAsset<UIBaseWindow> newAsset = XMLAsset<UIBaseWindow>.CreateFromContent(newWin);
-                    newAsset.Name = _currentAsset!.Name;
-                    _currentAsset = newAsset;
+                    // Re-add to parent.
+                    int index = _selectedWindow.Parent.Children!.IndexOf(_selectedWindow);
+                    _selectedWindow.Parent.RemoveChild(_selectedWindow);
+                    _selectedWindow.Parent.AddChild(newWin, index);
+
+                    // Reselect.
+                    SelectWindow(newWin);
+
+                    // Query preload.
+                    UIController.PreloadUI();
                 }
 
-                SelectWindow(newWin);
+                IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
+                while (fields.MoveNext())
+                {
+                    XMLFieldHandler field = fields.Current;
+                    if (field.Name == "Children") continue;
+                    ImGuiEditorForType(_selectedWindow, field!);
+                    if (field.Name == "UV")
+                    {
+                        ImGui.SameLine();
+                        if (ImGui.SmallButton("Row/Column"))
+                        {
+                            ImGui.OpenPopup("UVAssign");
+                            _subEditorStorage.Clear();
+                            _subEditorStorage.Add("frameSize", Vector2.Zero);
+                            _subEditorStorage.Add("spacing", Vector2.Zero);
+                            _subEditorStorage.Add("column", 0);
+                            _subEditorStorage.Add("row", 0);
+                        }
+
+                        var fakeRef = true;
+                        if (ImGui.BeginPopupModal("UVAssign", ref fakeRef, ImGuiWindowFlags.AlwaysAutoResize))
+                        {
+                            var frameSize = (Vector2) _subEditorStorage["frameSize"];
+                            ImGui.InputFloat2("FrameSize", ref frameSize);
+                            _subEditorStorage["frameSize"] = frameSize;
+
+                            var spacing = (Vector2) _subEditorStorage["spacing"];
+                            ImGui.InputFloat2("Spacing", ref spacing);
+                            _subEditorStorage["spacing"] = spacing;
+
+                            var row = (int) _subEditorStorage["row"];
+                            ImGui.InputInt("Row", ref row);
+                            _subEditorStorage["row"] = row;
+
+                            var column = (int) _subEditorStorage["column"];
+                            ImGui.InputInt("Column", ref column);
+                            _subEditorStorage["column"] = column;
+
+                            if (ImGui.Button("Set UV"))
+                            {
+                                var textureWnd = (UITexture) _selectedWindow;
+                                string textureFileName = textureWnd.TextureFile;
+                                var textureAsset = Engine.AssetLoader.Get<TextureAsset>(textureFileName);
+                                Rectangle uv = AnimatedTexture.GetGridFrameBounds(textureAsset.Texture.Size, frameSize, spacing, row, column);
+                                field.ReflectionInfo.SetValue(_selectedWindow, uv);
+                            }
+
+                            ImGui.SameLine();
+                            if (ImGui.Button("Close")) ImGui.CloseCurrentPopup();
+
+                            ImGui.EndPopup();
+                        }
+                    }
+                }
+
+                ImGui.EndChild();
+                ImGui.EndTabItem();
             }
 
-            IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
-            while (fields.MoveNext())
+            if (ImGui.BeginTabItem("Debug Info"))
             {
-                XMLFieldHandler field = fields.Current;
-                if (field.Name == "Children") continue;
-                ImGuiEditorForType(_selectedWindow, field!);
+                ImGui.BeginChild("Debug Properties", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
+
+                UIDebugger debugger = _ui.Debugger;
+                if (debugger != null)
+                {
+                    UIDebugNode win = debugger.GetMetricsForWindow(_selectedWindow);
+                    if (win != null)
+                    {
+                        Dictionary<string, object> metrics = win.Metrics;
+                        foreach (KeyValuePair<string, object> metric in metrics)
+                        {
+                            ImGui.Text($"{metric.Key}: {metric.Value}");
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("No metrics for selected window. Try refreshing the preview.");
+                    }
+
+                    ImGui.Text($"Final_Position: {_selectedWindow.Position}");
+                    ImGui.Text($"Final_Size: {_selectedWindow.Size}");
+                }
+                else
+                {
+                    ImGui.Text("Debugger not attached to controller.");
+                }
+
+                ImGui.EndChild();
+                ImGui.EndTabItem();
             }
 
-            ImGui.EndChild();
+            ImGui.EndTabBar();
+
             ImGui.EndGroup();
 
             _ui.Render(c);
@@ -207,22 +334,6 @@ namespace Emotion.Tools.Windows
                 window.AddChild(newWindow);
                 SelectWindow(newWindow);
                 UnsavedChanges();
-            }
-
-            if (window.Parent != null && window.Parent != _ui)
-            {
-                ImGui.SameLine();
-                if (ImGui.SmallButton("Delete"))
-                {
-                    var yesNoModal = new YesNoModal(result =>
-                    {
-                        if (!result) return;
-                        window.Parent!.RemoveChild(window);
-                        UnsavedChanges();
-                        ImGui.CloseCurrentPopup();
-                    }, "Delete Window", $"Are you sure you want to delete {window}?");
-                    Parent.AddWindow(yesNoModal);
-                }
             }
 
             if (opened)

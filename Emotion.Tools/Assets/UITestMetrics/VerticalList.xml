@@ -9,88 +9,75 @@
   <ValueTupleOfStringRectangle>
     <Item1>List</Item1>
     <Item2>
-      <X>198</X>
-      <Y>170</Y>
-      <Width>245</Width>
-      <Height>20</Height>
+      <Width>640</Width>
+      <Height>360</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>198</X>
-      <Y>170</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>223</X>
-      <Y>170</Y>
+      <Y>25</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>248</X>
-      <Y>170</Y>
+      <Y>50</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>273</X>
-      <Y>170</Y>
+      <Y>75</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>298</X>
-      <Y>170</Y>
+      <Y>100</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>323</X>
-      <Y>170</Y>
+      <Y>125</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>348</X>
-      <Y>170</Y>
+      <Y>150</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>373</X>
-      <Y>170</Y>
+      <Y>175</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>398</X>
-      <Y>170</Y>
+      <Y>200</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <X>423</X>
-      <Y>170</Y>
+      <Y>225</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>

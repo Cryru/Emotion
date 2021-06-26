@@ -10,7 +10,7 @@
     <Item1>List</Item1>
     <Item2>
       <X>310</X>
-      <Y>57.5</Y>
+      <Y>58</Y>
       <Width>20</Width>
       <Height>245</Height>
     </Item2>
@@ -18,7 +18,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>57.5</Y>
+      <Y>58</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -26,7 +26,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>82.5</Y>
+      <Y>83</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -34,7 +34,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>107.5</Y>
+      <Y>108</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -42,7 +42,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>132.5</Y>
+      <Y>133</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -50,7 +50,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>157.5</Y>
+      <Y>158</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -58,7 +58,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>182.5</Y>
+      <Y>183</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -66,7 +66,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>207.5</Y>
+      <Y>208</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -74,7 +74,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>232.5</Y>
+      <Y>233</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -82,7 +82,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>257.5</Y>
+      <Y>258</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -90,7 +90,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>310</X>
-      <Y>282.5</Y>
+      <Y>283</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>

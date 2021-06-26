@@ -12,11 +12,14 @@ namespace Emotion.UI
 {
     public class UIController : UIBaseWindow
     {
+        protected bool _updateLayout = true;
+        protected bool _updateColor = true;
+
         public UIController()
         {
-            Color = new Color(0, 0, 0, 0);
             Debugger = new UIDebugger();
             Engine.Host.OnResize += Host_OnResize;
+            KeepTemplatePreloaded(this);
         }
 
         private void Host_OnResize(Vector2 obj)
@@ -25,70 +28,68 @@ namespace Emotion.UI
             _needPreload = true;
         }
 
-        public Task PreloadUI()
-        {
-            if (_needPreload)
-            {
-                PreloadChildren();
-                _needPreload = false;
-            }
-
-            return UILoadingThread;
-        }
-
         public void Update()
         {
-            if (!PreloadUI().IsCompleted) return;
+            UpdatePreLoading();
+            if (!UILoadingThread.IsCompleted) return;
 
             if (_updateLayout)
             {
                 Debugger?.RecordNewPass(this);
                 Measure(Engine.Renderer.DrawBuffer.Size);
-                Layout(Vector2.Zero, Engine.Renderer.DrawBuffer.Size);
+
+                Rectangle r = GetLayoutSpace(Engine.Renderer.DrawBuffer.Size);
+                Layout(r.Position, r.Size);
             }
 
             if (_updateColor) CalculateColor();
         }
 
-        #region Preloading
-
-        public Task UILoadingThread { get; protected set; } = Task.CompletedTask;
-        private List<UIBaseWindow> _uiKeepLoaded = new List<UIBaseWindow>();
-        private List<UIBaseWindow> _uiKeepLoadedExplicit = new List<UIBaseWindow>();
-        private bool _needPreload = true;
-
         public override void AddChild(UIBaseWindow child, int index = -1)
         {
-            AddUIToPreload(child);
+            if (child == null) return;
+            RequestPreload();
             base.AddChild(child, index);
         }
 
-        public override void ClearChildren()
-        {
-            base.ClearChildren();
-            _uiKeepLoaded.Clear();
-            _uiKeepLoaded.AddRange(_uiKeepLoadedExplicit);
-        }
+        #region Global Preloading
 
-        private void PreloadChildren()
+        public static Task UILoadingThread { get; protected set; } = Task.CompletedTask;
+        private static PreloadWindowStorage _keepWindowsLoaded = new();
+        private class PreloadWindowStorage : UIBaseWindow
         {
-            if (!UILoadingThread.IsCompleted) return;
-
-            UILoadingThread = Task.Run(async () =>
+            public override void AddChild(UIBaseWindow child, int index = -1)
             {
-                for (var i = 0; i < _uiKeepLoaded.Count; i++)
-                {
-                    UIBaseWindow wnd = _uiKeepLoaded[i];
-                    await wnd.Preload();
-                }
-            });
+                Children ??= new List<UIBaseWindow>();
+                if (index != -1)
+                    Children.Insert(index, child);
+                else
+                    Children.Add(child);
+            }
+        }
+        private static bool _needPreload = true;
+
+        public static Task PreloadUI()
+        {
+            UpdatePreLoading();
+            return UILoadingThread;
         }
 
-        public void AddUIToPreload(UIBaseWindow child)
+        public static void KeepTemplatePreloaded(UIBaseWindow window)
         {
-            _uiKeepLoadedExplicit.Add(child);
-            _uiKeepLoaded.Add(child);
+            _keepWindowsLoaded.AddChild(window);
+        }
+
+        public static void RequestPreload()
+        {
             _needPreload = true;
+        }
+
+        private static void UpdatePreLoading()
+        {
+            if (!_needPreload) return;
+            if (!UILoadingThread.IsCompleted) return;
+            UILoadingThread = _keepWindowsLoaded.Preload();
         }
 
         #endregion

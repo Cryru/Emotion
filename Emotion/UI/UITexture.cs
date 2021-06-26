@@ -12,7 +12,7 @@ using Emotion.Primitives;
 
 namespace Emotion.UI
 {
-    public class UITexture : UIBaseWindow
+    public class UITexture : UISolidColor
     {
         /// <summary>
         /// Path to the texture file to load.
@@ -40,7 +40,7 @@ namespace Emotion.UI
         /// </summary>
         public bool Smooth;
 
-        private TextureAsset _textureFile;
+        protected TextureAsset _textureFile;
 
         public override async Task Preload()
         {
@@ -54,16 +54,16 @@ namespace Emotion.UI
 
         protected override Vector2 InternalMeasure(Vector2 space)
         {
-            if (_textureFile == null) return base.InternalMeasure(space);
-
             float scale = GetScale();
             Vector2 size;
             if (RenderSize != null)
                 size = RenderSize.Value;
             else if (UV != null)
                 size = UV.Value.Size * scale;
-            else
+            else if (_textureFile != null)
                 size = _textureFile.Texture.Size * scale;
+            else
+                size = Vector2.Zero;
 
             if (ImageScale != null) size *= ImageScale.Value;
             return size;
@@ -71,7 +71,7 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
         {
-            if (_textureFile == null) return true;
+            if (_textureFile == null) return base.RenderInternal(c, ref windowColor);
             c.RenderSprite(Position, Size, windowColor, _textureFile.Texture, UV);
             return true;
         }

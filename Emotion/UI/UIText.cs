@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
@@ -25,6 +26,16 @@ namespace Emotion.UI
         public int FontSize;
 
         /// <summary>
+        /// Whether to smoothen the drawing of the font by using bilinear filtering.
+        /// </summary>
+        public bool Smooth;
+
+        /// <summary>
+        /// Whether the font is a pixel font and we want it to scale integerly.
+        /// </summary>
+        public bool FontSizePixelPerfect;
+
+        /// <summary>
         /// The text to display.
         /// </summary>
         public string Text
@@ -36,7 +47,6 @@ namespace Emotion.UI
                 InvalidateLayout();
             }
         }
-
 
         /// <summary>
         /// Text shadow to draw, if any.
@@ -87,19 +97,20 @@ namespace Emotion.UI
             // Preload atlas as well.
             // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
             float scale = GetScale();
-            _atlas = _fontFile.GetAtlas(FontSize * scale);
+            _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), 0, -1, Smooth, FontSizePixelPerfect);
             _layouter = new TextLayouterWrap(_atlas.Atlas);
         }
 
         protected override Vector2 InternalMeasure(Vector2 space)
         {
-            if (_fontFile == null) return base.InternalMeasure(space);
+            if (_fontFile == null) return Vector2.Zero;
 
             float scale = GetScale();
             _scaledUnderlineOffset = UnderlineOffset * scale;
             _scaledUnderlineThickness = UnderlineThickness * scale;
 
-            _layouter.SetupBox(_text, space, TextHeightMode);
+            _layouter.Restart();
+            _layouter.SetupBox(_text ?? "", space, TextHeightMode);
             return new Vector2(_layouter.NeededWidth, _layouter.NeededHeight);
         }
 
@@ -113,14 +124,13 @@ namespace Emotion.UI
                 c.RenderString(Position + ShadowOffset.ToVec3(), TextShadow.Value * windowColor.A, _text, _atlas, _layouter);
             }
 
-            _layouter.RestartPen();
-
             if (Underline)
             {
                 float y = Y + Height + _scaledUnderlineOffset.Y;
                 c.RenderLine(new Vector2(X + _scaledUnderlineOffset.X, y), new Vector2(X + Width - _scaledUnderlineOffset.X * 2, y), windowColor, _scaledUnderlineThickness);
             }
 
+            _layouter.RestartPen();
             c.RenderString(Position, windowColor, _text, _atlas, _layouter);
             return true;
         }

@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Standard.Logging;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Tools.Windows.HelpWindows;
@@ -39,18 +39,14 @@ namespace Emotion.Tools.Windows
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
                 if (ImGui.Button("New"))
-                {
-                    if (UnsavedChangesCheck(NewFile)) return;
-                    NewFile();
-                }
+                    if (!UnsavedChangesCheck(NewFile))
+                        NewFile();
 
                 if (ImGui.Button("Open"))
-                {
-                    if (UnsavedChangesCheck(OpenFile)) return;
-                    OpenFile();
-                }
+                    if (!UnsavedChangesCheck(OpenFile))
+                        OpenFile();
 
-                if (ImGui.Button("Save")) SaveFile();
+                if (_currentAsset != null && ImGui.Button("Save")) SaveFile();
                 if (_currentFileName != null)
                     ImGui.Text($"File: {_currentFileName}");
                 else if (_currentAsset != null)
@@ -112,11 +108,11 @@ namespace Emotion.Tools.Windows
                         UnsavedChanges();
                     }
 
-                    return;
+                    break;
                 }
                 case XMLEnumTypeHandler enumHandler:
                 {
-                    var enumValueNames = Enum.GetNames(enumHandler.Type);
+                    string[] enumValueNames = Enum.GetNames(enumHandler.Type);
                     int currentItem = enumValueNames.IndexOf(value.ToString());
                     if (ImGui.Combo(xmlHandler.Name, ref currentItem, enumValueNames, enumValueNames.Length))
                     {
@@ -125,7 +121,7 @@ namespace Emotion.Tools.Windows
                         UnsavedChanges();
                     }
 
-                    return;
+                    break;
                 }
                 case XMLPrimitiveTypeHandler primitive:
                 {
@@ -138,7 +134,7 @@ namespace Emotion.Tools.Windows
                             UnsavedChanges();
                         }
 
-                        return;
+                        break;
                     }
 
                     if (primitive.Type == typeof(bool))
@@ -149,8 +145,6 @@ namespace Emotion.Tools.Windows
                             xmlHandler.ReflectionInfo.SetValue(obj, boolValue);
                             UnsavedChanges();
                         }
-
-                        return;
                     }
 
                     break;
@@ -166,7 +160,7 @@ namespace Emotion.Tools.Windows
                             UnsavedChanges();
                         }
 
-                        return;
+                        break;
                     }
 
                     if (valueType.Type == typeof(Vector3))
@@ -178,7 +172,7 @@ namespace Emotion.Tools.Windows
                             UnsavedChanges();
                         }
 
-                        return;
+                        break;
                     }
 
                     if (valueType.Type == typeof(Color))
@@ -200,7 +194,7 @@ namespace Emotion.Tools.Windows
                             ImGui.EndPopup();
                         }
 
-                        return;
+                        break;
                     }
 
                     if (valueType.Type == typeof(Rectangle))
@@ -209,18 +203,36 @@ namespace Emotion.Tools.Windows
                         var vec4Value = new Vector4(rectValue.X, rectValue.Y, rectValue.Width, rectValue.Height);
                         if (ImGui.InputFloat4(xmlHandler.Name, ref vec4Value))
                         {
-                            xmlHandler.ReflectionInfo.SetValue(obj, vec4Value);
+                            var r = new Rectangle(vec4Value.X, vec4Value.Y, vec4Value.Z, vec4Value.W);
+                            xmlHandler.ReflectionInfo.SetValue(obj, r);
                             UnsavedChanges();
                         }
-
-                        return;
                     }
 
                     break;
                 }
+                default:
+                {
+                    ImGui.Text($"{xmlHandler.Name}: {value}");
+                    break;
+                }
             }
 
-            ImGui.Text($"{xmlHandler.Name}: {value}");
+            object defaultVal = xmlHandler.DefaultValue;
+            bool valueIsNotDefault = value != null && !value.Equals(defaultVal);
+            bool defaultIsNotValue = defaultVal != null && !defaultVal.Equals(value);
+            if (valueIsNotDefault || defaultIsNotValue)
+            {
+                ImGui.PushID(xmlHandler.Name);
+                ImGui.SameLine();
+                if (ImGui.SmallButton("X"))
+                {
+                    xmlHandler.ReflectionInfo.SetValue(obj, defaultVal);
+                    UnsavedChanges();
+                }
+
+                ImGui.PopID();
+            }
         }
 
         #endregion
@@ -231,6 +243,12 @@ namespace Emotion.Tools.Windows
         {
             var explorer = new FileExplorer<XMLAsset<T>>(asset =>
             {
+                if (asset.Content == null)
+                {
+                    Engine.Log.Warning($"{asset.Name} asset couldn't be loaded. Maybe it is not of type {typeof(T)}.", "Tools");
+                    return;
+                }
+
                 if (OnFileLoaded(asset))
                 {
                     _currentAsset = asset;
@@ -250,6 +268,7 @@ namespace Emotion.Tools.Windows
 
         private void SaveFile()
         {
+            Debug.Assert(_currentAsset != null);
             if (_currentFileName == null)
             {
                 var nameInput = new StringInputModal(name =>
@@ -257,14 +276,15 @@ namespace Emotion.Tools.Windows
                     if (!name.Contains(".")) name += ".xml";
 
                     _currentFileName = name;
-                    SaveFile();
+                    _currentAsset.SaveAs(name);
+                    _unsavedChanges = false;
                 }, "File Path");
                 Parent.AddWindow(nameInput);
                 return;
             }
 
-            byte[] bytes = GetByteFile();
-            Engine.AssetLoader.Save(bytes, _currentFileName);
+            _currentAsset.Save();
+            _unsavedChanges = false;
         }
 
         #endregion
@@ -310,13 +330,6 @@ namespace Emotion.Tools.Windows
         #endregion
 
         #region Inherit API
-
-        protected virtual byte[] GetByteFile()
-        {
-            if (_currentAsset == null) return Array.Empty<byte>();
-            string xml = XMLFormat.To(_currentAsset.Content);
-            return Encoding.Default.GetBytes(xml);
-        }
 
         protected virtual XMLAsset<T> CreateFile()
         {

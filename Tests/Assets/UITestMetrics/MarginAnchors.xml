@@ -8,13 +8,17 @@
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
-      <Width>640</Width>
-      <Height>360</Height>
+      <X>50</X>
+      <Y>50</Y>
+      <Width>540</Width>
+      <Height>260</Height>
     </Item2>
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item1>TopLeft TopLeft</Item1>
     <Item2>
+      <X>50</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -23,6 +27,7 @@
     <Item1>TopLeft TopCenter</Item1>
     <Item2>
       <X>320</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -30,7 +35,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopLeft TopRight</Item1>
     <Item2>
-      <X>640</X>
+      <X>590</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -38,6 +44,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopLeft CenterLeft</Item1>
     <Item2>
+      <X>50</X>
       <Y>180</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -55,7 +62,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopLeft CenterRight</Item1>
     <Item2>
-      <X>640</X>
+      <X>590</X>
       <Y>180</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -64,7 +71,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopLeft BottomLeft</Item1>
     <Item2>
-      <Y>360</Y>
+      <X>50</X>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -73,7 +81,7 @@
     <Item1>TopLeft BottomCenter</Item1>
     <Item2>
       <X>320</X>
-      <Y>360</Y>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -81,8 +89,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopLeft BottomRight</Item1>
     <Item2>
-      <X>640</X>
-      <Y>360</Y>
+      <X>590</X>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -90,7 +98,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopCenter TopLeft</Item1>
     <Item2>
-      <X>-12</X>
+      <X>38</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -99,6 +108,7 @@
     <Item1>TopCenter TopCenter</Item1>
     <Item2>
       <X>308</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -106,7 +116,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopCenter TopRight</Item1>
     <Item2>
-      <X>628</X>
+      <X>578</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -114,7 +125,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopCenter CenterLeft</Item1>
     <Item2>
-      <X>-12</X>
+      <X>38</X>
       <Y>180</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -132,7 +143,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopCenter CenterRight</Item1>
     <Item2>
-      <X>628</X>
+      <X>578</X>
       <Y>180</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -141,8 +152,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopCenter BottomLeft</Item1>
     <Item2>
-      <X>-12</X>
-      <Y>360</Y>
+      <X>38</X>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -151,7 +162,7 @@
     <Item1>TopCenter BottomCenter</Item1>
     <Item2>
       <X>308</X>
-      <Y>360</Y>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -159,8 +170,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopCenter BottomRight</Item1>
     <Item2>
-      <X>628</X>
-      <Y>360</Y>
+      <X>578</X>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -168,7 +179,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopRight TopLeft</Item1>
     <Item2>
-      <X>-25</X>
+      <X>25</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -177,6 +189,7 @@
     <Item1>TopRight TopCenter</Item1>
     <Item2>
       <X>295</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -184,7 +197,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopRight TopRight</Item1>
     <Item2>
-      <X>615</X>
+      <X>565</X>
+      <Y>50</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -192,7 +206,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopRight CenterLeft</Item1>
     <Item2>
-      <X>-25</X>
+      <X>25</X>
       <Y>180</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -210,7 +224,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopRight CenterRight</Item1>
     <Item2>
-      <X>615</X>
+      <X>565</X>
       <Y>180</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -219,8 +233,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopRight BottomLeft</Item1>
     <Item2>
-      <X>-25</X>
-      <Y>360</Y>
+      <X>25</X>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -229,7 +243,7 @@
     <Item1>TopRight BottomCenter</Item1>
     <Item2>
       <X>295</X>
-      <Y>360</Y>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -237,8 +251,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>TopRight BottomRight</Item1>
     <Item2>
-      <X>615</X>
-      <Y>360</Y>
+      <X>565</X>
+      <Y>310</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -246,7 +260,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterLeft TopLeft</Item1>
     <Item2>
-      <Y>-12</Y>
+      <X>50</X>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -255,7 +270,7 @@
     <Item1>CenterLeft TopCenter</Item1>
     <Item2>
       <X>320</X>
-      <Y>-12</Y>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -263,8 +278,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterLeft TopRight</Item1>
     <Item2>
-      <X>640</X>
-      <Y>-12</Y>
+      <X>590</X>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -272,6 +287,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterLeft CenterLeft</Item1>
     <Item2>
+      <X>50</X>
       <Y>168</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -289,7 +305,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterLeft CenterRight</Item1>
     <Item2>
-      <X>640</X>
+      <X>590</X>
       <Y>168</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -298,7 +314,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterLeft BottomLeft</Item1>
     <Item2>
-      <Y>348</Y>
+      <X>50</X>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -307,7 +324,7 @@
     <Item1>CenterLeft BottomCenter</Item1>
     <Item2>
       <X>320</X>
-      <Y>348</Y>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -315,8 +332,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterLeft BottomRight</Item1>
     <Item2>
-      <X>640</X>
-      <Y>348</Y>
+      <X>590</X>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -324,8 +341,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterCenter TopLeft</Item1>
     <Item2>
-      <X>-12</X>
-      <Y>-12</Y>
+      <X>38</X>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -334,7 +351,7 @@
     <Item1>CenterCenter TopCenter</Item1>
     <Item2>
       <X>308</X>
-      <Y>-12</Y>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -342,8 +359,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterCenter TopRight</Item1>
     <Item2>
-      <X>628</X>
-      <Y>-12</Y>
+      <X>578</X>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -351,7 +368,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterCenter CenterLeft</Item1>
     <Item2>
-      <X>-12</X>
+      <X>38</X>
       <Y>168</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -369,7 +386,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterCenter CenterRight</Item1>
     <Item2>
-      <X>628</X>
+      <X>578</X>
       <Y>168</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -378,8 +395,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterCenter BottomLeft</Item1>
     <Item2>
-      <X>-12</X>
-      <Y>348</Y>
+      <X>38</X>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -388,7 +405,7 @@
     <Item1>CenterCenter BottomCenter</Item1>
     <Item2>
       <X>308</X>
-      <Y>348</Y>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -396,8 +413,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterCenter BottomRight</Item1>
     <Item2>
-      <X>628</X>
-      <Y>348</Y>
+      <X>578</X>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -405,8 +422,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterRight TopLeft</Item1>
     <Item2>
-      <X>-25</X>
-      <Y>-12</Y>
+      <X>25</X>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -415,7 +432,7 @@
     <Item1>CenterRight TopCenter</Item1>
     <Item2>
       <X>295</X>
-      <Y>-12</Y>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -423,8 +440,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterRight TopRight</Item1>
     <Item2>
-      <X>615</X>
-      <Y>-12</Y>
+      <X>565</X>
+      <Y>38</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -432,7 +449,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterRight CenterLeft</Item1>
     <Item2>
-      <X>-25</X>
+      <X>25</X>
       <Y>168</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -450,7 +467,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterRight CenterRight</Item1>
     <Item2>
-      <X>615</X>
+      <X>565</X>
       <Y>168</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -459,8 +476,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterRight BottomLeft</Item1>
     <Item2>
-      <X>-25</X>
-      <Y>348</Y>
+      <X>25</X>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -469,7 +486,7 @@
     <Item1>CenterRight BottomCenter</Item1>
     <Item2>
       <X>295</X>
-      <Y>348</Y>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -477,8 +494,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>CenterRight BottomRight</Item1>
     <Item2>
-      <X>615</X>
-      <Y>348</Y>
+      <X>565</X>
+      <Y>298</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -486,7 +503,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomLeft TopLeft</Item1>
     <Item2>
-      <Y>-25</Y>
+      <X>50</X>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -495,7 +513,7 @@
     <Item1>BottomLeft TopCenter</Item1>
     <Item2>
       <X>320</X>
-      <Y>-25</Y>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -503,8 +521,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomLeft TopRight</Item1>
     <Item2>
-      <X>640</X>
-      <Y>-25</Y>
+      <X>590</X>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -512,6 +530,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomLeft CenterLeft</Item1>
     <Item2>
+      <X>50</X>
       <Y>155</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -529,7 +548,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomLeft CenterRight</Item1>
     <Item2>
-      <X>640</X>
+      <X>590</X>
       <Y>155</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -538,7 +557,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomLeft BottomLeft</Item1>
     <Item2>
-      <Y>335</Y>
+      <X>50</X>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -547,7 +567,7 @@
     <Item1>BottomLeft BottomCenter</Item1>
     <Item2>
       <X>320</X>
-      <Y>335</Y>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -555,8 +575,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomLeft BottomRight</Item1>
     <Item2>
-      <X>640</X>
-      <Y>335</Y>
+      <X>590</X>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -564,8 +584,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomCenter TopLeft</Item1>
     <Item2>
-      <X>-12</X>
-      <Y>-25</Y>
+      <X>38</X>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -574,7 +594,7 @@
     <Item1>BottomCenter TopCenter</Item1>
     <Item2>
       <X>308</X>
-      <Y>-25</Y>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -582,8 +602,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomCenter TopRight</Item1>
     <Item2>
-      <X>628</X>
-      <Y>-25</Y>
+      <X>578</X>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -591,7 +611,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomCenter CenterLeft</Item1>
     <Item2>
-      <X>-12</X>
+      <X>38</X>
       <Y>155</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -609,7 +629,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomCenter CenterRight</Item1>
     <Item2>
-      <X>628</X>
+      <X>578</X>
       <Y>155</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -618,8 +638,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomCenter BottomLeft</Item1>
     <Item2>
-      <X>-12</X>
-      <Y>335</Y>
+      <X>38</X>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -628,7 +648,7 @@
     <Item1>BottomCenter BottomCenter</Item1>
     <Item2>
       <X>308</X>
-      <Y>335</Y>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -636,8 +656,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomCenter BottomRight</Item1>
     <Item2>
-      <X>628</X>
-      <Y>335</Y>
+      <X>578</X>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -645,8 +665,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomRight TopLeft</Item1>
     <Item2>
-      <X>-25</X>
-      <Y>-25</Y>
+      <X>25</X>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -655,7 +675,7 @@
     <Item1>BottomRight TopCenter</Item1>
     <Item2>
       <X>295</X>
-      <Y>-25</Y>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -663,8 +683,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomRight TopRight</Item1>
     <Item2>
-      <X>615</X>
-      <Y>-25</Y>
+      <X>565</X>
+      <Y>25</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -672,7 +692,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomRight CenterLeft</Item1>
     <Item2>
-      <X>-25</X>
+      <X>25</X>
       <Y>155</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -690,7 +710,7 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomRight CenterRight</Item1>
     <Item2>
-      <X>615</X>
+      <X>565</X>
       <Y>155</Y>
       <Width>25</Width>
       <Height>25</Height>
@@ -699,8 +719,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomRight BottomLeft</Item1>
     <Item2>
-      <X>-25</X>
-      <Y>335</Y>
+      <X>25</X>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -709,7 +729,7 @@
     <Item1>BottomRight BottomCenter</Item1>
     <Item2>
       <X>295</X>
-      <Y>335</Y>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>
@@ -717,8 +737,8 @@
   <ValueTupleOfStringRectangle>
     <Item1>BottomRight BottomRight</Item1>
     <Item2>
-      <X>615</X>
-      <Y>335</Y>
+      <X>565</X>
+      <Y>285</Y>
       <Width>25</Width>
       <Height>25</Height>
     </Item2>

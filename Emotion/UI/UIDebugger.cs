@@ -27,6 +27,13 @@ namespace Emotion.UI
         private UIDebugNode? _debugNodeRoot;
         private Dictionary<UIBaseWindow, UIDebugNode>? _windowToNode;
 
+        public UIDebugNode? GetMetricsForWindow(UIBaseWindow window)
+        {
+            if (_windowToNode == null) return null;
+            _windowToNode.TryGetValue(window, out UIDebugNode? node);
+            return node;
+        }
+
         public void RecordNewPass(UIBaseWindow root)
         {
             _debugNodeRoot = new UIDebugNode(root);

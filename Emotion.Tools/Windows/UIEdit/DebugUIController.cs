@@ -22,18 +22,23 @@ namespace Emotion.Tools.Windows.UIEdit
         protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
         {
             if (!base.RenderInternal(c, ref windowColor)) return false;
+            c.RenderSprite(Position, Size, windowColor);
+            c.SetClipRect(new Rectangle(Position, Size));
+
             var scaledGridSize = (int) Maths.RoundClosest(DebugGridSize * GetScale());
             for (var y = 0; y < Size.Y; y += scaledGridSize)
             {
                 for (var x = 0; x < Size.X; x += scaledGridSize)
                 {
-                    c.RenderOutline(new Rectangle(x, y, scaledGridSize, scaledGridSize), Color.White * 0.2f);
+                    c.RenderOutline(new Rectangle(X + x, Y + y, scaledGridSize, scaledGridSize), Color.White * 0.2f);
                 }
             }
 
+            c.SetClipRect(null);
+
             Vector2 posVec2 = Position.ToVec2();
-            c.RenderLine(posVec2 + new Vector2(Size.X / 2, 0), posVec2 + new Vector2(Size.X / 2, Size.Y), Color.White * 0.8f);
-            c.RenderLine(posVec2 + new Vector2(0, Size.Y / 2), posVec2 + new Vector2(Size.X, Size.Y / 2), Color.White * 0.8f);
+            c.RenderLine(posVec2 + new Vector2(Size.X / 2, 0), posVec2 + new Vector2(Size.X / 2, Size.Y), Color.White * 0.7f);
+            c.RenderLine(posVec2 + new Vector2(0, Size.Y / 2), posVec2 + new Vector2(Size.X, Size.Y / 2), Color.White * 0.7f);
             return true;
         }
     }

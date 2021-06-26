@@ -45,39 +45,103 @@ namespace Emotion.UI
         /// </summary>
         public Vector2 ListSpacing { get; set; }
 
+        /// <summary>
+        /// Whether the window is visible.
+        /// If not, the RenderInternal function will not be called and
+        /// children will not be drawn either.
+        /// </summary>
         public bool Visible { get; set; } = true;
 
+        /// <summary>
+        /// Whether to consider this window as part of the layout when invisible.
+        /// Matters only within lists.
+        /// </summary>
         public bool DontTakeSpaceWhenHidden { get; set; }
 
+        /// <summary>
+        /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
+        /// This is the Z offset for this window, added to this window and its children.
+        /// </summary>
+        public float ZOffset { get; set; }
+
+        /// <summary>
+        /// Margins push the window in one of the four directions, only if it is against another window.
+        /// This is applied after alignment, but before the anchor.
+        /// </summary>
+        public Rectangle Margins { get; set; }
+
+        /// <summary>
+        /// This color should be mixed in with the rendering of the window somehow.
+        /// Used to control opacity as well.
+        /// </summary>
         public Color Color { get; set; } = Color.White;
-        public List<UIBaseWindow>? Children { get; set; }
+
+        /// <summary>
+        /// If set to true then this window will not mix its color with its parent's.
+        /// </summary>
+        public bool IgnoreParentColor = false;
+
+        /// <summary>
+        /// The minimum size the window can be.
+        /// </summary>
         public Vector2 MinSize { get; set; }
+
         public Vector2 MaxSize { get; set; } = new(9999, 9999);
+
+        /// <summary>
+        /// Always added to the position after all other checks.
+        /// Mostly used to offset from an anchor position.
+        /// </summary>
+        public Vector2 Offset { get; set; }
+
+        /// <summary>
+        /// Position and size is multiplied by Renderer.Scale, Renderer.IntScale or neither.
+        /// </summary>
         public UIScaleMode ScaleMode { get; set; } = UIScaleMode.FloatScale;
+
+        /// <summary>
+        /// Stretch the window to be as big as its children.
+        /// </summary>
         public bool StretchX { get; set; }
+
         public bool StretchY { get; set; }
+
+        public List<UIBaseWindow>? Children { get; set; }
 
         #endregion
 
         #region State
 
+        [DontSerialize]
         public UIBaseWindow? Parent { get; protected set; }
+
+        [DontSerialize]
         public UIDebugger? Debugger { get; protected set; }
 
         #endregion
 
-        protected bool _updateLayout = true;
-        protected bool _updateColor = true;
         protected Color _calculatedColor;
 
         public virtual async Task Preload()
         {
-            if (Children != null)
+            if (Children == null) return;
+
+            try
+            {
+                Task[] preloadTasks = new Task[Children.Count];
                 for (var i = 0; i < Children.Count; i++)
                 {
                     UIBaseWindow child = Children[i];
-                    await child.Preload();
+                    Task preloadTask = child.Preload();
+                    preloadTasks[i] = preloadTask;
                 }
+
+                await Task.WhenAll(preloadTasks);
+            }
+            catch (Exception ex)
+            {
+                Engine.Log.Error($"Window loading {this} failed. {ex}", "UI");
+            }
         }
 
         public virtual void AddChild(UIBaseWindow child, int index = -1)
@@ -90,10 +154,36 @@ namespace Emotion.UI
 
             child.Parent = this;
             child.InvalidateLayout();
-            if (Debugger != null) child.Debugger = Debugger;
+            child.EnsureParentLinks();
+            if (Debugger != null) child.AttachDebugger(Debugger);
         }
 
-        public void RemoveChild(UIBaseWindow win, bool evict = true)
+        /// <summary>
+        /// Parents aren't serialized so the links need to be reestablished once the UI is loaded.
+        /// </summary>
+        protected void EnsureParentLinks()
+        {
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.Parent = this;
+                child.EnsureParentLinks();
+            }
+        }
+
+        protected void AttachDebugger(UIDebugger debugger)
+        {
+            Debugger = debugger;
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.AttachDebugger(debugger);
+            }
+        }
+
+        public virtual void RemoveChild(UIBaseWindow win, bool evict = true)
         {
             if (Children == null) return;
             Debug.Assert(win.Parent == this);
@@ -115,13 +205,11 @@ namespace Emotion.UI
 
         public void InvalidateLayout()
         {
-            _updateLayout = true;
             Parent?.InvalidateLayout();
         }
 
         public void InvalidateColor()
         {
-            _updateColor = true;
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
@@ -140,8 +228,12 @@ namespace Emotion.UI
         protected Vector2 Measure(Vector2 space)
         {
             float scale = GetScale();
+            Rectangle scaledMargins = Margins * scale;
+            space.X -= scaledMargins.X + scaledMargins.Width;
+            space.Y -= scaledMargins.Y + scaledMargins.Height;
+
             Vector2 contentSize = InternalMeasure(space);
-            Debugger?.RecordMetric(this, "InternalMeasure", contentSize);
+            Debugger?.RecordMetric(this, "Measure_Internal", contentSize);
             Vector2 usedSpace = Vector2.Zero;
 
             if (Children != null)
@@ -156,8 +248,8 @@ namespace Emotion.UI
                         {
                             UIBaseWindow child = Children[i];
                             Vector2 childSize = child.Measure(freeSpace);
-                            // if (AnchorsInsideParent(child.ParentAnchor, child.Anchor))
-                            usedSpace = Vector2.Max(usedSpace, childSize);
+                            if (AnchorsInsideParent(child.ParentAnchor, child.Anchor))
+                                usedSpace = Vector2.Max(usedSpace, childSize);
                         }
 
                         break;
@@ -168,6 +260,7 @@ namespace Emotion.UI
                             UIBaseWindow child = Children[i];
                             Vector2 childSize = child.Measure(freeSpace);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+                            if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
                             float spaceTaken = childSize.X;
                             if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
@@ -185,6 +278,7 @@ namespace Emotion.UI
                             UIBaseWindow child = Children[i];
                             Vector2 childSize = child.Measure(freeSpace);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+                            if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
                             float spaceTaken = childSize.Y;
                             if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
@@ -199,23 +293,40 @@ namespace Emotion.UI
             }
 
             var size = new Vector2(StretchX ? usedSpace.X : contentSize.X, StretchY ? usedSpace.Y : contentSize.Y);
-            _measuredSize = Vector2.Clamp(size, MinSize * scale, MaxSize * scale);
-            Debugger?.RecordMetric(this, "InternalMeasure PostClamp", _measuredSize);
+            Debugger?.RecordMetric(this, "Measure_PostChildren", size);
+            _measuredSize = Vector2.Clamp(size, MinSize * scale, MaxSize * scale).RoundClosest();
+            Debugger?.RecordMetric(this, "Measure_PostClamp", _measuredSize);
 
             return _measuredSize;
         }
 
+        protected Rectangle GetLayoutSpace(Vector2 parentSize)
+        {
+            float scale = GetScale();
+            var parentSpaceForChild = new Rectangle(0, 0, parentSize);
+            if (AnchorsInsideParent(ParentAnchor, Anchor))
+            {
+                Rectangle childScaledMargins = Margins * scale;
+                parentSpaceForChild.X += childScaledMargins.X;
+                parentSpaceForChild.Y += childScaledMargins.Y;
+                parentSpaceForChild.Width -= childScaledMargins.Width;
+                parentSpaceForChild.Height -= childScaledMargins.Height;
+            }
+
+            return parentSpaceForChild;
+        }
+
         protected void Layout(Vector2 contentPos, Vector2 contentSize)
         {
-            Debugger?.RecordMetric(this, "ContentPos", contentPos);
-            Debugger?.RecordMetric(this, "ContentSize", contentSize);
+            Debugger?.RecordMetric(this, "Layout_ContentPos", contentPos);
+
+            float scale = GetScale();
 
             Size = _measuredSize;
-            Position = contentPos.ToVec3(Z);
+            Position = (contentPos + Offset * scale).RoundClosest().ToVec3(Z);
 
             if (Children == null) return;
 
-            float scale = GetScale();
             bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
             Vector2 scaledSpacing = ListSpacing * scale;
             switch (LayoutMode)
@@ -225,8 +336,10 @@ namespace Emotion.UI
                     for (var i = 0; i < Children.Count; i++)
                     {
                         UIBaseWindow child = Children[i];
-                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, _measuredSize, child.Anchor, child._measuredSize);
-                        child.Layout(contentPos + pos, Vector2.Zero);
+                        Rectangle parentSpaceForChild = child.GetLayoutSpace(_measuredSize);
+                        Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
+                        Vector2 childPos = GetUIAnchorPosition(child.ParentAnchor, _measuredSize, parentSpaceForChild, child.Anchor, child._measuredSize);
+                        child.Layout(contentPos + childPos, Vector2.Zero);
                     }
 
                     break;
@@ -240,9 +353,10 @@ namespace Emotion.UI
                     {
                         UIBaseWindow child = Children[i];
                         Vector2 childSize = child._measuredSize;
-                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, child.Anchor, childSize);
+                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, new Rectangle(0, 0, sizeLeft), child.Anchor, childSize);
                         child.Layout(pen + pos, Vector2.Zero);
                         if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+                        if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
                         float spaceTaken = childSize.X;
                         if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
@@ -262,9 +376,10 @@ namespace Emotion.UI
                     {
                         UIBaseWindow child = Children[i];
                         Vector2 childSize = child._measuredSize;
-                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, child.Anchor, childSize);
+                        Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, new Rectangle(0, 0, sizeLeft), child.Anchor, childSize);
                         child.Layout(pen + pos, Vector2.Zero);
                         if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+                        if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
                         float spaceTaken = childSize.Y;
                         if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
@@ -276,15 +391,12 @@ namespace Emotion.UI
                     break;
                 }
             }
-
-            _updateLayout = false;
         }
 
         protected void CalculateColor()
         {
             // todo;
             _calculatedColor = Color;
-            _updateColor = true;
 
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
@@ -310,7 +422,6 @@ namespace Emotion.UI
 
         protected virtual bool RenderInternal(RenderComposer c, ref Color windowColor)
         {
-            c.RenderSprite(Position, Size, windowColor);
             return true;
         }
 
@@ -355,7 +466,7 @@ namespace Emotion.UI
             return false;
         }
 
-        protected static Vector2 GetUIAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, UIAnchor anchor, Vector2 contentSize)
+        protected static Vector2 GetUIAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, Rectangle parentContentRect, UIAnchor anchor, Vector2 contentSize)
         {
             Vector2 offset = Vector2.Zero;
 
@@ -364,7 +475,7 @@ namespace Emotion.UI
                 case UIAnchor.TopLeft:
                 case UIAnchor.CenterLeft:
                 case UIAnchor.BottomLeft:
-                    offset.X += 0;
+                    offset.X += parentContentRect.X;
                     break;
                 case UIAnchor.TopCenter:
                 case UIAnchor.CenterCenter:
@@ -374,7 +485,7 @@ namespace Emotion.UI
                 case UIAnchor.TopRight:
                 case UIAnchor.CenterRight:
                 case UIAnchor.BottomRight:
-                    offset.X += parentSize.X;
+                    offset.X += parentContentRect.Width;
                     break;
             }
 
@@ -383,7 +494,7 @@ namespace Emotion.UI
                 case UIAnchor.TopLeft:
                 case UIAnchor.TopCenter:
                 case UIAnchor.TopRight:
-                    offset.Y += 0;
+                    offset.Y += parentContentRect.Y;
                     break;
                 case UIAnchor.CenterLeft:
                 case UIAnchor.CenterCenter:
@@ -393,7 +504,7 @@ namespace Emotion.UI
                 case UIAnchor.BottomLeft:
                 case UIAnchor.BottomCenter:
                 case UIAnchor.BottomRight:
-                    offset.Y += parentSize.Y;
+                    offset.Y += parentContentRect.Height;
                     break;
             }
 
