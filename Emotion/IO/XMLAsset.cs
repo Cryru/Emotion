@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System;
+using System.Text;
 using Emotion.Common;
+using Emotion.Standard.Logging;
 using Emotion.Standard.XML;
 
 #endregion
@@ -35,12 +37,50 @@ namespace Emotion.IO
         {
         }
 
-        public static XMLAsset<T> CreateFromContent(T content)
+        /// <summary>
+        /// Create a new xml file from content and a name.
+        /// </summary>
+        public static XMLAsset<T> CreateFromContent(T content, string name = "Untitled")
         {
-            return new XMLAsset<T>
+            return new()
             {
-                Content = content
+                Content = content,
+                Name = name
             };
+        }
+
+        /// <summary>
+        /// Save the file to the asset store.
+        /// </summary>
+        public bool Save()
+        {
+            return SaveAs(Name);
+        }
+
+        /// <summary>
+        /// Save the file to the asset store with the provided name.
+        /// </summary>
+        /// <param name="name"></param>
+        public bool SaveAs(string name)
+        {
+            string data = XMLFormat.To(Content);
+            bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name);
+            if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
+            return saved;
+        }
+
+        /// <summary>
+        /// Load a xml file via the asset loader, or create a new one if missing.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static XMLAsset<T> LoadSaveOrCreate(string name)
+        {
+            if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<XMLAsset<T>>(name);
+            // If the file doesn't exist - create it.
+            XMLAsset<T> newFile = CreateFromContent(Activator.CreateInstance<T>(), name);
+            newFile.Save();
+            return newFile;
         }
     }
 }
