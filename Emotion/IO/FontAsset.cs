@@ -81,23 +81,30 @@ namespace Emotion.IO
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found) return atlas;
 
-            // Scale to closest power of two.
-            float sizeFloat = fontSize;
-            if (pixelFont)
+            lock (_loadedAtlases)
             {
-                float fontHeight = Font.Height;
-                float scaleFactor = fontHeight / fontSize;
-                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
-                sizeFloat = fontHeight / scaleFactorP2;
+                // Recheck as another thread could have built the atlas while waiting on lock.
+                found = _loadedAtlases.TryGetValue(hash, out atlas);
+                if (found) return atlas;
+
+                // Scale to closest power of two.
+                float sizeFloat = fontSize;
+                if (pixelFont)
+                {
+                    float fontHeight = Font.Height;
+                    float scaleFactor = fontHeight / fontSize;
+                    int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
+                    sizeFloat = fontHeight / scaleFactorP2;
+                }
+
+                // Load the atlas manually.
+                PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
+                FontAtlas standardAtlas = Font.GetAtlas(sizeFloat, firstChar, numChars, _rasterizer);
+                atlas = new DrawableFontAtlas(standardAtlas, smooth);
+                PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
+
+                _loadedAtlases.Add(hash, atlas);
             }
-
-            // Load the atlas manually.
-            PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-            FontAtlas standardAtlas = Font.GetAtlas(sizeFloat, firstChar, numChars, _rasterizer);
-            atlas = new DrawableFontAtlas(standardAtlas, smooth);
-            PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-
-            _loadedAtlases.Add(hash, atlas);
 
             return atlas;
         }
@@ -166,10 +173,14 @@ namespace Emotion.IO
             Atlas = atlas;
 
             // Convert to RGBA since GL_INTENSITY is deprecated and we need the value in all components due to the default shader.
-            GLThread.ExecuteGLThread(() => { Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels), PixelFormat.Rgba) {Smooth = smooth}; });
+            Texture = Texture.EmptyWhiteTexture; // Set texture while uploading so that nothing errors.
+            GLThread.ExecuteGLThreadAsync(() =>
+            {
+                Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels), PixelFormat.Rgba) {Smooth = smooth};
 
-            // Free memory.
-            Atlas.Pixels = null;
+                // Free memory.
+                Atlas.Pixels = null;
+            });
         }
 
         /// <summary>
