@@ -44,13 +44,23 @@ namespace Emotion.UI
         [DontSerialize]
         public TextureAsset TextureAsset { get; protected set; }
 
+        public UITexture()
+        {
+
+        }
+
+        public UITexture(TextureAsset texture)
+        {
+            TextureAsset = texture;
+        }
+
         public override async Task Preload()
         {
             await base.Preload();
+            if (TextureFile == null) return;
+
             TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
-
             if (TextureAsset == null) return;
-
             if (Smooth != TextureAsset.Texture.Smooth) GLThread.ExecuteGLThread(() => { TextureAsset.Texture.Smooth = Smooth; });
         }
 

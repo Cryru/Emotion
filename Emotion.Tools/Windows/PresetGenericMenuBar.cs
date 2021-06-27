@@ -62,8 +62,8 @@ namespace Emotion.Tools.Windows
 
         protected object? TransformClass(object window, Type newType)
         {
-            var oldTypeHandler = (XMLComplexBaseTypeHandler?) XMLHelpers.GetTypeHandler(window.GetType());
-            var newTypeHandler = (XMLComplexBaseTypeHandler?) XMLHelpers.GetTypeHandler(newType);
+            var oldTypeHandler = (XMLComplexBaseTypeHandler?)XMLHelpers.GetTypeHandler(window.GetType());
+            var newTypeHandler = (XMLComplexBaseTypeHandler?)XMLHelpers.GetTypeHandler(newType);
             if (oldTypeHandler == null || newTypeHandler == null) return null;
 
             object? newTypeObject = Activator.CreateInstance(newType, true);
@@ -100,122 +100,122 @@ namespace Emotion.Tools.Windows
             switch (typeHandler)
             {
                 case XMLStringTypeHandler:
-                {
-                    string stringValue = (string) (value ?? "");
-                    if (ImGui.InputText(xmlHandler.Name, ref stringValue, 1000))
                     {
-                        xmlHandler.ReflectionInfo.SetValue(obj, stringValue);
-                        UnsavedChanges();
-                    }
+                        string stringValue = (string)(value ?? "");
+                        if (ImGui.InputText(xmlHandler.Name, ref stringValue, 1000))
+                        {
+                            xmlHandler.ReflectionInfo.SetValue(obj, stringValue);
+                            UnsavedChanges();
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case XMLEnumTypeHandler enumHandler:
-                {
-                    string[] enumValueNames = Enum.GetNames(enumHandler.Type);
-                    int currentItem = enumValueNames.IndexOf(value.ToString());
-                    if (ImGui.Combo(xmlHandler.Name, ref currentItem, enumValueNames, enumValueNames.Length))
                     {
-                        value = Enum.Parse(enumHandler.Type, enumValueNames[currentItem]);
-                        xmlHandler.ReflectionInfo.SetValue(obj, value);
-                        UnsavedChanges();
-                    }
+                        string[] enumValueNames = Enum.GetNames(enumHandler.Type);
+                        int currentItem = enumValueNames.IndexOf(value.ToString());
+                        if (ImGui.Combo(xmlHandler.Name, ref currentItem, enumValueNames, enumValueNames.Length))
+                        {
+                            value = Enum.Parse(enumHandler.Type, enumValueNames[currentItem]);
+                            xmlHandler.ReflectionInfo.SetValue(obj, value);
+                            UnsavedChanges();
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case XMLPrimitiveTypeHandler primitive:
-                {
-                    if (primitive.Type == typeof(int))
                     {
-                        var intValue = (int) (value ?? 0);
-                        if (ImGui.InputInt(xmlHandler.Name, ref intValue))
+                        if (primitive.Type == typeof(int))
                         {
-                            xmlHandler.ReflectionInfo.SetValue(obj, intValue);
-                            UnsavedChanges();
-                        }
-
-                        break;
-                    }
-
-                    if (primitive.Type == typeof(bool))
-                    {
-                        var boolValue = (bool) (value ?? false);
-                        if (ImGui.Checkbox(xmlHandler.Name, ref boolValue))
-                        {
-                            xmlHandler.ReflectionInfo.SetValue(obj, boolValue);
-                            UnsavedChanges();
-                        }
-                    }
-
-                    break;
-                }
-                case XMLComplexValueTypeHandler valueType:
-                {
-                    if (valueType.Type == typeof(Vector2))
-                    {
-                        var vec2Value = (Vector2) (value ?? Vector2.Zero);
-                        if (ImGui.InputFloat2(xmlHandler.Name, ref vec2Value))
-                        {
-                            xmlHandler.ReflectionInfo.SetValue(obj, vec2Value);
-                            UnsavedChanges();
-                        }
-
-                        break;
-                    }
-
-                    if (valueType.Type == typeof(Vector3))
-                    {
-                        var vec3Value = (Vector3) (value ?? Vector3.Zero);
-                        if (ImGui.InputFloat3(xmlHandler.Name, ref vec3Value))
-                        {
-                            xmlHandler.ReflectionInfo.SetValue(obj, vec3Value);
-                            UnsavedChanges();
-                        }
-
-                        break;
-                    }
-
-                    if (valueType.Type == typeof(Color))
-                    {
-                        var colorValue = (Color) (value ?? Color.White);
-                        Vector4 colorAsVec4 = colorValue.ToVec4();
-                        ImGui.Text(xmlHandler.Name);
-                        ImGui.SameLine();
-                        if (ImGui.ColorButton(xmlHandler.Name, colorAsVec4)) ImGui.OpenPopup(xmlHandler.Name);
-                        if (ImGui.BeginPopup(xmlHandler.Name))
-                        {
-                            if (ImGui.ColorPicker4($"Edit: {xmlHandler.Name}", ref colorAsVec4))
+                            var intValue = (int)(value ?? 0);
+                            if (ImGui.InputInt(xmlHandler.Name, ref intValue))
                             {
-                                colorValue = new Color(colorAsVec4);
-                                xmlHandler.ReflectionInfo.SetValue(obj, colorValue);
+                                xmlHandler.ReflectionInfo.SetValue(obj, intValue);
                                 UnsavedChanges();
                             }
 
-                            ImGui.EndPopup();
+                            break;
+                        }
+
+                        if (primitive.Type == typeof(bool))
+                        {
+                            var boolValue = (bool)(value ?? false);
+                            if (ImGui.Checkbox(xmlHandler.Name, ref boolValue))
+                            {
+                                xmlHandler.ReflectionInfo.SetValue(obj, boolValue);
+                                UnsavedChanges();
+                            }
                         }
 
                         break;
                     }
-
-                    if (valueType.Type == typeof(Rectangle))
+                case XMLComplexValueTypeHandler valueType:
                     {
-                        var rectValue = (Rectangle) (value ?? Rectangle.Empty);
-                        var vec4Value = new Vector4(rectValue.X, rectValue.Y, rectValue.Width, rectValue.Height);
-                        if (ImGui.InputFloat4(xmlHandler.Name, ref vec4Value))
+                        if (valueType.Type == typeof(Vector2))
                         {
-                            var r = new Rectangle(vec4Value.X, vec4Value.Y, vec4Value.Z, vec4Value.W);
-                            xmlHandler.ReflectionInfo.SetValue(obj, r);
-                            UnsavedChanges();
-                        }
-                    }
+                            var vec2Value = (Vector2)(value ?? Vector2.Zero);
+                            if (ImGui.InputFloat2(xmlHandler.Name, ref vec2Value))
+                            {
+                                xmlHandler.ReflectionInfo.SetValue(obj, vec2Value);
+                                UnsavedChanges();
+                            }
 
-                    break;
-                }
+                            break;
+                        }
+
+                        if (valueType.Type == typeof(Vector3))
+                        {
+                            var vec3Value = (Vector3)(value ?? Vector3.Zero);
+                            if (ImGui.InputFloat3(xmlHandler.Name, ref vec3Value))
+                            {
+                                xmlHandler.ReflectionInfo.SetValue(obj, vec3Value);
+                                UnsavedChanges();
+                            }
+
+                            break;
+                        }
+
+                        if (valueType.Type == typeof(Color))
+                        {
+                            var colorValue = (Color)(value ?? Color.White);
+                            Vector4 colorAsVec4 = colorValue.ToVec4();
+                            ImGui.Text(xmlHandler.Name);
+                            ImGui.SameLine();
+                            if (ImGui.ColorButton(xmlHandler.Name, colorAsVec4)) ImGui.OpenPopup(xmlHandler.Name);
+                            if (ImGui.BeginPopup(xmlHandler.Name))
+                            {
+                                if (ImGui.ColorPicker4($"Edit: {xmlHandler.Name}", ref colorAsVec4))
+                                {
+                                    colorValue = new Color(colorAsVec4);
+                                    xmlHandler.ReflectionInfo.SetValue(obj, colorValue);
+                                    UnsavedChanges();
+                                }
+
+                                ImGui.EndPopup();
+                            }
+
+                            break;
+                        }
+
+                        if (valueType.Type == typeof(Rectangle))
+                        {
+                            var rectValue = (Rectangle)(value ?? Rectangle.Empty);
+                            var vec4Value = new Vector4(rectValue.X, rectValue.Y, rectValue.Width, rectValue.Height);
+                            if (ImGui.InputFloat4(xmlHandler.Name, ref vec4Value))
+                            {
+                                var r = new Rectangle(vec4Value.X, vec4Value.Y, vec4Value.Z, vec4Value.W);
+                                xmlHandler.ReflectionInfo.SetValue(obj, r);
+                                UnsavedChanges();
+                            }
+                        }
+
+                        break;
+                    }
                 default:
-                {
-                    ImGui.Text($"{xmlHandler.Name}: {value}");
-                    break;
-                }
+                    {
+                        ImGui.Text($"{xmlHandler.Name}: {value}");
+                        break;
+                    }
             }
 
             object defaultVal = xmlHandler.DefaultValue;
@@ -268,6 +268,8 @@ namespace Emotion.Tools.Windows
 
         private void SaveFile()
         {
+            if (!OnFileSaving()) return;
+
             Debug.Assert(_currentAsset != null);
             if (_currentFileName == null)
             {
@@ -338,6 +340,7 @@ namespace Emotion.Tools.Windows
         }
 
         protected abstract bool OnFileLoaded(XMLAsset<T> file);
+        protected abstract bool OnFileSaving();
 
         #endregion
     }

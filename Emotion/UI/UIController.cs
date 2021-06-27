@@ -12,6 +12,7 @@ namespace Emotion.UI
 {
     public class UIController : UIBaseWindow
     {
+        private bool _needPreload = true;
         protected bool _updateLayout = true;
 
         public UIController()
@@ -21,21 +22,32 @@ namespace Emotion.UI
             KeepTemplatePreloaded(this);
         }
 
+        private void Host_OnResize(Vector2 obj)
+        {
+            InvalidateLayout();
+            NeedsPreloading();
+        }
+
         public override void InvalidateLayout()
         {
             _updateLayout = true;
         }
 
-        private void Host_OnResize(Vector2 obj)
+        public void NeedsPreloading()
         {
-            InvalidateLayout();
             _needPreload = true;
+        }
+
+        public override async Task Preload()
+        {
+            await base.Preload();
+            _needPreload = false;
         }
 
         protected override bool UpdateInternal()
         {
-            UpdatePreLoading();
             if (!UILoadingThread.IsCompleted) return false;
+            if (_needPreload) UpdatePreLoading();
 
             if (_updateLayout)
             {
@@ -53,19 +65,21 @@ namespace Emotion.UI
         public override void AddChild(UIBaseWindow child, int index = -1)
         {
             if (child == null) return;
-            RequestPreload();
+            NeedsPreloading();
             base.AddChild(child, index);
-            child.AttachedToController();
+            child.AttachedToController(this);
         }
 
         public override void RemoveChild(UIBaseWindow win, bool evict = true)
         {
             base.RemoveChild(win, evict);
-            win.DetachedFromController();
+            win.DetachedFromController(this);
         }
 
         #region Global Preloading
 
+        // Controllers are added to this child. Preloading of all controllers is run when one of them is invalidated.
+        // Other windows may be added with the user to be preloadaed. They will also cause all controllers to preload.
         public static Task UILoadingThread { get; protected set; } = Task.CompletedTask;
         private static PreloadWindowStorage _keepWindowsLoaded = new();
         private class PreloadWindowStorage : UIBaseWindow
@@ -79,7 +93,6 @@ namespace Emotion.UI
                     Children.Add(child);
             }
         }
-        private static bool _needPreload = true;
 
         public static Task PreloadUI()
         {
@@ -92,15 +105,10 @@ namespace Emotion.UI
             _keepWindowsLoaded.AddChild(window);
         }
 
-        public static void RequestPreload()
-        {
-            _needPreload = true;
-        }
-
         private static void UpdatePreLoading()
         {
-            if (!_needPreload) return;
             if (!UILoadingThread.IsCompleted) return;
+            Engine.Log.Warning("Preloading UI!", "");
             UILoadingThread = _keepWindowsLoaded.Preload();
         }
 

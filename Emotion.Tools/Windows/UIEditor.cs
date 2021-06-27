@@ -206,7 +206,7 @@ namespace Emotion.Tools.Windows
                     SelectWindow(newWin);
 
                     // Query preload.
-                    UIController.PreloadUI();
+                    _ui.NeedsPreloading();
                 }
 
                 IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
@@ -314,7 +314,7 @@ namespace Emotion.Tools.Windows
             _typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(_selectedWindow.GetType());
         }
 
-        protected void RenderChildrenTree(UIBaseWindow window, int idIncrement = 0)
+        protected void RenderChildrenTree(UIBaseWindow window, int idIncrement = 0, bool generatedWindow = false)
         {
             ImGui.PushID($"WindowDepth{idIncrement}");
             var flags = ImGuiTreeNodeFlags.OpenOnArrow;
@@ -322,12 +322,19 @@ namespace Emotion.Tools.Windows
             if (_selectedWindow == window) flags |= ImGuiTreeNodeFlags.Selected;
             if (window.Children != null && window.Children.IndexOf(_selectedWindow) != -1) ImGui.SetNextItemOpen(true);
 
+            bool generatedWin = generatedWindow || window.CodeGenerated;
+            if (generatedWin)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+            }
             bool opened = ImGui.TreeNodeEx(window.ToString(), flags);
+            if (!generatedWin)
+            {
+                if (ImGui.IsItemClicked()) SelectWindow(window);
+                ImGui.SameLine();
+            }
 
-            if (ImGui.IsItemClicked()) SelectWindow(window);
-            ImGui.SameLine();
-
-            if (ImGui.SmallButton("Add Child"))
+            if (!generatedWin && ImGui.SmallButton("Add Child"))
             {
                 var newWindow = new UIBaseWindow();
                 window.AddChild(newWindow);
@@ -342,7 +349,7 @@ namespace Emotion.Tools.Windows
                     {
                         UIBaseWindow child = window.Children[i];
                         ImGui.PushID(i);
-                        RenderChildrenTree(child, idIncrement + 1);
+                        RenderChildrenTree(child, idIncrement + 1, generatedWin);
                         ImGui.PopID();
                     }
 
@@ -350,11 +357,21 @@ namespace Emotion.Tools.Windows
             }
 
             ImGui.PopID();
+            if (generatedWin)
+            {
+                ImGui.PopStyleColor();
+            }
         }
 
         protected override bool OnFileLoaded(XMLAsset<UIBaseWindow> file)
         {
             _selectedWindow = null;
+            return true;
+        }
+
+        protected override bool OnFileSaving()
+        {
+            _ui.RemoveCodeGeneratedChildren();
             return true;
         }
     }
