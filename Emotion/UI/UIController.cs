@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Platform.Input;
 using Emotion.Primitives;
 
 #endregion
@@ -12,8 +13,11 @@ namespace Emotion.UI
 {
     public class UIController : UIBaseWindow
     {
-        private bool _needPreload = true;
+        public UIBaseWindow InputFocus;
+
+        private bool _updatePreload = true;
         protected bool _updateLayout = true;
+        private bool _updateInputFocus = true;
 
         public UIController()
         {
@@ -25,7 +29,7 @@ namespace Emotion.UI
         private void Host_OnResize(Vector2 obj)
         {
             InvalidateLayout();
-            NeedsPreloading();
+            InvalidatePreload();
         }
 
         public override void InvalidateLayout()
@@ -33,31 +37,39 @@ namespace Emotion.UI
             _updateLayout = true;
         }
 
-        public void NeedsPreloading()
+        public void InvalidatePreload()
         {
-            _needPreload = true;
+            _updatePreload = true;
         }
 
         public override async Task Preload()
         {
             await base.Preload();
-            _needPreload = false;
+            _updatePreload = false;
         }
 
         protected override bool UpdateInternal()
         {
             if (!UILoadingThread.IsCompleted) return false;
-            if (_needPreload) UpdatePreLoading();
+            if (_updatePreload) UpdatePreLoading();
 
             if (_updateLayout)
             {
                 Debugger?.RecordNewPass(this);
+                // 1. Measure the size of all windows.
+                // Children are measured before parents in order for stretching to work.
+                // Children are measured in index order. Layout rules are applied.
                 Measure(Engine.Renderer.DrawBuffer.Size);
 
+                // 2. Layout windows within their parents, starting with the controller taking up the full screen.
+                // Sizes returned during measuring are used. Parents are positioned before children since
+                // positions are absolute and not relative.
                 Rectangle r = GetLayoutSpace(Engine.Renderer.DrawBuffer.Size);
                 Layout(r.Position, r.Size);
                 _updateLayout = false;
             }
+
+            if (_updateInputFocus) RecalculateInputFocus();
 
             return true;
         }
@@ -65,7 +77,8 @@ namespace Emotion.UI
         public override void AddChild(UIBaseWindow child, int index = -1)
         {
             if (child == null) return;
-            NeedsPreloading();
+            InvalidatePreload();
+            InvalidateInputFocus();
             base.AddChild(child, index);
             child.AttachedToController(this);
         }
@@ -76,12 +89,13 @@ namespace Emotion.UI
             win.DetachedFromController(this);
         }
 
-        #region Global Preloading
+        #region Preloading
 
         // Controllers are added to this child. Preloading of all controllers is run when one of them is invalidated.
         // Other windows may be added with the user to be preloadaed. They will also cause all controllers to preload.
         public static Task UILoadingThread { get; protected set; } = Task.CompletedTask;
         private static PreloadWindowStorage _keepWindowsLoaded = new();
+
         private class PreloadWindowStorage : UIBaseWindow
         {
             public override void AddChild(UIBaseWindow child, int index = -1)
@@ -110,6 +124,70 @@ namespace Emotion.UI
             if (!UILoadingThread.IsCompleted) return;
             Engine.Log.Warning("Preloading UI!", "");
             UILoadingThread = _keepWindowsLoaded.Preload();
+        }
+
+        #endregion
+
+        #region Input
+
+        private bool KeyboardFocusOnKey(Key key, KeyStatus status)
+        {
+            // It is possible to receive an input even while a recalculating is pending.
+            if (_updateInputFocus && status == KeyStatus.Down)
+            {
+                RecalculateInputFocus();
+                RecalculateMouseFocus();
+            }
+
+            if (!Visible) return true;
+            if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) return true;
+            if (InputFocus != null && InputFocus.Visible)
+                return InputFocus.OnKey(key, status);
+
+            return true;
+        }
+
+        public void InvalidateInputFocus()
+        {
+            _updateInputFocus = true;
+        }
+
+        private void RecalculateInputFocus()
+        {
+            UIBaseWindow newFocus = FindInputFocusable(this);
+            if (newFocus == this) newFocus = null;
+
+            if (InputFocus != newFocus)
+            {
+                // Re-hook event to get up events on down presses.
+                if (InputFocus != null)
+                    Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
+                InputFocus = newFocus;
+                if (InputFocus != null)
+                    Engine.Host.OnKey.AddListener(KeyboardFocusOnKey);
+
+                // Kinda spammy.
+                // Engine.Log.Info($"New input focus {InputFocus}", "UI");
+            }
+
+            _updateInputFocus = false;
+        }
+
+        private void RecalculateMouseFocus()
+        {
+            // todo
+        }
+
+        protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)
+        {
+            if (wnd.Children == null) return wnd;
+            for (var i = 0; i < wnd.Children.Count; i++)
+            {
+                UIBaseWindow win = wnd.Children[i];
+                if (!win.InputTransparent && win.Visible) return FindInputFocusable(win);
+            }
+
+            return wnd;
         }
 
         #endregion

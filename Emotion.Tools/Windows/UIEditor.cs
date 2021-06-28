@@ -206,7 +206,7 @@ namespace Emotion.Tools.Windows
                     SelectWindow(newWin);
 
                     // Query preload.
-                    _ui.NeedsPreloading();
+                    _ui.InvalidatePreload();
                 }
 
                 IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
