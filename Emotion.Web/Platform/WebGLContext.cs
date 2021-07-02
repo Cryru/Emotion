@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Emotion.Common;
 using Emotion.Platform;
 using Emotion.Utility;
 using Emotion.Web.Models;
@@ -42,6 +43,7 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glGenBuffers", (Gl.Delegates.glGenBuffers) GenBuffers);
             _webGlFuncDictionary.Add("glBindBuffer", (Gl.Delegates.glBindBuffer) BindBuffer);
             _webGlFuncDictionary.Add("glBufferData", (Gl.Delegates.glBufferData) BufferData);
+            _webGlFuncDictionary.Add("glBufferSubData", (Gl.Delegates.glBufferSubData) BufferSubData);
 
             _webGlFuncDictionary.Add("glMapBuffer", (Gl.Delegates.glMapBuffer) MapBuffer);
             _webGlFuncDictionary.Add("glMapBufferRange", (Gl.Delegates.glMapBufferRange) MapBufferRange);
@@ -237,6 +239,34 @@ namespace Emotion.Web.Platform
                 Length = size
             };
             _gl.InvokeUnmarshalled<BufferDataArgs, object>("glBufferData", args);
+        }
+
+        private void BufferSubData(int target, IntPtr offset, uint size, IntPtr ptr)
+        {
+            _boundBuffers.TryGetValue(target, out uint boundBuffer);
+            var memoryName = $"DataBuffer{target}|{boundBuffer}";
+            var offsetInt = (int) offset;
+
+            // It is assumed that the offset and size are valid per the already allocated buffer.
+            // Check just in case.
+            IntPtr wholeBuffer = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int allocatedSize);
+            if (offsetInt + size > allocatedSize)
+            {
+                Engine.Log.Error($"Invalid uploading sub data of {boundBuffer} in range {offsetInt}:{size}. Buffer is {allocatedSize} long.", "WebGLInternal");
+                return;
+            }
+
+            // Update driver copy, in case of mapping. This could potentially be useless as mapping might not be used.
+            NativeHelpers.MemCopy(ptr, IntPtr.Add(wholeBuffer, offsetInt), (int) size);
+
+            var args = new BufferDataArgs
+            {
+                Ptr = ptr,
+                Target = target,
+                Offset = offsetInt,
+                Length = size
+            };
+            _gl.InvokeUnmarshalled<BufferDataArgs, object>("glBufferSubData", args);
         }
 
         private IntPtr MapBuffer(int target, int access)
