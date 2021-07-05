@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<UIBaseWindow>
+  <Children>
+    <UIBaseWindow type="Tests.Classes.UITests+DisplacementTestWindow">
+      <Rotation></Rotation>
+      <Id>DisplacementTest</Id>
+      <ParentAnchor>CenterCenter</ParentAnchor>
+      <Anchor>CenterCenter</Anchor>
+      <MaxSize>
+        <X>20</X>
+        <Y>20</Y>
+      </MaxSize>
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+DisplacementTestWindow">
+      <Id>DisplacementTest</Id>
+      <ParentAnchor>CenterCenter</ParentAnchor>
+      <Anchor>CenterCenter</Anchor>
+      <MaxSize>
+        <X>20</X>
+        <Y>20</Y>
+      </MaxSize>
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+DisplacementTestWindow">
+      <Rotation></Rotation>
+      <Translation>
+        <Y>20</Y>
+      </Translation>
+      <Id>DisplacementTest</Id>
+      <ParentAnchor>CenterCenter</ParentAnchor>
+      <Anchor>CenterCenter</Anchor>
+      <MaxSize>
+        <X>20</X>
+        <Y>20</Y>
+      </MaxSize>
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+DisplacementTestWindow">
+      <Rotation></Rotation>
+      <Scale>
+        <X>1.2</X>
+        <Y>3</Y>
+      </Scale>
+      <Id>DisplacementTest</Id>
+      <ParentAnchor>CenterCenter</ParentAnchor>
+      <Anchor>CenterCenter</Anchor>
+      <MaxSize>
+        <X>20</X>
+        <Y>20</Y>
+      </MaxSize>
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+DisplacementTestWindow">
+      <Translation>
+        <Y>-70</Y>
+      </Translation>
+      <Scale>
+        <X>3</X>
+        <Y>3</Y>
+      </Scale>
+      <Id>DisplacementTest</Id>
+      <ParentAnchor>CenterCenter</ParentAnchor>
+      <Anchor>CenterCenter</Anchor>
+      <MaxSize>
+        <X>20</X>
+        <Y>20</Y>
+      </MaxSize>
+    </UIBaseWindow>
+  </Children>
+  <LayoutMode>HorizontalList</LayoutMode>
+  <ListSpacing>
+    <X>100</X>
+  </ListSpacing>
+  <StretchX>True</StretchX>
+</UIBaseWindow>

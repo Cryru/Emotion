@@ -22,15 +22,235 @@ namespace Emotion.UI
     [DontSerializeMembers("Position", "Size")]
     public class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
     {
-        #region Defaults
-
+        /// <summary>
+        /// By default windows greedily take up all the size they can.
+        /// </summary>
         public static Vector2 DefaultMaxSize = new(9999, 9999);
+
+        /// <summary>
+        /// Unique identifier for this window to be used with GetWindowById. If two windows share an id the one closer
+        /// to the parent GetWindowById is called from will be returned.
+        /// </summary>
+        public string? Id { get; set; }
+
+        #region Runtime State
+
+        [DontSerialize]
+        public UIBaseWindow? Parent { get; protected set; }
+
+        [DontSerialize]
+        public UIDebugger? Debugger { get; protected set; }
+
+        [DontSerialize]
+        public UIController? Controller { get; protected set; }
 
         #endregion
 
-        #region Properties
+        #region Preload, Update, Render
 
-        public string? Id { get; set; }
+        public virtual async Task Preload()
+        {
+            if (Children == null) return;
+
+            try
+            {
+                Task[] preloadTasks = new Task[Children.Count];
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow child = Children[i];
+                    Task preloadTask = child.Preload();
+                    preloadTasks[i] = preloadTask;
+                }
+
+                await Task.WhenAll(preloadTasks);
+            }
+            catch (Exception ex)
+            {
+                Engine.Log.Error($"Window loading {this} failed. {ex}", "UI");
+            }
+        }
+
+        public void Update()
+        {
+            if (!Visible) return;
+
+            if (_updateColor)
+            {
+                CalculateColor();
+                _updateColor = false;
+            }
+
+            bool updateChildren = UpdateInternal();
+            if (!updateChildren || Children == null) return;
+
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.Update();
+            }
+        }
+
+        protected virtual bool UpdateInternal()
+        {
+            // nop
+            return true;
+        }
+
+        public void Render(RenderComposer c)
+        {
+            if (!Visible) return;
+
+            // Push displacements if any.
+            var matrixPushed = false;
+            if (_transformationStackBacking != null)
+            {
+                if (_transformationStackBacking.MatrixDirty) _transformationStackBacking.RecalculateMatrix(GetScale());
+                c.PushModelMatrix(_transformationStackBacking.CurrentMatrix, !IgnoreParentDisplacement);
+                matrixPushed = true;
+            }
+            else if (IgnoreParentDisplacement && !c.ModelMatrix.IsIdentity)
+            {
+                c.PushModelMatrix(Matrix4x4.Identity, false);
+                matrixPushed = true;
+            }
+
+            if (RenderInternal(c) && Children != null)
+            {
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow child = Children[i];
+                    if (!child.Visible) continue;
+                    child.Render(c);
+                }
+            }
+
+            // Pop displacements, if any were pushed.
+            if (matrixPushed) c.PopModelMatrix();
+        }
+
+        protected virtual bool RenderInternal(RenderComposer c)
+        {
+            return true;
+        }
+
+        protected void AttachDebugger(UIDebugger debugger)
+        {
+            Debugger = debugger;
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.AttachDebugger(debugger);
+            }
+        }
+
+        #endregion
+
+        #region Hierarchy
+
+        /// <summary>
+        /// Children of this window.
+        /// </summary>
+        public List<UIBaseWindow>? Children { get; set; }
+
+        public virtual void AddChild(UIBaseWindow child, int index = -1)
+        {
+            Children ??= new List<UIBaseWindow>();
+            if (index != -1)
+                Children.Insert(index, child);
+            else
+                Children.Add(child);
+
+            child.Parent = this;
+            child.InvalidateLayout();
+            child.InvalidateColor();
+            child.EnsureParentLinks();
+            if (Debugger != null) child.AttachDebugger(Debugger);
+            if (Controller != null)
+            {
+                child.AttachedToController(Controller);
+            }
+        }
+
+        /// <summary>
+        /// Parents aren't serialized so the links need to be reestablished once the UI is loaded.
+        /// </summary>
+        protected void EnsureParentLinks()
+        {
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.Parent = this;
+                child.EnsureParentLinks();
+            }
+        }
+
+        public virtual void RemoveChild(UIBaseWindow win, bool evict = true)
+        {
+            if (Children == null) return;
+            Debug.Assert(win.Parent == this);
+
+            if (evict) Children.Remove(win);
+        }
+
+        public virtual void ClearChildren()
+        {
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                RemoveChild(child, false);
+            }
+
+            Children = null;
+        }
+
+        public virtual void AttachedToController(UIController controller)
+        {
+            Controller = controller;
+            Controller?.InvalidatePreload();
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.AttachedToController(controller);
+            }
+        }
+
+        public virtual void DetachedFromController(UIController controller)
+        {
+            Controller = null;
+            if (Children == null) return;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                child.DetachedFromController(controller);
+            }
+        }
+
+        /// <summary>
+        /// Marks this window as generated by code. Such windows will not be serialized by the UI editor.
+        /// </summary>
+        [DontSerialize]
+        public bool CodeGenerated { get; set; }
+
+        public virtual void RemoveCodeGeneratedChildren()
+        {
+            if (Children == null) return;
+            for (int i = Children.Count - 1; i >= 0; i--)
+            {
+                UIBaseWindow child = Children[i];
+                if (child.CodeGenerated)
+                    RemoveChild(child);
+                else
+                    child.RemoveCodeGeneratedChildren();
+            }
+        }
+
+        #endregion
+
+        #region Layout
 
         /// <summary>
         /// The point in the parent to anchor the window to.
@@ -78,27 +298,6 @@ namespace Emotion.UI
         public Rectangle Margins { get; set; }
 
         /// <summary>
-        /// This color should be mixed in with the rendering of the window somehow.
-        /// Used to control opacity as well.
-        /// </summary>
-        public Color Color
-        {
-            get => _windowColor;
-            set
-            {
-                _windowColor = value;
-                InvalidateColor();
-            }
-        }
-
-        private Color _windowColor = Color.White;
-
-        /// <summary>
-        /// If set to true then this window will not mix its color with its parent's.
-        /// </summary>
-        public bool IgnoreParentColor = false;
-
-        /// <summary>
         /// The minimum size the window can be.
         /// </summary>
         public Vector2 MinSize { get; set; }
@@ -123,151 +322,12 @@ namespace Emotion.UI
 
         public bool StretchY { get; set; }
 
-        /// <summary>
-        /// If true then this window will not catch input unless propagated by a child. Used for large containers which
-        /// take up the whole screen and such.
-        /// </summary>
-        public bool InputTransparent
-        {
-            get => _inputTransparent;
-            set
-            {
-                if (value == _inputTransparent) return;
-                _inputTransparent = value;
-                Controller?.InvalidateInputFocus();
-            }
-        }
-
-        private bool _inputTransparent = true;
-
-        /// <summary>
-        /// Marks this window as generated by code, and it will not be serialized by the UI editor.
-        /// </summary>
-        [DontSerialize]
-        public bool CodeGenerated { get; set; }
-
-        public List<UIBaseWindow>? Children { get; set; }
-
-        #endregion
-
-        #region State
-
-        [DontSerialize]
-        public UIBaseWindow? Parent { get; protected set; }
-
-        [DontSerialize]
-        public UIDebugger? Debugger { get; protected set; }
-
-        [DontSerialize]
-        public UIController? Controller { get; protected set; }
-
-        #endregion
-
-        public virtual async Task Preload()
-        {
-            if (Children == null) return;
-
-            try
-            {
-                Task[] preloadTasks = new Task[Children.Count];
-                for (var i = 0; i < Children.Count; i++)
-                {
-                    UIBaseWindow child = Children[i];
-                    Task preloadTask = child.Preload();
-                    preloadTasks[i] = preloadTask;
-                }
-
-                await Task.WhenAll(preloadTasks);
-            }
-            catch (Exception ex)
-            {
-                Engine.Log.Error($"Window loading {this} failed. {ex}", "UI");
-            }
-        }
-
-        #region Hierarchy
-
-        public virtual void AddChild(UIBaseWindow child, int index = -1)
-        {
-            Children ??= new List<UIBaseWindow>();
-            if (index != -1)
-                Children.Insert(index, child);
-            else
-                Children.Add(child);
-
-            child.Parent = this;
-            child.InvalidateLayout();
-            child.InvalidateColor();
-            child.EnsureParentLinks();
-            if (Debugger != null) child.AttachDebugger(Debugger);
-        }
-
-        /// <summary>
-        /// Parents aren't serialized so the links need to be reestablished once the UI is loaded.
-        /// </summary>
-        protected void EnsureParentLinks()
-        {
-            if (Children == null) return;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                child.Parent = this;
-                child.EnsureParentLinks();
-            }
-        }
-
-        public virtual void RemoveChild(UIBaseWindow win, bool evict = true)
-        {
-            if (Children == null) return;
-            Debug.Assert(win.Parent == this);
-
-            if (evict) Children.Remove(win);
-        }
-
-        public virtual void ClearChildren()
-        {
-            if (Children == null) return;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                RemoveChild(child, false);
-            }
-
-            Children = null;
-        }
-
-        public virtual void AttachedToController(UIController controller)
-        {
-            Controller = controller;
-            if (Children == null) return;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                child.AttachedToController(controller);
-            }
-        }
-
-        public virtual void DetachedFromController(UIController controller)
-        {
-            Controller = null;
-            if (Children == null) return;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                child.DetachedFromController(controller);
-            }
-        }
-
-        #endregion
-
-        #region Layout
+        private Vector2 _measuredSize;
 
         public virtual void InvalidateLayout()
         {
             Parent?.InvalidateLayout();
         }
-
-        private Vector2 _measuredSize;
 
         protected virtual Vector2 InternalMeasure(Vector2 space)
         {
@@ -352,6 +412,7 @@ namespace Emotion.UI
             _measuredSize = Vector2.Clamp(size, MinSize * scale, MaxSize * scale).RoundClosest();
             Debugger?.RecordMetric(this, "Measure_PostClamp", _measuredSize);
 
+            Size = _measuredSize;
             return _measuredSize;
         }
 
@@ -371,7 +432,7 @@ namespace Emotion.UI
             return parentSpaceForChild;
         }
 
-        protected void Layout(Vector2 contentPos, Vector2 contentSize)
+        protected void Layout(Vector2 contentPos)
         {
             Debugger?.RecordMetric(this, "Layout_ContentPos", contentPos);
 
@@ -379,15 +440,19 @@ namespace Emotion.UI
 
             Size = _measuredSize;
             contentPos += Offset * scale;
-            Position = (contentPos).RoundClosest().ToVec3(Z);
+            contentPos = BeforeLayout(contentPos);
+            Position = contentPos.RoundClosest().ToVec3(Z);
 
-            if (Children == null) return;
+            // Invalidate transformations.
+            if (_transformationStackBacking != null) _transformationStackBacking.MatrixDirty = true;
 
-            bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
-            Vector2 scaledSpacing = ListSpacing * scale;
-            switch (LayoutMode)
+            if (Children != null)
             {
-                case LayoutMode.Free:
+                bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
+                Vector2 scaledSpacing = ListSpacing * scale;
+                switch (LayoutMode)
+                {
+                    case LayoutMode.Free:
                     {
                         for (var i = 0; i < Children.Count; i++)
                         {
@@ -395,13 +460,13 @@ namespace Emotion.UI
                             Rectangle parentSpaceForChild = child.GetLayoutSpace(_measuredSize);
                             Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
                             Vector2 childPos = GetUIAnchorPosition(child.ParentAnchor, _measuredSize, parentSpaceForChild, child.Anchor, child._measuredSize);
-                            child.Layout(contentPos + childPos, Vector2.Zero);
+                            child.Layout(contentPos + childPos);
                         }
 
                         break;
                     }
-                case LayoutMode.HorizontalListWrap:
-                case LayoutMode.HorizontalList:
+                    case LayoutMode.HorizontalListWrap:
+                    case LayoutMode.HorizontalList:
                     {
                         Vector2 pen = contentPos;
                         Vector2 sizeLeft = _measuredSize;
@@ -412,7 +477,7 @@ namespace Emotion.UI
                             Rectangle parentSpaceForChild = child.GetLayoutSpace(sizeLeft);
                             Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
                             Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, parentSpaceForChild, child.Anchor, childSize);
-                            child.Layout(pen + pos, Vector2.Zero);
+                            child.Layout(pen + pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
@@ -428,8 +493,8 @@ namespace Emotion.UI
 
                         break;
                     }
-                case LayoutMode.VerticalListWrap:
-                case LayoutMode.VerticalList:
+                    case LayoutMode.VerticalListWrap:
+                    case LayoutMode.VerticalList:
                     {
                         Vector2 pen = contentPos;
                         Vector2 sizeLeft = _measuredSize;
@@ -440,7 +505,7 @@ namespace Emotion.UI
                             Rectangle parentSpaceForChild = child.GetLayoutSpace(sizeLeft);
                             Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
                             Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, parentSpaceForChild, child.Anchor, childSize);
-                            child.Layout(pen + pos, Vector2.Zero);
+                            child.Layout(pen + pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
@@ -456,12 +521,46 @@ namespace Emotion.UI
 
                         break;
                     }
+                }
             }
+
+            AfterLayout();
+        }
+
+        protected virtual Vector2 BeforeLayout(Vector2 position)
+        {
+            return position;
+        }
+
+        protected virtual void AfterLayout()
+        {
+            // nop - to be overriden
         }
 
         #endregion
 
         #region Color
+
+        /// <summary>
+        /// This color should be mixed in with the rendering of the window somehow.
+        /// Used to control opacity as well.
+        /// </summary>
+        public Color Color
+        {
+            get => _windowColor;
+            set
+            {
+                _windowColor = value;
+                InvalidateColor();
+            }
+        }
+
+        private Color _windowColor = Color.White;
+
+        /// <summary>
+        /// If set to true then this window will not mix its color with its parent's.
+        /// </summary>
+        public bool IgnoreParentColor = false;
 
         protected Color _calculatedColor;
         protected bool _updateColor = true;
@@ -494,6 +593,23 @@ namespace Emotion.UI
 
         #region Input
 
+        /// <summary>
+        /// If true then this window will not catch input unless propagated by a child. Used for large containers which
+        /// take up the whole screen and such.
+        /// </summary>
+        public bool InputTransparent
+        {
+            get => _inputTransparent;
+            set
+            {
+                if (value == _inputTransparent) return;
+                _inputTransparent = value;
+                Controller?.InvalidateInputFocus();
+            }
+        }
+
+        private bool _inputTransparent = true;
+
         public virtual bool OnKey(Key key, KeyStatus status)
         {
             return Parent == null || Parent.OnKey(key, status);
@@ -501,61 +617,25 @@ namespace Emotion.UI
 
         #endregion
 
-        public void Update()
+        #region Animations
+
+        /// <summary>
+        /// Ignore the displacements on the parent, otherwise the displacements of this window are multiplied by the parent's.
+        /// </summary>
+        public bool IgnoreParentDisplacement { get; set; }
+
+        /// <summary>
+        /// List of affine transformations to apply to this window and its children.
+        /// </summary>
+        [DontSerialize]
+        public NamedTransformationStack TransformationStack
         {
-            if (!Visible) return;
-
-            if (_updateColor)
-            {
-                CalculateColor();
-                _updateColor = false;
-            }
-
-            bool updateChildren = UpdateInternal();
-            if (!updateChildren || Children == null) return;
-
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                child.Update();
-            }
+            get => _transformationStackBacking ??= new NamedTransformationStack();
         }
 
-        protected virtual bool UpdateInternal()
-        {
-            // nop
-            return true;
-        }
+        private NamedTransformationStack? _transformationStackBacking;
 
-        public void Render(RenderComposer c)
-        {
-            if (!Visible) return;
-            if (!RenderInternal(c, ref _calculatedColor)) return;
-
-            if (Children == null) return;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                if (!child.Visible) continue;
-                child.Render(c);
-            }
-        }
-
-        protected virtual bool RenderInternal(RenderComposer c, ref Color windowColor)
-        {
-            return true;
-        }
-
-        protected void AttachDebugger(UIDebugger debugger)
-        {
-            Debugger = debugger;
-            if (Children == null) return;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                child.AttachDebugger(debugger);
-            }
-        }
+        #endregion
 
         #region Layout Helpers
 
@@ -747,19 +827,6 @@ namespace Emotion.UI
         public override string ToString()
         {
             return $"{GetType().ToString().Replace("Emotion.UI.", "")} {Id}";
-        }
-
-        public virtual void RemoveCodeGeneratedChildren()
-        {
-            if (Children == null) return;
-            for (int i = Children.Count - 1; i >= 0; i--)
-            {
-                UIBaseWindow child = Children[i];
-                if (child.CodeGenerated)
-                    RemoveChild(child);
-                else
-                    child.RemoveCodeGeneratedChildren();
-            }
         }
 
         #endregion

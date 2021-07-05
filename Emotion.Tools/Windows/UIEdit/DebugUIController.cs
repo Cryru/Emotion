@@ -26,10 +26,10 @@ namespace Emotion.Tools.Windows.UIEdit
             return base.UpdateInternal();
         }
 
-        protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
+        protected override bool RenderInternal(RenderComposer c)
         {
-            if (!base.RenderInternal(c, ref windowColor)) return false;
-            c.RenderSprite(Position, Size, windowColor);
+            if (!base.RenderInternal(c)) return false;
+            c.RenderSprite(Position, Size, _calculatedColor);
             c.SetClipRect(new Rectangle(Position, Size));
 
             var scaledGridSize = (int) Maths.RoundClosest(DebugGridSize * GetScale());

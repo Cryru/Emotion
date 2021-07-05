@@ -17,7 +17,7 @@ namespace Emotion.UI
 
         private bool _updatePreload = true;
         protected bool _updateLayout = true;
-        private bool _updateInputFocus = true;
+        protected bool _updateInputFocus = true;
 
         public UIController()
         {
@@ -65,7 +65,7 @@ namespace Emotion.UI
                 // Sizes returned during measuring are used. Parents are positioned before children since
                 // positions are absolute and not relative.
                 Rectangle r = GetLayoutSpace(Engine.Renderer.DrawBuffer.Size);
-                Layout(r.Position, r.Size);
+                Layout(r.Position);
                 _updateLayout = false;
             }
 
@@ -77,7 +77,7 @@ namespace Emotion.UI
         public override void AddChild(UIBaseWindow child, int index = -1)
         {
             if (child == null) return;
-            InvalidatePreload();
+            //InvalidatePreload();
             InvalidateInputFocus();
             base.AddChild(child, index);
             child.AttachedToController(this);

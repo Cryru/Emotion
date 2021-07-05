@@ -81,10 +81,10 @@ namespace Emotion.UI
             return size;
         }
 
-        protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
+        protected override bool RenderInternal(RenderComposer c)
         {
-            if (TextureAsset == null) return base.RenderInternal(c, ref windowColor);
-            c.RenderSprite(Position, Size, windowColor, TextureAsset.Texture, UV);
+            if (TextureAsset == null) return base.RenderInternal(c);
+            c.RenderSprite(Position, Size, _calculatedColor, TextureAsset.Texture, UV);
             return true;
         }
     }

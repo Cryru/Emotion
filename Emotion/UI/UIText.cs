@@ -114,24 +114,24 @@ namespace Emotion.UI
             return new Vector2(_layouter.NeededWidth, _layouter.NeededHeight);
         }
 
-        protected override bool RenderInternal(RenderComposer c, ref Color windowColor)
+        protected override bool RenderInternal(RenderComposer c)
         {
             if (_text == null || _layouter == null) return true;
 
             if (TextShadow != null)
             {
                 _layouter.RestartPen();
-                c.RenderString(Position + ShadowOffset.ToVec3(), TextShadow.Value * windowColor.A, _text, _atlas, _layouter);
+                c.RenderString(Position + ShadowOffset.ToVec3(), TextShadow.Value * _calculatedColor.A, _text, _atlas, _layouter);
             }
 
             if (Underline)
             {
                 float y = Y + Height + _scaledUnderlineOffset.Y;
-                c.RenderLine(new Vector2(X + _scaledUnderlineOffset.X, y), new Vector2(X + Width - _scaledUnderlineOffset.X * 2, y), windowColor, _scaledUnderlineThickness);
+                c.RenderLine(new Vector2(X + _scaledUnderlineOffset.X, y), new Vector2(X + Width - _scaledUnderlineOffset.X * 2, y), _calculatedColor, _scaledUnderlineThickness);
             }
 
             _layouter.RestartPen();
-            c.RenderString(Position, windowColor, _text, _atlas, _layouter);
+            c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter);
             return true;
         }
     }

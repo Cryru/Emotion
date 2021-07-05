@@ -60,6 +60,9 @@ namespace Tests.Results
         public static string TestFullScale = "TestFullScale";
         public static string TestFullScaleInteger = "TestFullScaleInteger";
 
+        public static string UIControllerDisplacementTest = "UIControllerDisplacementTest";
+        public static string UIControllerDisplacementTestScaled = "UIControllerDisplacementTestScaled";
+
         public static Dictionary<string, byte[]> CachedResults = new Dictionary<string, byte[]>();
 
         public static void LoadCache()
