@@ -151,6 +151,7 @@ namespace Emotion.Common
                 AggregateException exception = o.Exception;
                 Log.Error(exception.InnerException?.ToString() ?? exception.ToString(), MessageSource.StdErr);
             };
+            AppDomain.CurrentDomain.FirstChanceException += (e, a) => { Log.Error(a.Exception); };
 
             // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
