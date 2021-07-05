@@ -9,6 +9,7 @@ using System.Runtime;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -61,6 +62,54 @@ namespace Emotion.Plugins.CSharpScripting
             return Task.FromResult<object>(null);
         }
 
+        private static HashSet<string> _refAssemblyNames;
+        private static MetadataReference[] _scriptingReferences;
+        private static object _lockPopulate = new object();
+
+        private static void PopulateReferences()
+        {
+            lock (_lockPopulate)
+            {
+                // Check if built while waiting on lock.
+                if (_scriptingReferences != null) return;
+
+                var entryAsm = Assembly.GetEntryAssembly();
+                _refAssemblyNames = new HashSet<string>
+                {
+                    // System references.
+                    typeof(object).Assembly.Location,
+                    typeof(Console).Assembly.Location,
+
+                    // Emotion references.
+                    typeof(Engine).Assembly.Location,
+
+                    // Game references
+                    Assembly.GetCallingAssembly().Location,
+                    Assembly.GetExecutingAssembly().Location,
+                    entryAsm != null ? entryAsm.Location : null
+                };
+
+                foreach (Assembly associatedAssembly in Helpers.AssociatedAssemblies)
+                {
+                    _refAssemblyNames.Add(associatedAssembly.Location);
+                }
+
+                AssemblyName[] callerReferences = Assembly.GetCallingAssembly().GetReferencedAssemblies();
+                foreach (AssemblyName refAssembly in callerReferences)
+                {
+                    _refAssemblyNames.Add(Assembly.Load(refAssembly).Location);
+                }
+
+                _scriptingReferences = new MetadataReference[_refAssemblyNames.Count];
+                var idx = 0;
+                foreach (string location in _refAssemblyNames)
+                {
+                    _scriptingReferences[idx] = MetadataReference.CreateFromFile(location);
+                    idx++;
+                }
+            }
+        }
+
         /// <summary>
         /// Compiles the provided C# code.
         /// </summary>
@@ -72,27 +121,13 @@ namespace Emotion.Plugins.CSharpScripting
             CSharpParseOptions options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
             SyntaxTree parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
 
-            var entryAsm = Assembly.GetEntryAssembly();
-            var references = new MetadataReference[]
-            {
-                // System references.
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(AssemblyTargetedPatchBandAttribute).Assembly.Location),
-
-                // Emotion references.
-                MetadataReference.CreateFromFile(typeof(Engine).Assembly.Location),
-
-                // Game references.
-                MetadataReference.CreateFromFile(Assembly.GetCallingAssembly().Location),
-                MetadataReference.CreateFromFile(Assembly.GetExecutingAssembly().Location),
-                entryAsm != null ? MetadataReference.CreateFromFile(entryAsm.Location) : null
-            };
+            if (_scriptingReferences == null) PopulateReferences();
 
             var compilation = CSharpCompilation.Create($"{Guid.NewGuid()}.dll",
-                new[] {parsedSyntaxTree},
-                references,
-                new CSharpCompilationOptions(OutputKind.ConsoleApplication,
+                new[] { parsedSyntaxTree },
+                _scriptingReferences,
+                new CSharpCompilationOptions(
+                    OutputKind.ConsoleApplication, // Mark as console application so the entry point is assigned to Main. Libraries dont have entry points.
                     optimizationLevel: Engine.Configuration.DebugMode ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
             );
@@ -110,6 +145,15 @@ namespace Emotion.Plugins.CSharpScripting
                 }
 
                 return null;
+            }
+
+            // Print warnings and info texts in debug mode.
+            if (Engine.Configuration.DebugMode)
+            {
+                foreach (Diagnostic diagnostic in result.Diagnostics)
+                {
+                    Engine.Log.Warning($"{diagnostic.Id} - {diagnostic.GetMessage()}", MessageSource.ScriptingEngine);
+                }
             }
 
             ilStream.Seek(0, SeekOrigin.Begin);

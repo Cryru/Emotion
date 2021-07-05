@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -14,6 +15,8 @@ namespace Emotion.Plugins.CSharpScripting
     {
         public ScriptAssemblyContext Context { get; protected set; }
         public Assembly Assembly { get; protected set; }
+
+        private static Dictionary<string, Assembly> _compiledAssemblies = new();
 
         public CSharpScriptAsset()
         {
@@ -36,7 +39,10 @@ namespace Emotion.Plugins.CSharpScripting
             Context = new ScriptAssemblyContext();
             MemoryStream stream = CSharpScriptEngine.CompileCode(source);
             if (stream != null)
+            {
                 Assembly = Context.LoadFromStream(stream);
+                _compiledAssemblies.Add(Name, Assembly);
+            }
         }
 
         protected override void DisposeInternal()

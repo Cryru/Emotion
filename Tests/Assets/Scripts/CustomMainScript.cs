@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Emotion;
-using Emotion.Common;
-using Tests.Classes;
+﻿using Tests.Classes;
 
 namespace ScriptTest
 {
