@@ -14,21 +14,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.72.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Cimgui\cimgui.dll">
+    <None Update="AssetsNativeLibs\Cimgui\win32\cimgui.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Cimgui\win64\cimgui.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Cimgui\macos\cimgui.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Cimgui\cimgui.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Cimgui\cimgui.so">
+    <None Update="AssetsNativeLibs\Cimgui\linux\cimgui.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

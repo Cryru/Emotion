@@ -25,7 +25,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 _platformIdentifier = "win";
-                if (RuntimeInformation.OSArchitecture == Architecture.X64)
+                if (RuntimeInformation.OSArchitecture == Architecture.X64 && RuntimeInformation.ProcessArchitecture == Architecture.X64)
                     _platformIdentifier += "64";
                 else
                     _platformIdentifier += "32";
@@ -104,28 +104,38 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             }
         }
 
+        /// <summary>
+        /// The folder in which native libraries are stored by the desktop platform.
+        /// </summary>
+        public const string DESKTOP_NATIVE_LIB_FOLDER = "AssetsNativeLibs";
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string AppendPlatformIdentifierAndExtension(string libFolder, string libName)
+        {
+            return Path.Join(DESKTOP_NATIVE_LIB_FOLDER, libFolder, _platformIdentifier, $"{libName}{_platformExtension}");
+        }
+
         /// <inheritdoc />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override IntPtr LoadLibrary(string path)
         {
-            const string baseFolder = "AssetsNativeLibs";
             switch (path)
             {
                 case "glfw":
-                    path = Path.Join(baseFolder, "GLFW", _platformIdentifier, $"glfw{_platformExtension}");
+                    path = AppendPlatformIdentifierAndExtension("GLFW", "glfw");
                     break;
                 case "libEGL":
-                    path = Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libEGL{_platformExtension}");
+                    path = AppendPlatformIdentifierAndExtension("ANGLE", "libEGL");
                     break;
                 case "libGLESv2":
-                    path = Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libGLESv2{_platformExtension}");
+                    path = AppendPlatformIdentifierAndExtension("ANGLE", "libGLESv2");
                     break;
                 case "mesa":
-                    path = Path.Join(baseFolder, "Mesa", _platformIdentifier, $"opengl32{_platformExtension}");
+                    path = AppendPlatformIdentifierAndExtension("Mesa", "opengl32");
                     break;
                 case "OpenAL":
                 {
-                    path = Path.Join(baseFolder, "OpenAL", _platformIdentifier);
+                    path = Path.Join(DESKTOP_NATIVE_LIB_FOLDER, "OpenAL", _platformIdentifier);
 
                     // Linux only dependency, located in the same folder.
                     if (_platformIdentifier == "linux") LoadLibrary(Path.Join(path, "libsndio.so.6.1"));
