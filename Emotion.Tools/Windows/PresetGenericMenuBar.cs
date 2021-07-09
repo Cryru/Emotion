@@ -47,6 +47,7 @@ namespace Emotion.Tools.Windows
                         OpenFile();
 
                 if (_currentAsset != null && ImGui.Button("Save")) SaveFile();
+                if (_currentAsset != null && ImGui.Button("Save As")) SaveFile(true);
                 if (_currentFileName != null)
                     ImGui.Text($"File: {_currentFileName}");
                 else if (_currentAsset != null)
@@ -266,12 +267,12 @@ namespace Emotion.Tools.Windows
             _unsavedChanges = false;
         }
 
-        private void SaveFile()
+        private void SaveFile(bool otherName = false)
         {
             if (!OnFileSaving()) return;
 
             Debug.Assert(_currentAsset != null);
-            if (_currentFileName == null)
+            if (_currentFileName == null || otherName)
             {
                 var nameInput = new StringInputModal(name =>
                 {
