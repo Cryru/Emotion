@@ -126,11 +126,17 @@ namespace Emotion.UI
 
             // Pop displacements, if any were pushed.
             if (matrixPushed) c.PopModelMatrix();
+            AfterRenderChildren(c);
         }
 
         protected virtual bool RenderInternal(RenderComposer c)
         {
             return true;
+        }
+
+        protected virtual void AfterRenderChildren(RenderComposer c)
+        {
+
         }
 
         protected void AttachDebugger(UIDebugger debugger)
@@ -322,6 +328,11 @@ namespace Emotion.UI
 
         public bool StretchY { get; set; }
 
+        /// <summary>
+        /// Position relative to another window in the same controller.
+        /// </summary>
+        public string? RelativeTo { get; set; }
+
         private Vector2 _measuredSize;
 
         public virtual void InvalidateLayout()
@@ -343,6 +354,8 @@ namespace Emotion.UI
 
             Vector2 contentSize = InternalMeasure(space);
             Debugger?.RecordMetric(this, "Measure_Internal", contentSize);
+            contentSize = Vector2.Clamp(contentSize, MinSize * scale, MaxSize * scale).RoundClosest();
+            Debugger?.RecordMetric(this, "Measure_Internal_PostClamp", contentSize);
             Vector2 usedSpace = Vector2.Zero;
 
             if (Children != null)
@@ -407,11 +420,8 @@ namespace Emotion.UI
                 }
             }
 
-            var size = new Vector2(StretchX ? usedSpace.X : contentSize.X, StretchY ? usedSpace.Y : contentSize.Y);
-            Debugger?.RecordMetric(this, "Measure_PostChildren", size);
-            _measuredSize = Vector2.Clamp(size, MinSize * scale, MaxSize * scale).RoundClosest();
-            Debugger?.RecordMetric(this, "Measure_PostClamp", _measuredSize);
-
+            _measuredSize = new Vector2(StretchX ? usedSpace.X : contentSize.X, StretchY ? usedSpace.Y : contentSize.Y);
+            Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
             Size = _measuredSize;
             return _measuredSize;
         }
@@ -457,10 +467,27 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
-                            Rectangle parentSpaceForChild = child.GetLayoutSpace(_measuredSize);
+                            Vector2 parentSize = Vector2.Zero;
+                            Vector2 parentPos = Vector2.Zero;
+                            if (child.RelativeTo == null)
+                            {
+                                parentSize = _measuredSize;
+                                parentPos = contentPos;
+                            }
+                            else
+                            {
+                                UIBaseWindow? win = Controller?.GetWindowById(child.RelativeTo);
+                                if (win != null)
+                                {
+                                    parentSize = win.Size;
+                                    parentPos = win.Position2;
+                                }
+                            }
+
+                            Rectangle parentSpaceForChild = child.GetLayoutSpace(parentSize);
                             Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
                             Vector2 childPos = GetUIAnchorPosition(child.ParentAnchor, _measuredSize, parentSpaceForChild, child.Anchor, child._measuredSize);
-                            child.Layout(contentPos + childPos);
+                            child.Layout(parentPos + childPos);
                         }
 
                         break;
@@ -638,6 +665,12 @@ namespace Emotion.UI
         #endregion
 
         #region Layout Helpers
+
+        public void SetExactRequestedSize(Vector2 size)
+        {
+            MinSize = size;
+            MaxSize = size;
+        }
 
         /// <summary>
         /// A very simple check for whether the anchors will land the window inside or outside the parent.
