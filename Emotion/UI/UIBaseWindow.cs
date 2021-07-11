@@ -755,6 +755,7 @@ namespace Emotion.UI
 
         public void SetExactRequestedSize(Vector2 size)
         {
+            size = size.Ceiling();
             MinSize = size;
             MaxSize = size;
         }

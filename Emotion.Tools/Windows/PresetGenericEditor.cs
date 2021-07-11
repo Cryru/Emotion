@@ -146,12 +146,27 @@ namespace Emotion.Tools.Windows
                                 xmlHandler.ReflectionInfo.SetValue(obj, boolValue);
                                 UnsavedChanges();
                             }
+
+                            break;
+                        }
+
+                        if (primitive.Type == typeof(float))
+                        {
+                            var floatVal = (float) value;
+                            if (ImGui.InputFloat(xmlHandler.Name, ref floatVal))
+                            {
+                                xmlHandler.ReflectionInfo.SetValue(obj, floatVal);
+                                UnsavedChanges();
+                            }
+
+                            break;
                         }
 
                         break;
                     }
                 case XMLComplexValueTypeHandler valueType:
                     {
+
                         if (valueType.Type == typeof(Vector2))
                         {
                             var vec2Value = (Vector2)(value ?? Vector2.Zero);
