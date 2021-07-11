@@ -24,6 +24,9 @@ namespace Tests.Classes
         {
             var ui = new UIController();
             CompareUI("BasicMaxSize.xml", ui);
+
+            ui.ClearChildren();
+            CompareUI("clamping.xml", ui);
         }
 
         [Test]
@@ -80,6 +83,9 @@ namespace Tests.Classes
         {
             var ui = new UIController();
             CompareUI("MarginAnchors.xml", ui);
+
+            ui.ClearChildren();
+            CompareUI("OutsideMargins.xml", ui);
         }
 
         [Test]

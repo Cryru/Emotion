@@ -73,6 +73,7 @@ namespace Emotion.UI
         public void Update()
         {
             if (!Visible) return;
+            Debug.Assert(Controller != null || this is UIController);
 
             if (_updateColor)
             {
@@ -348,9 +349,16 @@ namespace Emotion.UI
         protected Vector2 Measure(Vector2 space)
         {
             float scale = GetScale();
-            Rectangle scaledMargins = Margins * scale;
-            space.X -= scaledMargins.X + scaledMargins.Width;
-            space.Y -= scaledMargins.Y + scaledMargins.Height;
+            if (AnchorsInsideParent(ParentAnchor, Anchor))
+            {
+                Rectangle scaledMargins = Margins * scale;
+                space.X -= scaledMargins.X + scaledMargins.Width;
+                space.Y -= scaledMargins.Y + scaledMargins.Height;
+            }
+            else 
+            {
+                space = Controller!.Size;
+            }
 
             Vector2 contentSize = InternalMeasure(space);
             Debugger?.RecordMetric(this, "Measure_Internal", contentSize);
@@ -426,20 +434,49 @@ namespace Emotion.UI
             return _measuredSize;
         }
 
-        protected Rectangle GetLayoutSpace(Vector2 parentSize)
+        public Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize)
         {
             float scale = GetScale();
             var parentSpaceForChild = new Rectangle(0, 0, parentSize);
+            Rectangle childScaledMargins = Margins * scale;
             if (AnchorsInsideParent(ParentAnchor, Anchor))
             {
-                Rectangle childScaledMargins = Margins * scale;
                 parentSpaceForChild.X += childScaledMargins.X;
                 parentSpaceForChild.Y += childScaledMargins.Y;
                 parentSpaceForChild.Width -= childScaledMargins.Width;
                 parentSpaceForChild.Height -= childScaledMargins.Height;
             }
+            else
+            {
+                bool applyYMargin = ParentAnchor is UIAnchor.TopCenter;
+                if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.TopRight && Anchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight)
+                {
+                    applyYMargin = true;
+                }
 
-            return parentSpaceForChild;
+                bool applyXMargin = ParentAnchor is UIAnchor.CenterLeft;
+                if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.BottomLeft && Anchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight)
+                {
+                    applyXMargin = true;
+                }
+
+
+                if (applyYMargin)
+                {
+                    parentSpaceForChild.Y -= childScaledMargins.Height;
+                }
+                else if(applyXMargin)
+                {
+                    parentSpaceForChild.X -= childScaledMargins.Width;
+                }
+                
+                
+                parentSpaceForChild.Width += childScaledMargins.X;
+                parentSpaceForChild.Height += childScaledMargins.Y;
+            }
+
+            Debugger?.RecordMetric(this, "Layout_ParentContentRect", parentSpaceForChild);
+            return parentPos + GetUIAnchorPosition(ParentAnchor, parentSize, parentSpaceForChild, Anchor, _measuredSize);
         }
 
         protected void Layout(Vector2 contentPos)
@@ -479,15 +516,23 @@ namespace Emotion.UI
                                 UIBaseWindow? win = Controller?.GetWindowById(child.RelativeTo);
                                 if (win != null)
                                 {
+                                    if (Debugger != null && Debugger.GetMetricsForWindow(win) == null)
+                                    {
+                                        Engine.Log.Warning($"{this} will layout relative to {child.RelativeTo}, before it had a chance to layout itself.", "UI");
+                                    }
+
                                     parentSize = win.Size;
                                     parentPos = win.Position2;
                                 }
+                                else
+                                {
+                                    Engine.Log.Warning($"{this} tried to layout relative to {child.RelativeTo} but it couldn't find it.", "UI");
+                                }
                             }
 
-                            Rectangle parentSpaceForChild = child.GetLayoutSpace(parentSize);
-                            Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
-                            Vector2 childPos = GetUIAnchorPosition(child.ParentAnchor, _measuredSize, parentSpaceForChild, child.Anchor, child._measuredSize);
-                            child.Layout(parentPos + childPos);
+                            Vector2 childPos = child.CalculateContentPos(parentPos, parentSize);
+
+                            child.Layout(childPos);
                         }
 
                         break;
@@ -500,18 +545,15 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
-                            Vector2 childSize = child._measuredSize;
-                            Rectangle parentSpaceForChild = child.GetLayoutSpace(sizeLeft);
-                            Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
-                            Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, parentSpaceForChild, child.Anchor, childSize);
-                            child.Layout(pen + pos);
+                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft);
+                            child.Layout(pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
-                            float spaceTaken = childSize.X + childOffsetScaled.X + childMarginsScaled.X + childMarginsScaled.Width;
+                            float spaceTaken = child.Size.X + childOffsetScaled.X + childMarginsScaled.X + childMarginsScaled.Width;
                             if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
 
                             pen.X += spaceTaken;
@@ -528,18 +570,15 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
-                            Vector2 childSize = child._measuredSize;
-                            Rectangle parentSpaceForChild = child.GetLayoutSpace(sizeLeft);
-                            Debugger?.RecordMetric(child, "Layout_ParentContentRect", parentSpaceForChild);
-                            Vector2 pos = GetUIAnchorPosition(child.ParentAnchor, sizeLeft, parentSpaceForChild, child.Anchor, childSize);
-                            child.Layout(pen + pos);
+                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft);
+                            child.Layout(pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
-                            float spaceTaken = childSize.Y + childOffsetScaled.Y + childMarginsScaled.Y + childMarginsScaled.Height;
+                            float spaceTaken = child.Size.Y + childOffsetScaled.Y + childMarginsScaled.Y + childMarginsScaled.Height;
                             if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
 
                             pen.Y += spaceTaken;

@@ -59,13 +59,14 @@ namespace Emotion.UI
                 // 1. Measure the size of all windows.
                 // Children are measured before parents in order for stretching to work.
                 // Children are measured in index order. Layout rules are applied.
-                Measure(Engine.Renderer.DrawBuffer.Size);
+                Size = Engine.Renderer.DrawBuffer.Size;
+                Measure(Size);
 
                 // 2. Layout windows within their parents, starting with the controller taking up the full screen.
                 // Sizes returned during measuring are used. Parents are positioned before children since
                 // positions are absolute and not relative.
-                Rectangle r = GetLayoutSpace(Engine.Renderer.DrawBuffer.Size);
-                Layout(r.Position);
+                Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size);
+                Layout(pos);
                 _updateLayout = false;
             }
 
