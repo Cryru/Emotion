@@ -3,10 +3,10 @@
   <Children>
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft TopLeft</Id>
-      <Color>
+      <WindowColor>
         <R>50</R>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -15,11 +15,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>63</R>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -28,11 +28,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>76</R>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -41,11 +41,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>89</R>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -54,11 +54,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>102</R>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -67,11 +67,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>115</R>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -80,11 +80,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -93,11 +93,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -106,11 +106,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopLeft BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -119,11 +119,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopCenter TopLeft</Id>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>63</R>
         <G>20</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -133,12 +133,12 @@
       <Id>TopCenter TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>76</R>
         <G>20</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -148,12 +148,12 @@
       <Id>TopCenter TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>89</R>
         <G>20</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -163,12 +163,12 @@
       <Id>TopCenter CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>102</R>
         <G>20</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -178,12 +178,12 @@
       <Id>TopCenter CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>115</R>
         <G>20</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -193,12 +193,12 @@
       <Id>TopCenter CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <G>20</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -208,12 +208,12 @@
       <Id>TopCenter BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>20</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -223,12 +223,12 @@
       <Id>TopCenter BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>20</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -238,12 +238,12 @@
       <Id>TopCenter BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>TopCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>20</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -252,11 +252,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>TopRight TopLeft</Id>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>76</R>
         <G>40</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -266,12 +266,12 @@
       <Id>TopRight TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>89</R>
         <G>40</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -281,12 +281,12 @@
       <Id>TopRight TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>102</R>
         <G>40</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -296,12 +296,12 @@
       <Id>TopRight CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>115</R>
         <G>40</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -311,12 +311,12 @@
       <Id>TopRight CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <G>40</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -326,12 +326,12 @@
       <Id>TopRight CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>40</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -341,12 +341,12 @@
       <Id>TopRight BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>40</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -356,12 +356,12 @@
       <Id>TopRight BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>40</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -371,12 +371,12 @@
       <Id>TopRight BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>TopRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>40</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -385,11 +385,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>CenterLeft TopLeft</Id>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>89</R>
         <G>60</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -399,12 +399,12 @@
       <Id>CenterLeft TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>102</R>
         <G>60</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -414,12 +414,12 @@
       <Id>CenterLeft TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>115</R>
         <G>60</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -429,12 +429,12 @@
       <Id>CenterLeft CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <G>60</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -444,12 +444,12 @@
       <Id>CenterLeft CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>60</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -459,12 +459,12 @@
       <Id>CenterLeft CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>60</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -474,12 +474,12 @@
       <Id>CenterLeft BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>60</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -489,12 +489,12 @@
       <Id>CenterLeft BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>60</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -504,12 +504,12 @@
       <Id>CenterLeft BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>CenterLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>193</R>
         <G>60</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -518,11 +518,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>CenterCenter TopLeft</Id>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>102</R>
         <G>80</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -532,12 +532,12 @@
       <Id>CenterCenter TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>115</R>
         <G>80</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -547,12 +547,12 @@
       <Id>CenterCenter TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <G>80</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -562,12 +562,12 @@
       <Id>CenterCenter CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>80</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -577,12 +577,12 @@
       <Id>CenterCenter CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>80</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -592,12 +592,12 @@
       <Id>CenterCenter CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>80</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -607,12 +607,12 @@
       <Id>CenterCenter BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>80</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -622,12 +622,12 @@
       <Id>CenterCenter BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>193</R>
         <G>80</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -637,12 +637,12 @@
       <Id>CenterCenter BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>CenterCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>206</R>
         <G>80</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -651,11 +651,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>CenterRight TopLeft</Id>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>115</R>
         <G>100</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -665,12 +665,12 @@
       <Id>CenterRight TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <G>100</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -680,12 +680,12 @@
       <Id>CenterRight TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>100</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -695,12 +695,12 @@
       <Id>CenterRight CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>100</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -710,12 +710,12 @@
       <Id>CenterRight CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>100</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -725,12 +725,12 @@
       <Id>CenterRight CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>100</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -740,12 +740,12 @@
       <Id>CenterRight BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>193</R>
         <G>100</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -755,12 +755,12 @@
       <Id>CenterRight BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>206</R>
         <G>100</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -770,12 +770,12 @@
       <Id>CenterRight BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>CenterRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>219</R>
         <G>100</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -784,11 +784,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>BottomLeft TopLeft</Id>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>128</R>
         <G>120</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -798,12 +798,12 @@
       <Id>BottomLeft TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>120</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -813,12 +813,12 @@
       <Id>BottomLeft TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>120</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -828,12 +828,12 @@
       <Id>BottomLeft CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>120</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -843,12 +843,12 @@
       <Id>BottomLeft CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>120</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -858,12 +858,12 @@
       <Id>BottomLeft CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>193</R>
         <G>120</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -873,12 +873,12 @@
       <Id>BottomLeft BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>206</R>
         <G>120</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -888,12 +888,12 @@
       <Id>BottomLeft BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>219</R>
         <G>120</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -903,12 +903,12 @@
       <Id>BottomLeft BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>BottomLeft</Anchor>
-      <Color>
+      <WindowColor>
         <R>232</R>
         <G>120</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -917,11 +917,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>BottomCenter TopLeft</Id>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>141</R>
         <G>140</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -931,12 +931,12 @@
       <Id>BottomCenter TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>140</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -946,12 +946,12 @@
       <Id>BottomCenter TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>140</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -961,12 +961,12 @@
       <Id>BottomCenter CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>140</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -976,12 +976,12 @@
       <Id>BottomCenter CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>193</R>
         <G>140</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -991,12 +991,12 @@
       <Id>BottomCenter CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>206</R>
         <G>140</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1006,12 +1006,12 @@
       <Id>BottomCenter BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>219</R>
         <G>140</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1021,12 +1021,12 @@
       <Id>BottomCenter BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>232</R>
         <G>140</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1036,12 +1036,12 @@
       <Id>BottomCenter BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>BottomCenter</Anchor>
-      <Color>
+      <WindowColor>
         <R>245</R>
         <G>140</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1050,11 +1050,11 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Id>BottomRight TopLeft</Id>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>154</R>
         <G>160</G>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1064,12 +1064,12 @@
       <Id>BottomRight TopCenter</Id>
       <ParentAnchor>TopCenter</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>167</R>
         <G>160</G>
         <B>20</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1079,12 +1079,12 @@
       <Id>BottomRight TopRight</Id>
       <ParentAnchor>TopRight</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>180</R>
         <G>160</G>
         <B>40</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1094,12 +1094,12 @@
       <Id>BottomRight CenterLeft</Id>
       <ParentAnchor>CenterLeft</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>193</R>
         <G>160</G>
         <B>60</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1109,12 +1109,12 @@
       <Id>BottomRight CenterCenter</Id>
       <ParentAnchor>CenterCenter</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>206</R>
         <G>160</G>
         <B>80</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1124,12 +1124,12 @@
       <Id>BottomRight CenterRight</Id>
       <ParentAnchor>CenterRight</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>219</R>
         <G>160</G>
         <B>100</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1139,12 +1139,12 @@
       <Id>BottomRight BottomLeft</Id>
       <ParentAnchor>BottomLeft</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>232</R>
         <G>160</G>
         <B>120</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1154,12 +1154,12 @@
       <Id>BottomRight BottomCenter</Id>
       <ParentAnchor>BottomCenter</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>245</R>
         <G>160</G>
         <B>140</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>
@@ -1169,12 +1169,12 @@
       <Id>BottomRight BottomRight</Id>
       <ParentAnchor>BottomRight</ParentAnchor>
       <Anchor>BottomRight</Anchor>
-      <Color>
+      <WindowColor>
         <R>2</R>
         <G>160</G>
         <B>160</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>25</X>
         <Y>25</Y>

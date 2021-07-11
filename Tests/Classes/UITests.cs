@@ -89,17 +89,16 @@ namespace Tests.Classes
         }
 
         [Test]
-        public static void ListsAndOffsetsHorizontal()
+        public static void Lists()
         {
             var ui = new UIController();
             CompareUI("ListsAndOffsetsHorizontal.xml", ui);
-        }
 
-        [Test]
-        public static void ListsAndOffsetsVertical()
-        {
-            var ui = new UIController();
+            ui.ClearChildren();
             CompareUI("ListsAndOffsetsVertical.xml", ui);
+
+            ui.ClearChildren();
+            CompareUI("ListWithOutsideChildren.xml", ui);
         }
 
         public class DisplacementTestWindow : UISolidColor

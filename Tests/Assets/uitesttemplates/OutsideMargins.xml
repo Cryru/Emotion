@@ -5,12 +5,12 @@
       <Children>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <ParentAnchor>TopRight</ParentAnchor>
-          <Color>
+          <WindowColor>
             <R>84</R>
             <G>216</G>
             <B>44</B>
             <A>71</A>
-          </Color>
+          </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Id>Left</Id>
@@ -29,12 +29,12 @@
             <X>55</X>
             <Y>55</Y>
           </MaxSize>
-          <Color>
+          <WindowColor>
             <R>152</R>
             <G>216</G>
             <B>44</B>
             <A>255</A>
-          </Color>
+          </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Id>Right</Id>
@@ -53,12 +53,12 @@
             <X>55</X>
             <Y>55</Y>
           </MaxSize>
-          <Color>
+          <WindowColor>
             <R>133</R>
             <G>207</G>
             <B>49</B>
             <A>255</A>
-          </Color>
+          </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Id>Below</Id>
@@ -77,12 +77,12 @@
             <X>55</X>
             <Y>55</Y>
           </MaxSize>
-          <Color>
+          <WindowColor>
             <R>73</R>
             <G>216</G>
             <B>44</B>
             <A>255</A>
-          </Color>
+          </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Id>Above</Id>
@@ -101,12 +101,12 @@
             <X>55</X>
             <Y>55</Y>
           </MaxSize>
-          <Color>
+          <WindowColor>
             <R>79</R>
             <G>216</G>
             <B>44</B>
             <A>255</A>
-          </Color>
+          </WindowColor>
         </UIBaseWindow>
       </Children>
       <ParentAnchor>CenterCenter</ParentAnchor>

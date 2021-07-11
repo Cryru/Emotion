@@ -8,10 +8,12 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
+using Emotion.Game.Time;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 
 #endregion
 
@@ -74,6 +76,20 @@ namespace Emotion.UI
         {
             if (!Visible) return;
             Debug.Assert(Controller != null || this is UIController);
+
+            if (_alphaTween != null)
+            {
+                _alphaTween.Update(Engine.DeltaTime);
+                var current = (byte) Maths.Lerp(_startingAlpha, _targetAlpha, _alphaTween.Progress);
+                WindowColor = WindowColor.SetAlpha(current);
+                if (_alphaTween.Finished)
+                {
+                    Debug.Assert(WindowColor.A == _targetAlpha);
+                    _alphaTween = null;
+                }
+
+                InvalidateColor();
+            }
 
             if (_updateColor)
             {
@@ -388,16 +404,21 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
+                            bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+                            if (insideParent && i != 0)
+                            {
+                                freeSpace.X -= scaledSpacing.X;
+                                usedSpace.X += scaledSpacing.X;
+                            }
+
                             Vector2 childSize = child.Measure(freeSpace);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
+                            if (!insideParent) continue;
 
                             float childScale = child.GetScale();
                             Vector2 childScaledOffset = child.Offset * childScale;
                             Rectangle childScaledMargins = child.Margins * childScale;
                             float spaceTaken = childSize.X + childScaledOffset.X + childScaledMargins.X + childScaledMargins.Width;
-                            if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
-
                             freeSpace.X -= spaceTaken;
                             usedSpace.X += spaceTaken;
                             usedSpace.Y = MathF.Max(usedSpace.Y, childSize.Y);
@@ -409,16 +430,21 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
+                            bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+                            if (insideParent && i != 0)
+                            {
+                                freeSpace.Y -= scaledSpacing.Y;
+                                usedSpace.Y += scaledSpacing.Y;
+                            }
+
                             Vector2 childSize = child.Measure(freeSpace);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
+                            if (!insideParent) continue;
 
                             float childScale = child.GetScale();
                             Vector2 childScaledOffset = child.Offset * childScale;
                             Rectangle childScaledMargins = child.Margins * childScale;
                             float spaceTaken = childSize.Y + childScaledOffset.Y + childScaledMargins.Y + childScaledMargins.Height;
-                            if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
-
                             freeSpace.Y -= spaceTaken;
                             usedSpace.Y += spaceTaken;
                             usedSpace.X = MathF.Max(usedSpace.X, childSize.X);
@@ -545,17 +571,22 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
+                            bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+                            if (insideParent && i != 0)
+                            {
+                                pen.X += scaledSpacing.X;
+                                sizeLeft.X -= scaledSpacing.X;
+                            }
+
                             Vector2 pos = child.CalculateContentPos(pen, sizeLeft);
                             child.Layout(pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
+                            if (!insideParent) continue; // Dont count spcae taken by windows outside parent.
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
                             float spaceTaken = child.Size.X + childOffsetScaled.X + childMarginsScaled.X + childMarginsScaled.Width;
-                            if (i != Children.Count - 1) spaceTaken += scaledSpacing.X;
-
                             pen.X += spaceTaken;
                             sizeLeft.X -= spaceTaken;
                         }
@@ -570,17 +601,22 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
+                            bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+                            if (insideParent && i != 0)
+                            {
+                                pen.Y += scaledSpacing.Y;
+                                sizeLeft.Y -= scaledSpacing.Y;
+                            }
+
                             Vector2 pos = child.CalculateContentPos(pen, sizeLeft);
                             child.Layout(pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
+                            if (!insideParent) continue;
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
                             float spaceTaken = child.Size.Y + childOffsetScaled.Y + childMarginsScaled.Y + childMarginsScaled.Height;
-                            if (i != Children.Count - 1) spaceTaken += scaledSpacing.Y;
-
                             pen.Y += spaceTaken;
                             sizeLeft.Y -= spaceTaken;
                         }
@@ -611,7 +647,7 @@ namespace Emotion.UI
         /// This color should be mixed in with the rendering of the window somehow.
         /// Used to control opacity as well.
         /// </summary>
-        public Color Color
+        public Color WindowColor
         {
             get => _windowColor;
             set
@@ -630,6 +666,9 @@ namespace Emotion.UI
 
         protected Color _calculatedColor;
         protected bool _updateColor = true;
+        protected byte _startingAlpha = 255;
+        protected byte _targetAlpha = 255;
+        protected ITimer? _alphaTween;
 
         public void InvalidateColor()
         {
@@ -642,10 +681,19 @@ namespace Emotion.UI
             }
         }
 
+        public void SetAlpha(byte value, ITimer tween)
+        {
+            _startingAlpha = WindowColor.A;
+            _targetAlpha = value;
+            _alphaTween = tween;
+        }
+
         protected void CalculateColor()
         {
-            // todo;
-            _calculatedColor = Color;
+            if (Parent == null || IgnoreParentColor)
+                _calculatedColor = WindowColor;
+            else
+                _calculatedColor = WindowColor * Parent._calculatedColor.A;
 
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)

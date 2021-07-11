@@ -16,7 +16,7 @@ namespace Emotion.Tools.Windows.UIEdit
 
         public DebugUIController()
         {
-            Color = new Color(32, 32, 32);
+            WindowColor = new Color(32, 32, 32);
         }
 
         protected override bool UpdateInternal()

@@ -4,12 +4,12 @@
     <UIBaseWindow type="Emotion.UI.UISolidColor">
       <Children>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <Color>
+          <WindowColor>
             <R>216</R>
             <G>46</G>
             <B>46</B>
             <A>255</A>
-          </Color>
+          </WindowColor>
         </UIBaseWindow>
       </Children>
       <ParentAnchor>CenterCenter</ParentAnchor>

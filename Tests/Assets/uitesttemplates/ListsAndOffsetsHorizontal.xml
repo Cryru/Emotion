@@ -6,20 +6,20 @@
   <ListSpacing>
     <X>1</X>
   </ListSpacing>
-  <Color>
+  <WindowColor>
     <R>255</R>
     <A>255</A>
-  </Color>
+  </WindowColor>
   <StretchX>True</StretchX>
   <StretchY>True</StretchY>
   <Children>
     <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Color>
+      <WindowColor>
         <R>102</R>
         <G>102</G>
         <B>192</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>50</X>
         <Y>50</Y>
@@ -29,12 +29,12 @@
       </Offset>
     </UIBaseWindow>
     <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Color>
+      <WindowColor>
         <R>235</R>
         <G>193</G>
         <B>90</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>50</X>
         <Y>50</Y>
@@ -44,24 +44,24 @@
       </Offset>
     </UIBaseWindow>
     <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Color>
+      <WindowColor>
         <R>102</R>
         <G>102</G>
         <B>192</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>50</X>
         <Y>50</Y>
       </MaxSize>
     </UIBaseWindow>
     <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Color>
+      <WindowColor>
         <R>100</R>
         <G>100</G>
         <B>192</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>50</X>
         <Y>50</Y>
@@ -75,24 +75,24 @@
         <X>20</X>
         <Width>20</Width>
       </Margins>
-      <Color>
+      <WindowColor>
         <R>118</R>
         <G>195</G>
         <B>110</B>
         <A>255</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>50</X>
         <Y>50</Y>
       </MaxSize>
     </UIBaseWindow>
     <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Color>
+      <WindowColor>
         <R>100</R>
         <G>100</G>
         <B>192</B>
         <A>81</A>
-      </Color>
+      </WindowColor>
       <MaxSize>
         <X>50</X>
         <Y>50</Y>
