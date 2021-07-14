@@ -65,7 +65,7 @@ namespace Emotion.UI
                 // 2. Layout windows within their parents, starting with the controller taking up the full screen.
                 // Sizes returned during measuring are used. Parents are positioned before children since
                 // positions are absolute and not relative.
-                Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size);
+                Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
                 Layout(pos);
                 _updateLayout = false;
             }

@@ -132,14 +132,12 @@ namespace Emotion.UI
             }
 
             if (RenderInternal(c) && Children != null)
-            {
                 for (var i = 0; i < Children.Count; i++)
                 {
                     UIBaseWindow child = Children[i];
                     if (!child.Visible) continue;
                     child.Render(c);
                 }
-            }
 
             // Pop displacements, if any were pushed.
             if (matrixPushed) c.PopModelMatrix();
@@ -153,7 +151,6 @@ namespace Emotion.UI
 
         protected virtual void AfterRenderChildren(RenderComposer c)
         {
-
         }
 
         protected void AttachDebugger(UIDebugger debugger)
@@ -189,10 +186,7 @@ namespace Emotion.UI
             child.InvalidateColor();
             child.EnsureParentLinks();
             if (Debugger != null) child.AttachDebugger(Debugger);
-            if (Controller != null)
-            {
-                child.AttachedToController(Controller);
-            }
+            if (Controller != null) child.AttachedToController(Controller);
         }
 
         /// <summary>
@@ -321,6 +315,11 @@ namespace Emotion.UI
         public Rectangle Margins { get; set; }
 
         /// <summary>
+        /// Paddings push children windows if they are inside the parent.
+        /// </summary>
+        public Rectangle Paddings { get; set; }
+
+        /// <summary>
         /// The minimum size the window can be.
         /// </summary>
         public Vector2 MinSize { get; set; }
@@ -371,7 +370,7 @@ namespace Emotion.UI
                 space.X -= scaledMargins.X + scaledMargins.Width;
                 space.Y -= scaledMargins.Y + scaledMargins.Height;
             }
-            else 
+            else
             {
                 space = Controller!.Size;
             }
@@ -385,6 +384,10 @@ namespace Emotion.UI
             if (Children != null)
             {
                 Vector2 freeSpace = StretchX || StretchY ? space : contentSize;
+                Rectangle scaledPadding = Paddings * scale;
+                freeSpace.X -= scaledPadding.X + scaledPadding.Width;
+                freeSpace.Y -= scaledPadding.Y + scaledPadding.Height;
+
                 Vector2 scaledSpacing = ListSpacing * scale;
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
                 switch (LayoutMode)
@@ -460,7 +463,7 @@ namespace Emotion.UI
             return _measuredSize;
         }
 
-        public Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize)
+        public Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
         {
             float scale = GetScale();
             var parentSpaceForChild = new Rectangle(0, 0, parentSize);
@@ -471,32 +474,24 @@ namespace Emotion.UI
                 parentSpaceForChild.Y += childScaledMargins.Y;
                 parentSpaceForChild.Width -= childScaledMargins.Width;
                 parentSpaceForChild.Height -= childScaledMargins.Height;
+
+                parentSpaceForChild.X += parentScaledPadding.X;
+                parentSpaceForChild.Y += parentScaledPadding.Y;
+                parentSpaceForChild.Width -= parentScaledPadding.Width;
+                parentSpaceForChild.Height -= parentScaledPadding.Height;
             }
             else
             {
                 bool applyYMargin = ParentAnchor is UIAnchor.TopCenter;
-                if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.TopRight && Anchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight)
-                {
-                    applyYMargin = true;
-                }
+                if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.TopRight && Anchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight) applyYMargin = true;
 
                 bool applyXMargin = ParentAnchor is UIAnchor.CenterLeft;
-                if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.BottomLeft && Anchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight)
-                {
-                    applyXMargin = true;
-                }
-
+                if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.BottomLeft && Anchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight) applyXMargin = true;
 
                 if (applyYMargin)
-                {
                     parentSpaceForChild.Y -= childScaledMargins.Height;
-                }
-                else if(applyXMargin)
-                {
-                    parentSpaceForChild.X -= childScaledMargins.Width;
-                }
-                
-                
+                else if (applyXMargin) parentSpaceForChild.X -= childScaledMargins.Width;
+
                 parentSpaceForChild.Width += childScaledMargins.X;
                 parentSpaceForChild.Height += childScaledMargins.Y;
             }
@@ -530,25 +525,16 @@ namespace Emotion.UI
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
-                            Vector2 parentSize = Vector2.Zero;
-                            Vector2 parentPos = Vector2.Zero;
-                            if (child.RelativeTo == null)
-                            {
-                                parentSize = _measuredSize;
-                                parentPos = contentPos;
-                            }
-                            else
+                            UIBaseWindow parent = this;
+                            if (child.RelativeTo != null)
                             {
                                 UIBaseWindow? win = Controller?.GetWindowById(child.RelativeTo);
                                 if (win != null)
                                 {
                                     if (Debugger != null && Debugger.GetMetricsForWindow(win) == null)
-                                    {
                                         Engine.Log.Warning($"{this} will layout relative to {child.RelativeTo}, before it had a chance to layout itself.", "UI");
-                                    }
 
-                                    parentSize = win.Size;
-                                    parentPos = win.Position2;
+                                    parent = win;
                                 }
                                 else
                                 {
@@ -556,8 +542,7 @@ namespace Emotion.UI
                                 }
                             }
 
-                            Vector2 childPos = child.CalculateContentPos(parentPos, parentSize);
-
+                            Vector2 childPos = child.CalculateContentPos(parent.Position2, parent.Size, parent.Paddings * parent.GetScale());
                             child.Layout(childPos);
                         }
 
@@ -566,6 +551,7 @@ namespace Emotion.UI
                     case LayoutMode.HorizontalListWrap:
                     case LayoutMode.HorizontalList:
                     {
+                        Rectangle parentPadding = Paddings * scale;
                         Vector2 pen = contentPos;
                         Vector2 sizeLeft = _measuredSize;
                         for (var i = 0; i < Children.Count; i++)
@@ -578,10 +564,10 @@ namespace Emotion.UI
                                 sizeLeft.X -= scaledSpacing.X;
                             }
 
-                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft);
+                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft, parentPadding);
                             child.Layout(pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!insideParent) continue; // Dont count spcae taken by windows outside parent.
+                            if (!insideParent) continue; // Dont count space taken by windows outside parent.
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
@@ -596,6 +582,7 @@ namespace Emotion.UI
                     case LayoutMode.VerticalListWrap:
                     case LayoutMode.VerticalList:
                     {
+                        Rectangle parentPadding = Paddings * scale;
                         Vector2 pen = contentPos;
                         Vector2 sizeLeft = _measuredSize;
                         for (var i = 0; i < Children.Count; i++)
@@ -608,7 +595,7 @@ namespace Emotion.UI
                                 sizeLeft.Y -= scaledSpacing.Y;
                             }
 
-                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft);
+                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft, parentPadding);
                             child.Layout(pos);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!insideParent) continue;

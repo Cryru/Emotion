@@ -59,6 +59,9 @@ namespace Emotion.UI
                 }
             }
 
+            bool present = node.Metrics.ContainsKey(name);
+            Debug.Assert(!present, "Window is present twice in hierarchy (by reference).");
+            if(present) return;
             node.Metrics.Add(name, metric);
         }
     }

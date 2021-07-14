@@ -69,7 +69,7 @@ namespace Emotion.UI
             float scale = GetScale();
             Vector2 size;
             if (RenderSize != null)
-                size = RenderSize.Value * scale;
+                size = GetRenderSizeProcessed(space);
             else if (UV != null)
                 size = UV.Value.Size * scale;
             else if (TextureAsset != null)
@@ -86,6 +86,49 @@ namespace Emotion.UI
             if (TextureAsset == null) return base.RenderInternal(c);
             c.RenderSprite(Position, Size, _calculatedColor, TextureAsset.Texture, UV);
             return true;
+        }
+
+        private Vector2 GetRenderSizeProcessed(Vector2 space)
+        {
+            float scale = GetScale();
+            float xVal = RenderSize!.Value.X;
+            float yVal = RenderSize!.Value.Y;
+
+            // Percentage of space.
+            if (xVal < 0)
+            {
+                // Percentage of height.
+                if (xVal < -100)
+                {
+                    xVal = space.Y * ((-xVal - 100) / 100.0f);
+                }
+                else
+                {
+                    xVal = space.X * (-xVal / 100.0f);
+                }
+            }
+            else
+            {
+                xVal *= scale;
+            }
+
+            if (yVal < 0)
+            {
+                if (yVal < -100)
+                {
+                    yVal = space.X * ((-yVal - 100) / 100.0f);
+                }
+                else
+                {
+                    yVal = space.Y * (-yVal / 100.0f);
+                }
+            }
+            else
+            {
+                yVal *= scale;
+            }
+
+            return new Vector2(xVal, yVal);
         }
     }
 }

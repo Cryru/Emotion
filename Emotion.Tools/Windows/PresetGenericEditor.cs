@@ -197,6 +197,9 @@ namespace Emotion.Tools.Windows
                             Vector4 colorAsVec4 = colorValue.ToVec4();
                             ImGui.Text(xmlHandler.Name);
                             ImGui.SameLine();
+                            ImGui.Text($"(RGBA) {colorValue}");
+                            ImGui.SameLine();
+
                             if (ImGui.ColorButton(xmlHandler.Name, colorAsVec4)) ImGui.OpenPopup(xmlHandler.Name);
                             if (ImGui.BeginPopup(xmlHandler.Name))
                             {
