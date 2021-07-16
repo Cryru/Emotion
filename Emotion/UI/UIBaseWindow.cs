@@ -716,6 +716,24 @@ namespace Emotion.UI
             return Parent == null || Parent.OnKey(key, status);
         }
 
+        [DontSerialize]
+        public bool MouseInside;
+
+        public virtual void OnMouseEnter(Vector2 mousePos)
+        {
+            MouseInside = true;
+        }
+
+        public virtual void OnMouseLeft(Vector2 mousePos)
+        {
+            MouseInside = false;
+        }
+
+        public virtual void OnMouseMove(Vector2 mousePos)
+        {
+
+        }
+
         #endregion
 
         #region Animations

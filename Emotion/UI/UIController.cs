@@ -13,7 +13,10 @@ namespace Emotion.UI
 {
     public class UIController : UIBaseWindow
     {
+        protected static List<UIController> _activeControllers = new List<UIController>();
+
         public UIBaseWindow InputFocus;
+        public UIBaseWindow MouseFocus;
 
         private bool _updatePreload = true;
         protected bool _updateLayout = true;
@@ -21,9 +24,18 @@ namespace Emotion.UI
 
         public UIController()
         {
+            InputTransparent = false;
             Debugger = new UIDebugger();
             Engine.Host.OnResize += Host_OnResize;
             KeepTemplatePreloaded(this);
+            _activeControllers.Add(this);
+        }
+
+        public virtual void Dispose()
+        {
+            _activeControllers.Remove(this);
+            StopPreloadTemplate(this);
+            Engine.Host.OnResize -= Host_OnResize;
         }
 
         private void Host_OnResize(Vector2 obj)
@@ -52,27 +64,27 @@ namespace Emotion.UI
         {
             if (!UILoadingThread.IsCompleted) return false;
             if (_updatePreload) UpdatePreLoading();
-
-            if (_updateLayout)
-            {
-                Debugger?.RecordNewPass(this);
-                // 1. Measure the size of all windows.
-                // Children are measured before parents in order for stretching to work.
-                // Children are measured in index order. Layout rules are applied.
-                Size = Engine.Renderer.DrawBuffer.Size;
-                Measure(Size);
-
-                // 2. Layout windows within their parents, starting with the controller taking up the full screen.
-                // Sizes returned during measuring are used. Parents are positioned before children since
-                // positions are absolute and not relative.
-                Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
-                Layout(pos);
-                _updateLayout = false;
-            }
-
-            if (_updateInputFocus) RecalculateInputFocus();
-
+            if (_updateLayout) UpdateLayout();
+            if (_updateInputFocus) UpdateInputFocus();
+            UpdateMouseFocus();
             return true;
+        }
+
+        protected void UpdateLayout()
+        {
+            Debugger?.RecordNewPass(this);
+            // 1. Measure the size of all windows.
+            // Children are measured before parents in order for stretching to work.
+            // Children are measured in index order. Layout rules are applied.
+            Size = Engine.Renderer.DrawBuffer.Size;
+            Measure(Size);
+
+            // 2. Layout windows within their parents, starting with the controller taking up the full screen.
+            // Sizes returned during measuring are used. Parents are positioned before children since
+            // positions are absolute and not relative.
+            Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
+            Layout(pos);
+            _updateLayout = false;
         }
 
         public override void AddChild(UIBaseWindow child, int index = -1)
@@ -107,6 +119,12 @@ namespace Emotion.UI
                 else
                     Children.Add(child);
             }
+
+            public override void RemoveChild(UIBaseWindow win, bool evict = true)
+            {
+                if (Children == null) return;
+                if (evict) Children.Remove(win);
+            }
         }
 
         public static Task PreloadUI()
@@ -118,6 +136,11 @@ namespace Emotion.UI
         public static void KeepTemplatePreloaded(UIBaseWindow window)
         {
             _keepWindowsLoaded.AddChild(window);
+        }
+
+        public static void StopPreloadTemplate(UIBaseWindow window)
+        {
+            _keepWindowsLoaded.RemoveChild(window);
         }
 
         private static void UpdatePreLoading()
@@ -136,8 +159,8 @@ namespace Emotion.UI
             // It is possible to receive an input even while a recalculating is pending.
             if (_updateInputFocus && status == KeyStatus.Down)
             {
-                RecalculateInputFocus();
-                RecalculateMouseFocus();
+                UpdateInputFocus();
+                UpdateMouseFocus();
             }
 
             if (!Visible) return true;
@@ -148,14 +171,29 @@ namespace Emotion.UI
             return true;
         }
 
+        private bool MouseFocusOnKey(Key key, KeyStatus status)
+        {
+            if (_updateInputFocus && status == KeyStatus.Down)
+            {
+                UpdateInputFocus();
+                UpdateMouseFocus();
+            }
+
+            if (!Visible) return true;
+            if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && MouseFocus != null)
+                return MouseFocus.OnKey(key, status);
+
+            return true;
+        }
+
         public void InvalidateInputFocus()
         {
             _updateInputFocus = true;
         }
 
-        private void RecalculateInputFocus()
+        private void UpdateInputFocus()
         {
-            UIBaseWindow newFocus = FindInputFocusable(this);
+            UIBaseWindow newFocus = InputTransparent || !Visible ? null : FindInputFocusable(this);
             if (newFocus == this) newFocus = null;
 
             if (InputFocus != newFocus)
@@ -174,9 +212,43 @@ namespace Emotion.UI
             _updateInputFocus = false;
         }
 
-        private void RecalculateMouseFocus()
+        private void UpdateMouseFocus()
         {
-            // todo
+            Vector2 mousePos = Engine.Host.MousePosition;
+            UIBaseWindow newMouseFocus = Engine.Host.IsFocused ? FindMouseInput(mousePos, this) : null;
+            if(newMouseFocus == this) newMouseFocus = null;
+
+            if (newMouseFocus != MouseFocus)
+            {
+                MouseFocus?.OnMouseLeft(mousePos);
+                if (MouseFocus != null)
+                    Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+                MouseFocus = newMouseFocus;
+                if (MouseFocus != null)
+                    Engine.Host.OnKey.AddListener(MouseFocusOnKey);
+                MouseFocus?.OnMouseEnter(mousePos);
+
+                // This is very spammy.
+                // Engine.Log.Info($"New mouse input focus {_mouseFocusWindow}", MessageSource.Game);
+            }
+            else
+            {
+                MouseFocus?.OnMouseMove(mousePos);
+            }
+        }
+
+        protected static UIBaseWindow FindMouseInput(Vector2 pos, UIBaseWindow wnd)
+        {
+            if (wnd.Children != null)
+            {
+                for (var i = 0; i < wnd.Children.Count; i++)
+                {
+                    UIBaseWindow win = wnd.Children[i];
+                    if (!win.InputTransparent && win.Visible && win.Bounds.Contains(pos)) return FindMouseInput(pos, win);
+                }
+            }
+
+            return wnd;
         }
 
         protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)

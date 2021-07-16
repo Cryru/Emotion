@@ -17,6 +17,25 @@ namespace Emotion.Tools.Windows.UIEdit
         public DebugUIController()
         {
             WindowColor = new Color(32, 32, 32);
+            for (var i = 0; i < _activeControllers.Count; i++)
+            {
+                UIController controller = _activeControllers[i];
+                if (controller == this) continue;
+                controller.InputTransparent = true;
+                controller.InvalidateInputFocus();
+            }
+        }
+
+        public override void Dispose()
+        {
+            for (var i = 0; i < _activeControllers.Count; i++)
+            {
+                UIController controller = _activeControllers[i];
+                if (controller == this) continue;
+                controller.InputTransparent = false;
+                controller.InvalidateInputFocus();
+            }
+            base.Dispose();
         }
 
         protected override bool UpdateInternal()

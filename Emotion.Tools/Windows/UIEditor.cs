@@ -48,6 +48,12 @@ namespace Emotion.Tools.Windows
             _ui.Margins = new Rectangle(5, 15, 5, 5);
         }
 
+        public override void Dispose()
+        {
+            _ui.Dispose();
+            base.Dispose();
+        }
+
         public override void Update()
         {
             _ui.Update();
