@@ -4,6 +4,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
+using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Test;
@@ -155,6 +156,95 @@ namespace Tests.Classes
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.UIControllerDisplacementTestScaled);
             }).WaitOne();
+        }
+
+        public class MouseTestWindow : UISolidColor
+        {
+            public int ClickedCount;
+            private Vector2 _lastMousePos;
+
+            public MouseTestWindow()
+            {
+                MaxSize = new Vector2(50, 50);
+                InputTransparent = false;
+            }
+
+            public override bool OnKey(Key key, KeyStatus status)
+            {
+                if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd && status == KeyStatus.Down)
+                {
+                    ClickedCount++;
+                }
+
+                return base.OnKey(key, status);
+            }
+
+            public override void OnMouseEnter(Vector2 mousePos)
+            {
+                WindowColor = Color.Red;
+                base.OnMouseEnter(mousePos);
+            }
+
+            public override void OnMouseLeft(Vector2 mousePos)
+            {
+                WindowColor = Color.White;
+                base.OnMouseLeft(mousePos);
+            }
+
+            public override void OnMouseMove(Vector2 mousePos)
+            {
+                _lastMousePos = mousePos;
+                base.OnMouseMove(mousePos);
+            }
+
+            protected override bool RenderInternal(RenderComposer c)
+            {
+                base.RenderInternal(c);
+                if (MouseInside) c.RenderSprite(new Rectangle(_lastMousePos.X, _lastMousePos.Y, 6, 6), Color.Pink);
+                return true;
+            }
+        }
+
+        [Test]
+        public static void MouseTestTest()
+        {
+            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/MouseTest.xml");
+            Assert.True(template != null);
+            var ui = new UIController();
+            ui.AddChild(template.Content);
+            UIController.PreloadUI().Wait();
+            ui.Update();
+
+            var winOne = (MouseTestWindow) ui.GetWindowById("WinOne");
+            var winThree = (MouseTestWindow) ui.GetWindowById("WinThree");
+
+            // Mouse outside.
+            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, new Vector2(0, 0));
+            ui.Update();
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Assert.Equal(winOne.ClickedCount, 0);
+            Assert.Equal(winOne.WindowColor, Color.White);
+
+            // Mouse inside.
+            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winOne.Position2 + new Vector2(10, 10));
+            ui.Update();
+            Assert.Equal(winOne.WindowColor, Color.Red);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Assert.Equal(winOne.ClickedCount, 1);
+
+            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winThree.Position2 + new Vector2(10, 10));
+            ui.Update();
+            Assert.Equal(winOne.WindowColor, Color.White);
+            Assert.Equal(winThree.WindowColor, Color.Red);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Assert.Equal(winOne.ClickedCount, 1);
+            Assert.Equal(winThree.ClickedCount, 2);
+            //Engine.Host.OnKey.Invoke()
         }
 
         private static void CompareUI(string file, UIController controller)

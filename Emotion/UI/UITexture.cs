@@ -61,7 +61,7 @@ namespace Emotion.UI
 
             TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
             if (TextureAsset == null) return;
-            if (Smooth != TextureAsset.Texture.Smooth) GLThread.ExecuteGLThreadAsync(() => { TextureAsset.Texture.Smooth = Smooth; });
+            if (Smooth != TextureAsset.Texture.Smooth) _ = GLThread.ExecuteGLThreadAsync(() => { TextureAsset.Texture.Smooth = Smooth; });
         }
 
         protected override Vector2 InternalMeasure(Vector2 space)

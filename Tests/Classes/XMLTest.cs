@@ -793,5 +793,26 @@ namespace Tests.Classes
             document = XMLFormat.To(overridingClassWithExclusion);
             Assert.Equal(rgx.Matches(document).Count, 0);
         }
+
+        public class ClassWithNonPublicField
+        {
+            [SerializeNonPublicGetSet]
+            public string Field { get; protected set; }
+
+            public void SetFieldSecretFunction(string s)
+            {
+                Field = s;
+            }
+        }
+
+        [Test]
+        public void ClassWithNonPublicGetSet()
+        {
+            var obj = new ClassWithNonPublicField();
+            obj.SetFieldSecretFunction("Helloo");
+            string document = XMLFormat.To(obj);
+            var deserialized = XMLFormat.From<ClassWithNonPublicField>(document);
+            Assert.Equal(deserialized.Field, "Helloo");
+        }
     }
 }

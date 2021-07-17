@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<UIBaseWindow>
+  <Children>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+    </UIBaseWindow>
+  </Children>
+  <ParentAnchor>CenterCenter</ParentAnchor>
+  <Anchor>CenterCenter</Anchor>
+  <LayoutMode>HorizontalList</LayoutMode>
+  <ListSpacing>
+    <X>10</X>
+  </ListSpacing>
+  <StretchX>True</StretchX>
+  <StretchY>True</StretchY>
+  <InputTransparent></InputTransparent>
+</UIBaseWindow>

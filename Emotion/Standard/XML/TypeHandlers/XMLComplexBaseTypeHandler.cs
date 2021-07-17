@@ -50,7 +50,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 MethodInfo writeMethod = property.SetMethod;
                 if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null) continue;
 
-                bool nonPublicAllowed = property.GetCustomAttribute<SerializeNonPublicAttribute>() != null;
+                bool nonPublicAllowed = property.GetCustomAttribute<SerializeNonPublicGetSetAttribute>() != null;
                 bool valid = nonPublicAllowed || (readMethod.IsPublic && writeMethod.IsPublic);
                 if (!valid) continue;
 

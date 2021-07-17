@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 
@@ -36,6 +37,9 @@ namespace Emotion.UI
             _activeControllers.Remove(this);
             StopPreloadTemplate(this);
             Engine.Host.OnResize -= Host_OnResize;
+            if (InputFocus != null) Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
+
+            if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
         }
 
         private void Host_OnResize(Vector2 obj)
@@ -47,6 +51,7 @@ namespace Emotion.UI
         public override void InvalidateLayout()
         {
             _updateLayout = true;
+            _updateInputFocus = true;
         }
 
         public void InvalidatePreload()
@@ -58,6 +63,18 @@ namespace Emotion.UI
         {
             await base.Preload();
             _updatePreload = false;
+        }
+
+        protected override void AfterRenderChildren(RenderComposer c)
+        {
+#if false
+            {
+                if(MouseFocus != null) c.RenderOutline(MouseFocus.Bounds, Color.Red);
+                c.RenderSprite(new Rectangle(Engine.Host.MousePosition.X, Engine.Host.MousePosition.Y, 1, 1), Color.Pink);
+            }
+#endif
+
+            base.AfterRenderChildren(c);
         }
 
         protected override bool UpdateInternal()
@@ -91,7 +108,6 @@ namespace Emotion.UI
         {
             if (child == null) return;
             //InvalidatePreload();
-            InvalidateInputFocus();
             base.AddChild(child, index);
             child.AttachedToController(this);
         }
@@ -215,8 +231,8 @@ namespace Emotion.UI
         private void UpdateMouseFocus()
         {
             Vector2 mousePos = Engine.Host.MousePosition;
-            UIBaseWindow newMouseFocus = Engine.Host.IsFocused ? FindMouseInput(mousePos, this) : null;
-            if(newMouseFocus == this) newMouseFocus = null;
+            UIBaseWindow newMouseFocus = Engine.Host.HostPaused ? null : FindMouseInput(mousePos, this);
+            if (newMouseFocus == this) newMouseFocus = null;
 
             if (newMouseFocus != MouseFocus)
             {
@@ -229,7 +245,7 @@ namespace Emotion.UI
                 MouseFocus?.OnMouseEnter(mousePos);
 
                 // This is very spammy.
-                // Engine.Log.Info($"New mouse input focus {_mouseFocusWindow}", MessageSource.Game);
+                //Engine.Log.Info($"New mouse input focus {newMouseFocus}", "UI");
             }
             else
             {
@@ -240,13 +256,11 @@ namespace Emotion.UI
         protected static UIBaseWindow FindMouseInput(Vector2 pos, UIBaseWindow wnd)
         {
             if (wnd.Children != null)
-            {
                 for (var i = 0; i < wnd.Children.Count; i++)
                 {
                     UIBaseWindow win = wnd.Children[i];
-                    if (!win.InputTransparent && win.Visible && win.Bounds.Contains(pos)) return FindMouseInput(pos, win);
+                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) return FindMouseInput(pos, win);
                 }
-            }
 
             return wnd;
         }
