@@ -45,10 +45,14 @@ namespace Emotion.Standard.XML.TypeHandlers
             {
                 PropertyInfo property = properties[i];
 
-                // Only serialize properties with public get; set;
+                // Only serialize properties with get and set methods;
                 MethodInfo readMethod = property.GetMethod;
                 MethodInfo writeMethod = property.SetMethod;
-                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null || !readMethod.IsPublic || !writeMethod.IsPublic) continue;
+                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null) continue;
+
+                bool nonPublicAllowed = property.GetCustomAttribute<SerializeNonPublicAttribute>() != null;
+                bool valid = nonPublicAllowed || (readMethod.IsPublic && writeMethod.IsPublic);
+                if (!valid) continue;
 
                 var excludeProp = property.GetCustomAttribute<DontSerializeMembersAttribute>();
                 XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, new ReflectedMemberHandler(property), excludeProp);
