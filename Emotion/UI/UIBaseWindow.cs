@@ -74,9 +74,6 @@ namespace Emotion.UI
 
         public void Update()
         {
-            if (!Visible) return;
-            Debug.Assert(Controller != null || this is UIController);
-
             if (_alphaTween != null)
             {
                 _alphaTween.Update(Engine.DeltaTime);
@@ -90,6 +87,9 @@ namespace Emotion.UI
 
                 InvalidateColor();
             }
+
+            if (!Visible) return;
+            Debug.Assert(Controller != null || this is UIController);
 
             if (_updateColor)
             {
@@ -131,6 +131,9 @@ namespace Emotion.UI
                 matrixPushed = true;
             }
 
+            // Cache displaced position.
+            EnsureRenderBoundsCached(c);
+
             if (RenderInternal(c) && Children != null)
                 for (var i = 0; i < Children.Count; i++)
                 {
@@ -171,7 +174,8 @@ namespace Emotion.UI
         /// <summary>
         /// Children of this window.
         /// </summary>
-        public List<UIBaseWindow>? Children { get; set; }
+        [SerializeNonPublicGetSet]
+        public List<UIBaseWindow>? Children { get; protected set; }
 
         public virtual void AddChild(UIBaseWindow child, int index = -1)
         {
@@ -294,7 +298,18 @@ namespace Emotion.UI
         /// If not, the RenderInternal function will not be called and
         /// children will not be drawn either.
         /// </summary>
-        public bool Visible { get; set; } = true;
+        public bool Visible
+        {
+            get => _visible;
+            set
+            {
+                if (value == _visible) return;
+                _visible = value;
+                Controller?.InvalidateInputFocus();
+            }
+        }
+
+        private bool _visible = true;
 
         /// <summary>
         /// Whether to consider this window as part of the layout when invisible.
@@ -613,6 +628,7 @@ namespace Emotion.UI
                 }
             }
 
+            _renderBounds = Rectangle.Empty;
             AfterLayout();
         }
 
@@ -716,8 +732,28 @@ namespace Emotion.UI
             return Parent == null || Parent.OnKey(key, status);
         }
 
-        [DontSerialize]
-        public bool MouseInside;
+        /// <summary>
+        /// Whether the mouse is currently inside this window.
+        /// </summary>
+        public bool MouseInside { get; protected set; }
+
+        private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
+        protected Rectangle _renderBounds; // .Bounds but with any displacements active on the window applied
+
+        private void EnsureRenderBoundsCached(RenderComposer c)
+        {
+            if (c.ModelMatrix == _renderBoundsCachedMatrix && !_renderBounds.IsEmpty) return;
+            _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
+            _renderBoundsCachedMatrix = c.ModelMatrix;
+        }
+
+        public bool IsPointInside(Vector2 pt)
+        {
+            if (_renderBounds != Rectangle.Empty)
+                return _renderBounds.Contains(pt);
+            else
+                return Bounds.Contains(pt);
+        }
 
         public virtual void OnMouseEnter(Vector2 mousePos)
         {
