@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<UIBaseWindow>
+  <Children>
+    <UIBaseWindow>
+      <Children>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <LayoutMode>HorizontalList</LayoutMode>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <LayoutMode>HorizontalList</LayoutMode>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <LayoutMode>HorizontalList</LayoutMode>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+      </Children>
+      <LayoutMode>HorizontalList</LayoutMode>
+      <ListSpacing>
+        <X>25</X>
+      </ListSpacing>
+    </UIBaseWindow>
+    <UIBaseWindow>
+      <Children>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <LayoutMode>HorizontalList</LayoutMode>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <LayoutMode>HorizontalList</LayoutMode>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <Children>
+          </Children>
+          <ParentAnchor>CenterCenter</ParentAnchor>
+          <Anchor>CenterCenter</Anchor>
+          <LayoutMode>HorizontalList</LayoutMode>
+          <MaxSize>
+            <X>20</X>
+            <Y>20</Y>
+          </MaxSize>
+        </UIBaseWindow>
+      </Children>
+      <LayoutMode>VerticalList</LayoutMode>
+      <ListSpacing>
+        <X>25</X>
+        <Y>25</Y>
+      </ListSpacing>
+    </UIBaseWindow>
+  </Children>
+</UIBaseWindow>

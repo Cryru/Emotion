@@ -107,7 +107,6 @@ namespace Emotion.UI
         public override void AddChild(UIBaseWindow child, int index = -1)
         {
             if (child == null) return;
-            //InvalidatePreload();
             base.AddChild(child, index);
             child.AttachedToController(this);
         }

@@ -100,6 +100,12 @@ namespace Tests.Classes
 
             ui.ClearChildren();
             CompareUI("ListWithOutsideChildren.xml", ui);
+
+            ui.ClearChildren();
+            CompareUI("ListWithAnchoredChildren.xml", ui);
+
+            ui.ClearChildren();
+            CompareUI("WrappingList.xml", ui);
         }
 
         public class DisplacementTestWindow : UISolidColor
@@ -244,7 +250,6 @@ namespace Tests.Classes
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(winOne.ClickedCount, 1);
             Assert.Equal(winThree.ClickedCount, 2);
-            //Engine.Host.OnKey.Invoke()
         }
 
         private static void CompareUI(string file, UIController controller)

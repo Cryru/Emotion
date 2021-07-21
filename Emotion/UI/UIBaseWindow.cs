@@ -396,12 +396,14 @@ namespace Emotion.UI
             Debugger?.RecordMetric(this, "Measure_Internal_PostClamp", contentSize);
             Vector2 usedSpace = Vector2.Zero;
 
+            Rectangle scaledPadding = Paddings * scale;
+            var paddingSize = new Vector2(scaledPadding.X + scaledPadding.Width, scaledPadding.Y + scaledPadding.Height);
+
             if (Children != null)
             {
                 Vector2 freeSpace = StretchX || StretchY ? space : contentSize;
-                Rectangle scaledPadding = Paddings * scale;
-                freeSpace.X -= scaledPadding.X + scaledPadding.Width;
-                freeSpace.Y -= scaledPadding.Y + scaledPadding.Height;
+                freeSpace.X -= paddingSize.X;
+                freeSpace.Y -= paddingSize.Y;
 
                 Vector2 scaledSpacing = ListSpacing * scale;
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
@@ -419,17 +421,18 @@ namespace Emotion.UI
                         break;
                     case LayoutMode.HorizontalListWrap:
                     case LayoutMode.HorizontalList:
+                        Vector2 hPen = Vector2.Zero;
+                        float highestOnRow = 0;
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
                             bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-                            if (insideParent && i != 0)
-                            {
-                                freeSpace.X -= scaledSpacing.X;
-                                usedSpace.X += scaledSpacing.X;
-                            }
+                            bool addSpacing = insideParent && hPen.X != 0; // Skip spacing at start of row.
+                            Vector2 childSpace = wrap ? freeSpace : freeSpace - hPen; // Give full space as available space if wrapping.
+                            if (addSpacing) 
+                                childSpace.X -= scaledSpacing.X;
 
-                            Vector2 childSize = child.Measure(freeSpace);
+                            Vector2 childSize = child.Measure(childSpace);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!insideParent) continue;
 
@@ -437,25 +440,38 @@ namespace Emotion.UI
                             Vector2 childScaledOffset = child.Offset * childScale;
                             Rectangle childScaledMargins = child.Margins * childScale;
                             float spaceTaken = childSize.X + childScaledOffset.X + childScaledMargins.X + childScaledMargins.Width;
-                            freeSpace.X -= spaceTaken;
-                            usedSpace.X += spaceTaken;
-                            usedSpace.Y = MathF.Max(usedSpace.Y, childSize.Y);
+
+                            if (wrap && hPen.X + spaceTaken > freeSpace.X)
+                            {
+                                hPen.X = 0;
+                                hPen.Y += highestOnRow + scaledSpacing.Y;
+                                highestOnRow = 0;
+                                addSpacing = false;
+                            }
+
+                            if (addSpacing) hPen.X += scaledSpacing.X;
+                            hPen.X += spaceTaken;
+                            highestOnRow = MathF.Max(highestOnRow, childSize.Y);
+
+                            usedSpace.X = MathF.Max(usedSpace.X, hPen.X);
+                            usedSpace.Y = hPen.Y + highestOnRow;
                         }
 
                         break;
                     case LayoutMode.VerticalListWrap:
                     case LayoutMode.VerticalList:
+                        Vector2 vPen = Vector2.Zero;
+                        float widestInColumn = 0;
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
                             bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-                            if (insideParent && i != 0)
-                            {
-                                freeSpace.Y -= scaledSpacing.Y;
-                                usedSpace.Y += scaledSpacing.Y;
-                            }
+                            bool addSpacing = insideParent && vPen.Y != 0;
+                            Vector2 childSpace = wrap ? freeSpace : freeSpace - vPen;
+                            if (addSpacing) 
+                                childSpace.Y -= scaledSpacing.Y;
 
-                            Vector2 childSize = child.Measure(freeSpace);
+                            Vector2 childSize = child.Measure(childSpace);
                             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
                             if (!insideParent) continue;
 
@@ -463,16 +479,28 @@ namespace Emotion.UI
                             Vector2 childScaledOffset = child.Offset * childScale;
                             Rectangle childScaledMargins = child.Margins * childScale;
                             float spaceTaken = childSize.Y + childScaledOffset.Y + childScaledMargins.Y + childScaledMargins.Height;
-                            freeSpace.Y -= spaceTaken;
-                            usedSpace.Y += spaceTaken;
-                            usedSpace.X = MathF.Max(usedSpace.X, childSize.X);
+
+                            if (wrap && vPen.Y + spaceTaken > freeSpace.Y)
+                            {
+                                vPen.Y = 0;
+                                vPen.X += widestInColumn + scaledSpacing.X;
+                                widestInColumn = 0;
+                                addSpacing = false;
+                            }
+
+                            if (addSpacing) vPen.Y += scaledSpacing.Y;
+                            vPen.Y += spaceTaken;
+                            widestInColumn = MathF.Max(widestInColumn, childSize.X);
+
+                            usedSpace.X = vPen.X + widestInColumn;
+                            usedSpace.Y = MathF.Max(usedSpace.Y, vPen.Y);
                         }
 
                         break;
                 }
             }
 
-            _measuredSize = new Vector2(StretchX ? usedSpace.X : contentSize.X, StretchY ? usedSpace.Y : contentSize.Y);
+            _measuredSize = new Vector2(StretchX ? usedSpace.X + paddingSize.X : contentSize.X, StretchY ? usedSpace.Y + paddingSize.Y : contentSize.Y);
             Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
             Size = _measuredSize;
             return _measuredSize;
@@ -567,29 +595,42 @@ namespace Emotion.UI
                     case LayoutMode.HorizontalList:
                     {
                         Rectangle parentPadding = Paddings * scale;
-                        Vector2 pen = contentPos;
-                        Vector2 sizeLeft = _measuredSize;
+                        Vector2 pen = Vector2.Zero;
+                        Vector2 freeSpace = _measuredSize;
+                        float highestOnRow = 0;
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
                             bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-                            if (insideParent && i != 0)
-                            {
-                                pen.X += scaledSpacing.X;
-                                sizeLeft.X -= scaledSpacing.X;
-                            }
-
-                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft, parentPadding);
-                            child.Layout(pos);
-                            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!insideParent) continue; // Dont count space taken by windows outside parent.
+                            bool addSpacing = insideParent && pen.X != 0;
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
                             float spaceTaken = child.Size.X + childOffsetScaled.X + childMarginsScaled.X + childMarginsScaled.Width;
+
+                            if (wrap && pen.X + spaceTaken > freeSpace.X)
+                            {
+                                pen.X = 0;
+                                pen.Y += highestOnRow + scaledSpacing.Y;
+                                highestOnRow = 0;
+                                addSpacing = false;
+                            }
+
+                            if (addSpacing) 
+                                pen.X += scaledSpacing.X;
+
+                            // Dont count space taken by windows outside parent.
+                            bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
+                            if(windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y);
+
+                            // Child space is constrained to allow some anchors to work as expected within lists.
+                            Vector2 childSpace = insideParent ? new Vector2(child.Size.X, highestOnRow) : freeSpace - pen;
+                            Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);
+                            child.Layout(pos);
+                            if (!windowTakesSpace) continue;
+
                             pen.X += spaceTaken;
-                            sizeLeft.X -= spaceTaken;
                         }
 
                         break;
@@ -598,29 +639,41 @@ namespace Emotion.UI
                     case LayoutMode.VerticalList:
                     {
                         Rectangle parentPadding = Paddings * scale;
-                        Vector2 pen = contentPos;
-                        Vector2 sizeLeft = _measuredSize;
+                        Vector2 pen = Vector2.Zero;
+                        Vector2 freeSpace = _measuredSize;
+                        float widestInColumn = 0;
                         for (var i = 0; i < Children.Count; i++)
                         {
                             UIBaseWindow child = Children[i];
                             bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-                            if (insideParent && i != 0)
-                            {
-                                pen.Y += scaledSpacing.Y;
-                                sizeLeft.Y -= scaledSpacing.Y;
-                            }
-
-                            Vector2 pos = child.CalculateContentPos(pen, sizeLeft, parentPadding);
-                            child.Layout(pos);
-                            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                            if (!insideParent) continue;
+                            bool addSpacing = insideParent && pen.Y != 0;
 
                             float childScale = child.GetScale();
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
                             float spaceTaken = child.Size.Y + childOffsetScaled.Y + childMarginsScaled.Y + childMarginsScaled.Height;
+
+                            if (wrap && pen.Y + spaceTaken > freeSpace.Y)
+                            {
+                                pen.Y = 0;
+                                pen.X += widestInColumn + scaledSpacing.X;
+                                widestInColumn = 0;
+                                addSpacing = false;
+                            }
+
+                            if (addSpacing) 
+                                pen.Y += scaledSpacing.Y;
+
+                            // Dont count space taken by windows outside parent.
+                            bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
+                            if(windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, child.Size.X);
+
+                            Vector2 childSpace = insideParent ? new Vector2(widestInColumn, child.Size.Y) : freeSpace - pen;
+                            Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);
+                            child.Layout(pos);
+                            if (!windowTakesSpace) continue;
+
                             pen.Y += spaceTaken;
-                            sizeLeft.Y -= spaceTaken;
                         }
 
                         break;
@@ -628,7 +681,8 @@ namespace Emotion.UI
                 }
             }
 
-            _renderBounds = Rectangle.Empty;
+            // Invalidate render bound cache if bounds changed.
+            if (_renderBoundsCalculatedFrom != Bounds) _renderBoundsCalculatedFrom = Rectangle.Empty;
             AfterLayout();
         }
 
@@ -737,22 +791,21 @@ namespace Emotion.UI
         /// </summary>
         public bool MouseInside { get; protected set; }
 
+        protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
         private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
         protected Rectangle _renderBounds; // .Bounds but with any displacements active on the window applied
 
         private void EnsureRenderBoundsCached(RenderComposer c)
         {
-            if (c.ModelMatrix == _renderBoundsCachedMatrix && !_renderBounds.IsEmpty) return;
+            if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom != Rectangle.Empty) return;
             _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
             _renderBoundsCachedMatrix = c.ModelMatrix;
+            _renderBoundsCalculatedFrom = Bounds;
         }
 
         public bool IsPointInside(Vector2 pt)
         {
-            if (_renderBounds != Rectangle.Empty)
-                return _renderBounds.Contains(pt);
-            else
-                return Bounds.Contains(pt);
+            return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pt) : Bounds.Contains(pt);
         }
 
         public virtual void OnMouseEnter(Vector2 mousePos)
@@ -767,7 +820,6 @@ namespace Emotion.UI
 
         public virtual void OnMouseMove(Vector2 mousePos)
         {
-
         }
 
         #endregion
