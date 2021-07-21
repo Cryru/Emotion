@@ -115,7 +115,7 @@ namespace Emotion.Audio
         protected float[] _internalBufferCrossFade;
 
         protected AudioTrack _playStateTrack;
-        protected TrackResampleCache _cache;
+        protected CachedAudioStreamer _cache;
         protected AudioFormat _sampleIndexFormat;
         protected int _totalSamples;
         protected int _playHead;
@@ -282,7 +282,7 @@ namespace Emotion.Audio
                 _playStateTrack = currentTrack;
                 _playHead = _crossFadePlayHead;
                 _crossFadePlayHead = 0;
-                _cache = currentTrack.File.ResampleCache.Value;
+                _cache = currentTrack.File.AudioStream.Value;
                 _sampleIndexFormat = _cache.ConvFormat;
                 _totalSamples = _cache.ConvSamples;
             }
@@ -292,7 +292,8 @@ namespace Emotion.Audio
             if (!format.Equals(_sampleIndexFormat))
             {
                 float progress = _playHead != 0 ? (float) _playHead / _totalSamples : 0;
-                _playHead = _cache.SetConvertFormatAndCacheFrom(format, progress);
+                _cache.SetConvertFormat(format);
+                _playHead = (int) MathF.Floor(_cache.ConvSamples * progress);
                 _sampleIndexFormat = format;
                 _totalSamples = _cache.ConvSamples;
 

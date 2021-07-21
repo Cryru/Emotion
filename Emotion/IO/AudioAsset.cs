@@ -38,13 +38,13 @@ namespace Emotion.IO
         /// <summary>
         /// A cached version of the track. Resampled and converted to a specific format.
         /// </summary>
-        public Lazy<TrackResampleCache> ResampleCache { get; }
+        public Lazy<CachedAudioStreamer> AudioStream { get; }
 
         #endregion
 
         public AudioAsset()
         {
-            ResampleCache = new Lazy<TrackResampleCache>(() => new TrackResampleCache(this), LazyThreadSafetyMode.ExecutionAndPublication);
+            AudioStream = new Lazy<CachedAudioStreamer>(() => new CachedAudioStreamer(this), LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)

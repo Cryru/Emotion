@@ -45,7 +45,7 @@ namespace Tests.Classes
         [Test]
         public void PlaylistLogic()
         {
-            TrackResampleCache.RESAMPLE_CACHE_TIMEOUT = -1;
+            CachedAudioStreamer.RESAMPLE_CACHE_TIMEOUT = -1;
 
             var nullAudio = new NullAudioAdapter();
             var ctx = new AudioContext(nullAudio);

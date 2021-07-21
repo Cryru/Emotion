@@ -82,9 +82,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private void LayerThread()
         {
             if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread";
-            const int updateInterval = BUFFER_DURATION_MS / 2;
             while(Engine.Status != EngineStatus.Stopped)
             {
+                var anyLayersPlaying = false;
                 for (var i = 0; i < _layers.Count; i++)
                 {
                     WasApiLayer layer = _layers[i];
@@ -95,9 +95,13 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                         continue;
                     }
                     layer.ProcUpdate(DefaultDevice);
+                    anyLayersPlaying = anyLayersPlaying || layer.Status == PlaybackStatus.Playing;
                 }
 
-                Thread.Sleep(updateInterval);
+                // If no layers are playing, sleep to prevent CPU usage.
+                if (!anyLayersPlaying)
+                    Thread.Sleep(BUFFER_DURATION_MS);
+                Thread.Yield();
             }
         }
 

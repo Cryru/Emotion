@@ -31,21 +31,6 @@ namespace Emotion.Standard.Audio
         public int ConvQuality { get; protected set; } = 10;
         public AudioFormat ConvFormat { get; protected set; }
 
-        /// <summary>
-        /// The resampling progress.
-        /// </summary>
-        public float Progress
-        {
-            get
-            {
-                int channels = ConvFormat?.Channels ?? SourceFormat.Channels;
-                return (float) _srcResume / SourceConvFormatSamples * channels;
-            }
-        }
-
-        protected double _srcResume;
-        protected int _dstResume;
-
         protected int _convQuality2;
         protected double _resampleStep;
         private sbyte[] _channelRemapping;
@@ -61,8 +46,8 @@ namespace Emotion.Standard.Audio
             -2, // Front Right
             REMAP_WILDCARD, // Center
             REMAP_WILDCARD, // Subwoofer
-            -1, // Back Left
-            -2, // Back Right
+            -1, // Side Left
+            -2, // Side Right
             -1, // Left Alt
             -2, // Right Alt
         };
@@ -82,8 +67,7 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="dstFormat">The format to convert to.</param>
         /// <param name="quality">The conversion quality.</param>
-        /// <param name="keepProgress">Whether to keep the resampling progress. If false the stream will begin from the beginning.</param>
-        public virtual void SetConvertFormat(AudioFormat dstFormat, int quality = 10, bool keepProgress = true)
+        public virtual void SetConvertFormat(AudioFormat dstFormat, int quality = 10)
         {
             if (dstFormat.UnsupportedBitsPerSample())
                 Engine.Log.Warning($"Unsupported bits per sample format by DestinationFormat - {dstFormat.BitsPerSample}", MessageSource.Audio);
@@ -114,27 +98,15 @@ namespace Emotion.Standard.Audio
             SourceSamplesPerChannel = SourceConvFormatSamples / dstChannels;
             ConvSamples = (int) (SourceConvFormatSamples * ResampleRatio);
             _resampleStep = (double) SourceSamplesPerChannel / (ConvSamples / dstChannels);
-
-            if (keepProgress)
-                _dstResume = (int) (_srcResume / _resampleStep * ConvFormat.Channels);
-            else
-                Reset();
         }
 
-        /// <summary>
-        /// Get the next N frames in the buffer - resampled.
-        /// </summary>
-        /// <param name="frameCount">The frames to get.</param>
-        /// <param name="buffer">The buffer to fill with the samples.</param>
-        /// <returns>How many samples were gotten. Divide by channels to get frames.</returns>
-        public virtual int GetNextFrames(int frameCount, Span<float> buffer)
+        public virtual int GetSamplesAt(int convBufferStart, int frameCount, Span<float> buffer)
         {
             // Gets the resampled samples.
-            int sampleCount = frameCount * ConvFormat.Channels;
-            Debug.Assert((int) (_srcResume / _resampleStep * ConvFormat.Channels) - _dstResume <= 1);
-            int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, buffer);
-            if (convertedSamples == 0) return 0;
-
+            int channels = ConvFormat.Channels;
+            int sampleCount = frameCount * channels;
+            double srcBufferStart = convBufferStart / channels * _resampleStep;
+            int convertedSamples = PartialResample(ref srcBufferStart, ref convBufferStart, sampleCount, buffer);
             return convertedSamples;
         }
 
@@ -168,9 +140,6 @@ namespace Emotion.Standard.Audio
                 getSamples = samples.Length;
             }
 
-            // This is always true:
-            // srcStartIdx == (dstSampleIdx / channels) *_resampleStep;
-
             // Resample the needed amount.
             Span<float> soundData = SoundData.Span;
             for (; dstSampleIdx < ConvSamples; dstSampleIdx += dstChannels)
@@ -182,8 +151,7 @@ namespace Emotion.Standard.Audio
                 for (var c = 0; c < dstChannels; c++)
                 {
                     var rY = 0.0;
-                    int tau;
-                    for (tau = -ConvQuality; tau < ConvQuality; tau++)
+                    for (int tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
                         var inputSampleIdx = (int) (srcStartIdx + tau);
                         double relativeIdx = inputSampleIdx - srcStartIdx;
@@ -246,15 +214,6 @@ namespace Emotion.Standard.Audio
             }
 
             return Maths.Clamp(sampleAccum, -1, 1);
-        }
-
-        /// <summary>
-        /// Restart the streamer's pointer.
-        /// </summary>
-        public virtual void Reset()
-        {
-            _dstResume = 0;
-            _srcResume = 0;
         }
 
         #region Static API
