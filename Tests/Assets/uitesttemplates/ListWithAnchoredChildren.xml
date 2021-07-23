@@ -6,8 +6,6 @@
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Children>
           </Children>
-          <ParentAnchor>CenterCenter</ParentAnchor>
-          <Anchor>CenterCenter</Anchor>
           <MaxSize>
             <X>20</X>
             <Y>20</Y>
@@ -16,8 +14,8 @@
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Children>
           </Children>
-          <ParentAnchor>CenterCenter</ParentAnchor>
-          <Anchor>CenterCenter</Anchor>
+          <ParentAnchor>CenterLeft</ParentAnchor>
+          <Anchor>CenterLeft</Anchor>
           <LayoutMode>HorizontalList</LayoutMode>
           <MaxSize>
             <X>20</X>
@@ -27,8 +25,8 @@
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Children>
           </Children>
-          <ParentAnchor>CenterCenter</ParentAnchor>
-          <Anchor>CenterCenter</Anchor>
+          <ParentAnchor>BottomLeft</ParentAnchor>
+          <Anchor>BottomLeft</Anchor>
           <LayoutMode>HorizontalList</LayoutMode>
           <MaxSize>
             <X>20</X>
@@ -57,8 +55,6 @@
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Children>
           </Children>
-          <ParentAnchor>CenterCenter</ParentAnchor>
-          <Anchor>CenterCenter</Anchor>
           <MaxSize>
             <X>20</X>
             <Y>20</Y>
@@ -67,8 +63,8 @@
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Children>
           </Children>
-          <ParentAnchor>CenterCenter</ParentAnchor>
-          <Anchor>CenterCenter</Anchor>
+          <ParentAnchor>TopCenter</ParentAnchor>
+          <Anchor>TopCenter</Anchor>
           <LayoutMode>HorizontalList</LayoutMode>
           <MaxSize>
             <X>20</X>
@@ -78,8 +74,8 @@
         <UIBaseWindow type="Emotion.UI.UISolidColor">
           <Children>
           </Children>
-          <ParentAnchor>CenterCenter</ParentAnchor>
-          <Anchor>CenterCenter</Anchor>
+          <ParentAnchor>TopRight</ParentAnchor>
+          <Anchor>TopRight</Anchor>
           <LayoutMode>HorizontalList</LayoutMode>
           <MaxSize>
             <X>20</X>

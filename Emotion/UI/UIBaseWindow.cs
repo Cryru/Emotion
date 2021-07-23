@@ -625,7 +625,7 @@ namespace Emotion.UI
                             if(windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y);
 
                             // Child space is constrained to allow some anchors to work as expected within lists.
-                            Vector2 childSpace = insideParent ? new Vector2(child.Size.X, highestOnRow) : freeSpace - pen;
+                            Vector2 childSpace = insideParent ? new Vector2(child.Size.X, freeSpace.Y) : freeSpace - pen;
                             Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);
                             child.Layout(pos);
                             if (!windowTakesSpace) continue;
@@ -668,7 +668,7 @@ namespace Emotion.UI
                             bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
                             if(windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, child.Size.X);
 
-                            Vector2 childSpace = insideParent ? new Vector2(widestInColumn, child.Size.Y) : freeSpace - pen;
+                            Vector2 childSpace = insideParent ? new Vector2(freeSpace.X, child.Size.Y) : freeSpace - pen;
                             Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);
                             child.Layout(pos);
                             if (!windowTakesSpace) continue;

@@ -33,6 +33,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>45</X>
+      <Y>170</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -40,6 +41,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>90</X>
+      <Y>340</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -47,6 +49,7 @@
   <ValueTupleOfStringRectangle>
     <Item2>
       <X>135</X>
+      <Y>170</Y>
       <Width>20</Width>
       <Height>20</Height>
     </Item2>
@@ -59,6 +62,7 @@
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
+      <X>310</X>
       <Y>45</Y>
       <Width>20</Width>
       <Height>20</Height>
@@ -66,6 +70,7 @@
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
+      <X>620</X>
       <Y>90</Y>
       <Width>20</Width>
       <Height>20</Height>
@@ -73,6 +78,7 @@
   </ValueTupleOfStringRectangle>
   <ValueTupleOfStringRectangle>
     <Item2>
+      <X>310</X>
       <Y>135</Y>
       <Width>20</Width>
       <Height>20</Height>
