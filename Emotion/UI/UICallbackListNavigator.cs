@@ -61,6 +61,8 @@ namespace Emotion.UI
             if (Children == null) return;
 
             _gridPosToChild.Clear();
+            _gridSize = Vector2.Zero;
+
             var pen = new Vector2();
             for (var i = 0; i < Children.Count; i++)
             {
@@ -73,6 +75,14 @@ namespace Emotion.UI
                         pen.Y++;
                         break;
                     case LayoutMode.HorizontalListWrap:
+                        pen.X++;
+                        if (i != Children.Count - 1 && Children[i + 1].Y > child.Y)
+                        {
+                            pen.X = 0;
+                            pen.Y++;
+                        }
+                        
+                        break;
                     case LayoutMode.HorizontalList:
                         pen.X++;
                         break;
@@ -81,11 +91,12 @@ namespace Emotion.UI
                         pen.Y++;
                         break;
                 }
+
+                _gridSize.X = MathF.Max(pen.X, _gridSize.X);
+                _gridSize.Y = MathF.Max(pen.Y, _gridSize.Y);
             }
 
-            _gridSize = pen;
             _lastRowColumn = (int) pen.X-1;
-
             base.AfterLayout();
         }
 

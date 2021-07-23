@@ -78,7 +78,7 @@ namespace Emotion.UI
         /// <summary>
         /// The thickness of the underline.
         /// </summary>
-        public float UnderlineThickness = 1f;
+        public float UnderlineThickness = 0.5f;
 
         protected string _text;
         protected FontAsset _fontFile;
@@ -127,7 +127,7 @@ namespace Emotion.UI
             if (Underline)
             {
                 float y = Y + Height + _scaledUnderlineOffset.Y;
-                c.RenderLine(new Vector2(X + _scaledUnderlineOffset.X, y), new Vector2(X + Width - _scaledUnderlineOffset.X * 2, y), _calculatedColor, _scaledUnderlineThickness);
+                c.RenderLine(new Vector2(X, y), new Vector2(X + Width, y), _calculatedColor, _scaledUnderlineThickness);
             }
 
             _layouter.RestartPen();

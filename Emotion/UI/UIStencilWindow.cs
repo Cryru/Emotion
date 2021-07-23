@@ -23,8 +23,6 @@ namespace Emotion.UI
             c.ToggleRenderColor(true);
             c.StencilFillIn();
 
-            c.RenderSprite(this, Color.Green);
-
             return base.RenderInternal(c);
         }
 
