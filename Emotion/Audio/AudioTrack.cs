@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using Emotion.Common;
 using Emotion.IO;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -31,6 +29,11 @@ namespace Emotion.Audio
         /// The timestamp is the time to begin fading out at.
         /// </summary>
         public float? FadeOut;
+
+        /// <summary>
+        /// Whether to fade in only on the first loop.
+        /// </summary>
+        public bool FadeInOnlyFirstLoop = true;
 
         /// <summary>
         /// CrossFade this track into the next (if any). The timestamp is the time to

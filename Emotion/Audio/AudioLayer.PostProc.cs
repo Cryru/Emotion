@@ -96,7 +96,8 @@ namespace Emotion.Audio
 
         private void PostProcessApplyFading(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
         {
-            if (currentTrack.FadeIn != null) ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
+            if (currentTrack.FadeIn != null && (!currentTrack.FadeInOnlyFirstLoop || _loopCount == 0))
+                ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
             if (currentTrack.FadeOut != null) ApplyFadeOut(format, currentTrack, frameStart, frameCount, channels, soundData);
         }
 

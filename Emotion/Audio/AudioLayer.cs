@@ -106,6 +106,7 @@ namespace Emotion.Audio
         /// </summary>
         public event Action<AudioAsset, AudioAsset> OnTrackChanged;
 
+        // For fade effects volume is calculated per chunk of frames, rather than for every frame.
         private const int VOLUME_MODULATION_FRAME_GRANULARITY = 100;
         private const int INITIAL_INTERNAL_BUFFER_SIZE = 4000;
 
@@ -120,6 +121,7 @@ namespace Emotion.Audio
         protected int _totalSamples;
         protected int _playHead;
         protected int _crossFadePlayHead;
+        protected int _loopCount;
 
         protected AudioLayer(string name)
         {
@@ -326,12 +328,14 @@ namespace Emotion.Audio
                 // Manually update playhead as track wont change.
                 _playHead = _crossFadePlayHead;
                 _crossFadePlayHead = 0;
+                _loopCount++;
                 OnTrackLoop?.Invoke(currentTrack.File);
                 newTrack = currentTrack;
             }
             // Otherwise, go to next track.
             else
             {
+                _loopCount = 0;
                 lock (_playlist)
                 {
                     _playlist.Remove(currentTrack);
