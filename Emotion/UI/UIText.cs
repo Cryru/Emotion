@@ -8,6 +8,7 @@ using Emotion.Game.Text;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
+using Emotion.Standard.OpenType;
 
 #endregion
 
@@ -84,6 +85,7 @@ namespace Emotion.UI
         protected FontAsset _fontFile;
         protected DrawableFontAtlas _atlas;
         protected TextLayouterWrap _layouter;
+        protected FontAtlas _layouterAtlas;
         protected Vector2 _scaledUnderlineOffset;
         protected float _scaledUnderlineThickness;
 
@@ -98,7 +100,13 @@ namespace Emotion.UI
             // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
             float scale = GetScale();
             _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), 0, -1, Smooth, FontSizePixelPerfect);
-            _layouter = new TextLayouterWrap(_atlas.Atlas);
+
+            if (_layouterAtlas != _atlas.Atlas)
+            {
+                _layouter = new TextLayouterWrap(_atlas.Atlas);
+                _layouterAtlas = _atlas.Atlas;
+                InvalidateLayout();
+            }
         }
 
         protected override Vector2 InternalMeasure(Vector2 space)
