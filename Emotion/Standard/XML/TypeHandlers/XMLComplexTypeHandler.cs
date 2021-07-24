@@ -199,9 +199,10 @@ namespace Emotion.Standard.XML.TypeHandlers
         public override bool IsRecursiveWith(Type type)
         {
             Dictionary<string, XMLFieldHandler> fields = _fieldHandlers.Value;
-            foreach (KeyValuePair<string, XMLFieldHandler> field in fields)
+            foreach ((string _, XMLFieldHandler field) in fields)
             {
-                XMLTypeHandler typeHandler = field.Value.TypeHandler;
+                if (field.Skip) continue;
+                XMLTypeHandler typeHandler = field.TypeHandler;
                 if (type.IsAssignableFrom(typeHandler.Type) || typeHandler.IsRecursiveWith(type)) return true;
             }
 
