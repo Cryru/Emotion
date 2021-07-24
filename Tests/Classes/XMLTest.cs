@@ -733,6 +733,13 @@ namespace Tests.Classes
             Assert.False(restored.NestedClassExclusion.GrandparentBool);
         }
 
+        class ClassWithExcludedComplexType
+        {
+            [DontSerialize]
+            public ClassWithExcluded A;
+            public ClassWithExcluded B;
+        }
+
         [Test]
         public void DeserializeDontSerialize()
         {
@@ -749,6 +756,35 @@ namespace Tests.Classes
             var memberDontSerialize = XMLFormat.From<ClassWithExcluded>(document);
             Assert.False(memberDontSerialize.NotMe); // DontSerialize is not deserialized.
             Assert.True(memberDontSerialize.Me);
+
+            document = "<ClassWithExcludedComplexType>\n" +
+                       "    <A>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    </A>\n" +
+                       "    <B>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    </B>\n" +
+                       "</ClassWithExcludedComplexType>";
+            var complexExcludedDeserialize = XMLFormat.From<ClassWithExcludedComplexType>(document);
+            Assert.True(complexExcludedDeserialize.A == null); // Shouldn't have been deserialized.
+            Assert.True(complexExcludedDeserialize.B != null);
+            Assert.True(complexExcludedDeserialize.B.Me);
+            Assert.False(complexExcludedDeserialize.B.NotMe);
+
+            document = "<ClassWithExcludedComplexType>\n" +
+                       "    <A>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    <B>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    </B>\n" +
+                       "</ClassWithExcludedComplexType>";
+            var brokenDocument = XMLFormat.From<ClassWithExcludedComplexType>(document);
+            Assert.True(complexExcludedDeserialize.A == null);
+            Assert.True(complexExcludedDeserialize.B == null);
         }
 
         public class BaseClassWithVirtualProperty

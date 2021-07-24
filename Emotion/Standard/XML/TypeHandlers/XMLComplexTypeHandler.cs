@@ -169,8 +169,22 @@ namespace Emotion.Standard.XML.TypeHandlers
                 }
 
                 XMLTypeHandler typeHandler = inheritedHandler ?? field.TypeHandler;
-                object val = nullValue ? null : typeHandler.Deserialize(input);
-                if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
+                if (typeHandler != null)
+                {
+                    object val = nullValue ? null : typeHandler.Deserialize(input);
+                    if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
+                }
+                else
+                {
+                    // Find closing tag of current tag.
+                    var c = "";
+                    while (c != $"/{currentTag}")
+                    {
+                        c = input.ReadTagWithoutAttribute();
+                        if (input.Finished) break;
+                    }
+                }
+
                 input.GoToNextTag();
             }
 
