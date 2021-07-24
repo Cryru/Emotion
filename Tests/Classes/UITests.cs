@@ -164,6 +164,27 @@ namespace Tests.Classes
             }).WaitOne();
         }
 
+        [Test]
+        public static void NineSliceTest()
+        {
+            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/NineSlice.xml");
+            Assert.True(template != null);
+            var ui = new UIController();
+            ui.AddChild(template.Content);
+            UIController.PreloadUI().Wait();
+            ui.Update();
+
+            Runner.ExecuteAsLoop(_ =>
+            {
+                RenderComposer composer = Engine.Renderer.StartFrame();
+
+                ui.Render(composer);
+
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.UIControllerNineSlice);
+            }).WaitOne();
+        }
+
         public class MouseTestWindow : UISolidColor
         {
             public int ClickedCount;

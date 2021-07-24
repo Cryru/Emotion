@@ -62,6 +62,7 @@ namespace Tests.Results
 
         public static string UIControllerDisplacementTest = "UIControllerDisplacementTest";
         public static string UIControllerDisplacementTestScaled = "UIControllerDisplacementTestScaled";
+        public static string UIControllerNineSlice = "UIControllerNineSlice";
 
         public static Dictionary<string, byte[]> CachedResults = new Dictionary<string, byte[]>();
 
