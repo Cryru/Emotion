@@ -28,7 +28,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             // Check if the type is excluding any fields.
             DontSerializeMembersAttribute exclusion = null;
             object[] exclusions = type.GetCustomAttributes(typeof(DontSerializeMembersAttribute), false);
-            if (exclusions.Length > 0) {exclusion = exclusions[0] as DontSerializeMembersAttribute;}
+            if (exclusions.Length > 0) exclusion = exclusions[0] as DontSerializeMembersAttribute;
             _excludedMembers = exclusion?.Members;
 
             _fieldHandlers = new Lazy<Dictionary<string, XMLFieldHandler>>(IndexFields);
@@ -51,18 +51,19 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null) continue;
 
                 bool nonPublicAllowed = property.GetCustomAttribute<SerializeNonPublicGetSetAttribute>() != null;
-                bool valid = nonPublicAllowed || (readMethod.IsPublic && writeMethod.IsPublic);
+                bool valid = nonPublicAllowed || readMethod.IsPublic && writeMethod.IsPublic;
                 if (!valid) continue;
 
                 var excludeProp = property.GetCustomAttribute<DontSerializeMembersAttribute>();
-                XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, new ReflectedMemberHandler(property), excludeProp);
-                if (handler == null) continue;
 
                 // Mark members marked as "DontSerialize" or "DontSerializeMembers" as skip.
                 bool skip = property.GetCustomAttribute<DontSerializeAttribute>() != null;
                 string propertyName = property.Name;
                 if (!skip && _excludedMembers != null && _excludedMembers.Contains(propertyName)) skip = true;
-                handler.Skip = skip;
+
+                var reflectionHandler = new ReflectedMemberHandler(property);
+                XMLFieldHandler handler = skip ? new XMLSkippedMember(reflectionHandler) : XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, reflectionHandler, excludeProp);
+                if (handler == null) continue;
 
                 fieldHandlers.TryAdd(propertyName, handler);
             }
@@ -72,13 +73,14 @@ namespace Emotion.Standard.XML.TypeHandlers
                 FieldInfo field = fields[i];
 
                 var excludeProp = field.GetCustomAttribute<DontSerializeMembersAttribute>();
-                XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(field.FieldType, new ReflectedMemberHandler(field), excludeProp);
-                if (handler == null) continue;
 
                 bool skip = field.GetCustomAttribute<DontSerializeAttribute>() != null;
                 string fieldName = field.Name;
                 if (!skip && _excludedMembers != null && _excludedMembers.Contains(fieldName)) skip = true;
-                handler.Skip = skip;
+
+                var reflectionHandler = new ReflectedMemberHandler(field);
+                XMLFieldHandler handler = skip ? new XMLSkippedMember(reflectionHandler) : XMLHelpers.ResolveFieldHandlerWithExclusions(field.FieldType, reflectionHandler, excludeProp);
+                if (handler == null) continue;
 
                 fieldHandlers.TryAdd(fieldName, handler);
             }

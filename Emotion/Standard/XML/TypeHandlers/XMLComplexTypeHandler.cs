@@ -34,7 +34,6 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// </summary>
         protected object _defaultConstruct;
 
-
         public XMLComplexTypeHandler(Type type) : base(type)
         {
             // Check if inheriting anything. If so copy its excluded members as well.
