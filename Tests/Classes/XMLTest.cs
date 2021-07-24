@@ -783,8 +783,8 @@ namespace Tests.Classes
                        "    </B>\n" +
                        "</ClassWithExcludedComplexType>";
             var brokenDocument = XMLFormat.From<ClassWithExcludedComplexType>(document);
-            Assert.True(complexExcludedDeserialize.A == null);
-            Assert.True(complexExcludedDeserialize.B == null);
+            Assert.True(brokenDocument.A == null);
+            Assert.True(brokenDocument.B == null);
         }
 
         public class BaseClassWithVirtualProperty
