@@ -19,6 +19,9 @@ using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 #if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
+#endif
+#if OpenAL
+using Emotion.Platform.Implementation.OpenAL;
 
 #endif
 
@@ -79,8 +82,14 @@ namespace Emotion.Platform.Implementation.Win32
 
             // todo: load libraries - if any, probably XInput?
 
-            // Initialize audio - Try to create WasApi - otherwise return the fake context so execution can go on.
-            Audio = WasApiAudioAdapter.TryCreate(this) ?? (IAudioAdapter) new NullAudioAdapter();
+            // Initialize audio.
+            IAudioAdapter adapter = null;
+#if OpenAL
+            adapter ??= OpenALAudioAdapter.TryCreate();
+#endif
+            adapter ??= WasApiAudioAdapter.TryCreate(this);
+            adapter ??= new NullAudioAdapter();
+            Audio = adapter;
             Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
 
             PopulateKeyCodes();

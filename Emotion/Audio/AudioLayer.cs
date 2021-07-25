@@ -249,6 +249,7 @@ namespace Emotion.Audio
         protected int GetDataForCurrentTrack(AudioFormat format, int framesRequested, Span<byte> dest, int framesOffset = 0)
         {
             if (Status != PlaybackStatus.Playing) return 0;
+            Debug.Assert(dest.Length == framesRequested * format.FrameSize);
 
             // Pause sound if host is paused.
             if (Engine.Host != null && Engine.Host.HostPaused)
