@@ -249,7 +249,7 @@ namespace Emotion.Audio
         protected int GetDataForCurrentTrack(AudioFormat format, int framesRequested, Span<byte> dest, int framesOffset = 0)
         {
             if (Status != PlaybackStatus.Playing) return 0;
-            Debug.Assert(dest.Length == framesRequested * format.FrameSize);
+            Debug.Assert((dest.Length / format.FrameSize) - framesOffset == framesRequested);
 
             // Pause sound if host is paused.
             if (Engine.Host != null && Engine.Host.HostPaused)
@@ -309,7 +309,7 @@ namespace Emotion.Audio
 
             // Fill destination buffer in destination sample size format.
             Span<byte> destBuffer = dest.Slice(framesOffset * format.FrameSize);
-            var srcBuffer = new Span<float>(_internalBuffer, 0, framesOutput * format.FrameSize / 4);
+            var srcBuffer = new Span<float>(_internalBuffer, 0, samplesRequested);
             AudioStreamer.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, format);
 
 #if DEBUG

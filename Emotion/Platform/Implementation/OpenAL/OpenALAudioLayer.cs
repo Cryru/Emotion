@@ -15,23 +15,32 @@ namespace Emotion.Platform.Implementation.OpenAL
 {
     public sealed class OpenALAudioLayer : AudioLayer
     {
+        private const int BUFFER_COUNT = 2;
+
         private OpenALAudioAdapter _parent;
         private uint _source;
-
-        private const int BUFFER_COUNT = 2;
-        private const int FRAME_REQUEST_SIZE = 4000;
-        private const int AL_FORMAT_SAMPLE_RATE = 44100;
-        private const int AL_FORMAT_SAMPLE_RATE_PER_SAMPLE_CHANNEL = AL_FORMAT_SAMPLE_RATE / 2;
 
         private uint[] _buffers;
         private bool[] _bufferBusy;
         private int _currentBuffer;
         private Coroutine _layerRoutine;
 
-        private static AudioFormat _openALAudioFormat = new AudioFormat(16, false, 2, AL_FORMAT_SAMPLE_RATE);
+        private static AudioFormat _openALAudioFormat = new AudioFormat(32, true, 2, 24000);
+        private static int _openALFormatId;
 
         public OpenALAudioLayer(string name, OpenALAudioAdapter parent) : base(name)
         {
+            if (_openALFormatId == 0)
+            {
+                _openALFormatId = _openALAudioFormat.BitsPerSample switch
+                {
+                    32 => Al.FORMAT_STEREO32F,
+                    16 => _openALAudioFormat.Channels == 2 ? Al.FORMAT_STEREO16 : Al.FORMAT_MONO16,
+                    8 => _openALAudioFormat.Channels == 2 ? Al.FORMAT_STEREO8 : Al.FORMAT_MONO8,
+                    _ => _openALFormatId
+                };
+            }
+
             _parent = parent;
             Al.GenSource(out _source);
 
@@ -47,7 +56,8 @@ namespace Emotion.Platform.Implementation.OpenAL
 
         private IEnumerator UpdateCoroutine()
         {
-            var dataHolder = new byte[FRAME_REQUEST_SIZE * 2 * 2];
+            int frameRequestSize = _openALAudioFormat.SampleRate / _openALAudioFormat.Channels;
+            var dataHolder = new byte[frameRequestSize * _openALAudioFormat.FrameSize];
             var nativeArgs = new uint[1];
 
             while (Engine.Status == EngineStatus.Running)
@@ -77,10 +87,10 @@ namespace Emotion.Platform.Implementation.OpenAL
                     continue;
                 }
 
-                int framesGotten = GetDataForCurrentTrack(_openALAudioFormat, FRAME_REQUEST_SIZE, dataHolder);
+                int framesGotten = GetDataForCurrentTrack(_openALAudioFormat, frameRequestSize, dataHolder);
                 if (framesGotten == 0) continue;
-                int byteLength = dataHolder.Length / 2;
-                if (framesGotten < FRAME_REQUEST_SIZE) byteLength = framesGotten * 2;
+                int byteLength = dataHolder.Length;
+                if (framesGotten < frameRequestSize) byteLength = framesGotten * _openALAudioFormat.FrameSize;
 
                 // Naive implementation where OpenAL manages resources.
 #if false
@@ -142,7 +152,7 @@ namespace Emotion.Platform.Implementation.OpenAL
         /// </summary>
         private void UploadDataToBuffer(byte[] data, uint buffer, int byteLengthPerSampleChannel)
         {
-            Al.BufferData(buffer, Al.FORMAT_STEREO16, data, byteLengthPerSampleChannel, AL_FORMAT_SAMPLE_RATE_PER_SAMPLE_CHANNEL);
+            Al.BufferData(buffer, _openALFormatId, data, byteLengthPerSampleChannel, _openALAudioFormat.SampleRate);
             CheckALError();
         }
 

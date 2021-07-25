@@ -308,7 +308,7 @@ namespace Emotion.Standard.Audio
                     for (var i = 0; i < floatSrc.Length; i++)
                     {
                         float value = floatSrc[i];
-                        dstData[i / 4] = (byte) (value * byteMax);
+                        dstData[i] = (byte) (value * byteMax);
                     }
 
                     return;
@@ -319,7 +319,7 @@ namespace Emotion.Standard.Audio
                     for (var i = 0; i < floatSrc.Length; i++)
                     {
                         float value = floatSrc[i];
-                        dataShort[i / 2] = (short) (value < 0 ? -value * shortMin : value * shortMax);
+                        dataShort[i] = (short) (value < 0 ? -value * shortMin : value * shortMax);
                     }
 
                     break;

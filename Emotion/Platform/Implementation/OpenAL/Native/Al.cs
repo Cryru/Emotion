@@ -50,6 +50,7 @@ namespace OpenAL
         public const int FORMAT_MONO16 = 0x1101;
         public const int FORMAT_STEREO8 = 0x1102;
         public const int FORMAT_STEREO16 = 0x1103;
+        public const int FORMAT_STEREO32F = 0x10011;
         public const int REFERENCE_DISTANCE = 0x1020;
         public const int ROLLOFF_FACTOR = 0x1021;
         public const int CONE_OUTER_GAIN = 0x1022;
