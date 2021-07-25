@@ -68,6 +68,9 @@ namespace Emotion.UI
             {
                 UIBaseWindow child = Children[i];
                 _gridPosToChild.Add(pen, child);
+                _gridSize.X = MathF.Max(pen.X, _gridSize.X);
+                _gridSize.Y = MathF.Max(pen.Y, _gridSize.Y);
+
                 switch (LayoutMode)
                 {
                     case LayoutMode.Free:
@@ -87,16 +90,21 @@ namespace Emotion.UI
                         pen.X++;
                         break;
                     case LayoutMode.VerticalListWrap:
+                        pen.Y++;
+                        if (i != Children.Count - 1 && Children[i + 1].X > child.X)
+                        {
+                            pen.Y = 0;
+                            pen.X++;
+                        }
+                        
+                        break;
                     case LayoutMode.VerticalList:
                         pen.Y++;
                         break;
                 }
-
-                _gridSize.X = MathF.Max(pen.X, _gridSize.X);
-                _gridSize.Y = MathF.Max(pen.Y, _gridSize.Y);
             }
 
-            _lastRowColumn = (int) pen.X-1;
+            _lastRowColumn = (int) pen.X - 1;
             base.AfterLayout();
         }
 
@@ -127,7 +135,7 @@ namespace Emotion.UI
             {
                 _selectedPos += axis;
                 _selectedPos = Vector2.Clamp(_selectedPos, Vector2.Zero, _gridSize);
-                if (_selectedPos.Y == _gridSize.Y && _selectedPos.X > _lastRowColumn) _selectedPos.X = _lastRowColumn;
+                if (_selectedPos.Y == _gridSize.Y && _selectedPos.X > _lastRowColumn && _lastRowColumn != -1) _selectedPos.X = _lastRowColumn;
                 UIBaseWindow? newItem = GetChildByGridLikePos(_selectedPos, out int childIdx, false);
                 Debug.Assert(childIdx != -1);
                 UIBaseWindow? oldSel = SelectedWnd;
