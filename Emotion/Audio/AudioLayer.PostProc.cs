@@ -51,7 +51,7 @@ namespace Emotion.Audio
             {
                 AudioTrack nextTrack = null;
                 if (LoopingCurrent)
-                    nextTrack = track;
+                    nextTrack = _loopCount > 0 ? track : null; // Dont crossfade on first play of loop.
                 else
                     lock (_playlist)
                     {
