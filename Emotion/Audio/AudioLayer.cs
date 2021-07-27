@@ -112,17 +112,19 @@ namespace Emotion.Audio
 
         protected int _currentTrack = -1; // Always updated in _playlist locks
         protected List<AudioTrack> _playlist = new(); // Always read and written in locks
-        protected float[] _internalBuffer;
-        protected float[] _internalBufferCrossFade;
+        protected float[] _internalBuffer; // Internal memory to keep resamples frames for applying post proc to.
+        protected int _playHead; // The progress into the current track, relative to the converted format.
+        protected float[] _internalBufferCrossFade; // Same memory, but for the second track when crossfading.
+        protected int _crossFadePlayHead; // Same progress tracking, but for the second track when crossfading.
 
+        protected int _loopCount; // Number of times the current track has looped. 0 if it hasn't.
+
+        // Cached state for last format frames were requested in.
         protected AudioTrack _playStateTrack;
-        protected CachedAudioStreamer _cache;
+        protected AudioStreamer _streamer;
         protected AudioFormat _sampleIndexFormat;
         protected int _totalSamples;
-        protected int _playHead;
-        protected int _crossFadePlayHead;
-        protected int _loopCount;
-
+        
         protected AudioLayer(string name)
         {
             Name = name;
@@ -249,7 +251,7 @@ namespace Emotion.Audio
         protected int GetDataForCurrentTrack(AudioFormat format, int framesRequested, Span<byte> dest, int framesOffset = 0)
         {
             if (Status != PlaybackStatus.Playing) return 0;
-            Debug.Assert((dest.Length / format.FrameSize) - framesOffset == framesRequested);
+            Debug.Assert(dest.Length / format.FrameSize - framesOffset == framesRequested);
 
             // Pause sound if host is paused.
             if (Engine.Host != null && Engine.Host.HostPaused)
@@ -283,11 +285,11 @@ namespace Emotion.Audio
             if (_playStateTrack != currentTrack)
             {
                 _playStateTrack = currentTrack;
-                _playHead = _crossFadePlayHead;
+                _playHead = _crossFadePlayHead; // Assuming track changed to the one we were crossfading into.
                 _crossFadePlayHead = 0;
-                _cache = currentTrack.File.AudioStream.Value;
-                _sampleIndexFormat = _cache.ConvFormat;
-                _totalSamples = _cache.ConvSamples;
+                _streamer = currentTrack.File.AudioStream.Value;
+                _sampleIndexFormat = _streamer.ConvFormat;
+                _totalSamples = _streamer.ConvSamples;
             }
 
             // Make sure we're getting the samples in the format we think we are.
@@ -295,10 +297,10 @@ namespace Emotion.Audio
             if (!format.Equals(_sampleIndexFormat))
             {
                 float progress = _playHead != 0 ? (float) _playHead / _totalSamples : 0;
-                _cache.SetConvertFormat(format);
-                _playHead = (int) MathF.Floor(_cache.ConvSamples * progress);
+                _streamer.SetConvertFormat(format);
+                _playHead = (int) MathF.Floor(_streamer.ConvSamples * progress);
                 _sampleIndexFormat = format;
-                _totalSamples = _cache.ConvSamples;
+                _totalSamples = _streamer.ConvSamples;
 
                 // Readjust crossfade playhead - if in use.
                 if (_crossFadePlayHead != 0) _crossFadePlayHead = (int) MathF.Floor(_totalSamples * oldCrossfadeProgress);
@@ -386,6 +388,7 @@ namespace Emotion.Audio
 
                 _currentTrack = 0;
                 _crossFadePlayHead = 0;
+                OnTrackChanged?.Invoke(null, _playlist[0].File);
             }
 
             InternalStatusChange(Status, newStatus);

@@ -14,24 +14,11 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         public bool Initialized { get; private set; }
         public bool Started { get; private set; }
-        public int TimeoutPeriod;
 
         internal IAudioRenderClient RenderClient;
         internal IAudioClient AudioClient;
         internal AudioFormat AudioClientFormat;
         internal uint BufferSize;
-
-        public long UpdatePeriod
-        {
-            get => _updatePeriod;
-            set
-            {
-                _updatePeriod = value;
-                TimeoutPeriod = (int) (3 * (value / 1000));
-            }
-        }
-
-        private long _updatePeriod;
 
         public WasApiLayerContext(WasApiAudioDevice parent)
         {

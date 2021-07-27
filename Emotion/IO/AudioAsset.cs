@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Audio.WAV;
@@ -38,13 +37,13 @@ namespace Emotion.IO
         /// <summary>
         /// A cached version of the track. Resampled and converted to a specific format.
         /// </summary>
-        public Lazy<CachedAudioStreamer> AudioStream { get; }
+        public Lazy<AudioStreamer> AudioStream { get; }
 
         #endregion
 
         public AudioAsset()
         {
-            AudioStream = new Lazy<CachedAudioStreamer>(() => new CachedAudioStreamer(this), LazyThreadSafetyMode.ExecutionAndPublication);
+            AudioStream = new Lazy<AudioStreamer>(() => new AudioStreamer(Format, SoundData), LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
@@ -58,17 +57,35 @@ namespace Emotion.IO
                 if (format.UnsupportedBitsPerSample())
                     Engine.Log.Warning($"Unsupported bits per sample ({format.BitsPerSample}) format in audio file {Name}", MessageSource.Audio);
 
-                // Convert to float, for easier resampling and post processing.
+                // Convert to stereo 32f to have a consistent base format for all audio.
                 int sourceSamples = pcm.Length / format.SampleSize;
-                var soundDataFloat = new float[sourceSamples];
-                for (var i = 0; i < sourceSamples; i++)
+                var monoToStereo = false;
+                if (format.Channels == 1)
                 {
-                    soundDataFloat[i] = AudioStreamer.GetSampleAsFloat(i, pcm.Span, format);
+                    sourceSamples *= 2;
+                    format.Channels = 2;
+                    monoToStereo = true;
                 }
+                if (format.Channels != 2) Engine.Log.Warning($"Unsupported channel count ({format.Channels}). Only stereo or mono supported.", MessageSource.Audio);
+
+                var soundDataFloat = new float[sourceSamples];
+                if (monoToStereo)
+                    for (var i = 0; i < sourceSamples; i++)
+                    {
+                        float sample = AudioStreamer.GetSampleAsFloat(i / 2, pcm.Span, format);
+                        soundDataFloat[i] = sample;
+                        soundDataFloat[i + 1] = sample;
+                    }
+                else
+                    for (var i = 0; i < sourceSamples; i++)
+                    {
+                        soundDataFloat[i] = AudioStreamer.GetSampleAsFloat(i, pcm.Span, format);
+                    }
 
                 format.IsFloat = true;
                 format.BitsPerSample = 32;
                 SoundData = soundDataFloat;
+                Size = SoundData.Length * 4;
 
                 Format = format;
                 Duration = format.GetSoundDuration(SoundData.Length * sizeof(float));

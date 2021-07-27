@@ -1,8 +1,8 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -19,6 +19,14 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private WasApiAudioDevice _device;
         private WasApiLayerContext _layerContext;
         private int _bufferLengthInFrames;
+
+        // Double buffering.
+        private const int BUFFER_COUNT = 2;
+        private const bool ENABLE_DB = true;
+        private byte[][] _doubleBuffer = new byte[BUFFER_COUNT][];
+        private int[] _dbOffset = new int[BUFFER_COUNT];
+        private int[] _dbFramesStored = new int[BUFFER_COUNT];
+        private int _bufferIdx;
 
         public WasApiLayer(string name) : base(name)
         {
@@ -47,15 +55,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 // Get more frames.
                 int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
                 if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.WasApi);
-                if (!FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding)) return;
-
-                Task.Run(() =>
-                {
-                    // If done, reset the audio client.
-                    Task.Delay(_layerContext.TimeoutPeriod).Wait();
-                    _layerContext.Stop();
-                    _layerContext.Reset();
-                });
+                bool empty = FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding);
+                Debug.Assert(!empty);
             }
             catch (COMException ex)
             {
@@ -68,27 +69,70 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
                 Engine.Log.Error(ex.ToString(), MessageSource.WasApi);
             }
+
+            // Fill all buffers that are out of frames.
+            if (_doubleBuffer[0] != null)
+                for (var i = 0; i < _doubleBuffer.Length; i++)
+                {
+                    byte[] buffer = _doubleBuffer[i];
+                    int framesStored = _dbFramesStored[i];
+                    if (framesStored != 0) continue;
+                    _dbOffset[i] = 0;
+                    _dbFramesStored[i] = GetDataForCurrentTrack(_layerContext.AudioClientFormat, _bufferLengthInFrames, buffer);
+                }
         }
 
         /// <summary>
         /// Fill a render client buffer.
         /// </summary>
         /// <param name="client">The client to fill.</param>
-        /// <param name="bufferFrameCount">The number of samples to fill with.</param>
+        /// <param name="getFrames">The number of samples to fill with.</param>
         /// <returns>Whether the buffer has been read to the end.</returns>
-        private unsafe bool FillBuffer(IAudioRenderClient client, int bufferFrameCount)
+        private unsafe bool FillBuffer(IAudioRenderClient client, int getFrames)
         {
-            if (bufferFrameCount == 0) return false;
+            if (getFrames == 0) return false;
 
-            int error = client.GetBuffer(bufferFrameCount, out IntPtr bufferPtr);
+            int error = client.GetBuffer(getFrames, out IntPtr bufferPtr);
             if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.WasApi);
-            var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * _layerContext.AudioClientFormat.FrameSize);
+            var buffer = new Span<byte>((void*) bufferPtr, getFrames * _layerContext.AudioClientFormat.FrameSize);
 
-            int frames = GetDataForCurrentTrack(_layerContext.AudioClientFormat, bufferFrameCount, buffer);
+            // Try to get data from double buffering.
+            var framesGotten = 0;
+            if (_doubleBuffer[_bufferIdx] != null)
+                while (getFrames > 0)
+                {
+                    int framesStored = _dbFramesStored[_bufferIdx];
+                    if (framesStored == 0) break; // Reached empty buffer.
 
-            error = client.ReleaseBuffer(frames, frames == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
+                    int framesTake = Math.Min(framesStored, getFrames);
+                    getFrames -= framesTake; // Mark frames as gotten.
+                    framesGotten += framesTake;
+
+                    // Copy from db to dst.
+                    int bufferCopyOffset = _dbOffset[_bufferIdx];
+                    int bufferCopyLength = framesTake * _layerContext.AudioClientFormat.FrameSize;
+                    new Span<byte>(_doubleBuffer[_bufferIdx]).Slice(bufferCopyOffset, bufferCopyLength).CopyTo(buffer);
+                    buffer = buffer[bufferCopyLength..]; // Resize dest buffer.
+
+                    // Mark storage and buffer metadata.
+                    _dbOffset[_bufferIdx] += bufferCopyLength;
+                    framesStored -= framesTake;
+                    _dbFramesStored[_bufferIdx] = framesStored;
+                    if (framesStored != 0) continue;
+                    _bufferIdx++;
+                    if (_bufferIdx == _dbFramesStored.Length) _bufferIdx = 0;
+                }
+
+            // If any frames still need to be gotten, hit layer.
+            if (getFrames > 0)
+            {
+                int frames = GetDataForCurrentTrack(_layerContext.AudioClientFormat, getFrames, buffer);
+                framesGotten += frames;
+            }
+
+            error = client.ReleaseBuffer(framesGotten, framesGotten == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.WasApi);
-            return frames == 0;
+            return framesGotten == 0;
         }
 
         protected override void InternalStatusChange(PlaybackStatus oldStatus, PlaybackStatus newStatus)
@@ -100,6 +144,19 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _device = device;
             _layerContext = device.CreateLayerContext();
             _bufferLengthInFrames = (int) _layerContext.BufferSize;
+
+            // Reset double buffering.
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (ENABLE_DB)
+            {
+                _bufferIdx = 0;
+                for (var i = 0; i < _doubleBuffer.Length; i++)
+                {
+                    _doubleBuffer[i] = new byte[_bufferLengthInFrames * _layerContext.AudioClientFormat.FrameSize];
+                    _dbOffset[i] = 0;
+                    _dbFramesStored[i] = 0;
+                }
+            }
         }
 
         /// <inheritdoc />

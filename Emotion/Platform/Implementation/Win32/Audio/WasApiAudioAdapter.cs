@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Emotion.Audio;
 using Emotion.Common;
+using Emotion.IO;
 using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
 
@@ -13,8 +14,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     public sealed class WasApiAudioAdapter : IAudioAdapter, IMMNotificationClient
     {
-        public const int BUFFER_DURATION_MS = 125;
-
         public static WasApiAudioAdapter TryCreate(PlatformBase platform)
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
@@ -28,6 +27,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private PlatformBase _platform;
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
+        private AutoResetEvent _layerActivityWait = new AutoResetEvent(false);
 
         private WasApiAudioAdapter(PlatformBase platform, IMMDeviceEnumerator enumerator)
         {
@@ -81,8 +81,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         private void LayerThread()
         {
-            if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread";
-            while(Engine.Status != EngineStatus.Stopped)
+            if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
+            while (Engine.Status != EngineStatus.Stopped)
             {
                 var anyLayersPlaying = false;
                 for (var i = 0; i < _layers.Count; i++)
@@ -94,13 +94,14 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                         _layers[i] = null;
                         continue;
                     }
+
                     layer.ProcUpdate(DefaultDevice);
                     anyLayersPlaying = anyLayersPlaying || layer.Status == PlaybackStatus.Playing;
                 }
 
                 // If no layers are playing, sleep to prevent CPU usage.
                 if (!anyLayersPlaying)
-                    Thread.Sleep(BUFFER_DURATION_MS);
+                    _layerActivityWait.WaitOne(200);
                 Thread.Yield();
             }
         }
@@ -109,7 +110,14 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         {
             var newLayer = new WasApiLayer(layerName);
             _layers.Add(newLayer);
+            newLayer.OnTrackChanged += TrackChanged;
             return newLayer;
+        }
+
+        private void TrackChanged(AudioAsset oldTrack, AudioAsset newTrack)
+        {
+            Engine.Log.Trace($"Previous track {oldTrack?.Name} -> {newTrack?.Name}", "");
+            _layerActivityWait.Set();
         }
 
         #region Events

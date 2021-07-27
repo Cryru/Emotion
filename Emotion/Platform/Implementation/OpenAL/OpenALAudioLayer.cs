@@ -56,7 +56,7 @@ namespace Emotion.Platform.Implementation.OpenAL
 
         private IEnumerator UpdateCoroutine()
         {
-            int frameRequestSize = _openALAudioFormat.SampleRate / _openALAudioFormat.Channels;
+            int frameRequestSize = (_openALAudioFormat.SampleRate / _openALAudioFormat.Channels) / 2;
             var dataHolder = new byte[frameRequestSize * _openALAudioFormat.FrameSize];
             var nativeArgs = new uint[1];
 
@@ -92,42 +92,7 @@ namespace Emotion.Platform.Implementation.OpenAL
                 int byteLength = dataHolder.Length;
                 if (framesGotten < frameRequestSize) byteLength = framesGotten * _openALAudioFormat.FrameSize;
 
-                // Naive implementation where OpenAL manages resources.
-#if false
-                uint buffer;
-                Al.GetSourcei(_source, Al.BUFFERS_PROCESSED, out int buffersProcessed);
-                switch (buffersProcessed)
-                {
-                    // No done buffers - gen new.
-                    case 0:
-                        Al.GenBuffer(out buffer);
-                        break;
-                    // One buffer freed - use it.
-                    case 1:
-                        Al.SourceUnqueueBuffers(_source, 1, nativeArgs);
-                        buffer = nativeArgs[0];
-                        break;
-                    // More than one buffer freed. This is pretty rare.
-                    default:
-                        var removed = new uint[buffersProcessed];
-                        Al.SourceUnqueueBuffers(_source, buffersProcessed, removed);
-                        buffer = removed[0];
-                        for (var i = 1; i < removed.Length; i++)
-                        {
-                            Al.DeleteBuffer(removed[i]);
-                        }
-
-                        break;
-                }
-
-                UploadDataToBuffer(dataHolder, buffer, byteLength);
-                nativeArgs[0] = buffer;
-                Al.SourceQueueBuffers(_source, 1, nativeArgs);
-
-                SyncLayerAndALState();
-#else
                 uint buffer = _buffers[_currentBuffer];
-
                 UploadDataToBuffer(dataHolder, buffer, byteLength);
                 nativeArgs[0] = buffer;
                 Al.SourceQueueBuffers(_source, 1, nativeArgs);
@@ -143,7 +108,6 @@ namespace Emotion.Platform.Implementation.OpenAL
                 // Wait for the next buffer to free up.
                 yield return DequeueBusyBuffers();
                 Debug.Assert(!_bufferBusy[_currentBuffer]);
-#endif
             }
         }
 
