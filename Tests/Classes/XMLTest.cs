@@ -736,8 +736,8 @@ namespace Tests.Classes
         class ClassWithExcludedComplexType
         {
             [DontSerialize]
-            public ClassWithExcluded A;
-            public ClassWithExcluded B;
+            public ClassWithExcluded A { get; set; }
+            public ClassWithExcluded B { get; set; }
         }
 
         [Test]
