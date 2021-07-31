@@ -45,8 +45,6 @@ namespace Tests.Classes
         [Test]
         public void PlaylistLogic()
         {
-            CachedAudioStreamer.RESAMPLE_CACHE_TIMEOUT = -1;
-
             var nullAudio = new NullAudioAdapter();
             var ctx = new AudioContext(nullAudio);
             AudioLayer layer = ctx.CreateLayer("test");

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -42,7 +43,7 @@ namespace Emotion.Standard.Audio
 
         #region Channel Remapping
 
-        private static Dictionary<int, sbyte[]> _cachedRemappingMaps = new();
+        private static ConcurrentDictionary<int, sbyte[]> _cachedRemappingMaps = new();
 
         // https://en.wikipedia.org/wiki/Surround_sound#Channel_identification
         private const sbyte CHANNEL_REMAP_MONO = -101;
@@ -75,7 +76,7 @@ namespace Emotion.Standard.Audio
                 newMap[i] = mixDown ? mixDownFlag : (sbyte) (i % srcChannels);
             }
 
-            _cachedRemappingMaps.Add(hash, newMap);
+            _cachedRemappingMaps.TryAdd(hash, newMap);
             return newMap;
         }
 
