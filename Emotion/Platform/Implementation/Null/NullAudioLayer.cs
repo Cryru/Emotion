@@ -18,9 +18,10 @@ namespace Emotion.Platform.Implementation.Null
         {
         }
 
-        protected override void InternalStatusChange(PlaybackStatus oldStatus, PlaybackStatus newStatus)
+        protected override void TransitionStatus(PlaybackStatus newStatus)
         {
-            PreviousStatus = oldStatus;
+            PreviousStatus = Status;
+            base.TransitionStatus(newStatus);
         }
 
         public void AdvanceTime(int seconds)

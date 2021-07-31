@@ -83,7 +83,7 @@ namespace Tests.Classes
             {
                 testTasks.Add(Task.Run(() =>
                 {
-                    var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
+                    var streamer = new AudioConverter(pepsi.Format, pepsi.SoundData);
                     streamer.SetConvertFormat(format);
                     var segmentConvert = new List<byte>();
                     int framesGet = new Random().Next(1, 500);
@@ -125,7 +125,7 @@ namespace Tests.Classes
             {
                 testTasks.Add(Task.Run(() =>
                 {
-                    var streamer = new AudioStreamer(money.Format, money.SoundData);
+                    var streamer = new AudioConverter(money.Format, money.SoundData);
                     streamer.SetConvertFormat(format);
 
                     var segmentConvert = new List<byte>();
@@ -162,7 +162,7 @@ namespace Tests.Classes
         {
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
             var format = new AudioFormat(32, true, 2, 48000);
-            var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
+            var streamer = new AudioConverter(pepsi.Format, pepsi.SoundData);
             streamer.SetConvertFormat(format);
 
             // Higher to lower.
@@ -182,22 +182,22 @@ namespace Tests.Classes
         {
             for (var i = 0; i < src.SoundData.Length; i++)
             {
-                AudioStreamer.SetSampleAsFloat(i, src.SoundData.Span[i], dst, src.Format);
+                AudioConverter.SetSampleAsFloat(i, src.SoundData.Span[i], dst, src.Format);
             }
         }
     }
 
     public static class TestsExtensions
     {
-        public static int GetSamplesAtByte(this AudioStreamer streamer, int startIdx, int frameCount, Span<byte> buffer)
+        public static int GetSamplesAtByte(this AudioConverter converter, int startIdx, int frameCount, Span<byte> buffer)
         {
-            int sampleCount = frameCount * streamer.ConvFormat.Channels;
+            int sampleCount = frameCount * converter.ConvFormat.Channels;
             var conversionBuffer = new Span<float>(new float[sampleCount]);
-            int samplesGotten = streamer.GetSamplesAt(startIdx, frameCount, conversionBuffer);
+            int samplesGotten = converter.GetSamplesAt(startIdx, frameCount, conversionBuffer);
             if (samplesGotten == 0) return 0;
             for (var i = 0; i < samplesGotten; i++)
             {
-                AudioStreamer.SetSampleAsFloat(i, conversionBuffer[i], buffer, streamer.ConvFormat);
+                AudioConverter.SetSampleAsFloat(i, conversionBuffer[i], buffer, converter.ConvFormat);
             }
 
             return samplesGotten;

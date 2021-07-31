@@ -161,7 +161,7 @@ namespace Emotion.Tools.Windows.Audio
                 }
 
                 // Update waveform cache.
-                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
+                if (layer.CurrentTrack != cache.Track && layer.CurrentTrack != null) cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
             }
         }
     }

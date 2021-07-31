@@ -107,9 +107,7 @@ namespace Emotion.Tools.Windows
             ImGui.Text(" ");
             ImGui.Text("Audio Performance");
 
-            ImGui.Text($"AudioLayer Fill Time {AudioLayer.DbgBufferFillTimeTaken.ElapsedMilliseconds}ms");
-            ImGui.Text($"AudioLayer Longest Fill Time {AudioLayer.LongestFillTimeTaken}ms");
-            if (ImGui.Button("Clear Longest")) AudioLayer.LongestFillTimeTaken = 0;
+            ImGui.Text($"AudioLayer Samples Stored {AudioLayer.SamplesStored}");
 #else
             ImGui.Text("Compile in debug mode for more detailed info.");
 #endif

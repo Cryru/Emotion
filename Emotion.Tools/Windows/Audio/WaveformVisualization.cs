@@ -5,6 +5,7 @@ using System.Numerics;
 using Emotion.Audio;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.Standard.Audio;
 
 #endregion
 
@@ -36,20 +37,17 @@ namespace Emotion.Tools.Windows.Audio
         {
             if (Track == null) return;
 
-            Span<float> soundDataSpan = Track.File.SoundData.Span;
-            int frames = soundDataSpan.Length / Track.File.Format.Channels;
-
+            int frames = Track.File.SoundData.Length / Track.File.Format.FrameSize;
             int frameInterval = (int) (frames / _cacheWidth);
-            int numFrames = (int) (frames / frameInterval);
-            int frameIntervalVisually = (int) (_cacheWidth / numFrames);
-
+            int numFrames = frames / frameInterval;
+            int frameIntervalVisually = (int) MathF.Round(_cacheWidth / numFrames);
             _cache = new Vector2[numFrames];
 
             for (int i = 0; i < numFrames; i++)
             {
-                int frameIndex = i * frameInterval;
-                float frameValueFirstChannel = soundDataSpan[frameIndex];
-                _cache[i] = new Vector2(frameIntervalVisually * i, _cacheHeight * ((1.0f + frameValueFirstChannel) / 2f));
+                int sampleIndex = i * frameInterval * Track.File.Format.Channels;
+                float firstChannelSample = AudioConverter.GetSampleAsFloat(sampleIndex, Track.File.SoundData.Span, Track.File.Format);
+                _cache[i] = new Vector2(frameIntervalVisually * i, _cacheHeight * ((1.0f + firstChannelSample) / 2f));
             }
         }
 
@@ -58,7 +56,6 @@ namespace Emotion.Tools.Windows.Audio
             if (Track == null || _cache == null) return;
 
             c.RenderSprite(new Rectangle(0, 0, _cacheWidth, _cacheHeight), new Color(74, 74, 96));
-            //c.RenderVertices();
 
             for (var i = 1; i < _cache.Length; i++)
             {
