@@ -30,6 +30,11 @@ namespace Emotion.Audio
         public float Volume { get; set; } = 1;
 
         /// <summary>
+        /// Whether the layer is destroyed.
+        /// </summary>
+        public bool Disposed { get; protected set; }
+
+        /// <summary>
         /// The status of the audio layer.
         /// </summary>
         public PlaybackStatus Status { get; protected set; } = PlaybackStatus.NotPlaying;
@@ -378,7 +383,7 @@ namespace Emotion.Audio
             return framesGotten;
         }
 
-        protected void Update()
+        protected virtual void Update()
         {
             // Fill all buffers that are out of frames.
             if (_doubleBuffer[0] != null && _streamingTrack != null)
@@ -510,6 +515,9 @@ namespace Emotion.Audio
 
         #endregion
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        {
+            Disposed = true;
+        }
     }
 }

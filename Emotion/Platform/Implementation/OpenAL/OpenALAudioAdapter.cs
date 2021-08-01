@@ -1,11 +1,8 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using Emotion.Audio;
 using Emotion.Common;
-using Emotion.IO;
 using Emotion.Standard.Logging;
 using OpenAL;
 
@@ -13,14 +10,10 @@ using OpenAL;
 
 namespace Emotion.Platform.Implementation.OpenAL
 {
-    public sealed class OpenALAudioAdapter : IAudioAdapter
+    public sealed class OpenALAudioAdapter : ThreadedAudioAdapter
     {
         public IntPtr AudioDevice { get; private set; }
         public IntPtr AudioContext { get; private set; }
-
-        private PlatformBase _platform;
-        private AutoResetEvent _layerActivityWait = new AutoResetEvent(false);
-        private List<OpenALAudioLayer> _layers = new List<OpenALAudioLayer>();
 
         public static OpenALAudioAdapter TryCreate(PlatformBase platform)
         {
@@ -44,58 +37,19 @@ namespace Emotion.Platform.Implementation.OpenAL
             return newCtx;
         }
 
-        public OpenALAudioAdapter(PlatformBase platform)
+        public OpenALAudioAdapter(PlatformBase platform) : base(platform)
         {
-            _platform = platform;
-            var thread = new Thread(LayerThread)
-            {
-                Priority = ThreadPriority.Highest,
-                IsBackground = true
-            };
-            thread.Start();
-            while (!thread.IsAlive)
-            {
-            }
         }
 
-        public AudioLayer CreatePlatformAudioLayer(string layerName)
+        protected override AudioLayer CreatePlatformAudioLayerInternal(string layerName)
         {
-            var newLayer = new OpenALAudioLayer(layerName, this);
-            _layers.Add(newLayer);
-            newLayer.OnTrackChanged += TrackChanged;
-            return newLayer;
+            return new OpenALAudioLayer(layerName, this);
         }
 
-        private void TrackChanged(AudioAsset oldTrack, AudioAsset newTrack)
+        protected override void UpdateLayer(AudioLayer layer)
         {
-            _layerActivityWait.Set();
-        }
-
-        private void LayerThread()
-        {
-            if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
-            while (Engine.Status != EngineStatus.Stopped)
-            {
-                var anyLayersPlaying = false;
-                for (var i = 0; i < _layers.Count; i++)
-                {
-                    OpenALAudioLayer layer = _layers[i];
-                    if (layer == null) continue;
-                    if (layer.Disposed)
-                    {
-                        _layers[i] = null;
-                        continue;
-                    }
-
-                    layer.ProcUpdate();
-                    anyLayersPlaying = anyLayersPlaying || layer.Status == PlaybackStatus.Playing;
-                }
-
-                // If no layers are playing, sleep to prevent CPU usage.
-                if (!anyLayersPlaying)
-                    _layerActivityWait.WaitOne(200);
-                Thread.Yield();
-            }
+            var alLayer = layer as OpenALAudioLayer;
+            alLayer?.ProcUpdate();
         }
     }
 }

@@ -14,8 +14,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     internal class WasApiLayer : AudioLayer
     {
-        public bool Disposed { get; protected set; }
-
         private WasApiAudioDevice _device;
         private WasApiLayerContext _layerContext;
         private int _bufferLengthInFrames;
@@ -90,12 +88,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _device = device;
             _layerContext = device.CreateLayerContext();
             _bufferLengthInFrames = (int) _layerContext.BufferSize;
-        }
-
-        /// <inheritdoc />
-        public override void Dispose()
-        {
-            Disposed = true;
         }
     }
 }

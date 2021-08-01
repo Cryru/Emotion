@@ -12,8 +12,6 @@ namespace Emotion.Platform.Implementation.OpenAL
 {
     public sealed class OpenALAudioLayer : AudioLayer
     {
-        public bool Disposed { get; private set; }
-
         private const int FRAME_REQUEST_SIZE = 1000;
         private const int BUFFER_COUNT = 2;
 
@@ -92,12 +90,6 @@ namespace Emotion.Platform.Implementation.OpenAL
             // Sync state and start playing only if data is queued.
             SyncLayerAndALState();
             Update();
-        }
-
-        /// <inheritdoc />
-        public override void Dispose()
-        {
-            Disposed = true;
         }
 
         /// <summary>

@@ -1,10 +1,8 @@
 ﻿#region Using
 
 using System.Collections.Generic;
-using System.Threading;
 using Emotion.Audio;
 using Emotion.Common;
-using Emotion.IO;
 using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
 
@@ -12,7 +10,7 @@ using WinApi.ComBaseApi.COM;
 
 namespace Emotion.Platform.Implementation.Win32.Audio
 {
-    public sealed class WasApiAudioAdapter : IAudioAdapter, IMMNotificationClient
+    public sealed class WasApiAudioAdapter : ThreadedAudioAdapter, IMMNotificationClient
     {
         public static WasApiAudioAdapter TryCreate(PlatformBase platform)
         {
@@ -27,9 +25,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private PlatformBase _platform;
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
-        private AutoResetEvent _layerActivityWait = new AutoResetEvent(false);
 
-        private WasApiAudioAdapter(PlatformBase platform, IMMDeviceEnumerator enumerator)
+        private WasApiAudioAdapter(PlatformBase platform, IMMDeviceEnumerator enumerator) : base(platform)
         {
             _platform = platform;
             _enumerator = enumerator;
@@ -65,58 +62,17 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             // Register to audio device events.
             _enumerator.RegisterEndpointNotificationCallback(this);
-
-            var thread = new Thread(LayerThread)
-            {
-                Priority = ThreadPriority.Highest,
-                IsBackground = true
-            };
-            thread.Start();
-            while (!thread.IsAlive)
-            {
-            }
         }
 
-        private List<WasApiLayer> _layers = new List<WasApiLayer>();
-
-        private void LayerThread()
+        protected override AudioLayer CreatePlatformAudioLayerInternal(string layerName)
         {
-            if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
-            while (Engine.Status != EngineStatus.Stopped)
-            {
-                var anyLayersPlaying = false;
-                for (var i = 0; i < _layers.Count; i++)
-                {
-                    WasApiLayer layer = _layers[i];
-                    if (layer == null) continue;
-                    if (layer.Disposed)
-                    {
-                        _layers[i] = null;
-                        continue;
-                    }
-
-                    layer.ProcUpdate(DefaultDevice);
-                    anyLayersPlaying = anyLayersPlaying || layer.Status == PlaybackStatus.Playing;
-                }
-
-                // If no layers are playing, sleep to prevent CPU usage.
-                if (!anyLayersPlaying)
-                    _layerActivityWait.WaitOne(200);
-                Thread.Yield();
-            }
+            return new WasApiLayer(layerName);
         }
 
-        public AudioLayer CreatePlatformAudioLayer(string layerName)
+        protected override void UpdateLayer(AudioLayer layer)
         {
-            var newLayer = new WasApiLayer(layerName);
-            _layers.Add(newLayer);
-            newLayer.OnTrackChanged += TrackChanged;
-            return newLayer;
-        }
-
-        private void TrackChanged(AudioAsset oldTrack, AudioAsset newTrack)
-        {
-            _layerActivityWait.Set();
+            var wasApiLayer = layer as WasApiLayer;
+            wasApiLayer?.ProcUpdate(DefaultDevice);
         }
 
         #region Events
