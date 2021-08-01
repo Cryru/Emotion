@@ -1,10 +1,7 @@
 ﻿#region Using
 
-using System.Collections;
-using System.Diagnostics;
 using Emotion.Audio;
 using Emotion.Common;
-using Emotion.Game.Time.Routines;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 using OpenAL;
@@ -15,6 +12,9 @@ namespace Emotion.Platform.Implementation.OpenAL
 {
     public sealed class OpenALAudioLayer : AudioLayer
     {
+        public bool Disposed { get; private set; }
+
+        private const int FRAME_REQUEST_SIZE = 1000;
         private const int BUFFER_COUNT = 2;
 
         private OpenALAudioAdapter _parent;
@@ -23,7 +23,7 @@ namespace Emotion.Platform.Implementation.OpenAL
         private uint[] _buffers;
         private bool[] _bufferBusy;
         private int _currentBuffer;
-        private Coroutine _layerRoutine;
+        private byte[] _dataHolder;
 
         private static AudioFormat _openALAudioFormat = new AudioFormat(32, true, 2, 24000);
         private static int _openALFormatId;
@@ -31,7 +31,6 @@ namespace Emotion.Platform.Implementation.OpenAL
         public OpenALAudioLayer(string name, OpenALAudioAdapter parent) : base(name)
         {
             if (_openALFormatId == 0)
-            {
                 _openALFormatId = _openALAudioFormat.BitsPerSample switch
                 {
                     32 => Al.FORMAT_STEREO32F,
@@ -39,7 +38,6 @@ namespace Emotion.Platform.Implementation.OpenAL
                     8 => _openALAudioFormat.Channels == 2 ? Al.FORMAT_STEREO8 : Al.FORMAT_MONO8,
                     _ => _openALFormatId
                 };
-            }
 
             _parent = parent;
             Al.GenSource(out _source);
@@ -51,64 +49,55 @@ namespace Emotion.Platform.Implementation.OpenAL
                 Al.GenBuffer(out _buffers[i]);
             }
 
-            _layerRoutine = Engine.CoroutineManager.StartCoroutine(UpdateCoroutine());
+            _dataHolder = new byte[FRAME_REQUEST_SIZE * _openALAudioFormat.FrameSize];
         }
 
-        private IEnumerator UpdateCoroutine()
+        public unsafe void ProcUpdate()
         {
-            int frameRequestSize = (_openALAudioFormat.SampleRate / _openALAudioFormat.Channels) / 2;
-            var dataHolder = new byte[frameRequestSize * _openALAudioFormat.FrameSize];
-            var nativeArgs = new uint[1];
-
-            while (Engine.Status == EngineStatus.Running)
+            if (Status != PlaybackStatus.Playing)
             {
-                yield return null;
-
-                if (Status != PlaybackStatus.Playing)
+                // No longer playing - dequeue all busy buffers.
+                var anyBufferBusy = false;
+                for (var i = 0; i < _bufferBusy.Length; i++)
                 {
-                    // No longer playing - dequeue all busy buffers.
-                    bool anyBufferBusy;
-                    do
-                    {
-                        anyBufferBusy = false;
-                        for (var i = 0; i < _bufferBusy.Length; i++)
-                        {
-                            if (_bufferBusy[i])
-                            {
-                                anyBufferBusy = true;
-                                break;
-                            }
-                        }
-
-                        yield return DequeueBusyBuffers();
-                    } while (anyBufferBusy);
-
-                    SyncLayerAndALState();
-                    continue;
+                    if (!_bufferBusy[i]) continue;
+                    anyBufferBusy = true;
+                    break;
                 }
 
-                int framesGotten = GetDataForCurrentTrack(_openALAudioFormat, frameRequestSize, dataHolder);
-                if (framesGotten == 0) continue;
-                int byteLength = dataHolder.Length;
-                if (framesGotten < frameRequestSize) byteLength = framesGotten * _openALAudioFormat.FrameSize;
-
-                uint buffer = _buffers[_currentBuffer];
-                UploadDataToBuffer(dataHolder, buffer, byteLength);
-                nativeArgs[0] = buffer;
-                Al.SourceQueueBuffers(_source, 1, nativeArgs);
-                _bufferBusy[_currentBuffer] = true;
-                _currentBuffer++;
-                if (_currentBuffer == _buffers.Length) _currentBuffer = 0;
-
-                // Sync state and start playing only if data is queued.
+                if (anyBufferBusy) DequeueBusyBuffers();
                 SyncLayerAndALState();
-
-                if (!_bufferBusy[_currentBuffer]) continue;
-
-                // Wait for the next buffer to free up.
-                yield return DequeueBusyBuffers();
-                Debug.Assert(!_bufferBusy[_currentBuffer]);
             }
+
+            // Check if the current buffer is busy. Try to free it.
+            if (_bufferBusy[_currentBuffer]) DequeueBusyBuffers();
+            if (!_bufferBusy[_currentBuffer])
+            {
+                // Try getting frames for this buffer.
+                int framesGotten = GetDataForCurrentTrack(_openALAudioFormat, FRAME_REQUEST_SIZE, _dataHolder);
+                if (framesGotten != 0)
+                {
+                    int byteLength = _dataHolder.Length;
+                    if (framesGotten < FRAME_REQUEST_SIZE) byteLength = framesGotten * _openALAudioFormat.FrameSize;
+
+                    uint buffer = _buffers[_currentBuffer];
+                    UploadDataToBuffer(_dataHolder, buffer, byteLength);
+                    Al.SourceQueueBuffers(_source, 1, &buffer);
+                    _bufferBusy[_currentBuffer] = true;
+                    _currentBuffer++;
+                    if (_currentBuffer == _buffers.Length) _currentBuffer = 0;
+                }
+            }
+
+            // Sync state and start playing only if data is queued.
+            SyncLayerAndALState();
+            Update();
+        }
+
+        /// <inheritdoc />
+        public override void Dispose()
+        {
+            Disposed = true;
         }
 
         /// <summary>
@@ -134,19 +123,15 @@ namespace Emotion.Platform.Implementation.OpenAL
             CheckALError();
         }
 
-        private IEnumerator DequeueBusyBuffers()
+        private void DequeueBusyBuffers()
         {
             // Check if any buffers are queued.
             Al.GetSourcei(_source, Al.BUFFERS_QUEUED, out int queued);
-            if (queued == 0) yield break;
+            if (queued == 0) return;
 
-            // Wait for any buffers to be processed.
-            int buffersProcessed;
-            do
-            {
-                Al.GetSourcei(_source, Al.BUFFERS_PROCESSED, out buffersProcessed);
-                yield return null;
-            } while (buffersProcessed == 0);
+            // Check if any are done.
+            Al.GetSourcei(_source, Al.BUFFERS_PROCESSED, out int buffersProcessed);
+            if (buffersProcessed == 0) return;
 
             // Dequeue and mark as free.
             var removed = new uint[buffersProcessed];
@@ -159,15 +144,6 @@ namespace Emotion.Platform.Implementation.OpenAL
                     if (_buffers[bIdx] == bufferId) _bufferBusy[bIdx] = false;
                 }
             }
-        }
-
-        protected override void InternalStatusChange(PlaybackStatus oldStatus, PlaybackStatus newStatus)
-        {
-        }
-
-        public override void Dispose()
-        {
-            if (_layerRoutine != null) Engine.CoroutineManager.StopCoroutine(_layerRoutine);
         }
     }
 }

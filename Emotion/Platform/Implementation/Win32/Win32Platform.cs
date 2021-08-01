@@ -85,7 +85,7 @@ namespace Emotion.Platform.Implementation.Win32
             // Initialize audio.
             IAudioAdapter adapter = null;
 #if OpenAL
-            adapter ??= OpenALAudioAdapter.TryCreate();
+            adapter ??= OpenALAudioAdapter.TryCreate(this);
 #endif
             adapter ??= WasApiAudioAdapter.TryCreate(this);
             adapter ??= new NullAudioAdapter();

@@ -365,7 +365,7 @@ namespace OpenAL
         public static extern void SourcePause(uint sid);
 
         [DllImport(OPEN_AL_DLL, EntryPoint = "alSourceQueueBuffers")]
-        public static extern void SourceQueueBuffers(uint sid, int numEntries, uint[] bids);
+        public static extern unsafe void SourceQueueBuffers(uint sid, int numEntries, uint* bids);
 
         [DllImport(OPEN_AL_DLL, EntryPoint = "alSourceUnqueueBuffers")]
         public static extern void SourceUnqueueBuffers(uint sid, int numEntries, uint[] bids);

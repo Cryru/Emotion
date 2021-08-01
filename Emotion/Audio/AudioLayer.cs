@@ -61,7 +61,7 @@ namespace Emotion.Audio
             get
             {
                 if (_playHead == 0 || _updateStreamingTrack) return 0f;
-                return (float) _playHead / _totalSamplesConv;
+                return (float)_playHead / _totalSamplesConv;
             }
         }
 
@@ -186,6 +186,7 @@ namespace Emotion.Audio
                 _playlist.Clear();
                 _playlist.Add(track);
                 InvalidateStreamingTrack();
+                InvalidateDoubleBuffer();
                 if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
@@ -243,7 +244,7 @@ namespace Emotion.Audio
         protected virtual void TransitionStatus(PlaybackStatus newStatus)
         {
             // If wasn't playing - but now am, and the current track is invalid, set the current track.
-            if ((Status == PlaybackStatus.NotPlaying || Status == PlaybackStatus.Paused) && newStatus == PlaybackStatus.Playing)
+            if (Status == PlaybackStatus.NotPlaying && newStatus == PlaybackStatus.Playing)
             {
                 // Check if there is anything in the playlist.
                 if (_playlist.Count == 0)
@@ -272,8 +273,6 @@ namespace Emotion.Audio
 
         protected int GetDataForCurrentTrack(AudioFormat format, int getFrames, Span<byte> buffer)
         {
-            //if (Status != PlaybackStatus.Playing) return 0;
-
             // Check if any track playing.
             UpdateStreamingTrack();
             if (_streamingTrack == null) return 0;
@@ -299,17 +298,17 @@ namespace Emotion.Audio
             }
 
             // Make sure we're getting the samples in the format we think we are.
-            AudioConverter? streamer = _streamingTrack.File.AudioConverter;
+            AudioConverter streamer = _streamingTrack.File.AudioConverter;
             float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / _totalSamplesConv : 0;
             if (!format.Equals(_streamingFormat))
             {
-                float progress = _playHead != 0 ? (float) _playHead / _totalSamplesConv : 0;
+                float progress = _playHead != 0 ? (float)_playHead / _totalSamplesConv : 0;
                 _streamingFormat = format;
                 _totalSamplesConv = streamer.GetSampleCountInFormat(_streamingFormat);
-                _playHead = (int) MathF.Floor(_totalSamplesConv * progress);
+                _playHead = (int)MathF.Floor(_totalSamplesConv * progress);
 
                 // Readjust crossfade playhead - if in use.
-                if (_crossFadePlayHead != 0) _crossFadePlayHead = (int) MathF.Floor(_totalSamplesConv * oldCrossfadeProgress);
+                if (_crossFadePlayHead != 0) _crossFadePlayHead = (int)MathF.Floor(_totalSamplesConv * oldCrossfadeProgress);
 
                 InvalidateDoubleBuffer();
             }
@@ -344,6 +343,10 @@ namespace Emotion.Audio
             // If any frames still need to be gotten, get them from the track.
             if (framesLeft > 0)
             {
+#if DEBUG
+                if (_playHead != 0) ResortedToLayer = true;
+#endif
+
                 int frames = StreamDataFromCurrentTrack(framesLeft, buffer);
                 framesGotten += frames;
                 framesLeft -= frames;
@@ -367,6 +370,9 @@ namespace Emotion.Audio
                 int framesStored = _dbFramesStored[i];
                 SamplesStored += framesStored;
             }
+
+            if(SamplesStored != 0)
+                LeastSamplesStored = Math.Min(SamplesStored, LeastSamplesStored);
 #endif
 
             return framesGotten;
@@ -409,7 +415,9 @@ namespace Emotion.Audio
         protected AudioFormat _streamingFormat;
 
 #if DEBUG
+        public static bool ResortedToLayer = false;
         public static int SamplesStored;
+        public static int LeastSamplesStored = int.MaxValue;
 #endif
 
         protected void InvalidateStreamingTrack()
@@ -445,7 +453,6 @@ namespace Emotion.Audio
             _converter = currentTrack.File.AudioConverter;
             if (_streamingFormat != null) _totalSamplesConv = _converter.GetSampleCountInFormat(_streamingFormat);
             _updateStreamingTrack = false;
-            InvalidateDoubleBuffer();
         }
 
         protected int StreamDataFromCurrentTrack(int framesRequested, Span<byte> dest, int framesOffset = 0)

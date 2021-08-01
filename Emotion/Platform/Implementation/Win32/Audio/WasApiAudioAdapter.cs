@@ -116,7 +116,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         private void TrackChanged(AudioAsset oldTrack, AudioAsset newTrack)
         {
-            Engine.Log.Trace($"Previous track {oldTrack?.Name} -> {newTrack?.Name}", "");
             _layerActivityWait.Set();
         }
 

@@ -91,6 +91,9 @@ namespace Emotion.Tools.Windows
             _updateIdx++;
             if (_updateIdx > _updateTracker.Length - 1) _updateIdx = 0;
             _updatesPerFrame = 0;
+
+            ImGui.Text(Engine.Host.ToString());
+
             ImGui.PlotLines("Actual DeltaTime", ref _dtTracker[0], _dtTracker.Length, 0, "", 0, 30);
             ImGui.PlotLines("Update Count", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
@@ -105,9 +108,16 @@ namespace Emotion.Tools.Windows
             ImGui.Checkbox("Profiler LagSpike Monitor", ref PerfProfiler.LagSpikeMonitor);
 
             ImGui.Text(" ");
-            ImGui.Text("Audio Performance");
+            ImGui.Text($"Audio Performance - {Engine.Host.Audio}");
 
             ImGui.Text($"AudioLayer Samples Stored {AudioLayer.SamplesStored}");
+            ImGui.Text($"   Least Stored {AudioLayer.LeastSamplesStored}");
+            ImGui.SameLine();
+            if (ImGui.Button("Clear Least")) AudioLayer.LeastSamplesStored = AudioLayer.SamplesStored;
+            ImGui.Text($"Resorted to Layer {AudioLayer.ResortedToLayer}");
+            ImGui.SameLine();
+            if (ImGui.Button("Clear")) AudioLayer.ResortedToLayer = false;
+
 #else
             ImGui.Text("Compile in debug mode for more detailed info.");
 #endif
