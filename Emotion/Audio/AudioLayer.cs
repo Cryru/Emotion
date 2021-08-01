@@ -276,6 +276,11 @@ namespace Emotion.Audio
         private int[] _dbFramesStored = new int[BUFFER_COUNT];
         private int _bufferIdx;
 
+#if DEBUG
+        private Stopwatch _timer = new();
+        public static int TimeTaken;
+#endif
+
         protected int GetDataForCurrentTrack(AudioFormat format, int getFrames, Span<byte> buffer)
         {
             // Check if any track playing.
@@ -288,6 +293,10 @@ namespace Emotion.Audio
                 if (GLThread.IsGLThread()) return 0; // Don't stop main thread.
                 Engine.Host.HostPausedWaiter.WaitOne();
             }
+
+#if DEBUG
+            _timer.Restart();
+#endif
 
             // Verify dst size
             Debug.Assert(buffer.Length / format.FrameSize == getFrames);
@@ -376,10 +385,12 @@ namespace Emotion.Audio
                 SamplesStored += framesStored;
             }
 
-            if(SamplesStored != 0)
+            if (SamplesStored != 0)
                 LeastSamplesStored = Math.Min(SamplesStored, LeastSamplesStored);
-#endif
 
+            _timer.Stop();
+            TimeTaken = Math.Max(TimeTaken, (int)_timer.ElapsedMilliseconds);
+#endif
             return framesGotten;
         }
 

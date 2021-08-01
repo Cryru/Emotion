@@ -117,7 +117,9 @@ namespace Emotion.Tools.Windows
             ImGui.Text($"Resorted to Layer {AudioLayer.ResortedToLayer}");
             ImGui.SameLine();
             if (ImGui.Button("Clear")) AudioLayer.ResortedToLayer = false;
-
+            ImGui.Text($"Time Taken To Fill {AudioLayer.TimeTaken}");
+            ImGui.SameLine();
+            if (ImGui.Button("Reset")) AudioLayer.TimeTaken = 0;
 #else
             ImGui.Text("Compile in debug mode for more detailed info.");
 #endif
