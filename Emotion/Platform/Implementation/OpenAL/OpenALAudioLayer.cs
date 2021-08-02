@@ -117,10 +117,6 @@ namespace Emotion.Platform.Implementation.OpenAL
 
         private void DequeueBusyBuffers()
         {
-            // Check if any buffers are queued.
-            Al.GetSourcei(_source, Al.BUFFERS_QUEUED, out int queued);
-            if (queued == 0) return;
-
             // Check if any are done.
             Al.GetSourcei(_source, Al.BUFFERS_PROCESSED, out int buffersProcessed);
             if (buffersProcessed == 0) return;

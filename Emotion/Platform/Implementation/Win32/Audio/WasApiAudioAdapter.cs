@@ -22,13 +22,11 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         public WasApiAudioDevice DefaultDevice { get; private set; }
 
-        private PlatformBase _platform;
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
 
         private WasApiAudioAdapter(PlatformBase platform, IMMDeviceEnumerator enumerator) : base(platform)
         {
-            _platform = platform;
             _enumerator = enumerator;
             int error = _enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active, out IMMDeviceCollection collection);
             if (error != 0)

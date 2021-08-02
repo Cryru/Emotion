@@ -39,7 +39,7 @@ namespace Emotion.Audio
             {
                 UpdateLayer(layer);
                 if (layer.Status != PlaybackStatus.Playing) layerActivity.WaitOne(INACTIVITY_TIMEOUT);
-                Thread.Yield();
+                Task.Delay(1).Wait();
             }
         }
 

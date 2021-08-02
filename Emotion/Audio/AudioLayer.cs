@@ -378,12 +378,13 @@ namespace Emotion.Audio
             }
 
 #if DEBUG
-            SamplesStored = 0;
+            var sampleStored = 0;
             for (var i = 0; i < _doubleBuffer.Length; i++)
             {
                 int framesStored = _dbFramesStored[i];
-                SamplesStored += framesStored;
+                sampleStored += framesStored;
             }
+            SamplesStored = sampleStored;
 
             if (SamplesStored != 0)
                 LeastSamplesStored = Math.Min(SamplesStored, LeastSamplesStored);

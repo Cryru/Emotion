@@ -18,6 +18,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         public static Guid IdDeviceTopology = new Guid("2A07407E-6497-4A18-9787-32F79BD0D98F");
         public static Guid IdAudioRenderClient = new Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2");
 
+        public const int BUFFER_LENGTH_MS = 200;
+
         internal string Id { get; }
         internal IMMDevice ComHandle;
 
@@ -50,7 +52,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             if (audioClientFormat.ExtraSize >= 22) audioClientFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
             context.AudioClientFormat = audioClientFormat.ToEmotionFormat();
 
-            error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, 0, 0, deviceFormat, Guid.Empty);
+            long ticks = TimeSpan.FromMilliseconds(BUFFER_LENGTH_MS).Ticks;
+            error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, 
+                ticks, ticks / 2, deviceFormat, Guid.Empty);
             if (error != 0) Win32Platform.CheckError($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", true);
                 
             error = audioClient.GetBufferSize(out context.BufferSize);
