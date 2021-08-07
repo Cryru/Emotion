@@ -21,11 +21,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             _elementType = nonOpaqueElementType;
         }
 
-        public override bool IsRecursiveWith(Type type)
-        {
-            return _elementTypeHandler.Type.IsAssignableFrom(type) || _elementTypeHandler.IsRecursiveWith(type);
-        }
-
         public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
             if (obj == null) return false;

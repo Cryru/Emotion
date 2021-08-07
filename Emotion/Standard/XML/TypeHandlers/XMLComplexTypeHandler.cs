@@ -14,22 +14,6 @@ namespace Emotion.Standard.XML.TypeHandlers
     public class XMLComplexTypeHandler : XMLComplexBaseTypeHandler
     {
         /// <summary>
-        /// Whether this type contains fields which could reference it.
-        /// </summary>
-        public bool RecursiveType
-        {
-            get
-            {
-                if (_recursiveType != null) return _recursiveType.Value;
-                _recursiveType = IsRecursiveWith(Type);
-                return _recursiveType.Value;
-            }
-            protected set => _recursiveType = value;
-        }
-
-        private bool? _recursiveType;
-
-        /// <summary>
         /// The default value of the complex type when constructed.
         /// </summary>
         protected object _defaultConstruct;
@@ -86,15 +70,13 @@ namespace Emotion.Standard.XML.TypeHandlers
         {
             if (obj == null) return false;
 
-            if (RecursiveType)
+            // Pop a reference to check if this type holds a recursive reference.
+            recursionChecker ??= new XMLRecursionChecker();
+            if (recursionChecker.PushReference(obj))
             {
-                recursionChecker ??= new XMLRecursionChecker();
-                if (recursionChecker.PushReference(obj))
-                {
-                    Engine.Log.Warning($"Recursive reference in field {fieldName}.", MessageSource.XML);
-                    recursionChecker.PopReference(obj);
-                    return true;
-                }
+                Engine.Log.Warning($"Recursive reference in field {fieldName}.", MessageSource.XML);
+                recursionChecker.PopReference(obj);
+                return true;
             }
 
             // Handle field value being of inherited type.
@@ -107,7 +89,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append($"</{fieldName}>\n");
 
-            if (RecursiveType) recursionChecker!.PopReference(obj);
+            recursionChecker.PopReference(obj);
             return true;
         }
 
@@ -208,19 +190,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             // wtf?
             Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {TypeName}", MessageSource.XML);
             return null;
-        }
-
-        public override bool IsRecursiveWith(Type type)
-        {
-            Dictionary<string, XMLFieldHandler> fields = _fieldHandlers.Value;
-            foreach ((string _, XMLFieldHandler field) in fields)
-            {
-                if (field.Skip) continue;
-                XMLTypeHandler typeHandler = field.TypeHandler;
-                if (type.IsAssignableFrom(typeHandler.Type) || typeHandler.IsRecursiveWith(type)) return true;
-            }
-
-            return false;
         }
     }
 }

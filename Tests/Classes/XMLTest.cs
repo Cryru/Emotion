@@ -850,5 +850,27 @@ namespace Tests.Classes
             var deserialized = XMLFormat.From<ClassWithNonPublicField>(document);
             Assert.Equal(deserialized.Field, "Helloo");
         }
+
+        public class OverflowClass
+        {
+            public ClassContainingOverflow[] FirstArr;
+        }
+
+        public class ClassContainingOverflow
+        {
+            public OverflowClass[] SecondArr;
+        }
+
+        public class OverflowRootClass
+        {
+            public ClassContainingOverflow A;
+        }
+
+        [Test]
+        public void RecursiveArrayType()
+        {
+            // If this test fails it will stack overflow :P
+            XMLFormat.To(new OverflowRootClass());
+        }
     }
 }

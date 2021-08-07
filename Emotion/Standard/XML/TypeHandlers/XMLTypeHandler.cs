@@ -58,14 +58,5 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <param name="input"></param>
         /// <returns></returns>
         public abstract object Deserialize(XMLReader input);
-
-        /// <summary>
-        /// Whether this type could potentially contain a reference of the specified type.
-        /// Applies to reference types only.
-        /// </summary>
-        public virtual bool IsRecursiveWith(Type type)
-        {
-            return false;
-        }
     }
 }

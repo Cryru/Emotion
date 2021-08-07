@@ -67,7 +67,7 @@ namespace Emotion.Tools.Windows
                 {
                     ImGui.Text($"\t Full TypeName: {type}");
                     if (typeHandler is XMLComplexTypeHandler complexHandler)
-                        ImGui.Text($"\t Fields: {complexHandler.FieldCount()}, Recursive: {complexHandler.RecursiveType}");
+                        ImGui.Text($"\t Fields: {complexHandler.FieldCount()}");
 
                     ImGui.TreePop();
                 }
