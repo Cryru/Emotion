@@ -22,6 +22,7 @@ namespace Emotion.Audio
 
         public AudioLayer CreateLayer(string layerName, float layerVolume = 1)
         {
+            layerName = layerName.ToLower();
             AudioLayer newLayer = _adapter.CreatePlatformAudioLayer(layerName);
             newLayer.Volume = layerVolume;
             lock (_layers)
@@ -35,6 +36,7 @@ namespace Emotion.Audio
 
         public void RemoveLayer(string layerName)
         {
+            layerName = layerName.ToLower();
             AudioLayer layer = GetLayer(layerName);
             if (layer == null) return;
 
@@ -50,6 +52,7 @@ namespace Emotion.Audio
 
         public AudioLayer GetLayer(string layerName)
         {
+            layerName = layerName.ToLower();
             lock (_layers)
             {
                 return _layers.FirstOrDefault(layer => layer.Name == layerName);
