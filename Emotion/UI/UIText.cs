@@ -29,7 +29,7 @@ namespace Emotion.UI
         /// <summary>
         /// Whether to smoothen the drawing of the font by using bilinear filtering.
         /// </summary>
-        public bool Smooth;
+        public bool Smooth = true;
 
         /// <summary>
         /// Whether the font is a pixel font and we want it to scale integerly.
