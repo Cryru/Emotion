@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Serialization;
@@ -19,6 +20,13 @@ namespace Emotion.Graphics.Objects
     [DontSerialize]
     public class Texture : IDisposable
     {
+        #region DEBUG
+
+        public static List<Texture> AllTextures = new List<Texture>();
+        public string CreationStack;
+
+        #endregion
+
         /// <summary>
         /// The bound textures.
         /// </summary>
@@ -115,6 +123,13 @@ namespace Emotion.Graphics.Objects
         public Texture()
         {
             Pointer = Gl.GenTexture();
+#if DEBUG
+            AllTextures.Add(this);
+            CreationStack = Environment.StackTrace;
+            int lastCtorCall = CreationStack.LastIndexOf("Emotion.Graphics.Objects.Texture..ctor");
+            int newLineAfterThat = CreationStack.IndexOf("\n", lastCtorCall);
+            CreationStack = CreationStack.Substring(newLineAfterThat + 1);
+#endif
         }
 
         /// <summary>

@@ -712,7 +712,7 @@ namespace Emotion.Web.Platform
                 Format = format,
                 Type = type,
                 PixelsPointer = pixels,
-                PixelsByteSize = width * height * Gl.PixelTypeToComponentCount((PixelFormat) format) * Gl.PixelTypeToByteCount((PixelType) type)
+                PixelsByteSize = width * height * Gl.PixelFormatToComponentCount((PixelFormat) format) * Gl.PixelTypeToByteCount((PixelType) type)
             };
             _gl.InvokeUnmarshalled<TextureUploadArgs, object>("glUploadTexture2D", uploadArgs);
         }

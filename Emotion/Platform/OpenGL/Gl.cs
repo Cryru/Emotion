@@ -366,7 +366,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="pixelFormat">The pixel format to get the components of.</param>
         /// <returns>How many components the pixel format has.</returns>
-        public static byte PixelTypeToComponentCount(PixelFormat pixelFormat)
+        public static byte PixelFormatToComponentCount(PixelFormat pixelFormat)
         {
             switch (pixelFormat)
             {

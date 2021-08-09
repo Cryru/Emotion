@@ -54,6 +54,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.MenuItem("Performance Monitor")) manager.AddWindow(new PerformanceMonitor());
                 if (ImGui.MenuItem("Memory Viewer")) manager.AddWindow(new MemoryViewer());
                 if (ImGui.MenuItem("Coroutine Viewer")) manager.AddWindow(new CoroutineViewer());
+                if (ImGui.MenuItem("Gpu Texture Viewer")) manager.AddWindow(new GpuTextureViewer());
                 ImGui.EndMenu();
             }
 
