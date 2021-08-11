@@ -230,7 +230,7 @@ namespace Emotion.UI
         private void UpdateMouseFocus()
         {
             Vector2 mousePos = Engine.Host.MousePosition;
-            UIBaseWindow newMouseFocus = Engine.Host.HostPaused ? null : FindMouseInput(mousePos, this);
+            UIBaseWindow newMouseFocus = Engine.Host.HostPaused ? null : FindMouseInput(mousePos);
             if (newMouseFocus == this) newMouseFocus = null;
 
             if (newMouseFocus != MouseFocus)
@@ -250,18 +250,6 @@ namespace Emotion.UI
             {
                 MouseFocus?.OnMouseMove(mousePos);
             }
-        }
-
-        protected static UIBaseWindow FindMouseInput(Vector2 pos, UIBaseWindow wnd)
-        {
-            if (wnd.Children != null)
-                for (var i = 0; i < wnd.Children.Count; i++)
-                {
-                    UIBaseWindow win = wnd.Children[i];
-                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) return FindMouseInput(pos, win);
-                }
-
-            return wnd;
         }
 
         protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)

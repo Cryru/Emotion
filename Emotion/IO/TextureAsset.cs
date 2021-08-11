@@ -69,6 +69,7 @@ namespace Emotion.IO
                 return;
             }
 
+            Size = pixels.Length;
             PerfProfiler.ProfilerEventEnd("Decoding Image", "Loading");
             UploadTexture(size, pixels, flipped, format);
         }

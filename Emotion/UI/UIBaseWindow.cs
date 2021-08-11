@@ -803,9 +803,21 @@ namespace Emotion.UI
             _renderBoundsCalculatedFrom = Bounds;
         }
 
-        public bool IsPointInside(Vector2 pt)
+        public virtual bool IsPointInside(Vector2 pt)
         {
             return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pt) : Bounds.Contains(pt);
+        }
+
+        protected virtual UIBaseWindow FindMouseInput(Vector2 pos)
+        {
+            if (Children != null)
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow win = Children[i];
+                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) return win.FindMouseInput(pos);
+                }
+
+            return this;
         }
 
         public virtual void OnMouseEnter(Vector2 mousePos)
