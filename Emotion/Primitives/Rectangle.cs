@@ -517,6 +517,28 @@ namespace Emotion.Primitives
             return new Rectangle(X + position.X, Y + position.Y, Width, Height);
         }
 
+        /// <summary>
+        /// Scales the rect by the provided vector.
+        /// X and Width and multiplied by the X component, and Y and Height by the Y.
+        /// </summary>
+        public Rectangle Scale(Vector2 scale)
+        {
+            X *= scale.X;
+            Y *= scale.Y;
+            Width *= scale.X;
+            Height *= scale.Y;
+            return this;
+        }
+
+        public Rectangle Divide(Vector2 scale)
+        {
+            X /= scale.X;
+            Y /= scale.Y;
+            Width /= scale.X;
+            Height /= scale.Y;
+            return this;
+        }
+
         #region NEZ Extensions
 
         // Taken from Nez and Modified
@@ -653,18 +675,6 @@ namespace Emotion.Primitives
         public static Rectangle FromMinMaxPoints(float minX, float minY, float maxX, float maxY)
         {
             return new Rectangle(minX, minY, maxX - minX, maxY - minY);
-        }
-
-        /// <summary>
-        /// scales the rect
-        /// </summary>
-        /// <param name="scale">Scale.</param>
-        public void Scale(Vector2 scale)
-        {
-            X = (int) (X * scale.X);
-            Y = (int) (Y * scale.Y);
-            Width = (int) (Width * scale.X);
-            Height = (int) (Height * scale.Y);
         }
 
         /// <summary>
@@ -862,7 +872,10 @@ namespace Emotion.Primitives
             {
                 Vector2** vertices = stackalloc Vector2*[4]
                 {
-                    &p1, &p2, &p3, &p4
+                    &p1,
+                    &p2,
+                    &p3,
+                    &p4
                 };
 
                 var minX = float.MaxValue;
