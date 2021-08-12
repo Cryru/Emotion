@@ -89,18 +89,18 @@ namespace Emotion.UI
         protected Vector2 _scaledUnderlineOffset;
         protected float _scaledUnderlineThickness;
 
-        public override async Task Preload()
+        public override async Task LoadContent()
         {
-            await base.Preload();
-            _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-
+            // Load font if not loaded.
+            if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
             if (_fontFile == null) return;
 
-            // Preload atlas as well.
+            // Load atlas as well. This one will change based on UI scale.
             // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
             float scale = GetScale();
             _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), 0, -1, Smooth, FontSizePixelPerfect);
 
+            // Reload the layouter if needed. Changing this means the text needs to be relayouted.
             if (_layouterAtlas != _atlas.Atlas)
             {
                 _layouter = new TextLayouterWrap(_atlas.Atlas);

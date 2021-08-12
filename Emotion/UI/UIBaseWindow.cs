@@ -50,26 +50,21 @@ namespace Emotion.UI
 
         #region Preload, Update, Render
 
-        public virtual async Task Preload()
+        public void CheckLoadContent(UILoadingContext ctx)
         {
+            ctx.AddLoadingTask(LoadContent());
+
             if (Children == null) return;
-
-            try
+            for (var i = 0; i < Children.Count; i++)
             {
-                Task[] preloadTasks = new Task[Children.Count];
-                for (var i = 0; i < Children.Count; i++)
-                {
-                    UIBaseWindow child = Children[i];
-                    Task preloadTask = child.Preload();
-                    preloadTasks[i] = preloadTask;
-                }
+                UIBaseWindow child = Children[i];
+                child.CheckLoadContent(ctx);
+            }
+        }
 
-                await Task.WhenAll(preloadTasks);
-            }
-            catch (Exception ex)
-            {
-                Engine.Log.Error($"Window loading {this} failed. {ex}", "UI");
-            }
+        public virtual Task LoadContent()
+        {
+            return Task.CompletedTask;
         }
 
         public void Update()
@@ -429,7 +424,7 @@ namespace Emotion.UI
                             bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
                             bool addSpacing = insideParent && hPen.X != 0; // Skip spacing at start of row.
                             Vector2 childSpace = wrap ? freeSpace : freeSpace - hPen; // Give full space as available space if wrapping.
-                            if (addSpacing) 
+                            if (addSpacing)
                                 childSpace.X -= scaledSpacing.X;
 
                             Vector2 childSize = child.Measure(childSpace);
@@ -468,7 +463,7 @@ namespace Emotion.UI
                             bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
                             bool addSpacing = insideParent && vPen.Y != 0;
                             Vector2 childSpace = wrap ? freeSpace : freeSpace - vPen;
-                            if (addSpacing) 
+                            if (addSpacing)
                                 childSpace.Y -= scaledSpacing.Y;
 
                             Vector2 childSize = child.Measure(childSpace);
@@ -617,12 +612,12 @@ namespace Emotion.UI
                                 addSpacing = false;
                             }
 
-                            if (addSpacing) 
+                            if (addSpacing)
                                 pen.X += scaledSpacing.X;
 
                             // Dont count space taken by windows outside parent.
                             bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
-                            if(windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y);
+                            if (windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y);
 
                             // Child space is constrained to allow some anchors to work as expected within lists.
                             Vector2 childSpace = insideParent ? new Vector2(child.Size.X, freeSpace.Y) : freeSpace - pen;
@@ -661,12 +656,12 @@ namespace Emotion.UI
                                 addSpacing = false;
                             }
 
-                            if (addSpacing) 
+                            if (addSpacing)
                                 pen.Y += scaledSpacing.Y;
 
                             // Dont count space taken by windows outside parent.
                             bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
-                            if(windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, child.Size.X);
+                            if (windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, child.Size.X);
 
                             Vector2 childSpace = insideParent ? new Vector2(freeSpace.X, child.Size.Y) : freeSpace - pen;
                             Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);

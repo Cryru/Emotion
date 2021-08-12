@@ -59,10 +59,10 @@ namespace Emotion.UI
             _updatePreload = true;
         }
 
-        public override async Task Preload()
+        public override Task LoadContent()
         {
-            await base.Preload();
             _updatePreload = false;
+            return Task.CompletedTask;
         }
 
         protected override void AfterRenderChildren(RenderComposer c)
@@ -117,12 +117,13 @@ namespace Emotion.UI
             win.DetachedFromController(this);
         }
 
-        #region Preloading
+        #region Loading
 
-        // Controllers are added to this child. Preloading of all controllers is run when one of them is invalidated.
+        // Controllers are added to this child. Loading of all controllers is run when one of them is invalidated.
         // Other windows may be added with the user to be preloadaed. They will also cause all controllers to preload.
         public static Task UILoadingThread { get; protected set; } = Task.CompletedTask;
         private static PreloadWindowStorage _keepWindowsLoaded = new();
+        private static UILoadingContext _loadingContext = new UILoadingContext();
 
         private class PreloadWindowStorage : UIBaseWindow
         {
@@ -161,8 +162,9 @@ namespace Emotion.UI
         private static void UpdatePreLoading()
         {
             if (!UILoadingThread.IsCompleted) return;
+            _keepWindowsLoaded.CheckLoadContent(_loadingContext);
             Engine.Log.Warning("Preloading UI!", "");
-            UILoadingThread = _keepWindowsLoaded.Preload();
+            UILoadingThread = Task.Run(_loadingContext.WaitForLoading);
         }
 
         #endregion
