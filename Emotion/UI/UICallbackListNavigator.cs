@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Serialization;
+using Emotion.Graphics;
 using Emotion.Platform.Input;
+using Emotion.Primitives;
 
 #endregion
 
@@ -51,9 +53,41 @@ namespace Emotion.UI
         private Vector2 _gridSize;
         private int _lastRowColumn;
 
+        private Vector2 _scrollPos = Vector2.Zero;
+
         public UICallbackListNavigator()
         {
             InputTransparent = false;
+        }
+
+        protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
+        {
+            Vector2 scrollArea = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
+            switch (LayoutMode)
+            {
+                case LayoutMode.VerticalListWrap:
+                case LayoutMode.HorizontalList:
+                    scrollArea.X = MaxSize.X;
+                    break;
+                case LayoutMode.HorizontalListWrap:
+                case LayoutMode.VerticalList:
+                    scrollArea.Y = MaxSize.Y;
+                    break;
+            }
+
+
+            return scrollArea;
+        }
+
+        protected override void RenderChildren(RenderComposer c)
+        {
+            Rectangle renderRect = _renderBounds;
+            for (var i = 0; i < Children!.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                if (!child.Visible || !child.IsInsideRect(renderRect)) continue;
+                child.Render(c);
+            }
         }
 
         protected override void AfterLayout()
@@ -84,7 +118,7 @@ namespace Emotion.UI
                             pen.X = 0;
                             pen.Y++;
                         }
-                        
+
                         break;
                     case LayoutMode.HorizontalList:
                         pen.X++;
@@ -96,7 +130,7 @@ namespace Emotion.UI
                             pen.Y = 0;
                             pen.X++;
                         }
-                        
+
                         break;
                     case LayoutMode.VerticalList:
                         pen.Y++;

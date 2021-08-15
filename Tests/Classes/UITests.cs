@@ -136,7 +136,7 @@ namespace Tests.Classes
             Assert.True(template != null);
             var ui = new UIController();
             ui.AddChild(template.Content);
-            UIController.PreloadUI().Wait();
+            ui.PreloadUI().Wait();
             ui.Update();
 
             Runner.ExecuteAsLoop(_ =>
@@ -171,7 +171,7 @@ namespace Tests.Classes
             Assert.True(template != null);
             var ui = new UIController();
             ui.AddChild(template.Content);
-            UIController.PreloadUI().Wait();
+            ui.PreloadUI().Wait();
             ui.Update();
 
             Runner.ExecuteAsLoop(_ =>
@@ -239,7 +239,7 @@ namespace Tests.Classes
             Assert.True(template != null);
             var ui = new UIController();
             ui.AddChild(template.Content);
-            UIController.PreloadUI().Wait();
+            ui.PreloadUI().Wait();
             ui.Update();
 
             var winOne = (MouseTestWindow) ui.GetWindowById("WinOne");
@@ -280,7 +280,7 @@ namespace Tests.Classes
 
             controller.ClearChildren();
             controller.AddChild(template.Content);
-            UIController.PreloadUI().Wait();
+            controller.PreloadUI().Wait();
             controller.Update();
 
             (string, Rectangle)[] layoutDesc = controller.GetLayoutDescription();

@@ -59,12 +59,6 @@ namespace Emotion.UI
             _updatePreload = true;
         }
 
-        public override Task LoadContent()
-        {
-            _updatePreload = false;
-            return Task.CompletedTask;
-        }
-
         protected override void AfterRenderChildren(RenderComposer c)
         {
 #if false
@@ -79,8 +73,8 @@ namespace Emotion.UI
 
         protected override bool UpdateInternal()
         {
-            if (!UILoadingThread.IsCompleted) return false;
-            if (_updatePreload) UpdatePreLoading();
+            if (!_loadingThread.IsCompleted) return false;
+            if (_updatePreload) UpdateLoading();
             if (_updateLayout) UpdateLayout();
             if (_updateInputFocus) UpdateInputFocus();
             UpdateMouseFocus();
@@ -119,12 +113,31 @@ namespace Emotion.UI
 
         #region Loading
 
-        // Controllers are added to this child. Loading of all controllers is run when one of them is invalidated.
-        // Other windows may be added with the user to be preloadaed. They will also cause all controllers to preload.
-        public static Task UILoadingThread { get; protected set; } = Task.CompletedTask;
-        private static PreloadWindowStorage _keepWindowsLoaded = new();
-        private static UILoadingContext _loadingContext = new UILoadingContext();
+        public Task PreloadUI()
+        {
+            if (!_loadingThread.IsCompleted) return _loadingThread;
+            UpdateLoading();
+            return _loadingThread;
+        }
 
+        private Task _loadingThread = Task.CompletedTask;
+        private UILoadingContext _loadingContext = new UILoadingContext();
+
+        protected void UpdateLoading()
+        {
+            if (!_loadingThread.IsCompleted) return;
+            CheckLoadContent(_loadingContext);
+            Engine.Log.Warning("Preloading UI!", "");
+            _loadingThread = Task.Run(_loadingContext.LoadWindows);
+            _updatePreload = false;
+
+            // If one controller is loading, check global.
+            UpdateGlobalLoading();
+        }
+
+        /// <summary>
+        /// You can keep windows globally loaded.
+        /// </summary>
         private class PreloadWindowStorage : UIBaseWindow
         {
             public override void AddChild(UIBaseWindow child, int index = -1)
@@ -143,10 +156,19 @@ namespace Emotion.UI
             }
         }
 
-        public static Task PreloadUI()
+        private static object _globalLoadingLock = new object();
+        private static Task _globalLoadingThread = Task.CompletedTask;
+        private static PreloadWindowStorage _keepWindowsLoaded = new();
+        private static UILoadingContext _globalLoadingContext = new UILoadingContext();
+
+        private static void UpdateGlobalLoading()
         {
-            UpdatePreLoading();
-            return UILoadingThread;
+            lock (_globalLoadingLock)
+            {
+                if (!_globalLoadingThread.IsCompleted) return;
+                _keepWindowsLoaded.CheckLoadContent(_globalLoadingContext);
+                _globalLoadingThread = Task.Run(_globalLoadingContext.LoadWindows);
+            }
         }
 
         public static void KeepTemplatePreloaded(UIBaseWindow window)
@@ -157,14 +179,6 @@ namespace Emotion.UI
         public static void StopPreloadTemplate(UIBaseWindow window)
         {
             _keepWindowsLoaded.RemoveChild(window);
-        }
-
-        private static void UpdatePreLoading()
-        {
-            if (!UILoadingThread.IsCompleted) return;
-            _keepWindowsLoaded.CheckLoadContent(_loadingContext);
-            Engine.Log.Warning("Preloading UI!", "");
-            UILoadingThread = Task.Run(_loadingContext.WaitForLoading);
         }
 
         #endregion

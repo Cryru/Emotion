@@ -20,7 +20,7 @@ namespace Emotion.UI
             _loadingTasks.Add(t);
         }
 
-        public async Task WaitForLoading()
+        public async Task LoadWindows()
         {
             Running = true;
             try

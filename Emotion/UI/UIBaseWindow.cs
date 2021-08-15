@@ -48,12 +48,22 @@ namespace Emotion.UI
 
         #endregion
 
-        #region Preload, Update, Render
+        #region Loading, Update, Render
+
+        private Task _loadingTask = Task.CompletedTask;
 
         public void CheckLoadContent(UILoadingContext ctx)
         {
-            ctx.AddLoadingTask(LoadContent());
-
+            // Add to loading only if not currently loading.
+            lock (this)
+            {
+                if (_loadingTask.IsCompleted)
+                {
+                    _loadingTask = LoadContent();
+                    ctx.AddLoadingTask(_loadingTask);
+                }
+            }
+            
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
@@ -129,13 +139,7 @@ namespace Emotion.UI
             // Cache displaced position.
             EnsureRenderBoundsCached(c);
 
-            if (RenderInternal(c) && Children != null)
-                for (var i = 0; i < Children.Count; i++)
-                {
-                    UIBaseWindow child = Children[i];
-                    if (!child.Visible) continue;
-                    child.Render(c);
-                }
+            if (RenderInternal(c) && Children != null) RenderChildren(c);
 
             // Pop displacements, if any were pushed.
             if (matrixPushed) c.PopModelMatrix();
@@ -145,6 +149,16 @@ namespace Emotion.UI
         protected virtual bool RenderInternal(RenderComposer c)
         {
             return true;
+        }
+
+        protected virtual void RenderChildren(RenderComposer c)
+        {
+            for (var i = 0; i < Children!.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                if (!child.Visible) continue;
+                child.Render(c);
+            }
         }
 
         protected virtual void AfterRenderChildren(RenderComposer c)
@@ -371,6 +385,14 @@ namespace Emotion.UI
             return space;
         }
 
+        protected virtual Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
+        {
+            Vector2 freeSpace = StretchX || StretchY ? space : measuredSize;
+            freeSpace.X -= paddingSize.X;
+            freeSpace.Y -= paddingSize.Y;
+            return freeSpace;
+        }
+
         protected Vector2 Measure(Vector2 space)
         {
             float scale = GetScale();
@@ -396,9 +418,7 @@ namespace Emotion.UI
 
             if (Children != null)
             {
-                Vector2 freeSpace = StretchX || StretchY ? space : contentSize;
-                freeSpace.X -= paddingSize.X;
-                freeSpace.Y -= paddingSize.Y;
+                Vector2 freeSpace = GetChildrenLayoutSize(space, contentSize, paddingSize);
 
                 Vector2 scaledSpacing = ListSpacing * scale;
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
@@ -498,7 +518,7 @@ namespace Emotion.UI
             _measuredSize = new Vector2(StretchX ? usedSpace.X + paddingSize.X : contentSize.X, StretchY ? usedSpace.Y + paddingSize.Y : contentSize.Y);
             Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
             Size = _measuredSize;
-            return _measuredSize;
+            return Size;
         }
 
         public Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
@@ -801,6 +821,11 @@ namespace Emotion.UI
         public virtual bool IsPointInside(Vector2 pt)
         {
             return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pt) : Bounds.Contains(pt);
+        }
+
+        public virtual bool IsInsideRect(Rectangle rect)
+        {
+            return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBounds) : rect.ContainsInclusive(Bounds);
         }
 
         protected virtual UIBaseWindow FindMouseInput(Vector2 pos)
