@@ -22,7 +22,7 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Windows
 {
-    public abstract class PresetGenericEditor<T> : ImGuiWindow where T : new()
+    public abstract class PresetGenericEditor<T> : ImGuiWindow
     {
         protected XMLAsset<T>? _currentAsset;
         private bool _unsavedChanges;
@@ -355,7 +355,8 @@ namespace Emotion.Tools.Windows
 
         protected virtual XMLAsset<T> CreateFile()
         {
-            return XMLAsset<T>.CreateFromContent(new T());
+            var newT = Activator.CreateInstance<T>();
+            return XMLAsset<T>.CreateFromContent(newT);
         }
 
         protected abstract bool OnFileLoaded(XMLAsset<T> file);
