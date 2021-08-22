@@ -26,10 +26,10 @@ namespace Emotion.UI
             OnMouseEnterProxy?.Invoke(this);
         }
 
-        public override bool OnKey(Key key, KeyStatus status)
+        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
             if (key == Key.MouseKeyLeft && status == KeyStatus.Down) OnClickedProxy?.Invoke(this);
-            return base.OnKey(key, status);
+            return base.OnKey(key, status, mousePos);
         }
     }
 }

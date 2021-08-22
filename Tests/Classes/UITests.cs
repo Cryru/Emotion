@@ -106,6 +106,9 @@ namespace Tests.Classes
 
             ui.ClearChildren();
             CompareUI("WrappingList.xml", ui);
+
+            ui.ClearChildren();
+            CompareUI("RelativeChildrenInList.xml", ui);
         }
 
         public class DisplacementTestWindow : UISolidColor
@@ -196,14 +199,14 @@ namespace Tests.Classes
                 InputTransparent = false;
             }
 
-            public override bool OnKey(Key key, KeyStatus status)
+            public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
             {
                 if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd && status == KeyStatus.Down)
                 {
                     ClickedCount++;
                 }
 
-                return base.OnKey(key, status);
+                return base.OnKey(key, status, mousePos);
             }
 
             public override void OnMouseEnter(Vector2 mousePos)
