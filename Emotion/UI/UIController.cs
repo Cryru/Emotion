@@ -86,6 +86,8 @@ namespace Emotion.UI
 
         protected void UpdateLayout()
         {
+            _updateLayout = false;
+
             Debugger?.RecordNewPass(this);
             // 1. Measure the size of all windows.
             // Children are measured before parents in order for stretching to work.
@@ -98,7 +100,6 @@ namespace Emotion.UI
             // positions are absolute and not relative.
             Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
             Layout(pos);
-            _updateLayout = false;
         }
 
         public override void AddChild(UIBaseWindow child, int index = -1)
@@ -225,7 +226,7 @@ namespace Emotion.UI
 
         private void MouseScroll(float scroll)
         {
-            if (MouseFocus != null) MouseFocus.OnMouseScroll(scroll);
+            MouseFocus?.OnMouseScroll(scroll);
         }
 
         public void InvalidateInputFocus()

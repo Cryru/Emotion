@@ -2,7 +2,6 @@
 
 using System;
 using System.Numerics;
-using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
@@ -17,8 +16,31 @@ namespace Emotion.UI
 {
     public class UIScrollbar : UIBaseWindow
     {
-        public int MinValue;
-        public int MaxValue = 100;
+        public int MinValue
+        {
+            get => _minVal;
+            set
+            {
+                if (_minVal == value) return;
+                _minVal = value;
+                InvalidateLayout();
+            }
+        }
+
+        private int _minVal;
+
+        public int MaxValue
+        {
+            get => _maxVal;
+            set
+            {
+                if (_maxVal == value) return;
+                _maxVal = value;
+                InvalidateLayout();
+            }
+        }
+
+        private int _maxVal = 100;
 
         /// <summary>
         /// Whether the scrollbar scrolls vertically.
@@ -30,8 +52,10 @@ namespace Emotion.UI
             get => _value;
             set
             {
+                if (_value == value) return;
                 _value = Maths.Clamp(value, MinValue, MaxValue);
                 OnValueChanged?.Invoke(_value);
+                InvalidateLayout();
             }
         }
 
@@ -45,7 +69,7 @@ namespace Emotion.UI
         /// <summary>
         /// How wide should the selector be compared to the total bar.
         /// </summary>
-        public int SelectorRatio = 6;
+        public int SelectorRatio = 1;
 
         public Color DefaultSelectorColor = Color.Red;
 
@@ -100,7 +124,6 @@ namespace Emotion.UI
                 Value = MinValue + (int) MathF.Ceiling(relativePos.X / size.X * range);
             else
                 Value = MinValue + (int) MathF.Ceiling(relativePos.Y / size.Y * range);
-            InvalidateLayout();
         }
 
         public override void OnMouseMove(Vector2 mousePos)
@@ -110,11 +133,15 @@ namespace Emotion.UI
             base.OnMouseMove(mousePos);
         }
 
+        public override void OnMouseScroll(float scroll)
+        {
+            Value += scroll > 0 ? -1 : 1;
+        }
+
         protected override void AfterMeasure(Vector2 mySize)
         {
             mySize /= GetScale();
             int range = MaxValue - MinValue;
-            if (range <= 0) return;
             Vector2 selectorSize;
             if (Vertical)
                 selectorSize = new Vector2(mySize.X / range * SelectorRatio, DefaultMaxSize.Y);
@@ -159,7 +186,7 @@ namespace Emotion.UI
                     offset = (size.Y - selectorSize) / range * Value;
                 }
 
-                _selector.Offset = new Vector2(0, offset);
+                _selector.Offset = new Vector2(0, float.IsNaN(offset) ? 0 : offset);
             }
 
             return base.BeforeLayout(position);

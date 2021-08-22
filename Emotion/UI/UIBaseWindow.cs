@@ -532,6 +532,7 @@ namespace Emotion.UI
                 }
             }
 
+            AfterMeasureChildren(usedSpace);
             _measuredSize = new Vector2(StretchX ? usedSpace.X + paddingSize.X : contentSize.X, StretchY ? usedSpace.Y + paddingSize.Y : contentSize.Y);
             Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
             Size = _measuredSize;
@@ -607,7 +608,7 @@ namespace Emotion.UI
                     bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
                     LayoutMode layoutMode = LayoutMode;
 
-                    if (child.RelativeTo != null) layoutMode = LayoutMode.Free;
+                    if (child.RelativeTo != null || !insideParent) layoutMode = LayoutMode.Free;
 
                     switch (layoutMode)
                     {
@@ -642,6 +643,8 @@ namespace Emotion.UI
                             Rectangle childMarginsScaled = child.Margins * childScale;
                             float spaceTaken = child.Size.X + childOffsetScaled.X + childMarginsScaled.X + childMarginsScaled.Width;
 
+                            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
                             if (wrap && pen.X + spaceTaken > freeSpace.X)
                             {
                                 pen.X = 0;
@@ -673,6 +676,8 @@ namespace Emotion.UI
                             Vector2 childOffsetScaled = child.Offset * childScale;
                             Rectangle childMarginsScaled = child.Margins * childScale;
                             float spaceTaken = child.Size.Y + childOffsetScaled.Y + childMarginsScaled.Y + childMarginsScaled.Height;
+
+                            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
                             if (wrap && pen.Y + spaceTaken > freeSpace.Y)
                             {
@@ -710,6 +715,10 @@ namespace Emotion.UI
         }
 
         protected virtual void AfterMeasure(Vector2 contentSize)
+        {
+        }
+
+        protected virtual void AfterMeasureChildren(Vector2 usedSpace)
         {
         }
 
@@ -840,7 +849,7 @@ namespace Emotion.UI
             return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBounds) : rect.ContainsInclusive(Bounds);
         }
 
-        protected virtual UIBaseWindow FindMouseInput(Vector2 pos)
+        public virtual UIBaseWindow FindMouseInput(Vector2 pos)
         {
             if (Children != null)
                 for (var i = 0; i < Children.Count; i++)
