@@ -19,6 +19,8 @@ namespace Emotion.UI
         public UIBaseWindow InputFocus;
         public UIBaseWindow MouseFocus;
 
+        private bool[] _mouseFocusKeysHeld = new bool[Key.MouseKeyEnd - Key.MouseKeyStart];
+
         private bool _updatePreload = true;
         protected bool _updateLayout = true;
         protected bool _updateInputFocus = true;
@@ -212,7 +214,10 @@ namespace Emotion.UI
 
             if (!Visible) return true;
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && MouseFocus != null)
+            {
+                _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status != KeyStatus.Up;
                 return MouseFocus.OnKey(key, status);
+            }
 
             return true;
         }
@@ -246,8 +251,24 @@ namespace Emotion.UI
         private void UpdateMouseFocus()
         {
             Vector2 mousePos = Engine.Host.MousePosition;
-            UIBaseWindow newMouseFocus = Engine.Host.HostPaused ? null : FindMouseInput(mousePos);
-            if (newMouseFocus == this) newMouseFocus = null;
+            UIBaseWindow newMouseFocus = null;
+
+            // If currently holding down a mouse button don't change the mouse focus if it is still valid.
+            if (MouseFocus != null && MouseFocus.Visible && !MouseFocus.InputTransparent)
+                for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)
+                {
+                    if (_mouseFocusKeysHeld[i])
+                    {
+                        newMouseFocus = MouseFocus;
+                        break;
+                    }
+                }
+
+            if (newMouseFocus == null)
+            {
+                newMouseFocus = Engine.Host.HostPaused ? null : FindMouseInput(mousePos);
+                if (newMouseFocus == this) newMouseFocus = null;
+            }
 
             if (newMouseFocus != MouseFocus)
             {

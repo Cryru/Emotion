@@ -410,6 +410,7 @@ namespace Emotion.UI
             Vector2 contentSize = InternalMeasure(space);
             Debugger?.RecordMetric(this, "Measure_Internal", contentSize);
             contentSize = Vector2.Clamp(contentSize, MinSize * scale, MaxSize * scale).RoundClosest();
+            AfterMeasure(contentSize);
             Debugger?.RecordMetric(this, "Measure_Internal_PostClamp", contentSize);
             Vector2 usedSpace = Vector2.Zero;
 
@@ -696,14 +697,16 @@ namespace Emotion.UI
                 }
             }
 
-            // Invalidate render bound cache if bounds changed.
-            if (_renderBoundsCalculatedFrom != Bounds) _renderBoundsCalculatedFrom = Rectangle.Empty;
             AfterLayout();
         }
 
         protected virtual Vector2 BeforeLayout(Vector2 position)
         {
             return position;
+        }
+
+        protected virtual void AfterMeasure(Vector2 contentSize)
+        {
         }
 
         protected virtual void AfterLayout()
@@ -810,9 +813,9 @@ namespace Emotion.UI
         private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
         protected Rectangle _renderBounds; // .Bounds but with any displacements active on the window applied
 
-        private void EnsureRenderBoundsCached(RenderComposer c)
+        public void EnsureRenderBoundsCached(RenderComposer c)
         {
-            if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom != Rectangle.Empty) return;
+            if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == Bounds) return;
             _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
             _renderBoundsCachedMatrix = c.ModelMatrix;
             _renderBoundsCalculatedFrom = Bounds;

@@ -53,7 +53,11 @@ namespace Emotion.UI
         private Vector2 _gridSize;
         private int _lastRowColumn;
 
+        private Rectangle _scrollArea;
         private Vector2 _scrollPos = Vector2.Zero;
+        private int _firstVisibleChild = -1;
+        private int _lastVisibleChild = -1;
+        private Matrix4x4 _scrollDisplacement = Matrix4x4.Identity;
 
         public UICallbackListNavigator()
         {
@@ -62,32 +66,45 @@ namespace Emotion.UI
 
         protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
         {
-            Vector2 scrollArea = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
+            Vector2 scrollRange = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
             switch (LayoutMode)
             {
                 case LayoutMode.VerticalListWrap:
                 case LayoutMode.HorizontalList:
-                    scrollArea.X = MaxSize.X;
+                    scrollRange.X = MaxSize.X;
                     break;
                 case LayoutMode.HorizontalListWrap:
                 case LayoutMode.VerticalList:
-                    scrollArea.Y = MaxSize.Y;
+                    scrollRange.Y = MaxSize.Y;
                     break;
             }
 
+            Rectangle parentPadding = Paddings * GetScale();
+            _scrollArea = new Rectangle(parentPadding.X, parentPadding.Y, scrollRange.X, scrollRange.Y);
 
-            return scrollArea;
+            return scrollRange;
         }
 
         protected override void RenderChildren(RenderComposer c)
         {
             Rectangle renderRect = _renderBounds;
+            //c.RenderOutline(renderRect, Color.Red);
+
+            c.PushModelMatrix(_scrollDisplacement);
+            var lastVis = 0;
             for (var i = 0; i < Children!.Count; i++)
             {
                 UIBaseWindow child = Children[i];
+                child.EnsureRenderBoundsCached(c);
+
                 if (!child.Visible || !child.IsInsideRect(renderRect)) continue;
                 child.Render(c);
+                if (_firstVisibleChild == -1) _firstVisibleChild = i;
+                lastVis = i;
             }
+
+            c.PopModelMatrix();
+            if (_lastVisibleChild == -1) _lastVisibleChild = lastVis;
         }
 
         protected override void AfterLayout()
@@ -139,7 +156,27 @@ namespace Emotion.UI
             }
 
             _lastRowColumn = (int) pen.X - 1;
+
+            // Scroll data cache.
+            _firstVisibleChild = -1;
+            _lastVisibleChild = -1;
+            _scrollArea.X += X;
+            _scrollArea.Y += Y;
+
             base.AfterLayout();
+        }
+
+        private void ScrollToPos(Vector2 gridLikePos)
+        {
+            UIBaseWindow? child = GetChildByGridLikePos(gridLikePos, out int _, false);
+            if (child == null) return;
+            _scrollPos = Vector2.Zero;
+            _scrollPos = gridLikePos;
+            _scrollDisplacement = Matrix4x4.CreateTranslation(
+                _scrollArea.X - child.X + child.Margins.X * child.GetScale(),
+                _scrollArea.Y - child.Y + child.Margins.Y * child.GetScale(), 0);
+            _firstVisibleChild = -1;
+            _lastVisibleChild = -1;
         }
 
         public UIBaseWindow? GetChildByGridLikePos(Vector2 gridLikePos, out int index, bool includeInvisible)
@@ -172,6 +209,14 @@ namespace Emotion.UI
                 if (_selectedPos.Y == _gridSize.Y && _selectedPos.X > _lastRowColumn && _lastRowColumn != -1) _selectedPos.X = _lastRowColumn;
                 UIBaseWindow? newItem = GetChildByGridLikePos(_selectedPos, out int childIdx, false);
                 Debug.Assert(childIdx != -1);
+
+                // Check if the new item is on screen.
+                if (childIdx > _lastVisibleChild || childIdx < _firstVisibleChild)
+                {
+                    Vector2 diff = Vector2.Normalize(_selectedPos - _scrollPos);
+                    ScrollToPos(_scrollPos + diff);
+                }
+
                 UIBaseWindow? oldSel = SelectedWnd;
                 SelectedWnd = newItem;
                 SelectedChildIdx = childIdx;

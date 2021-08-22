@@ -225,7 +225,7 @@ namespace Emotion.Tools.Windows
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Debug Info"))
+            if (ImGui.BeginTabItem("Calculated Props"))
             {
                 ImGui.BeginChild("Debug Properties", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
 
