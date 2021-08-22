@@ -59,6 +59,8 @@ namespace Emotion.UI
         private int _lastVisibleChild = -1;
         private Matrix4x4 _scrollDisplacement = Matrix4x4.Identity;
 
+        private UIScrollbar? _scrollBar;
+
         public UICallbackListNavigator()
         {
             InputTransparent = false;
@@ -66,7 +68,8 @@ namespace Emotion.UI
 
         protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
         {
-            Vector2 scrollRange = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
+            Vector2 baseChildSize = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
+            Vector2 scrollRange = baseChildSize;
             switch (LayoutMode)
             {
                 case LayoutMode.VerticalListWrap:
@@ -81,6 +84,18 @@ namespace Emotion.UI
 
             Rectangle parentPadding = Paddings * GetScale();
             _scrollArea = new Rectangle(parentPadding.X, parentPadding.Y, scrollRange.X, scrollRange.Y);
+
+            // Scroll bar should layout relative to the render bounds rather than the scroll bounds,
+            // which are reported as the content size to all children.
+            if (_scrollBar != null)
+            {
+                float max = baseChildSize.Y / GetScale();
+                if (_lastVisibleChild != -1 && Children != null)
+                {
+                    var lastVisibleChild = Children[_lastVisibleChild];
+                }
+                _scrollBar.MaxSize = new Vector2(_scrollBar.MaxSize.X, max);
+            }
 
             return scrollRange;
         }
@@ -199,7 +214,7 @@ namespace Emotion.UI
             return Vector2.Zero;
         }
 
-        public override bool OnKey(Key key, KeyStatus status)
+        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
             Vector2 axis = Engine.Host.IsKeyPartOfAxis(key, NavigationKey);
             if (axis != Vector2.Zero)
@@ -225,7 +240,38 @@ namespace Emotion.UI
 
             if (key == ConfirmChoice && status == KeyStatus.Down && SelectedWnd != null) OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
 
-            return base.OnKey(key, status);
+            return base.OnKey(key, status, mousePos);
+        }
+
+        public override void OnMouseScroll(float scroll)
+        {
+            // Todo: Horizontal list implementation
+            bool isUp = scroll > 0;
+            if(_firstVisibleChild == -1 || _lastVisibleChild == -1 || Children == null) return;
+
+            if (isUp)
+            {
+                int firstVisibleChild = _firstVisibleChild;
+                firstVisibleChild--;
+                if(firstVisibleChild == 0) return;
+                Vector2 gridPos = GetGridLikePosFromChild(Children[firstVisibleChild]);
+
+                Vector2 diff = Vector2.Normalize(gridPos - _scrollPos);
+                ScrollToPos(_scrollPos + diff);
+            }
+            else
+            {
+                int lastChildIdx = _lastVisibleChild;
+                UIBaseWindow lastVisibleChild = Children[lastChildIdx];
+                lastChildIdx++;
+                if(lastChildIdx == Children.Count) return;
+                Vector2 gridPos = GetGridLikePosFromChild(Children[lastChildIdx]);
+
+                Vector2 diff = Vector2.Normalize(gridPos - _scrollPos);
+                ScrollToPos(_scrollPos + diff);
+            }
+
+            Engine.Log.Info($"{scroll}", "");
         }
 
         public void ResetSelection(bool nullSelection = false)
@@ -295,6 +341,21 @@ namespace Emotion.UI
         {
             if (!b.Visible) return;
             SetSelection(b);
+        }
+
+        public void SetScrollbar(UIScrollbar scrollBar)
+        {
+            _scrollBar = scrollBar;
+        }
+
+        protected override UIBaseWindow FindMouseInput(Vector2 pos)
+        {
+            UIBaseWindow focus = base.FindMouseInput(pos);
+            if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos))
+            {
+                return _scrollBar;
+            }
+            return focus;
         }
     }
 }

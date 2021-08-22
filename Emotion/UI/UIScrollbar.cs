@@ -9,11 +9,13 @@ using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Utility;
 
+#nullable enable
+
 #endregion
 
 namespace Emotion.UI
 {
-    internal class UIScrollbar : UIBaseWindow
+    public class UIScrollbar : UIBaseWindow
     {
         public int MinValue;
         public int MaxValue = 100;
@@ -26,7 +28,11 @@ namespace Emotion.UI
         public int Value
         {
             get => _value;
-            set => _value = Maths.Clamp(value, MinValue, MaxValue);
+            set
+            {
+                _value = Maths.Clamp(value, MinValue, MaxValue);
+                OnValueChanged?.Invoke(_value);
+            }
         }
 
         private int _value;
@@ -34,7 +40,7 @@ namespace Emotion.UI
         /// <summary>
         /// Whether to keep the selector inside the bar or to keep its center inside. By default the center is kept inside only.
         /// </summary>
-        public bool KeepSelectorInside;
+        public bool KeepSelectorInside = true;
 
         /// <summary>
         /// How wide should the selector be compared to the total bar.
@@ -43,9 +49,9 @@ namespace Emotion.UI
 
         public Color DefaultSelectorColor = Color.Red;
 
-        [DontSerialize] public Action<int>? OnScroll;
+        [DontSerialize] public Action<int>? OnValueChanged;
 
-        private UIBaseWindow _selector;
+        private UIBaseWindow _selector = null!;
         private bool _dragging;
 
         public UIScrollbar()
@@ -56,7 +62,6 @@ namespace Emotion.UI
         public override void AttachedToController(UIController controller)
         {
             base.AttachedToController(controller);
-            UIBaseWindow? bg = GetWindowById("Background");
             UIBaseWindow? scroll = GetWindowById("Selector");
             if (scroll == null)
             {
@@ -67,13 +72,13 @@ namespace Emotion.UI
             _selector = scroll;
         }
 
-        public override bool OnKey(Key key, KeyStatus status)
+        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
             if (key == Key.MouseKeyLeft)
             {
                 if (status == KeyStatus.Down)
                 {
-                    SetValueFromPos(Engine.Host.MousePosition);
+                    SetValueFromPos(mousePos);
                     _dragging = true;
                 }
                 else if (status == KeyStatus.Up)
@@ -82,12 +87,12 @@ namespace Emotion.UI
                 }
             }
 
-            return base.OnKey(key, status);
+            return base.OnKey(key, status, mousePos);
         }
 
         public void SetValueFromPos(Vector2 pos)
         {
-            Vector2 relativePos = pos - Position2;
+            Vector2 relativePos = pos - _renderBounds.Position;
             int range = MaxValue - MinValue;
             Vector2 size = Size;
 

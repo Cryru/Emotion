@@ -30,6 +30,7 @@ namespace Emotion.UI
             InputTransparent = false;
             Debugger = new UIDebugger();
             Engine.Host.OnResize += Host_OnResize;
+            Engine.Host.OnMouseScroll += MouseScroll;
             KeepTemplatePreloaded(this);
             _activeControllers.Add(this);
         }
@@ -199,7 +200,7 @@ namespace Emotion.UI
             if (!Visible) return true;
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) return true;
             if (InputFocus != null && InputFocus.Visible)
-                return InputFocus.OnKey(key, status);
+                return InputFocus.OnKey(key, status, Engine.Host.MousePosition);
 
             return true;
         }
@@ -216,10 +217,15 @@ namespace Emotion.UI
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && MouseFocus != null)
             {
                 _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status != KeyStatus.Up;
-                return MouseFocus.OnKey(key, status);
+                return MouseFocus.OnKey(key, status, Engine.Host.MousePosition);
             }
 
             return true;
+        }
+
+        private void MouseScroll(float scroll)
+        {
+            if (MouseFocus != null) MouseFocus.OnMouseScroll(scroll);
         }
 
         public void InvalidateInputFocus()
@@ -273,8 +279,7 @@ namespace Emotion.UI
             if (newMouseFocus != MouseFocus)
             {
                 MouseFocus?.OnMouseLeft(mousePos);
-                if (MouseFocus != null)
-                    Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+                if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
                 MouseFocus = newMouseFocus;
                 if (MouseFocus != null)
                     Engine.Host.OnKey.AddListener(MouseFocusOnKey);
