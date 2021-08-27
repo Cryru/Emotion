@@ -120,9 +120,15 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Create a new uninitialized texture.
         /// </summary>
-        public Texture()
+        public Texture() : this(Vector2.Zero)
         {
             Pointer = Gl.GenTexture();
+        }
+
+        protected Texture(Vector2 size)
+        {
+            Size = size;
+
 #if DEBUG
             AllTextures.Add(this);
             CreationStack = Environment.StackTrace;
@@ -130,6 +136,22 @@ namespace Emotion.Graphics.Objects
             int newLineAfterThat = CreationStack.IndexOf("\n", lastCtorCall);
             CreationStack = CreationStack.Substring(newLineAfterThat + 1);
 #endif
+        }
+
+        public static Texture NonGLThreadInitialize(Vector2 size)
+        {
+            var t = new Texture(size)
+            {
+                Pointer = EmptyWhiteTexture.Pointer,
+                InternalFormat = InternalFormat.Rgba,
+                PixelType = PixelType.UnsignedByte
+            };
+            return t;
+        }
+
+        public static void NonGLThreadInitializedCreatePointer(Texture t)
+        {
+            t.Pointer = Gl.GenTexture();
         }
 
         /// <summary>
