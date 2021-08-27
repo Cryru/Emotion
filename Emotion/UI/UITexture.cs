@@ -111,13 +111,13 @@ namespace Emotion.UI
             TextureAsset = texture;
         }
 
-        public override async Task LoadContent()
+        protected override async Task LoadContent()
         {
             if (TextureFile == null) return;
             if (TextureAsset == null || TextureAsset.Name != TextureFile || TextureAsset.Disposed) TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
             if (TextureAsset == null) return;
 
-            if (Smooth != TextureAsset.Texture.Smooth) _ = GLThread.ExecuteGLThreadAsync(() => { TextureAsset.Texture.Smooth = Smooth; });
+            if (Smooth != TextureAsset.Texture.Smooth) TextureAsset.Texture.Smooth = Smooth;
             CalculateUV();
         }
 

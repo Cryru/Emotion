@@ -60,6 +60,7 @@ namespace Emotion.UI
                 if (_loadingTask.IsCompleted)
                 {
                     _loadingTask = LoadContent();
+                    // if (!_loadingTask.IsCompleted) Engine.Log.Trace(ToString(), "UI Loading");
                     ctx.AddLoadingTask(_loadingTask);
                 }
             }
@@ -72,7 +73,7 @@ namespace Emotion.UI
             }
         }
 
-        public virtual Task LoadContent()
+        protected virtual Task LoadContent()
         {
             return Task.CompletedTask;
         }
@@ -240,6 +241,7 @@ namespace Emotion.UI
         {
             Controller = controller;
             Controller?.InvalidatePreload();
+            Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {

@@ -89,7 +89,7 @@ namespace Emotion.UI
         protected Vector2 _scaledUnderlineOffset;
         protected float _scaledUnderlineThickness;
 
-        public override async Task LoadContent()
+        protected override async Task LoadContent()
         {
             // Load font if not loaded.
             if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
@@ -111,7 +111,7 @@ namespace Emotion.UI
 
         protected override Vector2 InternalMeasure(Vector2 space)
         {
-            if (_fontFile == null) return Vector2.Zero;
+            if (_fontFile == null || _layouter == null) return Vector2.Zero;
 
             float scale = GetScale();
             _scaledUnderlineOffset = UnderlineOffset * scale;

@@ -131,12 +131,11 @@ namespace Emotion.UI
         {
             if (!_loadingThread.IsCompleted) return;
             CheckLoadContent(_loadingContext);
-            Engine.Log.Warning("Preloading UI!", "");
             _loadingThread = Task.Run(_loadingContext.LoadWindows);
             _updatePreload = false;
 
             // If one controller is loading, check global.
-            UpdateGlobalLoading();
+            GlobalLoadUI();
         }
 
         /// <summary>
@@ -165,19 +164,21 @@ namespace Emotion.UI
         private static PreloadWindowStorage _keepWindowsLoaded = new();
         private static UILoadingContext _globalLoadingContext = new UILoadingContext();
 
-        private static void UpdateGlobalLoading()
+        public static Task GlobalLoadUI()
         {
             lock (_globalLoadingLock)
             {
-                if (!_globalLoadingThread.IsCompleted) return;
+                if (!_globalLoadingThread.IsCompleted) return _globalLoadingThread;
                 _keepWindowsLoaded.CheckLoadContent(_globalLoadingContext);
                 _globalLoadingThread = Task.Run(_globalLoadingContext.LoadWindows);
             }
+
+            return _globalLoadingThread;
         }
 
         public static void KeepTemplatePreloaded(UIBaseWindow window)
         {
-            _keepWindowsLoaded.AddChild(window);
+            _keepWindowsLoaded.AddChild(window, 0);
         }
 
         public static void StopPreloadTemplate(UIBaseWindow window)

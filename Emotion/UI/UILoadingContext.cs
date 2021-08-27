@@ -14,6 +14,13 @@ namespace Emotion.UI
         public bool Running { get; protected set; }
         private List<Task> _loadingTasks = new List<Task>();
 
+        private bool _log;
+
+        public UILoadingContext(bool log = true)
+        {
+            _log = log;
+        }
+
         public void AddLoadingTask(Task t)
         {
             if (t.IsCompleted) return;
@@ -32,7 +39,7 @@ namespace Emotion.UI
                 Engine.Log.Error($"Window loading failed. {ex}", "UI");
             }
 
-            Engine.Log.Info($"Loaded {_loadingTasks.Count} windows.", "UI");
+            if (_log) Engine.Log.Trace($"Loaded {_loadingTasks.Count} windows.", "UI");
             _loadingTasks.Clear();
             Running = false;
         }
