@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Game.Time;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
@@ -80,20 +81,6 @@ namespace Emotion.UI
 
         public void Update()
         {
-            if (_alphaTween != null)
-            {
-                _alphaTween.Update(Engine.DeltaTime);
-                var current = (byte) Maths.Lerp(_startingAlpha, _targetAlpha, _alphaTween.Progress);
-                WindowColor = WindowColor.SetAlpha(current);
-                if (_alphaTween.Finished)
-                {
-                    Debug.Assert(WindowColor.A == _targetAlpha);
-                    _alphaTween = null;
-                }
-
-                InvalidateColor();
-            }
-
             if (!Visible) return;
             Debug.Assert(Controller != null || this is UIController);
 
@@ -756,9 +743,6 @@ namespace Emotion.UI
 
         protected Color _calculatedColor;
         protected bool _updateColor = true;
-        protected byte _startingAlpha = 255;
-        protected byte _targetAlpha = 255;
-        protected ITimer? _alphaTween;
 
         public void InvalidateColor()
         {
@@ -771,11 +755,51 @@ namespace Emotion.UI
             }
         }
 
-        public void SetAlpha(byte value, ITimer tween)
+        protected Coroutine? _alphaTweenRoutine;
+
+        public IEnumerator AlphaTweenRoutine(ITimer alphaTween, byte startingAlpha, byte targetAlpha, bool? setVisible)
         {
-            _startingAlpha = WindowColor.A;
-            _targetAlpha = value;
-            _alphaTween = tween;
+            while (true)
+            {
+                alphaTween.Update(Engine.DeltaTime);
+                var current = (byte) Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
+                WindowColor = WindowColor.SetAlpha(current);
+                if (alphaTween.Finished)
+                {
+                    Debug.Assert(WindowColor.A == targetAlpha);
+                    if (setVisible != null) Visible = setVisible.Value;
+                    yield break;
+                }
+
+                InvalidateColor();
+                yield return null;
+            }
+        }
+
+        public void SetAlpha(byte value, ITimer? tween = null)
+        {
+            if (tween == null)
+            {
+                WindowColor = WindowColor.SetAlpha(value);
+                return;
+            }
+
+            Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+            _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, value, null));
+        }
+
+        public void SetVisibleFade(bool val, ITimer? tween = null)
+        {
+            var targetAlpha = (byte) (val ? 255 : 0);
+            if (tween == null)
+            {
+                WindowColor = WindowColor.SetAlpha(targetAlpha);
+                Visible = val;
+                return;
+            }
+
+            Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+            _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, val));
         }
 
         protected void CalculateColor()
@@ -1075,6 +1099,18 @@ namespace Emotion.UI
             }
 
             return null;
+        }
+
+        public bool VisibleAlongTree()
+        {
+            UIBaseWindow? parent = Parent;
+            while (parent != null)
+            {
+                if (!parent.Visible) return false;
+                parent = parent.Parent;
+            }
+
+            return Visible;
         }
 
         /// <summary>

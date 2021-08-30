@@ -201,7 +201,7 @@ namespace Emotion.UI
 
             if (!Visible) return true;
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) return true;
-            if (InputFocus != null && InputFocus.Visible)
+            if (InputFocus != null && InputFocus.VisibleAlongTree())
                 return InputFocus.OnKey(key, status, Engine.Host.MousePosition);
 
             return true;
