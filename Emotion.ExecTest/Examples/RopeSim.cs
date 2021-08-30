@@ -49,7 +49,6 @@ namespace Emotion.ExecTest.Examples
                     _points.Add(point);
 
                     if (x != 0) _connections.Add(new RopeSimConnection2D(arr[x - 1, y], point));
-
                     if (y != 0) _connections.Add(new RopeSimConnection2D(arr[x, y - 1], point));
                 }
             }

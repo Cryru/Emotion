@@ -31,13 +31,14 @@ namespace Emotion.Game.RopeSim
 
                     Vector3 diff = connection.Start.Position - connection.End.Position;
                     if (diff == Vector3.Zero) continue;
-
                     Vector3 dir = Vector3.Normalize(diff);
+
+                    float length = connection.Length / 2;
                     if (!connection.Start.Locked)
-                        connection.Start.Position = center + dir * connection.Length / 2;
+                        connection.Start.Position = center + dir * length;
 
                     if (!connection.End.Locked)
-                        connection.End.Position = center - dir * connection.Length / 2;
+                        connection.End.Position = center - dir * length;
                 }
             }
         }
@@ -62,10 +63,9 @@ namespace Emotion.Game.RopeSim
 
                     Vector2 diff = connection.Start.Position - connection.End.Position;
                     if (diff == Vector2.Zero) continue;
+                    Vector2 dir = Vector2.Normalize(diff);
 
                     float length = connection.Length / 2;
-
-                    Vector2 dir = Vector2.Normalize(diff);
                     if (!connection.Start.Locked)
                         connection.Start.Position = center + dir * length;
 
