@@ -1,4 +1,10 @@
-﻿namespace Emotion.Game.RopeSim
+﻿#region Using
+
+using System.Numerics;
+
+#endregion
+
+namespace Emotion.Game.RopeSim
 {
     public class RopeSimConnection3D
     {
@@ -20,10 +26,12 @@
         public RopeSimPoint2D End;
         public float Length;
 
-        public RopeSimConnection2D(RopeSimPoint2D start, RopeSimPoint2D end, float length)
+        public RopeSimConnection2D(RopeSimPoint2D start, RopeSimPoint2D end, float length = -1)
         {
             Start = start;
             End = end;
+
+            if (length == -1) length = Vector2.Distance(start.Position, end.Position);
             Length = length;
         }
     }

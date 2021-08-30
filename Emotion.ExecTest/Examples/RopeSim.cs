@@ -21,9 +21,40 @@ namespace Emotion.ExecTest.Examples
         private bool _run;
         private RopeSimPoint2D _dragging;
         private Vector2 _draggingCut;
+        private float _circleRadius = 4;
 
         public override Task LoadAsync()
         {
+#if true
+            var gridDistance = new Vector2(20);
+            var gridSize = new Vector2(30, 15);
+
+            var screen = new Rectangle(0, 0, Engine.Configuration.RenderSize);
+            screen.Center = new Vector2(0);
+
+            var grid = new Rectangle(0, 0, gridSize * gridDistance);
+            grid.Center = screen.Center;
+            Vector2 gridStart = grid.Position;
+
+            var arr = new RopeSimPoint2D[(int) gridSize.X, (int) gridSize.Y];
+            for (var y = 0; y < gridSize.Y; y++)
+            {
+                for (var x = 0; x < gridSize.X; x++)
+                {
+                    Vector2 p = gridStart + new Vector2(x, y) * gridDistance;
+                    var point = new RopeSimPoint2D(p);
+                    if (y == 0 && (x % 5 == 0 || x == gridSize.X - 1)) point.Locked = true;
+
+                    arr[x, y] = point;
+                    _points.Add(point);
+
+                    if (x != 0) _connections.Add(new RopeSimConnection2D(arr[x - 1, y], point));
+
+                    if (y != 0) _connections.Add(new RopeSimConnection2D(arr[x, y - 1], point));
+                }
+            }
+#endif
+
             Engine.Host.OnKey.AddListener((key, status) =>
             {
                 Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
@@ -35,10 +66,10 @@ namespace Emotion.ExecTest.Examples
                 else if (key == Key.MouseKeyLeft)
                 {
                     RopeSimPoint2D mouseOnPoint = null;
-                    for (int i = 0; i < _points.Count; i++)
+                    for (var i = 0; i < _points.Count; i++)
                     {
                         RopeSimPoint2D p = _points[i];
-                        if (new Circle(_points[i].Position + new Vector2(5f), 5).Contains(ref worldMouse))
+                        if (new Circle(_points[i].Position + new Vector2(_circleRadius), _circleRadius).Contains(ref worldMouse))
                         {
                             mouseOnPoint = p;
                             break;
@@ -62,7 +93,7 @@ namespace Emotion.ExecTest.Examples
                     else if (status == KeyStatus.Up && _dragging != null)
                     {
                         if (mouseOnPoint != null && mouseOnPoint != _dragging)
-                            _connections.Add(new RopeSimConnection2D(_dragging, mouseOnPoint, Vector2.Distance(_dragging.Position, mouseOnPoint.Position)));
+                            _connections.Add(new RopeSimConnection2D(_dragging, mouseOnPoint));
 
                         _dragging = null;
                     }
@@ -75,12 +106,12 @@ namespace Emotion.ExecTest.Examples
                     }
                     else if (status == KeyStatus.Up && _draggingCut != Vector2.Zero)
                     {
-                        LineSegment cutter = new LineSegment(_draggingCut, worldMouse);
+                        var cutter = new LineSegment(_draggingCut, worldMouse);
 
                         for (int i = _connections.Count - 1; i >= 0; i--)
                         {
-                            var connection = _connections[i];
-                            LineSegment s = new LineSegment(connection.Start.Position + new Vector2(5f), connection.End.Position + new Vector2(5f));
+                            RopeSimConnection2D connection = _connections[i];
+                            var s = new LineSegment(connection.Start.Position + new Vector2(_circleRadius), connection.End.Position + new Vector2(_circleRadius));
                             if (s.Intersects(ref cutter)) _connections.RemoveAt(i);
                         }
 
@@ -107,13 +138,13 @@ namespace Emotion.ExecTest.Examples
 
             foreach (RopeSimConnection2D p in _connections)
             {
-                composer.RenderLine((p.Start.Position + new Vector2(5f)).ToVec3(), (p.End.Position + new Vector2(5f)).ToVec3(), Color.White);
+                composer.RenderLine((p.Start.Position + new Vector2(_circleRadius)).ToVec3(), (p.End.Position + new Vector2(_circleRadius)).ToVec3(), Color.White);
             }
 
             if (_dragging != null)
             {
                 Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
-                composer.RenderLine((_dragging.Position + new Vector2(5f)).ToVec3(), worldMouse.ToVec3(), Color.Red);
+                composer.RenderLine((_dragging.Position + new Vector2(_circleRadius)).ToVec3(), worldMouse.ToVec3(), Color.Red);
             }
 
             if (_draggingCut != Vector2.Zero)
@@ -124,7 +155,7 @@ namespace Emotion.ExecTest.Examples
 
             foreach (var p in _points)
             {
-                composer.RenderCircle(p.Position.ToVec3(), 5f, p.Locked ? Color.Magenta : Color.Black);
+                composer.RenderCircle(p.Position.ToVec3(), _circleRadius, p.Locked ? Color.Magenta : Color.Black);
             }
         }
 
