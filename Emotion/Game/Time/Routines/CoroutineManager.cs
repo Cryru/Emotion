@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -65,8 +64,9 @@ namespace Emotion.Game.Time.Routines
         /// Stop a coroutine from running.
         /// </summary>
         /// <param name="routine">Reference to the coroutine.</param>
-        public void StopCoroutine(Coroutine routine)
+        public void StopCoroutine(Coroutine? routine)
         {
+            if (routine == null) return;
             lock (this)
             {
                 _runningRoutines.Remove(routine);
@@ -99,8 +99,6 @@ namespace Emotion.Game.Time.Routines
                 for (var i = 0; i < _runningRoutines.Count; i++)
                 {
                     Coroutine current = _runningRoutines[i];
-                    Debug.Assert(current != null);
-
                     Current = current;
                     current.Run();
                 }
@@ -119,7 +117,7 @@ namespace Emotion.Game.Time.Routines
 #if DEBUG
         public List<Coroutine> DbgGetRunningRoutines()
         {
-            lock(_runningRoutines)
+            lock (_runningRoutines)
             {
                 return _runningRoutines;
             }
