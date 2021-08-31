@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 #endregion
@@ -17,7 +15,9 @@ namespace Emotion.Game.RopeSim
             {
                 if (point.Locked) continue;
                 Vector3 oldPos = point.Position;
-                point.Position += point.Position - point.PrevPosition; // Objects in motion stay in motion.
+                Vector3 motion = point.Position - point.PrevPosition;
+                if (motion.Length() > 0.01f)
+                    point.Position += motion; // Objects in motion stay in motion.
                 point.Position += force;
                 point.PrevPosition = oldPos;
             }
@@ -49,7 +49,9 @@ namespace Emotion.Game.RopeSim
             {
                 if (point.Locked) continue;
                 Vector2 oldPos = point.Position;
-                point.Position += point.Position - point.PrevPosition; // Objects in motion stay in motion.
+                Vector2 motion = point.Position - point.PrevPosition;
+                if (motion.Length() > 0.01f)
+                    point.Position += motion; // Objects in motion stay in motion.
                 point.Position += force;
                 point.PrevPosition = oldPos;
             }
