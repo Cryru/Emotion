@@ -99,6 +99,47 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Render a line in projected screen space. This allows for more accurate lines, with a visible Z dimension.
+        /// </summary>
+        public void RenderLineScreenSpace(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
+        {
+            if (thickness < 1.0f) thickness = 1.0f;
+
+            bool? old = CurrentState.ViewMatrix;
+            SetUseViewMatrix(false);
+
+            pointOne = Vector3.Transform(pointOne, Camera.ViewMatrix * ModelMatrix);
+            pointTwo = Vector3.Transform(pointTwo, Camera.ViewMatrix * ModelMatrix);
+            PushModelMatrix(Matrix4x4.Identity, false);
+
+            pointOne = pointOne.IntCastRound();
+            pointTwo = pointTwo.IntCastRound();
+
+            Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
+            var normal = new Vector3(-direction.Y, direction.X, 0);
+            Vector3 delta = normal * (thickness / 2f);
+
+            pointOne += delta; // Move to pixel center.
+            pointTwo += delta;
+
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
+            vertices[0].Vertex = pointOne + delta;
+            vertices[1].Vertex = pointTwo + delta;
+            vertices[2].Vertex = pointTwo - delta;
+            vertices[3].Vertex = pointOne - delta;
+
+            uint c = color.ToUint();
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i].Color = c;
+                vertices[i].UV = Vector2.Zero;
+            }
+
+            PopModelMatrix();
+            SetUseViewMatrix(old ?? true);
+        }
+
+        /// <summary>
         /// Render a line, from a line segment.
         /// </summary>
         /// <param name="segment">The line segment to render.</param>

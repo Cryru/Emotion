@@ -29,7 +29,7 @@ namespace Emotion.ExecTest
             config.AddPlugin(new ImGuiNetPlugin());
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new RopeSim());
+            Engine.SceneManager.SetScene(new Program());
             Engine.Run();
         }
 
