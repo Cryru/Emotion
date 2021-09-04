@@ -412,7 +412,7 @@ namespace Emotion.Platform
         /// Returns whether the key was let go this tick.
         /// </summary>
         /// <param name="key">The key code to check.</param>
-        [Obsolete("Please use IsKeyHeld instead of IsMouseKeyHeld")]
+        [Obsolete("Please use IsKeyUp instead of IsMouseKeyUp")]
         public bool IsMouseKeyUp(MouseKey key)
         {
             return IsKeyUp((Key) key);
@@ -422,7 +422,7 @@ namespace Emotion.Platform
         /// Returns whether the key is being held down this tick.
         /// </summary>
         /// <param name="key">The key to check.</param>
-        [Obsolete("Please use IsKeyUp instead of IsMouseKeyUp")]
+        [Obsolete("Please use IsKeyHeld instead of IsMouseKeyHeld")]
         public bool IsMouseKeyHeld(MouseKey key)
         {
             return IsKeyHeld((Key) key);
