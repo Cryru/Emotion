@@ -64,7 +64,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 var reflectionHandler = new ReflectedMemberHandler(property);
                 XMLFieldHandler handler = skip ? new XMLSkippedMember(reflectionHandler) : XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, reflectionHandler, excludeProp);
                 if (handler == null) continue;
-
+                
                 fieldHandlers.TryAdd(propertyName, handler);
             }
 
@@ -73,7 +73,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 FieldInfo field = fields[i];
 
                 var excludeProp = field.GetCustomAttribute<DontSerializeMembersAttribute>();
-
+                
                 bool skip = field.GetCustomAttribute<DontSerializeAttribute>() != null;
                 string fieldName = field.Name;
                 if (!skip && _excludedMembers != null && _excludedMembers.Contains(fieldName)) skip = true;

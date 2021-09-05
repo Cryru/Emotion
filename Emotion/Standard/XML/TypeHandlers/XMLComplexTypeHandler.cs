@@ -166,7 +166,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                         if (input.Finished) break;
                     }
                 }
-
+                
                 input.GoToNextTag();
             }
 
