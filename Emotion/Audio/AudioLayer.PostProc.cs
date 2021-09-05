@@ -19,7 +19,7 @@ namespace Emotion.Audio
             int startingFrame = playhead / channels;
 
             // Get data.
-            int samples = track.File.ResampleCache.Value.GetCachedSamples(playhead, frames, memory);
+            int samples = track.File.AudioConverter.GetConvertedSamplesAt(format, playhead, frames, memory);
             playhead += samples;
             int framesOutput = samples / channels;
             Debug.Assert(framesOutput <= frames);
@@ -51,12 +51,11 @@ namespace Emotion.Audio
             {
                 AudioTrack nextTrack = null;
                 if (LoopingCurrent)
-                    nextTrack = track;
+                    nextTrack = _loopCount > 0 ? track : null; // Dont crossfade on first play of loop.
                 else
                     lock (_playlist)
                     {
-                        int playlistSize = _playlist.Count;
-                        if (_currentTrack < playlistSize - 1) nextTrack = _playlist[_currentTrack + 1];
+                        if (_playlist.Count > 1) nextTrack = _playlist[1];
                     }
 
                 if (nextTrack != null)
@@ -96,7 +95,8 @@ namespace Emotion.Audio
 
         private void PostProcessApplyFading(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
         {
-            if (currentTrack.FadeIn != null) ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
+            if (currentTrack.FadeIn != null && (!currentTrack.FadeInOnlyFirstLoop || _loopCount == 0))
+                ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
             if (currentTrack.FadeOut != null) ApplyFadeOut(format, currentTrack, frameStart, frameCount, channels, soundData);
         }
 
@@ -151,7 +151,7 @@ namespace Emotion.Audio
                 fadeOutDuration = currentTrackDuration * -fadeOutDuration;
 
             var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
-            int fadeOutFrameStart = _totalSamples / channels - fadeOutFrames;
+            int fadeOutFrameStart = _totalSamplesConv / channels - fadeOutFrames;
             if (frameStart <= fadeOutFrameStart) return;
 
             var localFrame = 0;
@@ -194,7 +194,7 @@ namespace Emotion.Audio
             // Add a fade in to the next track (if none). Makes the cross fade better.
             // The current track already has a fade out applied in post processing.
             int crossFadeFrames = (int) MathF.Floor(crossFadeDuration * format.SampleRate * channels) / channels;
-            int crossFadeStartAtFrame = _totalSamples / channels - crossFadeFrames;
+            int crossFadeStartAtFrame = _totalSamplesConv / channels - crossFadeFrames;
             if (crossFadeStartAtFrame > startingFrame) return;
 
             // Get data from the next track.

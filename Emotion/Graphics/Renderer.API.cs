@@ -46,7 +46,7 @@ namespace Emotion.Graphics
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
         public void RenderVertices(Vector3[] verts, params Color[] colors)
         {
-            var vertCount = (uint) verts.Length;
+            var vertCount = (uint)verts.Length;
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
             Debug.Assert(vertices != null);
 
@@ -206,8 +206,8 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
-        /// Set whether to use (Src,1-Src,1,1-Src) alpha blending.
-        /// This causes transparent objects to blend their colors.
+        /// Set whether to use alpha blending.
+        /// This causes transparent objects to blend their colors when drawn on top of each other.
         /// </summary>
         /// <param name="alphaBlend">Whether to use alpha blending.</param>
         public void SetAlphaBlend(bool alphaBlend)
@@ -218,7 +218,7 @@ namespace Emotion.Graphics
             if (alphaBlend)
             {
                 Gl.Enable(EnableCap.Blend);
-                Gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha, BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
+                Gl.BlendFuncSeparate(CurrentState.SFactorRgb!.Value, CurrentState.DFactorRgb!.Value, CurrentState.SFactorA!.Value, CurrentState.DFactorA!.Value);
             }
             else
             {
@@ -226,7 +226,30 @@ namespace Emotion.Graphics
             }
 
             Engine.Renderer.CurrentState.AlphaBlending = alphaBlend;
-            PerfProfiler.FrameEventEnd("StateChange: Stencil");
+            PerfProfiler.FrameEventEnd("StateChange: AlphaBlend");
+        }
+
+        /// <summary>
+        /// Set the type of alpha blending to use.
+        /// The default is (Src,1-Src,1,1-Src)
+        /// </summary>
+        public void SetAlphaBlendType(BlendingFactor sFactorRgb, BlendingFactor dFactorRgb, BlendingFactor sFactorAlpha, BlendingFactor dFactorAlpha)
+        {
+            FlushRenderStream();
+            CurrentState.SFactorRgb = sFactorRgb;
+            CurrentState.DFactorRgb = dFactorRgb;
+            CurrentState.SFactorA = sFactorAlpha;
+            CurrentState.DFactorA = dFactorAlpha;
+            if (CurrentState.AlphaBlending == true) SetAlphaBlend(true);
+        }
+
+        /// <summary>
+        /// Set the alpha blend type to the default one of (Src,1-Src,1,1-Src)
+        /// </summary>
+        public void SetDefaultAlphaBlendType()
+        {
+            var defaultState = RenderState.Default;
+            SetAlphaBlendType(defaultState.SFactorRgb!.Value, defaultState.DFactorRgb!.Value, defaultState.SFactorA!.Value, defaultState.DFactorA!.Value);
         }
 
         /// <summary>
@@ -249,7 +272,7 @@ namespace Emotion.Graphics
             }
 
             Engine.Renderer.CurrentState.DepthTest = depth;
-            PerfProfiler.FrameEventEnd("StateChange: Stencil");
+            PerfProfiler.FrameEventEnd("StateChange: DepthTest");
         }
 
         /// <summary>
@@ -284,10 +307,10 @@ namespace Emotion.Graphics
             {
                 Gl.Enable(EnableCap.ScissorTest);
                 Rectangle c = clip.Value;
-                Gl.Scissor((int) c.X,
-                    (int) (Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
-                    (int) c.Width,
-                    (int) c.Height);
+                Gl.Scissor((int)c.X,
+                    (int)(Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
+                    (int)c.Width,
+                    (int)c.Height);
             }
 
             Engine.Renderer.CurrentState.ClipRect = clip;
@@ -302,10 +325,11 @@ namespace Emotion.Graphics
         public void SetState(RenderState newState, bool force = false)
         {
             FlushRenderStream();
+            RenderState currentState = Engine.Renderer.CurrentState;
 
             // Check which state changes should apply, by checking which were set and which differ from the current.
             PerfProfiler.FrameEventStart("ShaderSet");
-            if (newState.Shader != null && (force || newState.Shader != Engine.Renderer.CurrentState.Shader))
+            if (newState.Shader != null && (force || newState.Shader != currentState.Shader))
             {
                 ShaderProgram.EnsureBound(newState.Shader.Pointer);
                 Engine.Renderer.CurrentState.Shader = newState.Shader;
@@ -315,14 +339,23 @@ namespace Emotion.Graphics
             PerfProfiler.FrameEventEnd("ShaderSet");
 
             PerfProfiler.FrameEventStart("Depth/Stencil/Blend Set");
-            if (newState.DepthTest != null && (force || newState.DepthTest != Engine.Renderer.CurrentState.DepthTest)) SetDepthTest((bool) newState.DepthTest);
-            if (newState.StencilTest != null && (force || newState.StencilTest != Engine.Renderer.CurrentState.StencilTest)) SetStencilTest((bool) newState.StencilTest);
-            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != Engine.Renderer.CurrentState.AlphaBlending)) SetAlphaBlend((bool) newState.AlphaBlending);
+            if (newState.DepthTest != null && (force || newState.DepthTest != currentState.DepthTest)) SetDepthTest((bool)newState.DepthTest);
+            if (newState.StencilTest != null && (force || newState.StencilTest != currentState.StencilTest)) SetStencilTest((bool)newState.StencilTest);
+            if (newState.SFactorRgb != null && newState.SFactorRgb != currentState.SFactorRgb ||
+                newState.DFactorRgb != null && newState.DFactorRgb != currentState.DFactorRgb ||
+                newState.SFactorA != null && newState.SFactorA != currentState.SFactorA ||
+                newState.DFactorA != null && newState.DFactorA != currentState.DFactorA)
+                SetAlphaBlendType(
+                    newState.SFactorRgb ?? currentState.SFactorRgb!.Value,
+                    newState.DFactorRgb ?? currentState.DFactorRgb!.Value,
+                    newState.SFactorA ?? currentState.SFactorA!.Value,
+                    newState.DFactorA ?? currentState.DFactorA!.Value);
+            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != currentState.AlphaBlending)) SetAlphaBlend((bool)newState.AlphaBlending);
             PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
 
             PerfProfiler.FrameEventStart("View/Clip Set");
-            if (newState.ViewMatrix != null && (force || newState.ViewMatrix != Engine.Renderer.CurrentState.ViewMatrix)) SetUseViewMatrix((bool) newState.ViewMatrix);
-            if (force || newState.ClipRect != Engine.Renderer.CurrentState.ClipRect) SetClipRect(newState.ClipRect);
+            if (newState.ViewMatrix != null && (force || newState.ViewMatrix != currentState.ViewMatrix)) SetUseViewMatrix((bool)newState.ViewMatrix);
+            if (force || newState.ClipRect != currentState.ClipRect) SetClipRect(newState.ClipRect);
             PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
         }
 

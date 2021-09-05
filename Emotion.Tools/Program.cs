@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Linq;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
@@ -14,6 +15,15 @@ using ImGuiNET;
 
 namespace Emotion.Tools
 {
+    public class ToolsBoot
+    {
+        public static void ConfigureForTools(Configurator config)
+        {
+            if (config.Plugins.Any(x => x.GetType() == typeof(ImGuiNetPlugin))) return;
+            config.AddPlugin(new ImGuiNetPlugin());
+        }
+    }
+
     internal class Program : IScene
     {
         private static void Main()
@@ -23,7 +33,7 @@ namespace Emotion.Tools
                 DebugMode = true,
                 HostSize = new Vector2(1280, 720)
             };
-            config.AddPlugin(new ImGuiNetPlugin());
+            ToolsBoot.ConfigureForTools(config);
 
             Engine.Setup(config);
             Engine.SceneManager.SetScene(new Program());

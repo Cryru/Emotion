@@ -1,27 +1,12 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Emotion.Common;
-using Emotion.Common.Threading;
-using Emotion.Game;
-using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Utility;
-
-#if StbTrueType
-using Emotion.Primitives;
-using StbTrueTypeSharp;
-#endif
-
-#if FreeType
-using System.IO;
-using System.Reflection;
-#endif
 
 #endregion
 
@@ -136,64 +121,12 @@ namespace Emotion.Standard.OpenType
 
         #endregion
 
-#if FreeType
-        private static IntPtr _freeTypeLib;
-        private static dynamic _freeTypeLibrary;
-        private static Type _freeTypeFaceType;
-        private object _freeTypeFace;
-
-        private static MethodInfo _setCharSizeMethod;
-        private static MethodInfo _renderGlyphMethod;
-        private static PropertyInfo _facePropertySize;
-
-        public Font(byte[] fontData, bool freeTypeRasterizer = true)
-        {
-            if (freeTypeRasterizer)
-            {
-                try
-                {
-                    if (_freeTypeLib == IntPtr.Zero)
-                    {
-                        Assembly freeTypeSupportAssembly = Assembly.LoadFrom(Path.Combine("AssetsNativeLibs", "Emotion.Standard.FreeType.dll"));
-                        MethodInfo initFunc = freeTypeSupportAssembly.GetType("SharpFont.FT").GetMethod("Init");
-                        _freeTypeLib = Engine.Host.LoadLibrary(Path.Combine("Standard", "OpenType", "Freetype", "freetype6"));
-                        if (_freeTypeLib != IntPtr.Zero)
-                        {
-                            initFunc?.Invoke(null, new object[] { _freeTypeLib });
-                            Type freeTypeWrapperType = freeTypeSupportAssembly.GetType("Emotion.Standard.FreeType.Wrapper");
-                            Type freeTypeLibraryType = freeTypeSupportAssembly.GetType("SharpFont.Library");
-                            _freeTypeLibrary = Activator.CreateInstance(freeTypeLibraryType);
-
-                            _freeTypeFaceType = freeTypeSupportAssembly.GetType("SharpFont.Face");
-                            _facePropertySize = _freeTypeFaceType.GetProperty("Size");
-
-                            _setCharSizeMethod = freeTypeWrapperType?.GetMethod("SetCharSize");
-                            _renderGlyphMethod = freeTypeWrapperType?.GetMethod("RenderGlyphDefaultOptions");
-                        }
-                        else
-                        {
-                            Engine.Log.Warning("Couldn't load the native FreeType library through the host.", MessageSource.FontParser);
-                            return;
-                        }
-                    }
-
-                    _freeTypeFace = Activator.CreateInstance(_freeTypeFaceType, _freeTypeLibrary, fontData, 0);
-                }
-                catch (Exception)
-                {
-                    // Suppress errors.
-                    Engine.Log.Error("Couldn't load FreeType.", "Emotion.Standard.FreeType");
-                }
-            }
-#else
         /// <summary>
         /// Create a new OpenType font from a font file.
         /// </summary>
         /// <param name="fontData">The bytes that make up the font file.</param>
         public Font(ReadOnlyMemory<byte> fontData)
         {
-#endif
-
             // Note: OpenType fonts use big endian byte ordering.
             using var r = new ByteReader(fontData);
             Tag = new string(r.ReadChars(4));
@@ -344,7 +277,7 @@ namespace Emotion.Standard.OpenType
                 var idx = 0;
                 foreach ((uint key, uint value) in cMap.GlyphIndexMap)
                 {
-                    var valInt = (int) value;
+                    var valInt = (int)value;
                     if (valInt >= glyphs.Length) continue; // Should never happen, but it's outside data, soo...
 
                     Glyph glyph = glyphs[valInt];
@@ -353,7 +286,7 @@ namespace Emotion.Standard.OpenType
                     smallestCharIdx = Math.Min(smallestCharIdx, key);
                     highestCharIdx = Math.Max(highestCharIdx, key);
 
-                    glyph.CharIndex.Add((char) key);
+                    glyph.CharIndex.Add((char)key);
                     glyph.MapIndex = value;
                     Glyphs[idx++] = glyph;
                 }
@@ -366,7 +299,7 @@ namespace Emotion.Standard.OpenType
                 Glyphs = glyphs;
                 for (var i = 0; i < Glyphs.Length; i++)
                 {
-                    Glyphs[i].CharIndex.Add((char) i);
+                    Glyphs[i].CharIndex.Add((char)i);
                 }
             }
 
@@ -384,278 +317,6 @@ namespace Emotion.Standard.OpenType
 
             Valid = true;
         }
-
-        #region Atlas Rasterization
-
-        /// <summary>
-        /// The renderer for glyph vertices.
-        /// </summary>
-        public enum GlyphRasterizer
-        {
-            /// <summary>
-            /// The default renderer.
-            /// Based on the Stb renderer, but has some differences.
-            /// If everything is well it should produce the same results as the Stb renderer.
-            /// Fastest
-            /// </summary>
-            Emotion,
-#if StbTrueType
-            /// <summary>
-            /// A more mature rasterizer to be used if the Emotion rasterizer produces bugs/unwanted results.
-            /// Is sort of a fallback.
-            /// Fast
-            /// </summary>
-            StbTrueType,
-#endif
-#if FreeType
-            /// <summary>
-            /// The most mature and advanced renderer, but it isn't portable as it is a native library.
-            /// Emotion.Standard includes the MacOS64, Windows64 and Linux64 freetype libraries, but this
-            /// should be used for reference only. Please don't use this.
-            ///
-            /// Additionally this rasterizer will reload the font as the information parsed from Emotion is not
-            /// transferable.
-            ///
-            /// The rasterizer isn't slow itself, but due to how everything is implemented this is the slowest option.
-            /// </summary>
-            FreeType
-#endif
-        }
-
-        /// <summary>
-        /// Create a rasterized atlas from the font.
-        /// </summary>
-        /// <param name="fontSize">The size of glyphs in the font.</param>
-        /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
-        /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
-        /// <param name="rasterizer">The rasterizer to use.</param>
-        /// <returns>A single channel image representing the rendered glyphs at the specified size.</returns>
-        public FontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
-        {
-#if RASTERIZER_PROFILER
-            var sw = Stopwatch.StartNew();
-#endif
-
-            if (Glyphs == null || Glyphs.Length == 0) return null;
-            if (firstChar < FirstCharIndex) firstChar = FirstCharIndex;
-            if (numChars == -1) numChars = (int) (LastCharIndex - firstChar);
-            var lastIdx = (int) (firstChar + numChars);
-
-            // The scale to render at.
-            float scale = fontSize / Height;
-
-            var canvases = new ConcurrentDictionary<int, GlyphRenderer.GlyphCanvas>();
-            ParallelWork.FastLoops(Glyphs.Length, (start, end) =>
-            {
-                for (int i = start; i < end; i++)
-                {
-                    Glyph g = Glyphs[i];
-                    bool inIndex = g.CharIndex.Any(charIdx => charIdx >= firstChar && charIdx < lastIdx);
-                    if (!inIndex) continue;
-
-                    GlyphRenderer.GlyphCanvas renderedGlyph = null;
-                    switch (rasterizer)
-                    {
-                        case GlyphRasterizer.Emotion:
-                            renderedGlyph = RenderGlyph(this, g, scale);
-                            break;
-#if StbTrueType
-                        case GlyphRasterizer.StbTrueType:
-                            renderedGlyph = RenderGlyphStb(this, g, scale);
-                            break;
-#endif
-#if FreeType
-                        case GlyphRasterizer.FreeType:
-                            renderedGlyph = RenderGlyphFreeType(g, fontSize);
-                            break;
-#endif
-                    }
-
-                    if (renderedGlyph == null) continue;
-                    canvases.TryAdd(i, renderedGlyph);
-                }
-            }).Wait();
-
-            // Fit glyphs into an atlas.
-            const int glyphSpacing = 1;
-            var glyphSpacing2 = new Vector2(glyphSpacing);
-            var glyphRects = new Rectangle[canvases.Count];
-            foreach ((int key, GlyphRenderer.GlyphCanvas canvas) in canvases)
-            {
-                if (canvas == null || canvas.Data.Length == 0) continue;
-
-                // Inflate for spacing on all sides.
-                var r = new Rectangle(0, 0, canvas.Width + glyphSpacing * 2, canvas.Height + glyphSpacing * 2);
-                glyphRects[key] = r;
-            }
-            Vector2 atlasSize = Binning.FitRectangles(glyphRects);
-
-            // Copy glyphs to atlas.
-            var atlas = new byte[(int) atlasSize.X * (int) atlasSize.Y];
-            var atlasObj = new FontAtlas(atlasSize, atlas, rasterizer.ToString(), scale, this);
-            var atlasWidth = (int) atlasSize.X;
-            foreach ((int key, GlyphRenderer.GlyphCanvas canvas) in canvases)
-            {
-                if (canvas == null) continue;
-                AtlasGlyph canvasGlyph = canvas.Glyph;
-
-                // Associate canvas with all representing chars.
-                List<char> representingChars = canvasGlyph.FontGlyph.CharIndex;
-                for (var j = 0; j < representingChars.Count; j++)
-                {
-                    atlasObj.Glyphs[representingChars[j]] = canvasGlyph;
-                }
-
-                // Empty glyph, no need to paste to atlas.
-                if (canvas.Data.Length == 0) continue;
-
-                Rectangle atlasRect = glyphRects[key];
-                atlasRect.Position += glyphSpacing2;
-                atlasRect.Size -= glyphSpacing2;
-
-                // Copy pixels and record the location of the glyph.
-                for (var row = 0; row < canvas.Height; row++)
-                {
-                    for (var col = 0; col < canvas.Width; col++)
-                    {
-                        var x = (int) (atlasRect.X + col);
-                        var y = (int) (atlasRect.Y + row);
-                        atlas[y * atlasWidth + x] = canvas.Data[row * canvas.Stride + col];
-                    }
-                }
-
-                canvasGlyph.UVLocation = atlasRect.Position;
-                canvasGlyph.UVSize = new Vector2(canvas.Width, canvas.Height);
-            }
-
-#if RASTERIZER_PROFILER
-            Engine.Log.Warning($"Rasterized font {FullName} of size {fontSize} in {sw.ElapsedMilliseconds}ms", MessageSource.Debug);
-#endif
-
-            return atlasObj;
-        }
-
-        private static GlyphRenderer.GlyphCanvas RenderGlyph(Font f, Glyph g, float scale)
-        {
-            var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) (atlasGlyph.Size.X + 1), (int) (atlasGlyph.Size.Y + 1));
-
-            // Check if glyph can be rendered, and render it.
-            if (g.Vertices != null && g.Vertices.Length != 0)
-                GlyphRenderer.RenderGlyph(canvas, g, scale);
-
-            // Remove padding.
-            canvas.Width -= 1;
-            canvas.Height -= 1;
-
-            return canvas;
-        }
-
-#if StbTrueType
-        private static unsafe GlyphRenderer.GlyphCanvas RenderGlyphStb(Font f, Glyph g, float scale)
-        {
-            var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X + 1, (int) atlasGlyph.Size.Y + 1);
-
-            // Check if glyph can be rendered.
-            if (g.Vertices == null || g.Vertices.Length == 0)
-                return canvas;
-
-            // Render the current glyph.
-            if ((int) atlasGlyph.Size.X == 0 || (int) atlasGlyph.Size.Y == 0) return canvas;
-            GlyphVertex[] vertices = g.Vertices;
-
-            fixed (byte* pixels = &canvas.Data[0])
-            {
-                var bitmap = new StbTrueType.stbtt__bitmap
-                {
-                    w = canvas.Width,
-                    h = canvas.Height,
-                    stride = canvas.Width,
-                    pixels = pixels
-                };
-
-                var verts = new StbTrueType.stbtt_vertex[vertices.Length];
-                for (var i = 0; i < vertices.Length; i++)
-                {
-                    verts[i].x = vertices[i].X;
-                    verts[i].y = vertices[i].Y;
-                    verts[i].cx = vertices[i].Cx;
-                    verts[i].cy = vertices[i].Cy;
-                    verts[i].cx1 = vertices[i].Cx1;
-                    verts[i].cy1 = vertices[i].Cy1;
-                    verts[i].type = (byte) vertices[i].TypeFlag;
-                }
-
-                Rectangle bbox = g.GetBBox(scale);
-
-                fixed (StbTrueType.stbtt_vertex* vert = &verts[0])
-                {
-                    StbTrueType.stbtt_Rasterize(&bitmap, 0.35f, vert, vertices.Length, scale, scale, 0, 0, (int) bbox.X, (int) bbox.Y, 1);
-                }
-            }
-
-            // Remove padding.
-            canvas.Width -= 1;
-            canvas.Height -= 1;
-
-            return canvas;
-        }
-#endif
-
-#if FreeType
-        private GlyphRenderer.GlyphCanvas RenderGlyphFreeType(Glyph g, float scale)
-        {
-            if(_freeTypeFace == null)
-            {
-                return new GlyphRenderer.GlyphCanvas(new AtlasGlyph(g, scale, 0), 1, 1);
-            }
-
-            GlyphRenderer.GlyphCanvas glyphCanvas;
-            lock (_freeTypeFace)
-            {
-                _setCharSizeMethod.Invoke(null, new[] { _freeTypeFace, scale, 0 });
-                dynamic ftGlyph = _renderGlyphMethod.Invoke(null, new[] { _freeTypeFace, g.CharIndex });
-                dynamic bitmap = ftGlyph.Bitmap;
-                var bitmapWidth = (int)bitmap.Width;
-                var bitmapHeight = (int)bitmap.Rows;
-                var bitmapPitch = (int)bitmap.Pitch;
-
-                //YBearing = (float) (face.Size.Metrics.Ascender.ToDouble() - face.Glyph.Metrics.HorizontalBearingY.ToDouble()),
-                // Get metrics as the Emotion parsed ones don't fit the FreeType ones.
-                var minX = (float)ftGlyph.Metrics.HorizontalBearingX.ToDouble();
-                var advance = (float)ftGlyph.Metrics.HorizontalAdvance.ToDouble();
-
-                dynamic faceSize = _facePropertySize.GetValue(_freeTypeFace);
-                var ascender = (float)faceSize.Metrics.Ascender.ToDouble();
-                float yBearing = ascender - (float)ftGlyph.Metrics.HorizontalBearingY.ToDouble();
-                var glyph = new AtlasGlyph(g, scale, 0)
-                {
-                    Size = new Vector2(bitmapWidth, bitmapHeight),
-                    Advance = advance,
-                    XMin = minX,
-                    YBearing = yBearing
-                };
-
-                glyphCanvas = new GlyphRenderer.GlyphCanvas(glyph, bitmapWidth, bitmapHeight);
-                if (bitmapWidth == 0 || bitmapHeight == 0) return glyphCanvas;
-
-                var bitmapData = (byte[])bitmap.BufferData;
-
-                for (var row = 0; row < bitmapHeight; row++)
-                {
-                    for (var col = 0; col < bitmapWidth; col++)
-                    {
-                        glyphCanvas.Data[row * bitmapWidth + col] = bitmapData[row * bitmapPitch + col];
-                    }
-                }
-            }
-
-            return glyphCanvas;
-        }
-#endif
-
-        #endregion
 
         #region Parse Helpers
 
@@ -687,9 +348,9 @@ namespace Emotion.Standard.OpenType
                 var t = new FontTable
                 {
                     Tag = new string(reader.ReadChars(4)),
-                    Checksum = (int) reader.ReadULongBE(),
-                    Offset = (int) reader.ReadULongBE(),
-                    Length = (int) reader.ReadULongBE()
+                    Checksum = (int)reader.ReadULongBE(),
+                    Offset = (int)reader.ReadULongBE(),
+                    Length = (int)reader.ReadULongBE()
                 };
                 tables.Add(t);
             }

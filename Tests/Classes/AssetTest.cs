@@ -130,18 +130,18 @@ namespace Tests.Classes
         [Test]
         public void AssetStorage()
         {
-            var save = Engine.AssetLoader.Get<SaveFile<TestStorage>>("saveFile.save");
+            var save = Engine.AssetLoader.Get<XMLAsset<TestStorage>>("saveFile.save");
             Assert.True(save == null);
 
             var saveFilePath = "Player/saveFile.save";
-            SaveFile<TestStorage> saveFile = SaveFile<TestStorage>.LoadSaveOrCreate(saveFilePath);
+            XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadSaveOrCreate(saveFilePath);
             Assert.True(File.Exists(Path.Join(".", "Player", "saveFile.save")));
 
             saveFile.Content.Text = "Wassaa";
             saveFile.Save();
 
             // It will now exist!
-            save = Engine.AssetLoader.Get<SaveFile<TestStorage>>("Player/saveFile.save");
+            save = Engine.AssetLoader.Get<XMLAsset<TestStorage>>("Player/saveFile.save");
             Assert.Equal(save.Content.Text, saveFile.Content.Text);
             Engine.AssetLoader.Destroy(saveFilePath);
 

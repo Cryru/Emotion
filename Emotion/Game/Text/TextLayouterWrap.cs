@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using Emotion.Graphics.Text;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
@@ -35,7 +36,7 @@ namespace Emotion.Game.Text
         // The box must have been setup with tightHeight and underflow.
         private float _singleLineNegativeY;
 
-        public TextLayouterWrap(FontAtlas atlas) : base(atlas)
+        public TextLayouterWrap(DrawableFontAtlas atlas) : base(atlas)
         {
         }
 

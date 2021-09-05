@@ -16,7 +16,7 @@
         Line = 2,
 
         /// <summary>
-        /// Drawing a curve.
+        /// Drawing a quadratic curve.
         /// </summary>
         Curve = 3,
 

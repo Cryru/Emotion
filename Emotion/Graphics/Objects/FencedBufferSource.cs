@@ -126,10 +126,10 @@ namespace Emotion.Graphics.Objects
 
             // Wait on the fence for the new buffer.
             SyncStatus waitResult = Gl.ClientWaitSync(currentFence, SyncObjectMask.SyncFlushCommandsBit, ulong.MaxValue);
-            if (Engine.Configuration.GlDebugMode)
-                if (waitResult != SyncStatus.AlreadySignaled)
-                    Engine.Log.Info($"Wait sync - {waitResult}", "FenceSource");
+            if (Engine.Configuration.GlDebugMode && waitResult != SyncStatus.AlreadySignaled)
+                Engine.Log.Info($"Wait sync - {waitResult}", "FenceSource");
 
+            Gl.DeleteSync(currentFence);
             _fences[CurrentBufferIdx] = 0;
         }
 

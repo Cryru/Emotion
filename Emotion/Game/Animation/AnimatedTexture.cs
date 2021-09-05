@@ -508,6 +508,21 @@ namespace Emotion.Game.Animation
                 (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
         }
 
+        /// <inheritdoc cref="GetGridFrameBounds(Vector2, Vector2, Vector2, int)"/>
+        public static Rectangle GetGridFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int row, int column)
+        {
+            // Get the total number of columns.
+            var columns = (int) (textureSize.X / frameSize.X);
+            var rows = (int) (textureSize.Y / frameSize.Y);
+
+            Debug.Assert(columns >= column);
+            Debug.Assert(rows >= row);
+
+            // Find the frame we are looking for.
+            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
+                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
+        }
+
         private AnimatedTexture()
         {
             // no-op, used for copy

@@ -693,8 +693,10 @@ namespace Emotion.Standard.OpenType.FontTables
             public void MoveTo(float dx, float dy)
             {
                 CloseShape();
-                FirstX = X += dx;
-                FirstY = Y += dy;
+                X += dx;
+                FirstX = X;
+                Y += dy;
+                FirstY = Y;
 
                 Vertex(VertexTypeFlag.Move, (int) X, (int) Y, 0, 0, 0, 0);
             }

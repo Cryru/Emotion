@@ -69,19 +69,20 @@ namespace Emotion.IO
                 return;
             }
 
+            Size = pixels.Length;
             PerfProfiler.ProfilerEventEnd("Decoding Image", "Loading");
             UploadTexture(size, pixels, flipped, format);
         }
 
         protected virtual void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat)
         {
-            GLThread.ExecuteGLThread(() =>
+            Texture = Texture.NonGLThreadInitialize(size);
+            Texture.FlipY = flipped;
+            GLThread.ExecuteGLThreadAsync(() =>
             {
                 PerfProfiler.ProfilerEventStart($"Uploading Image {Name}", "Loading");
-                Texture = new Texture(size, pixels, pixelFormat)
-                {
-                    FlipY = flipped
-                };
+                Texture.NonGLThreadInitializedCreatePointer(Texture);
+                Texture.Upload(size, pixels, pixelFormat);
                 PerfProfiler.ProfilerEventEnd($"Uploading Image {Name}", "Loading");
             });
         }

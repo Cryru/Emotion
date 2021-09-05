@@ -50,6 +50,7 @@ namespace OpenAL
         public const int FORMAT_MONO16 = 0x1101;
         public const int FORMAT_STEREO8 = 0x1102;
         public const int FORMAT_STEREO16 = 0x1103;
+        public const int FORMAT_STEREO32F = 0x10011;
         public const int REFERENCE_DISTANCE = 0x1020;
         public const int ROLLOFF_FACTOR = 0x1021;
         public const int CONE_OUTER_GAIN = 0x1022;
@@ -364,7 +365,7 @@ namespace OpenAL
         public static extern void SourcePause(uint sid);
 
         [DllImport(OPEN_AL_DLL, EntryPoint = "alSourceQueueBuffers")]
-        public static extern void SourceQueueBuffers(uint sid, int numEntries, uint[] bids);
+        public static extern unsafe void SourceQueueBuffers(uint sid, int numEntries, uint* bids);
 
         [DllImport(OPEN_AL_DLL, EntryPoint = "alSourceUnqueueBuffers")]
         public static extern void SourceUnqueueBuffers(uint sid, int numEntries, uint[] bids);

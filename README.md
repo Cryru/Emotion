@@ -137,7 +137,6 @@ This includes dependencies and projects which were used for research references.
 | Optional
 | [Roslyn/Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn) | MIT | Runtime C# Script Compilation | Emotion.Plugins.CSharpScripting
 | [CimGui](https://github.com/cimgui/cimgui) & [CimGui.Net](https://github.com/mellinoe/ImGui.NET) | MIT | Developer UI | Emotion.Plugins.ImGuiNet, Precompiled for Mac64, Linux64, and Win64
-| [FreeType](https://www.freetype.org/) & [SharpFont](https://github.com/Robmaister/SharpFont) | GPLv3 | Alternate Font Renderer | Emotion.Standard.FreeType, Precompiled for Mac64, Linux64, Win64, Add "FreeType" symbol
 | [ANGLE](https://github.com/google/angle) | Google License | Compatibility | Precompiled for Win32 and Win64, Add "ANGLE" symbol
 | [llvmpipe / Gallium / Mesa](https://mesa3d.org/) | MIT | Compatibility via Software Renderer | Precompiled for Win32 and Win64
 | [Glfw](https://github.com/glfw/glfw) & [Glfw.Net](https://github.com/Chman/Glfw.Net) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol

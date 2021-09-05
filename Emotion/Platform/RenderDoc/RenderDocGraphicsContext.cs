@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Emotion.Common;
 using WinApi.Kernel32;
 
 #endregion
@@ -28,7 +29,17 @@ namespace Emotion.Platform.RenderDoc
             void* apiPointers;
             int ret = getApiFunc(10102, &apiPointers);
             if (ret != 1) return;
-            RenderDoc = Marshal.PtrToStructure<RenderDocAPI>((IntPtr) apiPointers);
+            RenderDoc = Marshal.PtrToStructure<RenderDocAPI>((IntPtr)apiPointers);
+        }
+
+        public static void RenderDocCaptureStart()
+        {
+            ((RenderDocGraphicsContext)Engine.Host.Context).RenderDoc.StartCapture();
+        }
+
+        public static void RenderDocCaptureEnd()
+        {
+            ((RenderDocGraphicsContext)Engine.Host.Context).RenderDoc.EndCapture();
         }
     }
 }

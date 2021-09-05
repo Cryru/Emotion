@@ -272,13 +272,20 @@ namespace Emotion.IO
         /// <typeparam name="T">The type of asset.</typeparam>
         /// <param name="name">The name of the asset within any loaded source.</param>
         /// <returns>The loaded or cached asset.</returns>
-        public Task<T?> GetAsync<T>(string name) where T : Asset, new()
+        public Task<T?> GetAsync<T>(string? name) where T : Asset, new()
         {
-            if (_asyncLoadingTasks.TryGetValue(name, out Task? task))
-                return (Task<T?>) task;
+            if (name == null) return Task.FromResult((T?) null);
 
-            task = Task.Run(() => Get<T>(name));
-            _asyncLoadingTasks.Add(name, task);
+            Task? task;
+            lock (_asyncLoadingTasks)
+            {
+                if (_asyncLoadingTasks.TryGetValue(name, out task))
+                    return (Task<T?>) task;
+
+                task = Task.Run(() => Get<T>(name));
+                _asyncLoadingTasks.Add(name, task);
+            }
+
             return (Task<T?>) task;
         }
 
@@ -346,6 +353,17 @@ namespace Emotion.IO
 
             int lastSlash = name.LastIndexOf("/", StringComparison.Ordinal);
             return lastSlash == -1 ? name : name.Substring(0, lastSlash);
+        }
+
+        /// <summary>
+        /// Get the path to a file without the extension.
+        /// </summary>
+        /// <param name="assetName">The path to the file.</param>
+        public static string GetFilePathNoExtension(string assetName)
+        {
+            int dotIdx = assetName.IndexOf('.');
+            if (dotIdx == -1) return assetName;
+            return assetName[..dotIdx];
         }
 
         /// <summary>

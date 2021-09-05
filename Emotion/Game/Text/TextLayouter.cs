@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using Emotion.Graphics.Text;
 using Emotion.Standard.OpenType;
 
 #endregion
@@ -12,11 +13,11 @@ namespace Emotion.Game.Text
     {
         public float LineGap { get; set; }
 
-        protected FontAtlas _atlas;
+        protected DrawableFontAtlas _atlas;
         protected bool _hasZeroGlyph;
         protected Vector2 _pen;
 
-        public TextLayouter(FontAtlas atlas)
+        public TextLayouter(DrawableFontAtlas atlas)
         {
             SetAtlas(atlas);
         }
@@ -102,7 +103,7 @@ namespace Emotion.Game.Text
         /// Set a new font atlas.
         /// </summary>
         /// <param name="atlas">The atlas to set.</param>
-        public void SetAtlas(FontAtlas atlas)
+        public void SetAtlas(DrawableFontAtlas atlas)
         {
             Restart();
             _atlas = atlas;

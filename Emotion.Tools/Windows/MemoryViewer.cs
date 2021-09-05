@@ -1,11 +1,9 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
@@ -16,6 +14,8 @@ using Emotion.Utility;
 using ImGuiNET;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Tools.Windows
 {
@@ -30,8 +30,8 @@ namespace Emotion.Tools.Windows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            long usedRAM = _p.WorkingSet64;
-            ImGui.Text($"Working Memory: {Helpers.FormatByteAmountAsString(usedRAM)}");
+            long usedRam = _p.WorkingSet64;
+            ImGui.Text($"Working Memory: {Helpers.FormatByteAmountAsString(usedRam)}");
             ImGui.Text(UnmanagedMemoryAllocator.GetDebugInformation());
 
             ImGui.BeginChild("LoadedAssets", new Vector2(400, 400), true, ImGuiWindowFlags.HorizontalScrollbar);
@@ -41,7 +41,7 @@ namespace Emotion.Tools.Windows
             IOrderedEnumerable<Asset> orderedEnum = loadedAssets.OrderByDescending(x => x.Size);
             foreach (Asset asset in orderedEnum)
             {
-                float percent = (float) asset.Size / usedRAM;
+                float percent = (float) asset.Size / usedRam;
                 ImGui.Text($"{asset.Name} {Helpers.FormatByteAmountAsString(asset.Size)} {percent * 100:0}%%");
                 ImGui.Text($"\t{asset.GetType()}");
             }
@@ -67,7 +67,7 @@ namespace Emotion.Tools.Windows
                 {
                     ImGui.Text($"\t Full TypeName: {type}");
                     if (typeHandler is XMLComplexTypeHandler complexHandler)
-                        ImGui.Text($"\t Fields: {complexHandler.FieldCount()}, Recursive: {complexHandler.RecursiveType}");
+                        ImGui.Text($"\t Fields: {complexHandler.FieldCount()}");
 
                     ImGui.TreePop();
                 }

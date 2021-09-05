@@ -190,7 +190,8 @@ namespace Emotion.Standard.XML
         }
 
         /// <summary>
-        /// Resolve the handler for a specified complex field, and apply excluded members..
+        /// Copy the handler for a specified complex field, and apply excluded members.
+        /// We want to apply the exclusions only to this instance of the type handler.
         /// </summary>
         /// <param name="type">The field type.</param>
         /// <param name="property">The reflection handler for the field.</param>

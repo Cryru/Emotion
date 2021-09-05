@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
-using Emotion.Common.Threading;
-using Emotion.Graphics.Objects;
+using Emotion.Graphics.Text;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
-using OpenGL;
 
 #endregion
 
@@ -29,11 +27,6 @@ namespace Emotion.IO
         /// </summary>
         private Dictionary<int, DrawableFontAtlas> _loadedAtlases = new Dictionary<int, DrawableFontAtlas>();
 
-        /// <summary>
-        /// The rasterizer to use for getting atlases.
-        /// </summary>
-        private static Font.GlyphRasterizer _rasterizer = Font.GlyphRasterizer.Emotion;
-
         /// <inheritdoc />
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
@@ -49,15 +42,6 @@ namespace Emotion.IO
             }
 
             _loadedAtlases.Clear();
-        }
-
-        /// <summary>
-        /// Set the rasterizer to use for subsequent atlas generation.
-        /// </summary>
-        /// <param name="rasterizer"></param>
-        public static void SetRasterizer(Font.GlyphRasterizer rasterizer)
-        {
-            _rasterizer = rasterizer;
         }
 
         /// <summary>
@@ -81,32 +65,39 @@ namespace Emotion.IO
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found) return atlas;
 
-            // Scale to closest power of two.
-            float sizeFloat = fontSize;
-            if (pixelFont)
+            lock (_loadedAtlases)
             {
-                float fontHeight = Font.Height;
-                float scaleFactor = fontHeight / fontSize;
-                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
-                sizeFloat = fontHeight / scaleFactorP2;
+                // Recheck as another thread could have built the atlas while waiting on lock.
+                found = _loadedAtlases.TryGetValue(hash, out atlas);
+                if (found) return atlas;
+
+                // Scale to closest power of two.
+                float sizeFloat = fontSize;
+                if (pixelFont)
+                {
+                    float fontHeight = Font.Height;
+                    float scaleFactor = fontHeight / fontSize;
+                    int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
+                    sizeFloat = fontHeight / scaleFactorP2;
+                }
+
+                // Load a new atlas.
+                PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
+                atlas = new DrawableFontAtlas(Font, sizeFloat, firstChar, numChars, smooth);
+                atlas.RenderAtlas();
+                PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
+
+                _loadedAtlases.Add(hash, atlas);
             }
-
-            // Load the atlas manually.
-            PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-            FontAtlas standardAtlas = Font.GetAtlas(sizeFloat, firstChar, numChars, _rasterizer);
-            atlas = new DrawableFontAtlas(standardAtlas, smooth);
-            PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-
-            _loadedAtlases.Add(hash, atlas);
 
             return atlas;
         }
 
-        /// <inheritdoc cref="GetAtlas(int, uint, int, bool, bool)"/>
+        /// <inheritdoc cref="GetAtlas(int, uint, int, bool, bool)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DrawableFontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
         {
-            var intFontSize = (int) MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
+            var intFontSize = (int)MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
             return GetAtlas(intFontSize, firstChar, numChars, smooth);
         }
 
@@ -118,7 +109,7 @@ namespace Emotion.IO
         /// <param name="numChars"></param>
         public void DestroyAtlas(int fontSize, int firstChar = 0, int numChars = -1)
         {
-            fontSize = (int) MathF.Ceiling(fontSize);
+            fontSize = (int)MathF.Ceiling(fontSize);
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found) atlas.Dispose();
@@ -133,51 +124,7 @@ namespace Emotion.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DestroyAtlas(float fontSize, int firstChar = 0, int numChars = -1)
         {
-            DestroyAtlas((int) MathF.Ceiling(fontSize), firstChar, numChars);
-        }
-    }
-
-    /// <summary>
-    /// An uploaded to the GPU font atlas.
-    /// </summary>
-    public class DrawableFontAtlas : IDisposable
-    {
-        /// <summary>
-        /// The atlas data itself. Pixels are stripped for less memory usage after upload.
-        /// </summary>
-        public FontAtlas Atlas { get; protected set; }
-
-        /// <summary>
-        /// The atlas texture.
-        /// </summary>
-        public Texture Texture { get; protected set; }
-
-        /// <summary>
-        /// Upload a font atlas texture to the gpu. Also holds a reference to the atlas itself
-        /// for its metadata.
-        /// </summary>
-        /// <param name="atlas">The atlas texture to upload.</param>
-        /// <param name="smooth">Whether to apply bilinear filtering to the texture.</param>
-        public DrawableFontAtlas(FontAtlas atlas, bool smooth = true)
-        {
-            // Invalid font, no glyphs, etc.
-            if (atlas == null) return;
-
-            Atlas = atlas;
-
-            // Convert to RGBA since GL_INTENSITY is deprecated and we need the value in all components due to the default shader.
-            GLThread.ExecuteGLThread(() => { Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels), PixelFormat.Rgba) {Smooth = smooth}; });
-
-            // Free memory.
-            Atlas.Pixels = null;
-        }
-
-        /// <summary>
-        /// Clear resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Texture.Dispose();
+            DestroyAtlas((int)MathF.Ceiling(fontSize), firstChar, numChars);
         }
     }
 }

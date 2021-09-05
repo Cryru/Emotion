@@ -12,6 +12,7 @@ using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
+using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -88,6 +89,12 @@ namespace Emotion.Plugins.ImGuiNet
                 return;
             }
 
+            // Resolve native library through the Emotion platform.
+            var libName = "cimgui";
+            if (Engine.Host is DesktopPlatform desktop) libName = desktop.AppendPlatformIdentifierAndExtension("Cimgui", "cimgui");
+            NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, (_, _, _) => Engine.Host == null ? IntPtr.Zero : Engine.Host.LoadLibrary(libName));
+
+            // Create render state for ImGui drawing.
             _imGuiState = new RenderState
             {
                 DepthTest = false,
@@ -182,7 +189,7 @@ namespace Emotion.Plugins.ImGuiNet
             io.DeltaTime = Engine.DeltaTime / 1000;
 
             // Set scale.
-            io.DisplaySize = Engine.Renderer.DrawBuffer.Size;
+            io.DisplaySize = Engine.Renderer.DrawBuffer.Size / ImGuiScale;
 
             // Check focus.
             if (io.WantCaptureKeyboard || io.WantCaptureMouse)
@@ -277,8 +284,7 @@ namespace Emotion.Plugins.ImGuiNet
             }
 
             composer.PopModelMatrix();
-
-            // No need to restore state, as this should be rendered last and is also used in developer mode only.
+            composer.SetState(RenderState.Default);
         }
 
         #region Font Helpers
@@ -295,8 +301,10 @@ namespace Emotion.Plugins.ImGuiNet
             {
                 GLThread.ExecuteGLThread(() =>
                 {
-                    ImGuiIOPtr io = ImGui.GetIO();
                     var font = Engine.AssetLoader.Get<OtherAsset>(ttfFontPath);
+                    if (font == null) return;
+
+                    ImGuiIOPtr io = ImGui.GetIO();
                     fixed (void* fontData = &font.Content.Span[0])
                     {
                         _loadedFonts.Add(ttfFontPath, io.Fonts.AddFontFromMemoryTTF((IntPtr) fontData, fontSize, pixelSize));
@@ -318,8 +326,6 @@ namespace Emotion.Plugins.ImGuiNet
                     // Let ImGui know where to find the texture.
                     io.Fonts.SetTexID(new IntPtr(newFontTexture.Pointer));
                     io.Fonts.ClearTexData();
-
-                    Engine.AssetLoader.Destroy(ttfFontPath);
                 });
             });
         }

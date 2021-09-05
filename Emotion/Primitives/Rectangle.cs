@@ -517,6 +517,28 @@ namespace Emotion.Primitives
             return new Rectangle(X + position.X, Y + position.Y, Width, Height);
         }
 
+        /// <summary>
+        /// Scales the rect by the provided vector.
+        /// X and Width and multiplied by the X component, and Y and Height by the Y.
+        /// </summary>
+        public Rectangle Scale(Vector2 scale)
+        {
+            X *= scale.X;
+            Y *= scale.Y;
+            Width *= scale.X;
+            Height *= scale.Y;
+            return this;
+        }
+
+        public Rectangle Divide(Vector2 scale)
+        {
+            X /= scale.X;
+            Y /= scale.Y;
+            Width /= scale.X;
+            Height /= scale.Y;
+            return this;
+        }
+
         #region NEZ Extensions
 
         // Taken from Nez and Modified
@@ -650,21 +672,19 @@ namespace Emotion.Primitives
         /// <summary>
         /// Creates a Rectangle given min/max points (top-left, bottom-right points)
         /// </summary>
-        public static Rectangle FromMinMaxPoints(float minX, float minY, float maxX, float maxY)
+        public static Rectangle FromMinMaxPointsChecked(Vector2 v1, Vector2 v2)
         {
-            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
+            Vector2 min = Vector2.Min(v1, v2);
+            Vector2 max = Vector2.Max(v1, v2);
+            return new Rectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
         }
 
         /// <summary>
-        /// scales the rect
+        /// Creates a Rectangle given min/max points (top-left, bottom-right points)
         /// </summary>
-        /// <param name="scale">Scale.</param>
-        public void Scale(Vector2 scale)
+        public static Rectangle FromMinMaxPoints(float minX, float minY, float maxX, float maxY)
         {
-            X = (int) (X * scale.X);
-            Y = (int) (Y * scale.Y);
-            Width = (int) (Width * scale.X);
-            Height = (int) (Height * scale.Y);
+            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
         }
 
         /// <summary>
@@ -862,7 +882,10 @@ namespace Emotion.Primitives
             {
                 Vector2** vertices = stackalloc Vector2*[4]
                 {
-                    &p1, &p2, &p3, &p4
+                    &p1,
+                    &p2,
+                    &p3,
+                    &p4
                 };
 
                 var minX = float.MaxValue;

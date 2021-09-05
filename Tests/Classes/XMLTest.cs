@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using Emotion.Common.Serialization;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
@@ -732,6 +733,13 @@ namespace Tests.Classes
             Assert.False(restored.NestedClassExclusion.GrandparentBool);
         }
 
+        class ClassWithExcludedComplexType
+        {
+            [DontSerialize]
+            public ClassWithExcluded A { get; set; }
+            public ClassWithExcluded B { get; set; }
+        }
+
         [Test]
         public void DeserializeDontSerialize()
         {
@@ -748,6 +756,121 @@ namespace Tests.Classes
             var memberDontSerialize = XMLFormat.From<ClassWithExcluded>(document);
             Assert.False(memberDontSerialize.NotMe); // DontSerialize is not deserialized.
             Assert.True(memberDontSerialize.Me);
+
+            document = "<ClassWithExcludedComplexType>\n" +
+                       "    <A>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    </A>\n" +
+                       "    <B>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    </B>\n" +
+                       "</ClassWithExcludedComplexType>";
+            var complexExcludedDeserialize = XMLFormat.From<ClassWithExcludedComplexType>(document);
+            Assert.True(complexExcludedDeserialize.A == null); // Shouldn't have been deserialized.
+            Assert.True(complexExcludedDeserialize.B != null);
+            Assert.True(complexExcludedDeserialize.B.Me);
+            Assert.False(complexExcludedDeserialize.B.NotMe);
+
+            document = "<ClassWithExcludedComplexType>\n" +
+                       "    <A>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    <B>\n" +
+                       "        <NotMe>true</NotMe>\n" +
+                       "        <Me>true</Me>\n" +
+                       "    </B>\n" +
+                       "</ClassWithExcludedComplexType>";
+            var brokenDocument = XMLFormat.From<ClassWithExcludedComplexType>(document);
+            Assert.True(brokenDocument.A == null);
+            Assert.True(brokenDocument.B == null);
+        }
+
+        public class BaseClassWithVirtualProperty
+        {
+            // ReSharper disable once ConvertToAutoProperty
+            public virtual string Field
+            {
+                get => _backingField;
+                set => _backingField = value;
+            }
+
+            private string _backingField;
+        }
+
+        public class OverrideClass : BaseClassWithVirtualProperty
+        {
+            public override string Field { get => _someOtherBackingField; set => _someOtherBackingField = value; }
+            private string _someOtherBackingField;
+        }
+
+        public class OverrideClassWithDontSerialize : BaseClassWithVirtualProperty
+        {
+            [DontSerialize]
+            public override string Field { get => base.Field; set => base.Field = value; }
+        }
+
+        [Test]
+        public void InheritedFields()
+        {
+            var overridingClass = new OverrideClass()
+            {
+                Field = "Hi"
+            };
+            string document = XMLFormat.To(overridingClass);
+            var rgx = new Regex("Hi");
+            Assert.Equal(rgx.Matches(document).Count, 1);
+
+            var overridingClassWithExclusion = new OverrideClassWithDontSerialize()
+            {
+                Field = "Hi"
+            };
+            document = XMLFormat.To(overridingClassWithExclusion);
+            Assert.Equal(rgx.Matches(document).Count, 0);
+        }
+
+        public class ClassWithNonPublicField
+        {
+            [SerializeNonPublicGetSet]
+            public string Field { get; protected set; }
+
+            public void SetFieldSecretFunction(string s)
+            {
+                Field = s;
+            }
+        }
+
+        [Test]
+        public void ClassWithNonPublicGetSet()
+        {
+            var obj = new ClassWithNonPublicField();
+            obj.SetFieldSecretFunction("Helloo");
+            string document = XMLFormat.To(obj);
+            var deserialized = XMLFormat.From<ClassWithNonPublicField>(document);
+            Assert.Equal(deserialized.Field, "Helloo");
+        }
+
+        public class OverflowClass
+        {
+            public ClassContainingOverflow[] FirstArr;
+        }
+
+        public class ClassContainingOverflow
+        {
+            public OverflowClass[] SecondArr;
+        }
+
+        public class OverflowRootClass
+        {
+            public ClassContainingOverflow A;
+        }
+
+        [Test]
+        public void RecursiveArrayType()
+        {
+            // If this test fails it will stack overflow :P
+            XMLFormat.To(new OverflowRootClass());
         }
     }
 }

@@ -246,7 +246,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="format">The pixel format to return the pixels in.</param>
         public byte[] Sample(Rectangle rect, PixelFormat format)
         {
-            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelTypeToComponentCount(format)];
+            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelFormatToComponentCount(format)];
             Sample(rect, data, format);
             return data;
         }
@@ -267,7 +267,7 @@ namespace Emotion.Graphics.Objects
 
             uint byteSize = (uint) (rect.Width * rect.Height) *
                             Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
-                            Gl.PixelTypeToComponentCount(format);
+                            Gl.PixelFormatToComponentCount(format);
 
             // Allocate data if needed.
             if (data == null || data.Length < byteSize) data = new byte[byteSize];

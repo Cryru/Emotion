@@ -34,15 +34,15 @@ namespace Tests
                     Directory.CreateDirectory("Player");
                 }
             },
-            // {"tag=Scripting", null}, Broken since .Net 5.0
+            {"tag=Scripting", null},
             {"tag=Coroutine", null},
             {"tag=StandardAudio", null},
             {"tag=Audio", null},
             {"tag=StandardText", null},
             {"tag=AnimatedTexture", null},
-            {"tag=XML testOnly", null}
+            {"tag=XML testOnly", null},
+            {"tag=UITests", null}
         };
-
 
         private static void Main(string[] args)
         {

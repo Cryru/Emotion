@@ -4,6 +4,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;

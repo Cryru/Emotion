@@ -4,6 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using Emotion.Common;
+using Emotion.Graphics;
+using Emotion.Graphics.Objects;
+using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Test;
@@ -101,6 +105,7 @@ namespace Tests.Classes
                 11
             };
 
+            FrameBuffer b = null;
             for (var i = 0; i < fonts.Length; i++)
             {
                 byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", fonts[i]));
@@ -116,8 +121,8 @@ namespace Tests.Classes
 
                 // Get atlases.
                 int fontSize = fontSizes[i];
-                FontAtlas emotionAtlas = f.GetAtlas(fontSize);
-                FontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 4, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
+                DrawableFontAtlas emotionAtlas = new DrawableFontAtlas(f, fontSize, smooth: false);
+                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.AtlasSize * 4, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
                 CompareMetricsWithStb(f, emotionAtlas, stbFont);
@@ -136,9 +141,27 @@ namespace Tests.Classes
                 if (string.IsNullOrEmpty(cachedRender[i])) continue;
 
                 // Compare with cached render.
-                byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
-                ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
-                Runner.VerifyCachedRender(cachedRender[i], emotionAtlasRgba, emotionAtlas.Size);
+                // ReSharper disable AccessToModifiedClosure
+               
+                Runner.ExecuteAsLoop(_ =>
+                {
+                    emotionAtlas.RenderAtlas();
+                    if (b == null)
+                    {
+                        b = new FrameBuffer(emotionAtlas.AtlasSize).WithColor();
+                    }
+                    else
+                    {
+                        b.Resize(emotionAtlas.AtlasSize, true);
+                    }
+                    
+                    RenderComposer composer = Engine.Renderer.StartFrame();
+                    composer.RenderToAndClear(b);
+                    composer.RenderSprite(Vector3.Zero, emotionAtlas.Texture.Size, Color.White, emotionAtlas.Texture);
+                    composer.RenderTo(null);
+                    Engine.Renderer.EndFrame();
+                    Runner.VerifyScreenshot(cachedRender[i], b);
+                }).WaitOne();
             }
         }
 
@@ -154,9 +177,9 @@ namespace Tests.Classes
 
         #region Helpers
 
-        public static unsafe FontAtlas RenderFontStbPacked(byte[] ttf, float fontSize, Vector2 atlasSize, int numChars, Font f, out StbTrueType.stbtt_fontinfo fontInfo)
+        public static unsafe DrawableFontAtlas RenderFontStbPacked(byte[] ttf, float fontSize, Vector2 atlasSize, int numChars, Font f, out StbTrueType.stbtt_fontinfo fontInfo)
         {
-            FontAtlas atlasObj;
+            DrawableFontAtlas atlasObj;
 
             fontInfo = new StbTrueType.stbtt_fontinfo();
             fixed (byte* ttPtr = &ttf[0])
@@ -183,7 +206,7 @@ namespace Tests.Classes
                 }
 
                 StbTrueType.stbtt_PackEnd(pc);
-                atlasObj = new FontAtlas(atlasSize, pixels, "test", fontSize, f);
+                atlasObj = new DrawableFontAtlas(f, fontSize);
                 for (var i = 0; i < cd.Length; ++i)
                 {
                     float yOff = cd[i].yoff;
@@ -215,7 +238,7 @@ namespace Tests.Classes
             return font;
         }
 
-        public static unsafe void CompareMetricsWithStb(Font f, FontAtlas atlas, StbTrueType.stbtt_fontinfo stbFont)
+        public static unsafe void CompareMetricsWithStb(Font f, DrawableFontAtlas atlas, StbTrueType.stbtt_fontinfo stbFont)
         {
             var pc = new StbTrueType.stbtt_pack_context();
             StbTrueType.stbtt_PackBegin(pc, (byte*) 0, 512, 512, 512, 1, null);
@@ -230,7 +253,7 @@ namespace Tests.Classes
                     array_of_unicode_codepoints = null,
                     num_chars = (int) f.LastCharIndex + 1,
                     chardata_for_range = charDataPtr,
-                    font_size = atlas.Scale * f.Height
+                    font_size = atlas.RenderScale * f.Height
                 };
 
                 rects = new StbTrueType.stbrp_rect[f.LastCharIndex + 1];
@@ -255,16 +278,16 @@ namespace Tests.Classes
                 var maxX = 0;
                 var minY = 0;
                 var maxY = 0;
-                StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, charIndex, atlas.Scale, atlas.Scale, 0, 0, &minX, &minY, &maxX, &maxY);
+                StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, charIndex, atlas.RenderScale, atlas.RenderScale, 0, 0, &minX, &minY, &maxX, &maxY);
 
-                Rectangle bbox = glyph.GetBBox(atlas.Scale);
+                Rectangle bbox = glyph.GetBBox(atlas.RenderScale);
 
                 Assert.Equal(minX, bbox.X);
                 Assert.Equal(minY, bbox.Y);
                 Assert.Equal(maxX, bbox.Width);
                 Assert.Equal(maxY, bbox.Height);
 
-                Rectangle drawBox = glyph.GetDrawBox(atlas.Scale);
+                Rectangle drawBox = glyph.GetDrawBox(atlas.RenderScale);
                 drawBox.Size += Vector2.One; // Add padding from stb
                 StbTrueType.stbrp_rect rect = rects[charIndex];
                 Assert.Equal(rect.w, drawBox.Width);

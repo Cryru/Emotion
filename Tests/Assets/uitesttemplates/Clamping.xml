@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<UIBaseWindow>
+  <Children>
+    <UIBaseWindow type="Emotion.UI.UISolidColor">
+      <Children>
+        <UIBaseWindow type="Emotion.UI.UISolidColor">
+          <WindowColor>
+            <R>216</R>
+            <G>46</G>
+            <B>46</B>
+            <A>255</A>
+          </WindowColor>
+        </UIBaseWindow>
+      </Children>
+      <ParentAnchor>CenterCenter</ParentAnchor>
+      <Anchor>CenterCenter</Anchor>
+      <MaxSize>
+        <X>50</X>
+        <Y>50</Y>
+      </MaxSize>
+    </UIBaseWindow>
+  </Children>
+</UIBaseWindow>
