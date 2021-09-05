@@ -127,11 +127,17 @@ namespace Emotion.UI
             // Cache displaced position.
             EnsureRenderBoundsCached(c);
 
-            if (RenderInternal(c) && Children != null) RenderChildren(c);
-
-            // Pop displacements, if any were pushed.
-            if (matrixPushed) c.PopModelMatrix();
-            AfterRenderChildren(c);
+            if (RenderInternal(c) && Children != null)
+            {
+                RenderChildren(c);
+                // Pop displacements, if any were pushed.
+                if (matrixPushed) c.PopModelMatrix();
+                AfterRenderChildren(c);
+            }
+            else if(matrixPushed)
+            {
+                c.PopModelMatrix();
+            }
         }
 
         protected virtual bool RenderInternal(RenderComposer c)
