@@ -5,16 +5,66 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using Emotion.Common.Threading;
+using Emotion.Graphics.Objects;
 using Emotion.Primitives;
+using Emotion.Standard.OpenType;
+using Emotion.Utility;
+using OpenGL;
 
 #endregion
 
 #pragma warning disable 1591 // Forked renderer from StbTrueType, no need to document this as it is not forward facing.
 
-namespace Emotion.Standard.OpenType
+namespace Emotion.Graphics.Text
 {
-    public static class GlyphRenderer
+    public static class StbGlyphRenderer
     {
+        public static void RenderAtlas(DrawableFontAtlas fontAtl)
+        {
+            Vector2 atlasSize = fontAtl.AtlasSize;
+            List<AtlasGlyph> glyphs = fontAtl.DrawableAtlasGlyphs;
+            float scale = fontAtl.RenderScale;
+
+            var atlas = new byte[(int)atlasSize.X * (int)atlasSize.Y];
+            var stride = (int)atlasSize.X;
+
+            ParallelWork.FastLoops(glyphs.Count, (start, end) =>
+            {
+                for (int i = start; i < end; i++)
+                {
+                    AtlasGlyph atlasGlyph = glyphs[i];
+                    Glyph glyph = atlasGlyph.FontGlyph;
+
+                    var canvas = new GlyphCanvas(atlasGlyph, (int)(atlasGlyph.Size.X + 1), (int)(atlasGlyph.Size.Y + 1));
+                    RenderGlyph(canvas, glyph, scale);
+
+                    // Remove padding.
+                    canvas.Width--;
+                    canvas.Height--;
+
+                    // Copy pixels and record the location of the glyph.
+                    Vector2 uvLoc = atlasGlyph.UVLocation;
+                    var uvX = (int)uvLoc.X;
+                    var uvY = (int)uvLoc.Y;
+
+                    for (var row = 0; row < canvas.Height; row++)
+                    {
+                        for (var col = 0; col < canvas.Width; col++)
+                        {
+                            int x = uvX + col;
+                            int y = uvY + row;
+                            atlas[y * stride + x] = canvas.Data[row * canvas.Stride + col];
+                        }
+                    }
+                }
+            }).Wait();
+
+            // Convert to RGBA since GL_INTENSITY is deprecated and we need the value in all components due to the default shader.
+            var texture = new Texture(atlasSize, ImageUtil.AToRgba(atlas), PixelFormat.Rgba);
+            fontAtl.SetTexture(texture);
+        }
+
         public struct GlyphEdge
         {
             public float X;
@@ -145,7 +195,7 @@ namespace Emotion.Standard.OpenType
 
                 var edgeIndex = 0;
 
-                var y = (int) bbox.Y;
+                var y = (int)bbox.Y;
                 e[n].Y = bbox.Y + canvas.Height + 1;
 
                 var j = 0;
@@ -181,7 +231,7 @@ namespace Emotion.Standard.OpenType
                     {
                         if (e[edgeIndex].Y != e[edgeIndex].Y1)
                         {
-                            var z = new ActiveEdge(e[edgeIndex], (int) bbox.X, scanYTop);
+                            var z = new ActiveEdge(e[edgeIndex], (int)bbox.X, scanYTop);
                             if (j == 0 && bbox.Y != 0)
                                 if (z.Ey < scanYTop)
                                     z.Ey = scanYTop;
@@ -202,14 +252,14 @@ namespace Emotion.Standard.OpenType
                     {
                         sum += scanline2[i];
                         float k = scanline[i] + sum;
-                        k = (float) Math.Abs((double) k) * 255 + 0.5f;
-                        var pixel = (int) k;
+                        k = (float)Math.Abs((double)k) * 255 + 0.5f;
+                        var pixel = (int)k;
                         // Clamp down.
                         if (pixel > 255)
                             pixel = 255;
 
                         // Write to canvas.
-                        canvas.Data[j * canvas.Width + i] = (byte) pixel;
+                        canvas.Data[j * canvas.Width + i] = (byte)pixel;
                     }
 
                     step = active;
@@ -285,9 +335,9 @@ namespace Emotion.Standard.OpenType
                     {
                         if (x0 >= 0)
                         {
-                            HandleClippedEdge(scanline, (int) x0, e, x0, yTop,
+                            HandleClippedEdge(scanline, (int)x0, e, x0, yTop,
                                 x0, yBottom);
-                            HandleClippedEdge(scanlineFill, (int) x0 + 1, e, x0,
+                            HandleClippedEdge(scanlineFill, (int)x0 + 1, e, x0,
                                 yTop, x0, yBottom);
                         }
                         else
@@ -331,9 +381,9 @@ namespace Emotion.Standard.OpenType
 
                     if (xTop >= 0 && xBottom >= 0 && xTop < length && xBottom < length)
                     {
-                        if ((int) xTop == (int) xBottom)
+                        if ((int)xTop == (int)xBottom)
                         {
-                            var x = (int) xTop;
+                            var x = (int)xTop;
                             float height = sy1 - sy0;
                             scanline[x] += e.Direction * (1 - (xTop - x + (xBottom - x)) / 2) * height;
                             scanlineFill[1 + x] += e.Direction * height;
@@ -354,8 +404,8 @@ namespace Emotion.Standard.OpenType
                                 x0 = xb;
                             }
 
-                            var x1 = (int) xTop;
-                            var x2 = (int) xBottom;
+                            var x1 = (int)xTop;
+                            var x2 = (int)xBottom;
                             float yCrossing = (x1 + 1 - x0) * dy + yTop;
                             float sign = e.Direction;
                             float area = sign * (yCrossing - sy0);
@@ -613,10 +663,10 @@ namespace Emotion.Standard.OpenType
             float dy2 = y3 - y2;
             float dx = x3 - x0;
             float dy = y3 - y0;
-            var longLength = (float) (Math.Sqrt(dx0 * dx0 + dy0 * dy0) +
-                                      Math.Sqrt(dx1 * dx1 + dy1 * dy1) +
-                                      Math.Sqrt(dx2 * dx2 + dy2 * dy2));
-            var shortLength = (float) Math.Sqrt(dx * dx + dy * dy);
+            var longLength = (float)(Math.Sqrt(dx0 * dx0 + dy0 * dy0) +
+                                     Math.Sqrt(dx1 * dx1 + dy1 * dy1) +
+                                     Math.Sqrt(dx2 * dx2 + dy2 * dy2));
+            var shortLength = (float)Math.Sqrt(dx * dx + dy * dy);
             float flatnessSquaredLocal = longLength * longLength - shortLength * shortLength;
             if (n > 16)
                 return;

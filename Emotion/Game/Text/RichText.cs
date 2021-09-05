@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
@@ -133,7 +134,7 @@ namespace Emotion.Game.Text
         public RichText(Vector3 position, Vector2 size, DrawableFontAtlas fontAtlas) : base(position, size)
         {
             FontAtlas = fontAtlas;
-            _layouter = new TextLayouter(fontAtlas.Atlas);
+            _layouter = new TextLayouter(fontAtlas);
         }
 
         /// <summary>

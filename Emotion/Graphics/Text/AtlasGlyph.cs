@@ -3,10 +3,11 @@
 using System;
 using System.Numerics;
 using Emotion.Primitives;
+using Emotion.Standard.OpenType;
 
 #endregion
 
-namespace Emotion.Standard.OpenType
+namespace Emotion.Graphics.Text
 {
     /// <summary>
     /// Represents a single glyph within a FontAtlas.
@@ -45,7 +46,8 @@ namespace Emotion.Standard.OpenType
 
         /// <summary>
         /// The drawing offset of this glyph. In typography glyphs are drawn from the bottom up (from the baseline)
-        /// but here they are drawn as sprites (top left origin) therefore we need to offset glyphs from the top using the highest glyph in the font.
+        /// but here they are drawn as sprites (top left origin) therefore we need to offset glyphs from the top using the highest
+        /// glyph in the font.
         /// </summary>
         public float YOffset { get; protected set; }
 
@@ -57,7 +59,10 @@ namespace Emotion.Standard.OpenType
         /// <summary>
         /// The height of the glyph, plus the y offset. This is essentially the top-left drawing position of the glyph texture.
         /// </summary>
-        public float YBearing { get => YOffset - Height; }
+        public float YBearing
+        {
+            get => YOffset - Height;
+        }
 
         /// <summary>
         /// The font glyph this glyph represents.

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
@@ -85,7 +86,7 @@ namespace Emotion.UI
         protected FontAsset _fontFile;
         protected DrawableFontAtlas _atlas;
         protected TextLayouterWrap _layouter;
-        protected FontAtlas _layouterAtlas;
+        protected DrawableFontAtlas _layouterAtlas;
         protected Vector2 _scaledUnderlineOffset;
         protected float _scaledUnderlineThickness;
 
@@ -101,10 +102,10 @@ namespace Emotion.UI
             _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), 0, -1, Smooth, FontSizePixelPerfect);
 
             // Reload the layouter if needed. Changing this means the text needs to be relayouted.
-            if (_layouterAtlas != _atlas.Atlas)
+            if (_layouterAtlas != _atlas)
             {
-                _layouter = new TextLayouterWrap(_atlas.Atlas);
-                _layouterAtlas = _atlas.Atlas;
+                _layouter = new TextLayouterWrap(_atlas);
+                _layouterAtlas = _atlas;
                 InvalidateLayout();
             }
         }

@@ -2,10 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
+using Emotion.Game;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Text;
+using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 using OpenGL;
@@ -29,11 +34,6 @@ namespace Emotion.IO
         /// </summary>
         private Dictionary<int, DrawableFontAtlas> _loadedAtlases = new Dictionary<int, DrawableFontAtlas>();
 
-        /// <summary>
-        /// The rasterizer to use for getting atlases.
-        /// </summary>
-        private static Font.GlyphRasterizer _rasterizer = Font.GlyphRasterizer.Emotion;
-
         /// <inheritdoc />
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
@@ -49,15 +49,6 @@ namespace Emotion.IO
             }
 
             _loadedAtlases.Clear();
-        }
-
-        /// <summary>
-        /// Set the rasterizer to use for subsequent atlas generation.
-        /// </summary>
-        /// <param name="rasterizer"></param>
-        public static void SetRasterizer(Font.GlyphRasterizer rasterizer)
-        {
-            _rasterizer = rasterizer;
         }
 
         /// <summary>
@@ -97,10 +88,10 @@ namespace Emotion.IO
                     sizeFloat = fontHeight / scaleFactorP2;
                 }
 
-                // Load the atlas manually.
+                // Load a new atlas.
                 PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-                FontAtlas standardAtlas = Font.GetAtlas(sizeFloat, firstChar, numChars, _rasterizer);
-                atlas = new DrawableFontAtlas(standardAtlas, smooth);
+                atlas = new DrawableFontAtlas(Font, sizeFloat, firstChar, numChars, smooth);
+                atlas.RenderAtlas();
                 PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
 
                 _loadedAtlases.Add(hash, atlas);
@@ -141,54 +132,6 @@ namespace Emotion.IO
         public void DestroyAtlas(float fontSize, int firstChar = 0, int numChars = -1)
         {
             DestroyAtlas((int) MathF.Ceiling(fontSize), firstChar, numChars);
-        }
-    }
-
-    /// <summary>
-    /// An uploaded to the GPU font atlas.
-    /// </summary>
-    public class DrawableFontAtlas : IDisposable
-    {
-        /// <summary>
-        /// The atlas data itself. Pixels are stripped for less memory usage after upload.
-        /// </summary>
-        public FontAtlas Atlas { get; protected set; }
-
-        /// <summary>
-        /// The atlas texture.
-        /// </summary>
-        public Texture Texture { get; protected set; }
-
-        /// <summary>
-        /// Upload a font atlas texture to the gpu. Also holds a reference to the atlas itself
-        /// for its metadata.
-        /// </summary>
-        /// <param name="atlas">The atlas texture to upload.</param>
-        /// <param name="smooth">Whether to apply bilinear filtering to the texture.</param>
-        public DrawableFontAtlas(FontAtlas atlas, bool smooth = true)
-        {
-            // Invalid font, no glyphs, etc.
-            if (atlas == null) return;
-
-            Atlas = atlas;
-
-            // Convert to RGBA since GL_INTENSITY is deprecated and we need the value in all components due to the default shader.
-            Texture = Texture.EmptyWhiteTexture; // Set texture while uploading so that nothing errors.
-            GLThread.ExecuteGLThreadAsync(() =>
-            {
-                Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels), PixelFormat.Rgba) {Smooth = smooth};
-
-                // Free memory.
-                Atlas.Pixels = null;
-            });
-        }
-
-        /// <summary>
-        /// Clear resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Texture.Dispose();
         }
     }
 }

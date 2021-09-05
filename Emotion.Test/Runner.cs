@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Threading;
+using Emotion.Graphics.Objects;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
@@ -476,9 +477,14 @@ namespace Emotion.Test
         /// <param name="renderId">The cached id to check against.</param>
         public static void VerifyScreenshot(string renderId)
         {
+            VerifyScreenshot(renderId, Engine.Renderer.DrawBuffer);
+        }
+
+        public static void VerifyScreenshot(string renderId, FrameBuffer b)
+        {
             // Take a screenshot to compare to the expected image. Assume the sizes are the same.
-            byte[] screenshot = Engine.Renderer.DrawBuffer.Sample(Engine.Renderer.DrawBuffer.Viewport, PixelFormat.Rgba);
-            Vector2 screenShotSize = Engine.Renderer.DrawBuffer.Viewport.Size;
+            byte[] screenshot = b.Sample(b.Viewport, PixelFormat.Rgba);
+            Vector2 screenShotSize = b.Size;
             VerifyCachedRender(renderId, screenshot, screenShotSize);
         }
 

@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
 using Emotion.IO;
 
 #endregion

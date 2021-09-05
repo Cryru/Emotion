@@ -6,6 +6,7 @@ using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
@@ -212,7 +213,7 @@ namespace Emotion.Graphics
         /// <param name="layouter">The layouter to use.</param>
         public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
         {
-            if (atlas?.Atlas?.Glyphs == null) return;
+            if (atlas?.Glyphs == null) return;
             position = position.RoundClosest();
             foreach (char c in text)
             {
@@ -226,8 +227,8 @@ namespace Emotion.Graphics
         /// <inheritdoc cref="RenderString(Vector3, Color, string, DrawableFontAtlas, TextLayouter)"/>
         public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas)
         {
-            if (atlas?.Atlas?.Glyphs == null) return;
-            RenderString(position, color, text, atlas, new TextLayouter(atlas.Atlas));
+            if (atlas?.Glyphs == null) return;
+            RenderString(position, color, text, atlas, new TextLayouter(atlas));
         }
     }
 }
