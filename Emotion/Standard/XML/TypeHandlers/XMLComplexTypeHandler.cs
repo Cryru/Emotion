@@ -23,7 +23,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             // Check if inheriting anything. If so copy its excluded members as well.
             if (Type.BaseType != null && Type.BaseType != typeof(object))
             {
-                var baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
+                var baseClass = (XMLComplexTypeHandler)XMLHelpers.GetTypeHandler(Type.BaseType);
                 HashSet<string> baseTypeExcludedMembers = baseClass?._excludedMembers;
                 if (baseTypeExcludedMembers != null)
                 {
@@ -166,7 +166,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                         if (input.Finished) break;
                     }
                 }
-                
+
                 input.GoToNextTag();
             }
 
@@ -184,7 +184,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             if (Type.IsAssignableFrom(objType))
             {
                 inheritedType = XMLHelpers.GetTypeName(objType, true);
-                return (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(objType);
+                return (XMLComplexTypeHandler)XMLHelpers.GetTypeHandler(objType);
             }
 
             // wtf?

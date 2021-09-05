@@ -64,7 +64,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 var reflectionHandler = new ReflectedMemberHandler(property);
                 XMLFieldHandler handler = skip ? new XMLSkippedMember(reflectionHandler) : XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, reflectionHandler, excludeProp);
                 if (handler == null) continue;
-                
+
                 fieldHandlers.TryAdd(propertyName, handler);
             }
 
@@ -73,7 +73,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 FieldInfo field = fields[i];
 
                 var excludeProp = field.GetCustomAttribute<DontSerializeMembersAttribute>();
-                
+
                 bool skip = field.GetCustomAttribute<DontSerializeAttribute>() != null;
                 string fieldName = field.Name;
                 if (!skip && _excludedMembers != null && _excludedMembers.Contains(fieldName)) skip = true;
@@ -95,7 +95,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         {
             Debug.Assert(exclusions != null);
 
-            var clone = (XMLComplexBaseTypeHandler) MemberwiseClone();
+            var clone = (XMLComplexBaseTypeHandler)MemberwiseClone();
             clone._clonedFrom = this;
 
             // Copy all field handlers to the clone, except the ones that are excluded.
@@ -105,7 +105,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             foreach (KeyValuePair<string, XMLFieldHandler> fields in fieldHandlers)
             {
                 XMLFieldHandler fieldHandler = fields.Value;
-                if (excludedFields.Contains(fields.Key)) fieldHandler = new XMLFieldHandler(fieldHandler.ReflectionInfo, fieldHandler.TypeHandler) {Skip = true};
+                if (excludedFields.Contains(fields.Key)) fieldHandler = new XMLFieldHandler(fieldHandler.ReflectionInfo, fieldHandler.TypeHandler) { Skip = true };
                 cloneHandlers.Add(fields.Key, fieldHandler);
             }
 
