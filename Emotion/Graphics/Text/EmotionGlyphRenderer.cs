@@ -167,9 +167,7 @@ namespace Emotion.Graphics.Text
             composer.RenderToAndClear(atlasFinal);
             composer.SetShader(_windingAaShader.Shader);
             _windingAaShader.Shader.SetUniformVector2("drawSize", atlasFinal.Size);
-            composer.PushModelMatrix(Matrix4x4.CreateScale(1, -1, 1)); // Flip it as framebuffer textures are flipped.
-            composer.RenderFrameBuffer(atlasIntermediate, atlasFinal.Size, color: Color.White, pos: new Vector3(0, -atlasFinal.Size.Y, 0));
-            composer.PopModelMatrix();
+            composer.RenderFrameBuffer(atlasIntermediate, new Vector2(atlasFinal.Size.X, -atlasFinal.Size.Y), color: Color.White, pos: new Vector3(0, atlasFinal.Size.Y, 0));
             composer.SetShader();
             composer.RenderTo(null);
             //RenderDocGraphicsContext.RenderDocCaptureEnd();

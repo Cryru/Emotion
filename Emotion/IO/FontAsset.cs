@@ -2,18 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
-using Emotion.Common.Threading;
-using Emotion.Game;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
-using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
-using OpenGL;
 
 #endregion
 
@@ -84,7 +77,7 @@ namespace Emotion.IO
                 {
                     float fontHeight = Font.Height;
                     float scaleFactor = fontHeight / fontSize;
-                    int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
+                    int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
                     sizeFloat = fontHeight / scaleFactorP2;
                 }
 
@@ -100,11 +93,11 @@ namespace Emotion.IO
             return atlas;
         }
 
-        /// <inheritdoc cref="GetAtlas(int, uint, int, bool, bool)"/>
+        /// <inheritdoc cref="GetAtlas(int, uint, int, bool, bool)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DrawableFontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
         {
-            var intFontSize = (int) MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
+            var intFontSize = (int)MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
             return GetAtlas(intFontSize, firstChar, numChars, smooth);
         }
 
@@ -116,7 +109,7 @@ namespace Emotion.IO
         /// <param name="numChars"></param>
         public void DestroyAtlas(int fontSize, int firstChar = 0, int numChars = -1)
         {
-            fontSize = (int) MathF.Ceiling(fontSize);
+            fontSize = (int)MathF.Ceiling(fontSize);
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found) atlas.Dispose();
@@ -131,7 +124,7 @@ namespace Emotion.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DestroyAtlas(float fontSize, int firstChar = 0, int numChars = -1)
         {
-            DestroyAtlas((int) MathF.Ceiling(fontSize), firstChar, numChars);
+            DestroyAtlas((int)MathF.Ceiling(fontSize), firstChar, numChars);
         }
     }
 }
