@@ -112,7 +112,11 @@ namespace Emotion.IO
             fontSize = (int)MathF.Ceiling(fontSize);
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
-            if (found) atlas.Dispose();
+            if (found)
+            {
+                atlas.Dispose();
+                _loadedAtlases.Remove(hash);
+            }
         }
 
         /// <summary>
