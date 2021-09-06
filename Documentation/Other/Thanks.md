@@ -33,6 +33,8 @@ Typhiant
 
 Rodrigo (Yuzu)
 
+Tear
+
 # Game Industry People:
 
 Jack "Mailman" Benson

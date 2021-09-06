@@ -90,6 +90,7 @@ Currently supported:
   - The animation controller keeps a set of animations and handles switching between them.
 - Custom text rendering with atlases created at runtime.
   - Extensible RichText and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
+- Crisp SDF text
 - Automatic scaling, making your game look reasonably the same on all resolutions.
   - Integer scaling mode for pixel art games.
 - Shader Pipeline

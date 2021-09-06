@@ -215,13 +215,23 @@ namespace Emotion.Graphics
         {
             if (atlas?.Glyphs == null) return;
             position = position.RoundClosest();
+
+            if (atlas.FontShader != null)
+            {
+                SetShader(atlas.FontShader);
+                // HalfRange / OutputScale - GenerateSDF.frag
+                atlas.FontShader.SetUniformFloat("scaleFactor", 32f * atlas.RenderScale); 
+            }
+
             foreach (char c in text)
             {
-                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g).Ceiling();
+                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
                 if (g == null) continue;
                 var uv = new Rectangle(g.UVLocation, g.UVSize);
                 RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
             }
+
+            if (atlas.FontShader != null) SetShader();
         }
 
         /// <inheritdoc cref="RenderString(Vector3, Color, string, DrawableFontAtlas, TextLayouter)"/>

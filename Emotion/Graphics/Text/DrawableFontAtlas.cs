@@ -7,6 +7,7 @@ using System.Numerics;
 using Emotion.Common.Threading;
 using Emotion.Game;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 
@@ -20,6 +21,15 @@ namespace Emotion.Graphics.Text
         /// A custom GPU-based rasterizer built for the engine. Still not mature enough to be the default.
         /// </summary>
         Emotion,
+
+        /// <summary>
+        /// A custom GPU-based rasterizer that requires a custom shader when drawing glyphs.
+        /// First a very high resolution atlas is rendered using the Emotion rasterizer and
+        /// an signed distance field generating algorithm is ran over it. This is cached to a file (if an asset store is loaded).
+        /// Then the atlas is used for all font sizes and read from using the SDF shader to provide crisp text at any size.
+        /// Best looking, but very slow to render, and even with the cache loading 4x PNGs isn't very fast :P
+        /// </summary>
+        EmotionSDF_01,
 
         /// <summary>
         /// Mature software rasterizer.
@@ -46,9 +56,19 @@ namespace Emotion.Graphics.Text
         public Vector2 AtlasSize { get; protected set; }
 
         /// <summary>
+        /// The rasterized used to produce this atlas.
+        /// </summary>
+        public GlyphRasterizer RenderedWith { get; protected set; }
+
+        /// <summary>
+        /// Font shader to use.
+        /// </summary>
+        public ShaderProgram FontShader { get; set; }
+
+        /// <summary>
         /// The atlas' render scale, based on the font size.
         /// </summary>
-        public float RenderScale { get; protected set; }
+        public float RenderScale { get; set; }
 
         /// <summary>
         /// The first char of the atlas.
@@ -124,6 +144,7 @@ namespace Emotion.Graphics.Text
             float scale = FontSize / Font.Height;
             FontHeight = MathF.Ceiling(Font.Height * scale);
             RenderScale = scale;
+            RenderedWith = Rasterizer;
 
             for (var i = 0; i < Font.Glyphs.Length; i++)
             {
@@ -131,7 +152,11 @@ namespace Emotion.Graphics.Text
                 bool inIndex = g.CharIndex.Any(charIdx => charIdx >= FirstChar && charIdx < lastIdx);
                 if (!inIndex) continue;
 
-                var atlasGlyph = new AtlasGlyph(g, scale, Font.Ascender);
+                AtlasGlyph atlasGlyph;
+                if (RenderedWith == GlyphRasterizer.EmotionSDF_01)
+                    atlasGlyph = AtlasGlyph.CreateFloatScale(g, scale, Font.Ascender);
+                else
+                    atlasGlyph = AtlasGlyph.CreateIntScale(g, scale, Font.Ascender);
 
                 // Associate atlas glyph with all representing chars.
                 List<char> representingChars = atlasGlyph.FontGlyph.CharIndex;
@@ -145,7 +170,7 @@ namespace Emotion.Graphics.Text
             }
 
             // Fit glyphs into an atlas.
-            const int glyphSpacing = 1;
+            int glyphSpacing = RenderedWith == GlyphRasterizer.EmotionSDF_01 ? (int)(50 * scale) : 1;
             var glyphSpacing2 = new Vector2(glyphSpacing);
             var glyphRects = new Rectangle[DrawableAtlasGlyphs.Count];
             for (var i = 0; i < DrawableAtlasGlyphs.Count; i++)
@@ -166,16 +191,19 @@ namespace Emotion.Graphics.Text
                 atlasRect.Position += glyphSpacing2;
                 atlasRect.Size -= glyphSpacing2;
                 atlasGlyph.UVLocation = atlasRect.Position;
-                atlasGlyph.UVSize = new Vector2(atlasGlyph.Size.X, atlasGlyph.Size.Y);
+                atlasGlyph.UVSize = atlasGlyph.Size;
             }
         }
 
         public void RenderAtlas()
         {
-            switch (_rasterizer)
+            switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
                     GLThread.ExecuteGLThreadAsync(() => EmotionGlyphRenderer.RenderAtlas(this));
+                    break;
+                case GlyphRasterizer.EmotionSDF_01:
+                    GLThread.ExecuteGLThreadAsync(() => EmotionGlyphRenderer.RenderAtlasSDF(this));
                     break;
                 case GlyphRasterizer.StbTrueType:
                     GLThread.ExecuteGLThreadAsync(() => StbGlyphRenderer.RenderAtlas(this));
@@ -198,17 +226,13 @@ namespace Emotion.Graphics.Text
         }
 
         /// <summary>
-        /// The rasterizer to use for getting atlases.
+        /// The default rasterizer.
         /// </summary>
-        private static GlyphRasterizer _rasterizer = GlyphRasterizer.StbTrueType;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDF_01;
 
         /// <summary>
-        /// Set the rasterizer to use for subsequent atlas generation.
+        /// The rasterizer to use for generating atlases.
         /// </summary>
-        /// <param name="rasterizer"></param>
-        public static void SetRasterizer(GlyphRasterizer rasterizer)
-        {
-            _rasterizer = rasterizer;
-        }
+        public static GlyphRasterizer Rasterizer = DefaultRasterizer;
     }
 }

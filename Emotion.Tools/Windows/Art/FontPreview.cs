@@ -45,8 +45,7 @@ namespace Emotion.Tools.Windows.Art
             ImGui.Text($"Asset Name: {_font.Name}");
             if (ImGui.Checkbox("Emotion Renderer", ref _emotionRenderer))
             {
-                DrawableFontAtlas.SetRasterizer(_emotionRenderer ? GlyphRasterizer.Emotion : GlyphRasterizer.StbTrueType);
-                _font.DestroyAtlas(_size);
+                DrawableFontAtlas.Rasterizer = _emotionRenderer ? GlyphRasterizer.Emotion : GlyphRasterizer.StbTrueType;
             }
             ImGui.InputTextMultiline("Test Text", ref _testText, 200, new Vector2(200, 100));
 

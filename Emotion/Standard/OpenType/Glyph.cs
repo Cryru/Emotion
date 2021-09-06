@@ -91,5 +91,30 @@ namespace Emotion.Standard.OpenType
                 MathF.Ceiling(-YMin * scale)
             );
         }
+
+        /// <summary>
+        /// The draw box for the glyph. This is essentially the rendering canvas.
+        /// </summary>
+        /// <param name="scale">The scale to get the drawing box at.</param>
+        /// <returns></returns>
+        public Rectangle GetDrawBoxFloat(float scale)
+        {
+            Rectangle bbox = GetBBoxFloat(scale);
+            return new Rectangle(0, 0, bbox.Width - bbox.X, bbox.Height - bbox.Y);
+        }
+
+        /// <summary>
+        /// The bounding box for the glyph.
+        /// </summary>
+        /// <param name="scale">The scale to get the bounding box at.</param>
+        public Rectangle GetBBoxFloat(float scale)
+        {
+            return new Rectangle(
+                XMin * scale,
+                -YMax * scale,
+                XMax * scale,
+                -YMin * scale
+            );
+        }
     }
 }

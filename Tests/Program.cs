@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Graphics.Text;
 using Emotion.Test;
 using Tests.Results;
 
@@ -46,6 +47,7 @@ namespace Tests
 
         private static void Main(string[] args)
         {
+            DrawableFontAtlas.Rasterizer = GlyphRasterizer.StbTrueType;
             ResultDb.LoadCache();
             var config = new Configurator
             {

@@ -25,7 +25,7 @@ namespace Emotion.IO
         /// <summary>
         /// List of loaded atlases. Some of these are cached and loaded by the AssetLoader, some are loaded by the FontAsset.
         /// </summary>
-        private Dictionary<int, DrawableFontAtlas> _loadedAtlases = new Dictionary<int, DrawableFontAtlas>();
+        private Dictionary<string, DrawableFontAtlas> _loadedAtlases = new Dictionary<string, DrawableFontAtlas>();
 
         /// <inheritdoc />
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
@@ -36,7 +36,7 @@ namespace Emotion.IO
         /// <inheritdoc />
         protected override void DisposeInternal()
         {
-            foreach (KeyValuePair<int, DrawableFontAtlas> atlas in _loadedAtlases)
+            foreach (KeyValuePair<string, DrawableFontAtlas> atlas in _loadedAtlases)
             {
                 atlas.Value.Dispose();
             }
@@ -57,9 +57,9 @@ namespace Emotion.IO
         /// overwritten with the closest one.
         /// </param>
         /// <returns></returns>
-        public DrawableFontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true, bool pixelFont = false)
+        public DrawableFontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = 127, bool smooth = true, bool pixelFont = false)
         {
-            int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
+            var hash = $"{fontSize}-{firstChar}-{numChars}-{DrawableFontAtlas.Rasterizer}";
 
             // Check if the atlas is already loaded.
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
@@ -104,13 +104,10 @@ namespace Emotion.IO
         /// <summary>
         /// Free memory by destroying a cached atlas.
         /// </summary>
-        /// <param name="fontSize"></param>
-        /// <param name="firstChar"></param>
-        /// <param name="numChars"></param>
-        public void DestroyAtlas(int fontSize, int firstChar = 0, int numChars = -1)
+        public void DestroyAtlas(int fontSize, int firstChar = 0, int numChars = -1, GlyphRasterizer? rasterizer = null)
         {
             fontSize = (int)MathF.Ceiling(fontSize);
-            int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
+            var hash = $"{fontSize}-{firstChar}-{numChars}-{rasterizer ?? DrawableFontAtlas.DefaultRasterizer}";
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found)
             {
