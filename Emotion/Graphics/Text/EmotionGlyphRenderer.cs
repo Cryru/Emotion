@@ -10,6 +10,7 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
+using Emotion.Platform.RenderDoc;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType;
@@ -30,8 +31,12 @@ namespace Emotion.Graphics.Text
         private static ShaderAsset _noDiscardShader;
         private static ShaderAsset _windingAaShader;
 
+        private static RenderState _glyphRenderState;
+        private static FrameBuffer _intermediateBuffer;
+
         public static void RenderAtlas(DrawableFontAtlas fontAtl)
         {
+            // Initialize shared objects.
             Debug.Assert(GLThread.IsGLThread());
             RenderComposer composer = Engine.Renderer;
             _noDiscardShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
@@ -42,21 +47,33 @@ namespace Emotion.Graphics.Text
                 return;
             }
 
+            if (_glyphRenderState == null)
+            {
+                _glyphRenderState = RenderState.Default.Clone();
+                _glyphRenderState.ViewMatrix = false;
+                _glyphRenderState.SFactorRgb = BlendingFactor.One;
+                _glyphRenderState.DFactorRgb = BlendingFactor.One;
+                _glyphRenderState.SFactorA = BlendingFactor.One;
+                _glyphRenderState.DFactorA = BlendingFactor.One;
+            }
+
             Vector2 atlasSize = fontAtl.AtlasSize;
             List<AtlasGlyph> glyphs = fontAtl.DrawableAtlasGlyphs;
             float scale = fontAtl.RenderScale;
 
-            // Create two framebuffers. Glyphs are rendered with their winding in the first one which is then blitted over to the final framebuffer,
-            // which is set as the drawable atlas texture.
-            FrameBuffer atlasIntermediate = new FrameBuffer(atlasSize * SuperSample).WithColor();
-            FrameBuffer atlasFinal = new FrameBuffer(atlasSize).WithColor();
-            composer.SetState(RenderState.Default);
+            if (_intermediateBuffer == null)
+                _intermediateBuffer = new FrameBuffer(atlasSize * SuperSample).WithColor();
+            else
+                _intermediateBuffer.Resize(atlasSize * SuperSample, true);
 
-            //RenderDocGraphicsContext.RenderDocCaptureStart();
-            composer.RenderToAndClear(atlasIntermediate);
+            RenderState prevState = composer.CurrentState.Clone();
+            composer.PushModelMatrix(Matrix4x4.Identity, false);
+
+            // Glyphs are rendered with their winding in the first one which is then copied over to the final framebuffer, which is set as the drawable atlas texture.
+            RenderDocGraphicsContext.RenderDocCaptureStart();
+            composer.SetState(_glyphRenderState);
+            composer.RenderToAndClear(_intermediateBuffer);
             composer.SetShader(_noDiscardShader.Shader);
-            composer.SetUseViewMatrix(false);
-            composer.SetAlphaBlendType(BlendingFactor.One, BlendingFactor.One, BlendingFactor.One, BlendingFactor.One);
 
             var colors = new[]
             {
@@ -67,10 +84,10 @@ namespace Emotion.Graphics.Text
             };
             var offsets = new[]
             {
-                new Vector3(-0.25f, 0, 0),
-                new Vector3(0.25f, 0, 0),
-                new Vector3(0.0f, -0.25f, 0),
-                new Vector3(0.0f, 0.25f, 0),
+                new Vector3(-0.30f, 0, 0),
+                new Vector3(0.30f, 0, 0),
+                new Vector3(0.0f, -0.30f, 0),
+                new Vector3(0.0f, 0.30f, 0),
             };
             for (var p = 0; p < 4; p++)
             {
@@ -162,19 +179,20 @@ namespace Emotion.Graphics.Text
 
             composer.RenderTargetPop();
 
-            composer.SetDefaultAlphaBlendType();
+            FrameBuffer atlasFinal = new FrameBuffer(atlasSize).WithColor();
             composer.SetAlphaBlend(false);
             composer.RenderToAndClear(atlasFinal);
             composer.SetShader(_windingAaShader.Shader);
-            _windingAaShader.Shader.SetUniformVector2("drawSize", atlasFinal.Size);
-            composer.RenderFrameBuffer(atlasIntermediate, new Vector2(atlasFinal.Size.X, -atlasFinal.Size.Y), color: Color.White, pos: new Vector3(0, atlasFinal.Size.Y, 0));
+            _windingAaShader.Shader.SetUniformVector2("drawSize", _intermediateBuffer.AllocatedSize);
+            composer.RenderFrameBuffer(_intermediateBuffer, new Vector2(atlasFinal.Size.X, -atlasFinal.Size.Y), color: Color.White, pos: new Vector3(0, atlasFinal.Size.Y, 0));
             composer.SetShader();
             composer.RenderTo(null);
-            //RenderDocGraphicsContext.RenderDocCaptureEnd();
+            RenderDocGraphicsContext.RenderDocCaptureEnd();
+            composer.SetState(prevState);
 
             atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped, so it's okay.
-            atlasIntermediate.Dispose();
             fontAtl.SetTexture(atlasFinal.ColorAttachment);
+            composer.PopModelMatrix();
         }
     }
 }
