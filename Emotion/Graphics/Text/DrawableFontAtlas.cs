@@ -170,7 +170,7 @@ namespace Emotion.Graphics.Text
             }
 
             // Fit glyphs into an atlas.
-            int glyphSpacing = RenderedWith == GlyphRasterizer.EmotionSDF_01 ? (int)(50 * scale) : 1;
+            int glyphSpacing = RenderedWith == GlyphRasterizer.EmotionSDF_01 ? (int)(20) : 1;
             var glyphSpacing2 = new Vector2(glyphSpacing);
             var glyphRects = new Rectangle[DrawableAtlasGlyphs.Count];
             for (var i = 0; i < DrawableAtlasGlyphs.Count; i++)
