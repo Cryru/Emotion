@@ -25,22 +25,22 @@ vec4 GET_WINDING_COLOR(sampler2D tex, vec2 uv)
 {
 	vec4 str = vec4(0.0);
 	vec4 textureColor = getTextureColor(tex, uv);
-	if (mod(textureColor.r * 255, 2) != 0)
+	if (mod(textureColor.r * 255., 2.) != 0.)
 	{
 		str.r = 1.0f;
 	}
 
-	if (mod(textureColor.g * 255, 2) != 0)
+	if (mod(textureColor.g * 255., 2.) != 0.)
 	{
 		str.g = 1.0f;
 	}
 
-	if (mod(textureColor.b * 255, 2) != 0)
+	if (mod(textureColor.b * 255., 2.) != 0.)
 	{
 		str.b = 1.0f;
 	}
 
-	if (mod(textureColor.a * 255, 2) != 0)
+	if (mod(textureColor.a * 255., 2.) != 0.)
 	{
 		str.a = 1.0f;
 	}
@@ -57,21 +57,21 @@ void main()
 	//);
 
 	//float convFilter[9] = float[9](
-	//	0f, 0f, 0f,
-	//	0f, 1f, 0f,
-	//	0f, 0f, 0f
+	//	0.f, 0.f, 0.f,
+	//	0.f, 1.f, 0.f,
+	//	0.f, 0.f, 0.f
 	//);
 
 	//float convFilter[9] = float[9](
-	//	0.025f, 0.10f, 0.025f,
+	//	0.025f, 0.10.f, 0.025f,
 	//	0.10, 0.50, 0.10,
-	//	0.025f, 0.10f, 0.025f
+	//	0.025f, 0.10.f, 0.025f
 	//);
 
 	float convFilter[9] = float[9](
-		1f, 1f, 1f,
-		1f, 1f, 1f,
-		1f, 1f, 1f
+		1.f, 1.f, 1.f,
+		1.f, 1.f, 1.f,
+		1.f, 1.f, 1.f
 	);
 
 	vec4 colorLA = GET_WINDING_COLOR(mainTexture, lefta_coord) * convFilter[0];
@@ -89,15 +89,15 @@ void main()
 	//vec4 combinedSample = colorLA + colorA + colorRA + colorL + color + colorR + colorLB + colorB + colorRB;
 
 	float subpixelFilter[9] = float[9](
-		0f, 0.2f, 0f,
+		0.f, 0.2f, 0.f,
 		0.2f, 0.3f, 0.2f,
-		0f, 0.2f, 0f
+		0.f, 0.2f, 0.f
 	);
 
 	float subpixelFilterUp[9] = float[9](
-		0f, 0.2f, 0f,
+		0.f, 0.2f, 0.f,
 		0.333f, 0.333f, 0.333f,
-		0f, 0.2f, 0f
+		0.f, 0.2f, 0.f
 	);
 
 	float r = colorL.a * subpixelFilter[3] + color.r * subpixelFilter[4] + color.g * subpixelFilter[5];

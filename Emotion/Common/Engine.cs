@@ -105,6 +105,19 @@ namespace Emotion.Common
 
 #endif
 
+        static Engine()
+        {
+            Helpers.AssociatedAssemblies = new List<Assembly>
+            {
+                // This is the assembly which called this function. Should be the game. Moving this to Setup/LightSetup will invalidate this assembly.
+                Assembly.GetCallingAssembly(),
+                // Is the engine.
+                Assembly.GetExecutingAssembly(),
+                // Is game or debugger. Some platforms don't provide this.
+                Assembly.GetEntryAssembly() 
+            }.Distinct().Where(x => x != null).ToArray();
+        }
+
         /// <summary>
         /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
         /// </summary>
@@ -113,13 +126,6 @@ namespace Emotion.Common
         {
             if (Status >= EngineStatus.LightSetup) return;
             PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
-
-            Helpers.AssociatedAssemblies = new List<Assembly>
-            {
-                Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
-                Assembly.GetExecutingAssembly(), // Is the engine.
-                Assembly.GetEntryAssembly() // Is game or debugger.
-            }.Distinct().Where(x => x != null).ToArray();
 
             // Correct the startup directory to the directory of the executable.
             if (RuntimeInformation.OSDescription != "Browser")

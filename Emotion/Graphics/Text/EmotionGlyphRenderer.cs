@@ -70,7 +70,7 @@ namespace Emotion.Graphics.Text
             composer.PushModelMatrix(Matrix4x4.Identity, false);
 
             // Glyphs are rendered with their winding in the first one which is then copied over to the final framebuffer, which is set as the drawable atlas texture.
-            RenderDocGraphicsContext.RenderDocCaptureStart();
+            //RenderDocGraphicsContext.RenderDocCaptureStart();
             composer.SetState(_glyphRenderState);
             composer.RenderToAndClear(_intermediateBuffer);
             composer.SetShader(_noDiscardShader.Shader);
@@ -187,7 +187,7 @@ namespace Emotion.Graphics.Text
             composer.RenderFrameBuffer(_intermediateBuffer, new Vector2(atlasFinal.Size.X, -atlasFinal.Size.Y), color: Color.White, pos: new Vector3(0, atlasFinal.Size.Y, 0));
             composer.SetShader();
             composer.RenderTo(null);
-            RenderDocGraphicsContext.RenderDocCaptureEnd();
+            //RenderDocGraphicsContext.RenderDocCaptureEnd();
             composer.SetState(prevState);
 
             atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped, so it's okay.
