@@ -417,7 +417,7 @@ namespace Emotion.Standard.Image.PNG
             var data = new Span<byte>(pureData);
 
             // Analyze if the scanlines can be read in parallel.
-            var filterMode = byte.MaxValue;
+            var filterMode = data[0];
             for (var i = 0; i < scanlineCount; i++)
             {
                 byte f = data[scanlineLength * i];
