@@ -19,6 +19,7 @@ namespace Emotion.Graphics.Text
     {
         /// <summary>
         /// A custom GPU-based rasterizer built for the engine. Still not mature enough to be the default.
+        /// Slow and ugliest.
         /// </summary>
         Emotion,
 
@@ -27,7 +28,8 @@ namespace Emotion.Graphics.Text
         /// First a very high resolution atlas is rendered using the Emotion rasterizer and
         /// an signed distance field generating algorithm is ran over it. This is cached to a file (if an asset store is loaded).
         /// Then the atlas is used for all font sizes and read from using the SDF shader to provide crisp text at any size.
-        /// Best looking, but very slow to render, and even with the cache loading 4x PNGs isn't very fast :P
+        /// Best looking, but very slow to render. Writes caches images to reduce subsequent loading but loading 4k PNGs isn't very fast :P
+        /// Can reuse atlas images for various font sizes, reducing memory usage overall.
         /// </summary>
         EmotionSDF_01,
 
@@ -200,9 +202,11 @@ namespace Emotion.Graphics.Text
             switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
+                    EmotionGlyphRenderer.InitEmotionRenderer();
                     GLThread.ExecuteGLThreadAsync(() => EmotionGlyphRenderer.RenderAtlas(this));
                     break;
                 case GlyphRasterizer.EmotionSDF_01:
+                    EmotionGlyphRenderer.InitEmotionRenderer();
                     GLThread.ExecuteGLThreadAsync(() => EmotionGlyphRenderer.RenderAtlasSDF(this));
                     break;
                 case GlyphRasterizer.StbTrueType:

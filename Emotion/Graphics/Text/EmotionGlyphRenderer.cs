@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Batches;
@@ -26,11 +27,15 @@ namespace Emotion.Graphics.Text
 {
     public static class EmotionGlyphRenderer
     {
-        public static float SuperSample = 1;
+        // Const
         public const bool CLIP_GLYPH_TEXTURES = false;
         public const int SDF_ATLAS_SIZE = 512;
+
+        // Settings
+        public static float SuperSample = 1;
         public static bool SdfBlockingCache = false;
 
+        // Resources
         private static ShaderAsset _noDiscardShader;
         private static ShaderAsset _windingAaShader;
         private static ShaderAsset _windingShader;
@@ -40,6 +45,51 @@ namespace Emotion.Graphics.Text
         private static RenderState _glyphRenderState;
         private static FrameBuffer _intermediateBuffer;
 
+        private static object _initLock = new object();
+        private static bool _init;
+
+        public static void InitEmotionRenderer()
+        {
+            if (_init) return;
+            lock (_initLock)
+            {
+                if (_init) return;
+
+                if (_glyphRenderState == null)
+                {
+                    _glyphRenderState = RenderState.Default.Clone();
+                    _glyphRenderState.ViewMatrix = false;
+                    _glyphRenderState.SFactorRgb = BlendingFactor.One;
+                    _glyphRenderState.DFactorRgb = BlendingFactor.One;
+                    _glyphRenderState.SFactorA = BlendingFactor.One;
+                    _glyphRenderState.DFactorA = BlendingFactor.One;
+                }
+
+                var shaderLoading = new Task<ShaderAsset>[]
+                {
+                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/VertColorNoDiscard.xml"),
+                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/WindingAA.xml"),
+                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/Winding.xml"),
+                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/GenerateSDF.xml"),
+                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/SDF.xml")
+                };
+                Task.WhenAll(shaderLoading).Wait();
+
+                _noDiscardShader = shaderLoading[0].Result;
+                _windingAaShader = shaderLoading[1].Result;
+                _windingShader = shaderLoading[2].Result;
+                _sdfGeneratingShader = shaderLoading[3].Result;
+                _sdfShader = shaderLoading[4].Result;
+                if (_noDiscardShader == null || _windingAaShader == null || _sdfGeneratingShader == null || _sdfShader == null)
+                    Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.FontParser);
+
+                _init = true;
+            }
+        }
+
+        /// <summary>
+        /// Render glyph vertices storing the winding number in the color buffer.
+        /// </summary>
         private static void RenderGlyphs(RenderComposer composer, List<AtlasGlyph> glyphs, Vector3 offset, uint clr, float scale)
         {
             for (var c = 0; c < glyphs.Count; c++)
@@ -130,23 +180,6 @@ namespace Emotion.Graphics.Text
             // Initialize shared objects.
             Debug.Assert(GLThread.IsGLThread());
             RenderComposer composer = Engine.Renderer;
-            _noDiscardShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
-            _windingAaShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/WindingAA.xml");
-            if (_noDiscardShader == null || _windingAaShader == null)
-            {
-                Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.FontParser);
-                return;
-            }
-
-            if (_glyphRenderState == null)
-            {
-                _glyphRenderState = RenderState.Default.Clone();
-                _glyphRenderState.ViewMatrix = false;
-                _glyphRenderState.SFactorRgb = BlendingFactor.One;
-                _glyphRenderState.DFactorRgb = BlendingFactor.One;
-                _glyphRenderState.SFactorA = BlendingFactor.One;
-                _glyphRenderState.DFactorA = BlendingFactor.One;
-            }
 
             Vector2 atlasSize = fontAtl.AtlasSize;
             List<AtlasGlyph> glyphs = fontAtl.DrawableAtlasGlyphs;
@@ -205,30 +238,11 @@ namespace Emotion.Graphics.Text
             composer.SetState(prevState);
         }
 
-        public static void RenderAtlasSDF(DrawableFontAtlas fontAtl)
+        public static void RenderAtlasSDF(DrawableFontAtlas fontAtl, bool skipCache = false)
         {
             // Initialize shared objects.
             Debug.Assert(GLThread.IsGLThread());
             RenderComposer composer = Engine.Renderer;
-
-            _noDiscardShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
-            _windingShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/Winding.xml");
-            _sdfGeneratingShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GenerateSDF.xml");
-            if (_noDiscardShader == null || _windingShader == null || _sdfGeneratingShader == null)
-            {
-                Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.FontParser);
-                return;
-            }
-
-            if (_glyphRenderState == null)
-            {
-                _glyphRenderState = RenderState.Default.Clone();
-                _glyphRenderState.ViewMatrix = false;
-                _glyphRenderState.SFactorRgb = BlendingFactor.One;
-                _glyphRenderState.DFactorRgb = BlendingFactor.One;
-                _glyphRenderState.SFactorA = BlendingFactor.One;
-                _glyphRenderState.DFactorA = BlendingFactor.One;
-            }
 
             // Create temporary atlas to house high resolution glyph data.
             var sdfAtlasTemp = new DrawableFontAtlas(fontAtl.Font, fontAtl.Font.Height / 4f, fontAtl.FirstChar, fontAtl.NumChars);
@@ -251,54 +265,74 @@ namespace Emotion.Graphics.Text
                 outputResolution.X = newX;
             }
 
-            // Set SDF locations and sizes.
-            // This is done before the texture is actually loaded/rasterized so the cache can have access to it.
-            Vector2 scaleDifference = outputResolution / tempAtlasSize;
-            float lowestGlyph = 0, lowestGlyphOutput = 0;
-            for (var i = 0; i < sdfAtlasTemp.DrawableAtlasGlyphs.Count; i++)
-            {
-                AtlasGlyph g = sdfAtlasTemp.DrawableAtlasGlyphs[i];
-                AtlasGlyph fontAtlGlyph = fontAtl.DrawableAtlasGlyphs[i];
-                Debug.Assert(fontAtlGlyph.FontGlyph == g.FontGlyph);
-                fontAtlGlyph.UVLocation = g.UVLocation * scaleDifference;
-                fontAtlGlyph.UVSize = g.UVSize * scaleDifference;
+            // Set render shader to atlas.
+            fontAtl.FontShader = _sdfShader.Shader;
 
-                lowestGlyph = MathF.Max(g.UVLocation.Y + g.UVSize.Y + 50, lowestGlyph);
+            // Apply sdf metrics to the font atlas by scaling the temp atlas.
+            static void ApplySDFScaledMetric(Vector2 outputResolution, DrawableFontAtlas fontAtl, DrawableFontAtlas sdfAtlasTemp, out float lowestGlyph, out float lowestGlyphOutput)
+            {
+                Vector2 scaleDifference = outputResolution / sdfAtlasTemp.AtlasSize;
+                lowestGlyph = 0;
+                lowestGlyphOutput = 0;
+                for (var i = 0; i < sdfAtlasTemp.DrawableAtlasGlyphs.Count; i++)
+                {
+                    AtlasGlyph g = sdfAtlasTemp.DrawableAtlasGlyphs[i];
+                    AtlasGlyph fontAtlGlyph = fontAtl.DrawableAtlasGlyphs[i];
+                    Debug.Assert(fontAtlGlyph.FontGlyph == g.FontGlyph);
+                    fontAtlGlyph.UVLocation = g.UVLocation * scaleDifference;
+                    fontAtlGlyph.UVSize = g.UVSize * scaleDifference;
+
+                    lowestGlyph = MathF.Max(g.UVLocation.Y + g.UVSize.Y + 50, lowestGlyph);
+                }
+
+                fontAtl.RenderScale = scaleDifference.X;
+                lowestGlyphOutput = lowestGlyph * scaleDifference.Y;
             }
 
-            fontAtl.RenderScale = scaleDifference.X;
-            lowestGlyphOutput = lowestGlyph * scaleDifference.Y;
-
-            // Set render shader to atlas.
-            _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
-            if (_sdfShader == null)
-                Engine.Log.Error("SDF shader missing!", MessageSource.FontParser);
-            else
-                fontAtl.FontShader = _sdfShader.Shader;
-
             // Check if a cached texture exists, and if so load it and early out.
-            var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.FirstChar}-{fontAtl.NumChars}-{fontAtl.RenderedWith}-{outputResolution.X}-{outputResolution.Y}";
+            var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.FirstChar}-{fontAtl.NumChars}-{fontAtl.RenderedWith}";
             bool cachedImageExists = Engine.AssetLoader.Exists($"{cachedRenderName}.png");
-            if (cachedImageExists)
+            if (cachedImageExists && !skipCache)
             {
                 if (SdfBlockingCache)
                 {
                     var texture = Engine.AssetLoader.Get<TextureAsset>($"{cachedRenderName}.png");
-                    if (texture == null) return;
-                    fontAtl.SetTexture(texture.Texture);
+                    if (texture != null && texture.Texture.Size.X >= outputResolution.X)
+                    {
+                        fontAtl.SetTexture(texture.Texture);
+                        outputResolution = new Vector2(texture.Texture.Size.X);
+                        ApplySDFScaledMetric(outputResolution, fontAtl, sdfAtlasTemp, out float _, out float __);
+                        return;
+                    }
                 }
                 else
                 {
-                    Engine.AssetLoader.GetAsync<TextureAsset>($"{cachedRenderName}.png").ContinueWith(t =>
+                    Task.Run(async () =>
                     {
-                        TextureAsset textureAss = t.Result;
-                        if (textureAss == null) return;
-                        fontAtl.SetTexture(textureAss.Texture);
+                        var texture = await Engine.AssetLoader.GetAsync<TextureAsset>($"{cachedRenderName}.png");
+                        if (texture != null)
+                        {
+                            // Check if the cached sdf image is the same size, or larger than the one requested.
+                            // We use only the width since we cut off the height in cache generation to save space.
+                            if (texture.Texture.Size.X >= outputResolution.X)
+                            {
+                                fontAtl.SetTexture(texture.Texture);
+                                outputResolution = new Vector2(texture.Texture.Size.X);
+                                ApplySDFScaledMetric(outputResolution, fontAtl, sdfAtlasTemp, out float _, out float __);
+                            }
+                            else
+                            {
+                                // Turns out texture sucked so restart process.
+                                _ = GLThread.ExecuteGLThreadAsync(() => RenderAtlasSDF(fontAtl, true));
+                            }
+                        }
                     });
+                    return;
                 }
-
-                return;
             }
+
+            // Set SDF locations and sizes.
+            ApplySDFScaledMetric(outputResolution, fontAtl, sdfAtlasTemp, out float lowestGlyph, out float lowestGlyphOutput);
 
             // Render glyphs just like the normal Emotion rasterizer.
             if (_intermediateBuffer == null)
