@@ -10,7 +10,6 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
-using Emotion.Platform.RenderDoc;
 using Emotion.Primitives;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
@@ -30,7 +29,7 @@ namespace Emotion.Graphics.Text
         public static float SuperSample = 1;
         public const bool CLIP_GLYPH_TEXTURES = false;
         public const int SDF_ATLAS_SIZE = 512;
-        public static bool SDF_BLOCKING_CACHE = false;
+        public static bool SdfBlockingCache = false;
 
         private static ShaderAsset _noDiscardShader;
         private static ShaderAsset _windingAaShader;
@@ -266,19 +265,23 @@ namespace Emotion.Graphics.Text
 
                 lowestGlyph = MathF.Max(g.UVLocation.Y + g.UVSize.Y + 50, lowestGlyph);
             }
+
             fontAtl.RenderScale = scaleDifference.X;
             lowestGlyphOutput = lowestGlyph * scaleDifference.Y;
 
             // Set render shader to atlas.
             _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
-            fontAtl.FontShader = _sdfShader.Shader;
+            if (_sdfShader == null)
+                Engine.Log.Error("SDF shader missing!", MessageSource.FontParser);
+            else
+                fontAtl.FontShader = _sdfShader.Shader;
 
             // Check if a cached texture exists, and if so load it and early out.
             var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.FirstChar}-{fontAtl.NumChars}-{fontAtl.RenderedWith}-{outputResolution.X}-{outputResolution.Y}";
             bool cachedImageExists = Engine.AssetLoader.Exists($"{cachedRenderName}.png");
             if (cachedImageExists)
             {
-                if (SDF_BLOCKING_CACHE)
+                if (SdfBlockingCache)
                 {
                     var texture = Engine.AssetLoader.Get<TextureAsset>($"{cachedRenderName}.png");
                     if (texture == null) return;
@@ -286,13 +289,14 @@ namespace Emotion.Graphics.Text
                 }
                 else
                 {
-                    Engine.AssetLoader.GetAsync<TextureAsset>($"{cachedRenderName}.png").ContinueWith((t) =>
+                    Engine.AssetLoader.GetAsync<TextureAsset>($"{cachedRenderName}.png").ContinueWith(t =>
                     {
-                        TextureAsset? textureAss = t.Result;
+                        TextureAsset textureAss = t.Result;
                         if (textureAss == null) return;
                         fontAtl.SetTexture(textureAss.Texture);
                     });
                 }
+
                 return;
             }
 
@@ -340,8 +344,8 @@ namespace Emotion.Graphics.Text
             atlasFinal.Resize(outputResolution);
             _intermediateBuffer.ColorAttachment.Smooth = true;
             composer.RenderToAndClear(atlasFinal);
-            composer.RenderFrameBuffer(_intermediateBuffer, 
-                renderSizeOverwrite: new Vector2(outputResolution.X, -outputResolution.Y),
+            composer.RenderFrameBuffer(_intermediateBuffer,
+                new Vector2(outputResolution.X, -outputResolution.Y),
                 color: Color.White,
                 pos: new Vector3(0, outputResolution.Y, 0),
                 uv: new Rectangle(0, 0, _intermediateBuffer.Size.X, lowestGlyph));
