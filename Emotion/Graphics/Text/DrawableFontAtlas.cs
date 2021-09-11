@@ -28,7 +28,8 @@ namespace Emotion.Graphics.Text
         /// First a very high resolution atlas is rendered using the Emotion rasterizer and
         /// an signed distance field generating algorithm is ran over it. This is cached to a file (if an asset store is loaded).
         /// Then the atlas is used for all font sizes and read from using the SDF shader to provide crisp text at any size.
-        /// Best looking, but very slow to render. Writes caches images to reduce subsequent loading but loading 4k PNGs isn't very fast :P
+        /// Best looking, but very slow to render. Writes caches images to reduce subsequent loading but loading 4k PNGs isn't very
+        /// fast :P
         /// Can reuse atlas images for various font sizes, reducing memory usage overall.
         /// </summary>
         EmotionSDF_01,
@@ -172,7 +173,7 @@ namespace Emotion.Graphics.Text
             }
 
             // Fit glyphs into an atlas.
-            int glyphSpacing = RenderedWith == GlyphRasterizer.EmotionSDF_01 ? (int)(20) : 1;
+            int glyphSpacing = RenderedWith == GlyphRasterizer.EmotionSDF_01 ? 20 : 1;
             var glyphSpacing2 = new Vector2(glyphSpacing);
             var glyphRects = new Rectangle[DrawableAtlasGlyphs.Count];
             for (var i = 0; i < DrawableAtlasGlyphs.Count; i++)
@@ -232,7 +233,11 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The default rasterizer.
         /// </summary>
+#if WEB
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
+#else
         public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDF_01;
+#endif
 
         /// <summary>
         /// The rasterizer to use for generating atlases.

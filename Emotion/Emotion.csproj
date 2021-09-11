@@ -45,6 +45,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Assets\FontShaders\GenerateSDF.frag" />
+    <None Remove="Assets\FontShaders\GenerateSDF.xml" />
+    <None Remove="Assets\FontShaders\SDF.frag" />
+    <None Remove="Assets\FontShaders\SDF.xml" />
     <None Remove="Assets\FontShaders\VertColorNoDiscard.frag" />
     <None Remove="Assets\FontShaders\VertColorNoDiscard.xml" />
     <None Remove="Assets\FontShaders\Winding.frag" />
@@ -99,18 +103,6 @@
     <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll" Condition="$(DefineConstants.Contains('Superluminal'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\FontShaders\GenerateSDF.frag">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\FontShaders\GenerateSDF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\FontShaders\SDF.frag">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\FontShaders\SDF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -125,6 +117,18 @@
     <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\SDF.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\SDF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Assets\FontShaders\VertColorNoDiscard.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
