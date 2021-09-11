@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -10,7 +11,6 @@ namespace Emotion.Common.Threading
 {
     public class ParallelWork
     {
-#if !WEB
         /// <summary>
         /// For loops which run fast we batch them into groups.
         /// </summary>
@@ -23,41 +23,14 @@ namespace Emotion.Common.Threading
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task FastLoops(int arraySize, Action<int, int> function)
         {
-            // Early out and optimization case.
             if (arraySize == 0) return Task.CompletedTask;
-            if (arraySize <= Environment.ProcessorCount) return Task.Run(() => function(0, arraySize));
-
-            var tasks = new Task[Environment.ProcessorCount];
-            int perTask = arraySize / tasks.Length;
-            int leftOver = arraySize - perTask * tasks.Length;
-            for (var t = 0; t < tasks.Length; t++)
+            OrderablePartitioner<Tuple<int, int>> arrayPartitions = Partitioner.Create(0, arraySize);
+            Parallel.ForEach(arrayPartitions, (range, loopState) =>
             {
-                int arrayStart = perTask * t;
-                int arrayEnd = arrayStart + perTask;
-
-                // Add the left over amount to the last task.
-                if (t == tasks.Length - 1) arrayEnd += leftOver;
-
-                tasks[t] = Task.Run(() => function(arrayStart, arrayEnd));
-            }
-
-            return Task.WhenAll(tasks);
+                (int start, int end) = range;
+                function(start, end);
+            });
+            return Task.CompletedTask;
         }
-#else
-        public class FakeTask
-        {
-            public void Wait()
-            {
-                // nop
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FakeTask FastLoops(int arraySize, Action<int, int> function)
-        {
-            function(0, arraySize);
-            return new FakeTask();
-        }
-#endif
     }
 }
