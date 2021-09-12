@@ -6,6 +6,7 @@ using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 using Emotion.Standard.Image.BMP;
+using Emotion.Standard.Image.ImgBin;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using OpenGL;
@@ -47,14 +48,13 @@ namespace Emotion.IO
 
             PerfProfiler.ProfilerEventStart("Decoding Image", "Loading");
 
-            // Check if PNG.
+            // Magic number check to find out format.
             if (PngFormat.IsPng(data))
             {
                 pixels = PngFormat.Decode(data, out PngFileHeader header);
                 size = header.Size;
                 format = header.PixelFormat;
             }
-            // Check if BMP.
             else if (BmpFormat.IsBmp(data))
             {
                 pixels = BmpFormat.Decode(data, out BmpFileHeader header);
@@ -62,9 +62,16 @@ namespace Emotion.IO
                 flipped = true;
                 format = PixelFormat.Bgra;
             }
+            else if (ImgBinFormat.IsImgBin(data))
+            {
+                pixels = ImgBinFormat.Decode(data, out ImgBinFileHeader header);
+                size = header.Size;
+                format = header.Format;
+            }
 
             if (pixels == null || size.X == 0 || size.Y == 0)
             {
+                Texture = Texture.EmptyWhiteTexture;
                 Engine.Log.Warning($"Couldn't load texture - {Name}.", MessageSource.AssetLoader);
                 return;
             }
