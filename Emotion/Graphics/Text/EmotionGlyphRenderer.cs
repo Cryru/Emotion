@@ -65,7 +65,7 @@ namespace Emotion.Graphics.Text
                     _glyphRenderState.DFactorA = BlendingFactor.One;
                 }
 
-                var shaderLoading = new Task<ShaderAsset>[]
+                var shaderLoading = new[]
                 {
                     Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/VertColorNoDiscard.xml"),
                     Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/WindingAA.xml"),
@@ -290,13 +290,13 @@ namespace Emotion.Graphics.Text
             }
 
             // Check if a cached texture exists, and if so load it and early out.
-            var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.FirstChar}-{fontAtl.NumChars}-{fontAtl.RenderedWith}";
-            bool cachedImageExists = Engine.AssetLoader.Exists($"{cachedRenderName}.png");
+            var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.FirstChar}-{fontAtl.NumChars}-{fontAtl.RenderedWith}.png";
+            bool cachedImageExists = Engine.AssetLoader.Exists(cachedRenderName);
             if (cachedImageExists && !skipCache)
             {
                 if (SdfBlockingCache)
                 {
-                    var texture = Engine.AssetLoader.Get<TextureAsset>($"{cachedRenderName}.png");
+                    var texture = Engine.AssetLoader.Get<TextureAsset>(cachedRenderName);
                     if (texture != null && texture.Texture.Size.X >= outputResolution.X)
                     {
                         fontAtl.SetTexture(texture.Texture);
@@ -309,7 +309,7 @@ namespace Emotion.Graphics.Text
                 {
                     Task.Run(async () =>
                     {
-                        var texture = await Engine.AssetLoader.GetAsync<TextureAsset>($"{cachedRenderName}.png");
+                        var texture = await Engine.AssetLoader.GetAsync<TextureAsset>(cachedRenderName);
                         if (texture != null)
                         {
                             // Check if the cached sdf image is the same size, or larger than the one requested.
@@ -394,7 +394,7 @@ namespace Emotion.Graphics.Text
             // Save to cache so we don't have to do this again.
             byte[] data = atlasFinal.Sample(new Rectangle(0, 0, atlasFinal.Size), PixelFormat.Rgba);
             byte[] pngData = PngFormat.Encode(data, atlasFinal.Size, PixelFormat.Rgba);
-            Engine.AssetLoader.Save(pngData, $"{cachedRenderName}.png", false);
+            Engine.AssetLoader.Save(pngData, cachedRenderName, false);
         }
     }
 }
