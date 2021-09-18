@@ -52,7 +52,7 @@ namespace Emotion.Game.Text
 
                 drawPosition = result;
                 drawPosition.Y += g.YBearing;
-                drawPosition.X = g.XMin + drawPosition.X;
+                drawPosition.X += g.XMin;
             }
 
             return result;

@@ -7,9 +7,7 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
-using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Standard.OpenType;
 
 #endregion
 
@@ -34,25 +32,25 @@ namespace Emotion.Graphics
             VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
         }
 
-        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)"/>
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
         public void RenderSprite(Transform transform, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(transform.Position, transform.Size, color, texture, textureArea);
         }
 
-        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)"/>
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
         public void RenderSprite(Rectangle rect, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(rect.Position.ToVec3(), rect.Size, color, texture, textureArea);
         }
 
-        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)"/>
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
         public void RenderSprite(Vector3 position, Vector2 size, Texture texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(position, size, Color.White, texture, textureArea);
         }
 
-        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)"/>
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
         public void RenderSprite(Vector2 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(position.ToVec3(), size, color, texture, textureArea);
@@ -93,7 +91,7 @@ namespace Emotion.Graphics
             }
         }
 
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float)"/>
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float)" />
         public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
         {
             RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
@@ -154,7 +152,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a line with an arrow at the end.
         /// </summary>
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float)"/>
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float)" />
         public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
             RenderLine(pointOne, pointTwo, color, thickness);
@@ -175,7 +173,7 @@ namespace Emotion.Graphics
             RenderLine(pointTwo, arrowPointTwo, color, thickness);
         }
 
-        /// <inheritdoc cref="RenderArrow(Vector3, Vector3, Color, float)"/>
+        /// <inheritdoc cref="RenderArrow(Vector3, Vector3, Color, float)" />
         public void RenderArrow(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
         {
             RenderArrow(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
@@ -196,13 +194,13 @@ namespace Emotion.Graphics
             RenderLine(new Vector3(position.X, position.Y + size.Y, position.Z), position, color, thickness);
         }
 
-        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)"/>
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
         public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
         {
             RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
         }
 
-        
+
         /// <summary>
         /// Render a string from an atlas.
         /// </summary>
@@ -220,13 +218,15 @@ namespace Emotion.Graphics
             {
                 SetShader(atlas.FontShader);
                 // HalfRange / OutputScale - GenerateSDF.frag
-                atlas.FontShader.SetUniformFloat("scaleFactor", 32f * atlas.RenderScale); 
+                atlas.FontShader.SetUniformFloat("scaleFactor", 32f * atlas.RenderScale);
             }
 
             foreach (char c in text)
             {
                 Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
                 if (g == null) continue;
+                if (atlas.FontSize > 30) gPos.X = MathF.Ceiling(gPos.X); // Dirty hack to prevent rounding artifacts.
+
                 var uv = new Rectangle(g.UVLocation, g.UVSize);
                 RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
             }
@@ -234,7 +234,7 @@ namespace Emotion.Graphics
             if (atlas.FontShader != null) SetShader();
         }
 
-        /// <inheritdoc cref="RenderString(Vector3, Color, string, DrawableFontAtlas, TextLayouter)"/>
+        /// <inheritdoc cref="RenderString(Vector3, Color, string, DrawableFontAtlas, TextLayouter)" />
         public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas)
         {
             if (atlas?.Glyphs == null) return;
