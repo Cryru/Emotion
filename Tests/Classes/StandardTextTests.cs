@@ -174,14 +174,15 @@ namespace Tests.Classes
 
         public static unsafe DrawableFontAtlas RenderFontStbPacked(byte[] ttf, float fontSize, Vector2 atlasSize, int numChars, Font f, out StbTrueType.stbtt_fontinfo fontInfo)
         {
-            DrawableFontAtlas atlasObj;
+            DrawableFontAtlas atlasObj = new DrawableFontAtlas(f, fontSize);
+            fontSize = atlasObj.FontSize;
 
             fontInfo = new StbTrueType.stbtt_fontinfo();
             fixed (byte* ttPtr = &ttf[0])
             {
                 StbTrueType.stbtt_InitFont(fontInfo, ttPtr, 0);
 
-                float scaleFactor = StbTrueType.stbtt_ScaleForPixelHeight(fontInfo, fontSize);
+                float scaleFactor = StbTrueType.stbtt_ScaleForMappingEmToPixels(fontInfo, fontSize);
                 int ascent, descent, lineGap;
                 StbTrueType.stbtt_GetFontVMetrics(fontInfo, &ascent, &descent, &lineGap);
 
@@ -197,11 +198,10 @@ namespace Tests.Classes
                 var cd = new StbTrueType.stbtt_packedchar[numChars];
                 fixed (StbTrueType.stbtt_packedchar* charPtr = cd)
                 {
-                    StbTrueType.stbtt_PackFontRange(pc, ttPtr, 0, fontSize, 0, numChars, charPtr);
+                    StbTrueType.stbtt_PackFontRange(pc, ttPtr, 0, -fontSize, 0, numChars, charPtr);
                 }
 
                 StbTrueType.stbtt_PackEnd(pc);
-                atlasObj = new DrawableFontAtlas(f, fontSize);
                 for (var i = 0; i < cd.Length; ++i)
                 {
                     float yOff = cd[i].yoff;
@@ -245,7 +245,7 @@ namespace Tests.Classes
                     array_of_unicode_codepoints = null,
                     num_chars = (int)f.LastCharIndex + 1,
                     chardata_for_range = charDataPtr,
-                    font_size = atlas.RenderScale * f.Height
+                    font_size = -atlas.FontSize
                 };
 
                 rects = new StbTrueType.stbrp_rect[f.LastCharIndex + 1];
