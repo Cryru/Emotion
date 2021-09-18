@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Game;
 using Emotion.Graphics.Objects;
@@ -143,8 +144,15 @@ namespace Emotion.Graphics.Text
 
             var lastIdx = (int)(FirstChar + NumChars);
 
+            // Convert from Emotion font size (legacy) to real font size.
+            if (Engine.Configuration.UseEmotionFontSize)
+            {
+                float diff = (float) Font.UnitsPerEm / Font.Height;
+                FontSize = MathF.Round(FontSize * diff);
+            }
+
             // The scale to render at.
-            float scale = FontSize / Font.Height;
+            float scale = FontSize / Font.UnitsPerEm;
             FontHeight = MathF.Ceiling(Font.Height * scale);
             RenderScale = scale;
             RenderedWith = Rasterizer;

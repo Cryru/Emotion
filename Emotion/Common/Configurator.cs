@@ -82,6 +82,15 @@ namespace Emotion.Common
         /// </summary>
         public Color ClearColor { get; set; } = new Color(0, 0, 0, 0);
 
+        /// <summary>
+        /// Whether to use a custom formula for font size. If set to off font sizes passed to
+        /// DrawableFontAtlas (when requesting atlases from FontAsset) will be equal to most other apps (Photoshop etc)
+        /// This is usually desired but due to a mistake the default font size used another formula in previous versions of the engine.
+        /// In order to not break all font sizes in old projects the default setting is to use Emotion font size, but it is recommended to turn this off.
+        /// Additionally regardless of the setting, the DrawableFontAtlas' FontSize property will be set to the value using the "off" formula.
+        /// </summary>
+        public bool UseEmotionFontSize { get; set; } = true;
+
         #endregion
 
         #region Loop
