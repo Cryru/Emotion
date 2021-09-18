@@ -451,9 +451,10 @@ namespace Emotion.UI
                                 Engine.Log.Warning($"{this} tried to layout relative to {child.RelativeTo} but it couldn't find it.", "UI");
                             }
 
+                            Rectangle childScaledMargins = child.Margins * childScale;
                             Vector2 childSize = child.Measure(freeSpace);
                             if (insideParent)
-                                usedSpace = Vector2.Max(usedSpace, childSize);
+                                usedSpace = Vector2.Max(usedSpace, childSize + new Vector2(childScaledMargins.X + childScaledMargins.Width, childScaledMargins.Y + childScaledMargins.Height));
 
                             break;
                         }
@@ -528,7 +529,11 @@ namespace Emotion.UI
             }
 
             AfterMeasureChildren(usedSpace);
-            _measuredSize = new Vector2(StretchX ? usedSpace.X + paddingSize.X : contentSize.X, StretchY ? usedSpace.Y + paddingSize.Y : contentSize.Y);
+
+            Vector2 minSizeScaled = MinSize * scale;
+            float measuredX = StretchX ? MathF.Max(usedSpace.X + paddingSize.X, minSizeScaled.X) : contentSize.X;
+            float measuredY = StretchY ? MathF.Max(usedSpace.Y + paddingSize.Y, minSizeScaled.Y) : contentSize.Y;
+            _measuredSize = new Vector2(measuredX, measuredY);
             Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
             Size = _measuredSize;
             return Size;
