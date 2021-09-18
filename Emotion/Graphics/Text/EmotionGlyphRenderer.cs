@@ -271,7 +271,7 @@ namespace Emotion.Graphics.Text
             // Apply sdf metrics to the font atlas by scaling the temp atlas.
             static void ApplySDFScaledMetric(Vector2 outputResolution, DrawableFontAtlas fontAtl, DrawableFontAtlas sdfAtlasTemp, out float lowestGlyph, out float lowestGlyphOutput)
             {
-                Vector2 scaleDifference = outputResolution / sdfAtlasTemp.AtlasSize;
+                float scaleDifference = outputResolution.X / sdfAtlasTemp.AtlasSize.X;
                 lowestGlyph = 0;
                 lowestGlyphOutput = 0;
                 for (var i = 0; i < sdfAtlasTemp.DrawableAtlasGlyphs.Count; i++)
@@ -285,8 +285,8 @@ namespace Emotion.Graphics.Text
                     lowestGlyph = MathF.Max(g.UVLocation.Y + g.UVSize.Y + 50, lowestGlyph);
                 }
 
-                fontAtl.RenderScale = scaleDifference.X;
-                lowestGlyphOutput = lowestGlyph * scaleDifference.Y;
+                fontAtl.RenderScale = scaleDifference;
+                lowestGlyphOutput = lowestGlyph * scaleDifference;
             }
 
             // Check if a cached texture exists, and if so load it and early out.
