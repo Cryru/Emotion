@@ -234,7 +234,7 @@ namespace Emotion.UI
         {
             Controller = controller;
             Controller?.InvalidatePreload();
-            Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
+            Z = ZOffset + (Parent?.Z - 0.01f ?? 0);
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
@@ -325,7 +325,7 @@ namespace Emotion.UI
         /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
         /// This is the Z offset for this window, added to this window and its children.
         /// </summary>
-        public float ZOffset { get; set; }
+        public float ZOffset { get; set; } = 1;
 
         /// <summary>
         /// Margins push the window in one of the four directions, only if it is against another window.
