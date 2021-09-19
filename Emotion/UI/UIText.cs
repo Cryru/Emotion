@@ -9,7 +9,6 @@ using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Standard.OpenType;
 
 #endregion
 
@@ -20,12 +19,32 @@ namespace Emotion.UI
         /// <summary>
         /// The name of the font asset.
         /// </summary>
-        public string FontFile;
+        public string FontFile
+        {
+            get => _fontFileName;
+            set
+            {
+                _fontFileName = value;
+                Controller?.InvalidatePreload();
+            }
+        }
+
+        private string _fontFileName;
 
         /// <summary>
         /// The unscaled font size of the text.
         /// </summary>
-        public int FontSize;
+        public int FontSize
+        {
+            get => _fontSize;
+            set
+            {
+                _fontSize = value;
+                Controller?.InvalidatePreload();
+            }
+        }
+
+        private int _fontSize;
 
         /// <summary>
         /// Whether to smoothen the drawing of the font by using bilinear filtering.
@@ -96,10 +115,16 @@ namespace Emotion.UI
             if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
             if (_fontFile == null) return;
 
+            if (FontSize == 0)
+            {
+                _atlas = null;
+                return;
+            }
+
             // Load atlas as well. This one will change based on UI scale.
             // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
             float scale = GetScale();
-            _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), smooth: Smooth, pixelFont: FontSizePixelPerfect);
+            _atlas = _fontFile.GetAtlas((int)MathF.Ceiling(FontSize * scale), smooth: Smooth, pixelFont: FontSizePixelPerfect);
 
             // Reload the layouter if needed. Changing this means the text needs to be relayouted.
             if (_layouterAtlas != _atlas)
@@ -125,7 +150,7 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            if (_text == null || _layouter == null) return true;
+            if (_text == null || _fontFile == null || _layouter == null) return true;
 
             if (TextShadow != null)
             {
