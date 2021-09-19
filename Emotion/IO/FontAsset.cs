@@ -71,19 +71,9 @@ namespace Emotion.IO
                 found = _loadedAtlases.TryGetValue(hash, out atlas);
                 if (found) return atlas;
 
-                // Scale to closest power of two.
-                float sizeFloat = fontSize;
-                if (pixelFont)
-                {
-                    float fontHeight = Font.Height;
-                    float scaleFactor = fontHeight / fontSize;
-                    int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
-                    sizeFloat = fontHeight / scaleFactorP2;
-                }
-
                 // Load a new atlas.
                 PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-                atlas = new DrawableFontAtlas(Font, sizeFloat, firstChar, numChars, smooth);
+                atlas = new DrawableFontAtlas(Font, fontSize, firstChar, numChars, smooth, pixelFont);
                 atlas.RenderAtlas();
                 PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
 

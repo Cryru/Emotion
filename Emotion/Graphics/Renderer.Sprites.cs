@@ -214,12 +214,7 @@ namespace Emotion.Graphics
             if (atlas?.Glyphs == null) return;
             position = position.RoundClosest();
 
-            if (atlas.FontShader != null)
-            {
-                SetShader(atlas.FontShader);
-                // HalfRange / OutputScale - GenerateSDF.frag
-                atlas.FontShader.SetUniformFloat("scaleFactor", 32f * atlas.RenderScale);
-            }
+            atlas.SetupDrawing(this);
 
             foreach (char c in text)
             {
@@ -231,7 +226,7 @@ namespace Emotion.Graphics
                 RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
             }
 
-            if (atlas.FontShader != null) SetShader();
+            atlas.FinishDrawing(this);
         }
 
         /// <inheritdoc cref="RenderString(Vector3, Color, string, DrawableFontAtlas, TextLayouter)" />

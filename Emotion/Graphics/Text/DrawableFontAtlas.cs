@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Game;
@@ -11,6 +12,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
+using Emotion.Utility;
 
 #endregion
 
@@ -106,6 +108,7 @@ namespace Emotion.Graphics.Text
         public float FontHeight { get; set; }
 
         private bool _smooth;
+        private bool _pixelFont;
 
         /// <summary>
         /// Upload a font atlas texture to the gpu. Also holds a reference to the atlas itself
@@ -116,11 +119,25 @@ namespace Emotion.Graphics.Text
         /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
         /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
         /// <param name="smooth">Whether to smoothen the atlas texture.</param>
-        public DrawableFontAtlas(Font font, float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
+        /// <param name="pixelFont">
+        /// If the font should be rendered pixel perfect. If set to true the font size passed is
+        /// overwritten with the closest pixel accurate one.
+        /// </param>
+        public DrawableFontAtlas(Font font, float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true, bool pixelFont = false)
         {
             Font = font;
             FontSize = fontSize;
             _smooth = smooth;
+            _pixelFont = pixelFont;
+
+            if (_pixelFont)
+            {
+                // Scale to closest power of two.
+                float fontHeight = Font.Height;
+                float scaleFactor = fontHeight / fontSize;
+                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
+                FontSize = fontHeight / scaleFactorP2;
+            }
 
             if (numChars == -1)
                 NumChars = (int)(Font.LastCharIndex - firstChar);
@@ -140,7 +157,6 @@ namespace Emotion.Graphics.Text
 
         protected DrawableFontAtlas()
         {
-
         }
 
         private void Init()
@@ -152,7 +168,7 @@ namespace Emotion.Graphics.Text
             // Convert from Emotion font size (legacy) to real font size.
             if (Engine.Configuration.UseEmotionFontSize)
             {
-                float diff = (float) Font.UnitsPerEm / Font.Height;
+                float diff = (float)Font.UnitsPerEm / Font.Height;
                 FontSize = MathF.Round(FontSize * diff);
             }
 
@@ -239,6 +255,27 @@ namespace Emotion.Graphics.Text
         {
             Texture = texture;
             texture.Smooth = _smooth;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetupDrawing(RenderComposer c)
+        {
+            if (FontShader != null)
+            {
+                c.SetShader(FontShader);
+                if (_pixelFont)
+                    // No AA whatsoever.
+                    FontShader.SetUniformFloat("scaleFactor", Font.UnitsPerEm);
+                else
+                    // HalfRange / OutputScale - GenerateSDF.frag
+                    FontShader.SetUniformFloat("scaleFactor", 32f * RenderScale);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void FinishDrawing(RenderComposer c)
+        {
+            if (FontShader != null) c.SetShader();
         }
 
         /// <summary>
