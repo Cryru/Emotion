@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -13,6 +14,7 @@ using OpenGL;
 
 namespace Emotion.Graphics.Shading
 {
+    [DontSerialize]
     public class ShaderProgram
     {
         /// <summary>

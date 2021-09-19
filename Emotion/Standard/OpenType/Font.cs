@@ -318,6 +318,11 @@ namespace Emotion.Standard.OpenType
             Valid = true;
         }
 
+        protected Font()
+        {
+
+        }
+
         #region Parse Helpers
 
         /// <summary>

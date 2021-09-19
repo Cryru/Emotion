@@ -138,6 +138,11 @@ namespace Emotion.Graphics.Text
             Init();
         }
 
+        protected DrawableFontAtlas()
+        {
+
+        }
+
         private void Init()
         {
             if (Font.Glyphs == null || Font.Glyphs.Length == 0) return;
