@@ -211,12 +211,18 @@ namespace Emotion.Graphics.Text
             switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
-                    EmotionGlyphRenderer.InitEmotionRenderer();
-                    GLThread.ExecuteGLThreadAsync(() => EmotionGlyphRenderer.RenderAtlas(this));
+                    GLThread.ExecuteGLThreadAsync(() =>
+                    {
+                        EmotionGlyphRenderer.InitEmotionRenderer();
+                        EmotionGlyphRenderer.RenderAtlas(this);
+                    });
                     break;
                 case GlyphRasterizer.EmotionSDF_01:
-                    EmotionGlyphRenderer.InitEmotionRenderer();
-                    GLThread.ExecuteGLThreadAsync(() => EmotionGlyphRenderer.RenderAtlasSDF(this));
+                    GLThread.ExecuteGLThreadAsync(() =>
+                    {
+                        EmotionGlyphRenderer.InitEmotionRenderer();
+                        EmotionGlyphRenderer.RenderAtlasSDF(this);
+                    });
                     break;
                 case GlyphRasterizer.StbTrueType:
                     GLThread.ExecuteGLThreadAsync(() => StbGlyphRenderer.RenderAtlas(this));

@@ -65,21 +65,11 @@ namespace Emotion.Graphics.Text
                     _glyphRenderState.DFactorA = BlendingFactor.One;
                 }
 
-                var shaderLoading = new[]
-                {
-                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/VertColorNoDiscard.xml"),
-                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/WindingAA.xml"),
-                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/Winding.xml"),
-                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/GenerateSDF.xml"),
-                    Engine.AssetLoader.GetAsync<ShaderAsset>("FontShaders/SDF.xml")
-                };
-                Task.WhenAll(shaderLoading).Wait();
-
-                _noDiscardShader = shaderLoading[0].Result;
-                _windingAaShader = shaderLoading[1].Result;
-                _windingShader = shaderLoading[2].Result;
-                _sdfGeneratingShader = shaderLoading[3].Result;
-                _sdfShader = shaderLoading[4].Result;
+                _noDiscardShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
+                _windingAaShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/WindingAA.xml");
+                _windingShader = Engine.AssetLoader.Get<ShaderAsset>( "FontShaders/Winding.xml");
+                _sdfGeneratingShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GenerateSDF.xml");
+                _sdfShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
                 if (_noDiscardShader == null || _windingAaShader == null || _sdfGeneratingShader == null || _sdfShader == null)
                     Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.FontParser);
 
