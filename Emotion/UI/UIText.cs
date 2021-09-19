@@ -161,7 +161,7 @@ namespace Emotion.UI
             if (Underline)
             {
                 float y = Y + Height + _scaledUnderlineOffset.Y;
-                c.RenderLine(new Vector2(X, y), new Vector2(X + Width, y), _calculatedColor, _scaledUnderlineThickness);
+                c.RenderLine(new Vector3(X, y, Z), new Vector3(X + Width, y, Z), _calculatedColor, _scaledUnderlineThickness);
             }
 
             _layouter.RestartPen();

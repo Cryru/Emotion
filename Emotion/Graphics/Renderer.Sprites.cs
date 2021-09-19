@@ -212,7 +212,6 @@ namespace Emotion.Graphics
         public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
         {
             if (atlas?.Glyphs == null) return;
-            position = position.RoundClosest();
 
             atlas.SetupDrawing(this);
 
