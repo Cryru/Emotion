@@ -44,7 +44,7 @@ namespace Emotion.Game
         /// </summary>
         /// <param name="rectMemory">The rectangles to fit.</param>
         /// <param name="maintainOrder">
-        /// Whether the rectangles should maintain their array order when placed. This usually results
+        /// Whether the rectangles should be placed in the same order as they are in the array. This usually results
         /// in suboptimal results if the rectangles aren't relatively the same height. False by default.
         /// </param>
         /// <returns></returns>
@@ -53,9 +53,9 @@ namespace Emotion.Game
             if (rectMemory.IsEmpty) return Vector2.Zero;
             if (rectMemory.Length == 1) return rectMemory.Span[0].Size;
 
-            // Sorting is down with a separate key table, as not to rearrange rectMemory.
+            // Sorting is done with a separate key table, as not to rearrange rectMemory.
             int[] keys = Enumerable.Range(0, rectMemory.Length).ToArray();
-            if (!maintainOrder)
+            if (!maintainOrder) // Sort by height if we can change placement order.
                 Array.Sort(keys, (x, y) =>
                 {
                     Rectangle rectX = rectMemory.Span[x];
@@ -167,6 +167,12 @@ namespace Emotion.Game
             public BinningResumableState(Vector2 canvasDimensions)
             {
                 Size = canvasDimensions;
+            }
+
+            // Serialization constructor.
+            protected BinningResumableState()
+            {
+
             }
         }
 

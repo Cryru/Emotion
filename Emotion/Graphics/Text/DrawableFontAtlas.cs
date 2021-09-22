@@ -2,15 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Game;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
-using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
@@ -57,11 +54,6 @@ namespace Emotion.Graphics.Text
         public float FontSize { get; protected set; }
 
         /// <summary>
-        /// The size of the atlas texture, in pixels.
-        /// </summary>
-        public Vector2 AtlasSize { get; protected set; }
-
-        /// <summary>
         /// The rasterized used to produce this atlas.
         /// </summary>
         public GlyphRasterizer RenderedWith { get; protected set; }
@@ -75,16 +67,6 @@ namespace Emotion.Graphics.Text
         /// The atlas' render scale, based on the font size.
         /// </summary>
         public float RenderScale { get; set; }
-
-        /// <summary>
-        /// The first char of the atlas.
-        /// </summary>
-        public uint FirstChar { get; protected set; }
-
-        /// <summary>
-        /// The number of characters rasterized in the atlas.
-        /// </summary>
-        public int NumChars { get; protected set; }
 
         /// <summary>
         /// The atlas texture.
@@ -109,6 +91,7 @@ namespace Emotion.Graphics.Text
 
         private bool _smooth;
         private bool _pixelFont;
+        private GlyphRendererState _state;
 
         /// <summary>
         /// Upload a font atlas texture to the gpu. Also holds a reference to the atlas itself
@@ -116,14 +99,12 @@ namespace Emotion.Graphics.Text
         /// </summary>
         /// <param name="font">The font to generate an atlas from.</param>
         /// <param name="fontSize">The size to scale glyphs to. This is relative to the font height.</param>
-        /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
-        /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
         /// <param name="smooth">Whether to smoothen the atlas texture.</param>
         /// <param name="pixelFont">
         /// If the font should be rendered pixel perfect. If set to true the font size passed is
         /// overwritten with the closest pixel accurate one.
         /// </param>
-        public DrawableFontAtlas(Font font, float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true, bool pixelFont = false)
+        public DrawableFontAtlas(Font font, float fontSize, bool smooth = true, bool pixelFont = false)
         {
             Font = font;
             FontSize = fontSize;
@@ -139,29 +120,8 @@ namespace Emotion.Graphics.Text
                 FontSize = fontHeight / scaleFactorP2;
             }
 
-            if (numChars == -1)
-                NumChars = (int)(Font.LastCharIndex - firstChar);
-            else
-                NumChars = numChars;
-
-            if (firstChar < Font.FirstCharIndex)
-                FirstChar = Font.FirstCharIndex;
-            else
-                FirstChar = firstChar;
-
             // Set temporary texture so the atlas doesn't crash anything.
             Texture = Texture.EmptyWhiteTexture;
-
-            Init();
-        }
-
-        protected DrawableFontAtlas()
-        {
-        }
-
-        private void Init()
-        {
-            var lastIdx = (int)(FirstChar + NumChars);
 
             // Convert from Emotion font size (legacy) to real font size.
             if (Engine.Configuration.UseEmotionFontSize)
@@ -175,79 +135,50 @@ namespace Emotion.Graphics.Text
             FontHeight = MathF.Ceiling(Font.Height * scale);
             RenderScale = scale;
             RenderedWith = Rasterizer;
+        }
 
-            for (var i = FirstChar; i <= lastIdx; i++)
+        // Serialization constructor (for debugging)
+        protected DrawableFontAtlas()
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CacheGlyphs(string text)
+        {
+            List<AtlasGlyph> renderGlyphs = null;
+            for (var i = 0; i < text.Length; i++)
             {
-                if (!Font.Glyphs.TryGetValue((char) i, out Glyph g)) continue;
+                char ch = text[i];
+                if (Glyphs.ContainsKey(ch) || !Font.Glyphs.TryGetValue(ch, out Glyph fontG)) continue;
 
                 AtlasGlyph atlasGlyph;
                 if (RenderedWith == GlyphRasterizer.EmotionSDF_01)
-                    atlasGlyph = AtlasGlyph.CreateFloatScale(g, scale, Font.Ascender);
+                    atlasGlyph = AtlasGlyph.CreateFloatScale(fontG, RenderScale, Font.Ascender);
                 else
-                    atlasGlyph = AtlasGlyph.CreateIntScale(g, scale, Font.Ascender);
+                    atlasGlyph = AtlasGlyph.CreateIntScale(fontG, RenderScale, Font.Ascender);
 
-                // Associate atlas glyph with all representing chars.
-                Glyphs.Add((char)i, atlasGlyph);
+                Glyphs.Add(ch, atlasGlyph);
 
-                if (atlasGlyph.Size.X > 0 && atlasGlyph.Size.Y > 0 && g.Vertices != null && g.Vertices.Length > 0)
-                    DrawableAtlasGlyphs.Add(atlasGlyph);
+                if (!(atlasGlyph.Size.X > 0) || !(atlasGlyph.Size.Y > 0) || fontG.Vertices == null || fontG.Vertices.Length <= 0) continue;
+                DrawableAtlasGlyphs.Add(atlasGlyph);
+
+                renderGlyphs ??= new List<AtlasGlyph>();
+                renderGlyphs.Add(atlasGlyph);
             }
 
-            // Fit glyphs into an atlas.
-            float glyphSpacing;
-            if (RenderedWith == GlyphRasterizer.EmotionSDF_01)
-            {
-                glyphSpacing = 20;
-            }
-            else
-            {
-                glyphSpacing = 1;
-            }
-
-            var glyphSpacing2 = new Vector2(glyphSpacing);
-            var glyphRects = new Rectangle[DrawableAtlasGlyphs.Count];
-            for (var i = 0; i < DrawableAtlasGlyphs.Count; i++)
-            {
-                AtlasGlyph atlasGlyph = DrawableAtlasGlyphs[i];
-                // Inflate binning rect for spacing on all sides.
-                var r = new Rectangle(0, 0, atlasGlyph.Size.X + glyphSpacing * 2, atlasGlyph.Size.Y + glyphSpacing * 2);
-                glyphRects[i] = r;
-            }
-
-            AtlasSize = Binning.FitRectangles(glyphRects);
-
-            // Set atlas UV data based on binning result.
-            for (var i = 0; i < DrawableAtlasGlyphs.Count; i++)
-            {
-                AtlasGlyph atlasGlyph = DrawableAtlasGlyphs[i];
-                Rectangle atlasRect = glyphRects[i];
-                atlasRect.Position += glyphSpacing2;
-                atlasRect.Size -= glyphSpacing2;
-                atlasGlyph.UVLocation = atlasRect.Position;
-                atlasGlyph.UVSize = atlasGlyph.Size;
-            }
+            if (renderGlyphs != null)
+                GLThread.ExecuteGLThread(() => { QueueGlyphRender(renderGlyphs); });
         }
 
-        public void RenderAtlas()
+        private void QueueGlyphRender(List<AtlasGlyph> glyphs)
         {
+            Debug.Assert(GLThread.IsGLThread());
             switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
-                    GLThread.ExecuteGLThreadAsync(() =>
-                    {
-                        EmotionGlyphRenderer.InitEmotionRenderer();
-                        EmotionGlyphRenderer.RenderAtlas(this);
-                    });
-                    break;
                 case GlyphRasterizer.EmotionSDF_01:
-                    GLThread.ExecuteGLThreadAsync(() =>
-                    {
-                        EmotionGlyphRenderer.InitEmotionRenderer();
-                        EmotionGlyphRenderer.RenderAtlasSDF(this);
-                    });
-                    break;
                 case GlyphRasterizer.StbTrueType:
-                    GLThread.ExecuteGLThreadAsync(() => StbGlyphRenderer.RenderAtlas(this));
+                    _state = StbGlyphRenderer.AddGlyphsToAtlas(this, _state, glyphs);
                     break;
             }
         }
@@ -259,8 +190,12 @@ namespace Emotion.Graphics.Text
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetupDrawing(RenderComposer c)
+        public void SetupDrawing(RenderComposer c, string text)
         {
+            // Ensure we have all glyphs needed for the text.
+            CacheGlyphs(text);
+
+            // Set shader.
             if (FontShader != null)
             {
                 c.SetShader(FontShader);
@@ -284,7 +219,12 @@ namespace Emotion.Graphics.Text
         /// </summary>
         public void Dispose()
         {
-            Texture.Dispose();
+            if (_state == null) return;
+
+            _state.AtlasBuffer.Dispose();
+            _state = null;
+            Texture = null;
+            Font = null;
         }
 
         /// <summary>

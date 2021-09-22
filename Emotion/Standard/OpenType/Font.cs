@@ -283,7 +283,7 @@ namespace Emotion.Standard.OpenType
                     if (valInt >= glyphs.Length) continue; // Should never happen, but it's outside data, soo...
 
                     Glyph glyph = glyphs[valInt];
-                    if (names != null) glyph.Name = names[valInt];
+                    glyph.Name = names != null ? names[valInt] : ((char)key).ToString();
 
                     smallestCharIdx = Math.Min(smallestCharIdx, key);
                     highestCharIdx = Math.Max(highestCharIdx, key);
@@ -299,6 +299,7 @@ namespace Emotion.Standard.OpenType
             {
                 for (var i = 0; i < glyphs.Length; i++)
                 {
+                    glyphs[i].Name = ((char)i).ToString();
                     Glyphs.Add((char)i, glyphs[i]);
                 }
             }

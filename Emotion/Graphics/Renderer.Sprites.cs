@@ -213,7 +213,7 @@ namespace Emotion.Graphics
         {
             if (atlas?.Glyphs == null) return;
 
-            atlas.SetupDrawing(this);
+            atlas.SetupDrawing(this, text);
 
             foreach (char c in text)
             {

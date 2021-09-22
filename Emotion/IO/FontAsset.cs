@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Graphics.Text;
 using Emotion.Standard.OpenType;
-using Emotion.Utility;
 
 #endregion
 
@@ -49,17 +48,15 @@ namespace Emotion.IO
         /// Atlases are cached, so requesting the same one twice will return the same reference.
         /// </summary>
         /// <param name="fontSize">The size of the font.</param>
-        /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
-        /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
         /// <param name="smooth">Whether to apply bilinear filtering to the texture. You most likely want this.</param>
         /// <param name="pixelFont">
         /// If the font should be rendered pixel perfect. If set to true the font size passed is
         /// overwritten with the closest one.
         /// </param>
         /// <returns></returns>
-        public DrawableFontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = 127, bool smooth = true, bool pixelFont = false)
+        public DrawableFontAtlas GetAtlas(int fontSize, bool smooth = true, bool pixelFont = false)
         {
-            var hash = $"{fontSize}-{firstChar}-{numChars}-{DrawableFontAtlas.Rasterizer}";
+            var hash = $"{fontSize}-{DrawableFontAtlas.Rasterizer}";
 
             // Check if the atlas is already loaded.
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
@@ -73,8 +70,8 @@ namespace Emotion.IO
 
                 // Load a new atlas.
                 PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
-                atlas = new DrawableFontAtlas(Font, fontSize, firstChar, numChars, smooth, pixelFont);
-                atlas.RenderAtlas();
+                atlas = new DrawableFontAtlas(Font, fontSize, smooth, pixelFont);
+                atlas.CacheGlyphs("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
                 PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
 
                 _loadedAtlases.Add(hash, atlas);
@@ -83,21 +80,21 @@ namespace Emotion.IO
             return atlas;
         }
 
-        /// <inheritdoc cref="GetAtlas(int, uint, int, bool, bool)" />
+        /// <inheritdoc cref="GetAtlas(int, bool, bool)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DrawableFontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
+        public DrawableFontAtlas GetAtlas(float fontSize, bool smooth = true, bool pixelFont = false)
         {
             var intFontSize = (int)MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
-            return GetAtlas(intFontSize, firstChar, numChars, smooth);
+            return GetAtlas(intFontSize, smooth, pixelFont);
         }
 
         /// <summary>
         /// Free memory by destroying a cached atlas.
         /// </summary>
-        public void DestroyAtlas(int fontSize, int firstChar = 0, int numChars = -1, GlyphRasterizer? rasterizer = null)
+        public void DestroyAtlas(int fontSize, GlyphRasterizer? rasterizer = null)
         {
             fontSize = (int)MathF.Ceiling(fontSize);
-            var hash = $"{fontSize}-{firstChar}-{numChars}-{rasterizer ?? DrawableFontAtlas.DefaultRasterizer}";
+            var hash = $"{fontSize}-{rasterizer ?? DrawableFontAtlas.DefaultRasterizer}";
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
             if (found)
             {
@@ -109,13 +106,10 @@ namespace Emotion.IO
         /// <summary>
         /// Free memory by destroying a cached atlas.
         /// </summary>
-        /// <param name="fontSize"></param>
-        /// <param name="firstChar"></param>
-        /// <param name="numChars"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DestroyAtlas(float fontSize, int firstChar = 0, int numChars = -1)
+        public void DestroyAtlas(float fontSize)
         {
-            DestroyAtlas((int)MathF.Ceiling(fontSize), firstChar, numChars);
+            DestroyAtlas((int)MathF.Ceiling(fontSize));
         }
     }
 }

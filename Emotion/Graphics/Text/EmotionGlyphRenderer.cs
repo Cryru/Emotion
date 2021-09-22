@@ -172,7 +172,7 @@ namespace Emotion.Graphics.Text
             Debug.Assert(GLThread.IsGLThread());
             RenderComposer composer = Engine.Renderer;
 
-            Vector2 atlasSize = fontAtl.AtlasSize;
+            Vector2 atlasSize = fontAtl.Texture.Size;
             List<AtlasGlyph> glyphs = fontAtl.DrawableAtlasGlyphs;
             float scale = fontAtl.RenderScale;
 
@@ -239,8 +239,8 @@ namespace Emotion.Graphics.Text
             fontAtl.FontShader = _sdfShader.Shader;
 
             // Create temporary atlas to house high resolution glyph data.
-            var sdfAtlasTemp = new DrawableFontAtlas(fontAtl.Font, fontAtl.Font.Height / 4f, fontAtl.FirstChar, fontAtl.NumChars);
-            Vector2 tempAtlasSize = sdfAtlasTemp.AtlasSize;
+            var sdfAtlasTemp = new DrawableFontAtlas(fontAtl.Font, fontAtl.Font.Height / 4f); // fontAtl.FirstChar, fontAtl.NumChars
+            Vector2 tempAtlasSize = sdfAtlasTemp.Texture.Size;
             List<AtlasGlyph> glyphs = sdfAtlasTemp.DrawableAtlasGlyphs;
             float scale = sdfAtlasTemp.RenderScale;
 
@@ -260,7 +260,7 @@ namespace Emotion.Graphics.Text
             // Apply sdf metrics to the font atlas by scaling the temp atlas.
             static void ApplySDFScaledMetric(Vector2 outputResolution, DrawableFontAtlas fontAtl, DrawableFontAtlas sdfAtlasTemp, out float lowestGlyph, out float lowestGlyphOutput)
             {
-                float scaleDifference = outputResolution.X / sdfAtlasTemp.AtlasSize.X;
+                float scaleDifference = outputResolution.X / sdfAtlasTemp.Texture.Size.X;
                 lowestGlyph = 0;
                 lowestGlyphOutput = 0;
                 for (var i = 0; i < sdfAtlasTemp.DrawableAtlasGlyphs.Count; i++)
@@ -279,7 +279,7 @@ namespace Emotion.Graphics.Text
             }
 
             // Check if a cached texture exists, and if so load it and early out.
-            var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.FirstChar}-{fontAtl.NumChars}-{fontAtl.RenderedWith}.png";
+            var cachedRenderName = $"Player/SDFCache/{fontAtl.Font.FullName}-{fontAtl.RenderedWith}.png";
             bool cachedImageExists = Engine.AssetLoader.Exists(cachedRenderName);
             if (cachedImageExists && !skipCache)
             {

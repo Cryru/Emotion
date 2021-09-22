@@ -120,8 +120,12 @@ namespace Tests.Classes
 
                 // Get atlases.
                 int fontSize = fontSizes[i];
-                var emotionAtlas = new DrawableFontAtlas(f, fontSize, smooth: false);
-                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.AtlasSize * 4, (int)f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
+                var emotionAtlas = new DrawableFontAtlas(f, fontSize, false);
+                Runner.ExecuteAsLoop(_ =>
+                {
+                    emotionAtlas.CacheGlyphs("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+                }).WaitOne();
+                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Texture.Size * 4, (int)f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
                 CompareMetricsWithStb(f, emotionAtlas, stbFont);
@@ -144,11 +148,10 @@ namespace Tests.Classes
 
                 Runner.ExecuteAsLoop(_ =>
                 {
-                    emotionAtlas.RenderAtlas();
                     if (b == null)
-                        b = new FrameBuffer(emotionAtlas.AtlasSize).WithColor();
+                        b = new FrameBuffer(emotionAtlas.Texture.Size).WithColor();
                     else
-                        b.Resize(emotionAtlas.AtlasSize, true);
+                        b.Resize(emotionAtlas.Texture.Size, true);
 
                     RenderComposer composer = Engine.Renderer.StartFrame();
                     composer.RenderToAndClear(b);
@@ -174,7 +177,7 @@ namespace Tests.Classes
 
         public static unsafe DrawableFontAtlas RenderFontStbPacked(byte[] ttf, float fontSize, Vector2 atlasSize, int numChars, Font f, out StbTrueType.stbtt_fontinfo fontInfo)
         {
-            DrawableFontAtlas atlasObj = new DrawableFontAtlas(f, fontSize);
+            var atlasObj = new DrawableFontAtlas(f, fontSize);
             fontSize = atlasObj.FontSize;
 
             fontInfo = new StbTrueType.stbtt_fontinfo();
