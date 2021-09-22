@@ -193,18 +193,8 @@ namespace Emotion.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null, Vector3? pos = null, Rectangle? uv = null, Texture attachment = null, Color? color = null)
         {
-            Rectangle renderUv;
-            if (uv == null)
-            {
-                renderUv = new Rectangle(0, 0, buffer.Size);
-            }
-            else
-            {
-                renderUv = uv.Value;
-                renderUv.Y = buffer.Size.Y - (renderUv.Y + renderUv.Height);
-            }
-
-            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, color ?? Color.White, attachment ?? buffer.ColorAttachment, renderUv);
+            // todo: deprecate along with overload.
+            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, color ?? Color.White, attachment ?? buffer.ColorAttachment, uv);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

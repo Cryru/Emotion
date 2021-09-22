@@ -127,7 +127,8 @@ namespace Emotion.Graphics.Objects
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment), Size, InternalFormat.DepthComponent24);
+                DepthStencilAttachment = new FrameBufferTexture(this, CreateRenderBuffer(InternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment), Size,
+                    InternalFormat.DepthComponent24);
             else
                 DepthStencilAttachment = CreateTexture(InternalFormat.DepthComponent24, PixelFormat.DepthComponent, PixelType.UnsignedInt, FramebufferAttachment.DepthAttachment);
 
@@ -143,14 +144,15 @@ namespace Emotion.Graphics.Objects
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Depth24Stencil8, FramebufferAttachment.DepthStencilAttachment), Size, InternalFormat.Depth24Stencil8);
+                DepthStencilAttachment = new FrameBufferTexture(this, CreateRenderBuffer(InternalFormat.Depth24Stencil8, FramebufferAttachment.DepthStencilAttachment), Size,
+                    InternalFormat.Depth24Stencil8);
             else
                 DepthStencilAttachment = CreateTexture(InternalFormat.Depth24Stencil8, PixelFormat.DepthStencil, PixelType.UnsignedInt248, FramebufferAttachment.DepthStencilAttachment);
 
             return this;
         }
 
-        private static readonly int[] ColorModes = {Gl.COLOR_ATTACHMENT0};
+        private static readonly int[] ColorModes = { Gl.COLOR_ATTACHMENT0 };
 
         /// <summary>
         /// Add a color attachment to the framebuffer.
@@ -161,7 +163,7 @@ namespace Emotion.Graphics.Objects
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                ColorAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Rgba, FramebufferAttachment.ColorAttachment0), Size, InternalFormat.Rgba);
+                ColorAttachment = new FrameBufferTexture(this, CreateRenderBuffer(InternalFormat.Rgba, FramebufferAttachment.ColorAttachment0), Size, InternalFormat.Rgba);
             else
                 ColorAttachment = CreateTexture(InternalFormat.Rgba, PixelFormat.Bgra, PixelType.UnsignedByte, FramebufferAttachment.ColorAttachment0);
 
@@ -184,14 +186,14 @@ namespace Emotion.Graphics.Objects
             EnsureBound(Pointer);
             uint buffer = Gl.GenRenderbuffer();
             Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, buffer);
-            Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int) Size.X, (int) Size.Y);
+            Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int)Size.X, (int)Size.Y);
             Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, buffer);
             return buffer;
         }
 
         private FrameBufferTexture CreateTexture(InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType, FramebufferAttachment attachment)
         {
-            var texture = new FrameBufferTexture(Size, internalFormat, pixelFormat, pixelType)
+            var texture = new FrameBufferTexture(this, Size, internalFormat, pixelFormat, pixelType)
             {
                 FlipY = true // Framebuffer textures are always flipped.
             };
@@ -208,8 +210,8 @@ namespace Emotion.Graphics.Objects
         public void Bind()
         {
             EnsureBound(Pointer);
-            if (ColorAttachment == null && Pointer != 0) Gl.DrawBuffers((int) DrawBufferMode.None);
-            Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
+            if (ColorAttachment == null && Pointer != 0) Gl.DrawBuffers((int)DrawBufferMode.None);
+            Gl.Viewport((int)Viewport.X, (int)Viewport.Y, (int)Viewport.Width, (int)Viewport.Height);
         }
 
         /// <summary>
@@ -228,11 +230,11 @@ namespace Emotion.Graphics.Objects
             if (data != null)
                 fixed (byte* pixelBuffer = &data[0])
                 {
-                    Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
-                        (IntPtr) pixelBuffer);
+                    Gl.ReadPixels((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                        (IntPtr)pixelBuffer);
                 }
             else
-                Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                Gl.ReadPixels((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
                     IntPtr.Zero);
 
             previouslyBound.Bind();
@@ -246,7 +248,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="format">The pixel format to return the pixels in.</param>
         public byte[] Sample(Rectangle rect, PixelFormat format)
         {
-            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelFormatToComponentCount(format)];
+            var data = new byte[(int)(rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelFormatToComponentCount(format)];
             Sample(rect, data, format);
             return data;
         }
@@ -265,7 +267,7 @@ namespace Emotion.Graphics.Objects
             var sampleRequest = new FrameBufferSampleRequest();
             _sampleRequest = sampleRequest;
 
-            uint byteSize = (uint) (rect.Width * rect.Height) *
+            uint byteSize = (uint)(rect.Width * rect.Height) *
                             Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
                             Gl.PixelFormatToComponentCount(format);
 
@@ -302,7 +304,7 @@ namespace Emotion.Graphics.Objects
 
                 // Read the data from the PBO.
                 PixelBuffer.EnsureBound(_pbo.Pointer);
-                Span<byte> mapper = _pbo.CreateMapper<byte>(0, (int) byteSize);
+                Span<byte> mapper = _pbo.CreateMapper<byte>(0, (int)byteSize);
                 mapper.CopyTo(new Span<byte>(data));
                 _pbo.FinishMapping();
                 PixelBuffer.EnsureBound(0);

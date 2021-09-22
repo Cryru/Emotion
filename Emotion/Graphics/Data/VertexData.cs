@@ -68,11 +68,21 @@ namespace Emotion.Graphics.Data
 
             texture ??= Texture.EmptyWhiteTexture;
 
+            Vector2 textureSize = texture.Size;
+            if (texture is FrameBufferTexture fbT) textureSize = fbT.FrameBuffer.Size;
+
             // If no UV specified - use entire texture.
-            textureArea ??= new Rectangle(0, 0, texture.Size);
+            textureArea ??= new Rectangle(0, 0, textureSize);
+
+            if (texture.FlipY)
+            {
+                Rectangle r = textureArea.Value;
+                r.Y = textureSize.Y - (textureArea.Value.Y + textureArea.Value.Height);
+                textureArea = r;
+            }
 
             // Convert input from texture coordinates to UV coordinates.
-            TransformUVs(vertices, texture, (Rectangle) textureArea);
+            TransformUVs(vertices, texture, (Rectangle)textureArea);
 
             if (texture.FlipY != flipY) FlipHorizontallyUVs(vertices);
 
