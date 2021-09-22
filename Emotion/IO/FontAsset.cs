@@ -71,7 +71,7 @@ namespace Emotion.IO
                 // Load a new atlas.
                 PerfProfiler.ProfilerEventStart($"FontAtlas {Name} {fontSize} {hash}", "Loading");
                 atlas = new DrawableFontAtlas(Font, fontSize, smooth, pixelFont);
-                atlas.CacheGlyphs("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+                atlas.CacheGlyphs(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
                 PerfProfiler.ProfilerEventEnd($"FontAtlas {Name} {fontSize} {hash}", "Loading");
 
                 _loadedAtlases.Add(hash, atlas);
