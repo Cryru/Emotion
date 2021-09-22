@@ -224,7 +224,7 @@ namespace Emotion.Graphics.Text
             //RenderDocGraphicsContext.RenderDocCaptureEnd();
 
             atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped, so it's okay.
-            fontAtl.SetTexture(atlasFinal.ColorAttachment);
+            //fontAtl.SetTexture(atlasFinal.ColorAttachment);
             composer.PopModelMatrix();
             composer.SetState(prevState);
         }
@@ -288,7 +288,7 @@ namespace Emotion.Graphics.Text
                     var texture = Engine.AssetLoader.Get<TextureAsset>(cachedRenderName);
                     if (texture != null && texture.Texture.Size.X >= outputResolution.X)
                     {
-                        fontAtl.SetTexture(texture.Texture);
+                        //fontAtl.SetTexture(texture.Texture);
                         outputResolution = new Vector2(texture.Texture.Size.X);
                         ApplySDFScaledMetric(outputResolution, fontAtl, sdfAtlasTemp, out float _, out float __);
                         return;
@@ -305,7 +305,7 @@ namespace Emotion.Graphics.Text
                             // We use only the width since we cut off the height in cache generation to save space.
                             if (texture.Texture.Size.X >= outputResolution.X)
                             {
-                                fontAtl.SetTexture(texture.Texture);
+                                //fontAtl.SetTexture(texture.Texture);
                                 outputResolution = new Vector2(texture.Texture.Size.X);
                                 ApplySDFScaledMetric(outputResolution, fontAtl, sdfAtlasTemp, out float _, out float __);
                             }
@@ -371,7 +371,7 @@ namespace Emotion.Graphics.Text
             composer.SetShader();
             atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped.
 
-            fontAtl.SetTexture(atlasFinal.ColorAttachment);
+            //fontAtl.SetTexture(atlasFinal.ColorAttachment);
             composer.PopModelMatrix();
             composer.SetState(prevState);
 

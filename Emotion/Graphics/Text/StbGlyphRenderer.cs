@@ -26,7 +26,6 @@ namespace Emotion.Graphics.Text
     {
         private static Texture _tempGlyphTexture;
         private static RenderState _glyphRenderState;
-        private static int _fence;
 
         public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
         {
@@ -59,7 +58,6 @@ namespace Emotion.Graphics.Text
                 state = new GlyphRendererState();
                 state.BinningState = new Binning.BinningResumableState(atlasSize);
                 state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
-                atlas.SetTexture(state.AtlasBuffer.ColorAttachment);
                 justCreated = true;
             }
             else
@@ -167,9 +165,7 @@ namespace Emotion.Graphics.Text
                 AtlasGlyph atlasGlyph = glyphsToAdd[i];
                 Rectangle placeWithinStbAtlas = renderAtlasBounds[i];
                 Debug.Assert(atlasGlyph.UVSize == placeWithinStbAtlas.Size);
-                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, state.AtlasBuffer.Size.Y - atlasGlyph.UVLocation.Y - atlasGlyph.UVSize.Y, 0),
-                    new Vector2(atlasGlyph.UVSize.X, atlasGlyph.UVSize.Y),
-                    _tempGlyphTexture, placeWithinStbAtlas);
+                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _tempGlyphTexture, placeWithinStbAtlas);
             }
 
             composer.RenderTo(null);
@@ -179,51 +175,6 @@ namespace Emotion.Graphics.Text
             _tempGlyphTexture = null;
 
             return state;
-        }
-
-        public static void RenderAtlas(DrawableFontAtlas fontAtl)
-        {
-            Vector2 atlasSize = fontAtl.Texture.Size;
-            List<AtlasGlyph> glyphs = fontAtl.DrawableAtlasGlyphs;
-            float scale = fontAtl.RenderScale;
-
-            var atlas = new byte[(int)atlasSize.X * (int)atlasSize.Y];
-            var stride = (int)atlasSize.X;
-
-            ParallelWork.FastLoops(glyphs.Count, (start, end) =>
-            {
-                for (int i = start; i < end; i++)
-                {
-                    AtlasGlyph atlasGlyph = glyphs[i];
-                    Glyph glyph = atlasGlyph.FontGlyph;
-
-                    var canvas = new GlyphCanvas(atlasGlyph, (int)(atlasGlyph.Size.X + 1), (int)(atlasGlyph.Size.Y + 1));
-                    RenderGlyph(canvas, glyph, scale);
-
-                    // Remove padding.
-                    canvas.Width--;
-                    canvas.Height--;
-
-                    // Copy pixels and record the location of the glyph.
-                    Vector2 uvLoc = atlasGlyph.UVLocation;
-                    var uvX = (int)uvLoc.X;
-                    var uvY = (int)uvLoc.Y;
-
-                    for (var row = 0; row < canvas.Height; row++)
-                    {
-                        for (var col = 0; col < canvas.Width; col++)
-                        {
-                            int x = uvX + col;
-                            int y = uvY + row;
-                            atlas[y * stride + x] = canvas.Data[row * canvas.Stride + col];
-                        }
-                    }
-                }
-            }).Wait();
-
-            // Convert to RGBA since GL_INTENSITY is deprecated and we need the value in all components due to the default shader.
-            var texture = new Texture(atlasSize, ImageUtil.AToRgba(atlas), PixelFormat.Rgba);
-            fontAtl.SetTexture(texture);
         }
 
         public struct GlyphEdge

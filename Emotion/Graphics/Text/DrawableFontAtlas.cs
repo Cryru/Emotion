@@ -142,6 +142,11 @@ namespace Emotion.Graphics.Text
         {
         }
 
+        /// <summary>
+        /// Adds all missing characters from the provided string to the font atlas.
+        /// This includes their metrics as well as rendering them (async).
+        /// </summary>
+        /// <param name="text">The text whose characters to add.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CacheGlyphs(string text)
         {
@@ -173,6 +178,7 @@ namespace Emotion.Graphics.Text
         private void QueueGlyphRender(List<AtlasGlyph> glyphs)
         {
             Debug.Assert(GLThread.IsGLThread());
+            bool justCreated = _state == null;
             switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
@@ -181,12 +187,12 @@ namespace Emotion.Graphics.Text
                     _state = StbGlyphRenderer.AddGlyphsToAtlas(this, _state, glyphs);
                     break;
             }
-        }
 
-        public void SetTexture(Texture texture)
-        {
-            Texture = texture;
-            texture.Smooth = _smooth;
+            if (justCreated && _state != null)
+            {
+                Texture = _state.AtlasBuffer.ColorAttachment;
+                Texture.Smooth = _smooth;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
