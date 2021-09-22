@@ -125,6 +125,11 @@ namespace Emotion.Graphics.Objects
             Pointer = Gl.GenTexture();
         }
 
+        protected Texture(uint pointer)
+        {
+            Pointer = pointer;
+        }
+
         protected Texture(Vector2 size)
         {
             Size = size;
@@ -132,8 +137,16 @@ namespace Emotion.Graphics.Objects
 #if DEBUG
             AllTextures.Add(this);
             CreationStack = Environment.StackTrace;
-            int lastCtorCall = CreationStack.LastIndexOf("Emotion.Graphics.Objects.Texture..ctor");
-            int newLineAfterThat = CreationStack.IndexOf("\n", lastCtorCall);
+
+            int lastCtorCall = CreationStack.LastIndexOf("Emotion.Graphics.Objects.Texture.", StringComparison.Ordinal);
+            int newLineAfterThat = CreationStack.IndexOf("\n", lastCtorCall, StringComparison.Ordinal);
+
+            int fbCtorCall = CreationStack.LastIndexOf("Emotion.Graphics.Objects.FrameBuffer.", StringComparison.Ordinal);
+            if (fbCtorCall != -1)
+            {
+                newLineAfterThat = CreationStack.IndexOf("\n", fbCtorCall, StringComparison.Ordinal);
+            }
+
             CreationStack = CreationStack.Substring(newLineAfterThat + 1);
 #endif
         }
@@ -275,7 +288,7 @@ namespace Emotion.Graphics.Objects
             GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
 
-        public static Texture NoTexture = new Texture {Pointer = 0};
+        public static Texture NoTexture = new(0);
         public static Texture EmptyWhiteTexture;
 
         public static void InitializeEmptyTexture()
