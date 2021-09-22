@@ -14,11 +14,6 @@ namespace Emotion.Standard.OpenType
     public class Glyph
     {
         /// <summary>
-        /// The character this glyph corresponds to.
-        /// </summary>
-        public List<char> CharIndex { get; set; } = new List<char>(1);
-
-        /// <summary>
         /// The internal font index of this glyph.
         /// </summary>
         public uint MapIndex { get; set; }

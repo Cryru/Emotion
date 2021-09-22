@@ -116,7 +116,7 @@ namespace Tests.Classes
                 Assert.True(f.UnitsPerEm == unitsPerEm[i]);
                 Assert.True(f.Descender == descender[i]);
                 Assert.True(f.Ascender == ascender[i]);
-                Assert.True(f.Glyphs.Length == glyphs[i]);
+                Assert.True(f.Glyphs.Count == glyphs[i]);
 
                 // Get atlases.
                 int fontSize = fontSizes[i];

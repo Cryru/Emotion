@@ -161,8 +161,6 @@ namespace Emotion.Graphics.Text
 
         private void Init()
         {
-            if (Font.Glyphs == null || Font.Glyphs.Length == 0) return;
-
             var lastIdx = (int)(FirstChar + NumChars);
 
             // Convert from Emotion font size (legacy) to real font size.
@@ -178,11 +176,9 @@ namespace Emotion.Graphics.Text
             RenderScale = scale;
             RenderedWith = Rasterizer;
 
-            for (var i = 0; i < Font.Glyphs.Length; i++)
+            for (var i = FirstChar; i <= lastIdx; i++)
             {
-                Glyph g = Font.Glyphs[i];
-                bool inIndex = g.CharIndex.Any(charIdx => charIdx >= FirstChar && charIdx < lastIdx);
-                if (!inIndex) continue;
+                if (!Font.Glyphs.TryGetValue((char) i, out Glyph g)) continue;
 
                 AtlasGlyph atlasGlyph;
                 if (RenderedWith == GlyphRasterizer.EmotionSDF_01)
@@ -191,11 +187,7 @@ namespace Emotion.Graphics.Text
                     atlasGlyph = AtlasGlyph.CreateIntScale(g, scale, Font.Ascender);
 
                 // Associate atlas glyph with all representing chars.
-                List<char> representingChars = atlasGlyph.FontGlyph.CharIndex;
-                for (var j = 0; j < representingChars.Count; j++)
-                {
-                    Glyphs[representingChars[j]] = atlasGlyph;
-                }
+                Glyphs.Add((char)i, atlasGlyph);
 
                 if (atlasGlyph.Size.X > 0 && atlasGlyph.Size.Y > 0 && g.Vertices != null && g.Vertices.Length > 0)
                     DrawableAtlasGlyphs.Add(atlasGlyph);

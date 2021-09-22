@@ -8,6 +8,8 @@ using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Utility;
 
+#nullable enable
+
 #endregion
 
 namespace Emotion.Standard.OpenType
@@ -25,47 +27,53 @@ namespace Emotion.Standard.OpenType
         #region Meta
 
         /// <summary>
-        /// The font's family name.
+        /// The font's magic tag from which the format was inferred.
+        /// Generally this is useless to users.
         /// </summary>
-        public string FontFamily;
-
-        /// <summary>
-        /// The font's sub family name.
-        /// </summary>
-        public string FontSubFamily;
-
-        /// <summary>
-        /// The full name of the font.
-        /// </summary>
-        public string FullName;
-
-        /// <summary>
-        /// The font's version.
-        /// </summary>
-        public string Version;
-
-        /// <summary>
-        /// The font's copyright.
-        /// </summary>
-        public string Copyright;
-
-        /// <summary>
-        /// The font's uniqueId.
-        /// </summary>
-        public string UniqueId;
-
-        #endregion
+        public string? Tag { get; protected set; }
 
         /// <summary>
         /// The font's format.
         /// This will be either "truetype" or "cff".
         /// </summary>
-        public string Format { get; protected set; }
+        public string? Format { get; protected set; }
+
+        /// <summary>
+        /// The font's family name.
+        /// </summary>
+        public string? FontFamily { get; protected set; }
+
+        /// <summary>
+        /// The font's sub family name.
+        /// </summary>
+        public string? FontSubFamily { get; protected set; }
+
+        /// <summary>
+        /// The full name of the font.
+        /// </summary>
+        public string? FullName { get; protected set; }
+
+        /// <summary>
+        /// The font's version.
+        /// </summary>
+        public string? Version { get; protected set; }
+
+        /// <summary>
+        /// The font's copyright.
+        /// </summary>
+        public string? Copyright { get; protected set; }
+
+        /// <summary>
+        /// The font's uniqueId.
+        /// </summary>
+        public string? UniqueId { get; protected set; }
+
+        #endregion
 
         /// <summary>
         /// Glyphs found in the font.
         /// </summary>
-        public Glyph[] Glyphs;
+        public Dictionary<char, Glyph> Glyphs = new();
 
         /// <summary>
         /// The character index of the first glyph.
@@ -101,12 +109,6 @@ namespace Emotion.Standard.OpenType
         public ushort UnitsPerEm { get; protected set; }
 
         #region Parsing
-
-        /// <summary>
-        /// The font's magic tag from which the format was inferred.
-        /// Generally this is useless to users.
-        /// </summary>
-        public string Tag { get; protected set; }
 
         /// <summary>
         /// Font tables found within the font.
@@ -163,7 +165,7 @@ namespace Emotion.Standard.OpenType
             }
 
             // Header
-            FontTable table = GetTable("head");
+            FontTable? table = GetTable("head");
             short indexToLocFormat;
             if (table != null)
             {
@@ -229,7 +231,7 @@ namespace Emotion.Standard.OpenType
 
             // Get the cmap table which defines glyph indices.
             table = GetTable("cmap");
-            CMapTable cMap = table != null ? new CMapTable(r.Branch(table.Offset, true, table.Length)) : null;
+            CMapTable? cMap = table != null ? new CMapTable(r.Branch(table.Offset, true, table.Length)) : null;
 
             // Glyf - glyph data.
             // Also reads loca for locations, and post for glyph names.
@@ -237,7 +239,8 @@ namespace Emotion.Standard.OpenType
             table = GetTable("glyf");
             if (table != null)
             {
-                FontTable locaTable = GetTable("loca");
+                FontTable? locaTable = GetTable("loca");
+                if (locaTable == null) return;
                 int[] locaOffsets = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, indexToLocFormat == 0);
                 glyphs = GlyfTable.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
             }
@@ -258,23 +261,22 @@ namespace Emotion.Standard.OpenType
                 }
             }
 
-            // Apply the character map.
+            // Apply the character map (glyph to char index).
+
             if (cMap?.GlyphIndexMap != null)
             {
                 var smallestCharIdx = uint.MaxValue;
                 uint highestCharIdx = 0;
-                Glyphs = new Glyph[cMap.GlyphIndexMap.Count];
 
                 // Add glyph names if present.
-                string[] names = null;
-                FontTable postTable = GetTable("post");
+                string[]? names = null;
+                FontTable? postTable = GetTable("post");
                 if (postTable != null)
                 {
                     var post = new PostTable(r.Branch(postTable.Offset, true, postTable.Length));
                     names = post.Names;
                 }
 
-                var idx = 0;
                 foreach ((uint key, uint value) in cMap.GlyphIndexMap)
                 {
                     var valInt = (int)value;
@@ -286,9 +288,8 @@ namespace Emotion.Standard.OpenType
                     smallestCharIdx = Math.Min(smallestCharIdx, key);
                     highestCharIdx = Math.Max(highestCharIdx, key);
 
-                    glyph.CharIndex.Add((char)key);
+                    Glyphs.Add((char)key, glyph);
                     glyph.MapIndex = value;
-                    Glyphs[idx++] = glyph;
                 }
 
                 FirstCharIndex = smallestCharIdx;
@@ -296,16 +297,15 @@ namespace Emotion.Standard.OpenType
             }
             else
             {
-                Glyphs = glyphs;
-                for (var i = 0; i < Glyphs.Length; i++)
+                for (var i = 0; i < glyphs.Length; i++)
                 {
-                    Glyphs[i].CharIndex.Add((char)i);
+                    Glyphs.Add((char)i, glyphs[i]);
                 }
             }
 
             // Add metrics. This requires the glyph's to have MapIndices
             table = GetTable("hmtx");
-            if (table != null) HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length), NumberOfHMetrics, Glyphs);
+            if (table != null) HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length), NumberOfHMetrics, glyphs);
 
             // os/2 parsed, but unused
             // cvt parsed, but unused
@@ -320,7 +320,6 @@ namespace Emotion.Standard.OpenType
 
         protected Font()
         {
-
         }
 
         #region Parse Helpers
@@ -368,7 +367,7 @@ namespace Emotion.Standard.OpenType
         /// </summary>
         /// <param name="tag">The tag of the table to get.</param>
         /// <returns>The table with the specified tag, or null if not found.</returns>
-        public FontTable GetTable(string tag)
+        public FontTable? GetTable(string tag)
         {
             return Tables.FirstOrDefault(x => x.Tag == tag);
         }
