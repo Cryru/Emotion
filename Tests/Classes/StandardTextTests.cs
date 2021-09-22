@@ -123,7 +123,12 @@ namespace Tests.Classes
                 var emotionAtlas = new DrawableFontAtlas(f, fontSize, false);
                 Runner.ExecuteAsLoop(_ =>
                 {
-                    emotionAtlas.CacheGlyphs("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+                    var str = "";
+                    for (uint j = emotionAtlas.Font.FirstCharIndex; j < emotionAtlas.Font.LastCharIndex; j++)
+                    {
+                        str += (char) j;
+                    }
+                    emotionAtlas.CacheGlyphs(str);
                 }).WaitOne();
                 DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Texture.Size * 4, (int)f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
 
