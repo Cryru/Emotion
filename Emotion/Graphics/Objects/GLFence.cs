@@ -43,6 +43,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Reset()
         {
+            Gl.DeleteSync(Pointer);
             Pointer = Gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, 0);
             Finished = false;
         }
