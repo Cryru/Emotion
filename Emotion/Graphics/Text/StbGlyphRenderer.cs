@@ -151,14 +151,6 @@ namespace Emotion.Graphics.Text
 
             // Upload to GPU.
             byte[] rgbaData = ImageUtil.AToRgba(stbAtlasData);
-
-            if (_fence != 0)
-            {
-                SyncStatus syncStatus = Gl.ClientWaitSync(_fence, SyncObjectMask.SyncFlushCommandsBit, ulong.MaxValue);
-                Gl.DeleteSync(_fence);
-                Console.WriteLine(syncStatus);
-            }
-
             _tempGlyphTexture ??= new Texture();
             _tempGlyphTexture.Upload(stbAtlasSize, rgbaData, PixelFormat.Rgba, InternalFormat.Rgba, PixelType.UnsignedByte);
 
@@ -183,7 +175,7 @@ namespace Emotion.Graphics.Text
             composer.RenderTo(null);
             composer.PopModelMatrix();
             composer.SetState(previousRenderState);
-            _fence = Gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, 0);
+            _tempGlyphTexture.Dispose();
             _tempGlyphTexture = null;
 
             return state;
