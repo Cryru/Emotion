@@ -202,7 +202,16 @@ namespace Emotion.Graphics.Text
             }
 
             // Fit glyphs into an atlas.
-            int glyphSpacing = RenderedWith == GlyphRasterizer.EmotionSDF_01 ? 20 : 1;
+            float glyphSpacing;
+            if (RenderedWith == GlyphRasterizer.EmotionSDF_01)
+            {
+                glyphSpacing = 20;
+            }
+            else
+            {
+                glyphSpacing = 1;
+            }
+
             var glyphSpacing2 = new Vector2(glyphSpacing);
             var glyphRects = new Rectangle[DrawableAtlasGlyphs.Count];
             for (var i = 0; i < DrawableAtlasGlyphs.Count; i++)
@@ -268,7 +277,7 @@ namespace Emotion.Graphics.Text
                     FontShader.SetUniformFloat("scaleFactor", Font.UnitsPerEm);
                 else
                     // HalfRange / OutputScale - GenerateSDF.frag
-                    FontShader.SetUniformFloat("scaleFactor", 32f * RenderScale);
+                    FontShader.SetUniformFloat("scaleFactor", 10f * RenderScale);
             }
         }
 
@@ -292,7 +301,7 @@ namespace Emotion.Graphics.Text
 #if WEB
         public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDF_01;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #endif
 
         /// <summary>

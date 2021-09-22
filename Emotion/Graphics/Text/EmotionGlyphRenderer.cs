@@ -44,6 +44,7 @@ namespace Emotion.Graphics.Text
 
         private static RenderState _glyphRenderState;
         private static FrameBuffer _intermediateBuffer;
+        private static FrameBuffer _intermediateBufferTwo;
 
         private static object _initLock = new object();
         private static bool _init;
@@ -67,7 +68,7 @@ namespace Emotion.Graphics.Text
 
                 _noDiscardShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
                 _windingAaShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/WindingAA.xml");
-                _windingShader = Engine.AssetLoader.Get<ShaderAsset>( "FontShaders/Winding.xml");
+                _windingShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/Winding.xml");
                 _sdfGeneratingShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GenerateSDF.xml");
                 _sdfShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
                 if (_noDiscardShader == null || _windingAaShader == null || _sdfGeneratingShader == null || _sdfShader == null)
@@ -234,6 +235,9 @@ namespace Emotion.Graphics.Text
             Debug.Assert(GLThread.IsGLThread());
             RenderComposer composer = Engine.Renderer;
 
+            // Set render shader to atlas.
+            fontAtl.FontShader = _sdfShader.Shader;
+
             // Create temporary atlas to house high resolution glyph data.
             var sdfAtlasTemp = new DrawableFontAtlas(fontAtl.Font, fontAtl.Font.Height / 4f, fontAtl.FirstChar, fontAtl.NumChars);
             Vector2 tempAtlasSize = sdfAtlasTemp.AtlasSize;
@@ -242,8 +246,6 @@ namespace Emotion.Graphics.Text
 
             // Calculate output texture size, and maintain aspect ratio.
             var outputResolution = new Vector2(SDF_ATLAS_SIZE);
-            if (fontAtl.AtlasSize.X >= SDF_ATLAS_SIZE || fontAtl.AtlasSize.Y >= SDF_ATLAS_SIZE)
-                outputResolution = new Vector2(MathF.Max(fontAtl.AtlasSize.X, fontAtl.AtlasSize.Y) * 2);
             if (tempAtlasSize.X > tempAtlasSize.Y)
             {
                 float newY = outputResolution.X * tempAtlasSize.Y / tempAtlasSize.X;
@@ -254,9 +256,6 @@ namespace Emotion.Graphics.Text
                 float newX = outputResolution.Y * tempAtlasSize.X / tempAtlasSize.Y;
                 outputResolution.X = newX;
             }
-
-            // Set render shader to atlas.
-            fontAtl.FontShader = _sdfShader.Shader;
 
             // Apply sdf metrics to the font atlas by scaling the temp atlas.
             static void ApplySDFScaledMetric(Vector2 outputResolution, DrawableFontAtlas fontAtl, DrawableFontAtlas sdfAtlasTemp, out float lowestGlyph, out float lowestGlyphOutput)
@@ -324,16 +323,15 @@ namespace Emotion.Graphics.Text
             // Set SDF locations and sizes.
             ApplySDFScaledMetric(outputResolution, fontAtl, sdfAtlasTemp, out float lowestGlyph, out float lowestGlyphOutput);
 
+            RenderState prevState = composer.CurrentState.Clone();
+            composer.PushModelMatrix(Matrix4x4.Identity, false);
+
             // Render glyphs just like the normal Emotion rasterizer.
             if (_intermediateBuffer == null)
                 _intermediateBuffer = new FrameBuffer(tempAtlasSize).WithColor();
             else
                 _intermediateBuffer.Resize(tempAtlasSize, true);
 
-            RenderState prevState = composer.CurrentState.Clone();
-            composer.PushModelMatrix(Matrix4x4.Identity, false);
-
-            // Create high resolution atlas image.
             //RenderDocGraphicsContext.RenderDocCaptureStart();
             composer.SetState(_glyphRenderState);
             composer.RenderToAndClear(_intermediateBuffer);
@@ -343,39 +341,35 @@ namespace Emotion.Graphics.Text
             RenderGlyphs(composer, glyphs, offset, clr, scale);
             composer.RenderTargetPop();
 
-            FrameBuffer atlasFinal = new FrameBuffer(tempAtlasSize).WithColor();
+            // Unwind glyphs.
+            if (_intermediateBufferTwo == null)
+                _intermediateBufferTwo = new FrameBuffer(tempAtlasSize).WithColor();
+            else
+                _intermediateBufferTwo.Resize(tempAtlasSize, true);
+
             composer.SetAlphaBlend(false);
-            composer.RenderToAndClear(atlasFinal);
+            composer.RenderToAndClear(_intermediateBufferTwo);
             composer.SetShader(_windingShader.Shader);
             _windingShader.Shader.SetUniformVector2("drawSize", _intermediateBuffer.AllocatedSize);
-            composer.RenderFrameBuffer(_intermediateBuffer, new Vector2(atlasFinal.Size.X, -atlasFinal.Size.Y), color: Color.White, pos: new Vector3(0, atlasFinal.Size.Y, 0));
+            composer.RenderFrameBuffer(_intermediateBuffer);
             composer.SetShader();
             composer.RenderTargetPop();
             //RenderDocGraphicsContext.RenderDocCaptureEnd();
-            atlasFinal.ColorAttachment.Smooth = true;
-            atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped.
+            _intermediateBufferTwo.ColorAttachment.Smooth = true;
 
-            // Downsize image and find distances..
+            // Downsize image and find distances.
+            FrameBuffer atlasFinal = new FrameBuffer(outputResolution).WithColor();
+            atlasFinal.ColorAttachment.Smooth = true;
             //RenderDocGraphicsContext.RenderDocCaptureStart();
             composer.SetShader(_sdfGeneratingShader.Shader);
-            composer.RenderToAndClear(_intermediateBuffer);
-            composer.RenderSprite(Vector3.Zero, atlasFinal.ColorAttachment.Size, Color.White, atlasFinal.ColorAttachment);
+            composer.RenderToAndClear(atlasFinal);
+            composer.RenderFrameBuffer(
+                _intermediateBufferTwo,
+                new Vector2(outputResolution.X, -outputResolution.Y),
+                new Vector3(0, outputResolution.Y, 0));
             composer.RenderTargetPop();
             composer.SetShader();
-
-            // Copy back to resized atlas.
-            outputResolution.Y = lowestGlyphOutput;
-            atlasFinal.Resize(outputResolution);
-            _intermediateBuffer.ColorAttachment.Smooth = true;
-            composer.RenderToAndClear(atlasFinal);
-            composer.RenderFrameBuffer(_intermediateBuffer,
-                new Vector2(outputResolution.X, -outputResolution.Y),
-                color: Color.White,
-                pos: new Vector3(0, outputResolution.Y, 0),
-                uv: new Rectangle(0, 0, _intermediateBuffer.Size.X, lowestGlyph));
-            composer.RenderTo(null);
-            _intermediateBuffer.ColorAttachment.Smooth = false;
-            //RenderDocGraphicsContext.RenderDocCaptureEnd();
+            atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped.
 
             fontAtl.SetTexture(atlasFinal.ColorAttachment);
             composer.PopModelMatrix();
