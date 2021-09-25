@@ -796,6 +796,14 @@ namespace Emotion.UI
             }
 
             Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+
+            if (WindowColor.A == value)
+            {
+                tween.End();
+                _alphaTweenRoutine = null;
+                return;
+            }
+            
             _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, value, null));
         }
 
@@ -810,6 +818,14 @@ namespace Emotion.UI
             }
 
             Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+
+            if (Visible == val)
+            {
+                tween.End();
+                _alphaTweenRoutine = null;
+                return;
+            }
+
             _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, val));
         }
 
