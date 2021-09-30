@@ -368,7 +368,7 @@ namespace Emotion.UI
         /// </summary>
         public string? RelativeTo { get; set; }
 
-        private Vector2 _measuredSize;
+        protected Vector2 _measuredSize;
 
         public virtual void InvalidateLayout()
         {

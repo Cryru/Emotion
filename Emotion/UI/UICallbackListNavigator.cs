@@ -21,6 +21,12 @@ namespace Emotion.UI
     /// </summary>
     public class UICallbackListNavigator : UIBaseWindow
     {
+        /// <summary>
+        /// If enabled all children windows outside the bounds of the list will not be rendered.
+        /// On by default, and needed to support scrolling.
+        /// </summary>
+        public bool HideOutsideChildren = true;
+
         // These three are the same thing.
         [DontSerialize]
         public UIBaseWindow? SelectedWnd { get; protected set; }
@@ -218,7 +224,7 @@ namespace Emotion.UI
                 UIBaseWindow child = Children[i];
                 child.EnsureRenderBoundsCached(c);
 
-                if (!child.IsInsideRect(renderRect)) continue;
+                if (!child.IsInsideRect(renderRect) && HideOutsideChildren) continue;
                 if (child.Visible) child.Render(c);
                 if (_firstVisibleChild == -1) _firstVisibleChild = i;
                 lastVis = i;
@@ -424,7 +430,7 @@ namespace Emotion.UI
         {
             UIBaseWindow focus = this;
             if (Children != null && _firstVisibleChild != -1 && _lastVisibleChild != -1)
-                for (var i = _firstVisibleChild; i <= _lastVisibleChild; i++)
+                for (int i = _firstVisibleChild; i <= _lastVisibleChild; i++)
                 {
                     UIBaseWindow win = Children[i];
                     if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) focus = win.FindMouseInput(pos);
