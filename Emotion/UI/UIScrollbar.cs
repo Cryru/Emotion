@@ -116,7 +116,7 @@ namespace Emotion.UI
 
         public void SetValueFromPos(Vector2 pos)
         {
-            Vector2 relativePos = pos - _renderBounds.Position;
+            Vector2 relativePos = pos - _renderBoundsWithChildren.Position;
             int range = MaxValue - MinValue;
             Vector2 size = Size;
 

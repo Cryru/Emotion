@@ -134,7 +134,7 @@ namespace Emotion.UI
                 if (matrixPushed) c.PopModelMatrix();
                 AfterRenderChildren(c);
             }
-            else if(matrixPushed)
+            else if (matrixPushed)
             {
                 c.PopModelMatrix();
             }
@@ -706,6 +706,15 @@ namespace Emotion.UI
                 }
             }
 
+            // Construct input detecting boundary.
+            _inputBoundsWithChildren = Bounds;
+            if (Children != null)
+                for (int i = 0; i < Children.Count; i++)
+                {
+                    var child = Children[i];
+                    _inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
+                }
+
             AfterLayout();
         }
 
@@ -773,7 +782,7 @@ namespace Emotion.UI
             while (true)
             {
                 alphaTween.Update(Engine.DeltaTime);
-                var current = (byte) Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
+                var current = (byte)Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
                 WindowColor = WindowColor.SetAlpha(current);
                 if (alphaTween.Finished)
                 {
@@ -803,13 +812,13 @@ namespace Emotion.UI
                 _alphaTweenRoutine = null;
                 return;
             }
-            
+
             _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, value, null));
         }
 
         public void SetVisibleFade(bool val, ITimer? tween = null)
         {
-            var targetAlpha = (byte) (val ? 255 : 0);
+            var targetAlpha = (byte)(val ? 255 : 0);
             if (tween == null)
             {
                 WindowColor = WindowColor.SetAlpha(targetAlpha);
@@ -877,41 +886,53 @@ namespace Emotion.UI
 
         protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
         private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
-        protected Rectangle _renderBounds; // .Bounds but with any displacements active on the window applied
+        private Rectangle _renderBounds; // Bounds but with any displacements active on the window applied 
+        protected Rectangle _renderBoundsWithChildren; // _inputBoundsWithChildren but with any displacements active on the window applied
+        private Rectangle _inputBoundsWithChildren; // Bounds unioned with all children bounds.
 
         public Rectangle RenderBounds
         {
-            get => _renderBounds;
+            get => _renderBoundsWithChildren;
         }
 
         public void EnsureRenderBoundsCached(RenderComposer c)
         {
-            if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == Bounds) return;
+            if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == _inputBoundsWithChildren) return;
+            _renderBoundsWithChildren = Rectangle.Transform(_inputBoundsWithChildren, c.ModelMatrix);
             _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
             _renderBoundsCachedMatrix = c.ModelMatrix;
-            _renderBoundsCalculatedFrom = Bounds;
+            _renderBoundsCalculatedFrom = _inputBoundsWithChildren;
         }
 
         public virtual bool IsPointInside(Vector2 pt)
         {
-            return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pt) : Bounds.Contains(pt);
+            return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren.Contains(pt) : _inputBoundsWithChildren.Contains(pt);
         }
 
         public virtual bool IsInsideRect(Rectangle rect)
         {
-            return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBounds) : rect.ContainsInclusive(Bounds);
+            return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBoundsWithChildren) : rect.ContainsInclusive(_inputBoundsWithChildren);
         }
 
-        public virtual UIBaseWindow FindMouseInput(Vector2 pos)
+        public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
         {
             if (Children != null)
                 for (var i = 0; i < Children.Count; i++)
                 {
                     UIBaseWindow win = Children[i];
-                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) return win.FindMouseInput(pos);
+                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos))
+                    {
+                        UIBaseWindow? inChild = win.FindMouseInput(pos);
+                        if (inChild != null) return inChild;
+                    }
                 }
 
-            return this;
+            if (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos))
+            {
+                return this;
+            }
+
+            return null;
         }
 
         public virtual void OnMouseEnter(Vector2 mousePos)

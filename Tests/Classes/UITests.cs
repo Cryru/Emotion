@@ -274,6 +274,32 @@ namespace Tests.Classes
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(winOne.ClickedCount, 1);
             Assert.Equal(winThree.ClickedCount, 2);
+
+            var templateOutOfParent = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/OutOfParentMouseTest.xml");
+            Assert.True(templateOutOfParent != null);
+            ui.ClearChildren();
+            ui.AddChild(templateOutOfParent.Content);
+            ui.PreloadUI().Wait();
+            ui.Update();
+
+            var outOfParent = (MouseTestWindow) ui.GetWindowById("OutOfParent");
+            var notChild = (MouseTestWindow) ui.GetWindowById("WithinParentButNotChild");
+
+            // Try to click on the out of parent window.
+            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, outOfParent.Position2 + new Vector2(10, 10));
+            ui.Update();
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Assert.Equal(outOfParent.ClickedCount, 1);
+            Assert.Equal(outOfParent.WindowColor, Color.Red);
+
+            // Try to click on the window that is within the parental bounds, but not a child.
+            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, notChild.Position2 + new Vector2(10, 10));
+            ui.Update();
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Assert.Equal(notChild.ClickedCount, 1);
+            Assert.Equal(notChild.WindowColor, Color.Red);
         }
 
         private static void CompareUI(string file, UIController controller)

@@ -386,6 +386,9 @@
     <None Update="Assets\uitesttemplates\NineSlice.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\uitesttemplates\outofparentmousetest.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\uitesttemplates\OutsideMargins.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

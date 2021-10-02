@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<UIBaseWindow>
+  <Children>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+      <Children>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+          <Id>OutOfParent</Id>
+          <ParentAnchor>CenterLeft</ParentAnchor>
+          <Anchor>CenterRight</Anchor>
+          <MaxSize>
+            <X>55</X>
+            <Y>55</Y>
+          </MaxSize>
+        </UIBaseWindow>
+      </Children>
+      <ParentAnchor>CenterRight</ParentAnchor>
+      <Anchor>CenterRight</Anchor>
+      <MaxSize>
+        <X>100</X>
+        <Y>9999</Y>
+      </MaxSize>
+    </UIBaseWindow>
+    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+      <ParentAnchor>BottomLeft</ParentAnchor>
+      <RelativeTo>OutOfParent</RelativeTo>
+      <Id>WithinParentButNotChild</Id>
+    </UIBaseWindow>
+  </Children>
+  <InputTransparent></InputTransparent>
+</UIBaseWindow>
