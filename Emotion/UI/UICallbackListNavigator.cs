@@ -165,7 +165,7 @@ namespace Emotion.UI
             _lastScrollChildPos = Vector2.Zero;
             for (int i = Children.Count - 1; i >= 0; i--)
             {
-                UIBaseWindow? child = Children[i];
+                UIBaseWindow child = Children[i];
                 if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
                 switch (LayoutMode)
@@ -214,7 +214,7 @@ namespace Emotion.UI
 
         protected override void RenderChildren(RenderComposer c)
         {
-            Rectangle renderRect = _renderBounds;
+            Rectangle renderRect = _renderBoundsWithChildren;
             //c.RenderOutline(renderRect, Color.Red);
 
             c.PushModelMatrix(_scrollDisplacement);
@@ -426,14 +426,17 @@ namespace Emotion.UI
             _scrollBar.Value = (int) _scrollPos.Y;
         }
 
-        public override UIBaseWindow FindMouseInput(Vector2 pos)
+        public override UIBaseWindow? FindMouseInput(Vector2 pos)
         {
-            UIBaseWindow focus = this;
+            UIBaseWindow? focus = this;
             if (Children != null && _firstVisibleChild != -1 && _lastVisibleChild != -1)
                 for (int i = _firstVisibleChild; i <= _lastVisibleChild; i++)
                 {
                     UIBaseWindow win = Children[i];
-                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) focus = win.FindMouseInput(pos);
+                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos))
+                    {
+                        focus = win.FindMouseInput(pos);
+                    }
                 }
 
             if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) return _scrollBar;
