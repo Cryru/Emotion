@@ -1,4 +1,10 @@
-﻿namespace Emotion.Game.Time.Routines
+﻿#region Using
+
+using System.Diagnostics;
+
+#endregion
+
+namespace Emotion.Game.Time.Routines
 {
     public class PassiveRoutineObserver : IRoutineWaiter
     {
@@ -6,6 +12,7 @@
 
         public PassiveRoutineObserver(IRoutineWaiter wrap)
         {
+            Debug.Assert(wrap != null);
             _wrap = wrap;
         }
 

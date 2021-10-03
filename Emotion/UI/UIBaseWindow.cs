@@ -709,9 +709,9 @@ namespace Emotion.UI
             // Construct input detecting boundary.
             _inputBoundsWithChildren = Bounds;
             if (Children != null)
-                for (int i = 0; i < Children.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    var child = Children[i];
+                    UIBaseWindow? child = Children[i];
                     _inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
                 }
 
@@ -927,10 +927,7 @@ namespace Emotion.UI
                     }
                 }
 
-            if (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos))
-            {
-                return this;
-            }
+            if (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos)) return this;
 
             return null;
         }
@@ -973,6 +970,22 @@ namespace Emotion.UI
         }
 
         private NamedTransformationStack? _transformationStackBacking;
+
+        /// <summary>
+        /// Create a translation displacement routine.
+        /// </summary>
+        public IEnumerator TranslationDisplacement(Vector3 position, ITimer tween, string id = "translation")
+        {
+            while (true)
+            {
+                tween.Update(Engine.DeltaTime);
+                Vector3 current = Vector3.Lerp(Vector3.Zero, position, tween.Progress);
+                TransformationStack.AddOrUpdate(id, Matrix4x4.CreateTranslation(current.X, current.Y, 0));
+                if (tween.Finished) yield break;
+
+                yield return null;
+            }
+        }
 
         #endregion
 
@@ -1133,6 +1146,7 @@ namespace Emotion.UI
                 }
             }
 
+            if (id == Id) return this;
             if (Children == null) return null;
 
             for (var i = 0; i < Children.Count; i++)
