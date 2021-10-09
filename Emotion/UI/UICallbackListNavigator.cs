@@ -300,7 +300,11 @@ namespace Emotion.UI
                 if (newItem != oldSel) OnItemSelected?.Invoke(newItem, oldSel);
             }
 
-            if (key == ConfirmChoice && status == KeyStatus.Down && SelectedWnd != null) OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
+            if (key == ConfirmChoice && status == KeyStatus.Down && SelectedWnd != null)
+            {
+                OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
+                return false;
+            }
 
             return base.OnKey(key, status, mousePos);
         }
