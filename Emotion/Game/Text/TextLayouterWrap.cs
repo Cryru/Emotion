@@ -164,7 +164,7 @@ namespace Emotion.Game.Text
             _counter++;
 
             Vector2 position = base.AddLetter(c, out g);
-            if (_singleLineNegativeY != 0 && _newLineIndices.Count == 0) position.Y -= _singleLineNegativeY;
+            if (_singleLineNegativeY != 0) position.Y -= _singleLineNegativeY;
             return position;
         }
 
