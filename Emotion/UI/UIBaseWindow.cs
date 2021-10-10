@@ -417,7 +417,8 @@ namespace Emotion.UI
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
                 Vector2 scaledSpacing = ListSpacing * scale;
                 Vector2 pen = Vector2.Zero;
-                Vector2 freeSpace = GetChildrenLayoutSize(space, contentSize, paddingSize);
+                Vector2 spaceClampedToConstraints = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).RoundClosest();
+                Vector2 freeSpace = GetChildrenLayoutSize(spaceClampedToConstraints, contentSize, paddingSize);
                 float highestOnRow = 0;
                 float widestInColumn = 0;
 
@@ -451,10 +452,12 @@ namespace Emotion.UI
                                 Engine.Log.Warning($"{this} tried to layout relative to {child.RelativeTo} but it couldn't find it.", "UI");
                             }
 
-                            Rectangle childScaledMargins = child.Margins * childScale;
                             Vector2 childSize = child.Measure(freeSpace);
                             if (insideParent)
+                            {
+                                Rectangle childScaledMargins = child.Margins * childScale;
                                 usedSpace = Vector2.Max(usedSpace, childSize + new Vector2(childScaledMargins.X + childScaledMargins.Width, childScaledMargins.Y + childScaledMargins.Height));
+                            }
 
                             break;
                         }
