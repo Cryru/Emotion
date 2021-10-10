@@ -78,17 +78,85 @@ namespace Emotion.Graphics.Text
             }
         }
 
+        public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
+        {
+            InitEmotionRenderer();
+
+            bool justCreated = state == null;
+            state = CommonGlyphRenderer.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize, 2);
+
+            // Prepare for rendering.
+            if (_intermediateBuffer == null)
+                _intermediateBuffer = new FrameBuffer(intermediateAtlasSize).WithColor();
+            else
+                _intermediateBuffer.Resize(intermediateAtlasSize, true);
+
+            RenderComposer composer = Engine.Renderer;
+            RenderState prevState = composer.CurrentState.Clone();
+            composer.PushModelMatrix(Matrix4x4.Identity, false);
+
+            // Render glyphs to the intermediate buffer.
+            composer.SetState(_glyphRenderState);
+            composer.RenderToAndClear(_intermediateBuffer);
+            composer.SetShader(_noDiscardShader.Shader);
+            var colors = new[]
+            {
+                new Color(1, 0, 0, 0),
+                new Color(0, 1, 0, 0),
+                new Color(0, 0, 1, 0),
+                new Color(0, 0, 0, 1),
+            };
+            var offsets = new[]
+            {
+                new Vector3(-0.30f, 0, 0),
+                new Vector3(0.30f, 0, 0),
+                new Vector3(0.0f, -0.30f, 0),
+                new Vector3(0.0f, 0.30f, 0),
+            };
+            for (var p = 0; p < 4; p++)
+            {
+                uint clr = colors[p].ToUint();
+                Vector3 offset = offsets[p];
+                RenderGlyphs(composer, glyphsToAdd, offset, clr, atlas.RenderScale, intermediateAtlasUVs);
+            }
+
+            composer.RenderTargetPop();
+
+            // Copy to atlas buffer, while unwinding.
+            composer.RenderTo(state.AtlasBuffer);
+            if (justCreated) composer.ClearFrameBuffer();
+            composer.SetAlphaBlend(false);
+            composer.SetShader(_windingAaShader.Shader);
+            _windingAaShader.Shader.SetUniformVector2("drawSize", _intermediateBuffer.AllocatedSize);
+
+            for (var i = 0; i < glyphsToAdd.Count; i++)
+            {
+                AtlasGlyph atlasGlyph = glyphsToAdd[i];
+                Rectangle placeWithinIntermediateAtlas = intermediateAtlasUVs[i];
+                Debug.Assert(atlasGlyph.UVSize == placeWithinIntermediateAtlas.Size);
+                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _intermediateBuffer.ColorAttachment, placeWithinIntermediateAtlas);
+            }
+
+            composer.SetShader();
+            composer.RenderTo(null);
+            composer.PopModelMatrix();
+            composer.SetState(prevState);
+
+            return state;
+        }
+
         /// <summary>
         /// Render glyph vertices storing the winding number in the color buffer.
         /// </summary>
-        private static void RenderGlyphs(RenderComposer composer, List<AtlasGlyph> glyphs, Vector3 offset, uint clr, float scale)
+        private static void RenderGlyphs(RenderComposer composer, List<AtlasGlyph> glyphs, Vector3 offset, uint clr, float scale, Rectangle[] dstRects = null)
         {
             for (var c = 0; c < glyphs.Count; c++)
             {
                 AtlasGlyph atlasGlyph = glyphs[c];
                 Glyph fontGlyph = atlasGlyph.FontGlyph;
-                if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(new Rectangle(atlasGlyph.UVLocation, atlasGlyph.UVSize));
-                Vector3 atlasRenderPos = (atlasGlyph.UVLocation * SuperSample - new Vector2(atlasGlyph.XMin * SuperSample, -atlasGlyph.Height * SuperSample)).ToVec3();
+                Rectangle dst = dstRects != null ? dstRects[c] : new Rectangle(atlasGlyph.UVLocation, atlasGlyph.UVSize);
+                if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(dst);
+                Vector3 atlasRenderPos = (dst.Position * SuperSample - new Vector2(atlasGlyph.XMin * SuperSample, -atlasGlyph.Height * SuperSample)).ToVec3();
                 atlasRenderPos += offset;
                 composer.PushModelMatrix(Matrix4x4.CreateScale(scale * SuperSample, -scale * SuperSample, 1) * Matrix4x4.CreateTranslation(atlasRenderPos));
 
@@ -164,69 +232,6 @@ namespace Emotion.Graphics.Text
                 composer.PopModelMatrix();
                 if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(null);
             }
-        }
-
-        public static void RenderAtlas(DrawableFontAtlas fontAtl)
-        {
-            // Initialize shared objects.
-            Debug.Assert(GLThread.IsGLThread());
-            RenderComposer composer = Engine.Renderer;
-
-            Vector2 atlasSize = fontAtl.Texture.Size;
-            List<AtlasGlyph> glyphs = fontAtl.DrawableAtlasGlyphs;
-            float scale = fontAtl.RenderScale;
-
-            if (_intermediateBuffer == null)
-                _intermediateBuffer = new FrameBuffer(atlasSize * SuperSample).WithColor();
-            else
-                _intermediateBuffer.Resize(atlasSize * SuperSample, true);
-
-            RenderState prevState = composer.CurrentState.Clone();
-            composer.PushModelMatrix(Matrix4x4.Identity, false);
-
-            // Glyphs are rendered with their winding in the first one which is then copied over to the final framebuffer, which is set as the drawable atlas texture.
-            //RenderDocGraphicsContext.RenderDocCaptureStart();
-            composer.SetState(_glyphRenderState);
-            composer.RenderToAndClear(_intermediateBuffer);
-            composer.SetShader(_noDiscardShader.Shader);
-
-            var colors = new[]
-            {
-                new Color(1, 0, 0, 0),
-                new Color(0, 1, 0, 0),
-                new Color(0, 0, 1, 0),
-                new Color(0, 0, 0, 1),
-            };
-            var offsets = new[]
-            {
-                new Vector3(-0.30f, 0, 0),
-                new Vector3(0.30f, 0, 0),
-                new Vector3(0.0f, -0.30f, 0),
-                new Vector3(0.0f, 0.30f, 0),
-            };
-            for (var p = 0; p < 4; p++)
-            {
-                uint clr = colors[p].ToUint();
-                Vector3 offset = offsets[p];
-                RenderGlyphs(composer, glyphs, offset, clr, scale);
-            }
-
-            composer.RenderTargetPop();
-
-            FrameBuffer atlasFinal = new FrameBuffer(atlasSize).WithColor();
-            composer.SetAlphaBlend(false);
-            composer.RenderToAndClear(atlasFinal);
-            composer.SetShader(_windingAaShader.Shader);
-            _windingAaShader.Shader.SetUniformVector2("drawSize", _intermediateBuffer.AllocatedSize);
-            composer.RenderFrameBuffer(_intermediateBuffer, new Vector2(atlasFinal.Size.X, -atlasFinal.Size.Y), color: Color.White, pos: new Vector3(0, atlasFinal.Size.Y, 0));
-            composer.SetShader();
-            composer.RenderTo(null);
-            //RenderDocGraphicsContext.RenderDocCaptureEnd();
-
-            atlasFinal.ColorAttachment.FlipY = false; // We drew it flipped, so it's okay.
-            //fontAtl.SetTexture(atlasFinal.ColorAttachment);
-            composer.PopModelMatrix();
-            composer.SetState(prevState);
         }
 
         public static void RenderAtlasSDF(DrawableFontAtlas fontAtl, bool skipCache = false)

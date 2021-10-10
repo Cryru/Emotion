@@ -6,12 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Common.Threading;
-using Emotion.Game;
 using Emotion.Graphics.Objects;
-using Emotion.Platform.RenderDoc;
 using Emotion.Primitives;
-using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 using OpenGL;
@@ -27,45 +23,8 @@ namespace Emotion.Graphics.Text
         private static Texture _tempGlyphTexture;
         private static RenderState _glyphRenderState;
 
-        public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
+        public static void InitStbRenderer()
         {
-            const float spacing = 1;
-            var justCreated = false;
-            Rectangle[] renderAtlasBounds = null;
-            if (state == null)
-            {
-                // Initialize atlas by binning first.
-                var binningRects = new Rectangle[glyphsToAdd.Count];
-                renderAtlasBounds = new Rectangle[glyphsToAdd.Count];
-                for (var i = 0; i < glyphsToAdd.Count; i++)
-                {
-                    AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                    var glyphRenderSize = new Vector2(atlasGlyph.Size.X + spacing * 2, atlasGlyph.Size.Y + spacing * 2);
-                    binningRects[i] = new Rectangle(0, 0, glyphRenderSize);
-                    renderAtlasBounds[i] = new Rectangle(0, 0, glyphRenderSize - new Vector2(spacing * 2));
-                }
-
-                // Apply to atlas glyphs.
-                Vector2 atlasSize = Binning.FitRectangles(binningRects);
-                for (var i = 0; i < binningRects.Length; i++)
-                {
-                    AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                    Rectangle binPosition = binningRects[i];
-                    atlasGlyph.UVLocation = binPosition.Position + new Vector2(spacing);
-                    atlasGlyph.UVSize = binPosition.Size - new Vector2(spacing * 2);
-                }
-
-                state = new GlyphRendererState();
-                state.BinningState = new Binning.BinningResumableState(atlasSize);
-                state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
-                justCreated = true;
-            }
-            else
-            {
-                // Log requests after the first.
-                Engine.Log.Trace($"Glyph request {glyphsToAdd.Count}", MessageSource.Renderer);
-            }
-
             if (_glyphRenderState == null)
             {
                 _glyphRenderState = RenderState.Default.Clone();
@@ -75,49 +34,18 @@ namespace Emotion.Graphics.Text
                 _glyphRenderState.SFactorA = BlendingFactor.One;
                 _glyphRenderState.DFactorA = BlendingFactor.One;
             }
+        }
 
-            // Bin new glyphs in the big atlas.
-            if (renderAtlasBounds == null)
-            {
-                renderAtlasBounds = new Rectangle[glyphsToAdd.Count];
-                var resizedOnceAlready = false;
-                for (var i = 0; i < glyphsToAdd.Count; i++)
-                {
-                    AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                    var glyphRenderSize = new Vector2(atlasGlyph.Size.X + spacing * 2, atlasGlyph.Size.Y + spacing * 2);
-                    Vector2? position = Binning.FitRectanglesResumable(glyphRenderSize, state.BinningState);
+        public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
+        {
+            InitStbRenderer();
 
-                    // No space for new glyph.
-                    if (position == null)
-                    {
-                        if (resizedOnceAlready) Engine.Log.Warning("Resizing glyph atlas multiple times in one request.", MessageSource.Renderer);
-
-                        // Go through all existing glyphs and request them to be rerendered as well.
-                        foreach (KeyValuePair<char, AtlasGlyph> renderedGlyph in atlas.Glyphs)
-                        {
-                            // Already exists in request.
-                            if (glyphsToAdd.IndexOf(renderedGlyph.Value) != -1) continue;
-                            glyphsToAdd.Add(renderedGlyph.Value);
-                        }
-
-                        state.BinningState = new Binning.BinningResumableState(state.BinningState.Size * 2f);
-                        state.AtlasBuffer.Resize(state.BinningState.Size, true);
-                        Array.Resize(ref renderAtlasBounds, glyphsToAdd.Count);
-                        i = -1; // Reset the loop.
-                        resizedOnceAlready = true;
-                        continue;
-                    }
-
-                    atlasGlyph.UVLocation = position.Value + new Vector2(spacing);
-                    atlasGlyph.UVSize = glyphRenderSize - new Vector2(spacing * 2);
-                    renderAtlasBounds[i] = new Rectangle(0, 0, atlasGlyph.UVSize);
-                }
-            }
+            bool justCreated = state == null;
+            state = CommonGlyphRenderer.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize);
 
             // Bin them for the stb rasterization atlas.
-            Vector2 stbAtlasSize = Binning.FitRectangles(renderAtlasBounds);
-            var stbAtlasData = new byte[(int)stbAtlasSize.X * (int)stbAtlasSize.Y];
-            var stride = (int)stbAtlasSize.X;
+            var stbAtlasData = new byte[(int)intermediateAtlasSize.X * (int)intermediateAtlasSize.Y];
+            var stride = (int)intermediateAtlasSize.X;
             float scale = atlas.RenderScale;
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
@@ -132,7 +60,7 @@ namespace Emotion.Graphics.Text
                 canvas.Height--;
 
                 // Copy pixels and record the location of the glyph.
-                Vector2 uvLoc = renderAtlasBounds[i].Position;
+                Vector2 uvLoc = intermediateAtlasUVs[i].Position;
                 var uvX = (int)uvLoc.X;
                 var uvY = (int)uvLoc.Y;
 
@@ -150,7 +78,7 @@ namespace Emotion.Graphics.Text
             // Upload to GPU.
             byte[] rgbaData = ImageUtil.AToRgba(stbAtlasData);
             _tempGlyphTexture ??= new Texture();
-            _tempGlyphTexture.Upload(stbAtlasSize, rgbaData, PixelFormat.Rgba, InternalFormat.Rgba, PixelType.UnsignedByte);
+            _tempGlyphTexture.Upload(intermediateAtlasSize, rgbaData, PixelFormat.Rgba, InternalFormat.Rgba, PixelType.UnsignedByte);
 
             // Render to big atlas.
             RenderComposer composer = Engine.Renderer;
@@ -163,9 +91,9 @@ namespace Emotion.Graphics.Text
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                Rectangle placeWithinStbAtlas = renderAtlasBounds[i];
-                Debug.Assert(atlasGlyph.UVSize == placeWithinStbAtlas.Size);
-                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _tempGlyphTexture, placeWithinStbAtlas);
+                Rectangle placeWithinIntermediateAtlas = intermediateAtlasUVs[i];
+                Debug.Assert(atlasGlyph.UVSize == placeWithinIntermediateAtlas.Size);
+                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _tempGlyphTexture, placeWithinIntermediateAtlas);
             }
 
             composer.RenderTo(null);

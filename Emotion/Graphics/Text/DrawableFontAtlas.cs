@@ -182,6 +182,8 @@ namespace Emotion.Graphics.Text
             switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
+                    _state = EmotionGlyphRenderer.AddGlyphsToAtlas(this, _state, glyphs);
+                    break;
                 case GlyphRasterizer.EmotionSDF_01:
                 case GlyphRasterizer.StbTrueType:
                     _state = StbGlyphRenderer.AddGlyphsToAtlas(this, _state, glyphs);
