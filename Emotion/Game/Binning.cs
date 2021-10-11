@@ -26,6 +26,11 @@ namespace Emotion.Game
                 Area = area;
             }
 
+            protected PackingSpace()
+            {
+
+            }
+
             public Rectangle GetAbsoluteArea(Vector2 outsideSize)
             {
                 float x = Area.X;
@@ -47,8 +52,10 @@ namespace Emotion.Game
         /// Whether the rectangles should be placed in the same order as they are in the array. This usually results
         /// in suboptimal results if the rectangles aren't relatively the same height. False by default.
         /// </param>
+        /// <param name="fillResumeState">If a resumable state instance is provided it will be filled with the data needed to
+        /// resume binning from the end state of this operation.</param>
         /// <returns></returns>
-        public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false)
+        public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false, BinningResumableState fillResumeState = null)
         {
             if (rectMemory.IsEmpty) return Vector2.Zero;
             if (rectMemory.Length == 1) return rectMemory.Span[0].Size;
@@ -140,6 +147,14 @@ namespace Emotion.Game
 
             float bottomMostRectP2 = Maths.ClosestPowerOfTwoGreaterThan((int) bottomMostRect);
             if (bottomMostRectP2 < canvasSize.Y) canvasSize.Y = bottomMostRectP2;
+
+            // Fill resumeable state.
+            if (fillResumeState != null)
+            {
+                fillResumeState.Size = canvasSize;
+                fillResumeState.PackingSpaces = packingSpaces;
+                fillResumeState.CanvasPos = canvasPos;
+            }
 
 #if DEBUG
             // Verify, no overlap.
