@@ -200,7 +200,6 @@ namespace Emotion.Graphics
             RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
         }
 
-
         /// <summary>
         /// Render a string from an atlas.
         /// </summary>
@@ -215,14 +214,18 @@ namespace Emotion.Graphics
 
             atlas.SetupDrawing(this, text);
 
+            Vector2 drawPadding = atlas.GlyphDrawPadding;
+            Vector2 drawPaddingT2 = drawPadding * 2;
+            var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
+
             foreach (char c in text)
             {
                 Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
                 if (g == null) continue;
-                gPos.X = MathF.Ceiling(gPos.X); // Dirty hack to prevent rounding artifacts.
+                //gPos.X = MathF.Ceiling(gPos.X);
 
                 var uv = new Rectangle(g.UVLocation, g.UVSize);
-                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
+                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, color, atlas.Texture, uv);
             }
 
             atlas.FinishDrawing(this);

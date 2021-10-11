@@ -32,7 +32,7 @@ float squaredDistanceBetween(vec2 uv1, vec2 uv2)
     return dist;
 }
 
-#define RANGE 20.0
+#define RANGE 64.0
 
 void main() {
     const int iRange = int(RANGE);

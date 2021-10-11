@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Threading;
+using Emotion.Game;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -30,6 +31,9 @@ namespace Emotion.Graphics.Text
         // Const
         public const bool CLIP_GLYPH_TEXTURES = false;
         public const int SDF_ATLAS_SIZE = 512;
+        public const int SDF_REFERENCE_FONT_SIZE = 100;
+        public const float SDF_HIGH_RES_SCALE = 1f;
+        public static readonly Vector2 SdfAtlasGlyphSpacing = new Vector2(5);
 
         // Settings
         public static float SuperSample = 1;
@@ -141,6 +145,182 @@ namespace Emotion.Graphics.Text
             composer.RenderTo(null);
             composer.PopModelMatrix();
             composer.SetState(prevState);
+
+            return state;
+        }
+
+        private static Dictionary<Font, DrawableFontAtlas> _sdfReferenceAtlases;
+
+        public static GlyphRendererState AddGlyphsToAtlasSDF(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
+        {
+            InitEmotionRenderer();
+            _sdfReferenceAtlases ??= new Dictionary<Font, DrawableFontAtlas>();
+
+            // Create the reference atlas - this is the atlas that is at the ouptut resolution of the SDF texture.
+            _sdfReferenceAtlases.TryGetValue(atlas.Font, out DrawableFontAtlas refAtlas);
+            if (refAtlas == null)
+            {
+                refAtlas = new DrawableFontAtlas(atlas.Font, SDF_REFERENCE_FONT_SIZE);
+                _sdfReferenceAtlases.Add(atlas.Font, refAtlas);
+            }
+
+            var refGlyphsToRender = new List<AtlasGlyph>();
+            for (var i = 0; i < glyphsToAdd.Count; i++)
+            {
+                AtlasGlyph reqGlyph = glyphsToAdd[i];
+                var found = false;
+
+                // Check if the reference atlas already has this glyph rendererd.
+                for (var j = 0; j < refAtlas.DrawableAtlasGlyphs.Count; j++)
+                {
+                    AtlasGlyph refGlyph = refAtlas.DrawableAtlasGlyphs[j];
+                    if (refGlyph.FontGlyph == reqGlyph.FontGlyph)
+                    {
+                        // Already rendered.
+                        reqGlyph.UVLocation = refGlyph.UVLocation - new Vector2(1);
+                        reqGlyph.UVSize = refGlyph.UVSize + new Vector2(2);
+                        refGlyphsToRender.Add(null);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    var refGlyph = AtlasGlyph.CreateFloatScale(reqGlyph.FontGlyph, refAtlas.RenderScale, refAtlas.Font.Ascender);
+                    refGlyphsToRender.Add(refGlyph);
+                    refAtlas.DrawableAtlasGlyphs.Add(refGlyph);
+                }
+            }
+
+            if (atlas.GlyphDrawPadding == Vector2.Zero)
+            {
+                float scaleDiff = refAtlas.RenderScale / atlas.RenderScale;
+                atlas.GlyphDrawPadding = new Vector2(1) / scaleDiff;
+            }
+
+            atlas.FontShader = _sdfShader.Shader;
+            atlas.RenderScale = refAtlas.RenderScale;
+
+            // Check if anything to render.
+            var anyNonNull = false;
+            for (var i = 0; i < refGlyphsToRender.Count; i++)
+            {
+                if (refGlyphsToRender[i] == null) continue;
+                anyNonNull = true;
+                break;
+            }
+            if (!anyNonNull) return refAtlas.GlyphRendererState;
+
+            bool justCreated = refAtlas.GlyphRendererState == null;
+            state = CommonGlyphRenderer.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2);
+            refAtlas.GlyphRendererState = state;
+            if (justCreated) state.AtlasBuffer.Texture.Smooth = true;
+
+            // Create high resolution glyphs.
+            var sdfFullResGlyphs = new List<AtlasGlyph>(refGlyphsToRender.Count);
+            var sdfTempRects = new Rectangle[refGlyphsToRender.Count];
+            Vector2 sdfGlyphSpacing = SdfAtlasGlyphSpacing * (1f / refAtlas.RenderScale);
+            for (var i = 0; i < refGlyphsToRender.Count; i++)
+            {
+                AtlasGlyph refGlyph = refGlyphsToRender[i];
+                if (refGlyph == null) continue;
+
+                var sdfGlyph = AtlasGlyph.CreateFloatScale(refGlyph.FontGlyph, SDF_HIGH_RES_SCALE, atlas.Font.Ascender);
+                sdfFullResGlyphs.Add(sdfGlyph);
+                sdfTempRects[i] = new Rectangle(0, 0, sdfGlyph.Size + sdfGlyphSpacing * 2);
+            }
+
+            Vector2 sdfBaseAtlas = Binning.FitRectangles(sdfTempRects);
+
+            // Remove spacing.
+            for (var i = 0; i < sdfTempRects.Length; i++)
+            {
+                Rectangle r = sdfTempRects[i];
+                sdfTempRects[i] = new Rectangle(r.Position + sdfGlyphSpacing, r.Size - sdfGlyphSpacing * 2);
+            }
+
+            // Generate ping-pong buffers.
+            if (_intermediateBuffer == null)
+            {
+                _intermediateBuffer = new FrameBuffer(sdfBaseAtlas).WithColor();
+                _intermediateBuffer.ColorAttachment.Smooth = true;
+            }
+            else
+            {
+                _intermediateBuffer.Resize(sdfBaseAtlas, true);
+            }
+
+            if (_intermediateBufferTwo == null)
+            {
+                _intermediateBufferTwo = new FrameBuffer(sdfBaseAtlas).WithColor();
+                _intermediateBufferTwo.ColorAttachment.Smooth = true;
+            }
+            else
+            {
+                _intermediateBufferTwo.Resize(sdfBaseAtlas, true);
+            }
+
+            //RenderDocGraphicsContext.RenderDocCaptureStart();
+            RenderComposer composer = Engine.Renderer;
+            RenderState prevState = composer.CurrentState.Clone();
+            composer.PushModelMatrix(Matrix4x4.Identity, false);
+
+            // Render high res glyphs.
+            composer.SetState(_glyphRenderState);
+            composer.RenderToAndClear(_intermediateBuffer);
+            composer.SetShader(_noDiscardShader.Shader);
+            uint clr = new Color(1, 0, 0, 0).ToUint();
+            Vector3 offset = Vector3.Zero;
+            RenderGlyphs(composer, sdfFullResGlyphs, offset, clr, SDF_HIGH_RES_SCALE, sdfTempRects);
+            composer.RenderTargetPop();
+
+            // Unwind them.
+            composer.SetAlphaBlend(false);
+            composer.RenderToAndClear(_intermediateBufferTwo);
+            composer.SetShader(_windingShader.Shader);
+            _windingShader.Shader.SetUniformVector2("drawSize", _intermediateBufferTwo.AllocatedSize);
+            composer.RenderFrameBuffer(_intermediateBuffer);
+            composer.SetShader();
+            composer.RenderTargetPop();
+
+            // Generate SDF
+            composer.SetState(RenderState.Default);
+            composer.SetUseViewMatrix(false);
+            composer.RenderToAndClear(_intermediateBuffer);
+            composer.SetShader(_sdfGeneratingShader.Shader);
+            composer.RenderFrameBuffer(_intermediateBufferTwo, _intermediateBuffer.Size * (refAtlas.RenderScale / SDF_HIGH_RES_SCALE));
+            composer.SetShader();
+            composer.RenderTargetPop();
+
+            // Copy downsized glyphs to the atlas.
+            composer.RenderTo(state.AtlasBuffer);
+            if (justCreated) composer.ClearFrameBuffer();
+
+            for (var i = 0; i < refGlyphsToRender.Count; i++)
+            {
+                AtlasGlyph refGlyph = refGlyphsToRender[i];
+                if (refGlyph == null) continue;
+
+                AtlasGlyph glyph = glyphsToAdd[i];
+                glyph.UVLocation = refGlyph.UVLocation - new Vector2(1); // Apply UV padding to fit the GlyphRenderPadding.
+                glyph.UVSize = refGlyph.UVSize + new Vector2(2);
+
+                // Copy into ref atlas with sdf spacing as there might be data there.
+                Rectangle placeWithinSdfAtlas = sdfTempRects[i] * (refAtlas.RenderScale / SDF_HIGH_RES_SCALE);
+                placeWithinSdfAtlas.Position -= SdfAtlasGlyphSpacing;
+                placeWithinSdfAtlas.Size += SdfAtlasGlyphSpacing * 2;
+                composer.RenderSprite(
+                    new Vector3(refGlyph.UVLocation.X - SdfAtlasGlyphSpacing.X, refGlyph.UVLocation.Y - SdfAtlasGlyphSpacing.Y, 0),
+                    refGlyph.UVSize + SdfAtlasGlyphSpacing * 2,
+                    _intermediateBuffer.ColorAttachment,
+                    placeWithinSdfAtlas);
+            }
+
+            composer.RenderTo(null);
+            composer.PopModelMatrix();
+            composer.SetState(prevState);
+            //RenderDocGraphicsContext.RenderDocCaptureEnd();
 
             return state;
         }

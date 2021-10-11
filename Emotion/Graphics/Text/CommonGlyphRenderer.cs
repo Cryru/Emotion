@@ -30,7 +30,9 @@ namespace Emotion.Graphics.Text
                 for (var i = 0; i < glyphsToAdd.Count; i++)
                 {
                     AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                    Vector2 glyphRenderSize = new Vector2(atlasGlyph.Size.X, atlasGlyph.Size.Y) + spacing2;
+                    if (atlasGlyph == null) continue;
+
+                    Vector2 glyphRenderSize = atlasGlyph.Size + spacing2;
                     binningRects[i] = new Rectangle(0, 0, glyphRenderSize);
                     intermediateAtlasUVs[i] = new Rectangle(0, 0, glyphRenderSize);
                 }
@@ -40,6 +42,8 @@ namespace Emotion.Graphics.Text
                 for (var i = 0; i < binningRects.Length; i++)
                 {
                     AtlasGlyph atlasGlyph = glyphsToAdd[i];
+                    if (atlasGlyph == null) continue;
+
                     Rectangle binPosition = binningRects[i];
                     atlasGlyph.UVLocation = binPosition.Position + spacing;
                     atlasGlyph.UVSize = binPosition.Size - spacing2;
@@ -63,7 +67,9 @@ namespace Emotion.Graphics.Text
                 for (var i = 0; i < glyphsToAdd.Count; i++)
                 {
                     AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                    Vector2 glyphRenderSize = new Vector2(atlasGlyph.Size.X, atlasGlyph.Size.Y) + spacing2;
+                    if (atlasGlyph == null) continue;
+
+                    Vector2 glyphRenderSize = atlasGlyph.Size + spacing2;
                     Vector2? position = Binning.FitRectanglesResumable(glyphRenderSize, state.BinningState);
 
                     // No space for new glyph.
