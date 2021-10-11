@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
-using Emotion.Common.Threading;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.IO;
@@ -113,11 +112,26 @@ namespace Emotion.UI
 
         protected override async Task LoadContent()
         {
+            var loadedNew = false;
             if (TextureFile == null) return;
-            if (TextureAsset == null || TextureAsset.Name != TextureFile || TextureAsset.Disposed) TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
+            if (TextureAsset == null || TextureAsset.Name != TextureFile || TextureAsset.Disposed)
+            {
+                TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
+                loadedNew = true;
+            }
+
             if (TextureAsset == null) return;
 
-            if (Smooth != TextureAsset.Texture.Smooth) TextureAsset.Texture.Smooth = Smooth;
+            if (loadedNew)
+            {
+                if (Smooth != TextureAsset.Texture.Smooth) TextureAsset.Texture.Smooth = Smooth;
+                InvalidateLayout();
+            }
+        }
+
+        protected override void AfterLayout()
+        {
+            base.AfterLayout();
             CalculateUV();
         }
 

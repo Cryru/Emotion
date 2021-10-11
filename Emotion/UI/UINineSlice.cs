@@ -55,6 +55,7 @@ namespace Emotion.UI
 
         protected override void AfterLayout()
         {
+            base.AfterLayout();
             if (TextureAsset == null) return;
 
             Vector2 imageScale = ImageScale ?? Vector2.One;
