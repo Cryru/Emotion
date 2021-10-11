@@ -60,11 +60,10 @@ namespace Emotion.IO
         /// <summary>
         /// Save the file to the asset store with the provided name.
         /// </summary>
-        /// <param name="name"></param>
-        public bool SaveAs(string name)
+        public bool SaveAs(string name, bool backup = true)
         {
             string data = XMLFormat.To(Content);
-            bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name);
+            bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name, backup);
             if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
             return saved;
         }
@@ -72,8 +71,6 @@ namespace Emotion.IO
         /// <summary>
         /// Load a xml file via the asset loader, or create a new one if missing.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
         public static XMLAsset<T> LoadSaveOrCreate(string name)
         {
             if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<XMLAsset<T>>(name);

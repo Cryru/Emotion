@@ -38,7 +38,8 @@ namespace Emotion.Graphics.Text
                 }
 
                 // Apply to atlas glyphs.
-                Vector2 atlasSize = Binning.FitRectangles(binningRects);
+                var resumableState = new Binning.BinningResumableState(Vector2.Zero);
+                Vector2 atlasSize = Binning.FitRectangles(binningRects, false, resumableState);
                 for (var i = 0; i < binningRects.Length; i++)
                 {
                     AtlasGlyph atlasGlyph = glyphsToAdd[i];
@@ -50,7 +51,7 @@ namespace Emotion.Graphics.Text
                 }
 
                 state = new GlyphRendererState();
-                state.BinningState = new Binning.BinningResumableState(atlasSize);
+                state.BinningState = resumableState;
                 state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
             }
             else
