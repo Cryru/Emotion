@@ -129,14 +129,10 @@ namespace Emotion.UI
             }
         }
 
-        protected override void AfterLayout()
-        {
-            base.AfterLayout();
-            CalculateUV();
-        }
-
         protected override Vector2 InternalMeasure(Vector2 space)
         {
+            CalculateUV();
+
             float scale = GetScale();
             Vector2 size;
             if (RenderSize != null)
@@ -155,7 +151,7 @@ namespace Emotion.UI
             return true;
         }
 
-        private void CalculateUV()
+        protected void CalculateUV()
         {
             if (UV != null)
             {
