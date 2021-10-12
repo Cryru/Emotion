@@ -64,6 +64,8 @@ namespace Emotion.Graphics.Text
         /// </summary>
         public ShaderProgram FontShader { get; set; }
 
+        public float FontShaderParam { get; set; }
+
         /// <summary>
         /// The atlas' render scale, based on the font size.
         /// </summary>
@@ -146,7 +148,7 @@ namespace Emotion.Graphics.Text
             float scale = FontSize / Font.UnitsPerEm;
             FontHeight = MathF.Ceiling(Font.Height * scale);
             RenderScale = scale;
-            RenderedWith = Rasterizer;
+            RenderedWith = _pixelFont ? GlyphRasterizer.StbTrueType : Rasterizer;
         }
 
         // Serialization constructor (for debugging)
@@ -221,12 +223,9 @@ namespace Emotion.Graphics.Text
             if (FontShader != null)
             {
                 c.SetShader(FontShader);
-                if (_pixelFont)
-                    // No AA whatsoever.
-                    FontShader.SetUniformFloat("scaleFactor", Font.UnitsPerEm);
-                else
-                    // HalfRange / OutputScale - GenerateSDF.frag
-                    FontShader.SetUniformFloat("scaleFactor", 32f * RenderScale);
+
+                // HalfRange / OutputScale - GenerateSDF.frag
+                FontShader.SetUniformFloat("scaleFactor", FontShaderParam);
             }
         }
 

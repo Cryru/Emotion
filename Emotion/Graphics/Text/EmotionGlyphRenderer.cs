@@ -28,7 +28,6 @@ namespace Emotion.Graphics.Text
     {
         // Const
         public const bool CLIP_GLYPH_TEXTURES = false;
-        public const int SDF_ATLAS_SIZE = 512;
         public const int SDF_REFERENCE_FONT_SIZE = 100;
         public const float SDF_HIGH_RES_SCALE = 1f;
         public static readonly Vector2 SdfAtlasGlyphSpacing = new Vector2(5);
@@ -157,6 +156,7 @@ namespace Emotion.Graphics.Text
                 _sdfReferenceAtlases.Add(atlas.Font, refAtlas);
             }
 
+            Vector2 glyphPaddingBase = new Vector2(0);
             var refGlyphsToRender = new List<AtlasGlyph>();
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
@@ -170,8 +170,8 @@ namespace Emotion.Graphics.Text
                     if (refGlyph.FontGlyph == reqGlyph.FontGlyph)
                     {
                         // Already rendered.
-                        reqGlyph.UVLocation = refGlyph.UVLocation - new Vector2(1);
-                        reqGlyph.UVSize = refGlyph.UVSize + new Vector2(2);
+                        reqGlyph.UVLocation = refGlyph.UVLocation - glyphPaddingBase;
+                        reqGlyph.UVSize = refGlyph.UVSize + glyphPaddingBase * 2;
                         found = true;
                         break;
                     }
@@ -189,11 +189,11 @@ namespace Emotion.Graphics.Text
             if (atlas.GlyphDrawPadding == Vector2.Zero)
             {
                 float scaleDiff = refAtlas.RenderScale / atlas.RenderScale;
-                atlas.GlyphDrawPadding = new Vector2(1) / scaleDiff;
+                atlas.GlyphDrawPadding = glyphPaddingBase / scaleDiff;
             }
 
             atlas.FontShader = _sdfShader.Shader;
-            atlas.RenderScale = refAtlas.RenderScale;
+            atlas.FontShaderParam = 32f * refAtlas.RenderScale;
 
             // Check if anything to render.
             if (refGlyphsToRender.Count == 0) return refAtlas.GlyphRendererState;
@@ -226,24 +226,16 @@ namespace Emotion.Graphics.Text
 
             // Generate ping-pong buffers.
             if (_intermediateBuffer == null)
-            {
                 _intermediateBuffer = new FrameBuffer(sdfBaseAtlas).WithColor();
-                _intermediateBuffer.ColorAttachment.Smooth = true;
-            }
             else
-            {
                 _intermediateBuffer.Resize(sdfBaseAtlas, true);
-            }
+            _intermediateBuffer.ColorAttachment.Smooth = false;
 
             if (_intermediateBufferTwo == null)
-            {
                 _intermediateBufferTwo = new FrameBuffer(sdfBaseAtlas).WithColor();
-                _intermediateBufferTwo.ColorAttachment.Smooth = true;
-            }
             else
-            {
                 _intermediateBufferTwo.Resize(sdfBaseAtlas, true);
-            }
+            _intermediateBufferTwo.ColorAttachment.Smooth = false;
 
             //RenderDocGraphicsContext.RenderDocCaptureStart();
             RenderComposer composer = Engine.Renderer;
@@ -269,6 +261,8 @@ namespace Emotion.Graphics.Text
             composer.RenderTargetPop();
 
             // Generate SDF
+            _intermediateBuffer.ColorAttachment.Smooth = true;
+            _intermediateBufferTwo.ColorAttachment.Smooth = true;
             composer.SetState(RenderState.Default);
             composer.SetUseViewMatrix(false);
             composer.RenderToAndClear(_intermediateBuffer);
@@ -309,8 +303,8 @@ namespace Emotion.Graphics.Text
                 {
                     AtlasGlyph drawableGlyph = atlas.DrawableAtlasGlyphs[j];
                     if (drawableGlyph.FontGlyph != refGlyph.FontGlyph) continue;
-                    drawableGlyph.UVLocation = refGlyph.UVLocation - new Vector2(1); // Apply UV padding to fit the GlyphRenderPadding.
-                    drawableGlyph.UVSize = refGlyph.UVSize + new Vector2(2);
+                    drawableGlyph.UVLocation = refGlyph.UVLocation - glyphPaddingBase; // Apply UV padding to fit the GlyphRenderPadding.
+                    drawableGlyph.UVSize = refGlyph.UVSize + glyphPaddingBase * 2;
                 }
             }
 
