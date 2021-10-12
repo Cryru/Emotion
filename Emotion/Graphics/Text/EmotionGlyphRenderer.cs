@@ -156,7 +156,7 @@ namespace Emotion.Graphics.Text
                 _sdfReferenceAtlases.Add(atlas.Font, refAtlas);
             }
 
-            Vector2 glyphPaddingBase = new Vector2(0);
+            var glyphPaddingBase = new Vector2(1);
             var refGlyphsToRender = new List<AtlasGlyph>();
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
