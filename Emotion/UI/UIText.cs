@@ -25,7 +25,7 @@ namespace Emotion.UI
             set
             {
                 _fontFileName = value;
-                Controller?.InvalidatePreload();
+                InvalidateLoaded();
             }
         }
 
@@ -40,7 +40,7 @@ namespace Emotion.UI
             set
             {
                 _fontSize = value;
-                Controller?.InvalidatePreload();
+                InvalidateLoaded();
             }
         }
 

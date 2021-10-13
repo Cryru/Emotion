@@ -52,6 +52,12 @@ namespace Emotion.UI
         #region Loading, Update, Render
 
         private Task _loadingTask = Task.CompletedTask;
+        private bool _needsLoad = true;
+
+        public bool IsLoading()
+        {
+            return !_loadingTask.IsCompleted || _needsLoad;
+        }
 
         public void CheckLoadContent(UILoadingContext ctx)
         {
@@ -63,6 +69,7 @@ namespace Emotion.UI
                     _loadingTask = LoadContent();
                     // if (!_loadingTask.IsCompleted) Engine.Log.Trace(ToString(), "UI Loading");
                     ctx.AddLoadingTask(_loadingTask);
+                    _needsLoad = false;
                 }
             }
 
@@ -72,6 +79,12 @@ namespace Emotion.UI
                 UIBaseWindow child = Children[i];
                 child.CheckLoadContent(ctx);
             }
+        }
+
+        protected virtual void InvalidateLoaded()
+        {
+            _needsLoad = true;
+            Controller?.InvalidatePreload();
         }
 
         protected virtual Task LoadContent()
@@ -418,7 +431,7 @@ namespace Emotion.UI
                 Vector2 scaledSpacing = ListSpacing * scale;
                 Vector2 pen = Vector2.Zero;
                 Vector2 spaceClampedToConstraints = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).RoundClosest();
-                Vector2 freeSpace = GetChildrenLayoutSize(spaceClampedToConstraints, contentSize, paddingSize);
+                Vector2 spaceForChildren = GetChildrenLayoutSize(spaceClampedToConstraints, contentSize, paddingSize);
                 float highestOnRow = 0;
                 float widestInColumn = 0;
 
@@ -452,7 +465,7 @@ namespace Emotion.UI
                                 Engine.Log.Warning($"{this} tried to layout relative to {child.RelativeTo} but it couldn't find it.", "UI");
                             }
 
-                            Vector2 childSize = child.Measure(freeSpace);
+                            Vector2 childSize = child.Measure(spaceForChildren);
                             if (insideParent)
                             {
                                 Rectangle childScaledMargins = child.Margins * childScale;
@@ -465,7 +478,7 @@ namespace Emotion.UI
                         case LayoutMode.HorizontalList:
                         {
                             bool addSpacing = insideParent && pen.X != 0; // Skip spacing at start of row.
-                            Vector2 childSpace = wrap ? freeSpace : freeSpace - pen; // Give full space as available space if wrapping.
+                            Vector2 childSpace = wrap ? spaceForChildren : spaceForChildren - pen; // Give full space as available space if wrapping.
                             if (addSpacing)
                                 childSpace.X -= scaledSpacing.X;
 
@@ -477,7 +490,7 @@ namespace Emotion.UI
                             Rectangle childScaledMargins = child.Margins * childScale;
                             float spaceTaken = childSize.X + childScaledOffset.X + childScaledMargins.X + childScaledMargins.Width;
 
-                            if (wrap && pen.X + spaceTaken > freeSpace.X)
+                            if (wrap && pen.X + spaceTaken > spaceForChildren.X)
                             {
                                 pen.X = 0;
                                 pen.Y += highestOnRow + scaledSpacing.Y;
@@ -498,7 +511,7 @@ namespace Emotion.UI
                         case LayoutMode.VerticalList:
                         {
                             bool addSpacing = insideParent && pen.Y != 0;
-                            Vector2 childSpace = wrap ? freeSpace : freeSpace - pen;
+                            Vector2 childSpace = wrap ? spaceForChildren : spaceForChildren - pen;
                             if (addSpacing)
                                 childSpace.Y -= scaledSpacing.Y;
 
@@ -510,7 +523,7 @@ namespace Emotion.UI
                             Rectangle childScaledMargins = child.Margins * childScale;
                             float spaceTaken = childSize.Y + childScaledOffset.Y + childScaledMargins.Y + childScaledMargins.Height;
 
-                            if (wrap && pen.Y + spaceTaken > freeSpace.Y)
+                            if (wrap && pen.Y + spaceTaken > spaceForChildren.Y)
                             {
                                 pen.Y = 0;
                                 pen.X += widestInColumn + scaledSpacing.X;
@@ -574,6 +587,14 @@ namespace Emotion.UI
 
                 parentSpaceForChild.Width += childScaledMargins.X;
                 parentSpaceForChild.Height += childScaledMargins.Y;
+
+                // Quirk: Parent padding will be applied to out of parent children.
+                // This might be a bad idea, but allows for some interesting layouts.
+                // Leaving it in for now.
+                parentSpaceForChild.X += parentScaledPadding.X;
+                parentSpaceForChild.Y += parentScaledPadding.Y;
+                parentSpaceForChild.Width -= parentScaledPadding.Width;
+                parentSpaceForChild.Height -= parentScaledPadding.Height;
             }
 
             Debugger?.RecordMetric(this, "Layout_ParentContentRect", parentSpaceForChild);
@@ -714,7 +735,7 @@ namespace Emotion.UI
             if (Children != null)
                 for (var i = 0; i < Children.Count; i++)
                 {
-                    UIBaseWindow? child = Children[i];
+                    UIBaseWindow child = Children[i];
                     _inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
                 }
 
