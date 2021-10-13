@@ -31,6 +31,10 @@ namespace Emotion.Graphics.Objects
             RenderBufferPtr = renderBufferPtr;
             Size = size;
             InternalFormat = internalFormat;
+
+#if DEBUG
+            AllTextures.Remove(this);
+#endif
         }
 
         public FrameBufferTexture(FrameBuffer parent, Vector2 size, InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType)
