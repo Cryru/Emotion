@@ -368,6 +368,7 @@ namespace Emotion.Graphics.Text
 
             Binning.BinningResumableState binningState = atlasMeta.Content.BinningState;
             FrameBuffer atlasBuffer = new FrameBuffer(binningState.Size).WithColor();
+            atlasBuffer.ColorAttachment.Smooth = true;
 
             RenderComposer composer = Engine.Renderer;
             RenderState prevState = composer.CurrentState.Clone();
@@ -388,6 +389,10 @@ namespace Emotion.Graphics.Text
                 BinningState = binningState
             };
             refAtlas.GlyphRendererState = restoredState;
+
+            // Free assets.
+            Engine.AssetLoader.Destroy(cachedRenderName);
+            Engine.AssetLoader.Destroy(cachedMetaName);
 
             return refAtlas;
         }
