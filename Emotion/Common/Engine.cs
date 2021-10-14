@@ -114,7 +114,7 @@ namespace Emotion.Common
                 // Is the engine.
                 Assembly.GetExecutingAssembly(),
                 // Is game or debugger. Some platforms don't provide this.
-                Assembly.GetEntryAssembly() 
+                Assembly.GetEntryAssembly()
             }.Distinct().Where(x => x != null).ToArray();
         }
 
@@ -151,7 +151,7 @@ namespace Emotion.Common
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
-                AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject); };
+                AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception)a.ExceptionObject); };
             TaskScheduler.UnobservedTaskException += (s, o) =>
             {
                 AggregateException exception = o.Exception;
@@ -327,7 +327,7 @@ namespace Emotion.Common
             _targetTimeFuzzyUpper = 1000d / (_desiredStep + 1);
 
             // Keep delta time constant.
-            DeltaTime = (float) _targetTime;
+            DeltaTime = (float)_targetTime;
         }
 
         private static void RunTickIfNeeded()
@@ -461,7 +461,7 @@ namespace Emotion.Common
             if (Debugger.IsAttached) Debugger.Break();
 
             Log.Error(ex);
-            Host?.DisplayMessageBox($"Fatal error occured!\n{ex}");
+            if (!Configuration.NoErrorPopup) Host?.DisplayMessageBox($"Fatal error occured!\n{ex}");
             Quit();
         }
     }

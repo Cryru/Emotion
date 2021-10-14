@@ -52,7 +52,8 @@ namespace Tests
             var config = new Configurator
             {
                 HostSize = new Vector2(640, 360),
-                RenderSize = new Vector2(640, 360)
+                RenderSize = new Vector2(640, 360),
+                NoErrorPopup = true
             };
             Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
         }

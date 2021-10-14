@@ -139,6 +139,13 @@ namespace Emotion.Common
         /// </summary>
         public DisplayMode InitialDisplayMode { get; set; } = DisplayMode.Windowed;
 
+        /// <summary>
+        /// By default exceptions and other errors will display a platform specific popup to allow players
+        /// to screenshot/see the error. There are cases (such as CI) where these can cause hangs as they require input.
+        /// If this is set to true these popups will be disabled.
+        /// </summary>
+        public bool NoErrorPopup { get; set; }
+
         #endregion
 
         #region Audio
