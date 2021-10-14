@@ -36,7 +36,7 @@ namespace Emotion.Tools.Windows
             for (var i = 0; i < textures.Count; i++)
             {
                 Texture texture = textures[i];
-                if (ImGui.Button($"{texture.Pointer} - {texture.CreationStack.Substring(0, 100)}")) _selectedTexture = texture;
+                if (ImGui.Button($"{texture.Pointer} - {texture.CreationStack.Substring(0, Math.Min(100, texture.CreationStack.Length))}")) _selectedTexture = texture;
             }
 
             ImGui.EndListBox();

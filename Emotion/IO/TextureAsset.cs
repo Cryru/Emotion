@@ -91,6 +91,10 @@ namespace Emotion.IO
                 Texture.NonGLThreadInitializedCreatePointer(Texture);
                 Texture.Upload(size, pixels, pixelFormat);
                 PerfProfiler.ProfilerEventEnd($"Uploading Image {Name}", "Loading");
+
+#if DEBUG
+                Texture.CreationStack = new string(' ', 3) + Name + new string(' ', 100) + "\n" + Texture.CreationStack;
+#endif
             });
         }
 
