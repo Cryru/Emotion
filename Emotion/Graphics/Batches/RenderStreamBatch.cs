@@ -135,7 +135,7 @@ namespace Emotion.Graphics.Batches
             if (vBytesNeeded > _memory.Size || iBytesNeeded > _memoryIndices.Size) return default;
 
             // Check if the request can be served, if not - flush the buffers.
-            bool gotStructs = _memory.CurrentBufferSize >= vBytesNeeded;
+            bool gotStructs = _memory.CurrentBufferSize >= vBytesNeeded && (_vertexIndex + structCount + indexCount) <= ushort.MaxValue;
             bool gotIndices = _memoryIndices.CurrentBufferSize >= iBytesNeeded;
             if (!gotStructs || !gotIndices)
             {
