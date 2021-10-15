@@ -12,7 +12,7 @@ namespace Emotion.Game.SpriteStack
         public Color[] Pixels;
         public int FilledPixels;
         public VertexData[] Vertices;
-        public int[] VertexToPixelIdx;
+        public ushort[] Indices;
 
         public SpriteStackFrame(int w, int h)
         {
