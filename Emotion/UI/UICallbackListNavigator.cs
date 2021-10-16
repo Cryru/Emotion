@@ -214,8 +214,8 @@ namespace Emotion.UI
 
         protected override void RenderChildren(RenderComposer c)
         {
-            Rectangle renderRect = _renderBoundsWithChildren;
-            //c.RenderOutline(renderRect, Color.Red);
+            Rectangle renderRect = _renderBounds;
+            // c.RenderOutline(renderRect, Color.Red);
 
             c.PushModelMatrix(_scrollDisplacement);
             var lastVis = 0;
