@@ -51,6 +51,9 @@ namespace Emotion.IO
                 Format = format;
                 Duration = format.GetSoundDuration(SoundData.Length);
                 AudioConverter = new AudioConverter(Format, SoundData);
+
+                if (Format.UnsupportedBitsPerSample())
+                    Engine.Log.Error($"The audio format of {Name} has an unsupported number of bits per sample ({Format.BitsPerSample}). Supported values are 8/16/32", MessageSource.Audio);
             }
 
             if (Format == null || SoundData.IsEmpty) Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
