@@ -46,7 +46,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
                 if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.WasApi);
                 bool empty = FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding);
-                Debug.Assert(!empty);
+                //Debug.Assert(!empty);
             }
             catch (COMException ex)
             {
