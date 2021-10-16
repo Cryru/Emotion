@@ -800,6 +800,7 @@ namespace Emotion.UI
         }
 
         protected Coroutine? _alphaTweenRoutine;
+        private ITimer? _alphaTweenTimer;
 
         public IEnumerator AlphaTweenRoutine(ITimer alphaTween, byte startingAlpha, byte targetAlpha, bool? setVisible)
         {
@@ -829,6 +830,8 @@ namespace Emotion.UI
             }
 
             Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+            _alphaTweenTimer?.End();
+            _alphaTweenTimer = null;
 
             if (WindowColor.A == value)
             {
@@ -837,6 +840,7 @@ namespace Emotion.UI
                 return;
             }
 
+            _alphaTweenTimer = tween;
             _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, value, null));
         }
 
@@ -851,15 +855,18 @@ namespace Emotion.UI
             }
 
             Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+            _alphaTweenTimer?.End();
+            _alphaTweenTimer = null;
 
-            if (Visible == val)
+            if (Visible == val && WindowColor.A == targetAlpha)
             {
                 tween.End();
                 _alphaTweenRoutine = null;
                 return;
             }
 
-            _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, val));
+            _alphaTweenTimer = tween;
+            _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, Visible == val ? null : val));
         }
 
         protected void CalculateColor()
@@ -910,7 +917,7 @@ namespace Emotion.UI
 
         protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
         private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
-        private Rectangle _renderBounds; // Bounds but with any displacements active on the window applied 
+        protected Rectangle _renderBounds; // Bounds but with any displacements active on the window applied 
         protected Rectangle _renderBoundsWithChildren; // _inputBoundsWithChildren but with any displacements active on the window applied
         private Rectangle _inputBoundsWithChildren; // Bounds unioned with all children bounds.
 
