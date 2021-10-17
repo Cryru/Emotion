@@ -147,6 +147,7 @@ namespace Emotion.Audio
                     _playlist.Add(track);
                 else
                     _playlist.Insert(1, track);
+                if (_playlist.Count == 1) InvalidateDoubleBuffer();
                 if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
@@ -168,6 +169,7 @@ namespace Emotion.Audio
             lock (_playlist)
             {
                 _playlist.Add(track);
+                if (_playlist.Count == 1) InvalidateDoubleBuffer();
                 if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
@@ -384,6 +386,7 @@ namespace Emotion.Audio
                 int framesStored = _dbFramesStored[i];
                 sampleStored += framesStored;
             }
+
             SamplesStored = sampleStored;
 
             if (SamplesStored != 0)
@@ -432,7 +435,7 @@ namespace Emotion.Audio
         protected AudioFormat _streamingFormat;
 
 #if DEBUG
-        public static bool ResortedToLayer = false;
+        public static bool ResortedToLayer;
         public static int SamplesStored;
         public static int LeastSamplesStored = int.MaxValue;
 #endif

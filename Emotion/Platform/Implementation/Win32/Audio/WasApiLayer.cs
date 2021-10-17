@@ -45,12 +45,12 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 // Get more frames.
                 int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
                 if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.WasApi);
-                bool empty = FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding);
-                //Debug.Assert(!empty);
+                FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding);
             }
             catch (COMException ex)
             {
                 // Audio device has disappeared or whatever.
+                // https://www.hresult.info/FACILITY_AUDCLNT/0x88890004
                 if ((uint) ex.ErrorCode == 0x88890004)
                 {
                     SetDevice(device);
@@ -80,7 +80,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             int framesGotten = GetDataForCurrentTrack(_layerContext.AudioClientFormat, getFrames, buffer);
             error = client.ReleaseBuffer(framesGotten, framesGotten == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.WasApi);
-            return framesGotten == 0;
+            return framesGotten == 0; // This should only be true if the buffer was exactly exhausted.
         }
 
         private void SetDevice(WasApiAudioDevice device)
