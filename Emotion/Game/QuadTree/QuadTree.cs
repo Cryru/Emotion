@@ -70,7 +70,7 @@ namespace Emotion.Game.QuadTree
             Insert(wrappedObject);
 
             // Attach to move event.
-            item.OnMove += (s, _) => ObjectMovedInternal((T) s);
+            item.OnMove += (s, _) => ObjectMovedInternal((T)s);
         }
 
         private bool ObjectMovedInternal(T item)

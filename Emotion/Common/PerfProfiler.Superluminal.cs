@@ -1,5 +1,4 @@
 ﻿#if Superluminal
-
 #region Using
 
 using System;

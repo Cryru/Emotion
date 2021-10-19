@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using Emotion.Graphics.Text;
-using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
 #endregion

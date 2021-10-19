@@ -51,7 +51,7 @@ namespace Emotion.Game.Effects
                     colors.Add(c);
                 }
 
-                paletteMap[i / 4] = (byte) index;
+                paletteMap[i / 4] = (byte)index;
             }
 
             return paletteMap;

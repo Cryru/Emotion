@@ -115,7 +115,7 @@ namespace Emotion.Game.SpriteStack
                 SpriteStackFrame frame = Frames[i];
                 Span<VertexData> vertData = frame.Vertices;
                 Span<ushort> indices = frame.Indices;
-                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData.Length, (uint) indices.Length, BatchMode.SequentialTriangles);
+                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint)vertData.Length, (uint)indices.Length, BatchMode.SequentialTriangles);
 
                 vertData.CopyTo(memory.VerticesData);
                 indices.CopyTo(memory.IndicesData);
@@ -123,7 +123,7 @@ namespace Emotion.Game.SpriteStack
                 ushort structOffset = memory.StructIndex;
                 for (var j = 0; j < memory.IndicesData.Length; j++)
                 {
-                    memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
+                    memory.IndicesData[j] = (ushort)(memory.IndicesData[j] + structOffset);
                 }
             }
 

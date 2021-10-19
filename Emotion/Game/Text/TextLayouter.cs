@@ -3,7 +3,6 @@
 using System;
 using System.Numerics;
 using Emotion.Graphics.Text;
-using Emotion.Standard.OpenType;
 
 #endregion
 
@@ -47,7 +46,7 @@ namespace Emotion.Game.Text
                 {
                     if (!_hasZeroGlyph)
                         return result;
-                    g = _atlas.Glyphs[(char) 0];
+                    g = _atlas.Glyphs[(char)0];
                 }
 
                 drawPosition = result;
@@ -107,7 +106,7 @@ namespace Emotion.Game.Text
         {
             Restart();
             _atlas = atlas;
-            _hasZeroGlyph = atlas.Glyphs.ContainsKey((char) 0);
+            _hasZeroGlyph = atlas.Glyphs.ContainsKey((char)0);
         }
 
         /// <summary>
@@ -172,7 +171,7 @@ namespace Emotion.Game.Text
                 if (!_atlas.Glyphs.TryGetValue(c, out AtlasGlyph g))
                 {
                     if (_hasZeroGlyph)
-                        g = _atlas.Glyphs[(char) 0];
+                        g = _atlas.Glyphs[(char)0];
                     else
                         continue;
                 }

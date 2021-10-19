@@ -181,8 +181,8 @@ namespace Emotion.Game.Animation
         {
             TextureAsset = texture;
             var frames = new Rectangle[columns * rows];
-            var w = (int) texture.Texture.Size.X;
-            var h = (int) texture.Texture.Size.Y;
+            var w = (int)texture.Texture.Size.X;
+            var h = (int)texture.Texture.Size.Y;
 
             var i = 0;
             for (var y = 0; y < rows; y++)
@@ -236,7 +236,7 @@ namespace Emotion.Game.Animation
             TextureAsset = texture;
 
             Vector2 frameC = texture.Texture.Size / (frameSize + spacing);
-            var frameCount = (int) (frameC.X * frameC.Y);
+            var frameCount = (int)(frameC.X * frameC.Y);
             var frames = new Rectangle[frameCount];
             for (var i = 0; i < frames.Length; i++)
             {
@@ -409,7 +409,7 @@ namespace Emotion.Game.Animation
                         reversed = false;
                         return EndingFrame - 1;
                     }
-                    else if(CurrentFrameIndex == StartingFrame)
+                    else if (CurrentFrameIndex == StartingFrame)
                     {
                         reversed = true;
                         return StartingFrame + 1;
@@ -490,7 +490,7 @@ namespace Emotion.Game.Animation
         public static Rectangle GetGridFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int frameId)
         {
             // Get the total number of columns.
-            var columns = (int) (textureSize.X / frameSize.X);
+            var columns = (int)(textureSize.X / frameSize.X);
 
             // If invalid number of columns this means the texture size is larger than the frame size.
             if (columns == 0)
@@ -500,27 +500,27 @@ namespace Emotion.Game.Animation
             }
 
             // Get the current row and column.
-            var row = (int) (frameId / (float) columns);
+            var row = (int)(frameId / (float)columns);
             int column = frameId % columns;
 
             // Find the frame we are looking for.
-            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
-                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
+            return new Rectangle((int)(frameSize.X * column + spacing.X * (column + 1)),
+                (int)(frameSize.Y * row + spacing.Y * (row + 1)), (int)frameSize.X, (int)frameSize.Y);
         }
 
-        /// <inheritdoc cref="GetGridFrameBounds(Vector2, Vector2, Vector2, int)"/>
+        /// <inheritdoc cref="GetGridFrameBounds(Vector2, Vector2, Vector2, int)" />
         public static Rectangle GetGridFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int row, int column)
         {
             // Get the total number of columns.
-            var columns = (int) (textureSize.X / frameSize.X);
-            var rows = (int) (textureSize.Y / frameSize.Y);
+            var columns = (int)(textureSize.X / frameSize.X);
+            var rows = (int)(textureSize.Y / frameSize.Y);
 
             Debug.Assert(columns >= column);
             Debug.Assert(rows >= row);
 
             // Find the frame we are looking for.
-            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
-                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
+            return new Rectangle((int)(frameSize.X * column + spacing.X * (column + 1)),
+                (int)(frameSize.Y * row + spacing.Y * (row + 1)), (int)frameSize.X, (int)frameSize.Y);
         }
 
         private AnimatedTexture()

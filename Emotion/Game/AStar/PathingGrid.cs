@@ -53,7 +53,7 @@ namespace Emotion.Game.AStar
             }
         }
 
-        public PathingGrid(Vector2 size, Vector2? tileSize = null) : this((int) size.X, (int) size.Y, tileSize)
+        public PathingGrid(Vector2 size, Vector2? tileSize = null) : this((int)size.X, (int)size.Y, tileSize)
         {
         }
 
@@ -115,8 +115,8 @@ namespace Emotion.Game.AStar
         /// </summary>
         public bool IsWalkable(Vector2 coordinate)
         {
-            var x = (int) coordinate.X;
-            var y = (int) coordinate.Y;
+            var x = (int)coordinate.X;
+            var y = (int)coordinate.Y;
             return IsWalkable(x, y);
         }
 
