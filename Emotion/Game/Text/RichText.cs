@@ -6,9 +6,7 @@ using System.Linq;
 using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
-using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
 #endregion
@@ -25,7 +23,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Characters not to render. Updates when the RichText text is changed.
         /// </summary>
-        public char[] CharactersToNotRender { get; set; } = {'\n'};
+        public char[] CharactersToNotRender { get; set; } = { '\n' };
 
         /// <summary>
         /// The character to separate a tag from its attributes. Updates when the RichText parses tags.
@@ -393,7 +391,7 @@ namespace Emotion.Game.Text
             else
             {
                 if (spaceLeft > 0)
-                    _initialLineIndent.Add((int) (spaceLeft / 2));
+                    _initialLineIndent.Add((int)(spaceLeft / 2));
                 else
                     _initialLineIndent.Add(0);
             }
@@ -404,7 +402,7 @@ namespace Emotion.Game.Text
             float spaceLeft = Width - _layouter.MeasureString(_wrapCache[i]).X;
 
             // To align right set the free space before the line.
-            _initialLineIndent.Add((int) spaceLeft);
+            _initialLineIndent.Add((int)spaceLeft);
         }
 
         #endregion
@@ -421,6 +419,11 @@ namespace Emotion.Game.Text
             // Start mapping.
             _layouter.Restart();
             _prevChar = '\0';
+
+            FontAtlas.SetupDrawing(composer, _text);
+            Vector2 drawPadding = FontAtlas.GlyphDrawPadding;
+            Vector2 drawPaddingT2 = drawPadding * 2;
+            var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
 
             // Iterate virtual lines.
             var characterCounter = 0;
@@ -458,7 +461,11 @@ namespace Emotion.Game.Text
                     _layouter.AddToPen(new Vector2(glyphXOffset, 0));
                     Vector2 drawPos = _layouter.AddLetter(charUnicode, out AtlasGlyph g);
 
-                    composer.RenderSprite(Position + drawPos.ToVec3(), g.Size, textColor, FontAtlas.Texture, new Rectangle(g.UVLocation, g.UVSize));
+                    if (g != null)
+                    {
+                        var uv = new Rectangle(g.UVLocation, g.UVSize);
+                        composer.RenderSprite(Position + drawPos.ToVec3() - drawPadding3, g.Size + drawPaddingT2, textColor, FontAtlas.Texture, uv);
+                    }
 
                     // Increment character counter.
                     characterCounter++;
@@ -467,6 +474,8 @@ namespace Emotion.Game.Text
 
                 _layouter.NewLine();
             }
+
+            FontAtlas.FinishDrawing(composer);
         }
 
         #endregion
