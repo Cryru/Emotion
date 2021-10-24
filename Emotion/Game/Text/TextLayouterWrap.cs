@@ -106,6 +106,11 @@ namespace Emotion.Game.Text
                 if (!lineBreakChar) currentLine += text[i].ToString();
             }
 
+            if (text.Length > 0 && currentLine == "" && text[^1] == '\n' && MeasureTrailingWhiteSpace)
+            {
+                currentLine = "\n";
+            }
+
             // If there is text left, push it onto the measurement too.
             if (!string.IsNullOrEmpty(currentLine))
             {
@@ -148,7 +153,6 @@ namespace Emotion.Game.Text
             }
 
             NeededWidth = longestLine;
-            Debug.Assert(NeededWidth <= bounds.X);
         }
 
         /// <summary>

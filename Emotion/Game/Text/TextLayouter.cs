@@ -12,6 +12,11 @@ namespace Emotion.Game.Text
     {
         public float LineGap { get; set; }
 
+        /// <summary>
+        /// Whether MeasureString should include any whitespace characters at the end of the string.
+        /// </summary>
+        public bool MeasureTrailingWhiteSpace { get; set; } = false;
+
         protected DrawableFontAtlas _atlas;
         protected bool _hasZeroGlyph;
         protected Vector2 _pen;
@@ -98,6 +103,11 @@ namespace Emotion.Game.Text
             _pen = new Vector2(0, 0);
         }
 
+        public Vector2 GetPenLocation()
+        {
+            return _pen;
+        }
+
         /// <summary>
         /// Set a new font atlas.
         /// </summary>
@@ -132,7 +142,7 @@ namespace Emotion.Game.Text
                 }
 
                 // Spaces on the end of lines are not counted.
-                if (c == ' ' && (i == text.Length - 1 || text[i + 1] == '\n')) continue;
+                if (!MeasureTrailingWhiteSpace && c == ' ' && (i == text.Length - 1 || text[i + 1] == '\n')) continue;
 
                 Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out AtlasGlyph g);
                 sizeSoFar = pos;
