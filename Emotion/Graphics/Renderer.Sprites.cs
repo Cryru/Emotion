@@ -221,7 +221,7 @@ namespace Emotion.Graphics
             foreach (char c in text)
             {
                 Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
-                if (g == null) continue;
+                if (g == null || g.UVSize == Vector2.Zero) continue;
                 //gPos.X = MathF.Ceiling(gPos.X);
 
                 var uv = new Rectangle(g.UVLocation, g.UVSize);
