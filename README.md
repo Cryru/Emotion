@@ -50,9 +50,11 @@ Currently supported:
   - Intel UHD Graphics 620
   - Nvidia GeForce 940MX
   - AMD Radeon HD 5700 Series
+  - Nvidia 960M
   - GPU-less (Microsoft Basic Render Driver)
 - Windows 7 x86
   - Intel 4 Series Express (using Mesa)
+  - Nvidia 960M
 - MacOSX 10.13 x64 High Sierra
   - MacBook Air (Intel 4000)
 - Chromium 86 (Not feature complete)
@@ -71,33 +73,36 @@ Currently supported:
 	- BMP: 8/16/24/32bit
 	- PNG: All png formats and bit depths are supported. Tested against the PNGSuite.
   - Parsing and rasterizing of "CFF" and "TTF" font formats using a custom parser and rasterizer.
-	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the included native library)
-	- Optionally the font can also be rasterized using StbTrueTypeSharp.
+	  - Optionally the font can also be rasterized using StbTrueType.
   - "WAV" files for audio.
 - Asset loading and management, virtual file system.
   - Reading and writing of files - for custom editors.
-  - Packing files into binary blobs for obfuscation, easy transport, and potentially compression.
+  - Packing files into binary blobs for obfuscation, easy transport, and potentially compression. (Only option for Web platform)
   - Keeps track of which assets are loaded.
 - Layer-based audio system with playlists and a high quality sinc sample-rate converter.
+  - Custom WASAPI implementation for Windows
   - OpenAL support
 - Extensible camera system.
 - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
   - Unsynchronized rendering
   - Sensible defaults
-  - Easy drawing of any triangle list, and 2D primitives like lines, rectangles, triangles, and ellipses (or circles).
+  - Built in drawing functions for 2D primitives like lines, rectangles, triangles, and ellipses (or circles).
+  - Easy drawing of arbitrary vertices.
 - Spritesheet based animation in either a grid or freeform format.
   - The animation editor allows you to easily detect frames in a spritesheet and visually create animation controllers.
   - The animation controller keeps a set of animations and handles switching between them.
 - Custom text rendering with atlases created at runtime.
   - Extensible RichText and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
-- Crisp SDF text
+  - Load and rasterize glyphs in real time, allowing CJK+ support without having to preload large atlases.
+  - Crisp SDF text and rasterizer, with atlas caching.
 - Automatic scaling, making your game look reasonably the same on all resolutions.
-  - Integer scaling mode for pixel art games.
+  - Integer scaling mode for pixel art games. (With black borders, or camera scaling)
 - Shader Pipeline
   - Automatically tries multiple preprocessors to increase the compatibility of your shader.
   - Specify custom fallbacks!
-  - Predefined uniforms based on ShaderToy allow for easily making cool effects.
-  - Easily switch between backends such as ANGLE and Mesa3D to check your shader compatibility.
+  - Predefined uniforms based on ShaderToy.
+  - Easily switch between backends such as ANGLE (GLES) and Mesa3D to check your shader compatibility.
+  - Custom uniform default values on GLES
 - Various data structures and algorithms implemented.
   - A* with custom heuristic support
   - Generic QuadTree
@@ -107,6 +112,7 @@ Currently supported:
   - Runs on another thread and generates log files.
   - Remote logging to PaperTrail and other services which support UDP logging.
 - Framerate independent timing with a configurable semi-fixed step.
+  - Provide your own custom engine loop, if you'd like.
 - Easy tilemap drawing and handling, animated tiles, object handling and lookup, and more.
   - .TMX support and integration with [Tiled](https://www.mapeditor.org/)
 - Custom fast XML serializer/deserializer with support for derived types, dictionaries, and others.
@@ -117,10 +123,12 @@ and many more!
 
 ## Building and Using
 
-If you want to use all of Emotion's features such as, the testing library (Emotion.Test) to create unit/intergration tests for your game, the tools library (Emotion.Tools) to easily create developer tools, or any of the plugins, you should clone the repo and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
+If you want to use all of Emotion's features such as, the testing library (Emotion.Test) to create unit/intergration tests for your game, the tools library (Emotion.Tools) to easily create developer tools (or use the included tools), or any of the plugins, you should clone the repo and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
 
 If you just want to write some code or take it for a spin you can use the Nuget package - https://www.nuget.org/packages/Emotion
 The package includes a precompiled debug version of Emotion, but doesn't include any of the native libraries. You don't really need those for most use cases, but you can download them seperately from the repo at [Emotion/AssetsNativeLibs](https://github.com/Cryru/Emotion/tree/master/Emotion/AssetsNativeLibs).
+
+It is recommended you develop with a cloned version of the Emotion repo referenced rather than using the precompiled nuget.
 
 ## Projects Used
 
@@ -133,7 +141,7 @@ This includes dependencies and projects which were used for research references.
 | Forks
 | [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Platform/Implementation/Win32/Native
 | [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Platform/OpenGL
-| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) & [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp) | MIT & GPL3 | Font Rendering Comparison | Referenced by Tests @ Tests/StbTrueType
+| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) & [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp) | MIT & GPL3 | Font Rendering Option and Comparison | Referenced by Tests @ Tests/StbTrueType and Graphics/Text/StbGlyphRenderer
 | [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Uses custom XML and engine integration @ Standard/TMX
 | Optional
 | [Roslyn/Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn) | MIT | Runtime C# Script Compilation | Emotion.Plugins.CSharpScripting
