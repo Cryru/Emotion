@@ -500,7 +500,7 @@ namespace Emotion.UI
 
                             if (addSpacing) pen.X += scaledSpacing.X;
                             pen.X += spaceTaken;
-                            highestOnRow = MathF.Max(highestOnRow, childSize.Y);
+                            highestOnRow = MathF.Max(highestOnRow, childSize.Y + childScaledMargins.Y + childScaledMargins.Height);
 
                             usedSpace.X = MathF.Max(usedSpace.X, pen.X);
                             usedSpace.Y = pen.Y + highestOnRow;
@@ -533,7 +533,7 @@ namespace Emotion.UI
 
                             if (addSpacing) pen.Y += scaledSpacing.Y;
                             pen.Y += spaceTaken;
-                            widestInColumn = MathF.Max(widestInColumn, childSize.X);
+                            widestInColumn = MathF.Max(widestInColumn, childSize.X + childScaledMargins.X + childScaledMargins.Width);
 
                             usedSpace.X = pen.X + widestInColumn;
                             usedSpace.Y = MathF.Max(usedSpace.Y, pen.Y);
@@ -682,7 +682,7 @@ namespace Emotion.UI
 
                             // Dont count space taken by windows outside parent.
                             bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
-                            if (windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y);
+                            if (windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y + childMarginsScaled.Y + childMarginsScaled.Height);
 
                             // Child space is constrained to allow some anchors to work as expected within lists.
                             Vector2 childSpace = insideParent ? new Vector2(child.Size.X, freeSpace.Y) : freeSpace - pen;
@@ -716,7 +716,7 @@ namespace Emotion.UI
 
                             // Dont count space taken by windows outside parent.
                             bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
-                            if (windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, child.Size.X);
+                            if (windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, child.Size.X + childMarginsScaled.X + childMarginsScaled.Width);
 
                             Vector2 childSpace = insideParent ? new Vector2(freeSpace.X, child.Size.Y) : freeSpace - pen;
                             Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);
