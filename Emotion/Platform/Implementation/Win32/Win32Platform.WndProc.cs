@@ -106,7 +106,6 @@ namespace Emotion.Platform.Implementation.Win32
                         return (IntPtr) 1;
 
                     UpdateTextInput((char) wParam);
-
                     break;
 
                 case WM.KEYDOWN:

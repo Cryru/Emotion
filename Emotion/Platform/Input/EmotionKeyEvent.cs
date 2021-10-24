@@ -10,7 +10,7 @@ namespace Emotion.Platform.Input
 {
     public class EmotionKeyEventPair
     {
-        public bool[] KeysDown = new bool[(int) Key.Last];
+        public bool[] KeysDown = new bool[(int)Key.Last];
         public Func<Key, KeyStatus, bool> Func;
     }
 
@@ -19,7 +19,7 @@ namespace Emotion.Platform.Input
         private ObjectPool<EmotionKeyEventPair> _pairPool = new ObjectPool<EmotionKeyEventPair>();
         private readonly List<EmotionKeyEventPair> _listeners = new List<EmotionKeyEventPair>();
 
-        public void Invoke(Key key, KeyStatus status)
+        public bool Invoke(Key key, KeyStatus status)
         {
             lock (_listeners)
             {
@@ -32,18 +32,20 @@ namespace Emotion.Platform.Input
                     // has requested, when the handler considers that key pressed. Basically if you
                     // get a down, you will always get a up.
                     // But you won't get an up if you didn't get a down.
-                    if (status == KeyStatus.Up && !listener.KeysDown[(int) key]) continue;
+                    if (status == KeyStatus.Up && !listener.KeysDown[(int)key]) continue;
 
                     bool funcPropagate = listener.Func(key, status);
-                    if (status == KeyStatus.Down || status == KeyStatus.Up) listener.KeysDown[(int) key] = status == KeyStatus.Down;
+                    if (status == KeyStatus.Down || status == KeyStatus.Up) listener.KeysDown[(int)key] = status == KeyStatus.Down;
 
                     // Stop propagation if the event handler said so.
                     if (!funcPropagate) propagate = false;
 
                     // If the event is not up, we can stop calling handlers.
-                    if (status != KeyStatus.Up && !propagate) break;
+                    if (status != KeyStatus.Up && !propagate) return true;
                 }
             }
+
+            return false;
         }
 
         public void AddListener(Func<Key, KeyStatus, bool> func)
@@ -69,7 +71,7 @@ namespace Emotion.Platform.Input
                     for (var j = 0; j < listener.KeysDown.Length; j++)
                     {
                         if (!listener.KeysDown[j]) continue;
-                        listener.Func((Key) j, KeyStatus.Up);
+                        listener.Func((Key)j, KeyStatus.Up);
                         listener.KeysDown[j] = false;
                     }
 
