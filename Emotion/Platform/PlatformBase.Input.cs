@@ -27,8 +27,14 @@ namespace Emotion.Platform
 
         /// <summary>
         /// Called when text input is detected. Most of the time this is identical to OnKey, but without the state.
+        /// Is not called if the key is handled by an OnKey event.
         /// </summary>
         public event Action<char> OnTextInput;
+
+        /// <summary>
+        /// Called when text input is detected, even if the key is handled.
+        /// </summary>
+        public event Action<char> OnTextInputAll;
 
         /// <summary>
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
@@ -91,7 +97,6 @@ namespace Emotion.Platform
                     case Key.F11 when state == KeyStatus.Down && ctrl:
                         Size = Engine.Configuration.RenderSize * 1.999f - Vector2.One;
                         return false;
-                        break;
                     case Key.Pause when state == KeyStatus.Down:
                         PerfProfiler.ProfileNextFrame();
                         break;
@@ -162,6 +167,7 @@ namespace Emotion.Platform
 
         protected void UpdateTextInput(char c)
         {
+            OnTextInputAll?.Invoke(c);
             if (_skipTextInputThisTick) return;
             OnTextInput?.Invoke(c);
         }

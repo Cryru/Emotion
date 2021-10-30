@@ -156,7 +156,7 @@ namespace Emotion.Plugins.ImGuiNet
             VBO = new VertexBuffer((uint) (RenderComposer.MAX_INDICES * 4 * sizeof(ImDrawVert)));
             VAO = new VertexArrayObject<EmImGuiVertex>(VBO, IBO);
 
-            Engine.Host.OnTextInput += c =>
+            Engine.Host.OnTextInputAll += c =>
             {
                 if (c == '\t') return;
                 _textInput.Add(c);
