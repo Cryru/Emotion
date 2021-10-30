@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 #endregion
@@ -46,13 +47,23 @@ namespace Emotion.Standard.Logging
 
         #endregion
 
+        private HashSet<string> _oncePrint;
+
         /// <summary>
         /// Log a warning. These are usually workarounds or destabilization of code.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="source">The message source.</param>
-        public void Warning(string message, string source)
+        /// <param name="once">Print only once.</param>
+        public void Warning(string message, string source, bool once = false)
         {
+            if (once)
+            {
+                _oncePrint ??= new HashSet<string>();
+                if (_oncePrint.Contains(message)) return;
+                _oncePrint.Add(message);
+            }
+
             Log(MessageType.Warning, source, message);
         }
 

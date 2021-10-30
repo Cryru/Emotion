@@ -174,7 +174,7 @@ namespace Emotion.IO
             // Check if the asset was found in any source.
             if (source == null)
             {
-                Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader);
+                Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
                 return default;
             }
 

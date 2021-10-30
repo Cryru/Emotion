@@ -127,7 +127,7 @@ namespace Emotion.Graphics.Shading
         {
             if (Bound != Pointer)
             {
-                Engine.Log.Error($"Tried to upload uniform {name} to a shader that is not current.", MessageSource.GL);
+                Engine.Log.Warning($"Tried to upload uniform {name} to a shader that is not current.", MessageSource.GL, true);
                 return -1;
             }
 
