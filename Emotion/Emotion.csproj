@@ -58,6 +58,8 @@
     <None Remove="Assets\FontShaders\WindingAA.xml" />
     <None Remove="Assets\Shaders\Blit.frag" />
     <None Remove="Assets\Shaders\Blit.xml" />
+    <None Remove="Assets\Shaders\OutlineShader.frag" />
+    <None Remove="Assets\Shaders\OutlineShader.xml" />
     <None Remove="Assets\Shaders\RoundedRectangle.frag" />
     <None Remove="Assets\Shaders\RoundedRectangle.xml" />
     <None Remove="Assets\Shaders\TextureColorMask.frag" />
@@ -157,6 +159,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blur.xml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\OutlineShader.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\OutlineShader.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\RoundedRectangle.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

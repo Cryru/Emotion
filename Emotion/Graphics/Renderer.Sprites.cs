@@ -2,11 +2,13 @@
 
 using System;
 using System.Numerics;
+using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
+using Emotion.IO;
 using Emotion.Primitives;
 
 #endregion
@@ -208,9 +210,10 @@ namespace Emotion.Graphics
         /// <param name="text">The text itself.</param>
         /// <param name="atlas">The font atlas to use.</param>
         /// <param name="layouter">The layouter to use.</param>
-        public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
+        public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter = null)
         {
             if (atlas?.Glyphs == null) return;
+            layouter ??= new TextLayouter(atlas);
 
             atlas.SetupDrawing(this, text);
 
@@ -231,11 +234,60 @@ namespace Emotion.Graphics
             atlas.FinishDrawing(this);
         }
 
-        /// <inheritdoc cref="RenderString(Vector3, Color, string, DrawableFontAtlas, TextLayouter)" />
-        public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas)
+        private FrameBuffer _outlineFb;
+
+        /// <summary>
+        /// Render a string from an atlas.
+        /// </summary>
+        public void RenderOutlinedString(Vector3 position, Color color, string text, float outlineWidth, Color outlineColor, DrawableFontAtlas atlas, TextLayouter layouter = null)
         {
+            // To do: Use SDF effects instead of this dirty stuff.
             if (atlas?.Glyphs == null) return;
-            RenderString(position, color, text, atlas, new TextLayouter(atlas));
+            layouter ??= new TextLayouter(atlas);
+
+            // Calculate how big the text draw is, and allocate a framebuffer of that size.
+            Vector2 drawPadding = atlas.GlyphDrawPadding;
+            Vector2 drawPaddingT2 = drawPadding * 2;
+            Vector2 drawPaddingT4 = drawPadding * 4;
+            Vector2 stringSize = Vector2.Zero;
+            foreach (char c in text)
+            {
+                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
+                if (g == null || g.UVSize == Vector2.Zero) continue;
+                stringSize = Vector2.Max(stringSize, new Vector2(gPos.X + g.Size.X + drawPaddingT4.X + outlineWidth * 2, gPos.Y + g.Size.Y + drawPaddingT4.Y + outlineWidth * 2));
+            }
+
+            if (layouter is TextLayouterWrap wrapper) wrapper.RestartPen();
+
+            // Render the text to the framebuffer.
+            if (_outlineFb == null)
+                _outlineFb = new FrameBuffer(stringSize).WithColor();
+            else
+                _outlineFb.Resize(stringSize, true);
+
+            Vector3 renderOffset = new Vector3(drawPadding.X, drawPadding.Y, 0) + new Vector3(outlineWidth, outlineWidth, 0);
+            Vector3 finalRenderPos = position - new Vector3(drawPaddingT2.X, drawPaddingT2.Y, 0) - new Vector3(outlineWidth, outlineWidth, 0);
+
+            RenderToAndClear(_outlineFb);
+            PushModelMatrix(Matrix4x4.Identity, false);
+            bool useViewMatrix = CurrentState.ViewMatrix ?? false;
+            SetUseViewMatrix(false);
+            bool useAlphaBlend = CurrentState.AlphaBlending ?? false;
+            SetAlphaBlend(false);
+            RenderString(renderOffset, color, text, atlas, layouter);
+            if(useAlphaBlend) SetAlphaBlend(true);
+            PopModelMatrix();
+            RenderTo(null);
+            if (useViewMatrix) SetUseViewMatrix(true);
+
+            // Copy with a shader than applies an outline.
+            var outlineShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/OutlineShader.xml");
+            if (outlineShader == null) return;
+
+            SetShader(outlineShader.Shader);
+            outlineShader.Shader.SetUniformFloat("outlineThickness", outlineWidth);
+            RenderFrameBuffer(_outlineFb, pos: finalRenderPos, color: outlineColor);
+            SetShader();
         }
     }
 }
