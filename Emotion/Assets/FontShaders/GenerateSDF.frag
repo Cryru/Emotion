@@ -1,29 +1,13 @@
 #version v
  
 uniform sampler2D mainTexture;
-uniform vec3 iResolution; // viewport resolution (in pixels)
- 
-// Comes in from the vertex shader. 
+
 in vec2 UV; 
 in vec4 vertColor;
- 
 out vec4 fragColor; 
  
 #using "Shaders/getTextureColor.c"
 #using "Shaders/getTextureSize.c"
-
-bool isIn(vec2 startPos, vec2 uv, vec2 pixelSize)
-{
-    vec2 sampleAt = startPos + uv * pixelSize;
-	vec4 texColor = getTextureColor(mainTexture, sampleAt);
-    return texColor.a == 1.0;
-}
-
-bool isIn(vec2 sampleAt)
-{
-	vec4 texColor = getTextureColor(mainTexture, sampleAt);
-    return texColor.a == 1.0;
-}
 
 float squaredDistanceBetween(vec2 uv1, vec2 uv2)
 {
@@ -32,43 +16,41 @@ float squaredDistanceBetween(vec2 uv1, vec2 uv2)
     return dist;
 }
 
-#define RANGE 64.0
+#define SPREAD 32.0
 
-void main() {
-    const int iRange = int(RANGE);
-    float halfRange = RANGE / 2.0;
-    int iHalfRange = int(halfRange);
+void main()
+{
+    vec2 pixel = UV;
+    vec2 pixelSize = (1.0/vec2(getTextureSize(mainTexture)));
+    float spreadInUnits = SPREAD * pixelSize.x;
+    bool inside = getTextureColor(mainTexture, pixel).a != 0.0;
 
-    ivec2 textureSize = getTextureSize(mainTexture);
-    float tSx = 1.0/float(textureSize.x);
-    float tSy = 1.0/float(textureSize.y);
-    vec2 pixelSize = vec2(tSx, tSy);
+    // Find the shortest squared distance to a pixel what is in the opposite state of this one.
+    float test = 0.0;
+    float totes = 0.0;
+    float minDistance = spreadInUnits * spreadInUnits;
 
-    vec2 startPosition = UV;
-    bool fragIsIn = isIn(UV);
-    float squaredDistanceToEdge = (halfRange*halfRange)*2.0;
-    
-    for(int dx=-iHalfRange; dx < iHalfRange; dx++)
+    for (float y = -spreadInUnits; y < spreadInUnits; y+=pixelSize.y)
     {
-        for(int dy=-iHalfRange; dy < iHalfRange; dy++)
+        for (float x = -spreadInUnits; x < spreadInUnits; x+=pixelSize.x)
         {
-            vec2 scanPositionUV = vec2(dx, dy);
-            
-            bool scanIsIn = isIn(startPosition, scanPositionUV, pixelSize);
-            if (scanIsIn != fragIsIn)
+            vec2 coord = vec2(pixel.x + x, pixel.y + y);
+            bool thisInside = getTextureColor(mainTexture, coord).a != 0.0;
+            if (inside != thisInside)
             {
-                float scanDistance = squaredDistanceBetween(UV, scanPositionUV);
-                if (scanDistance < squaredDistanceToEdge)
-                    squaredDistanceToEdge = scanDistance;
+                minDistance = min(minDistance, squaredDistanceBetween(coord, pixel));
             }
         }
     }
-    
-    float normalised = squaredDistanceToEdge / ((halfRange*halfRange)*2.0);
-    float distanceToEdge = sqrt(normalised);
-    if (fragIsIn)
-        distanceToEdge = -distanceToEdge ;
-    normalised = 0.5 - distanceToEdge;
 
-    fragColor = vec4(normalised, normalised, normalised, 1.0);
+    minDistance = sqrt(minDistance);
+    float sdfValue = minDistance / spreadInUnits; // 0-1
+    if (!inside)
+    {
+        sdfValue = -sdfValue; // Inside values are negative.
+    }
+
+    // -1;1 to 0;1
+    sdfValue = (sdfValue + 1.0) * 0.5f;
+    fragColor = vec4(sdfValue, sdfValue, sdfValue, 1.0);
 }
