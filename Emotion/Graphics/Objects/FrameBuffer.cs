@@ -324,6 +324,8 @@ namespace Emotion.Graphics.Objects
         /// <param name="reuseAttachments">Whether to reuse attachments if they are bigger than the new size.</param>
         public void Resize(Vector2 newSize, bool reuseAttachments = false)
         {
+            newSize = newSize.IntCastRound();
+
             // Quick exit.
             if (newSize == Size) return;
 
