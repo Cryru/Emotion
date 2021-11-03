@@ -33,6 +33,20 @@ namespace Emotion.Utility
             return output;
         }
 
+        public static byte[] RgbaToA(byte[] pixels)
+        {
+            if (pixels == null) return null;
+
+            var output = new byte[pixels.Length / 4];
+            for (var p = 0; p < pixels.Length; p += 4)
+            {
+                byte alpha = pixels[p + 3];
+                output[p / 4] = alpha;
+            }
+
+            return output;
+        }
+
         /// <summary>
         /// Convert an image of Bgra pixels to Rgba pixels.
         /// </summary>
