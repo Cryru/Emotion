@@ -823,15 +823,15 @@ namespace Emotion.UI
 
         public void SetAlpha(byte value, ITimer? tween = null)
         {
+            Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+            _alphaTweenTimer?.End();
+            _alphaTweenTimer = null;
+
             if (tween == null)
             {
                 WindowColor = WindowColor.SetAlpha(value);
                 return;
             }
-
-            Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
-            _alphaTweenTimer?.End();
-            _alphaTweenTimer = null;
 
             if (WindowColor.A == value)
             {
@@ -846,6 +846,10 @@ namespace Emotion.UI
 
         public void SetVisibleFade(bool val, ITimer? tween = null)
         {
+            Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
+            _alphaTweenTimer?.End();
+            _alphaTweenTimer = null;
+
             var targetAlpha = (byte)(val ? 255 : 0);
             if (tween == null)
             {
@@ -853,10 +857,6 @@ namespace Emotion.UI
                 Visible = val;
                 return;
             }
-
-            Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
-            _alphaTweenTimer?.End();
-            _alphaTweenTimer = null;
 
             if (Visible == val && WindowColor.A == targetAlpha)
             {
