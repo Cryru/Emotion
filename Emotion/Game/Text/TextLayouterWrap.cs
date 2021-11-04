@@ -41,6 +41,8 @@ namespace Emotion.Game.Text
 
         public void SetupBox(string text, Vector2 bounds, GlyphHeightMeasurement measureMode = GlyphHeightMeasurement.FullHeight)
         {
+            _atlas.CacheGlyphs(text);
+
             var currentLine = "";
             var breakSkipMode = false;
             int breakSkipModeLimit = -1;
@@ -106,10 +108,7 @@ namespace Emotion.Game.Text
                 if (!lineBreakChar) currentLine += text[i].ToString();
             }
 
-            if (text.Length > 0 && currentLine == "" && text[^1] == '\n' && MeasureTrailingWhiteSpace)
-            {
-                currentLine = "\n";
-            }
+            if (text.Length > 0 && currentLine == "" && text[^1] == '\n' && MeasureTrailingWhiteSpace) currentLine = "\n";
 
             // If there is text left, push it onto the measurement too.
             if (!string.IsNullOrEmpty(currentLine))
