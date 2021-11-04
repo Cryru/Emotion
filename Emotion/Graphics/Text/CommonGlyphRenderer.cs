@@ -54,11 +54,9 @@ namespace Emotion.Graphics.Text
                 state.BinningState = resumableState;
                 state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
             }
-            else
-            {
-                // Log requests after the first.
-                Engine.Log.Trace($"Glyph request {glyphsToAdd.Count}", MessageSource.Renderer);
-            }
+
+            // Log requests after the first.
+            Engine.Log.Trace($"Requested rendering of {glyphsToAdd.Count} font glyphs using {atlas.RenderedWith}.", MessageSource.Renderer);
 
             // Bin new glyphs in the big atlas.
             if (intermediateAtlasUVs == null)

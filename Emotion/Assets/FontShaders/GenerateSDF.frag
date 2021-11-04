@@ -16,7 +16,7 @@ float squaredDistanceBetween(vec2 uv1, vec2 uv2)
     return dist;
 }
 
-#define SPREAD 32.0
+#define SPREAD 64.0
 
 void main()
 {

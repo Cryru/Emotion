@@ -12,33 +12,57 @@ out vec4 fragColor;
 #using "Shaders/getTextureColor.c"
 #using "Shaders/getTextureSize.c"
 
-#define MSDF 0
+#define SDFMethod 0
 
-#if MSDF
-    // Based on generated atlas.
-    #define PXRANGE 2
-    float median(float r, float g, float b) {
-        return max(min(r, g), min(max(r, g), b));
-    }
+#if SDFMethod == 0
+
+uniform float thickness = 0.5;
+
+void main()
+{
+    float dist = (thickness - getTextureColor(mainTexture, UV).r);
+
+    // Sdf distance per pixel (gradient vector)
+    vec2 ddist = vec2(dFdx(dist), dFdy(dist));
+
+    // Distance to edge in pixels (scalar)
+    float pixelDist = dist / length(ddist);
+
+    float opacity = clamp(0.5 - pixelDist, 0.0, 1.0);
+    fragColor = vec4(vertColor.rgb, vertColor.a * opacity);
+}
+
+#elif SDFMethod == 2
+
+// FWidth AA
+
+void main() {
+    vec2 pos = UV.xy;
+    vec3 dist = getTextureColor(mainTexture, UV).rgb;
+    ivec2 sz = getTextureSize(mainTexture).xy;
+    float sigDist = dist.r; // Other components are the same.
+    float w = fwidth(sigDist);
+    float opacity = smoothstep(0.5 - w, 0.5 + w, sigDist);
+    fragColor = vec4(vertColor.rgb, vertColor.a * opacity);
+}
+
 #else
-    // Based on range in GenerateSDF.frag
-    uniform float scaleFactor;
-    #define PXRANGE scaleFactor
-    float median(float r, float g, float b) {
-        return r;
-    }
-#endif
+
+// MSDF Documentation
+
+uniform float scaleFactor;
 
 float screenPxRange() {
-    vec2 unitRange = vec2(PXRANGE)/vec2(getTextureSize(mainTexture));
+    vec2 unitRange = vec2(scaleFactor)/vec2(getTextureSize(mainTexture));
     vec2 screenTexSize = vec2(1.0)/fwidth(UV);
     return max(0.5*dot(unitRange, screenTexSize), 1.0);
 }
 
 void main() {
-    vec3 msd = getTextureColor(mainTexture, UV).rgb;
-    float sd = median(msd.r, msd.g, msd.b);
+    float sd = getTextureColor(mainTexture, UV).r;
     float screenPxDistance = screenPxRange()*(sd - 0.5);
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
     fragColor = vec4(vertColor.rgb, vertColor.a * opacity);
 }
+
+#endif

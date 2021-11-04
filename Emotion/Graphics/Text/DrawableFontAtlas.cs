@@ -33,7 +33,7 @@ namespace Emotion.Graphics.Text
         /// at only one font size, loading the image isn't very fast either.
         /// Can reuse atlas images for various font sizes, reducing memory usage overall.
         /// </summary>
-        EmotionSDFVer2,
+        EmotionSDFVer3,
 
         /// <summary>
         /// Mature software rasterizer.
@@ -63,8 +63,6 @@ namespace Emotion.Graphics.Text
         /// Font shader to use.
         /// </summary>
         public ShaderProgram FontShader { get; set; }
-
-        public float FontShaderParam { get; set; }
 
         /// <summary>
         /// The atlas' render scale, based on the font size.
@@ -171,7 +169,7 @@ namespace Emotion.Graphics.Text
                 if (Glyphs.ContainsKey(ch) || !Font.Glyphs.TryGetValue(ch, out Glyph fontG)) continue;
 
                 AtlasGlyph atlasGlyph;
-                if (RenderedWith == GlyphRasterizer.EmotionSDFVer2)
+                if (RenderedWith == GlyphRasterizer.EmotionSDFVer3)
                     atlasGlyph = AtlasGlyph.CreateFloatScale(fontG, RenderScale, Font.Ascender);
                 else
                     atlasGlyph = AtlasGlyph.CreateIntScale(fontG, RenderScale, Font.Ascender);
@@ -198,7 +196,7 @@ namespace Emotion.Graphics.Text
                 case GlyphRasterizer.Emotion:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
                     break;
-                case GlyphRasterizer.EmotionSDFVer2:
+                case GlyphRasterizer.EmotionSDFVer3:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlasSDF(this, GlyphRendererState, glyphs);
                     break;
                 case GlyphRasterizer.StbTrueType:
@@ -220,13 +218,7 @@ namespace Emotion.Graphics.Text
             CacheGlyphs(text);
 
             // Set shader.
-            if (FontShader != null)
-            {
-                c.SetShader(FontShader);
-
-                // HalfRange / OutputScale - GenerateSDF.frag
-                FontShader.SetUniformFloat("scaleFactor", FontShaderParam);
-            }
+            if (FontShader != null) c.SetShader(FontShader);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -254,7 +246,7 @@ namespace Emotion.Graphics.Text
 #if WEB
         public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDFVer2;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDFVer3;
 #endif
 
         /// <summary>

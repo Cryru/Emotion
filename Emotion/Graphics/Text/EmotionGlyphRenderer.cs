@@ -142,6 +142,8 @@ namespace Emotion.Graphics.Text
             return state;
         }
 
+        // https://medium.com/@calebfaith/implementing-msdf-font-in-opengl-ea09a9ab7e00
+        // https://github.com/Chlumsky/msdfgen/issues/22
         public static GlyphRendererState AddGlyphsToAtlasSDF(DrawableFontAtlas atlas, GlyphRendererState _, List<AtlasGlyph> glyphsToAdd)
         {
             InitEmotionRenderer();
@@ -193,7 +195,6 @@ namespace Emotion.Graphics.Text
             }
 
             atlas.FontShader = _sdfShader.Shader;
-            atlas.FontShaderParam = 32f * refAtlas.RenderScale;
 
             // Check if anything to render.
             if (refGlyphsToRender.Count == 0) return refAtlas.GlyphRendererState;
@@ -265,31 +266,31 @@ namespace Emotion.Graphics.Text
             _intermediateBufferTwo.ColorAttachment.Smooth = true;
             composer.SetState(RenderState.Default);
             composer.SetUseViewMatrix(false);
-            composer.RenderToAndClear(_intermediateBuffer);
             composer.SetShader(_sdfGeneratingShader.Shader);
-            composer.RenderFrameBuffer(_intermediateBufferTwo, _intermediateBuffer.Size * (refAtlas.RenderScale / SDF_HIGH_RES_SCALE));
-            composer.SetShader();
-            composer.RenderTargetPop();
 
-            // Copy downsized glyphs to the atlas.
+            // Generate SDF while downsizing individual glyphs.
+            // If we do it in bulk the GPU might hang long enough for the OS to kill us.
             composer.RenderTo(state.AtlasBuffer);
             if (justCreated) composer.ClearFrameBuffer();
-
             for (var i = 0; i < refGlyphsToRender.Count; i++)
             {
                 AtlasGlyph refGlyph = refGlyphsToRender[i];
+                Rectangle placeWithinSdfAtlas = sdfTempRects[i];
 
-                // Copy into ref atlas with sdf spacing as there might be data there.
-                Rectangle placeWithinSdfAtlas = sdfTempRects[i] * (refAtlas.RenderScale / SDF_HIGH_RES_SCALE);
-                placeWithinSdfAtlas.Position -= SdfAtlasGlyphSpacing;
-                placeWithinSdfAtlas.Size += SdfAtlasGlyphSpacing * 2;
+                // Copy sdf spacing as there might be data there.
+                placeWithinSdfAtlas.Position -= sdfGlyphSpacing;
+                placeWithinSdfAtlas.Size += sdfGlyphSpacing * 2;
+                placeWithinSdfAtlas.Position = placeWithinSdfAtlas.Position.Floor();
+                placeWithinSdfAtlas.Size = placeWithinSdfAtlas.Size.Floor();
+
                 composer.RenderSprite(
                     new Vector3(refGlyph.UVLocation.X - SdfAtlasGlyphSpacing.X, refGlyph.UVLocation.Y - SdfAtlasGlyphSpacing.Y, 0),
                     refGlyph.UVSize + SdfAtlasGlyphSpacing * 2,
-                    _intermediateBuffer.ColorAttachment,
+                    _intermediateBufferTwo.ColorAttachment,
                     placeWithinSdfAtlas);
             }
 
+            composer.SetShader();
             composer.RenderTo(null);
             composer.PopModelMatrix();
             composer.SetState(prevState);
@@ -330,6 +331,7 @@ namespace Emotion.Graphics.Text
 
         private static DrawableFontAtlas PollSDFCache(DrawableFontAtlas reqAtlas)
         {
+            return null;
             var cachedName = $"Player/SDFCache/{reqAtlas.Font.FullName}-{reqAtlas.RenderedWith}";
             var cachedRenderName = $"{cachedName}.png";
             var cachedMetaName = $"{cachedName}.xml";
