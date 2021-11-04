@@ -331,7 +331,6 @@ namespace Emotion.Graphics.Text
 
         private static DrawableFontAtlas PollSDFCache(DrawableFontAtlas reqAtlas)
         {
-            return null;
             var cachedName = $"Player/SDFCache/{reqAtlas.Font.FullName}-{reqAtlas.RenderedWith}";
             var cachedRenderName = $"{cachedName}.png";
             var cachedMetaName = $"{cachedName}.xml";
