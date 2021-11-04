@@ -140,7 +140,7 @@ namespace System.Numerics
         /// Round the vector's components using Math.Round.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 Round(this Vector2 v, int digits = 10, MidpointRounding midPointRounding = MidpointRounding.AwayFromZero)
+        public static Vector2 Round(this Vector2 v, int digits = 5, MidpointRounding midPointRounding = MidpointRounding.AwayFromZero)
         {
             v.X = MathF.Round(v.X, digits, midPointRounding);
             v.Y = MathF.Round(v.Y, digits, midPointRounding);
