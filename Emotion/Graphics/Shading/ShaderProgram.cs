@@ -80,6 +80,8 @@ namespace Emotion.Graphics.Shading
 
         public ShaderProgram(uint vertShader, uint fragShader)
         {
+            if (vertShader == 0 || fragShader == 0) return;
+
             Pointer = Gl.CreateProgram();
             Gl.AttachShader(Pointer, vertShader);
             Gl.AttachShader(Pointer, fragShader);
@@ -268,6 +270,27 @@ namespace Emotion.Graphics.Shading
         }
 
         #endregion
+
+        /// <summary>
+        /// Copy the properties of a shader program into this one.
+        /// Used for maintaining the shader reference when reloading shaders.
+        /// </summary>
+        /// <param name="otherProgram"></param>
+        public void CopyFrom(ShaderProgram otherProgram)
+        {
+            if (otherProgram == null)
+            {
+                Pointer = 0;
+                Valid = false;
+                return;
+            }
+
+            Pointer = otherProgram.Pointer;
+            Valid = otherProgram.Valid;
+            DebugFragSource = otherProgram.DebugFragSource;
+            DebugVertSource = otherProgram.DebugVertSource;
+            _uniformLocationsMap.Clear();
+        }
 
         /// <summary>
         /// Destroy the shader, cleaning up used resources.

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
@@ -58,7 +59,7 @@ namespace Emotion.IO
 
         #region Debug Shader Reload
 
-        private static string[] _excludedShaders = {"shaders/atlasblit.xml"};
+        private static string[] _excludedShaders = { "shaders/atlasblit.xml" };
         private static List<ShaderAsset> _activeShaderAssets;
 
         static ShaderAsset()
@@ -129,11 +130,24 @@ namespace Emotion.IO
 
             fragShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
 
-            Engine.Log.Info($"Creating shader - v:{vertShader.Name}, f:{fragShader.Name}", MessageSource.AssetLoader);
+            Engine.Log.Info($"Creating shader - v:{vertShader!.Name}, f:{fragShader!.Name}", MessageSource.AssetLoader);
 
             // Create the shader, or at least try to.
             PerfProfiler.ProfilerEventStart("Compilation", "Loading");
-            GLThread.ExecuteGLThread(() => { Shader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content); });
+            GLThread.ExecuteGLThread(() =>
+            {
+                ShaderProgram newShader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content);
+                if (Shader != null) // Reloading shader. Override reference of current object.
+                {
+                    // This shader must have been disposed first, otherwise we'll leak memory.
+                    Debug.Assert(Shader.Pointer == 0 || IsFallback);
+                    Shader.CopyFrom(newShader);
+                }
+                else
+                {
+                    Shader = newShader;
+                }
+            });
             PerfProfiler.ProfilerEventEnd("Compilation", "Loading");
 
             // Check if compilation was successful.
@@ -146,7 +160,8 @@ namespace Emotion.IO
             if (string.IsNullOrEmpty(Content.Fallback))
             {
                 Engine.Log.Warning("No fallback specified, falling back to default.", MessageSource.AssetLoader);
-                Shader = ShaderFactory.DefaultProgram;
+                Shader ??= new ShaderProgram(0, 0);
+                Shader!.CopyFrom(ShaderFactory.DefaultProgram);
                 FallbackName = "Default";
                 return;
             }
@@ -156,14 +171,16 @@ namespace Emotion.IO
             if (fallBackShader == null)
             {
                 Engine.Log.Warning($"Fallback {Content.Fallback} not found. Falling back to default.", MessageSource.AssetLoader);
-                Shader = ShaderFactory.DefaultProgram;
+                Shader ??= new ShaderProgram(0, 0);
+                Shader!.CopyFrom(ShaderFactory.DefaultProgram);
                 FallbackName = "Default";
                 return;
             }
 
             Engine.Log.Warning($"Shader {Name} fell back to {Content.Fallback}.", MessageSource.AssetLoader);
             FallbackName = Content.Fallback;
-            Shader = fallBackShader.Shader;
+            Shader ??= new ShaderProgram(0, 0);
+            Shader!.CopyFrom(fallBackShader.Shader);
         }
 
         protected override void DisposeInternal()
