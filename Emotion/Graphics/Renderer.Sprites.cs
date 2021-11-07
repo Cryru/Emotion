@@ -65,7 +65,8 @@ namespace Emotion.Graphics
         /// <param name="pointTwo">The point to end the line at.</param>
         /// <param name="color">The color of the line.</param>
         /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
+        /// <param name="centerLine">If centered the line will grow from the position in both directions, otherwise it will grow down. False by default.</param>
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool centerLine = false)
         {
             if (thickness < 1.0f) thickness = 1.0f;
 
@@ -76,8 +77,11 @@ namespace Emotion.Graphics
             var normal = new Vector3(-direction.Y, direction.X, 0);
             Vector3 delta = normal * (thickness / 2f);
 
-            pointOne += delta; // Move to pixel center.
-            pointTwo += delta;
+            if (!centerLine)
+            {
+                pointOne += delta;
+                pointTwo += delta;
+            }
 
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
             vertices[0].Vertex = pointOne + delta;
@@ -93,16 +97,16 @@ namespace Emotion.Graphics
             }
         }
 
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float)" />
-        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool)" />
+        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f, bool centerLine = false)
         {
-            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
+            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness, centerLine);
         }
 
         /// <summary>
         /// Render a line in projected screen space. This allows for more accurate lines, with a visible Z dimension.
         /// </summary>
-        public void RenderLineScreenSpace(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
+        public void RenderLineScreenSpace(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool centerLine = false)
         {
             if (thickness < 1.0f) thickness = 1.0f;
 
@@ -120,8 +124,11 @@ namespace Emotion.Graphics
             var normal = new Vector3(-direction.Y, direction.X, 0);
             Vector3 delta = normal * (thickness / 2f);
 
-            pointOne += delta; // Move to pixel center.
-            pointTwo += delta;
+            if (!centerLine)
+            {
+                pointOne += delta;
+                pointTwo += delta;
+            }
 
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
             vertices[0].Vertex = pointOne + delta;
@@ -154,10 +161,10 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a line with an arrow at the end.
         /// </summary>
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float)" />
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool)" />
         public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
-            RenderLine(pointOne, pointTwo, color, thickness);
+            RenderLine(pointOne, pointTwo, color, thickness, true);
 
             Vector3 diff = pointTwo - pointOne;
             const float maxArrowHeadLength = 10;
@@ -171,8 +178,8 @@ namespace Emotion.Graphics
             Vector3 arrowPointOne = pointTwo - lengthDelta + delta;
             Vector3 arrowPointTwo = pointTwo - lengthDelta - delta;
 
-            RenderLine(pointTwo, arrowPointOne, color, thickness);
-            RenderLine(pointTwo, arrowPointTwo, color, thickness);
+            RenderLine(pointTwo, arrowPointOne, color, thickness, true);
+            RenderLine(pointTwo, arrowPointTwo, color, thickness, true);
         }
 
         /// <inheritdoc cref="RenderArrow(Vector3, Vector3, Color, float)" />
