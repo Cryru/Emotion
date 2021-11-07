@@ -4,7 +4,6 @@ uniform sampler2D mainTexture;
 uniform float outlineThickness = 1.;
 
 in vec2 UV;
-in vec2 originalUV;
 in vec4 vertColor;
 out vec4 fragColor;
 
@@ -12,9 +11,14 @@ out vec4 fragColor;
 #using "Shaders/getTextureSize.c"
 #define SAMPLE_TEXTURE(loc) getTextureColor(mainTexture, UV + loc).a
 
+float map(float value, float leftMin, float leftMax, float rightMin, float rightMax)
+{
+    return rightMin + (value - leftMin) * (rightMax - rightMin) / (leftMax - leftMin);
+}
+
 void main() {
 	ivec2 tSize = getTextureSize(mainTexture);
-	vec2 pixelSize = vec2(1.0) / vec2((float(tSize.x)), (float(tSize.y)));
+	vec2 pixelSize = vec2(1.0) / vec2(tSize);
 
 	vec4 texCol = getTextureColor(mainTexture, UV);
 
@@ -30,13 +34,25 @@ void main() {
 		sum += SAMPLE_TEXTURE(vec2(pixelSize.x * n, pixelSize.y * -n));
 		sum += SAMPLE_TEXTURE(vec2(pixelSize.x * n, pixelSize.y * n));
 	}
-	sum = sum / (8.0 * outlineThickness + 1.);
+	sum = sum / ((8.0 * outlineThickness) + 1.0);
 
-	float t = 1.0 - texCol.a;
-	if(sum > 0.1)
+	const float threshold = 0.2;
+	const float smoothness = 0.05;
+	float t = 1.0 - texCol.a; // The lower the alpha, the more towards the outline we are.
+	if(sum > threshold + smoothness)
+	{
+		t = t * t;
 		fragColor = mix(texCol.rgba, vertColor.rgba, t);
+	}
+	else if(sum > smoothness)
+	{
+		float m = 1.0 - map(sum, smoothness, threshold + smoothness, 0.0, 1.0);
+		fragColor = mix(vertColor.rgba, vec4(0.0), m);
+	}
 	else
+	{
 		fragColor = texCol;
+	}
 
-	if (fragColor.a < 0.01)discard;
+	if (fragColor.a < 0.01) discard;
 }

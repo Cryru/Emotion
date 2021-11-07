@@ -137,7 +137,7 @@ namespace Emotion.IO
             GLThread.ExecuteGLThread(() =>
             {
                 ShaderProgram newShader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content);
-                if (Shader != null) // Reloading shader. Override reference of current object.
+                if (Shader != null) // Reloading shader. Keep reference of current object, substitute OpenGL pointer only.
                 {
                     // This shader must have been disposed first, otherwise we'll leak memory.
                     Debug.Assert(Shader.Pointer == 0 || IsFallback);

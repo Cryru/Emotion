@@ -65,7 +65,7 @@ namespace Emotion.Graphics.Text
         public ShaderProgram FontShader { get; set; }
 
         /// <summary>
-        /// The atlas' render scale, based on the font size.
+        /// The scale of the glyphs in the atlas relative to the ones stored in the file.
         /// </summary>
         public float RenderScale { get; set; }
 
@@ -75,6 +75,13 @@ namespace Emotion.Graphics.Text
         /// bounding box too fast otherwise.
         /// </summary>
         public Vector2 GlyphDrawPadding { get; set; }
+
+        /// <summary>
+        /// The number of pixels the sdf information is encoded in.
+        /// This is the spread * reference scale.
+        /// Only set if the atlas was rendered with Emotion SDF
+        /// </summary>
+        public float SdfSize { get; set; }
 
         /// <summary>
         /// The atlas texture.

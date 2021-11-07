@@ -142,8 +142,11 @@ namespace Emotion.Graphics.Text
             return state;
         }
 
+        // Useful resources:
         // https://medium.com/@calebfaith/implementing-msdf-font-in-opengl-ea09a9ab7e00
         // https://github.com/Chlumsky/msdfgen/issues/22
+        // https://drewcassidy.me/2020/06/26/sdf-antialiasing/
+
         public static GlyphRendererState AddGlyphsToAtlasSDF(DrawableFontAtlas atlas, GlyphRendererState _, List<AtlasGlyph> glyphsToAdd)
         {
             InitEmotionRenderer();
@@ -158,14 +161,14 @@ namespace Emotion.Graphics.Text
                 _sdfReferenceAtlases.Add(atlas.Font, refAtlas);
             }
 
-            var glyphPaddingBase = new Vector2(1);
+            Vector2 glyphPaddingBase = SdfAtlasGlyphSpacing;
             var refGlyphsToRender = new List<AtlasGlyph>();
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph reqGlyph = glyphsToAdd[i];
                 var found = false;
 
-                // Check if the reference atlas already has this glyph rendererd.
+                // Check if the reference atlas already has this glyph rendered.
                 for (var j = 0; j < refAtlas.DrawableAtlasGlyphs.Count; j++)
                 {
                     AtlasGlyph refGlyph = refAtlas.DrawableAtlasGlyphs[j];
@@ -195,6 +198,7 @@ namespace Emotion.Graphics.Text
             }
 
             atlas.FontShader = _sdfShader.Shader;
+            atlas.SdfSize = 64f * refAtlas.RenderScale; // 64 spread value is from GenerateSDF.frag
 
             // Check if anything to render.
             if (refGlyphsToRender.Count == 0) return refAtlas.GlyphRendererState;

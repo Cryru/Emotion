@@ -202,6 +202,23 @@ namespace Emotion.Graphics
             RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
         }
 
+        private void RenderStringInner(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
+        {
+            Vector2 drawPadding = atlas.GlyphDrawPadding;
+            Vector2 drawPaddingT2 = drawPadding * 2;
+            var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
+
+            foreach (char c in text)
+            {
+                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
+                if (g == null || g.UVSize == Vector2.Zero) continue;
+                //gPos.X = MathF.Ceiling(gPos.X);
+
+                var uv = new Rectangle(g.UVLocation, g.UVSize);
+                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, color, atlas.Texture, uv);
+            }
+        }
+
         /// <summary>
         /// Render a string from an atlas.
         /// </summary>
@@ -216,21 +233,7 @@ namespace Emotion.Graphics
             layouter ??= new TextLayouter(atlas);
 
             atlas.SetupDrawing(this, text);
-
-            Vector2 drawPadding = atlas.GlyphDrawPadding;
-            Vector2 drawPaddingT2 = drawPadding * 2;
-            var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
-
-            foreach (char c in text)
-            {
-                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
-                if (g == null || g.UVSize == Vector2.Zero) continue;
-                //gPos.X = MathF.Ceiling(gPos.X);
-
-                var uv = new Rectangle(g.UVLocation, g.UVSize);
-                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, color, atlas.Texture, uv);
-            }
-
+            RenderStringInner(position, color, text, atlas, layouter);
             atlas.FinishDrawing(this);
         }
 
@@ -241,20 +244,38 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderOutlinedString(Vector3 position, Color color, string text, float outlineWidth, Color outlineColor, DrawableFontAtlas atlas, TextLayouter layouter = null)
         {
-            // To do: Use SDF effects instead of this dirty stuff.
             if (atlas?.Glyphs == null) return;
             layouter ??= new TextLayouter(atlas);
 
-            // Calculate how big the text draw is, and allocate a framebuffer of that size.
+            // Create effect using fancy SDF effects.
+            if (atlas.RenderedWith == GlyphRasterizer.EmotionSDFVer3)
+            {
+                float scaleFactor = 0.5f / atlas.SdfSize;
+                float outlineWidthInSdf = outlineWidth * scaleFactor;
+                if (outlineWidthInSdf < 0.5f) // Exceeding SDF range
+                {
+                    atlas.SetupDrawing(this, text);
+                    atlas.FontShader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
+                    atlas.FontShader.SetUniformColor("outlineColor", outlineColor);
+
+                    RenderStringInner(position, color, text, atlas, layouter);
+
+                    FlushRenderStream();
+                    atlas.FontShader.SetUniformFloat("outlineWidthDist", 0.0f);
+                    atlas.FinishDrawing(this);
+                    return;
+                }
+            }
+
+            // Hack the effect with an extra allocated framebuffer.
             Vector2 drawPadding = atlas.GlyphDrawPadding;
             Vector2 drawPaddingT2 = drawPadding * 2;
-            Vector2 drawPaddingT4 = drawPadding * 4;
             Vector2 stringSize = Vector2.Zero;
             foreach (char c in text)
             {
                 Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
                 if (g == null || g.UVSize == Vector2.Zero) continue;
-                stringSize = Vector2.Max(stringSize, new Vector2(gPos.X + g.Size.X + drawPaddingT4.X + outlineWidth * 2, gPos.Y + g.Size.Y + drawPaddingT4.Y + outlineWidth * 2));
+                stringSize = Vector2.Max(stringSize, new Vector2(gPos.X + g.Size.X + drawPaddingT2.X + outlineWidth * 2, gPos.Y + g.Size.Y + drawPaddingT2.Y + outlineWidth * 2));
             }
 
             if (layouter is TextLayouterWrap wrapper) wrapper.RestartPen();
@@ -265,17 +286,21 @@ namespace Emotion.Graphics
             else
                 _outlineFb.Resize(stringSize, true);
 
-            Vector3 renderOffset = new Vector3(drawPadding.X, drawPadding.Y, 0) + new Vector3(outlineWidth, outlineWidth, 0);
-            Vector3 finalRenderPos = position - new Vector3(drawPaddingT2.X, drawPaddingT2.Y, 0) - new Vector3(outlineWidth, outlineWidth, 0);
+            var renderOffset = new Vector3(outlineWidth, outlineWidth, 0);
+            Vector3 finalRenderPos = position - renderOffset;
 
+            // Draw to the FB unaffected by the current state.
             RenderToAndClear(_outlineFb);
             PushModelMatrix(Matrix4x4.Identity, false);
             bool useViewMatrix = CurrentState.ViewMatrix ?? false;
             SetUseViewMatrix(false);
             bool useAlphaBlend = CurrentState.AlphaBlending ?? false;
             SetAlphaBlend(false);
+
             RenderString(renderOffset, color, text, atlas, layouter);
-            if(useAlphaBlend) SetAlphaBlend(true);
+
+            // Return the state to the user set one.
+            if (useAlphaBlend) SetAlphaBlend(true);
             PopModelMatrix();
             RenderTo(null);
             if (useViewMatrix) SetUseViewMatrix(true);

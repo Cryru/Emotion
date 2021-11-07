@@ -1,7 +1,6 @@
 #version v
  
 uniform sampler2D mainTexture;
-uniform vec3 iResolution; // viewport resolution (in pixels)
  
 // Comes in from the vertex shader. 
 in vec2 UV; 
@@ -12,27 +11,54 @@ out vec4 fragColor;
 #using "Shaders/getTextureColor.c"
 #using "Shaders/getTextureSize.c"
 
-#define SDFMethod 0
+#define SDFMethod 0 // currently in for comparison reasons.
 
 #if SDFMethod == 0
 
+#define OUTLINE 1
+
 uniform float thickness = 0.5;
+
+#if OUTLINE
+uniform float outlineWidthDist = 0.0;
+uniform vec4 outlineColor = vec4(0.0);
+#endif
 
 void main()
 {
-    float dist = (thickness - getTextureColor(mainTexture, UV).r);
+    float distSample = getTextureColor(mainTexture, UV).r;
+    float dist = thickness - distSample;
+    
+    vec4 fill = vertColor.rgba;
+    vec4 color = fill;
+
+#ifdef OUTLINE
+
+    // Apply outline color in the outline region (if any).
+    float test = length(fwidth(UV) * vec2(getTextureSize(mainTexture)));
+    float distOutline = (thickness - outlineWidthDist) - distSample;
+    if (outlineWidthDist + dist > abs(distOutline) - outlineWidthDist)
+    {
+        // Interpolate between colors.
+        float t = outlineWidthDist + (dist / outlineWidthDist);
+        color = mix(fill, vec4(outlineColor.rgb, fill.a), t);
+
+        // Override distance with outline distance, to grow the distance out.
+        dist = distOutline;
+    }
+
+#endif
 
     // Sdf distance per pixel (gradient vector)
     vec2 ddist = vec2(dFdx(dist), dFdy(dist));
 
     // Distance to edge in pixels (scalar)
     float pixelDist = dist / length(ddist);
-
     float opacity = clamp(0.5 - pixelDist, 0.0, 1.0);
-    fragColor = vec4(vertColor.rgb, vertColor.a * opacity);
+    fragColor = vec4(color.rgb, color.a * opacity);
 }
 
-#elif SDFMethod == 2
+#elif SDFMethod == 1
 
 // FWidth AA
 
