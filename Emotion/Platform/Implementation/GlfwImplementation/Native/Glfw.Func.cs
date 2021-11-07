@@ -2126,7 +2126,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// The new callback, or <c>null</c> to remove the currently set
         /// callback.
         /// </param>
-        public static void SetScrollCallback(Window window, CursorPosFunc callback)
+        public static void SetScrollCallback(Window window, ScrollFunc callback)
         {
             glfwSetScrollCallback(window.Ptr, Marshal.GetFunctionPointerForDelegate(callback));
         }

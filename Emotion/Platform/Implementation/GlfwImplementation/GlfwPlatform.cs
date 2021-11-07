@@ -44,6 +44,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private Glfw.MouseButtonFunc _mouseButtonFunc;
 
+        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+        private Glfw.ScrollFunc _mouseScrollFunc;
+
         //[DllImport("msvcrt")]
         //public static extern int _putenv_s(string e, string v);
 
@@ -101,6 +104,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             _mouseButtonFunc = MouseButtonKeyInput;
             Glfw.SetMouseButtonCallback(_win, _mouseButtonFunc);
 
+            _mouseScrollFunc = MouseScrollInput;
+            Glfw.SetScrollCallback(_win, _mouseScrollFunc);
+
             void TextInputRedirect(Glfw.Window _, uint codePoint)
             {
                 UpdateTextInput((char) codePoint);
@@ -149,6 +155,11 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private void KeyInput(Glfw.Window window, Glfw.KeyCode key, int scancode, Glfw.InputState action, Glfw.KeyMods mods)
         {
             UpdateKeyStatus((Key) key, action == Glfw.InputState.Press || action == Glfw.InputState.Repeat);
+        }
+
+        private void MouseScrollInput(Glfw.Window window, double x, double y)
+        {
+            UpdateScroll((float) y);
         }
 
         private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)
