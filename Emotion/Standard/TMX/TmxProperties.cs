@@ -1,5 +1,7 @@
 ﻿#region Using
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using Emotion.Standard.XML;
 
@@ -9,8 +11,13 @@ using Emotion.Standard.XML;
 
 namespace Emotion.Standard.TMX
 {
-    public class TmxProperties : XMLReaderAttributeHandler
+    public class TmxProperties : XMLReaderAttributeHandler, IEnumerable<KeyValuePair<string, string>>
     {
+        public bool IsEmpty
+        {
+            get => _dict == null || _dict.Count == 0;
+        }
+
         private Dictionary<string, string>? _dict;
 
         public TmxProperties(Dictionary<string, string>? backingDict)
@@ -45,6 +52,16 @@ namespace Emotion.Standard.TMX
         public string? this[string key]
         {
             get => _dict?[key] ?? null;
+        }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return (_dict?.GetEnumerator() ?? null) ?? throw new InvalidOperationException("These TMXProperties are empty.");
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
