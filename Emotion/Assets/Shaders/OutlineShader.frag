@@ -38,13 +38,13 @@ void main() {
 
 	const float threshold = 0.2;
 	const float smoothness = 0.05;
-	float t = 1.0 - texCol.a; // The lower the alpha, the more towards the outline we are.
 	if(sum > threshold + smoothness)
 	{
+		float t = 1.0 - map(texCol.a, threshold + smoothness, 1.0, 0.0, 1.0);
 		t = t * t;
-		fragColor = mix(texCol.rgba, vertColor.rgba, t);
+		fragColor = vec4(mix(texCol.rgb, vertColor.rgb, t), vertColor.a);
 	}
-	else if(sum > smoothness)
+	else if(sum >= smoothness)
 	{
 		float m = 1.0 - map(sum, smoothness, threshold + smoothness, 0.0, 1.0);
 		fragColor = mix(vertColor.rgba, vec4(0.0), m);

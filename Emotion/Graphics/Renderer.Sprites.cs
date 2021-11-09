@@ -301,13 +301,10 @@ namespace Emotion.Graphics
             PushModelMatrix(Matrix4x4.Identity, false);
             bool useViewMatrix = CurrentState.ViewMatrix ?? false;
             SetUseViewMatrix(false);
-            bool useAlphaBlend = CurrentState.AlphaBlending ?? false;
-            SetAlphaBlend(false);
 
             RenderString(renderOffset, color, text, atlas, layouter);
 
             // Return the state to the user set one.
-            if (useAlphaBlend) SetAlphaBlend(true);
             PopModelMatrix();
             RenderTo(null);
             if (useViewMatrix) SetUseViewMatrix(true);
