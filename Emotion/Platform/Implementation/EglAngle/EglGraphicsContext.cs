@@ -51,7 +51,8 @@ namespace Emotion.Platform.Implementation.EglAngle
                 return;
             }
 
-            var majorVer = 3;
+            var majorVersion = 3;
+            int majorVer = majorVersion;
             var minorVer = 0;
             if (RenderDoc.Loaded) minorVer = 1;
             if (!Egl.Init(_display, ref majorVer, ref minorVer))
@@ -95,7 +96,7 @@ namespace Emotion.Platform.Implementation.EglAngle
             int[] attributes =
             {
                 (int) Egl.ContextAttribute.EGL_CONTEXT_CLIENT_VERSION,
-                3,
+                majorVersion,
                 0x3038 // EGL_NONE
             };
 

@@ -485,6 +485,11 @@ namespace Khronos
             if (versionMinor >= 10 && versionMinor % 10 == 0)
                 versionMinor /= 10;
 
+            // Regex will catch the WebGL version as the major version, but we care about the GL version.
+            // Example: WebGL 2.0 (OpenGL ES 3.0 Chromium) - WebGL 2.0 is always ES 3.0
+            if (Regex.IsMatch(input, "WebGL 2")) versionMajor = 3;
+            else if (Regex.IsMatch(input, "WebGL")) versionMajor = 2;
+
             if (Regex.IsMatch(input, "ES"))
                 switch (versionMajor)
                 {
@@ -497,10 +502,6 @@ namespace Khronos
                 }
             else
                 api = API_GL;
-
-            // Regex will catch 2.0 as major version. WebGL 2.0 is always 3.0
-            // Example: WebGL 2.0 (OpenGL ES 3.0 Chromium)
-            if (Regex.IsMatch(input, "WebGL 2")) versionMajor = 3;
 
             return new KhronosVersion(versionMajor, versionMinor, versionRev, api);
         }
