@@ -329,7 +329,7 @@ namespace Emotion.UI
             {
                 int lastChildIdx = _lastVisibleChild;
                 lastChildIdx++;
-                if (lastChildIdx == Children.Count) return;
+                if (lastChildIdx > _gridSize.Y) return;
                 Vector2 gridPos = GetGridLikePosFromChild(Children[lastChildIdx]);
 
                 Vector2 diff = Vector2.Normalize(gridPos - _scrollPos);
