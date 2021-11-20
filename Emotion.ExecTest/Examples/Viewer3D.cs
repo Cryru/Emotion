@@ -60,7 +60,7 @@ namespace Emotion.ExecTest.Examples
 
                         ImGui.SameLine();
                         Tuple<Vector2, Vector2> textureUv = _texture.Texture.GetImGuiUV(new Rectangle(i * _frameSize[0], 0, _frameSize[0], _frameSize[1]));
-                        ImGui.Image((IntPtr) _texture.Texture.Pointer, new Vector2(_frameSize[0], _frameSize[1]), textureUv.Item1, textureUv.Item2);
+                        ImGui.Image((IntPtr)_texture.Texture.Pointer, new Vector2(_frameSize[0], _frameSize[1]), textureUv.Item1, textureUv.Item2);
                     }
 
                     ImGui.EndCombo();
@@ -69,7 +69,7 @@ namespace Emotion.ExecTest.Examples
                 if (_selectedFrame != -1)
                 {
                     Tuple<Vector2, Vector2> selectedTextureUv = _texture.Texture.GetImGuiUV(new Rectangle(_selectedFrame * _frameSize[0], 0, _frameSize[0], _frameSize[1]));
-                    ImGui.Image((IntPtr) _texture.Texture.Pointer, new Vector2(200 * _frameSize[0] / _frameSize[1], 200), selectedTextureUv.Item1, selectedTextureUv.Item2);
+                    ImGui.Image((IntPtr)_texture.Texture.Pointer, new Vector2(200 * _frameSize[0] / _frameSize[1], 200), selectedTextureUv.Item1, selectedTextureUv.Item2);
                 }
             }));
 
@@ -82,6 +82,10 @@ namespace Emotion.ExecTest.Examples
 
         public void Draw(RenderComposer composer)
         {
+            //Gl.Enable(EnableCap.CullFace);
+            //Gl.FrontFace(FrontFaceDirection.Cw);
+            //Gl.CullFace(CullFaceMode.Back);
+
             composer.SetUseViewMatrix(false);
             composer.RenderSprite(composer.CurrentTarget.Viewport, Color.CornflowerBlue);
             composer.ClearDepth();

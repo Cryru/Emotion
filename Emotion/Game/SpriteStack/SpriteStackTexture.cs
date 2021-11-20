@@ -102,8 +102,6 @@ namespace Emotion.Game.SpriteStack
                         if (!anyTransp) continue;
                     }
 
-                    color = color.SetAlpha(135);
-
                     Span<VertexData> thisPixel = new Span<VertexData>(frame.Vertices).Slice(pixelCount * 8, 8);
                     Span<ushort> thisPixelIndices = new Span<ushort>(frame.Indices).Slice(pixelCount * 6 * 6, 6 * 6);
 
