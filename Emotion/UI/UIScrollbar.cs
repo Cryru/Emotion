@@ -141,7 +141,7 @@ namespace Emotion.UI
         protected override void AfterMeasure(Vector2 mySize)
         {
             mySize /= GetScale();
-            int range = MaxValue - MinValue;
+            int range = 1 + (MaxValue - MinValue);
             Vector2 selectorSize;
             if (Vertical)
                 selectorSize = new Vector2(mySize.X / range * SelectorRatio, DefaultMaxSize.Y);
