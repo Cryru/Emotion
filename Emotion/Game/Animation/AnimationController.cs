@@ -76,14 +76,14 @@ namespace Emotion.Game.Animation
         /// </summary>
         /// <param name="animName"></param>
         /// <param name="force">Set the animation even if it the same as the current animation. This will reset it.</param>
-        public void SetAnimation(string animName, bool force = false)
+        public bool SetAnimation(string animName, bool force = false)
         {
-            if (!force && CurrentAnimation != null && CurrentAnimation.Name == animName) return;
+            if (!force && CurrentAnimation != null && CurrentAnimation.Name == animName) return false;
 
             if (!HasAnimation(animName))
             {
-                Engine.Log.Warning($"Animation {animName} not found.", MessageSource.Anim);
-                return;
+                Engine.Log.Warning($"Animation {animName} not found.", MessageSource.Anim, true);
+                return false;
             }
 
             AnimationNode n = Animations[animName];
@@ -94,6 +94,7 @@ namespace Emotion.Game.Animation
             AnimTex.Reset();
 
             CurrentAnimation = n;
+            return true;
         }
 
         /// <summary>
