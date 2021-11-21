@@ -417,7 +417,7 @@ namespace Emotion.UI
 
             Vector2 contentSize = InternalMeasure(space);
             Debugger?.RecordMetric(this, "Measure_Internal", contentSize);
-            contentSize = Vector2.Clamp(contentSize, MinSize * scale, MaxSize * scale).RoundClosest();
+            contentSize = Vector2.Clamp(contentSize, MinSize * scale, MaxSize * scale).Ceiling();
             AfterMeasure(contentSize);
             Debugger?.RecordMetric(this, "Measure_Internal_PostClamp", contentSize);
             Vector2 usedSpace = Vector2.Zero;
@@ -430,7 +430,7 @@ namespace Emotion.UI
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
                 Vector2 scaledSpacing = ListSpacing * scale;
                 Vector2 pen = Vector2.Zero;
-                Vector2 spaceClampedToConstraints = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).RoundClosest();
+                Vector2 spaceClampedToConstraints = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).Ceiling();
                 Vector2 spaceForChildren = GetChildrenLayoutSize(spaceClampedToConstraints, contentSize, paddingSize);
                 float highestOnRow = 0;
                 float widestInColumn = 0;

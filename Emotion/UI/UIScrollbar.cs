@@ -89,7 +89,7 @@ namespace Emotion.UI
             UIBaseWindow? scroll = GetWindowById("Selector");
             if (scroll == null)
             {
-                scroll = new UISolidColor {WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true};
+                scroll = new UISolidColor { WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true };
                 AddChild(scroll);
             }
 
@@ -121,9 +121,9 @@ namespace Emotion.UI
             Vector2 size = Size;
 
             if (Vertical)
-                Value = MinValue + (int) MathF.Ceiling(relativePos.X / size.X * range);
+                Value = MinValue + (int)MathF.Round(relativePos.X / size.X * range);
             else
-                Value = MinValue + (int) MathF.Ceiling(relativePos.Y / size.Y * range);
+                Value = MinValue + (int)MathF.Round(relativePos.Y / size.Y * range);
         }
 
         public override void OnMouseMove(Vector2 mousePos)
