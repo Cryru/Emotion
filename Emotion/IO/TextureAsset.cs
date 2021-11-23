@@ -89,7 +89,7 @@ namespace Emotion.IO
             {
                 PerfProfiler.ProfilerEventStart($"Uploading Image {Name}", "Loading");
                 Texture.NonGLThreadInitializedCreatePointer(Texture);
-                Texture.Upload(size, pixels, pixelFormat);
+                Texture.Upload(size, pixels, pixelFormat, pixelFormat == PixelFormat.Red ? InternalFormat.Red : null);
                 PerfProfiler.ProfilerEventEnd($"Uploading Image {Name}", "Loading");
 
 #if DEBUG

@@ -205,7 +205,7 @@ namespace Emotion.Graphics.Text
             if (refGlyphsToRender.Count == 0) return refAtlas.GlyphRendererState;
 
             bool justCreated = refAtlas.GlyphRendererState == null;
-            GlyphRendererState state = CommonGlyphRenderer.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2);
+            GlyphRendererState state = CommonGlyphRenderer.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2, true);
             refAtlas.GlyphRendererState = state;
             if (justCreated) state.AtlasBuffer.Texture.Smooth = true;
 

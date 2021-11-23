@@ -8,6 +8,7 @@ using Emotion.Game;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using OpenGL;
 
 #endregion
 
@@ -16,7 +17,7 @@ namespace Emotion.Graphics.Text
     public static class CommonGlyphRenderer
     {
         public static GlyphRendererState PrepareGlyphRenderer(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd, out Rectangle[] intermediateAtlasUVs,
-            out Vector2 intermediateAtlasSize, float glyphSpacing = 1)
+            out Vector2 intermediateAtlasSize, float glyphSpacing = 1, bool singleChannel = false)
         {
             var spacing = new Vector2(glyphSpacing);
             Vector2 spacing2 = spacing * 2;
@@ -52,7 +53,10 @@ namespace Emotion.Graphics.Text
 
                 state = new GlyphRendererState();
                 state.BinningState = resumableState;
-                state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
+                if (singleChannel)
+                    state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor(true, InternalFormat.Red, PixelFormat.Red);
+                else
+                    state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
             }
 
             // Log requests after the first.
