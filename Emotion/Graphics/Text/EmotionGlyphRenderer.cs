@@ -40,6 +40,7 @@ namespace Emotion.Graphics.Text
         private static ShaderAsset _sdfShader;
 
         private static RenderState _glyphRenderState;
+        private static FrameBuffer _intermediateBufferNonSdf;
         private static FrameBuffer _intermediateBuffer;
         private static FrameBuffer _intermediateBufferTwo;
 
@@ -83,10 +84,10 @@ namespace Emotion.Graphics.Text
             state = CommonGlyphRenderer.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize, 2);
 
             // Prepare for rendering.
-            if (_intermediateBuffer == null)
-                _intermediateBuffer = new FrameBuffer(intermediateAtlasSize).WithColor();
+            if (_intermediateBufferNonSdf == null)
+                _intermediateBufferNonSdf = new FrameBuffer(intermediateAtlasSize).WithColor();
             else
-                _intermediateBuffer.Resize(intermediateAtlasSize, true);
+                _intermediateBufferNonSdf.Resize(intermediateAtlasSize, true);
 
             RenderComposer composer = Engine.Renderer;
             RenderState prevState = composer.CurrentState.Clone();
@@ -94,7 +95,7 @@ namespace Emotion.Graphics.Text
 
             // Render glyphs to the intermediate buffer.
             composer.SetState(_glyphRenderState);
-            composer.RenderToAndClear(_intermediateBuffer);
+            composer.RenderToAndClear(_intermediateBufferNonSdf);
             composer.SetShader(_noDiscardShader.Shader);
             var colors = new[]
             {
@@ -124,14 +125,14 @@ namespace Emotion.Graphics.Text
             if (justCreated) composer.ClearFrameBuffer();
             composer.SetAlphaBlend(false);
             composer.SetShader(_windingAaShader.Shader);
-            _windingAaShader.Shader.SetUniformVector2("drawSize", _intermediateBuffer.AllocatedSize);
+            _windingAaShader.Shader.SetUniformVector2("drawSize", _intermediateBufferNonSdf.AllocatedSize);
 
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph atlasGlyph = glyphsToAdd[i];
                 Rectangle placeWithinIntermediateAtlas = intermediateAtlasUVs[i];
                 Debug.Assert(atlasGlyph.UVSize == placeWithinIntermediateAtlas.Size);
-                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _intermediateBuffer.ColorAttachment, placeWithinIntermediateAtlas);
+                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _intermediateBufferNonSdf.ColorAttachment, placeWithinIntermediateAtlas);
             }
 
             composer.SetShader();
@@ -231,13 +232,13 @@ namespace Emotion.Graphics.Text
 
             // Generate ping-pong buffers.
             if (_intermediateBuffer == null)
-                _intermediateBuffer = new FrameBuffer(sdfBaseAtlas).WithColor();
+                _intermediateBuffer = new FrameBuffer(sdfBaseAtlas).WithColor(true, InternalFormat.Red, PixelFormat.Red);
             else
                 _intermediateBuffer.Resize(sdfBaseAtlas, true);
             _intermediateBuffer.ColorAttachment.Smooth = false;
 
             if (_intermediateBufferTwo == null)
-                _intermediateBufferTwo = new FrameBuffer(sdfBaseAtlas).WithColor();
+                _intermediateBufferTwo = new FrameBuffer(sdfBaseAtlas).WithColor(true, InternalFormat.Red, PixelFormat.Red);
             else
                 _intermediateBufferTwo.Resize(sdfBaseAtlas, true);
             _intermediateBufferTwo.ColorAttachment.Smooth = false;
@@ -336,7 +337,7 @@ namespace Emotion.Graphics.Text
         private static DrawableFontAtlas PollSDFCache(DrawableFontAtlas reqAtlas)
         {
             var cachedName = $"Player/SDFCache/{reqAtlas.Font.FullName}-{reqAtlas.RenderedWith}";
-            var cachedRenderName = $"{cachedName}.png";
+            var cachedRenderName = $"{cachedName}_R8.png";
             var cachedMetaName = $"{cachedName}.xml";
             bool cachedImageExists = Engine.AssetLoader.Exists(cachedRenderName);
             bool cachedMetaExists = Engine.AssetLoader.Exists(cachedMetaName);
@@ -372,7 +373,7 @@ namespace Emotion.Graphics.Text
             }
 
             Binning.BinningResumableState binningState = atlasMeta.Content.BinningState;
-            FrameBuffer atlasBuffer = new FrameBuffer(binningState.Size).WithColor();
+            FrameBuffer atlasBuffer = new FrameBuffer(binningState.Size).WithColor(true, InternalFormat.Red, PixelFormat.Red);
             atlasBuffer.ColorAttachment.Smooth = true;
 
             RenderComposer composer = Engine.Renderer;
@@ -405,7 +406,7 @@ namespace Emotion.Graphics.Text
         public static void SaveToCache(DrawableFontAtlas refAtlas)
         {
             var cachedName = $"Player/SDFCache/{refAtlas.Font.FullName}-{refAtlas.RenderedWith}";
-            var cachedRenderName = $"{cachedName}.png";
+            var cachedRenderName = $"{cachedName}_R8.png";
             var cachedMetaName = $"{cachedName}.xml";
 
             // Generate serializable meta objects.
@@ -425,8 +426,8 @@ namespace Emotion.Graphics.Text
 
             // Sample framebuffer and save it.
             FrameBuffer atlasBuffer = refAtlas.GlyphRendererState.AtlasBuffer;
-            byte[] data = atlasBuffer.Sample(new Rectangle(0, 0, atlasBuffer.Size), PixelFormat.Rgba);
-            byte[] pngData = PngFormat.Encode(data, atlasBuffer.Size, PixelFormat.Rgba);
+            byte[] data = atlasBuffer.Sample(new Rectangle(0, 0, atlasBuffer.Size), PixelFormat.Red);
+            byte[] pngData = PngFormat.Encode(data, atlasBuffer.Size, PixelFormat.Red);
             Engine.AssetLoader.Save(pngData, cachedRenderName, false);
         }
 

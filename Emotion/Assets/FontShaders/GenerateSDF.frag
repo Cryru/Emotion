@@ -23,7 +23,7 @@ void main()
     vec2 pixel = UV;
     vec2 pixelSize = (1.0/vec2(getTextureSize(mainTexture)));
     float spreadInUnits = SPREAD * pixelSize.x;
-    bool inside = getTextureColor(mainTexture, pixel).a != 0.0;
+    bool inside = getTextureColor(mainTexture, pixel).r != 0.0;
 
     // Find the shortest squared distance to a pixel what is in the opposite state of this one.
     float test = 0.0;
@@ -35,7 +35,7 @@ void main()
         for (float x = -spreadInUnits; x < spreadInUnits; x+=pixelSize.x)
         {
             vec2 coord = vec2(pixel.x + x, pixel.y + y);
-            bool thisInside = getTextureColor(mainTexture, coord).a != 0.0;
+            bool thisInside = getTextureColor(mainTexture, coord).r != 0.0;
             if (inside != thisInside)
             {
                 minDistance = min(minDistance, squaredDistanceBetween(coord, pixel));

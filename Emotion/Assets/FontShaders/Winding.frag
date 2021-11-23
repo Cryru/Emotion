@@ -21,5 +21,5 @@ float GET_WINDING_COLOR(sampler2D tex, vec2 uv)
 void main()
 {
 	float s = GET_WINDING_COLOR(mainTexture, UV);
-	fragColor = vec4(vertColor.rgb, s);
+	fragColor = vec4(s, s, s, s);
 }

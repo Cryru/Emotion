@@ -158,14 +158,16 @@ namespace Emotion.Graphics.Objects
         /// Add a color attachment to the framebuffer.
         /// </summary>
         /// <param name="bindable">Whether the attachment will be bindable as a texture.</param>
+        /// <param name="format">The format to represent the colors internally.</param>
+        /// <param name="pixelFormat">The format of the colors in the bindable texture. Not read if not bindable.</param>
         /// <returns>This framebuffer - for linking.</returns>
-        public FrameBuffer WithColor(bool bindable = true)
+        public FrameBuffer WithColor(bool bindable = true, InternalFormat format = InternalFormat.Rgba, PixelFormat pixelFormat = PixelFormat.Bgra)
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                ColorAttachment = new FrameBufferTexture(this, CreateRenderBuffer(InternalFormat.Rgba, FramebufferAttachment.ColorAttachment0), Size, InternalFormat.Rgba);
+                ColorAttachment = new FrameBufferTexture(this, CreateRenderBuffer(format, FramebufferAttachment.ColorAttachment0), Size, format);
             else
-                ColorAttachment = CreateTexture(InternalFormat.Rgba, PixelFormat.Bgra, PixelType.UnsignedByte, FramebufferAttachment.ColorAttachment0);
+                ColorAttachment = CreateTexture(format, pixelFormat, PixelType.UnsignedByte, FramebufferAttachment.ColorAttachment0);
 
             Gl.DrawBuffers(ColorModes);
 

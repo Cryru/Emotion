@@ -61,7 +61,7 @@ namespace Emotion.Standard.Image.PNG
             var header = new PngFileHeader
             {
                 Size = size,
-                ColorType = 6,
+                ColorType = (byte) (format == PixelFormat.Red ? 0 : 6), // Greyscale, otherwise RGBA
                 BitDepth = 8,
                 FilterMethod = 0,
                 CompressionMethod = 0,
@@ -76,8 +76,9 @@ namespace Emotion.Standard.Image.PNG
             WriteChunk(stream, PngChunkTypes.HEADER, chunkData);
 
             // Write data chunks.
-            var data = new byte[width * height * 4 + height];
-            int rowLength = width * 4 + 1; // One byte for the filter
+            int bytesPerPixel = Gl.PixelFormatToComponentCount(format);
+            var data = new byte[width * height * bytesPerPixel + height];
+            int rowLength = width * bytesPerPixel + 1; // One byte for the filter
             for (var y = 0; y < height; y++)
             {
                 data[y * rowLength] = 0;
@@ -85,10 +86,10 @@ namespace Emotion.Standard.Image.PNG
                 for (var x = 0; x < width; x++)
                 {
                     // Calculate the offset for the new array.
-                    int dataOffset = y * rowLength + x * 4 + 1;
+                    int dataOffset = y * rowLength + x * bytesPerPixel + 1;
 
                     // Calculate the offset for the original pixel array.
-                    int pixelOffset = (y * width + x) * 4;
+                    int pixelOffset = (y * width + x) * bytesPerPixel;
 
                     if (format == PixelFormat.Rgba)
                     {
@@ -103,6 +104,10 @@ namespace Emotion.Standard.Image.PNG
                         data[dataOffset + 1] = pixels[pixelOffset + 1];
                         data[dataOffset + 2] = pixels[pixelOffset + 0];
                         data[dataOffset + 3] = pixels[pixelOffset + 3];
+                    }
+                    else if (format == PixelFormat.Red)
+                    {
+                        data[dataOffset] = pixels[pixelOffset];
                     }
                     else
                     {
@@ -261,6 +266,7 @@ namespace Emotion.Standard.Image.PNG
                     // Grayscale - No Alpha
                     channelsPerColor = 1;
                     reader = Grayscale;
+                    fileHeader.PixelFormat = PixelFormat.Red;
                     break;
                 case 2:
                     // RGB
@@ -324,14 +330,7 @@ namespace Emotion.Standard.Image.PNG
         private static void Grayscale(int pixelCount, Span<byte> data, byte[] pixels, int y)
         {
             int totalOffset = y * pixelCount;
-            for (var x = 0; x < pixelCount; x++)
-            {
-                int offset = (totalOffset + x) * 4;
-                pixels[offset + 0] = data[x];
-                pixels[offset + 1] = data[x];
-                pixels[offset + 2] = data[x];
-                pixels[offset + 3] = 255;
-            }
+            data.CopyTo(new Span<byte>(pixels, totalOffset, pixelCount));
         }
 
         private static void GrayscaleAlpha(int pixelCount, Span<byte> data, byte[] pixels, int y)
@@ -412,12 +411,12 @@ namespace Emotion.Standard.Image.PNG
         {
             var width = (int) header.Size.X;
             var height = (int) header.Size.Y;
-            var pixels = new byte[width * height * 4];
+            var pixels = new byte[width * height * bytesPerPixel];
             int length = scanlineLength - 1;
             var data = new Span<byte>(pureData);
 
             // Analyze if the scanlines can be read in parallel.
-            var filterMode = data[0];
+            byte filterMode = data[0];
             for (var i = 0; i < scanlineCount; i++)
             {
                 byte f = data[scanlineLength * i];
