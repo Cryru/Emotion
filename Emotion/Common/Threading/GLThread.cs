@@ -24,7 +24,7 @@ namespace Emotion.Common.Threading
 
         static GLThread()
         {
-            _threadManager = new ManagedThread("GL Thread");
+            _threadManager = new ManagedThread("GL");
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Emotion.Common.Threading
         /// </summary>
         public static void BindThread()
         {
-            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "GL Thread";
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= _threadManager.ThreadName;
             _threadManager.BindThread();
         }
 

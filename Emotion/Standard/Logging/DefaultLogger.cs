@@ -133,7 +133,9 @@ namespace Emotion.Standard.Logging
         /// <inheritdoc />
         public override void Log(MessageType type, string source, string message)
         {
-            _logQueue.Enqueue((type, $"{Engine.TotalTime:0} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId:D2}] {message}"));
+            string threadName = Thread.CurrentThread.Name;
+            if (threadName == ".NET ThreadPool Worker") threadName = "Worker";
+            _logQueue.Enqueue((type, $"{Engine.TotalTime:0} [{source}] [{threadName}/{Thread.CurrentThread.ManagedThreadId:D2}] {message}"));
             _queueEvent.Set();
         }
 
