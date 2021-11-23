@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
@@ -100,7 +99,10 @@ namespace Emotion.Standard.Audio
         /// Samples are in the 32f format though.
         /// </summary>
         /// <param name="dstFormat">The format to convert to. Channels, sample size, and sample rate is converted.</param>
-        /// <param name="dstSampleIdxStart">The index of the sample to start from, relative to the total samples this audio would have in the dstFormat.</param>
+        /// <param name="dstSampleIdxStart">
+        /// The index of the sample to start from, relative to the total samples this audio would
+        /// have in the dstFormat.
+        /// </param>
         /// <param name="frameCount">The number of frames (in the dstFormat) to convert.</param>
         /// <param name="buffer">The buffer to fill with converted samples.</param>
         /// <returns>How many frames were actually converted.</returns>
@@ -213,6 +215,14 @@ namespace Emotion.Standard.Audio
 
         #region Static API
 
+        private static unsafe short AlignedToInt16(ReadOnlySpan<byte> data, int idx)
+        {
+            fixed (byte* pbyte = &data[idx])
+            {
+                return *(short*) pbyte;
+            }
+        }
+
         /// <summary>
         /// Get a sample from a PCM as a float.
         /// </summary>
@@ -230,7 +240,7 @@ namespace Emotion.Standard.Audio
                     output = (float) srcData[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
-                    var dataShort = BitConverter.ToInt16(srcData.Slice(sampleIdx * 2, 2));
+                    var dataShort = AlignedToInt16(srcData, sampleIdx * 2);
                     if (dataShort < 0)
                         output = (float) -dataShort / short.MinValue;
                     else
