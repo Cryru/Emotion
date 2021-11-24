@@ -6,12 +6,14 @@ using System.Linq;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
+using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
 using ImGuiNET;
+using OpenGL;
 
 #endregion
 
@@ -30,52 +32,84 @@ namespace Emotion.Tools.Windows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            long usedRam = _p.WorkingSet64;
-            ImGui.Text($"Working Memory: {Helpers.FormatByteAmountAsString(usedRam)}");
             ImGui.Text(UnmanagedMemoryAllocator.GetDebugInformation());
 
-            ImGui.BeginChild("LoadedAssets", new Vector2(400, 400), true, ImGuiWindowFlags.HorizontalScrollbar);
-            ImGui.Text("Loaded Assets: ");
-            ImGui.Text(" ");
-            Asset[] loadedAssets = Engine.AssetLoader.LoadedAssets;
-            IOrderedEnumerable<Asset> orderedEnum = loadedAssets.OrderByDescending(x => x.Size);
-            foreach (Asset asset in orderedEnum)
+            var assetBytes = 0;
+            foreach (Asset asset in Engine.AssetLoader.LoadedAssets)
             {
-                float percent = (float) asset.Size / usedRam;
-                ImGui.Text($"{asset.Name} {Helpers.FormatByteAmountAsString(asset.Size)} {percent * 100:0}%%");
-                ImGui.Text($"\t{asset.GetType()}");
+                assetBytes += asset.Size;
             }
 
-            ImGui.EndChild();
-
-            ImGui.SameLine();
-            ImGui.BeginChild("XMLType", new Vector2(400, 400), true, ImGuiWindowFlags.HorizontalScrollbar);
-            ImGui.Text("XML Cache: ");
-            ImGui.Text(" ");
-            LazyConcurrentDictionary<Type, XMLTypeHandler?> xmlCachedHandlers = XMLHelpers.Handlers;
-
-            var counter = 0;
-            foreach ((Type type, Lazy<XMLTypeHandler?> typeHandlerLazy) in xmlCachedHandlers)
+            ImGui.Text($"Assets Rough Estimate: {Helpers.FormatByteAmountAsString(assetBytes)}");
+            var totalBytes = 0;
+            for (var i = 0; i < Texture.AllTextures.Count; i++)
             {
-                if (!typeHandlerLazy.IsValueCreated) continue;
+                Texture texture = Texture.AllTextures[i];
+                int byteSize = (int) (texture.Size.X * texture.Size.Y) * Gl.PixelTypeToByteCount(texture.PixelType) *
+                               Gl.PixelFormatToComponentCount(texture.PixelFormat);
+                totalBytes += byteSize;
+            }
 
-                counter++;
-                ImGui.PushID(counter);
+            ImGui.Text($"Texture Memory Estimate: {Helpers.FormatByteAmountAsString(totalBytes)}");
+            ImGui.Text($"Managed Memory (Game): {Helpers.FormatByteAmountAsString(GC.GetTotalMemory(false))}");
 
-                XMLTypeHandler typeHandler = typeHandlerLazy.Value!;
-                if (ImGui.TreeNode($"{typeHandler.TypeName} ({typeHandler.GetType().ToString().Replace("Emotion.Standard.XML.TypeHandlers.", "")})"))
+            long usedRam = _p.WorkingSet64;
+            long usedRamMost = _p.PrivateMemorySize64;
+            ImGui.Text($"Total Memory Used: {Helpers.FormatByteAmountAsString(usedRam)} | Allocated: {Helpers.FormatByteAmountAsString(usedRamMost)}");
+
+            ImGui.NewLine();
+            ImGui.BeginGroup();
+            ImGui.BeginTabBar("TabBar");
+            if (ImGui.BeginTabItem("Assets"))
+            {
+                ImGui.BeginChild("Assets", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
+
+                Asset[] loadedAssets = Engine.AssetLoader.LoadedAssets;
+                IOrderedEnumerable<Asset> orderedEnum = loadedAssets.OrderByDescending(x => x.Size);
+                foreach (Asset asset in orderedEnum)
                 {
-                    ImGui.Text($"\t Full TypeName: {type}");
-                    if (typeHandler is XMLComplexTypeHandler complexHandler)
-                        ImGui.Text($"\t Fields: {complexHandler.FieldCount()}");
-
-                    ImGui.TreePop();
+                    float percent = (float) asset.Size / assetBytes;
+                    ImGui.Text($"{asset.Name} {Helpers.FormatByteAmountAsString(asset.Size)} {percent * 100:0}%%");
+                    ImGui.Text($"\t{asset.GetType()}");
                 }
 
-                ImGui.PopID();
+                ImGui.EndChild();
+                ImGui.EndTabItem();
             }
 
-            ImGui.EndChild();
+            if (ImGui.BeginTabItem("XML Cache"))
+            {
+                ImGui.BeginChild("XMLType", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
+
+                LazyConcurrentDictionary<Type, XMLTypeHandler?> xmlCachedHandlers = XMLHelpers.Handlers;
+
+                var counter = 0;
+                foreach ((Type type, Lazy<XMLTypeHandler?> typeHandlerLazy) in xmlCachedHandlers)
+                {
+                    if (!typeHandlerLazy.IsValueCreated) continue;
+
+                    counter++;
+                    ImGui.PushID(counter);
+
+                    XMLTypeHandler typeHandler = typeHandlerLazy.Value!;
+                    if (ImGui.TreeNode($"{typeHandler.TypeName} ({typeHandler.GetType().ToString().Replace("Emotion.Standard.XML.TypeHandlers.", "")})"))
+                    {
+                        ImGui.Text($"\t Full TypeName: {type}");
+                        if (typeHandler is XMLComplexTypeHandler complexHandler)
+                            ImGui.Text($"\t Fields: {complexHandler.FieldCount()}");
+
+                        ImGui.TreePop();
+                    }
+
+                    ImGui.PopID();
+                }
+
+                ImGui.EndChild();
+                ImGui.EndTabItem();
+            }
+
+            ImGui.EndTabBar();
+            ImGui.EndGroup();
         }
 
         public override void Update()

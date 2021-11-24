@@ -148,7 +148,7 @@ namespace Emotion.Utility
                 if (i == 0) dbg.Append("\n");
 
                 UnmanagedMemory handle = _allocatedMemory[i];
-                dbg.AppendLine($"{handle.Address} [{handle.Label}]: {Helpers.FormatByteAmountAsString(handle.Size)}");
+                dbg.AppendLine($" {handle.Address} [{handle.Label}]: {Helpers.FormatByteAmountAsString(handle.Size)}");
             }
 
             return dbg.ToString();
