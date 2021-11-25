@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
@@ -114,6 +115,16 @@ namespace Emotion.Standard.XML
             {
                 Type? type = Helpers.AssociatedAssemblies[i].GetType(typeName, false, true);
                 if (type == null) continue;
+                return type;
+            }
+
+            // Search all assemblies in the domain.
+            Assembly[] allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly assembly in allAssemblies)
+            {
+                Type? type = assembly.GetType(typeName, false, true);
+                if (type == null) continue;
+                Helpers.AssociatedAssemblies.AddToArray(assembly);
                 return type;
             }
 
