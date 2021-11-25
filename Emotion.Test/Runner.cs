@@ -109,7 +109,12 @@ namespace Emotion.Test
         /// <param name="args">The execution args passed to the Main. This is needed to coordinate linked runners.</param>
         /// <param name="otherConfigs">List of engine configurations to spawn runners with.</param>
         /// <param name="screenResultDb">Database of screenshot results to compare against when using VerifyImage</param>
-        public static void RunTests(Configurator engineConfig, string[] args = null, Dictionary<string, Action<Configurator>> otherConfigs = null, Dictionary<string, byte[]> screenResultDb = null)
+        public static void RunTests(
+            Configurator engineConfig,
+            string[] args = null,
+            Dictionary<string, Action<Configurator>> otherConfigs = null,
+            Dictionary<string, byte[]> screenResultDb = null
+        )
         {
             if (args == null) args = new string[] { };
             _otherConfigs = otherConfigs ?? new Dictionary<string, Action<Configurator>>();
@@ -119,8 +124,9 @@ namespace Emotion.Test
             TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
             TestRunFolder = Path.Join("TestResults", $"{TestRunId}");
 
+            string argsJoined = string.Join(" ", args);
             CommandLineParser.FindArgument(args, "tag=", out string tag);
-            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References{tag}");
+            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References({argsJoined})");
 
             // Check if master runner.
             bool linked = TestRunId != RunnerId.ToString();
@@ -133,7 +139,6 @@ namespace Emotion.Test
             config.Logger = log;
 
             // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
-            string argsJoined = string.Join(" ", args);
             string id = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
             if (id != null && _otherConfigs.ContainsKey(id) && _otherConfigs[id] != null)
             {
@@ -211,10 +216,17 @@ namespace Emotion.Test
 
             // Find all test functions in these classes.
             var tests = new List<MethodInfo>();
+            MethodInfo initMethod = null;
             foreach (Type classType in testClasses)
             {
                 // Check if filtering by tag.
                 var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
+                if (t.Tag == "TestInit")
+                {
+                    initMethod = classType.GetMethods().FirstOrDefault();
+                    continue;
+                }
+
                 if (!string.IsNullOrEmpty(TestTag) && t?.Tag != TestTag)
                 {
 #if TEST_DEBUG
@@ -233,6 +245,15 @@ namespace Emotion.Test
 
                 // Find all test functions in this class.
                 tests.AddRange(classType.GetMethods().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray());
+            }
+
+            if (initMethod != null)
+            {
+                Engine.Log.Info("Executing test init method...", CustomMSource.TestRunner);
+                Type initClassType = initMethod.DeclaringType;
+                object initClassInstance = Activator.CreateInstance(initClassType);
+                initMethod.Invoke(initClassInstance, new object[] { });
+                Engine.Log.Info("Tests initialized.", CustomMSource.TestRunner);
             }
 
             Type currentClass = null;
@@ -437,7 +458,8 @@ namespace Emotion.Test
         {
             lock (_threadLock)
             {
-                Debug.Assert(_loopWaiter == null);
+                //Debug.Assert(_loopWaiter == null);
+                if (_loopWaiter != null) return _loopWaiter;
                 _loopAction = action;
                 _loopWaiter = new ManualResetEvent(false);
                 _loopCounter = times;
