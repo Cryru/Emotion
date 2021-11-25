@@ -258,6 +258,7 @@ namespace Emotion.Standard.Image.PNG
             if (data == null) return null;
 
             var channelsPerColor = 0;
+            int bytesPerPixelOutput = 4;
             ColorReader reader;
             fileHeader.PixelFormat = PixelFormat.Bgra; // Default.
             switch (fileHeader.ColorType)
@@ -265,6 +266,7 @@ namespace Emotion.Standard.Image.PNG
                 case 0:
                     // Grayscale - No Alpha
                     channelsPerColor = 1;
+                    bytesPerPixelOutput = 1;
                     reader = Grayscale;
                     fileHeader.PixelFormat = PixelFormat.Red;
                     break;
@@ -298,7 +300,7 @@ namespace Emotion.Standard.Image.PNG
             if (reader == null)
             {
                 Engine.Log.Warning($"Unsupported color type - {fileHeader.ColorType}", MessageSource.ImagePng);
-                return new byte[width * height * 4];
+                return new byte[width * height * bytesPerPixelOutput];
             }
 
             // Calculate the bytes per pixel.
@@ -320,7 +322,7 @@ namespace Emotion.Standard.Image.PNG
 
             int scanlineLength = GetScanlineLength(fileHeader, channelsPerColor) + 1;
             int scanLineCount = data.Length / scanlineLength;
-            return Parse(scanlineLength, scanLineCount, data, bytesPerPixel, fileHeader, reader);
+            return Parse(scanlineLength, scanLineCount, data, bytesPerPixel, fileHeader, reader, bytesPerPixelOutput);
         }
 
         #region Readers
@@ -407,11 +409,11 @@ namespace Emotion.Standard.Image.PNG
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static byte[] Parse(int scanlineLength, int scanlineCount, byte[] pureData, int bytesPerPixel, PngFileHeader header, ColorReader reader)
+        private static byte[] Parse(int scanlineLength, int scanlineCount, byte[] pureData, int bytesPerPixel, PngFileHeader header, ColorReader reader, int bytesPerPixelOutput)
         {
             var width = (int) header.Size.X;
             var height = (int) header.Size.Y;
-            var pixels = new byte[width * height * bytesPerPixel];
+            var pixels = new byte[width * height * bytesPerPixelOutput];
             int length = scanlineLength - 1;
             var data = new Span<byte>(pureData);
 
