@@ -87,9 +87,15 @@ namespace Emotion.Test
         /// </summary>
         public static string TestTag;
 
-        private static Action<float> _loopAction;
-        private static ManualResetEvent _loopWaiter;
-        private static int _loopCounter;
+        private class CustomLoop
+        {
+            public Action<float> Action;
+            public ManualResetEvent Waiter;
+            public int Counter;
+            public bool Ready;
+        }
+
+        private static Queue<CustomLoop> _loopQueue = new Queue<CustomLoop>();
 
         private static List<LinkedRunner> _linkedRunners = new List<LinkedRunner>();
         private static Regex _testCompletedRegex = new Regex(@"(?:Test completed: )([0-9]+?)\/([0-9]*)(?:!)");
@@ -125,7 +131,6 @@ namespace Emotion.Test
             TestRunFolder = Path.Join("TestResults", $"{TestRunId}");
 
             string argsJoined = string.Join(" ", args);
-            CommandLineParser.FindArgument(args, "tag=", out string tag);
             RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References({argsJoined})");
 
             // Check if master runner.
@@ -221,7 +226,7 @@ namespace Emotion.Test
             {
                 // Check if filtering by tag.
                 var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
-                if (t.Tag == "TestInit")
+                if (t?.Tag == "TestInit")
                 {
                     initMethod = classType.GetMethods().FirstOrDefault();
                     continue;
@@ -251,6 +256,7 @@ namespace Emotion.Test
             {
                 Engine.Log.Info("Executing test init method...", CustomMSource.TestRunner);
                 Type initClassType = initMethod.DeclaringType;
+                Debug.Assert(initClassType != null);
                 object initClassInstance = Activator.CreateInstance(initClassType);
                 initMethod.Invoke(initClassInstance, new object[] { });
                 Engine.Log.Info("Tests initialized.", CustomMSource.TestRunner);
@@ -396,6 +402,13 @@ namespace Emotion.Test
                 Engine.DeltaTime = 16;
                 tick();
                 frame();
+
+                _loopQueue.TryPeek(out CustomLoop customLoop);
+                if (customLoop != null && customLoop.Ready)
+                {
+                    customLoop.Waiter.Set();
+                    _loopQueue.Dequeue();
+                }
             }
 
             Engine.Quit();
@@ -407,14 +420,16 @@ namespace Emotion.Test
             try
             {
 #endif
+                _loopQueue.TryPeek(out CustomLoop top);
+
                 // Check running loops.
-                if (_loopAction == null) return true;
+                if (top == null || top.Ready) return true;
 
 #if !THROW_EXCEPTIONS
                 try
                 {
 #endif
-                    _loopAction.Invoke(Engine.DeltaTime);
+                    top.Action?.Invoke(Engine.DeltaTime);
 #if !THROW_EXCEPTIONS
                 }
                 catch (Exception ex)
@@ -423,17 +438,13 @@ namespace Emotion.Test
                 }
 #endif
 
-                _loopCounter--;
-                int counterThisTick = _loopCounter;
+                top.Counter--;
+                int counterThisTick = top.Counter;
 
                 if (counterThisTick > 0) return false;
-                if (counterThisTick == 0) _loopAction = null;
-
-                // Release the lock.
-                lock (_threadLock)
+                if (counterThisTick == 0)
                 {
-                    _loopWaiter?.Set();
-                    if (counterThisTick == 0) _loopWaiter = null;
+                    top.Ready = true;
                 }
 
                 return true;
@@ -458,14 +469,15 @@ namespace Emotion.Test
         {
             lock (_threadLock)
             {
-                //Debug.Assert(_loopWaiter == null);
-                if (_loopWaiter != null) return _loopWaiter;
-                _loopAction = action;
-                _loopWaiter = new ManualResetEvent(false);
-                _loopCounter = times;
+                var loop = new CustomLoop
+                {
+                    Action = action,
+                    Counter = times,
+                    Waiter = new ManualResetEvent(false)
+                };
+                _loopQueue.Enqueue(loop);
+                return loop.Waiter;
             }
-
-            return _loopWaiter;
         }
 
         /// <summary>
