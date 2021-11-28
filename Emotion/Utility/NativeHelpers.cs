@@ -87,6 +87,22 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Access the signed lower word in a double word.
+        /// </summary>
+        public static short LoWordS(uint nValue)
+        {
+            return (short) (nValue & 0xFFFF);
+        }
+
+        /// <summary>
+        /// Access the signed high word in a double word.
+        /// </summary>
+        public static short HiWordS(uint nValue)
+        {
+            return (short) (nValue >> 16);
+        }
+
+        /// <summary>
         /// Access the high word in a double word.
         /// </summary>
         public static ushort HiWord(ulong nValue)

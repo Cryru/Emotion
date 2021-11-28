@@ -127,8 +127,8 @@ namespace Emotion.Platform.Implementation.Win32
 
                 case WM.MOUSEMOVE:
 
-                    int x = NativeHelpers.LoWord((uint) lParam);
-                    int y = NativeHelpers.HiWord((uint) lParam);
+                    int x = NativeHelpers.LoWordS((uint) lParam);
+                    int y = NativeHelpers.HiWordS((uint) lParam);
                     MousePosition = new Vector2(x, y);
                     return IntPtr.Zero;
 
