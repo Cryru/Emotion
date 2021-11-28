@@ -70,7 +70,11 @@ namespace Emotion.Standard.TMX
                 // Check if external file.
                 if (!string.IsNullOrEmpty(fileSource))
                 {
-                    if (filePath != null) fileSource = AssetLoader.GetNonRelativePath(filePath, fileSource);
+                    if (filePath != null)
+                    {
+                        string directory = AssetLoader.GetDirectoryName(filePath);
+                        fileSource = AssetLoader.GetNonRelativePath(directory, fileSource);
+                    }
                     var textAsset = Engine.AssetLoader.Get<TextAsset>(fileSource);
                     if (textAsset?.Content == null)
                     {

@@ -348,11 +348,11 @@ namespace Emotion.IO
         /// </summary>
         public static string GetDirectoryName(string name)
         {
-            if (string.IsNullOrEmpty(name)) return name;
-            if (name[^1] == '/') return name;
+            if (string.IsNullOrEmpty(name)) return "";
+            if (name[^1] == '/') return "";
 
             int lastSlash = name.LastIndexOf("/", StringComparison.Ordinal);
-            return lastSlash == -1 ? name : name.Substring(0, lastSlash);
+            return lastSlash == -1 ? "" : name.Substring(0, lastSlash);
         }
 
         /// <summary>
@@ -386,24 +386,23 @@ namespace Emotion.IO
 
             path = path.Substring(0, lastBack);
             string directory = GetDirectoryName(relativeTo);
-            return directory + "/" + path;
+            return JoinPath(directory, path);
         }
 
         /// <summary>
-        /// Get the non-relative path from a path relative to another.
-        /// [Folder/OneFile.ext] + [../File.ext] = File.ext
-        /// [Folder/OneFile.ext] + [File.ext] = Folder/File.ext
+        /// Get a non-relative path from a path relative to a specific directory.
+        /// [Folder] + [../File.ext] = File.ext
+        /// [Folder] + [File.ext] = Folder/File.ext
         /// </summary>
-        public static string GetNonRelativePath(string relativeTo, string path)
+        public static string GetNonRelativePath(string relativeToDirectory, string path)
         {
             int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
             if (lastBack == -1)
             {
-                string folderName = GetDirectoryName(relativeTo);
-                return JoinPath(folderName, path);
+                return JoinPath(relativeToDirectory, path);
             }
 
-            string[] folders = relativeTo.Split("/");
+            string[] folders = relativeToDirectory.Split("/");
             var relativeIdx = 0;
             var times = 0;
             while (true)
