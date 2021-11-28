@@ -84,10 +84,10 @@ namespace Emotion.Graphics.Data
             // Convert input from texture coordinates to UV coordinates.
             TransformUVs(vertices, texture, (Rectangle)textureArea);
 
-            if (texture.FlipY != flipY) FlipHorizontallyUVs(vertices);
+            if (texture.FlipY != flipY) FlipHorizontallySpriteUVs(vertices);
 
             // ReSharper disable once InvertIf
-            if (flipX) FlipVerticallyUVs(vertices);
+            if (flipX) FlipVerticallySpriteUVs(vertices);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,7 +122,7 @@ namespace Emotion.Graphics.Data
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void FlipHorizontallyUVs(Span<VertexData> vertices)
+        public static void FlipHorizontallySpriteUVs(Span<VertexData> vertices)
         {
             // Flipped Y
             // 0, 1    1, 1
@@ -136,7 +136,7 @@ namespace Emotion.Graphics.Data
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void FlipVerticallyUVs(Span<VertexData> vertices)
+        public static void FlipVerticallySpriteUVs(Span<VertexData> vertices)
         {
             // Flipped X
             // 1, 0    0, 0
