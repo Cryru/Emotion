@@ -75,6 +75,7 @@ Currently supported:
   - Parsing and rasterizing of "CFF" and "TTF" font formats using a custom parser and rasterizer.
 	  - Optionally the font can also be rasterized using StbTrueType.
   - "WAV" files for audio.
+  - OBJ files (Vertices, UVs, Multiple Geosets, MTL's with diffuse color textures) + their rendering.
 - Asset loading and management, virtual file system.
   - Reading and writing of files - for custom editors.
   - Packing files into binary blobs for obfuscation, easy transport, and potentially compression. (Only option for Web platform)
@@ -83,6 +84,7 @@ Currently supported:
   - Custom WASAPI implementation for Windows
   - OpenAL support
 - Extensible camera system.
+  - Included pixel art, 2d, and 3d camera.
 - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
   - Unsynchronized rendering
   - Sensible defaults
