@@ -17,6 +17,21 @@ namespace Emotion.Graphics.Camera
         #region Properties
 
         /// <summary>
+        /// The direction (normalized) vector the camera is looking in.
+        /// </summary>
+        public Vector3 LookAt
+        {
+            get => _lookAt;
+            set
+            {
+                _lookAt = value;
+                RecreateMatrix();
+            }
+        }
+
+        protected Vector3 _lookAt = new Vector3(0, 0, -1);
+
+        /// <summary>
         /// How zoomed the camera is.
         /// </summary>
         public float Zoom
@@ -103,6 +118,25 @@ namespace Emotion.Graphics.Camera
                 start,
                 ScreenToWorld(Engine.Renderer.DrawBuffer.Size) - start
             );
+        }
+
+        /// <summary>
+        /// Get the projection matrix of the camera.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Matrix4x4 GetProjection()
+        {
+            return GetDefault2DProjection();
+        }
+
+        /// <summary>
+        /// Get the default 2d projection matrix for the currently bound framebuffer.
+        /// </summary>
+        /// <returns></returns>
+        public static Matrix4x4 GetDefault2DProjection()
+        {
+            RenderComposer renderer = Engine.Renderer;
+            return Matrix4x4.CreateOrthographicOffCenter(0, renderer.CurrentTarget.Size.X, renderer.CurrentTarget.Size.Y, 0, renderer.NearZ, renderer.FarZ);
         }
 
         /// <summary>

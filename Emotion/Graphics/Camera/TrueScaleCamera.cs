@@ -36,7 +36,7 @@ namespace Emotion.Graphics.Camera
             // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
             Vector2 margin = (currentSize - targetSize) / 2;
             Vector3 pos = posOffset - new Vector3((int) margin.X, (int) margin.Y, 0);
-            ViewMatrixUnscaled = Matrix4x4.CreateLookAt(pos, pos + new Vector3(0, 0, -1), new Vector3(0.0f, 1.0f, 0.0f));
+            ViewMatrixUnscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, new Vector3(0.0f, 1.0f, 0.0f));
             ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * ViewMatrixUnscaled;
         }
 

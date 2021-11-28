@@ -211,7 +211,7 @@ namespace Emotion.Graphics
             }
             // In release mode GL errors are not checked after every call.
             // In that case a error catching callback is attached so that GL errors are logged.
-            else if(hasDebugSupport)
+            else if (hasDebugSupport)
             {
                 Gl.Enable(EnableCap.DebugOuput);
                 Gl.DebugMessageCallback(_glErrorCatchCallback, IntPtr.Zero);
@@ -278,9 +278,10 @@ namespace Emotion.Graphics
         #region Event Handles and Sizing
 
         private static Gl.DebugProc _glErrorCatchCallback = GlErrorCatchCallback;
+
         private static unsafe void GlErrorCatchCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
         {
-            if(msgType != DebugType.DebugTypeError) return;
+            if (msgType != DebugType.DebugTypeError) return;
 
             var stringMessage = new string((sbyte*) message, 0, length);
             Engine.Log.Error(stringMessage, $"GL_{source}");
@@ -306,7 +307,7 @@ namespace Emotion.Graphics
                 Engine.Log.Info($"Tried to resize host to {size} which is below minimum size (render size) {baseRes}", MessageSource.Renderer);
                 return;
             }
-            
+
             Vector2 ratio = size / baseRes;
             Scale = MathF.Min(ratio.X, ratio.Y);
             IntScale = (int) MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
@@ -467,8 +468,6 @@ namespace Emotion.Graphics
             if (CurrentState.Shader == null) return;
             PerfProfiler.FrameEventStart("ShaderSync");
 
-            currentShader.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, CurrentTarget.Size.X, CurrentTarget.Size.Y, 0, NearZ, FarZ));
-
             SyncModelMatrix();
             SyncViewMatrix();
 
@@ -497,6 +496,7 @@ namespace Emotion.Graphics
             if (!Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault())
             {
                 CurrentState.Shader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
+                CurrentState.Shader.SetUniformMatrix4("projectionMatrix", CameraBase.GetDefault2DProjection());
                 return;
             }
 
@@ -504,11 +504,13 @@ namespace Emotion.Graphics
             if (DebugCamera != null)
             {
                 CurrentState.Shader.SetUniformMatrix4("viewMatrix", DebugCamera.ViewMatrix);
+                CurrentState.Shader.SetUniformMatrix4("projectionMatrix", DebugCamera.GetProjection());
                 return;
             }
 #endif
 
             CurrentState.Shader.SetUniformMatrix4("viewMatrix", Camera.ViewMatrix);
+            CurrentState.Shader.SetUniformMatrix4("projectionMatrix", Camera.GetProjection());
         }
 
         /// <summary>
@@ -554,6 +556,7 @@ namespace Emotion.Graphics
         #region Debug Functionality
 
         private static Gl.DebugProc _glDebugCallback = GlDebugCallback;
+
         private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
         {
             var stringMessage = new string((sbyte*) message, 0, length);
