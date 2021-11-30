@@ -261,7 +261,7 @@ namespace Emotion.Graphics
             BlitState.AlphaBlending = false;
             BlitState.DepthTest = false;
             BlitState.ViewMatrix = false;
-            BlitState.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml").Shader;
+            BlitState.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml")!.Shader;
 
             // Create render stream. This is used for IM-like rendering.
             RenderStream = new RenderStreamBatch<VertexData>();
@@ -492,11 +492,34 @@ namespace Emotion.Graphics
         /// </summary>
         private void SyncViewMatrix()
         {
+            bool viewMatrixEnabled = Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault();
+
+            CameraBase cameraToGetProjectionFrom = Camera;
+#if DEBUG
+            // todo: Debug camera 3d
+            if (DebugCamera != null) cameraToGetProjectionFrom = DebugCamera;
+#endif
+
+            Matrix4x4 projectionMatrix;
+            switch (Engine.Renderer.CurrentState.ProjectionBehavior.GetValueOrDefault())
+            {
+                default:
+                case ProjectionBehavior.AlwaysCameraProjection:
+                case ProjectionBehavior.AutoCamera when viewMatrixEnabled:
+                    projectionMatrix = cameraToGetProjectionFrom.GetProjection();
+                    break;
+                case ProjectionBehavior.AlwaysDefault2D:
+                case ProjectionBehavior.AutoCamera: // when !viewMatrixEnabled:
+                    projectionMatrix = CameraBase.GetDefault2DProjection();
+                    break;
+            }
+
+            CurrentState.Shader.SetUniformMatrix4("projectionMatrix", projectionMatrix);
+
             // Check if the view matrix is off.
             if (!Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault())
             {
                 CurrentState.Shader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
-                CurrentState.Shader.SetUniformMatrix4("projectionMatrix", CameraBase.GetDefault2DProjection());
                 return;
             }
 
@@ -504,13 +527,11 @@ namespace Emotion.Graphics
             if (DebugCamera != null)
             {
                 CurrentState.Shader.SetUniformMatrix4("viewMatrix", DebugCamera.ViewMatrix);
-                CurrentState.Shader.SetUniformMatrix4("projectionMatrix", DebugCamera.GetProjection());
                 return;
             }
 #endif
 
             CurrentState.Shader.SetUniformMatrix4("viewMatrix", Camera.ViewMatrix);
-            CurrentState.Shader.SetUniformMatrix4("projectionMatrix", Camera.GetProjection());
         }
 
         /// <summary>

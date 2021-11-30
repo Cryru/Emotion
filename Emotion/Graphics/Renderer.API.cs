@@ -46,7 +46,7 @@ namespace Emotion.Graphics
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
         public void RenderVertices(Vector3[] verts, params Color[] colors)
         {
-            var vertCount = (uint)verts.Length;
+            var vertCount = (uint) verts.Length;
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
             Debug.Assert(vertices != null);
 
@@ -206,6 +206,17 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Set the preferred behavior of the projection matrix.
+        /// </summary>
+        /// <param name="behavior">The behavior of which projection matrix to apply.</param>
+        public void SetProjectionBehavior(ProjectionBehavior behavior)
+        {
+            FlushRenderStream();
+            CurrentState.ProjectionBehavior = behavior;
+            SyncViewMatrix();
+        }
+
+        /// <summary>
         /// Set whether to use alpha blending.
         /// This causes transparent objects to blend their colors when drawn on top of each other.
         /// </summary>
@@ -307,10 +318,10 @@ namespace Emotion.Graphics
             {
                 Gl.Enable(EnableCap.ScissorTest);
                 Rectangle c = clip.Value;
-                Gl.Scissor((int)c.X,
-                    (int)(Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
-                    (int)c.Width,
-                    (int)c.Height);
+                Gl.Scissor((int) c.X,
+                    (int) (Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
+                    (int) c.Width,
+                    (int) c.Height);
             }
 
             Engine.Renderer.CurrentState.ClipRect = clip;
@@ -339,8 +350,8 @@ namespace Emotion.Graphics
             PerfProfiler.FrameEventEnd("ShaderSet");
 
             PerfProfiler.FrameEventStart("Depth/Stencil/Blend Set");
-            if (newState.DepthTest != null && (force || newState.DepthTest != currentState.DepthTest)) SetDepthTest((bool)newState.DepthTest);
-            if (newState.StencilTest != null && (force || newState.StencilTest != currentState.StencilTest)) SetStencilTest((bool)newState.StencilTest);
+            if (newState.DepthTest != null && (force || newState.DepthTest != currentState.DepthTest)) SetDepthTest((bool) newState.DepthTest);
+            if (newState.StencilTest != null && (force || newState.StencilTest != currentState.StencilTest)) SetStencilTest((bool) newState.StencilTest);
             if (newState.SFactorRgb != null && newState.SFactorRgb != currentState.SFactorRgb ||
                 newState.DFactorRgb != null && newState.DFactorRgb != currentState.DFactorRgb ||
                 newState.SFactorA != null && newState.SFactorA != currentState.SFactorA ||
@@ -350,11 +361,14 @@ namespace Emotion.Graphics
                     newState.DFactorRgb ?? currentState.DFactorRgb!.Value,
                     newState.SFactorA ?? currentState.SFactorA!.Value,
                     newState.DFactorA ?? currentState.DFactorA!.Value);
-            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != currentState.AlphaBlending)) SetAlphaBlend((bool)newState.AlphaBlending);
+            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != currentState.AlphaBlending)) SetAlphaBlend((bool) newState.AlphaBlending);
             PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
 
             PerfProfiler.FrameEventStart("View/Clip Set");
-            if (newState.ViewMatrix != null && (force || newState.ViewMatrix != currentState.ViewMatrix)) SetUseViewMatrix((bool)newState.ViewMatrix);
+            if (force || newState.ViewMatrix != null && newState.ViewMatrix != currentState.ViewMatrix)
+                SetUseViewMatrix((bool) newState.ViewMatrix);
+            if (force || newState.ProjectionBehavior != null && newState.ProjectionBehavior != currentState.ProjectionBehavior)
+                SetProjectionBehavior((ProjectionBehavior) newState.ProjectionBehavior);
             if (force || newState.ClipRect != currentState.ClipRect) SetClipRect(newState.ClipRect);
             PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
         }

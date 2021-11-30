@@ -8,6 +8,28 @@ using OpenGL;
 
 namespace Emotion.Graphics
 {
+    /// <summary>
+    /// The kind of projection matrix to use.
+    /// </summary>
+    public enum ProjectionBehavior
+    {
+        /// <summary>
+        /// When the view matrix is enabled, the camera's projection is used,
+        /// otherwise the default 2d projection is used.
+        /// </summary>
+        AutoCamera,
+
+        /// <summary>
+        /// Always use the default 2d projection.
+        /// </summary>
+        AlwaysDefault2D,
+
+        /// <summary>
+        /// Always use the camera projection, even if disabled.
+        /// </summary>
+        AlwaysCameraProjection
+    }
+
     public class RenderState
     {
         public bool? AlphaBlending;
@@ -20,6 +42,7 @@ namespace Emotion.Graphics
         public bool? StencilTest;
         public Rectangle? ClipRect;
         public bool? ViewMatrix;
+        public ProjectionBehavior? ProjectionBehavior;
 
         public ShaderProgram Shader;
 
@@ -37,7 +60,8 @@ namespace Emotion.Graphics
             SFactorA = BlendingFactor.One,
             DFactorA = BlendingFactor.OneMinusSrcAlpha,
             Shader = ShaderFactory.DefaultProgram,
-            ViewMatrix = true
+            ViewMatrix = true,
+            ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera
         };
 
         /// <summary>
@@ -56,7 +80,8 @@ namespace Emotion.Graphics
                 SFactorA = SFactorA,
                 DFactorA = DFactorA,
                 Shader = Shader,
-                ViewMatrix = ViewMatrix
+                ViewMatrix = ViewMatrix,
+                ProjectionBehavior = ProjectionBehavior
             };
         }
     }

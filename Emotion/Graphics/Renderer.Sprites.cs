@@ -106,19 +106,24 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a line in projected screen space. This allows for more accurate lines, with a visible Z dimension.
         /// </summary>
-        public void RenderLineScreenSpace(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool centerLine = false)
+        public void RenderLineScreenSpace(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool centerLine = false, bool snapToPixel = true)
         {
             if (thickness < 1.0f) thickness = 1.0f;
 
-            bool? old = CurrentState.ViewMatrix;
+            bool old = CurrentState.ViewMatrix!.Value;
             SetUseViewMatrix(false);
+            ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
+            SetProjectionBehavior(ProjectionBehavior.AlwaysCameraProjection);
 
             pointOne = Vector3.Transform(pointOne, Camera.ViewMatrix * ModelMatrix);
             pointTwo = Vector3.Transform(pointTwo, Camera.ViewMatrix * ModelMatrix);
             PushModelMatrix(Matrix4x4.Identity, false);
 
-            pointOne = pointOne.IntCastRound();
-            pointTwo = pointTwo.IntCastRound();
+            if (snapToPixel)
+            {
+                pointOne = pointOne.IntCastRound();
+                pointTwo = pointTwo.IntCastRound();
+            }
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
             var normal = new Vector3(-direction.Y, direction.X, 0);
@@ -144,7 +149,8 @@ namespace Emotion.Graphics
             }
 
             PopModelMatrix();
-            SetUseViewMatrix(old ?? true);
+            SetUseViewMatrix(old);
+            SetProjectionBehavior(oldProjection);
         }
 
         /// <summary>
