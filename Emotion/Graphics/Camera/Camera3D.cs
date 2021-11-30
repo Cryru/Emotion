@@ -25,8 +25,9 @@ namespace Emotion.Graphics.Camera
         private float _fieldOfView = 45;
 
         // Debug camera movement.
+        public float DebugMovementSpeed = 3;
         private Vector2 _lastMousePos;
-        private Vector3 _yawPitchRoll = Vector3.Zero; // todo: First click changes look at a lot.
+        private Vector3 _yawPitchRoll = Vector3.Zero;
 
         public Camera3D(Vector3 position, float zoom = 1) : base(position, zoom)
         {
@@ -35,8 +36,24 @@ namespace Emotion.Graphics.Camera
         /// <inheritdoc />
         public override void Update()
         {
-            Vector2 mousePos = Engine.Host.MousePosition;
+        }
 
+        protected override void LookAtChanged(Vector3 oldVal, Vector3 newVal)
+        {
+            float pitch = MathF.Asin(newVal.Y);
+            float yaw;
+            if (newVal.Z < 0)
+                yaw = MathF.PI + MathF.Atan2(-newVal.Z, -newVal.X);
+            else
+                yaw = MathF.Atan2(newVal.Z, newVal.X);
+
+            _yawPitchRoll = new Vector3(Maths.RadiansToDegrees(yaw), Maths.RadiansToDegrees(pitch), 0);
+            base.LookAtChanged(oldVal, newVal);
+        }
+
+        public void DefaultMovementLogicUpdate()
+        {
+            Vector2 mousePos = Engine.Host.MousePosition;
             if (Engine.Host.IsKeyHeld(Key.MouseKeyLeft))
             {
                 float xOffset = _lastMousePos.X - mousePos.X;
@@ -51,9 +68,8 @@ namespace Emotion.Graphics.Camera
                     Z = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Y))
                 };
                 direction = Vector3.Normalize(direction);
-                Engine.Renderer.Camera.LookAt = direction;
+                _lookAt = direction;
             }
-
             _lastMousePos = mousePos;
 
             float dirX = 0;
@@ -68,8 +84,9 @@ namespace Emotion.Graphics.Camera
 
             Vector3 movementStraightBack = Engine.Renderer.Camera.LookAt * dirX;
             Vector3 movementSide = Vector3.Normalize(Vector3.Cross(new Vector3(0, -dirY, 0), Engine.Renderer.Camera.LookAt));
-            if (!float.IsNaN(movementStraightBack.X)) Engine.Renderer.Camera.Position += movementStraightBack * 3;
-            if (!float.IsNaN(movementSide.X)) Engine.Renderer.Camera.Position += movementSide * 3;
+            if (!float.IsNaN(movementStraightBack.X)) Engine.Renderer.Camera.Position += movementStraightBack * DebugMovementSpeed;
+            if (!float.IsNaN(movementSide.X)) Engine.Renderer.Camera.Position += movementSide * DebugMovementSpeed;
+            // todo: interpolate.
 
             Engine.Renderer.Camera.RecreateMatrix();
         }

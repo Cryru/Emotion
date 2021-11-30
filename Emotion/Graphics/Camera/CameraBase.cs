@@ -24,6 +24,7 @@ namespace Emotion.Graphics.Camera
             get => _lookAt;
             set
             {
+                LookAtChanged(_lookAt, value);
                 _lookAt = value;
                 RecreateMatrix();
             }
@@ -70,10 +71,9 @@ namespace Emotion.Graphics.Camera
         protected CameraBase(Vector3 position, float zoom = 1f)
         {
             Position = position;
-            Zoom = zoom;
-
+            _zoom = zoom;
+            LookAtChanged(Vector3.Zero, _lookAt);
             RecreateMatrix();
-
             OnMove += (s, e) => { RecreateMatrix(); };
         }
 
@@ -128,6 +128,15 @@ namespace Emotion.Graphics.Camera
         {
             return GetDefault2DProjection();
         }
+
+        #region Events
+
+        protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
+        {
+
+        }
+
+        #endregion
 
         /// <summary>
         /// Get the default 2d projection matrix for the currently bound framebuffer.
