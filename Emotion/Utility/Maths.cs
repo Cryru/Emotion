@@ -297,6 +297,22 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Clamp a radian value to 0-pi*2 (360)
+        /// </summary>
+        public static float ClampRadians(float angle)
+        {
+            return Repeat(angle, TWO_PI);
+        }
+
+        /// <summary>
+        /// Clamp an angle to 0-360.
+        /// </summary>
+        public static float ClampAngle(float angle)
+        {
+            return Repeat(angle, 360);
+        }
+
+        /// <summary>
         /// Performs a Hermite spline interpolation using the specified floats.
         /// </summary>
         /// <param name="value1"></param>

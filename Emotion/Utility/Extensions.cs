@@ -321,6 +321,15 @@ namespace System.Numerics
         {
             return new Vector2(MathF.Pow(me.X, pow), MathF.Pow(me.Y, pow));
         }
+
+        /// <summary>
+        /// Returns a vector in the same direction, but with a length of 1.
+        /// If the vector is zero, zero is returned.
+        /// </summary>
+        public static Vector3 Normalize(this Vector3 v)
+        {
+            return v == Vector3.Zero ? v : Vector3.Normalize(v);
+        }
     }
 }
 
