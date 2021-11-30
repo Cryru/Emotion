@@ -35,6 +35,10 @@ Rodrigo (Yuzu)
 
 Tear
 
+Jkr
+
+graphite
+
 # Game Industry People:
 
 Jack "Mailman" Benson

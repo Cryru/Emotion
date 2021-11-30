@@ -19,7 +19,7 @@ namespace Emotion.Tools.Windows
     {
         // ReSharper disable once CollectionNeverUpdated.Global
         public static Dictionary<string, Action<WindowManager>> CustomTools = new Dictionary<string, Action<WindowManager>>();
-        public static WindowManager ToolsWindowManager;
+        public static WindowManager ToolsWindowManager = new WindowManager();
 
         public static void RenderToolsMenu(this RenderComposer composer, WindowManager manager)
         {
@@ -38,6 +38,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.MenuItem("Palette Editor")) manager.AddWindow(new PaletteEditor());
                 if (ImGui.MenuItem("Font Preview")) manager.AddWindow(new FontPreview());
                 if (ImGui.MenuItem("PNG Exporter")) manager.AddWindow(new PngExporter());
+                if (ImGui.MenuItem("3D Object Viewer")) manager.AddWindow(new Viewer3D());
                 ImGui.EndMenu();
             }
 
@@ -75,8 +76,6 @@ namespace Emotion.Tools.Windows
 
         public static void RenderToolsMenu(this RenderComposer composer)
         {
-            if (ToolsWindowManager == null) ToolsWindowManager = new WindowManager();
-
             composer.SetDepthTest(false);
             composer.SetUseViewMatrix(false);
 
