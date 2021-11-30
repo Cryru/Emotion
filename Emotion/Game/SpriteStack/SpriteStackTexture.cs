@@ -3,6 +3,7 @@
 using System;
 using System.Numerics;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utility;
@@ -17,12 +18,12 @@ namespace Emotion.Game.SpriteStack
         private byte[] _textureData;
         private PixelFormat _textureDataFormat;
 
-        public SpriteStackModel GetSpriteStackModel(Vector2 frameSize)
+        public MeshEntity GetSpriteStackEntity(Vector2 frameSize)
         {
             Vector2 size = Texture.Size;
-            var frameWidth = (int)frameSize.X;
-            var frameHeight = (int)frameSize.Y;
-            var frameCount = (int)(size.X / frameWidth);
+            var frameWidth = (int) frameSize.X;
+            var frameHeight = (int) frameSize.Y;
+            var frameCount = (int) (size.X / frameWidth);
 
             var frames = new SpriteStackFrame[frameCount];
             for (var i = 0; i < frameCount; i++)
@@ -38,8 +39,8 @@ namespace Emotion.Game.SpriteStack
                 if (c.A == 0) continue;
 
                 int pixelIdx = i / 4;
-                int x = pixelIdx % (int)size.X;
-                int y = pixelIdx / (int)size.X;
+                int x = pixelIdx % (int) size.X;
+                int y = pixelIdx / (int) size.X;
                 int frame = x / frameWidth;
 
                 int frameStart = frame * frameWidth;
@@ -74,7 +75,7 @@ namespace Emotion.Game.SpriteStack
                             break;
                         }
 
-                        var oneDeeCoord = (int)(otherPixel.Y * frameWidth + otherPixel.X);
+                        var oneDeeCoord = (int) (otherPixel.Y * frameWidth + otherPixel.X);
                         Color otherC = frame.Pixels[oneDeeCoord];
                         if (otherC.A < 255)
                         {
@@ -190,7 +191,7 @@ namespace Emotion.Game.SpriteStack
                     int indexOffset = pixelCount * 8;
                     for (var k = 0; k < thisPixelIndices.Length; k++)
                     {
-                        thisPixelIndices[k] = (ushort)(thisPixelIndices[k] + indexOffset);
+                        thisPixelIndices[k] = (ushort) (thisPixelIndices[k] + indexOffset);
                     }
 
                     int x = pIdx % frameWidth;
@@ -206,7 +207,12 @@ namespace Emotion.Game.SpriteStack
                 }
             }
 
-            return new SpriteStackModel(frames, frameWidth, frameHeight);
+            var spriteStackEntity = new MeshEntity
+            {
+                Name = Name,
+                Meshes = frames
+            };
+            return spriteStackEntity;
         }
 
         protected override void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat format)

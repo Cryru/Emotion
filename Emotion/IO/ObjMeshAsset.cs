@@ -7,14 +7,10 @@ using System.IO;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Emotion.Common;
-using Emotion.Graphics;
-using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
-using Emotion.Primitives;
+using Emotion.Graphics.ThreeDee;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
-using OpenGL;
 
 #endregion
 
@@ -25,17 +21,12 @@ namespace Emotion.IO
     /// </summary>
     public class ObjMeshAsset : Asset
     {
-        public Dictionary<string, ObjFileSubObject> Objects;
-
-        public class ObjFileSubObject
+        public MeshEntity Entity
         {
-            public string ObjName;
-            public string GroupName;
-
-            public VertexData[] Vertices;
-            public ushort[] Indices;
-            public MtlAsset.MtlMaterial Material;
+            get => Entities != null && Entities.Length > 0 ? Entities[0] : null;
         }
+
+        public MeshEntity[] Entities { get; protected set; }
 
         private class ObjFileBuildingSubObject
         {
@@ -58,7 +49,7 @@ namespace Emotion.IO
             public List<VertexData> VertexData;
             public List<ushort> VertexDataIndices;
 
-            public MtlAsset.MtlMaterial Material;
+            public MeshMaterial Material;
 
             public void Init()
             {
@@ -72,7 +63,6 @@ namespace Emotion.IO
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
-            //var objectBuild = new List<ObjFileBuildingSubObject>();
             var groupBuild = new List<ObjFileBuildingGroup>();
 
             // Read the file.
@@ -170,7 +160,7 @@ namespace Emotion.IO
                             currentGroup.VertexDataIndices.Add((ushort) currentGroup.VertexData.Count);
                             var vtxData = new VertexData
                             {
-                                Color = (currentGroup.Material?.DiffuseColor ?? MtlAsset.MtlMaterial.DefaultMaterial.DiffuseColor).ToUint()
+                                Color = (currentGroup.Material?.DiffuseColor ?? MeshMaterial.DefaultMaterial.DiffuseColor).ToUint()
                             };
 
                             // v/vt, v/vt/vn, v//vn
@@ -204,72 +194,52 @@ namespace Emotion.IO
             }
 
             // Process objects into Emotion readable format.
-            Objects = new Dictionary<string, ObjFileSubObject>();
+            var validEntitiesAndMeshes = new Dictionary<string, List<ObjFileBuildingGroup>>();
             for (var i = 0; i < groupBuild.Count; i++)
             {
                 ObjFileBuildingGroup obj = groupBuild[i];
                 if (obj.VertexDataIndices == null) continue;
 
-                var newObj = new ObjFileSubObject
-                {
-                    GroupName = obj.GroupName,
-                    ObjName = obj.ObjName,
-                    Vertices = obj.VertexData.ToArray(),
-                    Indices = obj.VertexDataIndices.ToArray(),
-                    Material = obj.Material
-                };
-                for (var v = 0; v < newObj.Vertices.Length; v++)
-                {
-                    Vector2 uv = newObj.Vertices[v].UV;
-                    newObj.Vertices[v].UV = new Vector2(uv.X, 1.0f - uv.Y);
-                }
-
-                Objects.Add($"{newObj.GroupName}@{newObj.ObjName}", newObj);
+                if (validEntitiesAndMeshes.TryGetValue(obj.ObjName, out List<ObjFileBuildingGroup> meshes))
+                    meshes.Add(obj);
+                else
+                    validEntitiesAndMeshes.Add(obj.ObjName, new List<ObjFileBuildingGroup> {obj});
             }
-        }
 
-        public void DebugDraw(RenderComposer c)
-        {
-            c.FarZ = 10000;
-            c.SetUseViewMatrix(false);
-            c.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
-            c.SetUseViewMatrix(true);
-            c.ClearDepth();
-
-            // These need to be rendered with the camera's projection.
-            // todo: camera projection state, smart: when camera is on use camera, else default, off always use default, on always use camera.
-            // c.RenderLineScreenSpace(new Vector3(short.MinValue, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red);
-            // c.RenderLineScreenSpace(new Vector3(0, short.MinValue, 0), new Vector3(0, short.MaxValue, 0), Color.Green);
-            // c.RenderLineScreenSpace(new Vector3(0, 0, short.MinValue), new Vector3(0, 0, short.MaxValue), Color.Blue);
-            c.FlushRenderStream();
-
-            // todo: culling state
-            Gl.Enable(EnableCap.CullFace);
-            Gl.CullFace(CullFaceMode.Back);
-            Gl.FrontFace(FrontFaceDirection.Ccw);
-
-            c.PushModelMatrix(Matrix4x4.CreateScale(30, 30, 30));
-            foreach (KeyValuePair<string, ObjFileSubObject> objPair in Objects)
+            Entities = new MeshEntity[validEntitiesAndMeshes.Count];
+            var entityIdx = 0;
+            foreach ((string entityName, List<ObjFileBuildingGroup> entityMeshes) in validEntitiesAndMeshes)
             {
-                ObjFileSubObject obj = objPair.Value;
-                VertexData[] vertData = obj.Vertices;
-                ushort[] indices = obj.Indices;
-                Texture texture = null;
-                if (obj.Material != null && obj.Material.Texture != null) texture = obj.Material.Texture;
-                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
-
-                vertData.CopyTo(memory.VerticesData);
-                indices.CopyTo(memory.IndicesData);
-
-                ushort structOffset = memory.StructIndex;
-                for (var j = 0; j < memory.IndicesData.Length; j++)
+                var entity = new MeshEntity
                 {
-                    memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
-                }
-            }
+                    Name = entityName,
+                    Meshes = new Mesh[entityMeshes.Count]
+                };
 
-            c.PopModelMatrix();
-            Gl.Disable(EnableCap.CullFace);
+                for (var i = 0; i < entityMeshes.Count; i++)
+                {
+                    ObjFileBuildingGroup builtMesh = entityMeshes[i];
+                    var mesh = new Mesh
+                    {
+                        Name = builtMesh.GroupName,
+                        Vertices = builtMesh.VertexData.ToArray(),
+                        Indices = builtMesh.VertexDataIndices.ToArray(),
+                        Material = builtMesh.Material
+                    };
+
+                    // Flip texture UVs.
+                    for (var v = 0; v < mesh.Vertices.Length; v++)
+                    {
+                        Vector2 uv = mesh.Vertices[v].UV;
+                        mesh.Vertices[v].UV = new Vector2(uv.X, 1.0f - uv.Y);
+                    }
+
+                    entity.Meshes[i] = mesh;
+                }
+
+                Entities[entityIdx] = entity;
+                entityIdx++;
+            }
         }
 
         protected override void DisposeInternal()

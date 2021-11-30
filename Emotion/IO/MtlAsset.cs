@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Emotion.Common;
-using Emotion.Graphics.Objects;
-using Emotion.Primitives;
+using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
 
 #endregion
@@ -15,18 +14,9 @@ namespace Emotion.IO
 {
     public class MtlAsset : Asset
     {
-        public class MtlMaterial
-        {
-            public string Name;
-            public Texture Texture;
-            public Color DiffuseColor = Color.White;
+        public List<MeshMaterial> Materials;
 
-            public static MtlMaterial DefaultMaterial = new MtlMaterial();
-        }
-
-        public List<MtlMaterial> Materials;
-
-        public MtlMaterial GetMaterial(string name)
+        public MeshMaterial GetMaterial(string name)
         {
             for (var i = 0; i < Materials.Count; i++)
             {
@@ -38,14 +28,14 @@ namespace Emotion.IO
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
-            Materials = new List<MtlMaterial>();
+            Materials = new List<MeshMaterial>();
 
             // Read the file.
             // todo: Use spans instead of splits.
             // https://en.wikipedia.org/wiki/Wavefront_.obj_file
             var stream = new ReadOnlyMemoryStream(data);
             var reader = new StreamReader(stream);
-            MtlMaterial currentMaterial = null;
+            MeshMaterial currentMaterial = null;
             while (!reader.EndOfStream)
             {
                 string currentLine = reader.ReadLine();
@@ -60,7 +50,7 @@ namespace Emotion.IO
                 {
                     case "newmtl":
                     {
-                        var newMat = new MtlMaterial
+                        var newMat = new MeshMaterial
                         {
                             Name = args[1]
                         };
@@ -77,8 +67,9 @@ namespace Emotion.IO
                         {
                             texture.Texture.Tile = true;
                             texture.Texture.Smooth = true;
-                            currentMaterial.Texture = texture?.Texture;
+                            currentMaterial.DiffuseTexture = texture.Texture;
                         }
+
                         break;
                     }
                 }

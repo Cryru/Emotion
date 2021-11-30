@@ -1,20 +1,12 @@
-﻿#region Using
-
-using System;
+﻿using System;
 using System.Numerics;
-using Emotion.Graphics;
-using Emotion.Graphics.Batches;
-using Emotion.Graphics.Data;
-using Emotion.Primitives;
 using Emotion.Utility;
 
-#endregion
-
-namespace Emotion.Game.SpriteStack
+namespace Emotion.Primitives
 {
-    public class SpriteStackModel : Transform, IRenderable
+    public class Transform3D : Transform
     {
-        public float Depth
+         public float Depth
         {
             get => _depth;
             set
@@ -32,7 +24,7 @@ namespace Emotion.Game.SpriteStack
             get
             {
                 if (_width == _height && _height == _depth) return _width;
-                return 0;
+                return float.NaN;
             }
             set
             {
@@ -86,48 +78,17 @@ namespace Emotion.Game.SpriteStack
             OnRotate?.Invoke(this, EventArgs.Empty);
         }
 
-        private Matrix4x4 _rotationMatrix;
-        private Matrix4x4 _scaleMatrix;
-        private Matrix4x4 _translationMatrix;
+        protected Matrix4x4 _rotationMatrix;
+        protected Matrix4x4 _scaleMatrix;
+        protected Matrix4x4 _translationMatrix;
 
-        public SpriteStackFrame[] Frames;
-        public int FrameWidth;
-        public int FrameHeight;
-
-        public SpriteStackModel(SpriteStackFrame[] frames, int frameWidth, int frameHeight)
+        public Transform3D()
         {
-            Frames = frames;
-            FrameWidth = frameWidth;
-            FrameHeight = frameHeight;
-
             _width = 1;
             _height = 1;
             Resized();
             Moved();
-        }
-
-        public void Render(RenderComposer c)
-        {
-            c.PushModelMatrix(_rotationMatrix * _scaleMatrix * _translationMatrix);
-
-            for (var i = 0; i < Frames.Length; i++)
-            {
-                SpriteStackFrame frame = Frames[i];
-                Span<VertexData> vertData = frame.Vertices;
-                Span<ushort> indices = frame.Indices;
-                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint)vertData.Length, (uint)indices.Length, BatchMode.SequentialTriangles);
-
-                vertData.CopyTo(memory.VerticesData);
-                indices.CopyTo(memory.IndicesData);
-
-                ushort structOffset = memory.StructIndex;
-                for (var j = 0; j < memory.IndicesData.Length; j++)
-                {
-                    memory.IndicesData[j] = (ushort)(memory.IndicesData[j] + structOffset);
-                }
-            }
-
-            c.PopModelMatrix();
+            Rotated();
         }
     }
 }
