@@ -50,7 +50,7 @@ namespace Emotion.Game.SpriteStack
             }
 
             // Convert the pixels to voxel cubes.
-            Vector3 center = new Vector3(frameWidth / 2, frameHeight / 2, frameCount / 2) * 2;
+            Vector3 center = new Vector3(frameWidth / 2, frameCount / 2, frameHeight / 2) * 2;
             for (var fIdx = 0; fIdx < frameCount; fIdx++)
             {
                 SpriteStackFrame frame = frames[fIdx];
@@ -195,9 +195,9 @@ namespace Emotion.Game.SpriteStack
                     }
 
                     int x = pIdx % frameWidth;
-                    int y = pIdx / frameWidth;
+                    int z = pIdx / frameWidth;
 
-                    var pixelPositionMatrix = Matrix4x4.CreateTranslation(x * 2 - center.X, y * 2 - center.Y, fIdx * 2 - center.Z);
+                    var pixelPositionMatrix = Matrix4x4.CreateTranslation(x * 2 - center.X, fIdx * 2 - center.Y, z * 2 - center.Z);
                     for (var iv = 0; iv < thisPixel.Length; iv++)
                     {
                         thisPixel[iv].Vertex = Vector3.Transform(thisPixel[iv].Vertex, pixelPositionMatrix);

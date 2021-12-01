@@ -81,6 +81,8 @@ namespace Emotion.Tools.Windows
             Vector3 rot = DisplayObject.RotationDeg;
             if (ImGui.DragFloat3("Rotation", ref rot)) DisplayObject.RotationDeg = rot;
 
+            RenderState oldState = c.CurrentState.Clone();
+            c.SetState(RenderState.Default);
             c.SetUseViewMatrix(false);
             c.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
             c.SetUseViewMatrix(true);
@@ -92,6 +94,7 @@ namespace Emotion.Tools.Windows
             c.FlushRenderStream();
 
             DisplayObject.Render(c);
+            c.SetState(oldState);
         }
     }
 }
