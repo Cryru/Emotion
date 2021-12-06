@@ -21,10 +21,19 @@ namespace Emotion.Game.Time
         protected float _timePassed;
         protected Action _function;
 
+#if DEBUG
+        private string _dbgTimerId;
+        private float _dbgLastUpdate;
+#endif
+
         public After(float delay, Action function = null)
         {
             Delay = delay;
             _function = function;
+
+#if DEBUG
+            _dbgTimerId = Guid.NewGuid().ToString();
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -42,6 +51,11 @@ namespace Emotion.Game.Time
                 End();
                 return;
             }
+
+#if DEBUG
+            if (_dbgLastUpdate == Engine.TotalTime) Engine.Log.Warning($"Timer {_dbgTimerId} is being updated twice in one tick.", "After.cs", true);
+            _dbgLastUpdate = Engine.TotalTime;
+#endif
 
             _timePassed += timePassed;
             if (_timePassed > Delay) _timePassed = Delay;
