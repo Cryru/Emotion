@@ -35,6 +35,11 @@ namespace Emotion.Game.Tiled
         public QuadTree<T> Objects { get; protected set; } = new QuadTree<T>(Rectangle.Empty);
 
         /// <summary>
+        /// The object layers that are spawned.
+        /// </summary>
+        public bool[]? SpawnedObjectLayers;
+
+        /// <summary>
         /// Reusable memory for querying the quad tree.
         /// </summary>
         protected List<T> _quadTreeQueryMemory = new List<T>();
@@ -72,10 +77,19 @@ namespace Emotion.Game.Tiled
 
             // Construct all objects.
             if (TiledMap!.ObjectLayers.Count > 0)
+            {
+                if(SpawnedObjectLayers == null || SpawnedObjectLayers.Length != TiledMap.ObjectLayers.Count)
+                    SpawnedObjectLayers = new bool[TiledMap.ObjectLayers.Count];
+
                 // For each layer with objects.
                 for (var i = 0; i < TiledMap.ObjectLayers.Count; i++)
                 {
-                    if (!ShouldSpawnObjectLayer(i)) continue;
+                    if (!ShouldSpawnObjectLayer(i))
+                    {
+                        SpawnedObjectLayers[i] = false;
+                        continue;
+                    }
+                    SpawnedObjectLayers[i] = true;
 
                     // For each object.
                     for (var j = 0; j < TiledMap.ObjectLayers[i].Objects.Count; j++)
@@ -84,6 +98,7 @@ namespace Emotion.Game.Tiled
                         CreateObjectInternal(objDef, i);
                     }
                 }
+            }
 
             // Construct all objects associated with tiles. These are usually collisions.
             for (var i = 0; i < TiledMap.TileLayers.Count; i++)
@@ -482,7 +497,7 @@ namespace Emotion.Game.Tiled
                     // Calculate tint and texture.
                     var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
                     TextureAsset? tileSet = Tilesets[tsId];
-                    if (tileSet != null) currentTextureCache![tileIdx] = tileSet.Texture;
+                    if (tileSet != null) currentTextureCache[tileIdx] = tileSet.Texture;
 
                     // Write to tilemap mesh.
                     VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
