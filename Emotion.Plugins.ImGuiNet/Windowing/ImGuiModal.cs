@@ -11,7 +11,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 {
     public abstract class ImGuiModal : ImGuiWindow
     {
-        private bool _popupOpen = false;
+        private bool _popupOpen;
 
         protected ImGuiModal(string title = "Untitled") : base(title)
         {

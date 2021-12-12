@@ -29,7 +29,6 @@ namespace Emotion.Tools.Windows
             MenuBar = true;
 
             DisplayObject = new Object3D();
-            Engine.Renderer.FarZ = 10_000;
             _oldCamera = Engine.Renderer.Camera;
             Engine.Renderer.Camera = new Camera3D(new Vector3(20, 50, 200));
             Engine.Renderer.Camera.LookAt = Vector3.Normalize(Vector3.Zero - Engine.Renderer.Camera.Position);
