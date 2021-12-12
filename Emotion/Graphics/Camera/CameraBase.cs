@@ -17,6 +17,35 @@ namespace Emotion.Graphics.Camera
         #region Properties
 
         /// <summary>
+        /// The FarZ clipping plane. All Z vertices past this wont be rendered.
+        /// </summary>
+        public float FarZ
+        {
+            get => _farZ;
+            set
+            {
+                _farZ = value;
+                RecreateProjectionMatrix();
+            }
+        }
+
+        private float _farZ = 100;
+
+        /// <summary>
+        /// The NearZ clipping plane. All Z vertices before this wont be rendered.
+        /// </summary>
+        public float NearZ
+        {
+            get => _nearZ;
+            set
+            {
+                _nearZ = value;
+                RecreateProjectionMatrix();
+            }
+        }
+        private float _nearZ = -100;
+
+        /// <summary>
         /// The direction (normalized) vector the camera is looking in.
         /// </summary>
         public Vector3 LookAt
@@ -26,7 +55,7 @@ namespace Emotion.Graphics.Camera
             {
                 LookAtChanged(_lookAt, value);
                 _lookAt = value;
-                RecreateMatrix();
+                RecreateViewMatrix();
             }
         }
 
@@ -41,7 +70,7 @@ namespace Emotion.Graphics.Camera
             set
             {
                 _zoom = value;
-                RecreateMatrix();
+                RecreateViewMatrix();
             }
         }
 
@@ -55,6 +84,11 @@ namespace Emotion.Graphics.Camera
         /// The camera's matrix.
         /// </summary>
         public Matrix4x4 ViewMatrix { get; protected set; } = Matrix4x4.Identity;
+
+        /// <summary>
+        /// The camera's projection matrix.
+        /// </summary>
+        public Matrix4x4 ProjectionMatrix { get; protected set; } = Matrix4x4.Identity;
 
         /// <summary>
         /// The camera's matrix without scaling applied.
@@ -73,8 +107,9 @@ namespace Emotion.Graphics.Camera
             Position = position;
             _zoom = zoom;
             LookAtChanged(Vector3.Zero, _lookAt);
-            RecreateMatrix();
-            OnMove += (s, e) => { RecreateMatrix(); };
+            RecreateViewMatrix();
+            RecreateProjectionMatrix();
+            OnMove += (s, e) => { RecreateViewMatrix(); };
         }
 
         /// <summary>
@@ -83,9 +118,17 @@ namespace Emotion.Graphics.Camera
         public abstract void Update();
 
         /// <summary>
-        /// Recreates the view matrix of the camera and updates it for the renderer.
+        /// Recreates the view matrix of the camera.
         /// </summary>
-        public abstract void RecreateMatrix();
+        public abstract void RecreateViewMatrix();
+
+        /// <summary>
+        /// Recreates the projection matrix of the camera.
+        /// </summary>
+        public virtual void RecreateProjectionMatrix()
+        {
+            ProjectionMatrix = GetDefault2DProjection(NearZ, FarZ);
+        }
 
         /// <summary>
         /// Transforms a point through the viewMatrix converting it from screen space to world space.
@@ -120,15 +163,6 @@ namespace Emotion.Graphics.Camera
             );
         }
 
-        /// <summary>
-        /// Get the projection matrix of the camera.
-        /// </summary>
-        /// <returns></returns>
-        public virtual Matrix4x4 GetProjection()
-        {
-            return GetDefault2DProjection();
-        }
-
         #region Events
 
         protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
@@ -142,10 +176,10 @@ namespace Emotion.Graphics.Camera
         /// Get the default 2d projection matrix for the currently bound framebuffer.
         /// </summary>
         /// <returns></returns>
-        public static Matrix4x4 GetDefault2DProjection()
+        public static Matrix4x4 GetDefault2DProjection(float nearZ = -100, float farZ = 100)
         {
             RenderComposer renderer = Engine.Renderer;
-            return Matrix4x4.CreateOrthographicOffCenter(0, renderer.CurrentTarget.Size.X, renderer.CurrentTarget.Size.Y, 0, renderer.NearZ, renderer.FarZ);
+            return Matrix4x4.CreateOrthographicOffCenter(0, renderer.CurrentTarget.Size.X, renderer.CurrentTarget.Size.Y, 0, nearZ, farZ);
         }
 
         /// <summary>

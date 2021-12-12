@@ -11,14 +11,14 @@ namespace Emotion.Graphics.Camera
     /// 2D camera for non-pixel art games.
     /// Scales using the renderer "Scale" property.
     /// </summary>
-    public class TrueScaleCamera : CameraBase
+    public class FloatScaleCamera2d : CameraBase
     {
-        public TrueScaleCamera(Vector3 position, float zoom = 1f) : base(position, zoom)
+        public FloatScaleCamera2d(Vector3 position, float zoom = 1f) : base(position, zoom)
         {
         }
 
         /// <inheritdoc />
-        public override void RecreateMatrix()
+        public override void RecreateViewMatrix()
         {
             var iX = (int) X;
             var iY = (int) Y;

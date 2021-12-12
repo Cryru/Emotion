@@ -18,7 +18,7 @@ namespace Emotion.Graphics.Camera
             set
             {
                 _fieldOfView = value;
-                RecreateMatrix();
+                RecreateProjectionMatrix();
             }
         }
 
@@ -31,6 +31,8 @@ namespace Emotion.Graphics.Camera
 
         public Camera3D(Vector3 position, float zoom = 1) : base(position, zoom)
         {
+            NearZ = 0.1f;
+            FarZ = 10_000;
         }
 
         /// <inheritdoc />
@@ -88,11 +90,11 @@ namespace Emotion.Graphics.Camera
             if (!float.IsNaN(movementSide.X)) Engine.Renderer.Camera.Position += movementSide * DebugMovementSpeed;
             // todo: interpolate.
 
-            Engine.Renderer.Camera.RecreateMatrix();
+            Engine.Renderer.Camera.RecreateViewMatrix();
         }
 
         /// <inheritdoc />
-        public override void RecreateMatrix()
+        public override void RecreateViewMatrix()
         {
             Vector3 pos = Position;
             ViewMatrixUnscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, new Vector3(0.0f, 1.0f, 0.0f));
@@ -100,11 +102,11 @@ namespace Emotion.Graphics.Camera
         }
 
         /// <inheritdoc />
-        public override Matrix4x4 GetProjection()
+        public override void RecreateProjectionMatrix()
         {
             RenderComposer renderer = Engine.Renderer;
             float aspectRatio = renderer.CurrentTarget.Size.X / renderer.CurrentTarget.Size.Y;
-            return Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(renderer.NearZ, 0.1f, renderer.FarZ), renderer.FarZ);
+            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
         }
     }
 }

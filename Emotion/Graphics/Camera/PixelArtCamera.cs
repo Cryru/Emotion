@@ -23,7 +23,7 @@ namespace Emotion.Graphics.Camera
         }
 
         /// <inheritdoc />
-        public override void RecreateMatrix()
+        public override void RecreateViewMatrix()
         {
             var iX = (int) X;
             var iY = (int) Y;

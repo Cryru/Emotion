@@ -47,16 +47,6 @@ namespace Emotion.Graphics
         private bool _vSync = true;
 
         /// <summary>
-        /// The positive cut off of the camera.
-        /// </summary>
-        public float FarZ = 100; // todo: Move this and NearZ to camera.
-
-        /// <summary>
-        /// The negative cut off of the camera.
-        /// </summary>
-        public float NearZ = -100;
-
-        /// <summary>
         /// The maximum number of indices in the default Ibo buffers.
         /// </summary>
         public const uint MAX_INDICES = ushort.MaxValue;
@@ -103,7 +93,17 @@ namespace Emotion.Graphics
         /// <summary>
         /// The camera active in the scene.
         /// </summary>
-        public CameraBase Camera;
+        public CameraBase Camera
+        {
+            get => _camera;
+            set
+            {
+                _camera = value;
+                _camera.RecreateProjectionMatrix();
+            }
+        }
+
+        private CameraBase _camera;
 
 #if DEBUG
         /// <summary>
@@ -325,7 +325,8 @@ namespace Emotion.Graphics
 
             ScreenBuffer.Resize(size);
             DrawBuffer.Resize(drawBufferSize, true);
-            Camera?.RecreateMatrix();
+            Camera?.RecreateViewMatrix();
+            Camera?.RecreateProjectionMatrix();
             ApplySettings();
         }
 
@@ -506,7 +507,7 @@ namespace Emotion.Graphics
                 default:
                 case ProjectionBehavior.AlwaysCameraProjection:
                 case ProjectionBehavior.AutoCamera when viewMatrixEnabled:
-                    projectionMatrix = cameraToGetProjectionFrom.GetProjection();
+                    projectionMatrix = cameraToGetProjectionFrom.ProjectionMatrix;
                     break;
                 case ProjectionBehavior.AlwaysDefault2D:
                 case ProjectionBehavior.AutoCamera: // when !viewMatrixEnabled:
@@ -542,6 +543,7 @@ namespace Emotion.Graphics
             // Happens on initialization.
             if (CurrentTarget == null) return;
 
+            Camera.RecreateProjectionMatrix();
             CurrentTarget.Bind();
             SyncShader();
         }
