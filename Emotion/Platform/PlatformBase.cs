@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Common;
@@ -289,6 +290,17 @@ namespace Emotion.Platform
         #endregion
 
         #region Library API
+
+        /// <summary>
+        /// Associate a native library with a C# assembly.
+        /// </summary>
+        /// <param name="ass">The assembly to associate the library with.</param>
+        /// <param name="libraryFolder">The path to the library. This is somewhat platform dependant and somewhat case sensitive</param>
+        /// <param name="importName">The string used by DllImport to reference this library.</param>
+        public virtual void AssociateAssemblyWithNativeLibrary(Assembly ass, string libraryFolder, string importName)
+        {
+            // nop
+        }
 
         /// <summary>
         /// Load a native library.

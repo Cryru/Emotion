@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
@@ -109,8 +110,15 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// </summary>
         public const string DESKTOP_NATIVE_LIB_FOLDER = "AssetsNativeLibs";
 
+        /// <inheritdoc />
+        public override void AssociateAssemblyWithNativeLibrary(Assembly ass, string libraryFolder, string importName)
+        {
+            string libraryPath = AppendPlatformIdentifierAndExtension(libraryFolder, importName);
+            NativeLibrary.SetDllImportResolver(ass, (_, _, _) => Engine.Host.LoadLibrary(libraryPath));
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string AppendPlatformIdentifierAndExtension(string libFolder, string libName)
+        private string AppendPlatformIdentifierAndExtension(string libFolder, string libName)
         {
             return Path.Join(DESKTOP_NATIVE_LIB_FOLDER, libFolder, _platformIdentifier, $"{libName}{_platformExtension}");
         }

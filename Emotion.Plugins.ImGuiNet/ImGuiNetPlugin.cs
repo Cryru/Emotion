@@ -90,9 +90,7 @@ namespace Emotion.Plugins.ImGuiNet
             }
 
             // Resolve native library through the Emotion platform.
-            var libName = "cimgui";
-            if (Engine.Host is DesktopPlatform desktop) libName = desktop.AppendPlatformIdentifierAndExtension("Cimgui", "cimgui");
-            NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, (_, _, _) => Engine.Host == null ? IntPtr.Zero : Engine.Host.LoadLibrary(libName));
+            Engine.Host.AssociateAssemblyWithNativeLibrary(typeof(ImGui).Assembly, "Cimgui", "cimgui");
 
             // Create render state for ImGui drawing.
             _imGuiState = new RenderState
@@ -229,6 +227,7 @@ namespace Emotion.Plugins.ImGuiNet
         public static unsafe void RenderUI(RenderComposer composer)
         {
             composer.PushModelMatrix(Matrix4x4.CreateScale(ImGuiScale));
+            RenderState previousState = composer.CurrentState.Clone();
             composer.SetState(_imGuiState);
 
             // Get render data from imgui.
@@ -284,7 +283,7 @@ namespace Emotion.Plugins.ImGuiNet
             }
 
             composer.PopModelMatrix();
-            composer.SetState(RenderState.Default);
+            composer.SetState(previousState);
         }
 
         #region Font Helpers
