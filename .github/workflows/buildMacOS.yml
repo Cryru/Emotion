@@ -16,7 +16,7 @@ jobs:
       run: |
         cd ./Tests
         dotnet publish Tests.csproj /p:PublishProfile=Properties/PublishProfiles/OSX64
-        cd ./bin/osx
+        cd ./bin/osx64
         ls .
         ./Tests
     - name: Upload Test Artifact
