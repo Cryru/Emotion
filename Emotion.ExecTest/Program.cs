@@ -36,8 +36,6 @@ namespace Emotion.ExecTest
         {
             Engine.Renderer.Camera.X += _dirX * 1 * Engine.DeltaTime;
             Engine.Renderer.Camera.Y += _dirY * 1 * Engine.DeltaTime;
-
-            Engine.Renderer.Camera.RecreateMatrix();
         }
 
         public void Draw(RenderComposer composer)
