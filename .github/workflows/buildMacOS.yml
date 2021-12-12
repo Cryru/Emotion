@@ -14,9 +14,8 @@ jobs:
         dotnet build -c DebugUnix64
     - name: Run Tests
       run: |
-        cd ./Tests/bin/Debug/net5.0
-        ls .
-        ./Tests
+        cd ./Tests/
+        dotnet run
     - name: Upload Test Artifact
       if: always()
       uses: actions/upload-artifact@master
