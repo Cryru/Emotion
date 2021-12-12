@@ -274,7 +274,7 @@ namespace Emotion.UI
 
             if (newMouseFocus == null)
             {
-                newMouseFocus = Engine.Host.HostPaused ? null : FindMouseInput(mousePos);
+                newMouseFocus = Engine.Host.HostPaused || InputTransparent ? null : FindMouseInput(mousePos);
                 if (newMouseFocus == this) newMouseFocus = null;
             }
 
@@ -299,7 +299,7 @@ namespace Emotion.UI
         protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)
         {
             if (wnd.Children == null) return wnd;
-            for (var i = 0; i < wnd.Children.Count; i++)
+            for (int i = wnd.Children.Count - 1; i >= 0; i--)
             {
                 UIBaseWindow win = wnd.Children[i];
                 if (!win.InputTransparent && win.Visible) return FindInputFocusable(win);

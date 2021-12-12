@@ -229,6 +229,7 @@ namespace Emotion.UI
             Debug.Assert(win.Parent == this);
 
             if (evict) Children.Remove(win);
+            if (Controller != null) win.DetachedFromController(Controller);
         }
 
         public virtual void ClearChildren()
@@ -807,7 +808,7 @@ namespace Emotion.UI
             while (true)
             {
                 alphaTween.Update(Engine.DeltaTime);
-                var current = (byte)Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
+                var current = (byte) Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
                 WindowColor = WindowColor.SetAlpha(current);
                 if (alphaTween.Finished)
                 {
@@ -850,7 +851,7 @@ namespace Emotion.UI
             _alphaTweenTimer?.End();
             _alphaTweenTimer = null;
 
-            var targetAlpha = (byte)(val ? 255 : 0);
+            var targetAlpha = (byte) (val ? 255 : 0);
             if (tween == null)
             {
                 WindowColor = WindowColor.SetAlpha(targetAlpha);
@@ -948,7 +949,7 @@ namespace Emotion.UI
         public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
         {
             if (Children != null)
-                for (var i = 0; i < Children.Count; i++)
+                for (int i = Children.Count - 1; i >= 0; i--)
                 {
                     UIBaseWindow win = Children[i];
                     if (!win.InputTransparent && win.Visible && win.IsPointInside(pos))
