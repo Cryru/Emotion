@@ -14,8 +14,11 @@ jobs:
         dotnet build -c DebugUnix64
     - name: Run Tests
       run: |
-        cd ./Tests/
-        dotnet run -c DebugUnix64
+        cd ./Tests
+        dotnet publish Tests.csproj /p:PublishProfile=Properties/PublishProfiles/OSX64
+        cd ./bin/osx
+        ls .
+        ./Tests
     - name: Upload Test Artifact
       if: always()
       uses: actions/upload-artifact@master
