@@ -15,7 +15,7 @@ jobs:
     - name: Run Tests
       run: |
         cd ./Tests/
-        dotnet run
+        dotnet run -c DebugUnix64
     - name: Upload Test Artifact
       if: always()
       uses: actions/upload-artifact@master
