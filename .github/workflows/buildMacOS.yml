@@ -1,0 +1,25 @@
+name: CI-MacOS
+
+on: [push]
+
+jobs:
+  build-n-run-tests:
+
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@master
+    - name: Build Everything
+      run: |
+        dotnet build -c DebugUnix64
+    - name: Run Tests
+      run: |
+        cd ./Tests/bin/Debug/net5.0
+        ls .
+        ./Tests
+    - name: Upload Test Artifact
+      if: always()
+      uses: actions/upload-artifact@master
+      with:
+        name: Test Result Artifact
+        path: Tests/bin/Debug/net5.0/TestResults
