@@ -24,4 +24,4 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Tests/bin/Debug/net5.0/TestResults
+        path: Tests/bin/osx64
