@@ -14,9 +14,8 @@ jobs:
         dotnet build -c DebugUnix64
     - name: Run Tests
       run: |
-        cd ./Tests
-        dotnet publish Tests.csproj /p:PublishProfile=Properties/PublishProfiles/OSX64
-        cd ./bin/osx64
+        dotnet publish Tests -c DebugUnix64 --os osx -o Tests/bin/osx64
+        cd ./Tests/bin/osx64
         ls .
         ./Tests
     - name: Upload Test Artifact
@@ -24,4 +23,4 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Tests/bin/osx64
+        path: Tests/bin/osx64/TestResults
