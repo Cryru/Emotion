@@ -14,7 +14,8 @@ jobs:
         dotnet build -c DebugUnix64
     - name: Run Tests
       run: |
-        dotnet publish Tests -c DebugUnix64 --os osx -o Tests/bin/osx64
+        dotnet --info
+        dotnet publish Tests -c DebugUnix64 -o Tests/bin/osx64
         cd ./Tests/bin/osx64
         ls .
         ./Tests
