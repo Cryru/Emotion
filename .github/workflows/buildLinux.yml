@@ -1,21 +1,21 @@
-name: CI-MacOS
+name: CI-Linux
 
 on: [push]
 
 jobs:
   build-n-run-tests:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@master
     - name: Build Everything
       run: |
         dotnet --info
-        dotnet publish Tests -c DebugUnix64 -r osx-x64 -o Tests/bin/osx64 --self-contained true
+        dotnet publish Tests -c DebugUnix64 -r linux-x64 -o Tests/bin/linux --self-contained true
     - name: Run Tests
       run: |
-        cd ./Tests/bin/osx64
+        cd ./Tests/bin/linux
         ls .
         ./Tests
     - name: Upload Test Artifact
@@ -23,4 +23,4 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Tests/bin/osx64/TestResults
+        path: Tests/bin/linux/TestResults
