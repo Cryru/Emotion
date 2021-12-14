@@ -13,8 +13,8 @@ jobs:
       run: |
         dotnet build -c DebugUnix64
 
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
+    - name: Setup ssh session
+      uses: mxschmitt/action-tmate@v3
       
     - name: Run Tests
       run: |
