@@ -191,7 +191,7 @@ namespace Emotion.Graphics.Text
             }
 
             if (renderGlyphs != null)
-                GLThread.ExecuteGLThread(() => { QueueGlyphRender(renderGlyphs); });
+                GLThread.ExecuteGLThreadAsync(() => { QueueGlyphRender(renderGlyphs); });
         }
 
         private void QueueGlyphRender(List<AtlasGlyph> glyphs)
