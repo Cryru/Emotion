@@ -23,9 +23,11 @@ namespace Emotion.Tools
             config.AddPlugin(new ImGuiNetPlugin());
         }
 
-        public static void AddToolBoxWindow(UIController controller)
+        public static ToolsWindow AddToolBoxWindow(UIController controller)
         {
-            controller.AddChild(new ToolsWindow());
+            var toolWin = new ToolsWindow();
+            controller.AddChild(toolWin);
+            return toolWin;
         }
 
         public static void AddGameSpecificTool(string tool, Action<UIBaseWindow> factory)
