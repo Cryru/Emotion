@@ -12,5 +12,10 @@ namespace Emotion.Platform.Implementation.Null
         {
             return new NullAudioLayer(layerName);
         }
+
+        public void Dispose()
+        {
+            
+        }
     }
 }

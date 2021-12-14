@@ -335,6 +335,7 @@ namespace Emotion.Platform
         public virtual void Close()
         {
             IsOpen = false;
+            Audio?.Dispose();
         }
     }
 }

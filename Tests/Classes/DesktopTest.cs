@@ -21,7 +21,8 @@ namespace Tests.Classes
         {
             var plat = PlatformBase.CreateDetectedPlatform(new Configurator
             {
-                HostSize = new Vector2(320, 260)
+                HostSize = new Vector2(320, 260),
+                RenderSize = new Vector2(320, 260)
             });
             Assert.True(plat != null);
             if (plat == null) return;
@@ -29,7 +30,7 @@ namespace Tests.Classes
             var deskPlat = (DesktopPlatform) plat;
             Monitor primaryMonitor = deskPlat.Monitors[0];
             Assert.True(plat.Context != null);
-            Assert.True(plat.Size == new Vector2(320, 260));
+            Assert.Equal(plat.Size, new Vector2(320, 260));
             Assert.True(plat.IsFocused);
 
             var resizes = new List<Vector2>();
@@ -39,11 +40,11 @@ namespace Tests.Classes
             };
 
             plat.Position = new Vector2(0, 0);
-            Assert.True(plat.Position == new Vector2(0, 0));
-            Assert.True(plat.Size == new Vector2(320, 260));
+            Assert.Equal(plat.Position, new Vector2(0, 0));
+            Assert.Equal(plat.Size, new Vector2(320, 260));
 
             plat.Size = new Vector2(960, 540);
-            Assert.True(plat.Size == new Vector2(960, 540));
+            Assert.Equal(plat.Size, new Vector2(960, 540));
 
             plat.WindowState = WindowState.Minimized;
             Assert.True(!plat.IsFocused);
@@ -60,16 +61,18 @@ namespace Tests.Classes
 
             // Check that the on resize function was called correctly and with the correct sizes.
             Assert.True(resizes.Count == 3);
-            Assert.True(resizes[0] == new Vector2(960, 540)); // initial size set
+            Assert.Equal(resizes[0], new Vector2(960, 540)); // initial size set
             Assert.True(resizes[1].X == primaryMonitor.Width); // maximized
-            Assert.True(resizes[2] == new Vector2(960, 540)); // restoring from the minimized state.
+            Assert.Equal(resizes[2], new Vector2(960, 540)); // restoring from the minimized state.
 
             Vector2 oldSize = plat.Size;
             plat.DisplayMode = DisplayMode.Fullscreen;
             Task.Delay(1000).Wait();
-            Assert.True(plat.Size == new Vector2(primaryMonitor.Width, primaryMonitor.Height));
+            Assert.Equal(plat.Size, new Vector2(primaryMonitor.Width, primaryMonitor.Height));
             plat.DisplayMode = DisplayMode.Windowed;
-            Assert.True(plat.Size == oldSize);
+            Assert.Equal(plat.Size, oldSize);
+
+            plat.Close();
         }
     }
 }

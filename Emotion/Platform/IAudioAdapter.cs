@@ -9,5 +9,6 @@ namespace Emotion.Platform
     public interface IAudioAdapter
     {
         AudioLayer CreatePlatformAudioLayer(string layerName);
+        void Dispose();
     }
 }
