@@ -203,8 +203,14 @@ namespace Emotion.UI
             child.InvalidateColor();
             child.EnsureParentLinks();
             if (Debugger != null) child.AttachDebugger(Debugger);
-            if (Controller != null) child.AttachedToController(Controller); 
-            
+            if (Controller != null) child.AttachedToController(Controller);
+            SortChildren();
+        }
+
+        public void SortChildren()
+        {
+            if (Children == null) return;
+
             // Custom insertion sort as Array.Sort is unstable
             // Isn't too problematic performance wise since adding children shouldn't happen often.
             for (var i = 1; i < Children.Count; i++)
@@ -266,13 +272,18 @@ namespace Emotion.UI
         {
             Controller = controller;
             Controller?.InvalidatePreload();
-            Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
+            RecalculateZValue();
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
                 UIBaseWindow child = Children[i];
                 child.AttachedToController(controller);
             }
+        }
+
+        public void RecalculateZValue()
+        {
+            Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
         }
 
         public virtual void DetachedFromController(UIController controller)
@@ -357,7 +368,18 @@ namespace Emotion.UI
         /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
         /// This is the Z offset for this window, added to this window and its children.
         /// </summary>
-        public float ZOffset { get; set; }
+        public float ZOffset
+        {
+            get => _zOffset;
+            set
+            {
+                _zOffset = value;
+                RecalculateZValue();
+                Parent?.SortChildren();
+            }
+        }
+
+        protected float _zOffset;
 
         /// <summary>
         /// Margins push the window in one of the four directions, only if it is against another window.
