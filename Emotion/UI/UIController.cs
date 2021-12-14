@@ -102,10 +102,10 @@ namespace Emotion.UI
             Layout(pos);
         }
 
-        public override void AddChild(UIBaseWindow child, int index = -1)
+        public override void AddChild(UIBaseWindow child)
         {
             if (child == null) return;
-            base.AddChild(child, index);
+            base.AddChild(child);
             child.AttachedToController(this);
         }
 
@@ -143,13 +143,10 @@ namespace Emotion.UI
         /// </summary>
         private class PreloadWindowStorage : UIBaseWindow
         {
-            public override void AddChild(UIBaseWindow child, int index = -1)
+            public override void AddChild(UIBaseWindow child)
             {
                 Children ??= new List<UIBaseWindow>();
-                if (index != -1)
-                    Children.Insert(index, child);
-                else
-                    Children.Add(child);
+                Children.Add(child);
             }
 
             public override void RemoveChild(UIBaseWindow win, bool evict = true)
@@ -178,7 +175,7 @@ namespace Emotion.UI
 
         public static void KeepTemplatePreloaded(UIBaseWindow window)
         {
-            _keepWindowsLoaded.AddChild(window, 0);
+            _keepWindowsLoaded.AddChild(window);
         }
 
         public static void StopPreloadTemplate(UIBaseWindow window)

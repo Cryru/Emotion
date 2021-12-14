@@ -193,20 +193,38 @@ namespace Emotion.UI
         [SerializeNonPublicGetSet]
         public List<UIBaseWindow>? Children { get; protected set; }
 
-        public virtual void AddChild(UIBaseWindow child, int index = -1)
+        public virtual void AddChild(UIBaseWindow child)
         {
             Children ??= new List<UIBaseWindow>();
-            if (index != -1)
-                Children.Insert(index, child);
-            else
-                Children.Add(child);
+            Children.Add(child);
 
             child.Parent = this;
             child.InvalidateLayout();
             child.InvalidateColor();
             child.EnsureParentLinks();
             if (Debugger != null) child.AttachDebugger(Debugger);
-            if (Controller != null) child.AttachedToController(Controller);
+            if (Controller != null) child.AttachedToController(Controller); 
+            
+            // Custom insertion sort as Array.Sort is unstable
+            // Isn't too problematic performance wise since adding children shouldn't happen often.
+            for (var i = 1; i < Children.Count; i++)
+            {
+                UIBaseWindow thisC = Children[i];
+                for (int j = i - 1; j >= 0;)
+                {
+                    UIBaseWindow otherC = Children[j];
+                    if (thisC.CompareTo(otherC) < 0)
+                    {
+                        Children[j + 1] = otherC;
+                        Children[j] = thisC;
+                        j--;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1224,8 +1242,8 @@ namespace Emotion.UI
         /// <returns></returns>
         public int CompareTo(UIBaseWindow? other)
         {
-            if (other == null) return MathF.Sign(Z);
-            return MathF.Sign(Z - other.Z);
+            if (other == null) return MathF.Sign(ZOffset);
+            return MathF.Sign(ZOffset - other.ZOffset);
         }
 
         public override string ToString()
