@@ -28,6 +28,11 @@ namespace Emotion.Audio
             return newAudioLayer;
         }
 
+        public virtual void Dispose()
+        {
+            
+        }
+
         private void LayerThread(AudioLayer layer)
         {
             if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread - {layer.Name}";

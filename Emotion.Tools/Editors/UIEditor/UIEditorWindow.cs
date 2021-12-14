@@ -9,16 +9,16 @@ using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
-using Emotion.Tools.Windows.HelpWindows;
+using Emotion.Tools.DevUI;
 using Emotion.Tools.Windows.UIEdit;
 using Emotion.UI;
 using ImGuiNET;
 
 #endregion
 
-namespace Emotion.Tools.Windows
+namespace Emotion.Tools.Editors.UIEditor
 {
-    public class UIEditor : PresetGenericEditor<UIBaseWindow>
+    public class UIEditorWindow : PresetGenericEditorWindow<UIBaseWindow>
     {
         private UIBaseWindow _selectedWindow;
         private UIController _ui = new DebugUIController();
@@ -27,9 +27,8 @@ namespace Emotion.Tools.Windows
         private XMLComplexBaseTypeHandler _typeHandler;
         private SortedList<string, XMLFieldHandler> _currentWindowHandlers;
         private bool _readonlyWindow;
-        
 
-        public UIEditor() : base("UI Editor")
+        public UIEditorWindow() : base("UI Editor")
         {
             _validWindowTypes = GetTypesWhichInherit();
             _validWindowTypes.Remove(typeof(UIController));
@@ -43,20 +42,28 @@ namespace Emotion.Tools.Windows
             _ui.Margins = new Rectangle(5, 15, 5, 5);
         }
 
-        public override void Dispose()
+        public override void DetachedFromController(UIController controller)
         {
+            base.DetachedFromController(controller);
             _ui.Dispose();
-            base.Dispose();
         }
 
-        public override void Update()
+        protected override bool UpdateInternal()
         {
             _ui.Update();
+            return true;
         }
 
-        protected override void RenderContent(RenderComposer c)
+        protected override bool RenderInternal(RenderComposer c)
         {
-            base.RenderContent(c);
+            base.RenderInternal(c);
+            _ui.Render(c);
+            return true;
+        }
+
+        protected override void RenderImGui()
+        {
+            base.RenderImGui();
 
             if (_currentAsset == null)
             {
@@ -84,7 +91,7 @@ namespace Emotion.Tools.Windows
             ImGui.SameLine();
             if (ImGui.Button("Delete Selected") && !_readonlyWindow)
             {
-                var yesNoModal = new YesNoModal(result =>
+                var yesNoModal = new YesNoModalWindow("Delete Window", $"Are you sure you want to delete {_selectedWindow}?", result =>
                 {
                     if (!result) return;
                     UIBaseWindow parent = _selectedWindow.Parent;
@@ -92,8 +99,8 @@ namespace Emotion.Tools.Windows
                     SelectWindow(parent);
                     UnsavedChanges();
                     ImGui.CloseCurrentPopup();
-                }, "Delete Window", $"Are you sure you want to delete {_selectedWindow}?");
-                Parent.AddWindow(yesNoModal);
+                });
+                _toolsRoot.AddChild(yesNoModal);
             }
 
             ImGui.SameLine();
@@ -112,6 +119,12 @@ namespace Emotion.Tools.Windows
                 {
                     parent.RemoveChild(_selectedWindow);
                     parentParent!.AddChild(_selectedWindow);
+                    if (parent.ZOffset == _selectedWindow.ZOffset)
+                    {
+                        parentParent.Children!.Remove(_selectedWindow);
+                        int idxOfOldParent = parentParent.Children.IndexOf(parent);
+                        parentParent.Children!.Insert(idxOfOldParent + 1, _selectedWindow);
+                    }
                 }
             }
 
@@ -120,7 +133,7 @@ namespace Emotion.Tools.Windows
             if (ImGui.ArrowButton("Right", ImGuiDir.Right) && !_readonlyWindow)
             {
                 UIBaseWindow parent = _selectedWindow.Parent;
-                int index = parent!.Children.IndexOf(_selectedWindow);
+                int index = parent!.Children!.IndexOf(_selectedWindow);
                 if (index != 0)
                 {
                     UIBaseWindow prevChild = parent.Children[index - 1];
@@ -134,11 +147,19 @@ namespace Emotion.Tools.Windows
             if (ImGui.ArrowButton("Up", ImGuiDir.Up) && !_readonlyWindow)
             {
                 UIBaseWindow parent = _selectedWindow.Parent;
-                int index = parent!.Children.IndexOf(_selectedWindow);
+                int index = parent!.Children!.IndexOf(_selectedWindow);
                 if (index != 0)
                 {
-                    parent.RemoveChild(_selectedWindow);
-                    parent.AddChild(_selectedWindow, index - 1);
+                    UIBaseWindow previousWindow = parent!.Children[index - 1];
+                    if (previousWindow.ZOffset == _selectedWindow.ZOffset)
+                    {
+                        parent.Children[index] = previousWindow;
+                        parent.Children[index - 1] = _selectedWindow;
+                    }
+                    else
+                    {
+                        Parent!.AddChild(new ImGuiMessageBox("Cant Move", "The selected window has a different ZOffset value to the window above it, so it cannot be moved up."));
+                    }
                 }
             }
 
@@ -147,11 +168,19 @@ namespace Emotion.Tools.Windows
             if (ImGui.ArrowButton("Down", ImGuiDir.Down) && !_readonlyWindow)
             {
                 UIBaseWindow parent = _selectedWindow.Parent;
-                int index = parent!.Children.IndexOf(_selectedWindow);
+                int index = parent!.Children!.IndexOf(_selectedWindow);
                 if (index != parent!.Children.Count - 1)
                 {
-                    parent.RemoveChild(_selectedWindow);
-                    parent.AddChild(_selectedWindow, index + 1);
+                    UIBaseWindow nextWindow = parent!.Children[index + 1];
+                    if (nextWindow.ZOffset == _selectedWindow.ZOffset)
+                    {
+                        parent.Children[index] = nextWindow;
+                        parent.Children[index + 1] = _selectedWindow;
+                    }
+                    else
+                    {
+                        Parent!.AddChild(new ImGuiMessageBox("Cant Move", "The selected window has a different ZOffset value to the window below it, so it cannot be moved down."));
+                    }
                 }
             }
 
@@ -200,10 +229,12 @@ namespace Emotion.Tools.Windows
                         _currentAsset = newAsset;
                     }
 
-                    // Re-add to parent.
-                    int index = _selectedWindow.Parent.Children!.IndexOf(_selectedWindow);
-                    _selectedWindow.Parent.RemoveChild(_selectedWindow);
-                    _selectedWindow.Parent.AddChild(newWin, index);
+                    // Re-add to parent. HACK
+                    int index = _selectedWindow!.Parent!.Children!.IndexOf(_selectedWindow);
+                    _selectedWindow.Parent.RemoveChild(_selectedWindow, false);
+                    _selectedWindow.Parent.AddChild(newWin);
+                    _selectedWindow.Parent!.Children.Remove(newWin);
+                    _selectedWindow.Parent!.Children[index] = newWin;
 
                     // Reselect.
                     SelectWindow(newWin);
@@ -259,10 +290,7 @@ namespace Emotion.Tools.Windows
             }
 
             ImGui.EndTabBar();
-
             ImGui.EndGroup();
-
-            _ui.Render(c);
         }
 
         private void SelectWindow(UIBaseWindow window, bool readOnly = false)
@@ -274,11 +302,12 @@ namespace Emotion.Tools.Windows
             _currentWindowHandlers ??= new SortedList<string, XMLFieldHandler>();
             _currentWindowHandlers.Clear();
 
+            if (_typeHandler == null) return;
             IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
             while (fields.MoveNext())
             {
                 XMLFieldHandler field = fields.Current;
-                if (field.Name == "Children") continue;
+                if (field == null || field.Name == "Children") continue;
 
                 _currentWindowHandlers.Add(field.Name, field);
             }
@@ -331,30 +360,31 @@ namespace Emotion.Tools.Windows
                     if (ImGui.SmallButton("Replace Asset Root"))
                     {
                         UIBaseWindow root = _currentAsset!.Content;
-                        var yesNoModal = new YesNoModal(result =>
-                        {
-                            if (!result) return;
-                            _ui.RemoveChild(root);
-                            var rootChildrenThatArentMe = new List<UIBaseWindow>();
-                            for (var i = 0; i < root!.Children.Count; i++)
+                        var yesNoModal = new YesNoModalWindow("Delete Window", $"Are you sure you want to delete {root}?",
+                            result =>
                             {
-                                UIBaseWindow child = root.Children[i];
-                                if (child != window) rootChildrenThatArentMe.Add(child);
-                            }
+                                if (!result) return;
+                                _ui.RemoveChild(root);
+                                var rootChildrenThatArentMe = new List<UIBaseWindow>();
+                                for (var i = 0; i < root!.Children!.Count; i++)
+                                {
+                                    UIBaseWindow child = root.Children[i];
+                                    if (child != window) rootChildrenThatArentMe.Add(child);
+                                }
 
-                            for (var i = 0; i < rootChildrenThatArentMe.Count; i++)
-                            {
-                                window.AddChild(rootChildrenThatArentMe[i]);
-                            }
+                                for (var i = 0; i < rootChildrenThatArentMe.Count; i++)
+                                {
+                                    window.AddChild(rootChildrenThatArentMe[i]);
+                                }
 
-                            XMLAsset<UIBaseWindow> newAsset = XMLAsset<UIBaseWindow>.CreateFromContent(window);
-                            newAsset.Name = _currentAsset!.Name;
-                            _currentAsset = newAsset;
-                            _ui.AddChild(window);
-                            SelectWindow(window);
-                            UnsavedChanges();
-                        }, "Delete Window", $"Are you sure you want to delete {root}?");
-                        Parent.AddWindow(yesNoModal);
+                                XMLAsset<UIBaseWindow> newAsset = XMLAsset<UIBaseWindow>.CreateFromContent(window);
+                                newAsset.Name = _currentAsset!.Name;
+                                _currentAsset = newAsset;
+                                _ui.AddChild(window);
+                                SelectWindow(window);
+                                UnsavedChanges();
+                            });
+                        _toolsRoot.AddChild(yesNoModal);
                     }
                 }
             }

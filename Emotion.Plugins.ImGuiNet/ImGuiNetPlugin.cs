@@ -159,7 +159,6 @@ namespace Emotion.Plugins.ImGuiNet
                 if (c == '\t') return;
                 _textInput.Add(c);
             };
-            Engine.Host.OnKey.AddListener((_, __) => !Focused); // Block input while imgui is focused.
             Engine.CoroutineManager.StartCoroutine(UpdateRoutine());
 
             Initialized = true;

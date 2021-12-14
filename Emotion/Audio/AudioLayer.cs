@@ -66,7 +66,7 @@ namespace Emotion.Audio
             get
             {
                 if (_playHead == 0 || _updateStreamingTrack) return 0f;
-                return (float)_playHead / _totalSamplesConv;
+                return (float) _playHead / _totalSamplesConv;
             }
         }
 
@@ -279,8 +279,11 @@ namespace Emotion.Audio
         private int _bufferIdx;
 
 #if DEBUG
-        private Stopwatch _timer = new();
-        public static int TimeTaken;
+
+        public static event Action<float> AudioRequestDone;
+        private Stopwatch _timer;
+
+
 #endif
 
         protected int GetDataForCurrentTrack(AudioFormat format, int getFrames, Span<byte> buffer)
@@ -297,6 +300,7 @@ namespace Emotion.Audio
             }
 
 #if DEBUG
+            _timer ??= new Stopwatch();
             _timer.Restart();
 #endif
 
@@ -318,13 +322,13 @@ namespace Emotion.Audio
             float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / _totalSamplesConv : 0;
             if (!format.Equals(_streamingFormat))
             {
-                float progress = _playHead != 0 ? (float)_playHead / _totalSamplesConv : 0;
+                float progress = _playHead != 0 ? (float) _playHead / _totalSamplesConv : 0;
                 _streamingFormat = format;
                 _totalSamplesConv = streamer.GetSampleCountInFormat(_streamingFormat);
-                _playHead = (int)MathF.Floor(_totalSamplesConv * progress);
+                _playHead = (int) MathF.Floor(_totalSamplesConv * progress);
 
                 // Readjust crossfade playhead - if in use.
-                if (_crossFadePlayHead != 0) _crossFadePlayHead = (int)MathF.Floor(_totalSamplesConv * oldCrossfadeProgress);
+                if (_crossFadePlayHead != 0) _crossFadePlayHead = (int) MathF.Floor(_totalSamplesConv * oldCrossfadeProgress);
 
                 InvalidateDoubleBuffer();
             }
@@ -359,10 +363,6 @@ namespace Emotion.Audio
             // If any frames still need to be gotten, get them from the track.
             if (framesLeft > 0)
             {
-#if DEBUG
-                if (_playHead != 0) ResortedToLayer = true;
-#endif
-
                 int frames = StreamDataFromCurrentTrack(framesLeft, buffer);
                 framesGotten += frames;
                 framesLeft -= frames;
@@ -380,20 +380,8 @@ namespace Emotion.Audio
             }
 
 #if DEBUG
-            var sampleStored = 0;
-            for (var i = 0; i < _doubleBuffer.Length; i++)
-            {
-                int framesStored = _dbFramesStored[i];
-                sampleStored += framesStored;
-            }
-
-            SamplesStored = sampleStored;
-
-            if (SamplesStored != 0)
-                LeastSamplesStored = Math.Min(SamplesStored, LeastSamplesStored);
-
+            AudioRequestDone?.Invoke((float) _timer.Elapsed.TotalMilliseconds);
             _timer.Stop();
-            TimeTaken = Math.Max(TimeTaken, (int)_timer.ElapsedMilliseconds);
 #endif
             return framesGotten;
         }
@@ -433,12 +421,6 @@ namespace Emotion.Audio
         protected AudioTrack _streamingTrack;
         protected AudioConverter _converter;
         protected AudioFormat _streamingFormat;
-
-#if DEBUG
-        public static bool ResortedToLayer;
-        public static int SamplesStored;
-        public static int LeastSamplesStored = int.MaxValue;
-#endif
 
         protected void InvalidateStreamingTrack()
         {

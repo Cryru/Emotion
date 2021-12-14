@@ -96,15 +96,6 @@ namespace Emotion.Common
         /// </summary>
         public static float TotalTime { get; set; }
 
-#if DEBUG
-
-        public static event EventHandler DebugOnUpdateStart;
-        public static event EventHandler DebugOnUpdateEnd;
-        public static event EventHandler DebugOnFrameStart;
-        public static event EventHandler DebugOnFrameEnd;
-
-#endif
-
         static Engine()
         {
             Helpers.AssociatedAssemblies = new List<Assembly>
@@ -362,27 +353,15 @@ namespace Emotion.Common
 
         private static void RunTickInternal()
         {
-#if DEBUG
-            DebugOnUpdateStart?.Invoke(null, EventArgs.Empty);
-#endif
-
             TotalTime += DeltaTime;
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update();
             SceneManager.Update();
-
-#if DEBUG
-            DebugOnUpdateEnd?.Invoke(null, EventArgs.Empty);
-#endif
         }
 
         private static void RunFrame()
         {
-#if DEBUG
-            DebugOnFrameStart?.Invoke(null, EventArgs.Empty);
-#endif
-
             PerfProfiler.FrameStart();
 
             // Reset cached bound state, because on some drivers SwapBuffers unbinds all objects.
@@ -416,10 +395,6 @@ namespace Emotion.Common
             PerfProfiler.FrameEventStart("EndFrame");
             Renderer.EndFrame();
             PerfProfiler.FrameEventEnd("EndFrame");
-
-#if DEBUG
-            DebugOnFrameEnd?.Invoke(null, EventArgs.Empty);
-#endif
 
             PerfProfiler.FrameEventStart("BufferSwap");
             Host.Context.SwapBuffers();

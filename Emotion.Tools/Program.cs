@@ -1,31 +1,20 @@
 ﻿#region Using
 
-using System.Linq;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
-using Emotion.Plugins.ImGuiNet;
-using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using Emotion.Scenography;
-using Emotion.Tools.Windows;
-using ImGuiNET;
+using Emotion.UI;
 
 #endregion
 
 namespace Emotion.Tools
 {
-    public class ToolsBoot
+    public class Program : IScene
     {
-        public static void ConfigureForTools(Configurator config)
-        {
-            if (config.Plugins.Any(x => x.GetType() == typeof(ImGuiNetPlugin))) return;
-            config.AddPlugin(new ImGuiNetPlugin());
-        }
-    }
+        private UIController _ui;
 
-    internal class Program : IScene
-    {
         private static void Main()
         {
             var config = new Configurator
@@ -33,7 +22,7 @@ namespace Emotion.Tools
                 DebugMode = true,
                 HostSize = new Vector2(1280, 720)
             };
-            ToolsBoot.ConfigureForTools(config);
+            ToolsManager.ConfigureForTools(config);
 
             Engine.Setup(config);
             Engine.SceneManager.SetScene(new Program());
@@ -42,24 +31,29 @@ namespace Emotion.Tools
 
         public void Update()
         {
-
+            _ui.Update();
         }
 
         public void Load()
         {
-
+            _ui = new UIController();
+            var testBackground = new UISolidColor
+            {
+                InputTransparent = false,
+                WindowColor = Color.CornflowerBlue
+            };
+            _ui.AddChild(testBackground);
+            ToolsManager.AddToolBoxWindow(_ui);
         }
 
         public void Unload()
         {
-
         }
 
         public void Draw(RenderComposer composer)
         {
             composer.SetUseViewMatrix(false);
-            composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
-            composer.RenderToolsMenu();
+            _ui.Render(composer);
         }
     }
 }

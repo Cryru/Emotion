@@ -28,14 +28,6 @@ namespace Emotion.Common
         private static Stopwatch _timer = Stopwatch.StartNew();
         private static Stopwatch _frameTimer;
 
-        public static bool LagSpikeMonitor = false;
-
-        public static void LagSpikeProfileFrame()
-        {
-            if (!LagSpikeMonitor) return;
-            _profileFrame = true;
-        }
-
         private static long GetElapsedMicroseconds(this Stopwatch timer)
         {
             return timer.ElapsedTicks / (TimeSpan.TicksPerMillisecond / 1000);
@@ -70,18 +62,12 @@ namespace Emotion.Common
 
             _captureSoFar ??= new StringBuilder("[", 50 * 100);
 
-            if (!_profileNextFrame && !LagSpikeMonitor) return;
+            if (!_profileNextFrame) return;
 
             _captureSoFar.Append(GetEventJSON("Frame", $"Frame Capture {_capturedFrames}", true, 0));
             _captureSoFar.Append(",");
             _profileFrame = _profileNextFrame;
             _profileNextFrame = false;
-
-            if (LagSpikeMonitor)
-            {
-                _captureSoFar.Clear();
-                _captureSoFar.Append("[");
-            }
         }
 
         [Conditional("PROFILER")]
@@ -115,7 +101,7 @@ namespace Emotion.Common
         [Conditional("PROFILER")]
         public static void FrameEventStart(string name, string desc = "")
         {
-            if (!_profileFrame && !LagSpikeMonitor) return;
+            if (!_profileFrame) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", true, _frameTimer.GetElapsedMicroseconds()));
             _captureSoFar.Append(",");
         }
@@ -123,7 +109,7 @@ namespace Emotion.Common
         [Conditional("PROFILER")]
         public static void FrameEventEnd(string name)
         {
-            if (!_profileFrame && !LagSpikeMonitor) return;
+            if (!_profileFrame) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", false, _frameTimer.GetElapsedMicroseconds()));
             _captureSoFar.Append(",");
         }
