@@ -4,12 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
-using Emotion.Primitives;
 using Emotion.Tools.Editors;
 using Emotion.Tools.Editors.UIEditor;
 using Emotion.Tools.Windows;
@@ -36,13 +34,6 @@ namespace Emotion.Tools.DevUI
             Id = "ToolsRoot";
             LegacyWindowManager = new WindowManager();
             ZOffset = 99;
-            Engine.Host.OnKey.AddListener(OnKeyGlobal);
-        }
-
-        public override void DetachedFromController(UIController controller)
-        {
-            base.DetachedFromController(controller);
-            Engine.Host.OnKey.RemoveListener(OnKeyGlobal);
         }
 
         protected override void RenderImGui()
@@ -65,22 +56,11 @@ namespace Emotion.Tools.DevUI
             return base.OnKey(key, status, mousePos);
         }
 
-        public bool OnKeyGlobal(Key key, KeyStatus status)
-        {
-            if (key == Key.GraveAccent && status == KeyStatus.Down)
-            {
-                Visible = !Visible;
-                return false;
-            }
-
-            return true;
-        }
-
         protected override bool RenderInternal(RenderComposer c)
         {
             c.SetUseViewMatrix(false);
             c.SetDepthTest(false);
-            
+
             ImGui.NewFrame();
             ImGui.BeginMainMenuBar();
             GetImGuiMetrics();
@@ -138,7 +118,7 @@ namespace Emotion.Tools.DevUI
             }
 
             ImGui.EndMainMenuBar();
-            
+
             LegacyWindowManager.Update();
             LegacyWindowManager.Render(c);
             if (Children == null) AfterRenderChildren(c);
