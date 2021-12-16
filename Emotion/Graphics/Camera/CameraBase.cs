@@ -3,6 +3,7 @@
 using System;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Primitives;
 
 #endregion
@@ -43,6 +44,7 @@ namespace Emotion.Graphics.Camera
                 RecreateProjectionMatrix();
             }
         }
+
         private float _nearZ = -100;
 
         /// <summary>
@@ -83,17 +85,31 @@ namespace Emotion.Graphics.Camera
         /// <summary>
         /// The camera's matrix.
         /// </summary>
-        public Matrix4x4 ViewMatrix { get; protected set; } = Matrix4x4.Identity;
+        public Matrix4x4 ViewMatrix
+        {
+            get => _viewMatrix;
+            set
+            {
+                _viewMatrix = value;
+                SyncRenderer();
+            }
+        }
 
         /// <summary>
         /// The camera's projection matrix.
         /// </summary>
-        public Matrix4x4 ProjectionMatrix { get; protected set; } = Matrix4x4.Identity;
+        public Matrix4x4 ProjectionMatrix
+        {
+            get => _projectionMatrix;
+            set
+            {
+                _projectionMatrix = value;
+                SyncRenderer();
+            }
+        }
 
-        /// <summary>
-        /// The camera's matrix without scaling applied.
-        /// </summary>
-        public Matrix4x4 ViewMatrixUnscaled { get; protected set; } = Matrix4x4.Identity;
+        private Matrix4x4 _viewMatrix = Matrix4x4.Identity;
+        private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
 
         #endregion
 
@@ -128,6 +144,16 @@ namespace Emotion.Graphics.Camera
         public virtual void RecreateProjectionMatrix()
         {
             ProjectionMatrix = GetDefault2DProjection(NearZ, FarZ);
+        }
+
+        /// <summary>
+        /// Notify the renderer that the matrix has changed, causing a state change.
+        /// </summary>
+        protected void SyncRenderer()
+        {
+            if (!Engine.Renderer.InFrame || Engine.Renderer.Camera != this || !GLThread.IsGLThread()) return;
+            Engine.Renderer.FlushRenderStream();
+            Engine.Renderer.SyncShader();
         }
 
         /// <summary>
@@ -167,7 +193,6 @@ namespace Emotion.Graphics.Camera
 
         protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
         {
-
         }
 
         #endregion

@@ -185,7 +185,6 @@ namespace Emotion.Common
             PerfProfiler.ProfilerEventEnd("Platform Creation", "Loading");
 
             // Now that the context is created, the renderer can be created.
-            GLThread.BindThread();
             Renderer = new RenderComposer();
             Renderer.Setup();
 
@@ -378,11 +377,6 @@ namespace Emotion.Common
                     Texture.Bound[i] = 0;
                 }
             }
-
-            // Run the GLThread queued commands.
-            PerfProfiler.FrameEventStart("GLThread.Run");
-            GLThread.Run();
-            PerfProfiler.FrameEventEnd("GLThread.Run");
 
             PerfProfiler.FrameEventStart("StartFrame");
             Renderer.StartFrame();

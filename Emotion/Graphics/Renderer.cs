@@ -142,6 +142,11 @@ namespace Emotion.Graphics
         #region State
 
         /// <summary>
+        /// Whether the renderer is currently between StartFrame and EndFrame.
+        /// </summary>
+        public bool InFrame { get; private set; }
+
+        /// <summary>
         /// The current drawing state. Don't modify directly!
         /// </summary>
         public RenderState CurrentState { get; private set; }
@@ -186,8 +191,7 @@ namespace Emotion.Graphics
         /// </summary>
         internal void Setup()
         {
-            // Check if running on the GL Thread.
-            Debug.Assert(GLThread.IsGLThread());
+            GLThread.BindThread();
 
             Engine.Log.Info($"Created OpenGL Context {Gl.CurrentVersion}", MessageSource.Renderer);
             Engine.Log.Info($" Renderer: {Gl.CurrentRenderer}", MessageSource.Renderer);
@@ -369,14 +373,21 @@ namespace Emotion.Graphics
         #endregion
 
         /// <summary>
-        /// Called at the start of the frame.
-        /// Prepares the renderer for rendering.
+        /// Called at the start of the frame, after GL tasks are executed.
+        /// Resets the render state and clears old states from the previous frame and tasks.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RenderComposer StartFrame()
         {
             // Check if running on the GL Thread.
             Debug.Assert(GLThread.IsGLThread());
+            InFrame = true;
+
+            // Run GLThread tasks.
+            // Needs to be at the start, to ensure assets from others threads are uploaded etc.
+            PerfProfiler.FrameEventStart("GLThread.Run");
+            GLThread.Run();
+            PerfProfiler.FrameEventEnd("GLThread.Run");
 
             // Reset to the default state.
             PerfProfiler.FrameEventStart("DefaultStateSet");
@@ -444,6 +455,7 @@ namespace Emotion.Graphics
             }
 
             RenderStream.DoTasks(this);
+            InFrame = false;
         }
 
         private IEnumerator UpdateCoroutine()
@@ -543,9 +555,14 @@ namespace Emotion.Graphics
             // Happens on initialization.
             if (CurrentTarget == null) return;
 
-            Camera.RecreateProjectionMatrix();
             CurrentTarget.Bind();
-            SyncShader();
+            Camera.RecreateProjectionMatrix(); // Depends on the current target.
+
+            // Functions such as CacheGlyphs and other graphical tasks can run outside of the frame cycle.
+            // The ExecuteOnGLThread will inline them despite !InFrame if executed on the GL Thread, and
+            // since the Update loop also occurs on the GLThread this happens from time to time.
+            // To ensure that the state is synced (usually the camera does it) we manually sync here in that case.
+            if (!InFrame) SyncShader();
         }
 
         /// <summary>

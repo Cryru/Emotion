@@ -97,8 +97,8 @@ namespace Emotion.Graphics.Camera
         public override void RecreateViewMatrix()
         {
             Vector3 pos = Position;
-            ViewMatrixUnscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, new Vector3(0.0f, 1.0f, 0.0f));
-            ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * ViewMatrixUnscaled;
+            var unscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, new Vector3(0.0f, 1.0f, 0.0f));
+            ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * unscaled;
         }
 
         /// <inheritdoc />
