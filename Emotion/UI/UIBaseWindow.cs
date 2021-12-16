@@ -971,7 +971,13 @@ namespace Emotion.UI
         {
             if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == _inputBoundsWithChildren) return;
             _renderBoundsWithChildren = Rectangle.Transform(_inputBoundsWithChildren, c.ModelMatrix);
+            _renderBoundsWithChildren.Position = _renderBoundsWithChildren.Position.Floor();
+            _renderBoundsWithChildren.Size = _renderBoundsWithChildren.Size.Ceiling();
+
             _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
+            _renderBounds.Position = _renderBounds.Position.Floor();
+            _renderBounds.Size = _renderBounds.Size.Ceiling();
+
             _renderBoundsCachedMatrix = c.ModelMatrix;
             _renderBoundsCalculatedFrom = _inputBoundsWithChildren;
         }
