@@ -18,7 +18,7 @@ jobs:
       run: |
         cd ./Tests/bin/linux
         ls .
-        ./Tests
+        LD_LIBRARY_PATH=mesa-18.2.3/usr/local/lib/x86_64-linux-gnu GALLIUM_DRIVER=swr ./Tests
     - name: Upload Test Artifact
       if: always()
       uses: actions/upload-artifact@master
