@@ -31,10 +31,11 @@ namespace Emotion.Standard.Logging
         /// </summary>
         /// <param name="stdOut">Whether to redirect logs to STDOUT as well.</param>
         /// <param name="logFolder">The folder to log to. "Logs" by default/</param>
-        public DefaultLogger(bool stdOut, string logFolder = "Logs")
+        public DefaultLogger(bool stdOut, string logFolder = null)
         {
             _stdOut = stdOut;
-            _logFolder = Path.Join(".", logFolder);
+            logFolder ??= Path.Join(".", "Logs");
+            _logFolder = logFolder;
             try
             {
                 // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
@@ -68,7 +69,7 @@ namespace Emotion.Standard.Logging
 
         private string GenerateLogName()
         {
-            return $".{Path.DirectorySeparatorChar}{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
+            return $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
         }
 
         private void LogThread()

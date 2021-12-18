@@ -128,7 +128,7 @@ namespace Emotion.Test
 
             // Check for test run id. This signifies whether the runner is linked.
             TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
-            TestRunFolder = Path.Join("TestResults", $"{TestRunId}");
+            TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", $"{TestRunId}");
 
             string argsJoined = string.Join(" ", args);
             RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References({argsJoined})");
