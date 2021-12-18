@@ -52,15 +52,15 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         protected override void SetupInternal(Configurator config)
         {
-            _errorCallback = ErrorCallback;
-            Glfw.SetErrorCallback(_errorCallback);
-
             bool initSuccess = Glfw.Init();
             if (!initSuccess)
             {
                 Engine.Log.Error("Couldn't initialize glfw.", MessageSource.Glfw);
                 return;
             }
+
+            _errorCallback = ErrorCallback;
+            Glfw.SetErrorCallback(_errorCallback);
 
 #if ANGLE
             LoadLibrary("libEGL");
@@ -73,9 +73,16 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                // Macs need a specific context to be requested.
+                // Macs need a very specific context to be requested.
                 Glfw.WindowHint(Glfw.Hint.ContextVersionMajor, 3);
                 Glfw.WindowHint(Glfw.Hint.ContextVersionMinor, 2);
+                Glfw.WindowHint(Glfw.Hint.OpenglForwardCompat, true);
+                Glfw.WindowHint(Glfw.Hint.OpenglProfile, Glfw.OpenGLProfile.Core);
+            }
+            else
+            {
+                Glfw.WindowHint(Glfw.Hint.ContextVersionMajor, 3);
+                Glfw.WindowHint(Glfw.Hint.ContextVersionMinor, 3);
                 Glfw.WindowHint(Glfw.Hint.OpenglForwardCompat, true);
                 Glfw.WindowHint(Glfw.Hint.OpenglProfile, Glfw.OpenGLProfile.Core);
             }
