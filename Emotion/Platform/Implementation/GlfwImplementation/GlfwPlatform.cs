@@ -1,4 +1,4 @@
-﻿#region Using
+#region Using
 
 #if OpenAL
 using Emotion.Platform.Implementation.OpenAL;
@@ -52,15 +52,15 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         protected override void SetupInternal(Configurator config)
         {
+            _errorCallback = ErrorCallback;
+            Glfw.SetErrorCallback(_errorCallback);
+
             bool initSuccess = Glfw.Init();
             if (!initSuccess)
             {
                 Engine.Log.Error("Couldn't initialize glfw.", MessageSource.Glfw);
                 return;
             }
-
-            _errorCallback = ErrorCallback;
-            Glfw.SetErrorCallback(_errorCallback);
 
 #if ANGLE
             LoadLibrary("libEGL");
