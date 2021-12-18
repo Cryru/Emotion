@@ -16,8 +16,7 @@ jobs:
         dotnet publish Tests -c DebugUnix64 -r linux-x64 -o Tests/bin/linux --self-contained true
     - name: Run Tests
       run: |
-        cd ./Tests/bin/linux
-        LD_LIBRARY_PATH=../../../mesa-18.2.3/usr/local/lib/x86_64-linux-gnu GALLIUM_DRIVER=swr xvfb-run sudo ./Tests
+        LD_LIBRARY_PATH=mesa-18.2.3/usr/local/lib/x86_64-linux-gnu GALLIUM_DRIVER=swr xvfb-run sudo ./Tests/bin/linux/Tests
     - name: Upload Test Artifact
       if: always()
       uses: actions/upload-artifact@master
