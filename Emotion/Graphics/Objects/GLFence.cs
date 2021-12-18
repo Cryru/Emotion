@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using OpenGL;
 
 #endregion
@@ -14,7 +15,7 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The OpenGL pointer to the fence.
         /// </summary>
-        public int Pointer { get; protected set; }
+        public IntPtr Pointer { get; protected set; }
 
         /// <summary>
         /// Whether the fence has been signaled.

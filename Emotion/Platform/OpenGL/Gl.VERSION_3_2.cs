@@ -923,9 +923,9 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static int FenceSync(SyncCondition condition, uint flags)
+        public static IntPtr FenceSync(SyncCondition condition, uint flags)
         {
-            int retValue;
+            IntPtr retValue;
 
             Debug.Assert(Delegates.pglFenceSync != null, "pglFenceSync not implemented");
             retValue = Delegates.pglFenceSync((int) condition, flags);
@@ -946,7 +946,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static bool IsSync(int sync)
+        public static bool IsSync(IntPtr sync)
         {
             bool retValue;
 
@@ -969,7 +969,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static void DeleteSync(int sync)
+        public static void DeleteSync(IntPtr sync)
         {
             Debug.Assert(Delegates.pglDeleteSync != null, "pglDeleteSync not implemented");
             Delegates.pglDeleteSync(sync);
@@ -995,7 +995,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static SyncStatus ClientWaitSync(int sync, SyncObjectMask flags, ulong timeout)
+        public static SyncStatus ClientWaitSync(IntPtr sync, SyncObjectMask flags, ulong timeout)
         {
             int retValue;
 
@@ -1025,7 +1025,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static void WaitSync(int sync, uint flags, ulong timeout)
+        public static void WaitSync(IntPtr sync, uint flags, ulong timeout)
         {
             Debug.Assert(Delegates.pglWaitSync != null, "pglWaitSync not implemented");
             Delegates.pglWaitSync(sync, flags, timeout);
@@ -1230,7 +1230,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static void GetSync(int sync, SyncParameterName pname, int bufSize, out int length, [Out] int[] values)
+        public static void GetSync(IntPtr sync, SyncParameterName pname, int bufSize, out int length, [Out] int[] values)
         {
             unsafe
             {
@@ -1266,7 +1266,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static unsafe void GetSync(int sync, SyncParameterName pname, out int length, [Out] int[] values)
+        public static unsafe void GetSync(IntPtr sync, SyncParameterName pname, out int length, [Out] int[] values)
         {
             fixed (int* p_length = &length)
             fixed (int* p_values = values)
@@ -1278,7 +1278,7 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        public static unsafe int GetSync(int sync, SyncParameterName pname)
+        public static unsafe int GetSync(IntPtr sync, SyncParameterName pname)
         {
             int value = 0;
             Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
@@ -1736,7 +1736,7 @@ namespace OpenGL
             [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
             [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate int glFenceSync(int condition, uint flags);
+            public delegate IntPtr glFenceSync(int condition, uint flags);
 
             [RequiredByFeature("GL_VERSION_3_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -1751,7 +1751,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            public delegate bool glIsSync(int sync);
+            public delegate bool glIsSync(IntPtr sync);
 
             [RequiredByFeature("GL_VERSION_3_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -1765,7 +1765,7 @@ namespace OpenGL
             [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
             [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glDeleteSync(int sync);
+            public delegate void glDeleteSync(IntPtr sync);
 
             [RequiredByFeature("GL_VERSION_3_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -1779,7 +1779,7 @@ namespace OpenGL
             [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
             [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate int glClientWaitSync(int sync, uint flags, ulong timeout);
+            public delegate int glClientWaitSync(IntPtr sync, uint flags, ulong timeout);
 
             [RequiredByFeature("GL_VERSION_3_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -1793,7 +1793,7 @@ namespace OpenGL
             [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
             [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glWaitSync(int sync, uint flags, ulong timeout);
+            public delegate void glWaitSync(IntPtr sync, uint flags, ulong timeout);
 
             [RequiredByFeature("GL_VERSION_3_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -1821,7 +1821,7 @@ namespace OpenGL
             [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
             [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glGetSynciv(int sync, int pname, int bufSize, int* length, int* values);
+            public delegate void glGetSynciv(IntPtr sync, int pname, int bufSize, int* length, int* values);
 
             [RequiredByFeature("GL_VERSION_3_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]

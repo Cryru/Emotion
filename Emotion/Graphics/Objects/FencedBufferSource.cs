@@ -75,7 +75,7 @@ namespace Emotion.Graphics.Objects
         #endregion
 
         private FencedBufferObjects[] _backingBuffers;
-        private int[] _fences;
+        private IntPtr[] _fences; // Not using GLFence objects to reduce garbage collection load.
         private IntPtr _memory;
         private static int _idx;
 
@@ -91,7 +91,7 @@ namespace Emotion.Graphics.Objects
                 _backingBuffers[i] = backingFactory(size);
             }
 
-            _fences = new int[BackingBuffersCount];
+            _fences = new IntPtr[BackingBuffersCount];
             _memory = UnmanagedMemoryAllocator.MemAllocNamed((int) (BackingBuffersCount * size), $"FencedBufferSource{_idx}");
             _idx += 1;
         }
@@ -118,11 +118,8 @@ namespace Emotion.Graphics.Objects
             CurrentBufferOffset = 0;
 
             // Check if waiting on a fence.
-            int currentFence = _fences[CurrentBufferIdx];
-            if (currentFence == 0) return;
-            if (Engine.Renderer.CompatibilityMode)
-                if (!Gl.IsSync(currentFence))
-                    return;
+            IntPtr currentFence = _fences[CurrentBufferIdx];
+            if (currentFence == IntPtr.Zero) return;
 
             // Wait on the fence for the new buffer.
             SyncStatus waitResult = Gl.ClientWaitSync(currentFence, SyncObjectMask.SyncFlushCommandsBit, ulong.MaxValue);
@@ -130,7 +127,7 @@ namespace Emotion.Graphics.Objects
                 Engine.Log.Info($"Wait sync - {waitResult}", "FenceSource");
 
             Gl.DeleteSync(currentFence);
-            _fences[CurrentBufferIdx] = 0;
+            _fences[CurrentBufferIdx] = IntPtr.Zero;
         }
 
 #if GL_MAP_BUFFER_RANGE
