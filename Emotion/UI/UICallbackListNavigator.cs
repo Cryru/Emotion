@@ -27,6 +27,11 @@ namespace Emotion.UI
         /// </summary>
         public bool HideOutsideChildren = true;
 
+        /// <summary>
+        /// Scrolls the children in a way that ensures that at least one item before and after the selected item is visible.
+        /// </summary>
+        public bool ScrollOneAhead = true;
+
         // These three are the same thing.
         [DontSerialize]
         public UIBaseWindow? SelectedWnd { get; protected set; }
@@ -56,6 +61,7 @@ namespace Emotion.UI
         public Key ConfirmChoice;
 
         private Dictionary<Vector2, UIBaseWindow> _gridPosToChild = new Dictionary<Vector2, UIBaseWindow>();
+        private Vector2 _gridStart;
         private Vector2 _gridSize;
         private int _lastRowColumn;
 
@@ -105,6 +111,7 @@ namespace Emotion.UI
             if (Children == null) return;
 
             _gridPosToChild.Clear();
+            _gridStart = Vector2.Zero;
             _gridSize = Vector2.Zero;
 
             var pen = new Vector2();
@@ -114,6 +121,10 @@ namespace Emotion.UI
                 if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
                 _gridPosToChild.Add(pen, child);
+
+                _gridStart.X = MathF.Min(pen.X, _gridStart.X);
+                _gridStart.Y = MathF.Min(pen.Y, _gridStart.Y);
+
                 _gridSize.X = MathF.Max(pen.X, _gridSize.X);
                 _gridSize.Y = MathF.Max(pen.Y, _gridSize.Y);
 
@@ -198,14 +209,14 @@ namespace Emotion.UI
                 float childrenHeight = Children[0].Height;
                 float scaledListSpacing = ListSpacing.Y * GetScale();
                 float visibleChildrenAtATime = MathF.Floor((Height + scaledListSpacing) / (childrenHeight + scaledListSpacing));
-                float scrollRange = (childrenHeight * visibleChildrenAtATime) + scaledListSpacing * (visibleChildrenAtATime - 1);
+                float scrollRange = childrenHeight * visibleChildrenAtATime + scaledListSpacing * (visibleChildrenAtATime - 1);
                 scrollRange /= GetScale();
                 if (scrollRange != _scrollBar.MaxSize.Y)
                 {
                     _scrollBar.MaxSize = new Vector2(_scrollBar.MaxSize.X, scrollRange);
                     _scrollBar.InvalidateLayout();
                 }
-               
+
                 SyncScrollbar();
             }
 
@@ -284,15 +295,47 @@ namespace Emotion.UI
                     if (_selectedPos.Y == _gridSize.Y && _selectedPos.X > _lastRowColumn && _lastRowColumn != -1) _selectedPos.X = _lastRowColumn;
                     newItem = GetChildByGridLikePos(_selectedPos, out childIdx, true);
                 }
+
                 if (newItem == null || !newItem.Visible) return true; // Reached end.
                 Debug.Assert(childIdx != -1);
 
-                // Check if the new item is on screen.
-                if (childIdx > _lastVisibleChild || childIdx < _firstVisibleChild)
+                // Ensure that at least one item before and after the selected is visible.
+                // Warning: logic is kinda wtf here, but it seems true
+                if (ScrollOneAhead && _lastVisibleChild != -1 && _firstVisibleChild != -1)
                 {
-                    Vector2 diff = Vector2.Normalize(_selectedPos - _scrollPos);
-                    ScrollToPos(_scrollPos + diff);
+                    var scrolled = false;
+                    if (childIdx == _firstVisibleChild)
+                    {
+                        Vector2 gridPosOfFirstVis = GetGridLikePosFromChild(Children[_firstVisibleChild]);
+                        if (gridPosOfFirstVis != _gridStart)
+                        {
+                            gridPosOfFirstVis += axis;
+                            Vector2 diff = Vector2.Normalize(gridPosOfFirstVis - _scrollPos);
+                            ScrollToPos(_scrollPos + diff);
+                            scrolled = true;
+                        }
+                    }
+
+                    if (!scrolled && (childIdx > _lastVisibleChild - 1 || childIdx < _firstVisibleChild))
+                    {
+                        Vector2 gridPosOfLastVis = GetGridLikePosFromChild(Children[_lastVisibleChild]);
+                        if (gridPosOfLastVis != _gridSize)
+                        {
+                            Vector2 diff = Vector2.Normalize(_selectedPos - _scrollPos);
+                            ScrollToPos(_scrollPos + diff);
+                        }
+                    }
                 }
+                else
+                {
+                    // Scroll for new item to be on screen.
+                    if (childIdx > _lastVisibleChild || childIdx < _firstVisibleChild)
+                    {
+                        Vector2 diff = Vector2.Normalize(_selectedPos - _scrollPos);
+                        ScrollToPos(_scrollPos + diff);
+                    }
+                }
+
 
                 UIBaseWindow? oldSel = SelectedWnd;
                 SelectedWnd = newItem;
@@ -411,6 +454,7 @@ namespace Emotion.UI
             _scrollBar = scrollBar;
             SyncScrollbar();
             _scrollBar.OnValueChanged += ScrollbarScrolled;
+            _scrollBar.ScrollParent = this;
         }
 
         private void ScrollbarScrolled(int newValue)
@@ -437,10 +481,7 @@ namespace Emotion.UI
                 for (int i = _firstVisibleChild; i <= _lastVisibleChild; i++)
                 {
                     UIBaseWindow win = Children[i];
-                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos))
-                    {
-                        focus = win.FindMouseInput(pos);
-                    }
+                    if (!win.InputTransparent && win.Visible && win.IsPointInside(pos)) focus = win.FindMouseInput(pos);
                 }
 
             if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) return _scrollBar;

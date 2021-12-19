@@ -75,6 +75,8 @@ namespace Emotion.UI
 
         [DontSerialize] public Action<int>? OnValueChanged;
 
+        [DontSerialize] public UIBaseWindow? ScrollParent = null;
+
         private UIBaseWindow _selector = null!;
         private bool _dragging;
 
@@ -89,7 +91,7 @@ namespace Emotion.UI
             UIBaseWindow? scroll = GetWindowById("Selector");
             if (scroll == null)
             {
-                scroll = new UISolidColor { WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true };
+                scroll = new UISolidColor {WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true};
                 AddChild(scroll);
             }
 
@@ -111,6 +113,8 @@ namespace Emotion.UI
                 }
             }
 
+            if (ScrollParent != null) return ScrollParent.OnKey(key, status, mousePos);
+
             return base.OnKey(key, status, mousePos);
         }
 
@@ -121,9 +125,9 @@ namespace Emotion.UI
             Vector2 size = Size;
 
             if (Vertical)
-                Value = MinValue + (int)MathF.Round(relativePos.X / size.X * range);
+                Value = MinValue + (int) MathF.Round(relativePos.X / size.X * range);
             else
-                Value = MinValue + (int)MathF.Round(relativePos.Y / size.Y * range);
+                Value = MinValue + (int) MathF.Round(relativePos.Y / size.Y * range);
         }
 
         public override void OnMouseMove(Vector2 mousePos)
