@@ -53,21 +53,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="vao">The vertex array object to ensure is bound.</param>
         public static void EnsureBound(VertexArrayObject vao)
         {
-            // todo: VertexArrayObject binding cache has been temporarily commented out as it seems to have problems in some cases.
-            // Check if it is already bound.
-            //if (Bound == vao.Pointer)
-            //{
-            //    // If in debug mode, verify this with OpenGL.
-            //    if (!Engine.Configuration.DebugMode) return;
-
-            //    // Ensure the bound elements are correct as well.
-            //    VertexBuffer.EnsureBound(vao.VBO.Pointer);
-            //    if (vao.IBO != null) IndexBuffer.EnsureBound(vao.IBO.Pointer);
-
-            //    Gl.GetInteger(GetPName.VertexArrayBinding, out uint actualBound);
-            //    if (actualBound != vao.Pointer) Engine.Log.Error($"Assumed bound vertex array buffer was {vao.Pointer} but it was {actualBound}.", MessageSource.GL);
-            //    return;
-            //}
+            // No binding cache, check https://github.com/Cryru/Emotion/issues/56
 
             uint ptr = vao?.Pointer ?? 0;
             Gl.BindVertexArray(ptr);
@@ -75,8 +61,8 @@ namespace Emotion.Graphics.Objects
 
             // Reset the cached binding of VertexBuffers and IndexBuffers as the VAO just bound something else.
             // This does disable the cache until the binding, but otherwise we will be binding twice.
-            VertexBuffer.Bound = 0;
-            IndexBuffer.Bound = 0;
+            VertexBuffer.Bound = uint.MaxValue;
+            IndexBuffer.Bound = uint.MaxValue;
 
             // Some Intel drivers don't bind the IBO when the VAO is bound.
             // https://stackoverflow.com/questions/8973690/vao-and-element-array-buffer-state
