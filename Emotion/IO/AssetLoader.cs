@@ -377,14 +377,17 @@ namespace Emotion.IO
         }
 
         /// <summary>
-        /// Get an asset path relative to another path.
+        /// Remove the relative part of a relative path and return it relative to a directory.
+        /// [Folder/OtherFile.ext] + [../../../File.ext] = Folder/File.ext
+        /// [Folder/] + [../../../File.ext] = Folder/File.ext
+        /// [Folder/OtherFile.ext] + [File.ext] = Folder/File.ext
+        /// [] + [../File.ext] = File.ext
         /// </summary>
-        public static string GetRelativePath(string relativeTo, string path)
+        public static string TrimRelativePath(string relativeTo, string path)
         {
             int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
-            if (lastBack == -1) return path;
+            if (lastBack != -1) path = path[..lastBack];
 
-            path = path.Substring(0, lastBack);
             string directory = GetDirectoryName(relativeTo);
             return JoinPath(directory, path);
         }
@@ -393,13 +396,21 @@ namespace Emotion.IO
         /// Get a non-relative path from a path relative to a specific directory.
         /// [Folder] + [../File.ext] = File.ext
         /// [Folder] + [File.ext] = Folder/File.ext
+        /// [Folder] + [OtherFolder/File.ext] = Folder/OtherFolder/File.ext
+        /// [Folder] + [./File.ext] = Folder/File.ext
+        /// [Folder] + [OtherFolder/File.ext] + [joinNonRelative == false] = OtherFolder/File.ext
+        /// [Folder] + [./File.ext] + [joinNonRelative == false] = File.ext
         /// </summary>
-        public static string GetNonRelativePath(string relativeToDirectory, string path)
+        public static string GetNonRelativePath(string relativeToDirectory, string path, bool joinNonRelative = true)
         {
+            if (string.IsNullOrWhiteSpace(path)) return joinNonRelative ? relativeToDirectory : "";
+
+            if (path.Length > 2 && path[0] == '.' && path[1] == '/') path = path[2..];
+
             int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
             if (lastBack == -1)
             {
-                return JoinPath(relativeToDirectory, path);
+                return joinNonRelative ? JoinPath(relativeToDirectory, path) : path;
             }
 
             string[] folders = relativeToDirectory.Split("/");

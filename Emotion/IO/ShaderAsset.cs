@@ -59,7 +59,7 @@ namespace Emotion.IO
 
         #region Debug Shader Reload
 
-        private static string[] _excludedShaders = { "shaders/atlasblit.xml" };
+        private static string[] _excludedShaders = {"shaders/atlasblit.xml"};
         private static List<ShaderAsset> _activeShaderAssets;
 
         static ShaderAsset()
@@ -110,22 +110,24 @@ namespace Emotion.IO
         private void Compile()
         {
             // Get the text contents of the shader files referenced. If any of them are missing substitute with the default one.
-            TextAsset vertShader = null;
+            string assetDirectory = AssetLoader.GetDirectoryName(Name);
 
+            TextAsset vertShader = null;
             if (!string.IsNullOrEmpty(Content.Vert))
             {
-                vertShader = Engine.AssetLoader.Get<TextAsset>(Content.Vert, false);
-                if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Vert}. Using default.", MessageSource.AssetLoader);
+                string path = AssetLoader.GetNonRelativePath(assetDirectory, Content.Vert, false);
+                vertShader = Engine.AssetLoader.Get<TextAsset>(path, false);
+                if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {path}. Using default.", MessageSource.AssetLoader);
             }
 
             vertShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
 
             TextAsset fragShader = null;
-
             if (!string.IsNullOrEmpty(Content.Frag))
             {
-                fragShader = Engine.AssetLoader.Get<TextAsset>(Content.Frag, false);
-                if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Frag}. Using default.", MessageSource.AssetLoader);
+                string path = AssetLoader.GetNonRelativePath(assetDirectory, Content.Frag, false);
+                fragShader = Engine.AssetLoader.Get<TextAsset>(path, false);
+                if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {path}. Using default.", MessageSource.AssetLoader);
             }
 
             fragShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
