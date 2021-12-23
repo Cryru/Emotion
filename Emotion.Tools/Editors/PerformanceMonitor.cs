@@ -21,7 +21,7 @@ namespace Emotion.Tools.Editors
         private float[] _updateTracker;
         private int _updateIdx;
 
-        private int _updatesPerFrame;
+        private int _framesPerUpdate;
 
         private DateTime _fpsSecond = DateTime.Now;
         private int _fpsTracker;
@@ -58,10 +58,10 @@ namespace Emotion.Tools.Editors
 
         protected override bool UpdateInternal()
         {
-            _updateTracker[_updateIdx] = _updatesPerFrame;
+            _updateTracker[_updateIdx] = _framesPerUpdate;
             _updateIdx++;
             if (_updateIdx > _updateTracker.Length - 1) _updateIdx = 0;
-            _updatesPerFrame = 0;
+            _framesPerUpdate = 0;
 
             return true;
         }
@@ -73,7 +73,7 @@ namespace Emotion.Tools.Editors
             _dtIdx++;
             if (_dtIdx > _dtTracker.Length - 1) _dtIdx = 0;
 
-            _updatesPerFrame++;
+            _framesPerUpdate++;
 
             if (_fpsSecond.Second != DateTime.Now.Second)
             {
@@ -85,7 +85,7 @@ namespace Emotion.Tools.Editors
             ImGui.Text(Engine.Host.ToString());
 
             ImGui.PlotLines("Actual DeltaTime", ref _dtTracker[0], _dtTracker.Length, 0, "", 0, 30);
-            ImGui.PlotLines("Update Count", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
+            ImGui.PlotLines("Frames Per Update", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
             ImGui.Text($"Reported DeltaTime {Engine.DeltaTime}");
 
