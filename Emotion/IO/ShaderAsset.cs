@@ -8,7 +8,6 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
-using Emotion.Utility;
 
 #endregion
 
@@ -59,7 +58,6 @@ namespace Emotion.IO
 
         #region Debug Shader Reload
 
-        private static string[] _excludedShaders = {"shaders/atlasblit.xml"};
         private static List<ShaderAsset> _activeShaderAssets;
 
         static ShaderAsset()
@@ -70,17 +68,18 @@ namespace Emotion.IO
             Engine.Host.OnKey.AddListener((k, s) =>
             {
                 // The reload shaders shortcut is Ctrl + R
-                if (k != Key.R || s != KeyStatus.Down || !Engine.Host.IsKeyHeld(Key.LeftControl)) return true;
+                bool reloadShaders = k == Key.MouseKeyRight && s == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld();
+                if (!reloadShaders) return true;
 
                 for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)
                 {
-                    if (_activeShaderAssets[i].Disposed || _excludedShaders.IndexOf(_activeShaderAssets[i].Name) != -1)
+                    if (_activeShaderAssets[i].Disposed)
                         _activeShaderAssets.RemoveAt(i);
                     else
                         _activeShaderAssets[i].ReloadShader();
                 }
 
-                return true;
+                return false;
             }, KeyListenerType.System);
         }
 
