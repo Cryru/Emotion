@@ -92,6 +92,7 @@ namespace Emotion.Graphics.Shading
             Gl.BindAttribLocation(Pointer, ColorLocation, "color");
 
             Gl.LinkProgram(Pointer);
+            if (Engine.Configuration.GlDebugMode) Gl.ValidateProgram(Pointer);
 
             // Check linking status.
             var programCompileStatusReader = new StringBuilder(1024);
@@ -107,15 +108,6 @@ namespace Emotion.Graphics.Shading
                 Engine.Log.Warning($"Couldn't link shader program {Pointer}.", MessageSource.GL);
             else
                 Valid = true;
-
-            if (!Valid) return;
-
-            // Set default uniforms - this requires binding, so save the currently bound.
-            uint previouslyBound = Bound;
-            EnsureBound(Pointer);
-            SetUniformInt("mainTexture", 0);
-            SetUniformFloat("iTime", 0);
-            EnsureBound(previouslyBound);
         }
 
         #region Uniform Manipulation

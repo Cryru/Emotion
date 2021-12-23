@@ -88,17 +88,21 @@ namespace Emotion.Graphics.Shading
             // Check if the program is valid.
             if (newShader.Valid)
             {
-                // Apply shader defaults.
-                if (uniformDefaults.Count > 0)
+                // Apply shader default uniforms. This requires binding, so save last binding.
+                uint previouslyBound = ShaderProgram.Bound;
+                ShaderProgram.EnsureBound(newShader.Pointer);
+                newShader.SetUniformInt("mainTexture", 0);
+                newShader.SetUniformFloat("iTime", 0);
+
+                // Apply shader defaults parsed from the code.
+                // This is needed for GLES as it doesn't supported inlined default values.
+                for (var i = 0; i < uniformDefaults.Count; i++)
                 {
-                    ShaderProgram.EnsureBound(newShader.Pointer);
-                    for (var i = 0; i < uniformDefaults.Count; i++)
-                    {
-                        ShaderUniform uniDefault = uniformDefaults[i];
-                        uniDefault.ApplySelf(newShader);
-                    }
+                    ShaderUniform uniDefault = uniformDefaults[i];
+                    uniDefault.ApplySelf(newShader);
                 }
 
+                ShaderProgram.EnsureBound(previouslyBound);
                 Engine.Log.Info($"Compiled and linked shader, with config - {newShader.CompiledConfig}.", MessageSource.Renderer);
                 return newShader;
             }
