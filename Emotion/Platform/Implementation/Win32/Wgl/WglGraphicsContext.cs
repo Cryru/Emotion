@@ -481,7 +481,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 if (dwmComposition) interval = 0;
             }
 
-            _swapIntervalExt?.Invoke(_autoVSyncExtension ? -1 : interval);
+            _swapIntervalExt?.Invoke(interval != 0 && _autoVSyncExtension ? -1 : interval);
         }
 
         /// <inheritdoc />
