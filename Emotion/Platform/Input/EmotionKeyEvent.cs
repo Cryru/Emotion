@@ -6,55 +6,111 @@ using Emotion.Utility;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Platform.Input
 {
+    public enum KeyListenerType : byte
+    {
+        System = 0,
+        UI = 1,
+        Game = 2,
+        Last
+    }
+
     public class EmotionKeyEventPair
     {
-        public bool[] KeysDown = new bool[(int)Key.Last];
-        public Func<Key, KeyStatus, bool> Func;
+        public bool[] KeysDown = null!;
+        public Func<Key, KeyStatus, bool> Func = null!;
+
+        public EmotionKeyEventPair()
+        {
+            // Default constructor - will be called by object pool.
+            KeysDown = new bool[(int) Key.Last];
+        }
+
+        public EmotionKeyEventPair(bool noKeyRetention)
+        {
+            // Dont create KeysDown array.
+        }
     }
 
     public class EmotionKeyEvent
     {
         private ObjectPool<EmotionKeyEventPair> _pairPool = new ObjectPool<EmotionKeyEventPair>();
-        private readonly List<EmotionKeyEventPair> _listeners = new List<EmotionKeyEventPair>();
+        private readonly List<EmotionKeyEventPair>?[] _listenerArray = new List<EmotionKeyEventPair>?[(int) KeyListenerType.Last];
 
         public bool Invoke(Key key, KeyStatus status)
         {
-            lock (_listeners)
+            lock (this)
             {
+                // System events first. No key retention here.
+                List<EmotionKeyEventPair>? systemList = _listenerArray[0];
+                if (systemList != null)
+                    for (var i = 0; i < systemList.Count; i++)
+                    {
+                        EmotionKeyEventPair listener = systemList[i];
+                        if (!listener.Func(key, status)) return true;
+                    }
+
+                // Call rest of events in order.
                 var propagate = true;
-                for (var i = 0; i < _listeners.Count; i++)
+                for (var l = 1; l < _listenerArray.Length; l++)
                 {
-                    EmotionKeyEventPair listener = _listeners[i];
+                    List<EmotionKeyEventPair>? list = _listenerArray[l];
+                    if (list == null) continue;
 
-                    // We want to propagate Up events regardless of what the higher priority handler
-                    // has requested, when the handler considers that key pressed. Basically if you
-                    // get a down, you will always get a up.
-                    // But you won't get an up if you didn't get a down.
-                    if (status == KeyStatus.Up && !listener.KeysDown[(int)key]) continue;
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        EmotionKeyEventPair listener = list[i];
 
-                    bool funcPropagate = listener.Func(key, status);
-                    if (status == KeyStatus.Down || status == KeyStatus.Up) listener.KeysDown[(int)key] = status == KeyStatus.Down;
+                        // We want to propagate Up events regardless of what the higher priority handler
+                        // has requested, when the handler considers that key pressed. Basically if you
+                        // get a down, you will always get a up.
+                        // But you won't get an up if you didn't get a down.
+                        if (status == KeyStatus.Up && !listener.KeysDown[(int) key]) continue;
 
-                    // Stop propagation if the event handler said so.
-                    if (!funcPropagate) propagate = false;
+                        bool funcPropagate = listener.Func(key, status);
+                        if (status == KeyStatus.Down || status == KeyStatus.Up) listener.KeysDown[(int) key] = status == KeyStatus.Down;
 
-                    // If the event is not up, we can stop calling handlers.
-                    if (status != KeyStatus.Up && !propagate) return true;
+                        // Stop propagation if the event handler said so.
+                        if (!funcPropagate) propagate = false;
+
+                        // If the event is not up, we can stop calling handlers.
+                        if (status != KeyStatus.Up && !propagate) return true;
+                    }
                 }
             }
 
             return false;
         }
 
-        public void AddListener(Func<Key, KeyStatus, bool> func)
+        public void AddListener(Func<Key, KeyStatus, bool> func, KeyListenerType listenerType = KeyListenerType.UI)
         {
             lock (this)
             {
-                EmotionKeyEventPair pair = _pairPool.Get();
-                pair.Func = func;
-                _listeners.Add(pair);
+                EmotionKeyEventPair pair;
+                if (listenerType == KeyListenerType.System)
+                {
+                    pair = new EmotionKeyEventPair(true)
+                    {
+                        Func = func
+                    };
+                }
+                else
+                {
+                    pair = _pairPool.Get();
+                    pair.Func = func;
+                }
+
+                List<EmotionKeyEventPair>? list = _listenerArray[(int) listenerType];
+                if (list == null)
+                {
+                    list = new List<EmotionKeyEventPair>();
+                    _listenerArray[(int) listenerType] = list;
+                }
+
+                list.Add(pair);
             }
         }
 
@@ -62,21 +118,28 @@ namespace Emotion.Platform.Input
         {
             lock (this)
             {
-                for (var i = 0; i < _listeners.Count; i++)
+                for (var l = 1; l < _listenerArray.Length; l++)
                 {
-                    EmotionKeyEventPair listener = _listeners[i];
-                    if (listener.Func != func) continue;
+                    List<EmotionKeyEventPair>? list = _listenerArray[l];
+                    if (list == null) continue;
 
-                    // Call all downs as ups, and clear tracker.
-                    for (var j = 0; j < listener.KeysDown.Length; j++)
+                    for (var i = 0; i < list.Count; i++)
                     {
-                        if (!listener.KeysDown[j]) continue;
-                        listener.Func((Key)j, KeyStatus.Up);
-                        listener.KeysDown[j] = false;
-                    }
+                        EmotionKeyEventPair listener = list[i];
+                        if (listener.Func != func) continue;
 
-                    _listeners.RemoveAt(i);
-                    _pairPool.Return(listener);
+                        // Call all downs as ups, and clear tracker.
+                        for (var j = 0; j < listener.KeysDown.Length; j++)
+                        {
+                            if (!listener.KeysDown[j]) continue;
+                            listener.Func((Key) j, KeyStatus.Up);
+                            listener.KeysDown[j] = false;
+                        }
+
+                        list.RemoveAt(i);
+                        _pairPool.Return(listener);
+                        return;
+                    }
                 }
             }
         }

@@ -81,7 +81,7 @@ namespace Emotion.IO
                 }
 
                 return true;
-            });
+            }, KeyListenerType.System);
         }
 
         public ShaderAsset()

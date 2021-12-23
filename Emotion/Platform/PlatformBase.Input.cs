@@ -69,7 +69,7 @@ namespace Emotion.Platform
             _keysPreviousIm = new bool[totalKeys];
 
             SetupLegacy();
-            OnKey.AddListener(DefaultButtonBehavior);
+            OnKey.AddListener(DefaultButtonBehavior, KeyListenerType.System);
             OnMouseScroll += scroll => { _mouseScrollAccum += scroll; };
         }
 
@@ -408,7 +408,7 @@ namespace Emotion.Platform
                 if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) OnMouseKey.Invoke((MouseKey)key, status);
 #pragma warning restore 618
                 return true;
-            });
+            }, KeyListenerType.System);
         }
 
         /// <summary>

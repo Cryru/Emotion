@@ -45,7 +45,7 @@ namespace Emotion.Tools
 
         private static IEnumerator AttachKeyListener()
         {
-            Engine.Host.OnKey.AddListener(ToolsToggleKeyListener);
+            Engine.Host.OnKey.AddListener(ToolsToggleKeyListener, KeyListenerType.System);
             yield break;
         }
 
