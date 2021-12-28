@@ -2,14 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Game.Tiled;
 using Emotion.Graphics;
-using Emotion.Graphics.Batches;
-using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -108,6 +105,93 @@ namespace Tests.Classes
 
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.RenderComposerSpriteLimitTest);
+            }).WaitOne();
+        }
+
+        /// <summary>
+        /// Tests batching of different kinds of primitives in the render stream.
+        /// Quads, Sequential Triangles, Triangle Fan
+        /// RenderSprite, RenderVertices, RenderCircle
+        /// </summary>
+        [Test]
+        public void RenderStreamMultiPrimitiveBatching()
+        {
+            var drawVariants = new List<Action<RenderComposer, Vector3>>
+            {
+                // Quads
+                (c, loc) =>
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        c.RenderSprite(loc + new Vector3(i * 25, 0, 0), new Vector2(20, 20), Color.Red);
+                    }
+                },
+                // Sequential triangles
+                (c, loc) =>
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        c.RenderCircle(loc + new Vector3(i * 50, 0, 0), 20, Color.Green);
+                    }
+                },
+                // Triangle fan
+                (c, loc) =>
+                {
+                    Vector2 vec2Loc = loc.ToVec2();
+                    var poly = new List<Vector2>
+                    {
+                        vec2Loc + new Vector2(19.4f, 5.4f),
+                        vec2Loc + new Vector2(70.9f, 5.4f),
+                        vec2Loc + new Vector2(45.1f, 66)
+                    };
+
+                    for (var i = 0; i < 10; i++)
+                    {
+                        c.RenderVertices(poly, Color.Blue);
+
+                        // Offset vertices for the next draw.
+                        for (var j = 0; j < poly.Count; j++)
+                        {
+                            poly[j] += new Vector2(55, 0);
+                        }
+                    }
+                }
+            };
+
+            // Draw combinations of variants multiple times.
+            var variantsTest = new[]
+            {
+                new[] {0, 1, 2},
+                new[] {2, 1, 0},
+                new[] {0, 2, 1},
+                new[] {2, 0, 1}
+            };
+            const int drawsPerVariant = 10;
+
+            Runner.ExecuteAsLoop(_ =>
+            {
+                for (var v = 0; v < variantsTest.Length; v++)
+                {
+                    int[] variant = variantsTest[v];
+
+                    for (var c = 0; c < drawsPerVariant; c++)
+                    {
+                        RenderComposer composer = Engine.Renderer.StartFrame();
+                        composer.SetUseViewMatrix(false);
+                        var brush = new Vector3();
+                        for (var i = 0; i < variant.Length; i++)
+                        {
+                            drawVariants[variant[i]](composer, brush);
+                            brush.Y += 100;
+                        }
+
+                        composer.SetUseViewMatrix(true);
+                        Engine.Renderer.EndFrame();
+
+                        // Verify only on the last run of the variant.
+                        if (c == drawsPerVariant - 1) Runner.VerifyScreenshot(ResultDb.RenderComposerMultiBatchVariant + v);
+                    }
+                }
             }).WaitOne();
         }
 
