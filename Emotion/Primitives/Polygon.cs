@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Emotion.Graphics;
@@ -14,6 +15,12 @@ namespace Emotion.Primitives
     public class Polygon : IShape
     {
         public Vector2[] Vertices;
+
+        /// <summary>
+        /// A clean polygon has at least 3 vertices, is non-degenerate, and has no without duplicate vertices.
+        /// In addition the vertices are clockwise.
+        /// </summary>
+        public bool IsClean { get; private set; }
 
         /// <summary>
         /// The rectangle bounding this polygon.
@@ -44,9 +51,9 @@ namespace Emotion.Primitives
         {
             var verts = new Vector2[4];
             verts[0] = rect.Position;
-            verts[1] = (rect.Position + new Vector2(rect.Width, 0));
-            verts[2] = (rect.Position + rect.Size);
-            verts[3] = (rect.Position + new Vector2(0, rect.Height));
+            verts[1] = rect.Position + new Vector2(rect.Width, 0);
+            verts[2] = rect.Position + rect.Size;
+            verts[3] = rect.Position + new Vector2(0, rect.Height);
 
             return new Polygon(verts);
         }
@@ -54,34 +61,96 @@ namespace Emotion.Primitives
         #endregion
 
         /// <summary>
-        /// Ensure this polygon's vertices is counter clockwise.
-        /// </summary>
-        public void EnsureCounterClockwise()
-        {
-            if (0.0f > Area()) Array.Reverse(Vertices);
-        }
-
-        /// <summary>
         /// Removes duplicate vertices one after another and the looping vertex.
         /// </summary>
-        public void CleanupPolygon()
+        /// <param name="minDist">The minimum distance between points before they are considered duplicate.</param>
+        public void CleanupPolygon(float minDist = 0.0f)
         {
-            var newVertices = new List<Vector2>();
+            Debug.Assert(Vertices.Length >= 3);
+            if (IsClean) return;
 
-            // Remove duplicates.
-            ref Vector2 previous = ref Vertices[0];
-            newVertices.Add(previous);
-            for (var i = 1; i < Vertices.Length; i++)
+            float sqrtDist = minDist * minDist;
+            var ps = new Vector2[Vertices.Length];
+            var uniqueCount = 0;
+            for (var i = 0; i < Vertices.Length; ++i)
             {
-                ref Vector2 current = ref Vertices[i];
-                if (current != previous) newVertices.Add(current);
-                previous = ref current;
+                Vector2 v = Vertices[i];
+
+                var unique = true;
+                for (var j = 0; j < uniqueCount; ++j)
+                {
+                    Vector2 temp = ps[j];
+                    if (Vector2.DistanceSquared(v, temp) >= sqrtDist) continue;
+
+                    unique = false;
+                    break;
+                }
+
+                if (unique)
+                {
+                    ps[uniqueCount] = v;
+                    uniqueCount++;
+                }
             }
 
-            // Check if looping back.
-            if (Vertices[^1] == Vertices[0]) newVertices.RemoveAt(newVertices.Count - 1);
+            // Polygon is degenerate.
+            if (uniqueCount < 3) return;
 
-            Vertices = newVertices.ToArray();
+            // Create the convex hull using the Gift wrapping algorithm
+            // http://en.wikipedia.org/wiki/Gift_wrapping_algorithm
+
+            // Find the right most point on the hull
+            var i0 = 0;
+            float x0 = ps[0].X;
+            for (var i = 1; i < uniqueCount; ++i)
+            {
+                float x = ps[i].X;
+                if (x > x0 || x == x0 && ps[i].Y < ps[i0].Y)
+                {
+                    i0 = i;
+                    x0 = x;
+                }
+            }
+
+            var hull = new List<int>();
+            int ih = i0;
+            for (;;)
+            {
+                hull.Add(ih);
+
+                var ie = 0;
+                for (var j = 1; j < uniqueCount; ++j)
+                {
+                    if (ie == ih)
+                    {
+                        ie = j;
+                        continue;
+                    }
+
+                    Vector2 r = ps[ie] - ps[ih];
+                    Vector2 v = ps[j] - ps[ih];
+                    float c = Maths.Cross2D(r, v);
+                    if (c < 0.0f) ie = j;
+
+                    // Check if co-linear
+                    if (c == 0.0f && v.LengthSquared() > r.LengthSquared()) ie = j;
+                }
+
+                ih = ie;
+                if (ie == i0) break;
+            }
+
+            // Polygon is degenerate.
+            if (hull.Count < 3) return;
+
+            // Copy vertices.
+            Array.Resize(ref Vertices, hull.Count);
+            for (var i = 0; i < hull.Count; ++i)
+            {
+                Vertices[i] = ps[hull[i]];
+            }
+
+            IsClean = true;
         }
 
         /// <summary>
@@ -200,7 +269,6 @@ namespace Emotion.Primitives
             }
 
             if (Vertices.Length < 3) return null;
-            EnsureCounterClockwise();
             CleanupPolygon();
 
             // Remove nv-2 vertices, creating 1 triangle every time.
