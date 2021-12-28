@@ -263,7 +263,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="format">The pixel format to return the pixels in.</param>
         /// <param name="data">Optional data pointer to fill with the data.</param>
         /// <returns>null if invalid request, or a IRoutineWaiter framebuffer sample request otherwise</returns>
-        public FrameBufferSampleRequest SampleUnsynch(Rectangle rect, PixelFormat format, byte[] data = null)
+        public FrameBufferSampleRequest SampleAsync(Rectangle rect, PixelFormat format, byte[] data = null)
         {
             if (_sampleRequest != null) return _sampleRequest;
             var sampleRequest = new FrameBufferSampleRequest();

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.ExecTest.Examples;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
@@ -28,7 +29,7 @@ namespace Emotion.ExecTest
             config.AddPlugin(new ImGuiNetPlugin());
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new Program());
+            Engine.SceneManager.SetScene(new Pathfinding());
             Engine.Run();
         }
 
