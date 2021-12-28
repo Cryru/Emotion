@@ -34,7 +34,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="vertices">The vertex to render.</param>
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
-        public void RenderVertices(List<Vector3> vertices, params Color[] colors)
+        public void RenderVertices(List<Vector2> vertices, params Color[] colors)
         {
             RenderVertices(vertices.ToArray(), colors);
         }
@@ -44,7 +44,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="verts">The vertex to render.</param>
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
-        public void RenderVertices(Vector3[] verts, params Color[] colors)
+        public void RenderVertices(Vector2[] verts, params Color[] colors)
         {
             var vertCount = (uint) verts.Length;
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
@@ -52,7 +52,7 @@ namespace Emotion.Graphics
 
             for (var i = 0; i < verts.Length; i++)
             {
-                vertices[i].Vertex = verts[i];
+                vertices[i].Vertex = verts[i].ToVec3();
                 vertices[i].Color = i >= colors.Length ? colors.Length == 0 ? Color.WhiteUint : colors[0].ToUint() : colors[i].ToUint();
                 vertices[i].UV = Vector2.Zero;
             }

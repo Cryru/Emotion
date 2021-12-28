@@ -295,15 +295,6 @@ namespace System.Numerics
         }
 
         /// <summary>
-        /// "Cross product" approximation for 2D vectors.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Cross(this Vector2 me, Vector2 other)
-        {
-            return Vector3.Cross(me.ToVec3(), other.ToVec3()).Z;
-        }
-
-        /// <summary>
         /// Get the vector perpendicular (90deg) to this one.
         /// </summary>
         /// <param name="me"></param>
@@ -325,10 +316,45 @@ namespace System.Numerics
         /// <summary>
         /// Returns a vector in the same direction, but with a length of 1.
         /// If the vector is zero, zero is returned.
+        /// Modifies the reference.
         /// </summary>
-        public static Vector3 Normalize(this Vector3 v)
+        public static Vector3 Normalize(this ref Vector3 v)
         {
-            return v == Vector3.Zero ? v : Vector3.Normalize(v);
+            v = v == Vector3.Zero ? v : Vector3.Normalize(v);
+            return v;
+        }
+
+        /// <summary>
+        /// Returns a vector in the same direction, but with a length of 1.
+        /// If the vector is zero, zero is returned.
+        /// Doesn't modify the reference.
+        /// </summary>
+        public static Vector3 SafeNormalize(this Vector3 v)
+        {
+            v = v == Vector3.Zero ? v : Vector3.Normalize(v);
+            return v;
+        }
+
+        /// <summary>
+        /// Returns a vector in the same direction, but with a length of 1.
+        /// If the vector is zero, zero is returned.
+        /// Modifies the reference.
+        /// </summary>
+        public static Vector2 Normalize(this ref Vector2 v)
+        {
+            v = v == Vector2.Zero ? v : Vector2.Normalize(v);
+            return v;
+        }
+
+        /// <summary>
+        /// Returns a vector in the same direction, but with a length of 1.
+        /// If the vector is zero, zero is returned.
+        /// Doesn't modify the reference.
+        /// </summary>
+        public static Vector2 SafeNormalize(this Vector2 v)
+        {
+            v = v == Vector2.Zero ? v : Vector2.Normalize(v);
+            return v;
         }
     }
 }

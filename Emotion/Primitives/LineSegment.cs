@@ -302,7 +302,7 @@ namespace Emotion.Primitives
             float dot = Vector2.Dot(v2, v3);
             if (MathF.Abs(dot) < 0.000001) return Vector2.Zero;
 
-            dist = v2.Cross(v1) / dot;
+            dist = Maths.Cross2D(v2, v1) / dot;
             float t2 = Vector2.Dot(v1, v3) / dot;
 
             if (dist >= 0.0 && t2 >= 0.0 && t2 <= 1.0) return ray.Start + ray.Direction * dist;

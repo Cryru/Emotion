@@ -821,5 +821,24 @@ namespace Emotion.Utility
             var line = new LineSegment(pointA, pointB);
             return line.PointOnLineAtDistance(line.Length() * amount01);
         }
+
+        /// <summary>
+        /// Perform the cross product on two vectors
+        /// </summary>
+        public static float Cross2D(Vector2 a, Vector2 b)
+        {
+            // Vector3.Cross(a, b).Z
+            return a.X * b.Y - a.Y * b.X;
+        }
+
+        public static Vector2 Cross2D(Vector2 a, float s)
+        {
+            return new Vector2(s * a.Y, -s * a.X);
+        }
+
+        public static Vector2 Cross2D(float s, Vector2 a)
+        {
+            return new Vector2(-s * a.Y, s * a.X);
+        }
     }
 }

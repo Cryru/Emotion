@@ -24,35 +24,35 @@ namespace Emotion.ExecTest.Examples
         public void Load()
         {
             // Split your paths into separate polygon instances.
-            var poly = new List<Vector3>();
-            poly.Add(new Vector3(808, 0, 0));
-            poly.Add(new Vector3(100, 0, 0));
-            poly.Add(new Vector3(100, 1456, 0));
-            poly.Add(new Vector3(808, 1456, 0));
+            var poly = new List<Vector2>();
+            poly.Add(new Vector2(808, 0));
+            poly.Add(new Vector2(100, 0));
+            poly.Add(new Vector2(100, 1456));
+            poly.Add(new Vector2(808, 1456));
             _testPolygon[0] = new Polygon(poly);
 
             poly.Clear();
-            poly.Add(new Vector3(754, 84, 0));
-            poly.Add(new Vector3(754, 1371, 0));
-            poly.Add(new Vector3(480, 728, 0));
+            poly.Add(new Vector2(754, 84));
+            poly.Add(new Vector2(754, 1371));
+            poly.Add(new Vector2(480, 728));
             _testPolygon[1] = new Polygon(poly);
 
             poly.Clear();
-            poly.Add(new Vector3(154, 1359, 0));
-            poly.Add(new Vector3(154, 96, 0));
-            poly.Add(new Vector3(422, 728, 0));
+            poly.Add(new Vector2(154, 1359));
+            poly.Add(new Vector2(154, 96));
+            poly.Add(new Vector2(422, 728));
             _testPolygon[2] = new Polygon(poly);
 
             poly.Clear();
-            poly.Add(new Vector3(194, 54, 0));
-            poly.Add(new Vector3(709, 54, 0));
-            poly.Add(new Vector3(451, 660, 0));
+            poly.Add(new Vector2(194, 54));
+            poly.Add(new Vector2(709, 54));
+            poly.Add(new Vector2(451, 660));
             _testPolygon[3] = new Polygon(poly);
 
             poly.Clear();
-            poly.Add(new Vector3(451, 796, 0));
-            poly.Add(new Vector3(709, 1402, 0));
-            poly.Add(new Vector3(194, 1402, 0));
+            poly.Add(new Vector2(451, 796));
+            poly.Add(new Vector2(709, 1402));
+            poly.Add(new Vector2(194, 1402));
             _testPolygon[4] = new Polygon(poly);
         }
 

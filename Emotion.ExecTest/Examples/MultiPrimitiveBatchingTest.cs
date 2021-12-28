@@ -39,11 +39,12 @@ namespace Emotion.ExecTest.Examples
             // Triangle fan
             (c, loc) =>
             {
-                var poly = new List<Vector3>
+                Vector2 vec2Loc = loc.ToVec2();
+                var poly = new List<Vector2>
                 {
-                    loc + new Vector3(19.4f, 5.4f, 0),
-                    loc + new Vector3(70.9f, 5.4f, 0),
-                    loc + new Vector3(45.1f, 66, 0)
+                    vec2Loc + new Vector2(19.4f, 5.4f),
+                    vec2Loc + new Vector2(70.9f, 5.4f),
+                    vec2Loc + new Vector2(45.1f, 66)
                 };
 
                 for (var i = 0; i < 10; i++)
@@ -53,7 +54,7 @@ namespace Emotion.ExecTest.Examples
                     // Offset vertices for the next draw.
                     for (var j = 0; j < poly.Count; j++)
                     {
-                        poly[j] += new Vector3(55, 0, 0);
+                        poly[j] += new Vector2(55, 0);
                     }
                 }
             }

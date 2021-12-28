@@ -13,7 +13,7 @@ namespace Emotion.Primitives
 {
     public class Polygon : IShape
     {
-        public Vector3[] Vertices;
+        public Vector2[] Vertices;
 
         /// <summary>
         /// The rectangle bounding this polygon.
@@ -27,35 +27,26 @@ namespace Emotion.Primitives
 
         public Polygon(int vCount)
         {
-            Vertices = new Vector3[vCount];
+            Vertices = new Vector2[vCount];
         }
 
-        public Polygon(params Vector3[] vertices)
+        public Polygon(params Vector2[] vertices)
         {
             Vertices = vertices;
         }
 
-        public Polygon(List<Vector3> vertices)
+        public Polygon(IEnumerable<Vector2> vertices)
         {
             Vertices = vertices.ToArray();
         }
 
-        public Polygon(IReadOnlyList<Vector2> vertices)
-        {
-            Vertices = new Vector3[vertices.Count];
-            for (var i = 0; i < vertices.Count; i++)
-            {
-                Vertices[i] = vertices[i].ToVec3();
-            }
-        }
-
         public static Polygon FromRectangle(Rectangle rect)
         {
-            var verts = new Vector3[4];
-            verts[0] = rect.Position.ToVec3();
-            verts[1] = (rect.Position + new Vector2(rect.Width, 0)).ToVec3();
-            verts[2] = (rect.Position + rect.Size).ToVec3();
-            verts[3] = (rect.Position + new Vector2(0, rect.Height)).ToVec3();
+            var verts = new Vector2[4];
+            verts[0] = rect.Position;
+            verts[1] = (rect.Position + new Vector2(rect.Width, 0));
+            verts[2] = (rect.Position + rect.Size);
+            verts[3] = (rect.Position + new Vector2(0, rect.Height));
 
             return new Polygon(verts);
         }
@@ -75,14 +66,14 @@ namespace Emotion.Primitives
         /// </summary>
         public void CleanupPolygon()
         {
-            var newVertices = new List<Vector3>();
+            var newVertices = new List<Vector2>();
 
             // Remove duplicates.
-            ref Vector3 previous = ref Vertices[0];
+            ref Vector2 previous = ref Vertices[0];
             newVertices.Add(previous);
             for (var i = 1; i < Vertices.Length; i++)
             {
-                ref Vector3 current = ref Vertices[i];
+                ref Vector2 current = ref Vertices[i];
                 if (current != previous) newVertices.Add(current);
                 previous = ref current;
             }
@@ -104,8 +95,8 @@ namespace Emotion.Primitives
             int j = Vertices.Length - 1;
             for (var i = 0; i < Vertices.Length; i++)
             {
-                Vector3 vert = Vertices[i];
-                Vector3 vertJ = Vertices[j];
+                Vector2 vert = Vertices[i];
+                Vector2 vertJ = Vertices[j];
                 if (vert.Y < point.Y && vertJ.Y >= point.Y || vertJ.Y < point.Y && vert.Y >= point.Y)
                     if (vert.X + (point.Y - vert.Y) / (vertJ.Y - vert.Y) * (vertJ.X - vert.X) < point.X)
                         result = !result;
@@ -151,10 +142,10 @@ namespace Emotion.Primitives
             memory.Clear();
             for (var i = 0; i < Vertices.Length - 1; i++)
             {
-                memory.Add(new LineSegment(Vertices[i].ToVec2(), Vertices[i + 1].ToVec2()));
+                memory.Add(new LineSegment(Vertices[i], Vertices[i + 1]));
             }
 
-            memory.Add(new LineSegment(Vertices[0].ToVec2(), Vertices[^1].ToVec2()));
+            memory.Add(new LineSegment(Vertices[0], Vertices[^1]));
         }
 
         /// <summary>
@@ -165,7 +156,7 @@ namespace Emotion.Primitives
         {
             for (var i = 0; i < Vertices.Length; i++)
             {
-                Vertices[i] = Vector3.Transform(Vertices[i], mat);
+                Vertices[i] = Vector2.Transform(Vertices[i], mat);
             }
 
             return this;
@@ -191,21 +182,21 @@ namespace Emotion.Primitives
         public Polygon Triangulate()
         {
             // Check if the triangle described by points A, B, C contains pointCheck.
-            static bool InsideTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector3 pointCheck)
+            static bool InsideTriangle(Vector2 pointA, Vector2 pointB, Vector2 pointC, Vector2 pointCheck)
             {
-                Vector3 a = pointC - pointB;
-                Vector3 b = pointA - pointC;
-                Vector3 c = pointB - pointA;
+                Vector2 a = pointC - pointB;
+                Vector2 b = pointA - pointC;
+                Vector2 c = pointB - pointA;
 
-                Vector3 ap = pointCheck - pointA;
-                Vector3 bp = pointCheck - pointB;
-                Vector3 cp = pointCheck - pointC;
+                Vector2 ap = pointCheck - pointA;
+                Vector2 bp = pointCheck - pointB;
+                Vector2 cp = pointCheck - pointC;
 
-                Vector3 axbp = Vector3.Cross(a, bp);
-                Vector3 cxap = Vector3.Cross(c, ap);
-                Vector3 bxcp = Vector3.Cross(b, cp);
+                float axbp = Maths.Cross2D(a, bp);
+                float cxap = Maths.Cross2D(c, ap);
+                float bxcp = Maths.Cross2D(b, cp);
 
-                return axbp.Z >= 0.0f && cxap.Z >= 0.0f && bxcp.Z >= 0.0f;
+                return axbp >= 0.0f && cxap >= 0.0f && bxcp >= 0.0f;
             }
 
             if (Vertices.Length < 3) return null;
@@ -213,15 +204,15 @@ namespace Emotion.Primitives
             CleanupPolygon();
 
             // Remove nv-2 vertices, creating 1 triangle every time.
-            var result = new List<Vector3>();
-            var vertices = new List<Vector3>(Vertices);
+            var result = new List<Vector2>();
+            var vertices = new List<Vector2>(Vertices);
             int count = 2 * vertices.Count;
 
             bool Snip(int u, int v, int w)
             {
-                Vector3 a = vertices[u];
-                Vector3 b = vertices[v];
-                Vector3 c = vertices[w];
+                Vector2 a = vertices[u];
+                Vector2 b = vertices[v];
+                Vector2 c = vertices[w];
 
                 if (Maths.EPSILON > (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X)) return false;
                 // ReSharper disable once LoopCanBeConvertedToQuery
