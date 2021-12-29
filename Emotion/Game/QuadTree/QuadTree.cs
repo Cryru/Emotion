@@ -15,9 +15,20 @@ namespace Emotion.Game.QuadTree
     /// A QuadTree Object that provides storage of objects in a space with fast querying.
     /// </summary>
     /// <typeparam name="T">Any object implementing Transform.</typeparam>
-    public class QuadTree<T> : QuadTreeNode<T>, ICollection<T> where T : Transform
+    public class QuadTree<T> : QuadTreeNode<T>, ICollection<T> where T : IQuadTreeObject
     {
-        private readonly Dictionary<T, QuadTreeObject<T>> _wrappedDictionary = new Dictionary<T, QuadTreeObject<T>>();
+        /// <summary>
+        /// Whether the quad tree can grow.
+        /// </summary>
+        public bool Dynamic;
+
+        private int _dynamicRebuildCapacity;
+        private bool _dynamicRebuildInProgress;
+
+        /// <summary>
+        /// All objects in the entire tree.
+        /// </summary>
+        private HashSet<T> _allObjects = new HashSet<T>();
 
         /// <summary>
         /// Creates a QuadTree of the specified dimensions.
@@ -26,71 +37,53 @@ namespace Emotion.Game.QuadTree
         /// <param name="nodeCapacity">The number of objects a node can contain before it subdivides.</param>
         public QuadTree(Rectangle rect, int nodeCapacity = 8) : base(rect, nodeCapacity)
         {
+            Dynamic = rect == Rectangle.Empty;
+            _dynamicRebuildCapacity = NodeCapacity;
         }
 
-        /// <summary>
-        /// Creates a QuadTree of the specified dimensions.
-        /// </summary>
-        /// <param name="x">The top-left position of the area rectangle.</param>
-        /// <param name="y">The top-right position of the area rectangle.</param>
-        /// <param name="width">The width of the area rectangle.</param>
-        /// <param name="height">The height of the area rectangle.</param>
-        /// <param name="nodeCapacity">The number of objects a node can contain before it subdivides.</param>
-        public QuadTree(int x, int y, int width, int height, int nodeCapacity = 8) : this(new Rectangle(x, y, width, height), nodeCapacity)
+        protected override void InsertInternal(T item, bool outOfBounds = false)
         {
-        }
+            base.InsertInternal(item, outOfBounds);
+            if (!Dynamic) return;
 
-        /// <inheritdoc />
-        protected override int ObjectCount()
-        {
-            // Fast path for the root since it keeps a wrapped dictionary of all objects.
-            return _wrappedDictionary.Count;
-        }
+            if (outOfBounds)
+            {
+                Rectangle itemBounds = item.GetBoundsForQuadTree();
+                if (float.IsNormal(itemBounds.X) && float.IsNormal(itemBounds.Y) && float.IsNormal(itemBounds.Width) && float.IsNormal(itemBounds.Height))
+                    _quadRect = Rectangle.Union(_quadRect, itemBounds);
+            }
 
-        /// <inheritdoc />
-        public override void GetAllObjects(ref List<T> results)
-        {
-            // Fast path for the root since it keeps a wrapped dictionary of all objects. 
-            results.AddRange(_wrappedDictionary.Keys);
+            // Rebuild the entire tree.
+            // There is probably a better way of doing this, but dynamic quad trees are a bit meh.
+            if (_objects.Count >= _dynamicRebuildCapacity && !_dynamicRebuildInProgress)
+            {
+                _dynamicRebuildInProgress = true;
+                Clear();
+                foreach (T obj in _allObjects)
+                {
+                    Insert(obj);
+                }
+                _dynamicRebuildInProgress = false;
+
+                // Prevent instant rebuild on next insert if there are a lot of objects out of bounds.
+                _dynamicRebuildCapacity = Math.Max(_objects.Count * 2, NodeCapacity);
+            }
         }
 
         #region ICollection<T> Members
 
         /// <summary>
-        /// Add an object to the quad tree. It will be distributed to the appropriate leaf and
-        /// updated when it moves.
+        /// Add an object to the quad tree.
+        /// It will be distributed to the appropriate leaf and updated when it moves.
         /// </summary>
         public void Add(T item)
         {
             if (item == null) return;
-            Debug.Assert(!_wrappedDictionary.ContainsKey(item));
+            Debug.Assert(!Contains(item));
 
-            var wrappedObject = new QuadTreeObject<T>(item);
-            _wrappedDictionary.Add(item, wrappedObject);
-            Insert(wrappedObject);
-
-            // Attach to move event.
-            item.OnMove += (s, _) => ObjectMovedInternal((T)s);
-        }
-
-        private bool ObjectMovedInternal(T item)
-        {
-            if (!Contains(item)) return false;
-
-            QuadTreeObject<T> unwrappedItem = _wrappedDictionary[item];
-            if (unwrappedItem.Owner != null)
-                unwrappedItem.Owner.Relocate(unwrappedItem);
-            else
-                Relocate(unwrappedItem);
-
-            return true;
-        }
-
-        /// <inheritdoc cref="QuadTreeNode{T}" />
-        public override void Clear()
-        {
-            _wrappedDictionary.Clear();
-            base.Clear();
+            Insert(item);
+            _allObjects.Add(item);
+            item.AddedToQuadTree();
         }
 
         /// <summary>
@@ -98,23 +91,24 @@ namespace Emotion.Game.QuadTree
         /// </summary>
         public bool Contains(T item)
         {
-            return item != null && _wrappedDictionary.ContainsKey(item);
+            return item != null && _allObjects.Contains(item);
         }
 
         /// <summary>
         /// Remove an object from the tree, whichever leaf it is located in.
         /// </summary>
-        public bool Remove(T item)
+        public new bool Remove(T item)
         {
             if (item == null) return false;
             if (!Contains(item)) return false;
 
             // Remove the item from its owner and cleanup empty leaves.
-            QuadTreeObject<T> wrappedItem = _wrappedDictionary[item];
-            wrappedItem.Owner.Remove(wrappedItem);
-            wrappedItem.Owner.RemoveEmptyLeavesUpwards();
+            var owner = (QuadTreeNode<T>) item.Owner;
+            owner.Remove(item);
+            owner.RemoveEmptyLeavesUpwards();
+            item.RemovedFromQuadTree();
+            _allObjects.Remove(item);
 
-            _wrappedDictionary.Remove(item);
             return true;
         }
 
@@ -125,7 +119,7 @@ namespace Emotion.Game.QuadTree
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new Exception("The quad tree doesn't have indices, so CopyTo is not available.");
+            _allObjects.CopyTo(array, arrayIndex);
         }
 
         #endregion
@@ -137,10 +131,7 @@ namespace Emotion.Game.QuadTree
         /// </summary>
         public IEnumerator<T> GetEnumerator()
         {
-            foreach (KeyValuePair<T, QuadTreeObject<T>> keyValue in _wrappedDictionary)
-            {
-                yield return keyValue.Key;
-            }
+            return _allObjects.GetEnumerator();
         }
 
         /// <summary>
@@ -163,7 +154,7 @@ namespace Emotion.Game.QuadTree
             treeTraverse.Enqueue(this);
             while (treeTraverse.TryDequeue(out QuadTreeNode<T> quadTree))
             {
-                c.RenderOutline(quadTree.QuadRect, color);
+                c.RenderOutlineScreenSpace(quadTree.QuadRect, color);
 
                 if (quadTree.TopLeftChild == null) continue;
                 treeTraverse.Enqueue(quadTree.TopLeftChild);

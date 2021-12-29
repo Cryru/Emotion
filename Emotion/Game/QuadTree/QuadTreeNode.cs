@@ -15,12 +15,12 @@ namespace Emotion.Game.QuadTree
     /// A QuadTree Object that provides fast and efficient storage of objects in a world space.
     /// </summary>
     /// <typeparam name="T">Any object implementing Transform.</typeparam>
-    public class QuadTreeNode<T> where T : Transform
+    public class QuadTreeNode<T> : QuadTreeNode where T : IQuadTreeObject
     {
         /// <summary>
         /// The number of objects a node can contain before it subdivides.
         /// </summary>
-        public readonly int NodeCapacity;
+        public int NodeCapacity { get; set; }
 
         /// <summary>
         /// Whether the node will cleanup and deallocate the four quadrants
@@ -46,7 +46,7 @@ namespace Emotion.Game.QuadTree
             get => _quadRect;
         }
 
-        protected Rectangle _quadRect;
+        protected Rectangle _quadRect; // Non auto-property so reference can be gotten.
 
         /// <summary>
         /// The top left child for this QuadTree
@@ -92,9 +92,12 @@ namespace Emotion.Game.QuadTree
         /// <summary>
         /// The objects in this QuadTree
         /// </summary>
-        private List<QuadTreeObject<T>> _objects;
+        protected List<T> _objects;
 
-        private int _runningQueryCount;
+        /// <summary>
+        /// The number of queries currently running on this node.
+        /// </summary>
+        protected int _runningQueryCount;
 
         /// <summary>
         /// Creates a QuadTree for the specified area.
@@ -189,15 +192,17 @@ namespace Emotion.Game.QuadTree
         /// Get the child quad that would contain the object.
         /// </summary>
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
-        private QuadTreeNode<T> GetContainingChild(QuadTreeObject<T> item)
+        private QuadTreeNode<T> GetContainingChild(IQuadTreeObject item)
         {
-            if (TopLeftChild.QuadRect.ContainsInclusive(item.Data.Bounds))
+            Rectangle bounds = item.GetBoundsForQuadTree();
+
+            if (TopLeftChild.QuadRect.ContainsInclusive(bounds))
                 return TopLeftChild;
-            if (TopRightChild.QuadRect.ContainsInclusive(item.Data.Bounds))
+            if (TopRightChild.QuadRect.ContainsInclusive(bounds))
                 return TopRightChild;
-            if (BottomLeftChild.QuadRect.ContainsInclusive(item.Data.Bounds))
+            if (BottomLeftChild.QuadRect.ContainsInclusive(bounds))
                 return BottomLeftChild;
-            if (BottomRightChild.QuadRect.ContainsInclusive(item.Data.Bounds))
+            if (BottomRightChild.QuadRect.ContainsInclusive(bounds))
                 return BottomRightChild;
 
             // If a child can't contain an object, it will live in this Quad
@@ -205,16 +210,17 @@ namespace Emotion.Game.QuadTree
         }
 
         /// <summary>
-        /// Remove an item from the object list of this tree.
-        /// Will not remove empty nodes.
+        /// Remove an item from the object list of this tree node.
+        /// Will not remove empty nodes. Is called internally by the QuadTree
         /// </summary>
-        /// <param name="item">The object to remove.</param>
-        public void Remove(QuadTreeObject<T> item)
+        public void Remove(T item)
         {
             Debug.Assert(item.Owner == this);
             if (_objects == null) return;
             int removeIndex = _objects.IndexOf(item);
             if (removeIndex < 0) return;
+
+            // Move at end to prevent list reshuffle.
             _objects[removeIndex] = _objects[^1];
             _objects.RemoveAt(_objects.Count - 1);
         }
@@ -240,7 +246,7 @@ namespace Emotion.Game.QuadTree
         /// Insert an item into this QuadTree object.
         /// </summary>
         /// <param name="item">The item to insert.</param>
-        protected void Insert(QuadTreeObject<T> item)
+        protected void Insert(T item)
         {
             // Can't subdivide, add to this level.
             if (!CanSubdivide)
@@ -248,9 +254,9 @@ namespace Emotion.Game.QuadTree
                 InsertInternal(item);
             }
             // This object is outside of the QuadTree bounds, add it if at root level.
-            else if (!QuadRect.ContainsInclusive(item.Data.Bounds) && Parent == null)
+            else if (!QuadRect.ContainsInclusive(item.GetBoundsForQuadTree()) && Parent == null)
             {
-                InsertInternal(item);
+                InsertInternal(item, true);
             }
             // If there's room to add the object, just add it
             else if (_objects == null || TopLeftChild == null && _objects.Count + 1 <= NodeCapacity)
@@ -266,7 +272,8 @@ namespace Emotion.Game.QuadTree
                 QuadTreeNode<T> destTree = GetContainingChild(item);
 
                 // If the item is already there, don't add it again.
-                // This can happen when an out of bounds item is redirected due to a subdivision.
+                // This can happen when an out of bounds item is redirected due to a subdivision or
+                // when an item is in between multiple children.
                 if (item.Owner == destTree) return;
 
                 if (destTree == this)
@@ -276,9 +283,9 @@ namespace Emotion.Game.QuadTree
             }
         }
 
-        private void InsertInternal(QuadTreeObject<T> item)
+        protected virtual void InsertInternal(T item, bool outOfBounds = false)
         {
-            _objects ??= new List<QuadTreeObject<T>>();
+            _objects ??= new List<T>();
 
             Debug.Assert(_objects.IndexOf(item) == -1);
             item.Owner = this;
@@ -304,7 +311,7 @@ namespace Emotion.Game.QuadTree
             // If they're completely contained by the quad, bump objects down
             for (var i = 0; i < _objects.Count; i++)
             {
-                QuadTreeObject<T> obj = _objects[i];
+                T obj = _objects[i];
                 QuadTreeNode<T> destTree = GetContainingChild(obj);
                 if (destTree == this) continue;
 
@@ -319,21 +326,22 @@ namespace Emotion.Game.QuadTree
         /// Moves the QuadTree object up the tree to wherever it should actually be.
         /// Should be called whenever an object moves to make sure the tree is consistent.
         /// </summary>
-        public void Relocate(QuadTreeObject<T> item)
+        public void Relocate(T item)
         {
             Debug.Assert(_runningQueryCount == 0, "Object is moving across nodes while a query is running on its node. Expect problems.");
 
             // Are we still inside our parent?
-            // If there is no parent and the object isn't contained, that means it's out of bounds.
-            if (QuadRect.ContainsInclusive(item.Data.Bounds) || Parent == null)
+            // If there is no parent and the object isn't contained, that means it went out of our bounds and should join the parent.
+            if (QuadRect.ContainsInclusive(item.GetBoundsForQuadTree()) || Parent == null)
             {
                 // Good, have we moved inside any of our children?
                 if (TopLeftChild == null) return;
                 QuadTreeNode<T> dest = GetContainingChild(item);
                 if (item.Owner == dest) return;
+
                 // Delete the item from its owner (which is either me or a child of mine) and add it to the child where it should be.
                 // Note: Do NOT clean during this call, it can potentially delete our destination quad
-                QuadTreeNode<T> formerOwner = item.Owner;
+                var formerOwner = (QuadTreeNode<T>) item.Owner;
                 formerOwner.Remove(item);
                 dest.Insert(item);
 
@@ -348,43 +356,27 @@ namespace Emotion.Game.QuadTree
 
         #region Query
 
-        public List<T> GetObjects<TBound>(ref TBound searchArea) where TBound : IShape
-        {
-            var results = new List<T>();
-            GetObjects(ref searchArea, results);
-            return results;
-        }
-
-        public List<T> GetObjects<TBound>(TBound searchArea) where TBound : IShape
-        {
-            var results = new List<T>();
-            GetObjects(ref searchArea, results);
-            return results;
-        }
-
-        public void GetObjects<TBound>(TBound searchArea, List<T> results) where TBound : IShape
-        {
-            GetObjects(ref searchArea, results);
-        }
-
         /// <summary>
-        /// Get the objects in this tree that intersect with the specified shape.
+        /// Execute a query on the quad tree.
         /// </summary>
-        /// <param name="searchArea">The shape to find objects in.</param>
-        /// <param name="results">A reference to a list that will be populated with the results.</param>
-        public void GetObjects<TBound>(ref TBound searchArea, List<T> results) where TBound : IShape
+        /// <param name="query"></param>
+        public void ExecuteQuery(QuadTreeQuery<T> query)
         {
             // We can't do anything if the results list doesn't exist
-            if (results == null) return;
+            if (query.Results == null) return;
 
 #if DEBUG
+            // Used to detect object changes while a query is running.
             Interlocked.Increment(ref _runningQueryCount);
 #endif
+
+            IShape searchArea = query.SearchArea;
+            List<T> results = query.Results;
 
             if (searchArea.ContainsInclusive(ref _quadRect))
             {
                 // If the search area completely contains this quad, just get every object in this quad and all its children
-                GetAllObjects(ref results);
+                GetAllObjects(results);
             }
             else if (searchArea.Intersects(ref _quadRect))
             {
@@ -392,19 +384,19 @@ namespace Emotion.Game.QuadTree
                 if (_objects != null)
                     for (var i = 0; i < _objects.Count; i++)
                     {
-                        QuadTreeObject<T> obj = _objects[i];
-                        Debug.Assert(results.IndexOf(obj.Data) == -1, "QuadTree object found twice in query. Was it added twice?");
-                        Rectangle bounds = obj.Data.Bounds;
-                        if (searchArea.Intersects(ref bounds)) results.Add(obj.Data);
+                        T obj = _objects[i];
+                        Debug.Assert(results.IndexOf(obj) == -1, "QuadTree object found twice in query. Was it added twice?");
+                        Rectangle bounds = obj.GetBoundsForQuadTree();
+                        if (searchArea.Intersects(ref bounds)) results.Add(obj);
                     }
 
                 // Search for objects in the children (if any)
                 if (TopLeftChild != null)
                 {
-                    TopLeftChild.GetObjects(ref searchArea, results);
-                    TopRightChild.GetObjects(ref searchArea, results);
-                    BottomLeftChild.GetObjects(ref searchArea, results);
-                    BottomRightChild.GetObjects(ref searchArea, results);
+                    TopLeftChild.ExecuteQuery(query);
+                    TopRightChild.ExecuteQuery(query);
+                    BottomLeftChild.ExecuteQuery(query);
+                    BottomRightChild.ExecuteQuery(query);
                 }
             }
 
@@ -413,13 +405,34 @@ namespace Emotion.Game.QuadTree
 #endif
         }
 
+        public List<T> GetObjects<TBound>(TBound searchArea) where TBound : IShape
+        {
+            var newQuery = new QuadTreeQuery<T>
+            {
+                Results = new List<T>(),
+                SearchArea = searchArea
+            };
+            ExecuteQuery(newQuery);
+            return newQuery.Results;
+        }
+
+        public void GetObjects<TBound>(TBound searchArea, List<T> results) where TBound : IShape
+        {
+            var newQuery = new QuadTreeQuery<T>
+            {
+                Results = results,
+                SearchArea = searchArea
+            };
+            ExecuteQuery(newQuery);
+        }
+
         /// <summary>
         /// Get all objects in this Quad, and it's children.
         /// </summary>
         public List<T> GetAllObjects()
         {
             var l = new List<T>();
-            GetAllObjects(ref l);
+            GetAllObjects(l);
             return l;
         }
 
@@ -427,25 +440,35 @@ namespace Emotion.Game.QuadTree
         /// Get all objects in this Quad, and it's children.
         /// </summary>
         /// <param name="results">A reference to a list in which to store the objects.</param>
-        public virtual void GetAllObjects(ref List<T> results)
+        public void GetAllObjects(List<T> results)
         {
             // If this Quad has objects, add them
             if (_objects != null)
                 // ReSharper disable once LoopCanBeConvertedToQuery
                 for (var i = 0; i < _objects.Count; i++)
                 {
-                    QuadTreeObject<T> obj = _objects[i];
-                    results.Add(obj.Data);
+                    results.Add(_objects[i]);
                 }
 
             // If we have children, get their objects too
             if (TopLeftChild == null) return;
-            TopLeftChild.GetAllObjects(ref results);
-            TopRightChild.GetAllObjects(ref results);
-            BottomLeftChild.GetAllObjects(ref results);
-            BottomRightChild.GetAllObjects(ref results);
+            TopLeftChild.GetAllObjects(results);
+            TopRightChild.GetAllObjects(results);
+            BottomLeftChild.GetAllObjects(results);
+            BottomRightChild.GetAllObjects(results);
         }
 
         #endregion
+
+        // Non generic interface, should be called by IQuadTreeObject when it moves.
+        public override void Relocate(IQuadTreeObject obj)
+        {
+            Relocate((T) obj);
+        }
+    }
+
+    public abstract class QuadTreeNode
+    {
+        public abstract void Relocate(IQuadTreeObject item);
     }
 }
