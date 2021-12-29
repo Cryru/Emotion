@@ -55,7 +55,7 @@ namespace Emotion.Primitives
             verts[2] = rect.Position + rect.Size;
             verts[3] = rect.Position + new Vector2(0, rect.Height);
 
-            return new Polygon(verts);
+            return new Polygon(verts) {IsClean = true};
         }
 
         #endregion
@@ -114,7 +114,7 @@ namespace Emotion.Primitives
 
             var hull = new List<int>();
             int ih = i0;
-            for (;;)
+            while (true)
             {
                 hull.Add(ih);
 
@@ -188,6 +188,25 @@ namespace Emotion.Primitives
             }
 
             return a * 0.5f;
+        }
+        
+        /// <summary>
+        /// Get the normal vectors of the polygon's vertices.
+        /// </summary>
+        public Vector2[] GetNormals()
+        {
+            int verticesCount = Vertices.Length;
+            var normals = new Vector2[Vertices.Length];
+            for (var i = 0; i < verticesCount; ++i)
+            {
+                int next = i + 1 < verticesCount ? i + 1 : 0;
+                Vector2 edge = Vertices[next] - Vertices[i];
+                Debug.Assert(edge.LengthSquared() > Maths.EPSILON * Maths.EPSILON);
+                Vector2 temp = Maths.Cross2D(edge, 1.0f);
+                normals[i] = Vector2.Normalize(temp);
+            }
+
+            return normals;
         }
 
         /// <summary>
