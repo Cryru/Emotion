@@ -115,8 +115,9 @@ namespace Emotion.Graphics
             ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
             SetProjectionBehavior(ProjectionBehavior.AlwaysCameraProjection);
 
-            pointOne = Vector3.Transform(pointOne, Camera.ViewMatrix * ModelMatrix);
-            pointTwo = Vector3.Transform(pointTwo, Camera.ViewMatrix * ModelMatrix);
+            pointOne = Vector3.Transform(pointOne, ModelMatrix * Camera.ViewMatrix);
+            pointTwo = Vector3.Transform(pointTwo, ModelMatrix * Camera.ViewMatrix);
+
             PushModelMatrix(Matrix4x4.Identity, false);
 
             if (snapToPixel)
@@ -210,9 +211,24 @@ namespace Emotion.Graphics
         }
 
         /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
+        public void RenderOutlineScreenSpace(Vector3 position, Vector2 size, Color color, float thickness = 1)
+        {
+            RenderLineScreenSpace(position, new Vector3(position.X + size.X, position.Y, position.Z), color, thickness, false, false);
+            RenderLineScreenSpace(new Vector3(position.X + size.X, position.Y, position.Z), new Vector3(position.X + size.X, position.Y + size.Y, position.Z), color, thickness, false, false);
+            RenderLineScreenSpace(new Vector3(position.X + size.X, position.Y + size.Y, position.Z), new Vector3(position.X, position.Y + size.Y, position.Z), color, thickness, false, false);
+            RenderLineScreenSpace(new Vector3(position.X, position.Y + size.Y, position.Z), position, color, thickness, false, false);
+        }
+
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
         public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
         {
             RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
+        }
+
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
+        public void RenderOutlineScreenSpace(Rectangle rect, Color color, float thickness = 1)
+        {
+            RenderOutlineScreenSpace(new Vector3(rect.Position, 0), rect.Size, color, thickness);
         }
 
         private void RenderStringInner(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
