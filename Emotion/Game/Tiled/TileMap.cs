@@ -139,7 +139,7 @@ namespace Emotion.Game.Tiled
             memory ??= _quadTreeQueryMemory;
             memory.Clear();
             Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
-            Objects.GetObjects(ref clipRect, memory);
+            Objects.GetObjects(clipRect, memory);
             memory.Sort(ObjectSort);
         }
 
