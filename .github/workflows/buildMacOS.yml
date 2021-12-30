@@ -1,0 +1,26 @@
+name: CI-MacOS
+
+on: [push]
+
+jobs:
+  build-n-run-tests:
+
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@master
+    - name: Build Everything
+      run: |
+        dotnet --info
+        dotnet publish Tests -c DebugUnix64 -r osx-x64 -o Tests/bin/osx64 --self-contained true
+    #- name: Run Tests
+    #  run: |
+    #    cd ./Tests/bin/osx64
+    #    ls .
+    #    ./Tests
+    #- name: Upload Test Artifact
+    #  if: always()
+    #  uses: actions/upload-artifact@master
+    #  with:
+    #    name: Test Result Artifact
+    #    path: Tests/bin/osx64/TestResults
