@@ -154,7 +154,7 @@ namespace Emotion.Game.QuadTree
         /// Clear the quad tree node and define a new rect for it.
         /// </summary>
         /// <param name="rect">The new quad rect.</param>
-        public void Reset(Rectangle rect)
+        public virtual void Reset(Rectangle rect)
         {
             Clear();
             _quadRect = rect;
@@ -440,7 +440,7 @@ namespace Emotion.Game.QuadTree
         /// Get all objects in this Quad, and it's children.
         /// </summary>
         /// <param name="results">A reference to a list in which to store the objects.</param>
-        public void GetAllObjects(List<T> results)
+        public virtual void GetAllObjects(List<T> results)
         {
             // If this Quad has objects, add them
             if (_objects != null)

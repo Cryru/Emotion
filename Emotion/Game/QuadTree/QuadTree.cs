@@ -41,10 +41,30 @@ namespace Emotion.Game.QuadTree
             _dynamicRebuildCapacity = NodeCapacity;
         }
 
+        /// <inheritdoc />
+        public override void Reset(Rectangle rect)
+        {
+            base.Reset(rect);
+            Dynamic = rect == Rectangle.Empty;
+            _dynamicRebuildCapacity = NodeCapacity;
+        }
+
+        /// <inheritdoc />
+        protected override int ObjectCount()
+        {
+            return _allObjects.Count;
+        }
+
+        /// <inheritdoc />
+        public override void GetAllObjects(List<T> results)
+        {
+            results.AddRange(_allObjects);
+        }
+
         protected override void InsertInternal(T item, bool outOfBounds = false)
         {
             base.InsertInternal(item, outOfBounds);
-            if (!Dynamic) return;
+            if (!Dynamic || _dynamicRebuildInProgress) return;
 
             if (outOfBounds)
             {
@@ -55,7 +75,7 @@ namespace Emotion.Game.QuadTree
 
             // Rebuild the entire tree.
             // There is probably a better way of doing this, but dynamic quad trees are a bit meh.
-            if (_objects.Count >= _dynamicRebuildCapacity && !_dynamicRebuildInProgress)
+            if (_objects.Count >= _dynamicRebuildCapacity)
             {
                 _dynamicRebuildInProgress = true;
                 Clear();
@@ -81,8 +101,8 @@ namespace Emotion.Game.QuadTree
             if (item == null) return;
             Debug.Assert(!Contains(item));
 
-            Insert(item);
             _allObjects.Add(item);
+            Insert(item);
             item.AddedToQuadTree();
         }
 
