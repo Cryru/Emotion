@@ -13,14 +13,14 @@ jobs:
       run: |
         dotnet --info
         dotnet publish Tests -c DebugUnix64 -r osx-x64 -o Tests/bin/osx64 --self-contained true
-    - name: Run Tests
-      run: |
-        cd ./Tests/bin/osx64
-        ls .
-        ./Tests
-    - name: Upload Test Artifact
-      if: always()
-      uses: actions/upload-artifact@master
-      with:
-        name: Test Result Artifact
-        path: Tests/bin/osx64/TestResults
+    #- name: Run Tests
+    #  run: |
+    #    cd ./Tests/bin/osx64
+    #    ls .
+    #    ./Tests
+    #- name: Upload Test Artifact
+    #  if: always()
+    #  uses: actions/upload-artifact@master
+    #  with:
+    #    name: Test Result Artifact
+    #    path: Tests/bin/osx64/TestResults
