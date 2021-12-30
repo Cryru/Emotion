@@ -39,7 +39,7 @@ namespace Emotion.UI
                 Engine.Log.Error($"Window loading failed. {ex}", "UI");
             }
 
-            if (_log) Engine.Log.Trace($"Loaded {_loadingTasks.Count} windows.", "UI");
+            if (_log && _loadingTasks.Count > 0) Engine.Log.Trace($"Loaded {_loadingTasks.Count} windows.", "UI");
             _loadingTasks.Clear();
             Running = false;
         }
