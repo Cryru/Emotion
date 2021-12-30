@@ -1,9 +1,11 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
+using Emotion.Game.QuadTree;
 
 #endregion
 
@@ -13,7 +15,7 @@ namespace Emotion.Primitives
     /// An object with a position and size.
     /// Named transform for more traditional than rational-model matrix reasons.
     /// </summary>
-    public class Transform : Positional
+    public class Transform : Positional, IQuadTreeObject
     {
         #region Properties
 
@@ -198,5 +200,35 @@ namespace Emotion.Primitives
         {
             return $"[Position: {Position} | Size: {Size}]";
         }
+
+        #region IQuadTreeObject
+
+        [DontSerialize]
+        public QuadTreeNode Owner { get; set; }
+
+        public void AddedToQuadTree()
+        {
+            OnMove += NotifyQuadTreeChange;
+            OnResize += NotifyQuadTreeChange;
+        }
+
+        public void RemovedFromQuadTree()
+        {
+            OnMove -= NotifyQuadTreeChange;
+            OnResize -= NotifyQuadTreeChange;
+        }
+
+        private void NotifyQuadTreeChange(object sender, EventArgs e)
+        {
+            Debug.Assert(Owner != null);
+            Owner.Relocate(this);
+        }
+
+        public virtual Rectangle GetBoundsForQuadTree()
+        {
+            return Bounds;
+        }
+
+        #endregion
     }
 }
