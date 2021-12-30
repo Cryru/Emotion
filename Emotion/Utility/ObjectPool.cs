@@ -1,23 +1,34 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Concurrent;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Utility
 {
-    public class ObjectPool<T> where T : new()
+    public class ObjectPoolExt<T>
     {
-        private readonly ConcurrentBag<T> _objects;
+        private readonly ConcurrentBag<T> _objects = new ConcurrentBag<T>();
+        private Func<T> _createMethod;
+        private Action<T>? _resetMethod;
 
-        public ObjectPool()
+        public ObjectPoolExt(Func<T> createMethod, Action<T>? resetMethod = null, int createInAdvance = -1)
         {
-            _objects = new ConcurrentBag<T>();
+            _createMethod = createMethod;
+            _resetMethod = resetMethod;
+
+            for (var i = 0; i < createInAdvance; i++)
+            {
+                _objects.Add(_createMethod());
+            }
         }
 
         public T Get()
         {
-            return _objects.TryTake(out T item) ? item : new T();
+            return _objects.TryTake(out T? item) ? item : _createMethod();
         }
 
         public void Return(T item)
@@ -28,8 +39,19 @@ namespace Emotion.Utility
                 Debug.Assert(!obj.Equals(item));
             }
 #endif
-
+            _resetMethod?.Invoke(item);
             _objects.Add(item);
+        }
+    }
+
+    public class ObjectPool<T> : ObjectPoolExt<T> where T : new()
+    {
+        public ObjectPool() : base(() => new T())
+        {
+        }
+
+        public ObjectPool(Action<T>? resetMethod = null, int preCreate = -1) : base(() => new T(), resetMethod, preCreate)
+        {
         }
     }
 }
