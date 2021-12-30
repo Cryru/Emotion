@@ -18,7 +18,7 @@ namespace Tests.Classes
         [Test]
         public void QuadTreeTest()
         {
-            var tree = new QuadTree<Transform>(0, 0, 100, 100);
+            var tree = new QuadTree<Transform>(new Rectangle(0, 0, 100, 100));
 
             // There shouldn't be anything inside.
             Assert.True(tree.EmptyLeaf);
