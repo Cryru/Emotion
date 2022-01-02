@@ -342,14 +342,16 @@ namespace Emotion.Game.QuadTree
                     return;
                 }
 
-                // Delete the item from its owner (which is either me or a child of mine) and add it to the child where it should be.
+                // Delete the item from its owner (which is either me, a child of mine, or null in some mega edge cases)
+                // and add it to the child where it should be.
                 // Note: Do NOT clean during this call, it can potentially delete our destination quad
                 var formerOwner = (QuadTreeNode<T>) item.Owner;
-                formerOwner.Remove(item);
+                formerOwner?.Remove(item);
                 dest.Insert(item);
+                Debug.Assert(formerOwner == null || Parent == null);
 
                 // Clean up the former owner manually.
-                formerOwner.RemoveEmptyLeavesUpwards();
+                formerOwner?.RemoveEmptyLeavesUpwards();
             }
             else
             {
