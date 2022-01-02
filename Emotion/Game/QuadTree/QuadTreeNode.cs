@@ -219,6 +219,7 @@ namespace Emotion.Game.QuadTree
             if (_objects == null) return;
             int removeIndex = _objects.IndexOf(item);
             if (removeIndex < 0) return;
+            item.Owner = null;
 
             // Move at end to prevent list reshuffle.
             _objects[removeIndex] = _objects[^1];
@@ -248,18 +249,12 @@ namespace Emotion.Game.QuadTree
         /// <param name="item">The item to insert.</param>
         protected void Insert(T item)
         {
-            // Can't subdivide, add to this level.
-            if (!CanSubdivide)
-            {
-                InsertInternal(item);
-            }
-            // This object is outside of the QuadTree bounds, add it if at root level.
-            else if (!QuadRect.ContainsInclusive(item.GetBoundsForQuadTree()) && Parent == null)
+            if (!QuadRect.ContainsInclusive(item.GetBoundsForQuadTree()) && Parent == null)
             {
                 InsertInternal(item, true);
             }
-            // If there's room to add the object, just add it
-            else if (_objects == null || TopLeftChild == null && _objects.Count + 1 <= NodeCapacity)
+            // If there's room to add the object (or this node cannot subdivide), just add it
+            else if (_objects == null || (!CanSubdivide || (TopLeftChild == null && _objects.Count + 1 <= NodeCapacity)))
             {
                 InsertInternal(item);
             }
@@ -274,7 +269,11 @@ namespace Emotion.Game.QuadTree
                 // If the item is already there, don't add it again.
                 // This can happen when an out of bounds item is redirected due to a subdivision or
                 // when an item is in between multiple children.
-                if (item.Owner == destTree) return;
+                if (item.Owner == destTree)
+                {
+                    Debug.Assert(destTree._objects.Contains(item));
+                    return;
+                }
 
                 if (destTree == this)
                     InsertInternal(item);
@@ -337,7 +336,11 @@ namespace Emotion.Game.QuadTree
                 // Good, have we moved inside any of our children?
                 if (TopLeftChild == null) return;
                 QuadTreeNode<T> dest = GetContainingChild(item);
-                if (item.Owner == dest) return;
+                if (item.Owner == dest)
+                {
+                    Debug.Assert(dest._objects.Contains(item));
+                    return;
+                }
 
                 // Delete the item from its owner (which is either me or a child of mine) and add it to the child where it should be.
                 // Note: Do NOT clean during this call, it can potentially delete our destination quad

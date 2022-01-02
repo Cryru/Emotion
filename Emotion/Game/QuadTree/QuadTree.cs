@@ -15,7 +15,7 @@ namespace Emotion.Game.QuadTree
     /// A QuadTree Object that provides storage of objects in a space with fast querying.
     /// </summary>
     /// <typeparam name="T">Any object implementing Transform.</typeparam>
-    public class QuadTree<T> : QuadTreeNode<T>, ICollection<T> where T : IQuadTreeObject
+    public class QuadTree<T> : QuadTreeNode<T>, ICollection<T> where T : class, IQuadTreeObject
     {
         /// <summary>
         /// Whether the quad tree can grow.
@@ -81,8 +81,10 @@ namespace Emotion.Game.QuadTree
                 Clear();
                 foreach (T obj in _allObjects)
                 {
+                    obj.Owner = null;
                     Insert(obj);
                 }
+                Debug.Assert(base.ObjectCount() == _allObjects.Count);
                 _dynamicRebuildInProgress = false;
 
                 // Prevent instant rebuild on next insert if there are a lot of objects out of bounds.
