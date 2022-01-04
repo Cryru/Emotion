@@ -348,7 +348,7 @@ namespace Emotion.Game.QuadTree
                 var formerOwner = (QuadTreeNode<T>) item.Owner;
                 formerOwner?.Remove(item);
                 dest.Insert(item);
-                Debug.Assert(formerOwner == null || Parent == null);
+                Debug.Assert(formerOwner != null || Parent == null);
 
                 // Clean up the former owner manually.
                 formerOwner?.RemoveEmptyLeavesUpwards();
