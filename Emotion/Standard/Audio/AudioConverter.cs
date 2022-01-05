@@ -115,6 +115,9 @@ namespace Emotion.Standard.Audio
             int srcChannels = SourceFormat.Channels;
             sbyte[] channelRemap = GetChannelRemappingMapFor(srcChannels, dstChannels);
 
+            float[] channelResampleCache = null;
+            if (dstChannels > 2) channelResampleCache = new float[2];
+
             int srcSampleRate = SourceFormat.SampleRate;
             int sourceSamples = SourceSamples;
             int dstSampleRate = dstFormat.SampleRate;
@@ -144,9 +147,24 @@ namespace Emotion.Standard.Audio
                 // Check if gotten enough samples.
                 if (dstSampleIdx + dstChannels - dstSampleIdxStart > requestedSamples) return requestedSamples;
 
+                // Reset cache.
+                if (channelResampleCache != null)
+                {
+                    channelResampleCache[0] = float.NaN;
+                    channelResampleCache[1] = float.NaN;
+                }
+
                 int targetBufferIdx = dstSampleIdx - dstSampleIdxStart;
                 for (var c = 0; c < dstChannels; c++)
                 {
+                    // Multichannels will resample 1 and 2 multiple times.
+                    sbyte convChannel = channelRemap[c];
+                    if (convChannel >= 0 && convChannel <= 1 && channelResampleCache != null && !float.IsNaN(channelResampleCache[convChannel]))
+                    {
+                        buffer[targetBufferIdx + c] = channelResampleCache[convChannel];
+                        continue;
+                    }
+
                     var rY = 0.0;
                     for (int tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
@@ -162,8 +180,9 @@ namespace Emotion.Standard.Audio
                         rY += rG * rW * rSnc * GetChannelConvertedSample(inputSampleIdx * srcChannels, c, channelRemap);
                     }
 
-                    float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
+                    float value = Maths.Clamp((float) rY, -1f, 1f);
                     buffer[targetBufferIdx + c] = value;
+                    if (channelResampleCache != null) channelResampleCache[convChannel] = value;
                 }
 
                 srcStartIdx += resampleStep;
