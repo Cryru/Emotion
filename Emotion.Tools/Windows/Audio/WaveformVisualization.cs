@@ -43,10 +43,10 @@ namespace Emotion.Tools.Windows.Audio
             int frameIntervalVisually = (int) MathF.Round(_cacheWidth / numFrames);
             _cache = new Vector2[numFrames];
 
-            for (int i = 0; i < numFrames; i++)
+            for (var i = 0; i < numFrames; i++)
             {
                 int sampleIndex = i * frameInterval * Track.File.Format.Channels;
-                float firstChannelSample = AudioConverter.GetSampleAsFloat(sampleIndex, Track.File.SoundData.Span, Track.File.Format);
+                float firstChannelSample = Track.File.SoundData[sampleIndex];
                 _cache[i] = new Vector2(frameIntervalVisually * i, _cacheHeight * ((1.0f + firstChannelSample) / 2f));
             }
         }

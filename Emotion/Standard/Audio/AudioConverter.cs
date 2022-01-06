@@ -23,16 +23,16 @@ namespace Emotion.Standard.Audio
     {
         public int SourceSamples { get; protected set; }
         public int SourceSamplesPerChannel { get; protected set; }
-        public ReadOnlyMemory<byte> SoundData { get; protected set; }
+        public float[] SoundData { get; protected set; }
         public AudioFormat SourceFormat { get; protected set; }
 
-        public int ConvQuality { get; protected set; } = 10;
+        public int ConvQuality { get; protected set; }
         protected int _convQuality2;
 
-        public AudioConverter(AudioFormat srcFormat, ReadOnlyMemory<byte> soundData, int quality = 10)
+        public AudioConverter(AudioFormat srcFormat, float[] soundData, int quality = 10)
         {
             SourceFormat = srcFormat;
-            SourceSamples = soundData.Length / srcFormat.SampleSize;
+            SourceSamples = soundData.Length;
             SourceSamplesPerChannel = SourceSamples / srcFormat.Channels;
             SoundData = soundData;
 
@@ -49,6 +49,7 @@ namespace Emotion.Standard.Audio
         private const sbyte CHANNEL_REMAP_SURROUND = -100;
         private const sbyte REMAP_COMBINE = sbyte.MinValue; // Combine left and right
 
+        // Source mapping for surround
         private static sbyte[] _surroundChannelsMapping =
         {
             -1, // Front Left
@@ -60,6 +61,8 @@ namespace Emotion.Standard.Audio
             -1, // Left Alt
             -2, // Right Alt
         };
+
+        private float[] _surroundResampleCache = new float[2];
 
         public static sbyte[] GetChannelRemappingMapFor(int srcChannels, int dstChannels)
         {
@@ -115,8 +118,12 @@ namespace Emotion.Standard.Audio
             int srcChannels = SourceFormat.Channels;
             sbyte[] channelRemap = GetChannelRemappingMapFor(srcChannels, dstChannels);
 
-            float[] channelResampleCache = null;
-            if (dstChannels > 2) channelResampleCache = new float[2];
+            // Optimization stuff
+            bool useChannelCache = dstChannels > 2;
+            bool getSamplesDirectly = dstChannels == srcChannels;
+            int convQuality = ConvQuality;
+            int sourceSamplesPerChannel = SourceSamplesPerChannel;
+            float[] soundData = SoundData;
 
             int srcSampleRate = SourceFormat.SampleRate;
             int sourceSamples = SourceSamples;
@@ -128,8 +135,8 @@ namespace Emotion.Standard.Audio
             double srcStartIdx = dstSampleIdxStart / dstChannels * resampleStep;
 
             // Nyquist half of destination sampleRate
-            const double fMaxDivSr = 0.5f;
-            const double rG = 2 * fMaxDivSr;
+            const double maxDivSr = 0.5f;
+            const double rG = 2 * maxDivSr;
 
             // Snap if more samples requested than left.
             if (dstSampleIdxStart + requestedSamples >= convSamples) requestedSamples = convSamples - dstSampleIdxStart;
@@ -148,41 +155,46 @@ namespace Emotion.Standard.Audio
                 if (dstSampleIdx + dstChannels - dstSampleIdxStart > requestedSamples) return requestedSamples;
 
                 // Reset cache.
-                if (channelResampleCache != null)
+                if (useChannelCache)
                 {
-                    channelResampleCache[0] = float.NaN;
-                    channelResampleCache[1] = float.NaN;
+                    _surroundResampleCache[0] = float.NaN;
+                    _surroundResampleCache[1] = float.NaN;
                 }
 
                 int targetBufferIdx = dstSampleIdx - dstSampleIdxStart;
                 for (var c = 0; c < dstChannels; c++)
                 {
                     // Multichannels will resample 1 and 2 multiple times.
-                    sbyte convChannel = channelRemap[c];
-                    if (convChannel >= 0 && convChannel <= 1 && channelResampleCache != null && !float.IsNaN(channelResampleCache[convChannel]))
+                    if (useChannelCache)
                     {
-                        buffer[targetBufferIdx + c] = channelResampleCache[convChannel];
-                        continue;
+                        sbyte convChannel = channelRemap[c];
+                        if (convChannel >= 0 && convChannel <= 1 && !float.IsNaN(_surroundResampleCache[convChannel]))
+                        {
+                            buffer[targetBufferIdx + c] = _surroundResampleCache[convChannel];
+                            continue;
+                        }
                     }
 
                     var rY = 0.0;
-                    for (int tau = -ConvQuality; tau < ConvQuality; tau++)
+                    for (int tau = -convQuality; tau < convQuality; tau++)
                     {
                         var inputSampleIdx = (int) (srcStartIdx + tau);
                         double relativeIdx = inputSampleIdx - srcStartIdx;
 
                         // Hann Window. Scale and calculate sinc
                         double rW = 0.5 - 0.5 * Math.Cos(Maths.TWO_PI_DOUBLE * (0.5 + relativeIdx / _convQuality2));
-                        double rA = Maths.TWO_PI_DOUBLE * relativeIdx * fMaxDivSr;
+                        double rA = Maths.TWO_PI_DOUBLE * relativeIdx * maxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (inputSampleIdx < 0 || inputSampleIdx >= SourceSamplesPerChannel) continue;
-                        rY += rG * rW * rSnc * GetChannelConvertedSample(inputSampleIdx * srcChannels, c, channelRemap);
+                        if (inputSampleIdx < 0 || inputSampleIdx >= sourceSamplesPerChannel) continue;
+
+                        float sample = getSamplesDirectly ? soundData[inputSampleIdx * srcChannels] : GetChannelConvertedSample(inputSampleIdx * srcChannels, c, channelRemap);
+                        rY += rG * rW * rSnc * sample;
                     }
 
                     float value = Maths.Clamp((float) rY, -1f, 1f);
                     buffer[targetBufferIdx + c] = value;
-                    if (channelResampleCache != null) channelResampleCache[convChannel] = value;
+                    if (useChannelCache) _surroundResampleCache[channelRemap[c]] = value;
                 }
 
                 srcStartIdx += resampleStep;
@@ -202,7 +214,7 @@ namespace Emotion.Standard.Audio
         private float GetChannelConvertedSample(int srcSampleIdx, int dstChannel, sbyte[] channelMap)
         {
             sbyte conversion = channelMap[dstChannel];
-            if (conversion >= 0) return GetSampleAsFloat(srcSampleIdx + (byte) conversion, SoundData.Span, SourceFormat);
+            if (conversion >= 0) return SoundData[srcSampleIdx + (byte) conversion];
 
             // Merge all source channels.
             float sampleAccum = 0;
@@ -211,7 +223,7 @@ namespace Emotion.Standard.Audio
             {
                 for (var i = 0; i < sourceChannels; i++)
                 {
-                    float channelSample = GetSampleAsFloat(srcSampleIdx + i, SoundData.Span, SourceFormat);
+                    float channelSample = SoundData[srcSampleIdx + i];
                     sampleAccum += channelSample;
                 }
 
@@ -225,7 +237,7 @@ namespace Emotion.Standard.Audio
                 // Check if this source channel will sample to this dst channel.
                 sbyte srcFlag = i < _surroundChannelsMapping.Length ? _surroundChannelsMapping[i] : REMAP_COMBINE;
                 if (srcFlag != REMAP_COMBINE && srcFlag != destinationMultiMapConverted) continue;
-                float channelSample = GetSampleAsFloat(srcSampleIdx + i, SoundData.Span, SourceFormat);
+                float channelSample = SoundData[srcSampleIdx + i];
                 sampleAccum += channelSample;
             }
 
@@ -234,11 +246,30 @@ namespace Emotion.Standard.Audio
 
         #region Static API
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe short AlignedToInt16(ReadOnlySpan<byte> data, int idx)
         {
-            fixed (byte* pbyte = &data[idx])
+            fixed (byte* pByte = &data[idx])
             {
-                return *(short*) pbyte;
+                return *(short*) pByte;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe int AlignedToInt32(ReadOnlySpan<byte> data, int idx)
+        {
+            fixed (byte* pByte = &data[idx])
+            {
+                return *(int*) pByte;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe float AlignedToFloat(ReadOnlySpan<byte> data, int idx)
+        {
+            fixed (byte* pByte = &data[idx])
+            {
+                return *(float*) pByte;
             }
         }
 
@@ -259,21 +290,21 @@ namespace Emotion.Standard.Audio
                     output = (float) srcData[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
-                    var dataShort = AlignedToInt16(srcData, sampleIdx * 2);
+                    short dataShort = AlignedToInt16(srcData, sampleIdx * 2);
                     if (dataShort < 0)
                         output = (float) -dataShort / short.MinValue;
                     else
                         output = (float) dataShort / short.MaxValue;
                     break;
                 case 32 when !srcFormat.IsFloat: // int
-                    var dataInt = BitConverter.ToInt32(srcData.Slice(sampleIdx * 4, 4));
+                    int dataInt = AlignedToInt32(srcData, sampleIdx * 4);
                     if (dataInt < 0)
                         output = (float) -dataInt / int.MinValue;
                     else
                         output = (float) dataInt / int.MaxValue;
                     break;
                 case 32: // float
-                    output = BitConverter.ToSingle(srcData.Slice(sampleIdx * 4, 4));
+                    output = AlignedToFloat(srcData, sampleIdx * 4);
                     break;
                 default:
                     return 0;

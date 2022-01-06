@@ -3,7 +3,7 @@
     public class AudioFormat
     {
         /// <summary>
-        /// How big a single sample is.
+        /// How big a single sample is in bytes.
         /// A sample is the sound data per channel.
         /// </summary>
         public int SampleSize
@@ -12,7 +12,7 @@
         }
 
         /// <summary>
-        /// How big a single frame is.
+        /// How big a single frame is in bytes.
         /// A frame is made up of a sample for each channel.
         /// </summary>
         public int FrameSize

@@ -22,44 +22,46 @@ namespace Tests.Classes
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
             Assert.True(pepsi.Format.SampleRate == 44100);
             Assert.True(pepsi.Format.Channels == 2);
-            Assert.True(pepsi.Format.BitsPerSample == 16);
-            Assert.False(pepsi.Format.IsFloat);
-            Assert.False(pepsi.SoundData.IsEmpty);
+            //Assert.True(pepsi.Format.BitsPerSample == 16);
+            //Assert.False(pepsi.Format.IsFloat);
+            //Assert.False(pepsi.SoundData.IsEmpty);
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
             Assert.True(money.Format.SampleRate == 22050);
             Assert.True(money.Format.Channels == 1);
-            Assert.True(money.Format.BitsPerSample == 16);
-            Assert.False(money.Format.IsFloat);
-            Assert.False(money.SoundData.IsEmpty);
+            //Assert.True(money.Format.BitsPerSample == 16);
+            //Assert.False(money.Format.IsFloat);
+            //Assert.False(money.SoundData.IsEmpty);
         }
 
         [Test]
         public void Convert()
         {
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
+            int pepsiByteSize = pepsi.SoundData.Length * 4;
 
-            var copy = new byte[pepsi.SoundData.Length];
+            var copy = new byte[pepsiByteSize];
             CopyToByteBuffer(pepsi, copy);
 
             AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(8, false, 2, 44100), ref copy);
-            Assert.Equal(copy.Length * pepsi.Format.SampleSize, pepsi.SoundData.Length); // Same number of samples as sample rate is the same
+            Assert.Equal(copy.Length, pepsiByteSize / 4); // Same number of samples as sample rate is the same, but bps is 4 times less
 
-            copy = new byte[pepsi.SoundData.Length];
+            copy = new byte[pepsiByteSize];
             CopyToByteBuffer(pepsi, copy);
 
             AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, false, 2, 48000), ref copy);
             float ratio = 48000f / pepsi.Format.SampleRate;
-            Assert.Equal(copy.Length, (int) (pepsi.SoundData.Length * ratio));
+            Assert.Equal(copy.Length, (int) (pepsiByteSize / 2) * ratio); // divide by 2 because 16bps
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+            int moneyByteSize = money.SoundData.Length * 4;
 
-            copy = new byte[money.SoundData.Length];
+            copy = new byte[moneyByteSize];
             CopyToByteBuffer(money, copy);
 
             AudioUtil.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true. (and invalid here)
             ratio = 48000f / money.Format.SampleRate;
-            Assert.Equal(copy.Length , (int) (money.SoundData.Length * 2 * ratio)); // multiplied by 2 because going from mono to stereo
+            Assert.Equal(copy.Length, (int) (moneyByteSize * ratio)); // multiplied by 2 because going from mono to stereo, bps is twice less though
         }
 
         /// <summary>
@@ -101,7 +103,7 @@ namespace Tests.Classes
 
                     if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", CustomMSource.TestRunner);
 
-                    Assert.Equal(segmentConvert.Count, copy.Length / sizeof(float));
+                    Assert.Equal(segmentConvert.Count, copy.Length);
                     // V No longer true due to floating point precision.
                     //for (var i = 0; i < copy.Length; i++)
                     //{
@@ -141,7 +143,7 @@ namespace Tests.Classes
                         segmentConvert.AddRange(spanData.Slice(0, sampleAmount * format.SampleSize).ToArray());
                     }
 
-                    Assert.Equal(segmentConvert.Count, copy.Length / sizeof(float));
+                    Assert.Equal(segmentConvert.Count, copy.Length);
                     // V No longer true due to floating point precision.
                     //for (var i = 0; i < copy.Length; i++)
                     //{
@@ -178,7 +180,7 @@ namespace Tests.Classes
         {
             for (var i = 0; i < src.SoundData.Length; i++)
             {
-                AudioConverter.SetSampleAsFloat(i, src.SoundData.Span[i], dst, src.Format);
+                AudioConverter.SetSampleAsFloat(i, src.SoundData[i], dst, src.Format);
             }
         }
     }
