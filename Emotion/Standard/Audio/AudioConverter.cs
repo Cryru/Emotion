@@ -188,7 +188,7 @@ namespace Emotion.Standard.Audio
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
                         if (inputSampleIdx < 0 || inputSampleIdx >= sourceSamplesPerChannel) continue;
 
-                        float sample = getSamplesDirectly ? soundData[inputSampleIdx * srcChannels] : GetChannelConvertedSample(inputSampleIdx * srcChannels, c, channelRemap);
+                        float sample = getSamplesDirectly ? soundData[inputSampleIdx * srcChannels + c] : GetChannelConvertedSample(inputSampleIdx * srcChannels, c, channelRemap);
                         rY += rG * rW * rSnc * sample;
                     }
 
