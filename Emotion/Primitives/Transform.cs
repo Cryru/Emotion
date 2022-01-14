@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
@@ -201,34 +200,10 @@ namespace Emotion.Primitives
             return $"[Position: {Position} | Size: {Size}]";
         }
 
-        #region IQuadTreeObject
-
-        [DontSerialize]
-        public QuadTreeNode Owner { get; set; }
-
-        public void AddedToQuadTree()
-        {
-            OnMove += NotifyQuadTreeChange;
-            OnResize += NotifyQuadTreeChange;
-        }
-
-        public void RemovedFromQuadTree()
-        {
-            OnMove -= NotifyQuadTreeChange;
-            OnResize -= NotifyQuadTreeChange;
-        }
-
-        private void NotifyQuadTreeChange(object sender, EventArgs e)
-        {
-            Debug.Assert(Owner != null);
-            Owner.Relocate(this);
-        }
-
+        // IQuadTreeObject
         public virtual Rectangle GetBoundsForQuadTree()
         {
             return Bounds;
         }
-
-        #endregion
     }
 }
