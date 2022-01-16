@@ -378,7 +378,7 @@ namespace Emotion.Game.QuadTree
                 // If the search area completely contains this quad, just get every object in this quad and all its children
                 GetAllObjects(results);
             }
-            else if (searchArea.Intersects(ref _quadRect))
+            else if(searchArea.Intersects(ref _quadRect) || _quadRect == Rectangle.Empty)
             {
                 // Otherwise, check intersections between the search area and the objects in this quad.
                 if (_objects != null)
