@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using Emotion.Common;
+using Emotion.ExecTest.Examples;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Scenography;
@@ -25,7 +26,7 @@ namespace Emotion.Tools
             ToolsManager.ConfigureForTools(config);
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new Program());
+            Engine.SceneManager.SetScene(new PhysicsPlayground());
             Engine.Run();
         }
 

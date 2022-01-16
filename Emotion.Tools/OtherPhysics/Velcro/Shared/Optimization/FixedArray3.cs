@@ -1,27 +1,13 @@
-﻿#region Using
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Emotion.Common.Serialization;
 
-#endregion
-
-namespace Emotion.Utility
+namespace Genbox.VelcroPhysics.Shared.Optimization
 {
-    /// <summary>
-    /// A fixed size struct array of size 2.
-    /// </summary>
-    public struct FixedArray2<T> : IEnumerable<T>
+    public struct FixedArray3<T> : IEnumerable<T>
     {
-        public T Value0, Value1;
+        public T Value0, Value1, Value2;
 
-        public int Length
-        {
-            get => 2;
-        }
-
-        [DontSerialize]
         public T this[int index]
         {
             get
@@ -32,6 +18,8 @@ namespace Emotion.Utility
                         return Value0;
                     case 1:
                         return Value1;
+                    case 2:
+                        return Value2;
                     default:
                         throw new IndexOutOfRangeException(nameof(index));
                 }
@@ -45,6 +33,9 @@ namespace Emotion.Utility
                         break;
                     case 1:
                         Value1 = value;
+                        break;
+                    case 2:
+                        Value2 = value;
                         break;
                     default:
                         throw new IndexOutOfRangeException(nameof(index));
@@ -64,24 +55,25 @@ namespace Emotion.Utility
 
         public int IndexOf(T value)
         {
-            for (var i = 0; i < 2; i++)
+            for (int i = 0; i < 3; ++i)
             {
                 if (this[i].Equals(value))
                     return i;
             }
-
             return -1;
         }
 
         public void Clear()
         {
-            Value0 = Value1 = default;
+            Value0 = Value1 = Value2 = default;
         }
 
         private IEnumerable<T> Enumerate()
         {
-            yield return Value0;
-            yield return Value1;
+            for (int i = 0; i < 3; ++i)
+            {
+                yield return this[i];
+            }
         }
     }
 }

@@ -1,27 +1,13 @@
-﻿#region Using
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Emotion.Common.Serialization;
 
-#endregion
-
-namespace Emotion.Utility
+namespace Genbox.VelcroPhysics.Shared.Optimization
 {
-    /// <summary>
-    /// A fixed size struct array of size 2.
-    /// </summary>
     public struct FixedArray2<T> : IEnumerable<T>
     {
         public T Value0, Value1;
 
-        public int Length
-        {
-            get => 2;
-        }
-
-        [DontSerialize]
         public T this[int index]
         {
             get
@@ -64,12 +50,11 @@ namespace Emotion.Utility
 
         public int IndexOf(T value)
         {
-            for (var i = 0; i < 2; i++)
+            for (int i = 0; i < 2; ++i)
             {
                 if (this[i].Equals(value))
                     return i;
             }
-
             return -1;
         }
 
@@ -80,8 +65,10 @@ namespace Emotion.Utility
 
         private IEnumerable<T> Enumerate()
         {
-            yield return Value0;
-            yield return Value1;
+            for (int i = 0; i < 2; ++i)
+            {
+                yield return this[i];
+            }
         }
     }
 }
