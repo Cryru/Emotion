@@ -272,7 +272,7 @@ namespace Emotion.Graphics
 
             // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();
-            Engine.CoroutineManager.StartCoroutine(UpdateCoroutine());
+            UpdateCamera();
 
 #if DEBUG
             Engine.Host.OnKey.AddListener(DebugFunctionalityKeyInput);
@@ -458,16 +458,10 @@ namespace Emotion.Graphics
             InFrame = false;
         }
 
-        private IEnumerator UpdateCoroutine()
+        public void UpdateCamera()
         {
-            while (Engine.Status == EngineStatus.Running)
-            {
-                Camera.Update();
-#if DEBUG
-                DebugCamera?.Update();
-#endif
-                yield return null;
-            }
+            Camera.Update();
+            DebugCamera?.Update();
         }
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State

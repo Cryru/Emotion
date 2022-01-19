@@ -357,6 +357,7 @@ namespace Emotion.Common
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update();
             SceneManager.Update();
+            Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
         }
 
         private static void RunFrame()
