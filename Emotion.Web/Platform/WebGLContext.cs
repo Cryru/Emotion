@@ -700,12 +700,12 @@ namespace Emotion.Web.Platform
         }
 
         // Because of the nature of the WebGL render loop the rendering is always synchronized, and these functions aren't really needed.
-        private int FenceSync(int condition, uint flags)
+        private IntPtr FenceSync(int condition, uint flags)
         {
-            return 0;
+            return IntPtr.Zero;
         }
 
-        private int ClientWaitSync(int condition, uint flags, ulong timeout)
+        private int ClientWaitSync(IntPtr condition, uint flags, ulong timeout)
         {
             return (int) SyncStatus.AlreadySignaled;
         }
