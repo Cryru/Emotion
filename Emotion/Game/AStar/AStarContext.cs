@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Utility;
@@ -298,13 +299,13 @@ namespace Emotion.Game.AStar
             return path;
         }
 
-#if DEBUG
-
+        /// <summary>
+        /// Returns debugging information about the current state of the AStar context.
+        /// The dictionary key is the node hash and the node contains information about the last pathing calculation.
+        /// </summary>
         public Dictionary<int, AStarNode> DbgGetCalculationMeta()
         {
             return _cache;
         }
-
-#endif
     }
 }

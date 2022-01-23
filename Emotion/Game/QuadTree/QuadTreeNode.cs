@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -378,7 +379,7 @@ namespace Emotion.Game.QuadTree
                 // If the search area completely contains this quad, just get every object in this quad and all its children
                 GetAllObjects(results);
             }
-            else if(searchArea.Intersects(ref _quadRect) || _quadRect == Rectangle.Empty)
+            else if (searchArea.Intersects(ref _quadRect) || _quadRect == Rectangle.Empty)
             {
                 // Otherwise, check intersections between the search area and the objects in this quad.
                 if (_objects != null)
@@ -405,25 +406,32 @@ namespace Emotion.Game.QuadTree
 #endif
         }
 
+        // Cached instance to prevent allocations.
+        [ThreadStatic]
+        private static QuadTreeQuery<T> _legacyMethodQuery;
+
+        /// <summary>
+        /// Get all objects in a bound. This is a legacy function, please use ExecuteQuery.
+        /// </summary>
         public List<T> GetObjects<TBound>(TBound searchArea) where TBound : IShape
         {
-            var newQuery = new QuadTreeQuery<T>
-            {
-                Results = new List<T>(),
-                SearchArea = searchArea
-            };
-            ExecuteQuery(newQuery);
-            return newQuery.Results;
+            _legacyMethodQuery ??= new QuadTreeQuery<T>();
+            _legacyMethodQuery.Results = new List<T>();
+            _legacyMethodQuery.SearchArea = searchArea;
+            ExecuteQuery(_legacyMethodQuery);
+            return _legacyMethodQuery.Results;
         }
 
+        /// <summary>
+        /// Get all objects in a bound, and place them in a provided list (to prevent allocating one).
+        /// This is a legacy function, please use ExecuteQuery.
+        /// </summary>
         public void GetObjects<TBound>(TBound searchArea, List<T> results) where TBound : IShape
         {
-            var newQuery = new QuadTreeQuery<T>
-            {
-                Results = results,
-                SearchArea = searchArea
-            };
-            ExecuteQuery(newQuery);
+            _legacyMethodQuery ??= new QuadTreeQuery<T>();
+            _legacyMethodQuery.Results = results;
+            _legacyMethodQuery.SearchArea = searchArea;
+            ExecuteQuery(_legacyMethodQuery);
         }
 
         /// <summary>

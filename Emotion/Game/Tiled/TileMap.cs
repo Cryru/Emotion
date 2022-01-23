@@ -134,13 +134,14 @@ namespace Emotion.Game.Tiled
             base.MapPostLoad();
         }
 
-        protected virtual void QueryObjectsToRender(List<T>? memory = null)
+        protected List<T> QueryObjectsToRender(List<T>? memory = null)
         {
             memory ??= _quadTreeQueryMemory;
             memory.Clear();
             Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
             Objects.GetObjects(clipRect, memory);
             memory.Sort(ObjectSort);
+            return memory;
         }
 
         /// <summary>
@@ -149,11 +150,11 @@ namespace Emotion.Game.Tiled
         public void RenderObjects(RenderComposer composer)
         {
             // Check if anything is loaded.
-            QueryObjectsToRender();
+            List<T> objects = QueryObjectsToRender();
             PerfProfiler.FrameEventStart("TileMap: Objects");
-            for (var i = 0; i < _quadTreeQueryMemory.Count; i++)
+            for (var i = 0; i < objects.Count; i++)
             {
-                _quadTreeQueryMemory[i].Render(composer);
+                objects[i].Render(composer);
             }
 
             PerfProfiler.FrameEventEnd("TileMap: Objects");

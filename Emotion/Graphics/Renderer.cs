@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -426,7 +425,6 @@ namespace Emotion.Graphics
             Debug.Assert(GLThread.IsGLThread());
 
 #if DEBUG
-
             if (DebugCamera != null)
             {
                 SetUseViewMatrix(true);
@@ -461,7 +459,9 @@ namespace Emotion.Graphics
         public void UpdateCamera()
         {
             Camera.Update();
+#if DEBUG
             DebugCamera?.Update();
+#endif
         }
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
@@ -613,7 +613,6 @@ namespace Emotion.Graphics
         }
 
 #if DEBUG
-
         private bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
         {
             if (state != KeyStatus.Down) return true;

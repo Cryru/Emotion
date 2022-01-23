@@ -135,7 +135,7 @@ namespace Emotion.Graphics.Text
                 // Scale to closest power of two.
                 float fontHeight = Font.Height;
                 float scaleFactor = fontHeight / fontSize;
-                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
+                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
                 FontSize = fontHeight / scaleFactorP2;
             }
 
@@ -145,7 +145,7 @@ namespace Emotion.Graphics.Text
             // Convert from Emotion font size (legacy) to real font size.
             if (Engine.Configuration.UseEmotionFontSize)
             {
-                float diff = (float)Font.UnitsPerEm / Font.Height;
+                float diff = (float) Font.UnitsPerEm / Font.Height;
                 FontSize = MathF.Round(FontSize * diff);
             }
 
@@ -194,6 +194,23 @@ namespace Emotion.Graphics.Text
                 GLThread.ExecuteGLThreadAsync(() => { QueueGlyphRender(renderGlyphs); });
         }
 
+        /// <summary>
+        /// This prevents CacheGlyphs from being called which contains a closure that will
+        /// create an anonymous class, potentially in a hot path.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool AnyUncachedGlyphs(string text)
+        {
+            for (var i = 0; i < text.Length; i++)
+            {
+                char ch = text[i];
+                if (Glyphs.ContainsKey(ch) || !Font.Glyphs.ContainsKey(ch)) continue;
+                return true;
+            }
+
+            return false;
+        }
+
         private void QueueGlyphRender(List<AtlasGlyph> glyphs)
         {
             Debug.Assert(GLThread.IsGLThread());
@@ -222,7 +239,7 @@ namespace Emotion.Graphics.Text
         public void SetupDrawing(RenderComposer c, string text)
         {
             // Ensure we have all glyphs needed for the text.
-            CacheGlyphs(text);
+            if (AnyUncachedGlyphs(text)) CacheGlyphs(text);
 
             // Set shader.
             if (FontShader != null) c.SetShader(FontShader);
