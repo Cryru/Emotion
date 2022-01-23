@@ -9,6 +9,7 @@ using ImGuiNET;
 
 #endregion
 
+#if DEBUG
 namespace Emotion.Tools.Windows
 {
     public class CoroutineViewer : ImGuiWindow
@@ -57,3 +58,4 @@ namespace Emotion.Tools.Windows
         }
     }
 }
+#endif

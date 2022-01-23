@@ -91,7 +91,11 @@ namespace Emotion.Tools.DevUI
             if (ImGui.BeginMenu("Gameplay"))
             {
                 if (ImGui.MenuItem("Map Viewer")) AddLegacyWindow(new MapViewer());
+#if DEBUG
                 if (ImGui.MenuItem("Collision Viewer")) AddLegacyWindow(new CollisionViewer());
+#else
+                ImGui.MenuItem("Collision Viewer [Requires DEBUG]");
+#endif
                 if (ImGui.MenuItem("UI Editor")) AddChild(new UIEditorWindow());
                 ImGui.EndMenu();
             }
@@ -100,7 +104,11 @@ namespace Emotion.Tools.DevUI
             {
                 if (ImGui.MenuItem("Performance Monitor")) AddChild(new PerformanceMonitor());
                 if (ImGui.MenuItem("Memory Viewer")) AddLegacyWindow(new MemoryViewer());
+#if DEBUG
                 if (ImGui.MenuItem("Coroutine Viewer")) AddLegacyWindow(new CoroutineViewer());
+#else
+                ImGui.MenuItem("Coroutine Viewer [Requires DEBUG]");
+#endif
                 if (ImGui.MenuItem("Gpu Texture Viewer")) AddLegacyWindow(new GpuTextureViewer());
                 ImGui.EndMenu();
             }

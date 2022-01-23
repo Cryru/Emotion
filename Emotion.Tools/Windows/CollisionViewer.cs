@@ -10,6 +10,7 @@ using ImGuiNET;
 
 #endregion
 
+#if DEBUG
 namespace Emotion.Tools.Windows
 {
     public class CollisionViewer : ImGuiWindow
@@ -85,3 +86,4 @@ namespace Emotion.Tools.Windows
         }
     }
 }
+#endif
