@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Web.ExecTest", "Emo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.PostBuildTool", "Emotion.PostBuildTool\Emotion.PostBuildTool.csproj", "{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Benchmark", "Emotion.Benchmark\Emotion.Benchmark.csproj", "{5428A7D9-D416-459E-A0EE-DD915A06A7FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.DebugWeb|Any CPU.Build.0 = Debug|Any CPU
 		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.DebugUnix64|Any CPU.ActiveCfg = Debug|Any CPU
+		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
+		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
