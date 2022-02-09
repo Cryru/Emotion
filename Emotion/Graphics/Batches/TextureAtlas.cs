@@ -21,7 +21,7 @@ namespace Emotion.Graphics.Batches
     /// <summary>
     /// A texture which contains other textures. Used by the render stream batch to
     /// batch draw calls using different textures together.
-    /// This class is also responsible for remapping the UVs and keeping track of texture-struct mapping.
+    /// This class is also responsible for remapping the UVs and keeping track of texture-struct(vertex) mapping.
     /// </summary>
     public class TextureAtlas : Binning.BinningResumableState
     {
@@ -62,11 +62,13 @@ namespace Emotion.Graphics.Batches
         protected static ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
 
         private static int _repackRate = 60 * 60; // How often to repack the atlas. (In frames) If two repacks pass without a texture being used, it will be ejected.
-        private static int _usagesToPack = 20; // How many texture usages are needed to add the texture to the pack. (In texture usages)
+        private static int _usagesToPack; // How many texture usages are needed to add the texture to the pack. (In texture usages)
 
-        public TextureAtlas(bool smooth = false) : base(_atlasTextureSize)
+        public TextureAtlas(bool smooth = false, int usagePackThreshold = 20) : base(_atlasTextureSize)
         {
-            _vbo = new VertexBuffer((uint)(VertexData.SizeInBytes * 8), BufferUsage.StaticDraw);
+            _usagesToPack = usagePackThreshold;
+
+            _vbo = new VertexBuffer((uint) (VertexData.SizeInBytes * 8), BufferUsage.StaticDraw);
             _vboLocal = new VertexData[8];
             var ibo = new IndexBuffer(12 * sizeof(ushort));
             var quadIndices = new ushort[12];
@@ -90,8 +92,6 @@ namespace Emotion.Graphics.Batches
         /// <summary>
         /// Tries to batch the provided texture within the atlas.
         /// </summary>
-        /// <param name="texture"></param>
-        /// <returns></returns>
         public bool TryBatchTexture(Texture texture)
         {
             // Don't store frame buffer textures.
@@ -160,10 +160,8 @@ namespace Emotion.Graphics.Batches
         public unsafe void RemapBatchUVs(IntPtr dataPointer, uint lengthBytes, uint structByteSize, int uvOffsetIntoStruct)
         {
             PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
-
             Debug.Assert(_atlasTextureRange.Count > 0);
 #if DEBUG
-
             var totalStructs = 0;
             int count = _atlasTextureRange.Count;
             var currentIdx = 0;
@@ -177,7 +175,7 @@ namespace Emotion.Graphics.Batches
 
 #endif
 
-            var dataPtr = (byte*)dataPointer;
+            var dataPtr = (byte*) dataPointer;
             var reader = 0;
             var structIdx = 0;
             TextureMapping textureMapping = _atlasTextureRange.Dequeue();
@@ -187,7 +185,7 @@ namespace Emotion.Graphics.Batches
 
             while (reader < lengthBytes)
             {
-                var targetPtr = (Vector2*)(dataPtr + reader + uvOffsetIntoStruct);
+                var targetPtr = (Vector2*) (dataPtr + reader + uvOffsetIntoStruct);
 
                 if (structIdx >= textureMapping.UpToStruct)
                 {
@@ -200,7 +198,7 @@ namespace Emotion.Graphics.Batches
                 targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
                 targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y); // Since the atlas is flipped, we need to flip the Y UV.
 
-                reader += (int)structByteSize;
+                reader += (int) structByteSize;
                 structIdx++;
             }
 
@@ -331,7 +329,7 @@ namespace Emotion.Graphics.Batches
                     Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
 
                     Texture.EnsureBound(texture.Pointer);
-                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, (IntPtr)(6 * sizeof(ushort)));
+                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, (IntPtr) (6 * sizeof(ushort)));
                 }
 
                 _textureNeedDraw[texture] = false;

@@ -13,6 +13,7 @@ namespace Emotion.Platform.Implementation.Null
         public PlaybackStatus PreviousStatus { get; protected set; } = PlaybackStatus.NotPlaying;
 
         private AudioFormat _testFormat = new AudioFormat(32, true, 2, 48000);
+        private byte[] _testArray = new byte[1];
 
         public NullAudioLayer(string name) : base(name)
         {
@@ -26,8 +27,9 @@ namespace Emotion.Platform.Implementation.Null
 
         public void AdvanceTime(int seconds)
         {
-            var test = new Span<byte>(new byte[seconds * _testFormat.SampleRate * _testFormat.FrameSize]);
-            GetDataForCurrentTrack(_testFormat, seconds * _testFormat.SampleRate, test);
+            int sizeNeeded = seconds * _testFormat.SampleRate * _testFormat.FrameSize;
+            if (_testArray.Length < sizeNeeded) Array.Resize(ref _testArray, sizeNeeded);
+            GetDataForCurrentTrack(_testFormat, seconds * _testFormat.SampleRate, _testArray);
         }
 
         public override void Dispose()
