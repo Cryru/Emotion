@@ -9,6 +9,7 @@ using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Tools.Editors;
+using Emotion.Tools.Editors.Animation2D;
 using Emotion.Tools.Editors.UIEditor;
 using Emotion.Tools.Windows;
 using Emotion.Tools.Windows.Art;
@@ -79,7 +80,8 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Art"))
             {
-                if (ImGui.MenuItem("Animation Editor")) AddLegacyWindow(new AnimationEditor());
+                if (ImGui.MenuItem("Animation Editor (Old)")) AddLegacyWindow(new AnimationEditor());
+                if (ImGui.MenuItem("Animation Editor")) AddChild(new Animation2DEditor());
                 if (ImGui.MenuItem("Rogue Alpha Remover")) AddLegacyWindow(new RogueAlphaRemoval());
                 if (ImGui.MenuItem("Palette Editor")) AddLegacyWindow(new PaletteEditor());
                 if (ImGui.MenuItem("Font Preview")) AddLegacyWindow(new FontPreview());
