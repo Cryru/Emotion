@@ -12,7 +12,7 @@ namespace Emotion.Test.Helpers
         public static string TestRunner = "TestRunner";
     }
 
-    public class TestRunnerLogger : DefaultLogger
+    public class TestRunnerLogger : NetIOAsyncLogger
     {
         private string _linkId;
         private bool _linked;
