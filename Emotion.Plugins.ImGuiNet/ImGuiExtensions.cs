@@ -30,6 +30,8 @@ namespace Emotion.Plugins.ImGuiNet
                 (reqUv.Y + reqUv.Size.Y) / t.Size.Y
             );
 
+            if(t.FlipY) (uvTwo.Y, uvOne.Y) = (uvOne.Y, uvTwo.Y);
+
             return new Tuple<Vector2, Vector2>(uvOne, uvTwo);
         }
 
