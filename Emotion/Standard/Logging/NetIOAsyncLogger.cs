@@ -24,7 +24,7 @@ namespace Emotion.Standard.Logging
         private ConcurrentQueue<(MessageType, string)> _logQueue = new ConcurrentQueue<(MessageType, string)>();
         private AutoResetEvent _queueEvent = new AutoResetEvent(false);
         private bool _stdOut;
-        private string _logFolder;
+        protected string _logFolder;
         private Thread? _logThread;
         private bool _logThreadRun = true;
 
@@ -70,7 +70,7 @@ namespace Emotion.Standard.Logging
             }
         }
 
-        private string GenerateLogName()
+        protected virtual string GenerateLogName()
         {
             return $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
         }

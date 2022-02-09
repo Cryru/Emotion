@@ -135,7 +135,7 @@ namespace Emotion.Test
 
             // Check if master runner.
             bool linked = TestRunId != RunnerId.ToString();
-            LoggingProvider log = new TestRunnerLogger(RunnerId.ToString(), linked, Path.Join(TestRunFolder, "Logs"));
+            LoggingProvider log = new TestRunnerLogger(linked, Path.Join(TestRunFolder, "Logs"));
 
             // Set the default engine settings for the test runner.
             Configurator config = engineConfig;
@@ -147,7 +147,7 @@ namespace Emotion.Test
             string id = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
             if (id != null && _otherConfigs.ContainsKey(id) && _otherConfigs[id] != null)
             {
-                Engine.Log.Info($"Loading custom engine config - {id}...", CustomMSource.TestRunner);
+                Engine.Log.Info($"Loading custom engine config - {id}...", TestRunnerLogger.TestRunnerSrc);
                 _otherConfigs[id](config);
             }
 
@@ -157,7 +157,7 @@ namespace Emotion.Test
             // Run linked runners (if the master).
             if (linked)
             {
-                log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", CustomMSource.TestRunner);
+                log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", TestRunnerLogger.TestRunnerSrc);
             }
             else
             {
@@ -254,12 +254,12 @@ namespace Emotion.Test
 
             if (initMethod != null)
             {
-                Engine.Log.Info("Executing test init method...", CustomMSource.TestRunner);
+                Engine.Log.Info("Executing test init method...", TestRunnerLogger.TestRunnerSrc);
                 Type initClassType = initMethod.DeclaringType;
                 Debug.Assert(initClassType != null);
                 object initClassInstance = Activator.CreateInstance(initClassType);
                 initMethod.Invoke(initClassInstance, new object[] { });
-                Engine.Log.Info("Tests initialized.", CustomMSource.TestRunner);
+                Engine.Log.Info("Tests initialized.", TestRunnerLogger.TestRunnerSrc);
             }
 
             Type currentClass = null;
@@ -274,16 +274,16 @@ namespace Emotion.Test
                 // Create an instance of the test class.
                 if (currentClass != func.DeclaringType)
                 {
-                    if (currentClass != null) Engine.Log.Info($"Test class {currentClass} completed in {classTimer}ms!", CustomMSource.TestRunner);
+                    if (currentClass != null) Engine.Log.Info($"Test class {currentClass} completed in {classTimer}ms!", TestRunnerLogger.TestRunnerSrc);
                     currentClass = func.DeclaringType;
                     if (currentClass == null) throw new Exception($"Declaring type of function {func.Name} is missing.");
                     currentClassInstance = Activator.CreateInstance(currentClass);
                     classTimer = 0;
-                    Engine.Log.Info($"Running test class {currentClass}...", CustomMSource.TestRunner);
+                    Engine.Log.Info($"Running test class {currentClass}...", TestRunnerLogger.TestRunnerSrc);
                 }
 
                 // Run test.
-                Engine.Log.Info($"  Running test {func.Name}...", CustomMSource.TestRunner);
+                Engine.Log.Info($"  Running test {func.Name}...", TestRunnerLogger.TestRunnerSrc);
                 timeTracker.Restart();
 #if !THROW_EXCEPTIONS
                 try
@@ -309,20 +309,20 @@ namespace Emotion.Test
                     failedTests++;
                     if (ex.InnerException is ImageDerivationException)
                     {
-                        Engine.Log.Error($"{ex.InnerException.Message}", CustomMSource.TestRunner);
+                        Engine.Log.Error($"{ex.InnerException.Message}", TestRunnerLogger.TestRunnerSrc);
                         continue;
                     }
 
-                    Engine.Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
+                    Engine.Log.Error($" Test {func.Name} failed - {ex}", TestRunnerLogger.TestRunnerSrc);
                     Debug.Assert(false);
                 }
 #endif
 
-                Engine.Log.Info($"  Test {func.Name} completed in {timeTracker.ElapsedMilliseconds}ms!", CustomMSource.TestRunner);
+                Engine.Log.Info($"  Test {func.Name} completed in {timeTracker.ElapsedMilliseconds}ms!", TestRunnerLogger.TestRunnerSrc);
                 classTimer += timeTracker.ElapsedMilliseconds;
             }
 
-            Engine.Log.Info($"Test completed: {tests.Count - failedTests}/{tests.Count}!", CustomMSource.TestRunner);
+            Engine.Log.Info($"Test completed: {tests.Count - failedTests}/{tests.Count}!", TestRunnerLogger.TestRunnerSrc);
 
             // If not the master - then nothing else to do.
             if (TestRunId != RunnerId.ToString()) return;
@@ -334,8 +334,8 @@ namespace Emotion.Test
             // Wait for linked runners to exit.
             foreach (LinkedRunner linked in _linkedRunners)
             {
-                Engine.Log.Info("----------------------------------------------------------------------", CustomMSource.TestRunner);
-                Engine.Log.Info($"Waiting for LR{linked.Id} - ({linked.Args})", CustomMSource.TestRunner);
+                Engine.Log.Info("----------------------------------------------------------------------", TestRunnerLogger.TestRunnerSrc);
+                Engine.Log.Info($"Waiting for LR{linked.Id} - ({linked.Args})", TestRunnerLogger.TestRunnerSrc);
                 int exitCode = linked.WaitForFinish(out string output, out string errorOutput);
                 output = output.Trim();
                 errorOutput = errorOutput.Trim();
@@ -357,7 +357,7 @@ namespace Emotion.Test
                     }
                     catch (Exception)
                     {
-                        Engine.Log.Info($"Couldn't read tests completed from LR{linked.Id}.", CustomMSource.TestRunner);
+                        Engine.Log.Info($"Couldn't read tests completed from LR{linked.Id}.", TestRunnerLogger.TestRunnerSrc);
                     }
                 else
                     result = "<Unknown>/<Unknown>";
@@ -371,16 +371,16 @@ namespace Emotion.Test
 
                 results.Add($"LR{linked.Id} ({linked.Args}) {result} {anyError}{linked.TimeElapsed}ms");
 
-                Engine.Log.Info($"LR{linked.Id} exited with code {exitCode}.", CustomMSource.TestRunner);
-                Engine.Log.Info($"Dumping log from LR{linked.Id}\n{output}", CustomMSource.TestRunner);
-                if (!string.IsNullOrEmpty(errorOutput)) Engine.Log.Info($"[LR{linked.Id}] Error Output\n{errorOutput}", CustomMSource.TestRunner);
+                Engine.Log.Info($"LR{linked.Id} exited with code {exitCode}.", TestRunnerLogger.TestRunnerSrc);
+                Engine.Log.Info($"Dumping log from LR{linked.Id}\n{output}", TestRunnerLogger.TestRunnerSrc);
+                if (!string.IsNullOrEmpty(errorOutput)) Engine.Log.Info($"[LR{linked.Id}] Error Output\n{errorOutput}", TestRunnerLogger.TestRunnerSrc);
             }
 
             // Post final results.
-            Engine.Log.Info($"Final test results: {totalTests - failedTests}/{totalTests} {(error ? "Errors found!" : "")}!", CustomMSource.TestRunner);
+            Engine.Log.Info($"Final test results: {totalTests - failedTests}/{totalTests} {(error ? "Errors found!" : "")}!", TestRunnerLogger.TestRunnerSrc);
             foreach (string r in results)
             {
-                Engine.Log.Info($"     {r}", CustomMSource.TestRunner);
+                Engine.Log.Info($"     {r}", TestRunnerLogger.TestRunnerSrc);
             }
 
             if (error || failedTests > 0) Environment.Exit(1);
@@ -534,7 +534,7 @@ namespace Emotion.Test
             if (_screenResultDb.ContainsKey(renderId))
                 cachedRender = _screenResultDb[renderId];
             else
-                Engine.Log.Warning($"      Missing comparison render with id {renderId}.", CustomMSource.TestRunner);
+                Engine.Log.Warning($"      Missing comparison render with id {renderId}.", TestRunnerLogger.TestRunnerSrc);
 
             VerifyImages(renderId, cachedRender, imageToCompareAgainst, imageSize);
         }
@@ -577,7 +577,7 @@ namespace Emotion.Test
             // Check if the original image is missing, in which case we just store the comparison image.
             if (originalImage == null) return;
 
-            Engine.Log.Info($"      Comparing images {compareName}...", CustomMSource.TestRunner);
+            Engine.Log.Info($"      Comparing images {compareName}...", TestRunnerLogger.TestRunnerSrc);
 
             float derivedPixelPercentage;
             byte[] derivationImage = null;
@@ -590,7 +590,7 @@ namespace Emotion.Test
 
             if (derivedPixelPercentage == 0)
             {
-                Engine.Log.Info("          No derivation.", CustomMSource.TestRunner);
+                Engine.Log.Info("          No derivation.", TestRunnerLogger.TestRunnerSrc);
                 return;
             }
 
@@ -605,7 +605,7 @@ namespace Emotion.Test
 
             // Assert derivation is not higher than tolerable. This is not done using the Emotion.Test assert so it doesn't stop the test from continuing.
             if (derivedPixelPercentage > PixelDerivationTolerance) throw new ImageDerivationException($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.");
-            Engine.Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
+            Engine.Log.Info($"          Derivation is {derivedPixelPercentage}%.", TestRunnerLogger.TestRunnerSrc);
         }
 
         /// <summary>

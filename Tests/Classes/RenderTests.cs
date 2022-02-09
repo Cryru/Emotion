@@ -88,7 +88,7 @@ namespace Tests.Classes
                 {
                     if (invalidationIdx.IndexOf(elements) != -1)
                     {
-                        Engine.Log.Info($"Invalidation of batch at element - {elements}", CustomMSource.TestRunner);
+                        Engine.Log.Info($"Invalidation of batch at element - {elements}", TestRunnerLogger.TestRunnerSrc);
                         composer.FlushRenderStream();
                     }
 

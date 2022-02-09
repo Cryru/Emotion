@@ -49,7 +49,7 @@ namespace Emotion.Test
 
             if (_runnerProcess == null)
             {
-                Engine.Log.Error("Couldn't start linked runner with args {args}", CustomMSource.TestRunner);
+                Engine.Log.Error("Couldn't start linked runner with args {args}", TestRunnerLogger.TestRunnerSrc);
                 return;
             }
 

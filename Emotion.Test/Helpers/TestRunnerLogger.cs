@@ -1,33 +1,36 @@
 ﻿#region Using
 
 using System;
+using System.IO;
 using Emotion.Standard.Logging;
 
 #endregion
 
 namespace Emotion.Test.Helpers
 {
-    public static class CustomMSource
-    {
-        public static string TestRunner = "TestRunner";
-    }
-
     public class TestRunnerLogger : NetIOAsyncLogger
     {
-        private string _linkId;
+        public static string TestRunnerSrc = "TestRunner";
+
         private bool _linked;
 
-        public TestRunnerLogger(string id, bool linked, string folder) : base(false, folder)
+        public TestRunnerLogger(bool linked, string folder) : base(false, folder)
         {
-            _linkId = id;
             _linked = linked;
+        }
+
+        protected override string GenerateLogName()
+        {
+            var runnerId = Runner.RunnerId.ToString();
+            return $"{_logFolder}{Path.DirectorySeparatorChar}ID{runnerId} {DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
         }
 
         public override void Log(MessageType type, string source, string message)
         {
-            string formattedMsg = _linked ? $"{_linkId} >> {message}" : $"{message}";
+            var runnerId = Runner.RunnerId.ToString();
+            string formattedMsg = _linked ? $"{runnerId} >> {message}" : $"{message}";
 
-            if (source == CustomMSource.TestRunner)
+            if (source == TestRunnerSrc)
             {
                 if (type == MessageType.Error)
                 {
@@ -42,10 +45,6 @@ namespace Emotion.Test.Helpers
             }
 
             base.Log(type, source, message);
-        }
-
-        public override void Dispose()
-        {
         }
     }
 }

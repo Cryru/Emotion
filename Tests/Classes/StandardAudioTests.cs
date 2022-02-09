@@ -86,7 +86,7 @@ namespace Tests.Classes
                     var streamer = new AudioConverter(pepsi.Format, pepsi.SoundData);
                     var segmentConvert = new List<byte>();
                     int framesGet = new Random().Next(1, 500);
-                    Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
+                    Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", TestRunnerLogger.TestRunnerSrc);
 
                     var minutesTimeout = 2;
                     DateTime start = DateTime.Now;
@@ -101,7 +101,7 @@ namespace Tests.Classes
                         segmentConvert.AddRange(spanData.Slice(0, samplesAmount * format.SampleSize).ToArray());
                     }
 
-                    if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", CustomMSource.TestRunner);
+                    if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", TestRunnerLogger.TestRunnerSrc);
 
                     Assert.Equal(segmentConvert.Count, copy.Length);
                     // V No longer true due to floating point precision.
@@ -128,7 +128,7 @@ namespace Tests.Classes
 
                     var segmentConvert = new List<byte>();
                     int framesGet = new Random().Next(1, 500);
-                    Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
+                    Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", TestRunnerLogger.TestRunnerSrc);
 
                     DateTime start = DateTime.Now;
                     int playHead = 0;
