@@ -7,12 +7,14 @@ using System.Threading;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.Logging
 {
     /// <summary>
     /// A network logger which logs remotely using UDP. Supports www.papertrailapp.com
     /// </summary>
-    public sealed class NetworkLogger : LoggingProvider
+    public sealed class UDPNetworkLogger : LoggingProvider
     {
         private string _hostName;
         private int _port;
@@ -25,7 +27,7 @@ namespace Emotion.Standard.Logging
         /// <param name="host">The host to connect to.</param>
         /// <param name="port">The port.</param>
         /// <param name="userId">The unique id of the user.</param>
-        public NetworkLogger(string host, int port, string userId)
+        public UDPNetworkLogger(string host, int port, string userId)
         {
             _udpClient = new UdpClient();
             _hostName = host;
@@ -60,8 +62,7 @@ namespace Emotion.Standard.Logging
             if (string.IsNullOrWhiteSpace(_hostName) || _port == 0)
                 return false;
 
-
-            string dateTime = DateTime.UtcNow.ToString("s");
+            var dateTime = DateTime.UtcNow.ToString("s");
             string hostName = _userId;
             message = $"<{16 * 8 + (int) logLevel}>{dateTime} {hostName} {sender} {message}";
             byte[] bytes = Encoding.UTF8.GetBytes(message);

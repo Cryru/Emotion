@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
-using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -27,6 +26,9 @@ using Emotion.Utility;
 
 namespace Emotion.Common
 {
+    /// <summary>
+    /// Singleton managing the state of the whole engine.
+    /// </summary>
     public static class Engine
     {
         /// <summary>
@@ -36,6 +38,9 @@ namespace Emotion.Common
 
         #region Modules
 
+        /// <summary>
+        /// Logs runtime information.
+        /// </summary>
         public static LoggingProvider Log { get; private set; } = new PreSetupLogger();
 
         /// <summary>
@@ -52,16 +57,6 @@ namespace Emotion.Common
         /// Handles rendering.
         /// </summary>
         public static RenderComposer Renderer { get; private set; }
-
-        /// <summary>
-        /// The legacy input manager. Is just a redirect of Host.
-        /// todo: Should probably deprecate this at some point.
-        /// </summary>
-        [Obsolete("Use Engine.Host")]
-        public static PlatformBase InputManager
-        {
-            get => Host;
-        }
 
         /// <summary>
         /// Module which manages loading and unloading of scenes.
@@ -131,7 +126,7 @@ namespace Emotion.Common
             // If no config provided - use default.
             Configuration = configurator ?? new Configurator();
 
-            Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
+            Log = Configuration.Logger ?? new NetIOAsyncLogger(Configuration.DebugMode);
             Log.Info($"Emotion V{MetaData.Version} [{MetaData.BuildConfig}] {MetaData.GitHash}", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
             Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
@@ -142,16 +137,16 @@ namespace Emotion.Common
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
-                AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception)a.ExceptionObject); };
+                AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject); };
             TaskScheduler.UnobservedTaskException += (s, o) =>
             {
                 AggregateException exception = o.Exception;
                 Log.Error(exception.InnerException?.ToString() ?? exception.ToString(), MessageSource.StdErr);
             };
-            AppDomain.CurrentDomain.FirstChanceException += (e, a) => { Log.Error(a.Exception); };
+            AppDomain.CurrentDomain.FirstChanceException += (_, a) => { Log.Error(a.Exception); };
 
             // Ensure quit is called on exit.
-            AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
+            AppDomain.CurrentDomain.ProcessExit += (_, __) => { Quit(); };
 
             // Mount default assets. The platform should add it's own specific sources and stores.
             AssetLoader = AssetLoader.CreateDefaultAssetLoader();
@@ -206,6 +201,9 @@ namespace Emotion.Common
             PerfProfiler.ProfilerEventEnd("Setup", "Loading");
         }
 
+        /// <summary>
+        /// Start running the engine. This call could be blocking depending on the loop.
+        /// </summary>
         public static void Run()
         {
             // This will prevent running when a startup error occured or when not setup at all.
@@ -317,7 +315,7 @@ namespace Emotion.Common
             _targetTimeFuzzyUpper = 1000d / (_desiredStep + 1);
 
             // Keep delta time constant.
-            DeltaTime = (float)_targetTime;
+            DeltaTime = (float) _targetTime;
         }
 
         private static void RunTickIfNeeded()
@@ -400,6 +398,10 @@ namespace Emotion.Common
 
         #endregion
 
+        /// <summary>
+        /// Stop running the engine.
+        /// This should unblock the "Run" call if blocking and make modules exit safely.
+        /// </summary>
         public static void Quit()
         {
             if (Status == EngineStatus.Stopped) return;

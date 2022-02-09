@@ -5,33 +5,35 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Emotion.Common;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Standard.Logging
 {
     /// <summary>
     /// The default desktop-platform based logger.
     /// </summary>
-    public class DefaultLogger : LoggingProvider
+    public class NetIOAsyncLogger : LoggingProvider
     {
+        private const int MAX_LOG_FILES = 10;
+        private const int MAX_LOG_SIZE = 10000000;
+
         private ConcurrentQueue<(MessageType, string)> _logQueue = new ConcurrentQueue<(MessageType, string)>();
         private AutoResetEvent _queueEvent = new AutoResetEvent(false);
         private bool _stdOut;
         private string _logFolder;
-        private Task _logThread;
+        private Thread? _logThread;
         private bool _logThreadRun = true;
-        private const int MAX_LOG_FILES = 10;
-        private const int MAX_LOG_SIZE = 10000000;
 
         /// <summary>
         /// Create a default logger.
         /// </summary>
         /// <param name="stdOut">Whether to redirect logs to STDOUT as well.</param>
         /// <param name="logFolder">The folder to log to. "Logs" by default/</param>
-        public DefaultLogger(bool stdOut, string logFolder = null)
+        public NetIOAsyncLogger(bool stdOut, string? logFolder = null)
         {
             _stdOut = stdOut;
             logFolder ??= Path.Join(".", "Logs");
@@ -59,7 +61,8 @@ namespace Emotion.Standard.Logging
                     }
                 }
 
-                _logThread = Task.Run(LogThread);
+                _logThread = new Thread(LogThread);
+                _logThread.Start();
             }
             catch (Exception)
             {
@@ -75,16 +78,15 @@ namespace Emotion.Standard.Logging
         private void LogThread()
         {
             string fileName = GenerateLogName();
-            string fileDirectory = Path.GetDirectoryName(fileName);
+            string? fileDirectory = Path.GetDirectoryName(fileName);
             if (fileDirectory != null) Directory.CreateDirectory(fileDirectory);
 
             TextWriter currentFileStream = File.CreateText(fileName);
             var fileSizeCounter = 0;
-            TextWriter stdOut = _stdOut ? Console.Out : null;
+            TextWriter? stdOut = _stdOut ? Console.Out : null;
 
             while (_logThreadRun || _logQueue.Count > 0)
             {
-                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Logging Thread";
                 if (_logQueue.TryDequeue(out (MessageType type, string line) logItem))
                 {
                     switch (logItem.type)
@@ -134,7 +136,7 @@ namespace Emotion.Standard.Logging
         /// <inheritdoc />
         public override void Log(MessageType type, string source, string message)
         {
-            string threadName = Thread.CurrentThread.Name;
+            string threadName = Thread.CurrentThread.Name ?? "Thread";
             if (threadName == ".NET ThreadPool Worker") threadName = "Worker";
             _logQueue.Enqueue((type, $"{Engine.TotalTime:0} [{source}] [{threadName}/{Thread.CurrentThread.ManagedThreadId:D2}] {message}"));
             _queueEvent.Set();
@@ -145,7 +147,7 @@ namespace Emotion.Standard.Logging
         {
             _logThreadRun = false;
             _queueEvent.Set();
-            _logThread.Wait();
+            _logThread?.Join(TimeSpan.FromMinutes(1));
         }
     }
 }

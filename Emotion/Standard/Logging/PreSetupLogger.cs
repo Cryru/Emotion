@@ -4,6 +4,8 @@ using System;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.Logging
 {
     /// <summary>

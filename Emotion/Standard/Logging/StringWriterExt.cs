@@ -5,6 +5,8 @@ using System.IO;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.Logging
 {
     /// <summary>
@@ -15,7 +17,7 @@ namespace Emotion.Standard.Logging
         /// <summary>
         /// The event to trigger when updated.
         /// </summary>
-        public event Action OnUpdate;
+        public event Action? OnUpdate;
 
         /// <summary>
         /// Whether the string writer will automatically flush the buffer.
@@ -46,7 +48,7 @@ namespace Emotion.Standard.Logging
         }
 
         /// <inheritdoc />
-        public override void Write(string value)
+        public override void Write(string? value)
         {
             base.Write(value);
             if (AutoFlush) Flush();

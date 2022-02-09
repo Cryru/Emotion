@@ -13,6 +13,8 @@ namespace Emotion.Standard.Logging
     /// </summary>
     public abstract class LoggingProvider : IDisposable
     {
+        private HashSet<string> _oncePrint = new HashSet<string>();
+
         /// <summary>
         /// Create a new logging provider.
         /// </summary>
@@ -47,8 +49,6 @@ namespace Emotion.Standard.Logging
 
         #endregion
 
-        private HashSet<string> _oncePrint;
-
         /// <summary>
         /// Log a warning. These are usually workarounds or destabilization of code.
         /// </summary>
@@ -59,7 +59,6 @@ namespace Emotion.Standard.Logging
         {
             if (once)
             {
-                _oncePrint ??= new HashSet<string>();
                 if (_oncePrint.Contains(message)) return;
                 _oncePrint.Add(message);
             }
