@@ -20,6 +20,13 @@ namespace Emotion.Audio
     public abstract partial class AudioLayer
     {
         /// <summary>
+        /// The layer's unique idx.
+        /// </summary>
+        public int LayerId { get; protected set; }
+
+        private static int _nextId;
+
+        /// <summary>
         /// The layer's friendly name.
         /// </summary>
         public string Name { get; internal set; }
@@ -125,6 +132,7 @@ namespace Emotion.Audio
 
         protected AudioLayer(string name)
         {
+            LayerId = _nextId++;
             Name = name;
             _internalBuffer = new float[INITIAL_INTERNAL_BUFFER_SIZE];
             _internalBufferCrossFade = new float[INITIAL_INTERNAL_BUFFER_SIZE];
@@ -280,9 +288,8 @@ namespace Emotion.Audio
 
 #if DEBUG
 
-        public static event Action<float> AudioRequestDone;
+        public static event Action<int, float> OnAudioRequestDone;
         private Stopwatch _timer;
-
 
 #endif
 
@@ -380,24 +387,30 @@ namespace Emotion.Audio
             }
 
 #if DEBUG
-            AudioRequestDone?.Invoke((float) _timer.Elapsed.TotalMilliseconds);
+            OnAudioRequestDone?.Invoke(LayerId, (float) _timer.Elapsed.TotalMilliseconds);
             _timer.Stop();
 #endif
             return framesGotten;
         }
 
-        protected virtual void Update()
+        public virtual bool Update()
         {
+            if (_doubleBuffer[0] == null || _streamingTrack == null) return false;
+            
             // Fill all buffers that are out of frames.
-            if (_doubleBuffer[0] != null && _streamingTrack != null)
-                for (var i = 0; i < _doubleBuffer.Length; i++)
-                {
-                    byte[] buffer = _doubleBuffer[i];
-                    int framesStored = _dbFramesStored[i];
-                    if (framesStored != 0) continue;
-                    _dbOffset[i] = 0;
-                    _dbFramesStored[i] = StreamDataFromCurrentTrack(_internalBuffer.Length / _streamingFormat.Channels, buffer);
-                }
+            var updated = false;
+            var div = _streamingFormat.SampleSize * _streamingFormat.Channels;
+            for (var i = 0; i < _doubleBuffer.Length; i++)
+            {
+                byte[] buffer = _doubleBuffer[i];
+                int framesStored = _dbFramesStored[i];
+                if (framesStored != 0) continue;
+                _dbOffset[i] = 0;
+                _dbFramesStored[i] = StreamDataFromCurrentTrack(buffer.Length / div, buffer);
+                updated = true;
+            }
+
+            return updated;
         }
 
         protected void InvalidateDoubleBuffer()

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using Emotion.Audio;
 using Emotion.Common;
@@ -21,6 +22,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         }
 
         public WasApiAudioDevice DefaultDevice { get; private set; }
+        public event Action<WasApiAudioDevice> OnDefaultDeviceChangedInternal;
 
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
@@ -64,13 +66,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         protected override AudioLayer CreatePlatformAudioLayerInternal(string layerName)
         {
-            return new WasApiLayer(layerName);
-        }
-
-        protected override void UpdateLayer(AudioLayer layer)
-        {
-            var wasApiLayer = layer as WasApiLayer;
-            wasApiLayer?.ProcUpdate(DefaultDevice);
+            return new WasApiLayer(this, layerName);
         }
 
         #region Events
@@ -211,6 +207,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             defaultDevice.Default = true;
             DefaultDevice = defaultDevice;
             Engine.Log.Trace($"Default audio device is: {defaultDevice.Name}.", MessageSource.Win32);
+            OnDefaultDeviceChangedInternal?.Invoke(defaultDevice);
         }
 
         #endregion

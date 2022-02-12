@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 using WinApi.ComBaseApi.COM;
 
 #endregion
@@ -34,7 +33,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// Late initialization for the WasApi backend's representation of this device.
         /// Todo: Catch and handle all the possible COM exceptions here :/
         /// </summary>
-        public WasApiLayerContext CreateLayerContext()
+        public WasApiLayerContext CreateLayerContext(out uint bufferSize)
         {
             var context = new WasApiLayerContext(this);
 
@@ -49,15 +48,15 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             error = audioClient.GetMixFormat(out IntPtr deviceFormat);
             if (error != 0) Win32Platform.CheckError($"Couldn't detect the mix format of the audio client of {Name}.", true);
             var audioClientFormat = Marshal.PtrToStructure<WaveFormat>(deviceFormat);
-            if (audioClientFormat.ExtraSize >= 22) audioClientFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
-            context.AudioClientFormat = audioClientFormat.ToEmotionFormat();
+            if (audioClientFormat!.ExtraSize >= 22) audioClientFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
+            context.AudioClientFormat = audioClientFormat!.ToEmotionFormat();
 
             long ticks = TimeSpan.FromMilliseconds(BUFFER_LENGTH_MS).Ticks;
-            error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, 
+            error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None,
                 ticks, ticks / 2, deviceFormat, Guid.Empty);
             if (error != 0) Win32Platform.CheckError($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", true);
-                
-            error = audioClient.GetBufferSize(out context.BufferSize);
+
+            error = audioClient.GetBufferSize(out bufferSize);
             if (error != 0) Win32Platform.CheckError($"Couldn't get device {Name} buffer size.", true);
 
             error = audioClient.GetService(IdAudioRenderClient, out object audioRenderClient);

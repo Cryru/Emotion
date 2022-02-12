@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Emotion.Audio;
 using Emotion.Common;
@@ -14,28 +13,33 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     internal class WasApiLayer : AudioLayer
     {
-        private WasApiAudioDevice _device;
+        private WasApiAudioAdapter _adapter;
         private WasApiLayerContext _layerContext;
         private int _bufferLengthInFrames;
 
-        public WasApiLayer(string name) : base(name)
+        public WasApiLayer(WasApiAudioAdapter adapter, string name) : base(name)
         {
+            _adapter = adapter;
+            _adapter.OnDefaultDeviceChangedInternal += SetDevice;
+            SetDevice(adapter.DefaultDevice);
         }
 
-        public void ProcUpdate(WasApiAudioDevice device)
+        public override void Dispose()
         {
-            // Check if the device has changed.
-            if (_device != device) SetDevice(device);
+            _adapter.OnDefaultDeviceChangedInternal -= SetDevice;
+            _adapter = null;
+            base.Dispose();
+        }
 
-            // If not playing, wait for it to start playing.
-            if (Status != PlaybackStatus.Playing) return;
-
+        public override bool Update()
+        {
             try
             {
                 // Check if the context is initialized.
                 if (!_layerContext.Initialized)
                 {
-                    FillBuffer(_layerContext.RenderClient, (int) _layerContext.BufferSize);
+                    // Fill buffer before starting to prevent noise.
+                    FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames);
                     _layerContext.Start();
                 }
 
@@ -49,18 +53,21 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             }
             catch (COMException ex)
             {
-                // Audio device has disappeared or whatever.
+                // Audio device is the same, but the configuration has changed.
+                // Tracking these changes in the adapter is a huge drag, so we just catch the error instead.
                 // https://www.hresult.info/FACILITY_AUDCLNT/0x88890004
                 if ((uint) ex.ErrorCode == 0x88890004)
                 {
-                    SetDevice(device);
-                    Engine.Log.Info("Default audio device changed.", MessageSource.WasApi);
+                    SetDevice(_adapter.DefaultDevice);
+                    Engine.Log.Trace("Default audio device changed.", MessageSource.WasApi);
                 }
-
-                Engine.Log.Error(ex.ToString(), MessageSource.WasApi);
+                else
+                {
+                    Engine.Log.Error(ex.ToString(), MessageSource.WasApi);
+                }
             }
 
-            Update();
+            return base.Update();
         }
 
         /// <summary>
@@ -83,11 +90,13 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             return framesGotten == 0; // This should only be true if the buffer was exactly exhausted.
         }
 
-        private void SetDevice(WasApiAudioDevice device)
+        /// <summary>
+        /// Set the audio device the layer will output into.
+        /// </summary>
+        public void SetDevice(WasApiAudioDevice device)
         {
-            _device = device;
-            _layerContext = device.CreateLayerContext();
-            _bufferLengthInFrames = (int) _layerContext.BufferSize;
+            _layerContext = device.CreateLayerContext(out uint bufferSize);
+            _bufferLengthInFrames = (int) bufferSize;
         }
     }
 }

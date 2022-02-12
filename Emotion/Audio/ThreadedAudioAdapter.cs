@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Emotion.Platform;
 
 #endregion
@@ -13,7 +11,6 @@ namespace Emotion.Audio
     {
         private int INACTIVITY_TIMEOUT = 500;
 
-        private List<Task> _layerThreads = new List<Task>();
         private PlatformBase _platform;
 
         protected ThreadedAudioAdapter(PlatformBase platform)
@@ -24,17 +21,21 @@ namespace Emotion.Audio
         public AudioLayer CreatePlatformAudioLayer(string layerName)
         {
             AudioLayer newAudioLayer = CreatePlatformAudioLayerInternal(layerName);
-            _layerThreads.Add(Task.Run(() => LayerThread(newAudioLayer)));
+            var th = new Thread(LayerThread)
+            {
+                IsBackground = true,
+            };
+            th.Start(newAudioLayer);
             return newAudioLayer;
         }
 
         public virtual void Dispose()
         {
-            
         }
 
-        private void LayerThread(AudioLayer layer)
+        private void LayerThread(object layerObj)
         {
+            var layer = (AudioLayer) layerObj;
             if (_platform?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread - {layer.Name}";
 
             var layerActivity = new AutoResetEvent(false);
@@ -42,13 +43,12 @@ namespace Emotion.Audio
 
             while (!layer.Disposed)
             {
-                UpdateLayer(layer);
+                layer.Update();
                 if (layer.Status != PlaybackStatus.Playing) layerActivity.WaitOne(INACTIVITY_TIMEOUT);
-                Task.Delay(1).Wait();
+                Thread.Sleep(1);
             }
         }
 
         protected abstract AudioLayer CreatePlatformAudioLayerInternal(string layerName);
-        protected abstract void UpdateLayer(AudioLayer layer);
     }
 }

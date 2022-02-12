@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Threading;
 using Emotion.Standard.Audio;
 using WinApi.ComBaseApi.COM;
 
@@ -18,7 +17,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         internal IAudioRenderClient RenderClient;
         internal IAudioClient AudioClient;
         internal AudioFormat AudioClientFormat;
-        internal uint BufferSize;
 
         public WasApiLayerContext(WasApiAudioDevice parent)
         {

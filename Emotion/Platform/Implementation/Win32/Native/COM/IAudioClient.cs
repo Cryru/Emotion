@@ -210,10 +210,7 @@ namespace WinApi.ComBaseApi.COM
         int GetCurrentPadding(out int currentPadding);
 
         [PreserveSig]
-        int IsFormatSupported(
-            AudioClientShareMode shareMode,
-            [In] WaveFormat pFormat,
-            IntPtr closestMatchFormat);
+        int IsFormatSupported(AudioClientShareMode shareMode, [In] WaveFormat pFormat, IntPtr closestMatchFormat);
 
         int GetMixFormat(out IntPtr deviceFormatPointer);
 
@@ -237,8 +234,6 @@ namespace WinApi.ComBaseApi.COM
         /// the requested interface.
         /// </param>
         [PreserveSig]
-        int GetService([In] [MarshalAs(UnmanagedType.LPStruct)]
-            Guid interfaceId, [Out] [MarshalAs(UnmanagedType.IUnknown)]
-            out object interfacePointer);
+        int GetService([In] [MarshalAs(UnmanagedType.LPStruct)] Guid interfaceId, [Out] [MarshalAs(UnmanagedType.IUnknown)] out object interfacePointer);
     }
 }

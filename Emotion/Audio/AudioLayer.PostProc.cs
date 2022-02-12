@@ -32,14 +32,9 @@ namespace Emotion.Audio
             // Apply base volume modulation.
             float baseVolume = Volume * Engine.Configuration.MasterVolume;
             baseVolume = MathF.Pow(baseVolume, Engine.Configuration.AudioCurve);
-            for (var i = 0; i < frames; i++)
+            for (var i = 0; i < samples; i++)
             {
-                int frameIdx = i * channels;
-                for (var c = 0; c < channels; c++)
-                {
-                    int sampleIdx = frameIdx + c;
-                    memory[sampleIdx] *= baseVolume;
-                }
+                memory[i] *= baseVolume;
             }
 
             // Apply fading, if needed. For instance we don't want additional fading while crossfading.
@@ -109,7 +104,7 @@ namespace Emotion.Audio
                 fadeInDuration = currentTrackDuration * -fadeInDuration;
 
             // How many frames of fade in.
-            var fadeInFrames = (int)MathF.Floor(fadeInDuration * format.SampleRate);
+            var fadeInFrames = (int) MathF.Floor(fadeInDuration * format.SampleRate);
 
             // Check if in fade in zone.
             if (frameStart >= fadeInFrames) return;
@@ -124,7 +119,7 @@ namespace Emotion.Audio
                 // Calculate volume for each granularity step based on the frame index.
                 int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame); // Frames in step.
                 int totalFrameIdx = frameStart + localFrame; // The index of the frame within the total count.
-                float volume = (float)totalFrameIdx / fadeInFrames; // Volume is equal to how many frames into the fade. Linear curve 0-1.
+                float volume = (float) totalFrameIdx / fadeInFrames; // Volume is equal to how many frames into the fade. Linear curve 0-1.
                 volume = MathF.Pow(volume, Engine.Configuration.AudioCurve);
 
                 // Apply to frame array.
@@ -150,7 +145,7 @@ namespace Emotion.Audio
             if (fadeOutDuration < 0)
                 fadeOutDuration = currentTrackDuration * -fadeOutDuration;
 
-            var fadeOutFrames = (int)MathF.Floor(fadeOutDuration * format.SampleRate);
+            var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
             int fadeOutFrameStart = _totalSamplesConv / channels - fadeOutFrames;
             if (frameStart <= fadeOutFrameStart) return;
 
@@ -159,7 +154,7 @@ namespace Emotion.Audio
             {
                 int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame);
                 int frameIdx = frameStart + localFrame;
-                float volume = (float)(frameIdx - fadeOutFrameStart) / fadeOutFrames;
+                float volume = (float) (frameIdx - fadeOutFrameStart) / fadeOutFrames;
                 volume = MathF.Pow(1f - volume, Engine.Configuration.AudioCurve);
 
                 for (var i = 0; i < frames; i++)
@@ -193,7 +188,7 @@ namespace Emotion.Audio
 
             // Add a fade in to the next track (if none). Makes the cross fade better.
             // The current track already has a fade out applied in post processing.
-            int crossFadeFrames = (int)MathF.Floor(crossFadeDuration * format.SampleRate * channels) / channels;
+            int crossFadeFrames = (int) MathF.Floor(crossFadeDuration * format.SampleRate * channels) / channels;
             int crossFadeStartAtFrame = _totalSamplesConv / channels - crossFadeFrames;
             if (crossFadeStartAtFrame > startingFrame) return;
 
@@ -207,7 +202,7 @@ namespace Emotion.Audio
             {
                 int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame);
                 int frameIdx = startingFrame + localFrame;
-                float frameT = (float)(frameIdx - crossFadeStartAtFrame) / crossFadeFrames;
+                float frameT = (float) (frameIdx - crossFadeStartAtFrame) / crossFadeFrames;
                 frameT = frameT * 2.0f - 1.0f;
 
                 float volumeNex = MathF.Sqrt(0.5f * (1f + frameT));

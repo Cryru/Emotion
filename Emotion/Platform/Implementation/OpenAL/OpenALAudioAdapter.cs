@@ -51,11 +51,5 @@ namespace Emotion.Platform.Implementation.OpenAL
             Alc.CloseDevice(AudioDevice);
             base.Dispose();
         }
-
-        protected override void UpdateLayer(AudioLayer layer)
-        {
-            var alLayer = layer as OpenALAudioLayer;
-            alLayer?.ProcUpdate();
-        }
     }
 }

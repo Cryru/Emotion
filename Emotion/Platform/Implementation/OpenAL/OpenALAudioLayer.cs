@@ -50,7 +50,7 @@ namespace Emotion.Platform.Implementation.OpenAL
             _dataHolder = new byte[FRAME_REQUEST_SIZE * _openALAudioFormat.FrameSize];
         }
 
-        public unsafe void ProcUpdate()
+        public override unsafe bool Update()
         {
             if (Status != PlaybackStatus.Playing)
             {
@@ -89,7 +89,7 @@ namespace Emotion.Platform.Implementation.OpenAL
 
             // Sync state and start playing only if data is queued.
             SyncLayerAndALState();
-            Update();
+            return base.Update();
         }
 
         /// <summary>
