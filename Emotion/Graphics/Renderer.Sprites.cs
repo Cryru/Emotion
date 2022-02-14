@@ -10,7 +10,6 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utility;
 
 #endregion
 
@@ -70,15 +69,17 @@ namespace Emotion.Graphics
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true)
         {
             if (thickness < 1.0f) thickness = 1.0f;
-            thickness *= Camera.CalculatedScale;
 
-            bool old = CurrentState.ViewMatrix!.Value;
+            bool cameraWasOn = CurrentState.ViewMatrix!.Value;
             SetUseViewMatrix(false);
             ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
             SetProjectionBehavior(ProjectionBehavior.AlwaysCameraProjection);
 
-            pointOne = Vector3.Transform(pointOne, ModelMatrix * Camera.ViewMatrix);
-            pointTwo = Vector3.Transform(pointTwo, ModelMatrix * Camera.ViewMatrix);
+            Matrix4x4 viewMatrix = cameraWasOn ? Camera.ViewMatrix : Matrix4x4.Identity;
+            if (cameraWasOn) thickness *= Camera.CalculatedScale;
+
+            pointOne = Vector3.Transform(pointOne, ModelMatrix * viewMatrix);
+            pointTwo = Vector3.Transform(pointTwo, ModelMatrix * viewMatrix);
 
             PushModelMatrix(Matrix4x4.Identity, false);
 
@@ -106,7 +107,7 @@ namespace Emotion.Graphics
             }
 
             PopModelMatrix();
-            SetUseViewMatrix(old);
+            SetUseViewMatrix(cameraWasOn);
             SetProjectionBehavior(oldProjection);
         }
 
