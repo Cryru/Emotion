@@ -52,7 +52,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             }
 
             // Create default value reference.
-            _defaultConstruct = Activator.CreateInstance(type, true);
+            _defaultConstruct = type.IsInterface ? null : Activator.CreateInstance(type, true);
         }
 
         protected override Dictionary<string, XMLFieldHandler> IndexFields()
