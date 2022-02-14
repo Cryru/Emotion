@@ -64,6 +64,12 @@ namespace Emotion.Graphics.Camera
         protected Vector3 _lookAt = new Vector3(0, 0, -1);
 
         /// <summary>
+        /// Calculated camera scale from the zoom and render size scale.
+        /// Is applied to the view matrix in 2d cameras.
+        /// </summary>
+        public float CalculatedScale { get; protected set; } = 1;
+
+        /// <summary>
         /// How zoomed the camera is.
         /// </summary>
         public float Zoom

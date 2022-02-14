@@ -415,7 +415,26 @@ namespace Tests.Classes
 
                 composer.PushModelMatrix(Matrix4x4.CreateTranslation(200, 200, 0));
 
-                // Test lines in all directions. Z will not be visible though
+                // Diagonal Lines
+                composer.RenderLine(new Vector3(10, 10, 0), new Vector3(50, 50, 0),Color.White);
+                composer.RenderLine(new Vector3(50, 50, 0), new Vector3(100, 100, 0), Color.White, 2);
+                composer.RenderLine(new Vector3(100, 100, 0), new Vector3(150, 150, 0), Color.White, 3);
+
+                // Horizontal lines
+                // 100 pixels long
+                composer.RenderLine(new Vector3(100, 10, 0), new Vector3(200, 10, 0), Color.White);
+                composer.RenderLine(new Vector3(100, 20, 0), new Vector3(200, 20, 0), Color.White, 2);
+                composer.RenderLine(new Vector3(100, 30, 0), new Vector3(200, 30, 0), Color.White,3);
+                composer.RenderLine(new Vector3(100, 40, 0), new Vector3(200, 40, 0), Color.White,4);
+
+                // Vertical
+                // 100 pixels high
+                composer.RenderLine(new Vector3(10, 100, 0), new Vector3(10, 200, 0), Color.White);
+                composer.RenderLine(new Vector3(20, 100, 0), new Vector3(20, 200, 0), Color.White,2);
+                composer.RenderLine(new Vector3(30, 100, 0), new Vector3(30, 200, 0), Color.White,3);
+                composer.RenderLine(new Vector3(40, 100, 0), new Vector3(40, 200, 0), Color.White,4);
+
+                // Test lines in all 2d directions. Z would only be visible with a 3d. camera.
                 composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(10, 0, 0), Color.Red);
                 composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 10, 0), Color.Green);
                 composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 0, 10), Color.Blue);

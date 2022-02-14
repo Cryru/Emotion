@@ -36,6 +36,7 @@ namespace Emotion.Graphics.Camera
 
             // Get the scale relative to the zoom.
             float scale = Engine.Renderer.IntScale * Zoom;
+            CalculatedScale = scale;
 
             // Find the camera margin and scale from the center.
             // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.

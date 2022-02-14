@@ -87,9 +87,9 @@ namespace Emotion.Tools.Windows
             c.SetUseViewMatrix(true);
             c.ClearDepth();
 
-            c.RenderLineScreenSpace(new Vector3(short.MinValue, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
-            c.RenderLineScreenSpace(new Vector3(0, short.MinValue, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
-            c.RenderLineScreenSpace(new Vector3(0, 0, short.MinValue), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
+            c.RenderLine(new Vector3(short.MinValue, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
+            c.RenderLine(new Vector3(0, short.MinValue, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
+            c.RenderLine(new Vector3(0, 0, short.MinValue), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
             c.FlushRenderStream();
 
             DisplayObject.Render(c);
