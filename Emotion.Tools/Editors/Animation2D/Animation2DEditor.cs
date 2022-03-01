@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
@@ -13,6 +14,7 @@ using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Primitives;
+using Emotion.Tools.DevUI;
 using Emotion.Tools.Windows.HelpWindows;
 using Emotion.UI;
 using ImGuiNET;
@@ -30,6 +32,7 @@ namespace Emotion.Tools.Editors.Animation2D
         private int _zoomLevel = 1;
         private int _selectedFrame = -1;
         private string _selectedAnimation = "Default";
+        private SpriteAnimator _controller;
 
         public Animation2DEditor() : base("Animation 2D Editor")
         {
@@ -69,17 +72,83 @@ namespace Emotion.Tools.Editors.Animation2D
                 if (currentFileContext.Animations != null)
                 {
                     ImGui.Text("Animations:");
-                    ImGui.BeginChild("Animations");
-                    var anims = currentFileContext.Animations;
-                    foreach (var anim in anims)
+                    ImGui.BeginChild("Animations", new Vector2(-1, 200), true);
+                    Dictionary<string, SpriteAnimationData> anims = currentFileContext.Animations;
+                    string removeKey = null;
+                    foreach ((string animId, SpriteAnimationData _) in anims)
                     {
-                        if (ImGui.Button(anim.Key))
+                        if (ImGui.Button(animId))
                         {
-                            _selectedAnimation = anim.Key;
+                            _selectedAnimation = animId;
+                            _controller.SetAnimation(_selectedAnimation);
                         }
+
+                        ImGui.SameLine();
+                        ImGui.PushID(animId);
+                        if (anims.Count != 1)
+                        {
+                            if (ImGui.SmallButton("Remove")) removeKey = animId;
+                            ImGui.SameLine();
+                        }
+
+                        if (ImGui.SmallButton("Rename"))
+                        {
+                            var newName = new StringInputModalWindow(s =>
+                                {
+                                    string ogS = s;
+                                    var loops = 1;
+                                    while (anims.ContainsKey(s))
+                                    {
+                                        s = $"{ogS} ({loops})";
+                                        loops++;
+                                    }
+
+                                    SpriteAnimationData selNode = anims[_selectedAnimation];
+                                    selNode.Name = s;
+                                    anims.Remove(_selectedAnimation);
+                                    _selectedAnimation = s;
+                                    anims.Add(_selectedAnimation, selNode);
+                                },
+                                $"New name for {_selectedAnimation}");
+                            _toolsRoot.AddChild(newName);
+                        }
+
+                        ImGui.PopID();
+                    }
+
+                    if (removeKey != null)
+                    {
+                        anims.Remove(removeKey);
+                        _selectedAnimation = anims.First().Key;
+                        _controller.SetAnimation(_selectedAnimation);
                     }
 
                     ImGui.EndChild();
+
+                    bool enableShortcuts = !ImGui.IsAnyItemActive();
+                    bool createNew = ImGui.Button("(C)reate") || enableShortcuts && Engine.Host.IsKeyDown(Key.C);
+                    if (createNew)
+                    {
+                        var newName = "NewAnim";
+                        string newNameCur = newName;
+                        var loops = 1;
+                        while (anims.ContainsKey(newNameCur))
+                        {
+                            newNameCur = $"{newName} ({loops})";
+                            loops++;
+                        }
+
+                        var newAnim = new SpriteAnimationData(newNameCur);
+                        anims.Add(newNameCur, newAnim);
+                        _selectedAnimation = newNameCur;
+                        _controller.SetAnimation(_selectedAnimation);
+                    }
+
+                    
+                    if (_selectedAnimation != null && anims.ContainsKey(_selectedAnimation))
+                    {
+                        var selAnim = anims[_selectedAnimation];
+                    }
                 }
             }
 
@@ -200,10 +269,12 @@ namespace Emotion.Tools.Editors.Animation2D
         {
             _zoomLevel = 1;
             _selectedFrame = -1;
-            _selectedAnimation = "Default";
+            _selectedAnimation = file.Content.Animations.First().Key;
 
             var assetFileLoaded = Engine.AssetLoader.Get<TextureAsset>(file.Content.AssetFile, false);
             _currentAssetTexture = assetFileLoaded?.Texture ?? null;
+            _controller = new SpriteAnimator(file.Content);
+            _controller.SetAnimation(_selectedAnimation);
 
             return true;
         }
