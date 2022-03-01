@@ -127,7 +127,7 @@ namespace Emotion.Test
             _screenResultDb = screenResultDb ?? new Dictionary<string, byte[]>();
 
             // Check for test run id. This signifies whether the runner is linked.
-            TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
+            TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString().ToLower();
             TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", $"{TestRunId}");
 
             string argsJoined = string.Join(" ", args);
@@ -226,13 +226,14 @@ namespace Emotion.Test
             {
                 // Check if filtering by tag.
                 var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
-                if (t?.Tag == "TestInit")
+                string tag = (t?.Tag ?? "").ToLower();
+                if (tag == "testinit")
                 {
                     initMethod = classType.GetMethods().FirstOrDefault();
                     continue;
                 }
 
-                if (!string.IsNullOrEmpty(TestTag) && t?.Tag != TestTag)
+                if (!string.IsNullOrEmpty(TestTag) && tag != TestTag)
                 {
 #if TEST_DEBUG
                     Log.Trace($"Skipping class {classType} because it doesn't match tag filter '{TestTag}'.", CustomMSource.TestRunner);
