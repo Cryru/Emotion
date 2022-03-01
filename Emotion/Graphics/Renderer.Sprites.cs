@@ -68,8 +68,6 @@ namespace Emotion.Graphics
         /// <param name="snapToPixel">Whether to snap the start and ending positions to the nearest pixel.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true)
         {
-            if (thickness < 1.0f) thickness = 1.0f;
-
             bool cameraWasOn = CurrentState.ViewMatrix!.Value;
             SetUseViewMatrix(false);
             ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
@@ -85,6 +83,7 @@ namespace Emotion.Graphics
 
             if (snapToPixel)
             {
+                if (thickness < 1.0f) thickness = 1.0f;
                 pointOne = pointOne.IntCastRound();
                 pointTwo = pointTwo.IntCastRound();
             }
