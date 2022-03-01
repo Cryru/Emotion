@@ -14,20 +14,15 @@ using Emotion.Utility;
 
 namespace Emotion.PostBuildTool
 {
-    public static class EmotionWebPostPublish
+    public static class EmotionPackageAssets
     {
         public static string InputFolder = Path.Join(".", "Assets");
         public static string OutputDirectory = Path.Join(".", "wwwroot", "AssetBlobs");
         public static int MaxBlobSize = 52428800; // 50mb
         public static string BlobNamePrefix = "AssetBlob";
 
-        public static void Main(string[] args)
+        public static void PackageAssets()
         {
-            Engine.LightSetup(new Configurator
-            {
-                DebugMode = true
-            });
-
             if (!Directory.Exists(InputFolder))
             {
                 Engine.Log.Warning($"Didn't find input folder - {InputFolder}.", "Script");

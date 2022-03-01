@@ -67,6 +67,7 @@ namespace Emotion.IO
                         {
                             texture.Texture.Tile = true;
                             texture.Texture.Smooth = true;
+                            currentMaterial.DiffuseTextureName = texturePath;
                             currentMaterial.DiffuseTexture = texture.Texture;
                         }
 

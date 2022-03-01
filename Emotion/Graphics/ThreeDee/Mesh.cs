@@ -1,4 +1,7 @@
-﻿using Emotion.Graphics.Data;
+﻿using Emotion.Game.Animation3D;
+using Emotion.Graphics.Data;
+
+#nullable enable
 
 namespace Emotion.Graphics.ThreeDee
 {
@@ -7,11 +10,16 @@ namespace Emotion.Graphics.ThreeDee
     /// </summary>
     public class Mesh
     {
-        public string Name;
+        public string Name = null!;
+        public MeshMaterial Material = null!;
 
-        public VertexData[] Vertices;
-        public ushort[] Indices;
+        /// <summary>
+        /// One of these must be present, but not both.
+        /// </summary>
+        public VertexData[]? Vertices;
+        public VertexDataWithBones[]? VerticesWithBones;
 
-        public MeshMaterial Material;
+        public ushort[] Indices = null!;
+        public MeshBone[]? Bones = null;
     }
 }

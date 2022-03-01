@@ -5,6 +5,8 @@ using Emotion.Primitives;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Graphics.ThreeDee
 {
     /// <summary>
@@ -12,9 +14,10 @@ namespace Emotion.Graphics.ThreeDee
     /// </summary>
     public class MeshMaterial
     {
-        public string Name;
-        public Texture DiffuseTexture;
+        public string Name = null!;
         public Color DiffuseColor = Color.White;
+        public string? DiffuseTextureName = null;
+        public Texture? DiffuseTexture;
 
         public static MeshMaterial DefaultMaterial = new MeshMaterial();
     }
