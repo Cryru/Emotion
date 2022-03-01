@@ -245,6 +245,18 @@ namespace Emotion.Graphics.Objects
         }
 
         /// <summary>
+        /// Download the texture from the GPU.
+        /// Do not use this in game code as it blocks the render thread.
+        /// </summary>
+        public byte[] Download()
+        {
+            var data = new byte[(int) (Size.X * Size.Y * Gl.PixelTypeToByteCount(PixelType) * Gl.PixelFormatToComponentCount(PixelFormat))];
+            EnsureBound(Pointer);
+            Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat, PixelType, data);
+            return data;
+        }
+
+        /// <summary>
         /// Ensures the provided pointer is the currently bound texture in the provided slot.
         /// </summary>
         /// <param name="pointer">The pointer to ensure is bound.</param>
@@ -291,6 +303,8 @@ namespace Emotion.Graphics.Objects
 
             GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
+
+        // Systemic procedurally created textures.
 
         public static Texture NoTexture = new(0);
         public static Texture EmptyWhiteTexture;
