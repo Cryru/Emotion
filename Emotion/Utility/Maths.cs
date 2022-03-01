@@ -250,6 +250,19 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Inverse lerp without clamping.
+        /// </summary>
+        /// <param name="from">First input float. The start.</param>
+        /// <param name="to">Second input float. The end.</param>
+        /// <param name="t">The blend or time factor between the two values. Clamped.</param>
+        /// <returns>The inverse linear interpolation between the two values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float FastInverseLerp(float from, float to, float t)
+        {
+            return (t - from) / (to - from);
+        }
+
+        /// <summary>
         /// Lerp without clamping the time.
         /// </summary>
         /// <param name="from">First input float. The start.</param>
