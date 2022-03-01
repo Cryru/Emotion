@@ -378,7 +378,7 @@ namespace Emotion.Graphics.Text
 
             RenderComposer composer = Engine.Renderer;
             RenderState prevState = composer.CurrentState.Clone();
-            composer.PushModelMatrix(Matrix4x4.Identity);
+            composer.PushModelMatrix(Matrix4x4.Identity, false);
             composer.SetState(composer.BlitState);
             composer.RenderTo(atlasBuffer);
 
