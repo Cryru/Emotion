@@ -136,10 +136,8 @@ namespace Emotion.Graphics.Shading
         }
 
         /// <summary>
-        /// Sets the uniform of the specified name to the provided value.
+        /// Set the value of the uniform of the specified name to the provided matrix4x4.
         /// </summary>
-        /// <param name="name">The name of the uniform to upload to.</param>
-        /// <param name="matrix4">The matrix value to set it to.</param>
         public bool SetUniformMatrix4(string name, Matrix4x4 matrix4)
         {
             int id = GetUniformLocation(name);
@@ -150,6 +148,27 @@ namespace Emotion.Graphics.Shading
             {
                 float* matrixPtr = &matrix4.M11;
                 Gl.UniformMatrix4(id, 1, false, matrixPtr);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Set the value of the uniform of the specified name to the provided matrix4x4 array.
+        /// </summary>
+        public bool SetUniformMatrix4(string name, Matrix4x4[] matrix4, int length)
+        {
+            int id = GetUniformLocation(name);
+            // Check if the id exists.
+            if (id == -1) return false;
+
+            unsafe
+            {
+                ref Matrix4x4 mat = ref matrix4[0];
+                fixed (float* matrixPtr = &mat.M11)
+                {
+                    Gl.UniformMatrix4(id, length, false, matrixPtr);
+                }
             }
 
             return true;
