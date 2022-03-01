@@ -45,7 +45,8 @@ namespace Emotion.IO
             public string ObjName = "default";
             public string GroupName = "default";
 
-            public List<string> IndexCombinations;
+            public Dictionary<string, ushort> IndexComboHash;
+            public ushort IndexComboCount;
             public List<VertexData> VertexData;
             public List<ushort> VertexDataIndices;
 
@@ -53,9 +54,9 @@ namespace Emotion.IO
 
             public void Init()
             {
-                if (IndexCombinations != null) return;
+                if (IndexComboHash != null) return;
 
-                IndexCombinations = new List<string>();
+                IndexComboHash = new Dictionary<string, ushort>();
                 VertexData = new List<VertexData>();
                 VertexDataIndices = new List<ushort>();
             }
@@ -138,25 +139,15 @@ namespace Emotion.IO
                         {
                             string combo = args[i];
 
-                            // Check if vertex is unique.
-                            ushort? idx = null;
-                            for (ushort j = 0; j < currentGroup.IndexCombinations.Count; j++)
+                            // Check if triangle is unique.
+                            if (currentGroup.IndexComboHash.TryGetValue(combo, out ushort idx))
                             {
-                                if (currentGroup.IndexCombinations[j] == combo)
-                                {
-                                    idx = j;
-                                    break;
-                                }
-                            }
-
-                            // Non unique index.
-                            if (idx != null)
-                            {
-                                currentGroup.VertexDataIndices.Add(idx.Value);
+                                currentGroup.VertexDataIndices.Add(idx);
                                 continue;
                             }
 
-                            currentGroup.IndexCombinations.Add(combo);
+                            currentGroup.IndexComboHash.Add(combo, currentGroup.IndexComboCount);
+                            currentGroup.IndexComboCount++;
                             currentGroup.VertexDataIndices.Add((ushort) currentGroup.VertexData.Count);
                             var vtxData = new VertexData
                             {
@@ -222,8 +213,8 @@ namespace Emotion.IO
                     var mesh = new Mesh
                     {
                         Name = builtMesh.GroupName,
-                        Vertices = builtMesh.VertexData.ToArray(),
-                        Indices = builtMesh.VertexDataIndices.ToArray(),
+                        Vertices = builtMesh.VertexData.GetRange(0, Math.Min(builtMesh.VertexData.Count, ushort.MaxValue)).ToArray(),
+                        Indices = builtMesh.VertexDataIndices.GetRange(0, Math.Min(builtMesh.VertexDataIndices.Count, ushort.MaxValue)).ToArray(),
                         Material = builtMesh.Material
                     };
 
