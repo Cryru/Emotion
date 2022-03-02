@@ -181,7 +181,7 @@ namespace Emotion.PostBuildTool
                 // Check if this bone has an id assigned.
                 if (!_boneToIndex.TryGetValue(bone.Name, out int boneIndex))
                 {
-                    boneIndex = _boneToIndex.Count;
+                    boneIndex = _boneToIndex.Count + 1;
                     _boneToIndex.Add(bone.Name, boneIndex);
                 }
 

@@ -44,12 +44,14 @@ namespace Emotion.Game.ThreeDee
         public void SetAnimation(string name)
         {
             SkeletalAnimation animInstance = null;
-            for (var i = 0; i < Entity.Animations.Length; i++)
+            if (Entity.Animations != null)
             {
-                SkeletalAnimation anim = Entity.Animations[i];
-                if (anim.Name == name) animInstance = anim;
+                for (var i = 0; i < Entity.Animations.Length; i++)
+                {
+                    SkeletalAnimation anim = Entity.Animations[i];
+                    if (anim.Name == name) animInstance = anim;
+                }
             }
-
             _currentAnimation = animInstance;
             _time = 0;
 
@@ -98,7 +100,7 @@ namespace Emotion.Game.ThreeDee
             Gl.Enable(EnableCap.CullFace);
             Gl.CullFace(CullFaceMode.Back);
             Gl.FrontFace(FrontFaceDirection.Ccw);
-
+            
             c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 
             Mesh[] meshes = Entity.Meshes;
@@ -113,8 +115,8 @@ namespace Emotion.Game.ThreeDee
                     VertexData[] vertData = obj.Vertices;
                     ushort[] indices = obj.Indices;
                     Texture texture = null;
-                    if (obj.Material?.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                    RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+                    if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
+                    RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
                     vertData.CopyTo(memory.VerticesData);
                     indices.CopyTo(memory.IndicesData);
@@ -143,8 +145,8 @@ namespace Emotion.Game.ThreeDee
                 VertexDataWithBones[] vertData = obj.VerticesWithBones;
                 ushort[] indices = obj.Indices;
                 Texture texture = null;
-                if (obj.Material?.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+                if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
+                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
                 // Copy the part of the vertices that dont contain bone data.
                 for (var j = 0; j < vertData.Length; j++)
@@ -189,8 +191,8 @@ namespace Emotion.Game.ThreeDee
                 VertexDataWithBones[] vertData = obj.VerticesWithBones;
                 ushort[] indices = obj.Indices;
                 Texture texture = null;
-                if (obj.Material?.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+                if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
+                RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
                 vertData.CopyTo(memory.VerticesData);
                 indices.CopyTo(memory.IndicesData);
