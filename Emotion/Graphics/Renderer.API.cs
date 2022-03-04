@@ -374,9 +374,9 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
-        /// Render to a frame buffer.
+        /// Push a framebuffer to render to on top of the stack. If null then pop the top buffer, reverting to the previous one.
+        /// Any subsequent draw calls will draw to the buffer on top of the stack.
         /// </summary>
-        /// <param name="buffer">The buffer to render to. If set to null will revert to the previous buffer.</param>
         public void RenderTo(FrameBuffer buffer)
         {
             FlushRenderStream();

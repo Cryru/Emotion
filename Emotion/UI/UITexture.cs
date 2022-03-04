@@ -19,7 +19,17 @@ namespace Emotion.UI
         /// <summary>
         /// Path to the texture file to load.
         /// </summary>
-        public string TextureFile;
+        public string TextureFile
+        {
+            get => _textureFile;
+            set
+            {
+                _textureFile = value;
+                InvalidateLoaded();
+            }
+        }
+
+        private string _textureFile;
 
         /// <summary>
         /// The size of the window. If not specified either the UV or parent size will be taken.
