@@ -135,19 +135,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 return null;
             }
 
-            return ParseDevice(device, id);
-        }
-
-        /// <summary>
-        /// Parse and activate a device.
-        /// If successful it is added to the devices list.
-        /// </summary>
-        /// <param name="device">The device to parse.</param>
-        /// <param name="id">The unique id of the device.</param>
-        private WasApiAudioDevice ParseDevice(IMMDevice device, string id)
-        {
-            if (device == null) return null;
-
             var deviceName = $"Unknown Device ({id})";
 
             // Try to get the device name.
