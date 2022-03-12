@@ -304,6 +304,7 @@ namespace Emotion.Tools.Editors.Animation2D
                 var defaultAnimation = new SpriteAnimationData("Default");
                 data.Animations.Add("Default", defaultAnimation);
                 _currentAssetTexture = f.Texture;
+                _controller = new SpriteAnimator(data);
 
                 GLThread.ExecuteGLThreadAsync(() =>
                 {
