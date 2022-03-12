@@ -21,8 +21,7 @@ namespace Emotion.Test.Helpers
 
         protected override string GenerateLogName()
         {
-            var runnerId = Runner.RunnerId.ToString();
-            return $"{_logFolder}{Path.DirectorySeparatorChar}Runner ({Runner.TestTag}) ID{runnerId}.log";
+            return $"{_logFolder}{Path.DirectorySeparatorChar}Runner {Runner.TestTagDisplay}.log";
         }
 
         public override void Log(MessageType type, string source, string message)

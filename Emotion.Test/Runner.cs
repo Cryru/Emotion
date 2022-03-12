@@ -82,11 +82,34 @@ namespace Emotion.Test
         /// </summary>
         public static string RunnerReferenceImageFolder { get; private set; }
 
+        public static string TestTagDisplay
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(TestTag))
+                {
+                    if (CustomConfig != null) return CustomConfig;
+
+                    return "(master)";
+                }
+                else
+                {
+                    return $"({TestTag})";
+                }
+            }
+        }
+
         /// <summary>
         /// Whether executing test classes with a certain tag only.
         /// </summary>
         public static string TestTag;
 
+        /// <summary>
+        /// The id of the custom config loaded.
+        /// </summary>
+        public static string CustomConfig;
+
+        // Represents the intent to run a function in place of the engine loop N times.
         private class CustomLoop
         {
             public Action<float> Action;
@@ -128,13 +151,18 @@ namespace Emotion.Test
 
             // Check for test run id. This signifies whether the runner is linked.
             TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString().ToLower();
-            TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", $"{TestRunId}");
-
-            string argsJoined = string.Join(" ", args);
-            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References({argsJoined})");
 
             // Check if running only specific tests.
             if (CommandLineParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
+
+            // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
+            string argsJoined = string.Join(" ", args);
+            string customConfig = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
+
+            string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
+            TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
+
+            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"Runner {TestTagDisplay}");
 
             // Check if master runner.
             bool linked = TestRunId != RunnerId.ToString();
@@ -146,12 +174,11 @@ namespace Emotion.Test
             config.LoopFactory = TestLoop;
             config.Logger = log;
 
-            // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
-            string id = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
-            if (id != null && _otherConfigs.ContainsKey(id) && _otherConfigs[id] != null)
+            if (customConfig != null && _otherConfigs.ContainsKey(customConfig) && _otherConfigs[customConfig] != null)
             {
-                Engine.Log.Info($"Loading custom engine config - {id}...", TestRunnerLogger.TestRunnerSrc);
-                _otherConfigs[id](config);
+                CustomConfig = customConfig;
+                Engine.Log.Info($"Loading custom engine config - {customConfig}...", TestRunnerLogger.TestRunnerSrc);
+                _otherConfigs[customConfig](config);
             }
 
             // Perform light setup.

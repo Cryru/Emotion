@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Diagnostics;
+using System.IO;
 using Emotion.Common;
 using Emotion.Test.Helpers;
 
@@ -41,7 +42,7 @@ namespace Emotion.Test
 
             var prep = new ProcessStartInfo();
             if (_parentProcess.MainModule != null) prep.FileName = _parentProcess.MainModule.FileName;
-            prep.Arguments = $"testRunId={Runner.TestRunId} {args}";
+            prep.Arguments = $"testRunId={Runner.TestRunId} folder={Path.GetFileName(Runner.TestRunFolder)} {args}";
             prep.RedirectStandardOutput = true;
             prep.RedirectStandardError = true;
             _runnerProcess = Process.Start(prep);
