@@ -22,7 +22,7 @@ namespace Emotion.Test.Helpers
         protected override string GenerateLogName()
         {
             var runnerId = Runner.RunnerId.ToString();
-            return $"{_logFolder}{Path.DirectorySeparatorChar}ID{runnerId} {DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
+            return $"{_logFolder}{Path.DirectorySeparatorChar}Runner ({Runner.TestTag}) ID{runnerId}.log";
         }
 
         public override void Log(MessageType type, string source, string message)

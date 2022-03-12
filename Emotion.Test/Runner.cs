@@ -133,6 +133,9 @@ namespace Emotion.Test
             string argsJoined = string.Join(" ", args);
             RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References({argsJoined})");
 
+            // Check if running only specific tests.
+            if (CommandLineParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
+
             // Check if master runner.
             bool linked = TestRunId != RunnerId.ToString();
             LoggingProvider log = new TestRunnerLogger(linked, Path.Join(TestRunFolder, "Logs"));
@@ -170,9 +173,6 @@ namespace Emotion.Test
                     }
             }
 
-            // Check if running only specific tests.
-            if (CommandLineParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
-
             // Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
             if (CommandLineParser.FindArgument(args, "testOnly", out string _))
             {
@@ -184,6 +184,12 @@ namespace Emotion.Test
 
             // Perform engine setup.
             Engine.Setup(config);
+
+            if (Engine.Renderer == null)
+            {
+                log.Error("Couldn't initialize renderer or host.", TestRunnerLogger.TestRunnerSrc);
+                return;
+            }
 
             // Move the camera center in a way that its center is 0,0
             Engine.Renderer.Camera.Position += new Vector3(Engine.Renderer.Camera.WorldToScreen(Vector2.Zero), 0);
@@ -443,10 +449,7 @@ namespace Emotion.Test
                 int counterThisTick = top.Counter;
 
                 if (counterThisTick > 0) return false;
-                if (counterThisTick == 0)
-                {
-                    top.Ready = true;
-                }
+                if (counterThisTick == 0) top.Ready = true;
 
                 return true;
 #if !THROW_EXCEPTIONS
