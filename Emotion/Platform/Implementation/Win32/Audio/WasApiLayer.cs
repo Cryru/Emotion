@@ -33,42 +33,45 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         public override bool Update()
         {
-            if (_layerContext != null)
-                try
-                {
-                    // Check if the context is initialized.
-                    if (!_layerContext.Initialized)
-                    {
-                        // Fill buffer before starting to prevent noise.
-                        FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames);
-                        _layerContext.Start();
-                    }
-
-                    // Start if not started.
-                    if (!_layerContext.Started) _layerContext.Start();
-
-                    // Get more frames.
-                    int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
-                    if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.WasApi);
-                    FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding);
-                }
-                catch (COMException ex)
-                {
-                    // Audio device is the same, but the configuration has changed.
-                    // Tracking these changes in the adapter is a huge drag, so we just catch the error instead.
-                    // https://www.hresult.info/FACILITY_AUDCLNT/0x88890004
-                    if ((uint) ex.ErrorCode == 0x88890004)
-                    {
-                        SetDevice(_adapter.DefaultDevice);
-                        Engine.Log.Trace("Default audio device changed.", MessageSource.WasApi);
-                    }
-                    else
-                    {
-                        Engine.Log.Error(ex.ToString(), MessageSource.WasApi);
-                    }
-                }
-
+            if (_layerContext != null) UpdateInternal();
             return base.Update();
+        }
+
+        private void UpdateInternal()
+        {
+            try
+            {
+                // Check if the context is initialized.
+                if (!_layerContext.Initialized)
+                {
+                    // Fill buffer before starting to prevent noise.
+                    FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames);
+                    _layerContext.Start();
+                }
+
+                // Start if not started.
+                if (!_layerContext.Started) _layerContext.Start();
+
+                // Get more frames.
+                int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
+                if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.WasApi);
+                FillBuffer(_layerContext.RenderClient, _bufferLengthInFrames - padding);
+            }
+            catch (COMException ex)
+            {
+                // Audio device is the same, but the configuration has changed.
+                // Tracking these changes in the adapter is a huge drag, so we just catch the error instead.
+                // https://www.hresult.info/FACILITY_AUDCLNT/0x88890004
+                if ((uint) ex.ErrorCode == 0x88890004)
+                {
+                    SetDevice(_adapter.DefaultDevice);
+                    Engine.Log.Trace("Default audio device changed.", MessageSource.WasApi);
+                }
+                else
+                {
+                    Engine.Log.Error(ex.ToString(), MessageSource.WasApi);
+                }
+            }
         }
 
         /// <summary>
