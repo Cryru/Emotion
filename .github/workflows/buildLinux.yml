@@ -11,7 +11,7 @@ jobs:
     runs-on: self-hosted
     
     steps:
-    - name: Pull, Build, Run Tests
+    - name: Pull, Build, and Run Tests
       run: |
         pwd
         git pull
