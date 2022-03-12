@@ -92,10 +92,8 @@ namespace Emotion.Test
 
                     return "(master)";
                 }
-                else
-                {
-                    return $"({TestTag})";
-                }
+
+                return $"({TestTag})";
             }
         }
 
@@ -212,11 +210,7 @@ namespace Emotion.Test
             // Perform engine setup.
             Engine.Setup(config);
 
-            if (Engine.Renderer == null)
-            {
-                log.Error("Couldn't initialize renderer or host.", TestRunnerLogger.TestRunnerSrc);
-                return;
-            }
+            if (Engine.Renderer == null) return;
 
             // Move the camera center in a way that its center is 0,0
             Engine.Renderer.Camera.Position += new Vector3(Engine.Renderer.Camera.WorldToScreen(Vector2.Zero), 0);
