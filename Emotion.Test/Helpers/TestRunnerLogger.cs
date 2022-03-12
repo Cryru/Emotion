@@ -29,7 +29,7 @@ namespace Emotion.Test.Helpers
             var runnerId = Runner.RunnerId.ToString();
             string formattedMsg = _linked ? $"{runnerId} >> {message}" : $"{message}";
 
-            if (source == TestRunnerSrc)
+            if (source == TestRunnerSrc || source == MessageSource.StdExp)
             {
                 if (type == MessageType.Error)
                 {

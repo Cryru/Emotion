@@ -5,6 +5,7 @@
         // Engine and modules
         public static string Engine = "Engine"; // General engine setup
         public static string StdErr = "StdErr"; // Uncaught errors
+        public static string StdExp = "Exception"; // Uncaught errors
         public static string Renderer = "Renderer"; // Sent by the renderer - includes mostly statistics
         public static string GL = "GL"; // Sent by the renderer and graphics related objects.
         public static string ShaderSource = "ShaderSource"; // Sent by the ShaderFactory - is spammy and contains shader source code.

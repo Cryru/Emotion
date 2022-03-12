@@ -44,7 +44,7 @@ namespace Emotion.Standard.Logging
         /// <param name="ex">The error's exception.</param>
         public void Error(Exception ex)
         {
-            Log(MessageType.Error, "StdException", ex.ToString());
+            Log(MessageType.Error, MessageSource.StdExp, ex.ToString());
         }
 
         #endregion
