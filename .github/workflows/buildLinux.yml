@@ -1,11 +1,14 @@
 name: CI-Linux
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build-n-run-tests:
 
-    runs-on: ubuntu-18.04
+    runs-on: self-hosted
     
     steps:
     - uses: actions/checkout@master
@@ -17,9 +20,9 @@ jobs:
     #- name: Run Tests
     #  run: |
     #    LD_LIBRARY_PATH=mesa-18.2.3/usr/local/lib/x86_64-linux-gnu GALLIUM_DRIVER=swr xvfb-run sudo ./Tests/bin/linux/Tests
-    #- name: Upload Test Artifact
-    #  if: always()
-    #  uses: actions/upload-artifact@master
-    #  with:
-    #    name: Test Result Artifact
-    #    path: Tests/bin/linux/TestResults
+    - name: Upload Test Artifact
+      if: always()
+      uses: actions/upload-artifact@master
+      with:
+        name: Test Result Artifact
+        path: Tests/bin/linux/TestResults
