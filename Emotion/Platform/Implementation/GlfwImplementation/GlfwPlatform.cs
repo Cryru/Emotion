@@ -6,7 +6,6 @@ using Emotion.Platform.Implementation.OpenAL;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.GlfwImplementation.Native;
@@ -81,14 +80,17 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             }
             else
             {
+                // Version set by the angle ifdef shouldn't be overwritten.
+#if !ANGLE
                 Glfw.WindowHint(Glfw.Hint.ContextVersionMajor, 3);
                 Glfw.WindowHint(Glfw.Hint.ContextVersionMinor, 3);
                 Glfw.WindowHint(Glfw.Hint.OpenglForwardCompat, true);
                 Glfw.WindowHint(Glfw.Hint.OpenglProfile, Glfw.OpenGLProfile.Core);
+#endif
             }
 
             Glfw.Window? win = Glfw.CreateWindow((int) config.HostSize.X, (int) config.HostSize.Y, config.HostTitle);
-            if (win == null)
+            if (win == null || win.Value.Ptr == IntPtr.Zero)
             {
                 Engine.Log.Error("Couldn't create window.", MessageSource.Glfw);
                 return;
@@ -118,6 +120,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             {
                 UpdateTextInput((char) codePoint);
             }
+
             _textInputCallback = TextInputRedirect;
             Glfw.SetCharCallback(_win, _textInputCallback);
 
