@@ -156,6 +156,7 @@ namespace Emotion.Test
             // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
             string argsJoined = string.Join(" ", args);
             string customConfig = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
+            CustomConfig = customConfig;
 
             string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
             TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
