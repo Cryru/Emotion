@@ -39,7 +39,8 @@ The goal is for the following platforms to be supported:
 
 Currently supported:
   - Windows 7+ x64 & x86
-  - MacOSX 10.13 x64+ (Compile with "GLFW;OpenAL")
+  - MacOSX 10.13+ x64 (Compile with "GLFW;OpenAL")
+  - Ubuntu/Mint 20.03+ x64 (Compile with "GLFW;OpenAL")
 
 ### Configurations Tested On:
 
@@ -120,6 +121,9 @@ Currently supported:
 - Custom fast XML serializer/deserializer with support for derived types, dictionaries, and others.
   - Compliant with .Net System.Text.XML
 - Basic scene system, where new scenes load in a new thread while a loading screen scene plays.
+- Basic skeletal animation
+- FBX, OBJ and other file types supported by Assimp are supported.
+	- Need to be converted to a custom 3D format (em3) using the included tool.
 
 and many more!
 
@@ -152,6 +156,7 @@ This includes dependencies and projects which were used for research references.
 | [llvmpipe / Gallium / Mesa](https://mesa3d.org/) | MIT | Compatibility via Software Renderer | Precompiled for Win32 and Win64
 | [Glfw](https://github.com/glfw/glfw) & [Glfw.Net](https://github.com/Chman/Glfw.Net) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
 | [OpenAL-Soft](https://github.com/kcat/openal-soft) & [OpenAL.NetCore](https://github.com/nsglover/OpenAL.NETCore) | LGPL & MIT | Mac and Linux Audio | Precompiled for Mac64, Linux64, Win64, Add "OpenAL" symbol
+| [Assimp](https://github.com/assimp/assimp) & [AssimpNet](https://github.com/assimp/assimp-net) | Modified BSD | Reading FBX files | The Emotion build tool
 | References
 | [McGill Engineering](http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Samples.html) | X | Hardening WAV and Audio Implementation | None
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
