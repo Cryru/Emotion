@@ -47,6 +47,7 @@ namespace Tests
 
         private static void Main(string[] args)
         {
+            Runner.RunAsRunner("tag=EmotionDesktop testOnly", ref args);
             DrawableFontAtlas.Rasterizer = GlyphRasterizer.StbTrueType;
             ResultDb.LoadCache();
             var config = new Configurator
