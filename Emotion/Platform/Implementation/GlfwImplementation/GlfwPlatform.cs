@@ -49,6 +49,8 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         //[DllImport("msvcrt")]
         //public static extern int _putenv_s(string e, string v);
 
+        private Vector2? _maximizeWindowSize;
+
         protected override void SetupInternal(Configurator config)
         {
             bool initSuccess = Glfw.Init();
@@ -211,8 +213,6 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             }
         }
 
-        private bool _suppressResize;
-
         /// <inheritdoc />
         public override WindowState WindowState
         {
@@ -229,17 +229,24 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                 switch (value)
                 {
                     case WindowState.Minimized:
+                        _maximizeWindowSize ??= GetSize();
                         Glfw.IconifyWindow(_win);
                         break;
                     case WindowState.Maximized:
+                        _maximizeWindowSize ??= GetSize();
                         Glfw.MaximizeWindow(_win);
+                        Glfw.FocusWindow(_win);
                         break;
                     case WindowState.Normal:
-                        _suppressResize = true;
-                        if (WindowState == WindowState.Minimized) Glfw.RestoreWindow(_win);
-                        _suppressResize = false;
                         Glfw.RestoreWindow(_win);
                         Glfw.FocusWindow(_win);
+
+                        if (_maximizeWindowSize != null)
+                        {
+                            Vector2 restoreSize = _maximizeWindowSize.Value;
+                            ResizeCallback(_win, (int) restoreSize.X, (int) restoreSize.Y);
+                            _maximizeWindowSize = null;
+                        }
                         break;
                 }
             }
@@ -269,7 +276,6 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         private void ResizeCallback(Glfw.Window _, int newSizeX, int newSizeY)
         {
-            if (_suppressResize) return;
             Resized(new Vector2(newSizeX, newSizeY));
         }
 
