@@ -3,10 +3,8 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.ExecTest.Examples;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
-using Emotion.Plugins.ImGuiNet;
 using Emotion.Primitives;
 using Emotion.Scenography;
 
@@ -26,7 +24,6 @@ namespace Emotion.ExecTest
             {
                 DebugMode = true
             };
-            config.AddPlugin(new ImGuiNetPlugin());
 
             Engine.Setup(config);
             Engine.SceneManager.SetScene(new Program());
