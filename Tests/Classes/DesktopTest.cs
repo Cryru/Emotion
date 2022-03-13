@@ -45,6 +45,7 @@ namespace Tests.Classes
             Assert.Equal(plat.Size, new Vector2(320, 260));
 
             plat.Size = new Vector2(960, 540);
+            Task.Delay(100).Wait();
             Assert.Equal(plat.Size, new Vector2(960, 540));
 
             plat.WindowState = WindowState.Minimized;
@@ -68,7 +69,7 @@ namespace Tests.Classes
 
             Vector2 oldSize = plat.Size;
             plat.DisplayMode = DisplayMode.Fullscreen;
-            Task.Delay(1000).Wait();
+            Task.Delay(100).Wait();
             Assert.Equal(plat.Size, new Vector2(primaryMonitor.Width, primaryMonitor.Height));
             plat.DisplayMode = DisplayMode.Windowed;
             Assert.Equal(plat.Size, oldSize);
