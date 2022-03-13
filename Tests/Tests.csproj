@@ -130,6 +130,9 @@
     <None Update="Assets\CachedResults\LineDrawing.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\CachedResults\LineDrawingLinux.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\CachedResults\PngDecode.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

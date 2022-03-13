@@ -57,6 +57,7 @@ namespace Tests.Results
         public static string TestUVMapping = "TestUVMapping";
         public static string FramebufferResizing = "FramebufferResizing";
         public static string LineDrawing = "LineDrawing";
+        public static string LineDrawingLinux = "LineDrawingLinux";
 
         public static string TestFullScale = "TestFullScale";
         public static string TestFullScaleInteger = "TestFullScaleInteger";

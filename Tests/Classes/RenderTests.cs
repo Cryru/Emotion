@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Game.Tiled;
@@ -447,7 +448,9 @@ namespace Tests.Classes
                 composer.PopModelMatrix();
 
                 Engine.Renderer.EndFrame();
-                Runner.VerifyScreenshot(ResultDb.LineDrawing);
+
+                bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                Runner.VerifyScreenshot(isLinux ? ResultDb.LineDrawingLinux : ResultDb.LineDrawing);
             }).WaitOne();
         }
     }

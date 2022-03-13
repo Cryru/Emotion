@@ -17,8 +17,11 @@ namespace Tests.Classes
     public class DesktopTest
     {
         public static void EventualConsistencyHostWait(PlatformBase plat = null)
-        {
+        {            
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+            plat ??= Engine.Host;
+            plat?.Update();
+            Task.Delay(100).Wait();
             plat?.Update();
             Task.Delay(100).Wait();
             plat?.Update();

@@ -115,7 +115,7 @@ namespace Tests.Classes
             // Creating an asset loader with a non existent root directory should create that directory.
             if (Directory.Exists("NewDir")) Directory.Delete("NewDir");
             Assert.False(Directory.Exists("NewDir"));
-            var noDirectory = new AssetLoader(new AssetSource[] {new FileAssetSource("NewDir")});
+            var directoryCreate = new AssetLoader(new AssetSource[] {new FileAssetSource("NewDir")});
             Assert.True(Directory.Exists("NewDir"));
         }
 
@@ -135,7 +135,8 @@ namespace Tests.Classes
 
             var saveFilePath = "Player/saveFile.save";
             XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadSaveOrCreate(saveFilePath);
-            Assert.True(File.Exists(Path.Join(".", "Player", "saveFile.save")));
+            Assert.True(File.Exists(Path.Join(".", "player", "savefile.save")));
+            Assert.True(Engine.AssetLoader.Exists(saveFilePath));
 
             saveFile.Content.Text = "Wassaa";
             saveFile.Save();
@@ -146,7 +147,7 @@ namespace Tests.Classes
             Engine.AssetLoader.Destroy(saveFilePath);
 
             saveFile.Save();
-            Assert.True(File.Exists(Path.Join("./Player", "saveFile.save.backup")));
+            Assert.True(File.Exists(Path.Join("./player", "savefile.save.backup")));
         }
     }
 }
