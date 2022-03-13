@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Emotion.Plugins.ImGuiNet\Emotion.Plugins.ImGuiNet.csproj" />
-    <ProjectReference Include="..\Emotion.Tools\Emotion.Tools.csproj" />
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 

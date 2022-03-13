@@ -52,8 +52,8 @@ namespace Emotion.Platform.Implementation.Win32
 
                     int offX = windowR.Right - windowR.Left;
                     int offY = windowR.Bottom - windowR.Top;
-                    mmi->MinTrackSize.X = (int) Engine.Configuration.RenderSize.X + offX;
-                    mmi->MinTrackSize.Y = (int) Engine.Configuration.RenderSize.Y + offY;
+                    mmi->MinTrackSize.X = (int) _config.RenderSize.X + offX;
+                    mmi->MinTrackSize.Y = (int) _config.RenderSize.Y + offY;
 
                     return IntPtr.Zero;
                 case WM.SIZE:

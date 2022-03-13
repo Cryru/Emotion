@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Game.Tiled;
@@ -445,9 +446,12 @@ namespace Tests.Classes
                 composer.RenderArrow(new Vector3(0, 0, 10), new Vector3(0, 0, 100), Color.Blue, 0.1f);
 
                 composer.PopModelMatrix();
-
                 Engine.Renderer.EndFrame();
-                Runner.VerifyScreenshot(ResultDb.LineDrawing);
+
+                // The mesa drivers offsets some of the pixels here, and since there isn't much to compare it produces
+                // a large deviation. To prevent false positives, a separate result is carried for them.
+                bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                Runner.VerifyScreenshot(isLinux ? ResultDb.LineDrawingLinux : ResultDb.LineDrawing);
             }).WaitOne();
         }
     }

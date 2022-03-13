@@ -153,6 +153,7 @@ namespace Tests.Classes
             }).WaitOne();
 
             Engine.Host.Size = new Vector2(Engine.Host.Size.X + 10, Engine.Host.Size.Y + 10);
+            DesktopTest.EventualConsistencyHostWait();
             ui.InvalidateLayout();
             ui.Update();
 

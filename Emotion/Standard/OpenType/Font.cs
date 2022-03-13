@@ -129,6 +129,8 @@ namespace Emotion.Standard.OpenType
         /// <param name="fontData">The bytes that make up the font file.</param>
         public Font(ReadOnlyMemory<byte> fontData)
         {
+            if (fontData.Length < 4) return;
+
             // Note: OpenType fonts use big endian byte ordering.
             using var r = new ByteReader(fontData);
             Tag = new string(r.ReadChars(4));
@@ -279,16 +281,16 @@ namespace Emotion.Standard.OpenType
 
                 foreach ((uint key, uint value) in cMap.GlyphIndexMap)
                 {
-                    var valInt = (int)value;
+                    var valInt = (int) value;
                     if (valInt >= glyphs.Length) continue; // Should never happen, but it's outside data, soo...
 
                     Glyph glyph = glyphs[valInt];
-                    glyph.Name = names != null ? names[valInt] : ((char)key).ToString();
+                    glyph.Name = names != null ? names[valInt] : ((char) key).ToString();
 
                     smallestCharIdx = Math.Min(smallestCharIdx, key);
                     highestCharIdx = Math.Max(highestCharIdx, key);
 
-                    Glyphs.Add((char)key, glyph);
+                    Glyphs.Add((char) key, glyph);
                     glyph.MapIndex = value;
                 }
 
@@ -299,8 +301,8 @@ namespace Emotion.Standard.OpenType
             {
                 for (var i = 0; i < glyphs.Length; i++)
                 {
-                    glyphs[i].Name = ((char)i).ToString();
-                    Glyphs.Add((char)i, glyphs[i]);
+                    glyphs[i].Name = ((char) i).ToString();
+                    Glyphs.Add((char) i, glyphs[i]);
                 }
             }
 
@@ -353,9 +355,9 @@ namespace Emotion.Standard.OpenType
                 var t = new FontTable
                 {
                     Tag = new string(reader.ReadChars(4)),
-                    Checksum = (int)reader.ReadULongBE(),
-                    Offset = (int)reader.ReadULongBE(),
-                    Length = (int)reader.ReadULongBE()
+                    Checksum = (int) reader.ReadULongBE(),
+                    Offset = (int) reader.ReadULongBE(),
+                    Length = (int) reader.ReadULongBE()
                 };
                 tables.Add(t);
             }

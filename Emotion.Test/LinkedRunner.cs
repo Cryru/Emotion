@@ -75,8 +75,8 @@ namespace Emotion.Test
         public int WaitForFinish(out string output, out string errorOutput)
         {
             bool exited = _runnerProcess.WaitForExit(1000 * 60 * 5);
-            output = _output;
-            errorOutput = _errorOutput;
+            output = _output ?? "";
+            errorOutput = _errorOutput ?? "";
             _time.Stop();
             return exited ? _runnerProcess.ExitCode : 99999;
         }

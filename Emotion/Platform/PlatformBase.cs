@@ -110,11 +110,18 @@ namespace Emotion.Platform
         }
 
         /// <summary>
+        /// The configurator the platform was initialized with.
+        /// </summary>
+        protected Configurator _config;
+
+        /// <summary>
         /// Setup the native platform and creates a window.
         /// </summary>
         /// <param name="config">Configuration for the platform - usually passed from the engine.</param>
         protected virtual void Setup(Configurator config)
         {
+            _config = config;
+
             SetupInput();
             SetupInternal(config);
 
