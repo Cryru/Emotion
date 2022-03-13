@@ -27,6 +27,7 @@ namespace Tests.Classes
             {
                 Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
                 Engine.Host.Size = new Vector2(600, 600);
+                DesktopTest.EventualConsistencyHostWait();
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.SetUseViewMatrix(true);
@@ -47,6 +48,7 @@ namespace Tests.Classes
             {
                 Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
                 Engine.Host.Size = new Vector2(640, 360);
+                DesktopTest.EventualConsistencyHostWait();
                 RenderComposer composer = Engine.Renderer.StartFrame();
 
                 composer.RenderSprite(new Vector3(_backgroundSize * -1, 0), _backgroundSize, Color.Black);

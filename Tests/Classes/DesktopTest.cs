@@ -22,6 +22,8 @@ namespace Tests.Classes
             plat?.Update();
             Task.Delay(100).Wait();
             plat?.Update();
+            Task.Delay(100).Wait();
+            plat?.Update();
         }
 
         [Test]
@@ -30,7 +32,8 @@ namespace Tests.Classes
             var plat = PlatformBase.CreateDetectedPlatform(new Configurator
             {
                 HostSize = new Vector2(320, 260),
-                RenderSize = new Vector2(320, 260)
+                RenderSize = new Vector2(320, 260),
+                DebugMode = true
             });
             Assert.True(plat != null);
             if (plat == null) return;
@@ -45,9 +48,9 @@ namespace Tests.Classes
             var resizes = new List<Vector2>();
             plat.OnResize += t => { resizes.Add(t); };
 
-            plat.Position = new Vector2(0, 100);
+            plat.Position = new Vector2(10, 100);
             EventualConsistencyHostWait(plat);
-            Assert.Equal(plat.Position, new Vector2(0, 100));
+            Assert.Equal(plat.Position, new Vector2(10, 100));
             Assert.Equal(plat.Size, new Vector2(320, 260));
 
             plat.Size = new Vector2(960, 540);
