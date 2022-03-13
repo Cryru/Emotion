@@ -1,9 +1,8 @@
 ﻿#region Using
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
-using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Platform;
@@ -17,9 +16,9 @@ namespace Tests.Classes
     [Test("EmotionDesktop", true)]
     public class DesktopTest
     {
-        [Conditional("GLFW")]
         public void EventualConsistencyHostWait()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
             Task.Delay(100).Wait();
         }
 
@@ -41,10 +40,7 @@ namespace Tests.Classes
             Assert.True(plat.IsFocused);
 
             var resizes = new List<Vector2>();
-            plat.OnResize += t =>
-            {
-                resizes.Add(t);
-            };
+            plat.OnResize += t => { resizes.Add(t); };
 
             plat.Position = new Vector2(0, 100);
             EventualConsistencyHostWait();
