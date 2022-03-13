@@ -40,6 +40,7 @@ namespace Tests.Classes
             };
 
             plat.Position = new Vector2(0, 0);
+            Task.Delay(100).Wait();
             Assert.Equal(plat.Position, new Vector2(0, 0));
             Assert.Equal(plat.Size, new Vector2(320, 260));
 
