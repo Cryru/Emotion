@@ -39,9 +39,9 @@ namespace Tests.Classes
                 resizes.Add(t);
             };
 
-            plat.Position = new Vector2(0, 0);
+            plat.Position = new Vector2(0, 100);
             Task.Delay(100).Wait();
-            Assert.Equal(plat.Position, new Vector2(0, 0));
+            Assert.Equal(plat.Position, new Vector2(0, 100));
             Assert.Equal(plat.Size, new Vector2(320, 260));
 
             plat.Size = new Vector2(960, 540);
