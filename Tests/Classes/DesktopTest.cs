@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,6 +17,12 @@ namespace Tests.Classes
     [Test("EmotionDesktop", true)]
     public class DesktopTest
     {
+        [Conditional("GLFW")]
+        public void EventualConsistencyHostWait()
+        {
+            Task.Delay(100).Wait();
+        }
+
         [Test]
         public void PlatformTests()
         {
@@ -40,25 +47,29 @@ namespace Tests.Classes
             };
 
             plat.Position = new Vector2(0, 100);
-            Task.Delay(100).Wait();
+            EventualConsistencyHostWait();
             Assert.Equal(plat.Position, new Vector2(0, 100));
             Assert.Equal(plat.Size, new Vector2(320, 260));
 
             plat.Size = new Vector2(960, 540);
-            Task.Delay(100).Wait();
+            EventualConsistencyHostWait();
             Assert.Equal(plat.Size, new Vector2(960, 540));
 
             plat.WindowState = WindowState.Minimized;
+            EventualConsistencyHostWait();
             Assert.True(!plat.IsFocused);
 
             plat.WindowState = WindowState.Maximized;
+            EventualConsistencyHostWait();
             Assert.True(plat.Size.X == primaryMonitor.Width);
             Assert.True(plat.IsFocused);
 
             plat.WindowState = WindowState.Minimized;
+            EventualConsistencyHostWait();
             Assert.True(!plat.IsFocused);
 
             plat.WindowState = WindowState.Normal;
+            EventualConsistencyHostWait();
             Assert.True(plat.IsFocused);
 
             // Check that the on resize function was called correctly and with the correct sizes.
@@ -72,6 +83,7 @@ namespace Tests.Classes
             Task.Delay(100).Wait();
             Assert.Equal(plat.Size, new Vector2(primaryMonitor.Width, primaryMonitor.Height));
             plat.DisplayMode = DisplayMode.Windowed;
+            EventualConsistencyHostWait();
             Assert.Equal(plat.Size, oldSize);
 
             plat.Close();
