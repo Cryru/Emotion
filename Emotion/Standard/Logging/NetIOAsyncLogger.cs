@@ -131,7 +131,7 @@ namespace Emotion.Standard.Logging
             }
 
             currentFileStream?.Flush();
-            currentFileStream.Close();
+            currentFileStream?.Close();
         }
 
         /// <inheritdoc />
