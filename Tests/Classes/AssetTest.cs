@@ -135,7 +135,7 @@ namespace Tests.Classes
 
             var saveFilePath = "Player/saveFile.save";
             XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadSaveOrCreate(saveFilePath);
-            Assert.True(File.Exists(Path.Join(".", "player", "savefile.save")));
+            Assert.True(File.Exists(Path.Join(".", "Player", "savefile.save")));
             Assert.True(Engine.AssetLoader.Exists(saveFilePath));
 
             saveFile.Content.Text = "Wassaa";
@@ -147,7 +147,7 @@ namespace Tests.Classes
             Engine.AssetLoader.Destroy(saveFilePath);
 
             saveFile.Save();
-            Assert.True(File.Exists(Path.Join("./player", "savefile.save.backup")));
+            Assert.True(File.Exists(Path.Join("./Player", "savefile.save.backup")));
         }
     }
 }
