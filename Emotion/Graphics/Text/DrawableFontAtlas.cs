@@ -242,7 +242,11 @@ namespace Emotion.Graphics.Text
             if (AnyUncachedGlyphs(text)) CacheGlyphs(text);
 
             // Set shader.
-            if (FontShader != null) c.SetShader(FontShader);
+            if (FontShader != null)
+            {
+                c.SetShader(FontShader);
+                FontShader.SetUniformFloat("scaleFactor", SdfSize * 2f);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
