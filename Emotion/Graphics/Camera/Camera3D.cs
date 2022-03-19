@@ -56,7 +56,7 @@ namespace Emotion.Graphics.Camera
         public void DefaultMovementLogicUpdate()
         {
             Vector2 mousePos = Engine.Host.MousePosition;
-            if (Engine.Host.IsKeyHeld(Key.MouseKeyLeft))
+            if (Engine.Host.IsKeyHeld(Key.MouseKeyLeft) || Engine.Host.IsKeyHeld(Key.MouseKeyMiddle))
             {
                 float xOffset = _lastMousePos.X - mousePos.X;
                 float yOffset = mousePos.Y - _lastMousePos.Y;
@@ -72,22 +72,31 @@ namespace Emotion.Graphics.Camera
                 direction = Vector3.Normalize(direction);
                 _lookAt = direction;
             }
+
             _lastMousePos = mousePos;
 
             float dirX = 0;
             float dirY = 0;
+            float dirZ = 0;
             if (Engine.Host.IsKeyHeld(Key.W))
                 dirX += 1;
             else if (Engine.Host.IsKeyHeld(Key.S)) dirX -= 1;
 
             if (Engine.Host.IsKeyHeld(Key.A))
-                dirY -= 1;
-            else if (Engine.Host.IsKeyHeld(Key.D)) dirY = 1;
+                dirY += 1;
+            else if (Engine.Host.IsKeyHeld(Key.D)) dirY -= 1;
+
+            if (Engine.Host.IsKeyHeld(Key.Space))
+                dirZ += 1;
+            else if (Engine.Host.IsKeyHeld(Key.LeftShift))
+                dirZ -= 1;
 
             Vector3 movementStraightBack = Engine.Renderer.Camera.LookAt * dirX;
-            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(new Vector3(0, -dirY, 0), Engine.Renderer.Camera.LookAt));
+            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(new Vector3(0, dirY, 0), Engine.Renderer.Camera.LookAt));
+            Vector3 movementUpDown = new Vector3(0, 1, 0) * dirZ;
             if (!float.IsNaN(movementStraightBack.X)) Engine.Renderer.Camera.Position += movementStraightBack * DebugMovementSpeed;
             if (!float.IsNaN(movementSide.X)) Engine.Renderer.Camera.Position += movementSide * DebugMovementSpeed;
+            if (!float.IsNaN(movementUpDown.X)) Engine.Renderer.Camera.Position += movementUpDown * DebugMovementSpeed;
             // todo: interpolate.
 
             Engine.Renderer.Camera.RecreateViewMatrix();

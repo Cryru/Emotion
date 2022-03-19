@@ -20,6 +20,8 @@ namespace Emotion.Game.SpriteStack
             {
                 Pixels[i].A = 0;
             }
+
+            Material = new MeshMaterial();
         }
 
         public void SetPixel(int idx, Color c)
