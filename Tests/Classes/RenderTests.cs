@@ -448,10 +448,7 @@ namespace Tests.Classes
                 composer.PopModelMatrix();
                 Engine.Renderer.EndFrame();
 
-                // The mesa drivers offsets some of the pixels here, and since there isn't much to compare it produces
-                // a large deviation. To prevent false positives, a separate result is carried for them.
-                bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-                Runner.VerifyScreenshot(isLinux ? ResultDb.LineDrawingLinux : ResultDb.LineDrawing);
+                Runner.VerifyScreenshot(ResultDb.LineDrawing);
             }).WaitOne();
         }
     }

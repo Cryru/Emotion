@@ -19,9 +19,15 @@ namespace Emotion.Platform.Implementation.OpenAL
         {
             var newCtx = new OpenALAudioAdapter(platform);
             newCtx.AudioDevice = Alc.OpenDevice(null);
+            if (newCtx.AudioDevice == IntPtr.Zero)
+            {
+                Engine.Log.Error("Couldn't find an OpenAL device.", MessageSource.OpenAL);
+                return null;
+            }
+
             var attr = new int[0];
             newCtx.AudioContext = Alc.CreateContext(newCtx.AudioDevice, attr);
-            if (newCtx.AudioDevice == IntPtr.Zero || newCtx.AudioContext == IntPtr.Zero)
+            if (newCtx.AudioContext == IntPtr.Zero)
             {
                 Engine.Log.Error("Couldn't create OpenAL context.", MessageSource.OpenAL);
                 return null;

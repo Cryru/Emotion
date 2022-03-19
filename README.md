@@ -45,9 +45,7 @@ Currently supported:
 ### Configurations Tested On:
 
 - Windows 10 x64
-  - Nvidia GeForce 1070
-  - Nvidia GeForce 1060
-  - Nvidia GeForce 1050
+  - Nvidia GeForce 1050, 1060, 1070
   - Intel UHD Graphics 620
   - Nvidia GeForce 940MX
   - AMD Radeon HD 5700 Series
@@ -58,6 +56,8 @@ Currently supported:
   - Nvidia 960M
 - MacOSX 10.13 x64 High Sierra
   - MacBook Air (Intel 4000)
+- Linux Mint 19.2
+  - Nvidia 960M
 - Chromium 86 (Not feature complete)
 
 ## Features So Far
