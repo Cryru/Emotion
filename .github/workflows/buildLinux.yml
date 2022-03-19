@@ -13,6 +13,7 @@ jobs:
     steps:
     - name: Pull, Build, and Run Tests
       run: |
+        export DISPLAY=:0.0
         git clean -fxd
         git pull
         dotnet publish Tests -c DebugUnix64 -r linux-x64 -o Tests/bin/linux --self-contained true
