@@ -13,7 +13,7 @@ jobs:
     steps:
     - name: Pull, Build, and Run Tests
       run: |
-        pwd
+        git clean -fxd
         git pull
         dotnet publish Tests -c DebugUnix64 -r linux-x64 -o Tests/bin/linux --self-contained true
         cd ./Tests/bin/linux
