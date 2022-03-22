@@ -37,7 +37,7 @@ namespace Emotion.Game.ThreeDee
                 }
             }
 
-            var centerMatrix = Matrix4x4.CreateTranslation(-width / 2 * tileSize, -5, -height / 2 * tileSize);
+            var centerMatrix = Matrix4x4.CreateTranslation(-width / 2 * tileSize, 0, -height / 2 * tileSize);
             for (var i = 0; i < _terrainMesh.Length; i++)
             {
                 _terrainMesh[i].Vertex = Vector3.Transform(_terrainMesh[i].Vertex, centerMatrix);

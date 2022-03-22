@@ -111,7 +111,7 @@ namespace Emotion.IO
                         float.TryParse(args[1], out float x);
                         float.TryParse(args[2], out float y);
                         float.TryParse(args[3], out float z);
-                        var vec3 = new Vector3(x, y, z);
+                        var vec3 = new Vector3(x, -y, -z); // -Y is up
                         if (identifier == "v")
                         {
                             currentSubObject.Vertices ??= new List<Vector3>();
@@ -215,7 +215,7 @@ namespace Emotion.IO
                         Name = builtMesh.GroupName,
                         Vertices = builtMesh.VertexData.GetRange(0, Math.Min(builtMesh.VertexData.Count, ushort.MaxValue)).ToArray(),
                         Indices = builtMesh.VertexDataIndices.GetRange(0, Math.Min(builtMesh.VertexDataIndices.Count, ushort.MaxValue)).ToArray(),
-                        Material = builtMesh.Material
+                        Material = builtMesh.Material ?? new MeshMaterial()
                     };
 
                     // Flip texture UVs.

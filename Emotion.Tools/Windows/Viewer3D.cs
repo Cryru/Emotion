@@ -38,7 +38,7 @@ namespace Emotion.Tools.Windows
 
             DisplayObject = new Object3D();
             _oldCamera = Engine.Renderer.Camera;
-            Engine.Renderer.Camera = new Camera3D(new Vector3(20, 50, 200));
+            Engine.Renderer.Camera = new Camera3D(new Vector3(20, -50, 200));
             Engine.Renderer.Camera.LookAt = Vector3.Normalize(Vector3.Zero - Engine.Renderer.Camera.Position);
 
             _skeletalShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/SkeletalAnim.xml");
