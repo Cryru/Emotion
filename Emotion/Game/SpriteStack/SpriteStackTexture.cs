@@ -195,9 +195,9 @@ namespace Emotion.Game.SpriteStack
                     }
 
                     int x = pIdx % frameWidth;
-                    int z = pIdx / frameWidth;
+                    int y = pIdx / frameWidth;
 
-                    var pixelPositionMatrix = Matrix4x4.CreateTranslation(x * 2 - center.X, -(fIdx * 2 + 1), z * 2 - center.Z);
+                    var pixelPositionMatrix = Matrix4x4.CreateTranslation(x * 2 - center.X, y * 2 - center.Y, fIdx * 2 + 1);
                     for (var iv = 0; iv < thisPixel.Length; iv++)
                     {
                         thisPixel[iv].Vertex = Vector3.Transform(thisPixel[iv].Vertex, pixelPositionMatrix);

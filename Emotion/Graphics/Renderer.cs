@@ -28,6 +28,8 @@ namespace Emotion.Graphics
     /// </summary>
     public sealed partial class RenderComposer
     {
+        public static Vector3 Up { get; } = new Vector3(0, 0, 1);
+
         #region Settings
 
         /// <summary>

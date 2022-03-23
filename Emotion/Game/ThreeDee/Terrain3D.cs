@@ -32,12 +32,12 @@ namespace Emotion.Game.ThreeDee
                 //pen.Y = pen.Y + Helpers.GenerateRandomNumber(-100, 100) / 1000f;
                 if (pen.X >= width)
                 {
-                    pen.Z++;
+                    pen.Y++;
                     pen.X = 0;
                 }
             }
 
-            var centerMatrix = Matrix4x4.CreateTranslation(-width / 2 * tileSize, 0, -height / 2 * tileSize);
+            var centerMatrix = Matrix4x4.CreateTranslation(-width / 2 * tileSize, -height / 2 * tileSize, 0);
             for (var i = 0; i < _terrainMesh.Length; i++)
             {
                 _terrainMesh[i].Vertex = Vector3.Transform(_terrainMesh[i].Vertex, centerMatrix);

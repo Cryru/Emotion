@@ -77,7 +77,7 @@ namespace Emotion.PostBuildTool
             _meshes = new List<Mesh>();
             Node rootNode = scene.RootNode;
             SkeletonAnimRigNode animRigRoot = ProcessNode(scene, rootNode);
-            animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD); // Convert to left handed coordinate system. (-Y is up)
+            animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(-90 * Maths.DEG2_RAD); // Convert to right handed Z is up.
 
             Entity = new MeshEntity
             {

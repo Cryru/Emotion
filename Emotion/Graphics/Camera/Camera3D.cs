@@ -12,9 +12,6 @@ namespace Emotion.Graphics.Camera
 {
     public class Camera3D : CameraBase
     {
-        public static Vector3 Up = new Vector3(0, -1, 0);
-        public static Vector3 Right = new Vector3(-1, 0, 0);
-
         public float FieldOfView
         {
             get => _fieldOfView;
@@ -45,14 +42,14 @@ namespace Emotion.Graphics.Camera
 
         protected override void LookAtChanged(Vector3 oldVal, Vector3 newVal)
         {
-            float pitch = Up.Y * MathF.Asin(newVal.Y);
+            float roll = MathF.Asin(newVal.Z);
             float yaw;
             if (newVal.Z < 0)
-                yaw = MathF.PI + MathF.Atan2(-newVal.Z, Right.X * -newVal.X);
+                yaw = MathF.PI + MathF.Atan2(-newVal.Y, -newVal.X);
             else
-                yaw = MathF.Atan2(newVal.Z, Right.X * newVal.X);
+                yaw = MathF.Atan2(newVal.Y, newVal.X);
 
-            _yawPitchRoll = new Vector3(Maths.RadiansToDegrees(yaw), Maths.RadiansToDegrees(pitch), 0);
+            _yawPitchRoll = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
             base.LookAtChanged(oldVal, newVal);
         }
 
@@ -61,16 +58,16 @@ namespace Emotion.Graphics.Camera
             Vector2 mousePos = Engine.Host.MousePosition;
             if (Engine.Host.IsKeyHeld(Key.MouseKeyLeft) || Engine.Host.IsKeyHeld(Key.MouseKeyMiddle))
             {
-                float xOffset = _lastMousePos.X - mousePos.X;
+                float xOffset = mousePos.X - _lastMousePos.X;
                 float yOffset = mousePos.Y - _lastMousePos.Y;
                 _yawPitchRoll.X += xOffset * 0.1f;
-                _yawPitchRoll.Y += yOffset * 0.1f;
-                _yawPitchRoll.Y = Maths.Clamp(_yawPitchRoll.Y, -89, 89); // Prevent flip.
+                _yawPitchRoll.Z += yOffset * 0.1f;
+                _yawPitchRoll.Z = Maths.Clamp(_yawPitchRoll.Z, -89, 89); // Prevent flip.
                 var direction = new Vector3
                 {
-                    X = MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.X)) * (Right.X * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Y))),
-                    Y = Up.Y * MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.Y)),
-                    Z = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Y))
+                    X = MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Z)),
+                    Y = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Z)),
+                    Z = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.Z))
                 };
                 direction = Vector3.Normalize(direction);
                 _lookAt = direction;
@@ -79,24 +76,24 @@ namespace Emotion.Graphics.Camera
             _lastMousePos = mousePos;
 
             float dirX = 0;
-            float dirY = 0;
             float dirZ = 0;
+            float dirY = 0;
             if (Engine.Host.IsKeyHeld(Key.W))
                 dirX += 1;
             else if (Engine.Host.IsKeyHeld(Key.S)) dirX -= 1;
 
             if (Engine.Host.IsKeyHeld(Key.Space))
-                dirY += 1;
+                dirZ += 1;
             else if (Engine.Host.IsKeyHeld(Key.LeftShift))
-                dirY -= 1;
+                dirZ -= 1;
 
             if (Engine.Host.IsKeyHeld(Key.A))
-                dirZ += 1;
-            else if (Engine.Host.IsKeyHeld(Key.D)) dirZ -= 1;
+                dirY += 1;
+            else if (Engine.Host.IsKeyHeld(Key.D)) dirY -= 1;
 
             Vector3 movementStraightBack = Engine.Renderer.Camera.LookAt * dirX;
-            Vector3 movementUpDown = Up * dirY;
-            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(Up * dirZ, Engine.Renderer.Camera.LookAt));
+            Vector3 movementUpDown = RenderComposer.Up * dirZ;
+            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up * dirY, Engine.Renderer.Camera.LookAt));
             if (!float.IsNaN(movementStraightBack.X)) Engine.Renderer.Camera.Position += movementStraightBack * DebugMovementSpeed;
             if (!float.IsNaN(movementUpDown.X)) Engine.Renderer.Camera.Position += movementUpDown * DebugMovementSpeed;
             if (!float.IsNaN(movementSide.X)) Engine.Renderer.Camera.Position += movementSide * DebugMovementSpeed;
@@ -109,7 +106,7 @@ namespace Emotion.Graphics.Camera
         public override void RecreateViewMatrix()
         {
             Vector3 pos = Position;
-            var unscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, Up);
+            var unscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, RenderComposer.Up);
             ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * unscaled;
         }
 

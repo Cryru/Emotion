@@ -38,7 +38,7 @@ namespace Emotion.Tools.Windows
 
             DisplayObject = new Object3D();
             _oldCamera = Engine.Renderer.Camera;
-            Engine.Renderer.Camera = new Camera3D(new Vector3(20, -50, 200));
+            Engine.Renderer.Camera = new Camera3D(new Vector3(20, 50, 200));
             Engine.Renderer.Camera.LookAt = Vector3.Normalize(Vector3.Zero - Engine.Renderer.Camera.Position);
 
             _skeletalShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/SkeletalAnim.xml");
@@ -127,9 +127,13 @@ namespace Emotion.Tools.Windows
             c.SetUseViewMatrix(true);
             c.ClearDepth();
 
-            c.RenderLine(new Vector3(short.MinValue, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
-            c.RenderLine(new Vector3(0, short.MinValue, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
-            c.RenderLine(new Vector3(0, 0, short.MinValue), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
+            //c.RenderLine(new Vector3(short.MinValue, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
+            //c.RenderLine(new Vector3(0, short.MinValue, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
+            //c.RenderLine(new Vector3(0, 0, short.MinValue), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
+
+            c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
+            c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
+            c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
 
             if (_showTerrain) _terrain.Render(c);
 
