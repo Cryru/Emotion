@@ -175,7 +175,7 @@ namespace Emotion.Common
                 return;
             }
 
-            Audio = new AudioContext(Host.Audio);
+            Audio = new AudioContext(Host.AudioAdapter);
             if (Status == EngineStatus.Stopped) return; // Errors in host initialization can cause this.
             PerfProfiler.ProfilerEventEnd("Platform Creation", "Loading");
 

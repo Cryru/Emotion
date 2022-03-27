@@ -107,7 +107,7 @@ namespace Emotion.Tools.Editors
 
 #if DEBUG
             ImGui.NewLine();
-            ImGui.Text(Engine.Host.Audio.ToString());
+            ImGui.Text(Engine.Host.AudioAdapter.ToString());
             ImGui.PlotLines($"Audio Request Response (MS)", ref _eventDeltaTimeTracker[0], _eventDeltaTimeTracker.Length, 0, "", 0, 1);
             ImGui.Text($"Avg: {Average(_eventDeltaTimeTracker)}");
 #else

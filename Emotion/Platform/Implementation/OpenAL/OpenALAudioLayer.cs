@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Audio;
@@ -72,7 +73,7 @@ namespace Emotion.Platform.Implementation.OpenAL
             if (!_bufferBusy[_currentBuffer])
             {
                 // Try getting frames for this buffer.
-                int framesGotten = GetDataForCurrentTrack(_openALAudioFormat, FRAME_REQUEST_SIZE, _dataHolder);
+                int framesGotten = BackendGetData(_openALAudioFormat, FRAME_REQUEST_SIZE, _dataHolder);
                 if (framesGotten != 0)
                 {
                     int byteLength = _dataHolder.Length;

@@ -11,12 +11,12 @@ using WinApi.ComBaseApi.COM;
 
 namespace Emotion.Platform.Implementation.Win32.Audio
 {
-    public sealed class WasApiAudioAdapter : ThreadedAudioAdapter, IMMNotificationClient
+    public sealed class WasApiAudioAdapter : IAudioAdapter, IMMNotificationClient
     {
-        public static WasApiAudioAdapter TryCreate(PlatformBase platform)
+        public static WasApiAudioAdapter TryCreate(PlatformBase _)
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioAdapter(platform, enumerator);
+            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioAdapter(enumerator);
             Win32Platform.CheckError("Couldn't create multimedia enumerator.", true);
             return null;
         }
@@ -27,7 +27,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
 
-        private WasApiAudioAdapter(PlatformBase platform, IMMDeviceEnumerator enumerator) : base(platform)
+        private WasApiAudioAdapter(IMMDeviceEnumerator enumerator)
         {
             _enumerator = enumerator;
             int error = _enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active, out IMMDeviceCollection collection);
@@ -64,7 +64,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _enumerator.RegisterEndpointNotificationCallback(this);
         }
 
-        protected override AudioLayer CreatePlatformAudioLayerInternal(string layerName)
+        public AudioLayer CreatePlatformAudioLayer(string layerName)
         {
             return new WasApiLayer(this, layerName);
         }
@@ -198,5 +198,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            // nop
+        }
     }
 }

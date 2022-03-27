@@ -25,11 +25,16 @@ namespace Emotion.Platform.Implementation.Null
             base.TransitionStatus(newStatus);
         }
 
+        protected override void UpdateBackend()
+        {
+
+        }
+
         public void AdvanceTime(int seconds)
         {
             int sizeNeeded = seconds * _testFormat.SampleRate * _testFormat.FrameSize;
             if (_testArray.Length < sizeNeeded) Array.Resize(ref _testArray, sizeNeeded);
-            GetDataForCurrentTrack(_testFormat, seconds * _testFormat.SampleRate, _testArray);
+            BackendGetData(_testFormat, seconds * _testFormat.SampleRate, _testArray);
         }
 
         public override void Dispose()

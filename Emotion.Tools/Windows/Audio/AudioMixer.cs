@@ -121,6 +121,8 @@ namespace Emotion.Tools.Windows.Audio
                     ImGui.TreePop();
                 }
 
+                ImGui.Text($"Missed: {layer.MetricBackendMissedFrames}\nAhead: {layer.MetricDataStoredInBlocks}ms");
+
                 ImGui.PopID();
                 ImGui.NewLine();
 

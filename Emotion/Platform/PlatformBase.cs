@@ -36,7 +36,7 @@ namespace Emotion.Platform
         /// <summary>
         /// The platform's audio adapter. If any.
         /// </summary>
-        public IAudioAdapter Audio { get; protected set; }
+        public IAudioAdapter AudioAdapter { get; protected set; }
 
         /// <summary>
         /// Whether this platform supports naming threads.
@@ -165,6 +165,8 @@ namespace Emotion.Platform
         /// <returns>Whether the platform is alive.</returns>
         public bool Update()
         {
+            Engine.Audio?.Update();
+
             // Check if open.
             return IsOpen && UpdatePlatform();
         }
@@ -342,7 +344,7 @@ namespace Emotion.Platform
         public virtual void Close()
         {
             IsOpen = false;
-            Audio?.Dispose();
+            AudioAdapter?.Dispose();
         }
     }
 }

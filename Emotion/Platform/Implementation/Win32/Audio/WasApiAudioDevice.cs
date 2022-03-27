@@ -53,7 +53,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             long ticks = TimeSpan.FromMilliseconds(BUFFER_LENGTH_MS).Ticks;
             error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None,
-                ticks, ticks / 2, deviceFormat, Guid.Empty);
+                ticks, 0, deviceFormat, Guid.Empty);
             if (error != 0) Win32Platform.CheckError($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", true);
 
             error = audioClient.GetBufferSize(out bufferSize);

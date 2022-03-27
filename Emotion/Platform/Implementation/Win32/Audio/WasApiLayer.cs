@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -31,13 +32,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             base.Dispose();
         }
 
-        public override bool Update()
-        {
-            if (_layerContext != null) UpdateInternal();
-            return base.Update();
-        }
-
-        private void UpdateInternal()
+        protected override void UpdateBackend()
         {
             try
             {
@@ -88,7 +83,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.WasApi);
             var buffer = new Span<byte>((void*) bufferPtr, getFrames * _layerContext.AudioClientFormat.FrameSize);
 
-            int framesGotten = GetDataForCurrentTrack(_layerContext.AudioClientFormat, getFrames, buffer);
+            int framesGotten = BackendGetData(_layerContext.AudioClientFormat, getFrames, buffer);
             error = client.ReleaseBuffer(framesGotten, framesGotten == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.WasApi);
             return framesGotten == 0; // This should only be true if the buffer was exactly exhausted.
