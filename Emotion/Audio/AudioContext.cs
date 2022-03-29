@@ -12,7 +12,7 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Audio
 {
-    public class AudioContext
+    public abstract class AudioContext
     {
         protected List<AudioLayer> _layerMapping = new();
         protected ConcurrentBag<AudioLayer> _toRemove = new();
@@ -29,14 +29,11 @@ namespace Emotion.Audio
         protected int _timeToProcess;
         protected AutoResetEvent _audioProcessEvent;
 
-        protected IAudioAdapter _adapter;
-
-        public AudioContext(IAudioAdapter adapter)
+        protected AudioContext()
         {
             _audioTimeTracker = new Stopwatch();
             _audioProcessEvent = new AutoResetEvent(false);
 
-            _adapter = adapter;
             _running = true;
             _audioThread = new Thread(AudioLayerProc)
             {
@@ -45,7 +42,7 @@ namespace Emotion.Audio
             _audioThread.Start();
         }
 
-        public void Update()
+        public virtual void Update()
         {
             if (!_audioTimeTracker.IsRunning) _audioTimeTracker.Start();
 
@@ -84,7 +81,7 @@ namespace Emotion.Audio
         public AudioLayer CreateLayer(string layerName, float layerVolume = 1)
         {
             layerName = layerName.ToLower();
-            AudioLayer newLayer = _adapter.CreatePlatformAudioLayer(layerName);
+            AudioLayer newLayer = CreatePlatformAudioLayer(layerName);
             newLayer.Volume = layerVolume;
 
             _toAdd.Add(newLayer);
@@ -93,6 +90,8 @@ namespace Emotion.Audio
             Engine.Log.Info($"Created audio layer {newLayer.Name}", MessageSource.Audio);
             return newLayer;
         }
+
+        public abstract AudioLayer CreatePlatformAudioLayer(string layerName);
 
         public void RemoveLayer(string layerName)
         {
@@ -136,7 +135,6 @@ namespace Emotion.Audio
         public virtual void Dispose()
         {
             _running = false;
-            _audioThread.Interrupt();
         }
     }
 }

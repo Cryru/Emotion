@@ -4,7 +4,6 @@ using System;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.IO;
-using Emotion.Platform.Implementation.Null;
 using Emotion.Test;
 
 #endregion
@@ -14,11 +13,37 @@ namespace Tests.Classes
     [Test("Audio", true)]
     public class AudioTests
     {
+        public class TestAudioContext : AudioContext
+        {
+            public class TestAudioLayer : AudioLayer
+            {
+                public PlaybackStatus PreviousStatus { get; protected set; } = PlaybackStatus.NotPlaying;
+
+                public TestAudioLayer(string name) : base(name)
+                {
+                }
+
+                protected override void UpdateBackend()
+                {
+                }
+
+                protected override void TransitionStatus(PlaybackStatus newStatus)
+                {
+                    PreviousStatus = Status;
+                    base.TransitionStatus(newStatus);
+                }
+            }
+
+            public override AudioLayer CreatePlatformAudioLayer(string layerName)
+            {
+                return new TestAudioLayer(layerName);
+            }
+        }
+
         [Test]
         public void AudioState()
         {
-            var nullAudio = new NullAudioAdapter();
-            var ctx = new AudioContext(nullAudio);
+            var ctx = new TestAudioContext();
             AudioLayer layer = ctx.CreateLayer("test");
 
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
@@ -45,8 +70,7 @@ namespace Tests.Classes
         [Test]
         public void PlaylistLogic()
         {
-            var nullAudio = new NullAudioAdapter();
-            var ctx = new AudioContext(nullAudio);
+            var ctx = new TestAudioContext();
             AudioLayer layer = ctx.CreateLayer("test");
 
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
@@ -63,7 +87,8 @@ namespace Tests.Classes
             Assert.True(playlist[2] == pepsi);
             Assert.True(layer.CurrentTrack.File == pepsi);
 
-            ((NullAudioLayer) layer).AdvanceTime((int) MathF.Ceiling(pepsi.Duration) + 1);
+            // Advance time ahead.
+            ((TestAudioContext.TestAudioLayer) layer).ProcessAhead((int) (MathF.Ceiling(pepsi.Duration) + 1) * 1000);
             Assert.True(layer.CurrentTrack.File == money);
 
             ctx.RemoveLayer("test");

@@ -22,7 +22,7 @@ namespace Emotion.Platform.Implementation.Null
 
         protected override void SetupInternal(Configurator config)
         {
-            AudioAdapter = new NullAudioAdapter();
+            Audio = new NullAudioContext();
         }
 
         public override IntPtr LoadLibrary(string path)

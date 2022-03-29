@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
@@ -36,7 +37,7 @@ namespace Emotion.Platform
         /// <summary>
         /// The platform's audio adapter. If any.
         /// </summary>
-        public IAudioAdapter AudioAdapter { get; protected set; }
+        public AudioContext Audio { get; protected set; }
 
         /// <summary>
         /// Whether this platform supports naming threads.
@@ -344,7 +345,7 @@ namespace Emotion.Platform
         public virtual void Close()
         {
             IsOpen = false;
-            AudioAdapter?.Dispose();
+            Audio?.Dispose();
         }
     }
 }

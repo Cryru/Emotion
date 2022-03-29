@@ -14,21 +14,21 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     public class WasApiLayer : AudioLayer
     {
-        private WasApiAudioAdapter _adapter;
+        private WasApiAudioContext _context;
         private WasApiLayerContext _layerContext;
         private int _bufferLengthInFrames;
 
-        public WasApiLayer(WasApiAudioAdapter adapter, string name) : base(name)
+        public WasApiLayer(WasApiAudioContext context, string name) : base(name)
         {
-            _adapter = adapter;
-            _adapter.OnDefaultDeviceChangedInternal += SetDevice;
-            SetDevice(adapter.DefaultDevice);
+            _context = context;
+            _context.OnDefaultDeviceChangedInternal += SetDevice;
+            SetDevice(context.DefaultDevice);
         }
 
         public override void Dispose()
         {
-            _adapter.OnDefaultDeviceChangedInternal -= SetDevice;
-            _adapter = null;
+            _context.OnDefaultDeviceChangedInternal -= SetDevice;
+            _context = null;
             base.Dispose();
         }
 
@@ -59,7 +59,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 // https://www.hresult.info/FACILITY_AUDCLNT/0x88890004
                 if ((uint) ex.ErrorCode == 0x88890004)
                 {
-                    SetDevice(_adapter.DefaultDevice);
+                    SetDevice(_context.DefaultDevice);
                     Engine.Log.Trace("Default audio device changed.", MessageSource.WasApi);
                 }
                 else

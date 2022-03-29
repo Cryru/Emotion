@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Null;
@@ -83,13 +84,13 @@ namespace Emotion.Platform.Implementation.Win32
             // todo: load libraries - if any, probably XInput?
 
             // Initialize audio.
-            IAudioAdapter adapter = null;
+            AudioContext ctx = null;
 #if OpenAL
-            adapter ??= OpenALAudioAdapter.TryCreate(this);
+            ctx ??= OpenALAudioAdapter.TryCreate(this);
 #endif
-            adapter ??= WasApiAudioAdapter.TryCreate(this);
-            adapter ??= new NullAudioAdapter();
-            AudioAdapter = adapter;
+            ctx ??= WasApiAudioContext.TryCreate(this);
+            ctx ??= new NullAudioContext();
+            Audio = ctx;
             Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
 
             PopulateKeyCodes();

@@ -6,6 +6,7 @@ using Emotion.Platform.Implementation.OpenAL;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.GlfwImplementation.Native;
@@ -139,9 +140,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             Glfw.FocusWindow(_win);
 
 #if OpenAL
-            Audio = OpenALAudioAdapter.TryCreate(this) ?? (IAudioAdapter) new NullAudioAdapter();
+            Audio = OpenALAudioAdapter.TryCreate(this) ?? (AudioContext) new NullAudioContext();
 #else
-            Audio = new NullAudioAdapter();
+            Audio = new NullAudioContext();
 #endif
         }
 
