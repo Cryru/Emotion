@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -13,31 +14,25 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     public class WasApiLayer : AudioLayer
     {
-        private WasApiAudioAdapter _adapter;
+        private WasApiAudioContext _context;
         private WasApiLayerContext _layerContext;
         private int _bufferLengthInFrames;
 
-        public WasApiLayer(WasApiAudioAdapter adapter, string name) : base(name)
+        public WasApiLayer(WasApiAudioContext context, string name) : base(name)
         {
-            _adapter = adapter;
-            _adapter.OnDefaultDeviceChangedInternal += SetDevice;
-            SetDevice(adapter.DefaultDevice);
+            _context = context;
+            _context.OnDefaultDeviceChangedInternal += SetDevice;
+            SetDevice(context.DefaultDevice);
         }
 
         public override void Dispose()
         {
-            _adapter.OnDefaultDeviceChangedInternal -= SetDevice;
-            _adapter = null;
+            _context.OnDefaultDeviceChangedInternal -= SetDevice;
+            _context = null;
             base.Dispose();
         }
 
-        public override bool Update()
-        {
-            if (_layerContext != null) UpdateInternal();
-            return base.Update();
-        }
-
-        private void UpdateInternal()
+        protected override void UpdateBackend()
         {
             try
             {
@@ -64,7 +59,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 // https://www.hresult.info/FACILITY_AUDCLNT/0x88890004
                 if ((uint) ex.ErrorCode == 0x88890004)
                 {
-                    SetDevice(_adapter.DefaultDevice);
+                    SetDevice(_context.DefaultDevice);
                     Engine.Log.Trace("Default audio device changed.", MessageSource.WasApi);
                 }
                 else
@@ -88,7 +83,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.WasApi);
             var buffer = new Span<byte>((void*) bufferPtr, getFrames * _layerContext.AudioClientFormat.FrameSize);
 
-            int framesGotten = GetDataForCurrentTrack(_layerContext.AudioClientFormat, getFrames, buffer);
+            int framesGotten = BackendGetData(_layerContext.AudioClientFormat, getFrames, buffer);
             error = client.ReleaseBuffer(framesGotten, framesGotten == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.WasApi);
             return framesGotten == 0; // This should only be true if the buffer was exactly exhausted.

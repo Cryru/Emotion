@@ -10,14 +10,14 @@ using OpenAL;
 
 namespace Emotion.Platform.Implementation.OpenAL
 {
-    public sealed class OpenALAudioAdapter : ThreadedAudioAdapter
+    public sealed class OpenALAudioAdapter : AudioContext
     {
         public IntPtr AudioDevice { get; private set; }
         public IntPtr AudioContext { get; private set; }
 
-        public static OpenALAudioAdapter TryCreate(PlatformBase platform)
+        public static OpenALAudioAdapter TryCreate(PlatformBase _)
         {
-            var newCtx = new OpenALAudioAdapter(platform);
+            var newCtx = new OpenALAudioAdapter();
             newCtx.AudioDevice = Alc.OpenDevice(null);
             if (newCtx.AudioDevice == IntPtr.Zero)
             {
@@ -43,11 +43,7 @@ namespace Emotion.Platform.Implementation.OpenAL
             return newCtx;
         }
 
-        public OpenALAudioAdapter(PlatformBase platform) : base(platform)
-        {
-        }
-
-        protected override AudioLayer CreatePlatformAudioLayerInternal(string layerName)
+        public override AudioLayer CreatePlatformAudioLayer(string layerName)
         {
             return new OpenALAudioLayer(layerName, this);
         }

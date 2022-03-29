@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -51,6 +52,7 @@ namespace Emotion.Tools.Windows
             }
 
             ImGui.Text($"Texture Memory Estimate: {Helpers.FormatByteAmountAsString(totalBytes)}");
+            ImGui.Text($"Audio Buffer Memory: {Helpers.FormatByteAmountAsString(AudioLayer.MetricAllocatedDataBlocks)}");
             ImGui.Text($"Managed Memory (Game): {Helpers.FormatByteAmountAsString(GC.GetTotalMemory(false))}");
 
             long usedRam = _p.WorkingSet64;

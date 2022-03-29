@@ -12,8 +12,14 @@ namespace Emotion.Platform.Implementation.OpenAL
 {
     public sealed class OpenALAudioLayer : AudioLayer
     {
-        private const int FRAME_REQUEST_SIZE = 1000;
+        // How many buffers to swap per layer. Should be at least 2 to allow double buffering
         private const int BUFFER_COUNT = 2;
+
+        // OpenAL will internally resample to the output format. This format is the one in which Emotion will
+        // deliver samples to OpenAL. It being 32f means that Emotion can skip the data type conversion.
+        private static AudioFormat _openALAudioFormat = new AudioFormat(32, true, 2, 24000);
+        private static int _openALFormatId;
+        private static int _frameRequestSize;
 
         private OpenALAudioAdapter _parent;
         private uint _source;
@@ -21,10 +27,7 @@ namespace Emotion.Platform.Implementation.OpenAL
         private uint[] _buffers;
         private bool[] _bufferBusy;
         private int _currentBuffer;
-        private byte[] _dataHolder;
-
-        private static AudioFormat _openALAudioFormat = new AudioFormat(32, true, 2, 24000);
-        private static int _openALFormatId;
+        private byte[] _uploadBuffer;
 
         public OpenALAudioLayer(string name, OpenALAudioAdapter parent) : base(name)
         {
@@ -37,6 +40,12 @@ namespace Emotion.Platform.Implementation.OpenAL
                     _ => _openALFormatId
                 };
 
+            if (_frameRequestSize == 0)
+            {
+                _frameRequestSize = _openALAudioFormat.GetFrameCount(BackendBufferExpectedAhead / 1000f);
+                _frameRequestSize /= BUFFER_COUNT;
+            }
+
             _parent = parent;
             Al.GenSource(out _source);
 
@@ -47,10 +56,10 @@ namespace Emotion.Platform.Implementation.OpenAL
                 Al.GenBuffer(out _buffers[i]);
             }
 
-            _dataHolder = new byte[FRAME_REQUEST_SIZE * _openALAudioFormat.FrameSize];
+            _uploadBuffer = new byte[_frameRequestSize * _openALAudioFormat.FrameSize];
         }
 
-        public override unsafe bool Update()
+        protected override unsafe void UpdateBackend()
         {
             if (Status != PlaybackStatus.Playing)
             {
@@ -72,14 +81,14 @@ namespace Emotion.Platform.Implementation.OpenAL
             if (!_bufferBusy[_currentBuffer])
             {
                 // Try getting frames for this buffer.
-                int framesGotten = GetDataForCurrentTrack(_openALAudioFormat, FRAME_REQUEST_SIZE, _dataHolder);
+                int framesGotten = BackendGetData(_openALAudioFormat, _frameRequestSize, _uploadBuffer);
                 if (framesGotten != 0)
                 {
-                    int byteLength = _dataHolder.Length;
-                    if (framesGotten < FRAME_REQUEST_SIZE) byteLength = framesGotten * _openALAudioFormat.FrameSize;
+                    int byteLength = _uploadBuffer.Length;
+                    if (framesGotten < _frameRequestSize) byteLength = framesGotten * _openALAudioFormat.FrameSize;
 
                     uint buffer = _buffers[_currentBuffer];
-                    UploadDataToBuffer(_dataHolder, buffer, byteLength);
+                    UploadDataToBuffer(_uploadBuffer, buffer, byteLength);
                     Al.SourceQueueBuffers(_source, 1, &buffer);
                     _bufferBusy[_currentBuffer] = true;
                     _currentBuffer++;
@@ -89,7 +98,6 @@ namespace Emotion.Platform.Implementation.OpenAL
 
             // Sync state and start playing only if data is queued.
             SyncLayerAndALState();
-            return base.Update();
         }
 
         /// <summary>

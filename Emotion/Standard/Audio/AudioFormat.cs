@@ -94,9 +94,12 @@
             return (float) soundBufferBytes / (SampleRate * Channels * SampleSize);
         }
 
-        public int GetFrameIndexAtTimestamp(float timeSeconds)
+        /// <summary>
+        /// Get the number of frames a time period contains.
+        /// </summary>
+        public int GetFrameCount(float timeSeconds)
         {
-            return (int) (timeSeconds * SampleRate * Channels);
+            return (int) (timeSeconds * SampleRate);
         }
 
         /// <summary>
