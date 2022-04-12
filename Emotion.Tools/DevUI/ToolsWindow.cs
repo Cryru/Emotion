@@ -10,6 +10,7 @@ using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Tools.Editors;
 using Emotion.Tools.Editors.Animation2D;
+using Emotion.Tools.Editors.MapEditor;
 using Emotion.Tools.Editors.UIEditor;
 using Emotion.Tools.Windows;
 using Emotion.Tools.Windows.Art;
@@ -92,7 +93,7 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Gameplay"))
             {
-                if (ImGui.MenuItem("Map Viewer")) AddLegacyWindow(new MapViewer());
+                if (ImGui.MenuItem("Map Viewer")) AddChild(new MapEditor());
 #if DEBUG
                 if (ImGui.MenuItem("Collision Viewer")) AddLegacyWindow(new CollisionViewer());
 #else

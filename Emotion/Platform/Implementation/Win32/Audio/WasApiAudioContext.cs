@@ -198,10 +198,5 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         }
 
         #endregion
-
-        public void Dispose()
-        {
-            // nop
-        }
     }
 }

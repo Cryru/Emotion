@@ -30,7 +30,7 @@ namespace Emotion.Tools.Editors.UIEditor
 
         public UIEditorWindow() : base("UI Editor")
         {
-            _validWindowTypes = GetTypesWhichInherit();
+            _validWindowTypes = EditorHelpers.GetTypesWhichInherit<UIBaseWindow>();
             _validWindowTypes.Remove(typeof(UIController));
             _validWindowTypes.Remove(typeof(DebugUIController));
             _validWindowTypesNames = new string[_validWindowTypes.Count];
@@ -209,7 +209,7 @@ namespace Emotion.Tools.Editors.UIEditor
                     }
 
                     // Transform class.
-                    object newObj = TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
+                    object newObj = EditorHelpers.TransformClass(_selectedWindow, _validWindowTypes[currentClass]);
                     if (newObj == null) return;
                     var newWin = (UIBaseWindow) newObj;
 
@@ -247,9 +247,13 @@ namespace Emotion.Tools.Editors.UIEditor
                 {
                     XMLFieldHandler field = pair.Value;
                     if (_readonlyWindow)
+                    {
                         ImGui.Text($"{field.Name}: {field.ReflectionInfo.GetValue(_selectedWindow)}");
+                    }
                     else
-                        ImGuiEditorForType(_selectedWindow, field!);
+                    {
+                        if (EditorHelpers.ImGuiEditorForType(_selectedWindow, field!)) UnsavedChanges();
+                    }
                 }
 
                 ImGui.EndChild();
