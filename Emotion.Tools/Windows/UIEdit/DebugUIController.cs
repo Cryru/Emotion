@@ -3,6 +3,7 @@
 using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.Tools.Editors;
 using Emotion.UI;
 using Emotion.Utility;
 
@@ -48,18 +49,9 @@ namespace Emotion.Tools.Windows.UIEdit
         protected override bool RenderInternal(RenderComposer c)
         {
             if (!base.RenderInternal(c)) return false;
-            c.RenderSprite(Position, Size, _calculatedColor);
+
             c.SetClipRect(new Rectangle(Position, Size));
-
-            var scaledGridSize = (int) Maths.RoundClosest(DebugGridSize * GetScale());
-            for (var y = 0; y < Size.Y; y += scaledGridSize)
-            {
-                for (var x = 0; x < Size.X; x += scaledGridSize)
-                {
-                    c.RenderOutline(new Rectangle(X + x, Y + y, scaledGridSize, scaledGridSize), Color.White * 0.2f);
-                }
-            }
-
+            EditorHelpers.RenderToolGrid(c, Position, Size, _calculatedColor, (int) Maths.RoundClosest(DebugGridSize * GetScale()));
             c.SetClipRect(null);
 
             Vector2 posVec2 = Position.ToVec2();

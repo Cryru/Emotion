@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -16,6 +17,14 @@ namespace Emotion.Common.Serialization
         /// The name of the property this object handles.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// The type this member was declared in.
+        /// </summary>
+        public Type DeclaredIn
+        {
+            get => _prop?.DeclaringType ?? _field.DeclaringType;
+        }
 
         private PropertyInfo _prop;
         private FieldInfo _field;

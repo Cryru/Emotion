@@ -12,7 +12,6 @@ using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
-using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;

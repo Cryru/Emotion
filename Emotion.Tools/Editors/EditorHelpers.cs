@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
+using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
@@ -29,7 +30,6 @@ namespace Emotion.Tools.Editors
             Debug.Assert(newTypeObject != null);
 
             IEnumerator<XMLFieldHandler>? oldFields = oldTypeHandler.EnumFields();
-
             while (oldFields.MoveNext())
             {
                 XMLFieldHandler oldField = oldFields.Current;
@@ -225,6 +225,31 @@ namespace Emotion.Tools.Editors
             }
 
             return inheritors;
+        }
+
+        public static void RenderToolGrid(RenderComposer c, Vector3 position, Vector2 size, Color background, int gridSize)
+        {
+            c.RenderSprite(position, size, background);
+
+            Vector2 posVec2 = position.ToVec2();
+            for (var x = 0; x < size.X; x += gridSize)
+            {
+                c.RenderLine(posVec2 + new Vector2(x, 0), posVec2 + new Vector2(x, size.Y), Color.White * 0.2f);
+            }
+
+            for (var y = 0; y < size.Y; y += gridSize)
+            {
+                c.RenderLine(posVec2 + new Vector2(0, y), posVec2 + new Vector2(size.X, y), Color.White * 0.2f);
+            }
+        }
+
+        public static void CenteredText(string text)
+        {
+            float windowWidth = ImGui.GetWindowSize().X;
+            float textWidth   = ImGui.CalcTextSize(text).X;
+
+            ImGui.SetCursorPosX((windowWidth - textWidth) * 0.5f);
+            ImGui.Text(text);
         }
     }
 }

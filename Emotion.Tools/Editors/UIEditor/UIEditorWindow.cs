@@ -25,18 +25,21 @@ namespace Emotion.Tools.Editors.UIEditor
         private List<Type> _validWindowTypes;
         private string[] _validWindowTypesNames;
         private XMLComplexBaseTypeHandler _typeHandler;
-        private SortedList<string, XMLFieldHandler> _currentWindowHandlers;
+        private List<DeclaredTypeFieldHandlers> _currentWindowHandlers;
         private bool _readonlyWindow;
 
         public UIEditorWindow() : base("UI Editor")
         {
+            // Setup valid window types.
             _validWindowTypes = EditorHelpers.GetTypesWhichInherit<UIBaseWindow>();
             _validWindowTypes.Remove(typeof(UIController));
             _validWindowTypes.Remove(typeof(DebugUIController));
             _validWindowTypesNames = new string[_validWindowTypes.Count];
             for (var i = 0; i < _validWindowTypes.Count; i++)
             {
-                _validWindowTypesNames[i] = _validWindowTypes[i].Name;
+                Type type = _validWindowTypes[i];
+                bool invalid = type.GetConstructor(Type.EmptyTypes) == null;
+                _validWindowTypesNames[i] = invalid ? $"{type.Name} (No Constructor)" : type.Name;
             }
 
             _ui.Margins = new Rectangle(5, 15, 5, 5);
@@ -200,6 +203,9 @@ namespace Emotion.Tools.Editors.UIEditor
                 int currentClass = _validWindowTypes.IndexOf(_selectedWindow.GetType());
                 if (ImGui.Combo("Class", ref currentClass, _validWindowTypesNames, _validWindowTypesNames.Length) && !_readonlyWindow)
                 {
+                    string name = _validWindowTypesNames[currentClass];
+                    if (name.Contains("(No Constructor)")) return;
+
                     // Copy children.
                     var children = new List<UIBaseWindow>();
                     if (_selectedWindow.Children != null)
@@ -217,7 +223,9 @@ namespace Emotion.Tools.Editors.UIEditor
                     if (children.Count > 0)
                         for (var i = 0; i < children.Count; i++)
                         {
-                            newWin.AddChild(children[i]);
+                            UIBaseWindow child = children[i];
+                            if (child.CodeGenerated) continue;
+                            newWin.AddChild(child);
                         }
 
                     // If we modified the root window then we need to recreate the whole asset.
@@ -243,16 +251,25 @@ namespace Emotion.Tools.Editors.UIEditor
                     _ui.InvalidatePreload();
                 }
 
-                foreach (KeyValuePair<string, XMLFieldHandler> pair in _currentWindowHandlers)
+                foreach (DeclaredTypeFieldHandlers typeCollection in _currentWindowHandlers)
                 {
-                    XMLFieldHandler field = pair.Value;
-                    if (_readonlyWindow)
+                    ImGui.NewLine();
+                    EditorHelpers.CenteredText(typeCollection.DeclaringType.ToString());
+                    ImGui.NewLine();
+
+                    List<XMLFieldHandler> fields = typeCollection.Fields;
+                    for (var i = 0; i < fields.Count; i++)
                     {
-                        ImGui.Text($"{field.Name}: {field.ReflectionInfo.GetValue(_selectedWindow)}");
-                    }
-                    else
-                    {
-                        if (EditorHelpers.ImGuiEditorForType(_selectedWindow, field!)) UnsavedChanges();
+                        XMLFieldHandler field = fields[i];
+
+                        if (_readonlyWindow)
+                        {
+                            ImGui.Text($"{field.Name}: {field.ReflectionInfo.GetValue(_selectedWindow)}");
+                        }
+                        else
+                        {
+                            if (EditorHelpers.ImGuiEditorForType(_selectedWindow, field)) UnsavedChanges();
+                        }
                     }
                 }
 
@@ -297,24 +314,80 @@ namespace Emotion.Tools.Editors.UIEditor
             ImGui.EndGroup();
         }
 
+        // todo: move this to generic
+        private class DeclaredTypeFieldHandlers
+        {
+            public Type DeclaringType;
+            public List<XMLFieldHandler> Fields = new();
+
+            public DeclaredTypeFieldHandlers(Type t)
+            {
+                DeclaringType = t;
+            }
+        }
+
         private void SelectWindow(UIBaseWindow window, bool readOnly = false)
         {
             _selectedWindow = window;
             _readonlyWindow = readOnly;
 
             _typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(_selectedWindow.GetType());
-            _currentWindowHandlers ??= new SortedList<string, XMLFieldHandler>();
+            _currentWindowHandlers ??= new();
             _currentWindowHandlers.Clear();
 
             if (_typeHandler == null) return;
+
+            // Collect type handlers sorted by declared type.
             IEnumerator<XMLFieldHandler> fields = _typeHandler.EnumFields();
             while (fields.MoveNext())
             {
                 XMLFieldHandler field = fields.Current;
                 if (field == null || field.Name == "Children") continue;
 
-                _currentWindowHandlers.Add(field.Name, field);
+                DeclaredTypeFieldHandlers handlerMatch = null;
+                for (var i = 0; i < _currentWindowHandlers.Count; i++)
+                {
+                    DeclaredTypeFieldHandlers handler = _currentWindowHandlers[i];
+                    if (handler.DeclaringType == field.ReflectionInfo.DeclaredIn)
+                    {
+                        handlerMatch = handler;
+                        break;
+                    }
+                }
+
+                if (handlerMatch == null)
+                {
+                    handlerMatch = new DeclaredTypeFieldHandlers(field.ReflectionInfo.DeclaredIn);
+                    _currentWindowHandlers.Add(handlerMatch);
+                }
+
+                handlerMatch.Fields.Add(field);
             }
+
+            // Sort by inheritance.
+            var indices = new int[_currentWindowHandlers.Count];
+            var idx = 0;
+            Type t = _typeHandler.Type;
+            while (t != typeof(object))
+            {
+                for (var i = 0; i < _currentWindowHandlers.Count; i++)
+                {
+                    DeclaredTypeFieldHandlers handler = _currentWindowHandlers[i];
+                    if (handler.DeclaringType != t) continue;
+                    indices[i] = idx;
+                    idx++;
+                    break;
+                }
+
+                t = t!.BaseType;
+            }
+
+            _currentWindowHandlers.Sort((x, y) =>
+            {
+                int idxX = _currentWindowHandlers.IndexOf(x);
+                int idxY = _currentWindowHandlers.IndexOf(y);
+                return indices[idxY] -  indices[idxX];
+            });
         }
 
         protected void RenderChildrenTree(UIBaseWindow window, int idIncrement = 0, bool generatedWindow = false)

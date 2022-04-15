@@ -7,9 +7,11 @@ using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Platform.Input;
+using Emotion.Primitives;
 using Emotion.Standard.TMX.Layer;
 using Emotion.Tools.Windows.HelpWindows;
 using Emotion.UI;
+using Emotion.Utility;
 using ImGuiNET;
 
 #endregion
@@ -37,7 +39,7 @@ namespace Emotion.Tools.Editors.MapEditor
             base.AttachedToController(controller);
 
             _previousCamera = Engine.Renderer.Camera;
-            Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
+            Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
         }
 
         public override void DetachedFromController(UIController controller)
@@ -49,13 +51,25 @@ namespace Emotion.Tools.Editors.MapEditor
 
         protected override bool UpdateInternal()
         {
-            var speed = 0.5f;
+            var speed = 0.15f;
             Vector2 dir = Vector2.Zero;
             if (Engine.Host.IsKeyHeld(Key.W)) dir.Y -= 1;
             if (Engine.Host.IsKeyHeld(Key.A)) dir.X -= 1;
             if (Engine.Host.IsKeyHeld(Key.S)) dir.Y += 1;
             if (Engine.Host.IsKeyHeld(Key.D)) dir.X += 1;
             if (Engine.Host.IsKeyHeld(Key.LeftControl)) speed *= 2;
+
+            float zoom = Engine.Renderer.Camera.Zoom;
+            if (Engine.Host.GetMouseScrollRelative() < 0)
+            {
+                zoom += 0.3f;
+            }
+            else if(Engine.Host.GetMouseScrollRelative() > 0)
+            {
+                zoom -= 0.3f;
+            }
+
+            Engine.Renderer.Camera.Zoom = Maths.Clamp(zoom, 0.1f, 5f);
 
             dir *= new Vector2(speed * Engine.DeltaTime, speed * Engine.DeltaTime);
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
@@ -154,6 +168,12 @@ namespace Emotion.Tools.Editors.MapEditor
                 Parent?.RemoveChild(this);
                 return false;
             }
+
+            EditorHelpers.RenderToolGrid(c, Position, Size, new Color(32, 32, 32), 20);
+
+            Vector2 posVec2 = Position.ToVec2();
+            c.RenderLine(posVec2 + new Vector2(Size.X / 2, 0), posVec2 + new Vector2(Size.X / 2, Size.Y), Color.White * 0.7f);
+            c.RenderLine(posVec2 + new Vector2(0, Size.Y / 2), posVec2 + new Vector2(Size.X, Size.Y / 2), Color.White * 0.7f);
 
             c.SetUseViewMatrix(true);
             _map?.Render(c);
