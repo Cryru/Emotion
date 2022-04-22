@@ -251,5 +251,34 @@ namespace Emotion.Tools.Editors
             ImGui.SetCursorPosX((windowWidth - textWidth) * 0.5f);
             ImGui.Text(text);
         }
+
+        protected static int DragAndDropList<T>(T[] list, int draggedState)
+        {
+            for (var i = 0; i < list.Length; i++)
+            {
+                T item = list[i];
+                if (item == null) continue;
+
+                ImGui.Button(item.ToString());
+
+                if (ImGui.BeginDragDropSource())
+                {
+                    draggedState = i;
+                    ImGui.SetDragDropPayload("UNUSED", IntPtr.Zero, 0);
+                    ImGui.EndDragDropSource();
+                }
+
+                if (ImGui.BeginDragDropTarget())
+                {
+                    ImGui.AcceptDragDropPayload("UNUSED");
+                    int idxDragged = draggedState;
+                    (list[idxDragged], list[i]) = (list[i], list[idxDragged]);
+                    draggedState = -1;
+                    ImGui.EndDragDropTarget();
+                }
+            }
+
+            return draggedState;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Tiled;
@@ -29,7 +30,6 @@ namespace Emotion.Tools.Editors.MapEditor
 
         public MapEditor() : base("Map Viewer")
         {
-
         }
 
         #region Editor Controls
@@ -61,13 +61,8 @@ namespace Emotion.Tools.Editors.MapEditor
 
             float zoom = Engine.Renderer.Camera.Zoom;
             if (Engine.Host.GetMouseScrollRelative() < 0)
-            {
                 zoom += 0.3f;
-            }
-            else if(Engine.Host.GetMouseScrollRelative() > 0)
-            {
-                zoom -= 0.3f;
-            }
+            else if (Engine.Host.GetMouseScrollRelative() > 0) zoom -= 0.3f;
 
             Engine.Renderer.Camera.Zoom = Maths.Clamp(zoom, 0.1f, 5f);
 
@@ -87,7 +82,7 @@ namespace Emotion.Tools.Editors.MapEditor
         {
             if (ImGui.Button("Open .tmx"))
             {
-                var explorer = new FileExplorer<TextAsset>((file) =>
+                var explorer = new FileExplorer<TextAsset>(file =>
                 {
                     _map = new TileMap(file);
                     _selectedLayer = 0;
@@ -98,7 +93,6 @@ namespace Emotion.Tools.Editors.MapEditor
 
         protected override bool OnFileLoaded(XMLAsset<TextAsset> file)
         {
-           
             return true;
         }
 
@@ -111,7 +105,7 @@ namespace Emotion.Tools.Editors.MapEditor
 
         #region Layer UI
 
-        private int _selectedLayer = 0;
+        private int _selectedLayer;
 
         private void RenderLayerUI(RenderComposer c)
         {
