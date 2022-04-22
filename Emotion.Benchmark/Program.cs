@@ -4,76 +4,111 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using Emotion.Audio;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.IO;
-using Emotion.Platform.Implementation.Null;
 using Emotion.Utility;
+using Tests.Classes;
 
 #endregion
 
-BenchmarkRunner.Run<Benchmarks>();
-
-//var benchmark = new Benchmarks();
-//benchmark.GlobalSetup();
-//benchmark.Atlas();
-
-[MemoryDiagnoser]
-public class Benchmarks
+namespace Emotion.Benchmark
 {
-    private AudioAsset? _asset;
-    private NullAudioLayer? _layer;
-
-    private TextureAsset? _textureOne;
-    private TextureAsset? _textureTwo;
-    private TextureAtlas? _atlas;
-    private int _atlasMemorySize;
-    private IntPtr _atlasMemory;
-
-    [GlobalSetup]
-    public void GlobalSetup()
+    [MemoryDiagnoser]
+    public class Benchmarks
     {
-        Engine.Setup();
-        _asset = Engine.AssetLoader.Get<AudioAsset>("Audio/pepsi.wav");
-        _layer = new NullAudioLayer("Benchmark");
-        _layer.PlayNext(new AudioTrack(_asset)
+        private AudioTests.TestAudioContext.TestAudioLayer? _layer;
+        private AudioAsset? _asset;
+
+        private TextureAsset? _textureOne;
+        private TextureAsset? _textureTwo;
+        private TextureAtlas? _atlas;
+        private int _atlasMemorySize;
+        private IntPtr _atlasMemory;
+
+        [GlobalSetup]
+        public void GlobalSetup()
         {
-            SetLoopingCurrent = true
-        });
-        _layer.AdvanceTime(1); // To create test array.
+            Engine.Setup();
+            _asset = Engine.AssetLoader.Get<AudioAsset>("Audio/pepsi.wav");
+            var testAudio = new AudioTests.TestAudioContext();
+            _layer = (AudioTests.TestAudioContext.TestAudioLayer) testAudio.CreateLayer("Benchmark");
+            _layer.PlayNext(new AudioTrack(_asset)
+            {
+                SetLoopingCurrent = true
+            });
+            _layer.ProcessAhead(1); // To create test array.
 
-        _textureOne = Engine.AssetLoader.Get<TextureAsset>("logoAlpha.png");
-        _textureTwo = Engine.AssetLoader.Get<TextureAsset>("logoAsymmetric.png");
-        _atlas = new TextureAtlas(false, 1);
-        _atlas.TryBatchTexture(_textureOne?.Texture);
-        _atlas.TryBatchTexture(_textureTwo?.Texture);
+            _textureOne = Engine.AssetLoader.Get<TextureAsset>("logoAlpha.png");
+            _textureTwo = Engine.AssetLoader.Get<TextureAsset>("logoAsymmetric.png");
+            _atlas = new TextureAtlas(false, 1);
+            _atlas.TryBatchTexture(_textureOne?.Texture);
+            _atlas.TryBatchTexture(_textureTwo?.Texture);
 
-        _atlasMemorySize = VertexData.SizeInBytes * 1024;
-        _atlasMemory = UnmanagedMemoryAllocator.MemAlloc(_atlasMemorySize);
+            _atlasMemorySize = VertexData.SizeInBytes * 1024;
+            _atlasMemory = UnmanagedMemoryAllocator.MemAlloc(_atlasMemorySize);
 
-        _atlas.Update(Engine.Renderer);
-    }
-
-    [Benchmark]
-    public void AudioResample()
-    {
-        _layer?.AdvanceTime(1);
-    }
-
-    [Benchmark]
-    public void Atlas()
-    {
-        if (_atlas == null) return;
-
-        var toStruct = 0;
-        for (var i = 0; i < 256; i += 2)
-        {
-            toStruct += 4;
-            _atlas.RecordTextureMapping(_textureOne?.Texture, toStruct);
-            toStruct += 4;
-            _atlas.RecordTextureMapping(_textureTwo?.Texture, toStruct);
+            _atlas.Update(Engine.Renderer);
         }
 
-        _atlas.RemapBatchUVs(_atlasMemory, (uint) _atlasMemorySize, (uint) VertexData.SizeInBytes, 12);
+        [Benchmark]
+        public void AudioResample()
+        {
+            _layer?.ProcessAhead(1);
+        }
+
+        [Benchmark]
+        public void Atlas()
+        {
+            if (_atlas == null) return;
+
+            var toStruct = 0;
+            for (var i = 0; i < 256; i += 2)
+            {
+                toStruct += 4;
+                _atlas.RecordTextureMapping(_textureOne?.Texture, toStruct);
+                toStruct += 4;
+                _atlas.RecordTextureMapping(_textureTwo?.Texture, toStruct);
+            }
+
+            _atlas.RemapBatchUVs(_atlasMemory, (uint) _atlasMemorySize, (uint) VertexData.SizeInBytes, 12);
+        }
+
+        private int DoWork(string a, string b, string c)
+        {
+            a = a + b + c;
+            return a.Length;
+        }
+
+        [Benchmark]
+        public void ThreadInvocationScheduleOld()
+        {
+            var resp = 0;
+            GLThread.ExecuteGLThread(() =>
+            {
+                resp = DoWork("adsad", "gegwe", "hhrhr");
+            });
+            if (resp != 15) throw new Exception("whaa");
+        }
+
+        [Benchmark]
+        public void ThreadInvocationScheduleNew()
+        {
+            int resp = GLThread.ExecuteGLThread(DoWork, "adsad", "gegwe", "hhrhr");
+            if (resp != 15) throw new Exception("whaa");
+        }
+    }
+
+    public class Program
+    {
+        public static void Main()
+        {
+            BenchmarkRunner.Run<Benchmarks>();
+
+            //var benchmark = new Benchmarks();
+            //benchmark.GlobalSetup();
+            //benchmark.Atlas();
+        }
     }
 }
