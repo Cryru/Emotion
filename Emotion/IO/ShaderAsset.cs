@@ -158,12 +158,11 @@ namespace Emotion.IO
 
             // Create the shader, or at least try to.
             PerfProfiler.ProfilerEventStart("Compilation", "Loading");
-            ShaderProgram compiledProgram = null;
-            GLThread.ExecuteGLThread(() => { compiledProgram = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content, compileConstant); });
+            ShaderProgram compiledProgram = GLThread.ExecuteGLThread(ShaderFactory.CreateShader, vertShader.Content, fragShader.Content, compileConstant);
             PerfProfiler.ProfilerEventEnd("Compilation", "Loading");
 
             // Reloading shader. Keep reference of current object, substitute OpenGL pointer only.
-            if (Shader != null) 
+            if (Shader != null)
             {
                 // This shader must have been disposed first, otherwise we'll leak memory.
                 Debug.Assert(Shader.Pointer == 0 || IsFallback);
