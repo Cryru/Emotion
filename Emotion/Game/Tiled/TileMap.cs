@@ -78,7 +78,7 @@ namespace Emotion.Game.Tiled
             // Construct all objects.
             if (TiledMap!.ObjectLayers.Count > 0)
             {
-                if(SpawnedObjectLayers == null || SpawnedObjectLayers.Length != TiledMap.ObjectLayers.Count)
+                if (SpawnedObjectLayers == null || SpawnedObjectLayers.Length != TiledMap.ObjectLayers.Count)
                     SpawnedObjectLayers = new bool[TiledMap.ObjectLayers.Count];
 
                 // For each layer with objects.
@@ -89,6 +89,7 @@ namespace Emotion.Game.Tiled
                         SpawnedObjectLayers[i] = false;
                         continue;
                     }
+
                     SpawnedObjectLayers[i] = true;
 
                     // For each object.
@@ -794,6 +795,15 @@ namespace Emotion.Game.Tiled
             var top = (int) Math.Max(0, (location.Y - Y) / (TiledMap.TileHeight * Size.Y));
 
             return new Vector2(left, top);
+        }
+
+        /// <summary>
+        /// Returns whether a 2D tile coordinate falls within the map.
+        /// </summary>
+        public bool IsCoordinateInMap(Vector2 coord)
+        {
+            if (TiledMap == null) return false;
+            return coord.X > 0 && coord.Y > 0 && coord.X < TiledMap.Width && coord.Y < TiledMap.Height;
         }
 
         /// <summary>
