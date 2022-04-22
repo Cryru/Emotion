@@ -82,5 +82,43 @@ namespace Emotion.Common.Threading
         }
 
         #endregion
+
+        #region New API
+
+        /// <summary>
+        /// Execute the action on the GL thread and get its result. Will block the current thread until ready.
+        /// </summary>
+        public static T ExecuteGLThread<T>(Func<T> action)
+        {
+            return _threadManager.ExecuteOnThread(action);
+        }
+
+        /// <summary>
+        /// Execute the action on the GL thread without blocking.
+        /// </summary>
+        public static void ExecuteOnGLThreadAsync<T1>(Action<T1> action, T1 arg1)
+        {
+            _threadManager.ExecuteOnThreadAsync(action, arg1);
+        }
+
+        /// <inheritdoc cref="ExecuteGLThread{T}(Func{T})" />
+        public static T ExecuteGLThread<T, T1>(Func<T1, T> action, T1 arg1)
+        {
+            return _threadManager.ExecuteOnThread(action, arg1);
+        }
+
+        /// <inheritdoc cref="ExecuteGLThread{T}(Func{T})" />
+        public static T ExecuteGLThread<T, T1, T2>(Func<T1, T2, T> action, T1 arg1, T2 arg2)
+        {
+            return _threadManager.ExecuteOnThread(action, arg1, arg2);
+        }
+
+        /// <inheritdoc cref="ExecuteGLThread{T}(Func{T})" />
+        public static T ExecuteGLThread<T, T1, T2, T3>(Func<T1, T2, T3, T> action, T1 arg1, T2 arg2, T3 arg3)
+        {
+            return _threadManager.ExecuteOnThread(action, arg1, arg2, arg3);
+        }
+
+        #endregion
     }
 }

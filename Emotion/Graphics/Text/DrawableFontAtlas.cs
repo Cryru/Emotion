@@ -110,7 +110,6 @@ namespace Emotion.Graphics.Text
         public float FontHeight { get; set; }
 
         private bool _smooth;
-        private bool _pixelFont;
 
         /// <summary>
         /// Upload a font atlas texture to the gpu. Also holds a reference to the atlas itself
@@ -128,9 +127,8 @@ namespace Emotion.Graphics.Text
             Font = font;
             FontSize = fontSize;
             _smooth = smooth;
-            _pixelFont = pixelFont;
 
-            if (_pixelFont)
+            if (pixelFont)
             {
                 // Scale to closest power of two.
                 float fontHeight = Font.Height;
@@ -153,7 +151,7 @@ namespace Emotion.Graphics.Text
             float scale = FontSize / Font.UnitsPerEm;
             FontHeight = MathF.Ceiling(Font.Height * scale);
             RenderScale = scale;
-            RenderedWith = _pixelFont ? GlyphRasterizer.StbTrueType : Rasterizer;
+            RenderedWith = pixelFont ? GlyphRasterizer.StbTrueType : Rasterizer;
         }
 
         // Serialization constructor (for debugging)
@@ -190,8 +188,7 @@ namespace Emotion.Graphics.Text
                 renderGlyphs.Add(atlasGlyph);
             }
 
-            if (renderGlyphs != null)
-                GLThread.ExecuteGLThreadAsync(() => { QueueGlyphRender(renderGlyphs); });
+            if (renderGlyphs != null) GLThread.ExecuteOnGLThreadAsync(QueueGlyphRender, renderGlyphs);
         }
 
         /// <summary>

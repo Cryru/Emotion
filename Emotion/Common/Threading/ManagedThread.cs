@@ -45,6 +45,8 @@ namespace Emotion.Common.Threading
         /// </summary>
         private ConcurrentQueue<EmAction> _queue = new ConcurrentQueue<EmAction>();
 
+        private ConcurrentQueue<ManagedThreadInvocationBase> _invocationQueue = new ConcurrentQueue<ManagedThreadInvocationBase>();
+
         /// <summary>
         /// Initiate a thread manager.
         /// </summary>
@@ -72,11 +74,18 @@ namespace Emotion.Common.Threading
             // Check if on the managed thread.
             if (!IsManagedThread()) throw new Exception($"The {ThreadName} thread has changed.");
 
+            // Run old actions queue.
             while (!_queue.IsEmpty)
             {
                 bool dequeued = _queue.TryDequeue(out EmAction task);
                 if (dequeued) task.Run();
-                else _queue.Enqueue(task);
+            }
+
+            // Run new actions queue.
+            while (!_invocationQueue.IsEmpty)
+            {
+                bool dequeued = _invocationQueue.TryDequeue(out ManagedThreadInvocationBase task);
+                if (dequeued) task.Run();
             }
         }
 
@@ -90,6 +99,18 @@ namespace Emotion.Common.Threading
         {
             return Thread.CurrentThread.ManagedThreadId == _threadId;
         }
+
+        /// <summary>
+        /// Check whether the executing thread is the managed thread. If it isn't, an exception is thrown.
+        /// </summary>
+        public void IsThreadOrError()
+        {
+            if (!IsManagedThread()) throw new Exception($"Not currently executing on the {ThreadName} thread.");
+        }
+
+        #endregion
+
+        #region Old Execution API
 
         /// <summary>
         /// Execute the action on the managed thread. Will block the current thread until ready.
@@ -112,12 +133,74 @@ namespace Emotion.Common.Threading
             return completionTask;
         }
 
+        #endregion
+
+        #region New Execution API
+
         /// <summary>
-        /// Check whether the executing thread is the managed thread. If it isn't, an exception is thrown.
+        /// Execute a function on the managed thread, and get its result.
         /// </summary>
-        public void IsThreadOrError()
+        public T ExecuteOnThread<T>(Func<T> action)
         {
-            if (!IsManagedThread()) throw new Exception($"Not currently executing on the {ThreadName} thread.");
+            // Run straight away if on the managed thread.
+            if (IsManagedThread()) return action();
+
+            var invocation = new ManagedThreadInvocationResult<T>(action);
+            _invocationQueue.Enqueue(invocation);
+            invocation.Wait();
+            return invocation.Result;
+        }
+
+        /// <summary>
+        /// Execute a function on the managed thread without blocking.
+        /// </summary>
+        public void ExecuteOnThreadAsync<T>(Action<T> action, T arg1)
+        {
+            // Run straight away if on the managed thread.
+            if (IsManagedThread())
+            {
+                action(arg1);
+                return;
+            }
+
+            var invocation = new ManagedThreadInvocation<T>(action, arg1);
+            _invocationQueue.Enqueue(invocation);
+        }
+
+        /// <inheritdoc cref="ExecuteOnThread{T}(Func{T})" />
+        public T ExecuteOnThread<T, T1>(Func<T1, T> action, T1 arg1)
+        {
+            // Run straight away if on the managed thread.
+            if (IsManagedThread()) return action(arg1);
+
+            var invocation = new ManagedThreadInvocationResult<T, T1>(action, arg1);
+            _invocationQueue.Enqueue(invocation);
+            invocation.Wait();
+            return invocation.Result;
+        }
+
+        /// <inheritdoc cref="ExecuteOnThread{T}(Func{T})" />
+        public T ExecuteOnThread<T, T1, T2>(Func<T1, T2, T> action, T1 arg1, T2 arg2)
+        {
+            // Run straight away if on the managed thread.
+            if (IsManagedThread()) return action(arg1, arg2);
+
+            var invocation = new ManagedThreadInvocationResult<T, T1, T2>(action, arg1, arg2);
+            _invocationQueue.Enqueue(invocation);
+            invocation.Wait();
+            return invocation.Result;
+        }
+
+        /// <inheritdoc cref="ExecuteOnThread{T}(Func{T})" />
+        public T ExecuteOnThread<T, T1, T2, T3>(Func<T1, T2, T3, T> action, T1 arg1, T2 arg2, T3 arg3)
+        {
+            // Run straight away if on the managed thread.
+            if (IsManagedThread()) return action(arg1, arg2, arg3);
+
+            var invocation = new ManagedThreadInvocationResult<T, T1, T2, T3>(action, arg1, arg2, arg3);
+            _invocationQueue.Enqueue(invocation);
+            invocation.Wait();
+            return invocation.Result;
         }
 
         #endregion
