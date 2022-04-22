@@ -26,8 +26,8 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         private static (string name, Func<string[], string[]> func)[] _shaderConfigurations =
         {
-            ("default", s => s),
-            ("AttribLocationExtension", s => ExcludeEs(AddExtensionConstant(s, "GL_ARB_explicit_attrib_location"))),
+            ("default", DefaultCompilation),
+            ("AttribLocationExtension", ExplicitAttribCompilation),
         };
 
         /// <summary>
@@ -40,9 +40,15 @@ namespace Emotion.Graphics.Shading
 
             var vert = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
             var frag = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
+            if (vert == null || frag == null)
+            {
+                Engine.CriticalError(new Exception("Couldn't find default shader code."));
+                return null;
+            }
 
             Engine.Log.Info("Creating default shader...", MessageSource.Renderer);
             DefaultProgram = CreateShader(vert.Content, frag.Content);
+            if (DefaultProgram == null) Engine.CriticalError(new Exception("Couldn't compile default shader."));
             return DefaultProgram;
         }
 
@@ -51,106 +57,99 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="vertShaderSource">The source code of the vertex shader.</param>
         /// <param name="fragShaderSource">The source code of the fragment shader.</param>
+        /// <param name="compileConstant">Additional shader compilation constants</param>
         /// <returns>A compiled and linked shader program.</returns>
-        public static ShaderProgram CreateShader(string vertShaderSource, string fragShaderSource)
+        public static ShaderProgram CreateShader(string vertShaderSource, string fragShaderSource, string compileConstant = null)
         {
-            var uniformDefaults = new List<ShaderUniform>();
+            List<ShaderUniform> uniformDefaults = null;
+            if (Gl.CurrentShadingVersion.GLES) uniformDefaults = new List<ShaderUniform>();
+
+            // Normalize new lines, and split into line array.
+            string[] preprocessedVert = Helpers.NormalizeNewLines(vertShaderSource).Split("\n");
+            // Preprocess the shader, adding version and other supporting code.
+            preprocessedVert = Preprocess(preprocessedVert, uniformDefaults, compileConstant);
+            if (Engine.Configuration.DebugMode) WarningsCheck(preprocessedVert);
 
             uint vertShader = Gl.CreateShader(ShaderType.VertexShader);
-            bool vertCompiled = TryCompile(vertShaderSource, vertShader, out string configVert, uniformDefaults);
+            bool vertCompiled = TryCompile(preprocessedVert, vertShader);
             if (!vertCompiled) Engine.Log.Warning("Vert shader compilation failed.", MessageSource.Renderer);
 
+            // Repeat for fragment shader.
+            string[] preprocessedFrag = Helpers.NormalizeNewLines(fragShaderSource).Split("\n");
+            preprocessedFrag = Preprocess(preprocessedFrag, uniformDefaults, compileConstant);
+            if (Engine.Configuration.DebugMode) WarningsCheck(preprocessedFrag);
+
             uint fragShader = Gl.CreateShader(ShaderType.FragmentShader);
-            bool fragCompiled = TryCompile(fragShaderSource, fragShader, out string configFrag, uniformDefaults);
+            bool fragCompiled = TryCompile(preprocessedFrag, fragShader);
             if (!fragCompiled) Engine.Log.Warning("Frag shader compilation failed.", MessageSource.Renderer);
 
             // Try to compile with shader configurations.
             if (!vertCompiled || !fragCompiled)
             {
-                if (DefaultProgram != null) return null;
-                Engine.Log.Warning("Couldn't compile default shader.", MessageSource.Renderer);
+                Gl.DeleteShader(vertShader);
+                Gl.DeleteShader(fragShader);
                 return null;
             }
 
-            // Link into a program.
-            var newShader = new ShaderProgram(vertShader, fragShader)
-            {
-                CompiledConfig = $"v:{configVert}, f:{configFrag}"
-            };
-
-            // Add source if in debug mode.
+            // Link into a program and add meta data in debug mode.
+            var newShader = ShaderProgram.CreateFromShaders(vertShader, fragShader);
             if (Engine.Configuration.DebugMode)
             {
                 newShader.DebugFragSource = fragShaderSource;
                 newShader.DebugVertSource = vertShaderSource;
             }
 
-            // Check if the program is valid.
-            if (newShader.Valid)
-            {
-                // Apply shader default uniforms. This requires binding, so save last binding.
-                uint previouslyBound = ShaderProgram.Bound;
-                ShaderProgram.EnsureBound(newShader.Pointer);
-                newShader.SetUniformInt("mainTexture", 0);
-                newShader.SetUniformFloat("iTime", 0);
+            // Once the shaders are compiled into a program it is save to clean them up.
+            // One might think that it's a good idea to reuse them, especially those
+            // which can be used as fallbacks, but some drivers prevent them
+            // from being reused once compiled.
+            Gl.DeleteShader(vertShader);
+            Gl.DeleteShader(fragShader);
 
-                // Apply shader defaults parsed from the code.
-                // This is needed for GLES as it doesn't supported inlined default values.
+            // Check if the program compiled successfully.
+            if (!newShader.Valid) return null;
+
+            // Apply shader default uniforms. This requires binding, so save last binding.
+            uint previouslyBound = ShaderProgram.Bound;
+            ShaderProgram.EnsureBound(newShader.Pointer);
+            newShader.SetUniformInt("mainTexture", 0);
+            newShader.SetUniformFloat("iTime", 0);
+
+            // Apply shader defaults that were found inlined in the code.
+            // This is needed for GLES as it doesn't supported inlined default values.
+            if (uniformDefaults != null)
                 for (var i = 0; i < uniformDefaults.Count; i++)
                 {
                     ShaderUniform uniDefault = uniformDefaults[i];
                     uniDefault.ApplySelf(newShader);
                 }
 
-                ShaderProgram.EnsureBound(previouslyBound);
-                Engine.Log.Info($"Compiled and linked shader, with config - {newShader.CompiledConfig}.", MessageSource.Renderer);
-                return newShader;
-            }
-
-            if (DefaultProgram == null)
-            {
-                Engine.Log.Warning("Couldn't link default shader program.", MessageSource.Renderer);
-                return null;
-            }
-
-            Engine.Log.Warning("Couldn't link shader program - falling back to default.", MessageSource.Renderer);
-            return DefaultProgram;
+            ShaderProgram.EnsureBound(previouslyBound);
+            return newShader;
         }
 
         /// <summary>
         /// Attempt to compile the shader with all configurations.
         /// </summary>
-        /// <param name="source">The shader source.</param>
+        /// <param name="preProcSrc">The shader source.</param>
         /// <param name="shaderId">The OpenGL object id for the shader.</param>
-        /// <param name="config">The configuration the shader successfully compiled with.</param>
-        /// <param name="uniformDefaults">List to fill with default uniform values.</param>
         /// <returns>Whether the shader compiled successfully.</returns>
-        private static bool TryCompile(string source, uint shaderId, out string config, List<ShaderUniform> uniformDefaults = null)
+        private static bool TryCompile(string[] preProcSrc, uint shaderId)
         {
-            // Add two new lines (for the define and for the version tag), normalize new lines, and split by line.
-            string[] preprocessed = Helpers.NormalizeNewLines(source).Split("\n");
-
-            // Add version tag and preprocess the source.
-            preprocessed = Preprocess(preprocessed, uniformDefaults);
-
-            if (Engine.Configuration.DebugMode) WarningsCheck(preprocessed);
-
             // Find a configuration which will compile the shader.
             for (var i = 0; i < _shaderConfigurations.Length; i++)
             {
                 (string name, Func<string[], string[]> func) configuration = _shaderConfigurations[i];
 
                 // Apply configuration.
-                var attempt = new string[preprocessed.Length];
-                Array.Copy(preprocessed, 0, attempt, 0, preprocessed.Length);
-                attempt = configuration.func(attempt);
-                if (attempt == null)
+                // Note: This will modify the preprocessed source.
+                if (configuration.func(preProcSrc) == null)
                 {
                     Engine.Log.Trace($"Config {configuration.name} skipped.", MessageSource.Renderer);
                     continue;
                 }
 
-                Gl.ShaderSource(shaderId, attempt);
+                Gl.ShaderSource(shaderId, preProcSrc);
                 Gl.CompileShader(shaderId);
 
                 // Check if there's a log to print.
@@ -162,7 +161,7 @@ namespace Emotion.Graphics.Shading
                     Gl.GetShaderInfoLog(shaderId, lLength, out int _, compileStatusReader);
                     var compileStatus = compileStatusReader.ToString();
                     Engine.Log.Warning($"Couldn't compile shader: {compileStatus}", MessageSource.GL);
-                    Engine.Log.Trace(string.Join("", attempt), MessageSource.ShaderSource);
+                    Engine.Log.Trace(string.Join("", preProcSrc), MessageSource.ShaderSource);
                 }
 
                 // Check if the shader compiled successfully, if not 0 is returned.
@@ -173,8 +172,6 @@ namespace Emotion.Graphics.Shading
                     continue;
                 }
 
-                config = configuration.name;
-
                 // Swap the first configuration with the one which worked. This will speed up future compilations
                 // as a known working one will be tried first. You generally don't want to have a configuration which
                 // only works on some of your shaders, but rather polyfill for different hardware support.
@@ -182,11 +179,10 @@ namespace Emotion.Graphics.Shading
                 return true;
             }
 
-            config = "invalid";
             return false;
         }
 
-        private static Regex _uniformDefaultsDetect = new Regex("uniform ([\\S| ]+?) ([\\S| ]+?)(=)([\\S| ]+?)(;)");
+        private static Regex _uniformDefaultsDetect = new Regex("uniform ([\\S| ]+?) ([\\S| ]+?)(=)([\\S| ]+?)(;)", RegexOptions.Compiled);
 
         /// <summary>
         /// Inserts the version string, removes any user inputted version strings.
@@ -195,21 +191,27 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="source">The shader source code.</param>
         /// <param name="uniformDefaults">The list to fill with found shader defaults when running under GLES</param>
+        /// <param name="compileConstant">Compilation constant to add.</param>
         /// <returns>The preprocessed shader code.</returns>
-        private static string[] Preprocess(IEnumerable<string> source, List<ShaderUniform> uniformDefaults = null)
+        private static string[] Preprocess(string[] source, List<ShaderUniform> uniformDefaults = null, string compileConstant = null)
         {
             bool es = Gl.CurrentShadingVersion.GLES;
-            var code = new List<string>(source)
-            {
-                // Version string is required.
-                [0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n"
-            };
+            var code = new List<string>(source);
+            if (code.Count == 0 || string.IsNullOrEmpty(code[0])) return null;
+
+            // Version string is required to be first.
+            code[0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n";
 
             // GLES support
-            code.Insert(2, "#ifdef GL_ES\n");
-            code.Insert(3, "precision highp float;\n");
-            code.Insert(4, "#endif\n");
-            code.Insert(5, "#line 2\n");
+            code.Insert(1, "#ifdef GL_ES\n");
+            code.Insert(2, "precision highp float;\n");
+            code.Insert(3, "#endif\n");
+
+            // Add user defined compilation constant.
+            if (compileConstant != null) code.Insert(4, $"#define {compileConstant} 1\n");
+
+            // Reset line counter to get errors on the right lines relative to the file.
+            code.Insert(5, $"#line {(compileConstant == null ? 3 : 2)}\n");
 
             var dependencyIdx = 1;
             for (var i = 6; i < code.Count; i++)
@@ -220,7 +222,7 @@ namespace Emotion.Graphics.Shading
 
                 // Uniform defaults are not allowed in ES.
                 // Find them and extract them.
-                if (es)
+                if (uniformDefaults != null)
                 {
                     Match match = _uniformDefaultsDetect.Match(code[i]);
                     while (match.Success && match.Groups.Count > 4)
@@ -230,7 +232,7 @@ namespace Emotion.Graphics.Shading
                         string value = match.Groups[4].Value.Trim();
                         code[i] = _uniformDefaultsDetect.Replace(code[i], $"uniform {uniformType} {uniformName};", 1);
                         match = _uniformDefaultsDetect.Match(code[i]);
-                        uniformDefaults?.Add(new ShaderUniform(uniformName, uniformType, value));
+                        uniformDefaults.Add(new ShaderUniform(uniformName, uniformType, value));
                     }
                 }
 
@@ -248,7 +250,7 @@ namespace Emotion.Graphics.Shading
                     dependencyIdx++;
                 }
 
-                // Old using
+                // Legacy using statements
                 if (code[i].StartsWith("//GetTextureColor"))
                 {
                     code[i] = $"#line 0 {dependencyIdx} // Legacy Import GetTextureColor\n{ResolveShaderDependency("Shaders/GetTextureColor.c")}\n// End";
@@ -313,27 +315,19 @@ namespace Emotion.Graphics.Shading
 
         #region Shader Configurations
 
-        private static string[] AddPreprocessorConstant(string[] source, string constant)
+        private static string[] DefaultCompilation(string[] src)
         {
-            source[0] = $"{source[0]}#define {constant} 1\n";
-            return source;
-        }
-
-        private static string[] AddExtensionConstant(string[] source, string extension)
-        {
-            source[0] = $"{source[0]}#extension {extension} : require\n";
-            return source;
+            return src;
         }
 
         /// <summary>
-        /// Exclude shader configuration on OpenGL ES.
+        /// Really old GPUs might require this.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        private static string[] ExcludeEs(string[] source)
+        private static string[] ExplicitAttribCompilation(string[] src)
         {
-            if (source == null || Gl.CurrentVersion.GLES) return null;
-            return source;
+            if (src == null || Gl.CurrentVersion.GLES) return null;
+            src[0] = $"{src[0]}#extension GL_ARB_explicit_attrib_location : require\n";
+            return src;
         }
 
         #endregion

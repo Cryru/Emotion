@@ -52,6 +52,11 @@ namespace Emotion.IO
         public string FallbackName { get; set; }
 
         /// <summary>
+        /// The compilation constant used, if this asset is a shader variation.
+        /// </summary>
+        public string CompilationConstant { get; set; }
+
+        /// <summary>
         /// The actual shader compiled from this asset.
         /// </summary>
         public ShaderProgram Shader { get; protected set; }
@@ -92,7 +97,7 @@ namespace Emotion.IO
         {
             Engine.Log.Warning($"Reloading shader {Name}...", MessageSource.Debug);
             DisposeInternal();
-            Compile();
+            Compile(CompilationConstant);
         }
 
         #endregion
@@ -106,7 +111,24 @@ namespace Emotion.IO
             Compile();
         }
 
-        private void Compile()
+        /// <summary>
+        /// Create a shader variation by compiling it with a specified compile constant
+        /// constant. The asset created by this function isn't managed by the AssetLoader.
+        /// </summary>
+        /// <returns></returns>
+        public ShaderAsset GetShaderVariation(string compileConstant)
+        {
+            var newAsset = new ShaderAsset
+            {
+                Content = Content,
+                Name = $"{Name} #{compileConstant}"
+            };
+            newAsset.Compile(compileConstant);
+            newAsset.CompilationConstant = compileConstant;
+            return newAsset;
+        }
+
+        private void Compile(string compileConstant = null)
         {
             // Get the text contents of the shader files referenced. If any of them are missing substitute with the default one.
             string assetDirectory = AssetLoader.GetDirectoryName(Name);
@@ -131,57 +153,61 @@ namespace Emotion.IO
 
             fragShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
 
-            Engine.Log.Info($"Creating shader - v:{vertShader!.Name}, f:{fragShader!.Name}", MessageSource.AssetLoader);
+            var shaderLogName = $"v:{vertShader!.Name}, f:{fragShader!.Name} {compileConstant}";
+            Engine.Log.Info($"Creating shader {shaderLogName}...", MessageSource.AssetLoader);
 
             // Create the shader, or at least try to.
             PerfProfiler.ProfilerEventStart("Compilation", "Loading");
-            GLThread.ExecuteGLThread(() =>
-            {
-                ShaderProgram newShader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content);
-                if (Shader != null) // Reloading shader. Keep reference of current object, substitute OpenGL pointer only.
-                {
-                    // This shader must have been disposed first, otherwise we'll leak memory.
-                    Debug.Assert(Shader.Pointer == 0 || IsFallback);
-                    Shader.CopyFrom(newShader);
-                }
-                else
-                {
-                    Shader = newShader;
-                }
-            });
+            ShaderProgram compiledProgram = null;
+            GLThread.ExecuteGLThread(() => { compiledProgram = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content, compileConstant); });
             PerfProfiler.ProfilerEventEnd("Compilation", "Loading");
 
-            // Check if compilation was successful.
-            if (Shader != null && Shader.Valid) return;
+            // Reloading shader. Keep reference of current object, substitute OpenGL pointer only.
+            if (Shader != null) 
+            {
+                // This shader must have been disposed first, otherwise we'll leak memory.
+                Debug.Assert(Shader.Pointer == 0 || IsFallback);
+                Shader.CopyFrom(compiledProgram);
+            }
+            else
+            {
+                Shader = compiledProgram;
+            }
 
-            Engine.Log.Warning($"Shader {Name} creation failed. Falling back.", MessageSource.AssetLoader);
+            // Check if compilation was successful.
+            if (Shader != null && Shader.Valid)
+            {
+                IsFallback = false;
+                FallbackName = null;
+                Engine.Log.Info($"Compiled {shaderLogName}!", MessageSource.AssetLoader);
+                return;
+            }
+
+            Engine.Log.Warning($"Shader {Name} compilation failed. Falling back.", MessageSource.AssetLoader);
             IsFallback = true;
 
             // If there is no fallback, fallback to default.
             if (string.IsNullOrEmpty(Content.Fallback))
             {
                 Engine.Log.Warning("No fallback specified, falling back to default.", MessageSource.AssetLoader);
-                Shader ??= new ShaderProgram(0, 0);
-                Shader!.CopyFrom(ShaderFactory.DefaultProgram);
                 FallbackName = "Default";
+                Shader = ShaderProgram.CreateCopied(ShaderFactory.DefaultProgram);
                 return;
             }
 
             var fallBackShader = Engine.AssetLoader.Get<ShaderAsset>(Content.Fallback);
-            // If not found, fallback to default.
+            // If fallback not found, fallback to default.
             if (fallBackShader == null)
             {
                 Engine.Log.Warning($"Fallback {Content.Fallback} not found. Falling back to default.", MessageSource.AssetLoader);
-                Shader ??= new ShaderProgram(0, 0);
-                Shader!.CopyFrom(ShaderFactory.DefaultProgram);
                 FallbackName = "Default";
+                Shader = ShaderProgram.CreateCopied(ShaderFactory.DefaultProgram);
                 return;
             }
 
             Engine.Log.Warning($"Shader {Name} fell back to {Content.Fallback}.", MessageSource.AssetLoader);
             FallbackName = Content.Fallback;
-            Shader ??= new ShaderProgram(0, 0);
-            Shader!.CopyFrom(fallBackShader.Shader);
+            Shader = ShaderProgram.CreateCopied(fallBackShader.Shader);
         }
 
         protected override void DisposeInternal()

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 using Emotion.Common;
@@ -35,12 +36,6 @@ namespace Emotion.Graphics.Shading
         #region Debug
 
         /// <summary>
-        /// The configuration the shader program was built using.
-        /// For debugging purposes.
-        /// </summary>
-        public string CompiledConfig;
-
-        /// <summary>
         /// The source of the vertex shader the program was compiled with.
         /// Visible only when debug mode is enabled.
         /// </summary>
@@ -59,17 +54,17 @@ namespace Emotion.Graphics.Shading
         /// <summary>
         /// The location of vertices within the shader.
         /// </summary>
-        public readonly uint VertexLocation = 0;
+        public static readonly uint VertexLocation = 0;
 
         /// <summary>
         /// The location of the texture UV within the shader.
         /// </summary>
-        public readonly uint UvLocation = 1;
+        public static readonly uint UvLocation = 1;
 
         /// <summary>
         /// The location of the colors within the shader.
         /// </summary>
-        public readonly uint ColorLocation = 2;
+        public static readonly uint ColorLocation = 2;
 
         #endregion
 
@@ -78,36 +73,66 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         private Dictionary<string, int> _uniformLocationsMap = new Dictionary<string, int>();
 
-        public ShaderProgram(uint vertShader, uint fragShader)
+        protected ShaderProgram()
         {
-            if (vertShader == 0 || fragShader == 0) return;
+        }
 
-            Pointer = Gl.CreateProgram();
-            Gl.AttachShader(Pointer, vertShader);
-            Gl.AttachShader(Pointer, fragShader);
+        /// <summary>
+        /// Create a shader program by linking compiled shaders.
+        /// </summary>
+        /// <param name="vertShader">The vert shader to attach.</param>
+        /// <param name="fragShader">The frag shader to attach.</param>
+        /// <returns></returns>
+        public static ShaderProgram CreateFromShaders(uint vertShader, uint fragShader)
+        {
+            Debug.Assert(GLThread.IsGLThread());
+
+            uint pointer = Gl.CreateProgram();
+            Gl.AttachShader(pointer, vertShader);
+            Gl.AttachShader(pointer, fragShader);
 
             // Set default parameter locations.
-            Gl.BindAttribLocation(Pointer, VertexLocation, "vertPos");
-            Gl.BindAttribLocation(Pointer, UvLocation, "uv");
-            Gl.BindAttribLocation(Pointer, ColorLocation, "color");
+            Gl.BindAttribLocation(pointer, VertexLocation, "vertPos");
+            Gl.BindAttribLocation(pointer, UvLocation, "uv");
+            Gl.BindAttribLocation(pointer, ColorLocation, "color");
 
-            Gl.LinkProgram(Pointer);
-            if (Engine.Configuration.GlDebugMode) Gl.ValidateProgram(Pointer);
+            Gl.LinkProgram(pointer);
+            if (Engine.Configuration.GlDebugMode) Gl.ValidateProgram(pointer);
 
             // Check linking status.
             var programCompileStatusReader = new StringBuilder(1024);
-            Gl.GetProgramInfoLog(Pointer, 1024, out int length, programCompileStatusReader);
+            Gl.GetProgramInfoLog(pointer, 1024, out int length, programCompileStatusReader);
             if (length > 0)
             {
                 var programStatus = programCompileStatusReader.ToString(0, length);
-                if (programStatus != "") Engine.Log.Warning($"Log for linking shader {Pointer} is {programStatus}", MessageSource.GL);
+                if (programStatus != "") Engine.Log.Warning($"Log for linking shaders (v:{vertShader} f:{fragShader}) is {programStatus}", MessageSource.GL);
             }
 
-            Gl.GetProgram(Pointer, ProgramProperty.LinkStatus, out int state);
+            var valid = false;
+            Gl.GetProgram(pointer, ProgramProperty.LinkStatus, out int state);
             if (state == 0)
-                Engine.Log.Warning($"Couldn't link shader program {Pointer}.", MessageSource.GL);
+                Engine.Log.Warning($"Couldn't link shader program {pointer}.", MessageSource.GL);
             else
-                Valid = true;
+                valid = true;
+
+            var newProgram = new ShaderProgram
+            {
+                Pointer = pointer,
+                Valid = valid
+            };
+            return newProgram;
+        }
+
+        /// <summary>
+        /// Create a new instance that is a copy of another program.
+        /// This is used to prevent shaders which use fallbacks from using the same
+        /// reference, which we don't want because of reloading.
+        /// </summary>
+        public static ShaderProgram CreateCopied(ShaderProgram other)
+        {
+            var newProgram = new ShaderProgram();
+            newProgram.CopyFrom(other);
+            return newProgram;
         }
 
         #region Uniform Manipulation
