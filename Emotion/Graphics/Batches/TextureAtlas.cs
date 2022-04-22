@@ -54,18 +54,27 @@ namespace Emotion.Graphics.Batches
         protected Vector2 _texturesMarginVec;
         protected Vector2 _texturesMarginVec2;
 
-        protected static Vector2 _maxTextureBatchSize = new Vector2(1024); // Maybe % based of atlas size?
-        protected static Vector2 _atlasTextureSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing in some cases or something.
         protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
         protected TextureMapping _lastTextureMapping;
-
         protected static ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
 
         private static int _repackRate = 60 * 60; // How often to repack the atlas. (In frames) If two repacks pass without a texture being used, it will be ejected.
         private static int _usagesToPack; // How many texture usages are needed to add the texture to the pack. (In texture usages)
 
+        protected static Vector2 _maxTextureBatchSize;
+        protected static Vector2 _atlasTextureSize;
+
+        static TextureAtlas()
+        {
+            _atlasTextureSize = new Vector2(Gl.CurrentLimits.MaxTextureSize / 4f);
+            _maxTextureBatchSize = _atlasTextureSize / 2f;
+            Engine.Log.Trace($"Texture atlas textures will be of size {_atlasTextureSize}", MessageSource.Renderer);
+        }
+
         public TextureAtlas(bool smooth = false, int usagePackThreshold = 20) : base(_atlasTextureSize)
         {
+            Size = _atlasTextureSize;
+
             _usagesToPack = usagePackThreshold;
 
             _vbo = new VertexBuffer((uint) (VertexData.SizeInBytes * 8), BufferUsage.StaticDraw);
@@ -75,6 +84,7 @@ namespace Emotion.Graphics.Batches
             IndexBuffer.FillQuadIndices(quadIndices, 0);
             ibo.Upload(quadIndices);
             _vao = new VertexArrayObject<VertexData>(_vbo, ibo);
+
             _fbo = new FrameBuffer(_atlasTextureSize).WithColor();
             _fbo.CheckErrors();
             _firstDraw = true;
