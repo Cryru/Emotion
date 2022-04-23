@@ -2,9 +2,11 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.IO;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Tools.DevUI;
 using Emotion.Tools.Windows.HelpWindows;
 using ImGuiNET;
@@ -38,6 +40,15 @@ namespace Emotion.Tools.Editors
                     ImGui.Text($"File: {_currentFileName}");
                 else if (_currentAsset != null)
                     ImGui.Text("File: Unsaved File");
+
+                if (_currentFileName != null && Engine.Host is Win32Platform winPlat && ImGui.Button("Show File"))
+                {
+                    IAssetStore? store = Engine.AssetLoader.GetStore(_currentFileName);
+                    string folderRoot = store == null ? DebugAssetStore.AssetDevPath : store.Folder;
+                    string fullPath = Path.GetFullPath(Path.Join(folderRoot, _currentFileName));
+                    winPlat.OpenFolderAndSelectFile(fullPath);
+                }
+
                 if (_unsavedChanges) ImGui.TextColored(new Vector4(1, 0, 0, 1), "Unsaved changes!");
                 ImGui.PopStyleColor();
 

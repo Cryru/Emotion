@@ -41,13 +41,14 @@ namespace Emotion.Tools.Editors.Animation2D
 
         public override void DetachedFromController(UIController controller)
         {
-            if (_textureFb != null) GLThread.ExecuteGLThreadAsync(() => { _textureFb.Dispose(); });
+            if (_textureFb != null) GLThread.ExecuteGLThreadAsync(_textureFb.Dispose);
             base.DetachedFromController(controller);
         }
 
         protected override void RenderImGui()
         {
             base.RenderImGui();
+            float halfScreenWidth = Engine.Renderer.CurrentTarget.Size.X / 2f - 10; // Remove space between the two panels.
 
             if (_currentAsset == null)
             {
@@ -56,7 +57,7 @@ namespace Emotion.Tools.Editors.Animation2D
             }
 
             SpriteAnimatorData currentFileContext = _currentAsset.Content!;
-            ImGui.BeginChild("Info", new Vector2(400, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("Info", new Vector2(halfScreenWidth, -1), true, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (currentFileContext.AssetFile == null)
             {
@@ -144,7 +145,7 @@ namespace Emotion.Tools.Editors.Animation2D
                         _controller.SetAnimation(_selectedAnimation);
                     }
 
-                    
+
                     if (_selectedAnimation != null && anims.ContainsKey(_selectedAnimation))
                     {
                         var selAnim = anims[_selectedAnimation];
@@ -155,7 +156,7 @@ namespace Emotion.Tools.Editors.Animation2D
             ImGui.EndChild();
             ImGui.SameLine();
 
-            ImGui.BeginChild("Preview", new Vector2(400, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("Preview", new Vector2(halfScreenWidth, -1), true);
             ImGui.BeginTabBar("TabBar");
 
             if (ImGui.BeginTabItem("Texture"))
@@ -168,10 +169,18 @@ namespace Emotion.Tools.Editors.Animation2D
                     ImGui.Text($"Frames: {currentFileContext.FrameSource.GetFrameCount()}");
                     ImGui.SameLine();
                     if (arraySource != null) ImGui.Checkbox("Show Frame Indices", ref _showFrameIdx);
+                    ImGui.SameLine();
+                    if (ImGui.Button("Re-detect Frames"))
+                    {
+                        currentFileContext.FrameSource = new SpriteArrayFrameSource(_currentAssetTexture);
+                        UnsavedChanges();
+                    }
                 }
 
-                ImGui.Text("Click on frames to swap their positions.");
                 ImGui.InputInt("Zoom", ref _zoomLevel);
+                ImGui.Text("Right-click on a frame to select it, and then on another frame to swap their positions.");
+
+                ImGui.BeginChild("FramePreview", new Vector2(-1, -1), true, ImGuiWindowFlags.HorizontalScrollbar);
 
                 // Array source being unordered allows for frames to be reordered.
                 if (_textureFb != null && frameSource != null)
@@ -186,7 +195,7 @@ namespace Emotion.Tools.Editors.Animation2D
                     {
                         Vector2 mPos = ImGui.GetMousePos();
                         mPos -= winPos;
-                        if (Engine.Host.IsKeyDown(Key.MouseKeyLeft))
+                        if (ImGui.IsWindowFocused() && Engine.Host.IsKeyDown(Key.MouseKeyRight))
                         {
                             int clickedOn = -1;
                             for (var i = 0; i < frameSource.GetFrameCount(); i++)
@@ -217,6 +226,8 @@ namespace Emotion.Tools.Editors.Animation2D
                     }
                 }
 
+                ImGui.EndChild();
+
                 ImGui.EndTabItem();
             }
 
@@ -231,17 +242,36 @@ namespace Emotion.Tools.Editors.Animation2D
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            base.RenderInternal(c);
-            if (_textureFb != null && _currentAssetTexture != null)
-            {
-                _textureFb.ColorAttachment.Smooth = false;
-                c.RenderToAndClear(_textureFb);
-                c.RenderSprite(Vector3.Zero, _currentAssetTexture.Size, _currentAssetTexture);
+            var open = true;
+            ImGui.SetNextWindowPos(new Vector2(0, 20), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(c.CurrentTarget.Size - new Vector2(0, 20));
+            ImGui.Begin(Title, ref open, ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove);
 
-                if (_currentAsset != null)
-                {
-                    SpriteAnimatorData currentFileContext = _currentAsset.Content!;
-                    ISpriteAnimationFrameSource frameSource = currentFileContext.FrameSource;
+            RenderImGui();
+
+            ImGui.End();
+
+            Position = Vector3.Zero;
+            Size = c.CurrentTarget.Size;
+            if (!open)
+            {
+                Parent?.RemoveChild(this);
+                return false;
+            }
+
+            if (_textureFb?.ColorAttachment == null) return true; // Disposed or uninitialized fb
+            if (_currentAssetTexture == null) return true;
+
+            _textureFb.ColorAttachment.Smooth = false;
+            c.RenderToAndClear(_textureFb);
+            c.RenderSprite(Vector3.Zero, _currentAssetTexture.Size, _currentAssetTexture);
+
+            // Render meta overlay on the spritesheet texture.
+            if (_currentAsset != null)
+            {
+                SpriteAnimatorData currentFileContext = _currentAsset.Content!;
+                ISpriteAnimationFrameSource frameSource = currentFileContext.FrameSource;
+                if (frameSource != null)
                     for (var i = 0; i < frameSource.GetFrameCount(); i++)
                     {
                         Rectangle frameUv = frameSource.GetFrameUV(i);
@@ -255,10 +285,9 @@ namespace Emotion.Tools.Editors.Animation2D
                             c.RenderString(stringPos, Color.Red, i.ToString(), atlas);
                         }
                     }
-                }
-
-                c.RenderTo(null);
             }
+
+            c.RenderTo(null);
 
             return true;
         }
@@ -275,6 +304,14 @@ namespace Emotion.Tools.Editors.Animation2D
             _currentAssetTexture = assetFileLoaded?.Texture ?? null;
             _controller = new SpriteAnimator(file.Content);
             _controller.SetAnimation(_selectedAnimation);
+
+            GLThread.ExecuteGLThreadAsync(() =>
+            {
+                if (_textureFb == null)
+                    _textureFb = new FrameBuffer(_currentAssetTexture.Size).WithColor();
+                else
+                    _textureFb.Resize(_currentAssetTexture.Size);
+            });
 
             return true;
         }

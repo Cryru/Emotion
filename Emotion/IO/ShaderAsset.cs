@@ -154,7 +154,7 @@ namespace Emotion.IO
             fragShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
 
             var shaderLogName = $"v:{vertShader!.Name}, f:{fragShader!.Name} {compileConstant}";
-            Engine.Log.Info($"Creating shader {shaderLogName}...", MessageSource.AssetLoader);
+            Engine.Log.Info($"Loading shader {shaderLogName}...", MessageSource.AssetLoader);
 
             // Create the shader, or at least try to.
             PerfProfiler.ProfilerEventStart("Compilation", "Loading");

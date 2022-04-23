@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
@@ -131,10 +130,39 @@ namespace Emotion.Game.Animation2D
                 }
             }
 
-            return boxes
-                .Where(x => x.Width > 1 && x.Height > 1)
-                .OrderBy(x => Math.Round((x.Y + x.Height / 2) / 100f))
-                .ThenBy(x => Math.Round((x.X + x.Width / 2) / 100f)).ToArray();
+            static Rectangle FindNext(List<Rectangle> boxes)
+            {
+                // Find the box that is highest up.
+                Rectangle bestBox = boxes[0];
+                for (var i = 1; i < boxes.Count; i++)
+                {
+                    if (bestBox.Top > boxes[i].Top) bestBox = boxes[i];
+                }
+
+                // Find any box whose top is inside the bestBox's Y dimension, and if it is left, it is better.
+                for (var i = 0; i < boxes.Count; i++)
+                {
+                    Rectangle curBox = boxes[i];
+                    if (curBox.Top > bestBox.Center.Y) continue;
+
+                    if (curBox.Left < bestBox.Left)
+                    {
+                        bestBox = curBox;
+                    }
+                }
+
+                return bestBox;
+            }
+
+            var sortedBoxes = new List<Rectangle>();
+            while (boxes.Count > 0)
+            {
+                Rectangle nextRect = FindNext(boxes);
+                boxes.Remove(nextRect);
+                sortedBoxes.Add(nextRect);
+            }
+
+            return sortedBoxes.ToArray();
         }
 
         public int GetFrameCount()
