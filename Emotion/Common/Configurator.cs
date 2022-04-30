@@ -154,11 +154,6 @@ namespace Emotion.Common
         #region Audio
 
         /// <summary>
-        /// Volume modulation is not linear but exponential. This is the base.
-        /// </summary>
-        public float AudioCurve { get; set; } = 2f;
-
-        /// <summary>
         /// The master volume. This is the percentage of the layer's volume to play at.
         /// The exponential transform is not applied to it.
         /// </summary>
