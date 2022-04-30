@@ -24,7 +24,7 @@ namespace Emotion.Tools.Windows.Audio
 
         private Dictionary<AudioLayer, WaveformVisualization> _waveFormCache = new Dictionary<AudioLayer, WaveformVisualization>();
 
-        public AudioMixer() : base("Audio Mixer")
+        public AudioMixer() : base("Audio Preview")
         {
         }
 

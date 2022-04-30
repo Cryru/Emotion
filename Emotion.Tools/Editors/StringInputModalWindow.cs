@@ -1,11 +1,12 @@
 ﻿#region Using
 
 using System;
+using Emotion.Tools.DevUI;
 using ImGuiNET;
 
 #endregion
 
-namespace Emotion.Tools.DevUI
+namespace Emotion.Tools.Editors
 {
     public class StringInputModalWindow : ImGuiBaseModal
     {

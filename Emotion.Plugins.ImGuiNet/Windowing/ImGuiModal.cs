@@ -26,7 +26,11 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                 _popupOpen = true;
             }
 
-            if (!ImGui.BeginPopupModal(Title, ref Open, ImGuiWindowFlags.AlwaysAutoResize)) return;
+            if (!ImGui.BeginPopupModal(Title, ref Open, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                _popupOpen = false;
+                return;
+            }
             Position = ImGui.GetWindowPos();
             Size = ImGui.GetWindowSize();
             RenderContent(composer);

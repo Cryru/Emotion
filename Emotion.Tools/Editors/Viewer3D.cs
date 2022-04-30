@@ -12,17 +12,17 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
-using Emotion.Plugins.ImGuiNet;
-using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Tools.DevUI;
 using Emotion.Tools.Windows.HelpWindows;
+using Emotion.UI;
 using ImGuiNET;
 
 #endregion
 
-namespace Emotion.Tools.Windows
+namespace Emotion.Tools.Editors
 {
-    public class Viewer3D : ImGuiWindow
+    public class Viewer3D : ImGuiBaseWindow
     {
         public Object3D DisplayObject;
 
@@ -34,8 +34,6 @@ namespace Emotion.Tools.Windows
 
         public Viewer3D() : base("3D Viewer")
         {
-            MenuBar = true;
-
             DisplayObject = new Object3D();
             _oldCamera = Engine.Renderer.Camera;
             Engine.Renderer.Camera = new Camera3D(new Vector3(20, 50, 200));
@@ -46,79 +44,32 @@ namespace Emotion.Tools.Windows
                 GLThread.ExecuteGLThreadAsync(() => { _boneVerticesStream = new RenderStreamBatch<VertexDataWithBones>(0, 1, false); });
 
             _terrain = new Terrain3D(32, 32, 16);
+
+            _windowFlags |= ImGuiWindowFlags.MenuBar;
         }
 
-        public override void Dispose()
+        public override void DetachedFromController(UIController controller)
         {
             Engine.Renderer.Camera = _oldCamera;
-            base.Dispose();
+            base.DetachedFromController(controller);
         }
 
-        public override void Update()
+        protected override bool UpdateInternal()
         {
             DisplayObject.Update(Engine.DeltaTime);
 
+            // Prevent dragging on controls from moving the camera.
+            if (Controller?.InputFocus == this) return true;
+
             var camera = (Camera3D) Engine.Renderer.Camera;
-            if (ImGuiNetPlugin.Focused) return;
             camera.DefaultMovementLogicUpdate();
+
+            return true;
         }
 
-        protected override void RenderContent(RenderComposer c)
+        protected override bool RenderInternal(RenderComposer c)
         {
-            if (ImGui.BeginMenuBar())
-            {
-                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
-                if (ImGui.Button("Open OBJ"))
-                {
-                    var explorer = new FileExplorer<ObjMeshAsset>(asset => { DisplayObject.Entity = asset.Entity; });
-                    Parent.AddWindow(explorer);
-                }
-
-                if (ImGui.Button("Open EM3"))
-                {
-                    var explorer = new FileExplorer<EmotionMeshAsset>(asset => { DisplayObject.Entity = asset.Entity; });
-                    Parent.AddWindow(explorer);
-                }
-
-                if (ImGui.Button("Open Sprite Stack Texture"))
-                {
-                    var explorer = new FileExplorer<SpriteStackTexture>(asset =>
-                    {
-                        Parent.AddWindow(new Vec2Modal(size =>
-                        {
-                            MeshEntity entity = asset.GetSpriteStackEntity(size);
-                            DisplayObject.Entity = entity;
-                        }, "Sprite Stack Settings", "Individual Frame Size", new Vector2(32, 32)));
-                    });
-                    Parent.AddWindow(explorer);
-                }
-
-                ImGui.EndMenuBar();
-            }
-
-            ImGui.Checkbox("Show Terrain", ref _showTerrain);
-
-            Vector3 pos = DisplayObject.Position;
-            if (ImGui.DragFloat3("Position", ref pos)) DisplayObject.Position = pos;
-
-            float scale = DisplayObject.Scale;
-            if (ImGui.DragFloat("Scale", ref scale)) DisplayObject.Scale = scale;
-
-            Vector3 rot = DisplayObject.RotationDeg;
-            if (ImGui.DragFloat3("Rotation", ref rot)) DisplayObject.RotationDeg = rot;
-
-            if (DisplayObject.Entity != null && DisplayObject.Entity.Animations != null && ImGui.BeginCombo("Animation", DisplayObject.CurrentAnimation))
-            {
-                if (ImGui.Button("None")) DisplayObject.SetAnimation(null);
-
-                for (var i = 0; i < DisplayObject.Entity.Animations.Length; i++)
-                {
-                    SkeletalAnimation anim = DisplayObject.Entity.Animations[i];
-                    if (ImGui.Button($"{anim.Name}")) DisplayObject.SetAnimation(anim.Name);
-                }
-
-                ImGui.EndCombo();
-            }
+            base.RenderInternal(c);
 
             RenderState oldState = c.CurrentState.Clone();
             c.SetState(RenderState.Default);
@@ -151,6 +102,66 @@ namespace Emotion.Tools.Windows
             c.SetState(oldState);
 
             _boneVerticesStream?.DoTasks(c);
+
+            return true;
+        }
+
+        protected override void RenderImGui()
+        {
+            if (ImGui.BeginMenuBar())
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
+                if (ImGui.Button("Open OBJ"))
+                {
+                    var explorer = new FileExplorer<ObjMeshAsset>(asset => { DisplayObject.Entity = asset.Entity; });
+                    _toolsRoot.AddLegacyWindow(explorer);
+                }
+
+                if (ImGui.Button("Open EM3"))
+                {
+                    var explorer = new FileExplorer<EmotionMeshAsset>(asset => { DisplayObject.Entity = asset.Entity; });
+                    _toolsRoot.AddLegacyWindow(explorer);
+                }
+
+                if (ImGui.Button("Open Sprite Stack Texture"))
+                {
+                    var explorer = new FileExplorer<SpriteStackTexture>(asset =>
+                    {
+                        _toolsRoot.AddLegacyWindow(new Vec2Modal(size =>
+                        {
+                            MeshEntity entity = asset.GetSpriteStackEntity(size);
+                            DisplayObject.Entity = entity;
+                        }, "Sprite Stack Settings", "Individual Frame Size", new Vector2(32, 32)));
+                    });
+                    _toolsRoot.AddLegacyWindow(explorer);
+                }
+
+                ImGui.EndMenuBar();
+            }
+
+            ImGui.Checkbox("Show Terrain", ref _showTerrain);
+
+            Vector3 pos = DisplayObject.Position;
+            if (ImGui.DragFloat3("Position", ref pos)) DisplayObject.Position = pos;
+
+            float scale = DisplayObject.Scale;
+            if (ImGui.DragFloat("Scale", ref scale)) DisplayObject.Scale = scale;
+
+            Vector3 rot = DisplayObject.RotationDeg;
+            if (ImGui.DragFloat3("Rotation", ref rot)) DisplayObject.RotationDeg = rot;
+
+            if (DisplayObject.Entity != null && DisplayObject.Entity.Animations != null && ImGui.BeginCombo("Animation", DisplayObject.CurrentAnimation))
+            {
+                if (ImGui.Button("None")) DisplayObject.SetAnimation(null);
+
+                for (var i = 0; i < DisplayObject.Entity.Animations.Length; i++)
+                {
+                    SkeletalAnimation anim = DisplayObject.Entity.Animations[i];
+                    if (ImGui.Button($"{anim.Name}")) DisplayObject.SetAnimation(anim.Name);
+                }
+
+                ImGui.EndCombo();
+            }
         }
     }
 }
