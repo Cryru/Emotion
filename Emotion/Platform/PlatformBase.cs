@@ -12,7 +12,6 @@ using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 using OpenGL;
-
 #if GLFW
 using Emotion.Platform.Implementation.GlfwImplementation;
 
@@ -140,7 +139,7 @@ namespace Emotion.Platform
 
             // Set display mode, show and focus.
             DisplayMode = config.InitialDisplayMode;
-            WindowState = WindowState.Normal;
+            if (!config.HiddenWindow) WindowState = WindowState.Normal;
             IsOpen = true;
             _pauseOnFocusLoss = !config.DebugMode;
         }

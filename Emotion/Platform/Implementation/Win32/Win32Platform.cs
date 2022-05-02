@@ -107,11 +107,22 @@ namespace Emotion.Platform.Implementation.Win32
             GetFullWindowRect(DEFAULT_WINDOW_STYLE, DEFAULT_WINDOW_STYLE_EX, DEFAULT_DPI, ref windowInitialSize);
             int initialWidth = windowInitialSize.Right - windowInitialSize.Left;
             int initialHeight = windowInitialSize.Bottom - windowInitialSize.Top;
+
+            WindowStyles windowStyle = DEFAULT_WINDOW_STYLE;
+            if (config.HiddenWindow)
+            {
+                windowStyle |= ~WindowStyles.WS_VISIBLE;
+                windowStyle |= ~WindowStyles.WS_MINIMIZE;
+
+                // This will override the hide otherwise
+                config.InitialDisplayMode = DisplayMode.Initial;
+            }
+
             IntPtr windowHandle = User32.CreateWindowEx(
                 DEFAULT_WINDOW_STYLE_EX,
                 CLASS_NAME,
                 config.HostTitle,
-                DEFAULT_WINDOW_STYLE,
+                windowStyle,
                 (int) CreateWindowFlags.CW_USEDEFAULT, (int) CreateWindowFlags.CW_USEDEFAULT, // Position - default
                 initialWidth, initialHeight, // Size - initial
                 IntPtr.Zero, // No parent window

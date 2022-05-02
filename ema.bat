@@ -1,0 +1,1 @@
+dotnet run --project Emotion.PostBuildTool\Emotion.PostBuildTool.csproj %*

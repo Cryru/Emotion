@@ -143,6 +143,11 @@ namespace Emotion.Common
         public DisplayMode InitialDisplayMode { get; set; } = DisplayMode.Windowed;
 
         /// <summary>
+        /// Whether to hide the window. Used by tools as not to spam windows opening.
+        /// </summary>
+        public bool HiddenWindow { get; set; } = false;
+
+        /// <summary>
         /// By default exceptions and other errors will display a platform specific popup to allow players
         /// to screenshot/see the error. There are cases (such as CI) where these can cause hangs as they require input.
         /// If this is set to true these popups will be disabled.
