@@ -23,7 +23,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             // Check if inheriting anything. If so copy its excluded members as well.
             if (Type.BaseType != null && Type.BaseType != typeof(object))
             {
-                var baseClass = (XMLComplexTypeHandler)XMLHelpers.GetTypeHandler(Type.BaseType);
+                var baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
                 HashSet<string> baseTypeExcludedMembers = baseClass?._excludedMembers;
                 if (baseTypeExcludedMembers != null)
                 {
@@ -52,7 +52,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             }
 
             // Create default value reference.
-            _defaultConstruct = type.IsInterface ? null : Activator.CreateInstance(type, true);
+            _defaultConstruct = type.IsInterface || type.IsAbstract ? null : Activator.CreateInstance(type, true);
         }
 
         protected override Dictionary<string, XMLFieldHandler> IndexFields()
@@ -184,7 +184,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             if (Type.IsAssignableFrom(objType))
             {
                 inheritedType = XMLHelpers.GetTypeName(objType, true);
-                return (XMLComplexTypeHandler)XMLHelpers.GetTypeHandler(objType);
+                return (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(objType);
             }
 
             // wtf?
