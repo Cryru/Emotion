@@ -250,11 +250,7 @@ namespace Emotion.Graphics
             Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
 
             ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
-            if (defaultProgram == null)
-            {
-                Engine.CriticalError(new Exception("Couldn't create default shaders."));
-                return;
-            }
+            if (defaultProgram == null) return;
 
             Texture.InitializeEmptyTexture();
 

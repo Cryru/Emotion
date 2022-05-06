@@ -135,17 +135,41 @@ namespace Emotion.Common
             Log.Info($" Execution Directory: {Environment.CurrentDirectory}", MessageSource.Engine);
             Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
 
-            // Attach to unhandled exceptions if the debugger is not attached.
-            if (!Debugger.IsAttached)
-                AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject); };
+            // Attach engine killer and popup to unhandled exceptions, when the debugger isn't attached.
+            // This might be a bit overkill as not all unhandled exceptions are unrecoverable, but let's be pessimistically optimistic for now.
+            // Note that async exceptions are considered caught.
+            if (!Debugger.IsAttached) AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject, true); };
+
+            // Attach logging to those pesky async exceptions, and log all exceptions as they happen (handled as well).
             TaskScheduler.UnobservedTaskException += (s, o) =>
             {
                 AggregateException exception = o.Exception;
                 Log.Error(exception.InnerException?.ToString() ?? exception.ToString(), MessageSource.StdErr);
             };
-            AppDomain.CurrentDomain.FirstChanceException += (_, a) => { Log.Error(a.Exception); };
 
-            // Ensure quit is called on exit.
+            Exception lastBreakException = null;
+            AppDomain.CurrentDomain.FirstChanceException += (_, a) =>
+            {
+                // As an exception bubbles up it will raise this event every time. Dedupe.
+                Exception exception = a.Exception;
+                if (a.Exception == lastBreakException) return;
+                lastBreakException = exception;
+
+                // If log.error throws an exception here, we're screwed.
+                // It wouldn't...but what if it does.
+                try
+                {
+                    Log.Error(exception);
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+
+                if (Debugger.IsAttached) Debugger.Break();
+            };
+
+            // Ensure quit is called on exit so that logs are flushed etc.
             AppDomain.CurrentDomain.ProcessExit += (_, __) => { Quit(); };
 
             // Mount default assets. The platform should add it's own specific sources and stores.
@@ -427,12 +451,11 @@ namespace Emotion.Common
         /// Submit that an error has happened. Handles logging and closing of the engine safely.
         /// Sometimes the exception is engine generated. Check the InnerException property in these cases.
         /// </summary>
-        /// <param name="ex">The exception connected with the error occured.</param>
-        public static void CriticalError(Exception ex)
+        public static void CriticalError(Exception ex, bool dontLog = false)
         {
             if (Debugger.IsAttached) Debugger.Break();
 
-            Log.Error(ex);
+            if (!dontLog) Log.Error(ex);
             if (!Configuration.NoErrorPopup) Host?.DisplayMessageBox($"Fatal error occured!\n{ex}");
             Quit();
         }
