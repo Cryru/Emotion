@@ -21,11 +21,17 @@ namespace Emotion.Game.World2D
     public enum Map2DObjectFlags : uint
     {
         None = 0,
-        Loading = 2 << 0,
-        Ready = 2 << 1,
-        Destroyed = 2 << 2,
-        UpdateWorldTree = 2 << 3,
-        Serializable = 2 << 4,
+
+        UpdateWorldTree = 2 << 0,
+        Serializable = 2 << 1,
+    }
+
+    public enum ObjectState : byte
+    {
+        None = 0,
+        Loading = 1,
+        Alive = 2,
+        Destroyed = 3
     }
 
     public class GameObject2D : Transform
@@ -47,6 +53,12 @@ namespace Emotion.Game.World2D
         /// The map this object is in. Is set after Init.
         /// </summary>
         public Map2D? Map { get; protected set; }
+
+        /// <summary>
+        /// The object state, managed by the map in runtime.
+        /// </summary>
+        [DontSerialize]
+        public ObjectState ObjectState { get; set; }
 
         /// <summary>
         /// Object flags managed by the map in runtime.
@@ -331,7 +343,7 @@ namespace Emotion.Game.World2D
                 objectAssetTasks[i] = obj.LoadAssetsAsync();
                 obj.Init(this);
                 _worldTree.AddObjectToTree(obj);
-                obj.MapFlags |= Map2DObjectFlags.Ready;
+                obj.ObjectState = ObjectState.Alive;
                 obj.MapFlags |= Map2DObjectFlags.Serializable;
                 _objects.Add(obj);
             }
@@ -341,14 +353,13 @@ namespace Emotion.Game.World2D
                 Debug.Assert((TileData.SizeInTiles * TileData.TileSize).SmallerOrEqual(MapSize), "Tiles outside map.");
                 await TileData.LoadTileDataAsync();
             }
+
             await Task.WhenAll(objectAssetTasks);
 
             PostMapLoad();
             Initialized = true;
 
             Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
-
-            //return Task.CompletedTask;
         }
 
         protected virtual WorldTree2D InitWorldTree()
@@ -399,22 +410,22 @@ namespace Emotion.Game.World2D
             for (int i = _objectLoading.Count - 1; i >= 0; i--)
             {
                 (GameObject2D? obj, Task? loadingTask) = _objectLoading[i];
-                if (!obj.MapFlags.HasFlag(Map2DObjectFlags.Loading)) continue;
                 if (!loadingTask.IsCompleted) continue;
+
                 _objectLoading.RemoveAt(i);
-                obj.MapFlags |= ~Map2DObjectFlags.Loading;
+                _objectsToAdd.Enqueue(obj);
             }
 
             // Check objects to add.
             while (_objectsToAdd.TryDequeue(out GameObject2D? obj))
             {
                 // Check if the object requires loading, and put it in that state first.
-                if (obj.MapFlags.HasFlag(Map2DObjectFlags.None))
+                if (obj.ObjectState == ObjectState.None)
                 {
-                    Task loading = obj.LoadAssetsAsync();
+                    Task loading = Task.Run(obj.LoadAssetsAsync);
                     if (!loading.IsCompleted)
                     {
-                        obj.MapFlags |= Map2DObjectFlags.Loading;
+                        obj.ObjectState = ObjectState.Loading;
                         _objectLoading.Add((obj, loading));
                         continue;
                     }
@@ -423,8 +434,10 @@ namespace Emotion.Game.World2D
                 _objects.Add(obj);
                 obj.Init(this);
                 _worldTree.AddObjectToTree(obj);
-                obj.MapFlags |= Map2DObjectFlags.Ready;
+                obj.ObjectState = ObjectState.Alive;
 
+                // Objects added during runtime are added to the map's serialization if the flag is turned on, off by default.
+                // This should technically only concern objects added by the editor.
                 if (obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable)) ObjectsToSerialize.Add(obj);
             }
 
@@ -434,14 +447,13 @@ namespace Emotion.Game.World2D
                 _objects.Remove(obj);
                 obj.Destroy();
                 _worldTree.RemoveObjectFromTree(obj);
-                obj.MapFlags |= ~Map2DObjectFlags.Ready;
-                obj.MapFlags |= Map2DObjectFlags.Destroyed;
+                obj.ObjectState = ObjectState.Destroyed;
             }
 
             // Check for objects that have moved within the world tree.
             while (_objectsToUpdate.TryDequeue(out GameObject2D? obj))
             {
-                if (obj.MapFlags.HasFlag(Map2DObjectFlags.Destroyed)) continue;
+                if (obj.ObjectState == ObjectState.Destroyed) continue;
                 _worldTree.UpdateObjectInTree(obj);
             }
         }
