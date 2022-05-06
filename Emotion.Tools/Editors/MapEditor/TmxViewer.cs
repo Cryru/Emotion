@@ -1,18 +1,14 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection;
-using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Game.Tiled;
-using Emotion.Game.World2D;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
+using Emotion.Standard.TMX.Layer;
 using Emotion.Tools.Windows.HelpWindows;
 using Emotion.UI;
 using Emotion.Utility;
@@ -24,25 +20,15 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Editors.MapEditor
 {
-    public class MapEditor : PresetGenericEditorWindow<Map2D>
+    public class TmxViewer : PresetGenericEditorWindow<TextAsset>
     {
         private const float TOP_BARS = 60;
+        private TileMap? _map;
 
         private CameraBase _previousCamera = null!;
-        private Type _customMapType;
 
-        public MapEditor() : base("Map Editor")
+        public TmxViewer() : base("Tmx Viewer")
         {
-            List<Type> mapTypes = EditorHelpers.GetTypesWhichInherit<Map2D>();
-            if (mapTypes.Count == 1) // Map2D itself.
-            {
-                _customMapType = mapTypes[0];
-                return;
-            }
-
-            _customMapType = mapTypes[^1];
-            Title = $"Map Editor - {_customMapType}";
-            // todo: make a modal to pick
         }
 
         #region Editor Controls
@@ -74,15 +60,15 @@ namespace Emotion.Tools.Editors.MapEditor
 
             float zoom = Engine.Renderer.Camera.Zoom;
             if (Engine.Host.GetMouseScrollRelative() < 0)
-                zoom += 0.2f;
-            else if (Engine.Host.GetMouseScrollRelative() > 0) zoom -= 0.2f;
+                zoom += 0.3f;
+            else if (Engine.Host.GetMouseScrollRelative() > 0) zoom -= 0.3f;
 
             Engine.Renderer.Camera.Zoom = Maths.Clamp(zoom, 0.1f, 5f);
 
             dir *= new Vector2(speed * Engine.DeltaTime, speed * Engine.DeltaTime);
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
 
-            _currentAsset?.Content.Update(Engine.DeltaTime);
+            _map?.Update(Engine.DeltaTime);
 
             return true;
         }
@@ -93,48 +79,24 @@ namespace Emotion.Tools.Editors.MapEditor
 
         protected override void MenuBarButtons()
         {
-            base.MenuBarButtons();
-
-            if (ImGui.Button("Convert .tmx"))
+            if (ImGui.Button("Open .tmx"))
             {
                 var explorer = new FileExplorer<TextAsset>(file =>
                 {
-                    var tmxMap = new TileMap(file);
-                    Map2D? newMap = Map2DConverter.ConvertTmxToMap2D(_customMapType, tmxMap);
-                    if (newMap == null) return;
-
-                    Task.Run(newMap.InitAsync);
-                    _currentAsset = XMLAsset<Map2D>.CreateFromContent(newMap);
-                    UnsavedChanges();
-
+                    _map = new TileMap(file);
                     _selectedLayer = 0;
                 });
                 _toolsRoot.AddLegacyWindow(explorer);
             }
         }
 
-        protected override XMLAsset<Map2D> CreateFile()
-        {
-            return null;
-        }
-
-        protected override bool OnFileLoaded(XMLAsset<Map2D> file)
+        protected override bool OnFileLoaded(XMLAsset<TextAsset> file)
         {
             return true;
         }
 
         protected override bool OnFileSaving()
         {
-            Map2D? map = _currentAsset?.Content;
-            if (map != null)
-            {
-                for (var i = 0; i < map.ObjectsToSerialize.Count; i++)
-                {
-                    GameObject2D obj = map.ObjectsToSerialize[i];
-                    obj.PreMapEditorSave();
-                }
-            }
-        
             return true;
         }
 
@@ -146,8 +108,6 @@ namespace Emotion.Tools.Editors.MapEditor
 
         private void RenderLayerUI(RenderComposer c)
         {
-            Map2D? map = _currentAsset?.Content;
-
             var layerBarSize = new Vector2(200, 300);
             ImGui.SetNextWindowPos(new Vector2(c.CurrentTarget.Size.X - layerBarSize.X, TOP_BARS), ImGuiCond.Always);
             ImGui.SetNextWindowSize(layerBarSize);
@@ -155,23 +115,16 @@ namespace Emotion.Tools.Editors.MapEditor
 
             if (ImGui.BeginListBox("LayerList", new(layerBarSize.X, layerBarSize.Y - 55)))
             {
-                if (map != null && map.TileData != null)
-                {
-                    List<Map2DTileMapLayer> layers = map.TileData.Layers;
-
-                    for (var i = 0; i < layers.Count; i++)
+                if (_map != null)
+                    for (var i = 0; i < _map.TiledMap!.TileLayers.Count; i++)
                     {
-                        Map2DTileMapLayer curLayer = layers[i];
-                        ImGui.MenuItem($"{curLayer.Name}", "", i == _selectedLayer);
+                        TmxLayer curLayer = _map.TiledMap.TileLayers[i];
+                        ImGui.MenuItem($"{curLayer.Name} {curLayer.Width}x{curLayer.Height}" + (curLayer.Visible ? "" : " Hidden"), "", i == _selectedLayer);
                     }
-                }
 
                 ImGui.EndListBox();
             }
 
-            ImGui.SmallButton("New");
-            ImGui.SameLine();
-            ImGui.SmallButton("Delete");
             ImGui.End();
         }
 
@@ -186,13 +139,6 @@ namespace Emotion.Tools.Editors.MapEditor
             ImGui.Begin(Title, ref open, ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove);
 
             RenderImGui();
-
-            //ImGui.SetNextWindowPos(new Vector2(0, TOP_BARS), ImGuiCond.Always);
-            //var sceneBarSize = new Vector2(100, c.CurrentTarget.Size.Y - TOP_BARS);
-            //ImGui.SetNextWindowSizeConstraints(sceneBarSize, new Vector2(200, sceneBarSize.Y));
-            //ImGui.Begin("Scene", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
-            //ImGui.Text("Test");
-            //ImGui.End();
 
             RenderLayerUI(c);
 
@@ -213,7 +159,7 @@ namespace Emotion.Tools.Editors.MapEditor
             c.RenderLine(posVec2 + new Vector2(0, Size.Y / 2), posVec2 + new Vector2(Size.X, Size.Y / 2), Color.White * 0.7f);
 
             c.SetUseViewMatrix(true);
-            _currentAsset?.Content.Render(c);
+            _map?.Render(c);
             c.SetUseViewMatrix(false);
 
             return true;

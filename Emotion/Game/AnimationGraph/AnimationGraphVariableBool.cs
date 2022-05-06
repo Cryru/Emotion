@@ -26,7 +26,6 @@ namespace Emotion.Game.AnimationGraph
             return true;
         }
 
-
         public static bool operator ==(AnimationGraphVariableBool a, AnimationGraphVariableBool b)
         {
             return a.Value == b.Value;

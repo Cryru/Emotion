@@ -15,7 +15,7 @@ using OpenGL;
 
 namespace Emotion.Game.Animation2D
 {
-    public class SpriteArrayFrameSource : ISpriteAnimationFrameSource
+    public class SpriteArrayFrameSource : SpriteAnimationFrameSource
     {
         [SerializeNonPublicGetSet]
         public Rectangle[]? Frames { get; protected set; }
@@ -27,7 +27,12 @@ namespace Emotion.Game.Animation2D
 
         public SpriteArrayFrameSource(Texture t)
         {
-            GLThread.ExecuteGLThreadAsync(() => { Frames = AutoDetectFrames(t); });
+            GLThread.ExecuteGLThreadAsync(() =>
+            {
+                Frames = AutoDetectFrames(t);
+                FrameOffsets = new Vector2[Frames.Length];
+                FrameOrigins = new OriginPosition[Frames.Length];
+            });
         }
 
         private static unsafe Rectangle[] AutoDetectFrames(Texture tex)
@@ -165,13 +170,13 @@ namespace Emotion.Game.Animation2D
             return sortedBoxes.ToArray();
         }
 
-        public int GetFrameCount()
+        public override int GetFrameCount()
         {
             if (Frames == null) return 0;
             return Frames.Length;
         }
 
-        public Rectangle GetFrameUV(int i)
+        public override Rectangle GetFrameUV(int i)
         {
             if (Frames == null) return Rectangle.Empty;
             return Frames[i];

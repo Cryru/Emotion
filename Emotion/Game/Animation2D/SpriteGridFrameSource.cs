@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#region Using
+
+using System;
 using Emotion.Primitives;
+
+#endregion
 
 namespace Emotion.Game.Animation2D
 {
-    public class SpriteGridFrameSource : ISpriteAnimationFrameSource
+    public class SpriteGridFrameSource : SpriteAnimationFrameSource
     {
-        public int GetFrameCount()
+        public override int GetFrameCount()
         {
             throw new NotImplementedException();
         }
 
-        public Rectangle GetFrameUV(int i)
+        public override Rectangle GetFrameUV(int i)
         {
             throw new NotImplementedException();
         }
