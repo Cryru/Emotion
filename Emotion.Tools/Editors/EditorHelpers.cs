@@ -252,33 +252,98 @@ namespace Emotion.Tools.Editors
             ImGui.Text(text);
         }
 
-        protected static int DragAndDropList<T>(T[] list, int draggedState)
+        public static int DragAndDropList<T>(T[] list, int draggedState, bool horizontal = false)
         {
+            //draggedState = -1;
             for (var i = 0; i < list.Length; i++)
             {
                 T item = list[i];
                 if (item == null) continue;
 
+                if (i == draggedState)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Button, 0);
+                    ImGui.PushStyleColor(ImGuiCol.Text, 0);
+                }
+
+                ImGui.PushID($"Item {i}");
                 ImGui.Button(item.ToString());
+                ImGui.PopID();
+
+                if (i == draggedState)
+                {
+                    ImGui.PopStyleColor();
+                    ImGui.PopStyleColor();
+                }
 
                 if (ImGui.BeginDragDropSource())
                 {
                     draggedState = i;
+                    ImGui.PushID("carrying");
+                    ImGui.Text(item.ToString());
+                    ImGui.PopID();
+
                     ImGui.SetDragDropPayload("UNUSED", IntPtr.Zero, 0);
                     ImGui.EndDragDropSource();
                 }
 
                 if (ImGui.BeginDragDropTarget())
                 {
-                    ImGui.AcceptDragDropPayload("UNUSED");
-                    int idxDragged = draggedState;
-                    (list[idxDragged], list[i]) = (list[i], list[idxDragged]);
-                    draggedState = -1;
+                    ImGuiPayloadPtr dataPtr = ImGui.AcceptDragDropPayload("UNUSED");
+                    unsafe
+                    {
+                        if ((IntPtr) dataPtr.NativePtr != IntPtr.Zero && dataPtr.IsDelivery())
+                        {
+                            int idxDragged = draggedState;
+                            (list[idxDragged], list[i]) = (list[i], list[idxDragged]);
+                            draggedState = -1;
+                        }
+                    }
                     ImGui.EndDragDropTarget();
                 }
+
+                // Check if drag/drop ended.
+                ImGuiPayloadPtr payLoad = ImGui.GetDragDropPayload();
+                unsafe
+                {
+                    if ((IntPtr) payLoad.NativePtr == IntPtr.Zero)
+                    {
+                        draggedState = -1;
+                    }
+                }
+
+                if (horizontal && i != list.Length - 1) ImGui.SameLine();
             }
 
             return draggedState;
+        }
+
+        public static void ButtonSizedHole(string text)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, 0);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
+            ImGui.PushStyleColor(ImGuiCol.Text, 0);
+
+            ImGui.Button(text);
+
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+        }
+
+        public static void SelectedButtonTextOnly(string text)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, 0);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
+
+            ImGui.Button(text);
+
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
         }
     }
 }

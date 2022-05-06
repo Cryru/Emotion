@@ -48,14 +48,14 @@ namespace Emotion.Tools.DevUI
         {
             if (_captureMouse)
                 return this;
-            return null;
+            return base.FindMouseInput(pos);
         }
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && _captureMouse) return false;
             if (_captureKeyboard) return false;
-            return base.OnKey(key, status, mousePos);
+            return false;
         }
 
         protected override bool RenderInternal(RenderComposer c)
@@ -71,7 +71,21 @@ namespace Emotion.Tools.DevUI
             _captureMouse = io.WantCaptureMouse;
             _captureKeyboard = io.WantCaptureKeyboard;
             _captureText = io.WantTextInput;
-            InputTransparent = !_captureMouse && !_captureKeyboard;
+
+            var fullScreenEditorOpen = false;
+            if (Children != null)
+            {
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow child = Children[i];
+                    if (child.Size == c.CurrentTarget.Size)
+                    {
+                        // todo: maybe something more explicit, like a bool in ImGuiWindow?
+                        fullScreenEditorOpen = true;
+                    }
+                }
+            }
+            InputTransparent = !_captureMouse && !_captureKeyboard && !fullScreenEditorOpen;
 
             if (ImGui.BeginMenu("Audio"))
             {
@@ -81,8 +95,8 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Art"))
             {
-                if (ImGui.MenuItem("Animation Editor (Old)")) AddLegacyWindow(new AnimationEditor());
-                if (ImGui.MenuItem("Animation Editor")) AddChild(new Animation2DEditor());
+                if (ImGui.MenuItem("Animation Editor")) AddLegacyWindow(new AnimationEditor());
+                if (ImGui.MenuItem("Animation Editor New (WIP)")) AddChild(new Animation2DEditor());
                 if (ImGui.MenuItem("Rogue Alpha Remover")) AddLegacyWindow(new RogueAlphaRemoval());
                 if (ImGui.MenuItem("Palette Editor")) AddLegacyWindow(new PaletteEditor());
                 if (ImGui.MenuItem("Font Preview")) AddLegacyWindow(new FontPreview());
@@ -93,7 +107,8 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Gameplay"))
             {
-                if (ImGui.MenuItem("Map Viewer")) AddChild(new MapEditor());
+                if (ImGui.MenuItem("Map Editor")) AddChild(new MapEditor());
+                if (ImGui.MenuItem("Tmx Viewer")) AddChild(new TmxViewer());
 #if DEBUG
                 if (ImGui.MenuItem("Collision Viewer")) AddLegacyWindow(new CollisionViewer());
 #else
@@ -144,6 +159,12 @@ namespace Emotion.Tools.DevUI
         public void AddLegacyWindow(ImGuiWindow oldWin)
         {
             LegacyWindowManager.AddWindow(oldWin);
+        }
+
+        public override void AddChild(UIBaseWindow child)
+        {
+            base.AddChild(child);
+            Controller?.InvalidateInputFocus();
         }
     }
 }
