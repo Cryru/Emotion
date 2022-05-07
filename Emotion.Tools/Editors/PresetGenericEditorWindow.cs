@@ -105,6 +105,9 @@ namespace Emotion.Tools.Editors
                 return;
             }
 
+            // Unload the preset in the asset loader cache if loaded. This allows for changes to be observed on re-get.
+            // This won't break anything as XMLAsset doesn't perform any cleanup.
+            if (Engine.AssetLoader.Loaded(_currentFileName)) Engine.AssetLoader.Destroy(_currentFileName);
             _currentAsset.Save();
             _unsavedChanges = false;
         }
