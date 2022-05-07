@@ -275,6 +275,7 @@ namespace Emotion.IO
         public Task<T?> GetAsync<T>(string? name) where T : Asset, new()
         {
             if (name == null) return Task.FromResult((T?) null);
+            name = NameToEngineName(name);
 
             Task? task;
             lock (_asyncLoadingTasks)
