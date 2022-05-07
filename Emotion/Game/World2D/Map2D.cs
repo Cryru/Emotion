@@ -356,7 +356,7 @@ namespace Emotion.Game.World2D
 
             await Task.WhenAll(objectAssetTasks);
 
-            PostMapLoad();
+            await PostMapLoad();
             Initialized = true;
 
             Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
@@ -372,8 +372,9 @@ namespace Emotion.Game.World2D
             // todo
         }
 
-        protected virtual void PostMapLoad()
+        protected virtual Task PostMapLoad()
         {
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -388,6 +389,19 @@ namespace Emotion.Game.World2D
         public void AddObject(GameObject2D obj)
         {
             _objectsToAdd.Enqueue(obj);
+        }
+
+        /// <summary>
+        /// Initialize an object now and add it.
+        /// By default objects are initialized on update ticks, and then added whenever their assets load,
+        /// but there are cases such as during map loading when you need data from a loaded object.
+        /// </summary>
+        protected async Task ObjectLoadAndAdd(GameObject2D obj)
+        {
+            await obj.LoadAssetsAsync();
+            obj.Init(this);
+            obj.ObjectState = ObjectState.Loading;
+            AddObject(obj);
         }
 
         public void RemoveObject(GameObject2D obj)

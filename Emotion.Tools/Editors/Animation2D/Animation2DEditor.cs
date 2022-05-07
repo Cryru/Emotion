@@ -572,10 +572,7 @@ namespace Emotion.Tools.Editors.Animation2D
                 UnsavedChanges();
             }
 
-            if (ImGui.InputFloat2("Additional Offset", ref frameSource.FrameOffsets[_frameAnchor]))
-            {
-                UnsavedChanges();
-            }
+            if (ImGui.InputFloat2("Additional Offset", ref frameSource.FrameOffsets[_frameAnchor])) UnsavedChanges();
 
             if (_animatedPreviewFb != null)
             {
@@ -628,19 +625,29 @@ namespace Emotion.Tools.Editors.Animation2D
 
                 if (_animatedPreviewAnchorMode)
                 {
-                    _controller.GetRenderDataForFrame(_frameAnchor, out Vector3 renderPos, out Texture texture, out Rectangle uv, out bool flipX);
-                    c.RenderSprite((size / 2f).ToVec3() + renderPos, uv.Size, Color.White, texture, uv, flipX);
+                    // Draw a shadow of the previous frame.
+                    if (_frameAnchor != 0)
+                    {
+                        _controller.GetRenderDataForFrame(_frameAnchor - 1, out Vector3 renderPosSh, out Texture textureSh, out Rectangle uvSh);
+                        renderPosSh = renderPosSh.RoundClosest();
+                        c.RenderSprite((size / 2f).RoundClosest().ToVec3() + renderPosSh, uvSh.Size, Color.White * 0.3f, textureSh, uvSh);
+                    }
+
+                    _controller.GetRenderDataForFrame(_frameAnchor, out Vector3 renderPos, out Texture texture, out Rectangle uv);
+                    renderPos = renderPos.RoundClosest();
+                    c.RenderSprite((size / 2f).RoundClosest().ToVec3() + renderPos, uv.Size, Color.White, texture, uv);
                 }
                 else
                 {
-                    _controller.GetRenderData(out Vector3 renderPos, out Texture texture, out Rectangle uv, out bool flipX);
-                    c.RenderSprite((size / 2f).ToVec3() + renderPos, uv.Size, Color.White, texture, uv, flipX);
+                    _controller.GetRenderData(out Vector3 renderPos, out Texture texture, out Rectangle uv);
+                    renderPos = renderPos.RoundClosest();
+                    c.RenderSprite((size / 2f).RoundClosest().ToVec3() + renderPos, uv.Size, Color.White, texture, uv);
                 }
 
                 c.RenderTo(null);
             }
         }
-        
+
         #endregion
     }
 }

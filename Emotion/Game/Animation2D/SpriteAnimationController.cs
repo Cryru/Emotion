@@ -66,6 +66,14 @@ namespace Emotion.Game.Animation2D
         }
 
         /// <summary>
+        /// Returns whether the controller contains an animation with the provided name.
+        /// </summary>
+        public bool HasAnimation(string animationName)
+        {
+            return Data.Animations.ContainsKey(animationName);
+        }
+
+        /// <summary>
         /// Set the current animation to the one with the provided name.
         /// </summary>
         public void SetAnimation(string animationName)
@@ -99,20 +107,18 @@ namespace Emotion.Game.Animation2D
         /// <summary>
         /// Get the information needed to render the sprite at the current frame of animation.
         /// </summary>
-        public void GetRenderData(out Vector3 renderPos, out Texture texture, out Rectangle uv, out bool flipX)
+        public void GetRenderData(out Vector3 renderPos, out Texture texture, out Rectangle uv, bool flipX = false)
         {
             int frameIndex = _currentAnimData.FrameIndices.Length == 0 ? 0 : _currentAnimData.FrameIndices[CurrentFrameIndex];
-            GetRenderDataForFrame(frameIndex, out renderPos, out texture, out uv, out flipX);
+            GetRenderDataForFrame(frameIndex, out renderPos, out texture, out uv, flipX);
         }
 
         /// <summary>
         /// Gets the information needed to render the sprite at a specific absolute frame index (for the frame source).
         /// </summary>
-        public void GetRenderDataForFrame(int absFrameIdx, out Vector3 renderPos, out Texture texture, out Rectangle uv, out bool flipX)
+        public void GetRenderDataForFrame(int absFrameIdx, out Vector3 renderPos, out Texture texture, out Rectangle uv, bool flipX = false)
         {
             texture = _loadedTexture?.Texture ?? Texture.EmptyWhiteTexture;
-
-            flipX = false; // todo
 
             SpriteAnimationFrameSource? frameSource = Data.FrameSource;
             uv = frameSource.GetFrameUV(absFrameIdx);
@@ -123,6 +129,18 @@ namespace Emotion.Game.Animation2D
             if (frameSource.FrameOrigins != null && frameSource.FrameOrigins.Length > absFrameIdx) origin = frameSource.FrameOrigins[absFrameIdx];
             if (frameSource.FrameOffsets != null && frameSource.FrameOffsets.Length > absFrameIdx) offset = frameSource.FrameOffsets[absFrameIdx];
 
+            if (flipX) offset.X = -offset.X;
+            float width = uv.Width;
+            if (width % 2 != 0)
+            {
+                if (flipX)
+                    width--;
+                else
+                    width++;
+            }
+            float height = uv.Height;
+            if (height % 2 != 0) height++;
+
             switch (origin)
             {
                 case OriginPosition.TopLeft:
@@ -130,7 +148,7 @@ namespace Emotion.Game.Animation2D
                     renderPos.Y += offset.Y;
                     break;
                 case OriginPosition.TopCenter:
-                    renderPos.X -= uv.Width / 2 - offset.X;
+                    renderPos.X -= width / 2 - offset.X;
                     renderPos.Y += offset.Y;
                     break;
                 case OriginPosition.TopRight:
@@ -139,22 +157,22 @@ namespace Emotion.Game.Animation2D
                     break;
                 case OriginPosition.CenterLeft:
                     renderPos.X += offset.X;
-                    renderPos.Y -= uv.Height / 2 - offset.Y;
+                    renderPos.Y -= height / 2 - offset.Y;
                     break;
                 case OriginPosition.CenterCenter:
-                    renderPos.X -= uv.Width / 2 - offset.X;
-                    renderPos.Y -= uv.Height / 2 - offset.Y;
+                    renderPos.X -= width / 2 - offset.X;
+                    renderPos.Y -= height / 2 - offset.Y;
                     break;
                 case OriginPosition.CenterRight:
                     renderPos.X -= uv.Width - offset.X;
-                    renderPos.Y -= uv.Height / 2 - offset.Y;
+                    renderPos.Y -= height / 2 - offset.Y;
                     break;
                 case OriginPosition.BottomLeft:
                     renderPos.X += offset.X;
                     renderPos.Y -= uv.Height - offset.Y;
                     break;
                 case OriginPosition.BottomCenter:
-                    renderPos.X -= uv.Width / 2 - offset.X;
+                    renderPos.X -= width / 2 - offset.X;
                     renderPos.Y -= uv.Height - offset.Y;
                     break;
                 case OriginPosition.BottomRight:
