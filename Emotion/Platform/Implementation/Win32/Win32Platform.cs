@@ -111,8 +111,8 @@ namespace Emotion.Platform.Implementation.Win32
             WindowStyles windowStyle = DEFAULT_WINDOW_STYLE;
             if (config.HiddenWindow)
             {
-                windowStyle |= ~WindowStyles.WS_VISIBLE;
-                windowStyle |= ~WindowStyles.WS_MINIMIZE;
+                windowStyle &= ~WindowStyles.WS_VISIBLE;
+                windowStyle &= ~WindowStyles.WS_MINIMIZE;
 
                 // This will override the hide otherwise
                 config.InitialDisplayMode = DisplayMode.Initial;

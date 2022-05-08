@@ -106,11 +106,6 @@ namespace Emotion.Game.World2D
             return layer == 0;
         }
 
-        public virtual Rectangle GetBoundsForLayer(int layer)
-        {
-            return Bounds;
-        }
-
         public virtual Task LoadAssetsAsync()
         {
             return Task.CompletedTask;

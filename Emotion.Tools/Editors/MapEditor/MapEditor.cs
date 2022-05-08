@@ -103,6 +103,7 @@ namespace Emotion.Tools.Editors.MapEditor
                     Map2D? newMap = Map2DConverter.ConvertTmxToMap2D(_customMapType, tmxMap);
                     if (newMap == null) return;
 
+                    newMap.EditorMode = true;
                     Task.Run(newMap.InitAsync);
                     _currentAsset = XMLAsset<Map2D>.CreateFromContent(newMap);
                     UnsavedChanges();
