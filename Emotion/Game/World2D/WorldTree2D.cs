@@ -33,7 +33,7 @@ namespace Emotion.Game.World2D
             for (var i = 0; i < _objects.Count; i++)
             {
                 GameObject2D obj = _objects[i];
-                if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObject(obj);
+                if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObjectRoot(obj);
             }
         }
 
@@ -42,7 +42,7 @@ namespace Emotion.Game.World2D
             _objects.Add(obj);
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObject(obj);
+                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObjectRoot(obj);
             }
         }
 
@@ -51,7 +51,7 @@ namespace Emotion.Game.World2D
             if (!_objects.Remove(obj)) return;
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObject(obj);
+                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObjectRoot(obj);
             }
         }
 
@@ -61,6 +61,12 @@ namespace Emotion.Game.World2D
             {
                 if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.UpdateObject(obj);
             }
+        }
+
+        public WorldTree2DRootNode? GetRootNodeForLayer(int layer)
+        {
+            _rootNodes.TryGetValue(layer, out WorldTree2DRootNode? rootNode);
+            return rootNode;
         }
     }
 }

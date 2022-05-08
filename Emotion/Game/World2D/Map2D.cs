@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -147,11 +148,6 @@ namespace Emotion.Game.World2D
             return new WorldTree2D(MapSize);
         }
 
-        protected virtual void PreMapLoad()
-        {
-            // todo
-        }
-
         protected virtual Task PostMapLoad()
         {
             return Task.CompletedTask;
@@ -249,6 +245,7 @@ namespace Emotion.Game.World2D
             {
                 if (obj.ObjectState == ObjectState.Destroyed) continue;
                 _worldTree.UpdateObjectInTree(obj);
+                obj.MapFlags &= ~Map2DObjectFlags.UpdateWorldTree;
             }
         }
 
@@ -267,7 +264,7 @@ namespace Emotion.Game.World2D
 
         #endregion
 
-        #region Iteration
+        #region Iteration and Query
 
         public IEnumerable<GameObject2D> GetObjects()
         {
@@ -275,6 +272,12 @@ namespace Emotion.Game.World2D
             {
                 yield return _objects[i];
             }
+        }
+
+        public void GetObjects(IList list, int layer, IShape shape)
+        {
+            WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
+            rootNode?.AddObjectsIntersectingShape(list, shape);
         }
 
         #endregion
