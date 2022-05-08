@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +9,7 @@ using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.Standard.Logging;
 
 #endregion
 
@@ -17,235 +17,6 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.World2D
 {
-    [Flags]
-    public enum Map2DObjectFlags : uint
-    {
-        None = 0,
-
-        UpdateWorldTree = 2 << 0,
-        Serializable = 2 << 1,
-    }
-
-    public enum ObjectState : byte
-    {
-        None = 0,
-        Loading = 1,
-        Alive = 2,
-        Destroyed = 3
-    }
-
-    public class GameObject2D : Transform
-    {
-        /// <summary>
-        /// The object's name. Should be unique map-wide, but
-        /// isn't actually enforced.
-        /// </summary>
-        public string ObjectName { get; set; }
-
-        /// <summary>
-        /// The object's multiplicative color tint.
-        /// </summary>
-        public Color Tint { get; set; } = Color.White;
-
-        #region Runtime
-
-        /// <summary>
-        /// The map this object is in. Is set after Init.
-        /// </summary>
-        public Map2D? Map { get; protected set; }
-
-        /// <summary>
-        /// The object state, managed by the map in runtime.
-        /// </summary>
-        [DontSerialize]
-        public ObjectState ObjectState { get; set; }
-
-        /// <summary>
-        /// Object flags managed by the map in runtime.
-        /// </summary>
-        [DontSerialize]
-        public Map2DObjectFlags MapFlags { get; set; }
-
-        #endregion
-
-        public GameObject2D(string name)
-        {
-            ObjectName = name;
-        }
-
-        // Serialization constructor.
-        protected GameObject2D()
-        {
-            ObjectName = null!;
-        }
-
-        /// <summary>
-        /// Init game data. All changes from this process shouldn't be serialized.
-        /// </summary>
-        public virtual void Init(Map2D map)
-        {
-            Map = map;
-        }
-
-        /// <summary>
-        /// Free any resources and cleanup.
-        /// </summary>
-        public virtual void Destroy()
-        {
-        }
-
-        protected override void Moved()
-        {
-            base.Moved();
-            Map?.InvalidateObjectBounds(this);
-        }
-
-        protected override void Resized()
-        {
-            base.Resized();
-            Map?.InvalidateObjectBounds(this);
-        }
-
-        public bool IsPartOfMapLayer(int layer)
-        {
-            return true;
-        }
-
-        public virtual Rectangle GetBoundsForLayer(int layer)
-        {
-            return Bounds;
-        }
-
-        public virtual Task LoadAssetsAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public virtual void Update(float dt)
-        {
-        }
-
-        public virtual void Render(RenderComposer c)
-        {
-            c.RenderSprite(Position, Size, Color.White);
-        }
-
-        public virtual void PreMapEditorSave()
-        {
-            // you can prepare the obj for serialization here.
-        }
-    }
-
-    [DontSerialize]
-    public class WorldTree2D
-    {
-        private Dictionary<int, WorldTreeRootNode> _rootNodes = new();
-        private Vector2 _mapSize;
-
-        private List<GameObject2D> _objects = new();
-
-        public WorldTree2D(Vector2 mapSize)
-        {
-            _mapSize = mapSize;
-            AddTreeLayer(0);
-        }
-
-        public void AddTreeLayer(int layerId)
-        {
-            var newLayerTopNode = new WorldTreeRootNode(new Rectangle(0, 0, _mapSize));
-            _rootNodes.Add(layerId, newLayerTopNode);
-
-            for (var i = 0; i < _objects.Count; i++)
-            {
-                GameObject2D obj = _objects[i];
-                if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObject(obj);
-            }
-        }
-
-        public void AddObjectToTree(GameObject2D obj)
-        {
-            _objects.Add(obj);
-            foreach (KeyValuePair<int, WorldTreeRootNode> rootNode in _rootNodes)
-            {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObject(obj);
-            }
-        }
-
-        public void RemoveObjectFromTree(GameObject2D obj)
-        {
-            if (!_objects.Remove(obj)) return;
-            foreach (KeyValuePair<int, WorldTreeRootNode> rootNode in _rootNodes)
-            {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObject(obj);
-            }
-        }
-
-        public void UpdateObjectInTree(GameObject2D obj)
-        {
-            foreach (KeyValuePair<int, WorldTreeRootNode> rootNode in _rootNodes)
-            {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.UpdateObject(obj);
-            }
-        }
-    }
-
-    public class WorldTreeRootNode : WorldTreeNode
-    {
-        protected Dictionary<GameObject2D, WorldTreeNode> _objToNode = new();
-
-        public WorldTreeRootNode(Rectangle bounds) : base(bounds)
-        {
-        }
-
-        public void UpdateObject(GameObject2D obj)
-        {
-        }
-    }
-
-    public class WorldTreeNode
-    {
-        public Rectangle Bounds;
-
-        public WorldTreeNode TopLeft
-        {
-            get => ChildNodes[0];
-        }
-
-        public WorldTreeNode TopRight
-        {
-            get => ChildNodes[1];
-        }
-
-        public WorldTreeNode BottomLeft
-        {
-            get => ChildNodes[2];
-        }
-
-        public WorldTreeNode BottomRight
-        {
-            get => ChildNodes[3];
-        }
-
-        public WorldTreeNode[] ChildNodes;
-
-        // Contains all objects in the node and it's children nodes.
-        protected List<GameObject2D>? _objects;
-
-        public WorldTreeNode(Rectangle bounds)
-        {
-            Bounds = bounds;
-            ChildNodes = new WorldTreeNode[4];
-        }
-
-        public void AddObject(GameObject2D obj)
-        {
-        }
-
-        public void RemoveObject(GameObject2D obj)
-        {
-        }
-    }
-
     public class Map2D
     {
         /// <summary>
@@ -346,6 +117,15 @@ namespace Emotion.Game.World2D
                 obj.ObjectState = ObjectState.Alive;
                 obj.MapFlags |= Map2DObjectFlags.Serializable;
                 _objects.Add(obj);
+
+                if (!string.IsNullOrEmpty(obj.ObjectName))
+                {
+                    // Record initial positions as named points.
+                    if (!NamedPoints.ContainsKey(obj.ObjectName))
+                        NamedPoints.Add(obj.ObjectName, obj.Position2);
+                    else
+                        Engine.Log.Warning($"Duplicate object name - {obj.ObjectName}", MessageSource.Game, true);
+                }
             }
 
             if (TileData != null)
@@ -355,8 +135,8 @@ namespace Emotion.Game.World2D
             }
 
             await Task.WhenAll(objectAssetTasks);
-
             await PostMapLoad();
+            Update(0); // Run the update tick once to prevent some flickering on first update.
             Initialized = true;
 
             Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
