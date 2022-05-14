@@ -575,7 +575,7 @@ namespace Emotion.Graphics
         {
             if (_bufferStack.Count == 1)
             {
-                Engine.Log.Error("Cannot pop off the Drawbuffer.", MessageSource.Renderer);
+                Engine.Log.Warning("Cannot pop off the Drawbuffer.", MessageSource.Renderer, true);
                 return;
             }
 
