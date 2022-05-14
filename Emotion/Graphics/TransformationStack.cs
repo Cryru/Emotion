@@ -52,7 +52,7 @@ namespace Emotion.Graphics
         {
             if (_stack.Count <= 1)
             {
-                Engine.Log.Warning("Tried to pop the first identity matrix out of the stack.", MessageSource.Renderer);
+                Engine.Log.Warning("Tried to pop the first identity matrix out of the stack.", MessageSource.Renderer, true);
                 return;
             }
 
