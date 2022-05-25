@@ -162,22 +162,38 @@ namespace Emotion.Game.World2D
         private ConcurrentQueue<GameObject2D> _objectsToUpdate = new();
         private List<(GameObject2D, Task)> _objectLoading = new();
 
+        /// <summary>
+        /// Add an object to the map. The object should be uninitialized.
+        /// </summary>
         public void AddObject(GameObject2D obj)
         {
+            Debug.Assert(obj.ObjectState == ObjectState.None);
+
+            // Serializable objects added before the map is initialized will be initialized in
+            // map load and be part of the map loading.
+            if (obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable) && !Initialized)
+            {
+                ObjectsToSerialize.Add(obj);
+                return;
+            }
+
             _objectsToAdd.Enqueue(obj);
         }
 
         /// <summary>
         /// Initialize an object now and add it.
-        /// By default objects are initialized on update ticks, and then added whenever their assets load,
-        /// but there are cases such as during map loading when you need data from a loaded object.
+        /// By default objects are initialized on update ticks, or during map load, but it is possible
+        /// for the map to create critical objects during runtime, such as for player characters.
         /// </summary>
         protected async Task ObjectLoadAndAdd(GameObject2D obj)
         {
+            Debug.Assert(_worldTree != null);
+
             await obj.LoadAssetsAsync();
             obj.Init(this);
-            obj.ObjectState = ObjectState.Loading;
-            AddObject(obj);
+            _objects.Add(obj);
+            _worldTree.AddObjectToTree(obj);
+            obj.ObjectState = ObjectState.Alive;
         }
 
         public void RemoveObject(GameObject2D obj)

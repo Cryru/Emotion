@@ -100,7 +100,7 @@ namespace Emotion.Game.World2D
                         {
                             // Get the UV from the TiledMap as it supports variable tile sizes, and
                             // objects there are done through tilesets.
-                            uv = map.GetUvFromTileImageId((int) objDef.Gid.Value, out int tsId);
+                            uv = map.GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
                             if (tsId >= 0 && tsId < tileData.Tilesets.Length) tilesetAsset = tileData.Tilesets[tsId];
                         }
 
@@ -108,6 +108,7 @@ namespace Emotion.Game.World2D
                         {
                             objDef.Type, objDef.Name, new Vector2(objDef.X, objDef.Y).Round(), tilesetAsset!, uv!, objDef.Properties, objDef
                         });
+
                         if (obj != null)
                         {
                             obj.MapFlags |= Map2DObjectFlags.Serializable;
