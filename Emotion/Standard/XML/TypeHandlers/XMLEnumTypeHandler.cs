@@ -24,7 +24,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 return parsed;
             }
 
-            Engine.Log.Warning($"Couldn't find value {readValue} in enum {Type}.", MessageSource.XML);
+            Engine.Log.Warning($"Couldn't find value {readValue} in enum {Type}.", MessageSource.XML, true);
             return null;
         }
     }
