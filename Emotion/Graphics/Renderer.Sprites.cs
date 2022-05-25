@@ -84,8 +84,8 @@ namespace Emotion.Graphics
             if (snapToPixel)
             {
                 if (thickness < 1.0f) thickness = 1.0f;
-                pointOne = pointOne.IntCastRound();
-                pointTwo = pointTwo.IntCastRound();
+                pointOne = pointOne.IntCastRoundXY();
+                pointTwo = pointTwo.IntCastRoundXY();
             }
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);

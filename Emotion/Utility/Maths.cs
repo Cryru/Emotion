@@ -804,12 +804,20 @@ namespace Emotion.Utility
         /// <summary>
         /// Get the odd number nearest to the provided number.
         /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetNearestOddNumber(float n)
         {
             if (n % 2 == 0) return n + 1;
+            return n;
+        }
+
+        /// <summary>
+        /// Get the even number nearest to the provided number.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetNearestEvenNumber(float n)
+        {
+            if (n % 2 != 0) return n + 1;
             return n;
         }
 
