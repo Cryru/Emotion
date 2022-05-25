@@ -132,11 +132,6 @@ namespace Emotion.Tools.Editors.Animation2D
 
             ImGui.EndTabBar();
             ImGui.EndChild();
-
-            //ImGui.BeginGroup();
-            //ImGui.BeginTabBar("TabBar");
-            //ImGui.EndTabBar();
-            //ImGui.EndGroup();
         }
 
         protected override bool UpdateInternal()
@@ -229,6 +224,13 @@ namespace Emotion.Tools.Editors.Animation2D
                     _textureFb.Resize(_currentAssetTexture.Size);
             });
 
+            // Patch legacy files
+            foreach (KeyValuePair<string, SpriteAnimationData> anim in file.Content.Animations)
+            {
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (anim.Value.FrameIndices == null) anim.Value.FrameIndices = Array.Empty<int>();
+            }
+
             return true;
         }
 
@@ -240,7 +242,7 @@ namespace Emotion.Tools.Editors.Animation2D
 
                 SpriteAnimationFrameSource source;
                 if (gridMode)
-                    source = new SpriteGridFrameSource();
+                    source = new SpriteGridFrameSource(f.Texture.Size);
                 else
                     source = new SpriteArrayFrameSource(f.Texture);
 
@@ -429,23 +431,44 @@ namespace Emotion.Tools.Editors.Animation2D
         {
             AnimatedSprite currentFileContext = _currentAsset!.Content!;
             SpriteAnimationFrameSource frameSource = currentFileContext.FrameSource;
+
             var arraySource = frameSource as SpriteArrayFrameSource;
+            var gridSource = frameSource as SpriteGridFrameSource;
 
             if (frameSource != null)
             {
                 ImGui.Text($"Frames: {currentFileContext.FrameSource.GetFrameCount()}");
-                ImGui.SameLine();
-                if (arraySource != null) ImGui.Checkbox("Show Frame Indices", ref _showFrameIdx);
-                ImGui.SameLine();
-                if (ImGui.Button("Re-detect Frames"))
+
+                if (arraySource != null)
                 {
-                    currentFileContext.FrameSource = new SpriteArrayFrameSource(_currentAssetTexture);
-                    UnsavedChanges();
+                    ImGui.SameLine();
+                    ImGui.Checkbox("Show Frame Indices", ref _showFrameIdx);
+                    ImGui.SameLine();
+                    if (ImGui.Button("Re-detect Frames"))
+                    {
+                        currentFileContext.FrameSource = new SpriteArrayFrameSource(_currentAssetTexture);
+                        UnsavedChanges();
+                    }
+                }
+
+                if (gridSource != null)
+                {
+                    if (ImGui.InputFloat2("FrameSize", ref gridSource.FrameSize))
+                    {
+                        _animatedPreviewInvalidated = true;
+                        UnsavedChanges();
+                    }
+
+                    if (ImGui.InputFloat2("Frame Spacing", ref gridSource.Spacing))
+                    {
+                        _animatedPreviewInvalidated = true;
+                        UnsavedChanges();
+                    }
                 }
             }
 
             ImGui.InputInt("Zoom", ref _zoomLevel);
-            ImGui.Text("Right-click on a frame to select it, and then on another frame to swap their positions.");
+            if (arraySource != null) ImGui.Text("Right-click on a frame to select it, and then on another frame to swap their positions.");
 
             ImGui.BeginChild("FramePreview", new Vector2(-1, -1), true, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -536,22 +559,19 @@ namespace Emotion.Tools.Editors.Animation2D
             frameSource.FrameOffsets ??= new Vector2[frameCount];
             if (frameSource.FrameOffsets.Length != frameCount) Array.Resize(ref frameSource.FrameOffsets, frameCount);
 
+            if (frameCount == 0) return;
+
             ImGui.InputInt("Zoom", ref _zoomLevel);
 
-            ImGui.Text($"Frame {_frameAnchor}/{frameCount}");
+            ImGui.Text("Frame ");
             ImGui.SameLine();
-            if (ImGui.ArrowButton("PrevFrame", ImGuiDir.Left))
-            {
-                _frameAnchor--;
-                if (_frameAnchor < 0) _frameAnchor = 0;
-            }
+            ImGui.SetNextItemWidth(130);
+            ImGui.InputInt("", ref _frameAnchor);
+            ImGui.SameLine();
+            ImGui.Text($"/{frameCount}");
 
-            ImGui.SameLine();
-            if (ImGui.ArrowButton("NextFrame", ImGuiDir.Right))
-            {
-                _frameAnchor++;
-                if (_frameAnchor > frameCount - 1) _frameAnchor = frameCount - 1;
-            }
+            if (_frameAnchor < 0) _frameAnchor = 0;
+            if (_frameAnchor > frameCount - 1) _frameAnchor = frameCount - 1;
 
             var anchorType = (int) frameSource.FrameOrigins[_frameAnchor];
             if (ImGui.Combo("Anchor Type", ref anchorType, string.Join('\0', Enum.GetNames(typeof(OriginPosition)))))
