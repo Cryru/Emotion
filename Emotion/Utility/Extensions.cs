@@ -229,6 +229,19 @@ namespace System.Numerics
         }
 
         /// <summary>
+        /// Round the vector by casting it's components to ints.
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 IntCastRoundXY(this Vector3 v)
+        {
+            v.X = (int) v.X;
+            v.Y = (int) v.Y;
+            return v;
+        }
+
+        /// <summary>
         /// Transform a two dimensional vector2 to a one dimensional in whichever direction the larger component is.
         /// </summary>
         public static Vector2 OneDirectionOnly(this Vector2 v)
