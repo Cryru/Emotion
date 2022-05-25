@@ -285,7 +285,7 @@ namespace Emotion.Graphics
             if (msgType != DebugType.DebugTypeError) return;
 
             var stringMessage = new string((sbyte*) message, 0, length);
-            Engine.Log.Error(stringMessage, $"GL_{source}");
+            Engine.Log.Warning(stringMessage, $"GL_{source}", true);
         }
 
         /// <summary>
