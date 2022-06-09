@@ -290,6 +290,16 @@ namespace Emotion.Game.World2D
             }
         }
 
+        public int GetObjectCount()
+        {
+            return _objects.Count;
+        }
+
+        public GameObject2D GetObjectByIndex(int idx)
+        {
+            return _objects[idx];
+        }
+
         public void GetObjects(IList list, int layer, IShape shape)
         {
             WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
@@ -305,8 +315,9 @@ namespace Emotion.Game.World2D
             ProcessObjectChanges();
 
             // todo: obj update, clipped?
-            foreach (GameObject2D obj in GetObjects())
+            for (var i = 0; i < GetObjectCount(); i++)
             {
+                GameObject2D obj = GetObjectByIndex(i);
                 obj.Update(dt);
             }
         }
