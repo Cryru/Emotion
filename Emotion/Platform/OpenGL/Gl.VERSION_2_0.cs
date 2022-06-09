@@ -864,6 +864,13 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
+        public unsafe static void DrawBuffers(int singleBuf)
+        {
+            Debug.Assert(Delegates.pglDrawBuffers != null, "pglDrawBuffers not implemented");
+            Delegates.pglDrawBuffers(1, &singleBuf);
+            DebugCheckErrors(null);
+        }
+
         /// <summary>
         ///     <para>
         ///     [GL4|GLES3.2] glStencilOpSeparate: set front and/or back stencil test actions
