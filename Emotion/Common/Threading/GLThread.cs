@@ -5,6 +5,8 @@ using System.Threading;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Common.Threading
 {
     /// <summary>
@@ -18,6 +20,14 @@ namespace Emotion.Common.Threading
         public static bool IsBound
         {
             get => _threadManager.IsBound;
+        }
+
+        /// <summary>
+        /// Returns whether the queue is empty.
+        /// </summary>
+        public static bool Empty
+        {
+            get => _threadManager.Empty;
         }
 
         private static ManagedThread _threadManager;
