@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
+using Emotion.Common;
 using Emotion.Graphics;
+using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
@@ -18,6 +20,118 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Editors
 {
+    public class RectangleGizmo
+    {
+        public Rectangle Rect;
+        public Color Color = new Color(137, 137, 137);
+
+        private bool _mouseDragging;
+        private Vector2 _boxDragStart;
+        private int _anchor;
+
+        public void Render(RenderComposer c)
+        {
+            var colorMultiplier = (byte) (_mouseDragging ? 100 : 50);
+
+            c.RenderOutline(Rect, Color);
+            if (_anchor == 5)
+            {
+                c.RenderSprite(Rect, Color.Add(Color, colorMultiplier).SetAlpha(colorMultiplier));
+            }
+
+            c.RenderCircle(Rect.Position.ToVec3(), 2, _anchor == 1 ? Color.Add(Color, colorMultiplier) : Color, true);
+            c.RenderCircle(Rect.TopRight.ToVec3(), 2, _anchor == 2 ? Color.Add(Color, colorMultiplier) : Color, true);
+            c.RenderCircle(Rect.BottomRight.ToVec3(), 2, _anchor == 3 ? Color.Add(Color, colorMultiplier) : Color, true);
+            c.RenderCircle(Rect.BottomLeft.ToVec3(), 2, _anchor == 4 ? Color.Add(Color, colorMultiplier) : Color, true);
+        }
+
+        public bool Update()
+        {
+            Vector2 mouseWorld = Engine.Host.MousePosition;
+            mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseWorld);
+
+            if (_mouseDragging && Engine.Host.IsKeyHeld(Key.MouseKeyLeft))
+            {
+                Rect.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+                switch (_anchor)
+                {
+                    case 1:
+                        min = mouseWorld;
+                        break;
+                    case 2:
+                        min.Y = mouseWorld.Y;
+                        max.X = mouseWorld.X;
+                        break;
+                    case 3:
+                        max = mouseWorld;
+                        break;
+                    case 4:
+                        max.Y = mouseWorld.Y;
+                        min.X = mouseWorld.X;
+                        break;
+                    case 5:
+                        min = mouseWorld - _boxDragStart;
+                        max = min + Rect.Size;
+                        break;
+
+                }
+
+                Rect = Rectangle.FromMinMaxPointsChecked(min, max);
+
+                return true;
+            }
+            else if(_mouseDragging)
+            {
+                _mouseDragging = false;
+                return true;
+            }
+
+            _anchor = 0;
+
+            var circ = new Circle(Rect.Position, 3);
+            if (circ.ContainsInclusive(ref mouseWorld))
+            {
+                _anchor = 1;
+            }
+
+            circ.Center = Rect.TopRight;
+            if (circ.ContainsInclusive(ref mouseWorld))
+            {
+                _anchor = 2;
+            }
+
+            circ.Center = Rect.BottomRight;
+            if (circ.ContainsInclusive(ref mouseWorld))
+            {
+                _anchor = 3;
+            }
+
+            circ.Center = Rect.BottomLeft;
+            if (circ.ContainsInclusive(ref mouseWorld))
+            {
+                _anchor = 4;
+            }
+
+            if (_anchor == 0 && Rect.ContainsInclusive(ref mouseWorld))
+            {
+                _anchor = 5;
+                _boxDragStart = mouseWorld - Rect.Position;
+            }
+
+            if (_mouseDragging)
+            {
+                return true;
+            }
+            else if (Engine.Host.IsKeyDown(Key.MouseKeyLeft) && _anchor != 0)
+            {
+                _mouseDragging = true;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     public class EditorHelpers
     {
         public static object? TransformClass(object window, Type newType)
@@ -246,7 +360,7 @@ namespace Emotion.Tools.Editors
         public static void CenteredText(string text)
         {
             float windowWidth = ImGui.GetWindowSize().X;
-            float textWidth   = ImGui.CalcTextSize(text).X;
+            float textWidth = ImGui.CalcTextSize(text).X;
 
             ImGui.SetCursorPosX((windowWidth - textWidth) * 0.5f);
             ImGui.Text(text);
@@ -299,6 +413,7 @@ namespace Emotion.Tools.Editors
                             draggedState = -1;
                         }
                     }
+
                     ImGui.EndDragDropTarget();
                 }
 
@@ -306,10 +421,7 @@ namespace Emotion.Tools.Editors
                 ImGuiPayloadPtr payLoad = ImGui.GetDragDropPayload();
                 unsafe
                 {
-                    if ((IntPtr) payLoad.NativePtr == IntPtr.Zero)
-                    {
-                        draggedState = -1;
-                    }
+                    if ((IntPtr) payLoad.NativePtr == IntPtr.Zero) draggedState = -1;
                 }
 
                 if (horizontal && i != list.Length - 1) ImGui.SameLine();
