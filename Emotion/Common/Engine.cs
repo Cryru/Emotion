@@ -166,7 +166,7 @@ namespace Emotion.Common
                     // ignored
                 }
 
-                if (Debugger.IsAttached) Debugger.Break();
+                //if (Debugger.IsAttached) Debugger.Break();
             };
 
             // Ensure quit is called on exit so that logs are flushed etc.
