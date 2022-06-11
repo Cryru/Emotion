@@ -662,6 +662,15 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
+        /// Get the rectangle's min/max points (top-left, bottom-right points)
+        /// </summary>
+        public void GetMinMaxPoints(out Vector2 min, out Vector2 max)
+        {
+            min = Position;
+            max = Position + Size;
+        }
+
+        /// <summary>
         /// Creates a Rectangle given min/max points (top-left, bottom-right points)
         /// </summary>
         public static Rectangle FromMinMaxPoints(Vector2 min, Vector2 max)

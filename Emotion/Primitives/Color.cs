@@ -204,6 +204,13 @@ namespace Emotion.Primitives
             return new Color((byte) (value.R * scale), (byte) (value.G * scale), (byte) (value.B * scale), (byte) (value.A * scale));
         }
 
+        /// <summary>
+        /// Multiply <see cref="Color" /> by value.
+        /// </summary>
+        public static Color Add(Color value, byte amount)
+        {
+            return new Color((byte) (value.R + amount), (byte) (value.G + amount), (byte) (value.B + amount), (byte) (value.A));
+        }
 
         /// <summary>
         /// Translate a non-premultipled alpha <see cref="Color" /> to a <see cref="Color" /> that contains premultiplied alpha.
