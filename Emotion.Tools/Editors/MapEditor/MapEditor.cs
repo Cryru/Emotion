@@ -10,6 +10,7 @@ using Emotion.Game.Tiled;
 using Emotion.Game.World2D;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
@@ -62,8 +63,51 @@ namespace Emotion.Tools.Editors.MapEditor
             Engine.Renderer.Camera = _previousCamera;
         }
 
+        private bool _dragWorld;
+        private Vector2 _dragOffset;
+
+        // Tile data
+        private Vector2 _selectedTile;
+
         protected override bool UpdateInternal()
         {
+            if (_dragWorld)
+            {
+                if (Engine.Host.IsKeyHeld(Key.MouseKeyMiddle))
+                {
+                    Vector2 pos = Engine.Host.MousePosition;
+                    Vector3 move = (_dragOffset - pos).ToVec3() / Engine.Renderer.Camera.CalculatedScale;
+                    Engine.Renderer.Camera.Position += move;
+                    _dragOffset = pos;
+
+                }
+                else
+                {
+                    _dragWorld = false;
+                }
+            }
+            else if(Engine.Host.IsKeyDown(Key.MouseKeyMiddle))
+            {
+                Vector2 pos = Engine.Host.MousePosition;
+                _dragWorld = true;
+                _dragOffset = pos;
+            }
+
+            // Selection
+            if (Engine.Host.IsKeyDown(Key.MouseKeyLeft))
+            {
+                var worldPos = Engine.Host.MousePosition;
+                worldPos = Engine.Renderer.Camera.ScreenToWorld(worldPos);
+
+                Map2D? map = _currentAsset?.Content;
+                if (map != null && map.TileData != null)
+                {
+                    Map2DTileMapData? tileData = map.TileData;
+                    worldPos -= tileData.TileSize / 2;
+                    _selectedTile = (worldPos / tileData.TileSize).RoundClosest();
+                }
+            }
+
             var speed = 0.15f;
             Vector2 dir = Vector2.Zero;
             if (Engine.Host.IsKeyHeld(Key.W)) dir.Y -= 1;
@@ -163,7 +207,10 @@ namespace Emotion.Tools.Editors.MapEditor
                     for (var i = 0; i < layers.Count; i++)
                     {
                         Map2DTileMapLayer curLayer = layers[i];
-                        ImGui.MenuItem($"{curLayer.Name}", "", i == _selectedLayer);
+                        if (ImGui.MenuItem($"{curLayer.Name}", "", i == _selectedLayer))
+                        {
+                            _selectedLayer = i;
+                        }
                     }
                 }
 
@@ -197,6 +244,31 @@ namespace Emotion.Tools.Editors.MapEditor
 
             RenderLayerUI(c);
 
+            Map2DTileMapData? tileData = _currentAsset?.Content?.TileData;
+            if (tileData != null && _selectedLayer != -1)
+            {
+                Map2DTileMapLayer layer = tileData.Layers[_selectedLayer];
+                var layerBarSize = new Vector2(200, 300);
+                ImGui.SetNextWindowPos(new Vector2(c.CurrentTarget.Size.X - layerBarSize.X, TOP_BARS + 300), ImGuiCond.Always);
+                ImGui.SetNextWindowSize(layerBarSize);
+                ImGui.Begin("Selected Tile", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize);
+
+                int oneDCoord = tileData.GetTile1DFromTile2D(_selectedTile);
+                ImGui.Text($"Selected: {_selectedTile} / {oneDCoord}");
+                layer.GetTileData(oneDCoord, out uint tid, out bool _, out bool _, out bool _);
+                ImGui.Text($"In Layer {layer.Name}:");
+                ImGui.Text($"\tTid {tid}");
+
+                VertexData[]? renderCache = tileData.GetMapLayerRenderCache(layer.Name);
+                if (renderCache != null)
+                {
+                    VertexData thisTile = renderCache[oneDCoord * 4];
+                    ImGui.Text($"\tZ {thisTile.Vertex.Z}");
+                }
+                
+                ImGui.End();
+            }
+
             ImGui.End();
 
             Position = Vector3.Zero;
@@ -215,6 +287,15 @@ namespace Emotion.Tools.Editors.MapEditor
 
             c.SetUseViewMatrix(true);
             _currentAsset?.Content.Render(c);
+
+            c.SetUseViewMatrix(true);
+            
+            if (tileData != null)
+            {
+                Vector2 tileSize = tileData.TileSize;
+                c.RenderOutline((_selectedTile * tileSize).ToVec3(), tileSize, Color.White * 0.5f, 3);
+            }
+
             c.SetUseViewMatrix(false);
 
             return true;
