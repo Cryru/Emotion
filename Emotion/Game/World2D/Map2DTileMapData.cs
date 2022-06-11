@@ -62,13 +62,9 @@ namespace Emotion.Game.World2D
             var firstAppended = false;
             for (var i = 1; i <= data.Length; i++)
             {
-                // Last extra loop to dump extra counter.
-                uint num;
-                if (i == data.Length)
-                {
-                    num = 0;
-                }
-                else
+                // There is an extra loop to dump last number.
+                uint num = 0;
+                if (i != data.Length)
                 {
                     num = data[i];
                     // Same number as before, increment counter.
@@ -111,28 +107,32 @@ namespace Emotion.Game.World2D
         private uint[] UnpackData()
         {
             // First pass - Count characters, including packed.
-            int chars = StringData.Length > 0 ? 1 : 0;
-            int lastSepIdx = 0;
+            var chars = 0;
+            var lastSepIdx = 0;
+            var charCount = 1;
             for (var i = 0; i < StringData.Length; i++)
             {
                 char c = StringData[i];
                 if (c == 'x')
                 {
                     ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
-                    if (int.TryParse(sinceLast, out int countPacked)) chars += countPacked - 1;
+                    if (int.TryParse(sinceLast, out int countPacked)) charCount = countPacked;
                 }
                 else if (c == ',')
                 {
-                    chars++;
+                    chars += charCount;
+                    charCount = 1;
                     lastSepIdx = i + 1;
                 }
             }
 
+            chars += charCount;
+
             // Second pass, unpack.
             var unpackedData = new uint[chars];
-            lastSepIdx = 0;
             var arrayPtr = 0;
-            var repeatCount = 0;
+            lastSepIdx = 0;
+            charCount = 1;
             for (var i = 0; i < StringData.Length; i++)
             {
                 char c = StringData[i];
@@ -141,7 +141,7 @@ namespace Emotion.Game.World2D
                     ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
                     if (int.TryParse(sinceLast, out int countPacked))
                     {
-                        repeatCount = countPacked;
+                        charCount = countPacked;
                         lastSepIdx = i + 1;
                     }
                 }
@@ -151,14 +151,13 @@ namespace Emotion.Game.World2D
                     ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
                     uint.TryParse(sinceLast, out uint value);
 
-                    // Repeat the number of times needed. If not packed, just once.
-                    if (repeatCount == -1) repeatCount = 1;
-                    for (var j = 0; j < repeatCount; j++)
+                    for (var j = 0; j < charCount; j++)
                     {
                         unpackedData[arrayPtr] = value;
                         arrayPtr++;
                     }
-                    repeatCount = -1;
+
+                    charCount = 1;
                     lastSepIdx = i + 1;
                 }
             }
@@ -170,7 +169,7 @@ namespace Emotion.Game.World2D
         {
             _readDataCached ??= UnpackData();
 
-            if (tileIdx >= _readDataCached.Length)
+            if (tileIdx < 0 || tileIdx >= _readDataCached.Length)
             {
                 tid = 0;
                 flipX = false;
