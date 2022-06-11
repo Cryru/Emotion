@@ -357,6 +357,19 @@ namespace Emotion.IO
         }
 
         /// <summary>
+        /// Get the name of the file without directories.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static string GetFileName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "";
+
+            int lastSlash = name.LastIndexOf("/", StringComparison.Ordinal);
+            return lastSlash == -1 || lastSlash == name.Length - 1 ? name : name.Substring(lastSlash + 1);
+        }
+
+        /// <summary>
         /// Get the path to a file without the extension.
         /// </summary>
         /// <param name="assetName">The path to the file.</param>
