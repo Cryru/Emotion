@@ -75,11 +75,29 @@ namespace Emotion.Game.World2D
         }
 
         /// <summary>
+        /// Load all assets in use by the object. This is called first and is expected to be ran
+        /// in parallel with other objects.
+        /// </summary>
+        public virtual Task LoadAssetsAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
         /// Init game data. All changes from this process shouldn't be serialized.
+        /// It is assumed that LoadAssetsAsync has finished completion at the time this is called.
         /// </summary>
         public virtual void Init(Map2D map)
         {
             Map = map;
+        }
+
+        /// <summary>
+        /// Called after all objects init and LoadAssetsAsync is complete.
+        /// </summary>
+        public virtual void LateInit()
+        {
+
         }
 
         /// <summary>
@@ -104,11 +122,6 @@ namespace Emotion.Game.World2D
         public virtual bool IsPartOfMapLayer(int layer)
         {
             return layer == 0;
-        }
-
-        public virtual Task LoadAssetsAsync()
-        {
-            return Task.CompletedTask;
         }
 
         public virtual void Update(float dt)

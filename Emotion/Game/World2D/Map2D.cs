@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
+using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -105,30 +106,18 @@ namespace Emotion.Game.World2D
         {
             var profiler = Stopwatch.StartNew();
 
-            _worldTree = InitWorldTree();
-
+            // Add all serialized objects, and start loading their assets.
             var objectAssetTasks = new Task[ObjectsToSerialize.Count];
             for (var i = 0; i < ObjectsToSerialize.Count; i++)
             {
                 GameObject2D obj = ObjectsToSerialize[i];
 
                 objectAssetTasks[i] = obj.LoadAssetsAsync();
-                obj.Init(this);
-                _worldTree.AddObjectToTree(obj);
-                obj.ObjectState = ObjectState.Alive;
                 obj.MapFlags |= Map2DObjectFlags.Serializable;
                 _objects.Add(obj);
-
-                if (!string.IsNullOrEmpty(obj.ObjectName))
-                {
-                    // Record initial positions as named points.
-                    if (!NamedPoints.ContainsKey(obj.ObjectName))
-                        NamedPoints.Add(obj.ObjectName, obj.Position2);
-                    else
-                        Engine.Log.Warning($"Duplicate object name - {obj.ObjectName}", MessageSource.Game, true);
-                }
             }
 
+            // Load tile data in parallel.
             if (TileData != null)
             {
                 Debug.Assert((TileData.SizeInTiles * TileData.TileSize).SmallerOrEqual(MapSize), "Tiles outside map.");
@@ -136,6 +125,39 @@ namespace Emotion.Game.World2D
             }
 
             await Task.WhenAll(objectAssetTasks);
+
+            // Now that all assets are loaded, init the objects.
+            foreach (GameObject2D obj in GetObjects())
+            {
+                obj.Init(this);
+            }
+
+            // Wait for the GLThread work queue to empty up.
+            // This ensures that all assets (texture uploads etc) and stuff are loaded.
+            while (!GLThread.Empty)
+            {
+                await Task.Delay(1);
+            }
+
+            // Call late init and add to the world tree.
+            _worldTree = InitWorldTree();
+            foreach (GameObject2D obj in GetObjects())
+            {
+                obj.LateInit();
+
+                _worldTree.AddObjectToTree(obj);
+                obj.ObjectState = ObjectState.Alive;
+
+                // Record initial positions of named objects as named points.
+                if (!string.IsNullOrEmpty(obj.ObjectName))
+                {
+                    if (!NamedPoints.ContainsKey(obj.ObjectName))
+                        NamedPoints.Add(obj.ObjectName, obj.Position2);
+                    else
+                        Engine.Log.Warning($"Duplicate object name - {obj.ObjectName}", MessageSource.Game, true);
+                }
+            }
+
             await PostMapLoad();
             Update(0); // Run the update tick once to prevent some flickering on first update.
             Initialized = true;
@@ -191,6 +213,7 @@ namespace Emotion.Game.World2D
 
             await obj.LoadAssetsAsync();
             obj.Init(this);
+            obj.LateInit();
             _objects.Add(obj);
             _worldTree.AddObjectToTree(obj);
             obj.ObjectState = ObjectState.Alive;
@@ -239,6 +262,7 @@ namespace Emotion.Game.World2D
 
                 _objects.Add(obj);
                 obj.Init(this);
+                obj.LateInit();
                 _worldTree.AddObjectToTree(obj);
                 obj.ObjectState = ObjectState.Alive;
 
