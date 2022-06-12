@@ -16,69 +16,21 @@ namespace Emotion.UI
 {
     public class UIScrollbar : UIBaseWindow
     {
-        public int MinValue
-        {
-            get => _minVal;
-            set
-            {
-                if (_minVal == value) return;
-                _minVal = value;
-                InvalidateLayout();
-            }
-        }
-
-        private int _minVal;
-
-        public int MaxValue
-        {
-            get => _maxVal;
-            set
-            {
-                if (_maxVal == value) return;
-                _maxVal = value;
-                InvalidateLayout();
-            }
-        }
-
-        private int _maxVal = 100;
-
         /// <summary>
         /// Whether the scrollbar scrolls vertically.
         /// </summary>
         public bool Vertical;
 
-        public int Value
-        {
-            get => _value;
-            set
-            {
-                if (_value == value) return;
-                _value = Maths.Clamp(value, MinValue, MaxValue);
-                OnValueChanged?.Invoke(_value);
-                InvalidateLayout();
-            }
-        }
-
-        private int _value;
-
-        /// <summary>
-        /// Whether to keep the selector inside the bar or to keep its center inside. By default the center is kept inside only.
-        /// </summary>
-        public bool KeepSelectorInside = true;
-
-        /// <summary>
-        /// How wide should the selector be compared to the total bar.
-        /// </summary>
-        public int SelectorRatio = 1;
-
         public Color DefaultSelectorColor = Color.Red;
-
-        [DontSerialize] public Action<int>? OnValueChanged;
 
         [DontSerialize] public UIBaseWindow? ScrollParent = null;
 
-        private UIBaseWindow _selector = null!;
+        private UIBaseWindow? _selector;
         private bool _dragging;
+
+        public float TotalArea;
+        public float PageArea;
+        public float Current;
 
         public UIScrollbar()
         {
@@ -104,8 +56,8 @@ namespace Emotion.UI
             {
                 if (status == KeyStatus.Down)
                 {
-                    SetValueFromPos(mousePos);
                     _dragging = true;
+                    OnMouseMove(mousePos);
                 }
                 else if (status == KeyStatus.Up)
                 {
@@ -118,82 +70,68 @@ namespace Emotion.UI
             return base.OnKey(key, status, mousePos);
         }
 
-        public void SetValueFromPos(Vector2 pos)
-        {
-            Vector2 relativePos = pos - _renderBoundsWithChildren.Position;
-            int range = MaxValue - MinValue;
-            Vector2 size = Size;
-
-            if (Vertical)
-                Value = MinValue + (int) MathF.Round(relativePos.X / size.X * range);
-            else
-                Value = MinValue + (int) MathF.Round(relativePos.Y / size.Y * range);
-        }
-
         public override void OnMouseMove(Vector2 mousePos)
         {
             if (!_dragging) return;
-            SetValueFromPos(mousePos);
+            
+            float progress = Maths.Map(mousePos.Y, Y, Y + Height, 0, TotalArea);
+            var list = (UICallbackListNavigator?) ScrollParent;
+            list?.ScrollByAbsolutePos(progress);
+
             base.OnMouseMove(mousePos);
         }
 
         public override void OnMouseScroll(float scroll)
         {
-            Value += scroll > 0 ? -1 : 1;
+            ScrollParent?.OnMouseScroll(scroll);
         }
 
-        protected override void AfterMeasure(Vector2 mySize)
+        public void UpdateScrollbar()
         {
-            mySize /= GetScale();
-            int range = 1 + (MaxValue - MinValue);
-            Vector2 selectorSize;
-            if (Vertical)
-                selectorSize = new Vector2(mySize.X / range * SelectorRatio, DefaultMaxSize.Y);
-            else
-                selectorSize = new Vector2(DefaultMaxSize.X, mySize.Y / range * SelectorRatio);
-
-            _selector.MaxSize = selectorSize;
-        }
-
-        protected override Vector2 BeforeLayout(Vector2 position)
-        {
-            Vector2 size = Size / GetScale();
-            int range = MaxValue - MinValue;
+            if (_selector == null) return;
 
             if (Vertical)
             {
-                float selectorSize = _selector.Width / _selector.GetScale();
-                float offset;
-                if (!KeepSelectorInside)
+                float progress = Maths.Map(Current, 0, TotalArea, 0, Width);
+                progress /= GetScale();
+                progress = MathF.Floor(progress);
+
+                float size = Maths.Map(PageArea, 0, TotalArea, 0, Width);
+                size /= GetScale();
+                size = MathF.Ceiling(size);
+
+                _selector.Offset = new Vector2(progress, 0);
+                if (_selector.MaxSize.X != size)
                 {
-                    offset = size.X / range * Value;
-                    offset -= selectorSize / 2;
+                    _selector.MaxSize = new Vector2(size, DefaultMaxSize.Y);
+                    InvalidateLayout();
                 }
                 else
                 {
-                    offset = (size.X - selectorSize) / range * Value;
+                    _selector.X = X + _selector.Offset.X * GetScale();
                 }
-
-                _selector.Offset = new Vector2(offset, 0);
             }
             else
             {
-                float selectorSize = _selector.Height / _selector.GetScale();
-                float offset;
-                if (!KeepSelectorInside)
+                float progress = Maths.Map(Current, 0, TotalArea, 0, Height);
+                progress /= GetScale();
+                progress = MathF.Floor(progress);
+
+                float size = Maths.Map(PageArea, 0, TotalArea, 0, Height);
+                size /= GetScale();
+                size = MathF.Ceiling(size);
+
+                _selector.Offset = new Vector2(0, progress);
+                if (_selector.MaxSize.Y != size)
                 {
-                    offset = size.Y / range * Value;
-                    offset -= selectorSize / 2;
+                    _selector.MaxSize = new Vector2(DefaultMaxSize.X, size);
+                    InvalidateLayout();
                 }
                 else
                 {
-                    offset = (size.Y - selectorSize) / range * Value;
+                    _selector.Y = Y + _selector.Offset.Y * GetScale();
                 }
-
-                _selector.Offset = new Vector2(0, float.IsNaN(offset) ? 0 : offset);
             }
-
-            return base.BeforeLayout(position);
         }
 
         protected override bool RenderInternal(RenderComposer c)
