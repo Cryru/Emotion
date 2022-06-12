@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
@@ -138,6 +139,10 @@ namespace Emotion.UI
         protected override Vector2 InternalMeasure(Vector2 space)
         {
             if (_fontFile == null || _layouter == null) return Vector2.Zero;
+
+            // Text measure should depend on the text, and not its children.
+            Debug.Assert(!StretchX);
+            Debug.Assert(!StretchY);
 
             float scale = GetScale();
             _scaledUnderlineOffset = UnderlineOffset * scale;

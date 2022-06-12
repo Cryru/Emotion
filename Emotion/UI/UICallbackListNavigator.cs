@@ -102,20 +102,56 @@ namespace Emotion.UI
 
         protected override void AfterMeasureChildren(Vector2 usedSpace)
         {
-            _scrollArea.Size = usedSpace;
+            Vector2 measuredSize = _measuredSize;
+
+            // Make scroll bar and area as big as the children shown. Might look weird if all children are not the same size.
+            float spaceTaken = 0;
+            if (Children != null)
+            {
+                Vector2 scaledListSpacing = ListSpacing * GetScale();
+                scaledListSpacing = scaledListSpacing.Floor();
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow child = Children[i];
+                    if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+                    float childSize = child.Height;
+                    if (spaceTaken != 0) childSize += scaledListSpacing.Y;
+                    if (spaceTaken + childSize > measuredSize.Y) break;
+                    spaceTaken += childSize;
+                }
+            }
+
+            spaceTaken = MathF.Max(spaceTaken, MinSize.Y * GetScale());
+            _measuredSize.Y = spaceTaken;
+
+            // todo: horizontal
+            if (_scrollBar != null)
+            {
+                spaceTaken /= GetScale();
+                if (spaceTaken != _scrollBar.MaxSize.Y)
+                {
+                    _scrollBar.MaxSize = new Vector2(_scrollBar.MaxSize.X, spaceTaken);
+                    _scrollBar.InvalidateLayout();
+                }
+            }
+
+            _scrollArea.Size = usedSpace.Ceiling();
             base.AfterMeasureChildren(usedSpace);
         }
 
         protected override void AfterLayout()
         {
-            if (Children == null) return;
+            // Verify some properties
+            Debug.Assert(!StretchY || (LayoutMode != LayoutMode.VerticalList && LayoutMode == LayoutMode.VerticalListWrap) || _scrollArea.Size.SmallerOrEqual(Size));
+            Debug.Assert(Paddings == Rectangle.Empty);
 
             _gridPosToChild.Clear();
             _gridStart = Vector2.Zero;
             _gridSize = Vector2.Zero;
 
             var pen = new Vector2();
-            for (var i = 0; i < Children.Count; i++)
+            for (var i = 0; i < Children?.Count; i++)
             {
                 UIBaseWindow child = Children[i];
                 if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
@@ -163,61 +199,54 @@ namespace Emotion.UI
 
             _lastRowColumn = (int) pen.X - 1;
 
-            // Reset visible.
-            _firstVisibleChild = -1;
-            _lastVisibleChild = -1;
-
             // Add position to scroll rect.
             _scrollArea.X += X;
             _scrollArea.Y += Y;
 
             // Calculate last child that can be scrolled to.
-            float min = 0, maxArea = 0, max = 0;
+            // This is the highest/leftmost child that allows the last child to be visible.
+            float diff = 0, visibleAtOnce = 0;
             _lastScrollChildPos = Vector2.Zero;
-            for (int i = Children.Count - 1; i >= 0; i--)
+            if (Children != null)
             {
-                UIBaseWindow child = Children[i];
-                if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-
-                switch (LayoutMode)
+                for (int i = Children.Count - 1; i >= 0; i--)
                 {
-                    case LayoutMode.HorizontalListWrap:
-                    case LayoutMode.HorizontalList:
-                        max = Width;
-                        maxArea = _scrollArea.Width + _scrollArea.Width;
-                        min = child.X;
-                        break;
-                    case LayoutMode.VerticalListWrap:
-                    case LayoutMode.VerticalList:
-                        max = Height;
-                        maxArea = _scrollArea.Y + _scrollArea.Height;
-                        min = child.Y;
-                        break;
-                }
+                    UIBaseWindow child = Children[i];
+                    if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
-                if (min < maxArea - max && i != Children.Count - 1)
-                {
-                    _lastScrollChildPos = GetGridLikePosFromChild(Children[i + 1]);
-                    break;
+                    switch (LayoutMode)
+                    {
+                        case LayoutMode.HorizontalListWrap:
+                        case LayoutMode.HorizontalList:
+                            visibleAtOnce = Width;
+                            diff = (_scrollArea.X + _scrollArea.Width) - child.X;
+                            break;
+                        case LayoutMode.VerticalListWrap:
+                        case LayoutMode.VerticalList:
+                            visibleAtOnce = Height;
+                            diff = (_scrollArea.Y + _scrollArea.Height) - child.Y;
+                            break;
+                    }
+
+                    if (diff > visibleAtOnce && i != Children.Count - 1)
+                    {
+                        _lastScrollChildPos = GetGridLikePosFromChild(Children[i + 1]);
+                        break;
+                    }
                 }
             }
 
-            if (_scrollBar != null)
+            // Restore or reset scroll.
+            if (!ScrollToPos(_scrollPos))
             {
-                // Todo: horizontal list
-                // Make scroll bar as big as the children shown. Might look weird if all children are not the same size.
-                float childrenHeight = Children[0].Height;
-                float scaledListSpacing = ListSpacing.Y * GetScale();
-                float visibleChildrenAtATime = MathF.Floor((Height + scaledListSpacing) / (childrenHeight + scaledListSpacing));
-                float scrollRange = childrenHeight * visibleChildrenAtATime + scaledListSpacing * (visibleChildrenAtATime - 1);
-                scrollRange /= GetScale();
-                if (scrollRange != _scrollBar.MaxSize.Y)
+                if (!ScrollToPos(Vector2.Zero))
                 {
-                    _scrollBar.MaxSize = new Vector2(_scrollBar.MaxSize.X, scrollRange);
-                    _scrollBar.InvalidateLayout();
+                    // No children
+                    _scrollDisplacement = Matrix4x4.Identity;
+                    _firstVisibleChild = -1;
+                    _lastVisibleChild = -1;
+                    SyncScrollbar();
                 }
-
-                SyncScrollbar();
             }
 
             base.AfterLayout();
@@ -245,18 +274,19 @@ namespace Emotion.UI
             if (_lastVisibleChild == -1) _lastVisibleChild = lastVis;
         }
 
-        private void ScrollToPos(Vector2 gridLikePos)
+        private bool ScrollToPos(Vector2 gridLikePos)
         {
             UIBaseWindow? child = GetChildByGridLikePos(gridLikePos, out int _, true);
-            if (child == null) return;
-            _scrollPos = Vector2.Zero;
+            if (child == null) return false;
             _scrollPos = gridLikePos;
-            _scrollDisplacement = Matrix4x4.CreateTranslation(
+            var newDisplacement = Matrix4x4.CreateTranslation(
                 _scrollArea.X - child.X + child.Margins.X * child.GetScale(),
                 _scrollArea.Y - child.Y + child.Margins.Y * child.GetScale(), 0);
+            _scrollDisplacement = newDisplacement;
             _firstVisibleChild = -1;
             _lastVisibleChild = -1;
             SyncScrollbar();
+            return true;
         }
 
         public UIBaseWindow? GetChildByGridLikePos(Vector2 gridLikePos, out int index, bool includeInvisible)
@@ -378,6 +408,18 @@ namespace Emotion.UI
                 Vector2 diff = Vector2.Normalize(gridPos - _scrollPos);
                 ScrollToPos(_scrollPos + diff);
             }
+
+            // Debug code to check if all windows are the same distance from each other.
+            //UIBaseWindow? lastChild = null;
+            //foreach (KeyValuePair<Vector2, UIBaseWindow> child in _gridPosToChild)
+            //{
+            //    if (lastChild != null)
+            //    {
+            //        float diff = lastChild.Y - child.Value.Y;
+            //        Console.WriteLine(child.Key + " " + diff);
+            //    }
+            //    lastChild = child.Value;
+            //}
         }
 
         public void ResetSelection(bool nullSelection = false)

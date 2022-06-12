@@ -113,6 +113,7 @@ namespace Emotion.UI
         {
             base.RemoveChild(win, evict);
             win.DetachedFromController(this);
+            InvalidateInputFocus();
         }
 
         #region Loading
