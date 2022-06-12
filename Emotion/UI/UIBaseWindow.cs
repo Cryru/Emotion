@@ -316,6 +316,19 @@ namespace Emotion.UI
             }
         }
 
+        public bool IsWithin(UIBaseWindow? within)
+        {
+            if (within == null) return false;
+            UIBaseWindow? parent = Parent;
+            while (parent != null)
+            {
+                if (parent == within) return true;
+                parent = parent.Parent;
+            }
+
+            return false;
+        }
+
         #endregion
 
         #region Layout
@@ -491,14 +504,14 @@ namespace Emotion.UI
                         {
                             if (child.RelativeTo != null)
                             {
-                                UIBaseWindow? win = Controller?.GetWindowById(child.RelativeTo);
+                                UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
                                 if (win != null)
                                 {
                                     if (Debugger != null && Debugger.GetMetricsForWindow(win) == null)
                                         Engine.Log.Warning($"{this} will layout relative to {child.RelativeTo}, before it had a chance to layout itself.", "UI");
 
                                     // All windows are measured in one pass. For the "relative to" measure to work, windows attached to other windows need
-                                    // to be lower in the hierarchy, or following, their attached parent.
+                                    // to be lower in the hierarchy than/following their attached parent.
                                     child.Measure(win.Size);
                                     continue;
                                 }
@@ -585,12 +598,14 @@ namespace Emotion.UI
                 }
             }
 
-            AfterMeasureChildren(usedSpace);
-
             Vector2 minSizeScaled = MinSize * scale;
             float measuredX = StretchX ? MathF.Max(usedSpace.X + paddingSize.X, minSizeScaled.X) : contentSize.X;
             float measuredY = StretchY ? MathF.Max(usedSpace.Y + paddingSize.Y, minSizeScaled.Y) : contentSize.Y;
             _measuredSize = new Vector2(measuredX, measuredY);
+            _measuredSize = _measuredSize.Ceiling();
+
+            AfterMeasureChildren(usedSpace);
+
             Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
             Size = _measuredSize;
             return Size;
@@ -648,6 +663,7 @@ namespace Emotion.UI
 
             float scale = GetScale();
 
+            Debug.Assert(Size == _measuredSize);
             Size = _measuredSize;
             contentPos += Offset * scale;
             contentPos = BeforeLayout(contentPos);
@@ -659,7 +675,7 @@ namespace Emotion.UI
             if (Children != null)
             {
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
-                Vector2 scaledSpacing = ListSpacing * scale;
+                Vector2 scaledSpacing = (ListSpacing * scale).Floor();
                 Rectangle parentPadding = Paddings * scale;
                 Vector2 pen = Vector2.Zero;
                 Vector2 freeSpace = _measuredSize;
@@ -682,7 +698,7 @@ namespace Emotion.UI
                             UIBaseWindow parent = this;
                             if (child.RelativeTo != null)
                             {
-                                UIBaseWindow? win = Controller?.GetWindowById(child.RelativeTo);
+                                UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
                                 if (win != null)
                                 {
                                     if (Debugger != null && Debugger.GetMetricsForWindow(win) == null)

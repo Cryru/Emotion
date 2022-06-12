@@ -43,7 +43,7 @@ namespace Emotion.Tools.EmUI
             ModalContent.AddChild(listContainer);
 
             var scrollBar = new UIScrollbar();
-            scrollBar.MaxSize = new Vector2(6, UIBaseWindow.DefaultMaxSize.Y);
+            scrollBar.MaxSize = new Vector2(6, DefaultMaxSize.Y);
             scrollBar.WindowColor = IMBaseWindow.HeaderColor;
             scrollBar.DefaultSelectorColor = IMBaseWindow.MainColorLightMouseIn;
             scrollBar.Anchor = UIAnchor.TopRight;
@@ -55,11 +55,11 @@ namespace Emotion.Tools.EmUI
             list.LayoutMode = LayoutMode.VerticalList;
             list.ListSpacing = new Vector2(0, 3);
             list.MinSize = new Vector2(0, 200);
-            list.MaxSize = new Vector2(300, 220);
+            list.MaxSize = new Vector2(300, 210);
             list.SetScrollbar(scrollBar);
             listContainer.AddChild(list);
 
-            ModalContent.MaxSize = new System.Numerics.Vector2(300, UIBaseWindow.DefaultMaxSize.Y);
+            ModalContent.MaxSize = new Vector2(300, DefaultMaxSize.Y);
 
             LayoutTree(_fileSystem);
         }
@@ -79,16 +79,14 @@ namespace Emotion.Tools.EmUI
                 currentNodeText.ZOffset = -1;
                 ModalContent.AddChild(currentNodeText);
             }
+
             currentNodeText.Text = tree.Name ?? "Path: ./Assets";
 
             for (int i = 0; i < tree.Branches.Count; i++)
             {
                 Tree<string, string> branch = tree.Branches[i];
                 var folder = new TextCallbackButton(branch.Name);
-                folder.OnClickedProxy = (_) =>
-                {
-                    LayoutTree(branch);
-                };
+                folder.OnClickedProxy = _ => { LayoutTree(branch); };
                 list.AddChild(folder);
             }
         }
