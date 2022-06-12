@@ -40,6 +40,7 @@ namespace Emotion.Tools.EmUI
             listContainer.WindowColor = IMBaseWindow.MainColorInner;
             listContainer.Margins = new Rectangle(3, 0, 3, 3);
             listContainer.Paddings = new Rectangle(3, 3, 3, 3);
+            listContainer.MinSize = new Vector2(0, 210);
             ModalContent.AddChild(listContainer);
 
             var scrollBar = new UIScrollbar();

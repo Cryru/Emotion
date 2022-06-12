@@ -143,7 +143,7 @@ namespace Emotion.UI
         protected override void AfterLayout()
         {
             // Verify some properties
-            Debug.Assert(!StretchY || (LayoutMode != LayoutMode.VerticalList && LayoutMode == LayoutMode.VerticalListWrap) || _scrollArea.Size.SmallerOrEqual(Size));
+            Debug.Assert(!StretchY || LayoutMode != LayoutMode.VerticalList && LayoutMode == LayoutMode.VerticalListWrap || _scrollArea.Size.SmallerOrEqual(Size));
             Debug.Assert(Paddings == Rectangle.Empty);
 
             _gridPosToChild.Clear();
@@ -208,7 +208,6 @@ namespace Emotion.UI
             float diff = 0, visibleAtOnce = 0;
             _lastScrollChildPos = Vector2.Zero;
             if (Children != null)
-            {
                 for (int i = Children.Count - 1; i >= 0; i--)
                 {
                     UIBaseWindow child = Children[i];
@@ -219,12 +218,12 @@ namespace Emotion.UI
                         case LayoutMode.HorizontalListWrap:
                         case LayoutMode.HorizontalList:
                             visibleAtOnce = Width;
-                            diff = (_scrollArea.X + _scrollArea.Width) - child.X;
+                            diff = _scrollArea.X + _scrollArea.Width - child.X;
                             break;
                         case LayoutMode.VerticalListWrap:
                         case LayoutMode.VerticalList:
                             visibleAtOnce = Height;
-                            diff = (_scrollArea.Y + _scrollArea.Height) - child.Y;
+                            diff = _scrollArea.Y + _scrollArea.Height - child.Y;
                             break;
                     }
 
@@ -234,11 +233,9 @@ namespace Emotion.UI
                         break;
                     }
                 }
-            }
 
             // Restore or reset scroll.
             if (!ScrollToPos(_scrollPos))
-            {
                 if (!ScrollToPos(Vector2.Zero))
                 {
                     // No children
@@ -247,7 +244,6 @@ namespace Emotion.UI
                     _lastVisibleChild = -1;
                     SyncScrollbar();
                 }
-            }
 
             base.AfterLayout();
         }
@@ -264,8 +260,9 @@ namespace Emotion.UI
                 UIBaseWindow child = Children[i];
                 child.EnsureRenderBoundsCached(c);
 
+                if (!child.Visible) continue;
                 if (!child.IsInsideRect(renderRect) && HideOutsideChildren) continue;
-                if (child.Visible) child.Render(c);
+                child.Render(c);
                 if (_firstVisibleChild == -1) _firstVisibleChild = i;
                 lastVis = i;
             }
@@ -274,15 +271,33 @@ namespace Emotion.UI
             if (_lastVisibleChild == -1) _lastVisibleChild = lastVis;
         }
 
-        private bool ScrollToPos(Vector2 gridLikePos)
+        public bool ScrollByAbsolutePos(float pos)
+        {
+            if (Children == null) return false;
+
+            pos = pos + _scrollArea.Y;
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                if (child.Y < pos && child.Y + child.Height > pos)
+                {
+                    Vector2 gridPos = GetGridLikePosFromChild(child);
+                    gridPos = Vector2.Min(gridPos, _lastScrollChildPos);
+                    return ScrollToPos(gridPos);
+                }
+            }
+
+            return false;
+        }
+
+        public bool ScrollToPos(Vector2 gridLikePos)
         {
             UIBaseWindow? child = GetChildByGridLikePos(gridLikePos, out int _, true);
             if (child == null) return false;
             _scrollPos = gridLikePos;
-            var newDisplacement = Matrix4x4.CreateTranslation(
+            _scrollDisplacement = Matrix4x4.CreateTranslation(
                 _scrollArea.X - child.X + child.Margins.X * child.GetScale(),
                 _scrollArea.Y - child.Y + child.Margins.Y * child.GetScale(), 0);
-            _scrollDisplacement = newDisplacement;
             _firstVisibleChild = -1;
             _lastVisibleChild = -1;
             SyncScrollbar();
@@ -495,7 +510,6 @@ namespace Emotion.UI
         {
             _scrollBar = scrollBar;
             SyncScrollbar();
-            _scrollBar.OnValueChanged += ScrollbarScrolled;
             _scrollBar.ScrollParent = this;
         }
 
@@ -511,9 +525,11 @@ namespace Emotion.UI
         {
             // Todo: Horizontal list implementation
             if (_scrollBar == null) return;
-            _scrollBar.MinValue = 0;
-            _scrollBar.MaxValue = (int) _lastScrollChildPos.Y;
-            _scrollBar.Value = (int) _scrollPos.Y;
+            _scrollBar.TotalArea = _scrollArea.Height;
+            _scrollBar.PageArea = Height;
+            UIBaseWindow? child = GetChildByGridLikePos(_scrollPos, out int _, false);
+            _scrollBar.Current = child?.Y - _scrollArea.Y ?? 0;
+            _scrollBar.UpdateScrollbar();
         }
 
         public override UIBaseWindow? FindMouseInput(Vector2 pos)

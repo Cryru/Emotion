@@ -186,4 +186,9 @@
     <EmbeddedResource Include="Assets\Shaders\SSAA.frag" />
     <EmbeddedResource Include="Assets\Shaders\SSAA.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="UI\UIScrollbar.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
 </Project>
