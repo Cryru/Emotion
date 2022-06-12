@@ -1,4 +1,6 @@
-﻿namespace Emotion.Tools.DevUI
+﻿using Emotion.Tools.Editors;
+
+namespace Emotion.Tools.DevUI
 {
     public class ImGuiMessageBox : ButtonInputModalWindow
     {
