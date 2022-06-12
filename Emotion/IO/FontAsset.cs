@@ -56,7 +56,7 @@ namespace Emotion.IO
         /// <returns></returns>
         public DrawableFontAtlas GetAtlas(int fontSize, bool smooth = true, bool pixelFont = false)
         {
-            var hash = $"{fontSize}-{DrawableFontAtlas.Rasterizer}";
+            var hash = $"{fontSize}-{DrawableFontAtlas.Rasterizer}-{pixelFont}";
 
             // Check if the atlas is already loaded.
             bool found = _loadedAtlases.TryGetValue(hash, out DrawableFontAtlas atlas);
