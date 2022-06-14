@@ -17,16 +17,17 @@ namespace Emotion.UI
     public class UIScrollbar : UIBaseWindow
     {
         /// <summary>
-        /// Whether the scrollbar scrolls vertically.
+        /// Whether the scrollbar scrolls horizontally.
         /// </summary>
-        public bool Vertical;
+        public bool Horizontal;
 
-        public Color DefaultSelectorColor = Color.Red;
+        public Color DefaultSelectorColor = new Color(125, 0, 0);
+        public Color SelectorMouseInColor = new Color(200, 0, 0);
 
         [DontSerialize] public UIBaseWindow? ScrollParent = null;
 
         private UIBaseWindow? _selector;
-        private bool _dragging;
+        private Vector2 _dragging;
 
         public float TotalArea;
         public float PageArea;
@@ -56,12 +57,20 @@ namespace Emotion.UI
             {
                 if (status == KeyStatus.Down)
                 {
-                    _dragging = true;
+                    if (_selector?.Bounds.ContainsInclusive(mousePos) ?? false)
+                    {
+                        _dragging = mousePos - _selector.Position2;
+                    }
+                    else
+                    {
+                        _dragging = Vector2.One;
+                    }
+
                     OnMouseMove(mousePos);
                 }
                 else if (status == KeyStatus.Up)
                 {
-                    _dragging = false;
+                    _dragging = Vector2.Zero;
                 }
             }
 
@@ -72,9 +81,23 @@ namespace Emotion.UI
 
         public override void OnMouseMove(Vector2 mousePos)
         {
-            if (!_dragging) return;
-            
-            float progress = Maths.Map(mousePos.Y, Y, Y + Height, 0, TotalArea);
+            if (_selector != null)
+            {
+                if (_dragging != Vector2.Zero || _selector.Bounds.ContainsInclusive(mousePos))
+                {
+                    _selector.WindowColor = SelectorMouseInColor;
+                }
+                else
+                {
+                    _selector.WindowColor = DefaultSelectorColor;
+                }
+            }
+
+            if (_dragging == Vector2.Zero) return;
+
+            float f = Y + Height;
+
+            float progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
             var list = (UICallbackListNavigator?) ScrollParent;
             list?.ScrollByAbsolutePos(progress);
 
@@ -86,19 +109,29 @@ namespace Emotion.UI
             ScrollParent?.OnMouseScroll(scroll);
         }
 
+        public override void OnMouseLeft(Vector2 mousePos)
+        {
+            if (_selector != null)
+            {
+                _selector.WindowColor = DefaultSelectorColor;
+            }
+
+            base.OnMouseLeft(mousePos);
+        }
+
         public void UpdateScrollbar()
         {
             if (_selector == null) return;
 
-            if (Vertical)
+            if (Horizontal)
             {
                 float progress = Maths.Map(Current, 0, TotalArea, 0, Width);
                 progress /= GetScale();
-                progress = MathF.Floor(progress);
+                progress = MathF.Round(progress);
 
                 float size = Maths.Map(PageArea, 0, TotalArea, 0, Width);
                 size /= GetScale();
-                size = MathF.Ceiling(size);
+                size = MathF.Round(size);
 
                 _selector.Offset = new Vector2(progress, 0);
                 if (_selector.MaxSize.X != size)
@@ -115,11 +148,11 @@ namespace Emotion.UI
             {
                 float progress = Maths.Map(Current, 0, TotalArea, 0, Height);
                 progress /= GetScale();
-                progress = MathF.Floor(progress);
+                progress = MathF.Round(progress);
 
                 float size = Maths.Map(PageArea, 0, TotalArea, 0, Height);
                 size /= GetScale();
-                size = MathF.Ceiling(size);
+                size = MathF.Round(size);
 
                 _selector.Offset = new Vector2(0, progress);
                 if (_selector.MaxSize.Y != size)

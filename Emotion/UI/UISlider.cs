@@ -43,9 +43,9 @@ namespace Emotion.UI
         private int _maxVal = 100;
 
         /// <summary>
-        /// Whether the scrollbar scrolls vertically.
+        /// Whether the scrollbar scrolls horizontally.
         /// </summary>
-        public bool Vertical;
+        public bool Horizontal;
 
         public int Value
         {
@@ -124,7 +124,7 @@ namespace Emotion.UI
             int range = MaxValue - MinValue;
             Vector2 size = Size;
 
-            if (Vertical)
+            if (Horizontal)
                 Value = MinValue + (int) MathF.Round(relativePos.X / size.X * range);
             else
                 Value = MinValue + (int) MathF.Round(relativePos.Y / size.Y * range);
@@ -147,7 +147,7 @@ namespace Emotion.UI
             mySize /= GetScale();
             int range = 1 + (MaxValue - MinValue);
             Vector2 selectorSize;
-            if (Vertical)
+            if (Horizontal)
                 selectorSize = new Vector2(mySize.X / range * SelectorRatio, DefaultMaxSize.Y);
             else
                 selectorSize = new Vector2(DefaultMaxSize.X, mySize.Y / range * SelectorRatio);
@@ -160,7 +160,7 @@ namespace Emotion.UI
             Vector2 size = Size / GetScale();
             int range = MaxValue - MinValue;
 
-            if (Vertical)
+            if (Horizontal)
             {
                 float selectorSize = _selector.Width / _selector.GetScale();
                 float offset;

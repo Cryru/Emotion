@@ -455,6 +455,12 @@ namespace Emotion.UI
             return freeSpace;
         }
 
+
+        // On Rounding In UI Layout:
+        // Sizes should always be rounded up.
+        // Positions should always be rounded down.
+        // Offsets (spacings) should always be rounded to the closest.
+
         protected Vector2 Measure(Vector2 space)
         {
             float scale = GetScale();
@@ -482,7 +488,7 @@ namespace Emotion.UI
             if (Children != null)
             {
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
-                Vector2 scaledSpacing = ListSpacing * scale;
+                Vector2 scaledSpacing = (ListSpacing * scale).RoundClosest();
                 Vector2 pen = Vector2.Zero;
                 Vector2 spaceClampedToConstraints = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).Ceiling();
                 Vector2 spaceForChildren = GetChildrenLayoutSize(spaceClampedToConstraints, contentSize, paddingSize);
@@ -675,7 +681,7 @@ namespace Emotion.UI
             if (Children != null)
             {
                 bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
-                Vector2 scaledSpacing = (ListSpacing * scale).Floor();
+                Vector2 scaledSpacing = (ListSpacing * scale).RoundClosest();
                 Rectangle parentPadding = Paddings * scale;
                 Vector2 pen = Vector2.Zero;
                 Vector2 freeSpace = _measuredSize;
@@ -1006,6 +1012,25 @@ namespace Emotion.UI
         public virtual bool IsInsideRect(Rectangle rect)
         {
             return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBoundsWithChildren) : rect.ContainsInclusive(_inputBoundsWithChildren);
+        }
+
+        public virtual bool IsInsideOrIntersectRect(Rectangle rect, out bool inside)
+        {
+            Rectangle checkAgainst = _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren : _inputBoundsWithChildren;
+            if (rect.ContainsInclusive(checkAgainst))
+            {
+                inside = true;
+                return true;
+            }
+
+            if (rect.IntersectsInclusive(checkAgainst))
+            {
+                inside = false;
+                return true;
+            }
+
+            inside = false;
+            return false;
         }
 
         public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
