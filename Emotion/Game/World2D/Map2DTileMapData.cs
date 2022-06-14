@@ -145,8 +145,12 @@ namespace Emotion.Game.World2D
                         lastSepIdx = i + 1;
                     }
                 }
-                else if (c == ',')
+                else if (c == ',' || i == StringData.Length - 1)
                 {
+                    // Dumping last character, pretend the index is after the string so we
+                    // read the final char below.
+                    if (i == StringData.Length - 1) i++;
+
                     // Get tile value.
                     ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
                     uint.TryParse(sinceLast, out uint value);

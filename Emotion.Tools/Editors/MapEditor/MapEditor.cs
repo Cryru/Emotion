@@ -286,8 +286,9 @@ namespace Emotion.Tools.Editors.MapEditor
             c.RenderLine(posVec2 + new Vector2(0, Size.Y / 2), posVec2 + new Vector2(Size.X, Size.Y / 2), Color.White * 0.7f);
 
             c.SetUseViewMatrix(true);
-            _currentAsset?.Content.Render(c);
-
+            c.SetDepthTest(true);
+            _currentAsset?.Content?.Render(c);
+            c.SetDepthTest(false);
             c.SetUseViewMatrix(true);
             
             if (tileData != null)
