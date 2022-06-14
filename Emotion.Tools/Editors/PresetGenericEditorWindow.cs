@@ -20,6 +20,7 @@ namespace Emotion.Tools.Editors
     public abstract class PresetGenericEditorWindow<T> : ImGuiBaseWindow
     {
         protected XMLAsset<T>? _currentAsset;
+        protected T? _currentContent;
         private bool _unsavedChanges;
         private string? _currentFileName;
 
@@ -71,6 +72,7 @@ namespace Emotion.Tools.Editors
                 if (OnFileLoaded(asset))
                 {
                     _currentAsset = asset;
+                    _currentContent = asset.Content;
                     _currentFileName = asset.Name;
                     _unsavedChanges = false;
                 }
@@ -81,6 +83,7 @@ namespace Emotion.Tools.Editors
         private void NewFile()
         {
             _currentAsset = CreateFile();
+            _currentContent = _currentAsset.Content;
             _currentFileName = null;
             _unsavedChanges = false;
         }
@@ -155,6 +158,7 @@ namespace Emotion.Tools.Editors
             if (ImGui.Button("Open"))
                 if (!UnsavedChangesCheck(OpenFile))
                     OpenFile();
+
             if (_currentAsset != null && ImGui.Button("Save")) SaveFile();
             if (_currentAsset != null && ImGui.Button("Save As")) SaveFile(true);
         }
