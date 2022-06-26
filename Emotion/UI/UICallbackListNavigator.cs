@@ -206,7 +206,6 @@ namespace Emotion.UI
             _lastScrollChildPos = Vector2.Zero;
             var isHorizontal = false;
             if (Children != null)
-            {
                 for (int i = Children.Count - 1; i >= 0; i--)
                 {
                     UIBaseWindow child = Children[i];
@@ -223,7 +222,7 @@ namespace Emotion.UI
                         case LayoutMode.VerticalListWrap:
                         case LayoutMode.VerticalList:
                             visibleAtOnce = Height;
-                            diff = _scrollArea.Y + _scrollArea.Height - (child.Y) ;
+                            diff = _scrollArea.Y + _scrollArea.Height - child.Y;
                             break;
                     }
 
@@ -251,7 +250,6 @@ namespace Emotion.UI
                         break;
                     }
                 }
-            }
 
             // Restore or reset scroll.
             if (!ScrollToPos(_scrollPos) && !ScrollToPos(Vector2.Zero))
@@ -291,6 +289,7 @@ namespace Emotion.UI
                     c.SetClipRect(clip);
                 }
             }
+
             c.PopModelMatrix();
         }
 
@@ -303,10 +302,7 @@ namespace Emotion.UI
             for (var i = 0; i < Children.Count; i++)
             {
                 UIBaseWindow child = Children[i];
-                if (child.Y < pos && child.Y + child.Height > pos)
-                {
-                    return ScrollToPos(GetGridLikePosFromChild(child));
-                }
+                if (child.Y < pos && child.Y + child.Height > pos) return ScrollToPos(GetGridLikePosFromChild(child));
             }
 
             return false;
@@ -442,9 +438,14 @@ namespace Emotion.UI
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
-                if (Children[i].Visible)
+                UIBaseWindow child = Children[i];
+                bool enabled = child.Visible;
+
+                if (child is UICallbackButton button) enabled = enabled && button.Enabled;
+
+                if (enabled)
                 {
-                    SetSelection(Children[i], true);
+                    SetSelection(child, true);
                     return;
                 }
             }
@@ -484,17 +485,17 @@ namespace Emotion.UI
             }
         }
 
-        private void ProxyButtonClicked(UIBaseWindow b)
+        private void ProxyButtonClicked(UICallbackButton b)
         {
-            if (!b.Visible) return;
+            if (!b.Visible || !b.Enabled) return;
             SetSelection(b);
             Debug.Assert(SelectedWnd != null);
             OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
         }
 
-        private void ProxyButtonSelected(UIBaseWindow b)
+        private void ProxyButtonSelected(UICallbackButton b)
         {
-            if (!b.Visible) return;
+            if (!b.Visible || !b.Enabled) return;
             SetSelection(b);
         }
 
@@ -532,7 +533,7 @@ namespace Emotion.UI
                     focus = win.FindMouseInput(pos);
                 }
             }
-            
+
             if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) return _scrollBar;
             return focus;
         }

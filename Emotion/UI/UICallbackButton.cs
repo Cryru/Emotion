@@ -11,9 +11,12 @@ namespace Emotion.UI
 {
     public class UICallbackButton : UIBaseWindow
     {
-        [DontSerialize] public Action<UIBaseWindow> OnMouseEnterProxy;
-        [DontSerialize] public Action<UIBaseWindow> OnMouseLeaveProxy;
-        [DontSerialize] public Action<UIBaseWindow> OnClickedProxy;
+        [DontSerialize] public Action<UICallbackButton> OnMouseEnterProxy;
+        [DontSerialize] public Action<UICallbackButton> OnMouseLeaveProxy;
+        [DontSerialize] public Action<UICallbackButton> OnClickedProxy;
+
+        [DontSerialize]
+        public bool Enabled = true;
 
         public UICallbackButton()
         {
