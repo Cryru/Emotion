@@ -58,6 +58,13 @@ namespace Emotion.Graphics
             RenderSprite(position.ToVec3(), size, color, texture, textureArea);
         }
 
+        public enum RenderLineMode
+        {
+            Center,
+            Inward,
+            Outward
+        }
+
         /// <summary>
         /// Render a line made out of quads.
         /// </summary>
@@ -66,7 +73,8 @@ namespace Emotion.Graphics
         /// <param name="color">The color of the line.</param>
         /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
         /// <param name="snapToPixel">Whether to snap the start and ending positions to the nearest pixel.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true)
+        /// <param name="renderMode">How to treat the points given.</param>
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true, RenderLineMode renderMode = RenderLineMode.Center)
         {
             bool cameraWasOn = CurrentState.ViewMatrix!.Value;
             SetUseViewMatrix(false);
@@ -89,14 +97,32 @@ namespace Emotion.Graphics
             }
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
-            var normal = new Vector3(-direction.Y, direction.X, 0);
-            Vector3 delta = normal * (thickness / 2f);
+            Vector3 delta = Vector3.Zero;
+            Vector3 deltaNeg = Vector3.Zero;
+            if (renderMode == RenderLineMode.Center)
+            {
+                var normal = new Vector3(-direction.Y, direction.X, 0);
+                delta = normal * (thickness / 2f);
+                deltaNeg = -delta;
+            }
+            else if (renderMode == RenderLineMode.Inward)
+            {
+                var normal = new Vector3(direction.Y, direction.X, 0);
+                delta = normal * thickness;
+                deltaNeg = Vector3.Zero;
+            }
+            else if (renderMode == RenderLineMode.Outward)
+            {
+                var normal = new Vector3(-direction.Y, -direction.X, 0);
+                delta = normal * thickness;
+                deltaNeg = Vector3.Zero;
+            }
 
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
             vertices[0].Vertex = pointOne + delta;
             vertices[1].Vertex = pointTwo + delta;
-            vertices[2].Vertex = pointTwo - delta;
-            vertices[3].Vertex = pointOne - delta;
+            vertices[2].Vertex = pointTwo + deltaNeg;
+            vertices[3].Vertex = pointOne + deltaNeg;
 
             uint c = color.ToUint();
             for (var i = 0; i < vertices.Length; i++)
@@ -110,10 +136,10 @@ namespace Emotion.Graphics
             SetProjectionBehavior(oldProjection);
         }
 
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool)" />
-        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f, bool centerLine = false)
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool, RenderLineMode)" />
+        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true)
         {
-            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness, centerLine);
+            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness, snapToPixel);
         }
 
         /// <summary>
@@ -130,7 +156,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a line with an arrow at the end.
         /// </summary>
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool)" />
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool, RenderLineMode)" />
         public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
             RenderLine(pointOne, pointTwo, color, thickness);
@@ -164,15 +190,21 @@ namespace Emotion.Graphics
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
+        /// <param name="snapToPixel">Whether to snap the line points to the nearest pixel.</param>
+        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1, bool snapToPixel = true)
         {
-            RenderLine(position, new Vector3(position.X + size.X, position.Y, position.Z), color, thickness);
-            RenderLine(new Vector3(position.X + size.X, position.Y, position.Z), new Vector3(position.X + size.X, position.Y + size.Y, position.Z), color, thickness);
-            RenderLine(new Vector3(position.X + size.X, position.Y + size.Y, position.Z), new Vector3(position.X, position.Y + size.Y, position.Z), color, thickness);
-            RenderLine(new Vector3(position.X, position.Y + size.Y, position.Z), position, color, thickness);
+            Vector3 nn = position;
+            Vector3 pn = new Vector3(position.X + size.X, position.Y, position.Z);
+            Vector3 np = new Vector3(position.X, position.Y + size.Y, position.Z);
+            Vector3 pp = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
+
+            RenderLine(nn, pn, color, thickness, snapToPixel, RenderLineMode.Inward);
+            RenderLine(pn, pp, color, thickness, snapToPixel, RenderLineMode.Inward);
+            RenderLine(pp, np, color, thickness, snapToPixel, RenderLineMode.Inward);
+            RenderLine(np, nn, color, thickness, snapToPixel, RenderLineMode.Inward);
         }
 
-        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float, bool)" />
         public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
         {
             RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
