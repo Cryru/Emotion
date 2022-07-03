@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Platform.OpenGL.Meta;
-using Emotion.Platform.RenderDoc;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
 using Khronos;
@@ -24,7 +23,7 @@ using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 namespace Emotion.Platform.Implementation.Win32.Wgl
 {
     /// <inheritdoc />
-    public sealed unsafe class WglGraphicsContext : RenderDocGraphicsContext
+    public sealed unsafe class WglGraphicsContext : GraphicsContext
     {
         private IntPtr _openGlLibrary;
         private const int FLAG_NUMBER_PIXEL_FORMATS_ARB = 0x2000;
