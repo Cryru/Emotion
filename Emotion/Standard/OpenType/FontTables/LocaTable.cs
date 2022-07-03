@@ -4,6 +4,8 @@ using Emotion.Utility;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
@@ -11,13 +13,20 @@ namespace Emotion.Standard.OpenType.FontTables
     /// </summary>
     public class LocaTable
     {
+        public int[] GlyphOffsets;
+
+        private LocaTable(int[] glyphOffsets)
+        {
+            GlyphOffsets = glyphOffsets;
+        }
+
         // Parse the `loca` table. This table stores the offsets to the locations of the glyphs in the font,
         // relative to the beginning of the glyphData table.
         // The number of glyphs stored in the `loca` table is specified in the `maxp` table (under numGlyphs)
         // The loca table has two versions: a short version where offsets are stored as UShorts, and a long
         // version where offsets are stored as ULongs.
         // The `head` table specifies which version to use (under indexToLocFormat).
-        public static int[] ParseLoca(ByteReader reader, ushort numGlyphs, bool shortVersion)
+        public static LocaTable ParseLoca(ByteReader reader, int numGlyphs, bool shortVersion)
         {
             var glyphOffsets = new int[numGlyphs + 1];
 
@@ -38,7 +47,7 @@ namespace Emotion.Standard.OpenType.FontTables
                 }
             }
 
-            return glyphOffsets;
+            return new LocaTable(glyphOffsets);
         }
     }
 }

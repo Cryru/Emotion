@@ -24,7 +24,7 @@ namespace Emotion.Graphics.Text
         public class NewRendererGlyph
         {
             public int glyph_idx;
-            public FontAnton.FontGlyph FontGlyph;
+            public FontGlyph FontGlyph;
 
             public float x0;
             public float y0;
@@ -34,7 +34,7 @@ namespace Emotion.Graphics.Text
 
         public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 1024, int sdfDist = 16, int rowHeight = 96)
         {
-            var newFont = font.NewFont;
+            FontAnton newFont = font.NewFont;
 
             // pen
             float posx = 0;
@@ -123,28 +123,23 @@ namespace Emotion.Graphics.Text
 
             public void DrawGlyph(NewRendererGlyph glyph, Vector2 pos, float scale, float sdfDist)
             {
-                FontAnton.FontGlyph fontGlyph = glyph.FontGlyph;
-                FontAnton.GlyphDrawCommand[] fontCommands = fontGlyph.Commands;
+                FontGlyph fontGlyph = glyph.FontGlyph;
+                GlyphDrawCommand[] fontCommands = fontGlyph.Commands;
                 if (fontCommands == null || fontCommands.Length == 0) return;
 
                 for (var i = 0; i < fontCommands.Length; i++)
                 {
-                    if (i == 6)
-                    {
-                        bool a = true;
-                    }
-
-                    FontAnton.GlyphDrawCommand cmd = fontCommands[i];
+                    GlyphDrawCommand cmd = fontCommands[i];
                     switch (cmd.Type)
                     {
-                        case FontAnton.GlyphDrawCommandType.Move:
+                        case GlyphDrawCommandType.Move:
                         {
                             Vector2 p0 = cmd.P0 * scale + pos;
                             fp.move_to(p0);
                             lp.move_to(p0);
                             break;
                         }
-                        case FontAnton.GlyphDrawCommandType.Line:
+                        case GlyphDrawCommandType.Line:
                         {
                             Vector2 p0 = cmd.P0 * scale + pos;
                             fp.line_to(p0);
@@ -152,7 +147,7 @@ namespace Emotion.Graphics.Text
                             break;
                         }
                         //case VertexTypeFlag.Cubic:
-                        case FontAnton.GlyphDrawCommandType.Curve:
+                        case GlyphDrawCommandType.Curve:
                         {
                             Vector2 p0 = cmd.P0 * scale + pos;
                             Vector2 p1 = cmd.P1 * scale + pos;
@@ -160,7 +155,7 @@ namespace Emotion.Graphics.Text
                             lp.qbez_to(p0, p1, sdfDist);
                             break;
                         }
-                        case FontAnton.GlyphDrawCommandType.Close:
+                        case GlyphDrawCommandType.Close:
                         {
                             fp.close();
                             lp.close(sdfDist);
