@@ -2,13 +2,12 @@
 
 using System;
 using Emotion.Platform.Implementation.GlfwImplementation.Native;
-using Emotion.Platform.RenderDoc;
 
 #endregion
 
 namespace Emotion.Platform.Implementation.GlfwImplementation
 {
-    public class GlfwGraphicsContext : RenderDocGraphicsContext
+    public class GlfwGraphicsContext : GraphicsContext
     {
         private Glfw.Window _win;
 
