@@ -123,6 +123,8 @@ namespace Emotion.Standard.OpenType
 
         #endregion
 
+        public FontAnton NewFont;
+
         /// <summary>
         /// Create a new OpenType font from a font file.
         /// </summary>
@@ -134,6 +136,8 @@ namespace Emotion.Standard.OpenType
             // Note: OpenType fonts use big endian byte ordering.
             using var r = new ByteReader(fontData);
             Tag = new string(r.ReadChars(4));
+
+            NewFont = new FontAnton(fontData);
 
             switch (Tag)
             {

@@ -33,6 +33,10 @@ namespace Emotion.Standard.OpenType.FontTables
         public ushort MacStyle;
         public ushort LowestRecPPEM;
         public short FontDirectionHint;
+
+        // 0 - 16 bit offset
+        // 1 - 32 bit offset
+        // >1 - unsupported
         public short IndexToLocFormat;
         public short GlyphDataFormat;
 

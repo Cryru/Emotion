@@ -24,10 +24,5 @@
         /// The length of the table's data, in bytes.
         /// </summary>
         public int Length;
-
-        /// <summary>
-        /// Whether the table is compressed.
-        /// </summary>
-        public string Compression = null;
     }
 }

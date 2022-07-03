@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
+using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
@@ -38,13 +40,32 @@ namespace Emotion.ExecTest
 
         public void Draw(RenderComposer composer)
         {
-            composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
-            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
-            composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
+            //composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
+            //composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
+            //composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
 
-            for (var i = 0; i < MousePosTest.Count; i++)
+            //for (var i = 0; i < MousePosTest.Count; i++)
+            //{
+            //    composer.RenderSprite(MousePosTest[i].ToVec3(), new Vector2(10), Color.Magenta);
+            //}
+
+
+            composer.SetUseViewMatrix(false);
+            var font = Engine.AssetLoader.Get<FontAsset>("Ubuntu/Ubuntu-Regular.ttf");
+
+            composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(10));
+            composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
+            composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
+
+            composer.SetUseViewMatrix(true);
+            composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(10));
+            composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
+            composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
+
+            var sdf = TestGlyphRenderer.LastProducedSdf;
+            if (sdf != null)
             {
-                composer.RenderSprite(MousePosTest[i].ToVec3(), new Vector2(10), Color.Magenta);
+                composer.RenderSprite(Vector3.Zero, sdf.Size, sdf.ColorAttachment);
             }
         }
 
