@@ -11,7 +11,7 @@ namespace Emotion.Graphics.Text.NewRenderer
     {
         private Vector2 fan_pos;
         private Vector2 prev_pos;
-        private List<SdfVertex> vertices = new List<SdfVertex>();
+        public List<SdfVertex> vertices = new List<SdfVertex>();
 
         public void move_to(Vector2 p0)
         {

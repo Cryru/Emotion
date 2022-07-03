@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Common;
-using Emotion.Graphics.Data;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text.NewRenderer;
 using Emotion.IO;
+using Emotion.Platform.RenderDoc;
+using Emotion.Primitives;
+using Emotion.Standard.Image.PNG;
 using Emotion.Standard.OpenType;
 using OpenGL;
 
@@ -50,7 +53,6 @@ namespace Emotion.Graphics.Text
             for (int i = 0; i < glyphsToAdd.Count; i++)
             {
                 var oldFontGlyph = glyphsToAdd[i].FontGlyph;
-
                 var fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
 
                 float rect_width = (fontGlyph.Max.X - fontGlyph.Min.X) * scale + sdfDist * 2.0f;
@@ -85,54 +87,75 @@ namespace Emotion.Graphics.Text
 
                 float left = fontGlyph.LeftSideBearing * scale;
                 Vector2 glyphPos = new Vector2(glyph.x0, glyph.y0 + baseline) + new Vector2(sdfDist - left, sdfDist);
-                painter.RasterizeGlyph(glyph, glyphPos, scale, sdfDist);
+                painter.RasterizeGlyph(fontGlyph, glyphPos, scale, sdfDist);
             }
 
             if (LastProducedSdf != null) return;
 
-            FrameBuffer buffer = new FrameBuffer(new Vector2(atlasSize, maxHeight)).WithColor().WithDepth(true);
-
+            FrameBuffer buffer = new FrameBuffer(new Vector2(atlasSize, maxHeight)).WithColor(true, InternalFormat.Red, PixelFormat.Red).WithDepthStencil();
+            LastProducedSdf = buffer;
             RenderComposer renderer = Engine.Renderer;
             // todo: ensure states here and cache framebuffer like emotion sdf
-            // todo: use render stream
 
-            // Draw sdf lines.
-            SdfVertex[] lineData = painter.LinePainter.vertices.ToArray();
-            var vbo = new VertexBuffer();
-            vbo.Upload(lineData);
-            var vao = new VertexArrayObject<SdfVertex>(vbo);
-            renderer.RenderToAndClear(buffer);
-            var shader = Engine.AssetLoader.Get<ShaderAsset>("linetest.xml");
-            renderer.SetShader(shader.Shader);
+            RenderDocGraphicsContext.RenderDocCaptureStart();
+
+            var lineRenderShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderLine.xml");
+            var fillRenderShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
+
+            renderer.SetState(RenderState.Default);
             renderer.SetAlphaBlend(false);
-            VertexArrayObject.EnsureBound(vao);
-            VertexBuffer.EnsureBound(vbo.Pointer);
-            Gl.DrawArrays(PrimitiveType.Triangles, 0, lineData.Length);
+            renderer.SetDepthTest(true);
+            renderer.SetUseViewMatrix(false);
+
+            RenderStreamBatch<SdfVertex> renderStream = new RenderStreamBatch<SdfVertex>(0, 1, false);
+            renderer.RenderToAndClear(buffer);
+
+            // Draw lines
+            renderer.SetShader(lineRenderShader.Shader);
+            Span<SdfVertex> memory = renderStream.GetStreamMemory((uint)painter.LinePainter.vertices.Count, BatchMode.SequentialTriangles);
+            Span<SdfVertex> lineDataSpan = CollectionsMarshal.AsSpan(painter.LinePainter.vertices);
+            lineDataSpan.CopyTo(memory);
+            renderStream.FlushRender();
             renderer.SetShader();
 
             // Draw fill
+            renderer.SetDepthTest(false);
+            renderer.SetStencilTest(true);
+            renderer.StencilWindingStart();
+            renderer.ToggleRenderColor(false);
 
+            renderer.SetShader(fillRenderShader.Shader);
+            memory = renderStream.GetStreamMemory((uint) painter.FillPainter.vertices.Count, BatchMode.SequentialTriangles);
+            Span<SdfVertex> fillDataSpan = CollectionsMarshal.AsSpan(painter.FillPainter.vertices);
+            fillDataSpan.CopyTo(memory);
+            renderStream.FlushRender();
+            renderer.SetShader();
+
+            // draw full screen quad, inverting stencil where it is 1
+            renderer.StencilWindingEnd();
+            renderer.ToggleRenderColor(true);
+            renderer.SetAlphaBlend(true);
+            renderer.SetAlphaBlendType(BlendingFactor.OneMinusDstColor, BlendingFactor.Zero, BlendingFactor.One, BlendingFactor.Zero);
+            Gl.StencilFunc(StencilFunction.Notequal, 0, 0xff);
+            Gl.StencilOp(StencilOp.Zero, StencilOp.Zero, StencilOp.Zero);
+            
+            renderer.RenderSprite(Vector3.Zero, buffer.Size, Color.White);
 
             renderer.RenderTo(null);
+            renderer.SetDefaultAlphaBlendType();
             renderer.SetAlphaBlend(true);
+            renderer.SetStencilTest(false);
+
+            RenderDocGraphicsContext.RenderDocCaptureEnd();
 
             LastProducedSdf = buffer;
+
+            // Sample framebuffer and save it.
+            FrameBuffer atlasBuffer = buffer;
+            byte[] data = atlasBuffer.Sample(new Rectangle(0, 0, atlasBuffer.Size), PixelFormat.Red);
+            byte[] pngData = PngFormat.Encode(data, atlasBuffer.Size, PixelFormat.Red);
+            Engine.AssetLoader.Save(pngData, "Player/blabla.png", false);
         }
-
-       
-
-
-
-       
-
-
-
-
-
-       
-
-        
-
 
         public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
         {

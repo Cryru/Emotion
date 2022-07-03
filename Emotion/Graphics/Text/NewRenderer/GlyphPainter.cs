@@ -12,10 +12,9 @@ namespace Emotion.Graphics.Text.NewRenderer
         public LinePainter LinePainter = new LinePainter();
         public FillPainter FillPainter = new FillPainter();
 
-        public void RasterizeGlyph(TestGlyphRenderer.NewRendererGlyph glyph, Vector2 pos, float scale, float sdfDist)
+        public void RasterizeGlyph(FontGlyph glyph, Vector2 pos, float scale, float sdfDist)
         {
-            FontGlyph fontGlyph = glyph.FontGlyph;
-            GlyphDrawCommand[] fontCommands = fontGlyph.Commands;
+            GlyphDrawCommand[] fontCommands = glyph.Commands;
             if (fontCommands == null || fontCommands.Length == 0) return;
 
             for (var i = 0; i < fontCommands.Length; i++)
