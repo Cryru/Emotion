@@ -21,6 +21,12 @@ namespace Emotion.Standard.OpenType
         public GlyphDrawCommandType Type;
         public Vector2 P0;
         public Vector2 P1;
+
+        // for debugging
+        public override string ToString()
+        {
+            return $"{Type} {P0} {P1}";
+        }
     }
 
     public class FontGlyphComponent

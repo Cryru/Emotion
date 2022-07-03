@@ -7,18 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\linetest.frag" />
-    <None Remove="Assets\linetest.vert" />
-    <None Remove="Assets\linetest.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\linetest.frag" />
-    <EmbeddedResource Include="Assets\linetest.xml" />
-    <EmbeddedResource Include="Assets\linetest.vert" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 

@@ -84,6 +84,11 @@ namespace Emotion.Standard.OpenType
         /// </summary>
         public float LineGap { get; protected set; }
 
+        /// <summary>
+        /// Font is scaled to the ascender.
+        /// </summary>
+        public float ScaleApplied { get; protected set; }
+
         // This should probably be private
         private List<FontTable>? _tables;
 
@@ -190,11 +195,12 @@ namespace Emotion.Standard.OpenType
             short descenderEm = hheaTableParsed.Descender;
             short lineGapEm = hheaTableParsed.LineGap;
 
-            // todo: do in anton rasterizer and apply scale to glyph shit as well, ig
             float scale = 1f / ascenderEm;
+            UnitsPerEm = headTableParsed.UnitsPerEm;
             Ascender = 1f;
             Descender = descenderEm * scale;
             LineGap = lineGapEm * scale;
+            ScaleApplied = scale;
 
             // glyf fonts
             FontTable? glyfTable = GetTable("glyf");

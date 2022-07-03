@@ -47,6 +47,12 @@
   <ItemGroup>
     <None Remove="Assets\FontShaders\GenerateSDF.frag" />
     <None Remove="Assets\FontShaders\GenerateSDF.xml" />
+    <None Remove="Assets\FontShaders\GlyphRenderFill.frag" />
+    <None Remove="Assets\FontShaders\GlyphRenderFill.vert" />
+    <None Remove="Assets\FontShaders\GlyphRenderFill.xml" />
+    <None Remove="Assets\FontShaders\GlyphRenderLine.frag" />
+    <None Remove="Assets\FontShaders\GlyphRenderLine.vert" />
+    <None Remove="Assets\FontShaders\GlyphRenderLine.xml" />
     <None Remove="Assets\FontShaders\SDF.frag" />
     <None Remove="Assets\FontShaders\SDF.xml" />
     <None Remove="Assets\FontShaders\VertColorNoDiscard.frag" />
@@ -127,6 +133,12 @@
     <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.xml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderFill.frag" />
+    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderFill.vert" />
+    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderFill.xml" />
+    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderLine.frag" />
+    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderLine.vert" />
+    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderLine.xml" />
     <EmbeddedResource Include="Assets\FontShaders\SDF.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

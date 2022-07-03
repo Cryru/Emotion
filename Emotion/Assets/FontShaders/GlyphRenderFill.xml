@@ -1,0 +1,4 @@
+<ShaderDescription>
+  <Frag>GlyphRenderFill.frag</Frag>
+  <Vert>GlyphRenderFill.vert</Vert>
+</ShaderDescription>
