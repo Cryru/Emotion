@@ -208,6 +208,8 @@ namespace Emotion.Graphics.Text
             return false;
         }
 
+        public GlyphRendererState Test;
+
         private void QueueGlyphRender(List<AtlasGlyph> glyphs)
         {
             Debug.Assert(GLThread.IsGLThread());
@@ -219,6 +221,7 @@ namespace Emotion.Graphics.Text
                     break;
                 case GlyphRasterizer.EmotionSDFVer3:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlasSDF(this, GlyphRendererState, glyphs);
+                    Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
                     break;
                 case GlyphRasterizer.StbTrueType:
                     GlyphRendererState = StbGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
