@@ -237,7 +237,7 @@ namespace Emotion.Standard.OpenType
 
             // Get the cmap table which defines glyph indices.
             table = GetTable("cmap");
-            CMapTable? cMap = table != null ? new CMapTable(r.Branch(table.Offset, true, table.Length)) : null;
+            CMapTable? cMap = table != null ? CMapTable.ParseCmap(r.Branch(table.Offset, true, table.Length)) : null;
 
             // Glyf - glyph data.
             // Also reads loca for locations, and post for glyph names.
@@ -247,7 +247,8 @@ namespace Emotion.Standard.OpenType
             {
                 FontTable? locaTable = GetTable("loca");
                 if (locaTable == null) return;
-                int[] locaOffsets = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, indexToLocFormat == 0);
+                LocaTable locaTableParsed = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, indexToLocFormat == 0);
+                int[] locaOffsets = locaTableParsed.GlyphOffsets;
                 glyphs = GlyfTable.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
             }
             else
@@ -312,7 +313,11 @@ namespace Emotion.Standard.OpenType
 
             // Add metrics. This requires the glyph's to have MapIndices
             table = GetTable("hmtx");
-            if (table != null) HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length), NumberOfHMetrics, glyphs);
+            if (table != null)
+            {
+                HmtxTable? parsedTable = HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length));
+                parsedTable.ApplyToGlyphsOld(NumberOfHMetrics, glyphs);
+            }
 
             // os/2 parsed, but unused
             // cvt parsed, but unused

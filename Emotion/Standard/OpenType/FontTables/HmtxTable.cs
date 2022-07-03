@@ -1,55 +1,78 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using Emotion.Utility;
 
 #endregion
 
 namespace Emotion.Standard.OpenType.FontTables
 {
-    public static class HmtxTable
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx
+    /// </summary>
+    public class HmtxTable
     {
-        public static void ParseHmtx(ByteReader reader, ushort numberOfHMetrics, IEnumerable<Glyph> glyphs)
-        {
-            var metrics = new Tuple<ushort, short>[numberOfHMetrics];
+        private ByteReader _reader;
 
-            // Read metrics.
+        private HmtxTable(ByteReader reader)
+        {
+            _reader = reader;
+        }
+
+        public static HmtxTable ParseHmtx(ByteReader reader)
+        {
+            return new HmtxTable(reader);
+        }
+
+        public void ApplyToGlyphs(int numberOfHMetrics, FontGlyph[] glyphs)
+        {
+            _reader.Position = 0;
+
             for (var i = 0; i < numberOfHMetrics; i++)
             {
-                metrics[i] = new Tuple<ushort, short>(reader.ReadUShortBE(), reader.ReadShortBE());
+                FontGlyph glyph = glyphs[i];
+                glyph.Advance = _reader.ReadUShortBE();
+                glyph.LeftSideBearing = _reader.ReadShortBE();
             }
 
             // There can be more left side bearings after the ending.
-            if (reader.Position + 2 <= reader.Data.Length) reader.ReadBytes(2);
-
-            int extraMetricCount = (reader.Data.Length - reader.Position) / 2;
-            if (extraMetricCount < 0) extraMetricCount = 0;
-            var extraMetrics = new short[extraMetricCount];
-
-            for (var i = 0; i < extraMetrics.Length; i++)
+            // These contain only the LSB.
+            if (_reader.Position + 2 <= _reader.Data.Length)
             {
-                extraMetrics[i] = reader.ReadShortBE();
+                _reader.ReadBytes(2);
+                int extraMetricCount = (_reader.Data.Length - _reader.Position) / 2;
+                if (extraMetricCount < 0) extraMetricCount = 0;
+
+                for (int i = numberOfHMetrics; i < extraMetricCount; i++)
+                {
+                    FontGlyph glyph = glyphs[i];
+                    glyph.LeftSideBearing = _reader.ReadShortBE();
+                }
+            }
+        }
+
+        public void ApplyToGlyphsOld(int numberOfHMetrics, Glyph[] glyphs)
+        {
+            _reader.Position = 0;
+
+            for (var i = 0; i < numberOfHMetrics; i++)
+            {
+                Glyph glyph = glyphs[i];
+                glyph.AdvanceWidth = _reader.ReadUShortBE();
+                glyph.LeftSideBearing = _reader.ReadShortBE();
             }
 
-            // Assign metrics to glyphs.
-            int lastMetric = metrics.Length - 1;
-            foreach (Glyph glyph in glyphs)
+            // There can be more left side bearings after the ending.
+            // These contain only the LSB.
+            if (_reader.Position + 2 <= _reader.Data.Length)
             {
-                if (glyph.MapIndex < lastMetric)
-                {
-                    glyph.AdvanceWidth = metrics[glyph.MapIndex].Item1;
-                    glyph.LeftSideBearing = metrics[glyph.MapIndex].Item2;
-                }
-                else
-                {
-                    glyph.AdvanceWidth = metrics[lastMetric].Item1;
-                    var extraMetric = (int) (glyph.MapIndex - (numberOfHMetrics + 1));
+                _reader.ReadBytes(2);
+                int extraMetricCount = (_reader.Data.Length - _reader.Position) / 2;
+                if (extraMetricCount < 0) extraMetricCount = 0;
 
-                    if (extraMetric >= 0 && extraMetric < extraMetrics.Length)
-                        glyph.LeftSideBearing = extraMetrics[extraMetric];
-                    else
-                        glyph.LeftSideBearing = 0;
+                for (int i = numberOfHMetrics; i < extraMetricCount; i++)
+                {
+                    Glyph glyph = glyphs[i];
+                    glyph.LeftSideBearing = _reader.ReadShortBE();
                 }
             }
         }

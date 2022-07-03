@@ -9,38 +9,33 @@ using Emotion.Utility;
 
 #pragma warning disable 1591 // Documentation for this file is found at msdn
 
+#nullable enable
+
 namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/cmap
+    /// This table stores the mappings from characters to glyphs.
     /// </summary>
     public class CMapTable
     {
-        public ushort Version;
-        public ushort NumTables;
-        public ushort Format;
-        public uint Length;
-        public uint Language;
-        public uint GroupCount;
+        public Dictionary<uint, uint> GlyphIndexMap { get; init; }
 
-        public int SegCount;
-
-        public Dictionary<uint, uint> GlyphIndexMap;
-
-        /// <summary>
-        /// Parse the `CMap` table. This table stores the mappings from characters to glyphs.
-        /// </summary>
-        public CMapTable(ByteReader reader)
+        private CMapTable(Dictionary<uint, uint> indexMap)
         {
-            Version = reader.ReadUShortBE();
+            GlyphIndexMap = indexMap;
+        }
 
-            if (Version != 0) Engine.Log.Warning("CMap table version should be 0.", MessageSource.FontParser);
+        public static CMapTable? ParseCmap(ByteReader reader)
+        {
+            ushort version = reader.ReadUShortBE();
+            if (version != 0) Engine.Log.Warning("CMap table version should be 0.", MessageSource.FontParser);
 
             // The CMap table can contain many sub-tables, each with their own format.
             // We're only interested in a "platform 0" (Unicode format) and "platform 3" (Windows format) table.
-            NumTables = reader.ReadUShortBE();
+            ushort numTables = reader.ReadUShortBE();
             int tableOffset = -1;
-            for (var i = 0; i < NumTables; i += 1)
+            for (var i = 0; i < numTables; i += 1)
             {
                 ushort platformId = reader.ReadUShortBE();
                 ushort encodingId = reader.ReadUShortBE();
@@ -54,36 +49,45 @@ namespace Emotion.Standard.OpenType.FontTables
             if (tableOffset == -1)
             {
                 Engine.Log.Warning("No valid CMap sub-tables found.", MessageSource.FontParser);
-                return;
+                return null;
             }
 
+            Dictionary<uint, uint> glyphIndexMap;
             ByteReader subReader = reader.Branch(tableOffset, true);
-            Format = subReader.ReadUShortBE();
-
-            if (Format == 12)
-                ReadFormat12(subReader);
-            else if (Format == 4)
-                ReadFormat4(subReader);
+            ushort format = subReader.ReadUShortBE();
+            if (format == 12)
+            {
+                glyphIndexMap = ReadFormat12(subReader);
+            }
+            else if (format == 4)
+            {
+                glyphIndexMap = ReadFormat4(subReader);
+            }
             else
-                Engine.Log.Warning($"Unsupported CMap format - {Format}", MessageSource.FontParser);
+            {
+                Engine.Log.Warning($"Unsupported CMap format - {format}", MessageSource.FontParser);
+                return null;
+            }
+
+            return new CMapTable(glyphIndexMap);
         }
 
         /// <summary>
         /// Segmented coverage
         /// </summary>
-        private void ReadFormat12(ByteReader reader)
+        private static Dictionary<uint, uint> ReadFormat12(ByteReader reader)
         {
             //Skip reserved.
             reader.ReadUShortBE();
 
             // Length in bytes of the sub-tables.
-            Length = reader.ReadULongBE();
-            Language = reader.ReadULongBE();
+            reader.ReadULongBE(); // length
+            reader.ReadULongBE(); // language
 
-            GroupCount = reader.ReadULongBE();
-            GlyphIndexMap = new Dictionary<uint, uint>();
+            uint groupCount = reader.ReadULongBE();
+            var glyphIndexMap = new Dictionary<uint, uint>();
 
-            for (ulong i = 0; i < GroupCount; i += 1)
+            for (ulong i = 0; i < groupCount; i += 1)
             {
                 uint startCharCode = reader.ReadULongBE();
                 uint endCharCode = reader.ReadULongBE();
@@ -91,22 +95,24 @@ namespace Emotion.Standard.OpenType.FontTables
 
                 for (uint c = startCharCode; c <= endCharCode; c += 1)
                 {
-                    GlyphIndexMap[c] = startGlyphId;
+                    glyphIndexMap[c] = startGlyphId;
                     startGlyphId++;
                 }
             }
+
+            return glyphIndexMap;
         }
 
         /// <summary>
         /// Segment mapping to delta values
         /// </summary>
-        private void ReadFormat4(ByteReader reader)
+        private static Dictionary<uint, uint> ReadFormat4(ByteReader reader)
         {
-            Length = reader.ReadUShortBE();
-            Language = reader.ReadUShortBE();
+            reader.ReadUShortBE(); // length
+            reader.ReadUShortBE(); // language
 
             // segCount is stored x 2.
-            SegCount = reader.ReadUShortBE() >> 1;
+            int segCount = reader.ReadUShortBE() >> 1;
 
             // Skip searchRange, entrySelector, rangeShift.
             reader.ReadUShortBE();
@@ -114,14 +120,14 @@ namespace Emotion.Standard.OpenType.FontTables
             reader.ReadUShortBE();
 
             // The "unrolled" mapping from character codes to glyph indices.
-            GlyphIndexMap = new Dictionary<uint, uint>();
-            using ByteReader endCountReader = reader.Branch(14, true);
-            using ByteReader startCountReader = reader.Branch(16 + SegCount * 2, true);
-            using ByteReader idDeltaReader = reader.Branch(16 + SegCount * 4, true);
-            using ByteReader idRangeOffsetReader = reader.Branch(16 + SegCount * 6, true);
-            int idRangeRelativeOffset = 16 + SegCount * 6;
+            var glyphIndexMap = new Dictionary<uint, uint>();
+            ByteReader endCountReader = reader.Branch(14, true);
+            ByteReader startCountReader = reader.Branch(16 + segCount * 2, true);
+            ByteReader idDeltaReader = reader.Branch(16 + segCount * 4, true);
+            ByteReader idRangeOffsetReader = reader.Branch(16 + segCount * 6, true);
+            int idRangeRelativeOffset = 16 + segCount * 6;
 
-            for (uint i = 0; i < SegCount - 1; i += 1)
+            for (uint i = 0; i < segCount - 1; i += 1)
             {
                 ushort endCount = endCountReader.ReadUShortBE();
                 ushort startCount = startCountReader.ReadUShortBE();
@@ -151,9 +157,11 @@ namespace Emotion.Standard.OpenType.FontTables
                         glyphIndex = (uint) (c + idDelta) & 0xFFFF;
                     }
 
-                    GlyphIndexMap[c] = glyphIndex;
+                    glyphIndexMap[c] = glyphIndex;
                 }
             }
+
+            return glyphIndexMap;
         }
     }
 }
