@@ -218,6 +218,7 @@ namespace Emotion.Graphics.Text
             {
                 case GlyphRasterizer.Emotion:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
+                    Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
                     break;
                 case GlyphRasterizer.EmotionSDFVer3:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlasSDF(this, GlyphRendererState, glyphs);
@@ -274,7 +275,7 @@ namespace Emotion.Graphics.Text
 #if WEB
         public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDFVer3;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Emotion;
 #endif
 
         /// <summary>

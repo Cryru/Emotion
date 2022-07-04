@@ -115,7 +115,7 @@ namespace Emotion.Graphics.Text
             {
                 uint clr = colors[p].ToUint();
                 Vector3 offset = offsets[p];
-                RenderGlyphs(composer, glyphsToAdd, offset, clr, atlas.RenderScale, intermediateAtlasUVs);
+                RenderGlyphs(atlas.Font, composer, glyphsToAdd, offset, clr, atlas.RenderScale, intermediateAtlasUVs);
             }
 
             composer.RenderTargetPop();
@@ -188,7 +188,7 @@ namespace Emotion.Graphics.Text
                     var refGlyph = AtlasGlyph.CreateFloatScale(reqGlyph.FontGlyph, refAtlas.RenderScale, refAtlas.Font.Ascender);
                     refGlyphsToRender.Add(refGlyph);
                     refAtlas.DrawableAtlasGlyphs.Add(refGlyph);
-                    refAtlas.Glyphs.Add((char)refAtlas.DrawableAtlasGlyphs.Count, refGlyph); // The char index doesn't matter, we need to add them here for atlas resizing reasons.
+                    refAtlas.Glyphs.Add((char) refAtlas.DrawableAtlasGlyphs.Count, refGlyph); // The char index doesn't matter, we need to add them here for atlas resizing reasons.
                 }
             }
 
@@ -205,7 +205,8 @@ namespace Emotion.Graphics.Text
             if (refGlyphsToRender.Count == 0) return refAtlas.GlyphRendererState;
 
             bool justCreated = refAtlas.GlyphRendererState == null;
-            GlyphRendererState state = CommonGlyphRenderer.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2, true);
+            GlyphRendererState state =
+                CommonGlyphRenderer.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2, true);
             refAtlas.GlyphRendererState = state;
             if (justCreated) state.AtlasBuffer.Texture.Smooth = true;
 
@@ -254,7 +255,7 @@ namespace Emotion.Graphics.Text
             composer.SetShader(_noDiscardShader.Shader);
             uint clr = new Color(1, 0, 0, 0).ToUint();
             Vector3 offset = Vector3.Zero;
-            RenderGlyphs(composer, sdfFullResGlyphs, offset, clr, SDF_HIGH_RES_SCALE, sdfTempRects);
+            RenderGlyphs(atlas.Font, composer, sdfFullResGlyphs, offset, clr, SDF_HIGH_RES_SCALE, sdfTempRects);
             composer.RenderTargetPop();
 
             // Unwind them.
@@ -369,7 +370,7 @@ namespace Emotion.Graphics.Text
                 refGlyph.UVLocation = g.UVLocation;
                 refGlyph.UVSize = g.UVSize;
                 refAtlas.DrawableAtlasGlyphs.Add(refGlyph);
-                refAtlas.Glyphs.Add((char)refAtlas.DrawableAtlasGlyphs.Count, refGlyph);
+                refAtlas.Glyphs.Add((char) refAtlas.DrawableAtlasGlyphs.Count, refGlyph);
             }
 
             Binning.BinningResumableState binningState = atlasMeta.Content.BinningState;
@@ -434,12 +435,15 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// Render glyph vertices storing the winding number in the color buffer.
         /// </summary>
-        private static void RenderGlyphs(RenderComposer composer, List<AtlasGlyph> glyphs, Vector3 offset, uint clr, float scale, Rectangle[] dstRects = null)
+        private static void RenderGlyphs(Font font, RenderComposer composer, List<AtlasGlyph> glyphs, Vector3 offset, uint clr, float scale, Rectangle[] dstRects = null)
         {
             for (var c = 0; c < glyphs.Count; c++)
             {
                 AtlasGlyph atlasGlyph = glyphs[c];
-                Glyph fontGlyph = atlasGlyph.FontGlyph;
+                Glyph oldFontGlyph = atlasGlyph.FontGlyph;
+
+                FontGlyph fontGlyph = font.NewFont.Glyphs[oldFontGlyph.MapIndex];
+
                 Rectangle dst = dstRects != null ? dstRects[c] : new Rectangle(atlasGlyph.UVLocation, atlasGlyph.UVSize);
                 if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(dst);
                 Vector3 atlasRenderPos = (dst.Position - new Vector2(atlasGlyph.XMin, -atlasGlyph.Height)).ToVec3();
@@ -447,31 +451,56 @@ namespace Emotion.Graphics.Text
                 composer.PushModelMatrix(Matrix4x4.CreateScale(scale, -scale, 1) * Matrix4x4.CreateTranslation(atlasRenderPos));
 
                 // Count vertices.
-                GlyphVertex[] verts = fontGlyph.Vertices;
+                var verts = fontGlyph.Commands;
                 var verticesCount = 0;
                 for (var v = 0; v < verts.Length; v++)
                 {
-                    GlyphVertex currentVert = verts[v];
-                    if (currentVert.TypeFlag != VertexTypeFlag.Move) verticesCount++;
+                    var currentVert = verts[v];
+                    if (currentVert.Type != GlyphDrawCommandType.Move) verticesCount++;
                 }
 
                 // Draw lines between all vertex points.
-                Span<VertexData> lines = composer.RenderStream.GetStreamMemory((uint)(verticesCount * 3), BatchMode.SequentialTriangles);
+                Span<VertexData> lines = composer.RenderStream.GetStreamMemory((uint) (verticesCount * 3), BatchMode.SequentialTriangles);
                 for (var j = 0; j < lines.Length; j++)
                 {
                     lines[j].UV = Vector2.Zero;
                     lines[j].Color = clr;
                 }
 
-                var currentVertIdx = 0;
-                for (var i = 1; i < verts.Length; i++)
+                List<(Vector3, Vector3, Vector3)> lineTest = new List<(Vector3, Vector3, Vector3)>();
+                var oldVerts = oldFontGlyph.Vertices;
+                var currentVertIdxe = 0;
+                for (var i = 1; i < oldVerts.Length; i++)
                 {
-                    GlyphVertex currentVert = verts[i];
+                    GlyphVertex currentVert = oldVerts[i];
                     if (currentVert.TypeFlag == VertexTypeFlag.Move) continue;
                     var currentVertPos = new Vector3(currentVert.X, currentVert.Y, 0);
-
-                    GlyphVertex prevVert = verts[i - 1];
+                    GlyphVertex prevVert = oldVerts[i - 1];
                     var prevVertPos = new Vector3(prevVert.X, prevVert.Y, 0);
+
+                    lineTest.Add((Vector3.Zero, currentVertPos, prevVertPos));
+                }
+
+                int lineIdx = 0;
+
+                int currentContourStart = -1;
+                var currentVertIdx = 0;
+                for (var i = 0; i < verts.Length; i++)
+                {
+                    GlyphDrawCommand currentVert = verts[i];
+                    if (currentContourStart == -1) currentContourStart = i;
+                    if (currentVert.Type == GlyphDrawCommandType.Move) continue;
+
+                    Vector3 currentVertPos = currentVert.P0.ToVec3();
+                    GlyphDrawCommand prevVert = verts[i - 1];
+                    Vector3 prevVertPos = prevVert.P0.ToVec3();
+
+                    if (currentVert.Type == GlyphDrawCommandType.Close)
+                    {
+                        GlyphDrawCommand startingVert = verts[currentContourStart];
+                        currentVertPos = startingVert.P0.ToVec3();
+                        currentContourStart = -1;
+                    }
 
                     lines[currentVertIdx].Vertex = Vector3.Zero;
                     currentVertIdx++;
@@ -479,40 +508,111 @@ namespace Emotion.Graphics.Text
                     currentVertIdx++;
                     lines[currentVertIdx].Vertex = prevVertPos;
                     currentVertIdx++;
+
+                    Vector3 a = Vector3.Zero.Floor();
+                    Vector3 b = currentVertPos.Floor();
+                    Vector3 ce = prevVertPos.Floor();
+
+                    //var correspondingCurve = lineTest[lineIdx];
+                    //if (a != correspondingCurve.Item1)
+                    //{
+                    //    bool aa = true;
+                    //}
+                    //else if (b != correspondingCurve.Item2)
+                    //{
+                    //    bool bb = true;
+                    //}
+                    //else if (ce != correspondingCurve.Item3)
+                    //{
+                    //    bool cc = true;
+                    //}
+
+                    lineIdx++;
                 }
 
-                // Draw curves. These will flip pixels in the curve approximations from above.
-                for (var i = 1; i < verts.Length; i++)
+                List<(Vector3, Vector3, Vector3)> test = new List<(Vector3, Vector3, Vector3)>();
+
+                for (var i = 1; i < oldVerts.Length; i++)
                 {
-                    GlyphVertex currentVert = verts[i];
+                    GlyphVertex currentVert = oldVerts[i];
                     var currentVertPos = new Vector3(currentVert.X, currentVert.Y, 0);
                     if (currentVert.TypeFlag == VertexTypeFlag.Curve)
                     {
-                        GlyphVertex prevVert = verts[i - 1];
+                        GlyphVertex prevVert = oldVerts[i - 1];
                         var prevVertPos = new Vector3(prevVert.X, prevVert.Y, 0);
+                        test.Add((prevVertPos, currentVertPos, new Vector3(currentVert.Cx, currentVert.Cy, 0)));
 
-                        Span<VertexData> memory = composer.GetStreamedQuadraticCurveMesh(prevVertPos, currentVertPos,
-                            new Vector3(currentVert.Cx, currentVert.Cy, 0));
-                        for (var j = 0; j < memory.Length; j++)
-                        {
-                            memory[j].UV = Vector2.Zero;
-                            memory[j].Color = clr;
-                        }
+                        //Span<VertexData> memory = composer.GetStreamedQuadraticCurveMesh(prevVertPos, currentVertPos,
+                        //    new Vector3(currentVert.Cx, currentVert.Cy, 0));
+                        //for (var j = 0; j < memory.Length; j++)
+                        //{
+                        //    memory[j].UV = Vector2.Zero;
+                        //    memory[j].Color = clr;
+                        //}
                     }
                     else if (currentVert.TypeFlag == VertexTypeFlag.Cubic)
                     {
-                        GlyphVertex prevVert = verts[i - 1];
-                        var prevVertPos = new Vector3(prevVert.X, prevVert.Y, 0);
+                        bool a = true;
+                    }
+                }
 
-                        Span<VertexData> memory = composer.GetStreamedCubicCurveMesh(prevVertPos, currentVertPos,
-                            new Vector3(currentVert.Cx, currentVert.Cy, 0),
-                            new Vector3(currentVert.Cx1, currentVert.Cy1, 0));
+                int curveIdx = 0;
+
+                // Draw curves. These will flip pixels in the curve approximations from above.
+                Vector2 prevPos = Vector2.Zero;
+                for (var i = 0; i < verts.Length; i++)
+                {
+                    GlyphDrawCommand currentVert = verts[i];
+                    if (currentVert.Type == GlyphDrawCommandType.Curve)
+                    {
+                        //var prevVert = verts[i - 1];
+                        //var prevVertPos = prevVert.P1.ToVec3();
+
+                        Vector3 a = prevPos.ToVec3().Floor();
+                        Vector3 b = currentVert.P0.ToVec3().Floor();
+                        Vector3 ce = currentVert.P1.ToVec3().Floor();
+
+                        var correspondingCurve = test[curveIdx];
+                        if (a != correspondingCurve.Item1)
+                        {
+                            bool aa = true;
+                        }
+                        else if (b != correspondingCurve.Item2)
+                        {
+                            bool bb = true;
+                        }
+                        else if (ce != correspondingCurve.Item3)
+                        {
+                            bool cc = true;
+                        }
+
+                        curveIdx++;
+
+                        Span<VertexData> memory = composer.GetStreamedQuadraticCurveMesh(prevPos.ToVec3(), currentVert.P0.ToVec3(), currentVert.P1.ToVec3());
                         for (var j = 0; j < memory.Length; j++)
                         {
                             memory[j].UV = Vector2.Zero;
                             memory[j].Color = clr;
                         }
+
+                        
                     }
+                    //else if (currentVert.TypeFlag == VertexTypeFlag.Cubic)
+                    //{
+                    //    GlyphVertex prevVert = verts[i - 1];
+                    //    var prevVertPos = new Vector3(prevVert.X, prevVert.Y, 0);
+
+                    //    Span<VertexData> memory = composer.GetStreamedCubicCurveMesh(prevVertPos, currentVertPos,
+                    //        new Vector3(currentVert.Cx, currentVert.Cy, 0),
+                    //        new Vector3(currentVert.Cx1, currentVert.Cy1, 0));
+                    //    for (var j = 0; j < memory.Length; j++)
+                    //    {
+                    //        memory[j].UV = Vector2.Zero;
+                    //        memory[j].Color = clr;
+                    //    }
+                    //}
+
+                    prevPos = currentVert.P0;
                 }
 
                 composer.PopModelMatrix();

@@ -58,14 +58,18 @@ namespace Emotion.ExecTest
             composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
 
             composer.SetUseViewMatrix(true);
-            composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(10));
-            composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
-            composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
+            //composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(10));
+            //composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
+            //composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
+
+            composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(200));
+            //composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
+            //composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
 
             var sdf = TestGlyphRenderer.LastProducedSdf;
             if (sdf != null)
             {
-                composer.RenderSprite(Vector3.Zero, sdf.Size, sdf.ColorAttachment);
+                composer.RenderSprite(new Vector3(0,500, 0), sdf.Size, sdf.ColorAttachment);
             }
         }
 
