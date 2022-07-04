@@ -41,50 +41,46 @@ namespace Emotion.Graphics.Text
             public float y1;
         }
 
-        public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 1024, int sdfDist = 16, int rowHeight = 96)
+        public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 1024, int sdfDist = 16, int glyphSize = 96)
         {
             FontAnton newFont = font.NewFont;
 
             // pen
-            float posx = 0;
-            float posy = 0;
-            float maxHeight = 0;
+            float penX = 0;
+            float penY = 0;
+            float heightUsed = 0;
 
-            float fheight = newFont.Ascender - newFont.Descender;
-
-            float antonScale = newFont.Ascender / 1f;
-            //float fheight = 1f - newFont.Descender * antonScale;
-
-            float scale = rowHeight / fheight;
+            float fontHeight = newFont.Height;
+            float scale = glyphSize / fontHeight;
             float baseline = -newFont.Descender * scale;
 
             var glyphsAdded = new List<NewRendererGlyph>();
-            for (int i = 0; i < glyphsToAdd.Count; i++)
+            for (var i = 0; i < glyphsToAdd.Count; i++)
             {
-                var oldFontGlyph = glyphsToAdd[i].FontGlyph;
-                var fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
+                Glyph oldFontGlyph = glyphsToAdd[i].FontGlyph;
+                FontGlyph fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
 
-                float rect_width = (fontGlyph.Max.X - fontGlyph.Min.X) * scale + sdfDist * 2.0f;
-                float row_and_border = rowHeight + sdfDist * 2.0f;
+                float glyphWidth = (fontGlyph.Max.X - fontGlyph.Min.X) * scale + sdfDist * 2.0f;
+                float glyphHeight = glyphSize + sdfDist * 2.0f;
 
                 // New pen line.
-                if (posx + rect_width > atlasSize)
+                if (penX + glyphWidth > atlasSize)
                 {
-                    posx = 0.0f;
-                    posy = MathF.Ceiling(posy + row_and_border);
-                    maxHeight = MathF.Ceiling(posy + row_and_border);
+                    penX = 0.0f;
+                    penY = MathF.Ceiling(penY + glyphHeight);
+                    heightUsed = MathF.Ceiling(penY + glyphHeight);
                 }
 
                 var gr = new NewRendererGlyph();
                 gr.glyph_idx = fontGlyph.MapIndex;
                 gr.FontGlyph = fontGlyph;
-                gr.x0 = posx;
-                gr.x1 = posx + rect_width;
-                gr.y0 = posy;
-                gr.y1 = posy + row_and_border;
+                gr.x0 = penX;
+                gr.x1 = penX + glyphWidth;
+                gr.y0 = penY;
+                gr.y1 = penY + glyphHeight;
                 glyphsAdded.Add(gr);
 
-                posx = MathF.Ceiling(posx + rect_width);
+                penX = MathF.Ceiling(penX + glyphWidth);
             }
 
             var painter = new GlyphPainter();
@@ -101,7 +97,7 @@ namespace Emotion.Graphics.Text
 
             if (LastProducedSdf != null) return;
 
-            FrameBuffer buffer = new FrameBuffer(new Vector2(atlasSize, maxHeight)).WithColor(true, InternalFormat.Red, PixelFormat.Red).WithDepthStencil();
+            FrameBuffer buffer = new FrameBuffer(new Vector2(atlasSize, heightUsed)).WithColor(true, InternalFormat.Red, PixelFormat.Red).WithDepthStencil();
             LastProducedSdf = buffer;
             RenderComposer renderer = Engine.Renderer;
             // todo: ensure states here and cache framebuffer like emotion sdf
@@ -117,7 +113,7 @@ namespace Emotion.Graphics.Text
             renderer.SetDepthTest(true);
             renderer.SetUseViewMatrix(false);
 
-            RenderStreamBatch<SdfVertex> renderStream = new RenderStreamBatch<SdfVertex>(0, 1, false);
+            var renderStream = new RenderStreamBatch<SdfVertex>(0, 1, false);
             renderer.RenderToAndClear(buffer);
 
             // Draw lines

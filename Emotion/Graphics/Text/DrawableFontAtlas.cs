@@ -275,7 +275,7 @@ namespace Emotion.Graphics.Text
 #if WEB
         public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Emotion;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDFVer3;
 #endif
 
         /// <summary>

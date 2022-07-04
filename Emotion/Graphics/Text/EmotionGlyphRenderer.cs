@@ -513,21 +513,28 @@ namespace Emotion.Graphics.Text
                     Vector3 b = currentVertPos.Floor();
                     Vector3 ce = prevVertPos.Floor();
 
-                    //var correspondingCurve = lineTest[lineIdx];
-                    //if (a != correspondingCurve.Item1)
-                    //{
-                    //    bool aa = true;
-                    //}
-                    //else if (b != correspondingCurve.Item2)
-                    //{
-                    //    bool bb = true;
-                    //}
-                    //else if (ce != correspondingCurve.Item3)
-                    //{
-                    //    bool cc = true;
-                    //}
+                    if(b == ce) continue;
+
+                    var correspondingCurve = lineTest[lineIdx];
+                    if (a != correspondingCurve.Item1)
+                    {
+                        bool aa = true;
+                    }
+                    else if (b != correspondingCurve.Item2)
+                    {
+                        bool bb = true;
+                    }
+                    else if (ce != correspondingCurve.Item3)
+                    {
+                        bool cc = true;
+                    }
 
                     lineIdx++;
+                }
+
+                if (currentVertIdx != lines.Length)
+                {
+                    bool a = true;
                 }
 
                 List<(Vector3, Vector3, Vector3)> test = new List<(Vector3, Vector3, Vector3)>();
