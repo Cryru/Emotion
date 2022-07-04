@@ -21,6 +21,11 @@ namespace Emotion.Graphics.Text
 {
     //https://github.com/astiopin/sdf_atlas
     //https://github.com/astiopin/webgl_fonts/blob/41b4253974d350ffb27a95fb9f929d3efee29f86/src/main.js
+
+    /// <summary>
+    /// This renderer is based on Anton Stiopin (astiopin)'s work.
+    /// https://astiopin.github.io/2019/01/06/sdf-on-gpu.html
+    /// </summary>
     public static class TestGlyphRenderer
     {
         public static FrameBuffer LastProducedSdf;
@@ -46,6 +51,10 @@ namespace Emotion.Graphics.Text
             float maxHeight = 0;
 
             float fheight = newFont.Ascender - newFont.Descender;
+
+            float antonScale = newFont.Ascender / 1f;
+            //float fheight = 1f - newFont.Descender * antonScale;
+
             float scale = rowHeight / fheight;
             float baseline = -newFont.Descender * scale;
 
@@ -103,6 +112,7 @@ namespace Emotion.Graphics.Text
             var fillRenderShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
 
             renderer.SetState(RenderState.Default);
+            renderer.PushModelMatrix(Matrix4x4.Identity, false);
             renderer.SetAlphaBlend(false);
             renderer.SetDepthTest(true);
             renderer.SetUseViewMatrix(false);
@@ -112,8 +122,8 @@ namespace Emotion.Graphics.Text
 
             // Draw lines
             renderer.SetShader(lineRenderShader.Shader);
-            Span<SdfVertex> memory = renderStream.GetStreamMemory((uint)painter.LinePainter.vertices.Count, BatchMode.SequentialTriangles);
-            Span<SdfVertex> lineDataSpan = CollectionsMarshal.AsSpan(painter.LinePainter.vertices);
+            Span<SdfVertex> memory = renderStream.GetStreamMemory((uint) painter.LinePainter.Vertices.Count, BatchMode.SequentialTriangles);
+            Span<SdfVertex> lineDataSpan = CollectionsMarshal.AsSpan(painter.LinePainter.Vertices);
             lineDataSpan.CopyTo(memory);
             renderStream.FlushRender();
             renderer.SetShader();
@@ -125,8 +135,8 @@ namespace Emotion.Graphics.Text
             renderer.ToggleRenderColor(false);
 
             renderer.SetShader(fillRenderShader.Shader);
-            memory = renderStream.GetStreamMemory((uint) painter.FillPainter.vertices.Count, BatchMode.SequentialTriangles);
-            Span<SdfVertex> fillDataSpan = CollectionsMarshal.AsSpan(painter.FillPainter.vertices);
+            memory = renderStream.GetStreamMemory((uint) painter.FillPainter.Vertices.Count, BatchMode.SequentialTriangles);
+            Span<SdfVertex> fillDataSpan = CollectionsMarshal.AsSpan(painter.FillPainter.Vertices);
             fillDataSpan.CopyTo(memory);
             renderStream.FlushRender();
             renderer.SetShader();
@@ -138,13 +148,14 @@ namespace Emotion.Graphics.Text
             renderer.SetAlphaBlendType(BlendingFactor.OneMinusDstColor, BlendingFactor.Zero, BlendingFactor.One, BlendingFactor.Zero);
             Gl.StencilFunc(StencilFunction.Notequal, 0, 0xff);
             Gl.StencilOp(StencilOp.Zero, StencilOp.Zero, StencilOp.Zero);
-            
+
             renderer.RenderSprite(Vector3.Zero, buffer.Size, Color.White);
 
             renderer.RenderTo(null);
             renderer.SetDefaultAlphaBlendType();
             renderer.SetAlphaBlend(true);
             renderer.SetStencilTest(false);
+            renderer.PopModelMatrix();
 
             RenderDocGraphicsContext.RenderDocCaptureEnd();
 

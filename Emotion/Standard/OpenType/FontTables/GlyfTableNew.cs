@@ -149,6 +149,9 @@ namespace Emotion.Standard.OpenType.FontTables
                     short xCoord = xArray[i];
                     short yCoord = yArray[i];
 
+                    // The next position for the brush.
+                    // In line commands this is the next line vertex
+                    // In curves this is the control point.
                     curPos = new Vector2(xCoord, yCoord);
 
                     // Starting a new contour
@@ -181,8 +184,8 @@ namespace Emotion.Standard.OpenType.FontTables
                             drawCommands.Add(new GlyphDrawCommand
                             {
                                 Type = GlyphDrawCommandType.Curve,
-                                P0 = prevPos * scale,
-                                P1 = curPos * scale
+                                P1 = prevPos * scale,
+                                P0 = curPos * scale
                             });
                     }
                     else if (!prevOnCurve)
@@ -192,8 +195,8 @@ namespace Emotion.Standard.OpenType.FontTables
                         drawCommands.Add(new GlyphDrawCommand
                         {
                             Type = GlyphDrawCommandType.Curve,
-                            P0 = prevPos * scale,
-                            P1 = scale * middle
+                            P1 = prevPos * scale,
+                            P0 = middle * scale
                         });
                     }
 
@@ -215,14 +218,14 @@ namespace Emotion.Standard.OpenType.FontTables
                             {
                                 Vector2 scaledPos = curPos * scale;
                                 GlyphDrawCommand nextCommand = drawCommands[currentContourStartCommand + 1]; // First CurveTo off-curve CP
-                                Vector2 curveControlPoint = 0.5f * (scaledPos + nextCommand.P0); // Contour start point;
-                                startingCommand.P0 = curveControlPoint;
+                                Vector2 contourStart = 0.5f * (scaledPos + nextCommand.P0); // Contour start point;
+                                startingCommand.P0 = contourStart;
 
                                 drawCommands.Add(new GlyphDrawCommand
                                 {
                                     Type = GlyphDrawCommandType.Curve,
-                                    P0 = scaledPos,
-                                    P1 = curveControlPoint
+                                    P1 = scaledPos,
+                                    P0 = contourStart
                                 });
                             }
                         }
@@ -232,17 +235,17 @@ namespace Emotion.Standard.OpenType.FontTables
                             drawCommands.Add(new GlyphDrawCommand
                             {
                                 Type = GlyphDrawCommandType.Curve,
-                                P0 = curPos * scale,
-                                P1 = startingCommand.P0
+                                P1 = curPos * scale,
+                                P0 = startingCommand.P0
                             });
                         }
 
                         drawCommands[currentContourStartCommand] = startingCommand;
-
                         drawCommands.Add(new GlyphDrawCommand
                         {
                             Type = GlyphDrawCommandType.Close
                         });
+
                         newContour = true;
                     }
                 }

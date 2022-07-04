@@ -2,106 +2,108 @@
 
 using System.Collections.Generic;
 using System.Numerics;
+using Emotion.Utility;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Graphics.Text.NewRenderer
 {
     public class LinePainter
     {
-        private Vector2 start_pos;
-        private Vector2 prev_pos;
-        public List<SdfVertex> vertices = new List<SdfVertex>();
+        private Vector2 _startPos;
+        private Vector2 _prevPos;
+        public List<SdfVertex> Vertices = new();
 
-        public void move_to(Vector2 p0)
+        public void MoveTo(Vector2 p0)
         {
-            start_pos = p0;
-            prev_pos = p0;
+            _startPos = p0;
+            _prevPos = p0;
         }
 
-        public void line_to(Vector2 p1, float lineWidth)
+        public void LineTo(Vector2 nextPos, float lineWidth)
         {
-            Vector2 vmin = Vector2.Min(prev_pos, p1);
-            Vector2 vmax = Vector2.Max(prev_pos, p1);
+            Vector2 vMin = Vector2.Min(_prevPos, nextPos);
+            Vector2 vMax = Vector2.Max(_prevPos, nextPos);
 
-            vmin -= new Vector2(lineWidth);
-            vmax += new Vector2(lineWidth);
+            vMin -= new Vector2(lineWidth);
+            vMax += new Vector2(lineWidth);
 
-            Parabola par = Parabola.FromLine(prev_pos, p1);
-            LineRect(par, vmin, vmax, lineWidth, vertices);
+            Parabola par = Parabola.FromLine(_prevPos, nextPos);
+            LineRect(par, vMin, vMax, lineWidth, Vertices);
 
-            prev_pos = p1;
+            _prevPos = nextPos;
         }
 
-        public void qbez_to(Vector2 p1, Vector2 p2, float line_width)
+        public void QuadraticTo(Vector2 controlPoint, Vector2 nextPos, float lineWidth)
         {
-            Vector2 p0 = prev_pos;
+            Vector2 prevPos = _prevPos;
 
-            Vector2 mid01 = new Vector2(0.5f) * (p0 + p1);
-            Vector2 mid12 = new Vector2(0.5f) * (p1 + p2);
+            Vector2 mid01 = new Vector2(0.5f) * (prevPos + controlPoint);
+            Vector2 mid12 = new Vector2(0.5f) * (controlPoint + nextPos);
 
-            Vector2 vmin = Vector2.Min(p0, mid01);
-            vmin = Vector2.Min(vmin, mid12);
-            vmin = Vector2.Min(vmin, p2);
+            Vector2 vMin = Vector2.Min(prevPos, mid01);
+            vMin = Vector2.Min(vMin, mid12);
+            vMin = Vector2.Min(vMin, nextPos);
 
-            Vector2 vmax = Vector2.Max(p0, mid01);
-            vmax = Vector2.Max(vmax, mid12);
-            vmax = Vector2.Max(vmax, p2);
+            Vector2 vMax = Vector2.Max(prevPos, mid01);
+            vMax = Vector2.Max(vMax, mid12);
+            vMax = Vector2.Max(vMax, nextPos);
 
-            vmin -= new Vector2(line_width);
-            vmax += new Vector2(line_width);
+            vMin -= new Vector2(lineWidth);
+            vMax += new Vector2(lineWidth);
 
-            Vector2 v10 = p0 - p1;
-            Vector2 v12 = p2 - p1;
+            Vector2 v10 = prevPos - controlPoint;
+            Vector2 v12 = nextPos - controlPoint;
             Vector2 np10 = Vector2.Normalize(v10);
             Vector2 np12 = Vector2.Normalize(v12);
 
-            QbezType qtype = qbez_type(np10, np12);
+            QuadraticCurveType qtype = GetQuadraticCurveType(np10, np12);
 
             switch (qtype)
             {
-                case QbezType.Parabola:
+                case QuadraticCurveType.Parabola:
                 {
-                    var par = Parabola.FromQuadratic(p0, p1, p2);
-                    LineRect(par, vmin, vmax, line_width, vertices);
+                    Parabola par = Parabola.FromQuadratic(prevPos, controlPoint, nextPos);
+                    LineRect(par, vMin, vMax, lineWidth, Vertices);
                     break;
                 }
-                case QbezType.Line:
+                case QuadraticCurveType.Line:
                 {
-                    var par = Parabola.FromLine(p0, p2);
-                    LineRect(par, vmin, vmax, line_width, vertices);
+                    Parabola par = Parabola.FromLine(prevPos, nextPos);
+                    LineRect(par, vMin, vMax, lineWidth, Vertices);
                     break;
                 }
-                case QbezType.TwoLines:
+                case QuadraticCurveType.TwoLines:
                 {
                     float l10 = v10.Length();
                     float l12 = v12.Length();
                     float qt = l10 / (l10 + l12);
                     float nqt = 1.0f - qt;
-                    Vector2 qtop = p0 * (nqt * nqt) + p1 * (2.0f * nqt * qt) + p2 * (qt * qt);
-                    Parabola par0 = Parabola.FromLine(p0, qtop);
-                    LineRect(par0, vmin, vmax, line_width, vertices);
-                    Parabola par1 = Parabola.FromLine(qtop, p1);
-                    LineRect(par1, vmin, vmax, line_width, vertices);
+                    Vector2 qtop = prevPos * (nqt * nqt) + controlPoint * (2.0f * nqt * qt) + nextPos * (qt * qt);
+                    Parabola par0 = Parabola.FromLine(prevPos, qtop);
+                    LineRect(par0, vMin, vMax, lineWidth, Vertices);
+                    Parabola par1 = Parabola.FromLine(qtop, controlPoint);
+                    LineRect(par1, vMin, vMax, lineWidth, Vertices);
                     break;
                 }
             }
 
-            prev_pos = p2;
+            _prevPos = nextPos;
         }
 
         public static void LineRect(Parabola par, Vector2 vmin, Vector2 vmax, float lineWidth, List<SdfVertex> vertices)
         {
-            SdfVertex v0, v1, v2, v3;
-            v0 = new SdfVertex(new Vector2(vmin.X, vmin.Y), lineWidth);
-            v1 = new SdfVertex(new Vector2(vmax.X, vmin.Y), lineWidth);
-            v2 = new SdfVertex(new Vector2(vmax.X, vmax.Y), lineWidth);
-            v3 = new SdfVertex(new Vector2(vmin.X, vmax.Y), lineWidth);
+            var v0 = new SdfVertex(new Vector2(vmin.X, vmin.Y), lineWidth);
+            var v1 = new SdfVertex(new Vector2(vmax.X, vmin.Y), lineWidth);
+            var v2 = new SdfVertex(new Vector2(vmax.X, vmax.Y), lineWidth);
+            var v3 = new SdfVertex(new Vector2(vmin.X, vmax.Y), lineWidth);
 
-            set_par_vertex(ref v0, par);
-            set_par_vertex(ref v1, par);
-            set_par_vertex(ref v2, par);
-            set_par_vertex(ref v3, par);
+            SetParabolaProperties(ref v0, par);
+            SetParabolaProperties(ref v1, par);
+            SetParabolaProperties(ref v2, par);
+            SetParabolaProperties(ref v3, par);
 
             vertices.Add(v0);
             vertices.Add(v1);
@@ -112,33 +114,32 @@ namespace Emotion.Graphics.Text.NewRenderer
             vertices.Add(v3);
         }
 
-        public void close(float lineWidth)
+        public void Close(float lineWidth)
         {
-            if ((start_pos - prev_pos).LengthSquared() < 1e-7) return;
-            line_to(start_pos, lineWidth);
+            if ((_startPos - _prevPos).LengthSquared() < Maths.EPSILON) return;
+            LineTo(_startPos, lineWidth);
         }
 
-        public enum QbezType
+        public enum QuadraticCurveType
         {
             Parabola,
             Line,
             TwoLines
         }
 
-        public static QbezType qbez_type(Vector2 np10, Vector2 np12)
+        public static QuadraticCurveType GetQuadraticCurveType(Vector2 np10, Vector2 np12)
         {
             float d = Vector2.Dot(np10, np12);
-            float dmax = 1.0f - 1e-6f;
-            if (d >= dmax) return QbezType.TwoLines;
-            if (d <= -dmax) return QbezType.Line;
-            return QbezType.Parabola;
+            float dMax = 1.0f - 1e-6f;
+            if (d >= dMax) return QuadraticCurveType.TwoLines;
+            if (d <= -dMax) return QuadraticCurveType.Line;
+            return QuadraticCurveType.Parabola;
         }
 
-
-        public static void set_par_vertex(ref SdfVertex v, Parabola par)
+        public static void SetParabolaProperties(ref SdfVertex v, Parabola par)
         {
-            Vector2 par_pos = par.world_to_par(v.Pos);
-            v.Parabola = par_pos;
+            Vector2 parPos = par.world_to_par(v.Pos);
+            v.Parabola = parPos;
             v.Limit = new Vector2(par.XStart, par.XEnd);
             v.Scale = par.Scale;
         }

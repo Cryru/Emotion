@@ -191,15 +191,11 @@ namespace Emotion.Standard.OpenType
             int numberOfHMetrics = hheaTableParsed.NumberOfHMetrics;
             int glyphCount = maxpTableParsed.NumGlyphs;
 
-            short ascenderEm = hheaTableParsed.Ascender;
-            short descenderEm = hheaTableParsed.Descender;
-            short lineGapEm = hheaTableParsed.LineGap;
-
-            float scale = 1f / ascenderEm;
+            var scale = 1f;
             UnitsPerEm = headTableParsed.UnitsPerEm;
-            Ascender = 1f;
-            Descender = descenderEm * scale;
-            LineGap = lineGapEm * scale;
+            Ascender = hheaTableParsed.Ascender * scale;
+            Descender = hheaTableParsed.Descender * scale;
+            LineGap = hheaTableParsed.LineGap * scale;
             ScaleApplied = scale;
 
             // glyf fonts
