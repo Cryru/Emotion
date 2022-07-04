@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Generic;
 using Emotion.Common;
+using Emotion.Platform.Debugger;
 using Emotion.Platform.Implementation.EglAngle.Native;
-using Emotion.Platform.RenderDoc;
 using Emotion.Standard.Logging;
 
 #endregion
 
 namespace Emotion.Platform.Implementation.EglAngle
 {
-    public class EglGraphicsContext : RenderDocGraphicsContext
+    public class EglGraphicsContext : GraphicsContext
     {
         private IntPtr _display;
         private IntPtr _surface;

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Emotion.Platform.RenderDoc;
+using Emotion.Platform.Debugger;
 
 #endregion
 
@@ -41,10 +41,10 @@ namespace Emotion.Platform
 
         protected int _swapInterval;
 
-        /// <summary>
-        /// Reference to the RenderDoc debugger, if attached.
-        /// </summary>
-        public RenderDocAPI RenderDoc;
+        protected GraphicsContext()
+        {
+            RenderDoc.TryLoad();
+        }
 
         /// <summary>
         /// Internal function for when SwapInterval is called.

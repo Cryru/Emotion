@@ -244,7 +244,7 @@ namespace Emotion.Graphics.Text
                 _intermediateBufferTwo.Resize(sdfBaseAtlas, true);
             _intermediateBufferTwo.ColorAttachment.Smooth = false;
 
-            //RenderDocGraphicsContext.RenderDocCaptureStart();
+            // Emotion.Platform.Debugger.RenderDoc.StartCapture();
             RenderComposer composer = Engine.Renderer;
             RenderState prevState = composer.CurrentState.Clone();
             composer.PushModelMatrix(Matrix4x4.Identity, false);
@@ -300,7 +300,7 @@ namespace Emotion.Graphics.Text
             composer.RenderTo(null);
             composer.PopModelMatrix();
             composer.SetState(prevState);
-            //RenderDocGraphicsContext.RenderDocCaptureEnd();
+            // Emotion.Platform.Debugger.RenderDoc.EndCapture();
 
             // Apply all UVs from the ref atlas to the req atlas.
             for (var i = 0; i < refGlyphsToRender.Count; i++)
