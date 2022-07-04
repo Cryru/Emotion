@@ -140,6 +140,7 @@ namespace Emotion.Standard.OpenType
                     _tables = GetTables(r, numTables);
                     break;
                 }
+
                 default:
                 {
                     Engine.Log.Error($"Unsupported font format - {tag}", MessageSource.FontParser);
@@ -203,8 +204,7 @@ namespace Emotion.Standard.OpenType
             if (glyfTable != null)
             {
                 FontTable? locaTable = GetTable("loca");
-                FontTable? hmtxTable = GetTable("hmtx");
-                if (locaTable == null || hmtxTable == null) return;
+                if (locaTable == null) return;
 
                 var glyphs = new FontGlyph[glyphCount];
                 for (var i = 0; i < glyphs.Length; i++)
@@ -214,20 +214,12 @@ namespace Emotion.Standard.OpenType
                     glyphs[i] = glyph;
                 }
 
-                HmtxTable hmtxTableParsed = HmtxTable.ParseHmtx(r.Branch(hmtxTable.Offset, true, hmtxTable.Length));
-                hmtxTableParsed.ApplyToGlyphs(numberOfHMetrics, glyphs);
-                for (var i = 0; i < glyphs.Length; i++)
-                {
-                    FontGlyph glyph = glyphs[i];
-                    glyph.Advance *= scale;
-                    glyph.LeftSideBearing *= scale;
-                }
-
                 short indexToLocFormat = headTableParsed.IndexToLocFormat;
                 LocaTable locaTableParsed = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), glyphCount, indexToLocFormat == 0);
                 GlyfTableNew.ParseGlyf(r.Branch(glyfTable.Offset, true, glyfTable.Length), locaTableParsed, glyphs, scale);
                 Glyphs = glyphs;
             }
+            // cff fonts
             else
             {
                 FontTable? cffTable = GetTable("CFF ");
@@ -238,10 +230,11 @@ namespace Emotion.Standard.OpenType
                 }
 
                 var cff = new CffTable(r.Branch(cffTable.Offset, true, cffTable.Length));
+
                 var glyphs = new FontGlyph[cff.NumberOfGlyphs];
                 for (var i = 0; i < glyphs.Length; i++)
                 {
-                    var glyph = new FontGlyph();
+                    var glyph = cff.ParseCffGlyph(i);
                     glyph.MapIndex = i;
                     glyphs[i] = glyph;
                 }
@@ -251,6 +244,19 @@ namespace Emotion.Standard.OpenType
                 Glyphs = glyphs;
             }
 
+            FontTable? hmtxTable = GetTable("hmtx");
+            if (hmtxTable != null)
+            {
+                HmtxTable hmtxTableParsed = HmtxTable.ParseHmtx(r.Branch(hmtxTable.Offset, true, hmtxTable.Length));
+                hmtxTableParsed.ApplyToGlyphs(numberOfHMetrics, Glyphs);
+                for (var i = 0; i < Glyphs.Length; i++)
+                {
+                    FontGlyph glyph = Glyphs[i];
+                    glyph.Advance *= scale;
+                    glyph.LeftSideBearing *= scale;
+                }
+            }
+            
             // Assign glyph mapping
             FontTable? cmapTable = GetTable("cmap");
             CMapTable? cmapTableParsed = cmapTable != null ? CMapTable.ParseCmap(r.Branch(cmapTable.Offset, true, cmapTable.Length)) : null;

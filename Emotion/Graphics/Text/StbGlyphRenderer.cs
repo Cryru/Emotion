@@ -44,16 +44,17 @@ namespace Emotion.Graphics.Text
             state = CommonGlyphRenderer.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize);
 
             // Bin them for the stb rasterization atlas.
-            var stbAtlasData = new byte[(int)intermediateAtlasSize.X * (int)intermediateAtlasSize.Y];
-            var stride = (int)intermediateAtlasSize.X;
+            var stbAtlasData = new byte[(int) intermediateAtlasSize.X * (int) intermediateAtlasSize.Y];
+            var stride = (int) intermediateAtlasSize.X;
             float scale = atlas.RenderScale;
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                Glyph glyph = atlasGlyph.FontGlyph;
+                Glyph oldGlyph = atlasGlyph.FontGlyph;
+                FontGlyph newFontGlyph = atlas.Font.NewFont.Glyphs[oldGlyph.MapIndex];
 
-                var canvas = new GlyphCanvas(atlasGlyph, (int)(atlasGlyph.Size.X + 1), (int)(atlasGlyph.Size.Y + 1));
-                RenderGlyph(canvas, glyph, scale);
+                var canvas = new GlyphCanvas(atlasGlyph, (int) (atlasGlyph.Size.X + 1), (int) (atlasGlyph.Size.Y + 1));
+                RenderGlyph(canvas, newFontGlyph, scale);
 
                 // Remove canvas padding.
                 canvas.Width--;
@@ -61,8 +62,8 @@ namespace Emotion.Graphics.Text
 
                 // Copy pixels and record the location of the glyph.
                 Vector2 uvLoc = intermediateAtlasUVs[i].Position;
-                var uvX = (int)uvLoc.X;
-                var uvY = (int)uvLoc.Y;
+                var uvX = (int) uvLoc.X;
+                var uvY = (int) uvLoc.Y;
 
                 for (var row = 0; row < canvas.Height; row++)
                 {
@@ -155,15 +156,13 @@ namespace Emotion.Graphics.Text
             }
         }
 
-        public static void RenderGlyph(GlyphCanvas canvas, Glyph glyph, float scale, bool invertY = true)
+        public static void RenderGlyph(GlyphCanvas canvas, FontGlyph glyph, float scale, bool invertY = true)
         {
             if (scale == 0f) return;
             if (canvas.Width == 0 || canvas.Height == 0) return;
 
-            GlyphVertex[] vertices = glyph.Vertices;
-
-            var flatnessInPixels = 0.35f;
-            Vector2[] windings = FlattenCurves(vertices, flatnessInPixels / scale, out int[] contourLengths);
+            const float flatnessInPixels = 0.35f;
+            Vector2[] windings = FlattenCurves(glyph.Commands, flatnessInPixels / scale, out int[] contourLengths);
 
             if (windings == null) return;
 
@@ -235,7 +234,7 @@ namespace Emotion.Graphics.Text
 
                 var edgeIndex = 0;
 
-                var y = (int)bbox.Y;
+                var y = (int) bbox.Y;
                 e[n].Y = bbox.Y + canvas.Height + 1;
 
                 var j = 0;
@@ -271,7 +270,7 @@ namespace Emotion.Graphics.Text
                     {
                         if (e[edgeIndex].Y != e[edgeIndex].Y1)
                         {
-                            var z = new ActiveEdge(e[edgeIndex], (int)bbox.X, scanYTop);
+                            var z = new ActiveEdge(e[edgeIndex], (int) bbox.X, scanYTop);
                             if (j == 0 && bbox.Y != 0)
                                 if (z.Ey < scanYTop)
                                     z.Ey = scanYTop;
@@ -292,14 +291,14 @@ namespace Emotion.Graphics.Text
                     {
                         sum += scanline2[i];
                         float k = scanline[i] + sum;
-                        k = (float)Math.Abs((double)k) * 255 + 0.5f;
-                        var pixel = (int)k;
+                        k = (float) Math.Abs((double) k) * 255 + 0.5f;
+                        var pixel = (int) k;
                         // Clamp down.
                         if (pixel > 255)
                             pixel = 255;
 
                         // Write to canvas.
-                        canvas.Data[j * canvas.Width + i] = (byte)pixel;
+                        canvas.Data[j * canvas.Width + i] = (byte) pixel;
                     }
 
                     step = active;
@@ -375,9 +374,9 @@ namespace Emotion.Graphics.Text
                     {
                         if (x0 >= 0)
                         {
-                            HandleClippedEdge(scanline, (int)x0, e, x0, yTop,
+                            HandleClippedEdge(scanline, (int) x0, e, x0, yTop,
                                 x0, yBottom);
-                            HandleClippedEdge(scanlineFill, (int)x0 + 1, e, x0,
+                            HandleClippedEdge(scanlineFill, (int) x0 + 1, e, x0,
                                 yTop, x0, yBottom);
                         }
                         else
@@ -421,9 +420,9 @@ namespace Emotion.Graphics.Text
 
                     if (xTop >= 0 && xBottom >= 0 && xTop < length && xBottom < length)
                     {
-                        if ((int)xTop == (int)xBottom)
+                        if ((int) xTop == (int) xBottom)
                         {
-                            var x = (int)xTop;
+                            var x = (int) xTop;
                             float height = sy1 - sy0;
                             scanline[x] += e.Direction * (1 - (xTop - x + (xBottom - x)) / 2) * height;
                             scanlineFill[1 + x] += e.Direction * height;
@@ -444,8 +443,8 @@ namespace Emotion.Graphics.Text
                                 x0 = xb;
                             }
 
-                            var x1 = (int)xTop;
-                            var x2 = (int)xBottom;
+                            var x1 = (int) xTop;
+                            var x2 = (int) xBottom;
                             float yCrossing = (x1 + 1 - x0) * dy + yTop;
                             float sign = e.Direction;
                             float area = sign * (yCrossing - sy0);
@@ -598,71 +597,63 @@ namespace Emotion.Graphics.Text
             }
         }
 
-        private static Vector2[] FlattenCurves(GlyphVertex[] vertices, float flatness, out int[] contourLengths)
+        private static Vector2[] FlattenCurves(GlyphDrawCommand[] commands, float flatness, out int[] contourLengthsOut)
         {
+            contourLengthsOut = null;
+
+            // No polygons found. This is actually a valid case. Fonts amirite?
+            if (commands == null || commands.Length == 0) return null;
+
             float flatnessSquared = flatness * flatness;
-
-            // The number of times the brush moves is the number of polygons.
-            int polygonCount = vertices.Count(t => t.TypeFlag == VertexTypeFlag.Move);
-            contourLengths = new int[polygonCount];
-            if (polygonCount == 0)
-                // No polygons found. This is actually a valid case. Fonts amirite?
-                return null;
-
             var points = new List<Vector2>();
-            var start = 0;
-            float x = 0;
-            float y = 0;
+            var contourLengths = new List<int>();
+
             var pointCount = 0;
-            int n = -1;
-            for (var i = 0; i < vertices.Length; i++)
+            int contourStartIndex = -1;
+            Vector2 prevPos = Vector2.Zero;
+            for (var i = 0; i < commands.Length; i++)
             {
-                switch (vertices[i].TypeFlag)
+                GlyphDrawCommand command = commands[i];
+                if (contourStartIndex == -1) contourStartIndex = i;
+
+                switch (command.Type)
                 {
-                    case VertexTypeFlag.Move:
-                        if (n >= 0)
-                            contourLengths[n] = pointCount - start;
-                        n++;
-                        start = pointCount;
-                        x = vertices[i].X;
-                        y = vertices[i].Y;
-
-                        points.Add(new Vector2(x, y));
+                    case GlyphDrawCommandType.Move:
+                        points.Add(command.P0);
                         pointCount++;
                         break;
-                    case VertexTypeFlag.Line:
-                        x = vertices[i].X;
-                        y = vertices[i].Y;
-
-
-                        points.Add(new Vector2(x, y));
+                    case GlyphDrawCommandType.Line:
+                        points.Add(command.P0);
                         pointCount++;
                         break;
-                    case VertexTypeFlag.Curve:
+                    case GlyphDrawCommandType.Curve:
+                        TessellateCurve(points, ref pointCount, prevPos.X, prevPos.Y, command.P1.X, command.P1.Y, command.P0.X, command.P0.Y, flatnessSquared, 0);
+                        break;
+                    case GlyphDrawCommandType.Close:
+                        command = commands[contourStartIndex];
+                        points.Add(command.P0);
+                        pointCount++;
+                        contourLengths.Add(pointCount);
 
-                        TessellateCurve(points, ref pointCount,
-                            x, y,
-                            vertices[i].Cx, vertices[i].Cy,
-                            vertices[i].X, vertices[i].Y,
-                            flatnessSquared, 0);
-                        x = vertices[i].X;
-                        y = vertices[i].Y;
+                        contourStartIndex = -1;
+                        pointCount = 0;
                         break;
-                    case VertexTypeFlag.Cubic:
-                        TessellateCurveCubic(points, ref pointCount,
-                            x, y,
-                            vertices[i].Cx, vertices[i].Cy,
-                            vertices[i].Cx1, vertices[i].Cy1,
-                            vertices[i].X, vertices[i].Y,
-                            flatnessSquared, 0);
-                        x = vertices[i].X;
-                        y = vertices[i].Y;
-                        break;
+                    //case VertexTypeFlag.Cubic:
+                    //    TessellateCurveCubic(points, ref pointCount,
+                    //        x, y,
+                    //        vertices[i].Cx, vertices[i].Cy,
+                    //        vertices[i].Cx1, vertices[i].Cy1,
+                    //        vertices[i].X, vertices[i].Y,
+                    //        flatnessSquared, 0);
+                    //    x = vertices[i].X;
+                    //    y = vertices[i].Y;
+                    //    break;
                 }
+
+                prevPos = command.P0;
             }
 
-            contourLengths[n] = pointCount - start;
-
+            contourLengthsOut = contourLengths.ToArray();
             return points.ToArray();
         }
 
@@ -703,10 +694,10 @@ namespace Emotion.Graphics.Text
             float dy2 = y3 - y2;
             float dx = x3 - x0;
             float dy = y3 - y0;
-            var longLength = (float)(Math.Sqrt(dx0 * dx0 + dy0 * dy0) +
-                                     Math.Sqrt(dx1 * dx1 + dy1 * dy1) +
-                                     Math.Sqrt(dx2 * dx2 + dy2 * dy2));
-            var shortLength = (float)Math.Sqrt(dx * dx + dy * dy);
+            var longLength = (float) (Math.Sqrt(dx0 * dx0 + dy0 * dy0) +
+                                      Math.Sqrt(dx1 * dx1 + dy1 * dy1) +
+                                      Math.Sqrt(dx2 * dx2 + dy2 * dy2));
+            var shortLength = (float) Math.Sqrt(dx * dx + dy * dy);
             float flatnessSquaredLocal = longLength * longLength - shortLength * shortLength;
             if (n > 16)
                 return;

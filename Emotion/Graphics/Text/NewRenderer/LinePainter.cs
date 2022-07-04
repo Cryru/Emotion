@@ -59,9 +59,9 @@ namespace Emotion.Graphics.Text.NewRenderer
             Vector2 np10 = Vector2.Normalize(v10);
             Vector2 np12 = Vector2.Normalize(v12);
 
-            QuadraticCurveType qtype = GetQuadraticCurveType(np10, np12);
+            QuadraticCurveType curveType = GetQuadraticCurveType(np10, np12);
 
-            switch (qtype)
+            switch (curveType)
             {
                 case QuadraticCurveType.Parabola:
                 {
@@ -138,7 +138,7 @@ namespace Emotion.Graphics.Text.NewRenderer
 
         public static void SetParabolaProperties(ref SdfVertex v, Parabola par)
         {
-            Vector2 parPos = par.world_to_par(v.Pos);
+            Vector2 parPos = par.WorldToParabola(v.Pos);
             v.Parabola = parPos;
             v.Limit = new Vector2(par.XStart, par.XEnd);
             v.Scale = par.Scale;
