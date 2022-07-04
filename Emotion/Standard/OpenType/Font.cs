@@ -264,7 +264,7 @@ namespace Emotion.Standard.OpenType
                 glyphs = new Glyph[cff.NumberOfGlyphs];
                 for (var i = 0; i < glyphs.Length; i++)
                 {
-                    glyphs[i] = cff.CffGlyphLoad(i);
+                    glyphs[i] = cff.CffGlyphLoadOld(i);
                 }
             }
 

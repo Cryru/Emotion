@@ -40,6 +40,11 @@ namespace Emotion.Graphics.Text
         /// Default.
         /// </summary>
         StbTrueType,
+
+        /// <summary>
+        /// Advanced sdf based renderer on Anton Stiopin's work.
+        /// </summary>
+        Astiopin
     }
 
     /// <summary>
@@ -212,20 +217,23 @@ namespace Emotion.Graphics.Text
 
         private void QueueGlyphRender(List<AtlasGlyph> glyphs)
         {
+            Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
+
             Debug.Assert(GLThread.IsGLThread());
             bool justCreated = GlyphRendererState == null;
             switch (RenderedWith)
             {
                 case GlyphRasterizer.Emotion:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
-                    Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
                     break;
                 case GlyphRasterizer.EmotionSDFVer3:
                     GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlasSDF(this, GlyphRendererState, glyphs);
-                    Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
                     break;
                 case GlyphRasterizer.StbTrueType:
                     GlyphRendererState = StbGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
+                    break;
+                case GlyphRasterizer.Astiopin:
+                    // todo
                     break;
             }
 
@@ -275,7 +283,7 @@ namespace Emotion.Graphics.Text
 #if WEB
         public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.EmotionSDFVer3;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
 #endif
 
         /// <summary>

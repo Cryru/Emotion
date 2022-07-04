@@ -30,17 +30,6 @@ namespace Emotion.Graphics.Text
     {
         public static FrameBuffer LastProducedSdf;
 
-        public class NewRendererGlyph
-        {
-            public int glyph_idx;
-            public FontGlyph FontGlyph;
-
-            public float x0;
-            public float y0;
-            public float x1;
-            public float y1;
-        }
-
         public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 1024, int sdfDist = 16, int glyphSize = 96)
         {
             FontAnton newFont = font.NewFont;
@@ -54,10 +43,10 @@ namespace Emotion.Graphics.Text
             float scale = glyphSize / fontHeight;
             float baseline = -newFont.Descender * scale;
 
-            var glyphsAdded = new List<NewRendererGlyph>();
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
-                Glyph oldFontGlyph = glyphsToAdd[i].FontGlyph;
+                AtlasGlyph atlasGlyph = glyphsToAdd[i];
+                Glyph oldFontGlyph = atlasGlyph.FontGlyph;
                 FontGlyph fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
 
                 float glyphWidth = (fontGlyph.Max.X - fontGlyph.Min.X) * scale + sdfDist * 2.0f;
@@ -71,27 +60,20 @@ namespace Emotion.Graphics.Text
                     heightUsed = MathF.Ceiling(penY + glyphHeight);
                 }
 
-                var gr = new NewRendererGlyph();
-                gr.glyph_idx = fontGlyph.MapIndex;
-                gr.FontGlyph = fontGlyph;
-                gr.x0 = penX;
-                gr.x1 = penX + glyphWidth;
-                gr.y0 = penY;
-                gr.y1 = penY + glyphHeight;
-                glyphsAdded.Add(gr);
-
+                atlasGlyph.UVLocation = new Vector2(penX, penY);
+                atlasGlyph.UVSize = new Vector2(glyphWidth, glyphHeight);
                 penX = MathF.Ceiling(penX + glyphWidth);
             }
 
             var painter = new GlyphPainter();
-            for (var i = 0; i < glyphsAdded.Count; i++)
+            for (var i = 0; i < glyphsToAdd.Count; i++)
             {
-                NewRendererGlyph glyph = glyphsAdded[i];
+                AtlasGlyph glyph = glyphsToAdd[i];
                 Glyph oldFontGlyph = glyphsToAdd[i].FontGlyph;
                 FontGlyph fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
 
                 float left = fontGlyph.LeftSideBearing * scale;
-                Vector2 glyphPos = new Vector2(glyph.x0, glyph.y0 + baseline) + new Vector2(sdfDist - left, sdfDist);
+                Vector2 glyphPos = new Vector2(glyph.UVLocation.X, glyph.UVLocation.Y + baseline) + new Vector2(sdfDist - left, sdfDist);
                 painter.RasterizeGlyph(fontGlyph, glyphPos, scale, sdfDist);
             }
 
