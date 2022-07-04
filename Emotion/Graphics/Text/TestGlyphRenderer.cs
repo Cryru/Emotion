@@ -9,7 +9,7 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text.NewRenderer;
 using Emotion.IO;
-using Emotion.Platform.RenderDoc;
+using Emotion.Platform.Debugger;
 using Emotion.Primitives;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.OpenType;
@@ -106,7 +106,7 @@ namespace Emotion.Graphics.Text
             RenderComposer renderer = Engine.Renderer;
             // todo: ensure states here and cache framebuffer like emotion sdf
 
-            RenderDocGraphicsContext.RenderDocCaptureStart();
+            RenderDoc.StartCapture();
 
             var lineRenderShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderLine.xml");
             var fillRenderShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
@@ -157,7 +157,7 @@ namespace Emotion.Graphics.Text
             renderer.SetStencilTest(false);
             renderer.PopModelMatrix();
 
-            RenderDocGraphicsContext.RenderDocCaptureEnd();
+            RenderDoc.EndCapture();
 
             LastProducedSdf = buffer;
 
