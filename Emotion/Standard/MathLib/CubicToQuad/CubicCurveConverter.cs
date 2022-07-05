@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Utility;
 
@@ -35,7 +36,7 @@ namespace Emotion.Standard.MathLib.CubicToQuad
                 Vector2[] firstCurve = split[0];
                 List<Vector2> quadCurve = _cubicToQuad(firstCurve[0], firstCurve[1], firstCurve[2], firstCurve[3]);
 
-                for (var i = 0; i < quadCurve.Count - 2; i++)
+                for (var i = 0; i < quadCurve.Count - 1; i++)
                 {
                     result.Add(quadCurve[i]);
                 }
@@ -135,7 +136,7 @@ namespace Emotion.Standard.MathLib.CubicToQuad
             var approximation = new List<Vector2>();
             for (var segmentsCount = 1; segmentsCount <= 8; segmentsCount++)
             {
-                for (var t = 0; t < 1; t += 1 / segmentsCount)
+                for (float t = 0; t < 1; t += 1f / segmentsCount)
                 {
                     approximation.AddRange(ProcessSegment(a, b, c, d, t, t + 1f / segmentsCount));
                 }
@@ -402,6 +403,48 @@ namespace Emotion.Standard.MathLib.CubicToQuad
                     new Vector2(x4, y4)
                 },
             };
+        }
+
+        //public class ConverterQuadCurve
+        //{
+        //    public Vector2 P1;
+        //    public Vector2 P2;
+        //    public Vector2 CP;
+        //}
+
+        //public void BuildCurve()
+        //{
+
+        //}
+
+        public static void Tests()
+        {
+            // should split curve at inflection point
+            Precision = 1000f;
+            List<Vector2> converted = CubicToQuad(new Vector2(0, 100), new Vector2(70, 0), new Vector2(30, 0), new Vector2(100, 100));
+
+            // 1st inflection point
+            Debug.Assert(MathF.Round(converted[2].X, 2) == 34.33f);
+            Debug.Assert(MathF.Round(converted[2].Y, 2) == 45.45f);
+            // 2nd inflection point
+            Debug.Assert(MathF.Round(converted[4].X, 2) == 65.67f);
+            Debug.Assert(MathF.Round(converted[4].Y, 2) == 45.45f);
+
+            // cubic curve have to be converted to two or more quads for large precision
+            Precision = 100f;
+            converted = CubicToQuad(new Vector2(0, 0), new Vector2(-5, 10), new Vector2(35, 10), new Vector2(30, 0));
+            Debug.Assert(converted.Count > 6);
+
+            Precision = 0.5f;
+            converted = CubicToQuad(new Vector2(858, -113), new Vector2(739, -68), new Vector2(624, -31), new Vector2(533, 0));
+            // All points should be in the bounding box of the source curve
+            for (var j = 0; j < converted.Count; j ++)
+            {
+                Debug.Assert(converted[j].X <= 858);
+                Debug.Assert(converted[j].X >= 533);
+                Debug.Assert(converted[j].Y >= -113);
+                Debug.Assert(converted[j].Y <= 0);
+            } 
         }
     }
 }
