@@ -8,7 +8,7 @@ using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Standard.MathLib.CubicToQuad
+namespace Emotion.Standard.MathLib
 {
     /// <summary>
     /// Converts cubic curved to quadratic curves.
@@ -22,7 +22,7 @@ namespace Emotion.Standard.MathLib.CubicToQuad
         public static List<Vector2> CubicToQuad(Vector2 p1, Vector2 cp1, Vector2 cp2, Vector2 p2)
         {
             float[] inflections = SolveInflections(p1, cp1, cp2, p2);
-            if (inflections.Length == 0) return _cubicToQuad(p1, cp1, cp2, p2);
+            if (inflections.Length == 0) return CubicToQuadInternal(p1, cp1, cp2, p2);
 
             Vector2[] curve = {p1, cp1, cp2, p2};
             var result = new List<Vector2>();
@@ -34,7 +34,7 @@ namespace Emotion.Standard.MathLib.CubicToQuad
                 Vector2[][] split = SubdivideCubic(curve[0], curve[1], curve[2], curve[3], t);
 
                 Vector2[] firstCurve = split[0];
-                List<Vector2> quadCurve = _cubicToQuad(firstCurve[0], firstCurve[1], firstCurve[2], firstCurve[3]);
+                List<Vector2> quadCurve = CubicToQuadInternal(firstCurve[0], firstCurve[1], firstCurve[2], firstCurve[3]);
 
                 for (var i = 0; i < quadCurve.Count - 1; i++)
                 {
@@ -45,7 +45,7 @@ namespace Emotion.Standard.MathLib.CubicToQuad
                 prevPoint = inflections[inflectionIdx];
             }
 
-            List<Vector2> quad = _cubicToQuad(curve[0], curve[1], curve[2], curve[3]);
+            List<Vector2> quad = CubicToQuadInternal(curve[0], curve[1], curve[2], curve[3]);
             result.AddRange(quad);
 
             return result;
@@ -121,12 +121,8 @@ namespace Emotion.Standard.MathLib.CubicToQuad
         /// simplified Hausdorff distance to determine number of segments that is enough to make error small.
         /// In general the method is the same as described here: https://fontforge.github.io/bezier.html.
         /// </summary>
-        private static List<Vector2> _cubicToQuad(Vector2 p1, Vector2 c1, Vector2 c2, Vector2 p2)
+        private static List<Vector2> CubicToQuadInternal(Vector2 p1, Vector2 c1, Vector2 c2, Vector2 p2)
         {
-            //var p1 = new Point(p1x, p1y)
-            //var c1 = new Point(c1x, c1y)
-            //var c2 = new Point(c2x, c2y)
-            //var p2 = new Point(p2x, p2y)
             (Vector2, Vector2, Vector2, Vector2) pc = CalcPowerCoefficients(p1, c1, c2, p2);
             Vector2 a = pc.Item1;
             Vector2 b = pc.Item2;
@@ -412,9 +408,12 @@ namespace Emotion.Standard.MathLib.CubicToQuad
         //    public Vector2 CP;
         //}
 
-        //public void BuildCurve()
+        //public class ConverterCubicCurve
         //{
-
+        //    public Vector2 P1;
+        //    public Vector2 P2;
+        //    public Vector2 CP;
+        //    public Vector2 CP2;
         //}
 
         public static void Tests()
