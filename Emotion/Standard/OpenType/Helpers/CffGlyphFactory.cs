@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Numerics;
+using Emotion.Standard.MathLib;
 
 #endregion
 
@@ -30,7 +31,8 @@ namespace Emotion.Standard.OpenType.Helpers
         public float Scale;
         public float X;
         public float Y;
-        public List<GlyphDrawCommand> VerticesInProgress = new List<GlyphDrawCommand>();
+
+        private List<GlyphDrawCommand> _commandsInProgress = new List<GlyphDrawCommand>();
 
         public CffGlyphFactory(float scale)
         {
@@ -40,7 +42,7 @@ namespace Emotion.Standard.OpenType.Helpers
 
         public void Done()
         {
-            Glyph.Commands = VerticesInProgress.ToArray();
+            Glyph.Commands = _commandsInProgress.ToArray();
         }
 
         public void MoveTo(float dx, float dy)
@@ -49,14 +51,14 @@ namespace Emotion.Standard.OpenType.Helpers
             X += dx;
             Y += dy;
 
-            Vertex(GlyphDrawCommandType.Move, (int) X, (int) Y, 0, 0, 0, 0);
+            PushCommand(GlyphDrawCommandType.Move, X, Y, 0, 0);
         }
 
         public void CloseShape()
         {
-            if (VerticesInProgress.Count == 0) return;
+            if (_commandsInProgress.Count == 0) return;
 
-            VerticesInProgress.Add(new GlyphDrawCommand
+            _commandsInProgress.Add(new GlyphDrawCommand
             {
                 Type = GlyphDrawCommandType.Close
             });
@@ -66,45 +68,44 @@ namespace Emotion.Standard.OpenType.Helpers
         {
             X += dx;
             Y += dy;
-            Vertex(GlyphDrawCommandType.Line, (int) X, (int) Y, 0, 0, 0, 0);
+            PushCommand(GlyphDrawCommandType.Line, X, Y, 0, 0);
         }
 
         public void CubicCurveTo(float dx1, float dy1, float dx2, float dy2, float dx3, float dy3)
         {
+            var prevPos = new Vector2(X, Y);
+
             float cx1 = X + dx1;
             float cy1 = Y + dy1;
             float cx2 = cx1 + dx2;
             float cy2 = cy1 + dy2;
             X = cx2 + dx3;
             Y = cy2 + dy3;
-            Vertex(GlyphDrawCommandType.Line, (int) X, (int) Y, (int) cx1, (int) cy1, (int) cx2, (int) cy2);
+
+            // Convert cubic curves to quad curves for easier rendering.
+            List<Vector2>? quadCurves = CubicCurveConverter.CubicToQuad(prevPos, new Vector2(cx1, cy1), new Vector2(cx2, cy2), new Vector2(X, Y));
+            for (var i = 1; i < quadCurves.Count; i += 2)
+            {
+                Vector2 endPoint = quadCurves[i + 1];
+                Vector2 controlPoint = quadCurves[i];
+                PushCommand(GlyphDrawCommandType.Curve, endPoint.X, endPoint.Y, controlPoint.X, controlPoint.Y);
+            }
         }
 
-        private void Vertex(GlyphDrawCommandType type, int x, int y, int cx, int cy, int cx1, int cy1)
+        private void PushCommand(GlyphDrawCommandType type, float x, float y, float cx, float cy)
         {
-            TrackVertex(x, y);
-            if (type == GlyphDrawCommandType.Curve)
-            {
-                TrackVertex(cx, cy);
-                TrackVertex(cx1, cy1);
-            }
+            EnsureBounds(x, y);
+            if (type == GlyphDrawCommandType.Curve) EnsureBounds(cx, cy);
 
-            VerticesInProgress.Add(new GlyphDrawCommand
+            _commandsInProgress.Add(new GlyphDrawCommand
             {
                 Type = type,
                 P0 = new Vector2(x, y),
                 P1 = new Vector2(cx, cy),
-
-                //X = (short) x,
-                //Y = (short) y,
-                //Cx = (short) cx,
-                //Cy = (short) cy,
-                //Cx1 = (short) cx1,
-                //Cy1 = (short) cy1
             });
         }
 
-        private void TrackVertex(int dx, int dy)
+        private void EnsureBounds(float dx, float dy)
         {
             if (dx > Glyph.Max.X || !Started)
                 Glyph.Max.X = (short) dx;

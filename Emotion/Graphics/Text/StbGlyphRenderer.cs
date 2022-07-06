@@ -638,16 +638,6 @@ namespace Emotion.Graphics.Text
                         contourStartIndex = -1;
                         pointCount = 0;
                         break;
-                    //case VertexTypeFlag.Cubic:
-                    //    TessellateCurveCubic(points, ref pointCount,
-                    //        x, y,
-                    //        vertices[i].Cx, vertices[i].Cy,
-                    //        vertices[i].Cx1, vertices[i].Cy1,
-                    //        vertices[i].X, vertices[i].Y,
-                    //        flatnessSquared, 0);
-                    //    x = vertices[i].X;
-                    //    y = vertices[i].Y;
-                    //    break;
                 }
 
                 prevPos = command.P0;
@@ -657,8 +647,7 @@ namespace Emotion.Graphics.Text
             return points.ToArray();
         }
 
-        private static void TessellateCurve(List<Vector2> points, ref int pointIndex, float x0, float y0, float x1,
-            float y1, float x2, float y2, float flatnessSquared, int n)
+        private static void TessellateCurve(List<Vector2> points, ref int pointIndex, float x0, float y0, float x1, float y1, float x2, float y2, float flatnessSquared, int n)
         {
             float mx = (x0 + 2 * x1 + x2) / 4;
             float my = (y0 + 2 * y1 + y2) / 4;
