@@ -91,7 +91,7 @@ namespace Emotion.Standard.MathLib
             for (var i = 0; i < result.Length; i++)
             {
                 float t = result[i];
-                if (t > 1e-8f && t < 1f - 1e-8f) filteredResult = filteredResult.AddToArray(t);
+                if (t > Maths.EPSILON && t < 1f - Maths.EPSILON) filteredResult = filteredResult.AddToArray(t);
             }
 
             Array.Sort(filteredResult);
@@ -132,6 +132,7 @@ namespace Emotion.Standard.MathLib
             var approximation = new List<Vector2>();
             for (var segmentsCount = 1; segmentsCount <= 8; segmentsCount++)
             {
+                approximation.Clear();
                 for (float t = 0; t < 1; t += 1f / segmentsCount)
                 {
                     approximation.AddRange(ProcessSegment(a, b, c, d, t, t + 1f / segmentsCount));
@@ -148,7 +149,15 @@ namespace Emotion.Standard.MathLib
                 if (IsApproximationClose(a, b, c, d, approximation)) break;
             }
 
-            return approximation;
+            var result = new List<Vector2>();
+            result.Add(approximation[0]);
+            for (var i = 0; i < approximation.Count; i+=3)
+            {
+                result.Add(approximation[i + 1]);
+                result.Add(approximation[i + 2]);
+            }
+
+            return result;
         }
 
         // point(t) = p1*(1-t)^3 + c1*t*(1-t)^2 + c2*t^2*(1-t) + p2*t^3 = a*t^3 + b*t^2 + c*t + d
@@ -245,14 +254,15 @@ namespace Emotion.Standard.MathLib
 
         private static bool IsApproximationClose(Vector2 a, Vector2 b, Vector2 c, Vector2 d, List<Vector2> quadCurves)
         {
-            int dt = 1 / quadCurves.Count;
+            float dt = 1f / (quadCurves.Count / 3f);
             for (var i = 0; i < quadCurves.Count; i += 3)
             {
                 Vector2 p1 = quadCurves[i];
                 Vector2 c1 = quadCurves[i + 1];
                 Vector2 p2 = quadCurves[i + 2];
 
-                if (!IsSegmentApproximationClose(a, b, c, d, i * dt, (i + 1) * dt, p1, c1, p2)) return false;
+                int curveIndex = i / 3;
+                if (!IsSegmentApproximationClose(a, b, c, d, curveIndex * dt, (curveIndex + 1) * dt, p1, c1, p2)) return false;
             }
 
             return true;
@@ -275,7 +285,7 @@ namespace Emotion.Standard.MathLib
         /// </summary>
         private static bool IsSegmentApproximationClose(Vector2 a, Vector2 b, Vector2 c, Vector2 d, float tmin, float tmax, Vector2 p1, Vector2 c1, Vector2 p2)
         {
-            var n = 10; // number of points
+            const float n = 10f; // number of points
 
             (Vector2, Vector2, Vector2) p = CalcPowerCoefficientsQuad(p1, c1, p2);
             Vector2 qa = p.Item1;
@@ -297,7 +307,7 @@ namespace Emotion.Standard.MathLib
                 cubicPoints.Add(CalcPoint(a, b, c, d, t));
             }
 
-            dt = 1 / n;
+            dt = 1f / n;
             for (i = 0, t = 0; i <= n; i++, t += dt)
             {
                 quadPoints.Add(CalcPointQuad(qa, qb, qc, t));
@@ -418,9 +428,14 @@ namespace Emotion.Standard.MathLib
 
         public static void Tests()
         {
+            // cubic curve have to be converted to two or more quads for large precision
+            Precision = 100f;
+            List<Vector2> converted = CubicToQuad(new Vector2(0, 0), new Vector2(-5, 10), new Vector2(35, 10), new Vector2(30, 0));
+            Debug.Assert(converted.Count > 3);
+
             // should split curve at inflection point
             Precision = 1000f;
-            List<Vector2> converted = CubicToQuad(new Vector2(0, 100), new Vector2(70, 0), new Vector2(30, 0), new Vector2(100, 100));
+            converted = CubicToQuad(new Vector2(0, 100), new Vector2(70, 0), new Vector2(30, 0), new Vector2(100, 100));
 
             // 1st inflection point
             Debug.Assert(MathF.Round(converted[2].X, 2) == 34.33f);
@@ -429,21 +444,34 @@ namespace Emotion.Standard.MathLib
             Debug.Assert(MathF.Round(converted[4].X, 2) == 65.67f);
             Debug.Assert(MathF.Round(converted[4].Y, 2) == 45.45f);
 
-            // cubic curve have to be converted to two or more quads for large precision
-            Precision = 100f;
-            converted = CubicToQuad(new Vector2(0, 0), new Vector2(-5, 10), new Vector2(35, 10), new Vector2(30, 0));
-            Debug.Assert(converted.Count > 6);
-
             Precision = 0.5f;
             converted = CubicToQuad(new Vector2(858, -113), new Vector2(739, -68), new Vector2(624, -31), new Vector2(533, 0));
             // All points should be in the bounding box of the source curve
-            for (var j = 0; j < converted.Count; j ++)
+            for (var j = 0; j < converted.Count; j++)
             {
                 Debug.Assert(converted[j].X <= 858);
                 Debug.Assert(converted[j].X >= 533);
                 Debug.Assert(converted[j].Y >= -113);
                 Debug.Assert(converted[j].Y <= 0);
-            } 
+            }
+
+            // cubic curve should be split due to small error margin
+            Precision = 0.01f;
+            converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 9), new Vector2(20, 11), new Vector2(30, 0));
+            Debug.Assert(converted.Count == 7);
+
+            // real error is 0.1, but our approximation increases error to 0.15
+            Precision = 0.15f;
+            converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 9), new Vector2(20, 11), new Vector2(30, 0));
+            Debug.Assert(converted.Count == 3);
+
+            // quadratic curve to the same quadratic curve (error ~ 1e-8)
+            Precision = 1e-8f;
+            converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 10), new Vector2(20, 10), new Vector2(30, 0));
+            Debug.Assert(converted.Count == 3);
+            Debug.Assert(converted[0].X == 0 && converted[0].Y == 0 && converted[1].X == 15 && converted[1].Y == 15 && converted[2].X == 30 && converted[2].Y == 0);
+
+            Precision = 0.1f;
         }
     }
 }
