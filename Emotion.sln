@@ -123,6 +123,7 @@ Global
 		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.DebugUnix64|Any CPU.ActiveCfg = Debug|Any CPU
 		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
 		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

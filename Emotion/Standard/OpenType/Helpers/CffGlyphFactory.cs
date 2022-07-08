@@ -29,10 +29,9 @@ namespace Emotion.Standard.OpenType.Helpers
         public bool Started;
 
         public float Scale;
-        public float X;
-        public float Y;
 
         private List<GlyphDrawCommand> _commandsInProgress = new List<GlyphDrawCommand>();
+        private Vector2 _pen;
 
         public CffGlyphFactory(float scale)
         {
@@ -42,16 +41,17 @@ namespace Emotion.Standard.OpenType.Helpers
 
         public void Done()
         {
+            Glyph.Min *= Scale;
+            Glyph.Max *= Scale;
             Glyph.Commands = _commandsInProgress.ToArray();
         }
 
         public void MoveTo(float dx, float dy)
         {
             CloseShape();
-            X += dx;
-            Y += dy;
+            _pen += new Vector2(dx, dy);
 
-            PushCommand(GlyphDrawCommandType.Move, X, Y, 0, 0);
+            PushCommand(GlyphDrawCommandType.Move, _pen, Vector2.Zero);
         }
 
         public void CloseShape()
@@ -66,55 +66,56 @@ namespace Emotion.Standard.OpenType.Helpers
 
         public void LineTo(float dx, float dy)
         {
-            X += dx;
-            Y += dy;
-            PushCommand(GlyphDrawCommandType.Line, X, Y, 0, 0);
+            _pen += new Vector2(dx, dy);
+            PushCommand(GlyphDrawCommandType.Line, _pen, Vector2.Zero);
         }
 
         public void CubicCurveTo(float dx1, float dy1, float dx2, float dy2, float dx3, float dy3)
         {
-            var prevPos = new Vector2(X, Y);
+            Vector2 prevPos = _pen;
 
-            float cx1 = X + dx1;
-            float cy1 = Y + dy1;
+            float cx1 = prevPos.X + dx1;
+            float cy1 = prevPos.Y + dy1;
             float cx2 = cx1 + dx2;
             float cy2 = cy1 + dy2;
-            X = cx2 + dx3;
-            Y = cy2 + dy3;
+            _pen = new Vector2(cx2 + dx3, cy2 + dy3);
 
             // Convert cubic curves to quad curves for easier rendering.
-            List<Vector2>? quadCurves = CubicCurveConverter.CubicToQuad(prevPos, new Vector2(cx1, cy1), new Vector2(cx2, cy2), new Vector2(X, Y));
+            List<Vector2>? quadCurves = CubicCurveConverter.CubicToQuad(prevPos, new Vector2(cx1, cy1), new Vector2(cx2, cy2), _pen);
             for (var i = 1; i < quadCurves.Count; i += 2)
             {
                 Vector2 endPoint = quadCurves[i + 1];
                 Vector2 controlPoint = quadCurves[i];
-                PushCommand(GlyphDrawCommandType.Curve, endPoint.X, endPoint.Y, controlPoint.X, controlPoint.Y);
+                PushCommand(GlyphDrawCommandType.Curve, endPoint, controlPoint);
             }
         }
 
-        private void PushCommand(GlyphDrawCommandType type, float x, float y, float cx, float cy)
+        private void PushCommand(GlyphDrawCommandType type, Vector2 pos, Vector2 cp)
         {
-            EnsureBounds(x, y);
-            if (type == GlyphDrawCommandType.Curve) EnsureBounds(cx, cy);
+            EnsureBounds(pos);
+            if (type == GlyphDrawCommandType.Curve) EnsureBounds(cp);
 
             _commandsInProgress.Add(new GlyphDrawCommand
             {
                 Type = type,
-                P0 = new Vector2(x, y),
-                P1 = new Vector2(cx, cy),
+                P0 = pos * Scale,
+                P1 = cp * Scale,
             });
         }
 
-        private void EnsureBounds(float dx, float dy)
+        private void EnsureBounds(Vector2 p)
         {
+            float dx = p.X;
+            float dy = p.Y;
+
             if (dx > Glyph.Max.X || !Started)
-                Glyph.Max.X = (short) dx;
+                Glyph.Max.X = dx;
             if (dy > Glyph.Max.Y || !Started)
-                Glyph.Max.Y = (short) dy;
+                Glyph.Max.Y = dy;
             if (dx < Glyph.Min.X || !Started)
-                Glyph.Min.X = (short) dx;
+                Glyph.Min.X = dx;
             if (dy < Glyph.Min.Y || !Started)
-                Glyph.Min.Y = (short) dy;
+                Glyph.Min.Y = dy;
             Started = true;
         }
     }
