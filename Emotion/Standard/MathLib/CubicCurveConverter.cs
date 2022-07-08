@@ -57,23 +57,6 @@ namespace Emotion.Standard.MathLib
         /// </summary>
         private static float[] SolveInflections(Vector2 p1, Vector2 cp1, Vector2 cp2, Vector2 p2)
         {
-            //float x1 = p1.X;
-            //float y1 = p1.Y;
-            //float x2 = cp1.X;
-            //float y2 = cp1.Y;
-            //float x3 = cp2.X;
-            //float y3 = cp2.Y;
-            //float x4 = p2.X;
-            //float y4 = p2.Y;
-
-            //float p = -(x4 * (y1 - 2f * y2 + y3)) +
-            //          x3 * (2f * y1 - 3f * y2 + y4) +
-            //          x1 * (y2 - 2f * y3 + y4) -
-            //          x2 * (y1 - 3f * y3 + 2f * y4);
-
-            //float q = x4 * (y1 - y2) + 3f * x3 * (-y1 + y2) + x2 * (2f * y1 - 3f * y3 + y4) - x1 * (2f * y2 - 3f * y3 + y4);
-            //float r = x3 * (y1 - y2) + x1 * (y2 - y3) + x2 * (-y1 + y3);
-
             float p = -(p2.X * (p1.Y - 2f * cp1.Y + cp2.Y)) +
                       cp2.X * (2f * p1.Y - 3f * cp1.Y + p2.Y) +
                       p1.X * (cp1.Y - 2f * cp2.Y + p2.Y) -
@@ -149,9 +132,11 @@ namespace Emotion.Standard.MathLib
                 if (IsApproximationClose(a, b, c, d, approximation)) break;
             }
 
-            var result = new List<Vector2>();
-            result.Add(approximation[0]);
-            for (var i = 0; i < approximation.Count; i+=3)
+            var result = new List<Vector2>
+            {
+                approximation[0]
+            };
+            for (var i = 0; i < approximation.Count; i += 3)
             {
                 result.Add(approximation[i + 1]);
                 result.Add(approximation[i + 2]);
@@ -210,8 +195,8 @@ namespace Emotion.Standard.MathLib
         {
             Vector2 f1 = CalcPoint(a, b, c, d, t1);
             Vector2 f2 = CalcPoint(a, b, c, d, t2);
-            Vector2 f1D = CalcPointDerivative(a, b, c, d, t1);
-            Vector2 f2D = CalcPointDerivative(a, b, c, d, t2);
+            Vector2 f1D = CalcPointDerivative(a, b, c, t1);
+            Vector2 f2D = CalcPointDerivative(a, b, c, t2);
 
             float der = -f1D.X * f2D.Y + f2D.X * f1D.Y;
 
@@ -243,7 +228,7 @@ namespace Emotion.Standard.MathLib
         }
 
         // d/dt[a*t^3 + b*t^2 + c*t + d] = 3*a*t^2 + 2*b*t + c = (3*a*t + 2*b)*t + c
-        private static Vector2 CalcPointDerivative(Vector2 a, Vector2 b, Vector2 c, Vector2 d, float t)
+        private static Vector2 CalcPointDerivative(Vector2 a, Vector2 b, Vector2 c, float t)
         {
             Vector2 result = a * (3 * t);
             result += b * 2;
@@ -368,45 +353,31 @@ namespace Emotion.Standard.MathLib
         /// </summary>
         private static Vector2[][] SubdivideCubic(Vector2 p1, Vector2 cp1, Vector2 cp2, Vector2 p2, float t)
         {
-            float x1 = p1.X;
-            float y1 = p1.Y;
-            float x2 = cp1.X;
-            float y2 = cp1.Y;
-            float x3 = cp2.X;
-            float y3 = cp2.Y;
-            float x4 = p2.X;
-            float y4 = p2.Y;
-
             float u = 1 - t;
 
-            float bx = x1 * u + x2 * t;
-            float sx = x2 * u + x3 * t;
-            float fx = x3 * u + x4 * t;
-            float cx = bx * u + sx * t;
-            float ex = sx * u + fx * t;
-            float dx = cx * u + ex * t;
+            Vector2 b = p1 * u + cp1 * t;
+            Vector2 s = cp1 * u + cp2 * t;
+            Vector2 f = cp2 * u + p2 * t;
 
-            float by = y1 * u + y2 * t;
-            float sy = y2 * u + y3 * t;
-            float fy = y3 * u + y4 * t;
-            float cy = by * u + sy * t;
-            float ey = sy * u + fy * t;
-            float dy = cy * u + ey * t;
+            Vector2 c = b * u + s * t;
+            Vector2 e = s * u + f * t;
+            Vector2 d = c * u + e * t;
+
             return new[]
             {
                 new[]
                 {
-                    new Vector2(x1, y1),
-                    new Vector2(bx, by),
-                    new Vector2(cx, cy),
-                    new Vector2(dx, dy)
+                    p1,
+                    b,
+                    c,
+                    d
                 },
                 new[]
                 {
-                    new Vector2(dx, dy),
-                    new Vector2(ex, ey),
-                    new Vector2(fx, fy),
-                    new Vector2(x4, y4)
+                    d,
+                    e,
+                    f,
+                    p2
                 },
             };
         }
@@ -470,6 +441,18 @@ namespace Emotion.Standard.MathLib
             converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 10), new Vector2(20, 10), new Vector2(30, 0));
             Debug.Assert(converted.Count == 3);
             Debug.Assert(converted[0].X == 0 && converted[0].Y == 0 && converted[1].X == 15 && converted[1].Y == 15 && converted[2].X == 30 && converted[2].Y == 0);
+
+            // convert cubic Bezier curve to a number of quadratic ones
+            Precision = 1e-8f;
+            converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 10), new Vector2(20, 20), new Vector2(30, 30));
+            Debug.Assert(converted.Count == 6 / 2);
+
+            Debug.Assert(converted[0].X == 0);
+            Debug.Assert(converted[0].Y == 0);
+            Debug.Assert(converted[1].X == 15);
+            Debug.Assert(converted[1].Y == 15);
+            Debug.Assert(converted[2].Y == 30);
+            Debug.Assert(converted[2].Y == 30);
 
             Precision = 0.1f;
         }
