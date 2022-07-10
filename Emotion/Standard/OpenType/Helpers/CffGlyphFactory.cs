@@ -10,19 +10,10 @@ using Emotion.Standard.MathLib;
 
 namespace Emotion.Standard.OpenType.Helpers
 {
-    public interface ICffGlyphFactory
-    {
-        public void Done();
-        public void MoveTo(float dx, float dy);
-        public void CloseShape();
-        public void LineTo(float dx, float dy);
-        public void CubicCurveTo(float dx1, float dy1, float dx2, float dy2, float dx3, float dy3);
-    }
-
     /// <summary>
     /// This is a helper class to gather the relevant part of parsing cff glyphs in one place.
     /// </summary>
-    public sealed class CffGlyphFactory : ICffGlyphFactory
+    public sealed class CffGlyphFactory
     {
         public FontGlyph Glyph;
 
@@ -52,6 +43,7 @@ namespace Emotion.Standard.OpenType.Helpers
             _pen += new Vector2(dx, dy);
 
             PushCommand(GlyphDrawCommandType.Move, _pen, Vector2.Zero);
+            EnsureBounds(_pen);
         }
 
         public void CloseShape()
@@ -68,6 +60,7 @@ namespace Emotion.Standard.OpenType.Helpers
         {
             _pen += new Vector2(dx, dy);
             PushCommand(GlyphDrawCommandType.Line, _pen, Vector2.Zero);
+            EnsureBounds(_pen);
         }
 
         public void CubicCurveTo(float dx1, float dy1, float dx2, float dy2, float dx3, float dy3)
@@ -88,13 +81,14 @@ namespace Emotion.Standard.OpenType.Helpers
                 Vector2 controlPoint = quadCurves[i];
                 PushCommand(GlyphDrawCommandType.Curve, endPoint, controlPoint);
             }
+
+            EnsureBounds(_pen);
+            EnsureBounds(new Vector2(cx1, cy1));
+            EnsureBounds(new Vector2(cx2, cy2));
         }
 
         private void PushCommand(GlyphDrawCommandType type, Vector2 pos, Vector2 cp)
         {
-            EnsureBounds(pos);
-            if (type == GlyphDrawCommandType.Curve) EnsureBounds(cp);
-
             _commandsInProgress.Add(new GlyphDrawCommand
             {
                 Type = type,

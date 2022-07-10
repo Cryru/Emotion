@@ -176,7 +176,7 @@ namespace Emotion.Graphics.Text
             for (var i = 0; i < text.Length; i++)
             {
                 char ch = text[i];
-                if (Glyphs.ContainsKey(ch) || !Font.Glyphs.TryGetValue(ch, out Glyph fontG)) continue;
+                if (Glyphs.ContainsKey(ch) || !Font.CharToGlyph.TryGetValue(ch, out FontGlyph fontG)) continue;
 
                 AtlasGlyph atlasGlyph;
                 if (RenderedWith == GlyphRasterizer.EmotionSDFVer3)
@@ -186,7 +186,7 @@ namespace Emotion.Graphics.Text
 
                 Glyphs.Add(ch, atlasGlyph);
 
-                if (!(atlasGlyph.Size.X > 0) || !(atlasGlyph.Size.Y > 0) || fontG.Vertices == null || fontG.Vertices.Length <= 0) continue;
+                if (!(atlasGlyph.Size.X > 0) || !(atlasGlyph.Size.Y > 0) || fontG.Commands == null || fontG.Commands.Length <= 0) continue;
                 DrawableAtlasGlyphs.Add(atlasGlyph);
 
                 renderGlyphs ??= new List<AtlasGlyph>();
@@ -206,7 +206,7 @@ namespace Emotion.Graphics.Text
             for (var i = 0; i < text.Length; i++)
             {
                 char ch = text[i];
-                if (Glyphs.ContainsKey(ch) || !Font.Glyphs.ContainsKey(ch)) continue;
+                if (Glyphs.ContainsKey(ch) || !Font.CharToGlyph.ContainsKey(ch)) continue;
                 return true;
             }
 

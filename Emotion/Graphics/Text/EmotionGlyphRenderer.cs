@@ -323,7 +323,7 @@ namespace Emotion.Graphics.Text
         {
             public Vector2 UVLocation;
             public Vector2 UVSize;
-            public uint FontMapIndex;
+            public int FontMapIndex;
         }
 
         public class SDFCacheAtlas
@@ -355,15 +355,11 @@ namespace Emotion.Graphics.Text
             for (var i = 0; i < atlasMeta.Content.Glyphs.Count; i++)
             {
                 SDFCacheGlyph g = atlasMeta.Content.Glyphs[i];
-                uint mapIndex = g.FontMapIndex;
-                Glyph fontGlyph = null;
-                foreach (KeyValuePair<char, Glyph> fontGlyphData in reqAtlas.Font.Glyphs)
-                {
-                    if (fontGlyphData.Value.MapIndex != mapIndex) continue;
-                    fontGlyph = fontGlyphData.Value;
-                    break;
-                }
+                int mapIndex = g.FontMapIndex;
 
+                FontGlyph[] atlasGlyphs = reqAtlas.Font.Glyphs;
+                FontGlyph fontGlyph = null;
+                if (atlasGlyphs != null && atlasGlyphs.Length - 1 > mapIndex) fontGlyph = atlasGlyphs[mapIndex];
                 if (fontGlyph == null) return null;
 
                 var refGlyph = AtlasGlyph.CreateFloatScale(fontGlyph, refAtlas.RenderScale, reqAtlas.Font.Ascender);
@@ -440,9 +436,7 @@ namespace Emotion.Graphics.Text
             for (var c = 0; c < glyphs.Count; c++)
             {
                 AtlasGlyph atlasGlyph = glyphs[c];
-                Glyph oldFontGlyph = atlasGlyph.FontGlyph;
-
-                FontGlyph fontGlyph = font.NewFont.Glyphs[oldFontGlyph.MapIndex];
+                FontGlyph fontGlyph = atlasGlyph.FontGlyph;
 
                 Rectangle dst = dstRects != null ? dstRects[c] : new Rectangle(atlasGlyph.UVLocation, atlasGlyph.UVSize);
                 if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(dst);

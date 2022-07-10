@@ -50,8 +50,7 @@ namespace Emotion.Graphics.Text
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                Glyph oldGlyph = atlasGlyph.FontGlyph;
-                FontGlyph newFontGlyph = atlas.Font.NewFont.Glyphs[oldGlyph.MapIndex];
+                FontGlyph newFontGlyph = atlasGlyph.FontGlyph;
 
                 var canvas = new GlyphCanvas(atlasGlyph, (int) (atlasGlyph.Size.X + 1), (int) (atlasGlyph.Size.Y + 1));
                 RenderGlyph(canvas, newFontGlyph, scale);

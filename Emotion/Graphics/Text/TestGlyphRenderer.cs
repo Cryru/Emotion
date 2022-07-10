@@ -32,22 +32,19 @@ namespace Emotion.Graphics.Text
 
         public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 1024, int sdfDist = 16, int glyphSize = 96)
         {
-            FontAnton newFont = font.NewFont;
-
             // pen
             float penX = 0;
             float penY = 0;
             float heightUsed = 0;
 
-            float fontHeight = newFont.Height;
+            float fontHeight = font.Height;
             float scale = glyphSize / fontHeight;
-            float baseline = -newFont.Descender * scale;
+            float baseline = -font.Descender * scale;
 
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                Glyph oldFontGlyph = atlasGlyph.FontGlyph;
-                FontGlyph fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
+                FontGlyph fontGlyph = atlasGlyph.FontGlyph;
 
                 float glyphWidth = (fontGlyph.Max.X - fontGlyph.Min.X) * scale + sdfDist * 2.0f;
                 float glyphHeight = glyphSize + sdfDist * 2.0f;
@@ -69,8 +66,7 @@ namespace Emotion.Graphics.Text
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph glyph = glyphsToAdd[i];
-                Glyph oldFontGlyph = glyphsToAdd[i].FontGlyph;
-                FontGlyph fontGlyph = newFont.Glyphs[oldFontGlyph.MapIndex];
+                FontGlyph fontGlyph = glyphsToAdd[i].FontGlyph;
 
                 float left = fontGlyph.LeftSideBearing * scale;
                 Vector2 glyphPos = new Vector2(glyph.UVLocation.X, glyph.UVLocation.Y + baseline) + new Vector2(sdfDist - left, sdfDist);

@@ -3,13 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Emotion.Common.Threading;
+using System.Numerics;
 using Emotion.Utility;
 
 #endregion
 
 #pragma warning disable 1591 // Documentation for this file is found at msdn
+
+#nullable enable
 
 namespace Emotion.Standard.OpenType.FontTables
 {
@@ -18,320 +19,351 @@ namespace Emotion.Standard.OpenType.FontTables
     /// </summary>
     public static class GlyfTable
     {
-        private struct CompositeGlyphRequest
+        public static void ParseGlyf(ByteReader reader, LocaTable locaTableParsed, FontGlyph[] glyphs, float scale)
         {
-            public ByteReader Reader;
-            public Glyph Glyph;
-
-            public CompositeGlyphRequest(ByteReader reader, Glyph g)
+            // First pass: read commands of all glyphs
+            for (var i = 0; i < glyphs.Length; i++)
             {
-                Reader = reader;
-                Glyph = g;
+                FontGlyph glyph = glyphs[i];
+                ReadGlyph(glyph, locaTableParsed, reader, scale);
+            }
+
+            // Second pass: combine composite glyphs.
+            for (var i = 0; i < glyphs.Length; i++)
+            {
+                FontGlyph glyph = glyphs[i];
+                if (!glyph.Composite) continue;
+                CombineCompositeGlyph(glyph, glyphs);
             }
         }
 
-        public static Glyph[] ParseGlyf(ByteReader reader, int[] locaOffsets)
+        private static void ReadGlyph(FontGlyph g, LocaTable locaTable, ByteReader glyfTableReader, float scale)
         {
-            var glyphs = new Glyph[locaOffsets.Length - 1];
+            int glyphIndex = g.MapIndex;
+            int[] glyphOffsets = locaTable.GlyphOffsets;
 
-            // Go through all glyphs and resolve them, leaving composite glyphs for later.
-            var compositeGlyphParse = new List<CompositeGlyphRequest>();
-            ParallelWork.FastLoops(glyphs.Length, (start, end) =>
+            if (glyphIndex > glyphOffsets.Length) return;
+            int glyphOffset = glyphOffsets[glyphIndex];
+            int nextOffset = glyphOffsets[glyphIndex + 1];
+
+            // No data for glyph.
+            if (glyphOffset == nextOffset || glyphOffset >= glyfTableReader.Data.Length) return;
+
+            glyfTableReader.Position = glyphOffset;
+            int numberOfContours = glyfTableReader.ReadShortBE();
+            float minX = glyfTableReader.ReadShortBE();
+            float minY = glyfTableReader.ReadShortBE();
+            float maxX = glyfTableReader.ReadShortBE();
+            float maxY = glyfTableReader.ReadShortBE();
+
+            g.Min = new Vector2(minX, minY) * scale;
+            g.Max = new Vector2(maxX, maxY) * scale;
+
+            // Simple glyph
+            if (numberOfContours > 0)
             {
-                for (int i = start; i < end; i++)
+                // Indices for the last point of each contour
+                var endPointIndices = new ushort[numberOfContours];
+                for (var i = 0; i < endPointIndices.Length; i++)
                 {
-                    var current = new Glyph();
-                    glyphs[i] = current;
+                    endPointIndices[i] = glyfTableReader.ReadUShortBE();
+                }
 
-                    if (i > locaOffsets.Length) continue;
-                    int glyphOffset = locaOffsets[i];
-                    int nextOffset = locaOffsets[i + 1];
+                ushort instructionLength = glyfTableReader.ReadUShortBE();
+                glyfTableReader.ReadBytes(instructionLength);
 
-                    // No data for glyph.
-                    if (glyphOffset == nextOffset || glyphOffset >= reader.Data.Length)
+                int numberOfCoordinates = endPointIndices[^1] + 1;
+                var flagArray = new byte[numberOfCoordinates];
+
+                // Read the flags needed to properly read the coordinates afterward.
+                // Flag bits:
+                // 0x01 - on-curve, ~0x01 - off-curve
+                // Two consecutive off-curve points assume on-curve point between them    
+                //
+                // 0x02 - x-coord is 8-bit unsigned integer
+                //       0x10 - positive, ~0x10 - negative
+                // ~0x02 - x-coord is 16-bit signed integer
+                // ~0x02 & 0x10 - x-coord equals x-coord of the previous point
+                // 
+                // 0x04 - y-coord is 8-bit unsigned integer
+                //       0x20 - positive, ~0x20 - negative
+                // ~0x04 - y-coord is 16-bit signed integer
+                // ~0x04 & 0x20 - y-coord equals y-coord of the previous point
+                //
+                // 0x08 - repeat flag N times, read next byte for N
+                for (var i = 0; i < numberOfCoordinates; i++)
+                {
+                    byte flags = glyfTableReader.ReadByte();
+                    flagArray[i] = flags;
+
+                    // Check for repeat
+                    if ((flags & 0x08) <= 0) continue;
+
+                    byte repeatCount = glyfTableReader.ReadByte();
+                    for (var j = 0; j < repeatCount; j++)
                     {
-                        current.Vertices = new GlyphVertex[0];
-                        continue;
+                        i++;
+                        flagArray[i] = flags;
+                    }
+                }
+
+                // Read vertex X coordinates. They are lined up first.
+                var xArray = new short[numberOfCoordinates];
+                var prevX = 0;
+                for (var i = 0; i < numberOfCoordinates; i++)
+                {
+                    byte flags = flagArray[i];
+                    ReadGlyphCoordinate(glyfTableReader, flags, ref prevX, 2, 16);
+                    xArray[i] = (short) prevX;
+                }
+
+                // Read vertex Y coordinates.
+                var yArray = new short[numberOfCoordinates];
+                var prevY = 0;
+                for (var i = 0; i < numberOfCoordinates; i++)
+                {
+                    byte flags = flagArray[i];
+                    ReadGlyphCoordinate(glyfTableReader, flags, ref prevY, 4, 32);
+                    yArray[i] = (short) prevY;
+                }
+
+                Vector2 curPos = Vector2.Zero;
+                var curOnCurve = true;
+                var newContour = true;
+                var newContourOffCurve = false;
+
+                var nextEndpoint = 0;
+                var endPointIndex = 0;
+                var currentContourStartCommand = 0;
+
+                var drawCommands = new List<GlyphDrawCommand>();
+
+                for (var i = 0; i < numberOfCoordinates; i++)
+                {
+                    byte flag = flagArray[i];
+
+                    bool prevOnCurve = curOnCurve;
+                    curOnCurve = (flag & 0x01) != 0;
+
+                    Vector2 prevPos = curPos;
+                    short xCoord = xArray[i];
+                    short yCoord = yArray[i];
+
+                    // The next position for the brush.
+                    // In line commands this is the next line vertex
+                    // In curves this is the control point.
+                    curPos = new Vector2(xCoord, yCoord);
+
+                    // Starting a new contour
+                    if (newContour)
+                    {
+                        newContourOffCurve = !curOnCurve;
+
+                        drawCommands.Add(new GlyphDrawCommand
+                        {
+                            Type = GlyphDrawCommandType.Move,
+                            P0 = curPos * scale
+                        });
+                        currentContourStartCommand = drawCommands.Count - 1;
+
+                        nextEndpoint = endPointIndices[endPointIndex];
+                        endPointIndex++;
+                        newContour = false;
+                    }
+                    else if (curOnCurve)
+                    {
+                        if (prevOnCurve)
+                            // Normal (non smooth) control point
+                            drawCommands.Add(new GlyphDrawCommand
+                            {
+                                Type = GlyphDrawCommandType.Line,
+                                P0 = curPos * scale
+                            });
+                        else
+                            // Normal control point
+                            drawCommands.Add(new GlyphDrawCommand
+                            {
+                                Type = GlyphDrawCommandType.Curve,
+                                P1 = prevPos * scale,
+                                P0 = curPos * scale
+                            });
+                    }
+                    else if (!prevOnCurve)
+                    {
+                        // Smooth curve, inserting control point in the middle
+                        Vector2 middle = 0.5f * (prevPos + curPos);
+                        drawCommands.Add(new GlyphDrawCommand
+                        {
+                            Type = GlyphDrawCommandType.Curve,
+                            P1 = prevPos * scale,
+                            P0 = middle * scale
+                        });
                     }
 
-                    ByteReader glyphData = reader.Branch(glyphOffset, true);
-                    int numberOfContours = glyphData.ReadShortBE();
-                    current.XMin = glyphData.ReadShortBE();
-                    current.YMin = glyphData.ReadShortBE();
-                    current.XMax = glyphData.ReadShortBE();
-                    current.YMax = glyphData.ReadShortBE();
-                    // Non-composite
-                    if (numberOfContours > 0)
-                        ResolveTtfGlyph(numberOfContours, glyphData, current);
-                    // Composite
-                    else if (numberOfContours == -1)
-                        lock (compositeGlyphParse)
+                    if (i != 0 && i == nextEndpoint)
+                    {
+                        GlyphDrawCommand startingCommand = drawCommands[currentContourStartCommand];
+
+                        if (newContourOffCurve)
                         {
-                            compositeGlyphParse.Add(new CompositeGlyphRequest(glyphData, current));
+                            // Contour starts off-curve, contour start to current point
+                            if (curOnCurve)
+                            {
+                                startingCommand.P0 = curPos * scale;
+                            }
+                            // Contour starts and ends off-curve,
+                            // calculating contour starting point, setting first Move P0,
+                            // and closing contour with a curve
+                            else
+                            {
+                                Vector2 scaledPos = curPos * scale;
+                                GlyphDrawCommand nextCommand = drawCommands[currentContourStartCommand + 1]; // First CurveTo off-curve CP
+                                Vector2 contourStart = 0.5f * (scaledPos + nextCommand.P0); // Contour start point;
+                                startingCommand.P0 = contourStart;
+
+                                drawCommands.Add(new GlyphDrawCommand
+                                {
+                                    Type = GlyphDrawCommandType.Curve,
+                                    P1 = scaledPos,
+                                    P0 = contourStart
+                                });
+                            }
+                        }
+                        // Contour ends off-curve, closing contour with BezTo to contour starting point
+                        else if (!curOnCurve)
+                        {
+                            drawCommands.Add(new GlyphDrawCommand
+                            {
+                                Type = GlyphDrawCommandType.Curve,
+                                P1 = curPos * scale,
+                                P0 = startingCommand.P0
+                            });
                         }
 
-                    // 0 is an invalid value.
-                }
-            }).Wait();
-
-            // ReSharper disable once ImplicitlyCapturedClosure
-            ParallelWork.FastLoops(compositeGlyphParse.Count, (start, end) =>
-            {
-                for (int i = start; i < end; i++)
-                {
-                    CompositeGlyphRequest request = compositeGlyphParse[i];
-                    ResolveCompositeTtfGlyph(request.Reader, request.Glyph, glyphs);
-                }
-            }).Wait();
-
-            Debug.Assert(glyphs.All(x => x != null));
-
-            return glyphs;
-        }
-
-        private static void ResolveTtfGlyph(int numberOfContours, ByteReader reader, Glyph glyph)
-        {
-            // Read the end point indices.
-            // These mark which points are last in their polygons.
-            var endPointIndices = new ushort[numberOfContours];
-            for (var i = 0; i < endPointIndices.Length; i++)
-            {
-                endPointIndices[i] = reader.ReadUShortBE();
-            }
-
-            ushort instructionLength = reader.ReadUShortBE();
-            reader.ReadBytes(instructionLength);
-
-            // ReSharper disable once UseIndexFromEndExpression
-            int numberOfCoordinates = endPointIndices[endPointIndices.Length - 1] + 1;
-            var vertices = new GlyphVertex[numberOfCoordinates];
-
-            // Read the flags needed to properly read the coordinates afterward.
-            for (var i = 0; i < numberOfCoordinates; i++)
-            {
-                byte flags = reader.ReadByte();
-                vertices[i].Flags = flags;
-
-                // If bit 3 is set, we repeat this flag n times, where n is the next byte.
-                if ((flags & 8) <= 0) continue;
-                byte repeatCount = reader.ReadByte();
-                for (var j = 0; j < repeatCount; j++)
-                {
-                    i++;
-                    vertices[i].Flags = flags;
-                }
-            }
-
-            // Read vertex X coordinates. They are lined up first.
-            var prevX = 0;
-            for (var i = 0; i < numberOfCoordinates; i++)
-            {
-                byte flags = vertices[i].Flags;
-                ReadGlyphCoordinate(reader, flags, ref prevX, 2, 16);
-                vertices[i].X = (short) prevX;
-            }
-
-            // Read vertex Y coordinates.
-            var prevY = 0;
-            for (var i = 0; i < numberOfCoordinates; i++)
-            {
-                byte flags = vertices[i].Flags;
-                ReadGlyphCoordinate(reader, flags, ref prevY, 4, 32);
-                vertices[i].Y = (short) prevY;
-            }
-
-            // Process vertices.
-            var offCurve = false;
-            var wasOffCurve = false;
-            short sx = 0;
-            short sy = 0;
-            short scx = 0;
-            short scy = 0;
-            short cx = 0;
-            short cy = 0;
-
-            var nextEndpoint = 0;
-            var endPointIndex = 0;
-
-            var verticesProcessed = new List<GlyphVertex>();
-            for (var i = 0; i < numberOfCoordinates; i++)
-            {
-                GlyphVertex curVert = vertices[i];
-                short x = curVert.X;
-                short y = curVert.Y;
-                bool curVertexOffCurve = (curVert.Flags & 1) == 0;
-
-                if (nextEndpoint == i)
-                {
-                    // Close the polygon. The first vertex passes through here in order to move the brush the first time, but
-                    // there is no polygon for it to close, therefore this check must be here.
-                    if (i != 0) CloseShape(verticesProcessed, wasOffCurve, offCurve, sx, sy, scx, scy, cx, cy);
-
-                    offCurve = curVertexOffCurve;
-                    if (offCurve && i + 1 < vertices.Length - 1) // Check if in range as well.
-                    {
-                        scx = x;
-                        scy = y;
-
-                        bool nextNotOnCurve = (vertices[i + 1].Flags & 1) == 0;
-                        if (nextNotOnCurve)
+                        drawCommands[currentContourStartCommand] = startingCommand;
+                        drawCommands.Add(new GlyphDrawCommand
                         {
-                            sx = (short) ((x + vertices[i + 1].X) >> 1);
-                            sy = (short) ((y + vertices[i + 1].Y) >> 1);
+                            Type = GlyphDrawCommandType.Close
+                        });
+
+                        newContour = true;
+                    }
+                }
+
+                g.Commands = drawCommands.ToArray();
+            }
+            // Composite glyph (-1)
+            else if (numberOfContours < 0)
+            {
+                g.Composite = true;
+                var components = new List<FontGlyphComponent>();
+                var more = true;
+                while (more)
+                {
+                    var flags = (ushort) glyfTableReader.ReadShortBE();
+
+                    // The glyph index of the composite part.
+                    var gIdx = (ushort) glyfTableReader.ReadShortBE();
+
+                    // Matrix3x2 for composite transformation
+                    var mtx = new float[6];
+                    mtx[0] = 1;
+                    mtx[1] = 0;
+                    mtx[2] = 0;
+                    mtx[3] = 1;
+                    mtx[4] = 0;
+                    mtx[5] = 0;
+
+                    // Position
+                    if ((flags & 2) != 0)
+                    {
+                        if ((flags & 1) != 0)
+                        {
+                            mtx[4] = glyfTableReader.ReadShortBE() * scale;
+                            mtx[5] = glyfTableReader.ReadShortBE() * scale;
                         }
                         else
                         {
-                            sx = vertices[i + 1].X;
-                            sy = vertices[i + 1].Y;
-                            i++;
+                            mtx[4] = glyfTableReader.ReadSByte() * scale;
+                            mtx[5] = glyfTableReader.ReadSByte() * scale;
                         }
                     }
-                    else
+
+                    // Uniform scale
+                    if ((flags & (1 << 3)) != 0)
                     {
-                        sx = x;
-                        sy = y;
+                        mtx[0] = mtx[3] = glyfTableReader.ReadShortBE() / 16384.0f;
+                        mtx[1] = mtx[2] = 0;
+                    }
+                    // XY-scale
+                    else if ((flags & (1 << 6)) != 0)
+                    {
+                        mtx[0] = glyfTableReader.ReadShortBE() / 16384.0f;
+                        mtx[1] = mtx[2] = 0;
+                        mtx[3] = glyfTableReader.ReadShortBE() / 16384.0f;
+                    }
+                    // Rotation
+                    else if ((flags & (1 << 7)) != 0)
+                    {
+                        mtx[0] = glyfTableReader.ReadShortBE() / 16384.0f;
+                        mtx[1] = glyfTableReader.ReadShortBE() / 16384.0f;
+                        mtx[2] = glyfTableReader.ReadShortBE() / 16384.0f;
+                        mtx[3] = glyfTableReader.ReadShortBE() / 16384.0f;
                     }
 
-                    verticesProcessed.Add(new GlyphVertex
-                    {
-                        TypeFlag = VertexTypeFlag.Move,
-                        X = sx,
-                        Y = sy,
-                        Cx = 0,
-                        Cy = 0
-                    });
+                    components.Add(new FontGlyphComponent(gIdx, mtx));
 
-                    wasOffCurve = false;
-
-                    nextEndpoint = endPointIndices[endPointIndex] + 1;
-                    endPointIndex++;
+                    more = (flags & (1 << 5)) != 0;
                 }
-                else
-                {
-                    if (curVertexOffCurve)
-                    {
-                        if (wasOffCurve)
-                            verticesProcessed.Add(new GlyphVertex
-                            {
-                                TypeFlag = VertexTypeFlag.Curve,
-                                X = (short) ((cx + x) >> 1),
-                                Y = (short) ((cy + y) >> 1),
-                                Cx = cx,
-                                Cy = cy
-                            });
 
-                        cx = x;
-                        cy = y;
-                        wasOffCurve = true;
-                    }
-                    else
-                    {
-                        if (wasOffCurve)
-                            verticesProcessed.Add(new GlyphVertex
-                            {
-                                TypeFlag = VertexTypeFlag.Curve,
-                                X = x,
-                                Y = y,
-                                Cx = cx,
-                                Cy = cy
-                            });
-                        else
-                            verticesProcessed.Add(new GlyphVertex
-                            {
-                                TypeFlag = VertexTypeFlag.Line,
-                                X = x,
-                                Y = y,
-                                Cx = 0,
-                                Cy = 0
-                            });
-
-                        wasOffCurve = false;
-                    }
-                }
+                g.Components = components.ToArray();
             }
-
-            CloseShape(verticesProcessed, wasOffCurve, offCurve, sx, sy, scx, scy, cx, cy);
-            glyph.Vertices = verticesProcessed.ToArray();
         }
 
-        private static void ResolveCompositeTtfGlyph(ByteReader reader, Glyph glyph, Glyph[] glyphs)
+        private static void CombineCompositeGlyph(FontGlyph g, FontGlyph[] glyphs)
         {
-            var more = true;
-            var vertices = new List<GlyphVertex>();
-            while (more)
+            var combinedCommands = new List<GlyphDrawCommand>();
+
+            GlyphDrawCommand[]? commands = g.Commands;
+            if (commands != null && commands.Length != 0) combinedCommands.AddRange(commands);
+
+            FontGlyphComponent[]? components = g.Components;
+            Debug.Assert(components != null);
+            for (var i = 0; i < components.Length; i++)
             {
-                var mtx = new float[6];
-                mtx[0] = 1;
-                mtx[1] = 0;
-                mtx[2] = 0;
-                mtx[3] = 1;
-                mtx[4] = 0;
-                mtx[5] = 0;
-                var flags = (ushort) reader.ReadShortBE();
-                // The glyph index of the composite part.
-                var gidx = (ushort) reader.ReadShortBE();
-                if ((flags & 2) != 0)
-                {
-                    if ((flags & 1) != 0)
-                    {
-                        mtx[4] = reader.ReadShortBE();
-                        mtx[5] = reader.ReadShortBE();
-                    }
-                    else
-                    {
-                        mtx[4] = reader.ReadSByte();
-                        mtx[5] = reader.ReadSByte();
-                    }
-                }
+                FontGlyphComponent component = components[i];
+                int gIdx = component.GlyphIdx;
 
-                if ((flags & (1 << 3)) != 0)
-                {
-                    mtx[0] = mtx[3] = reader.ReadShortBE() / 16384.0f;
-                    mtx[1] = mtx[2] = 0;
-                }
-                else if ((flags & (1 << 6)) != 0)
-                {
-                    mtx[0] = reader.ReadShortBE() / 16384.0f;
-                    mtx[1] = mtx[2] = 0;
-                    mtx[3] = reader.ReadShortBE() / 16384.0f;
-                }
-                else if ((flags & (1 << 7)) != 0)
-                {
-                    mtx[0] = reader.ReadShortBE() / 16384.0f;
-                    mtx[1] = reader.ReadShortBE() / 16384.0f;
-                    mtx[2] = reader.ReadShortBE() / 16384.0f;
-                    mtx[3] = reader.ReadShortBE() / 16384.0f;
-                }
+                Debug.Assert(gIdx < glyphs.Length, "Composite glyph is trying to fetch a non-existent component glyph.");
+                FontGlyph comp = glyphs[gIdx];
+                if (comp.Commands == null || comp.Commands.Length <= 0) continue;
 
-                more = (flags & (1 << 5)) != 0;
-
+                float[] mtx = component.Matrix;
                 var m = (float) Math.Sqrt(mtx[0] * mtx[0] + mtx[1] * mtx[1]);
                 var n = (float) Math.Sqrt(mtx[2] * mtx[2] + mtx[3] * mtx[3]);
 
-                Debug.Assert(gidx < glyphs.Length, "Composite glyph is trying to fetch a non-existent component glyph.");
-                Glyph comp = glyphs[gidx];
-                if (comp.Vertices == null || comp.Vertices.Length <= 0) continue;
-
                 // Copy vertices from the composite part.
-                for (var i = 0; i < comp.Vertices.Length; ++i)
+                for (var c = 0; c < comp.Commands.Length; c++)
                 {
-                    GlyphVertex v = comp.Vertices[i];
-                    short x = v.X;
-                    short y = v.Y;
-                    v.X = (short) (m * (mtx[0] * x + mtx[2] * y + mtx[4]));
-                    v.Y = (short) (n * (mtx[1] * x + mtx[3] * y + mtx[5]));
-                    x = v.Cx;
-                    y = v.Cy;
-                    v.Cx = (short) (m * (mtx[0] * x + mtx[2] * y + mtx[4]));
-                    v.Cy = (short) (n * (mtx[1] * x + mtx[3] * y + mtx[5]));
-                    vertices.Add(v);
+                    GlyphDrawCommand v = comp.Commands[c]; // This should copy.
+                    float x = v.P0.X;
+                    float y = v.P0.Y;
+                    float tX = m * (mtx[0] * x + mtx[2] * y + mtx[4]);
+                    float tY = n * (mtx[1] * x + mtx[3] * y + mtx[5]);
+                    v.P0 = new Vector2(tX, tY);
+
+                    x = v.P1.X;
+                    y = v.P1.Y;
+                    tX = m * (mtx[0] * x + mtx[2] * y + mtx[4]);
+                    tY = n * (mtx[1] * x + mtx[3] * y + mtx[5]);
+                    v.P1 = new Vector2(tX, tY);
+
+                    combinedCommands.Add(v);
                 }
             }
 
-            glyph.Vertices = vertices.ToArray();
+            g.Commands = combinedCommands.ToArray();
         }
-
-        #region Helpers
 
         private static void ReadGlyphCoordinate(ByteReader reader, byte flags, ref int prevVal, short shortVectorBitMask, short sameBitMask)
         {
@@ -350,54 +382,5 @@ namespace Emotion.Standard.OpenType.FontTables
                 if ((flags & sameBitMask) == 0) prevVal += reader.ReadShortBE();
             }
         }
-
-        private static void CloseShape(List<GlyphVertex> vertices, bool wasOnCurve, bool onCurve,
-            short sx, short sy, short scx, short scy, short cx, short cy)
-        {
-            if (onCurve)
-            {
-                if (wasOnCurve)
-                    vertices.Add(new GlyphVertex
-                    {
-                        TypeFlag = VertexTypeFlag.Curve,
-                        X = (short) ((cx + scx) >> 1),
-                        Y = (short) ((cy + scy) >> 1),
-                        Cx = cx,
-                        Cy = cy
-                    });
-
-                vertices.Add(new GlyphVertex
-                {
-                    TypeFlag = VertexTypeFlag.Curve,
-                    X = sx,
-                    Y = sy,
-                    Cx = scx,
-                    Cy = scy
-                });
-            }
-            else
-            {
-                if (wasOnCurve)
-                    vertices.Add(new GlyphVertex
-                    {
-                        TypeFlag = VertexTypeFlag.Curve,
-                        X = sx,
-                        Y = sy,
-                        Cx = cx,
-                        Cy = cy
-                    });
-                else
-                    vertices.Add(new GlyphVertex
-                    {
-                        TypeFlag = VertexTypeFlag.Line,
-                        X = sx,
-                        Y = sy,
-                        Cx = 0,
-                        Cy = 0
-                    });
-            }
-        }
-
-        #endregion
     }
 }
