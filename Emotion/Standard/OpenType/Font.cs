@@ -2,78 +2,117 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Utility;
 
-#nullable enable
-
 #endregion
+
+#nullable enable
 
 namespace Emotion.Standard.OpenType
 {
     /// <summary>
-    /// Represents an OpenType font.
+    /// Represents a parsed OpenType font file.
     /// </summary>
     public class Font
     {
-        /// <summary>
-        /// Whether the font was successfully parsed.
-        /// </summary>
-        public bool Valid;
-
         #region Meta
 
         /// <summary>
-        /// The font's magic tag from which the format was inferred.
-        /// Generally this is useless to users.
+        /// Whether the font file data passed was valid.
         /// </summary>
-        public string? Tag { get; protected set; }
+        public bool Valid
+        {
+            get => Glyphs != null;
+        }
 
         /// <summary>
         /// The font's format.
-        /// This will be either "truetype" or "cff".
+        /// This will be either "truetype" or "cff" or "unsupported".
         /// </summary>
-        public string? Format { get; protected set; }
+        public string Format { get; protected set; } = "unsupported";
 
         /// <summary>
         /// The font's family name.
         /// </summary>
-        public string? FontFamily { get; protected set; }
+        public string FontFamily { get; protected set; } = "Unknown";
 
         /// <summary>
         /// The font's sub family name.
         /// </summary>
-        public string? FontSubFamily { get; protected set; }
+        public string FontSubFamily { get; protected set; } = "Unknown";
 
         /// <summary>
         /// The full name of the font.
         /// </summary>
-        public string? FullName { get; protected set; }
+        public string FullName { get; protected set; } = "Unknown";
 
         /// <summary>
         /// The font's version.
         /// </summary>
-        public string? Version { get; protected set; }
+        public string Version { get; protected set; } = "Unknown";
 
         /// <summary>
         /// The font's copyright.
         /// </summary>
-        public string? Copyright { get; protected set; }
+        public string Copyright { get; protected set; } = "Unknown";
 
         /// <summary>
         /// The font's uniqueId.
         /// </summary>
-        public string? UniqueId { get; protected set; }
+        public string UniqueId { get; protected set; } = "Unknown";
 
         #endregion
 
         /// <summary>
-        /// Glyphs found in the font.
+        /// The ratio of glyph units per em.
+        /// Used to scale uniformly across fonts.
         /// </summary>
-        public Dictionary<char, Glyph> Glyphs = new();
+        public int UnitsPerEm { get; protected set; }
+
+        /// <summary>
+        /// The font's ascender minus its descender.
+        /// </summary>
+        public float Height
+        {
+            get => Ascender - Descender;
+        }
+
+        /// <summary>
+        /// The highest a glyph can reach.
+        /// </summary>
+        public float Ascender { get; protected set; }
+
+        /// <summary>
+        /// The lowest a glyph can reach.
+        /// </summary>
+        public float Descender { get; protected set; }
+
+        /// <summary>
+        /// Distance between lines.
+        /// </summary>
+        public float LineGap { get; protected set; }
+
+        /// <summary>
+        /// Font is scaled to the ascender.
+        /// </summary>
+        public float ScaleApplied { get; protected set; }
+
+        // This should probably be private
+        private List<FontTable>? _tables;
+
+        /// <summary>
+        /// All of the glyphs and their data from this font.
+        /// </summary>
+        public FontGlyph[]? Glyphs;
+
+        /// <summary>
+        /// Glyphs found in the font related to the chars they represent.
+        /// </summary>
+        // ReSharper disable once CollectionNeverQueried.Global
+        public Dictionary<char, FontGlyph> CharToGlyph = new();
 
         /// <summary>
         /// The character index of the first glyph.
@@ -85,61 +124,13 @@ namespace Emotion.Standard.OpenType
         /// </summary>
         public uint LastCharIndex { get; protected set; }
 
-        /// <summary>
-        /// The font's ascender minus its descender. Is used as the distance between lines and is regarded as the safe space.
-        /// </summary>
-        public int Height
+        public Font(ReadOnlyMemory<byte> fileData)
         {
-            get => Ascender - Descender;
-        }
-
-        /// <summary>
-        /// The highest a glyph can reach.
-        /// </summary>
-        public short Ascender { get; protected set; }
-
-        /// <summary>
-        /// The lowest a glyph can reach.
-        /// </summary>
-        public short Descender { get; protected set; }
-
-        /// <summary>
-        /// The font's defined resolution. Is used for scaling glyphs.
-        /// </summary>
-        public ushort UnitsPerEm { get; protected set; }
-
-        #region Parsing
-
-        /// <summary>
-        /// Font tables found within the font.
-        /// After the initial parsing these aren't used.
-        /// </summary>
-        public List<FontTable> Tables = new List<FontTable>();
-
-        /// <summary>
-        /// The number of horizontal metrics found in the font.
-        /// </summary>
-        public ushort NumberOfHMetrics { get; protected set; }
-
-        #endregion
-
-        public FontAnton NewFont;
-
-        /// <summary>
-        /// Create a new OpenType font from a font file.
-        /// </summary>
-        /// <param name="fontData">The bytes that make up the font file.</param>
-        public Font(ReadOnlyMemory<byte> fontData)
-        {
-            if (fontData.Length < 4) return;
-
             // Note: OpenType fonts use big endian byte ordering.
-            using var r = new ByteReader(fontData);
-            Tag = new string(r.ReadChars(4));
+            using var r = new ByteReader(fileData);
+            var tag = new string(r.ReadChars(4));
 
-            NewFont = new FontAnton(fontData);
-
-            switch (Tag)
+            switch (tag)
             {
                 case "\0\u0001\0\0":
                 case "true":
@@ -148,7 +139,7 @@ namespace Emotion.Standard.OpenType
                     Format = "truetype";
                     ushort numTables = r.ReadUShortBE();
                     r.ReadBytes(6);
-                    Tables = GetTables(r, numTables);
+                    _tables = GetTables(r, numTables);
                     break;
                 }
 
@@ -157,56 +148,23 @@ namespace Emotion.Standard.OpenType
                     Format = "cff";
                     ushort numTables = r.ReadUShortBE();
                     r.ReadBytes(6);
-                    Tables = GetTables(r, numTables);
+                    _tables = GetTables(r, numTables);
                     break;
                 }
-                case "wOFF":
+
+                default:
                 {
-                    Format = new string(r.ReadChars(4)) == "OTTO" ? "cff" : "truetype";
-                    r.ReadBytes(4);
-                    r.ReadUShortBE();
-                    // todo: Read wOFF tables.
-                    break;
+                    Engine.Log.Error($"Unsupported font format - {tag}", MessageSource.FontParser);
+                    return;
                 }
             }
 
-            // Header
-            FontTable? table = GetTable("head");
-            short indexToLocFormat;
-            if (table != null)
-            {
-                var head = new HeadTable(r.Branch(table.Offset, true, table.Length));
-                UnitsPerEm = head.UnitsPerEm;
-                indexToLocFormat = head.IndexToLocFormat;
-            }
-            else
-            {
-                Engine.Log.Warning("Font head table not found.", MessageSource.FontParser);
-                return;
-            }
-
-            // Horizontal header - information about horizontal layout of glyphs.
-            table = GetTable("hhea");
-            if (table != null)
-            {
-                var hhea = new HheaTable(r.Branch(table.Offset, true, table.Length));
-
-                Ascender = hhea.Ascender;
-                Descender = hhea.Descender;
-                NumberOfHMetrics = hhea.NumberOfHMetrics;
-            }
-            else
-            {
-                Engine.Log.Warning("Font hhea table not found.", MessageSource.FontParser);
-                return;
-            }
-
-            // Name table - contains meta information about the font.
-            table = GetTable("name");
-            if (table != null)
+            // Parse optional tables.
+            FontTable? nameTable = GetTable("name");
+            if (nameTable != null)
             {
                 // todo: ltag parsing
-                Dictionary<string, Dictionary<string, string>> names = NameTable.ParseName(r.Branch(table.Offset, true, table.Length), null);
+                Dictionary<string, Dictionary<string, string>> names = NameTable.ParseName(r.Branch(nameTable.Offset, true, nameTable.Length), null);
 
                 FontFamily = NameTable.GetDefaultValue(names, "fontFamily");
                 FontSubFamily = NameTable.GetDefaultValue(names, "fontSubfamily");
@@ -215,66 +173,106 @@ namespace Emotion.Standard.OpenType
                 Copyright = NameTable.GetDefaultValue(names, "copyright");
                 UniqueId = NameTable.GetDefaultValue(names, "uniqueID");
             }
-            else
+
+            // Parse required tables
+            FontTable? headTable = GetTable("head");
+            if (headTable == null)
             {
-                Engine.Log.Warning("Font name table not found.", MessageSource.FontParser);
+                Engine.Log.Error("Font is missing 'head' table.", MessageSource.FontParser);
                 return;
             }
 
-            // MaxP - contains information about the font's memory footprint.
-            table = GetTable("maxp");
-            ushort numGlyphs;
-            if (table != null)
+            FontTable? maxpTable = GetTable("maxp");
+            if (maxpTable == null)
             {
-                var maxp = new MaxpTable(r.Branch(table.Offset, true, table.Length));
-                numGlyphs = maxp.NumGlyphs;
-            }
-            else
-            {
-                Engine.Log.Warning("Font maxp table not found.", MessageSource.FontParser);
+                Engine.Log.Error("Font is missing 'maxp' table.", MessageSource.FontParser);
                 return;
             }
 
-            // Get the cmap table which defines glyph indices.
-            table = GetTable("cmap");
-            CMapTable? cMap = table != null ? CMapTable.ParseCmap(r.Branch(table.Offset, true, table.Length)) : null;
+            FontTable? hheaTable = GetTable("hhea");
+            if (hheaTable == null)
+            {
+                Engine.Log.Error("Font is missing 'hhea' table.", MessageSource.FontParser);
+                return;
+            }
 
-            // Glyf - glyph data.
-            // Also reads loca for locations, and post for glyph names.
-            Glyph[] glyphs;
-            table = GetTable("glyf");
-            if (table != null)
+            var headTableParsed = new HeadTable(r.Branch(headTable.Offset, true, headTable.Length));
+            var maxpTableParsed = new MaxpTable(r.Branch(maxpTable.Offset, true, maxpTable.Length));
+            var hheaTableParsed = new HheaTable(r.Branch(hheaTable.Offset, true, hheaTable.Length));
+
+            int numberOfHMetrics = hheaTableParsed.NumberOfHMetrics;
+            int glyphCount = maxpTableParsed.NumGlyphs;
+
+            var scale = 1f;
+            UnitsPerEm = headTableParsed.UnitsPerEm;
+            Ascender = hheaTableParsed.Ascender * scale;
+            Descender = hheaTableParsed.Descender * scale;
+            LineGap = hheaTableParsed.LineGap * scale;
+            ScaleApplied = scale;
+
+            // glyf fonts
+            FontTable? glyfTable = GetTable("glyf");
+            if (glyfTable != null)
             {
                 FontTable? locaTable = GetTable("loca");
                 if (locaTable == null) return;
-                LocaTable locaTableParsed = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, indexToLocFormat == 0);
-                int[] locaOffsets = locaTableParsed.GlyphOffsets;
-                glyphs = GlyfTable.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
+
+                var glyphs = new FontGlyph[glyphCount];
+                for (var i = 0; i < glyphs.Length; i++)
+                {
+                    var glyph = new FontGlyph();
+                    glyph.MapIndex = i;
+                    glyphs[i] = glyph;
+                }
+
+                short indexToLocFormat = headTableParsed.IndexToLocFormat;
+                LocaTable locaTableParsed = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), glyphCount, indexToLocFormat == 0);
+                GlyfTable.ParseGlyf(r.Branch(glyfTable.Offset, true, glyfTable.Length), locaTableParsed, glyphs, scale);
+                Glyphs = glyphs;
             }
+            // cff fonts
             else
             {
-                table = GetTable("CFF ");
-                if (table == null)
+                FontTable? cffTable = GetTable("CFF ");
+                if (cffTable == null)
                 {
                     Engine.Log.Warning("Font - neither glyf nor cff table found.", MessageSource.FontParser);
                     return;
                 }
 
-                var cff = new CffTable(r.Branch(table.Offset, true, table.Length));
-                glyphs = new Glyph[cff.NumberOfGlyphs];
+                var cff = new CffTable(r.Branch(cffTable.Offset, true, cffTable.Length));
+
+                var glyphs = new FontGlyph[cff.NumberOfGlyphs];
                 for (var i = 0; i < glyphs.Length; i++)
                 {
-                    glyphs[i] = cff.CffGlyphLoadOld(i);
+                    FontGlyph? glyph = cff.ParseCffGlyph(i, scale);
+                    glyph.MapIndex = i;
+                    glyphs[i] = glyph;
+                }
+
+                // todo: parsing
+
+                Glyphs = glyphs;
+            }
+
+            FontTable? hmtxTable = GetTable("hmtx");
+            if (hmtxTable != null)
+            {
+                HmtxTable hmtxTableParsed = HmtxTable.ParseHmtx(r.Branch(hmtxTable.Offset, true, hmtxTable.Length));
+                hmtxTableParsed.ApplyToGlyphs(numberOfHMetrics, Glyphs);
+                for (var i = 0; i < Glyphs.Length; i++)
+                {
+                    FontGlyph glyph = Glyphs[i];
+                    glyph.AdvanceWidth *= scale;
+                    glyph.LeftSideBearing *= scale;
                 }
             }
 
-            // Apply the character map (glyph to char index).
-
-            if (cMap?.GlyphIndexMap != null)
+            // Assign glyph mapping
+            FontTable? cmapTable = GetTable("cmap");
+            CMapTable? cmapTableParsed = cmapTable != null ? CMapTable.ParseCmap(r.Branch(cmapTable.Offset, true, cmapTable.Length)) : null;
+            if (cmapTableParsed != null)
             {
-                var smallestCharIdx = uint.MaxValue;
-                uint highestCharIdx = 0;
-
                 // Add glyph names if present.
                 string[]? names = null;
                 FontTable? postTable = GetTable("post");
@@ -284,19 +282,21 @@ namespace Emotion.Standard.OpenType
                     names = post.Names;
                 }
 
-                foreach ((uint key, uint value) in cMap.GlyphIndexMap)
+                var smallestCharIdx = uint.MaxValue;
+                uint highestCharIdx = 0;
+
+                foreach ((uint key, uint value) in cmapTableParsed.GlyphIndexMap)
                 {
                     var valInt = (int) value;
-                    if (valInt >= glyphs.Length) continue; // Should never happen, but it's outside data, soo...
+                    if (valInt >= Glyphs.Length) continue; // Should never happen, but it's outside data, soo...
 
-                    Glyph glyph = glyphs[valInt];
+                    FontGlyph glyph = Glyphs[valInt];
                     glyph.Name = names != null ? names[valInt] : ((char) key).ToString();
 
                     smallestCharIdx = Math.Min(smallestCharIdx, key);
                     highestCharIdx = Math.Max(highestCharIdx, key);
 
-                    Glyphs.Add((char) key, glyph);
-                    glyph.MapIndex = value;
+                    CharToGlyph.Add((char) key, glyph);
                 }
 
                 FirstCharIndex = smallestCharIdx;
@@ -304,19 +304,15 @@ namespace Emotion.Standard.OpenType
             }
             else
             {
-                for (var i = 0; i < glyphs.Length; i++)
+                for (var i = 0; i < Glyphs.Length; i++)
                 {
-                    glyphs[i].Name = ((char) i).ToString();
-                    Glyphs.Add((char) i, glyphs[i]);
+                    FontGlyph glyph = Glyphs[i];
+                    glyph.Name = ((char) i).ToString();
+                    CharToGlyph.Add((char) i, glyph);
                 }
-            }
 
-            // Add metrics. This requires the glyph's to have MapIndices
-            table = GetTable("hmtx");
-            if (table != null)
-            {
-                HmtxTable? parsedTable = HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length));
-                parsedTable.ApplyToGlyphsOld(NumberOfHMetrics, glyphs);
+                FirstCharIndex = 0;
+                LastCharIndex = (uint) (Glyphs.Length - 1);
             }
 
             // os/2 parsed, but unused
@@ -326,36 +322,14 @@ namespace Emotion.Standard.OpenType
             // todo: gpos
             // todo: fvar
             // todo: meta
-
-            Valid = true;
-        }
-
-        protected Font()
-        {
         }
 
         #region Parse Helpers
 
         /// <summary>
-        /// https://docs.microsoft.com/en-us/typography/opentype/spec/cvt
-        /// Instructions for control over certain glyphs.
-        /// </summary>
-        private static short[] ParseCvt(ByteReader reader, uint length)
-        {
-            var cvt = new short[length / 2];
-
-            for (uint i = 0; i < length / 2; i++)
-            {
-                cvt[i] = reader.ReadShortBE();
-            }
-
-            return cvt;
-        }
-
-        /// <summary>
         /// Finds all tables in the font and their data.
         /// </summary>
-        private static List<FontTable> GetTables(ByteReader reader, ushort count)
+        private static List<FontTable> GetTables(ByteReaderBase reader, ushort count)
         {
             var tables = new List<FontTable>();
 
@@ -379,11 +353,34 @@ namespace Emotion.Standard.OpenType
         /// </summary>
         /// <param name="tag">The tag of the table to get.</param>
         /// <returns>The table with the specified tag, or null if not found.</returns>
-        public FontTable? GetTable(string tag)
+        private FontTable? GetTable(string tag)
         {
-            return Tables.FirstOrDefault(x => x.Tag == tag);
+            for (var i = 0; i < _tables?.Count; i++)
+            {
+                FontTable table = _tables[i];
+                if (table.Tag == tag) // should probably be name and not tag
+                    return table;
+            }
+
+            return null;
         }
 
         #endregion
+
+        /// <summary>
+        /// https://docs.microsoft.com/en-us/typography/opentype/spec/cvt
+        /// Instructions for control over certain glyphs.
+        /// </summary>
+        private static short[] ParseCvt(ByteReader reader, uint length)
+        {
+            var cvt = new short[length / 2];
+
+            for (uint i = 0; i < length / 2; i++)
+            {
+                cvt[i] = reader.ReadShortBE();
+            }
+
+            return cvt;
+        }
     }
 }

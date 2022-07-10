@@ -67,7 +67,7 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The font glyph this glyph represents.
         /// </summary>
-        public Glyph FontGlyph { get; protected init; }
+        public FontGlyph FontGlyph { get; protected init; }
 
         protected AtlasGlyph()
         {
@@ -76,37 +76,55 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// Create a new AtlasGlyph which holds metadata about a rasterized glyph within an atlas texture.
         /// </summary>
-        public static AtlasGlyph CreateIntScale(Glyph fontGlyph, float scale, float ascend)
+        public static AtlasGlyph CreateIntScale(FontGlyph fontGlyph, float scale, float ascend)
         {
             Rectangle bbox = fontGlyph.GetBBox(scale);
             return new AtlasGlyph
             {
                 FontGlyph = fontGlyph,
                 Advance = MathF.Round(fontGlyph.AdvanceWidth * scale),
-                XMin = MathF.Floor(fontGlyph.XMin * scale),
+                XMin = MathF.Floor(fontGlyph.Min.X * scale),
                 Height = -bbox.Y,
                 YOffset = MathF.Ceiling(ascend * scale),
-                YMin = MathF.Floor(fontGlyph.YMin * scale),
-                Size = fontGlyph.GetDrawBox(scale).Size
+                YMin = MathF.Floor(fontGlyph.Min.Y * scale),
+                Size = GetDrawBox(fontGlyph, scale).Size
             };
         }
 
         /// <summary>
         /// Create a new AtlasGlyph which holds metadata about a rasterized glyph within an atlas texture.
         /// </summary>
-        public static AtlasGlyph CreateFloatScale(Glyph fontGlyph, float scale, float ascend)
+        public static AtlasGlyph CreateFloatScale(FontGlyph fontGlyph, float scale, float ascend)
         {
             Rectangle bbox = fontGlyph.GetBBoxFloat(scale);
             return new AtlasGlyph
             {
                 FontGlyph = fontGlyph,
                 Advance = fontGlyph.AdvanceWidth * scale,
-                XMin = fontGlyph.XMin * scale,
+                XMin = fontGlyph.Min.X * scale,
                 Height = -bbox.Y,
                 YOffset = ascend * scale,
-                YMin = fontGlyph.YMin * scale,
-                Size = fontGlyph.GetDrawBoxFloat(scale).Size
+                YMin = fontGlyph.Min.Y * scale,
+                Size = GetDrawBoxFloat(fontGlyph, scale).Size
             };
+        }
+
+        /// <summary>
+        /// The draw box for the glyph. This is essentially the rendering canvas.
+        /// </summary>
+        public static Rectangle GetDrawBox(FontGlyph fontGlyph, float scale)
+        {
+            Rectangle bbox = fontGlyph.GetBBox(scale);
+            return new Rectangle(0, 0, bbox.Width - bbox.X, bbox.Height - bbox.Y);
+        }
+
+        /// <summary>
+        /// The draw box for the glyph. This is essentially the rendering canvas.
+        /// </summary>
+        public static Rectangle GetDrawBoxFloat(FontGlyph fontGlyph, float scale)
+        {
+            Rectangle bbox = fontGlyph.GetBBoxFloat(scale);
+            return new Rectangle(0, 0, bbox.Width - bbox.X, bbox.Height - bbox.Y);
         }
 
         public static AtlasGlyph CreateForTest(float advance, float xMin, float yOff, Vector2 size)

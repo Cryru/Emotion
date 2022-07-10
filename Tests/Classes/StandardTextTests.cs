@@ -119,7 +119,7 @@ namespace Tests.Classes
                 Assert.True(f.UnitsPerEm == unitsPerEm[i]);
                 Assert.True(f.Descender == descender[i]);
                 Assert.True(f.Ascender == ascender[i]);
-                Assert.True(f.Glyphs.Count == glyphs[i]);
+                Assert.True(f.CharToGlyph.Count == glyphs[i]);
 
                 // Get atlases.
                 int fontSize = fontSizes[i];
@@ -270,7 +270,7 @@ namespace Tests.Classes
 
             foreach ((char charIndex, AtlasGlyph atlasGlyph) in atlas.Glyphs)
             {
-                Glyph glyph = atlasGlyph.FontGlyph;
+                FontGlyph glyph = atlasGlyph.FontGlyph;
 
                 var advance = 0;
                 var bearing = 0;
@@ -291,26 +291,11 @@ namespace Tests.Classes
                 Assert.Equal(maxX, bbox.Width);
                 Assert.Equal(maxY, bbox.Height);
 
-                Rectangle drawBox = glyph.GetDrawBox(atlas.RenderScale);
+                Rectangle drawBox = AtlasGlyph.GetDrawBox(glyph, atlas.RenderScale);
                 drawBox.Size += Vector2.One; // Add padding from stb
                 StbTrueType.stbrp_rect rect = rects[charIndex];
                 Assert.Equal(rect.w, drawBox.Width);
                 Assert.Equal(rect.h, drawBox.Height);
-
-                StbTrueType.stbtt_vertex* vertices;
-                int verticesNum = StbTrueType.stbtt_GetGlyphShape(stbFont, (int) glyph.MapIndex, &vertices);
-
-                Assert.Equal(verticesNum, glyph.Vertices.Length);
-                for (var i = 0; i < glyph.Vertices.Length; i++)
-                {
-                    GlyphVertex vertex = glyph.Vertices[i];
-                    StbTrueType.stbtt_vertex stbVertex = vertices[i];
-                    Assert.Equal(stbVertex.x, vertex.X);
-                    Assert.Equal(stbVertex.y, vertex.Y);
-                    Assert.Equal(stbVertex.cx, vertex.Cx);
-                    Assert.Equal(stbVertex.cy, vertex.Cy);
-                    Assert.Equal(stbVertex.type, vertex.Flags);
-                }
             }
         }
 

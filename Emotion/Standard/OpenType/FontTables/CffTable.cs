@@ -178,19 +178,11 @@ namespace Emotion.Standard.OpenType.FontTables
             return glyphData.Glyph;
         }
 
-        public Glyph CffGlyphLoadOld(int index)
-        {
-            var glyphData = new CffGlyphFactoryOld();
-            bool successful = RunCharstring(index, glyphData);
-            if (!successful) Engine.Log.Warning($"Couldn't read CFF glyff - {index}", MessageSource.FontParser);
-            return glyphData.Glyph;
-        }
-
         /// <summary>
         /// Horrible
         /// https://www.adobe.com/devnet/font.html
         /// </summary>
-        private bool RunCharstring(int glyphIndex, ICffGlyphFactory c)
+        private bool RunCharstring(int glyphIndex, CffGlyphFactory c)
         {
             var inHeader = true;
             var maskBits = 0;

@@ -55,7 +55,7 @@ namespace Emotion.Standard.OpenType
         public bool Composite;
         public FontGlyphComponent[]? Components;
 
-        public float Advance;
+        public float AdvanceWidth;
         public float LeftSideBearing;
 
         public Vector2 Min;
@@ -74,6 +74,21 @@ namespace Emotion.Standard.OpenType
                 MathF.Floor(-Max.Y * scale),
                 MathF.Ceiling(Max.X * scale),
                 MathF.Ceiling(-Min.Y * scale)
+            );
+        }
+
+
+        /// <summary>
+        /// The bounding box for the glyph.
+        /// </summary>
+        /// <param name="scale">The scale to get the bounding box at.</param>
+        public Rectangle GetBBoxFloat(float scale)
+        {
+            return new Rectangle(
+                Min.X * scale,
+                -Max.Y * scale,
+                Max.X * scale,
+                -Min.Y * scale
             );
         }
     }
