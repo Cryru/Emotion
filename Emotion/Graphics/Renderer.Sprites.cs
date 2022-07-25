@@ -97,25 +97,19 @@ namespace Emotion.Graphics
             }
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
-            Vector3 delta = Vector3.Zero;
-            Vector3 deltaNeg = Vector3.Zero;
-            if (renderMode == RenderLineMode.Center)
+            var normal = new Vector3(-direction.Y, direction.X, 0);
+            Vector3 delta = normal * (thickness / 2f);
+            Vector3 deltaNeg = -delta;
+
+            if (renderMode == RenderLineMode.Inward)
             {
-                var normal = new Vector3(-direction.Y, direction.X, 0);
-                delta = normal * (thickness / 2f);
-                deltaNeg = -delta;
-            }
-            else if (renderMode == RenderLineMode.Inward)
-            {
-                var normal = new Vector3(direction.Y, direction.X, 0);
-                delta = normal * thickness;
-                deltaNeg = Vector3.Zero;
+                pointOne += delta;
+                pointTwo += delta;
             }
             else if (renderMode == RenderLineMode.Outward)
             {
-                var normal = new Vector3(-direction.Y, -direction.X, 0);
-                delta = normal * thickness;
-                deltaNeg = Vector3.Zero;
+                pointOne -= delta;
+                pointTwo -= delta;
             }
 
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
