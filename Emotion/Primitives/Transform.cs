@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
@@ -188,6 +189,8 @@ namespace Emotion.Primitives
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void Resized()
         {
+            Debug.Assert(!float.IsNaN(Width));
+            Debug.Assert(!float.IsNaN(Height));
             OnResize?.Invoke(this, EventArgs.Empty);
         }
 
