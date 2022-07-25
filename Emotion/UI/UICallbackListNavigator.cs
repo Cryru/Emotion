@@ -32,6 +32,11 @@ namespace Emotion.UI
         /// </summary>
         public bool ScrollOneAhead = true;
 
+        /// <summary>
+        /// Whether to hide the scrollbar window when all children fit within the list and there is no scrolling.
+        /// </summary>
+        public bool HideScrollBarWhenNothingToScroll = false;
+
         // These three are the same thing.
         [DontSerialize]
         public UIBaseWindow? SelectedWnd { get; protected set; }
@@ -514,6 +519,8 @@ namespace Emotion.UI
             _scrollBar.PageArea = Height;
             UIBaseWindow? child = GetChildByGridLikePos(_scrollPos, out int _, false);
             _scrollBar.Current = child?.Y - _scrollArea.Y ?? 0;
+
+            if (HideScrollBarWhenNothingToScroll) _scrollBar.Visible = _scrollArea.Height != Height;
 
             _scrollBar.UpdateScrollbar();
         }

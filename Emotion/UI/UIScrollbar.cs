@@ -33,6 +33,11 @@ namespace Emotion.UI
         public float PageArea;
         public float Current;
 
+        public Color? OutlineColor;
+        public float OutlineSize;
+
+        private Vector2 _scaledOutline;
+
         public UIScrollbar()
         {
             InputTransparent = false;
@@ -58,13 +63,9 @@ namespace Emotion.UI
                 if (status == KeyStatus.Down)
                 {
                     if (_selector?.Bounds.ContainsInclusive(mousePos) ?? false)
-                    {
                         _dragging = mousePos - _selector.Position2;
-                    }
                     else
-                    {
                         _dragging = Vector2.One;
-                    }
 
                     OnMouseMove(mousePos);
                 }
@@ -84,18 +85,12 @@ namespace Emotion.UI
             if (_selector != null)
             {
                 if (_dragging != Vector2.Zero || _selector.Bounds.ContainsInclusive(mousePos))
-                {
                     _selector.WindowColor = SelectorMouseInColor;
-                }
                 else
-                {
                     _selector.WindowColor = DefaultSelectorColor;
-                }
             }
 
             if (_dragging == Vector2.Zero) return;
-
-            float f = Y + Height;
 
             float progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
             var list = (UICallbackListNavigator?) ScrollParent;
@@ -111,10 +106,7 @@ namespace Emotion.UI
 
         public override void OnMouseLeft(Vector2 mousePos)
         {
-            if (_selector != null)
-            {
-                _selector.WindowColor = DefaultSelectorColor;
-            }
+            if (_selector != null) _selector.WindowColor = DefaultSelectorColor;
 
             base.OnMouseLeft(mousePos);
         }
@@ -155,7 +147,7 @@ namespace Emotion.UI
                 size = MathF.Round(size);
 
                 _selector.Offset = new Vector2(0, progress);
-                if (_selector.MaxSize.Y != size)
+                if (!float.IsNaN(size) && _selector.MaxSize.Y != size)
                 {
                     _selector.MaxSize = new Vector2(DefaultMaxSize.X, size);
                     InvalidateLayout();
@@ -167,8 +159,17 @@ namespace Emotion.UI
             }
         }
 
+        protected override void AfterMeasure(Vector2 contentSize)
+        {
+            _scaledOutline = new Vector2(OutlineSize * GetScale());
+
+            base.AfterMeasure(contentSize);
+        }
+
         protected override bool RenderInternal(RenderComposer c)
         {
+            if (OutlineColor != null)
+                c.RenderSprite(Position - _scaledOutline.ToVec3(), Size + _scaledOutline * 2, OutlineColor.Value);
             c.RenderSprite(Bounds, _calculatedColor);
             return true;
         }

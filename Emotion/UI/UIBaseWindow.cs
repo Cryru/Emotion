@@ -195,6 +195,8 @@ namespace Emotion.UI
 
         public virtual void AddChild(UIBaseWindow child)
         {
+            Debug.Assert(child != null);
+
             Children ??= new List<UIBaseWindow>();
             Children.Add(child);
 
@@ -872,6 +874,13 @@ namespace Emotion.UI
                 alphaTween.Update(Engine.DeltaTime);
                 var current = (byte) Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
                 WindowColor = WindowColor.SetAlpha(current);
+
+                // If fading in we need to set visible from the get go.
+                if (setVisible != null && setVisible.Value && !Visible)
+                {
+                    Visible = true;
+                }
+
                 if (alphaTween.Finished)
                 {
                     Debug.Assert(WindowColor.A == targetAlpha);
