@@ -107,13 +107,22 @@ namespace Emotion.Game.World2D
             var profiler = Stopwatch.StartNew();
 
             // Add all serialized objects, and start loading their assets.
-            var objectAssetTasks = new Task[ObjectsToSerialize.Count];
+            var objectAssetTasks = new Task[ObjectsToSerialize.Count + _objectsToAdd.Count];
             for (var i = 0; i < ObjectsToSerialize.Count; i++)
             {
                 GameObject2D obj = ObjectsToSerialize[i];
 
                 objectAssetTasks[i] = obj.LoadAssetsAsync();
                 obj.MapFlags |= Map2DObjectFlags.Serializable;
+                _objects.Add(obj);
+            }
+
+            // Add non serialized object that were added before map init.
+            int taskIdx = ObjectsToSerialize.Count;
+            while (_objectsToAdd.TryDequeue(out GameObject2D? obj))
+            {
+                objectAssetTasks[taskIdx] = obj.LoadAssetsAsync();
+                taskIdx++;
                 _objects.Add(obj);
             }
 
