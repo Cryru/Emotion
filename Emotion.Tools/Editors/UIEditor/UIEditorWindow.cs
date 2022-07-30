@@ -59,6 +59,9 @@ namespace Emotion.Tools.Editors.UIEditor
 
         protected override bool RenderInternal(RenderComposer c)
         {
+            c.SetUseViewMatrix(false);
+            c.RenderSprite(Vector3.Zero, c.CurrentTarget.Size, Color.CornflowerBlue);
+
             base.RenderInternal(c);
             _ui.Render(c);
             return true;
