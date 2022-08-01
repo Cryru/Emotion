@@ -367,7 +367,7 @@ namespace Emotion.UI
             {
                 UIBaseWindow? newItem = null;
                 var childIdx = 0;
-                while ((newItem == null || !newItem.Visible) && childIdx != Children.Count - 1) // Go next until visible.
+                while ((newItem == null || !newItem.Visible || newItem.InputTransparent) && childIdx != Children.Count - 1) // Go next until visible.
                 {
                     _selectedPos += axis;
                     _selectedPos = Vector2.Clamp(_selectedPos, Vector2.Zero, _gridSize);
@@ -391,10 +391,11 @@ namespace Emotion.UI
                     ScrollToPos(newPos);
                 }
 
-                UIBaseWindow? oldSel = SelectedWnd;
-                SelectedWnd = newItem;
-                SelectedChildIdx = childIdx;
-                if (newItem != oldSel) OnItemSelected?.Invoke(newItem, oldSel);
+                SetSelection(newItem);
+                //UIBaseWindow? oldSel = SelectedWnd;
+                //SelectedWnd = newItem;
+                //SelectedChildIdx = childIdx;
+                //if (newItem != oldSel) OnItemSelected?.Invoke(newItem, oldSel);
             }
 
             if (key == ConfirmChoice && status == KeyStatus.Down && SelectedWnd != null)
@@ -444,10 +445,7 @@ namespace Emotion.UI
             for (var i = 0; i < Children.Count; i++)
             {
                 UIBaseWindow child = Children[i];
-                bool enabled = child.Visible;
-
-                if (child is UICallbackButton button) enabled = enabled && button.Enabled;
-
+                bool enabled = child.Visible && !child.InputTransparent;
                 if (enabled)
                 {
                     SetSelection(child, true);
@@ -484,7 +482,6 @@ namespace Emotion.UI
             for (var i = 0; i < Children.Count; i++)
             {
                 if (Children[i] is not UICallbackButton b) continue;
-                Debug.Assert(!Children[i].InputTransparent);
                 b.OnClickedProxy = ProxyButtonClicked;
                 b.OnMouseEnterProxy = ProxyButtonSelected;
             }
@@ -492,7 +489,7 @@ namespace Emotion.UI
 
         private void ProxyButtonClicked(UICallbackButton b)
         {
-            if (!b.Visible || !b.Enabled) return;
+            if (!b.Visible || b.InputTransparent) return;
             SetSelection(b);
             Debug.Assert(SelectedWnd != null);
             OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
@@ -500,7 +497,7 @@ namespace Emotion.UI
 
         private void ProxyButtonSelected(UICallbackButton b)
         {
-            if (!b.Visible || !b.Enabled) return;
+            if (!b.Visible || b.InputTransparent) return;
             SetSelection(b);
         }
 
@@ -520,7 +517,10 @@ namespace Emotion.UI
             UIBaseWindow? child = GetChildByGridLikePos(_scrollPos, out int _, false);
             _scrollBar.Current = child?.Y - _scrollArea.Y ?? 0;
 
-            if (HideScrollBarWhenNothingToScroll) _scrollBar.Visible = _scrollArea.Height != Height;
+            if (HideScrollBarWhenNothingToScroll)
+                _scrollBar.Visible = Visible && _scrollArea.Height != Height;
+            else
+                _scrollBar.Visible = Visible;
 
             _scrollBar.UpdateScrollbar();
         }
