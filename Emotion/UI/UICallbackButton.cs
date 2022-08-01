@@ -15,9 +15,6 @@ namespace Emotion.UI
         [DontSerialize] public Action<UICallbackButton> OnMouseLeaveProxy;
         [DontSerialize] public Action<UICallbackButton> OnClickedProxy;
 
-        [DontSerialize]
-        public bool Enabled = true;
-
         public UICallbackButton()
         {
             InputTransparent = false;
