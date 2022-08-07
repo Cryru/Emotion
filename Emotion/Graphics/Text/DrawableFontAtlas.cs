@@ -146,10 +146,10 @@ namespace Emotion.Graphics.Text
             Texture = Texture.EmptyWhiteTexture;
 
             // Convert from Emotion font size (legacy) to real font size.
-            if (Engine.Configuration.UseEmotionFontSize)
+            if (Engine.Configuration.UseEmotionFontSize && Rasterizer != GlyphRasterizer.Astiopin)
             {
-                float diff = (float) Font.UnitsPerEm / Font.Height;
-                FontSize = MathF.Round(FontSize * diff);
+                //float diff = (float) Font.UnitsPerEm / Font.Height;
+                //FontSize = MathF.Round(FontSize * diff);
             }
 
             // The scale to render at.
@@ -217,8 +217,6 @@ namespace Emotion.Graphics.Text
 
         private void QueueGlyphRender(List<AtlasGlyph> glyphs)
         {
-            Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
-
             Debug.Assert(GLThread.IsGLThread());
             bool justCreated = GlyphRendererState == null;
             switch (RenderedWith)
@@ -233,6 +231,7 @@ namespace Emotion.Graphics.Text
                     GlyphRendererState = StbGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
                     break;
                 case GlyphRasterizer.Astiopin:
+                    Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
                     // todo
                     break;
             }
@@ -281,9 +280,9 @@ namespace Emotion.Graphics.Text
         /// The default rasterizer.
         /// </summary>
 #if WEB
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.StbTrueType;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Astiopin;
 #else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Emotion;
+        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Astiopin;
 #endif
 
         /// <summary>

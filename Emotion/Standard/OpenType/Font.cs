@@ -203,7 +203,7 @@ namespace Emotion.Standard.OpenType
             int numberOfHMetrics = hheaTableParsed.NumberOfHMetrics;
             int glyphCount = maxpTableParsed.NumGlyphs;
 
-            var scale = 1f;
+            var scale = 1f; // 1f / hheaTableParsed.Ascender;
             UnitsPerEm = headTableParsed.UnitsPerEm;
             Ascender = hheaTableParsed.Ascender * scale;
             Descender = hheaTableParsed.Descender * scale;

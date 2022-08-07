@@ -29,10 +29,12 @@ namespace Emotion.Graphics.Text
         /// </summary>
         public Vector2 Size { get; init; }
 
+        public float LSB;
+
         /// <summary>
         /// (XMax) The width between this glyph and the next one (whichever it is).
         /// </summary>
-        public float Advance { get; protected init; }
+        public float Advance { get; set; }
 
         /// <summary>
         /// The width of the glyph, left of the origin line.

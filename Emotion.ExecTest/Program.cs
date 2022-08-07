@@ -40,7 +40,7 @@ namespace Emotion.ExecTest
 
         public void Draw(RenderComposer composer)
         {
-            //composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
+            
             //composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
             //composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
 
@@ -51,18 +51,32 @@ namespace Emotion.ExecTest
 
 
             composer.SetUseViewMatrix(false);
-            var font = Engine.AssetLoader.Get<FontAsset>("Ubuntu/Ubuntu-Regular.ttf");
+            //var font = Engine.AssetLoader.Get<FontAsset>("CaslonOS.otf");
+            //var font = Engine.AssetLoader.Get<FontAsset>("Junction-bold.otf");
+            //var font = Engine.AssetLoader.Get<FontAsset>("Ubuntu/Ubuntu-Regular.ttf");
+            var font = Engine.AssetLoader.Get<FontAsset>("TIMES.ttf");
+            composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, new Color(229, 229, 229));
 
-            composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(10));
-            composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
-            composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
+            composer.PushModelMatrix(Matrix4x4.CreateTranslation(100, 100, 0));
+
+            Color textCol = new Color(26, 26, 26);
+            composer.RenderStringTest(new Vector3(0, -20, 0), textCol, "The quick brown fox did a thing.", font.GetAtlas(8));
+            composer.RenderStringTest(Vector3.Zero, textCol, "The quick brown fox did a thing.", font.GetAtlas(10));
+            composer.RenderStringTest(new Vector3(0, 25, 0), textCol, "The quick brown fox did a thing.", font.GetAtlas(15));
+            composer.RenderStringTest(new Vector3(0, 55, 0), textCol, "The quick brown fox did a thing.", font.GetAtlas(20));
+            composer.RenderStringTest(new Vector3(0, 85, 0), textCol, "The quick brown fox did a thing.", font.GetAtlas(30));
+            composer.RenderStringTest(new Vector3(0, 135, 0), textCol, "The quick brown fox did a thing.", font.GetAtlas(40));
+            composer.RenderStringTest(new Vector3(0, 185, 0), textCol, "The quick brown fox did a thing.", font.GetAtlas(80));
+            //composer.RenderSprite(Vector3.Zero, new Vector2(50, 50), Color.Red);
+            //composer.RenderStringTest(Vector3.Zero, textCol, "The quick brown fox did a thing.", font.GetAtlas(30));
+            composer.PopModelMatrix();
 
             composer.SetUseViewMatrix(true);
             //composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(10));
             //composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
             //composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
 
-            composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(200));
+            //composer.RenderString(Vector3.Zero, Color.White, "The quick brown fox did a thing.", font.GetAtlas(200));
             //composer.RenderString(new Vector3(0, 11, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(15));
             //composer.RenderString(new Vector3(0, 25, 0), Color.White, "The quick brown fox did a thing.", font.GetAtlas(20));
 

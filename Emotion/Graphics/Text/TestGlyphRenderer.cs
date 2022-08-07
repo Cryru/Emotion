@@ -17,6 +17,8 @@ using OpenGL;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Graphics.Text
 {
     //https://github.com/astiopin/sdf_atlas
@@ -28,16 +30,31 @@ namespace Emotion.Graphics.Text
     /// </summary>
     public static class TestGlyphRenderer
     {
-        public static FrameBuffer LastProducedSdf;
+        public static FrameBuffer? LastProducedSdf;
+        public static SdfMetrics? LastProducedMetrics;
 
-        public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 1024, int sdfDist = 16, int glyphSize = 96)
+        public class SdfMetrics
+        {
+            public float X;
+            public float Y;
+            public float RowHeight;
+            public float Aspect;
+            public float Ascent;
+            public float Descent;
+            public float LineGap;
+            public float CapHeight;
+            public float XHeight;
+            public float SpaceAdvance;
+        }
+
+        public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 2048, int sdfDist = 64, int glyphSize = 512)
         {
             // pen
             float penX = 0;
             float penY = 0;
             float heightUsed = 0;
 
-            float fontHeight = font.Height;
+            float fontHeight = font.UnitsPerEm;
             float scale = glyphSize / fontHeight;
             float baseline = -font.Descender * scale;
 
@@ -62,11 +79,49 @@ namespace Emotion.Graphics.Text
                 penX = MathF.Ceiling(penX + glyphWidth);
             }
 
+            // Metrics
+            float xScale = (glyphSize / (float) atlasSize) / fontHeight;
+            float yScale = (glyphSize / heightUsed) / fontHeight;
+
+            float ix = sdfDist / (float) atlasSize;
+            float iy = sdfDist / heightUsed;
+            float rowHeight = (glyphSize + 2.0f * sdfDist) / heightUsed;
+            float aspectRatio = atlasSize / heightUsed;
+            float ascent = font.Ascender * yScale;
+            float descender = MathF.Abs(font.Descender * yScale);
+            float lineGap = font.LineGap * yScale;
+
+            // Try to estimate some font metrics from specific characters in the font. If they are missing approximate them.
+            FontGlyph? spaceGlyph = font.CharToGlyph.GetValueOrDefault(' ');
+            FontGlyph? capitalXGlyph = font.CharToGlyph.GetValueOrDefault('X');
+            FontGlyph? lowerCaseXGlyph = font.CharToGlyph.GetValueOrDefault('x');
+
+            float capHeight = capitalXGlyph != null ? capitalXGlyph.Max.Y * yScale : ascent * 0.66f;
+            float lowHeight = lowerCaseXGlyph != null ? lowerCaseXGlyph.Max.Y * yScale : ascent * 0.55f;
+            float spaceAdvance = spaceGlyph != null ? spaceGlyph.AdvanceWidth * xScale : 0.02f;
+
+            LastProducedMetrics = new SdfMetrics()
+            {
+                X = ix,
+                Y = iy,
+                RowHeight = rowHeight,
+                Aspect = aspectRatio,
+                Ascent = ascent,
+                Descent = descender,
+                LineGap = lineGap,
+                CapHeight = capHeight,
+                XHeight = lowHeight,
+                SpaceAdvance = spaceAdvance,
+            };
+
             var painter = new GlyphPainter();
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 AtlasGlyph glyph = glyphsToAdd[i];
                 FontGlyph fontGlyph = glyphsToAdd[i].FontGlyph;
+
+                glyph.LSB = fontGlyph.LeftSideBearing * xScale;
+                glyph.Advance = fontGlyph.AdvanceWidth * xScale;
 
                 float left = fontGlyph.LeftSideBearing * scale;
                 Vector2 glyphPos = new Vector2(glyph.UVLocation.X, glyph.UVLocation.Y + baseline) + new Vector2(sdfDist - left, sdfDist);
@@ -136,10 +191,10 @@ namespace Emotion.Graphics.Text
             LastProducedSdf = buffer;
 
             // Sample framebuffer and save it.
-            FrameBuffer atlasBuffer = buffer;
-            byte[] data = atlasBuffer.Sample(new Rectangle(0, 0, atlasBuffer.Size), PixelFormat.Red);
-            byte[] pngData = PngFormat.Encode(data, atlasBuffer.Size, PixelFormat.Red);
-            Engine.AssetLoader.Save(pngData, "Player/blabla.png", false);
+            //FrameBuffer atlasBuffer = buffer;
+            //byte[] data = atlasBuffer.Sample(new Rectangle(0, 0, atlasBuffer.Size), PixelFormat.Red);
+            //byte[] pngData = PngFormat.Encode(data, atlasBuffer.Size, PixelFormat.Red);
+            //Engine.AssetLoader.Save(pngData, "Player/blabla.png", false);
         }
 
         public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
