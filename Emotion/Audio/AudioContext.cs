@@ -35,11 +35,13 @@ namespace Emotion.Audio
             _audioProcessEvent = new AutoResetEvent(false);
 
             _running = true;
+#if !WEB
             _audioThread = new Thread(AudioLayerProc)
             {
                 IsBackground = true,
             };
             _audioThread.Start();
+#endif
         }
 
         public virtual void Update()

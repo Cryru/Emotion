@@ -218,8 +218,9 @@ namespace Emotion.Graphics.Objects
             pixelType ??= PixelType;
             PixelType = (PixelType)pixelType;
 
-            // ES doesn't support BGRA so convert it to RGBA on the CPU
             if (Gl.CurrentVersion.GLES)
+            {
+                // ES doesn't support BGRA so convert it to RGBA on the CPU
                 switch (pixelFormat)
                 {
                     case PixelFormat.Bgra:
@@ -231,6 +232,15 @@ namespace Emotion.Graphics.Objects
                         pixelFormat = PixelFormat.Rgb;
                         break;
                 }
+
+                // ES has different constants for some platforms.
+                switch (internalFormat)
+                {
+                    case InternalFormat.Red:
+                        internalFormat = InternalFormat.R8;
+                        break;
+                }
+            }
 
             EnsureBound(Pointer);
             if (data == null)

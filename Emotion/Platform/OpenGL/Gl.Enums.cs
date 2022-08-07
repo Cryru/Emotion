@@ -598,7 +598,13 @@ namespace OpenGL
         /// Strongly typed for value GL_SRC1_COLOR.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_3")] [RequiredByFeature("GL_ARB_blend_func_extended", Api = "gl|glcore")] [RequiredByFeature("GL_EXT_blend_func_extended", Api = "gles2")]
-        Src1Color = Gl.SRC1_COLOR
+        Src1Color = Gl.SRC1_COLOR,
+
+        /// <summary>
+        /// Strongly typed for value GL_SRC1_ALPHA.
+        /// </summary>
+        [RequiredByFeature("GL_VERSION_3_3")] [RequiredByFeature("GL_ARB_blend_func_extended", Api = "gl|glcore")] [RequiredByFeature("GL_EXT_blend_func_extended", Api = "gles2")]
+        Src1Alpha = 34185
     }
 
     /// <summary>
