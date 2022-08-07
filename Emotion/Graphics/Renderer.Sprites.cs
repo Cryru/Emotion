@@ -7,9 +7,11 @@ using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
+using OpenGL;
 
 #endregion
 
@@ -237,6 +239,109 @@ namespace Emotion.Graphics
             atlas.SetupDrawing(this, text);
             RenderStringInner(position, color, text, atlas, layouter);
             atlas.FinishDrawing(this);
+        }
+
+        private static ShaderAsset _sdfShader;
+        private static ShaderAsset _sdfShaderSubPixel;
+
+        public void RenderStringTest(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter = null)
+        {
+            if (atlas.RenderedWith != GlyphRasterizer.Astiopin)
+            {
+                RenderString(position, color, text, atlas, layouter);
+                return;
+            }
+            
+
+            if (atlas?.Glyphs == null) return;
+            layouter ??= new TextLayouter(atlas);
+
+            var useSubpixelHinting = false;
+#if WEB
+            useSubpixelHinting = false;
+#endif
+            _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/AstiopinSDF.xml");
+            ShaderProgram shaderProg = _sdfShader.Shader;
+            if (useSubpixelHinting)
+            {
+                _sdfShaderSubPixel ??= _sdfShader.GetShaderVariation("SUBPIXEL_HINTING");
+                shaderProg = _sdfShaderSubPixel.Shader;
+            }
+
+            var sdf = TestGlyphRenderer.LastProducedSdf;
+            var metrics = TestGlyphRenderer.LastProducedMetrics;
+
+            float fontSize = atlas.FontSize;
+            float desiredTotalScale = fontSize / atlas.Font.UnitsPerEm;
+            float scaleDiffCap = metrics.CapHeight / desiredTotalScale;
+            float scaleDiffLow = metrics.CapHeight / desiredTotalScale;
+
+            // We use separate scale for the low case characters
+            // so that x-height fits the pixel grid.
+            // Other characters use cap-height to fit to the pixels
+            float capScale = fontSize / metrics.CapHeight;
+            float lowScale = MathF.Round(capScale / metrics.CapHeight) * metrics.CapHeight;
+
+            // Ascent should be a whole number since it's used to calculate the baseline
+            // position which should lie at the pixel boundary
+            // This also applies to the line height.
+            float ascent = MathF.Round(metrics.Ascent * capScale);
+            float extraLineGap = fontSize * 0.2f;
+            float lineHeight = MathF.Round(capScale * (metrics.Ascent + metrics.Descent + metrics.LineGap) + extraLineGap);
+
+            SetShader(shaderProg);
+            shaderProg.SetUniformVector2("sdf_tex_size", sdf.Size);
+            shaderProg.SetUniformFloat("sdf_border_size", metrics.Y / 2f);
+            shaderProg.SetUniformFloat("vertexZ", position.Z);
+
+            if (useSubpixelHinting)
+                SetAlphaBlendType(BlendingFactor.Src1Color, BlendingFactor.OneMinusSrcColor, BlendingFactor.Src1Alpha, BlendingFactor.OneMinusSrcAlpha);
+
+            float widthUsed = 0;
+            Vector2 pen = position.ToVec2();
+            for (var i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+
+                if (c == '\n')
+                {
+                    if (pen.X > widthUsed) widthUsed = pen.X;
+                    pen.X = position.X;
+                    pen.Y -= lineHeight;
+                    continue;
+                }
+
+                if (c == ' ')
+                {
+                    pen.X += metrics.Aspect * metrics.SpaceAdvance * capScale;
+                    continue;
+                }
+
+                if (atlas.Glyphs.TryGetValue(c, out AtlasGlyph glyph))
+                {
+                    bool isLowerCase = char.IsLower(c);
+
+                    // Low case chars use their own scale
+                    float scale = isLowerCase ? lowScale : capScale;
+
+                    Span<VertexData> memory = RenderStream.GetStreamMemory(4, BatchMode.Quad, sdf.ColorAttachment);
+
+                    // Pen position is at the top of the line, Y goes up
+                    float top = pen.Y + (ascent + scale * (metrics.Descent + metrics.Y));
+                    float bottom = -(scale * metrics.RowHeight);
+
+                    float left = pen.X + metrics.Aspect * scale * (glyph.LSB - metrics.X);
+                    float right = metrics.Aspect * scale * (glyph.UVSize.X / sdf.Size.X);
+
+                    pen.X += metrics.Aspect * scale * glyph.Advance;
+
+                    VertexData.SpriteToVertexData(memory, new Vector3(left, top, scale), new Vector2(right, bottom), color,
+                        sdf.ColorAttachment, new Rectangle(glyph.UVLocation, glyph.UVSize));
+                }
+            }
+
+            SetShader();
+            SetDefaultAlphaBlendType();
         }
 
         private FrameBuffer _outlineFb;

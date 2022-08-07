@@ -45,6 +45,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Assets\FontShaders\AstiopinSDF.frag" />
+    <None Remove="Assets\FontShaders\AstiopinSDF.vert" />
+    <None Remove="Assets\FontShaders\AstiopinSDF.xml" />
     <None Remove="Assets\FontShaders\GenerateSDF.frag" />
     <None Remove="Assets\FontShaders\GenerateSDF.xml" />
     <None Remove="Assets\FontShaders\GlyphRenderFill.frag" />
@@ -127,6 +130,15 @@
     <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\FontShaders\AstiopinSDF.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\AstiopinSDF.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\AstiopinSDF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
