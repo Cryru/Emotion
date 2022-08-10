@@ -52,6 +52,7 @@ namespace Emotion.Web.Platform
 
             _webGlFuncDictionary.Add("glClear", (Gl.Delegates.glClear) Clear);
             _webGlFuncDictionary.Add("glClearColor", (Gl.Delegates.glClearColor) SetClearColor);
+            _webGlFuncDictionary.Add("glColorMask", (Gl.Delegates.glColorMask) ColorMask);
             _webGlFuncDictionary.Add("glEnable", (Gl.Delegates.glEnable) Enable);
             _webGlFuncDictionary.Add("glDisable", (Gl.Delegates.glDisable) Disable);
             _webGlFuncDictionary.Add("glDepthFunc", (Gl.Delegates.glDepthFunc) DepthFunc);
@@ -68,6 +69,7 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glGetShaderInfoLog", (Gl.Delegates.glGetShaderInfoLog) ShaderInfoLog);
 
             _webGlFuncDictionary.Add("glCreateProgram", (Gl.Delegates.glCreateProgram) CreateProgram);
+            _webGlFuncDictionary.Add("glDeleteShader", (Gl.Delegates.glDeleteShader) DeleteShader);
             _webGlFuncDictionary.Add("glUseProgram", (Gl.Delegates.glUseProgram) UseProgram);
             _webGlFuncDictionary.Add("glAttachShader", (Gl.Delegates.glAttachShader) AttachShader);
             _webGlFuncDictionary.Add("glBindAttribLocation", (Gl.Delegates.glBindAttribLocation) BindAttributeLocation);
@@ -105,6 +107,7 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glClientWaitSync", (Gl.Delegates.glClientWaitSync) ClientWaitSync);
 
             _webGlFuncDictionary.Add("glGenTextures", (Gl.Delegates.glGenTextures) CreateTexture);
+            _webGlFuncDictionary.Add("glDeleteTextures", (Gl.Delegates.glDeleteTextures) DeleteTextures);
             _webGlFuncDictionary.Add("glBindTexture", (Gl.Delegates.glBindTexture) BindTexture);
             _webGlFuncDictionary.Add("glActiveTexture", (Gl.Delegates.glActiveTexture) ActiveTexture);
             _webGlFuncDictionary.Add("glTexImage2D", (Gl.Delegates.glTexImage2D) UploadTexture);
@@ -393,6 +396,11 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<Vector4, object>("glClearColor", new Vector4(r, g, b, a));
         }
 
+        private void ColorMask(bool r, bool g, bool b, bool a)
+        {
+            _gl.InvokeUnmarshalled<Vector4, object>("glColorMask", new Vector4(r ? 1 : 0, g ? 1 : 0, b ? 1 : 0, a ? 1 : 0));
+        }
+
         private void Enable(int feature)
         {
             _gl.InvokeUnmarshalled<int, object>("glEnable", feature);
@@ -498,6 +506,11 @@ namespace Emotion.Web.Platform
         private uint CreateProgram()
         {
             return _gl.InvokeUnmarshalled<uint>("glCreateProgram");
+        }
+
+        private void DeleteShader(uint programId)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glDeleteShader", programId);
         }
 
         private void UseProgram(uint programId)
@@ -716,6 +729,15 @@ namespace Emotion.Web.Platform
             for (var i = 0; i < value.Length; i++)
             {
                 Marshal.WriteInt64((IntPtr) (resp + i * sizeof(uint)), value[i]);
+            }
+        }
+
+        private void DeleteTextures(int count, uint* resp)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                uint textureId = resp[i];
+                _gl.InvokeUnmarshalled<uint, object>("glDeleteTexture", textureId);
             }
         }
 

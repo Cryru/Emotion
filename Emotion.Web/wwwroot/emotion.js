@@ -336,6 +336,15 @@ function glClearColor(vec4Col) {
     Emotion.gl.clearColor(r, g, b, a);
 }
 
+function glColorMask(vec4Col) {
+    // struct Vector4
+    const r = Blazor.platform.readFloatField(vec4Col, 0);
+    const g = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT);
+    const b = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 2);
+    const a = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 3);
+    Emotion.gl.colorMask(r === 1, g === 1, b === 1, a === 1);
+}
+
 function glEnable(feature) {
     Emotion.gl.enable(feature);
 }
@@ -385,6 +394,12 @@ function glCreateShader(type) {
     const shader = Emotion.gl.createShader(type);
     gShaders.push(shader);
     return gShaders.length;
+}
+
+function glDeleteShader(shaderId) {
+    const shader = gShaders[shaderId - 1];
+    Emotion.gl.deleteShader(shader);
+    gShaders[shaderId - 1] = null;
 }
 
 function glShaderSource(shaderId, source) {
@@ -667,6 +682,12 @@ function glGenTextures(count) {
         textures[i] = gTextures.length;
     }
     return BINDING.js_typed_array_to_array(textures);
+}
+
+function glDeleteTexture(textureId) {
+    const texture = gTextures[textureId - 1];
+    Emotion.gl.deleteTexture(texture);
+    gTextures[textureId - 1] = null;
 }
 
 function glBindTexture(target, textureId) {
