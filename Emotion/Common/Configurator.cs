@@ -92,7 +92,7 @@ namespace Emotion.Common
         /// Additionally regardless of the setting, the DrawableFontAtlas' FontSize property will be set to the value using the
         /// "off" formula.
         /// </summary>
-        public bool UseEmotionFontSize { get; set; } = true;
+        public bool UseEmotionFontSize { get; set; } = false;
 
         #endregion
 
