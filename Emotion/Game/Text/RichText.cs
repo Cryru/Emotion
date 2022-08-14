@@ -23,7 +23,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Characters not to render. Updates when the RichText text is changed.
         /// </summary>
-        public char[] CharactersToNotRender { get; set; } = { '\n' };
+        public char[] CharactersToNotRender { get; set; } = {'\n'};
 
         /// <summary>
         /// The character to separate a tag from its attributes. Updates when the RichText parses tags.
@@ -71,7 +71,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The font atlas to use when rendering.
         /// </summary>
-        public DrawableFontAtlas FontAtlas { get; set; }
+        public DrawableFont FontAtlas { get; set; }
 
         #endregion
 
@@ -129,7 +129,7 @@ namespace Emotion.Game.Text
         /// <param name="position">The position of the RichText.</param>
         /// <param name="size">The size of the RichText.</param>
         /// <param name="fontAtlas">The font atlas to use.</param>
-        public RichText(Vector3 position, Vector2 size, DrawableFontAtlas fontAtlas) : base(position, size)
+        public RichText(Vector3 position, Vector2 size, DrawableFont fontAtlas) : base(position, size)
         {
             FontAtlas = fontAtlas;
             _layouter = new TextLayouter(fontAtlas);
@@ -213,7 +213,7 @@ namespace Emotion.Game.Text
             if (tag == "/")
             {
                 // Close the last opened tag.
-                TextEffect toClose = parsedEffects.Last(t => t.End == -1);
+                TextEffect toClose = parsedEffects.LastOrDefault(t => t.End == -1);
                 if (toClose != null) toClose.End = position - 1;
             }
             else
@@ -391,7 +391,7 @@ namespace Emotion.Game.Text
             else
             {
                 if (spaceLeft > 0)
-                    _initialLineIndent.Add((int)(spaceLeft / 2));
+                    _initialLineIndent.Add((int) (spaceLeft / 2));
                 else
                     _initialLineIndent.Add(0);
             }
@@ -402,7 +402,7 @@ namespace Emotion.Game.Text
             float spaceLeft = Width - _layouter.MeasureString(_wrapCache[i]).X;
 
             // To align right set the free space before the line.
-            _initialLineIndent.Add((int)spaceLeft);
+            _initialLineIndent.Add((int) spaceLeft);
         }
 
         #endregion
@@ -421,9 +421,6 @@ namespace Emotion.Game.Text
             _prevChar = '\0';
 
             FontAtlas.SetupDrawing(composer, _text);
-            Vector2 drawPadding = FontAtlas.GlyphDrawPadding;
-            Vector2 drawPaddingT2 = drawPadding * 2;
-            var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
 
             // Iterate virtual lines.
             var characterCounter = 0;
@@ -459,13 +456,8 @@ namespace Emotion.Game.Text
                     if (CharactersToNotRender.Contains(charUnicode)) charUnicode = ' ';
 
                     _layouter.AddToPen(new Vector2(glyphXOffset, 0));
-                    Vector2 drawPos = _layouter.AddLetter(charUnicode, out AtlasGlyph g);
-
-                    if (g != null)
-                    {
-                        var uv = new Rectangle(g.UVLocation, g.UVSize);
-                        composer.RenderSprite(Position + drawPos.ToVec3() - drawPadding3, g.Size + drawPaddingT2, textColor, FontAtlas.Texture, uv);
-                    }
+                    Vector2 drawPos = _layouter.AddLetter(charUnicode, out DrawableGlyph g);
+                    if (g != null) FontAtlas.DrawGlyph(composer, g, Position + drawPos.ToVec3(), textColor);
 
                     // Increment character counter.
                     characterCounter++;

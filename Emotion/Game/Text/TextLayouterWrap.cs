@@ -46,7 +46,7 @@ namespace Emotion.Game.Text
             var currentLine = "";
             var breakSkipMode = false;
             int breakSkipModeLimit = -1;
-            float lineHeight = _atlas.FontHeight;
+            float lineHeight = 0; //_atlas.FontHeight; todo
             float longestLine = 0;
 
             // Loop through the text.
@@ -96,7 +96,7 @@ namespace Emotion.Game.Text
                     // Update measures.
                     Vector2 lineSize = MeasureString(currentLine);
                     if (lineSize.X > longestLine) longestLine = lineSize.X;
-                    NeededHeight += MathF.Max(lineHeight, lineSize.Y) + LineGap;
+                    NeededHeight += MathF.Max(lineHeight, lineSize.Y);
                     Debug.Assert(lineHeight > lineSize.Y);
 
                     // Push new line.
@@ -160,7 +160,7 @@ namespace Emotion.Game.Text
         /// <param name="c">The letter to add.</param>
         /// <param name="g">The atlas glyph corresponding to the letter.</param>
         /// <returns>The draw position of the letter.</returns>
-        public override Vector2 AddLetter(char c, out AtlasGlyph g)
+        public override Vector2 AddLetter(char c, out DrawableGlyph g)
         {
             if (_newLineIndices.IndexOf(_counter) != -1) NewLine();
             _counter++;

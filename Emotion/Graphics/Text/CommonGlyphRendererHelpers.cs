@@ -14,7 +14,7 @@ using OpenGL;
 
 namespace Emotion.Graphics.Text
 {
-    public static class CommonGlyphRenderer
+    public static class CommonGlyphRendererHelpers
     {
         public static GlyphRendererState PrepareGlyphRenderer(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd, out Rectangle[] intermediateAtlasUVs,
             out Vector2 intermediateAtlasSize, float glyphSpacing = 1, bool singleChannel = false)
@@ -54,7 +54,7 @@ namespace Emotion.Graphics.Text
                 state = new GlyphRendererState();
                 state.BinningState = resumableState;
                 if (singleChannel)
-                    state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor(true, InternalFormat.Red, PixelFormat.Red);
+                    state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor(true, InternalFormat.Red, PixelFormat.Red).WithDepthStencil();
                 else
                     state.AtlasBuffer = new FrameBuffer(atlasSize).WithColor();
             }

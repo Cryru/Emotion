@@ -212,15 +212,46 @@ namespace Emotion.Graphics
             Vector2 drawPaddingT2 = drawPadding * 2;
             var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
 
+            Vector2 pen = Vector2.Zero;
             foreach (char c in text)
             {
-                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
-                if (g == null || g.UVSize == Vector2.Zero) continue;
+                //Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
+                //if (g == null || g.UVSize == Vector2.Zero) continue;
+                atlas.Glyphs.TryGetValue(c, out AtlasGlyph g);
+
+                Vector2 gPos = pen;
+                gPos.X += g.XMin;
+                gPos.Y += g.YBearing;
                 //gPos.X = MathF.Ceiling(gPos.X);
 
                 var uv = new Rectangle(g.UVLocation, g.UVSize);
+
+                //color = Color.White;
+                //RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, Color.Black);
                 RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, color, atlas.Texture, uv);
+
+                pen.X += g.Advance;
             }
+        }
+
+        public void RenderText(Vector3 position, Color color, string text, DrawableFont atlas, TextLayouter layouter = null)
+        {
+            layouter ??= new TextLayouter(atlas);
+
+            atlas.SetupDrawing(this, text);
+
+            Vector3 reUsableVector = new Vector3();
+            foreach (char c in text)
+            {
+                Vector2 gPos = layouter.AddLetter(c, out DrawableGlyph g);
+                if (g == null || g.GlyphUV == Rectangle.Empty) continue;
+
+                reUsableVector.X = gPos.X;
+                reUsableVector.Y = gPos.Y;
+                atlas.DrawGlyph(this, g, position + reUsableVector, color);
+            }
+
+            atlas.FinishDrawing(this);
         }
 
         /// <summary>
@@ -291,7 +322,7 @@ namespace Emotion.Graphics
 
             SetShader(shaderProg);
             shaderProg.SetUniformVector2("sdf_tex_size", sdf.Size);
-            shaderProg.SetUniformFloat("sdf_border_size", metrics.Y / 2f);
+            shaderProg.SetUniformFloat("sdf_border_size", metrics.Y);
             shaderProg.SetUniformFloat("vertexZ", position.Z);
 
             if (useSubpixelHinting)
@@ -351,72 +382,72 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderOutlinedString(Vector3 position, Color color, string text, float outlineWidth, Color outlineColor, DrawableFontAtlas atlas, TextLayouter layouter = null)
         {
-            if (atlas?.Glyphs == null) return;
-            layouter ??= new TextLayouter(atlas);
+            //if (atlas?.Glyphs == null) return;
+            //layouter ??= new TextLayouter(atlas);
 
-            // Create effect using fancy SDF effects.
-            if (atlas.RenderedWith == GlyphRasterizer.EmotionSDFVer3)
-            {
-                float scaleFactor = 0.5f / atlas.SdfSize;
-                float outlineWidthInSdf = outlineWidth * scaleFactor;
-                if (outlineWidthInSdf < 0.5f) // Exceeding SDF range
-                {
-                    atlas.SetupDrawing(this, text);
-                    atlas.FontShader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
-                    atlas.FontShader.SetUniformColor("outlineColor", outlineColor);
+            //// Create effect using fancy SDF effects.
+            //if (atlas.RenderedWith == GlyphRasterizer.EmotionSDFVer3)
+            //{
+            //    float scaleFactor = 0.5f / atlas.SdfSize;
+            //    float outlineWidthInSdf = outlineWidth * scaleFactor;
+            //    if (outlineWidthInSdf < 0.5f) // Exceeding SDF range
+            //    {
+            //        atlas.SetupDrawing(this, text);
+            //        atlas.FontShader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
+            //        atlas.FontShader.SetUniformColor("outlineColor", outlineColor);
 
-                    RenderStringInner(position, color, text, atlas, layouter);
+            //        RenderStringInner(position, color, text, atlas, layouter);
 
-                    FlushRenderStream();
-                    atlas.FontShader.SetUniformFloat("outlineWidthDist", 0.0f);
-                    atlas.FinishDrawing(this);
-                    return;
-                }
-            }
+            //        FlushRenderStream();
+            //        atlas.FontShader.SetUniformFloat("outlineWidthDist", 0.0f);
+            //        atlas.FinishDrawing(this);
+            //        return;
+            //    }
+            //}
 
-            // Hack the effect with an extra allocated framebuffer.
-            Vector2 drawPadding = atlas.GlyphDrawPadding;
-            Vector2 drawPaddingT2 = drawPadding * 2;
-            Vector2 stringSize = Vector2.Zero;
-            foreach (char c in text)
-            {
-                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
-                if (g == null || g.UVSize == Vector2.Zero) continue;
-                stringSize = Vector2.Max(stringSize, new Vector2(gPos.X + g.Size.X + drawPaddingT2.X + outlineWidth * 2, gPos.Y + g.Size.Y + drawPaddingT2.Y + outlineWidth * 2));
-            }
+            //// Hack the effect with an extra allocated framebuffer.
+            //Vector2 drawPadding = atlas.GlyphDrawPadding;
+            //Vector2 drawPaddingT2 = drawPadding * 2;
+            //Vector2 stringSize = Vector2.Zero;
+            //foreach (char c in text)
+            //{
+            //    Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
+            //    if (g == null || g.UVSize == Vector2.Zero) continue;
+            //    stringSize = Vector2.Max(stringSize, new Vector2(gPos.X + g.Size.X + drawPaddingT2.X + outlineWidth * 2, gPos.Y + g.Size.Y + drawPaddingT2.Y + outlineWidth * 2));
+            //}
 
-            if (layouter is TextLayouterWrap wrapper) wrapper.RestartPen();
+            //if (layouter is TextLayouterWrap wrapper) wrapper.RestartPen();
 
-            // Render the text to the framebuffer.
-            if (_outlineFb == null)
-                _outlineFb = new FrameBuffer(stringSize).WithColor();
-            else
-                _outlineFb.Resize(stringSize, true);
+            //// Render the text to the framebuffer.
+            //if (_outlineFb == null)
+            //    _outlineFb = new FrameBuffer(stringSize).WithColor();
+            //else
+            //    _outlineFb.Resize(stringSize, true);
 
-            var renderOffset = new Vector3(outlineWidth, outlineWidth, 0);
-            Vector3 finalRenderPos = position - renderOffset;
+            //var renderOffset = new Vector3(outlineWidth, outlineWidth, 0);
+            //Vector3 finalRenderPos = position - renderOffset;
 
-            // Draw to the FB unaffected by the current state.
-            RenderToAndClear(_outlineFb);
-            PushModelMatrix(Matrix4x4.Identity, false);
-            bool useViewMatrix = CurrentState.ViewMatrix ?? false;
-            SetUseViewMatrix(false);
+            //// Draw to the FB unaffected by the current state.
+            //RenderToAndClear(_outlineFb);
+            //PushModelMatrix(Matrix4x4.Identity, false);
+            //bool useViewMatrix = CurrentState.ViewMatrix ?? false;
+            //SetUseViewMatrix(false);
 
-            RenderString(renderOffset, color, text, atlas, layouter);
+            //RenderString(renderOffset, color, text, atlas, layouter);
 
-            // Return the state to the user set one.
-            PopModelMatrix();
-            RenderTo(null);
-            if (useViewMatrix) SetUseViewMatrix(true);
+            //// Return the state to the user set one.
+            //PopModelMatrix();
+            //RenderTo(null);
+            //if (useViewMatrix) SetUseViewMatrix(true);
 
-            // Copy with a shader than applies an outline.
-            var outlineShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/OutlineShader.xml");
-            if (outlineShader == null) return;
+            //// Copy with a shader than applies an outline.
+            //var outlineShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/OutlineShader.xml");
+            //if (outlineShader == null) return;
 
-            SetShader(outlineShader.Shader);
-            outlineShader.Shader.SetUniformFloat("outlineThickness", outlineWidth);
-            RenderFrameBuffer(_outlineFb, pos: finalRenderPos, color: outlineColor);
-            SetShader();
+            //SetShader(outlineShader.Shader);
+            //outlineShader.Shader.SetUniformFloat("outlineThickness", outlineWidth);
+            //RenderFrameBuffer(_outlineFb, pos: finalRenderPos, color: outlineColor);
+            //SetShader();
         }
     }
 }

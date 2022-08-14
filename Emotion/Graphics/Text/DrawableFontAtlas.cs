@@ -36,6 +36,15 @@ namespace Emotion.Graphics.Text
         EmotionSDFVer3,
 
         /// <summary>
+        /// A custom GPU-based rasterizer that requires a custom shader when drawing glyphs.
+        /// An SDF texture is created on the GPU using a reference font size and cached to a file.
+        /// Generation of this texture doesn't take long.
+        /// Best looking at all font sizes, and not slow for runtime.
+        /// Can reuse atlas images for various font sizes, reducing memory usage overall.
+        /// </summary>
+        EmotionSDFVer4,
+
+        /// <summary>
         /// Mature software rasterizer.
         /// Default.
         /// </summary>

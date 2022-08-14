@@ -10,20 +10,22 @@ namespace Emotion.Game.Text
 {
     public class TextLayouter
     {
-        public float LineGap { get; set; }
-
         /// <summary>
         /// Whether MeasureString should include any whitespace characters at the end of the string.
         /// </summary>
-        public bool MeasureTrailingWhiteSpace { get; set; } = false;
+        public bool MeasureTrailingWhiteSpace { get; set; }
 
-        protected DrawableFontAtlas _atlas;
+        protected DrawableFont _atlas;
         protected bool _hasZeroGlyph;
         protected Vector2 _pen;
 
-        public TextLayouter(DrawableFontAtlas atlas)
+        public TextLayouter(DrawableFont atlas)
         {
             SetAtlas(atlas);
+        }
+
+        public TextLayouter(DrawableFontAtlas atlas)
+        {
         }
 
         /// <summary>
@@ -34,7 +36,7 @@ namespace Emotion.Game.Text
         /// <param name="drawPosition">The position to draw the character at.</param>
         /// <param name="g">The atlas glyph corresponding to the provided character, or null if none.</param>
         /// <returns>The position of the next glyph along the pen.</returns>
-        public Vector2 GetNextGlyphPosition(Vector2 pen, char c, out Vector2 drawPosition, out AtlasGlyph g)
+        public Vector2 GetNextGlyphPosition(Vector2 pen, char c, out Vector2 drawPosition, out DrawableGlyph g)
         {
             var result = new Vector2(pen.X, pen.Y);
             drawPosition = Vector2.Zero;
@@ -43,20 +45,19 @@ namespace Emotion.Game.Text
             if (c == '\n')
             {
                 result.X = 0;
-                result.Y += _atlas.FontHeight + LineGap;
+                result.Y += _atlas.LineGap;
             }
             else
             {
                 if (!_atlas.Glyphs.TryGetValue(c, out g))
                 {
-                    if (!_hasZeroGlyph)
-                        return result;
-                    g = _atlas.Glyphs[(char)0];
+                    if (!_hasZeroGlyph) return result;
+                    g = _atlas.Glyphs[(char) 0];
                 }
 
                 drawPosition = result;
-                drawPosition.Y += g.YBearing;
-                drawPosition.X += g.XMin;
+                drawPosition.Y += _atlas.Ascent - _atlas.LineGap;
+                drawPosition.X += g.XBearing;
             }
 
             return result;
@@ -68,12 +69,12 @@ namespace Emotion.Game.Text
         /// <param name="c">The letter to add.</param>
         /// <param name="g">The atlas glyph corresponding to the letter.</param>
         /// <returns>The draw position of the letter.</returns>
-        public virtual Vector2 AddLetter(char c, out AtlasGlyph g)
+        public virtual Vector2 AddLetter(char c, out DrawableGlyph g)
         {
             Vector2 position = GetNextGlyphPosition(_pen, c, out Vector2 drawPosition, out g);
             _pen = position;
             if (g == null) return position;
-            _pen.X += g.Advance;
+            _pen.X += g.XAdvance;
             return drawPosition;
         }
 
@@ -92,7 +93,7 @@ namespace Emotion.Game.Text
         public void NewLine()
         {
             _pen.X = 0;
-            _pen.Y += _atlas.FontHeight + LineGap;
+            _pen.Y += _atlas.LineGap;
         }
 
         /// <summary>
@@ -112,11 +113,11 @@ namespace Emotion.Game.Text
         /// Set a new font atlas.
         /// </summary>
         /// <param name="atlas">The atlas to set.</param>
-        public void SetAtlas(DrawableFontAtlas atlas)
+        public void SetAtlas(DrawableFont atlas)
         {
             Restart();
             _atlas = atlas;
-            _hasZeroGlyph = atlas.Glyphs.ContainsKey((char)0);
+            _hasZeroGlyph = atlas.Glyphs.ContainsKey((char) 0);
         }
 
         /// <summary>
@@ -144,12 +145,12 @@ namespace Emotion.Game.Text
                 // Spaces on the end of lines are not counted.
                 if (!MeasureTrailingWhiteSpace && c == ' ' && (i == text.Length - 1 || text[i + 1] == '\n')) continue;
 
-                Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out AtlasGlyph g);
+                Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out DrawableGlyph g);
                 sizeSoFar = pos;
                 if (g == null) continue;
 
-                sizeSoFar.X += g.Advance;
-                float verticalSize = g.Size.Y + g.YBearing + g.YMin;
+                sizeSoFar.X += g.XAdvance;
+                float verticalSize = g.Height;
                 if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
             }
 
@@ -165,7 +166,7 @@ namespace Emotion.Game.Text
         /// </summary>
         public void MeasureStringsHeight(string text, out float largestHeight, out float smallestHeight, out float fontYOffset)
         {
-            fontYOffset = 0;
+            fontYOffset = _atlas.Ascent;
             largestHeight = 0;
             smallestHeight = float.MaxValue;
             for (var i = 0; i < text.Length; i++)
@@ -178,15 +179,13 @@ namespace Emotion.Game.Text
                 // Skip space as it has wacky height.
                 if (c == ' ') continue;
 
-                if (!_atlas.Glyphs.TryGetValue(c, out AtlasGlyph g))
+                if (!_atlas.Glyphs.TryGetValue(c, out DrawableGlyph g))
                 {
                     if (_hasZeroGlyph)
-                        g = _atlas.Glyphs[(char)0];
+                        g = _atlas.Glyphs[(char) 0];
                     else
                         continue;
                 }
-
-                fontYOffset = g.YOffset; // todo: move to font.
 
                 largestHeight = MathF.Max(largestHeight, g.Height);
                 smallestHeight = MathF.Min(smallestHeight, g.Height);

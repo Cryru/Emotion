@@ -220,7 +220,7 @@ namespace Tests.Classes
         public void RenderRichText()
         {
             var asset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
-            var testRich = new RichText(new Vector3(20, 20, 0), new Vector2(100, 100), asset.GetAtlas(20));
+            var testRich = new RichText(new Vector3(20, 20, 0), new Vector2(100, 100), asset.GetDrawableFont(20));
             testRich.SetText("The quick brown fox jumps over the <color=255-0-0>lazy</> dog.\n123456789!@#$%^&*(0");
 
             Runner.ExecuteAsLoop(_ =>
