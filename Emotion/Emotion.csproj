@@ -56,6 +56,8 @@
     <None Remove="Assets\FontShaders\GlyphRenderLine.frag" />
     <None Remove="Assets\FontShaders\GlyphRenderLine.vert" />
     <None Remove="Assets\FontShaders\GlyphRenderLine.xml" />
+    <None Remove="Assets\FontShaders\NewSDF.frag" />
+    <None Remove="Assets\FontShaders\NewSDF.xml" />
     <None Remove="Assets\FontShaders\SDF.frag" />
     <None Remove="Assets\FontShaders\SDF.xml" />
     <None Remove="Assets\FontShaders\VertColorNoDiscard.frag" />
@@ -130,6 +132,12 @@
     <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\FontShaders\NewSDF.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\FontShaders\NewSDF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Assets\FontShaders\AstiopinSDF.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

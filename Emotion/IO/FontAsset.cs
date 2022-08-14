@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Graphics.Text;
+using Emotion.Graphics.Text.EmotionRenderer;
+using Emotion.Graphics.Text.EmotionSDF;
+using Emotion.Graphics.Text.EmotionSDF3;
+using Emotion.Graphics.Text.StbRenderer;
 using Emotion.Standard.OpenType;
 
 #endregion
@@ -25,6 +29,7 @@ namespace Emotion.IO
         /// List of loaded atlases. Some of these are cached and loaded by the AssetLoader, some are loaded by the FontAsset.
         /// </summary>
         private Dictionary<string, DrawableFontAtlas> _loadedAtlases = new Dictionary<string, DrawableFontAtlas>();
+        private Dictionary<int, DrawableFont> _loadedDrawable = new Dictionary<int, DrawableFont>();
 
         /// <inheritdoc />
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
@@ -41,6 +46,49 @@ namespace Emotion.IO
             }
 
             _loadedAtlases.Clear();
+        }
+
+        public static GlyphRasterizer GlyphRasterizer { get; set; } = GlyphRasterizer.EmotionSDFVer4;
+
+        public DrawableFont GetDrawableFont(int fontSize, bool pixelFont = false)
+        {
+            int hash = HashCode.Combine(fontSize, GlyphRasterizer, pixelFont);
+
+            // Check if the atlas is already loaded.
+            bool found = _loadedDrawable.TryGetValue(hash, out DrawableFont atlas);
+            if (found) return atlas;
+
+            lock (_loadedAtlases)
+            {
+                // Recheck as another thread could have built the atlas while waiting on lock.
+                found = _loadedDrawable.TryGetValue(hash, out atlas);
+                if (found) return atlas;
+
+                // Get atlas of specified type.
+                switch (GlyphRasterizer)
+                {
+                    case GlyphRasterizer.StbTrueType:
+                        atlas = new StbDrawableFont(Font, fontSize, pixelFont);
+                        break;
+                    case GlyphRasterizer.Emotion:
+                        atlas = new EmotionRendererDrawableFont(Font, fontSize, pixelFont);
+                        break;
+                    case GlyphRasterizer.EmotionSDFVer3:
+                        atlas = new EmotionSDF3DrawableFont(Font, fontSize, pixelFont);
+                        break;
+                    case GlyphRasterizer.EmotionSDFVer4:
+                        atlas = new EmotionSDFDrawableFont(Font, fontSize, pixelFont);
+                        break;
+                    default:
+                       return null;
+                }
+
+                // Cache default ascii set
+                //atlas.CacheGlyphs(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+                _loadedDrawable.Add(hash, atlas);
+            }
+
+            return atlas;
         }
 
         /// <summary>

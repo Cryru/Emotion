@@ -5,172 +5,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using Emotion.Common;
-using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
-using Emotion.Utility;
-using OpenGL;
 
 #endregion
 
-#pragma warning disable 1591 // Forked renderer from StbTrueType, no need to document this as it is not forward facing.
+#nullable enable
 
-namespace Emotion.Graphics.Text
+namespace Emotion.Graphics.Text.StbRenderer
 {
-    public static class StbGlyphRenderer
+    public static class StbGlyphRendererBackend
     {
-        private static Texture _tempGlyphTexture;
-        private static RenderState _glyphRenderState;
-
-        public static void InitStbRenderer()
-        {
-            if (_glyphRenderState == null)
-            {
-                _glyphRenderState = RenderState.Default.Clone();
-                _glyphRenderState.ViewMatrix = false;
-                _glyphRenderState.SFactorRgb = BlendingFactor.One;
-                _glyphRenderState.DFactorRgb = BlendingFactor.One;
-                _glyphRenderState.SFactorA = BlendingFactor.One;
-                _glyphRenderState.DFactorA = BlendingFactor.One;
-            }
-        }
-
-        public static GlyphRendererState AddGlyphsToAtlas(DrawableFontAtlas atlas, GlyphRendererState state, List<AtlasGlyph> glyphsToAdd)
-        {
-            InitStbRenderer();
-
-            bool justCreated = state == null;
-            state = CommonGlyphRendererHelpers.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize);
-
-            // Bin them for the stb rasterization atlas.
-            var stbAtlasData = new byte[(int) intermediateAtlasSize.X * (int) intermediateAtlasSize.Y];
-            var stride = (int) intermediateAtlasSize.X;
-            float scale = atlas.RenderScale;
-            for (var i = 0; i < glyphsToAdd.Count; i++)
-            {
-                AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                FontGlyph newFontGlyph = atlasGlyph.FontGlyph;
-
-                var canvas = new GlyphCanvas(atlasGlyph, (int) (atlasGlyph.Size.X + 1), (int) (atlasGlyph.Size.Y + 1));
-                RenderGlyph(canvas, newFontGlyph, scale);
-
-                // Remove canvas padding.
-                canvas.Width--;
-                canvas.Height--;
-
-                // Copy pixels and record the location of the glyph.
-                Vector2 uvLoc = intermediateAtlasUVs[i].Position;
-                var uvX = (int) uvLoc.X;
-                var uvY = (int) uvLoc.Y;
-
-                for (var row = 0; row < canvas.Height; row++)
-                {
-                    for (var col = 0; col < canvas.Width; col++)
-                    {
-                        int x = uvX + col;
-                        int y = uvY + row;
-                        stbAtlasData[y * stride + x] = canvas.Data[row * canvas.Stride + col];
-                    }
-                }
-            }
-
-            // Upload to GPU.
-            byte[] rgbaData = ImageUtil.AToRgba(stbAtlasData);
-            _tempGlyphTexture ??= new Texture();
-            _tempGlyphTexture.Upload(intermediateAtlasSize, rgbaData, PixelFormat.Rgba, InternalFormat.Rgba, PixelType.UnsignedByte);
-
-            // Render to big atlas.
-            RenderComposer composer = Engine.Renderer;
-            RenderState previousRenderState = composer.CurrentState.Clone();
-            composer.PushModelMatrix(Matrix4x4.Identity, false);
-            composer.SetState(_glyphRenderState);
-            composer.RenderTo(state.AtlasBuffer);
-            if (justCreated) composer.ClearFrameBuffer();
-
-            for (var i = 0; i < glyphsToAdd.Count; i++)
-            {
-                AtlasGlyph atlasGlyph = glyphsToAdd[i];
-                Rectangle placeWithinIntermediateAtlas = intermediateAtlasUVs[i];
-                Debug.Assert(atlasGlyph.UVSize == placeWithinIntermediateAtlas.Size);
-                composer.RenderSprite(new Vector3(atlasGlyph.UVLocation.X, atlasGlyph.UVLocation.Y, 0), atlasGlyph.UVSize, _tempGlyphTexture, placeWithinIntermediateAtlas);
-            }
-
-            composer.RenderTo(null);
-            composer.PopModelMatrix();
-            composer.SetState(previousRenderState);
-            _tempGlyphTexture.Dispose();
-            _tempGlyphTexture = null;
-
-            return state;
-        }
-
-        public struct GlyphEdge
-        {
-            public float X;
-            public float Y;
-            public float X1;
-            public float Y1;
-            public bool Invert;
-        }
-
-        public class ActiveEdge
-        {
-            public ActiveEdge Next;
-            public float Fx;
-            public float Fdx;
-            public float Fdy;
-            public float Direction;
-            public float Sy;
-            public float Ey;
-
-            public ActiveEdge(GlyphEdge e, int offsetX, float start)
-            {
-                float dxDy = (e.X1 - e.X) / (e.Y1 - e.Y);
-                Fdx = dxDy;
-                Fdy = dxDy != 0.0f ? 1.0f / dxDy : 0.0f;
-                Fx = e.X + dxDy * (start - e.Y);
-                Fx -= offsetX;
-                Direction = e.Invert ? 1.0f : -1.0f;
-                Sy = e.Y;
-                Ey = e.Y1;
-            }
-        }
-
-        public class GlyphCanvas
-        {
-            public AtlasGlyph Glyph;
-            public byte[] Data;
-            public int Width;
-            public int Height;
-            public int Stride { get; private set; }
-
-            public GlyphCanvas(AtlasGlyph glyph, int width, int height)
-            {
-                Glyph = glyph;
-                Data = new byte[width * height];
-                Width = width;
-                Height = height;
-                Stride = Width;
-            }
-        }
-
-        public static void RenderGlyph(GlyphCanvas canvas, FontGlyph glyph, float scale, bool invertY = true)
+        public static void RenderGlyph(Font font, StbGlyphCanvas canvas, DrawableGlyph glyph, float scale, bool invertY = false)
         {
             if (scale == 0f) return;
             if (canvas.Width == 0 || canvas.Height == 0) return;
 
             const float flatnessInPixels = 0.35f;
-            Vector2[] windings = FlattenCurves(glyph.Commands, flatnessInPixels / scale, out int[] contourLengths);
+            Vector2[]? windings = FlattenCurves(glyph.FontGlyph.Commands, flatnessInPixels / scale, out int[]? contourLengths);
 
-            if (windings == null) return;
+            if (windings == null || contourLengths == null) return;
 
             float scaleX = scale;
             float scaleY = scale;
             if (invertY) scaleY = -scaleY;
             int n = contourLengths.Sum();
 
-            var e = new GlyphEdge[n + 1];
+            var e = new StbRendererGlyphEdge[n + 1];
 
             n = 0;
             var wOffset = 0;
@@ -204,16 +65,16 @@ namespace Emotion.Graphics.Text
 
             Array.Resize(ref e, n + 1); // todo
 
-            QuickSortEdges(new Span<GlyphEdge>(e), n);
+            QuickSortEdges(new Span<StbRendererGlyphEdge>(e), n);
 
             // Insert Sort
             for (var i = 1; i < n; i++)
             {
-                GlyphEdge t = e[i];
+                StbRendererGlyphEdge t = e[i];
                 int j = i;
                 while (j > 0)
                 {
-                    ref GlyphEdge b = ref e[j - 1];
+                    ref StbRendererGlyphEdge b = ref e[j - 1];
                     if (!(t.Y < b.Y))
                         break;
                     e[j] = e[j - 1];
@@ -224,8 +85,8 @@ namespace Emotion.Graphics.Text
                     e[j] = t;
             }
 
-            Rectangle bbox = glyph.GetBBox(scale);
-            ActiveEdge active = null;
+            var bbox = new Rectangle(glyph.XBearing, font.Descender * scale, canvas.Width, canvas.Height);
+            StbRendererActiveEdge? active = null;
             {
                 Span<float> scanlineData = new float[129];
                 Span<float> scanline = canvas.Width > 64 ? new float[canvas.Width * 2 + 1] : scanlineData;
@@ -249,11 +110,11 @@ namespace Emotion.Graphics.Text
                         scanline[i] = 0;
                     }
 
-                    ActiveEdge step = active;
+                    StbRendererActiveEdge? step = active;
 
                     while (step != null)
                     {
-                        ActiveEdge z = step;
+                        StbRendererActiveEdge z = step;
                         if (z.Ey <= scanYTop)
                         {
                             step = z.Next;
@@ -269,7 +130,7 @@ namespace Emotion.Graphics.Text
                     {
                         if (e[edgeIndex].Y != e[edgeIndex].Y1)
                         {
-                            var z = new ActiveEdge(e[edgeIndex], (int) bbox.X, scanYTop);
+                            var z = new StbRendererActiveEdge(e[edgeIndex], (int) bbox.X, scanYTop);
                             if (j == 0 && bbox.Y != 0)
                                 if (z.Ey < scanYTop)
                                     z.Ey = scanYTop;
@@ -303,7 +164,7 @@ namespace Emotion.Graphics.Text
                     step = active;
                     while (step != null)
                     {
-                        ActiveEdge z = step;
+                        StbRendererActiveEdge z = step;
                         z.Fx += z.Fdx;
                         step = step.Next;
                     }
@@ -314,8 +175,7 @@ namespace Emotion.Graphics.Text
             }
         }
 
-        public static void HandleClippedEdge(Span<float> scanline, int x, ActiveEdge e, float x0, float y0,
-            float x1, float y1)
+        public static void HandleClippedEdge(Span<float> scanline, int x, StbRendererActiveEdge e, float x0, float y0, float x1, float y1)
         {
             if (y0 == y1)
                 return;
@@ -361,7 +221,7 @@ namespace Emotion.Graphics.Text
             }
         }
 
-        private static void FillActiveEdge(Span<float> scanline, Span<float> scanlineFill, int length, ActiveEdge e, float yTop)
+        private static void FillActiveEdge(Span<float> scanline, Span<float> scanlineFill, int length, StbRendererActiveEdge e, float yTop)
         {
             float yBottom = yTop + 1;
             while (e != null)
@@ -533,11 +393,11 @@ namespace Emotion.Graphics.Text
             }
         }
 
-        private static void QuickSortEdges(Span<GlyphEdge> p, int n)
+        private static void QuickSortEdges(Span<StbRendererGlyphEdge> p, int n)
         {
             while (n > 12)
             {
-                GlyphEdge t;
+                StbRendererGlyphEdge t;
                 int m = n >> 1;
                 bool c01 = p[0].Y < p[m].Y;
                 bool c12 = p[m].Y < p[n - 1].Y;
@@ -596,7 +456,7 @@ namespace Emotion.Graphics.Text
             }
         }
 
-        private static Vector2[] FlattenCurves(GlyphDrawCommand[] commands, float flatness, out int[] contourLengthsOut)
+        private static Vector2[]? FlattenCurves(GlyphDrawCommand[]? commands, float flatness, out int[]? contourLengthsOut)
         {
             contourLengthsOut = null;
 

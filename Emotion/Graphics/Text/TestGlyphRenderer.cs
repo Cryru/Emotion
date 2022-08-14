@@ -47,7 +47,7 @@ namespace Emotion.Graphics.Text
             public float SpaceAdvance;
         }
 
-        public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 2048, int sdfDist = 64, int glyphSize = 512)
+        public static void GenerateSdf(Font font, List<AtlasGlyph> glyphsToAdd, int atlasSize = 2048, int sdfDist = 32, int glyphSize = 256)
         {
             // pen
             float penX = 0;

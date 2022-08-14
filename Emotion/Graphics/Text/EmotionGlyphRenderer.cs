@@ -81,7 +81,7 @@ namespace Emotion.Graphics.Text
             InitEmotionRenderer();
 
             bool justCreated = state == null;
-            state = CommonGlyphRenderer.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize, 2);
+            state = CommonGlyphRendererHelpers.PrepareGlyphRenderer(atlas, state, glyphsToAdd, out Rectangle[] intermediateAtlasUVs, out Vector2 intermediateAtlasSize, 2);
 
             // Prepare for rendering.
             if (_intermediateBufferNonSdf == null)
@@ -206,7 +206,7 @@ namespace Emotion.Graphics.Text
 
             bool justCreated = refAtlas.GlyphRendererState == null;
             GlyphRendererState state =
-                CommonGlyphRenderer.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2, true);
+                CommonGlyphRendererHelpers.PrepareGlyphRenderer(refAtlas, refAtlas.GlyphRendererState, refGlyphsToRender, out Rectangle[] _, out Vector2 _, SdfAtlasGlyphSpacing.X + 2, true);
             refAtlas.GlyphRendererState = state;
             if (justCreated) state.AtlasBuffer.Texture.Smooth = true;
 
@@ -337,6 +337,8 @@ namespace Emotion.Graphics.Text
 
         private static DrawableFontAtlas PollSDFCache(DrawableFontAtlas reqAtlas)
         {
+            return null;
+
             var cachedName = $"Player/SDFCache/{reqAtlas.Font.FullName}-{reqAtlas.RenderedWith}";
             var cachedRenderName = $"{cachedName}_R8.png";
             var cachedMetaName = $"{cachedName}.xml";
