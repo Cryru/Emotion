@@ -52,7 +52,6 @@ namespace Emotion.Game.Text
                 }
 
                 drawPosition = result;
-                drawPosition.Y += _atlas.Ascent - _atlas.LineGap;
                 drawPosition.X += g.XBearing;
             }
 
@@ -146,7 +145,7 @@ namespace Emotion.Game.Text
                 if (g == null) continue;
 
                 sizeSoFar.X += g.XAdvance;
-                float verticalSize = g.Height;
+                float verticalSize = _atlas.Ascent - g.Height;
                 if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
             }
 

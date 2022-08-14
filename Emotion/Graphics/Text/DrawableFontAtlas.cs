@@ -43,14 +43,19 @@ namespace Emotion.Graphics.Text
 
         /// <summary>
         /// The space between new lines, from baseline to baseline.
+        /// Is the combination of the ascent and descent.
         /// </summary>
         public float LineGap { get; init; }
 
         /// <summary>
         /// The distance from the baseline to the highest glyph ascent. Is positive because Y is up in glyph metrics.
-        /// Used as a font height metric.
         /// </summary>
         public float Ascent;
+
+        /// <summary>
+        /// The distance from the baseline to the lowest glyph descent.
+        /// </summary>
+        public float Descent;
 
         public Dictionary<char, DrawableGlyph> Glyphs { get; init; } = new Dictionary<char, DrawableGlyph>();
 
@@ -77,6 +82,7 @@ namespace Emotion.Graphics.Text
             // The scale to render at.
             float scale = FontSize / Font.UnitsPerEm;
             Ascent = font.Ascender * scale;
+            Descent = font.Descender * scale;
             LineGap = font.Height * scale;
             RenderScale = scale;
         }
