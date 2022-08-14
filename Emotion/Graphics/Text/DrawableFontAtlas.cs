@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
-using Emotion.Graphics.Shading;
+using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
@@ -16,132 +14,50 @@ using Emotion.Utility;
 
 namespace Emotion.Graphics.Text
 {
-    public enum GlyphRasterizer
-    {
-        /// <summary>
-        /// A custom GPU-based rasterizer built for the engine. Still not mature enough to be the default.
-        /// Slow and ugliest.
-        /// </summary>
-        Emotion,
-
-        /// <summary>
-        /// A custom GPU-based rasterizer that requires a custom shader when drawing glyphs.
-        /// First a very high resolution atlas is rendered using the Emotion rasterizer and
-        /// a signed distance field generating algorithm is ran over it. This is cached to a file (if an asset store is loaded).
-        /// Then the atlas is used for all font sizes and read from using the SDF shader to provide crisp text at any size.
-        /// Best looking, but very slow to render. Writes caches images to reduce subsequent loading but if you are using an atlas
-        /// at only one font size, loading the image isn't very fast either.
-        /// Can reuse atlas images for various font sizes, reducing memory usage overall.
-        /// </summary>
-        EmotionSDFVer3,
-
-        /// <summary>
-        /// A custom GPU-based rasterizer that requires a custom shader when drawing glyphs.
-        /// An SDF texture is created on the GPU using a reference font size and cached to a file.
-        /// Generation of this texture doesn't take long.
-        /// Best looking at all font sizes, and not slow for runtime.
-        /// Can reuse atlas images for various font sizes, reducing memory usage overall.
-        /// </summary>
-        EmotionSDFVer4,
-
-        /// <summary>
-        /// Mature software rasterizer.
-        /// Default.
-        /// </summary>
-        StbTrueType,
-
-        /// <summary>
-        /// Advanced sdf based renderer on Anton Stiopin's work.
-        /// </summary>
-        Astiopin
-    }
-
-    /// <summary>
-    /// An uploaded to the GPU font atlas.
-    /// </summary>
     public class DrawableFontAtlas : IDisposable
     {
-        public Font Font;
+        /// <summary>
+        /// The OpenType font this atlas was generated from.
+        /// </summary>
+        public Font Font { get; init; }
 
         /// <summary>
-        /// The font size the atlas was rasterized at.
+        /// The texture atlas.
         /// </summary>
-        public float FontSize { get; protected set; }
+        public virtual Texture Texture { get; }
 
         /// <summary>
-        /// The rasterized used to produce this atlas.
+        /// The px size of the font.
         /// </summary>
-        public GlyphRasterizer RenderedWith { get; protected set; }
+        public float FontSize { get; init; }
 
         /// <summary>
-        /// Font shader to use.
+        /// Whether this font is supposed to be drawn pixel perfect.
         /// </summary>
-        public ShaderProgram FontShader { get; set; }
+        public bool PixelFont { get; init; }
 
         /// <summary>
-        /// The scale of the glyphs in the atlas relative to the ones stored in the file.
+        /// The scale multiplier for glyph metrics for this font's size.
         /// </summary>
-        public float RenderScale { get; set; }
+        public float RenderScale;
 
         /// <summary>
-        /// Padding around the glyph render position to render with.
-        /// The SDF atlas glyphs require this as the distance gets clipped by the glyph
-        /// bounding box too fast otherwise.
+        /// The space between new lines, from baseline to baseline.
         /// </summary>
-        public Vector2 GlyphDrawPadding { get; set; }
+        public float LineGap { get; init; }
 
         /// <summary>
-        /// The number of pixels the sdf information is encoded in.
-        /// This is the spread * reference scale.
-        /// Only set if the atlas was rendered with Emotion SDF
+        /// The distance from the baseline to the highest glyph ascent. Is positive because Y is up in glyph metrics.
+        /// Used as a font height metric.
         /// </summary>
-        public float SdfSize { get; set; }
+        public float Ascent;
 
-        /// <summary>
-        /// The atlas texture.
-        /// </summary>
-        public Texture Texture { get; protected set; }
+        public Dictionary<char, DrawableGlyph> Glyphs { get; init; } = new Dictionary<char, DrawableGlyph>();
 
-        /// <summary>
-        /// A list of all glyphs, indexed by the character they represent.
-        /// </summary>
-        public Dictionary<char, AtlasGlyph> Glyphs { get; } = new Dictionary<char, AtlasGlyph>();
-
-        /// <summary>
-        /// List of all unique drawable atlas glyphs.
-        /// </summary>
-        public List<AtlasGlyph> DrawableAtlasGlyphs { get; } = new List<AtlasGlyph>();
-
-        /// <summary>
-        /// The objects used by the glyph renderer to render and add glyphs to the atlas.
-        /// </summary>
-        public GlyphRendererState GlyphRendererState { get; set; }
-
-        /// <summary>
-        /// The font's height scaled.
-        /// Is used as the distance between lines and is regarded as the safe space.
-        /// </summary>
-        public float FontHeight { get; set; }
-
-        private bool _smooth;
-
-        /// <summary>
-        /// Upload a font atlas texture to the gpu. Also holds a reference to the atlas itself
-        /// for its metadata.
-        /// </summary>
-        /// <param name="font">The font to generate an atlas from.</param>
-        /// <param name="fontSize">The size to scale glyphs to. This is relative to the font height.</param>
-        /// <param name="smooth">Whether to smoothen the atlas texture.</param>
-        /// <param name="pixelFont">
-        /// If the font should be rendered pixel perfect. If set to true the font size passed is
-        /// overwritten with the closest pixel accurate one.
-        /// </param>
-        public DrawableFontAtlas(Font font, float fontSize, bool smooth = true, bool pixelFont = false)
+        public DrawableFontAtlas(Font font, float fontSize, bool pixelFont = false)
         {
             Font = font;
             FontSize = fontSize;
-            _smooth = smooth;
-
             if (pixelFont)
             {
                 // Scale to closest power of two.
@@ -151,152 +67,63 @@ namespace Emotion.Graphics.Text
                 FontSize = fontHeight / scaleFactorP2;
             }
 
-            // Set temporary texture so the atlas doesn't crash anything.
-            Texture = Texture.EmptyWhiteTexture;
-
             // Convert from Emotion font size (legacy) to real font size.
-            if (Engine.Configuration.UseEmotionFontSize && Rasterizer != GlyphRasterizer.Astiopin)
+            if (Engine.Configuration.UseEmotionFontSize)
             {
-                //float diff = (float) Font.UnitsPerEm / Font.Height;
-                //FontSize = MathF.Round(FontSize * diff);
+                float diff = Font.UnitsPerEm / Font.Height;
+                FontSize = MathF.Round(FontSize * diff);
             }
 
             // The scale to render at.
             float scale = FontSize / Font.UnitsPerEm;
-            FontHeight = MathF.Ceiling(Font.Height * scale);
+            Ascent = font.Ascender * scale;
+            LineGap = font.Height * scale;
             RenderScale = scale;
-            RenderedWith = pixelFont ? GlyphRasterizer.StbTrueType : Rasterizer;
         }
 
-        // Serialization constructor (for debugging)
-        protected DrawableFontAtlas()
+        #region Internal API
+
+        protected virtual void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
         {
         }
 
-        /// <summary>
-        /// Adds all missing characters from the provided string to the font atlas.
-        /// This includes their metrics as well as rendering them (async).
-        /// </summary>
-        /// <param name="text">The text whose characters to add.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CacheGlyphs(string text)
+        #endregion
+
+        public virtual void CacheGlyphs(string text)
         {
-            List<AtlasGlyph> renderGlyphs = null;
+            List<DrawableGlyph> renderGlyphs = null;
             for (var i = 0; i < text.Length; i++)
             {
                 char ch = text[i];
                 if (Glyphs.ContainsKey(ch) || !Font.CharToGlyph.TryGetValue(ch, out FontGlyph fontG)) continue;
 
-                AtlasGlyph atlasGlyph;
-                if (RenderedWith == GlyphRasterizer.EmotionSDFVer3)
-                    atlasGlyph = AtlasGlyph.CreateFloatScale(fontG, RenderScale, Font.Ascender);
-                else
-                    atlasGlyph = AtlasGlyph.CreateIntScale(fontG, RenderScale, Font.Ascender);
-
+                DrawableGlyph atlasGlyph = new DrawableGlyph(ch, fontG, RenderScale);
                 Glyphs.Add(ch, atlasGlyph);
 
-                if (!(atlasGlyph.Size.X > 0) || !(atlasGlyph.Size.Y > 0) || fontG.Commands == null || fontG.Commands.Length <= 0) continue;
-                DrawableAtlasGlyphs.Add(atlasGlyph);
+                if (atlasGlyph.Width == 0 || atlasGlyph.Height == 0 || fontG.Commands == null || fontG.Commands.Length == 0) continue;
 
-                renderGlyphs ??= new List<AtlasGlyph>();
+                renderGlyphs ??= new List<DrawableGlyph>();
                 renderGlyphs.Add(atlasGlyph);
             }
 
-            if (renderGlyphs != null) GLThread.ExecuteOnGLThreadAsync(QueueGlyphRender, renderGlyphs);
+            if (renderGlyphs != null) GLThread.ExecuteOnGLThreadAsync(AddGlyphsToAtlas, renderGlyphs);
         }
 
-        /// <summary>
-        /// This prevents CacheGlyphs from being called which contains a closure that will
-        /// create an anonymous class, potentially in a hot path.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool AnyUncachedGlyphs(string text)
+        public virtual void SetupDrawing(RenderComposer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
-            for (var i = 0; i < text.Length; i++)
-            {
-                char ch = text[i];
-                if (Glyphs.ContainsKey(ch) || !Font.CharToGlyph.ContainsKey(ch)) continue;
-                return true;
-            }
-
-            return false;
+            CacheGlyphs(text);
         }
 
-        public GlyphRendererState Test;
-
-        private void QueueGlyphRender(List<AtlasGlyph> glyphs)
+        public virtual void DrawGlyph(RenderComposer c, DrawableGlyph g, Vector3 pos, Color color)
         {
-            Debug.Assert(GLThread.IsGLThread());
-            bool justCreated = GlyphRendererState == null;
-            switch (RenderedWith)
-            {
-                case GlyphRasterizer.Emotion:
-                    GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
-                    break;
-                case GlyphRasterizer.EmotionSDFVer3:
-                    GlyphRendererState = EmotionGlyphRenderer.AddGlyphsToAtlasSDF(this, GlyphRendererState, glyphs);
-                    break;
-                case GlyphRasterizer.StbTrueType:
-                    GlyphRendererState = StbGlyphRenderer.AddGlyphsToAtlas(this, GlyphRendererState, glyphs);
-                    break;
-                case GlyphRasterizer.Astiopin:
-                    Test = TestGlyphRenderer.AddGlyphsToAtlas(this, Test, glyphs);
-                    // todo
-                    break;
-            }
-
-            if (justCreated && GlyphRendererState != null)
-            {
-                Texture = GlyphRendererState.AtlasBuffer.ColorAttachment;
-                Texture.Smooth = _smooth;
-            }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetupDrawing(RenderComposer c, string text)
+        public virtual void FinishDrawing(RenderComposer c)
         {
-            // Ensure we have all glyphs needed for the text.
-            if (AnyUncachedGlyphs(text)) CacheGlyphs(text);
-
-            // Set shader.
-            if (FontShader != null)
-            {
-                c.SetShader(FontShader);
-                FontShader.SetUniformFloat("scaleFactor", SdfSize * 2f);
-            }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void FinishDrawing(RenderComposer c)
+        public virtual void Dispose()
         {
-            if (FontShader != null) c.SetShader();
         }
-
-        /// <summary>
-        /// Clear resources.
-        /// </summary>
-        public void Dispose()
-        {
-            if (GlyphRendererState == null) return;
-
-            GlyphRendererState.AtlasBuffer.Dispose();
-            GlyphRendererState = null;
-            Texture = null;
-            Font = null;
-        }
-
-        /// <summary>
-        /// The default rasterizer.
-        /// </summary>
-#if WEB
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Astiopin;
-#else
-        public static GlyphRasterizer DefaultRasterizer { get; } = GlyphRasterizer.Astiopin;
-#endif
-
-        /// <summary>
-        /// The rasterizer to use for generating atlases.
-        /// </summary>
-        public static GlyphRasterizer Rasterizer = DefaultRasterizer;
     }
 }

@@ -7,30 +7,45 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Game;
 using Emotion.Graphics.Objects;
+using Emotion.IO;
 using Emotion.Primitives;
+using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType;
-using Emotion.Utility;
 using OpenGL;
 
 #endregion
 
 #nullable enable
 
-namespace Emotion.Graphics.Text.StbRenderer
+namespace Emotion.Graphics.Text.EmotionRenderer
 {
-    public class StbDrawableFont : DrawableFont
+    public class EmotionRendererDrawableFontAtlas : DrawableFontAtlas
     {
-        private static RenderState? _glyphRenderState;
-        private FrameBuffer? _intermediateBuffer;
         private FrameBuffer? _atlasBuffer;
         private Binning.BinningResumableState? _bin;
 
-        public StbDrawableFont(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
+        /// <inheritdoc />
+        public override Texture Texture
+        {
+            get => _atlasBuffer?.ColorAttachment ?? Texture.NoTexture;
+        }
+
+        public EmotionRendererDrawableFontAtlas(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
         {
         }
 
-        protected override void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
+        private static bool _rendererInit;
+        private static bool _rendererInitError;
+        private static ShaderAsset? _noDiscardShader;
+        private static ShaderAsset? _windingAaShader;
+
+        private static RenderState? _glyphRenderState;
+        private static FrameBuffer? _intermediateBuffer;
+
+        private static void InitializeRenderer()
         {
+            if (_rendererInit) return;
+
             if (_glyphRenderState == null)
             {
                 _glyphRenderState = RenderState.Default.Clone();
@@ -40,6 +55,22 @@ namespace Emotion.Graphics.Text.StbRenderer
                 _glyphRenderState.SFactorA = BlendingFactor.One;
                 _glyphRenderState.DFactorA = BlendingFactor.One;
             }
+
+            _noDiscardShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
+            _windingAaShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/WindingAA.xml");
+            if (_noDiscardShader == null || _windingAaShader == null)
+            {
+                Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.Renderer);
+                _rendererInitError = true;
+            }
+
+            _rendererInit = true;
+        }
+
+        protected override void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
+        {
+            InitializeRenderer();
+            if (_rendererInitError) return;
 
             const int glyphSpacing = 2;
 
@@ -80,7 +111,6 @@ namespace Emotion.Graphics.Text.StbRenderer
 
             Vector2? intermediateAtlasSize = Binning.FitRectangles(intermediateAtlasUVs);
             Debug.Assert(intermediateAtlasSize != null);
-            Vector2 intermediateSize = intermediateAtlasSize.Value;
             for (var i = 0; i < intermediateAtlasUVs.Length; i++)
             {
                 intermediateAtlasUVs[i].Size -= new Vector2(glyphSpacing * 2);
@@ -92,58 +122,52 @@ namespace Emotion.Graphics.Text.StbRenderer
             else
                 _intermediateBuffer.Resize(intermediateAtlasSize.Value, true);
 
-            // Bin them for the stb rasterization atlas.
-            var stbAtlasData = new byte[(int) intermediateSize.X * (int) intermediateSize.Y];
-            var stride = (int) intermediateSize.X;
-            float scale = RenderScale;
-            for (var i = 0; i < glyphsToAdd.Count; i++)
+            RenderComposer composer = Engine.Renderer;
+            RenderState prevState = composer.CurrentState.Clone();
+            composer.PushModelMatrix(Matrix4x4.Identity, false);
+
+            // Render glyphs to the intermediate buffer.
+            composer.SetState(_glyphRenderState);
+            composer.RenderToAndClear(_intermediateBuffer);
+            composer.SetShader(_noDiscardShader!.Shader);
+            var colors = new[]
             {
-                DrawableGlyph atlasGlyph = glyphsToAdd[i];
-
-                var canvas = new StbGlyphCanvas((int) MathF.Ceiling(atlasGlyph.Width) + 1, (int) (FontSize + 1));
-                StbGlyphRendererBackend.RenderGlyph(Font, canvas, atlasGlyph, scale);
-
-                // Remove canvas padding.
-                canvas.Width--;
-                canvas.Height--;
-
-                // Copy pixels and record the location of the glyph.
-                Vector2 uvLoc = intermediateAtlasUVs[i].Position;
-                var uvX = (int) uvLoc.X;
-                var uvY = (int) uvLoc.Y;
-
-                for (var row = 0; row < canvas.Height; row++)
-                {
-                    for (var col = 0; col < canvas.Width; col++)
-                    {
-                        int x = uvX + col;
-                        int y = uvY + row;
-                        stbAtlasData[y * stride + x] = canvas.Data[row * canvas.Stride + col];
-                    }
-                }
+                new Color(1, 0, 0, 0),
+                new Color(0, 1, 0, 0),
+                new Color(0, 0, 1, 0),
+                new Color(0, 0, 0, 1),
+            };
+            var offsets = new[]
+            {
+                new Vector3(-0.30f, 0, 0),
+                new Vector3(0.30f, 0, 0),
+                new Vector3(0.0f, -0.30f, 0),
+                new Vector3(0.0f, 0.30f, 0),
+            };
+            for (var p = 0; p < 4; p++)
+            {
+                uint clr = colors[p].ToUint();
+                Vector3 offset = offsets[p];
+                EmotionGlyphRendererBackend.RenderGlyphs(Font, composer, glyphsToAdd, offset, clr, RenderScale, intermediateAtlasUVs);
             }
 
-            // Upload to GPU.
-            byte[] rgbaData = ImageUtil.AToRgba(stbAtlasData);
-            var tempGlyphTexture = new Texture();
-            tempGlyphTexture.Upload(intermediateSize, rgbaData, PixelFormat.Rgba, InternalFormat.Rgba, PixelType.UnsignedByte);
+            composer.RenderTargetPop();
 
-            // Render to big atlas.
-            RenderComposer composer = Engine.Renderer;
-            RenderState previousRenderState = composer.CurrentState.Clone();
-            composer.PushModelMatrix(Matrix4x4.Identity, false);
-            composer.SetState(_glyphRenderState);
+            // Copy to atlas buffer, while unwinding.
             composer.RenderTo(_atlasBuffer);
             if (justCreated) composer.ClearFrameBuffer();
+            composer.SetAlphaBlend(false);
+            composer.SetShader(_windingAaShader!.Shader);
+            _windingAaShader.Shader.SetUniformVector2("drawSize", _intermediateBuffer.AllocatedSize);
 
-            float bufferHeight = _atlasBuffer.Size.Y;
+            float bufferHeight = _atlasBuffer.AllocatedSize.Y;
             composer.PushModelMatrix(Matrix4x4.CreateScale(1, -1, 1) * Matrix4x4.CreateTranslation(0, bufferHeight, 0));
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 DrawableGlyph atlasGlyph = glyphsToAdd[i];
                 Rectangle placeWithinIntermediateAtlas = intermediateAtlasUVs[i];
                 Debug.Assert(atlasGlyph.GlyphUV.Size == placeWithinIntermediateAtlas.Size);
-                composer.RenderSprite(atlasGlyph.GlyphUV.Position.ToVec3(), atlasGlyph.GlyphUV.Size, tempGlyphTexture, placeWithinIntermediateAtlas);
+                composer.RenderSprite(atlasGlyph.GlyphUV.PositionZ(0), atlasGlyph.GlyphUV.Size, _intermediateBuffer.ColorAttachment, placeWithinIntermediateAtlas);
             }
 
             composer.PopModelMatrix();
@@ -154,12 +178,10 @@ namespace Emotion.Graphics.Text.StbRenderer
                 glyph.GlyphUV.Location = new Vector2(glyph.GlyphUV.X, bufferHeight - glyph.GlyphUV.Bottom);
             }
 
+            composer.SetShader();
             composer.RenderTo(null);
             composer.PopModelMatrix();
-            composer.SetState(previousRenderState);
-            tempGlyphTexture.Dispose();
-
-            base.AddGlyphsToAtlas(glyphsToAdd);
+            composer.SetState(prevState);
         }
 
         public override void DrawGlyph(RenderComposer c, DrawableGlyph g, Vector3 pos, Color color)

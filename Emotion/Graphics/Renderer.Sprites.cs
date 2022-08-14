@@ -199,48 +199,32 @@ namespace Emotion.Graphics
             RenderLine(pp, np, color, thickness, snapToPixel, RenderLineMode.Inward);
             RenderLine(np, nn, color, thickness, snapToPixel, RenderLineMode.Inward);
         }
-
         /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float, bool)" />
         public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
         {
             RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
         }
 
-        private void RenderStringInner(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
-        {
-            Vector2 drawPadding = atlas.GlyphDrawPadding;
-            Vector2 drawPaddingT2 = drawPadding * 2;
-            var drawPadding3 = new Vector3(drawPadding.X, drawPadding.Y, 0);
-
-            Vector2 pen = Vector2.Zero;
-            foreach (char c in text)
-            {
-                //Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
-                //if (g == null || g.UVSize == Vector2.Zero) continue;
-                atlas.Glyphs.TryGetValue(c, out AtlasGlyph g);
-
-                Vector2 gPos = pen;
-                gPos.X += g.XMin;
-                gPos.Y += g.YBearing;
-                //gPos.X = MathF.Ceiling(gPos.X);
-
-                var uv = new Rectangle(g.UVLocation, g.UVSize);
-
-                //color = Color.White;
-                //RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, Color.Black);
-                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z) - drawPadding3, g.Size + drawPaddingT2, color, atlas.Texture, uv);
-
-                pen.X += g.Advance;
-            }
-        }
-
-        public void RenderText(Vector3 position, Color color, string text, DrawableFont atlas, TextLayouter layouter = null)
+        /// <summary>
+        /// Render a string from an atlas.
+        /// </summary>
+        /// <param name="position">The top left position of where to start drawing the string.</param>
+        /// <param name="color">The text color.</param>
+        /// <param name="text">The text itself.</param>
+        /// <param name="atlas">The font atlas to use.</param>
+        /// <param name="layouter">The layouter to use.</param>
+        /// <param name="effect">Effect to apply</param>
+        /// <param name="effectAmount">The effect amount.</param>
+        /// <param name="effectColor">The effect color.</param>
+        public void RenderString(
+            Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter = null,
+            FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
             layouter ??= new TextLayouter(atlas);
 
-            atlas.SetupDrawing(this, text);
+            atlas.SetupDrawing(this, text, effect, effectAmount, effectColor);
 
-            Vector3 reUsableVector = new Vector3();
+            var reUsableVector = new Vector3();
             foreach (char c in text)
             {
                 Vector2 gPos = layouter.AddLetter(c, out DrawableGlyph g);
@@ -254,200 +238,5 @@ namespace Emotion.Graphics
             atlas.FinishDrawing(this);
         }
 
-        /// <summary>
-        /// Render a string from an atlas.
-        /// </summary>
-        /// <param name="position">The top left position of where to start drawing the string.</param>
-        /// <param name="color">The text color.</param>
-        /// <param name="text">The text itself.</param>
-        /// <param name="atlas">The font atlas to use.</param>
-        /// <param name="layouter">The layouter to use.</param>
-        public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter = null)
-        {
-            if (atlas?.Glyphs == null) return;
-            layouter ??= new TextLayouter(atlas);
-
-            atlas.SetupDrawing(this, text);
-            RenderStringInner(position, color, text, atlas, layouter);
-            atlas.FinishDrawing(this);
-        }
-
-        private static ShaderAsset _sdfShader;
-        private static ShaderAsset _sdfShaderSubPixel;
-
-        public void RenderStringTest(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter = null)
-        {
-            if (atlas.RenderedWith != GlyphRasterizer.Astiopin)
-            {
-                RenderString(position, color, text, atlas, layouter);
-                return;
-            }
-            
-
-            if (atlas?.Glyphs == null) return;
-            layouter ??= new TextLayouter(atlas);
-
-            var useSubpixelHinting = false;
-#if WEB
-            useSubpixelHinting = false;
-#endif
-            _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/AstiopinSDF.xml");
-            ShaderProgram shaderProg = _sdfShader.Shader;
-            if (useSubpixelHinting)
-            {
-                _sdfShaderSubPixel ??= _sdfShader.GetShaderVariation("SUBPIXEL_HINTING");
-                shaderProg = _sdfShaderSubPixel.Shader;
-            }
-
-            var sdf = TestGlyphRenderer.LastProducedSdf;
-            var metrics = TestGlyphRenderer.LastProducedMetrics;
-
-            float fontSize = atlas.FontSize;
-            float desiredTotalScale = fontSize / atlas.Font.UnitsPerEm;
-            float scaleDiffCap = metrics.CapHeight / desiredTotalScale;
-            float scaleDiffLow = metrics.CapHeight / desiredTotalScale;
-
-            // We use separate scale for the low case characters
-            // so that x-height fits the pixel grid.
-            // Other characters use cap-height to fit to the pixels
-            float capScale = fontSize / metrics.CapHeight;
-            float lowScale = MathF.Round(capScale / metrics.CapHeight) * metrics.CapHeight;
-
-            // Ascent should be a whole number since it's used to calculate the baseline
-            // position which should lie at the pixel boundary
-            // This also applies to the line height.
-            float ascent = MathF.Round(metrics.Ascent * capScale);
-            float extraLineGap = fontSize * 0.2f;
-            float lineHeight = MathF.Round(capScale * (metrics.Ascent + metrics.Descent + metrics.LineGap) + extraLineGap);
-
-            SetShader(shaderProg);
-            shaderProg.SetUniformVector2("sdf_tex_size", sdf.Size);
-            shaderProg.SetUniformFloat("sdf_border_size", metrics.Y);
-            shaderProg.SetUniformFloat("vertexZ", position.Z);
-
-            if (useSubpixelHinting)
-                SetAlphaBlendType(BlendingFactor.Src1Color, BlendingFactor.OneMinusSrcColor, BlendingFactor.Src1Alpha, BlendingFactor.OneMinusSrcAlpha);
-
-            float widthUsed = 0;
-            Vector2 pen = position.ToVec2();
-            for (var i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-
-                if (c == '\n')
-                {
-                    if (pen.X > widthUsed) widthUsed = pen.X;
-                    pen.X = position.X;
-                    pen.Y -= lineHeight;
-                    continue;
-                }
-
-                if (c == ' ')
-                {
-                    pen.X += metrics.Aspect * metrics.SpaceAdvance * capScale;
-                    continue;
-                }
-
-                if (atlas.Glyphs.TryGetValue(c, out AtlasGlyph glyph))
-                {
-                    bool isLowerCase = char.IsLower(c);
-
-                    // Low case chars use their own scale
-                    float scale = isLowerCase ? lowScale : capScale;
-
-                    Span<VertexData> memory = RenderStream.GetStreamMemory(4, BatchMode.Quad, sdf.ColorAttachment);
-
-                    // Pen position is at the top of the line, Y goes up
-                    float top = pen.Y + (ascent + scale * (metrics.Descent + metrics.Y));
-                    float bottom = -(scale * metrics.RowHeight);
-
-                    float left = pen.X + metrics.Aspect * scale * (glyph.LSB - metrics.X);
-                    float right = metrics.Aspect * scale * (glyph.UVSize.X / sdf.Size.X);
-
-                    pen.X += metrics.Aspect * scale * glyph.Advance;
-
-                    VertexData.SpriteToVertexData(memory, new Vector3(left, top, scale), new Vector2(right, bottom), color,
-                        sdf.ColorAttachment, new Rectangle(glyph.UVLocation, glyph.UVSize));
-                }
-            }
-
-            SetShader();
-            SetDefaultAlphaBlendType();
-        }
-
-        private FrameBuffer _outlineFb;
-
-        /// <summary>
-        /// Render a string from an atlas.
-        /// </summary>
-        public void RenderOutlinedString(Vector3 position, Color color, string text, float outlineWidth, Color outlineColor, DrawableFontAtlas atlas, TextLayouter layouter = null)
-        {
-            //if (atlas?.Glyphs == null) return;
-            //layouter ??= new TextLayouter(atlas);
-
-            //// Create effect using fancy SDF effects.
-            //if (atlas.RenderedWith == GlyphRasterizer.EmotionSDFVer3)
-            //{
-            //    float scaleFactor = 0.5f / atlas.SdfSize;
-            //    float outlineWidthInSdf = outlineWidth * scaleFactor;
-            //    if (outlineWidthInSdf < 0.5f) // Exceeding SDF range
-            //    {
-            //        atlas.SetupDrawing(this, text);
-            //        atlas.FontShader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
-            //        atlas.FontShader.SetUniformColor("outlineColor", outlineColor);
-
-            //        RenderStringInner(position, color, text, atlas, layouter);
-
-            //        FlushRenderStream();
-            //        atlas.FontShader.SetUniformFloat("outlineWidthDist", 0.0f);
-            //        atlas.FinishDrawing(this);
-            //        return;
-            //    }
-            //}
-
-            //// Hack the effect with an extra allocated framebuffer.
-            //Vector2 drawPadding = atlas.GlyphDrawPadding;
-            //Vector2 drawPaddingT2 = drawPadding * 2;
-            //Vector2 stringSize = Vector2.Zero;
-            //foreach (char c in text)
-            //{
-            //    Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
-            //    if (g == null || g.UVSize == Vector2.Zero) continue;
-            //    stringSize = Vector2.Max(stringSize, new Vector2(gPos.X + g.Size.X + drawPaddingT2.X + outlineWidth * 2, gPos.Y + g.Size.Y + drawPaddingT2.Y + outlineWidth * 2));
-            //}
-
-            //if (layouter is TextLayouterWrap wrapper) wrapper.RestartPen();
-
-            //// Render the text to the framebuffer.
-            //if (_outlineFb == null)
-            //    _outlineFb = new FrameBuffer(stringSize).WithColor();
-            //else
-            //    _outlineFb.Resize(stringSize, true);
-
-            //var renderOffset = new Vector3(outlineWidth, outlineWidth, 0);
-            //Vector3 finalRenderPos = position - renderOffset;
-
-            //// Draw to the FB unaffected by the current state.
-            //RenderToAndClear(_outlineFb);
-            //PushModelMatrix(Matrix4x4.Identity, false);
-            //bool useViewMatrix = CurrentState.ViewMatrix ?? false;
-            //SetUseViewMatrix(false);
-
-            //RenderString(renderOffset, color, text, atlas, layouter);
-
-            //// Return the state to the user set one.
-            //PopModelMatrix();
-            //RenderTo(null);
-            //if (useViewMatrix) SetUseViewMatrix(true);
-
-            //// Copy with a shader than applies an outline.
-            //var outlineShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/OutlineShader.xml");
-            //if (outlineShader == null) return;
-
-            //SetShader(outlineShader.Shader);
-            //outlineShader.Shader.SetUniformFloat("outlineThickness", outlineWidth);
-            //RenderFrameBuffer(_outlineFb, pos: finalRenderPos, color: outlineColor);
-            //SetShader();
-        }
     }
 }

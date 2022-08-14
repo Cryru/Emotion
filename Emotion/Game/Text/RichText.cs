@@ -71,7 +71,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The font atlas to use when rendering.
         /// </summary>
-        public DrawableFont FontAtlas { get; set; }
+        public DrawableFontAtlas FontAtlas { get; set; }
 
         #endregion
 
@@ -129,7 +129,7 @@ namespace Emotion.Game.Text
         /// <param name="position">The position of the RichText.</param>
         /// <param name="size">The size of the RichText.</param>
         /// <param name="fontAtlas">The font atlas to use.</param>
-        public RichText(Vector3 position, Vector2 size, DrawableFont fontAtlas) : base(position, size)
+        public RichText(Vector3 position, Vector2 size, DrawableFontAtlas fontAtlas) : base(position, size)
         {
             FontAtlas = fontAtlas;
             _layouter = new TextLayouter(fontAtlas);

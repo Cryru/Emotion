@@ -140,13 +140,13 @@ namespace Tests.Classes
                 CompareMetricsWithStb(f, emotionAtlas, stbFont);
 
                 // Compare render metrics.
-                foreach (KeyValuePair<char, AtlasGlyph> g in emotionAtlas.Glyphs)
+                foreach (KeyValuePair<char, DrawableGlyph> g in emotionAtlas.Glyphs)
                 {
-                    AtlasGlyph glyph = packedStbAtlas.Glyphs[g.Key];
-                    Assert.Equal(glyph.Advance, g.Value.Advance);
-                    Assert.Equal(glyph.XMin, g.Value.XMin);
-                    Assert.Equal(glyph.Size, g.Value.Size);
-                    Assert.Equal(glyph.YBearing, g.Value.YBearing);
+                    DrawableGlyph glyph = packedStbAtlas.Glyphs[g.Key];
+                    Assert.Equal(glyph.XAdvance, g.Value.XAdvance);
+                    Assert.Equal(glyph.XBearing, g.Value.XBearing);
+                    Assert.Equal(glyph.Width, g.Value.Width);
+                    Assert.Equal(glyph.Height, g.Value.Height);
                 }
 
                 // Check if there's a verified render.
@@ -216,10 +216,8 @@ namespace Tests.Classes
                 StbTrueType.stbtt_PackEnd(pc);
                 for (var i = 0; i < cd.Length; ++i)
                 {
-                    float yOff = cd[i].yoff;
-                    yOff += MathF.Ceiling(ascent * scaleFactor);
-                    var atlasGlyph = AtlasGlyph.CreateForTest((int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, (int) MathF.Round(yOff), new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0));
-                    atlasGlyph.UVLocation = new Vector2(cd[i].x0, cd[i].y0);
+                    var atlasGlyph = DrawableGlyph.CreateForTest(cd[i].xadvance, cd[i].xoff, cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0);
+                    atlasGlyph.GlyphUV = new Rectangle(cd[i].x0, cd[i].y0, atlasGlyph.Width, atlasGlyph.Height);
                     atlasObj.Glyphs[(char) i] = atlasGlyph;
                 }
             }
@@ -268,7 +266,7 @@ namespace Tests.Classes
                 }
             }
 
-            foreach ((char charIndex, AtlasGlyph atlasGlyph) in atlas.Glyphs)
+            foreach ((char charIndex, DrawableGlyph atlasGlyph) in atlas.Glyphs)
             {
                 FontGlyph glyph = atlasGlyph.FontGlyph;
 

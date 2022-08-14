@@ -85,7 +85,7 @@ namespace Emotion.Graphics.Text.StbRenderer
                     e[j] = t;
             }
 
-            var bbox = new Rectangle(glyph.XBearing, font.Descender * scale, canvas.Width, canvas.Height);
+            var bbox = new Rectangle(glyph.XBearing, MathF.Floor(font.Descender * scale), canvas.Width, canvas.Height);
             StbRendererActiveEdge? active = null;
             {
                 Span<float> scanlineData = new float[129];

@@ -47,7 +47,7 @@ namespace Emotion.Game.Text
         /// <param name="position">The position of the RichText.</param>
         /// <param name="size">The size of the RichText.</param>
         /// <param name="fontAtlas">The font atlas to use.</param>
-        public TypewriterRichText(Vector3 position, Vector2 size, DrawableFont fontAtlas) : base(position, size, fontAtlas)
+        public TypewriterRichText(Vector3 position, Vector2 size, DrawableFontAtlas fontAtlas) : base(position, size, fontAtlas)
         {
         }
 

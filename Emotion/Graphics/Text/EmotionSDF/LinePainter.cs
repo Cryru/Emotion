@@ -8,7 +8,7 @@ using Emotion.Utility;
 
 #nullable enable
 
-namespace Emotion.Graphics.Text.NewRenderer
+namespace Emotion.Graphics.Text.EmotionSDF
 {
     public class LinePainter
     {

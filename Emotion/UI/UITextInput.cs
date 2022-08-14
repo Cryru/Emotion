@@ -71,7 +71,7 @@ namespace Emotion.UI
 
             base.InternalMeasure(space);
 
-            if (!MultiLine) return new Vector2(space.X, _atlas.FontHeight);
+            if (!MultiLine) return new Vector2(space.X, _atlas.Ascent);
             return space;
         }
 
@@ -90,7 +90,7 @@ namespace Emotion.UI
             {
                 Vector2 cursorDrawStart = _layouter.GetPenLocation() + new Vector2(_scaledCursorDistance, 0);
                 var top = new Vector3(X + cursorDrawStart.X, Y + cursorDrawStart.Y, Z);
-                var bottom = new Vector3(X + cursorDrawStart.X, Y + cursorDrawStart.Y + _atlas.FontHeight + _atlas.Font.Descender * _atlas.RenderScale, Z);
+                var bottom = new Vector3(X + cursorDrawStart.X, Y + cursorDrawStart.Y + _atlas.Ascent + _atlas.Font.Descender * _atlas.RenderScale, Z);
 
                 c.RenderLine(top, bottom, _calculatedColor);
             }

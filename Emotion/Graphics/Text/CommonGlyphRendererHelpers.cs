@@ -60,7 +60,7 @@ namespace Emotion.Graphics.Text
             }
 
             // Log requests after the first.
-            Engine.Log.Trace($"Requested rendering of {glyphsToAdd.Count} font glyphs using {atlas.RenderedWith}.", MessageSource.Renderer);
+            //Engine.Log.Trace($"Requested rendering of {glyphsToAdd.Count} font glyphs using {atlas.RenderedWith}.", MessageSource.Renderer);
 
             // Bin new glyphs in the big atlas.
             if (intermediateAtlasUVs == null)
