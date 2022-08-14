@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\Emotion.Tools\Assets\debugFont.otf" Link="Assets\debugFont.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 

@@ -46,7 +46,7 @@ namespace Emotion.Game.Text
             var currentLine = "";
             var breakSkipMode = false;
             int breakSkipModeLimit = -1;
-            float lineHeight = _atlas.LineGap;
+            float lineHeight = _atlas.FontHeight;
             float longestLine = 0;
 
             // Loop through the text.

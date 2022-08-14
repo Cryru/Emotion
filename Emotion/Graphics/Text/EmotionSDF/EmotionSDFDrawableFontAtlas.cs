@@ -91,7 +91,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
                     DrawableGlyph gRef = glyphsMissingReferences[i];
 
                     float glyphWidth = gRef.Width + SdfSize * 2;
-                    float glyphHeight = referenceAtlas.FontSize + SdfSize * 2; // Set to constant size to better align to baseline.
+                    float glyphHeight = referenceAtlas.FontSize - referenceAtlas.Descent + SdfSize * 2; // Set to constant size to better align to baseline.
 
                     binningRects[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
                 }

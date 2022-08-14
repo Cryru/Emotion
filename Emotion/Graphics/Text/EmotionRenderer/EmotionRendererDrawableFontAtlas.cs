@@ -86,9 +86,11 @@ namespace Emotion.Graphics.Text.EmotionRenderer
                 for (var i = 0; i < glyphsToAdd.Count; i++)
                 {
                     DrawableGlyph atlasGlyph = glyphsToAdd[i];
-                    Vector2 glyphRenderSize = new Vector2(MathF.Ceiling(atlasGlyph.Width), FontSize) + new Vector2(glyphSpacing * 2);
-                    binningRects[i] = new Rectangle(0, 0, glyphRenderSize);
-                    intermediateAtlasUVs[i] = new Rectangle(0, 0, glyphRenderSize);
+
+                    float glyphWidth = MathF.Ceiling(atlasGlyph.Width) + glyphSpacing * 2;
+                    float glyphHeight = FontSize - Descent + glyphSpacing * 2;
+                    binningRects[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
+                    intermediateAtlasUVs[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
                 }
 
                 // Apply to atlas glyphs.
