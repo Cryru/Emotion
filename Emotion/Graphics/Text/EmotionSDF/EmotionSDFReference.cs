@@ -13,13 +13,13 @@ namespace Emotion.Graphics.Text.EmotionSDF
 {
     public class EmotionSDFReference
     {
-        public DrawableFont ReferenceFont;
+        public DrawableFontAtlas ReferenceFont;
         public FrameBuffer? AtlasFramebuffer;
         public Binning.BinningResumableState BinningState = new Binning.BinningResumableState(Vector2.Zero);
 
         public EmotionSDFReference(Font font, int referenceSize, bool pixelFont)
         {
-            ReferenceFont = new DrawableFont(font, referenceSize, pixelFont);
+            ReferenceFont = new DrawableFontAtlas(font, referenceSize, pixelFont);
         }
     }
 }

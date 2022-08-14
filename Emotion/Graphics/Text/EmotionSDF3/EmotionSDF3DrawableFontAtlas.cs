@@ -6,6 +6,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Game;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.Graphics.Text.EmotionRenderer;
 using Emotion.Graphics.Text.EmotionSDF;
 using Emotion.IO;
@@ -20,7 +21,7 @@ using OpenGL;
 
 namespace Emotion.Graphics.Text.EmotionSDF3
 {
-    public class EmotionSDF3DrawableFont : DrawableFont
+    public class EmotionSDF3DrawableFontAtlas : DrawableFontAtlas
     {
         public const int SDF_REFERENCE_FONT_SIZE = 100;
         public const float SDF_HIGH_RES_SCALE = 1f;
@@ -30,7 +31,18 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
         private EmotionSDFReference _sdfReference;
 
-        public EmotionSDF3DrawableFont(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
+        /// <inheritdoc />
+        public override Texture Texture
+        {
+            get => _sdfReference.AtlasFramebuffer?.ColorAttachment ?? Texture.NoTexture;
+        }
+
+        // Useful resources:
+        // https://medium.com/@calebfaith/implementing-msdf-font-in-opengl-ea09a9ab7e00
+        // https://github.com/Chlumsky/msdfgen/issues/22
+        // https://drewcassidy.me/2020/06/26/sdf-antialiasing/
+
+        public EmotionSDF3DrawableFontAtlas(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
         {
             if (!_renderedFonts.TryGetValue(Font, out EmotionSDFReference? atlas))
             {
@@ -185,6 +197,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             _intermediateBufferTwo.ColorAttachment.Smooth = false;
 
             // Emotion.Platform.Debugger.RenderDoc.StartCapture();
+
             RenderComposer composer = Engine.Renderer;
             RenderState prevState = composer.CurrentState.Clone();
             composer.PushModelMatrix(Matrix4x4.Identity, false);
@@ -244,6 +257,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             composer.RenderTo(null);
             composer.PopModelMatrix();
             composer.SetState(prevState);
+
             // Emotion.Platform.Debugger.RenderDoc.EndCapture();
 
             for (var i = 0; i < refGlyphsToRender.Count; i++)
@@ -272,14 +286,26 @@ namespace Emotion.Graphics.Text.EmotionSDF3
         private float _sdfParam;
         private float _renderScaleRatio;
 
-        public override void SetupDrawing(RenderComposer c, string text)
+        public override void SetupDrawing(RenderComposer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
             base.SetupDrawing(c, text);
 
-            if (_sdfShader != null)
+            ShaderProgram? shader = _sdfShader?.Shader;
+            if (shader == null) return;
+
+            c.SetShader(shader);
+            shader.SetUniformFloat("scaleFactor", _sdfParam * 2f);
+
+            if (effect == FontEffect.Outline)
             {
-                c.SetShader(_sdfShader.Shader);
-                _sdfShader.Shader.SetUniformFloat("scaleFactor", _sdfParam * 2f);
+                float scaleFactor = 0.5f / SdfSize;
+                float outlineWidthInSdf = effectAmount * scaleFactor;
+                shader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
+                shader.SetUniformColor("outlineColor", effectColor.GetValueOrDefault());
+            }
+            else
+            {
+                shader.SetUniformFloat("outlineWidthDist", 0);
             }
         }
 

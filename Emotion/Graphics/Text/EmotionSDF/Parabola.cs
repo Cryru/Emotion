@@ -5,7 +5,7 @@ using System.Numerics;
 
 #endregion
 
-namespace Emotion.Graphics.Text.NewRenderer
+namespace Emotion.Graphics.Text.EmotionSDF
 {
     public class Parabola
     {

@@ -1,4 +1,0 @@
-<ShaderDescription>
-  <Frag>FontShaders/AstiopinSDF.frag</Frag>
-  <Vert>FontShaders/AstiopinSDF.vert</Vert>
-</ShaderDescription>

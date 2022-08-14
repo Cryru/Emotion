@@ -7,7 +7,7 @@ using Emotion.Standard.OpenType;
 
 #nullable enable
 
-namespace Emotion.Graphics.Text.NewRenderer
+namespace Emotion.Graphics.Text.EmotionSDF
 {
     public class GlyphPainter
     {

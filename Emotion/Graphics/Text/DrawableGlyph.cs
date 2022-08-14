@@ -60,5 +60,20 @@ namespace Emotion.Graphics.Text
         {
             return $"[{Character}] {Width}x{Height}";
         }
+
+        protected DrawableGlyph()
+        {
+        }
+
+        public static DrawableGlyph CreateForTest(float xAdvance, float xBearing, float width, float height)
+        {
+            return new DrawableGlyph
+            {
+                XAdvance = xAdvance,
+                XBearing = xBearing,
+                Width = width,
+                Height = height
+            };
+        }
     }
 }

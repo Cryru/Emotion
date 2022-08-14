@@ -45,13 +45,11 @@ namespace Emotion.Tools.Windows.Art
             ImGui.Text($"Asset Name: {_font.Name}");
             if (ImGui.Checkbox("Emotion Renderer", ref _emotionRenderer))
             {
-                DrawableFontAtlas.Rasterizer = _emotionRenderer ? GlyphRasterizer.Emotion : GlyphRasterizer.StbTrueType;
+                FontAsset.GlyphRasterizer = _emotionRenderer ? GlyphRasterizer.Emotion : GlyphRasterizer.StbTrueType;
             }
             ImGui.InputTextMultiline("Test Text", ref _testText, 200, new Vector2(200, 100));
 
-            composer.RenderString(new Vector3(0, 100, 0), Color.Black,
-                _testText,
-                _font.GetAtlas(_size));
+            composer.RenderString(new Vector3(0, 100, 0), Color.Black, _testText, _font.GetAtlas(_size));
         }
     }
 }

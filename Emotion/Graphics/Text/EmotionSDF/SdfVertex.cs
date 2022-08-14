@@ -6,7 +6,7 @@ using Emotion.Graphics.Data;
 
 #endregion
 
-namespace Emotion.Graphics.Text.NewRenderer
+namespace Emotion.Graphics.Text.EmotionSDF
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct SdfVertex

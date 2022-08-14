@@ -15,17 +15,13 @@ namespace Emotion.Game.Text
         /// </summary>
         public bool MeasureTrailingWhiteSpace { get; set; }
 
-        protected DrawableFont _atlas;
+        protected DrawableFontAtlas _atlas;
         protected bool _hasZeroGlyph;
         protected Vector2 _pen;
 
-        public TextLayouter(DrawableFont atlas)
-        {
-            SetAtlas(atlas);
-        }
-
         public TextLayouter(DrawableFontAtlas atlas)
         {
+            SetAtlas(atlas);
         }
 
         /// <summary>
@@ -113,7 +109,7 @@ namespace Emotion.Game.Text
         /// Set a new font atlas.
         /// </summary>
         /// <param name="atlas">The atlas to set.</param>
-        public void SetAtlas(DrawableFont atlas)
+        public void SetAtlas(DrawableFontAtlas atlas)
         {
             Restart();
             _atlas = atlas;

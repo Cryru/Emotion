@@ -10,7 +10,6 @@ using Emotion.Game;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
-using Emotion.Graphics.Text.NewRenderer;
 using Emotion.IO;
 using Emotion.Platform.Debugger;
 using Emotion.Primitives;
@@ -24,7 +23,7 @@ using OpenGL;
 
 namespace Emotion.Graphics.Text.EmotionSDF
 {
-    public sealed class EmotionSDFDrawableFont : DrawableFont
+    public sealed class EmotionSDFDrawableFontAtlas : DrawableFontAtlas
     {
         public static int GlyphSize = 256;
         public static readonly int SdfSize = 32;
@@ -34,7 +33,13 @@ namespace Emotion.Graphics.Text.EmotionSDF
         private EmotionSDFReference _sdfReference;
         private float _renderScaleRatio;
 
-        public EmotionSDFDrawableFont(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
+        /// <inheritdoc />
+        public override Texture Texture
+        {
+            get => _sdfReference.AtlasFramebuffer?.ColorAttachment ?? Texture.NoTexture;
+        }
+
+        public EmotionSDFDrawableFontAtlas(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
         {
             if (!_renderedFonts.TryGetValue(Font, out EmotionSDFReference? atlas))
             {
@@ -47,7 +52,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
         protected override void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
         {
-            DrawableFont referenceAtlas = _sdfReference.ReferenceFont;
+            DrawableFontAtlas referenceAtlas = _sdfReference.ReferenceFont;
 
             _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
 
@@ -102,9 +107,9 @@ namespace Emotion.Graphics.Text.EmotionSDF
                 }
             }
 
-            // Render glyphs.
-            RenderDoc.StartCapture();
+            // RenderDoc.StartCapture();
 
+            // Render glyphs.
             RenderComposer composer = Engine.Renderer;
             RenderState prevState = composer.CurrentState.Clone();
             composer.PushModelMatrix(Matrix4x4.Identity, false);
@@ -134,7 +139,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
             composer.RenderTo(null);
             composer.SetState(prevState);
             composer.PopModelMatrix();
-            RenderDoc.EndCapture();
+
+            // RenderDoc.EndCapture();
         }
 
         private static RenderStreamBatch<SdfVertex>? _sdfVertexStream;
@@ -203,7 +209,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
             renderer.RenderSprite(Vector3.Zero, renderer.CurrentTarget.Size, Color.White);
         }
 
-        public override void SetupDrawing(RenderComposer c, string text)
+        public override void SetupDrawing(RenderComposer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
             base.SetupDrawing(c, text);
 
@@ -211,14 +217,18 @@ namespace Emotion.Graphics.Text.EmotionSDF
             if (shader == null) return;
 
             c.SetShader(shader);
-            if (_sdfReference.AtlasFramebuffer != null)
-            {
-                shader.SetUniformFloat("scaleFactor", SdfSize * 2f);
+            shader.SetUniformFloat("scaleFactor", SdfSize * 2f);
 
+            if (effect == FontEffect.Outline)
+            {
                 float scaleFactor = 0.5f / SdfSize;
-                float outlineWidthInSdf = 5 * scaleFactor;
+                float outlineWidthInSdf = effectAmount * scaleFactor;
+                shader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
+                shader.SetUniformColor("outlineColor", effectColor.GetValueOrDefault());
+            }
+            else
+            {
                 shader.SetUniformFloat("outlineWidthDist", 0);
-                shader.SetUniformColor("outlineColor", Color.Green);
             }
         }
 
