@@ -41,7 +41,7 @@ namespace Emotion.Game.Text
             if (c == '\n')
             {
                 result.X = 0;
-                result.Y += _atlas.LineGap;
+                result.Y += _atlas.FontHeight;
             }
             else
             {
@@ -88,7 +88,7 @@ namespace Emotion.Game.Text
         public void NewLine()
         {
             _pen.X = 0;
-            _pen.Y += _atlas.LineGap;
+            _pen.Y += _atlas.FontHeight;
         }
 
         /// <summary>
