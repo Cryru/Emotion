@@ -69,7 +69,7 @@ namespace Emotion.IO
                 format.BitsPerSample = 32;
                 format.IsFloat = true;
 
-                Size = SoundData.Length;
+                ByteSize = SoundData.Length;
                 Format = format;
                 Duration = format.GetSoundDuration(SoundData.Length * sizeof(float));
                 AudioConverter = new AudioConverter(Format, SoundData, 10);

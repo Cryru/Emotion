@@ -38,7 +38,7 @@ namespace Emotion.Tools.Windows
             var assetBytes = 0;
             foreach (Asset asset in Engine.AssetLoader.LoadedAssets)
             {
-                assetBytes += asset.Size;
+                assetBytes += asset.ByteSize;
             }
 
             ImGui.Text($"Assets Rough Estimate: {Helpers.FormatByteAmountAsString(assetBytes)}");
@@ -67,11 +67,11 @@ namespace Emotion.Tools.Windows
                 ImGui.BeginChild("Assets", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
 
                 Asset[] loadedAssets = Engine.AssetLoader.LoadedAssets;
-                IOrderedEnumerable<Asset> orderedEnum = loadedAssets.OrderByDescending(x => x.Size);
+                IOrderedEnumerable<Asset> orderedEnum = loadedAssets.OrderByDescending(x => x.ByteSize);
                 foreach (Asset asset in orderedEnum)
                 {
-                    float percent = (float) asset.Size / assetBytes;
-                    ImGui.Text($"{asset.Name} {Helpers.FormatByteAmountAsString(asset.Size)} {percent * 100:0}%%");
+                    float percent = (float) asset.ByteSize / assetBytes;
+                    ImGui.Text($"{asset.Name} {Helpers.FormatByteAmountAsString(asset.ByteSize)} {percent * 100:0}%%");
                     ImGui.Text($"\t{asset.GetType()}");
                 }
 
