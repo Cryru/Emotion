@@ -27,6 +27,9 @@ namespace Emotion.Graphics.Text.EmotionSDF3
         public const float SDF_HIGH_RES_SCALE = 1f;
         public static readonly int SdfSize = 64; // 64 spread value is from GenerateSDF.frag
 
+        private static Vector2 _sdfGlyphSpacing = new Vector2(5);
+        private static Vector2 _sdfAtlasSpacing = _sdfGlyphSpacing + new Vector2(2);
+
         private static ConcurrentDictionary<Font, EmotionSDFReference> _renderedFonts { get; } = new();
 
         private EmotionSDFReference _sdfReference;
@@ -51,6 +54,16 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             }
 
             _sdfReference = atlas;
+
+            _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
+            if (_glyphPadding == Vector2.Zero)
+            {
+                float scaleDiff = _sdfReference.ReferenceFont.RenderScale / RenderScale;
+                _glyphPadding = _sdfGlyphSpacing / scaleDiff;
+            }
+
+            _glyphPaddingSize = _sdfGlyphSpacing * RenderScale;
+            _sdfParam = SdfSize * _sdfReference.ReferenceFont.RenderScale;
         }
 
         private static bool _rendererInit;
@@ -95,19 +108,6 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             InitializeRenderer();
             if (_rendererInitError) return;
 
-            var spacing = new Vector2(5);
-            Vector2 spacingAtlas = spacing + new Vector2(2);
-
-            // Ensure various font properties.
-            _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
-            if (_glyphPadding == Vector2.Zero)
-            {
-                float scaleDiff = _sdfReference.ReferenceFont.RenderScale / RenderScale;
-                _glyphPadding = spacing / scaleDiff;
-            }
-
-            _sdfParam = SdfSize * _sdfReference.ReferenceFont.RenderScale;
-
             // Check which glyphs are missing in the reference atlas.
             var refGlyphsToRender = new List<DrawableGlyph>();
             for (var i = 0; i < glyphsToAdd.Count; i++)
@@ -140,7 +140,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 for (var i = 0; i < refGlyphsToRender.Count; i++)
                 {
                     DrawableGlyph atlasGlyph = refGlyphsToRender[i];
-                    Vector2 glyphRenderSize = new Vector2(atlasGlyph.Width, _sdfReference.ReferenceFont.FontSize) + spacingAtlas * 2;
+                    Vector2 glyphRenderSize = new Vector2(atlasGlyph.Width, _sdfReference.ReferenceFont.FontSize) + _sdfAtlasSpacing * 2;
                     binningRects[i] = new Rectangle(0, 0, glyphRenderSize);
                     intermediateAtlasUVs[i] = new Rectangle(0, 0, glyphRenderSize);
                 }
@@ -151,7 +151,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 {
                     DrawableGlyph atlasGlyph = refGlyphsToRender[i];
                     Rectangle binPosition = binningRects[i];
-                    atlasGlyph.GlyphUV = binPosition.Deflate(spacingAtlas.X, spacingAtlas.Y);
+                    atlasGlyph.GlyphUV = binPosition.Deflate(_sdfAtlasSpacing.X, _sdfAtlasSpacing.Y);
                 }
 
                 _sdfReference.AtlasFramebuffer = new FrameBuffer(atlasSize).WithColor(true, InternalFormat.Red, PixelFormat.Red);
@@ -165,7 +165,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             // Create high resolution glyphs.
             var sdfFullResGlyphs = new List<DrawableGlyph>(refGlyphsToRender.Count);
             var sdfTempRects = new Rectangle[refGlyphsToRender.Count];
-            Vector2 sdfGlyphSpacing = spacing * (1f / _sdfReference.ReferenceFont.RenderScale);
+            Vector2 sdfGlyphSpacing = _sdfGlyphSpacing * (1f / _sdfReference.ReferenceFont.RenderScale);
             for (var i = 0; i < refGlyphsToRender.Count; i++)
             {
                 DrawableGlyph refGlyph = refGlyphsToRender[i];
@@ -245,8 +245,8 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 placeWithinSdfAtlas.Size = placeWithinSdfAtlas.Size.Floor();
 
                 composer.RenderSprite(
-                    new Vector3(refGlyph.GlyphUV.X - spacing.X, refGlyph.GlyphUV.Y - spacing.Y, 0),
-                    refGlyph.GlyphUV.Size + spacing * 2,
+                    new Vector3(refGlyph.GlyphUV.X - _sdfGlyphSpacing.X, refGlyph.GlyphUV.Y - _sdfGlyphSpacing.Y, 0),
+                    refGlyph.GlyphUV.Size + _sdfGlyphSpacing * 2,
                     _intermediateBufferTwo.ColorAttachment,
                     placeWithinSdfAtlas);
             }
@@ -275,7 +275,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                     if (refGlyph.Character == atlasGlyph.Key)
                     {
                         // Apply UV padding to fit the GlyphRenderPadding.
-                        atlasGlyph.Value.GlyphUV = refGlyph.GlyphUV.Inflate(spacing.X, spacing.Y);
+                        atlasGlyph.Value.GlyphUV = refGlyph.GlyphUV.Inflate(_sdfGlyphSpacing.X, _sdfGlyphSpacing.Y);
                         break;
                     }
                 }
@@ -283,6 +283,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
         }
 
         private Vector2 _glyphPadding;
+        private Vector2 _glyphPaddingSize;
         private float _sdfParam;
         private float _renderScaleRatio;
 
@@ -311,7 +312,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
         public override void DrawGlyph(RenderComposer c, DrawableGlyph g, Vector3 pos, Color color)
         {
-            c.RenderSprite(pos - _glyphPadding.ToVec3(), g.GlyphUV.Size * _renderScaleRatio, color, _sdfReference.AtlasFramebuffer?.ColorAttachment, g.GlyphUV);
+            c.RenderSprite(pos - _glyphPadding.ToVec3(), (g.GlyphUV.Size * _renderScaleRatio) + _glyphPaddingSize, color, _sdfReference.AtlasFramebuffer?.ColorAttachment, g.GlyphUV);
         }
 
         public override void FinishDrawing(RenderComposer c)

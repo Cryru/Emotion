@@ -32,6 +32,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
         private EmotionSDFReference _sdfReference;
         private float _renderScaleRatio;
+        private Vector3 _drawOffset;
 
         /// <inheritdoc />
         public override Texture Texture
@@ -48,13 +49,14 @@ namespace Emotion.Graphics.Text.EmotionSDF
             }
 
             _sdfReference = atlas;
+
+            _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
+            _drawOffset = (new Vector2(SdfSize) * _renderScaleRatio).ToVec3();
         }
 
         protected override void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
         {
             DrawableFontAtlas referenceAtlas = _sdfReference.ReferenceFont;
-
-            _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
 
             // Check which glyphs are missing from the atlas.
             var glyphsMissing = new List<DrawableGlyph>();
@@ -234,7 +236,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
         public override void DrawGlyph(RenderComposer c, DrawableGlyph g, Vector3 pos, Color color)
         {
-            c.RenderSprite(pos, g.GlyphUV.Size * _renderScaleRatio, color, _sdfReference.AtlasFramebuffer?.ColorAttachment, g.GlyphUV);
+            c.RenderSprite(pos - _drawOffset, g.GlyphUV.Size * _renderScaleRatio, color, _sdfReference.AtlasFramebuffer?.ColorAttachment, g.GlyphUV);
         }
 
         public override void FinishDrawing(RenderComposer c)
