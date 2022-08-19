@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game;
@@ -103,6 +104,18 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             _rendererInit = true;
         }
 
+        protected override Vector2 BinGetGlyphDimensions(DrawableGlyph g)
+        {
+            DrawableFontAtlas referenceAtlas = _sdfReference.ReferenceFont;
+            Vector2 spacing = _sdfAtlasSpacing * 2;
+            return new Vector2(g.Width, referenceAtlas.FontHeight) + spacing;
+        }
+
+        protected override Dictionary<char, DrawableGlyph> BinGetAllGlyphs()
+        {
+            return _sdfReference.ReferenceFont.Glyphs;
+        }
+
         protected override void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
         {
             InitializeRenderer();
@@ -111,7 +124,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             DrawableFontAtlas referenceAtlas = _sdfReference.ReferenceFont;
 
             // Check which glyphs are missing in the reference atlas.
-            var refGlyphsToRender = new List<DrawableGlyph>();
+            var glyphsMissingReferences = new List<DrawableGlyph>();
             for (var i = 0; i < glyphsToAdd.Count; i++)
             {
                 DrawableGlyph reqGlyph = glyphsToAdd[i];
@@ -123,61 +136,73 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 else
                 {
                     refG = new DrawableGlyph(reqGlyph.Character, reqGlyph.FontGlyph, referenceAtlas.RenderScale);
-                    refGlyphsToRender.Add(refG);
+                    glyphsMissingReferences.Add(refG);
                     referenceAtlas.Glyphs.Add(reqGlyph.Character, refG);
                 }
             }
 
-            if (refGlyphsToRender.Count == 0) return;
+            if (glyphsMissingReferences.Count == 0) return;
 
-            Rectangle[] intermediateAtlasUVs;
-            var justCreated = false;
+            Binning.BinningResumableState bin = _sdfReference.BinningState;
+            bin = BinGlyphsInAtlas(glyphsMissingReferences, bin);
+            _sdfReference.BinningState = bin;
+
+            // Create list of missing glyphs in the atlas, from reference ones.
+            // This needs to be recalculated because binning might decide to bin all.
+            var glyphsMissing = new List<DrawableGlyph>();
+            for (var i = 0; i < glyphsMissingReferences.Count; i++)
+            {
+                DrawableGlyph referenceGlyph = glyphsMissingReferences[i];
+
+                // Pull out the glyph in the non-reference atlas as well.
+                DrawableGlyph? atlasGlyph = Glyphs[referenceGlyph.Character];
+                glyphsMissing.Add(atlasGlyph);
+                Debug.Assert(atlasGlyph != null);
+            }
+
+            // Resync atlas texture.
+            var clearBuffer = false;
             if (_sdfReference.AtlasFramebuffer == null)
             {
-                justCreated = true;
-
-                // Initialize atlas by binning first.
-                var binningRects = new Rectangle[refGlyphsToRender.Count];
-                intermediateAtlasUVs = new Rectangle[refGlyphsToRender.Count];
-                for (var i = 0; i < refGlyphsToRender.Count; i++)
-                {
-                    DrawableGlyph atlasGlyph = refGlyphsToRender[i];
-
-                    float glyphWidth = atlasGlyph.Width + _sdfAtlasSpacing.X * 2;
-                    float glyphHeight = referenceAtlas.FontSize - referenceAtlas.Descent + _sdfAtlasSpacing.Y * 2; // Set to constant size to better align to baseline.
-                    binningRects[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
-                    intermediateAtlasUVs[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
-                }
-
-                // Apply to atlas glyphs.
-                Vector2 atlasSize = Binning.FitRectangles(binningRects, false, _sdfReference.BinningState);
-                for (var i = 0; i < binningRects.Length; i++)
-                {
-                    DrawableGlyph atlasGlyph = refGlyphsToRender[i];
-                    Rectangle binPosition = binningRects[i];
-                    atlasGlyph.GlyphUV = binPosition.Deflate(_sdfAtlasSpacing.X, _sdfAtlasSpacing.Y);
-                }
-
-                _sdfReference.AtlasFramebuffer = new FrameBuffer(atlasSize).WithColor(true, InternalFormat.Red, PixelFormat.Red);
+                _sdfReference.AtlasFramebuffer = new FrameBuffer(bin.Size).WithColor(true, InternalFormat.Red, PixelFormat.Red);
                 _sdfReference.AtlasFramebuffer.ColorAttachment.Smooth = true;
+                clearBuffer = true;
             }
-            else
+            else if (bin.Size != _sdfReference.AtlasFramebuffer.Size)
             {
-                intermediateAtlasUVs = new Rectangle[0];
+                Vector2 newSize = Vector2.Max(bin.Size, _sdfReference.AtlasFramebuffer.Size); // Dont size down.
+                _sdfReference.AtlasFramebuffer.Resize(newSize, true);
+                clearBuffer = true;
+            }
+
+            // Remove spacing from UVs and create rects for intermediate atlas bin.
+            var intermediateAtlasUVs = new Rectangle[glyphsMissingReferences.Count];
+            for (var i = 0; i < glyphsMissingReferences.Count; i++)
+            {
+                DrawableGlyph atlasGlyph = glyphsMissingReferences[i];
+                intermediateAtlasUVs[i] = new Rectangle(0, 0, atlasGlyph.GlyphUV.Size);
+                atlasGlyph.GlyphUV = atlasGlyph.GlyphUV.Deflate(_sdfAtlasSpacing.X, _sdfAtlasSpacing.Y);
+            }
+
+            Vector2? intermediateAtlasSize = Binning.FitRectangles(intermediateAtlasUVs);
+            Debug.Assert(intermediateAtlasSize != null);
+            for (var i = 0; i < intermediateAtlasUVs.Length; i++)
+            {
+                intermediateAtlasUVs[i] = intermediateAtlasUVs[i].Deflate(_sdfAtlasSpacing.X, _sdfAtlasSpacing.Y);
             }
 
             // Create high resolution glyphs.
-            var sdfFullResGlyphs = new List<DrawableGlyph>(refGlyphsToRender.Count);
-            var sdfTempRects = new Rectangle[refGlyphsToRender.Count];
+            var sdfFullResGlyphs = new List<DrawableGlyph>(glyphsMissingReferences.Count);
+            var sdfTempRects = new Rectangle[glyphsMissingReferences.Count];
             Vector2 sdfGlyphSpacing = _sdfGlyphSpacing * (1f / _sdfReference.ReferenceFont.RenderScale);
-            for (var i = 0; i < refGlyphsToRender.Count; i++)
+            for (var i = 0; i < glyphsMissingReferences.Count; i++)
             {
-                DrawableGlyph refGlyph = refGlyphsToRender[i];
+                DrawableGlyph refGlyph = glyphsMissingReferences[i];
                 var sdfGlyph = new DrawableGlyph(refGlyph.Character, refGlyph.FontGlyph, SDF_HIGH_RES_SCALE);
                 sdfFullResGlyphs.Add(sdfGlyph);
 
                 float glyphWidth = sdfGlyph.Width + sdfGlyphSpacing.X * 2;
-                float glyphHeight = Font.UnitsPerEm * SDF_HIGH_RES_SCALE - Font.Descender * SDF_HIGH_RES_SCALE + sdfGlyphSpacing.Y * 2;
+                float glyphHeight = Font.Height * SDF_HIGH_RES_SCALE + sdfGlyphSpacing.Y * 2;
                 sdfTempRects[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
             }
 
@@ -187,7 +212,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             for (var i = 0; i < sdfTempRects.Length; i++)
             {
                 Rectangle r = sdfTempRects[i];
-                sdfTempRects[i] = new Rectangle(r.Position + sdfGlyphSpacing, r.Size - sdfGlyphSpacing * 2);
+                sdfTempRects[i] = r.Deflate(sdfGlyphSpacing.X, sdfGlyphSpacing.Y);
             }
 
             // Generate ping-pong buffers.
@@ -236,13 +261,13 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
             // Generate SDF while downsizing individual glyphs.
             // If we do it in bulk the GPU might hang long enough for the OS to kill us.
-            float bufferHeight = _sdfReference.AtlasFramebuffer.AllocatedSize.Y;
+            float bufferHeight = _sdfReference.AtlasFramebuffer.Size.Y;
             composer.PushModelMatrix(Matrix4x4.CreateScale(1, -1, 1) * Matrix4x4.CreateTranslation(0, bufferHeight, 0));
             composer.RenderTo(_sdfReference.AtlasFramebuffer);
-            if (justCreated) composer.ClearFrameBuffer();
-            for (var i = 0; i < refGlyphsToRender.Count; i++)
+            if (clearBuffer) composer.ClearFrameBuffer();
+            for (var i = 0; i < glyphsMissingReferences.Count; i++)
             {
-                DrawableGlyph refGlyph = refGlyphsToRender[i];
+                DrawableGlyph refGlyph = glyphsMissingReferences[i];
                 Rectangle placeWithinSdfAtlas = sdfTempRects[i];
 
                 // Copy sdf spacing as there might be data there.
@@ -267,25 +292,15 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
             // Emotion.Platform.Debugger.RenderDoc.EndCapture();
 
-            for (var i = 0; i < refGlyphsToRender.Count; i++)
+            // Invert UVs along the Y axis, this is to fix the texture inversion from above.
+            for (var i = 0; i < glyphsMissingReferences.Count; i++)
             {
-                DrawableGlyph glyph = refGlyphsToRender[i];
+                DrawableGlyph glyph = glyphsMissingReferences[i];
                 glyph.GlyphUV.Location = new Vector2(glyph.GlyphUV.X, bufferHeight - glyph.GlyphUV.Bottom);
-            }
 
-            // Apply all UVs from the ref atlas to the req atlas.
-            foreach (KeyValuePair<char, DrawableGlyph> atlasGlyph in Glyphs)
-            {
-                for (var i = 0; i < refGlyphsToRender.Count; i++)
-                {
-                    DrawableGlyph refGlyph = refGlyphsToRender[i];
-                    if (refGlyph.Character == atlasGlyph.Key)
-                    {
-                        // Apply UV padding to fit the GlyphRenderPadding.
-                        atlasGlyph.Value.GlyphUV = refGlyph.GlyphUV.Inflate(_sdfGlyphSpacing.X, _sdfGlyphSpacing.Y);
-                        break;
-                    }
-                }
+                // Apply UV padding to fit the GlyphRenderPadding.
+                DrawableGlyph atlasGlyph = glyphsMissing[i];
+                atlasGlyph.GlyphUV = glyph.GlyphUV.Inflate(_sdfGlyphSpacing.X, _sdfGlyphSpacing.Y);
             }
         }
 
@@ -302,7 +317,11 @@ namespace Emotion.Graphics.Text.EmotionSDF3
             if (shader == null) return;
 
             c.SetShader(shader);
-            shader.SetUniformFloat("scaleFactor", _sdfParam * 2f);
+
+            if (PixelFont && _sdfReference.AtlasFramebuffer != null)
+                shader.SetUniformVector2("scaleFactor", _sdfReference.AtlasFramebuffer.Size);
+            else
+                shader.SetUniformVector2("scaleFactor", new Vector2(_sdfParam * 2f));
 
             if (effect == FontEffect.Outline)
             {
