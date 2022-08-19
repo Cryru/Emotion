@@ -38,7 +38,7 @@ namespace Emotion.UI
 
         private void TextInputEventHandler(char c)
         {
-            bool focused = Controller?.InputFocus == this;
+            bool focused = IsWithin(Controller?.InputFocus);
             if (focused)
             {
                 if (c == '\r') c = '\n';
@@ -71,7 +71,7 @@ namespace Emotion.UI
 
             base.InternalMeasure(space);
 
-            if (!MultiLine) return new Vector2(space.X, _atlas.Ascent);
+            if (!MultiLine) return new Vector2(space.X, _atlas.FontHeight);
             return space;
         }
 
@@ -85,7 +85,7 @@ namespace Emotion.UI
         {
             base.RenderInternal(c);
 
-            bool focused = Controller?.InputFocus == this;
+            bool focused = IsWithin(Controller?.InputFocus);
             if (focused && _cursorOn)
             {
                 Vector2 cursorDrawStart = _layouter.GetPenLocation() + new Vector2(_scaledCursorDistance, 0);
