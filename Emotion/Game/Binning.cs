@@ -58,7 +58,18 @@ namespace Emotion.Game
         public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false, BinningResumableState fillResumeState = null)
         {
             if (rectMemory.IsEmpty) return Vector2.Zero;
-            if (rectMemory.Length == 1) return rectMemory.Span[0].Size;
+
+            // Fast path for single rect.
+            if (rectMemory.Length == 1)
+            {
+                Vector2 onlyRectSize = rectMemory.Span[0].Size;
+                if (fillResumeState != null)
+                {
+                    fillResumeState.Size = onlyRectSize;
+                    fillResumeState.CanvasPos = onlyRectSize;
+                }
+                return onlyRectSize;
+            }
 
             // Sorting is done with a separate key table, as not to rearrange rectMemory.
             int[] keys = Enumerable.Range(0, rectMemory.Length).ToArray();
