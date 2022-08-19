@@ -321,6 +321,8 @@ namespace Emotion.UI
         public bool IsWithin(UIBaseWindow? within)
         {
             if (within == null) return false;
+            if (within == this) return true;
+
             UIBaseWindow? parent = Parent;
             while (parent != null)
             {

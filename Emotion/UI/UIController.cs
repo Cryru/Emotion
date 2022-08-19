@@ -19,6 +19,8 @@ namespace Emotion.UI
         public UIBaseWindow InputFocus;
         public UIBaseWindow MouseFocus;
 
+        private UIBaseWindow _inputFocusManual;
+
         private bool[] _mouseFocusKeysHeld = new bool[Key.MouseKeyEnd - Key.MouseKeyStart];
 
         private bool _updatePreload = true;
@@ -233,9 +235,30 @@ namespace Emotion.UI
             _updateInputFocus = true;
         }
 
+        public void SetInputFocus(UIBaseWindow win, bool searchTree = false)
+        {
+            UIBaseWindow focusable = searchTree ? FindInputFocusable(win) : win;
+            _inputFocusManual = focusable;
+            UpdateInputFocus();
+        }
+
         private void UpdateInputFocus()
         {
-            UIBaseWindow newFocus = InputTransparent || !Visible ? null : FindInputFocusable(this);
+            UIBaseWindow newFocus;
+            if (InputTransparent || !Visible)
+            {
+                newFocus = null;
+            }
+            else if (_inputFocusManual != null && _inputFocusManual.Visible && !_inputFocusManual.InputTransparent && _inputFocusManual.Controller == this)
+            {
+                newFocus = _inputFocusManual;
+            }
+            else
+            {
+                _inputFocusManual = null;
+                newFocus = FindInputFocusable(this);
+            }
+
             if (newFocus == this) newFocus = null;
 
             if (InputFocus != newFocus)
