@@ -82,7 +82,7 @@ namespace Emotion.IO
                 }
 
                 // Cache default ascii set
-                //atlas.CacheGlyphs(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+                atlas.CacheGlyphs(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
                 _loadedAtlases.Add(hash, atlas);
             }
 

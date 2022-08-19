@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
+using Emotion.Game;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
@@ -55,7 +57,7 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The distance from the baseline to the lowest glyph descent.
         /// </summary>
-        public float Descent { get; init;  }
+        public float Descent { get; init; }
 
         public Dictionary<char, DrawableGlyph> Glyphs { get; init; } = new Dictionary<char, DrawableGlyph>();
 
@@ -70,6 +72,7 @@ namespace Emotion.Graphics.Text
                 float scaleFactor = fontHeight / fontSize;
                 int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
                 FontSize = fontHeight / scaleFactorP2;
+                PixelFont = true;
             }
 
             // Convert from Emotion font size (legacy) to real font size.
@@ -93,6 +96,14 @@ namespace Emotion.Graphics.Text
         {
         }
 
+        private void AddGlyphsToAtlasBenchmark(List<DrawableGlyph> glyphsToAdd)
+        {
+            var w = Stopwatch.StartNew();
+            AddGlyphsToAtlas(glyphsToAdd);
+            w.Stop();
+            Engine.Log.Info($"Rendered {glyphsToAdd.Count} glyphs in {w.ElapsedMilliseconds}ms", GetType().Name);
+        }
+
         #endregion
 
         public virtual void CacheGlyphs(string text)
@@ -103,10 +114,10 @@ namespace Emotion.Graphics.Text
                 char ch = text[i];
                 if (Glyphs.ContainsKey(ch) || !Font.CharToGlyph.TryGetValue(ch, out FontGlyph fontG)) continue;
 
-                DrawableGlyph atlasGlyph = new DrawableGlyph(ch, fontG, RenderScale);
+                var atlasGlyph = new DrawableGlyph(ch, fontG, RenderScale);
                 Glyphs.Add(ch, atlasGlyph);
 
-                if (atlasGlyph.Width == 0 || atlasGlyph.Height == 0 || fontG.Commands == null || fontG.Commands.Length == 0) continue;
+                if (!atlasGlyph.CanBeShown()) continue;
 
                 renderGlyphs ??= new List<DrawableGlyph>();
                 renderGlyphs.Add(atlasGlyph);
@@ -131,5 +142,76 @@ namespace Emotion.Graphics.Text
         public virtual void Dispose()
         {
         }
+
+        #region Binning
+
+        protected Binning.BinningResumableState BinGlyphsInAtlas(List<DrawableGlyph> glyphs, Binning.BinningResumableState bin)
+        {
+            if (bin.Size != Vector2.Zero)
+            {
+                var rebinAll = false;
+
+                // Try to add new ones.
+                for (var i = 0; i < glyphs.Count; i++)
+                {
+                    DrawableGlyph glyph = glyphs[i];
+                    Vector2 glyphSize = BinGetGlyphDimensions(glyph);
+                    Vector2? position = Binning.FitRectanglesResumable(glyphSize, bin);
+
+                    // Couldn't find space, rebin all.
+                    if (position == null)
+                    {
+                        // Go through all existing glyphs and request them to be rerendered as well.
+                        foreach ((char _, DrawableGlyph gRef) in BinGetAllGlyphs())
+                        {
+                            // Already exists in request.
+                            if (!gRef.CanBeShown() || glyphs.IndexOf(gRef) != -1) continue;
+                            glyphs.Add(gRef);
+                        }
+
+                        rebinAll = true;
+                        break;
+                    }
+
+                    // If point position apply it to UV.
+                    glyph.GlyphUV = new Rectangle(position.Value, glyphSize);
+                }
+
+                if (!rebinAll) return bin;
+            }
+
+            // Create bin rectangles.
+            var binningRects = new Rectangle[glyphs.Count];
+            for (var i = 0; i < glyphs.Count; i++)
+            {
+                DrawableGlyph refGlyph = glyphs[i];
+                binningRects[i] = new Rectangle(0, 0, BinGetGlyphDimensions(refGlyph));
+            }
+
+            bin = new Binning.BinningResumableState(Vector2.Zero);
+            Binning.FitRectangles(binningRects, false, bin);
+
+            // Assign binned uvs.
+            for (var i = 0; i < glyphs.Count; i++)
+            {
+                DrawableGlyph gRef = glyphs[i];
+                gRef.GlyphUV = binningRects[i];
+            }
+
+            return bin;
+        }
+
+        protected virtual Dictionary<char, DrawableGlyph> BinGetAllGlyphs()
+        {
+            return Glyphs;
+        }
+
+        protected virtual Vector2 BinGetGlyphDimensions(DrawableGlyph g)
+        {
+            // Set to constant size to better align to baseline.
+            return new Vector2(g.Width, FontHeight);
+        }
+
+        #endregion
     }
 }

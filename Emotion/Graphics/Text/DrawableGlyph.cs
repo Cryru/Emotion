@@ -65,6 +65,11 @@ namespace Emotion.Graphics.Text
         {
         }
 
+        public bool CanBeShown()
+        {
+            return !(Width == 0 || Height == 0 || FontGlyph.Commands == null || FontGlyph.Commands.Length == 0);
+        }
+
         public static DrawableGlyph CreateForTest(float xAdvance, float xBearing, float width, float height)
         {
             return new DrawableGlyph

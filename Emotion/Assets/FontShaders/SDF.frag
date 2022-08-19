@@ -19,10 +19,10 @@ uniform vec4 outlineColor = vec4(0.0);
 
 // AA is based on the font's render size to allow both big and small
 // renderings to look crisp. This formula is taken from the MSDF documentation.
-uniform float scaleFactor = 2;
+uniform vec2 scaleFactor = vec2(2);
 uniform float thickness = 0.5;
 float screenPxRange() {
-    vec2 unitRange = vec2(scaleFactor)/vec2(getTextureSize(mainTexture));
+    vec2 unitRange = scaleFactor/vec2(getTextureSize(mainTexture));
     vec2 screenTexSize = vec2(1.0)/fwidth(UV);
     return max(0.5*dot(unitRange, screenTexSize), 1.0);
 }
