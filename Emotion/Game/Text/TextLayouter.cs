@@ -145,14 +145,15 @@ namespace Emotion.Game.Text
                 if (g == null) continue;
 
                 sizeSoFar.X += g.XAdvance;
-                float verticalSize = _atlas.Ascent - g.Height;
+                float verticalSize = g.Height + (_atlas.Ascent - g.Height) + g.Descent;
                 if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
             }
 
             sizeSoFar.Y += tallestOnLine;
 
-            if (largestLine != 0)
-                sizeSoFar.X = largestLine;
+            if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
+            if (largestLine != 0) sizeSoFar.X = largestLine;
+
             return sizeSoFar;
         }
 

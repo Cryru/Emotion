@@ -240,7 +240,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
             if (effect == FontEffect.Outline)
             {
-                float scaleFactor = 0.5f / SdfSize;
+                float scaleFactor = 0.5f / (SdfSize * _renderScaleRatio);
                 float outlineWidthInSdf = effectAmount * scaleFactor;
                 shader.SetUniformFloat("outlineWidthDist", outlineWidthInSdf);
                 shader.SetUniformColor("outlineColor", effectColor.GetValueOrDefault());
