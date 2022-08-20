@@ -43,6 +43,11 @@ void main()
     {
         // Interpolate between colors.
         float t = outlineWidthDist + (dist / outlineWidthDist);
+
+        // Cubic interpolate outline color
+        t = 1.0 - t;
+        t = t * t;
+        t = 1.0 - t;
         color = mix(fill, vec4(outlineColor.rgb, fill.a), t);
     
         // Override distance with outline distance, to grow the distance out.

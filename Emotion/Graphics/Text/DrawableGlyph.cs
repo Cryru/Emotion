@@ -46,6 +46,8 @@ namespace Emotion.Graphics.Text
         /// </summary>
         public Rectangle GlyphUV;
 
+        public float Descent;
+
         public DrawableGlyph(char c, FontGlyph g, float scale)
         {
             Character = c;
@@ -54,6 +56,7 @@ namespace Emotion.Graphics.Text
             Height = (g.Max.Y - g.Min.Y) * scale;
             XAdvance = g.AdvanceWidth * scale;
             XBearing = g.LeftSideBearing * scale;
+            Descent = g.Min.Y * scale;
         }
 
         public override string ToString()

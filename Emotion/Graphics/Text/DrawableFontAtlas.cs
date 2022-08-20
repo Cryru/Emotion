@@ -26,7 +26,7 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The texture atlas.
         /// </summary>
-        public virtual Texture Texture { get; }
+        public virtual Texture Texture { get => Texture.NoTexture; }
 
         /// <summary>
         /// The px size of the font.
