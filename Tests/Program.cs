@@ -54,7 +54,8 @@ namespace Tests
             {
                 HostSize = new Vector2(640, 360),
                 RenderSize = new Vector2(640, 360),
-                NoErrorPopup = true
+                NoErrorPopup = true,
+                UseEmotionFontSize = true
             };
             Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
         }
