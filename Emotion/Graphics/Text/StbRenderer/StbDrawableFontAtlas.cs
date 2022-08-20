@@ -20,7 +20,7 @@ namespace Emotion.Graphics.Text.StbRenderer
 {
     public class StbDrawableFontAtlas : DrawableFontAtlas
     {
-        private const int GLYPH_SPACING = 2;
+        private const int GLYPH_SPACING = 1;
 
         private static RenderState? _glyphRenderState;
         private FrameBuffer? _intermediateBuffer;
@@ -39,8 +39,8 @@ namespace Emotion.Graphics.Text.StbRenderer
 
         protected override Vector2 BinGetGlyphDimensions(DrawableGlyph g)
         {
-            float spacing = GLYPH_SPACING * 2;
-            return new Vector2(MathF.Ceiling(g.Width) + spacing, MathF.Ceiling(FontHeight) + spacing);
+            const float spacing = GLYPH_SPACING * 2;
+            return new Vector2(MathF.Ceiling(g.Width) + spacing, FontHeight + spacing);
         }
 
         protected override void AddGlyphsToAtlas(List<DrawableGlyph> glyphsToAdd)
@@ -101,9 +101,10 @@ namespace Emotion.Graphics.Text.StbRenderer
             {
                 DrawableGlyph atlasGlyph = glyphsToAdd[i];
 
-                float glyphWidth = MathF.Ceiling(atlasGlyph.Width);
-                float glyphHeight = MathF.Ceiling(FontHeight);
-                var canvas = new StbGlyphCanvas((int) glyphWidth + 1, (int) glyphHeight + 1);
+                Vector2 size = BinGetGlyphDimensions(atlasGlyph);
+                size -= new Vector2(GLYPH_SPACING * 2);
+
+                var canvas = new StbGlyphCanvas((int) size.X + 1, (int) size.Y + 1);
                 StbGlyphRendererBackend.RenderGlyph(Font, canvas, atlasGlyph, RenderScale);
 
                 // Remove canvas padding.

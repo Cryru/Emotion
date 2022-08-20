@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
+using Emotion.Graphics.Text.StbRenderer;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
@@ -123,7 +125,7 @@ namespace Tests.Classes
 
                 // Get atlases.
                 int fontSize = fontSizes[i];
-                var emotionAtlas = new DrawableFontAtlas(f, fontSize, false);
+                var emotionAtlas = new StbDrawableFontAtlas(f, fontSize, false);
                 Runner.ExecuteAsLoop(_ =>
                 {
                     var str = "";
@@ -134,7 +136,7 @@ namespace Tests.Classes
 
                     emotionAtlas.CacheGlyphs(str);
                 }).WaitOne();
-                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data.ToArray(), fontSize, emotionAtlas.Texture.Size * 4, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
+                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data.ToArray(), fontSize, emotionAtlas.Texture.Size * 3, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
                 CompareMetricsWithStb(f, emotionAtlas, stbFont);
@@ -144,9 +146,13 @@ namespace Tests.Classes
                 {
                     DrawableGlyph glyph = packedStbAtlas.Glyphs[g.Key];
                     Assert.Equal(glyph.XAdvance, g.Value.XAdvance);
-                    Assert.Equal(glyph.XBearing, g.Value.XBearing);
-                    Assert.Equal(glyph.Width, g.Value.Width);
-                    Assert.Equal(glyph.Height, g.Value.Height);
+
+                    var fontGlyph = g.Value.FontGlyph;
+                    int width = (int) (MathF.Ceiling(fontGlyph.Max.X * emotionAtlas.RenderScale) - MathF.Floor(fontGlyph.Min.X * emotionAtlas.RenderScale));
+                    int height = (int) (MathF.Ceiling(-fontGlyph.Min.Y * emotionAtlas.RenderScale) - MathF.Floor(-fontGlyph.Max.Y * emotionAtlas.RenderScale));
+
+                    Assert.Equal(glyph.Width, width);
+                    Assert.Equal(glyph.Height, height);
                 }
 
                 // Check if there's a verified render.

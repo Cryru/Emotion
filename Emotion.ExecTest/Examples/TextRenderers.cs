@@ -3,14 +3,11 @@
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
-using Emotion.Game.Text;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Scenography;
-using Emotion.Tools;
-using Emotion.UI;
 
 #endregion
 
@@ -22,7 +19,7 @@ namespace Emotion.ExecTest.Examples
 
         public override async Task LoadAsync()
         {
-             _font = await Engine.AssetLoader.GetAsync<FontAsset>("debugFont.otf");
+            _font = await Engine.AssetLoader.GetAsync<FontAsset>("debugFont.otf");
             //_font = await Engine.AssetLoader.GetAsync<FontAsset>("ElectricSleepFont.ttf");
         }
 
