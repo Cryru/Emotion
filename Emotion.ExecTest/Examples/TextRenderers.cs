@@ -20,20 +20,14 @@ namespace Emotion.ExecTest.Examples
     {
         private FontAsset _font;
 
-        private UIController _ui;
-
         public override async Task LoadAsync()
         {
              _font = await Engine.AssetLoader.GetAsync<FontAsset>("debugFont.otf");
             //_font = await Engine.AssetLoader.GetAsync<FontAsset>("ElectricSleepFont.ttf");
-
-            _ui = new UIController();
-            ToolsManager.AddToolBoxWindow(_ui);
         }
 
         public override void Update()
         {
-            _ui.Update();
         }
 
         public override void Draw(RenderComposer composer)
@@ -66,8 +60,6 @@ namespace Emotion.ExecTest.Examples
             composer.RenderString(new Vector3(0, 450, 0), textCol, "StbTrueType:\n" + text, _font.GetAtlas(size));
 
             composer.PopModelMatrix();
-
-            _ui.Render(composer);
 
             composer.SetUseViewMatrix(true);
         }
