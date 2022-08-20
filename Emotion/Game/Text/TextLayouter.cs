@@ -41,7 +41,7 @@ namespace Emotion.Game.Text
             if (c == '\n')
             {
                 result.X = 0;
-                result.Y += _atlas.FontHeight;
+                result.Y += MathF.Round(_atlas.FontHeight);
             }
             else
             {
@@ -88,7 +88,7 @@ namespace Emotion.Game.Text
         public void NewLine()
         {
             _pen.X = 0;
-            _pen.Y += _atlas.FontHeight;
+            _pen.Y += MathF.Round(_atlas.FontHeight);
         }
 
         /// <summary>
