@@ -535,7 +535,7 @@ namespace Emotion.UI
                 {
                     UIBaseWindow win = Children[i];
                     if (win.InputTransparent || !win.Visible) continue;
-                    if (!win.IsInsideRect(renderRect)) continue;
+                    if (!win.IsInsideOrIntersectRect(renderRect, out _)) continue;
                     if (!win.IsPointInside(pos)) continue;
                     focus = win.FindMouseInput(pos);
                 }
