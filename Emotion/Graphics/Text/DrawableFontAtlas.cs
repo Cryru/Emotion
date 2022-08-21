@@ -173,7 +173,7 @@ namespace Emotion.Graphics.Text
                         break;
                     }
 
-                    // If point position apply it to UV.
+                    // If found position apply it to UV.
                     glyph.GlyphUV = new Rectangle(position.Value, glyphSize);
                 }
 

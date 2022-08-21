@@ -50,11 +50,13 @@ namespace Emotion.Graphics.Text.EmotionSDF3
         {
             if (!_renderedFonts.TryGetValue(Font, out EmotionSDFReference? atlas))
             {
-                atlas = new EmotionSDFReference(Font, SDF_REFERENCE_FONT_SIZE, pixelFont);
+                atlas = EmotionSDFReference.TryLoadReferenceFromFile(this, SDF_REFERENCE_FONT_SIZE, pixelFont, "EmotionSDF3", true);
+                atlas ??= new EmotionSDFReference(Font, SDF_REFERENCE_FONT_SIZE, pixelFont);
                 _renderedFonts.TryAdd(Font, atlas);
             }
 
             _sdfReference = atlas;
+            atlas.FontsThatUseReference.Add(this);
 
             _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
             if (_glyphPadding == Vector2.Zero)
@@ -162,6 +164,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
             // Resync atlas texture.
             var clearBuffer = false;
+            var bufferRecreated = false;
             if (_sdfReference.AtlasFramebuffer == null)
             {
                 _sdfReference.AtlasFramebuffer = new FrameBuffer(bin.Size).WithColor(true, InternalFormat.Red, PixelFormat.Red);
@@ -173,6 +176,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 Vector2 newSize = Vector2.Max(bin.Size, _sdfReference.AtlasFramebuffer.Size); // Dont size down.
                 _sdfReference.AtlasFramebuffer.Resize(newSize, true);
                 clearBuffer = true;
+                bufferRecreated = true;
             }
 
             // Remove spacing from UVs and create rects for intermediate atlas bin.
@@ -206,6 +210,8 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 sdfTempRects[i] = new Rectangle(0, 0, glyphWidth, glyphHeight);
             }
 
+            // todo: this can potentially create 16k textures which wont work on all GPUs/drivers.
+            // we probably need to split it into multiple draws in those cases.
             Vector2 sdfBaseAtlas = Binning.FitRectangles(sdfTempRects);
 
             // Remove spacing.
@@ -301,6 +307,27 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 // Apply UV padding to fit the GlyphRenderPadding.
                 DrawableGlyph atlasGlyph = glyphsMissing[i];
                 atlasGlyph.GlyphUV = glyph.GlyphUV.Inflate(_sdfGlyphSpacing.X, _sdfGlyphSpacing.Y);
+            }
+
+            _sdfReference.CacheToFile(SDF_REFERENCE_FONT_SIZE, PixelFont, "EmotionSDF3");
+
+            // If the reference atlas buffer was recreated we need to reassign the UVs in all atlases
+            // that use the reference atlas.
+            if (bufferRecreated)
+            {
+                List<DrawableFontAtlas> allAtlases = _sdfReference.FontsThatUseReference;
+                for (var i = 0; i < allAtlases.Count; i++)
+                {
+                    DrawableFontAtlas atlas = allAtlases[i];
+                    if (atlas == this) continue;
+
+                    Dictionary<char, DrawableGlyph>? glyphs = atlas.Glyphs;
+                    foreach ((char glyphChar, DrawableGlyph? atlasGlyph) in glyphs)
+                    {
+                        if (!referenceAtlas.Glyphs.TryGetValue(glyphChar, out DrawableGlyph? referenceGlyph)) continue;
+                        atlasGlyph.GlyphUV = referenceGlyph.GlyphUV;
+                    }
+                }
             }
         }
 

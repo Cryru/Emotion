@@ -295,7 +295,7 @@ namespace Tests.Classes
                 Assert.Equal(maxX, bbox.Width);
                 Assert.Equal(maxY, bbox.Height);
 
-                Rectangle drawBox = AtlasGlyph.GetDrawBox(glyph, atlas.RenderScale);
+                Rectangle drawBox = new Rectangle(0, 0, bbox.Width - bbox.X, bbox.Height - bbox.Y);
                 drawBox.Size += Vector2.One; // Add padding from stb
                 StbTrueType.stbrp_rect rect = rects[charIndex];
                 Assert.Equal(rect.w, drawBox.Width);

@@ -41,14 +41,18 @@ namespace Emotion.Graphics.Text.EmotionSDF
         }
 
         public EmotionSDFDrawableFontAtlas(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
-        {
+        {           
+            _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
+
             if (!_renderedFonts.TryGetValue(Font, out EmotionSDFReference? atlas))
             {
-                atlas = new EmotionSDFReference(Font, GlyphSize, pixelFont);
+                atlas = EmotionSDFReference.TryLoadReferenceFromFile(this, GlyphSize, pixelFont, "EmotionSDF4", true);
+                atlas ??= new EmotionSDFReference(Font, GlyphSize, pixelFont);
                 _renderedFonts.TryAdd(Font, atlas);
             }
 
             _sdfReference = atlas;
+            atlas.FontsThatUseReference.Add(this);
 
             _renderScaleRatio = RenderScale / _sdfReference.ReferenceFont.RenderScale;
             _drawOffset = (new Vector2(SdfSize) * _renderScaleRatio).ToVec3();
@@ -98,6 +102,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
             }
 
             // Resync atlas texture.
+            var bufferRecreated = false;
             var clearBuffer = false;
             if (_sdfReference.AtlasFramebuffer == null)
             {
@@ -110,6 +115,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
                 Vector2 newSize = Vector2.Max(bin.Size, _sdfReference.AtlasFramebuffer.Size); // Dont size down.
                 _sdfReference.AtlasFramebuffer.Resize(newSize, true);
                 clearBuffer = true;
+                bufferRecreated = true;
             }
 
             // RenderDoc.StartCapture();
@@ -135,6 +141,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
             composer.SetState(prevState);
             composer.PopModelMatrix();
 
+            // RenderDoc.EndCapture();
+
             // Invert UVs along the Y axis, this is to fix the texture inversion from above.
             for (var i = 0; i < glyphsMissingReferences.Count; i++)
             {
@@ -145,7 +153,26 @@ namespace Emotion.Graphics.Text.EmotionSDF
                 g.GlyphUV = glyph.GlyphUV;
             }
 
-            // RenderDoc.EndCapture();
+            _sdfReference.CacheToFile(GlyphSize, PixelFont, "EmotionSDF4");
+
+            // If the reference atlas buffer was recreated we need to reassign the UVs in all atlases
+            // that use the reference atlas.
+            if (bufferRecreated)
+            {
+                List<DrawableFontAtlas> allAtlases = _sdfReference.FontsThatUseReference;
+                for (var i = 0; i < allAtlases.Count; i++)
+                {
+                    DrawableFontAtlas atlas = allAtlases[i];
+                    if (atlas == this) continue;
+
+                    Dictionary<char, DrawableGlyph>? glyphs = atlas.Glyphs;
+                    foreach ((char glyphChar, DrawableGlyph? atlasGlyph) in glyphs)
+                    {
+                        if (!referenceAtlas.Glyphs.TryGetValue(glyphChar, out DrawableGlyph? referenceGlyph)) continue;
+                        atlasGlyph.GlyphUV = referenceGlyph.GlyphUV;
+                    }
+                }
+            }
         }
 
         private static RenderStreamBatch<SdfVertex>? _sdfVertexStream;
@@ -159,9 +186,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
             _sdfVertexStream ??= new RenderStreamBatch<SdfVertex>(0, 1, false);
             _lineShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderLine.xml");
             _fillShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
-            if (_sdfShader == null) _sdfShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
 
-            if (_lineShader == null || _fillShader == null || _sdfShader == null)
+            if (_lineShader == null || _fillShader == null)
             {
                 Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.Renderer);
                 return;
@@ -226,7 +252,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
         public override void SetupDrawing(RenderComposer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
-            base.SetupDrawing(c, text);
+            base.SetupDrawing(c, text, effect, effectAmount, effectColor);
 
             ShaderProgram? shader = _sdfShader?.Shader;
             if (shader == null) return;
