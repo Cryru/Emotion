@@ -46,7 +46,6 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
             if (!_renderedFonts.TryGetValue(Font, out EmotionSDFReference? atlas))
             {
-                atlas = EmotionSDFReference.TryLoadReferenceFromFile(this, GlyphSize, pixelFont, "EmotionSDF4", true);
                 atlas ??= new EmotionSDFReference(Font, GlyphSize, pixelFont);
                 _renderedFonts.TryAdd(Font, atlas);
             }
@@ -152,8 +151,6 @@ namespace Emotion.Graphics.Text.EmotionSDF
                 DrawableGlyph g = glyphsMissing[i];
                 g.GlyphUV = glyph.GlyphUV;
             }
-
-            _sdfReference.CacheToFile(GlyphSize, PixelFont, "EmotionSDF4");
 
             // If the reference atlas buffer was recreated we need to reassign the UVs in all atlases
             // that use the reference atlas.

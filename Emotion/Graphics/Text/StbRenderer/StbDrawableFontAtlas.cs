@@ -63,7 +63,7 @@ namespace Emotion.Graphics.Text.StbRenderer
             if (_atlasBuffer == null)
             {
                 _atlasBuffer = new FrameBuffer(_bin.Size).WithColor();
-                _atlasBuffer.ColorAttachment.Smooth = true;
+                //_atlasBuffer.ColorAttachment.Smooth = true;
                 clearBuffer = true;
             }
             else if (_bin.Size != _atlasBuffer.Size)
