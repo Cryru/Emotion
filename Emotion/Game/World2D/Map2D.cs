@@ -143,10 +143,7 @@ namespace Emotion.Game.World2D
 
             // Wait for the GLThread work queue to empty up.
             // This ensures that all assets (texture uploads etc) and stuff are loaded.
-            while (!GLThread.Empty)
-            {
-                await Task.Delay(1);
-            }
+            while (!GLThread.Empty) await Task.Delay(1);
 
             // Call late init and add to the world tree.
             _worldTree = InitWorldTree();
@@ -301,8 +298,9 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// Get an object from the map by name.
         /// </summary>
-        public GameObject2D? GetObjectByName(string name)
+        public GameObject2D? GetObjectByName(string? name)
         {
+            if (name == null) return null;
             foreach (GameObject2D obj in GetObjects())
             {
                 if (obj.ObjectName == name) return obj;
