@@ -47,7 +47,7 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// The map this object is in. Is set after Init.
         /// </summary>
-        public Map2D? Map { get; protected set; }
+        public Map2D Map { get; protected set; }
 
         /// <summary>
         /// The object state, managed by the map in runtime.
@@ -66,12 +66,14 @@ namespace Emotion.Game.World2D
         public GameObject2D(string name)
         {
             ObjectName = name;
+            Map = null!;
         }
 
         // Serialization constructor.
         protected GameObject2D()
         {
             ObjectName = null!;
+            Map = null!;
         }
 
         /// <summary>
