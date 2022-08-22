@@ -20,7 +20,6 @@ namespace Emotion.ExecTest.Examples
         public override async Task LoadAsync()
         {
             _font = await Engine.AssetLoader.GetAsync<FontAsset>("debugFont.otf");
-            //_font = await Engine.AssetLoader.GetAsync<FontAsset>("ElectricSleepFont.ttf");
         }
 
         public override void Update()
