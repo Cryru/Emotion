@@ -2,7 +2,6 @@
 
 using System.Numerics;
 using Emotion.Common;
-using Emotion.ExecTest.Examples;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Scenography;
@@ -21,7 +20,7 @@ namespace Emotion.ExecTest
             };
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new TextRenderers());
+            Engine.SceneManager.SetScene(new Program());
             Engine.Run();
         }
 
