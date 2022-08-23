@@ -166,10 +166,11 @@ This includes dependencies and projects which were used for research references.
 | [OpenAL-Soft](https://github.com/kcat/openal-soft/) | X | Audio Code Reference | None
 | [NAudio](https://github.com/naudio/NAudio) | X | Audio Code Reference | None
 | [Audacity](https://github.com/audacity) | X | Audio Code Reference | None
+| [Astiopin's SDF generator](https://github.com/astiopin/sdf_atlas) | X | EmotionSDF4 atlas generation reference | None
 
 If you're distributing code using this project include the "LICENSE THIRD-PARTY" file from the repository.
 
-## Inspired Fully, Or In Parts By:
+## Inspired By:
 
 - Processing
 - MonoGame
