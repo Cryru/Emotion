@@ -88,7 +88,7 @@ namespace Emotion.Tools.Editors.Animation2D
                 if (currentFileContext.Animations != null)
                 {
                     ImGui.Text("Animations:");
-                    ImGui.BeginChild("Animations", new Vector2(-1, 200), true, ImGuiWindowFlags.NoScrollbar);
+                    ImGui.BeginChild("Animations", new Vector2(-1, 500), true, ImGuiWindowFlags.NoScrollbar);
 
                     Dictionary<string, SpriteAnimationData> anims = currentFileContext.Animations;
                     AnimationsList(anims);
@@ -145,7 +145,7 @@ namespace Emotion.Tools.Editors.Animation2D
             var open = true;
             ImGui.SetNextWindowPos(new Vector2(0, 20), ImGuiCond.Always);
             ImGui.SetNextWindowSize(c.CurrentTarget.Size - new Vector2(0, 20));
-            ImGui.Begin(Title, ref open, ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove);
+            ImGui.Begin(Title, ref open, ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus);
 
             RenderImGui();
 
@@ -281,9 +281,29 @@ namespace Emotion.Tools.Editors.Animation2D
 
         private void AnimationsList(Dictionary<string, SpriteAnimationData> anims)
         {
+            int? moveIdx = null;
+            int? moveDir = null;
+
             ImGui.BeginChild("animScroll", new Vector2(0, -ImGui.GetFrameHeightWithSpacing()), false);
+            var idx = 0;
             foreach ((string animId, SpriteAnimationData anim) in anims)
             {
+                if (ImGui.ArrowButton($"{animId}Up", ImGuiDir.Up) && idx != 0)
+                {
+                    moveIdx = idx;
+                    moveDir = -1;;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.ArrowButton($"{animId}Down", ImGuiDir.Down) && idx != anims.Count - 1)
+                {
+                    moveIdx = idx;
+                    moveDir = 1;
+                }
+                ImGui.SameLine();
+
+                idx++;
+
                 if (_selectedAnimation == animId)
                 {
                     EditorHelpers.SelectedButtonTextOnly(animId);
@@ -292,6 +312,13 @@ namespace Emotion.Tools.Editors.Animation2D
                 {
                     _selectedAnimation = animId;
                     _controller.SetAnimation(_selectedAnimation);
+
+                    int[] frames = _controller.CurrentAnimationData.FrameIndices;
+                    if (frames.Length > 0)
+                    {
+                        int firstFrame = frames[0];
+                        _frameAnchor = firstFrame;
+                    }
                 }
 
                 ImGui.SameLine();
@@ -299,6 +326,21 @@ namespace Emotion.Tools.Editors.Animation2D
             }
 
             ImGui.EndChild();
+
+            // Check if moving animations.
+            if (moveIdx != null)
+            {
+                KeyValuePair<string, SpriteAnimationData>[] arr = anims.ToArray();
+                KeyValuePair<string, SpriteAnimationData> itemToMove = arr[moveIdx.Value];
+                KeyValuePair<string, SpriteAnimationData> itemToExchangeWith = arr[moveIdx.Value + moveDir.Value];
+                arr[moveIdx.Value] = itemToExchangeWith;
+                arr[moveIdx.Value + moveDir.Value] = itemToMove;
+                anims.Clear();
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    anims.Add(arr[i].Key, arr[i].Value);
+                }
+            }
         }
 
         private void AnimationControlButtons(Dictionary<string, SpriteAnimationData> anims)
@@ -376,7 +418,7 @@ namespace Emotion.Tools.Editors.Animation2D
             if (ImGui.Button("Add Frame"))
             {
                 selAnim.FrameIndices = selAnim.FrameIndices.AddToArray(_addFrameInput);
-                if (_addFrameInput < frameSource.GetFrameCount() - 2) _addFrameInput++;
+                if (_addFrameInput < frameSource.GetFrameCount() - 1) _addFrameInput++;
                 _controller.Reset();
                 UnsavedChanges();
             }
