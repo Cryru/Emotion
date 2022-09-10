@@ -49,12 +49,6 @@ namespace Emotion.Game.World2D
         [SerializeNonPublicGetSet]
         public List<GameObject2D> ObjectsToSerialize { get; protected set; }
 
-        /// <summary>
-        /// List of labeled points on the map.
-        /// </summary>
-        [SerializeNonPublicGetSet]
-        public Dictionary<string, Vector2> NamedPoints { get; protected set; }
-
         #region Runtime State
 
         /// <summary>
@@ -76,6 +70,12 @@ namespace Emotion.Game.World2D
         /// </summary>
         protected WorldTree2D? _worldTree;
 
+        /// <summary>
+        /// Positions of all named objects at map load.
+        /// </summary>
+        [DontSerialize]
+        public Dictionary<string, Vector2> InitialPositions { get; } = new();
+
         #endregion
 
         public Map2D(Vector2 size)
@@ -85,7 +85,6 @@ namespace Emotion.Game.World2D
 
             _objects = new List<GameObject2D>();
             ObjectsToSerialize = new List<GameObject2D>();
-            NamedPoints = new Dictionary<string, Vector2>();
         }
 
         // Serialization constructor
@@ -94,7 +93,6 @@ namespace Emotion.Game.World2D
             MapName = "";
             _objects = null!;
             ObjectsToSerialize = null!;
-            NamedPoints = null!;
         }
 
         #region Init
@@ -111,6 +109,11 @@ namespace Emotion.Game.World2D
             for (var i = 0; i < ObjectsToSerialize.Count; i++)
             {
                 GameObject2D obj = ObjectsToSerialize[i];
+                if (!obj.ShouldSpawnSerializedObject(this))
+                {
+                    objectAssetTasks[i] = Task.CompletedTask;
+                    continue;
+                }
 
                 objectAssetTasks[i] = obj.LoadAssetsAsync();
                 obj.MapFlags |= Map2DObjectFlags.Serializable;
@@ -118,6 +121,7 @@ namespace Emotion.Game.World2D
             }
 
             // Add non serialized object that were added before map init.
+            // We want to load those objects now rather than wait for the first tick.
             int taskIdx = ObjectsToSerialize.Count;
             while (_objectsToAdd.TryDequeue(out GameObject2D? obj))
             {
@@ -157,8 +161,8 @@ namespace Emotion.Game.World2D
                 // Record initial positions of named objects as named points.
                 if (!string.IsNullOrEmpty(obj.ObjectName))
                 {
-                    if (!NamedPoints.ContainsKey(obj.ObjectName))
-                        NamedPoints.Add(obj.ObjectName, obj.Position2);
+                    if (!InitialPositions.ContainsKey(obj.ObjectName))
+                        InitialPositions.Add(obj.ObjectName, obj.Position2);
                     else
                         Engine.Log.Warning($"Duplicate object name - {obj.ObjectName}", MessageSource.Game, true);
                 }

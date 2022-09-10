@@ -89,10 +89,12 @@ namespace Emotion.Game.World2D
                 // For each layer with objects.
                 for (var i = 0; i < map.TiledMap.ObjectLayers.Count; i++)
                 {
+                    TmxObjectLayer? objectLayer = map.TiledMap.ObjectLayers[i];
+
                     // For each object.
                     for (var j = 0; j < map.TiledMap.ObjectLayers[i].Objects.Count; j++)
                     {
-                        TmxObject? objDef = map.TiledMap.ObjectLayers[i].Objects[j];
+                        TmxObject? objDef = objectLayer.Objects[j];
 
                         Map2DTileset? tilesetAsset = null;
                         Rectangle? uv = null;
@@ -106,7 +108,7 @@ namespace Emotion.Game.World2D
 
                         var obj = (GameObject2D?) constructionMethod.Invoke(newMap, new object[]
                         {
-                            objDef.Type, objDef.Name, new Vector2(objDef.X, objDef.Y).Round(), tilesetAsset!, uv!, objDef.Properties, objDef
+                            objDef.Type, objDef.Name, new Vector2(objDef.X, objDef.Y).Round(), tilesetAsset!, uv!, objDef.Properties, objDef, objectLayer
                         });
 
                         if (obj != null)

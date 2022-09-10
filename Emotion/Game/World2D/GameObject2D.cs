@@ -77,6 +77,15 @@ namespace Emotion.Game.World2D
         }
 
         /// <summary>
+        /// Whether this serialized object should be spawned when the map is loaded.
+        /// This should always return true in EditorMode
+        /// </summary>
+        public virtual bool ShouldSpawnSerializedObject(Map2D map)
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Load all assets in use by the object. This is called first and is expected to be ran
         /// in parallel with other objects.
         /// </summary>

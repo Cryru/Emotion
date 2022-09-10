@@ -441,6 +441,18 @@ namespace Emotion.Game.World2D
         }
 
         /// <summary>
+        /// Get the texture cache of the specified map layer. Allows you to modify
+        /// textures per tile.
+        /// </summary>
+        public Texture[]? GetMapLayerTextureCache(string layerName)
+        {
+            if (_cachedTileTextures == null) return null;
+
+            int mapLayerIdx = GetMapLayerByName(layerName);
+            return mapLayerIdx == -1 ? null : _cachedTileTextures[mapLayerIdx];
+        }
+
+        /// <summary>
         /// Converts a twp dimensional tile coordinate to a one dimensional index.
         /// </summary>
         public int GetTile1DFromTile2D(Vector2 coordinate)
@@ -459,6 +471,36 @@ namespace Emotion.Game.World2D
             var x = (int) (coordinate % SizeInTiles.X);
             var y = (int) (coordinate / SizeInTiles.X);
             return coordinate >= SizeInTiles.X * SizeInTiles.Y ? Vector2.Zero : new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Returns the tile coordinate of the tile at the specified coordinates.
+        /// </summary>
+        /// <param name="location">The coordinates in world space you want to sample.</param>
+        /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
+        public Vector2 GetTileCoordinateFromLocation(Vector2 location)
+        {
+            var left = (int) Math.Max(0, location.X / TileSize.X);
+            var top = (int) Math.Max(0, location.Y / TileSize.Y);
+
+            return new Vector2(left, top);
+        }
+
+        /// <summary>
+        /// Get the world render position of a tile.
+        /// </summary>
+        public Vector3 GetWorldPosOfTile(Vector2 tilePos, int layerIdx)
+        {
+            if (_cachedTileRenderData == null || layerIdx == -1) return Vector3.Zero;
+
+            VertexData[]? renderCache = _cachedTileRenderData[layerIdx];
+            if (renderCache == null) return Vector3.Zero;
+
+            int tileIdx = GetTile1DFromTile2D(tilePos);
+            if (tileIdx == -1) return Vector3.Zero;
+
+            VertexData firstVertexOfTile = renderCache[tileIdx * 4];
+            return firstVertexOfTile.Vertex;
         }
 
         #endregion
