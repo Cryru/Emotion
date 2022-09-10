@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Game.Tiled;
@@ -34,6 +33,15 @@ namespace Emotion.Tools.Editors.MapEditor
 
         public MapEditor() : base("Map Editor")
         {
+        }
+
+
+        #region Editor Controls
+
+        public override void AttachedToController(UIController controller)
+        {
+            base.AttachedToController(controller);
+
             List<Type> mapTypes = EditorHelpers.GetTypesWhichInherit<Map2D>();
             if (mapTypes.Count == 1) // Map2D itself.
             {
@@ -41,16 +49,21 @@ namespace Emotion.Tools.Editors.MapEditor
                 return;
             }
 
-            _customMapType = mapTypes[^1];
-            Title = $"Map Editor - {_customMapType}";
-            // todo: make a modal to pick
-        }
+            var typeNames = new string[mapTypes.Count];
+            for (var i = 0; i < mapTypes.Count; i++)
+            {
+                typeNames[i] = mapTypes[i].Name;
+            }
 
-        #region Editor Controls
-
-        public override void AttachedToController(UIController controller)
-        {
-            base.AttachedToController(controller);
+            var typePick = new ButtonInputModalWindow("Map2D Types", "Which Map2D inheriting type are you going to edit?",
+                idx =>
+                {
+                    _customMapType = mapTypes[idx];
+                    Title = $"Map Editor - {_customMapType}";
+                },
+                typeNames
+            );
+            _toolsRoot.AddChild(typePick);
 
             _previousCamera = Engine.Renderer.Camera;
             Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
@@ -79,14 +92,13 @@ namespace Emotion.Tools.Editors.MapEditor
                     Vector3 move = (_dragOffset - pos).ToVec3() / Engine.Renderer.Camera.CalculatedScale;
                     Engine.Renderer.Camera.Position += move;
                     _dragOffset = pos;
-
                 }
                 else
                 {
                     _dragWorld = false;
                 }
             }
-            else if(Engine.Host.IsKeyDown(Key.MouseKeyMiddle))
+            else if (Engine.Host.IsKeyDown(Key.MouseKeyMiddle))
             {
                 Vector2 pos = Engine.Host.MousePosition;
                 _dragWorld = true;
@@ -172,14 +184,12 @@ namespace Emotion.Tools.Editors.MapEditor
         {
             Map2D? map = _currentAsset?.Content;
             if (map != null)
-            {
                 for (var i = 0; i < map.ObjectsToSerialize.Count; i++)
                 {
                     GameObject2D obj = map.ObjectsToSerialize[i];
                     obj.PreMapEditorSave();
                 }
-            }
-        
+
             return true;
         }
 
@@ -207,10 +217,7 @@ namespace Emotion.Tools.Editors.MapEditor
                     for (var i = 0; i < layers.Count; i++)
                     {
                         Map2DTileMapLayer curLayer = layers[i];
-                        if (ImGui.MenuItem($"{curLayer.Name}", "", i == _selectedLayer))
-                        {
-                            _selectedLayer = i;
-                        }
+                        if (ImGui.MenuItem($"{curLayer.Name}", "", i == _selectedLayer)) _selectedLayer = i;
                     }
                 }
 
@@ -265,7 +272,7 @@ namespace Emotion.Tools.Editors.MapEditor
                     VertexData thisTile = renderCache[oneDCoord * 4];
                     ImGui.Text($"\tZ {thisTile.Vertex.Z}");
                 }
-                
+
                 ImGui.End();
             }
 
@@ -290,7 +297,7 @@ namespace Emotion.Tools.Editors.MapEditor
             _currentAsset?.Content?.Render(c);
             c.SetDepthTest(false);
             c.SetUseViewMatrix(true);
-            
+
             if (tileData != null)
             {
                 Vector2 tileSize = tileData.TileSize;
