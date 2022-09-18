@@ -88,7 +88,7 @@ namespace Emotion.Tools.Editors.Animation2D
                 if (currentFileContext.Animations != null)
                 {
                     ImGui.Text("Animations:");
-                    ImGui.BeginChild("Animations", new Vector2(-1, 500), true, ImGuiWindowFlags.NoScrollbar);
+                    ImGui.BeginChild("Animations", new Vector2(-1, 400), true, ImGuiWindowFlags.NoScrollbar);
 
                     Dictionary<string, SpriteAnimationData> anims = currentFileContext.Animations;
                     AnimationsList(anims);

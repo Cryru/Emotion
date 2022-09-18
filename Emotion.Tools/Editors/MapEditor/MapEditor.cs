@@ -29,12 +29,11 @@ namespace Emotion.Tools.Editors.MapEditor
         private const float TOP_BARS = 60;
 
         private CameraBase _previousCamera = null!;
-        private Type _customMapType;
+        private Type _customMapType = null!;
 
         public MapEditor() : base("Map Editor")
         {
         }
-
 
         #region Editor Controls
 
@@ -172,7 +171,7 @@ namespace Emotion.Tools.Editors.MapEditor
 
         protected override XMLAsset<Map2D> CreateFile()
         {
-            return null;
+            return XMLAsset<Map2D>.CreateFromContent(new Map2D(new Vector2(256)));
         }
 
         protected override bool OnFileLoaded(XMLAsset<Map2D> file)

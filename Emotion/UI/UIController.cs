@@ -14,6 +14,8 @@ namespace Emotion.UI
 {
     public class UIController : UIBaseWindow
     {
+        public KeyListenerType KeyPriority = KeyListenerType.UI;
+
         protected static List<UIController> _activeControllers = new List<UIController>();
 
         public UIBaseWindow InputFocus;
@@ -268,7 +270,7 @@ namespace Emotion.UI
                     Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
                 InputFocus = newFocus;
                 if (InputFocus != null)
-                    Engine.Host.OnKey.AddListener(KeyboardFocusOnKey);
+                    Engine.Host.OnKey.AddListener(KeyboardFocusOnKey, KeyPriority);
 
                 // Kinda spammy.
                 // Engine.Log.Info($"New input focus {InputFocus}", "UI");
@@ -305,7 +307,7 @@ namespace Emotion.UI
                 if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
                 MouseFocus = newMouseFocus;
                 if (MouseFocus != null)
-                    Engine.Host.OnKey.AddListener(MouseFocusOnKey);
+                    Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
                 MouseFocus?.OnMouseEnter(mousePos);
 
                 // This is very spammy.
