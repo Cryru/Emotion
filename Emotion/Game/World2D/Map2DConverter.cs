@@ -108,7 +108,7 @@ namespace Emotion.Game.World2D
 
                         var obj = (GameObject2D?) constructionMethod.Invoke(newMap, new object[]
                         {
-                            objDef.Type, objDef.Name, new Vector2(objDef.X, objDef.Y).Round(), tilesetAsset!, uv!, objDef.Properties, objDef, objectLayer
+                            objDef.Type, objDef.Name, new Vector2(objDef.X, objDef.Y).Ceiling(), tilesetAsset!, uv!, objDef.Properties, objDef, objectLayer
                         });
 
                         if (obj != null)

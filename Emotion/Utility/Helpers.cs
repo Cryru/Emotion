@@ -90,8 +90,20 @@ namespace Emotion.Utility
             if (Engine.Host.IsKeyHeld(Key.S)) dir.Y += 1;
             if (Engine.Host.IsKeyHeld(Key.D)) dir.X += 1;
 
+            if (Engine.Host.IsKeyHeld(Key.LeftShift)) speed *= 2;
+
             dir *= new Vector2(speed, speed) * Engine.DeltaTime;
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
+
+            float zoomDir = 0;
+            float mouseWheelChange = Engine.Host.GetMouseScrollRelative();
+            if (mouseWheelChange > 0)
+                zoomDir = -1;
+            else if (mouseWheelChange < 0) zoomDir = 1;
+
+            float zoom = Engine.Renderer.Camera.Zoom;
+            zoom += speed * zoomDir;
+            Engine.Renderer.Camera.Zoom = Maths.Clamp(zoom, 0.1f, 4f);
         }
 
         private static readonly byte[] Utf16Le = {0xFF, 0xFE};

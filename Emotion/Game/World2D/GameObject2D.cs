@@ -95,12 +95,22 @@ namespace Emotion.Game.World2D
         }
 
         /// <summary>
+        /// Attach the object to the map. It is assumed that after this call the object will be
+        /// returned by various map querries. Note that if the object's size or position is calculated
+        /// at init/based on assets it might not be where you expect it to be spatially.
+        /// </summary>
+        public virtual void AttachToMap(Map2D map)
+        {
+            Map = map;
+        }
+
+        /// <summary>
         /// Init game data. All changes from this process shouldn't be serialized.
         /// It is assumed that LoadAssetsAsync has finished completion at the time this is called.
         /// </summary>
-        public virtual void Init(Map2D map)
+        public virtual void Init()
         {
-            Map = map;
+
         }
 
         /// <summary>
@@ -147,6 +157,11 @@ namespace Emotion.Game.World2D
         public virtual void PreMapEditorSave()
         {
             // you can prepare the obj for serialization here.
+        }
+
+        public override string ToString()
+        {
+            return $"{GetType().Name} {base.ToString()}";
         }
     }
 }

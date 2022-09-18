@@ -13,8 +13,11 @@ namespace Emotion.Platform.Input
     public enum KeyListenerType : byte
     {
         System = 0,
-        UI = 1,
-        Game = 2,
+        EditorUI = 1,
+        Editor = 2,
+
+        UI = 3,
+        Game = 4,
         Last
     }
 

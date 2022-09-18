@@ -9,9 +9,13 @@ using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
+using Emotion.Graphics.Camera;
+using Emotion.Platform.Input;
 using Emotion.Primitives;
-using Emotion.Standard.Logging;
+using Emotion.UI;
+using Emotion.Utility;
 
 #endregion
 
@@ -40,7 +44,13 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// Whether the map is loaded and ready to be used.
         /// </summary>
+        [DontSerialize]
         public bool Initialized { get; protected set; }
+
+        /// <summary>
+        /// Whether map loading has started.
+        /// </summary>
+        protected bool _mapLoadedStarted { get; set; }
 
         /// <summary>
         /// This list is only used for saving and initializing the map, and is managed by the map itself.
@@ -54,7 +64,7 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// Whether the map is currently open in the editor.
         /// </summary>
-        [DontSerialize] public bool EditorMode = false;
+        [DontSerialize] public bool EditorMode;
 
         /// <summary>
         /// The area of the map to render. By default this is initialized to the
@@ -69,12 +79,6 @@ namespace Emotion.Game.World2D
         /// Quad tree used to speed up queries.
         /// </summary>
         protected WorldTree2D? _worldTree;
-
-        /// <summary>
-        /// Positions of all named objects at map load.
-        /// </summary>
-        [DontSerialize]
-        public Dictionary<string, Vector2> InitialPositions { get; } = new();
 
         #endregion
 
@@ -104,80 +108,63 @@ namespace Emotion.Game.World2D
         {
             var profiler = Stopwatch.StartNew();
 
-            // Add all serialized objects, and start loading their assets.
-            var objectAssetTasks = new Task[ObjectsToSerialize.Count + _objectsToAdd.Count];
+            _worldTree = new WorldTree2D(MapSize);
+            _mapLoadedStarted = true;
+
+            SetupWorldTreeLayers(_worldTree);
+
+            // It is possible for objects to have been added before the world tree is initialized.
+            // We need to add them to the world tree now.
+            for (var i = 0; i < _objects.Count; i++)
+            {
+                GameObject2D obj = _objects[i];
+                _worldTree.AddObjectToTree(obj);
+            }
+
+            // Spawn all serialized objects
             for (var i = 0; i < ObjectsToSerialize.Count; i++)
             {
                 GameObject2D obj = ObjectsToSerialize[i];
-                if (!obj.ShouldSpawnSerializedObject(this))
-                {
-                    objectAssetTasks[i] = Task.CompletedTask;
-                    continue;
-                }
+                if (!obj.ShouldSpawnSerializedObject(this)) continue;
 
-                objectAssetTasks[i] = obj.LoadAssetsAsync();
-                obj.MapFlags |= Map2DObjectFlags.Serializable;
-                _objects.Add(obj);
+                AddObject(obj);
+                obj.MapFlags |= Map2DObjectFlags.Serializable; // Flags aren't saved, so we need to apply it.
             }
 
-            // Add non serialized object that were added before map init.
-            // We want to load those objects now rather than wait for the first tick.
-            int taskIdx = ObjectsToSerialize.Count;
-            while (_objectsToAdd.TryDequeue(out GameObject2D? obj))
-            {
-                objectAssetTasks[taskIdx] = obj.LoadAssetsAsync();
-                taskIdx++;
-                _objects.Add(obj);
-            }
-
-            // Load tile data in parallel.
+            // Load tile data. During this time object loading is running async.
             if (TileData != null)
             {
                 Debug.Assert((TileData.SizeInTiles * TileData.TileSize).SmallerOrEqual(MapSize), "Tiles outside map.");
                 await TileData.LoadTileDataAsync();
             }
 
-            await Task.WhenAll(objectAssetTasks);
+            // Wait for the assets of all objects to load.
+            await AwaitAllObjectsLoaded();
 
-            // Now that all assets are loaded, init the objects.
-            foreach (GameObject2D obj in GetObjects())
-            {
-                obj.Init(this);
-            }
+            // Run map post processing.
+            await PostMapLoad();
+
+            // It is possible for PostMapLoad to have added more objects. Wait for them to load too.
+            await AwaitAllObjectsLoaded();
 
             // Wait for the GLThread work queue to empty up.
             // This ensures that all assets (texture uploads etc) and stuff are loaded.
             while (!GLThread.Empty) await Task.Delay(1);
-
-            // Call late init and add to the world tree.
-            _worldTree = InitWorldTree();
-            foreach (GameObject2D obj in GetObjects())
-            {
-                obj.LateInit();
-
-                _worldTree.AddObjectToTree(obj);
-                obj.ObjectState = ObjectState.Alive;
-
-                // Record initial positions of named objects as named points.
-                if (!string.IsNullOrEmpty(obj.ObjectName))
-                {
-                    if (!InitialPositions.ContainsKey(obj.ObjectName))
-                        InitialPositions.Add(obj.ObjectName, obj.Position2);
-                    else
-                        Engine.Log.Warning($"Duplicate object name - {obj.ObjectName}", MessageSource.Game, true);
-                }
-            }
-
-            await PostMapLoad();
             Update(0); // Run the update tick once to prevent some flickering on first update.
             Initialized = true;
+
+            SetupDebug();
 
             Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
         }
 
-        protected virtual WorldTree2D InitWorldTree()
+        protected virtual void SetupWorldTreeLayers(WorldTree2D worldTree)
         {
-            return new WorldTree2D(MapSize);
+            // Define all world tree layers in the inheriting map here.
+            // Example:
+            // worldTree.AddTreeLayer(MY_LAYER_ID);
+            // where
+            // public const int MY_LAYER_ID = 1;
         }
 
         protected virtual Task PostMapLoad()
@@ -185,11 +172,14 @@ namespace Emotion.Game.World2D
             return Task.CompletedTask;
         }
 
+        protected virtual void PostMapFullyLoaded()
+        {
+        }
+
         #endregion
 
         #region Object Management
 
-        private ConcurrentQueue<GameObject2D> _objectsToAdd = new();
         private ConcurrentQueue<GameObject2D> _objectsToRemove = new();
         private ConcurrentQueue<GameObject2D> _objectsToUpdate = new();
         private List<(GameObject2D, Task)> _objectLoading = new();
@@ -201,32 +191,50 @@ namespace Emotion.Game.World2D
         {
             Debug.Assert(obj.ObjectState == ObjectState.None);
 
-            // Serializable objects added before the map is initialized will be initialized in
-            // map load and be part of the map loading.
-            if (obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable) && !Initialized)
+            // Serializable objects added before map load will be loaded in bulk.
+            if (obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable) && !_mapLoadedStarted)
             {
                 ObjectsToSerialize.Add(obj);
                 return;
             }
 
-            _objectsToAdd.Enqueue(obj);
+            // Attaches the object to the map
+            obj.AttachToMap(this);
+            _objects.Add(obj);
+            _worldTree?.AddObjectToTree(obj);
+
+            Task loading = Task.Run(obj.LoadAssetsAsync);
+            if (!loading.IsCompleted)
+            {
+                obj.ObjectState = ObjectState.Loading;
+                _objectLoading.Add((obj, loading));
+            }
+            else // Consider loaded instantly if no asset loading
+            {
+                ObjectPostLoad(obj);
+            }
         }
 
-        /// <summary>
-        /// Initialize an object now and add it.
-        /// By default objects are initialized on update ticks, or during map load, but it is possible
-        /// for the map to create critical objects during runtime, such as for player characters.
-        /// </summary>
-        protected async Task ObjectLoadAndAdd(GameObject2D obj)
+        protected void ObjectPostLoad(GameObject2D obj)
         {
-            Debug.Assert(_worldTree != null);
-
-            await obj.LoadAssetsAsync();
-            obj.Init(this);
-            obj.LateInit();
-            _objects.Add(obj);
-            _worldTree.AddObjectToTree(obj);
+            obj.Init();
             obj.ObjectState = ObjectState.Alive;
+        }
+
+        protected async Task AwaitAllObjectsLoaded()
+        {
+            for (int i = _objectLoading.Count - 1; i >= 0; i--)
+            {
+                (GameObject2D? obj, Task? loadingTask) = _objectLoading[i];
+                if (!loadingTask.IsCompleted)
+                {
+                    await loadingTask;
+                    Debug.Assert(loadingTask.IsCompleted);
+                }
+
+                _objectLoading.RemoveAt(i);
+                ObjectPostLoad(obj);
+            }
         }
 
         public void RemoveObject(GameObject2D obj)
@@ -252,33 +260,7 @@ namespace Emotion.Game.World2D
                 if (!loadingTask.IsCompleted) continue;
 
                 _objectLoading.RemoveAt(i);
-                _objectsToAdd.Enqueue(obj);
-            }
-
-            // Check objects to add.
-            while (_objectsToAdd.TryDequeue(out GameObject2D? obj))
-            {
-                // Check if the object requires loading, and put it in that state first.
-                if (obj.ObjectState == ObjectState.None)
-                {
-                    Task loading = Task.Run(obj.LoadAssetsAsync);
-                    if (!loading.IsCompleted)
-                    {
-                        obj.ObjectState = ObjectState.Loading;
-                        _objectLoading.Add((obj, loading));
-                        continue;
-                    }
-                }
-
-                _objects.Add(obj);
-                obj.Init(this);
-                obj.LateInit();
-                _worldTree.AddObjectToTree(obj);
-                obj.ObjectState = ObjectState.Alive;
-
-                // Objects added during runtime are added to the map's serialization if the flag is turned on, off by default.
-                // This should technically only concern objects added by the editor.
-                if (obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable)) ObjectsToSerialize.Add(obj);
+                ObjectPostLoad(obj);
             }
 
             // Check for objects to remove.
@@ -350,11 +332,14 @@ namespace Emotion.Game.World2D
             ProcessObjectChanges();
 
             // todo: obj update, clipped?
-            for (var i = 0; i < GetObjectCount(); i++)
+            int objCount = GetObjectCount();
+            for (var i = 0; i < objCount; i++)
             {
                 GameObject2D obj = GetObjectByIndex(i);
                 obj.Update(dt);
             }
+
+            UpdateDebug();
         }
 
         public virtual void Render(RenderComposer c)
@@ -364,16 +349,132 @@ namespace Emotion.Game.World2D
             Rectangle clipArea = Clip ?? c.Camera.GetWorldBoundingRect();
             TileData?.RenderTileMap(c, clipArea);
 
-            // todo: render clip
-            foreach (GameObject2D obj in GetObjects())
+            var renderObjectsList = new List<GameObject2D>();
+            GetObjects(renderObjectsList, 0, clipArea);
+            for (var i = 0; i < renderObjectsList.Count; i++)
             {
+                GameObject2D obj = renderObjectsList[i];
                 obj.Render(c);
             }
+
+            RenderDebug(c);
         }
 
         public void RenderDebugWorldTree(RenderComposer c)
         {
             c.RenderOutline(new Rectangle(0, 0, MapSize), Color.Red);
         }
+
+        public virtual void Dispose()
+        {
+            Engine.Host.OnKey.RemoveListener(DebugInputHandler);
+        }
+
+        #region Editor
+
+        private UIController? _editUI;
+        private CameraBase? _oldCamera;
+
+        private void SetupDebug()
+        {
+            if (!Engine.Configuration.DebugMode) return;
+            Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
+        }
+
+        private bool DebugInputHandler(Key key, KeyStatus status)
+        {
+            if (key == Key.F3 && status == KeyStatus.Down)
+            {
+                if (EditorMode)
+                    ExitEditor();
+                else
+                    EnterEditor();
+            }
+
+            if (EditorMode) return false;
+            return true;
+        }
+
+        private void EnterEditor()
+        {
+            _editUI = new UIController();
+            _editUI.KeyPriority = KeyListenerType.EditorUI;
+
+            var topbar = new UISolidColor();
+            topbar.MinSize = new Vector2(0, 15);
+            topbar.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 15);
+            topbar.ScaleMode = UIScaleMode.FloatScale;
+            topbar.WindowColor = MapEditorColorPalette.BarColor;
+            topbar.InputTransparent = false;
+
+            var topBarList = new UIBaseWindow();
+            topBarList.ScaleMode = UIScaleMode.FloatScale;
+            topBarList.LayoutMode = LayoutMode.HorizontalList;
+            topBarList.Margins = new Rectangle(3, 3, 3, 3);
+            topBarList.InputTransparent = false;
+            topbar.AddChild(topBarList);
+
+            var accent = new UISolidColor();
+            accent.WindowColor = MapEditorColorPalette.ActiveButtonColor;
+            accent.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 1);
+            accent.Anchor = UIAnchor.BottomLeft;
+            accent.ParentAnchor = UIAnchor.BottomLeft;
+            topbar.AddChild(accent);
+
+            var buttonTest = new MapEditorTopBarButton();
+            buttonTest.Text = "Layers";
+            buttonTest.OnClickedProxy = (_) =>
+            {
+                Engine.Log.Warning("Hi", "bru");
+
+            };
+            topBarList.AddChild(buttonTest);
+
+            _editUI.AddChild(topbar);
+
+            _oldCamera = Engine.Renderer.Camera;
+            Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
+            Engine.Renderer.Camera.Position = _oldCamera.Position;
+
+            EditorMode = true;
+        }
+
+        private void ExitEditor()
+        {
+            EditorMode = false;
+
+            _editUI!.Dispose();
+            _editUI = null;
+
+            Engine.Renderer.Camera = _oldCamera;
+        }
+
+        protected void UpdateDebug()
+        {
+            if(!EditorMode) return;
+            _editUI!.Update();
+            Helpers.CameraWASDUpdate();
+        }
+
+        protected void RenderDebug(RenderComposer c)
+        {
+            if(!EditorMode) return;
+            RenderState? prevState = c.CurrentState.Clone();
+
+            c.SetUseViewMatrix(true);
+            //IEnumerable<GameObject2D> objects = GetObjects();
+            //foreach (GameObject2D obj in objects)
+            //{
+            //    c.RenderOutline(obj.Bounds, Color.Red);
+            //}
+
+            c.SetUseViewMatrix(false);
+            c.SetDepthTest(false);
+            _editUI!.Render(c);
+
+            c.SetState(prevState);
+        }
+
+        #endregion
     }
 }
