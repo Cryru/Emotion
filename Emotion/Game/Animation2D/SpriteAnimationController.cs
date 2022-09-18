@@ -42,9 +42,13 @@ namespace Emotion.Game.Animation2D
         /// </summary>
         public int CurrentFrameIndex { get; protected set; }
 
+        /// <summary>
+        /// The loaded asset file that contains all frames of animation.
+        /// </summary>
+        public TextureAsset? AssetTexture { get; protected set; }
+
         protected float _animTimer;
         protected bool _inReverse;
-        protected TextureAsset? _loadedTexture;
         protected SpriteAnimationData _currentAnimData;
 
         #endregion
@@ -52,7 +56,7 @@ namespace Emotion.Game.Animation2D
         public SpriteAnimationController(AnimatedSprite data)
         {
             Data = data;
-            _loadedTexture = Engine.AssetLoader.Get<TextureAsset>(Data.AssetFile);
+            AssetTexture = Engine.AssetLoader.Get<TextureAsset>(Data.AssetFile);
 
             // Set the first animation as current, by default.
             foreach (KeyValuePair<string, SpriteAnimationData> anim in Data.Animations)
@@ -118,7 +122,7 @@ namespace Emotion.Game.Animation2D
         /// </summary>
         public void GetRenderDataForFrame(int absFrameIdx, out Vector3 renderPos, out Texture texture, out Rectangle uv, bool flipX = false)
         {
-            texture = _loadedTexture?.Texture ?? Texture.EmptyWhiteTexture;
+            texture = AssetTexture?.Texture ?? Texture.EmptyWhiteTexture;
 
             SpriteAnimationFrameSource? frameSource = Data.FrameSource;
             uv = frameSource.GetFrameUV(absFrameIdx);
@@ -138,6 +142,7 @@ namespace Emotion.Game.Animation2D
                 else
                     width++;
             }
+
             float height = uv.Height;
             if (height % 2 != 0) height++;
 
