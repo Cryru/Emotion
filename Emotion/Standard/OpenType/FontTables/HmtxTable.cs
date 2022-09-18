@@ -46,6 +46,7 @@ namespace Emotion.Standard.OpenType.FontTables
                 {
                     FontGlyph glyph = glyphs[i];
                     glyph.LeftSideBearing = _reader.ReadShortBE();
+                    glyph.AdvanceWidth = glyphs[i - 1].AdvanceWidth;
                 }
             }
         }
