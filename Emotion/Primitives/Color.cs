@@ -148,10 +148,18 @@ namespace Emotion.Primitives
         /// <summary>
         /// Gets the hash code of this <see cref="Color" />.
         /// </summary>
-        /// <returns>Hash code of this <see cref="Color" />.</returns>
         public override int GetHashCode()
         {
             return (int) ToUint();
+        }
+
+        /// <summary>
+        /// Create a copy of this color object.
+        /// </summary>
+        /// <returns></returns>
+        public Color Clone()
+        {
+            return (Color) MemberwiseClone();
         }
 
         /// <summary>

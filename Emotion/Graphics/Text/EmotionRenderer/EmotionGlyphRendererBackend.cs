@@ -29,7 +29,9 @@ namespace Emotion.Graphics.Text.EmotionRenderer
                 FontGlyph fontGlyph = atlasGlyph.FontGlyph;
 
                 Rectangle dst = dstRects != null ? dstRects[c] : atlasGlyph.GlyphUV;
+#pragma warning disable CS0162
                 if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(dst);
+#pragma warning restore CS0162
 
                 float baseline = font.Descender * scale;
                 Vector3 atlasRenderPos = (dst.Position - new Vector2(atlasGlyph.XBearing, baseline)).ToVec3();
@@ -102,7 +104,9 @@ namespace Emotion.Graphics.Text.EmotionRenderer
                 }
 
                 composer.PopModelMatrix();
+#pragma warning disable CS0162
                 if (CLIP_GLYPH_TEXTURES) composer.SetClipRect(null);
+#pragma warning restore CS0162
             }
         }
     }
