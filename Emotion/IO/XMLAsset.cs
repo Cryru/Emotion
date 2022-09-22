@@ -10,11 +10,25 @@ using Emotion.Standard.XML;
 
 namespace Emotion.IO
 {
+    public abstract class XMLAsset : Asset
+    {
+        /// <summary>
+        /// Save the file to the asset store with the provided name.
+        /// </summary>
+        public static bool SaveAs(object content, string name, bool backup = true)
+        {
+            string data = XMLFormat.To(content);
+            bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name, backup);
+            if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
+            return saved;
+        }
+    }
+
     /// <summary>
     /// A file in XML structure.
     /// </summary>
     /// <typeparam name="T">The class to deserialize to.</typeparam>
-    public class XMLAsset<T> : Asset
+    public class XMLAsset<T> : XMLAsset
     {
         /// <summary>
         /// The contents of the file.
@@ -62,10 +76,7 @@ namespace Emotion.IO
         /// </summary>
         public bool SaveAs(string name, bool backup = true)
         {
-            string data = XMLFormat.To(Content);
-            bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name, backup);
-            if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
-            return saved;
+            return SaveAs(Content, name, backup);
         }
 
         /// <summary>
