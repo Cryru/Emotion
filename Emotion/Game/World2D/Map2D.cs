@@ -5,15 +5,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Text;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
+using Emotion.Game.Text;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
+using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
+using Emotion.Standard.Logging;
 using Emotion.UI;
 using Emotion.Utility;
 
@@ -23,12 +27,17 @@ using Emotion.Utility;
 
 namespace Emotion.Game.World2D
 {
-    public class Map2D
+    public partial class Map2D
     {
         /// <summary>
         /// The name of the map. Not to be confused with the asset name carried by the XMLAsset.
         /// </summary>
         public string MapName { get; set; }
+
+        /// <summary>
+        /// The file the map was loaded from, if any. Should equal the XMLAsset name.
+        /// </summary>
+        public string? FileName { get; set; }
 
         /// <summary>
         /// The size of the map in map units.
@@ -176,6 +185,14 @@ namespace Emotion.Game.World2D
         {
         }
 
+        /// <summary>
+        /// Reset the map as if it was reloaded.
+        /// </summary>
+        public void Reset()
+        {
+
+        }
+
         #endregion
 
         #region Object Management
@@ -317,10 +334,10 @@ namespace Emotion.Game.World2D
             return _objects[idx];
         }
 
-        public void GetObjects(IList list, int layer, IShape shape)
+        public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
         {
             WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-            rootNode?.AddObjectsIntersectingShape(list, shape);
+            rootNode?.AddObjectsIntersectingShape(list, shape, queryFlags);
         }
 
         #endregion
@@ -369,112 +386,5 @@ namespace Emotion.Game.World2D
         {
             Engine.Host.OnKey.RemoveListener(DebugInputHandler);
         }
-
-        #region Editor
-
-        private UIController? _editUI;
-        private CameraBase? _oldCamera;
-
-        private void SetupDebug()
-        {
-            if (!Engine.Configuration.DebugMode) return;
-            Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
-        }
-
-        private bool DebugInputHandler(Key key, KeyStatus status)
-        {
-            if (key == Key.F3 && status == KeyStatus.Down)
-            {
-                if (EditorMode)
-                    ExitEditor();
-                else
-                    EnterEditor();
-            }
-
-            if (EditorMode) return false;
-            return true;
-        }
-
-        private void EnterEditor()
-        {
-            _editUI = new UIController();
-            _editUI.KeyPriority = KeyListenerType.EditorUI;
-
-            var topbar = new UISolidColor();
-            topbar.MinSize = new Vector2(0, 15);
-            topbar.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 15);
-            topbar.ScaleMode = UIScaleMode.FloatScale;
-            topbar.WindowColor = MapEditorColorPalette.BarColor;
-            topbar.InputTransparent = false;
-
-            var topBarList = new UIBaseWindow();
-            topBarList.ScaleMode = UIScaleMode.FloatScale;
-            topBarList.LayoutMode = LayoutMode.HorizontalList;
-            topBarList.Margins = new Rectangle(3, 3, 3, 3);
-            topBarList.InputTransparent = false;
-            topbar.AddChild(topBarList);
-
-            var accent = new UISolidColor();
-            accent.WindowColor = MapEditorColorPalette.ActiveButtonColor;
-            accent.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 1);
-            accent.Anchor = UIAnchor.BottomLeft;
-            accent.ParentAnchor = UIAnchor.BottomLeft;
-            topbar.AddChild(accent);
-
-            var buttonTest = new MapEditorTopBarButton();
-            buttonTest.Text = "Layers";
-            buttonTest.OnClickedProxy = (_) =>
-            {
-                Engine.Log.Warning("Hi", "bru");
-
-            };
-            topBarList.AddChild(buttonTest);
-
-            _editUI.AddChild(topbar);
-
-            _oldCamera = Engine.Renderer.Camera;
-            Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
-            Engine.Renderer.Camera.Position = _oldCamera.Position;
-
-            EditorMode = true;
-        }
-
-        private void ExitEditor()
-        {
-            EditorMode = false;
-
-            _editUI!.Dispose();
-            _editUI = null;
-
-            Engine.Renderer.Camera = _oldCamera;
-        }
-
-        protected void UpdateDebug()
-        {
-            if(!EditorMode) return;
-            _editUI!.Update();
-            Helpers.CameraWASDUpdate();
-        }
-
-        protected void RenderDebug(RenderComposer c)
-        {
-            if(!EditorMode) return;
-            RenderState? prevState = c.CurrentState.Clone();
-
-            c.SetUseViewMatrix(true);
-            //IEnumerable<GameObject2D> objects = GetObjects();
-            //foreach (GameObject2D obj in objects)
-            //{
-            //    c.RenderOutline(obj.Bounds, Color.Red);
-            //}
-
-            c.SetUseViewMatrix(false);
-            c.SetDepthTest(false);
-            _editUI!.Render(c);
-
-            c.SetState(prevState);
-        }
-
-        #endregion
     }
 }

@@ -25,6 +25,10 @@ namespace Emotion.Game.World2D
             AddTreeLayer(0);
         }
 
+        /// <summary>
+        /// Add a layer to the world tree. Layers are used to separate objects when querying, and
+        /// are denominated by a numerical index.
+        /// </summary>
         public void AddTreeLayer(int layerId)
         {
             var newLayerTopNode = new WorldTree2DRootNode(new Rectangle(0, 0, _mapSize));
@@ -37,6 +41,9 @@ namespace Emotion.Game.World2D
             }
         }
 
+        /// <summary>
+        /// Add an object to the tree. It will be part of the layers filtered by its IsPartOfMapLayer function.
+        /// </summary>
         public void AddObjectToTree(GameObject2D obj)
         {
             _objects.Add(obj);
@@ -46,6 +53,9 @@ namespace Emotion.Game.World2D
             }
         }
 
+        /// <summary>
+        /// Remove an object from all layers in the tree.
+        /// </summary>
         public void RemoveObjectFromTree(GameObject2D obj)
         {
             if (!_objects.Remove(obj)) return;
@@ -55,6 +65,9 @@ namespace Emotion.Game.World2D
             }
         }
 
+        /// <summary>
+        /// Update an object's bounds in all layers it can be found in.
+        /// </summary>
         public void UpdateObjectInTree(GameObject2D obj)
         {
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
@@ -63,10 +76,24 @@ namespace Emotion.Game.World2D
             }
         }
 
+        /// <summary>
+        /// Get the root node for a specific tree layer.
+        /// </summary>
         public WorldTree2DRootNode? GetRootNodeForLayer(int layer)
         {
             _rootNodes.TryGetValue(layer, out WorldTree2DRootNode? rootNode);
             return rootNode;
+        }
+
+        /// <summary>
+        /// Loop through all tree layers.
+        /// </summary>
+        public IEnumerable<int> ForEachLayer()
+        {
+            foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
+            {
+                yield return rootNode.Key;
+            }
         }
     }
 }

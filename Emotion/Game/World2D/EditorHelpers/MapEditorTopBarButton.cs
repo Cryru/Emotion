@@ -31,14 +31,14 @@ namespace Emotion.Game.World2D.EditorHelpers
             ScaleMode = UIScaleMode.FloatScale;
 
             var txt = new UIText();
-            txt.ParentAnchor = UIAnchor.CenterCenter;
-            txt.Anchor = UIAnchor.CenterCenter;
+            txt.ParentAnchor = UIAnchor.CenterLeft;
+            txt.Anchor = UIAnchor.CenterLeft;
             txt.ScaleMode = UIScaleMode.FloatScale;
             txt.WindowColor = MapEditorColorPalette.TextColor;
             txt.Id = "buttonText";
             txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
-            txt.FontSize = 7;
-            txt.TextHeightMode = Game.Text.GlyphHeightMeasurement.NoMinY;
+            txt.FontSize = 6;
+            //txt.TextHeightMode = Game.Text.GlyphHeightMeasurement.NoMinY;
             txt.IgnoreParentColor = true;
             AddChild(txt);
 

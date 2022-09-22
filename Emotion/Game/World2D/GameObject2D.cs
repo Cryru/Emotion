@@ -12,30 +12,13 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.World2D
 {
-    [Flags]
-    public enum Map2DObjectFlags : uint
-    {
-        None = 0,
-
-        UpdateWorldTree = 2 << 0,
-        Serializable = 2 << 1,
-    }
-
-    public enum ObjectState : byte
-    {
-        None = 0,
-        Loading = 1,
-        Alive = 2,
-        Destroyed = 3
-    }
-
     public class GameObject2D : Transform
     {
         /// <summary>
         /// The object's name. Should be unique map-wide, but
         /// isn't actually enforced.
         /// </summary>
-        public string ObjectName { get; set; }
+        public string? ObjectName { get; set; }
 
         /// <summary>
         /// The object's multiplicative color tint.
@@ -47,6 +30,7 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// The map this object is in. Is set after Init.
         /// </summary>
+        [DontSerialize]
         public Map2D Map { get; protected set; }
 
         /// <summary>
@@ -140,20 +124,39 @@ namespace Emotion.Game.World2D
             Map?.InvalidateObjectBounds(this);
         }
 
+        /// <summary>
+        /// Whether the object is part of the specified layer in the map's world tree.
+        /// Objects should be in at least one layer, or else they cannot be spatially queried,
+        /// only by name and index. The layers must have been added using _worldTree.AddLayer prior
+        /// to the object being added to map, as this function is checked only then.
+        /// The best place to do this is overriding the Map's SetupWorldTreeLayers function and adding them there.
+        /// </summary>
         public virtual bool IsPartOfMapLayer(int layer)
         {
             return layer == 0;
         }
 
+        /// <summary>
+        /// Is run every tick. By default the map will update all of its objects,
+        /// but by overriding the map's update function you can optimize or customize this.
+        /// </summary>
         public virtual void Update(float dt)
         {
         }
 
+        /// <summary>
+        /// Is run every frame. By default the map will render all objects in layer 0 which are returned by
+        /// a camera world bounds query.
+        /// </summary>
         public virtual void Render(RenderComposer c)
         {
             c.RenderSprite(Position, Size, Color.White);
         }
 
+        /// <summary>
+        /// Prior to saving a map from the editor this function will be called on all serializable objects.
+        /// You can reset properties or whatever here.
+        /// </summary>
         public virtual void PreMapEditorSave()
         {
             // you can prepare the obj for serialization here.

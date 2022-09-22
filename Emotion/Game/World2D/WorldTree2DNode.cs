@@ -73,7 +73,7 @@ namespace Emotion.Game.World2D
             _objects?.Remove(obj);
         }
 
-        public void AddObjectsIntersectingShape(IList list, IShape shape)
+        public void AddObjectsIntersectingShape(IList list, IShape shape, QueryFlags queryFlags = 0)
         {
             if (_objects == null) return;
 
@@ -81,14 +81,17 @@ namespace Emotion.Game.World2D
             {
                 GameObject2D obj = _objects[i];
                 Rectangle bounds = obj.GetBoundsForQuadTree();
-                if (shape.Intersects(ref bounds)) list.Add(obj);
+                if (!shape.Intersects(ref bounds)) continue;
+                if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;
+
+                list.Add(obj);
             }
 
             if (ChildNodes == null) return;
             for (var i = 0; i < ChildNodes.Length; i++)
             {
                 WorldTree2DNode node = ChildNodes[i];
-                if (shape.Intersects(ref node.Bounds)) node.AddObjectsIntersectingShape(list, shape);
+                if (shape.Intersects(ref node.Bounds)) node.AddObjectsIntersectingShape(list, shape, queryFlags);
             }
         }
 

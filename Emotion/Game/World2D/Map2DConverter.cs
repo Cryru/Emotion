@@ -26,6 +26,7 @@ namespace Emotion.Game.World2D
             var newMap = (Map2D?) Activator.CreateInstance(mapType, map.WorldSize);
             if (newMap == null) return null;
             newMap.MapName = map.FileName ?? "Converted TMX";
+            newMap.FileName = map.FileName == null ? "converted.xml" : map.FileName.Replace(".tmx", "_new.xml");
 
             // Convert tile data.
             var tileData = new Map2DTileMapData(map.TileSize, map.SizeInTiles, map.TiledMap.Tilesets.Count)
