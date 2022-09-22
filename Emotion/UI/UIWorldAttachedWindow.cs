@@ -35,11 +35,17 @@ namespace Emotion.UI
             base.AfterLayout();
         }
 
+        protected virtual Vector3 VerifyWorldPos(Vector3 pos)
+        {
+            return pos;
+        }
+
         protected override bool RenderInternal(RenderComposer c)
         {
             if (Children == null || _awaitingLayout) return false;
 
             Vector3 pos = c.Camera.WorldToScreen(_worldPos.ToVec2()).ToVec3(_worldPos.Z);
+            pos = VerifyWorldPos(pos);
             c.PushModelMatrix(Matrix4x4.CreateTranslation(pos));
             return base.RenderInternal(c);
         }
