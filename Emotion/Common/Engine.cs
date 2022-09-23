@@ -128,12 +128,15 @@ namespace Emotion.Common
 
             Log = Configuration.Logger ?? new NetIOAsyncLogger(Configuration.DebugMode);
             Log.Info($"Emotion V{MetaData.Version} [{MetaData.BuildConfig}] {MetaData.GitHash}", MessageSource.Engine);
+            string[] args = Configuration.GetExecutionArguments();
+            if (args.Length > 1) Log.Info($"Execution Args: {string.Join(", ", args, 1, args.Length - 1)}", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
             Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
             Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
             Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
             Log.Info($" Execution Directory: {Environment.CurrentDirectory}", MessageSource.Engine);
             Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
+            Log.Info("--------------", MessageSource.Engine);
 
             // Attach engine killer and popup to unhandled exceptions, when the debugger isn't attached.
             // This might be a bit overkill as not all unhandled exceptions are unrecoverable, but let's be pessimistically optimistic for now.

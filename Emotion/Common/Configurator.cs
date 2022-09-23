@@ -92,7 +92,7 @@ namespace Emotion.Common
         /// Additionally regardless of the setting, the DrawableFontAtlas' FontSize property will be set to the value using the
         /// "off" formula.
         /// </summary>
-        public bool UseEmotionFontSize { get; set; } = false;
+        public bool UseEmotionFontSize { get; set; }
 
         #endregion
 
@@ -145,7 +145,7 @@ namespace Emotion.Common
         /// <summary>
         /// Whether to hide the window. Used by tools as not to spam windows opening.
         /// </summary>
-        public bool HiddenWindow { get; set; } = false;
+        public bool HiddenWindow { get; set; }
 
         /// <summary>
         /// By default exceptions and other errors will display a platform specific popup to allow players
@@ -153,6 +153,11 @@ namespace Emotion.Common
         /// If this is set to true these popups will be disabled.
         /// </summary>
         public bool NoErrorPopup { get; set; }
+
+        /// <summary>
+        /// Extra arguments.
+        /// </summary>
+        public string[] ExtraArgs { get; set; }
 
         #endregion
 
@@ -166,9 +171,9 @@ namespace Emotion.Common
 
         /// <summary>
         /// If enabled stereo audio will be played as mono.
-        /// This can be set, and will take affect at any time.
+        /// This can be set, and will take effect at any time.
         /// </summary>
-        public bool ForceMono { get; set; } = false;
+        public bool ForceMono { get; set; }
 
         #endregion
 
@@ -191,5 +196,31 @@ namespace Emotion.Common
         }
 
         #endregion
+
+        /// <summary>
+        /// Get all execution arguments. This includes the ones passed to the execution and ones
+        /// passed by the configuration's ExtraArgs property.
+        /// </summary>
+        public string[] GetExecutionArguments()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            if (ExtraArgs != null)
+            {
+                var newArr = new string[args.Length + ExtraArgs.Length];
+                for (var i = 0; i < args.Length; i++)
+                {
+                    newArr[i] = args[i];
+                }
+
+                for (var i = 0; i < ExtraArgs.Length; i++)
+                {
+                    newArr[args.Length + i] = ExtraArgs[i];
+                }
+
+                args = newArr;
+            }
+
+            return args;
+        }
     }
 }

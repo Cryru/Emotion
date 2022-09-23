@@ -138,7 +138,7 @@ namespace Emotion.Platform.Implementation.Win32
 
             Engine.Log.Trace("Window created.", MessageSource.Win32);
 
-            string[] args = Environment.GetCommandLineArgs();
+            string[] args = config.GetExecutionArguments();
             bool forceAngle = CommandLineParser.FindArgument(args, "angle", out string _);
             bool forceMesa = CommandLineParser.FindArgument(args, "software", out string _);
 

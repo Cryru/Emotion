@@ -2,18 +2,19 @@ namespace Emotion.Common
 {
     /// <summary>
     /// Data about the engine.
+    /// Should be filled automatically by CI at some point? Idk
     /// </summary>
     public static class MetaData
     {
         /// <summary>
         /// The engine version.
         /// </summary>
-        public static string Version = "0.0.0";
+        public static string Version = "0.0.760+";
 
         /// <summary>
         /// The hash of the git commit, if built from one.
         /// </summary>
-        public static string GitHash = "None";
+        public static string GitHash = "";
 
         /// <summary>
         /// Which build configuration this is.
@@ -22,6 +23,8 @@ namespace Emotion.Common
         public static string BuildConfig = "DEBUG";
 #elif RELEASE
         public static string BuildConfig = "RELEASE";
+#else
+        public static string BuildConfig = "UNKNOWN";
 #endif
     }
 }
