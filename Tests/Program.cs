@@ -48,14 +48,15 @@ namespace Tests
 
         private static void Main(string[] args)
         {
-            FontAsset.GlyphRasterizer = GlyphRasterizer.StbTrueType;
+            //FontAsset.GlyphRasterizer = GlyphRasterizer.StbTrueType;
             ResultDb.LoadCache();
             var config = new Configurator
             {
                 HostSize = new Vector2(640, 360),
                 RenderSize = new Vector2(640, 360),
                 NoErrorPopup = true,
-                UseEmotionFontSize = true
+                UseEmotionFontSize = true,
+                ExtraArgs = new [] { "software" }
             };
             Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
         }
