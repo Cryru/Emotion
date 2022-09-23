@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Emotion.Common;
 using Emotion.Graphics.Text;
 using Emotion.Graphics.Text.EmotionRenderer;
 using Emotion.Graphics.Text.EmotionSDF;
@@ -118,6 +119,17 @@ namespace Emotion.IO
         public void DestroyAtlas(float fontSize)
         {
             DestroyAtlas((int) MathF.Ceiling(fontSize));
+        }
+
+        /// <summary>
+        /// Loads and returns the default font shipped with the engine.
+        /// This font is only available if Editor assets are included
+        /// and should only be used for prototyping and such.
+        /// </summary>
+        /// <returns></returns>
+        public static FontAsset GetDefaultBuiltIn()
+        {
+            return Engine.AssetLoader.Get<FontAsset>("Editor/UbuntuMono-Regular.ttf");
         }
     }
 }

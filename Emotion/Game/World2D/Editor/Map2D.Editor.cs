@@ -304,7 +304,8 @@ namespace Emotion.Game.World2D
             // This won't break anything as XMLAsset doesn't perform any cleanup.
             if (Engine.AssetLoader.Loaded(fileName)) Engine.AssetLoader.Destroy(fileName);
 
-            XMLAsset.SaveAs(this, fileName);
+            XMLAsset<Map2D>? asset = XMLAsset<Map2D>.CreateFromContent(this, fileName);
+            asset.Save();
             Reset();
         }
 
