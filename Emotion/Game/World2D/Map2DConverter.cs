@@ -77,6 +77,7 @@ namespace Emotion.Game.World2D
                 }
 
                 var tileMapLayer = new Map2DTileMapLayer(layer.Name, layerTiles);
+                tileMapLayer.Visible = layer.Visible;
                 tileData.Layers.Add(tileMapLayer);
             }
 

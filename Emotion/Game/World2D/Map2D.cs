@@ -75,12 +75,6 @@ namespace Emotion.Game.World2D
         /// </summary>
         [DontSerialize] public bool EditorMode;
 
-        /// <summary>
-        /// The area of the map to render. By default this is initialized to the
-        /// area visible by the 2D camera.
-        /// </summary>
-        [DontSerialize] public Rectangle? Clip = null;
-
         // This list contains all runtime objects.
         protected List<GameObject2D> _objects { get; set; }
 
@@ -363,7 +357,7 @@ namespace Emotion.Game.World2D
         {
             if (!Initialized) return;
 
-            Rectangle clipArea = Clip ?? c.Camera.GetWorldBoundingRect();
+            Rectangle clipArea = c.Camera.GetWorldBoundingRect();
             TileData?.RenderTileMap(c, clipArea);
 
             var renderObjectsList = new List<GameObject2D>();

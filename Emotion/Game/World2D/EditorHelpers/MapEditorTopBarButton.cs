@@ -1,9 +1,9 @@
 ﻿#region Using
 
+using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.UI;
-using System.Numerics;
 
 #endregion
 
@@ -25,6 +25,9 @@ namespace Emotion.Game.World2D.EditorHelpers
             }
         }
 
+        private UIDropDown _dropDownMode;
+        private bool _activeMode;
+
         public MapEditorTopBarButton()
         {
             WindowColor = MapEditorColorPalette.ButtonColor;
@@ -37,8 +40,7 @@ namespace Emotion.Game.World2D.EditorHelpers
             txt.WindowColor = MapEditorColorPalette.TextColor;
             txt.Id = "buttonText";
             txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
-            txt.FontSize = 6;
-            //txt.TextHeightMode = Game.Text.GlyphHeightMeasurement.NoMinY;
+            txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
             txt.IgnoreParentColor = true;
             AddChild(txt);
 
@@ -52,16 +54,38 @@ namespace Emotion.Game.World2D.EditorHelpers
             return base.RenderInternal(c);
         }
 
+        protected override bool UpdateInternal()
+        {
+            if (_dropDownMode != null && _dropDownMode.Controller == null)
+            {
+                _dropDownMode = null;
+                _activeMode = false;
+                WindowColor = MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor;
+            }
+
+            return base.UpdateInternal();
+        }
+
         public override void OnMouseEnter(Vector2 _)
         {
-            WindowColor = MapEditorColorPalette.ActiveButtonColor;
+            if (!_activeMode) WindowColor = MapEditorColorPalette.ActiveButtonColor;
             base.OnMouseEnter(_);
         }
 
         public override void OnMouseLeft(Vector2 _)
         {
-            WindowColor = MapEditorColorPalette.ButtonColor;
+            if (!_activeMode) WindowColor = MapEditorColorPalette.ButtonColor;
             base.OnMouseLeft(_);
+        }
+
+        /// <summary>
+        /// In drop down mode click is called on mouse over.
+        /// </summary>
+        public void SetDropDownMode(bool dropDownOnMe, UIDropDown dropDown)
+        {
+            _activeMode = dropDownOnMe;
+            WindowColor = dropDownOnMe ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor;
+            _dropDownMode = dropDown;
         }
     }
 }

@@ -49,6 +49,8 @@ namespace Emotion.Game.World2D
         [SerializeNonPublicGetSet]
         public string StringData { get; protected set; }
 
+        public bool Visible { get; set; } = true;
+
         protected uint[]? _readDataCached;
 
         public Map2DTileMapLayer(string name, ReadOnlySpan<uint> data)
@@ -364,9 +366,11 @@ namespace Emotion.Game.World2D
         public void RenderTileLayerRange(RenderComposer composer, Rectangle clipRect, int start = 0, int end = -1)
         {
             end = end == -1 ? Layers.Count : end;
-            for (int layer = start; layer < end; layer++)
+            for (int layerId = start; layerId < end; layerId++)
             {
-                RenderLayer(composer, layer, clipRect);
+                Map2DTileMapLayer layer = Layers[layerId];
+                if (!layer.Visible) continue;
+                RenderLayer(composer, layerId, clipRect);
             }
         }
 
