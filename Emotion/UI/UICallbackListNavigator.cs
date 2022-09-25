@@ -19,6 +19,7 @@ namespace Emotion.UI
     /// <summary>
     /// Provides list navigation to UICallbackButton children.
     /// </summary>
+    [DontSerializeMembers("Paddings")]
     public class UICallbackListNavigator : UIBaseWindow
     {
         /// <summary>
@@ -138,7 +139,7 @@ namespace Emotion.UI
                 }
             }
 
-            _scrollArea.Size = usedSpace;
+            _scrollArea.Size = usedSpace.Round();
             base.AfterMeasureChildren(usedSpace);
         }
 
@@ -146,7 +147,6 @@ namespace Emotion.UI
         {
             // Verify some properties
             Debug.Assert(!StretchY || LayoutMode != LayoutMode.VerticalList && LayoutMode == LayoutMode.VerticalListWrap || _scrollArea.Size.SmallerOrEqual(Size));
-            Debug.Assert(Paddings == Rectangle.Empty);
 
             _gridPosToChild.Clear();
             _gridStart = Vector2.Zero;

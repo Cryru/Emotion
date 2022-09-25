@@ -439,6 +439,12 @@ namespace Emotion.UI
         /// </summary>
         public string? RelativeTo { get; set; }
 
+        /// <summary>
+        /// All child windows will be of the width of the widest child window.
+        /// Only works on vertical list layout mode.
+        /// </summary>
+        public bool ChildrenAllSameWidth { get; set; } = false;
+
         protected Vector2 _measuredSize;
 
         public virtual void InvalidateLayout()
@@ -667,6 +673,29 @@ namespace Emotion.UI
             return parentPos + GetUIAnchorPosition(ParentAnchor, parentSize, parentSpaceForChild, Anchor, _measuredSize);
         }
 
+        protected void ChildrenAreAllAsWideAsWidest()
+        {
+            Debug.Assert(LayoutMode == LayoutMode.VerticalList);
+            if (Children != null)
+            {
+                float width = 0;
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow child = Children[i];
+                    if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+                    width = MathF.Max(width, child.Size.X);
+                }
+
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow child = Children[i];
+                    child.Size = new Vector2(width, child.Height);
+                    child._measuredSize = new Vector2(width, child.Height);
+                }
+            }
+        }
+
         protected void Layout(Vector2 contentPos)
         {
             Debugger?.RecordMetric(this, "Layout_ContentPos", contentPos);
@@ -675,6 +704,9 @@ namespace Emotion.UI
 
             Debug.Assert(Size == _measuredSize);
             Size = _measuredSize;
+
+            if (ChildrenAllSameWidth) ChildrenAreAllAsWideAsWidest();
+
             contentPos += Offset * scale;
             contentPos = BeforeLayout(contentPos);
             Position = contentPos.RoundClosest().ToVec3(Z);
@@ -987,6 +1019,7 @@ namespace Emotion.UI
         /// <summary>
         /// Whether the mouse is currently inside this window.
         /// </summary>
+        [DontSerialize]
         public bool MouseInside { get; protected set; }
 
         protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
