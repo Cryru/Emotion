@@ -49,7 +49,7 @@ namespace Emotion.UI
             UIBaseWindow? scroll = GetWindowById("Selector");
             if (scroll == null)
             {
-                scroll = new UISolidColor {WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true};
+                scroll = new UISolidColor {WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true, IgnoreParentColor = true};
                 AddChild(scroll);
             }
 

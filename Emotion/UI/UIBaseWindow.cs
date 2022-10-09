@@ -465,7 +465,6 @@ namespace Emotion.UI
             return freeSpace;
         }
 
-
         // On Rounding In UI Layout:
         // Sizes should always be rounded up.
         // Positions should always be rounded down.
@@ -627,7 +626,7 @@ namespace Emotion.UI
             return Size;
         }
 
-        public Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
+        public virtual Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
         {
             float scale = GetScale();
             var parentSpaceForChild = new Rectangle(0, 0, parentSize);
