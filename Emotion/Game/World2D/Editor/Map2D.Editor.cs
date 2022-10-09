@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using Emotion.Common;
 using Emotion.Game.World2D.EditorHelpers;
@@ -22,21 +23,25 @@ namespace Emotion.Game.World2D
 {
     public partial class Map2D
     {
-        protected UIController? _editUI;
-        protected CameraBase? _oldCamera;
+        private UIController? _editUI;
+        private CameraBase? _oldCamera;
 
         // Selection and MouseOver
-        protected GameObject2D? _lastMouseOverObject;
-        protected bool _objectSelect = true;
-        protected List<GameObject2D>? _mouseOverOverlapping;
-        protected int _mouseOverIndex = -1; // Index in ^
+        private GameObject2D? _lastMouseOverObject;
+        private bool _objectSelect = true;
+        private List<GameObject2D>? _mouseOverOverlapping;
+        private int _mouseOverIndex = -1; // Index in ^
+        private GameObject2D? _objectDragging;
+        private Vector2 _objectDragOffset;
+        private bool _ignoreNextObjectDragLetGo;
 
         // Tile selection
-        protected bool _tileSelect = false;
-        protected Vector2 _tileBrushLoc = Vector2.Zero;
+        private bool _tileSelect = false;
+        private Vector2 _tileBrush = Vector2.Zero;
 
         // UI stuff
-        protected MapEditorTopBarButton? _dropDownOpen;
+        private MapEditorTopBarButton? _dropDownOpen;
+        private UIDropDown? _topBarDropDown;
 
         private void SetupDebug()
         {
@@ -54,13 +59,31 @@ namespace Emotion.Game.World2D
                     EnterEditor();
             }
 
-            if (_mouseOverOverlapping != null && key == Key.LeftAlt && status == KeyStatus.Down)
+            if (EditorMode)
             {
-                _mouseOverIndex++;
-                if (_mouseOverIndex > _mouseOverOverlapping.Count - 1) _mouseOverIndex = 0;
+                if (_mouseOverOverlapping != null && key == Key.LeftAlt && status == KeyStatus.Down)
+                {
+                    _mouseOverIndex++;
+                    if (_mouseOverIndex > _mouseOverOverlapping.Count - 1) _mouseOverIndex = 0;
+                }
+
+                if (key == Key.MouseKeyLeft && status == KeyStatus.Down && _lastMouseOverObject != null)
+                {
+                    _objectDragging = _lastMouseOverObject;
+                    Vector2 mouseScreen = Engine.Host.MousePosition;
+                    Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
+                    _objectDragOffset = _objectDragging.Position2 - mouseWorld;
+                }
+                else if (key == Key.MouseKeyLeft && status == KeyStatus.Up && _objectDragging != null)
+                {
+                    if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
+                    _ignoreNextObjectDragLetGo = false;
+                }
+
+
+                return false;
             }
 
-            if (EditorMode) return false;
             return true;
         }
 
@@ -82,6 +105,16 @@ namespace Emotion.Game.World2D
             Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
             Engine.Renderer.Camera.Position = _oldCamera.Position;
 
+            foreach (GameObject2D obj in GetObjects())
+            {
+                EnsureObjectNameplate(obj);
+            }
+
+            foreach (GameObject2D obj in ObjectsToSerialize)
+            {
+                EnsureObjectNameplate(obj);
+            }
+
             EditorMode = true;
         }
 
@@ -92,6 +125,8 @@ namespace Emotion.Game.World2D
             _editUI!.Dispose();
             _editUI = null;
 
+            _namePlates?.Clear();
+
             _lastMouseOverObject = null;
 
             Engine.Renderer.Camera = _oldCamera;
@@ -101,9 +136,11 @@ namespace Emotion.Game.World2D
         {
             if (!EditorMode) return;
 
-            var mouseInUi = _editUI.MouseFocus != null;
+            bool mouseInUI = _editUI?.MouseFocus != null;
+            var mouseFocusNameplate = _editUI?.MouseFocus as MapEditorObjectNameplate;
+            bool mouseNotInUIOrInNameplate = !mouseInUI || mouseFocusNameplate != null;
 
-            if (_objectSelect && !mouseInUi)
+            if (_objectSelect && mouseNotInUIOrInNameplate && _objectDragging == null)
             {
                 Vector2 mouseScreen = Engine.Host.MousePosition;
                 Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
@@ -120,19 +157,33 @@ namespace Emotion.Game.World2D
                     if (obj.ObjectState != ObjectState.Alive)
                     {
                         Rectangle bounds = obj.Bounds;
-                        if (bounds.Size == Vector2.Zero) bounds.Size = new Vector2(32);
                         if (bounds.Contains(mouseWorld)) results.Add(obj);
                     }
                 }
 
+                if (mouseFocusNameplate != null) results.Add(mouseFocusNameplate.Object);
+
                 SelectObjectMulti(results);
+            }
+            else if (_objectDragging != null)
+            {
+                SelectObject(_objectDragging, true);
             }
             else
             {
                 SelectObject(null);
             }
 
+            if (_objectDragging != null && mouseNotInUIOrInNameplate)
+            {
+                Vector2 mouseScreen = Engine.Host.MousePosition;
+                Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
+                _objectDragging.Position = (mouseWorld + _objectDragOffset).ToVec3(_objectDragging.Z);
+            }
+
             _editUI!.Update();
+
+            if (!mouseNotInUIOrInNameplate) return;
             Helpers.CameraWASDUpdate();
         }
 
@@ -158,7 +209,7 @@ namespace Emotion.Game.World2D
             // Show selection of object, if any.
             if (_lastMouseOverObject != null)
             {
-                Rectangle bound = GetObjectBoundForEditor(_lastMouseOverObject);
+                Rectangle bound = _lastMouseOverObject.Bounds;
                 c.RenderSprite(bound, Color.White * 0.3f);
             }
 
@@ -168,7 +219,7 @@ namespace Emotion.Game.World2D
                 GameObject2D obj = ObjectsToSerialize[i];
                 if (obj.ObjectState != ObjectState.Alive)
                 {
-                    Rectangle bounds = GetObjectBoundForEditor(obj);
+                    Rectangle bounds = obj.Bounds;
                     c.RenderSprite(bounds, Color.Magenta * 0.2f);
                     c.RenderOutline(bounds, Color.White * 0.4f);
                 }
@@ -178,7 +229,16 @@ namespace Emotion.Game.World2D
             for (var i = 0; i < count; i++)
             {
                 GameObject2D obj = GetObjectByIndex(i);
-                c.RenderOutline(obj.Bounds, Color.White * 0.4f);
+                Rectangle bounds = obj.Bounds;
+
+                if (!obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable))
+                {
+                    c.RenderSprite(bounds, Color.Black * 0.5f);
+                    c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black);
+                    c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black);
+                }
+
+                c.RenderOutline(bounds, Color.White * 0.4f);
             }
 
             c.SetUseViewMatrix(false);
@@ -193,9 +253,7 @@ namespace Emotion.Game.World2D
         // this handles unspawned objects which might not have sizes.
         private Rectangle GetObjectBoundForEditor(GameObject2D obj)
         {
-            Rectangle bounds = obj.Bounds;
-            if (bounds.Size == Vector2.Zero) bounds.Size = new Vector2(32);
-            return bounds;
+            return obj.Bounds;
         }
 
         private int ObjectSort(GameObject2D x, GameObject2D y)
@@ -203,7 +261,7 @@ namespace Emotion.Game.World2D
             return MathF.Sign(x.Position.Z - y.Position.Z);
         }
 
-        protected void SelectObjectMulti(List<GameObject2D>? multiple)
+        private void SelectObjectMulti(List<GameObject2D>? multiple)
         {
             if (multiple == null || multiple.Count == 0)
             {
@@ -252,15 +310,27 @@ namespace Emotion.Game.World2D
             SelectObject(_mouseOverOverlapping[_mouseOverIndex], forceUpdate);
         }
 
-        protected void SelectObject(GameObject2D? obj, bool forceUpdate = false)
+        private void SelectObject(GameObject2D? obj, bool forceUpdate = false)
         {
             if (_lastMouseOverObject == obj && !forceUpdate) return;
 
-            _lastMouseOverObject = obj;
+            MapEditorObjectNameplate? namePlate = null;
+            if (obj != null) _namePlates?.TryGetValue(obj, out namePlate);
+
+            MapEditorObjectNameplate? oldNamePlate = null;
+            if (_lastMouseOverObject != null) _namePlates?.TryGetValue(_lastMouseOverObject, out oldNamePlate);
+            if (namePlate != oldNamePlate)
+            {
+                oldNamePlate?.SetSelected(false);
+                namePlate?.SetSelected(true);
+            }
+
             var worldAttachUI = (UIWorldAttachedWindow?) _editUI?.GetWindowById("WorldAttach");
 
+            _lastMouseOverObject = obj;
+
             // Deselecting
-            if (obj == null)
+            if (obj == null || _objectDragging != null)
             {
                 if (worldAttachUI != null) worldAttachUI.Visible = false;
                 return;
@@ -312,7 +382,7 @@ namespace Emotion.Game.World2D
             }
         }
 
-        protected void EditorSaveMap()
+        private void EditorSaveMap()
         {
             string? fileName = FileName;
             if (fileName == null)
@@ -334,6 +404,40 @@ namespace Emotion.Game.World2D
             XMLAsset<Map2D>? asset = XMLAsset<Map2D>.CreateFromContent(this, fileName);
             asset.Save();
             Reset();
+        }
+
+        #endregion
+
+        private Dictionary<GameObject2D, MapEditorObjectNameplate>? _namePlates;
+
+        private void EnsureObjectNameplate(GameObject2D obj)
+        {
+            _namePlates ??= new Dictionary<GameObject2D, MapEditorObjectNameplate>();
+            if (_namePlates.ContainsKey(obj)) return;
+
+            var namePlate = new MapEditorObjectNameplate();
+            namePlate.AttachToObject(obj);
+            _namePlates.Add(obj, namePlate);
+            _editUI!.AddChild(namePlate);
+        }
+
+        #region Object Control API
+
+        private void EditorAddObject(Type type)
+        {
+            Vector2 pos = Engine.Host.MousePosition;
+            Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(pos);
+
+            ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
+            var newObj = (GameObject2D) constructor.Invoke(null);
+            newObj.MapFlags |= Map2DObjectFlags.Serializable;
+            newObj.Position = worldPos.ToVec3();
+            AddObject(newObj);
+            EnsureObjectNameplate(newObj);
+
+            _objectDragging = newObj;
+            _objectDragOffset = newObj.Size / 2f;
+            _ignoreNextObjectDragLetGo = true;
         }
 
         #endregion

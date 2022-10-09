@@ -18,9 +18,7 @@ namespace Emotion.Game.World2D
 {
     public partial class Map2D
     {
-        protected UIDropDown? _topBarDropDown;
-
-        protected UIBaseWindow GetEditorTopBar()
+        private UIBaseWindow GetEditorTopBar()
         {
             var topBar = new UISolidColor();
             topBar.MinSize = new Vector2(0, 15);
@@ -29,6 +27,7 @@ namespace Emotion.Game.World2D
             topBar.WindowColor = MapEditorColorPalette.BarColor;
             topBar.InputTransparent = false;
             topBar.ZOffset = 100; // Above dropdown click eater, but below dropdown.
+            topBar.Id = "TopBar";
 
             var mapName = new UIText();
             mapName.ParentAnchor = UIAnchor.CenterRight;
@@ -62,14 +61,14 @@ namespace Emotion.Game.World2D
             return topBar;
         }
 
-        protected class DropDownButtonDescription
+        private class DropDownButtonDescription
         {
             public string Name = null!;
-            public Action<MapEditorTopBarButton>? OnClick;
+            public Action<MapEditorTopBarButton>? Click;
             public Func<bool>? Enabled;
         }
 
-        protected void SpawnDropDown(MapEditorTopBarButton button, DropDownButtonDescription[] menuButtons)
+        private void SpawnDropDown(MapEditorTopBarButton button, DropDownButtonDescription[] menuButtons)
         {
             var dropDownWin = new UIDropDown();
             dropDownWin.InputTransparent = false;
@@ -111,15 +110,16 @@ namespace Emotion.Game.World2D
                 ddButton.MinSize = new Vector2(50, 0);
                 ddButton.OnClickedProxy = _ =>
                 {
-                    if (buttonMeta.OnClick == null) return;
+                    if (buttonMeta.Click == null) return;
                     if (buttonMeta.Enabled != null)
                     {
                         bool enabled = buttonMeta.Enabled();
                         if (!enabled) return;
                     }
 
-                    buttonMeta.OnClick(ddButton);
+                    buttonMeta.Click(ddButton);
                 };
+                ddButton.Enabled = buttonMeta.Enabled?.Invoke() ?? true;
 
                 list.AddChild(ddButton);
             }
@@ -140,7 +140,7 @@ namespace Emotion.Game.World2D
             button.Controller!.AddChild(dropDownWin);
         }
 
-        protected MapEditorTopBarButton DropDownButton(string label, DropDownButtonDescription[] menuButtons)
+        private MapEditorTopBarButton DropDownButton(string label, DropDownButtonDescription[] menuButtons)
         {
             var button = new MapEditorTopBarButton();
             button.Text = label;
@@ -174,7 +174,7 @@ namespace Emotion.Game.World2D
             return button;
         }
 
-        protected void AttachTopBarButtons(UIBaseWindow parentList)
+        private void AttachTopBarButtons(UIBaseWindow parentList)
         {
             string GetObjectSelectionLabel()
             {
@@ -186,7 +186,7 @@ namespace Emotion.Game.World2D
                 new DropDownButtonDescription
                 {
                     Name = "Save",
-                    OnClick = _ => EditorSaveMap(),
+                    Click = _ => EditorSaveMap(),
                     Enabled = () => FileName != null
                 },
                 new DropDownButtonDescription
@@ -203,7 +203,7 @@ namespace Emotion.Game.World2D
                 new DropDownButtonDescription
                 {
                     Name = GetObjectSelectionLabel(),
-                    OnClick = (t) =>
+                    Click = (t) =>
                     {
                         _objectSelect = !_objectSelect;
                         t.Text = GetObjectSelectionLabel();
@@ -212,7 +212,13 @@ namespace Emotion.Game.World2D
                 // Object creation dialog
                 new DropDownButtonDescription
                 {
-                    Name = "Add Object (Ctrl+N)"
+                    Name = "Add Object (Ctrl+N)",
+                    Click = (t) =>
+                    {
+                        var test = new MapEditorAddObjectPanel(EditorAddObject);
+                        _editUI!.AddChild(test);
+                        _topBarDropDown!.Parent!.RemoveChild(_topBarDropDown);
+                    }
                 },
                 new DropDownButtonDescription
                 {
@@ -245,29 +251,9 @@ namespace Emotion.Game.World2D
             parentList.AddChild(fileMenu);
             parentList.AddChild(objectsMenu);
             parentList.AddChild(tilesMenu);
-
-            //var objectSelectionToggle = new MapEditorTopBarButton();
-            //objectSelectionToggle.Text = GetObjectSelectionLabel();
-            //objectSelectionToggle.OnClickedProxy = _ =>
-            //{
-            //    _objectSelect = !_objectSelect;
-            //    objectSelectionToggle.Text = GetObjectSelectionLabel();
-            //};
-            //objectSelectionToggle.MinSize = new Vector2(65, 0);
-            //parentList.AddChild(objectSelectionToggle);
-
-            //var saveButton = new MapEditorTopBarButton();
-            //saveButton.Text = "Save";
-            //saveButton.OnClickedProxy = _ => { EditorSaveMap(); };
-            //parentList.AddChild(saveButton);
-
-            //var buttonTest = new MapEditorTopBarButton();
-            //buttonTest.Text = "Layers";
-            //buttonTest.OnClickedProxy = _ => { Engine.Log.Warning("Hi", "bruh"); };
-            //parentList.AddChild(buttonTest);
         }
 
-        protected UIBaseWindow GetWorldAttachInspectWindow()
+        private UIBaseWindow GetWorldAttachInspectWindow()
         {
             var worldAttachUI = new MapEditorInfoWorldAttach();
             worldAttachUI.ScaleMode = UIScaleMode.FloatScale;

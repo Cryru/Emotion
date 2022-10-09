@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using Emotion.Graphics;
+using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.UI;
 
@@ -24,6 +25,8 @@ namespace Emotion.Game.World2D.EditorHelpers
                 text!.Text = value;
             }
         }
+
+        public bool Enabled = true;
 
         private UIDropDown _dropDownMode;
         private bool _activeMode;
@@ -66,8 +69,15 @@ namespace Emotion.Game.World2D.EditorHelpers
             return base.UpdateInternal();
         }
 
+        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        {
+            if (!Enabled) return false;
+            return base.OnKey(key, status, mousePos);
+        }
+
         public override void OnMouseEnter(Vector2 _)
         {
+            if (!Enabled) return;
             if (!_activeMode) WindowColor = MapEditorColorPalette.ActiveButtonColor;
             base.OnMouseEnter(_);
         }
