@@ -128,6 +128,7 @@ namespace Emotion.Graphics.Text
 
         public virtual void SetupDrawing(RenderComposer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
+            if (text == null) return;
             CacheGlyphs(text);
         }
 
