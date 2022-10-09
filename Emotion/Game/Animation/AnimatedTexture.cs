@@ -477,7 +477,7 @@ namespace Emotion.Game.Animation
         /// <returns>The bounds of the requested frame.</returns>
         public Rectangle GetFrameBounds(int frameId)
         {
-            return Frames == null || frameId > Frames.Length ? Rectangle.Empty : Frames[frameId];
+            return Frames == null || frameId < 0 || frameId > Frames.Length - 1 ? Rectangle.Empty : Frames[frameId];
         }
 
         /// <summary>
