@@ -136,11 +136,21 @@ namespace Emotion.Game.World2D
             return layer == 0;
         }
 
+        public void Update(float dt)
+        {
+            UpdateInternal(dt);
+        }
+
+        public void Render(RenderComposer c)
+        {
+            RenderInternal(c);
+        }
+
         /// <summary>
         /// Is run every tick. By default the map will update all of its objects,
         /// but by overriding the map's update function you can optimize or customize this.
         /// </summary>
-        public virtual void Update(float dt)
+        protected virtual void UpdateInternal(float dt)
         {
         }
 
@@ -148,7 +158,7 @@ namespace Emotion.Game.World2D
         /// Is run every frame. By default the map will render all objects in layer 0 which are returned by
         /// a camera world bounds query.
         /// </summary>
-        public virtual void Render(RenderComposer c)
+        protected virtual void RenderInternal(RenderComposer c)
         {
             c.RenderSprite(Position, Size, Color.White);
         }
