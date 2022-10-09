@@ -40,7 +40,7 @@ namespace Emotion.Standard.Logging
             _logFolder = logFolder;
             try
             {
-                // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
+                // Keep only the last 10 logs.
                 Directory.CreateDirectory(_logFolder);
                 string[] fileCount = Directory.GetFiles(_logFolder);
                 if (fileCount.Length > MAX_LOG_FILES)
