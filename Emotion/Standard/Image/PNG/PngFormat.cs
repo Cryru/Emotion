@@ -631,10 +631,10 @@ namespace Emotion.Standard.Image.PNG
                 if (column >= bytesPerPixel)
                 {
                     previousPixel = current[column - bytesPerPixel];
-                    if (previous != Span<byte>.Empty) upperLeft = previous[column - bytesPerPixel];
+                    if (previous.Length > 0) upperLeft = previous[column - bytesPerPixel];
                 }
 
-                if (previous != Span<byte>.Empty) pixelAbove = previous[column];
+                if (previous.Length > 0) pixelAbove = previous[column];
 
                 byte pixel = current[column];
                 // ReSharper disable InvalidXmlDocComment
