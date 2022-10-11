@@ -4,6 +4,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Time;
 using Emotion.Graphics;
+using Emotion.Platform.Input;
 
 #endregion
 
@@ -26,14 +27,22 @@ namespace Emotion.UI
 
         public override void AttachedToController(UIController controller)
         {
-            Engine.Host.OnTextInput += TextInputEventHandler;
+            // We check focused so we can hook to the text input function that isnt blocked by anything.
+            Engine.Host.OnTextInputAll += TextInputEventHandler;
             base.AttachedToController(controller);
         }
 
         public override void DetachedFromController(UIController controller)
         {
-            Engine.Host.OnTextInput -= TextInputEventHandler;
+            Engine.Host.OnTextInputAll -= TextInputEventHandler;
             base.DetachedFromController(controller);
+        }
+
+        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        {
+            if (key == Key.MouseKeyLeft && status == KeyStatus.Down) Controller?.SetInputFocus(this);
+
+            return base.OnKey(key, status, mousePos);
         }
 
         private void TextInputEventHandler(char c)
@@ -67,11 +76,11 @@ namespace Emotion.UI
             if (_layouter != null) _layouter.MeasureTrailingWhiteSpace = true;
 
             float scale = GetScale();
-            _scaledCursorDistance = 3 * scale;
+            _scaledCursorDistance = 1 * scale;
 
             base.InternalMeasure(space);
 
-            if (!MultiLine) return new Vector2(space.X, _atlas.FontHeight);
+            if (!MultiLine && _atlas != null) return new Vector2(space.X, _atlas.FontHeight);
             return space;
         }
 
