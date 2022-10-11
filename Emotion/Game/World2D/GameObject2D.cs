@@ -126,9 +126,9 @@ namespace Emotion.Game.World2D
 
         /// <summary>
         /// Whether the object is part of the specified layer in the map's world tree.
-        /// Objects should be in at least one layer, or else they cannot be spatially queried,
-        /// only by name and index. The layers must have been added using _worldTree.AddLayer prior
-        /// to the object being added to map, as this function is checked only then.
+        /// Objects are always part of layer 0 - ALL.
+        /// The layers must have been added using _worldTree.AddLayer prior
+        /// to the object being added to the map, as this function is checked only then.
         /// The best place to do this is overriding the Map's SetupWorldTreeLayers function and adding them there.
         /// </summary>
         public virtual bool IsPartOfMapLayer(int layer)

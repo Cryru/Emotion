@@ -49,7 +49,7 @@ namespace Emotion.Game.World2D
             _objects.Add(obj);
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObjectRoot(obj);
+                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObjectRoot(obj);
             }
         }
 
