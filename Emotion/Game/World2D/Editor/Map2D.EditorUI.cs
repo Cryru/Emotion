@@ -209,14 +209,22 @@ namespace Emotion.Game.World2D
                         t.Text = GetObjectSelectionLabel();
                     }
                 },
+                new DropDownButtonDescription
+                {
+                    Name = "Object Filters",
+                    Click = (t) =>
+                    {
+             
+                    }
+                },
                 // Object creation dialog
                 new DropDownButtonDescription
                 {
                     Name = "Add Object (Ctrl+N)",
                     Click = (t) =>
                     {
-                        var test = new MapEditorAddObjectPanel(EditorAddObject);
-                        _editUI!.AddChild(test);
+                        var objectAddPanel = new MapEditorAddObjectPanel(EditorAddObject);
+                        _editUI!.AddChild(objectAddPanel);
                         _topBarDropDown!.Parent!.RemoveChild(_topBarDropDown);
                     }
                 },
@@ -248,9 +256,19 @@ namespace Emotion.Game.World2D
                 },
             });
 
+            MapEditorTopBarButton otherTools = DropDownButton("Other", new[]
+            {
+                // Shows actions done in the editor, can be undone
+                new DropDownButtonDescription
+                {
+                    Name = $"Action List"
+                },
+            });
+
             parentList.AddChild(fileMenu);
             parentList.AddChild(objectsMenu);
             parentList.AddChild(tilesMenu);
+            parentList.AddChild(otherTools);
         }
 
         private UIBaseWindow GetWorldAttachInspectWindow()
@@ -281,6 +299,27 @@ namespace Emotion.Game.World2D
             worldAttachUI.Visible = false;
 
             return worldAttachUI;
+        }
+
+        private void OpenPropertiesPanelForObject(GameObject2D obj)
+        {
+            List<UIBaseWindow>? children = _editUI!.Children!;
+            for (var i = 0; i < children.Count; i++)
+            {
+                UIBaseWindow child = children[i];
+                if (child is MapEditorObjectPropertiesPanel propPane)
+                {
+                    if (propPane.Object == obj)
+                    {
+                        _editUI.SetInputFocus(propPane);
+                        return;
+                    }
+                }
+            }
+
+            var propsPanel = new MapEditorObjectPropertiesPanel(_objectDragging);
+            _editUI!.AddChild(propsPanel);
+            _editUI.SetInputFocus(propsPanel);
         }
     }
 }

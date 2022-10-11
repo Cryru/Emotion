@@ -57,6 +57,17 @@ namespace Emotion.Game.World2D.EditorHelpers
             {
                 _mouseDown = status == KeyStatus.Down;
                 _mouseDownPos = Engine.Host.MousePosition;
+
+                UIBaseWindow? panel = Parent?.Parent;
+                if (panel != null)
+                {
+                    if (status == KeyStatus.Down)
+                        panel.ZOffset++;
+                    else if (status == KeyStatus.Up) 
+                        panel.ZOffset--;
+                }
+
+                Controller?.SetInputFocus(this);
             }
 
             return base.OnKey(key, status, mousePos);
@@ -97,11 +108,24 @@ namespace Emotion.Game.World2D.EditorHelpers
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            c.RenderSprite(Bounds, _mouseDown || MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
+            bool isFocused = false;
+            var focus = Controller.InputFocus;
+            var panelParent = Parent?.Parent;
+            if (focus != null && panelParent != null && focus.IsWithin(panelParent))
+            {
+                c.RenderSprite(Bounds, _mouseDown || MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
+            }
+            else
+            {
+                c.RenderSprite(Bounds, Color.Black * 0.5f);
+            }
+
+            
             c.RenderLine(Bounds.TopLeft, Bounds.TopRight, Color.White * 0.5f);
             c.RenderLine(Bounds.TopLeft, Bounds.BottomLeft, Color.White * 0.5f);
             c.RenderLine(Bounds.TopRight, Bounds.BottomRight, Color.White * 0.5f);
-            return base.RenderInternal(c);;
+            return base.RenderInternal(c);
+            ;
         }
     }
 }

@@ -34,6 +34,7 @@ namespace Emotion.Game.World2D
         private GameObject2D? _objectDragging;
         private Vector2 _objectDragOffset;
         private bool _ignoreNextObjectDragLetGo;
+        private Vector2 _objectDragStartPos;
 
         // Tile selection
         private bool _tileSelect = false;
@@ -73,13 +74,17 @@ namespace Emotion.Game.World2D
                     Vector2 mouseScreen = Engine.Host.MousePosition;
                     Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
                     _objectDragOffset = _objectDragging.Position2 - mouseWorld;
+                    _objectDragStartPos = _objectDragging.Position2;
                 }
                 else if (key == Key.MouseKeyLeft && status == KeyStatus.Up && _objectDragging != null)
                 {
+                    if (Vector2.Distance(_objectDragging.Position2, _objectDragStartPos) < 1) OpenPropertiesPanelForObject(_objectDragging);
+
                     if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
                     _ignoreNextObjectDragLetGo = false;
                 }
 
+                if (key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld()) EditorUndoLastAction();
 
                 return false;
             }
@@ -95,10 +100,10 @@ namespace Emotion.Game.World2D
             _editUI = new UIController();
             _editUI.KeyPriority = KeyListenerType.EditorUI;
 
-            UIBaseWindow? topBar = GetEditorTopBar();
+            UIBaseWindow topBar = GetEditorTopBar();
             _editUI.AddChild(topBar);
 
-            UIBaseWindow? worldInspect = GetWorldAttachInspectWindow();
+            UIBaseWindow worldInspect = GetWorldAttachInspectWindow();
             _editUI.AddChild(worldInspect);
 
             _oldCamera = Engine.Renderer.Camera;
@@ -179,6 +184,7 @@ namespace Emotion.Game.World2D
                 Vector2 mouseScreen = Engine.Host.MousePosition;
                 Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
                 _objectDragging.Position = (mouseWorld + _objectDragOffset).ToVec3(_objectDragging.Z);
+                EditorRegisterMoveAction(_objectDragging, _objectDragStartPos, _objectDragging.Position2);
             }
 
             _editUI!.Update();
