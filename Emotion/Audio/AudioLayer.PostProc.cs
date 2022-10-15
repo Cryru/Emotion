@@ -59,7 +59,7 @@ namespace Emotion.Audio
             }
 
             // Apply fading. If the current track doesn't have a crossfade active.
-            if (modulatedUpToFrame != 0)
+            if (modulatedUpToFrame == 0)
                 modulatedUpToFrame = PostProcessApplyFading(format, track, startingFrame, framesOutput, channels, memory);
 
             // Apply base volume modulation to the rest of the samples.
