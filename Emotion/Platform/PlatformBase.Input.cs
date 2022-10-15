@@ -48,6 +48,7 @@ namespace Emotion.Platform
 
         private Vector2 _mousePosition;
         private bool _skipTextInputThisTick;
+        private bool _skipKeyInputThisTick;
 
         protected Key[] _keyCodes;
         protected bool[] _keys;
@@ -62,7 +63,7 @@ namespace Emotion.Platform
 
         private void SetupInput()
         {
-            const int totalKeys = (int)Key.Last;
+            const int totalKeys = (int) Key.Last;
             _keys = new bool[totalKeys];
 
             _keysIm = new bool[totalKeys];
@@ -70,14 +71,20 @@ namespace Emotion.Platform
 
             SetupLegacy();
             OnKey.AddListener(DefaultButtonBehavior, KeyListenerType.System);
-            OnMouseScroll += scroll => { _mouseScrollAccum += scroll; };
+            OnFocusChanged += PreventButtonInputOnRefocus;
+        }
+
+        private void PreventButtonInputOnRefocus(bool focused)
+        {
+            // This means it changed from focused.
+            if (focused) _skipKeyInputThisTick = true;
         }
 
         /// <summary>
         /// Provides default button behavior for all platforms.
         /// Includes debug shortcuts and universal engine shortcuts.
         /// </summary>
-        protected bool DefaultButtonBehavior(Key key, KeyStatus state)
+        private bool DefaultButtonBehavior(Key key, KeyStatus state)
         {
             if (Engine.Configuration.DebugMode)
             {
@@ -103,9 +110,7 @@ namespace Emotion.Platform
                 }
             }
 
-            bool alt = IsKeyHeld(Key.LeftAlt) || IsKeyHeld(Key.RightAlt);
-
-            if (key == Key.Enter && state == KeyStatus.Down && alt)
+            if (key == Key.Enter && state == KeyStatus.Down && IsAltModifierHeld())
             {
                 DisplayMode = DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
                 return false;
@@ -131,11 +136,14 @@ namespace Emotion.Platform
             _mouseScroll = _mouseScrollAccum;
 
             _skipTextInputThisTick = false;
+            _skipKeyInputThisTick = false;
         }
 
         protected void UpdateKeyStatus(Key key, bool down)
         {
-            var keyIndex = (short)key;
+            if (_skipKeyInputThisTick) return;
+
+            var keyIndex = (short) key;
             if (keyIndex < 0 || keyIndex >= _keys.Length)
             {
                 Engine.Log.Warning($"Got event for unknown key - {key}/{keyIndex}", MessageSource.Platform);
@@ -267,14 +275,14 @@ namespace Emotion.Platform
 
         private static Dictionary<Key, Key> _keyToDirectionalAxis = new Dictionary<Key, Key>
         {
-            { Key.UpArrow, Key.AxisUpDown },
-            { Key.DownArrow, Key.AxisUpDown },
-            { Key.LeftArrow, Key.AxisLeftRight },
-            { Key.RightArrow, Key.AxisLeftRight },
-            { Key.W, Key.AxisWS },
-            { Key.S, Key.AxisWS },
-            { Key.A, Key.AxisAD },
-            { Key.D, Key.AxisAD },
+            {Key.UpArrow, Key.AxisUpDown},
+            {Key.DownArrow, Key.AxisUpDown},
+            {Key.LeftArrow, Key.AxisLeftRight},
+            {Key.RightArrow, Key.AxisLeftRight},
+            {Key.W, Key.AxisWS},
+            {Key.S, Key.AxisWS},
+            {Key.A, Key.AxisAD},
+            {Key.D, Key.AxisAD},
         };
 
         /// <summary>
@@ -289,12 +297,12 @@ namespace Emotion.Platform
 
             var value = new Vector2();
             if (directionAxis == Key.AxisUpDown || axis.HasFlag(Key.AxisUpDown))
-                value.Y = (_keys[(int)Key.DownArrow] ? 1 : 0) - (_keys[(int)Key.UpArrow] ? 1 : 0);
+                value.Y = (_keys[(int) Key.DownArrow] ? 1 : 0) - (_keys[(int) Key.UpArrow] ? 1 : 0);
             if (directionAxis == Key.AxisLeftRight || axis.HasFlag(Key.AxisLeftRight))
-                value.X = (_keys[(int)Key.RightArrow] ? 1 : 0) - (_keys[(int)Key.LeftArrow] ? 1 : 0);
+                value.X = (_keys[(int) Key.RightArrow] ? 1 : 0) - (_keys[(int) Key.LeftArrow] ? 1 : 0);
             if (directionAxis == Key.AxisWS || axis.HasFlag(Key.AxisWS))
-                value.Y = value.Y == 0 ? (_keys[(int)Key.S] ? 1 : 0) - (_keys[(int)Key.W] ? 1 : 0) : value.Y;
-            if (directionAxis == Key.AxisAD || axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (_keys[(int)Key.D] ? 1 : 0) - (_keys[(int)Key.A] ? 1 : 0) : value.X;
+                value.Y = value.Y == 0 ? (_keys[(int) Key.S] ? 1 : 0) - (_keys[(int) Key.W] ? 1 : 0) : value.Y;
+            if (directionAxis == Key.AxisAD || axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (_keys[(int) Key.D] ? 1 : 0) - (_keys[(int) Key.A] ? 1 : 0) : value.X;
 
             return value;
         }
@@ -327,7 +335,7 @@ namespace Emotion.Platform
         public bool IsKeyDown(Key key)
         {
             if (key == Key.Unknown || key == Key.KeyboardLast) return false;
-            var idx = (short)key;
+            var idx = (short) key;
             return _keysIm[idx] && !_keysPreviousIm[idx];
         }
 
@@ -338,7 +346,7 @@ namespace Emotion.Platform
         public bool KeyState(Key key)
         {
             if (key == Key.Unknown || key == Key.KeyboardLast) return false;
-            var idx = (short)key;
+            var idx = (short) key;
             return _keysIm[idx];
         }
 
@@ -349,7 +357,7 @@ namespace Emotion.Platform
         public bool IsKeyHeld(Key key)
         {
             if (key == Key.Unknown || key == Key.KeyboardLast) return false;
-            var idx = (short)key;
+            var idx = (short) key;
             return _keysIm[idx] && _keysPreviousIm[idx];
         }
 
@@ -360,7 +368,7 @@ namespace Emotion.Platform
         public bool IsKeyUp(Key key)
         {
             if (key == Key.Unknown || key == Key.KeyboardLast) return false;
-            var idx = (short)key;
+            var idx = (short) key;
             return !_keysIm[idx] && _keysPreviousIm[idx];
         }
 
@@ -369,7 +377,7 @@ namespace Emotion.Platform
         /// </summary>
         public IEnumerable<Key> GetAllKeysHeld()
         {
-            return _keys.Where((x, i) => x && _keysPreviousIm[i]).Select((x, i) => (Key)i);
+            return _keys.Where((x, i) => x && _keysPreviousIm[i]).Select((x, i) => (Key) i);
         }
 
         /// <summary>
@@ -377,7 +385,7 @@ namespace Emotion.Platform
         /// </summary>
         public IEnumerable<Key> GetAllKeysDown()
         {
-            return _keys.Where((x, i) => x && !_keysPreviousIm[i]).Select((x, i) => (Key)i);
+            return _keys.Where((x, i) => x && !_keysPreviousIm[i]).Select((x, i) => (Key) i);
         }
 
         /// <summary>
@@ -405,7 +413,7 @@ namespace Emotion.Platform
             OnKey.AddListener((key, status) =>
             {
 #pragma warning disable 618
-                if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) OnMouseKey.Invoke((MouseKey)key, status);
+                if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) OnMouseKey.Invoke((MouseKey) key, status);
 #pragma warning restore 618
                 return true;
             }, KeyListenerType.System);
@@ -424,7 +432,7 @@ namespace Emotion.Platform
         [Obsolete("Please use IsKeyDown instead of IsMouseKeyDown")]
         public bool IsMouseKeyDown(MouseKey key)
         {
-            return IsKeyDown((Key)key);
+            return IsKeyDown((Key) key);
         }
 
         /// <summary>
@@ -434,7 +442,7 @@ namespace Emotion.Platform
         [Obsolete("Please use IsKeyUp instead of IsMouseKeyUp")]
         public bool IsMouseKeyUp(MouseKey key)
         {
-            return IsKeyUp((Key)key);
+            return IsKeyUp((Key) key);
         }
 
         /// <summary>
@@ -444,7 +452,7 @@ namespace Emotion.Platform
         [Obsolete("Please use IsKeyHeld instead of IsMouseKeyHeld")]
         public bool IsMouseKeyHeld(MouseKey key)
         {
-            return IsKeyHeld((Key)key);
+            return IsKeyHeld((Key) key);
         }
 
         #endregion

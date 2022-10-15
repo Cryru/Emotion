@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -269,6 +270,9 @@ namespace Emotion.Platform
 
         protected void FocusChanged(bool focused)
         {
+            Debug.Assert(focused != IsFocused);
+            if (focused == IsFocused) return;
+
             IsFocused = focused;
             if (focused)
             {
