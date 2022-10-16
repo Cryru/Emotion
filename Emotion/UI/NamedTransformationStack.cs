@@ -17,7 +17,7 @@ namespace Emotion.UI
         /// <summary>
         /// Returns the top matrix.
         /// </summary>
-        public Matrix4x4 CurrentMatrix { get; private set; }
+        public Matrix4x4 CurrentMatrix { get; private set; } = Matrix4x4.Identity;
 
         /// <summary>
         /// Whether the matrix needs to be recalculated.
