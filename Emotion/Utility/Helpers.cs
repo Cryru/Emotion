@@ -95,12 +95,7 @@ namespace Emotion.Utility
             dir *= new Vector2(speed, speed) * Engine.DeltaTime;
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
 
-            float zoomDir = 0;
-            float mouseWheelChange = Engine.Host.GetMouseScrollRelative();
-            if (mouseWheelChange > 0)
-                zoomDir = -1;
-            else if (mouseWheelChange < 0) zoomDir = 1;
-
+            float zoomDir = -Engine.Host.GetMouseScrollRelative() * 0.5f;
             float zoom = Engine.Renderer.Camera.Zoom;
             zoom += speed * zoomDir;
             Engine.Renderer.Camera.Zoom = Maths.Clamp(zoom, 0.1f, 4f);
