@@ -131,8 +131,7 @@ namespace Emotion.Game.Text
         /// <param name="fontAtlas">The font atlas to use.</param>
         public RichText(Vector3 position, Vector2 size, DrawableFontAtlas fontAtlas) : base(position, size)
         {
-            FontAtlas = fontAtlas;
-            _layouter = new TextLayouter(fontAtlas);
+            SetAtlas(fontAtlas);
         }
 
         /// <summary>
@@ -151,6 +150,15 @@ namespace Emotion.Game.Text
 
             // Apply text alignment.
             ProcessAlignment();
+        }
+
+        public virtual void SetAtlas(DrawableFontAtlas fontAtlas)
+        {
+            FontAtlas = fontAtlas;
+            if (_layouter == null)
+                _layouter = new TextLayouter(fontAtlas);
+            else
+                _layouter.SetAtlas(fontAtlas);
         }
 
         #region Text Processing
@@ -362,15 +370,17 @@ namespace Emotion.Game.Text
             float characterSpace = 1;
             while (characterSpace >= 0)
             {
-                // Get the space left on the line by subtracting the total width from the line's width plus character spacing, minus one because of the last character.
-                characterSpace = Width - (lineSize + charSpacing * spaces);
+                int nextSpaces = charSpacing + 1;
 
-                // If there is space, increase char spacing.
-                charSpacing++;
+                // Get the space left on the line by subtracting the total width from the line's width plus character spacing.
+                characterSpace = Width - (lineSize + nextSpaces * spaces);
+
+                // If line has no space left, then the next space increase will break it.
+                if (characterSpace <= 0) break;
+
+                // Otherwise, continue increasing.
+                charSpacing = nextSpaces;
             }
-
-            // Decrease by one.
-            if (charSpacing > 0) charSpacing--;
 
             _spaceWeight.Add(charSpacing);
         }
@@ -409,6 +419,22 @@ namespace Emotion.Game.Text
 
         #region Drawing
 
+        protected virtual void RenderGlyphWithTags(int line, int charInLine, int charGlobal, ref int glyphXOffset, ref int glyphYOffset, out Color textColor)
+        {
+            // Get all active effects for the current index.
+            IEnumerable<TextEffect> effects = GetEffectsAt(charGlobal);
+
+            // Tag changeable properties.
+            textColor = Color.White;
+
+            // Apply effects.
+            foreach (TextEffect e in effects)
+            {
+                if (e.Name == "color" && e.Attributes?.Length >= 3)
+                    textColor = new Color(Helpers.StringToInt(e.Attributes[0]), Helpers.StringToInt(e.Attributes[1]), Helpers.StringToInt(e.Attributes[2]));
+            }
+        }
+
         public override void Render(RenderComposer composer)
         {
             Render(composer, -1);
@@ -430,6 +456,7 @@ namespace Emotion.Game.Text
                 for (var c = 0; c < _wrapCache[line].Length; c++)
                 {
                     var glyphXOffset = 0;
+                    var glyphYOffset = 0;
 
                     // Apply space size multiplication if the current character is a space.
                     if (line < _spaceWeight.Count && _wrapCache[line][c] == ' ') glyphXOffset += _spaceWeight[line];
@@ -437,25 +464,14 @@ namespace Emotion.Game.Text
                     // Check if applying initial indent.
                     if (line < _initialLineIndent.Count && c == 0) glyphXOffset += _initialLineIndent[line];
 
-                    // Get all active effects for the current index.
-                    IEnumerable<TextEffect> effects = GetEffectsAt(characterCounter);
-
-                    // Tag changeable properties.
-                    Color textColor = Color.White;
-
-                    // Apply effects.
-                    foreach (TextEffect e in effects)
-                    {
-                        if (e.Name == "color" && e.Attributes?.Length >= 3)
-                            textColor = new Color(Helpers.StringToInt(e.Attributes[0]), Helpers.StringToInt(e.Attributes[1]), Helpers.StringToInt(e.Attributes[2]));
-                    }
+                    RenderGlyphWithTags(line, c, characterCounter, ref glyphXOffset, ref glyphYOffset, out Color textColor);
 
                     char charUnicode = _wrapCache[line][c];
 
                     // Check if rendering a character we don't want visible, in which case we replace it with a space.
                     if (CharactersToNotRender.Contains(charUnicode)) charUnicode = ' ';
 
-                    _layouter.AddToPen(new Vector2(glyphXOffset, 0));
+                    _layouter.AddToPen(new Vector2(glyphXOffset, glyphYOffset));
                     Vector2 drawPos = _layouter.AddLetter(charUnicode, out DrawableGlyph g);
                     if (g != null) FontAtlas.DrawGlyph(composer, g, Position + drawPos.ToVec3(), textColor);
 
