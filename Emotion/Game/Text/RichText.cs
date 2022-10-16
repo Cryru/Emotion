@@ -477,12 +477,13 @@ namespace Emotion.Game.Text
 
                     // Increment character counter.
                     characterCounter++;
-                    if (characterCounter == upToChar) return;
+                    if (characterCounter == upToChar) goto end;
                 }
 
                 _layouter.NewLine();
             }
 
+            end:
             FontAtlas.FinishDrawing(composer);
         }
 
