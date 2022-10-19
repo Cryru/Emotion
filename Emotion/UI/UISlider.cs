@@ -198,7 +198,8 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            c.RenderSprite(Bounds, _calculatedColor);
+            c.RenderSprite(Position, Size, _calculatedColor);
+           // c.RenderSprite(Parent.Position, Parent.Size, Color.Red);
             return true;
         }
     }
