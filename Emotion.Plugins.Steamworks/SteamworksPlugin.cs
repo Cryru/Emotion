@@ -31,11 +31,6 @@ namespace Emotion.Plugins.Steamworks
         public static uint AppId { get; private set; }
 
         /// <summary>
-        /// A pointer to the loaded native steam library.
-        /// </summary>
-        public static IntPtr LibraryPointer { get; private set; }
-
-        /// <summary>
         /// Whether an instance exists.
         /// </summary>
         private bool _init;
@@ -58,14 +53,12 @@ namespace Emotion.Plugins.Steamworks
             _init = true;
             AppId = appId;
 
-            _callbackRunner = new Every(callbackFrequencyMs, () => { SteamNative.RunCallbacks(); });
-
-            LoadNative();
+            _callbackRunner = new Every(callbackFrequencyMs, SteamNative.RunCallbacks);
         }
 
         public void Initialize()
         {
-            LoadFunctions();
+            Engine.Host.AssociateAssemblyWithNativeLibrary(typeof(SteamworksPlugin).Assembly, "Steam", "steam_api64");
 
             if (Engine.Configuration.DebugMode)
             {
@@ -147,61 +140,5 @@ namespace Emotion.Plugins.Steamworks
         {
             SteamNative.Shutdown();
         }
-
-        #region Native Loader
-
-        private static void LoadNative()
-        {
-            if (!Directory.Exists("steam")) throw new Exception("No \"steam\" directory found!");
-
-            string folder = null;
-            string libName = null;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                folder = Environment.Is64BitProcess ? $"{Environment.CurrentDirectory}\\steam\\win64" : $"{Environment.CurrentDirectory}\\steam";
-                libName = Environment.Is64BitProcess ? "steam_api64.dll" : "steam_api.dll";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                folder = Environment.Is64BitProcess ? $"{Environment.CurrentDirectory}/steam/osx" : null;
-                libName = "libsteam_api.dylib";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                folder = Environment.Is64BitProcess ? $"{Environment.CurrentDirectory}/steam/linux64" : $"{Environment.CurrentDirectory}/steam/linux32";
-                libName = "libsteam_api.so";
-            }
-
-            string fullPath = Path.Join(folder, libName);
-            if (string.IsNullOrEmpty(folder) || !File.Exists(fullPath)) throw new Exception($"Couldn't find Steam library in {fullPath}.");
-
-            bool loaded = NativeLibrary.TryLoad(fullPath, out IntPtr libPtr);
-            if (!loaded) throw new Exception("Couldn't load Steam library.");
-
-            LibraryPointer = libPtr;
-        }
-
-        public static void LoadFunctions()
-        {
-            IEnumerable<FieldInfo> methods = typeof(SteamNative).GetTypeInfo().DeclaredFields;
-            foreach (FieldInfo method in methods)
-            {
-                var nativeMethodAttribute = (NativeMethodAttribute) method.GetCustomAttribute(typeof(NativeMethodAttribute));
-                if (nativeMethodAttribute == null) continue;
-
-                bool success = NativeLibrary.TryGetExport(LibraryPointer, nativeMethodAttribute.Name, out IntPtr funcAddress);
-                if (!success)
-                {
-                    Engine.Log.Warning($"Couldn't load function - {nativeMethodAttribute.Name}", LOG_SOURCE);
-                    continue;
-                }
-
-                Delegate val = Marshal.GetDelegateForFunctionPointer(funcAddress, method.FieldType);
-                method.SetValue(null, val);
-            }
-        }
-
-        #endregion
     }
 }

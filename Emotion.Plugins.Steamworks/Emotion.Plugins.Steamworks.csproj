@@ -9,4 +9,10 @@
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="AssetsNativeLibs\Steam\win64\steam_api64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

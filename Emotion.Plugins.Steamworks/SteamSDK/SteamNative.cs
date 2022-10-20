@@ -12,79 +12,51 @@ namespace Emotion.Plugins.Steamworks.SteamSDK
 {
     public static class SteamNative
     {
-        #region Common Function Signatures
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_RestartAppIfNecessary")]
         [return: MarshalAs(UnmanagedType.I1)]
-        public delegate bool BoolReturning();
+        public static extern bool RestartAppIfNecessary(uint unOwnAppID);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void VoidReturning();
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_IsSteamRunning")]
+        public static extern bool IsSteamRunning();
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate IntPtr PointerReturning();
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_Init")]
+        public static extern bool Init();
 
-        #endregion
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_Shutdown")]
+        public static extern void Shutdown();
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public delegate bool DelegateRestartAppIfNecessary(uint unOwnAppID);
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_RunCallbacks")]
+        public static extern void RunCallbacks();
 
-        [NativeMethod("SteamAPI_RestartAppIfNecessary")]
-        public static DelegateRestartAppIfNecessary RestartAppIfNecessary;
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamClient")]
+        public static extern IntPtr GetSteamClient();
 
-        [NativeMethod("SteamAPI_IsSteamRunning")]
-        public static BoolReturning IsSteamRunning;
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_GetHSteamPipe")]
+        public static extern IntPtr GetSteamPipe();
 
-        [NativeMethod("SteamAPI_Init")] public static BoolReturning Init;
-
-        [NativeMethod("SteamAPI_Shutdown")] public static VoidReturning Shutdown;
-
-        [NativeMethod("SteamAPI_RunCallbacks")]
-        public static VoidReturning RunCallbacks;
-
-        [NativeMethod("SteamClient")]
-        public static PointerReturning GetSteamClient;
-
-        [NativeMethod("SteamAPI_GetHSteamPipe")]
-        public static PointerReturning GetSteamPipe;      
-        
-        [NativeMethod("SteamAPI_GetHSteamUser")]
-        public static PointerReturning GetSteamUser;
-
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_GetHSteamUser")]
+        public static extern IntPtr GetSteamUser();
 
         #region Steam Stats
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate IntPtr DelegateGetSteamUserStats(IntPtr steamClientThis, IntPtr steamUser, IntPtr steamPipe, string pchVersion);
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamClient_GetISteamUserStats")]
+        public static extern IntPtr GetSteamUserStats(IntPtr steamClientThis, IntPtr steamUser, IntPtr steamPipe, string pchVersion);
 
-        [NativeMethod("SteamAPI_ISteamClient_GetISteamUserStats")]
-        public static DelegateGetSteamUserStats GetSteamUserStats;
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate bool DelegateRequestStats(IntPtr steamUserStatsThis);
-
-        [NativeMethod("SteamAPI_ISteamUserStats_RequestCurrentStats")]
-        public static DelegateRequestStats RequestStats;
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamUserStats_RequestCurrentStats")]
+        public static extern bool RequestStats(IntPtr steamUserStatsThis);
 
         #endregion
 
         #region Steam Utils
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate IntPtr DelegateGetSteamUtils(IntPtr steamClientThis, IntPtr hSteamPipe, string pchVersion);
-
-        [NativeMethod("SteamAPI_ISteamClient_GetISteamUtils")]
-        public static DelegateGetSteamUtils GetSteamUtils;
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamClient_GetISteamUtils")]
+        public static extern IntPtr GetSteamUtils(IntPtr steamClientThis, IntPtr hSteamPipe, string pchVersion);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void WarningMessageHook(int nSeverity, StringBuilder pchDebugText);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void DelegateSetWarningMessageHook(IntPtr steamUtilsThis, WarningMessageHook pFunction);
-
-        [NativeMethod("SteamAPI_ISteamUtils_SetWarningMessageHook")]
-        public static DelegateSetWarningMessageHook SetWarningMessageHook;
+        [DllImport("steamapi_64", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamUtils_SetWarningMessageHook")]
+        public static extern void SetWarningMessageHook(IntPtr steamUtilsThis, WarningMessageHook pFunction);
 
         #endregion
     }
