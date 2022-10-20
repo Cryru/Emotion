@@ -19,6 +19,8 @@ namespace Emotion.Standard.XML.TypeHandlers
         public override object? Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
+            if (readValue == "") return _defaultValue;
+
             if (Enum.TryParse(Type, readValue, out object? parsed))
             {
                 return parsed;
