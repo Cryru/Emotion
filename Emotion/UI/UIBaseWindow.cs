@@ -197,6 +197,17 @@ namespace Emotion.UI
         {
             Debug.Assert(child != null);
 
+            if (Engine.Configuration.DebugMode && Children != null && !string.IsNullOrEmpty(child.Id))
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    UIBaseWindow c = Children[i];
+                    if (c.Id == child.Id)
+                    {
+                        Engine.Log.Warning($"Child with duplicate id was added - {child.Id}", "UI");
+                        break;
+                    }
+                }
+
             Children ??= new List<UIBaseWindow>();
             Children.Add(child);
 
@@ -909,10 +920,7 @@ namespace Emotion.UI
                 WindowColor = WindowColor.SetAlpha(current);
 
                 // If fading in we need to set visible from the get go.
-                if (setVisible != null && setVisible.Value && !Visible)
-                {
-                    Visible = true;
-                }
+                if (setVisible != null && setVisible.Value && !Visible) Visible = true;
 
                 if (alphaTween.Finished)
                 {
