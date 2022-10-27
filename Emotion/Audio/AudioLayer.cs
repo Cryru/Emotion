@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.IO;
@@ -12,6 +13,8 @@ using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Audio
 {
@@ -48,15 +51,11 @@ namespace Emotion.Audio
         /// <summary>
         /// The track currently playing - if any.
         /// </summary>
-        public AudioTrack CurrentTrack
+        // ReSharper disable once ConvertToAutoPropertyWhenPossible
+        // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
+        public AudioTrack? CurrentTrack
         {
-            get
-            {
-                lock (_playlist)
-                {
-                    return _playlist.Count == 0 ? null : _playlist[0];
-                }
-            }
+            get => _currentTrack;
         }
 
         /// <summary>
@@ -66,7 +65,7 @@ namespace Emotion.Audio
         {
             get
             {
-                if (_playHead == 0 || _updateStreamingTrack) return 0f;
+                if (_playHead == 0 || _updateCurrentTrack) return 0f;
                 return (float) _playHead / _totalSamplesConv;
             }
         }
@@ -78,8 +77,8 @@ namespace Emotion.Audio
         {
             get
             {
-                if (_streamingTrack == null) return 0;
-                return Progress * _streamingTrack.File.Duration;
+                if (_currentTrack == null) return 0;
+                return Progress * _currentTrack.File.Duration;
             }
         }
 
@@ -103,14 +102,14 @@ namespace Emotion.Audio
         /// Called when the current track loops.
         /// The input parameter is the track which looped.
         /// </summary>
-        public event Action<AudioAsset> OnTrackLoop;
+        public event Action<AudioAsset>? OnTrackLoop;
 
         /// <summary>
         /// Called when the current track changes.
         /// The first parameter is the old track, the second is the new one.
         /// If there is no further track the new track parameter will be null.
         /// </summary>
-        public event Action<AudioAsset, AudioAsset> OnTrackChanged;
+        public event Action<AudioAsset?, AudioAsset?>? OnTrackChanged;
 
         // For fade effects volume is calculated per chunk of frames, rather than for every frame.
         private const int VOLUME_MODULATION_FRAME_GRANULARITY = 100;
@@ -119,10 +118,16 @@ namespace Emotion.Audio
         protected List<AudioTrack> _playlist = new(); // Always read and written in locks
         protected float[] _internalBuffer; // Internal memory to keep resamples frames for applying post proc to.
         protected int _playHead; // The progress into the current track, relative to the converted format.
-        protected int _totalSamplesConv; // The total sample count in the dst format. Used to know where _playHead is.
+        protected int _totalSamplesConv; // The total sample count in the dst format. Used to know where _playHead is relative to the total.
         protected float[] _internalBufferCrossFade; // Same memory, but for the second track when crossfading.
         protected int _crossFadePlayHead; // Same progress tracking, but for the second track when crossfading.
         protected int _loopCount; // Number of times the current track has looped. 0 if it hasn't.
+        protected PlaybackStatus? _pendingStatus;
+        protected AudioFormat _streamingFormat;
+
+        protected bool _updateCurrentTrack = true;
+        private AudioTrack? _currentTrack;
+        private AudioTrack? _nextTrack;
 
         protected AudioLayer(string name)
         {
@@ -131,7 +136,6 @@ namespace Emotion.Audio
             _internalBufferCrossFade = new float[INITIAL_INTERNAL_BUFFER_SIZE];
 
             _streamingFormat = new AudioFormat();
-            InvalidateAudioBlocks();
         }
 
         #region API
@@ -151,9 +155,9 @@ namespace Emotion.Audio
                     _playlist.Add(track);
                 else
                     _playlist.Insert(1, track);
-                if (_playlist.Count == 1) InvalidateAudioBlocks();
-                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
+
+            InvalidateCurrentTrack();
         }
 
         /// <inheritdoc cref="PlayNext(AudioTrack)" />
@@ -174,9 +178,9 @@ namespace Emotion.Audio
             lock (_playlist)
             {
                 _playlist.Add(track);
-                if (_playlist.Count == 1) InvalidateAudioBlocks();
-                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
+
+            InvalidateCurrentTrack();
         }
 
         /// <inheritdoc cref="PlayNext(AudioAsset)" />
@@ -198,10 +202,9 @@ namespace Emotion.Audio
             {
                 _playlist.Clear();
                 _playlist.Add(track);
-                InvalidateStreamingTrack();
-                InvalidateAudioBlocks();
-                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
+
+            InvalidateCurrentTrack();
         }
 
         /// <inheritdoc cref="PlayNext(AudioAsset)" />
@@ -215,11 +218,7 @@ namespace Emotion.Audio
         /// </summary>
         public void Resume()
         {
-            lock (_playlist)
-            {
-                if (Status == PlaybackStatus.Playing) return;
-                TransitionStatus(PlaybackStatus.Playing);
-            }
+            _pendingStatus = PlaybackStatus.Playing;
         }
 
         /// <summary>
@@ -227,10 +226,7 @@ namespace Emotion.Audio
         /// </summary>
         public void Pause()
         {
-            lock (_playlist)
-            {
-                TransitionStatus(PlaybackStatus.Paused);
-            }
+            _pendingStatus = PlaybackStatus.Paused;
         }
 
         /// <summary>
@@ -241,171 +237,27 @@ namespace Emotion.Audio
             lock (_playlist)
             {
                 _playlist.Clear();
-                TransitionStatus(PlaybackStatus.NotPlaying);
-                InvalidateAudioBlocks();
-            }
-        }
-
-        protected void TrackChanged(AudioTrack old, AudioTrack newT)
-        {
-            OnTrackChanged?.Invoke(old?.File, newT?.File);
-            InvalidateStreamingTrack();
-        }
-
-        /// <summary>
-        /// Always used in _playlist locks.
-        /// </summary>
-        protected virtual void TransitionStatus(PlaybackStatus newStatus)
-        {
-            // If wasn't playing - but now am, and the current track is invalid, set the current track.
-            if (Status == PlaybackStatus.NotPlaying && newStatus == PlaybackStatus.Playing)
-            {
-                // Check if there is anything in the playlist.
-                if (_playlist.Count == 0)
-                {
-                    Engine.Log.Warning($"Tried to play layer {Name}, but the playlist is empty.", MessageSource.Audio);
-                    return;
-                }
-
-                _crossFadePlayHead = 0;
-                TrackChanged(null, _playlist[0]);
             }
 
-            Status = newStatus;
+            InvalidateCurrentTrack();
         }
 
         #endregion
 
         #region Stream Logic
 
-        protected bool _updateStreamingTrack = true;
-        protected AudioTrack _streamingTrack;
-        protected AudioConverter _converter;
-        protected AudioFormat _streamingFormat;
-
-        protected void InvalidateStreamingTrack()
-        {
-            _updateStreamingTrack = true;
-        }
-
-        protected void UpdateStreamingTrack()
-        {
-            if (!_updateStreamingTrack) return;
-
-            // Get the currently playing track.
-            AudioTrack currentTrack;
-            lock (_playlist)
-            {
-                if (Status == PlaybackStatus.NotPlaying || _playlist.Count == 0)
-                {
-                    _streamingTrack = null;
-                    return;
-                }
-
-                currentTrack = _playlist[0];
-                if (currentTrack == null)
-                {
-                    _streamingTrack = null;
-                    return;
-                }
-            }
-
-            _streamingTrack = currentTrack;
-            _playHead = _crossFadePlayHead; // Assuming track changed to the one we were crossfading into.
-            _crossFadePlayHead = 0;
-            _converter = currentTrack.File.AudioConverter;
-            if (_streamingFormat != null) _totalSamplesConv = _converter.GetSampleCountInFormat(_streamingFormat);
-            _updateStreamingTrack = false;
-        }
-
-        protected int StreamDataFromCurrentTrack(int framesRequested, Span<byte> dest, int framesOffset = 0)
-        {
-            if (Status != PlaybackStatus.Playing) return 0;
-
-            // Check if the internal buffer needs to be resized to fit in the request.
-            int samplesRequested = framesRequested * _streamingFormat.Channels;
-            if (_internalBuffer.Length < samplesRequested)
-            {
-                Array.Resize(ref _internalBuffer, samplesRequested);
-                Array.Resize(ref _internalBufferCrossFade, samplesRequested);
-            }
-
-            // Get post processed 32f buffer data.
-            int framesOutput = GetProcessedFramesFromTrack(_streamingFormat, _streamingTrack, framesRequested, _internalBuffer, ref _playHead);
-
-            // Fill destination buffer in destination sample size format.
-            Span<byte> destBuffer = dest.Slice(framesOffset * _streamingFormat.FrameSize);
-            var srcBuffer = new Span<float>(_internalBuffer, 0, samplesRequested);
-            AudioConverter.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, _streamingFormat);
-
-            // Check if the buffer was filled.
-            if (framesOutput == framesRequested) return framesOutput;
-
-            // If less frames were drawn than the buffer can take - the track is over.
-
-            // Check if looping.
-            AudioTrack newTrack = null;
-            if (LoopingCurrent)
-            {
-                // Manually update playhead as track wont change.
-                _playHead = _crossFadePlayHead;
-                _crossFadePlayHead = 0;
-                _loopCount++;
-                OnTrackLoop?.Invoke(_streamingTrack.File);
-                newTrack = _streamingTrack;
-            }
-            // Otherwise, go to next track.
-            else
-            {
-                _loopCount = 0;
-                lock (_playlist)
-                {
-                    _playlist.Remove(_streamingTrack);
-                    if (_playlist.Count > 0)
-                        newTrack = _playlist[0];
-                }
-
-                if (newTrack != null)
-                {
-                    TrackChanged(_streamingTrack, newTrack);
-                    UpdateStreamingTrack();
-                }
-            }
-
-            // Check if there are more tracks.
-            if (newTrack != null)
-            {
-                if (newTrack.SetLoopingCurrent) LoopingCurrent = true;
-
-                // Fill rest of buffer with samples from the next track.
-                framesOutput += StreamDataFromCurrentTrack(framesRequested - framesOutput, dest, framesOutput);
-            }
-
-            return framesOutput;
-        }
-
-        #endregion
-
-        #region Audio Buffering
-
         /// <summary>
         /// The max number of blocks to sample ahead.
         /// Each block is between MinAudioAdvanceTime and MaxAudioAdvanceTime (AudioContext) of audio data
-        /// If too large then the audio actually you hear will be ahead of the logical representation and will appear as lag.
+        /// But if too small, then blocks will be overriden before you hear them.
         /// </summary>
-        public static int MaxDataBlocks = 10;
+        public static int MaxDataBlocks = 20;
 
         /// <summary>
         /// If the number of ready blocks is less than this, then the next block will
         /// contain twice as much data to ensure streaming is ahead of the backend.
         /// </summary>
         public static int BlocksMinAhead = 1;
-
-        /// <summary>
-        /// How many ms the backend buffer is expected to be. This number should be 100ms+
-        /// to prevent audio flickering.
-        /// </summary>
-        public static int BackendBufferExpectedAhead = 200;
 
         /// <summary>
         /// Total bytes allocated for all data blocks. Shared between audio layers.
@@ -425,35 +277,40 @@ namespace Emotion.Audio
         private static ObjectPool<AudioDataBlock> _dataPool = new ObjectPool<AudioDataBlock>(null, MaxDataBlocks);
         private Queue<AudioDataBlock> _readyBlocks = new Queue<AudioDataBlock>();
 
-        public class AudioDataBlock
+        // Metrics
+        private Stopwatch? _updateTimer;
+
+        private class AudioDataBlock
         {
             public byte[] Data = Array.Empty<byte>();
             public int FramesWritten;
             public int FramesRead;
         }
 
-        private Stopwatch _updateTimer;
-
         /// <summary>
         /// Process audio data ahead.
         /// </summary>
         /// <param name="timePassed">Time to process, in milliseconds</param>
-        public void ProcessAhead(int timePassed)
+        public void Update(int timePassed)
         {
-            if (Status == PlaybackStatus.Paused) return;
+            // Pause sound if host is paused.
+            if (Engine.Host != null && Engine.Host.HostPaused)
+            {
+                if (GLThread.IsGLThread()) return; // Don't stop main thread.
+                Engine.Host.HostPausedWaiter.WaitOne();
+            }
 
-            // Update current track, state etc.
-            UpdateStreamingTrack();
+            UpdateCurrentTrack();
 
-            if (_readyBlocks.Count < BlocksMinAhead && timePassed < 100) timePassed = Maths.Clamp(timePassed * 2, timePassed, 100);
-            int frames = _streamingFormat.GetFrameCount(timePassed / 1000f);
-            int bytes = frames * _streamingFormat.FrameSize;
+            if (Status != PlaybackStatus.Playing || _currentTrack == null) return;
 
-            // Stream data into data blocks.
-            StreamIntoBlocks(bytes);
-
-            // Tell the backend to take the data it needs.
+            // Update the backend. This will cause it to call BackendGetData
             UpdateBackend();
+
+            if (Status != PlaybackStatus.Playing || _currentTrack == null) return;
+
+            // Buffer data in advance, so the next update can be as fast as possible (just a copy).
+            BufferDataInAdvance(timePassed);
 
 #if DEBUG
             _updateTimer ??= Stopwatch.StartNew();
@@ -472,12 +329,88 @@ namespace Emotion.Audio
 #endif
         }
 
-        private void StreamIntoBlocks(int bytes)
+        private void InvalidateCurrentTrack()
         {
-            if (_streamingTrack == null || bytes == 0) return;
+            _updateCurrentTrack = true;
+        }
 
+        private void UpdateCurrentTrack()
+        {
+            if (_pendingStatus != null)
+            {
+                Status = _pendingStatus.Value;
+                _pendingStatus = null;
+
+                if (!_updateCurrentTrack && Status == PlaybackStatus.Playing && _currentTrack == null) Status = PlaybackStatus.NotPlaying;
+            }
+
+            if (!_updateCurrentTrack) return;
+            _updateCurrentTrack = false;
+
+            // Get the currently playing track.
+            AudioTrack? currentTrack;
+            AudioTrack? nextTrack;
+            lock (_playlist)
+            {
+                if (_playlist.Count == 0)
+                {
+                    currentTrack = null;
+                    nextTrack = null;
+                    if (Status == PlaybackStatus.Playing) Status = PlaybackStatus.NotPlaying;
+                }
+                else
+                {
+                    currentTrack = _playlist[0];
+
+                    if (LoopingCurrent)
+                        nextTrack = currentTrack;
+                    else if (_playlist.Count > 1)
+                        nextTrack = _playlist[1];
+                    else
+                        nextTrack = null;
+                }
+            }
+
+            bool currentChanged = _currentTrack != currentTrack;
+            bool nextChanged = _nextTrack != nextTrack;
+            if (currentChanged || nextChanged) InvalidateAudioBlocks();
+
+            // If both changed...
+            if (currentChanged && (nextChanged || nextTrack == null))
+            {
+                // And the current is the next, we assume this was the track we were crossfading into
+                _playHead = currentTrack == _nextTrack ? _crossFadePlayHead : 0;
+                _crossFadePlayHead = 0;
+            }
+
+            if (currentChanged && currentTrack != null)
+            {
+                AudioConverter converter = currentTrack.File.AudioConverter;
+                _totalSamplesConv = converter.GetSampleCountInFormat(_streamingFormat);
+                if (currentTrack.SetLoopingCurrent) LoopingCurrent = true;
+                if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
+            }
+
+            if (currentChanged)
+            {
+                OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
+            }
+
+            _currentTrack = currentTrack;
+            _nextTrack = nextTrack;
+        }
+
+        private void BufferDataInAdvance(int timePassed)
+        {
+            // Convert time to frames and bytes.
+            int framesToGet = _streamingFormat.GetFrameCount(timePassed / 1000f);
+            int bytesToGet = framesToGet * _streamingFormat.FrameSize;
+            if (bytesToGet == 0) return;
+
+            // Get a data block to fill. If we're over the maximum blocks this might mean overriding one that was ready.
+            // This will happen if the backend is lagging behind, which should never happen?
             AudioDataBlock dataBlock;
-            if (_readyBlocks.Count >= MaxDataBlocks && _readyBlocks.TryDequeue(out AudioDataBlock b))
+            if (_readyBlocks.Count >= MaxDataBlocks && _readyBlocks.TryDequeue(out AudioDataBlock? b))
             {
                 MetricBackendMissedFrames += b.FramesWritten - b.FramesRead;
                 dataBlock = b;
@@ -487,37 +420,89 @@ namespace Emotion.Audio
                 dataBlock = _dataPool.Get();
             }
 
-            if (dataBlock.Data.Length < bytes)
+            // Ensure the data block can fit the requested data.
+            // The data a data block will usually carry is around AudioUpdateRate * 2 in time.
+            if (dataBlock.Data.Length < bytesToGet)
             {
-                MetricAllocatedDataBlocks -= dataBlock.Data.Length;
-                MetricAllocatedDataBlocks += bytes;
-
-                Array.Resize(ref dataBlock.Data, bytes);
+                Interlocked.Add(ref MetricAllocatedDataBlocks, -dataBlock.Data.Length + bytesToGet); // metric shared between threads (layers)
+                Array.Resize(ref dataBlock.Data, bytesToGet);
             }
 
-            int requestedFrames = bytes / _streamingFormat.FrameSize;
-            int frames = StreamDataFromCurrentTrack(requestedFrames, new Span<byte>(dataBlock.Data, 0, bytes));
+            int framesGotten = GetDataToBuffer(framesToGet, new Span<byte>(dataBlock.Data, 0, bytesToGet));
 
-            // Nothing streamed
-            if (frames == 0)
-            {
-                _dataPool.Return(dataBlock);
-                return;
-            }
+            // Nothing streamed, track is probably over.
+            if (framesGotten == 0) _dataPool.Return(dataBlock);
 
-            if (frames < requestedFrames)
-            {
-                lock (_playlist)
-                {
-                    TransitionStatus(PlaybackStatus.NotPlaying);
-                }
-
-                TrackChanged(_streamingTrack, null);
-            }
-
-            dataBlock.FramesWritten = frames;
+            // Reset data block trackers so it can be used.
+            dataBlock.FramesWritten = framesGotten;
             dataBlock.FramesRead = 0;
             _readyBlocks.Enqueue(dataBlock);
+        }
+
+        protected int GetDataToBuffer(int framesRequested, Span<byte> dest, int framesOffset = 0)
+        {
+            // Check if the internal buffer needs to be resized to fit in the request.
+            int samplesRequested = framesRequested * _streamingFormat.Channels;
+            if (_internalBuffer.Length < samplesRequested)
+            {
+                Array.Resize(ref _internalBuffer, samplesRequested);
+                Array.Resize(ref _internalBufferCrossFade, samplesRequested);
+            }
+
+#if DEBUG
+            // Verify that the number of samples will fit in the buffer.
+            // This should never happen and is considered a backend error.
+            int bytesNeeded = framesRequested * _streamingFormat.FrameSize;
+            if (dest.Length < bytesNeeded)
+            {
+                Engine.Log.Warning($"The provided buffer to the audio streamer is of invalid size {dest.Length} while {bytesNeeded} were requested.", MessageSource.Audio);
+                framesRequested = dest.Length / _streamingFormat.FrameSize;
+            }
+#endif
+
+            // Get post processed 32f buffer data.
+            int framesOutput = GetProcessedFramesFromTrack(_streamingFormat, _currentTrack, framesRequested, _internalBuffer, ref _playHead);
+
+            // Fill destination buffer in destination sample size format.
+            Span<byte> destBuffer = dest.Slice(framesOffset * _streamingFormat.FrameSize);
+            var srcBuffer = new Span<float>(_internalBuffer, 0, samplesRequested);
+            AudioConverter.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, _streamingFormat);
+
+            // Check if the buffer was filled.
+            if (framesOutput == framesRequested) return framesOutput;
+
+            // If less frames were drawn than the buffer can take - the track is over.
+
+            // Check if looping.
+            if (LoopingCurrent)
+            {
+                // Manually update playhead as track wont change.
+                _playHead = _crossFadePlayHead;
+                _crossFadePlayHead = 0;
+                _loopCount++;
+                OnTrackLoop?.Invoke(_currentTrack!.File);
+            }
+            // Otherwise, go to next track.
+            else
+            {
+                _loopCount = 0;
+                lock (_playlist)
+                {
+                    _playlist.Remove(_currentTrack!); // Don't remove as index as it is possible for current track to not be first via data race.
+                }
+
+                InvalidateCurrentTrack();
+                UpdateCurrentTrack();
+                
+            }
+
+            // No next track, these are all the frames you're gonna get.
+            if (_currentTrack == null) return framesOutput;
+
+            // Fill rest of buffer with samples from the next track.
+            framesOutput += GetDataToBuffer(framesRequested - framesOutput, dest, framesOutput);
+
+            return framesOutput;
         }
 
         protected abstract void UpdateBackend();
@@ -531,18 +516,23 @@ namespace Emotion.Audio
                 Engine.Host.HostPausedWaiter.WaitOne();
             }
 
+            if (Status != PlaybackStatus.Playing) return 0;
+
             // Make sure we're getting the samples in the format we think we are.
-            float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / _totalSamplesConv : 0;
             if (!format.Equals(_streamingFormat))
             {
+                float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / _totalSamplesConv : 0;
                 float progress = _playHead != 0 ? (float) _playHead / _totalSamplesConv : 0;
                 _streamingFormat = format;
 
+                if (format.UnsupportedBitsPerSample())
+                    Engine.Log.Warning($"Unsupported bits per sample format by streaming format - {_streamingFormat}", MessageSource.Audio, true);
+
                 // Continue from last streaming position. This could cause a jump
                 // depending on where the backend is.
-                if (_streamingTrack != null)
+                if (_currentTrack != null)
                 {
-                    AudioConverter streamer = _streamingTrack.File.AudioConverter;
+                    AudioConverter streamer = _currentTrack.File.AudioConverter;
                     _totalSamplesConv = streamer.GetSampleCountInFormat(_streamingFormat);
                 }
                 else
@@ -564,7 +554,7 @@ namespace Emotion.Audio
             var framesGotten = 0;
             while (framesLeft > 0 && _readyBlocks.Count != 0)
             {
-                if (_readyBlocks.TryPeek(out AudioDataBlock b))
+                if (_readyBlocks.TryPeek(out AudioDataBlock? b))
                 {
                     int framesGot = b.FramesWritten - b.FramesRead;
                     int framesCanGet = Math.Min(framesGot, framesLeft);
@@ -581,7 +571,7 @@ namespace Emotion.Audio
                     Debug.Assert(b.FramesRead <= b.FramesWritten);
                     if (b.FramesRead == b.FramesWritten)
                     {
-                        _readyBlocks.TryDequeue(out AudioDataBlock _);
+                        _readyBlocks.TryDequeue(out AudioDataBlock? _);
                         _dataPool.Return(b);
                     }
                 }
@@ -592,7 +582,7 @@ namespace Emotion.Audio
             // the backend buffer requests data further into the future initially.
             if (framesLeft > 0 && _readyBlocks.Count == 0)
             {
-                int framesGot = StreamDataFromCurrentTrack(framesLeft, buffer);
+                int framesGot = GetDataToBuffer(framesLeft, buffer);
                 framesGotten += framesGot;
             }
 
@@ -601,11 +591,8 @@ namespace Emotion.Audio
 
         protected void InvalidateAudioBlocks()
         {
-            while (_readyBlocks.Count != 0)
-            {
-                if (_readyBlocks.TryDequeue(out AudioDataBlock r))
-                    _dataPool.Return(r);
-            }
+            while (_readyBlocks.Count != 0 && _readyBlocks.TryDequeue(out AudioDataBlock? r))
+                _dataPool.Return(r);
 
             MetricBackendMissedFrames = 0;
             MetricDataStoredInBlocks = 0;
@@ -616,6 +603,7 @@ namespace Emotion.Audio
         public virtual void Dispose()
         {
             Disposed = true;
+            InvalidateAudioBlocks();
         }
     }
 }

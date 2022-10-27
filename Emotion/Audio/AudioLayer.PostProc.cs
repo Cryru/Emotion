@@ -37,25 +37,16 @@ namespace Emotion.Audio
             // Force mono post process.
             // Dont apply force mono on tracks while the resampler applied mono to.
             bool mergeChannels = Engine.Configuration.ForceMono && channels != 1 && track.File.Format.Channels != 1;
-            if (mergeChannels) PostProcessForceMono(framesOutput, memory, channels);
+            if (mergeChannels) PostProcessConvertToMono(framesOutput, memory, channels);
 
             // Apply fading, if needed. For instance we don't want additional fading while crossfading.
             if (!applyFading) return framesOutput;
 
             // If cross fading check if there is another track afterward.
             var modulatedUpToFrame = 0;
-            if (track.CrossFade.HasValue)
+            if (track.CrossFade.HasValue && _nextTrack != null)
             {
-                AudioTrack nextTrack = null;
-                if (LoopingCurrent)
-                    nextTrack = _loopCount > 0 ? track : null; // Dont crossfade on first play of loop.
-                else
-                    lock (_playlist)
-                    {
-                        if (_playlist.Count > 1) nextTrack = _playlist[1];
-                    }
-
-                if (nextTrack != null) modulatedUpToFrame = PostProcessCrossFade(format, track, nextTrack, startingFrame, framesOutput, memory);
+                modulatedUpToFrame = PostProcessCrossFade(format, track, _nextTrack, startingFrame, framesOutput, memory);
             }
 
             // Apply fading. If the current track doesn't have a crossfade active.
@@ -73,12 +64,11 @@ namespace Emotion.Audio
             return framesOutput;
         }
 
-
         /// <summary>
-        /// Check if forcing mono sound. This matters only if both the source and destination formats are stereo.
+        /// Convert multi-channel samples to mono.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void PostProcessForceMono(int framesOutput, float[] soundData, int srcChannels)
+        private static void PostProcessConvertToMono(int framesOutput, float[] soundData, int srcChannels)
         {
             for (var i = 0; i < framesOutput; i++)
             {
@@ -139,6 +129,7 @@ namespace Emotion.Audio
                 int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame); // Frames in step.
                 int totalFrameIdx = frameStart + localFrame; // The index of the frame within the total count.
                 float volume = (float) totalFrameIdx / fadeInFrames; // Volume is equal to how many frames into the fade. Linear curve 0-1.
+                volume = volume * volume;
                 volume = baseVolume * volume;
                 volume = VolumeToMultiplier(volume); //MathF.Pow(volume, Engine.Configuration.AudioCurve);
 
@@ -231,10 +222,10 @@ namespace Emotion.Audio
                 int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame);
                 int frameIdx = startingFrame + localFrame;
                 float frameT = (float) (frameIdx - crossFadeStartAtFrame) / crossFadeFrames;
-                frameT = frameT * 2.0f - 1.0f;
+                //frameT = frameT * 2.0f - 1.0f;
 
-                float volumeNex = MathF.Sqrt(0.5f * (1f + frameT));
-                float volumeCur = MathF.Sqrt(0.5f * (1f - frameT));
+                float volumeNex = frameT;//MathF.Sqrt(0.5f * (1f + frameT));
+                float volumeCur = 1.0f - frameT;//MathF.Sqrt(0.5f * (1f - frameT));
 
                 volumeNex = baseVolume * volumeNex;
                 volumeCur = baseVolume * volumeCur;

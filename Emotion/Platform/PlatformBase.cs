@@ -166,8 +166,6 @@ namespace Emotion.Platform
         /// <returns>Whether the platform is alive.</returns>
         public bool Update()
         {
-            Engine.Audio?.Update();
-
             // Check if open.
             return IsOpen && UpdatePlatform();
         }

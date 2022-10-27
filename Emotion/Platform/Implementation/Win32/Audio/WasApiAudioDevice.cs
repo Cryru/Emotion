@@ -50,7 +50,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             if (audioClientFormat!.ExtraSize >= 22) audioClientFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
             context.AudioClientFormat = audioClientFormat!.ToEmotionFormat();
 
-            long ticks = TimeSpan.FromMilliseconds(AudioLayer.BackendBufferExpectedAhead).Ticks;
+            long ticks = TimeSpan.FromMilliseconds(AudioContext.BackendBufferExpectedAhead).Ticks;
             error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, ticks, 0, deviceFormat, Guid.Empty);
             if (error != 0) Win32Platform.CheckError($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", true);
 

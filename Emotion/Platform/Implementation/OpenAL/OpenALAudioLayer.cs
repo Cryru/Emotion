@@ -42,7 +42,7 @@ namespace Emotion.Platform.Implementation.OpenAL
 
             if (_frameRequestSize == 0)
             {
-                _frameRequestSize = _openALAudioFormat.GetFrameCount(BackendBufferExpectedAhead / 1000f);
+                _frameRequestSize = _openALAudioFormat.GetFrameCount(AudioContext.BackendBufferExpectedAhead / 1000f);
                 _frameRequestSize /= BUFFER_COUNT;
             }
 

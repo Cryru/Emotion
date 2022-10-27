@@ -4,8 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion
@@ -19,15 +17,15 @@ namespace Emotion.Standard.Audio
     /// Frame - Samples * Channels
     /// Sample - Sound, one for each channel
     /// </summary>
-    public class AudioConverter
+    public sealed class AudioConverter
     {
-        public int SourceSamples { get; protected set; }
-        public int SourceSamplesPerChannel { get; protected set; }
-        public float[] SoundData { get; protected set; }
-        public AudioFormat SourceFormat { get; protected set; }
+        public int SourceSamples { get; private set; }
+        public int SourceSamplesPerChannel { get; private set; }
+        public float[] SoundData { get; private set; }
+        public AudioFormat SourceFormat { get; private set; }
 
-        public int ConvQuality { get; protected set; }
-        protected int _convQuality2;
+        public int ConvQuality { get; private set; }
+        private int _convQuality2;
 
         public AudioConverter(AudioFormat srcFormat, float[] soundData, int quality = 10)
         {
@@ -109,11 +107,9 @@ namespace Emotion.Standard.Audio
         /// <param name="frameCount">The number of frames (in the dstFormat) to convert.</param>
         /// <param name="buffer">The buffer to fill with converted samples.</param>
         /// <returns>How many frames were actually converted.</returns>
+#if HANN_WINDOW_RESAMPLE
         public int GetConvertedSamplesAt(AudioFormat dstFormat, int dstSampleIdxStart, int frameCount, Span<float> buffer)
         {
-            if (dstFormat.UnsupportedBitsPerSample())
-                Engine.Log.Warning($"Unsupported bits per sample format by DestinationFormat - {dstFormat.BitsPerSample}", MessageSource.Audio);
-
             int dstChannels = dstFormat.Channels;
             int srcChannels = SourceFormat.Channels;
             sbyte[] channelRemap = GetChannelRemappingMapFor(srcChannels, dstChannels);
@@ -140,13 +136,6 @@ namespace Emotion.Standard.Audio
 
             // Snap if more samples requested than left.
             if (dstSampleIdxStart + requestedSamples >= convSamples) requestedSamples = convSamples - dstSampleIdxStart;
-
-            // Verify that the number of samples will fit in the buffer.
-            if (buffer.Length < requestedSamples)
-            {
-                Engine.Log.Warning($"The provided buffer to the audio streamer is of invalid size {buffer.Length} while {requestedSamples} were requested.", MessageSource.Audio);
-                requestedSamples = buffer.Length;
-            }
 
             // Resample from dstSampleIdx to the requested samples.
             for (int dstSampleIdx = dstSampleIdxStart; dstSampleIdx < convSamples; dstSampleIdx += dstChannels)
@@ -202,6 +191,75 @@ namespace Emotion.Standard.Audio
 
             return convSamples - dstSampleIdxStart;
         }
+#else
+        public int GetConvertedSamplesAt(AudioFormat dstFormat, int dstSampleIdxStart, int frameCount, Span<float> buffer)
+        {
+            int dstChannels = dstFormat.Channels;
+            int srcChannels = SourceFormat.Channels;
+            sbyte[] channelRemap = GetChannelRemappingMapFor(srcChannels, dstChannels);
+
+            // Optimization stuff
+            bool useChannelCache = dstChannels > 2;
+            bool getSamplesDirectly = dstChannels == srcChannels;
+            float[] soundData = SoundData;
+
+            int srcSampleRate = SourceFormat.SampleRate;
+            int sourceSamples = SourceSamples;
+            int dstSampleRate = dstFormat.SampleRate;
+            var convSamples = (int) (sourceSamples * dstChannels / srcChannels * ((float) dstSampleRate / srcSampleRate));
+
+            float resampleStep = (float) srcSampleRate / dstSampleRate;
+            int requestedSamples = frameCount * dstChannels; // rename
+
+            // Snap if more samples requested than left.
+            if (dstSampleIdxStart + requestedSamples >= convSamples) requestedSamples = convSamples - dstSampleIdxStart;
+
+            // Resample from dstSampleIdx to the requested samples.
+            for (int dstSampleIdx = dstSampleIdxStart; dstSampleIdx < convSamples; dstSampleIdx += dstChannels)
+            {
+                // Check if gotten enough samples.
+                if (dstSampleIdx + dstChannels - dstSampleIdxStart > requestedSamples) return requestedSamples;
+
+                // Reset cache.
+                if (useChannelCache)
+                {
+                    _surroundResampleCache[0] = float.NaN;
+                    _surroundResampleCache[1] = float.NaN;
+                }
+
+                int targetBufferIdx = dstSampleIdx - dstSampleIdxStart;
+                for (var c = 0; c < dstChannels; c++)
+                {
+                    // Multichannels will resample 1 and 2 multiple times.
+                    if (useChannelCache)
+                    {
+                        sbyte convChannel = channelRemap[c];
+                        if (convChannel >= 0 && convChannel <= 1 && !float.IsNaN(_surroundResampleCache[convChannel]))
+                        {
+                            buffer[targetBufferIdx + c] = _surroundResampleCache[convChannel];
+                            continue;
+                        }
+                    }
+
+                    float sourceLocation = dstSampleIdx / dstChannels * resampleStep;
+                    var previousSampleIdx = (int) MathF.Floor(sourceLocation);
+                    var nextSampleIdx = (int) MathF.Ceiling(sourceLocation);
+                    nextSampleIdx = Math.Min(nextSampleIdx, SourceSamplesPerChannel - 1);
+
+                    float previousSample = getSamplesDirectly ? soundData[previousSampleIdx * srcChannels + c] : GetChannelConvertedSample(previousSampleIdx * srcChannels, c, channelRemap);
+                    float nextSample = getSamplesDirectly ? soundData[nextSampleIdx * srcChannels + c] : GetChannelConvertedSample(nextSampleIdx * srcChannels, c, channelRemap);
+
+                    float fraction = sourceLocation - previousSampleIdx;
+                    float value = Maths.FastLerp(previousSample, nextSample, fraction * fraction);
+
+                    buffer[targetBufferIdx + c] = value;
+                    if (useChannelCache) _surroundResampleCache[channelRemap[c]] = value;
+                }
+            }
+
+            return convSamples - dstSampleIdxStart;
+        }
+#endif
 
         /// <summary>
         /// Converts the specified source sample to a destination sample for the specified channel.

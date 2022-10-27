@@ -156,14 +156,14 @@ namespace Emotion.Tools.Windows.Audio
                     _waveFormCache[layer] = cache;
                 }
 
-                if (layer.Status == PlaybackStatus.NotPlaying && layer.Status != PlaybackStatus.Paused)
+                if (layer.CurrentTrack == null)
                 {
                     cache.Clear();
                     continue;
                 }
 
                 // Update waveform cache.
-                if (layer.CurrentTrack != cache.Track && layer.CurrentTrack != null) cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
+                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
             }
         }
     }

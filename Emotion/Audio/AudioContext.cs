@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Emotion.Common;
-using Emotion.Platform;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -18,22 +17,29 @@ namespace Emotion.Audio
         protected ConcurrentBag<AudioLayer> _toRemove = new();
         protected ConcurrentBag<AudioLayer> _toAdd = new();
 
-        protected bool _running;
+        protected volatile bool _running;
         protected Thread _audioThread;
 
+        /// <summary>
+        /// How much audio will get resampled at once (for each layer)
+        /// </summary>
         public static int MaxAudioAdvanceTime = 50;
-        public static int MinAudioAdvanceTime = 10;
 
-        protected Stopwatch _audioTimeTracker;
-        protected long _lastTick;
-        protected int _timeToProcess;
-        protected AutoResetEvent _audioProcessEvent;
+        /// <summary>
+        /// The rate at which audio layers are updated. This is also the amount of time
+        /// worth in audio samples that will be buffered on each tick (roughly).
+        /// Buffered date will be roughly this much times 2 ahead (depending on how much the buffer consumes),
+        /// which is essentially the audio lag.
+        /// </summary>
+        public static int AudioUpdateRate = 25;
+
+        /// <summary>
+        /// How many ms the backend buffer is expected to be. This number should be 100ms+ to prevent audio flickering.
+        /// </summary>
+        public static int BackendBufferExpectedAhead = MaxAudioAdvanceTime * 4;
 
         protected AudioContext()
         {
-            _audioTimeTracker = new Stopwatch();
-            _audioProcessEvent = new AutoResetEvent(false);
-
             _running = true;
 #if !WEB
             _audioThread = new Thread(AudioLayerProc)
@@ -44,38 +50,41 @@ namespace Emotion.Audio
 #endif
         }
 
-        public virtual void Update()
-        {
-            if (!_audioTimeTracker.IsRunning) _audioTimeTracker.Start();
-
-            long timeNow = _audioTimeTracker.ElapsedMilliseconds;
-            var timePassed = (int) (timeNow - _lastTick);
-            if (timePassed < MinAudioAdvanceTime) return;
-            Interlocked.Add(ref _timeToProcess, timePassed);
-            _lastTick = timeNow;
-            _audioProcessEvent.Set();
-        }
-
         public void AudioLayerProc()
         {
             if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
 
+            var audioTimeTracker = Stopwatch.StartNew();
+            long lastTick = 0;
+            var audioProcessEvent = new AutoResetEvent(false);
+
             var layers = new List<AudioLayer>();
             while (_running)
             {
-                _audioProcessEvent.WaitOne();
+                audioProcessEvent.WaitOne(AudioUpdateRate);
+                if (!_running) break;
 
+                long timeNow = audioTimeTracker.ElapsedMilliseconds;
+                var tickPassed = (int) (timeNow - lastTick);
+                lastTick = timeNow;
+
+                // Handle changes
                 while (!_toAdd.IsEmpty && _toAdd.TryTake(out AudioLayer layer))
                     layers.Add(layer);
 
-                int timePassed = Interlocked.Exchange(ref _timeToProcess, 0);
+                while (!_toRemove.IsEmpty && _toRemove.TryTake(out AudioLayer layer))
+                {
+                    layers.Remove(layer);
+                    layer.Stop();
+                    layer.Dispose();
+                }
 
                 // Prevent spiral of death.
-                if (timePassed > MaxAudioAdvanceTime) timePassed = MaxAudioAdvanceTime;
+                if (tickPassed > MaxAudioAdvanceTime) tickPassed = MaxAudioAdvanceTime;
 
                 for (var i = 0; i < layers.Count; i++)
                 {
-                    layers[i].ProcessAhead(timePassed);
+                    layers[i].Update(tickPassed);
                 }
             }
         }
@@ -101,10 +110,7 @@ namespace Emotion.Audio
             AudioLayer layer = GetLayer(layerName);
             if (layer == null) return;
 
-            layer.Stop();
-            layer.Dispose();
-
-            // todo: _toRemove
+            _toRemove.Add(layer);
             _layerMapping.Remove(layer);
 
             Engine.Log.Info($"Removed audio layer {layer.Name}", MessageSource.Audio);
