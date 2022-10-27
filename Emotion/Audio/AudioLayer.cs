@@ -39,9 +39,22 @@ namespace Emotion.Audio
         public bool Disposed { get; protected set; }
 
         /// <summary>
-        /// The status of the audio layer.
+        /// The status of the audio layer. This should be async from the actual state.
         /// </summary>
-        public PlaybackStatus Status { get; protected set; } = PlaybackStatus.NotPlaying;
+        public PlaybackStatus Status
+        {
+            get => _status;
+            protected set
+            {
+                if (value != _status)
+                {
+                    OnStatusChanged?.Invoke(value, _status);
+                    _status = value;
+                }
+            }
+        }
+
+        private PlaybackStatus _status = PlaybackStatus.NotPlaying;
 
         /// <summary>
         /// Whether the current track is being looped.
@@ -51,11 +64,18 @@ namespace Emotion.Audio
         /// <summary>
         /// The track currently playing - if any.
         /// </summary>
-        // ReSharper disable once ConvertToAutoPropertyWhenPossible
-        // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
         public AudioTrack? CurrentTrack
         {
-            get => _currentTrack;
+            get
+            {
+                if (_updateCurrentTrack)
+                    lock (_playlist)
+                    {
+                        return _playlist.Count == 0 ? null : _playlist[0];
+                    }
+
+                return _currentTrack;
+            }
         }
 
         /// <summary>
@@ -111,6 +131,11 @@ namespace Emotion.Audio
         /// </summary>
         public event Action<AudioAsset?, AudioAsset?>? OnTrackChanged;
 
+        /// <summary>
+        /// Called when the layer status changes.
+        /// </summary>
+        public event Action<PlaybackStatus, PlaybackStatus>? OnStatusChanged;
+
         // For fade effects volume is calculated per chunk of frames, rather than for every frame.
         private const int VOLUME_MODULATION_FRAME_GRANULARITY = 100;
         private const int INITIAL_INTERNAL_BUFFER_SIZE = 4000;
@@ -122,7 +147,6 @@ namespace Emotion.Audio
         protected float[] _internalBufferCrossFade; // Same memory, but for the second track when crossfading.
         protected int _crossFadePlayHead; // Same progress tracking, but for the second track when crossfading.
         protected int _loopCount; // Number of times the current track has looped. 0 if it hasn't.
-        protected PlaybackStatus? _pendingStatus;
         protected AudioFormat _streamingFormat;
 
         protected bool _updateCurrentTrack = true;
@@ -158,6 +182,7 @@ namespace Emotion.Audio
             }
 
             InvalidateCurrentTrack();
+            if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
         }
 
         /// <inheritdoc cref="PlayNext(AudioTrack)" />
@@ -181,6 +206,7 @@ namespace Emotion.Audio
             }
 
             InvalidateCurrentTrack();
+            if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
         }
 
         /// <inheritdoc cref="PlayNext(AudioAsset)" />
@@ -205,6 +231,7 @@ namespace Emotion.Audio
             }
 
             InvalidateCurrentTrack();
+            if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
         }
 
         /// <inheritdoc cref="PlayNext(AudioAsset)" />
@@ -218,7 +245,7 @@ namespace Emotion.Audio
         /// </summary>
         public void Resume()
         {
-            _pendingStatus = PlaybackStatus.Playing;
+            Status = CurrentTrack != null ? PlaybackStatus.Playing : PlaybackStatus.NotPlaying;
         }
 
         /// <summary>
@@ -226,7 +253,7 @@ namespace Emotion.Audio
         /// </summary>
         public void Pause()
         {
-            _pendingStatus = PlaybackStatus.Paused;
+            Status = PlaybackStatus.Paused;
         }
 
         /// <summary>
@@ -239,6 +266,7 @@ namespace Emotion.Audio
                 _playlist.Clear();
             }
 
+            if (Status == PlaybackStatus.Playing) Status = PlaybackStatus.NotPlaying;
             InvalidateCurrentTrack();
         }
 
@@ -252,12 +280,6 @@ namespace Emotion.Audio
         /// But if too small, then blocks will be overriden before you hear them.
         /// </summary>
         public static int MaxDataBlocks = 20;
-
-        /// <summary>
-        /// If the number of ready blocks is less than this, then the next block will
-        /// contain twice as much data to ensure streaming is ahead of the backend.
-        /// </summary>
-        public static int BlocksMinAhead = 1;
 
         /// <summary>
         /// Total bytes allocated for all data blocks. Shared between audio layers.
@@ -293,6 +315,10 @@ namespace Emotion.Audio
         /// <param name="timePassed">Time to process, in milliseconds</param>
         public void Update(int timePassed)
         {
+            UpdateCurrentTrack();
+
+            if (Status != PlaybackStatus.Playing || _currentTrack == null) return;
+
             // Pause sound if host is paused.
             if (Engine.Host != null && Engine.Host.HostPaused)
             {
@@ -300,17 +326,10 @@ namespace Emotion.Audio
                 Engine.Host.HostPausedWaiter.WaitOne();
             }
 
-            UpdateCurrentTrack();
-
-            if (Status != PlaybackStatus.Playing || _currentTrack == null) return;
-
             // Update the backend. This will cause it to call BackendGetData
             UpdateBackend();
 
             if (Status != PlaybackStatus.Playing || _currentTrack == null) return;
-
-            // Buffer data in advance, so the next update can be as fast as possible (just a copy).
-            BufferDataInAdvance(timePassed);
 
 #if DEBUG
             _updateTimer ??= Stopwatch.StartNew();
@@ -327,6 +346,14 @@ namespace Emotion.Audio
                 _updateTimer.Restart();
             }
 #endif
+
+            // If starved try to go for a bigger buffer.
+            // If this is too large however we will cause a permanent slowdown. yikes
+            const int tooMuchTime = 100;
+            if (_readyBlocks.Count == 0 && timePassed < tooMuchTime) timePassed = Maths.Clamp(timePassed * 2, timePassed, tooMuchTime);
+
+            // Buffer data in advance, so the next update can be as fast as possible (just a copy).
+            BufferDataInAdvance(timePassed);
         }
 
         private void InvalidateCurrentTrack()
@@ -336,14 +363,6 @@ namespace Emotion.Audio
 
         private void UpdateCurrentTrack()
         {
-            if (_pendingStatus != null)
-            {
-                Status = _pendingStatus.Value;
-                _pendingStatus = null;
-
-                if (!_updateCurrentTrack && Status == PlaybackStatus.Playing && _currentTrack == null) Status = PlaybackStatus.NotPlaying;
-            }
-
             if (!_updateCurrentTrack) return;
             _updateCurrentTrack = false;
 
@@ -391,10 +410,7 @@ namespace Emotion.Audio
                 if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
             }
 
-            if (currentChanged)
-            {
-                OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
-            }
+            if (currentChanged) OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
 
             _currentTrack = currentTrack;
             _nextTrack = nextTrack;
@@ -493,7 +509,6 @@ namespace Emotion.Audio
 
                 InvalidateCurrentTrack();
                 UpdateCurrentTrack();
-                
             }
 
             // No next track, these are all the frames you're gonna get.

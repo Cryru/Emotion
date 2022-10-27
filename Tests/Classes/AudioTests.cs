@@ -21,16 +21,16 @@ namespace Tests.Classes
 
                 public TestAudioLayer(string name) : base(name)
                 {
+                    OnStatusChanged += StatusChanged;
                 }
 
                 protected override void UpdateBackend()
                 {
                 }
 
-                protected override void TransitionStatus(PlaybackStatus newStatus)
+                private void StatusChanged(PlaybackStatus oldStatus, PlaybackStatus newStatus)
                 {
-                    PreviousStatus = Status;
-                    base.TransitionStatus(newStatus);
+                    PreviousStatus = oldStatus;
                 }
             }
 
@@ -88,7 +88,7 @@ namespace Tests.Classes
             Assert.True(layer.CurrentTrack.File == pepsi);
 
             // Advance time ahead.
-            ((TestAudioContext.TestAudioLayer) layer).ProcessAhead((int) (MathF.Ceiling(pepsi.Duration) + 1) * 1000);
+            ((TestAudioContext.TestAudioLayer) layer).Update((int) (MathF.Ceiling(pepsi.Duration) + 1) * 1000);
             Assert.True(layer.CurrentTrack.File == money);
 
             ctx.RemoveLayer("test");
