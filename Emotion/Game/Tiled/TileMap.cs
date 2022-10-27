@@ -189,7 +189,7 @@ namespace Emotion.Game.Tiled
         #endregion
     }
 
-    public class TileMap : TransformRenderable, IDisposable
+    public class TileMap : TransformRenderable, IDisposable // todo: Rename size to scale, and remove position
     {
         #region Properties
 
