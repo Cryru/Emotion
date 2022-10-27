@@ -9,13 +9,24 @@ using System.Collections.Concurrent;
 
 namespace Emotion.Utility
 {
-    public class ObjectPoolExt<T>
+    /// <summary>
+    /// A pool of objects. Thread safe.
+    /// </summary>
+    public class ObjectPool<T> where T : new()
     {
         private readonly ConcurrentBag<T> _objects = new ConcurrentBag<T>();
         private Func<T> _createMethod;
         private Action<T>? _resetMethod;
 
-        public ObjectPoolExt(Func<T> createMethod, Action<T>? resetMethod = null, int createInAdvance = -1)
+        public ObjectPool() : this(() => new T())
+        {
+        }
+
+        public ObjectPool(Action<T>? resetMethod = null, int preCreate = -1) : this(() => new T(), resetMethod, preCreate)
+        {
+        }
+
+        public ObjectPool(Func<T> createMethod, Action<T>? resetMethod = null, int createInAdvance = -1)
         {
             _createMethod = createMethod;
             _resetMethod = resetMethod;
@@ -41,17 +52,6 @@ namespace Emotion.Utility
 #endif
             _resetMethod?.Invoke(item);
             _objects.Add(item);
-        }
-    }
-
-    public class ObjectPool<T> : ObjectPoolExt<T> where T : new()
-    {
-        public ObjectPool() : base(() => new T())
-        {
-        }
-
-        public ObjectPool(Action<T>? resetMethod = null, int preCreate = -1) : base(() => new T(), resetMethod, preCreate)
-        {
         }
     }
 }
