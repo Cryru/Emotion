@@ -15,9 +15,13 @@ namespace Emotion.Platform.Implementation.OpenAL
         public IntPtr AudioDevice { get; private set; }
         public IntPtr AudioContext { get; private set; }
 
-        public static OpenALAudioAdapter TryCreate(PlatformBase _)
+        public OpenALAudioAdapter(PlatformBase platform) : base(platform)
         {
-            var newCtx = new OpenALAudioAdapter();
+        }
+
+        public static OpenALAudioAdapter TryCreate(PlatformBase platform)
+        {
+            var newCtx = new OpenALAudioAdapter(platform);
             newCtx.AudioDevice = Alc.OpenDevice(null);
             if (newCtx.AudioDevice == IntPtr.Zero)
             {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Emotion.Common;
+using Emotion.Platform;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -38,8 +39,11 @@ namespace Emotion.Audio
         /// </summary>
         public static int BackendBufferExpectedAhead = MaxAudioAdvanceTime * 4;
 
-        protected AudioContext()
+        private PlatformBase _host;
+
+        protected AudioContext(PlatformBase platform)
         {
+            _host = platform;
             _running = true;
 #if !WEB
             _audioThread = new Thread(AudioLayerProc)
@@ -50,9 +54,9 @@ namespace Emotion.Audio
 #endif
         }
 
-        public void AudioLayerProc()
+        public virtual void AudioLayerProc()
         {
-            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
+            if (_host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
 
             var audioTimeTracker = Stopwatch.StartNew();
             long lastTick = 0;

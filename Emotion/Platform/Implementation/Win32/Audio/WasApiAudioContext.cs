@@ -13,10 +13,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
     {
-        public static WasApiAudioContext TryCreate(PlatformBase _)
+        public static WasApiAudioContext TryCreate(PlatformBase platform)
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioContext(enumerator);
+            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioContext(platform, enumerator);
             Win32Platform.CheckError("Couldn't create multimedia enumerator.", true);
             return null;
         }
@@ -27,7 +27,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new();
 
-        private WasApiAudioContext(IMMDeviceEnumerator enumerator)
+        private WasApiAudioContext(PlatformBase platform, IMMDeviceEnumerator enumerator) : base(platform)
         {
             _enumerator = enumerator;
             int error = _enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active, out IMMDeviceCollection collection);

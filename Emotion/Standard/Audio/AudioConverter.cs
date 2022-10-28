@@ -244,6 +244,7 @@ namespace Emotion.Standard.Audio
                     float sourceLocation = dstSampleIdx / dstChannels * resampleStep;
                     var previousSampleIdx = (int) MathF.Floor(sourceLocation);
                     var nextSampleIdx = (int) MathF.Ceiling(sourceLocation);
+                    previousSampleIdx = Math.Min(previousSampleIdx, SourceSamplesPerChannel - 1);
                     nextSampleIdx = Math.Min(nextSampleIdx, SourceSamplesPerChannel - 1);
 
                     float previousSample = getSamplesDirectly ? soundData[previousSampleIdx * srcChannels + c] : GetChannelConvertedSample(previousSampleIdx * srcChannels, c, channelRemap);

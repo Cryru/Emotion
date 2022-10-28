@@ -89,7 +89,7 @@ namespace Emotion.Platform.Implementation.Win32
             ctx ??= OpenALAudioAdapter.TryCreate(this);
 #endif
             ctx ??= WasApiAudioContext.TryCreate(this);
-            ctx ??= new NullAudioContext();
+            ctx ??= new NullAudioContext(this);
             Audio = ctx;
             Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
 

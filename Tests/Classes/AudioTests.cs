@@ -4,6 +4,7 @@ using System;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.IO;
+using Emotion.Platform;
 using Emotion.Test;
 
 #endregion
@@ -34,6 +35,15 @@ namespace Tests.Classes
                 }
             }
 
+            public TestAudioContext(PlatformBase platform) : base(platform)
+            {
+            }
+
+            public override void AudioLayerProc()
+            {
+                // nop
+            }
+
             public override AudioLayer CreatePlatformAudioLayer(string layerName)
             {
                 return new TestAudioLayer(layerName);
@@ -43,7 +53,7 @@ namespace Tests.Classes
         [Test]
         public void AudioState()
         {
-            var ctx = new TestAudioContext();
+            var ctx = new TestAudioContext(null);
             AudioLayer layer = ctx.CreateLayer("test");
 
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
@@ -70,7 +80,7 @@ namespace Tests.Classes
         [Test]
         public void PlaylistLogic()
         {
-            var ctx = new TestAudioContext();
+            var ctx = new TestAudioContext(null);
             AudioLayer layer = ctx.CreateLayer("test");
 
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");

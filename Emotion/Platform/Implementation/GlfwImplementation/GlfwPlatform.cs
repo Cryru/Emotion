@@ -140,7 +140,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             Glfw.FocusWindow(_win);
 
 #if OpenAL
-            Audio = OpenALAudioAdapter.TryCreate(this) ?? (AudioContext) new NullAudioContext();
+            Audio = OpenALAudioAdapter.TryCreate(this) ?? (AudioContext) new NullAudioContext(this);
 #else
             Audio = new NullAudioContext();
 #endif

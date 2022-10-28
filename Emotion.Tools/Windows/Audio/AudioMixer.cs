@@ -57,10 +57,7 @@ namespace Emotion.Tools.Windows.Audio
             }
 
             bool mono = Engine.Configuration.ForceMono;
-            if (ImGui.Checkbox("Force Mono", ref mono))
-            {
-                Engine.Configuration.ForceMono = mono;
-            }
+            if (ImGui.Checkbox("Force Mono", ref mono)) Engine.Configuration.ForceMono = mono;
 
             // Push waveforms down.
             composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, 50, 0)));
@@ -88,10 +85,15 @@ namespace Emotion.Tools.Windows.Audio
                 if (ImGui.Button("Add To Play Next"))
                     ExecuteOnFile(layer.PlayNext);
                 ImGui.SameLine();
+                if (ImGui.Button("(CF)"))
+                {
+                    layer.FadeCurrentTrackIntoNext(4);
+                }
+                ImGui.SameLine();
                 if (ImGui.Button("Quick Play"))
                     ExecuteOnFile(layer.QuickPlay);
 
-                if(layer.Status == PlaybackStatus.Paused)
+                if (layer.Status == PlaybackStatus.Paused)
                 {
                     if (ImGui.Button("Resume"))
                         layer.Resume();
@@ -101,8 +103,9 @@ namespace Emotion.Tools.Windows.Audio
                     if (ImGui.Button("Pause"))
                         layer.Pause();
                 }
+
                 ImGui.SameLine();
-                
+
                 ImGui.SameLine();
                 if (ImGui.Button("Stop"))
                     layer.Stop();
@@ -113,10 +116,11 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.SameLine();
                 ImGui.Text($"Looping: {layer.LoopingCurrent}");
 
-                string[] items = layer.Playlist.Select(x => x.Name).ToArray();
-                if (ImGui.TreeNode($"Playlist, Currently Playing: {(items.Length > 0 ? items[0] : "None")}"))
+                AudioTrack currentTrack = layer.CurrentTrack;
+                if (ImGui.TreeNode($"Playlist, Currently Playing: {(currentTrack != null ? currentTrack.File.Name : "None")}"))
                 {
                     var r = 0;
+                    string[] items = layer.Playlist.Select(x => x.Name).ToArray();
                     ImGui.ListBox("", ref r, items, items.Length);
                     ImGui.TreePop();
                 }
@@ -163,7 +167,8 @@ namespace Emotion.Tools.Windows.Audio
                 }
 
                 // Update waveform cache.
-                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
+                if (layer.CurrentTrack != cache.Track)
+                    cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
             }
         }
     }
