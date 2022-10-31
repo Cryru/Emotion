@@ -162,17 +162,28 @@ namespace Emotion.Audio
         private const int INITIAL_INTERNAL_BUFFER_SIZE = 4000;
 
         private List<AudioTrack> _playlist = new(); // Always read and written in locks
-        private float[] _internalBuffer; // Internal memory to keep resamples frames for applying post proc to.
-        private int _playHead; // The progress into the current track, relative to the converted format.
-        private int _totalSamplesConv; // The total sample count in the dst format. Used to know where _playHead is relative to the total.
-        private float[] _internalBufferCrossFade; // Same memory, but for the second track when crossfading.
-        private int _loopCount; // Number of times the current track has looped. 0 if it hasn't.
-        private AudioFormat _streamingFormat;
 
+        private float[] _internalBuffer; // Internal memory to keep resamples frames for applying post proc to.
+        private float[] _internalBufferCrossFade; // Same memory, but for the second track when crossfading.
+
+        private int _playHead; // The progress into the current track, relative to the converted format.
+        private AudioFormat _streamingFormat; // The common format to emit samples in. Can be changed in any BackendGetData call
+        private int _totalSamplesConv; // The total sample count in the dst format. Used to know where _playHead is relative to the total.
+
+        // Track state
         private bool _updateCurrentTrack = true;
         private AudioTrack? _currentTrack;
         private AudioTrack? _nextTrack;
-        private bool _triggerCrossFade;
+        private int _loopCount; // Number of times the current track has looped. 0 if it hasn't.
+
+        // FX
+        private FadeEffectData? _currentCrossFade; // Effect data for both triggered cross fades and configured ones
+        private bool _triggerCrossFade; // Whether to trigger a cross fade at the current point in time.
+        private float _triggerCrossFadeDurationSetting = -1; // The duration of the cross fade to trigger.
+
+        private float _triggerStopWithFadeWithDuration = -1; // Whether to trigger a fade out at the current point in time.
+        private StopAfterFadeEffectData? _currentFadeOutAndStop; // The current fade out effect, for both triggered and configured.
+        private List<AudioTrack>? _playListAtFadeOutStop;
 
         protected AudioLayer(string name)
         {
@@ -216,16 +227,14 @@ namespace Emotion.Audio
 
         /// <summary>
         /// Causes a crossfade transition from the current track into the next.
-        /// The current track must have cross fade enabled.
+        /// If the current track doesn't have cross fade enabled you must supply a duration here.
         /// </summary>
         public bool FadeCurrentTrackIntoNext(int crossFadeSet = -1)
         {
             if (_nextTrack == null) return false;
             if (_currentCrossFade != null) return false;
 
-            AudioTrack? currentTrack = CurrentTrack;
-            if (currentTrack != null && crossFadeSet != -1) currentTrack.CrossFade = crossFadeSet;
-
+            if (crossFadeSet != -1) _triggerCrossFadeDurationSetting = crossFadeSet;
             _triggerCrossFade = true;
 
             return false;
@@ -310,6 +319,23 @@ namespace Emotion.Audio
             InvalidateCurrentTrack();
         }
 
+        /// <summary>
+        /// Stop playing all tracks, after fading out the current one.
+        /// </summary>
+        public bool StopWithFade(float fadeDuration)
+        {
+            if (_currentTrack == null) return false;
+
+            _playListAtFadeOutStop = new List<AudioTrack>();
+            lock (_playlist)
+            {
+                _playListAtFadeOutStop.AddRange(_playlist);
+            }
+
+            _triggerStopWithFadeWithDuration = fadeDuration;
+            return true;
+        }
+
         #endregion
 
         #region Stream Logic
@@ -335,6 +361,11 @@ namespace Emotion.Audio
         /// How many frames were dropped because the backend didn't request them.
         /// </summary>
         public int MetricBackendMissedFrames;
+
+        /// <summary>
+        /// Whether the buffer was starved in the last X ms.
+        /// </summary>
+        public int MetricStarved;
 
         private static ObjectPool<AudioDataBlock> _dataPool = new ObjectPool<AudioDataBlock>(null, MaxDataBlocks);
         private Queue<AudioDataBlock> _readyBlocks = new Queue<AudioDataBlock>();
@@ -390,6 +421,8 @@ namespace Emotion.Audio
 
             if (_updateTimer.ElapsedMilliseconds > 100)
             {
+                MetricStarved = 0;
+
                 MetricDataStoredInBlocks = 0;
                 foreach (AudioDataBlock block in _readyBlocks)
                 {
@@ -452,15 +485,26 @@ namespace Emotion.Audio
             bool justProgressed = currentTrack == _nextTrack;
             if (currentChanged && !justProgressed) InvalidateAudioBlocks();
 
-            // If both changed...
+            // If both the current and next changed (or just current if no next)
+            // that means everything has changed. This usually happens when the current track
+            // is over and we transition into the next one. It could also be the result of a stop + new playlist.
             if (currentChanged && (nextChanged || nextTrack == null))
             {
                 _playHead = 0;
 
+                // Reset various fx triggers since they no longer apply.
+                _triggerCrossFade = false;
+                _triggerCrossFadeDurationSetting = -1;
+                _currentFadeOutAndStop = null;
+                _playListAtFadeOutStop = null;
+                _triggerStopWithFadeWithDuration = -1;
+
                 // If the track didn't go into the next one, that means that cross fade was switched.
+                // This is specially handled since we want cross fade effects to persist through track changes.
                 if (currentTrack != _nextTrack) _currentCrossFade = null;
             }
 
+            // If we have a new track.
             if (currentChanged && currentTrack != null)
             {
                 AudioConverter converter = currentTrack.File.AudioConverter;
@@ -469,7 +513,12 @@ namespace Emotion.Audio
                 if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
             }
 
-            if (currentChanged) OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
+            // if current changed at all.
+            if (currentChanged)
+            {
+                OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
+                _loopCount = 0;
+            }
 
             _currentTrack = currentTrack;
             _nextTrack = nextTrack;
@@ -506,12 +555,17 @@ namespace Emotion.Audio
             int framesGotten = GetDataToBuffer(framesToGet, new Span<byte>(dataBlock.Data, 0, bytesToGet));
 
             // Nothing streamed, track is probably over.
-            if (framesGotten == 0) _dataPool.Return(dataBlock);
-
-            // Reset data block trackers so it can be used.
-            dataBlock.FramesWritten = framesGotten;
-            dataBlock.FramesRead = 0;
-            _readyBlocks.Enqueue(dataBlock);
+            if (framesGotten == 0)
+            {
+                _dataPool.Return(dataBlock);
+            }
+            else
+            {
+                // Reset data block trackers so it can be used.
+                dataBlock.FramesWritten = framesGotten;
+                dataBlock.FramesRead = 0;
+                _readyBlocks.Enqueue(dataBlock);
+            }
         }
 
         private void GoNextTrack()
@@ -527,7 +581,6 @@ namespace Emotion.Audio
             // Otherwise, go to next track.
             else
             {
-                _loopCount = 0;
                 lock (_playlist)
                 {
                     _playlist.Remove(_currentTrack!); // Don't remove by index as it is possible for current track to not be first via data race.
@@ -559,39 +612,71 @@ namespace Emotion.Audio
             }
 #endif
 
+            // Check for trigger FX.
             if (_currentTrack!.CrossFade.HasValue && _nextTrack != null && _currentCrossFade == null)
             {
                 int startingFrame = _playHead / _streamingFormat.Channels;
                 bool startFade = CheckIfShouldCrossFade(_streamingFormat, _currentTrack, _nextTrack, startingFrame);
-                if (startFade) StartCrossFade();
+                if (startFade) StartCrossFade(_currentTrack.CrossFade.Value);
             }
 
             if (_triggerCrossFade)
             {
                 _triggerCrossFade = false;
-                if (_currentCrossFade == null) StartCrossFade();
+                if (_currentCrossFade == null) StartCrossFade(_triggerCrossFadeDurationSetting);
+                _triggerCrossFadeDurationSetting = -1;
+            }
+
+            if (_triggerStopWithFadeWithDuration != -1 && _currentFadeOutAndStop == null)
+            {
+                Debug.Assert(_playListAtFadeOutStop != null);
+
+                int startingFrame = _playHead / _streamingFormat.Channels;
+                if (!CheckIfCurrentlyFadingOut(_streamingFormat, _currentTrack, startingFrame))
+                {
+                    if (_triggerStopWithFadeWithDuration < 0.0f) _triggerStopWithFadeWithDuration = _currentTrack.File.Duration * -_triggerStopWithFadeWithDuration;
+                    _currentFadeOutAndStop = new StopAfterFadeEffectData(_currentTrack, startingFrame, _triggerStopWithFadeWithDuration, _playListAtFadeOutStop);
+
+                    if (CheckIfInFadeInAndGetVolume(_streamingFormat, _currentTrack, startingFrame, out float startVolume))
+                        _currentFadeOutAndStop.VolumeStart = startVolume;
+                }
+
+                _triggerStopWithFadeWithDuration = -1;
+                _playListAtFadeOutStop = null;
+            }
+            else if (_currentFadeOutAndStop != null && CheckIfFadeOutOver(_streamingFormat, _currentTrack, _currentFadeOutAndStop))
+            {
+                _loopCount = 0;
+                List<AudioTrack> playListToRemove = _currentFadeOutAndStop.PlaylistAtStop;
+                lock (_playlist)
+                {
+                    for (var i = 0; i < playListToRemove.Count; i++)
+                    {
+                        _playlist.Remove(playListToRemove[i]);
+                    }
+                }
+
+                InvalidateCurrentTrack();
+                UpdateCurrentTrack();
+                if (_currentTrack == null) return 0;
             }
 
             // Get post processed 32f buffer data.
             int framesOutput = GetProcessedFramesFromTrack(_streamingFormat, _currentTrack, framesRequested, _internalBuffer, ref _playHead);
 
-            // Fill destination buffer in destination sample size format.
+            // Convert data to the destination sample size format.
             Span<byte> destBuffer = dest.Slice(framesOffset * _streamingFormat.FrameSize);
             var srcBuffer = new Span<float>(_internalBuffer, 0, samplesRequested);
             AudioConverter.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, _streamingFormat);
 
             // Check if the buffer was filled.
-            // If less frames were drawn than the buffer can take - the track is over.
-            // It's also possible for the track switch crossFade to force switch the track.
+            // If less frames were drawn than the buffer can take - the current track is over.
             if (framesOutput == framesRequested) return framesOutput;
 
             GoNextTrack();
 
-            // No next track, these are all the frames you're gonna get.
-            if (_currentTrack == null || framesOutput == framesRequested) return framesOutput;
-
-            // Fill rest of buffer with samples from the next track.
-            framesOutput += GetDataToBuffer(framesRequested - framesOutput, dest, framesOutput);
+            // Fill rest of buffer with samples from the next track (which is now the current track).
+            if (_currentTrack != null) framesOutput += GetDataToBuffer(framesRequested - framesOutput, dest, framesOutput);
 
             return framesOutput;
         }
@@ -633,16 +718,9 @@ namespace Emotion.Audio
 
                 _playHead = (int) MathF.Floor(_totalSamplesConv * progress);
 
-                // Readjust crossfade playhead - if in use.
-                if (_currentCrossFade != null)
-                {
-                    int crossFadePlayHead = _currentCrossFade.PlayHead;
-                    float totalSamplesWere = _currentCrossFade.Track.File.AudioConverter.GetSampleCountInFormat(oldFormat);
-                    float totalSamplesNow = _currentCrossFade.Track.File.AudioConverter.GetSampleCountInFormat(format);
-
-                    float progressCrossFade = crossFadePlayHead / totalSamplesWere;
-                    _currentCrossFade.PlayHead = (int) MathF.Floor(progressCrossFade * totalSamplesNow);
-                }
+                // Readjust fade effect playheads if in use.
+                _currentCrossFade?.AudioFormatChanged(oldFormat, format);
+                _currentFadeOutAndStop?.AudioFormatChanged(oldFormat, format);
 
                 InvalidateAudioBlocks();
             }
@@ -682,6 +760,8 @@ namespace Emotion.Audio
             // the backend buffer requests data further into the future initially.
             if (framesLeft > 0 && _readyBlocks.Count == 0)
             {
+                MetricStarved += framesLeft;
+
                 int framesGot = GetDataToBuffer(framesLeft, buffer);
                 framesGotten += framesGot;
             }
@@ -700,19 +780,40 @@ namespace Emotion.Audio
 
         #endregion
 
-        private CrossfadeTrack? _currentCrossFade;
+        #region CrossFade Helpers
 
-        private class CrossfadeTrack
+        private class FadeEffectData
         {
             public AudioTrack Track;
             public int PlayHead;
-            public float FadeDurationSeconds;
+            public float DurationSeconds;
 
-            public CrossfadeTrack(AudioTrack track, int playHead, float fadeDurationSeconds)
+            public FadeEffectData(AudioTrack track, int playHead, float durationSeconds)
             {
                 Track = track;
                 PlayHead = playHead;
-                FadeDurationSeconds = fadeDurationSeconds;
+                DurationSeconds = durationSeconds;
+            }
+
+            public void AudioFormatChanged(AudioFormat oldFormat, AudioFormat newFormat)
+            {
+                int crossFadePlayHead = PlayHead;
+                float totalSamplesWere = Track.File.AudioConverter.GetSampleCountInFormat(oldFormat);
+                float totalSamplesNow = Track.File.AudioConverter.GetSampleCountInFormat(newFormat);
+
+                float progressCrossFade = crossFadePlayHead / totalSamplesWere;
+                PlayHead = (int) MathF.Floor(progressCrossFade * totalSamplesNow);
+            }
+        }
+
+        private class StopAfterFadeEffectData : FadeEffectData
+        {
+            public List<AudioTrack> PlaylistAtStop;
+            public float VolumeStart = 1f;
+
+            public StopAfterFadeEffectData(AudioTrack track, int playHead, float durationSeconds, List<AudioTrack> playlist) : base(track, playHead, durationSeconds)
+            {
+                PlaylistAtStop = playlist;
             }
         }
 
@@ -733,26 +834,72 @@ namespace Emotion.Audio
             return crossFadeStartAtFrame <= startingFrame;
         }
 
-        private bool StartCrossFade()
+        private bool StartCrossFade(float crossFadeDuration)
         {
             if (_currentTrack == null || _nextTrack == null) return false;
-            if (!_currentTrack.CrossFade.HasValue) return false;
+            if (crossFadeDuration == -1) return false;
 
             float currentTrackDuration = _currentTrack.File.Duration;
             float nextTrackDuration = _nextTrack.File.Duration;
 
-            float crossFadeDuration = _currentTrack.CrossFade.Value;
+            // If the duration is a negative number then it is expected to be a percentage of the duration [0-1] (0-(-1))
             if (crossFadeDuration < 0.0f) crossFadeDuration = currentTrackDuration - currentTrackDuration * -crossFadeDuration;
 
             // Make sure there is enough duration in the next track to cross fade into. Leave at least one second so we don't exhaust the track.
             crossFadeDuration = Math.Min(crossFadeDuration, nextTrackDuration - 1);
 
-            _currentCrossFade = new CrossfadeTrack(_currentTrack, _playHead, crossFadeDuration);
+            _currentCrossFade = new FadeEffectData(_currentTrack, _playHead, crossFadeDuration);
 
             GoNextTrack();
 
             return true;
         }
+
+        private bool CheckIfCurrentlyFadingOut(AudioFormat format, AudioTrack currentTrack, int startingFrame)
+        {
+            if (!currentTrack.FadeOut.HasValue) return false;
+
+            int channels = format.Channels;
+            float currentTrackDuration = currentTrack.File.Duration;
+            float fadeOutDuration = currentTrack.FadeOut!.Value;
+
+            if (fadeOutDuration < 0.0f) fadeOutDuration = currentTrackDuration * -fadeOutDuration;
+
+            var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
+            int fadeOutStartFrame = _totalSamplesConv / channels - fadeOutFrames;
+
+            return fadeOutStartFrame <= startingFrame;
+        }
+
+        private bool CheckIfFadeOutOver(AudioFormat format, AudioTrack currentTrack, StopAfterFadeEffectData fadeData)
+        {
+            float fadeOutDuration = fadeData.DurationSeconds;
+            var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
+            int fadeOutStartFrame = fadeData.PlayHead;
+            float currentFrame = _playHead / format.Channels;
+            return fadeOutStartFrame + fadeOutFrames < currentFrame;
+        }
+
+        private bool CheckIfInFadeInAndGetVolume(AudioFormat format, AudioTrack currentTrack, int frameStart, out float volume)
+        {
+            volume = 0f;
+            if (!currentTrack.FadeIn.HasValue) return false;
+
+            float currentTrackDuration = currentTrack.File.Duration;
+            float fadeInDuration = currentTrack.FadeIn!.Value;
+            if (fadeInDuration < 0)
+                fadeInDuration = currentTrackDuration * -fadeInDuration;
+
+            var fadeInFrames = (int) MathF.Floor(fadeInDuration * format.SampleRate);
+
+            if (frameStart >= fadeInFrames) return false;
+
+            volume = (float) frameStart / fadeInFrames;
+            volume *= volume;
+            return true;
+        }
+
+        #endregion
 
         public virtual void Dispose()
         {

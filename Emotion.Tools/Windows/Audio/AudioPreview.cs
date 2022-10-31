@@ -16,7 +16,7 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Windows.Audio
 {
-    public class AudioMixer : ImGuiWindow
+    public class AudioPreview : ImGuiWindow
     {
         private FileExplorer<AudioAsset> _explorer;
         private string _newLayerName = "New Layer";
@@ -24,7 +24,7 @@ namespace Emotion.Tools.Windows.Audio
 
         private Dictionary<AudioLayer, WaveformVisualization> _waveFormCache = new Dictionary<AudioLayer, WaveformVisualization>();
 
-        public AudioMixer() : base("Audio Preview")
+        public AudioPreview() : base("Audio Preview")
         {
         }
 
@@ -85,10 +85,7 @@ namespace Emotion.Tools.Windows.Audio
                 if (ImGui.Button("Add To Play Next"))
                     ExecuteOnFile(layer.PlayNext);
                 ImGui.SameLine();
-                if (ImGui.Button("(CF)"))
-                {
-                    layer.FadeCurrentTrackIntoNext(4);
-                }
+                if (ImGui.Button("Fade To Next")) layer.FadeCurrentTrackIntoNext(4);
                 ImGui.SameLine();
                 if (ImGui.Button("Quick Play"))
                     ExecuteOnFile(layer.QuickPlay);
@@ -109,6 +106,9 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.SameLine();
                 if (ImGui.Button("Stop"))
                     layer.Stop();
+                ImGui.SameLine();
+                if (ImGui.Button("Stop with Fade"))
+                    layer.StopWithFade(4);
 
                 ImGui.SameLine();
                 if (ImGui.Button("Toggle Loop"))
@@ -125,7 +125,7 @@ namespace Emotion.Tools.Windows.Audio
                     ImGui.TreePop();
                 }
 
-                ImGui.Text($"Missed: {layer.MetricBackendMissedFrames}\nAhead: {layer.MetricDataStoredInBlocks}ms");
+                ImGui.Text($"Missed: {layer.MetricBackendMissedFrames}  |  Ahead: {layer.MetricDataStoredInBlocks}ms  |  Starved: {layer.MetricStarved}");
 
                 ImGui.PopID();
                 ImGui.NewLine();

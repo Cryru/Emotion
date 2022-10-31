@@ -89,7 +89,7 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Audio"))
             {
-                if (ImGui.MenuItem("Audio Preview")) AddLegacyWindow(new AudioMixer());
+                if (ImGui.MenuItem("Audio Preview")) AddLegacyWindow(new AudioPreview());
                 ImGui.EndMenu();
             }
 

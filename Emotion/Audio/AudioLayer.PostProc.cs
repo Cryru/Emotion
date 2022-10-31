@@ -45,6 +45,7 @@ namespace Emotion.Audio
 
             // If cross fading check if there is another track afterward.
             var modulatedUpToFrame = 0;
+
             if (_currentCrossFade != null)
             {
                 modulatedUpToFrame = PostProcessCrossFade(format, _currentCrossFade, startingFrame, framesOutput, memory);
@@ -88,8 +89,16 @@ namespace Emotion.Audio
             }
         }
 
+        // Replace with a SetVolume(val, time) API
         private int PostProcessApplyFading(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
         {
+            if (_currentFadeOutAndStop != null)
+            {
+                int modulatedUpTo = InnerApplyFadeOut(format, _currentFadeOutAndStop.PlayHead, _currentFadeOutAndStop.DurationSeconds,
+                    frameStart, frameCount, channels, soundData, _currentFadeOutAndStop.VolumeStart);
+                return modulatedUpTo;
+            }
+
             if (currentTrack.FadeIn != null && (!currentTrack.FadeInOnlyFirstLoop || _loopCount == 0))
             {
                 int modulatedUpTo = ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
@@ -117,7 +126,7 @@ namespace Emotion.Audio
             var fadeInFrames = (int) MathF.Floor(fadeInDuration * format.SampleRate);
 
             // Check if in fade in zone.
-            if (frameStart >= fadeInFrames) return 0;
+            if (frameStart > fadeInFrames) return 0;
 
             // Snap frame count. It's possible to have gotten frames outside fade zone.
             frameCount = Math.Min(fadeInFrames - frameStart, frameCount);
@@ -131,9 +140,9 @@ namespace Emotion.Audio
                 int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame); // Frames in step.
                 int totalFrameIdx = frameStart + localFrame; // The index of the frame within the total count.
                 float volume = (float) totalFrameIdx / fadeInFrames; // Volume is equal to how many frames into the fade. Linear curve 0-1.
-                volume = volume * volume;
+                volume *= volume; // Cubic
                 volume = baseVolume * volume;
-                volume = VolumeToMultiplier(volume); //MathF.Pow(volume, Engine.Configuration.AudioCurve);
+                volume = VolumeToMultiplier(volume);
 
                 // Apply to frame array.
                 for (var i = 0; i < frames; i++)
@@ -162,7 +171,16 @@ namespace Emotion.Audio
 
             var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
             int fadeOutFrameStart = _totalSamplesConv / channels - fadeOutFrames;
-            if (frameStart <= fadeOutFrameStart) return 0;
+            if (frameStart < fadeOutFrameStart) return 0;
+
+            return InnerApplyFadeOut(format, fadeOutFrameStart, fadeOutDuration, frameStart, frameCount, channels, soundData);
+        }
+
+        private int InnerApplyFadeOut(AudioFormat format, int fadeOutFrameStart, float fadeOutDuration, int frameStart, int frameCount, int channels, float[] soundData, float volumeStart = 1f)
+        {
+            var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
+
+            if (frameStart < fadeOutFrameStart) return 0;
 
             float baseVolume = Volume * Engine.Configuration.MasterVolume;
             var localFrame = 0;
@@ -172,8 +190,12 @@ namespace Emotion.Audio
                 int frameIdx = frameStart + localFrame;
                 float volume = (float) (frameIdx - fadeOutFrameStart) / fadeOutFrames;
                 volume = 1f - volume;
+
+                if (volume < 0) volume = 0;
+                volume *= volume; // Cubic
                 volume = baseVolume * volume;
                 volume = VolumeToMultiplier(volume);
+                volume *= volumeStart;
 
                 for (var i = 0; i < frames; i++)
                 {
@@ -195,10 +217,10 @@ namespace Emotion.Audio
         /// Apply cross fading between two tracks.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int PostProcessCrossFade(AudioFormat format, CrossfadeTrack crossFadeData, int startingFrame, int frameCount, float[] soundData)
+        private int PostProcessCrossFade(AudioFormat format, FadeEffectData crossFadeData, int startingFrame, int frameCount, float[] soundData)
         {
             // Assuming we crossfade from the start of the new track, the duration is all we need.
-            var crossFadeDurationFrames = (int) MathF.Floor(crossFadeData.FadeDurationSeconds * format.SampleRate);
+            var crossFadeDurationFrames = (int) MathF.Floor(crossFadeData.DurationSeconds * format.SampleRate);
             if (crossFadeDurationFrames <= startingFrame) return 0;
 
             // Clamp to wherever the crossfade will finish.
@@ -218,6 +240,7 @@ namespace Emotion.Audio
                 int frameIdx = startingFrame + localFrame;
                 float frameT = (float) frameIdx / crossFadeDurationFrames;
                 frameT = Maths.Clamp01(frameT);
+                frameT = frameT * frameT; // Cubic
 
                 float volumeFadingInto = frameT;
                 float volumeFadingFrom = 1.0f - frameT;
