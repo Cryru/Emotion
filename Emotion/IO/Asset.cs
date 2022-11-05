@@ -51,7 +51,7 @@ namespace Emotion.IO
         protected abstract void CreateInternal(ReadOnlyMemory<byte> data);
 
         /// <summary>
-        /// Dispose of the asset clearing any resources it used.
+        /// Dispose of the asset clearing any external resources it used.
         /// </summary>
         public void Dispose()
         {

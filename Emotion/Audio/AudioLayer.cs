@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Emotion.Common;
-using Emotion.Common.Threading;
 using Emotion.IO;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
@@ -303,6 +302,7 @@ namespace Emotion.Audio
         public void Pause()
         {
             Status = PlaybackStatus.Paused;
+            InvalidateCurrentTrack();
         }
 
         /// <summary>
@@ -369,6 +369,7 @@ namespace Emotion.Audio
 
         private static ObjectPool<AudioDataBlock> _dataPool = new ObjectPool<AudioDataBlock>(null, MaxDataBlocks);
         private Queue<AudioDataBlock> _readyBlocks = new Queue<AudioDataBlock>();
+        private int _headBlockDataLeft;
 
         // Debug
         private Stopwatch? _updateTimer;
@@ -402,15 +403,6 @@ namespace Emotion.Audio
 
             UpdateCurrentTrack();
 
-            if (Status != PlaybackStatus.Playing || _currentTrack == null) return;
-
-            // Pause sound if host is paused.
-            if (Engine.Host != null && Engine.Host.HostPaused)
-            {
-                if (GLThread.IsGLThread()) return; // Don't stop main thread.
-                Engine.Host.HostPausedWaiter.WaitOne();
-            }
-
             // Update the backend. This will cause it to call BackendGetData
             UpdateBackend();
 
@@ -419,7 +411,7 @@ namespace Emotion.Audio
 #if DEBUG
             _updateTimer ??= Stopwatch.StartNew();
 
-            if (_updateTimer.ElapsedMilliseconds > 100)
+            if (_updateTimer.ElapsedMilliseconds > 1000)
             {
                 MetricStarved = 0;
 
@@ -434,13 +426,25 @@ namespace Emotion.Audio
             }
 #endif
 
-            // If starved try to go for a bigger buffer.
-            // If this is too large however we will cause a permanent slowdown. yikes
-            const int tooMuchTime = 100;
-            if (_readyBlocks.Count == 0 && timePassed < tooMuchTime) timePassed = Maths.Clamp(timePassed * 2, timePassed, tooMuchTime);
+            // Prevent spiral of death, hopefully.
+            const int tooMuchTime = 50;
+            if (timePassed > tooMuchTime)
+            {
+                int extraTime = timePassed - tooMuchTime;
+
+                timePassed = tooMuchTime;
+                MetricStarved += extraTime * _streamingFormat.SampleSize / 1000;
+            }
+
+            // Convert time to frames and bytes.
+            int framesToGet = _streamingFormat.GetFrameCount(timePassed / 1000f);
+
+            // If none blocks left or one block with little data in it, then do a larger request to prevent starvation.
+            if (!_readyBlocks.TryPeek(out AudioDataBlock? topBlock) || _readyBlocks.Count == 1 && topBlock.FramesWritten - topBlock.FramesRead < framesToGet)
+                framesToGet *= 2;
 
             // Buffer data in advance, so the next update can be as fast as possible (just a copy).
-            BufferDataInAdvance(timePassed);
+            BufferDataInAdvance(framesToGet);
         }
 
         private void InvalidateCurrentTrack()
@@ -465,6 +469,7 @@ namespace Emotion.Audio
                 {
                     currentTrack = null;
                     nextTrack = null;
+                    InvalidateAudioBlocks();
                     if (Status == PlaybackStatus.Playing) Status = PlaybackStatus.NotPlaying;
                 }
                 else
@@ -482,8 +487,6 @@ namespace Emotion.Audio
 
             bool currentChanged = _currentTrack != currentTrack;
             bool nextChanged = _nextTrack != nextTrack;
-            bool justProgressed = currentTrack == _nextTrack;
-            if (currentChanged && !justProgressed) InvalidateAudioBlocks();
 
             // If both the current and next changed (or just current if no next)
             // that means everything has changed. This usually happens when the current track
@@ -520,14 +523,17 @@ namespace Emotion.Audio
                 _loopCount = 0;
             }
 
+            // Current changed, but we're not playing. If we don't
+            // drop the cached audio then once we start playing a couple
+            // of frames of the old current will leak.
+            if (currentChanged && Status != PlaybackStatus.Playing) InvalidateAudioBlocks();
+
             _currentTrack = currentTrack;
             _nextTrack = nextTrack;
         }
 
-        private void BufferDataInAdvance(int timePassed)
+        private void BufferDataInAdvance(int framesToGet)
         {
-            // Convert time to frames and bytes.
-            int framesToGet = _streamingFormat.GetFrameCount(timePassed / 1000f);
             int bytesToGet = framesToGet * _streamingFormat.FrameSize;
             if (bytesToGet == 0) return;
 
@@ -565,13 +571,15 @@ namespace Emotion.Audio
                 dataBlock.FramesWritten = framesGotten;
                 dataBlock.FramesRead = 0;
                 _readyBlocks.Enqueue(dataBlock);
+
+                if (_readyBlocks.Count == 1) _headBlockDataLeft = framesGotten;
             }
         }
 
-        private void GoNextTrack()
+        private void GoNextTrack(bool ignoreLoop = false)
         {
             // Check if looping.
-            if (LoopingCurrent)
+            if (LoopingCurrent && !ignoreLoop)
             {
                 // Manually update playhead as track wont change.
                 _playHead = 0;
@@ -623,7 +631,7 @@ namespace Emotion.Audio
             if (_triggerCrossFade)
             {
                 _triggerCrossFade = false;
-                if (_currentCrossFade == null) StartCrossFade(_triggerCrossFadeDurationSetting);
+                if (_currentCrossFade == null && _nextTrack != null) StartCrossFade(_triggerCrossFadeDurationSetting, true);
                 _triggerCrossFadeDurationSetting = -1;
             }
 
@@ -658,8 +666,9 @@ namespace Emotion.Audio
 
                 InvalidateCurrentTrack();
                 UpdateCurrentTrack();
-                if (_currentTrack == null) return 0;
             }
+
+            if (_currentTrack == null) return 0;
 
             // Get post processed 32f buffer data.
             int framesOutput = GetProcessedFramesFromTrack(_streamingFormat, _currentTrack, framesRequested, _internalBuffer, ref _playHead);
@@ -685,13 +694,6 @@ namespace Emotion.Audio
 
         protected int BackendGetData(AudioFormat format, int getFrames, Span<byte> buffer)
         {
-            // Pause sound if host is paused.
-            if (Engine.Host != null && Engine.Host.HostPaused)
-            {
-                if (GLThread.IsGLThread()) return 0; // Don't stop main thread.
-                Engine.Host.HostPausedWaiter.WaitOne();
-            }
-
             if (Status != PlaybackStatus.Playing) return 0;
 
             // Make sure we're getting the samples in the format we think we are.
@@ -752,6 +754,10 @@ namespace Emotion.Audio
                         _readyBlocks.TryDequeue(out AudioDataBlock? _);
                         _dataPool.Return(b);
                     }
+                    else
+                    {
+                        _headBlockDataLeft = b.FramesWritten - b.FramesRead;
+                    }
                 }
             }
 
@@ -776,6 +782,7 @@ namespace Emotion.Audio
 
             MetricBackendMissedFrames = 0;
             MetricDataStoredInBlocks = 0;
+            _headBlockDataLeft = 0;
         }
 
         #endregion
@@ -834,7 +841,7 @@ namespace Emotion.Audio
             return crossFadeStartAtFrame <= startingFrame;
         }
 
-        private bool StartCrossFade(float crossFadeDuration)
+        private bool StartCrossFade(float crossFadeDuration, bool forceNext = false)
         {
             if (_currentTrack == null || _nextTrack == null) return false;
             if (crossFadeDuration == -1) return false;
@@ -848,9 +855,12 @@ namespace Emotion.Audio
             // Make sure there is enough duration in the next track to cross fade into. Leave at least one second so we don't exhaust the track.
             crossFadeDuration = Math.Min(crossFadeDuration, nextTrackDuration - 1);
 
-            _currentCrossFade = new FadeEffectData(_currentTrack, _playHead, crossFadeDuration);
+            AudioTrack? currentTrack = _currentTrack;
+            int playHead = _playHead;
 
-            GoNextTrack();
+            GoNextTrack(forceNext);
+
+            _currentCrossFade = new FadeEffectData(currentTrack, playHead, crossFadeDuration);
 
             return true;
         }
