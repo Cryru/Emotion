@@ -83,8 +83,7 @@ namespace Emotion.IO
 
         protected override void DisposeInternal()
         {
-            SoundData = null;
-            Format = null;
+            // nop
         }
     }
 }

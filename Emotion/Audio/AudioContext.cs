@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Platform;
 using Emotion.Standard.Logging;
 
@@ -22,11 +23,6 @@ namespace Emotion.Audio
         protected Thread _audioThread;
 
         /// <summary>
-        /// How much audio will get resampled at once (for each layer)
-        /// </summary>
-        public static int MaxAudioAdvanceTime = 50;
-
-        /// <summary>
         /// The rate at which audio layers are updated. This is also the amount of time
         /// worth in audio samples that will be buffered on each tick (roughly).
         /// Buffered date will be roughly this much times 2 ahead (depending on how much the buffer consumes),
@@ -37,7 +33,7 @@ namespace Emotion.Audio
         /// <summary>
         /// How many ms the backend buffer is expected to be. This number should be 100ms+ to prevent audio flickering.
         /// </summary>
-        public static int BackendBufferExpectedAhead = MaxAudioAdvanceTime * 4;
+        public static int BackendBufferExpectedAhead = AudioUpdateRate * 8;
 
         private PlatformBase _host;
 
@@ -59,18 +55,25 @@ namespace Emotion.Audio
             if (_host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Audio Thread";
 
             var audioTimeTracker = Stopwatch.StartNew();
-            long lastTick = 0;
             var audioProcessEvent = new AutoResetEvent(false);
 
             var layers = new List<AudioLayer>();
             while (_running)
             {
-                audioProcessEvent.WaitOne(AudioUpdateRate);
+                int timeToSleep = AudioUpdateRate - (int) audioTimeTracker.ElapsedMilliseconds;
+                if (timeToSleep > 0) audioProcessEvent.WaitOne(timeToSleep);
+
+                // Pause sound if host is paused.
+                if (Engine.Host != null && Engine.Host.HostPaused)
+                {
+                    if (GLThread.IsGLThread()) return; // Don't stop main thread.
+                    Engine.Host.HostPausedWaiter.WaitOne();
+                }
+
                 if (!_running) break;
 
-                long timeNow = audioTimeTracker.ElapsedMilliseconds;
-                var tickPassed = (int) (timeNow - lastTick);
-                lastTick = timeNow;
+                var timePassed = (int) audioTimeTracker.ElapsedMilliseconds;
+                audioTimeTracker.Restart();
 
                 // Handle changes
                 while (!_toAdd.IsEmpty && _toAdd.TryTake(out AudioLayer layer))
@@ -83,12 +86,9 @@ namespace Emotion.Audio
                     layer.Dispose();
                 }
 
-                // Prevent spiral of death.
-                if (tickPassed > MaxAudioAdvanceTime) tickPassed = MaxAudioAdvanceTime;
-
                 for (var i = 0; i < layers.Count; i++)
                 {
-                    layers[i].Update(tickPassed);
+                    layers[i].Update(timePassed);
                 }
             }
         }
