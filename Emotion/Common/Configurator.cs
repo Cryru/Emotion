@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Emotion.Audio;
 using Emotion.Platform;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -174,6 +175,11 @@ namespace Emotion.Common
         /// This can be set, and will take effect at any time.
         /// </summary>
         public bool ForceMono { get; set; }
+
+        /// <summary>
+        /// The quality of the audio resampler to use.
+        /// </summary>
+        public AudioResampleQuality AudioQuality { get; set; } = AudioResampleQuality.Auto;
 
         #endregion
 

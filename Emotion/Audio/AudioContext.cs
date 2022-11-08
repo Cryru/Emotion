@@ -33,7 +33,7 @@ namespace Emotion.Audio
         /// <summary>
         /// How many ms the backend buffer is expected to be. This number should be 100ms+ to prevent audio flickering.
         /// </summary>
-        public static int BackendBufferExpectedAhead = AudioUpdateRate * 8;
+        public static int BackendBufferExpectedAhead = AudioUpdateRate * 4;
 
         private PlatformBase _host;
 
@@ -41,6 +41,9 @@ namespace Emotion.Audio
         {
             _host = platform;
             _running = true;
+
+            AudioConverter.SetResamplerQuality(Engine.Configuration.AudioQuality);
+
 #if !WEB
             _audioThread = new Thread(AudioLayerProc)
             {
@@ -97,7 +100,7 @@ namespace Emotion.Audio
         {
             layerName = layerName.ToLower();
             AudioLayer newLayer = CreatePlatformAudioLayer(layerName);
-            newLayer.Volume = layerVolume;
+            newLayer.VolumeModifier = layerVolume;
 
             _toAdd.Add(newLayer);
             _layerMapping.Add(newLayer);

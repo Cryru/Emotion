@@ -1,12 +1,15 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Emotion.Common;
+using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 
 #endregion
 
-namespace Emotion.Standard.Audio
+namespace Emotion.Audio
 {
     public static class AudioUtil
     {
@@ -318,6 +321,159 @@ namespace Emotion.Standard.Audio
             }
 
             data = samples;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe short AlignedToInt16(ReadOnlySpan<byte> data, int idx)
+        {
+            fixed (byte* pByte = &data[idx])
+            {
+                return *(short*) pByte;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe int AlignedToInt32(ReadOnlySpan<byte> data, int idx)
+        {
+            fixed (byte* pByte = &data[idx])
+            {
+                return *(int*) pByte;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe float AlignedToFloat(ReadOnlySpan<byte> data, int idx)
+        {
+            fixed (byte* pByte = &data[idx])
+            {
+                return *(float*) pByte;
+            }
+        }
+
+        /// <summary>
+        /// Get a sample from a PCM as a float.
+        /// </summary>
+        /// <param name="sampleIdx">The index of the sample.</param>
+        /// <param name="srcData">The PCM</param>
+        /// <param name="srcFormat">The audio format of the PCM</param>
+        /// <returns>The requested sample as a float.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetSampleAsFloat(int sampleIdx, ReadOnlySpan<byte> srcData, AudioFormat srcFormat)
+        {
+            float output;
+            switch (srcFormat.BitsPerSample)
+            {
+                case 8: // ubyte (C# byte)
+                    output = (float) srcData[sampleIdx] / byte.MaxValue;
+                    break;
+                case 16: // short
+                    short dataShort = AlignedToInt16(srcData, sampleIdx * 2);
+                    if (dataShort < 0)
+                        output = (float) -dataShort / short.MinValue;
+                    else
+                        output = (float) dataShort / short.MaxValue;
+                    break;
+                case 32 when !srcFormat.IsFloat: // int
+                    int dataInt = AlignedToInt32(srcData, sampleIdx * 4);
+                    if (dataInt < 0)
+                        output = (float) -dataInt / int.MinValue;
+                    else
+                        output = (float) dataInt / int.MaxValue;
+                    break;
+                case 32: // float
+                    output = AlignedToFloat(srcData, sampleIdx * 4);
+                    break;
+                default:
+                    return 0;
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Set a sample in the PCM from a float.
+        /// </summary>
+        /// <param name="sampleIdx">The index of the sample.</param>
+        /// <param name="value">The value of the sample to set, as a float.</param>
+        /// <param name="dstData">The PCM</param>
+        /// <param name="dstFormat">The audio format of the PCM</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetSampleAsFloat(int sampleIdx, float value, Span<byte> dstData, AudioFormat dstFormat)
+        {
+            switch (dstFormat.BitsPerSample)
+            {
+                case 8: // ubyte (C# byte)
+                    sampleIdx /= 4;
+                    dstData[sampleIdx] = (byte) (value * byte.MaxValue);
+                    break;
+                case 16: // short
+                    sampleIdx /= 2;
+                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(dstData);
+                    if (value < 0)
+                        dataShort[sampleIdx] = (short) (-value * short.MinValue);
+                    else
+                        dataShort[sampleIdx] = (short) (value * short.MaxValue);
+                    break;
+                case 32 when !dstFormat.IsFloat: // int
+                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(dstData);
+                    if (value < 0)
+                        dataInt[sampleIdx] = (int) (-value * int.MinValue);
+                    else
+                        dataInt[sampleIdx] = (int) (value * int.MaxValue);
+
+                    break;
+                case 32:
+                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(dstData);
+                    dataFloat[sampleIdx] = value;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Convert a buffer of floats to another format specified by an audio format.
+        /// </summary>
+        public static void SetBufferOfSamplesAsFloat(Span<float> floatSrc, Span<byte> dstData, AudioFormat dstFormat)
+        {
+            switch (dstFormat.BitsPerSample)
+            {
+                case 8:
+                    const short byteMax = byte.MaxValue;
+                    for (var i = 0; i < floatSrc.Length; i++)
+                    {
+                        float value = floatSrc[i];
+                        dstData[i] = (byte) (value * byteMax);
+                    }
+
+                    return;
+                case 16:
+                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(dstData);
+                    const short shortMin = short.MinValue;
+                    const short shortMax = short.MaxValue;
+                    for (var i = 0; i < floatSrc.Length; i++)
+                    {
+                        float value = floatSrc[i];
+                        dataShort[i] = (short) (value < 0 ? -value * shortMin : value * shortMax);
+                    }
+
+                    break;
+                case 32 when !dstFormat.IsFloat:
+                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(dstData);
+                    const int intMin = int.MinValue;
+                    const int intMax = int.MaxValue;
+                    for (var i = 0; i < floatSrc.Length; i++)
+                    {
+                        float value = floatSrc[i];
+                        dataInt[i] = (int) (value < 0 ? -value * intMin : value * intMax);
+                    }
+
+                    break;
+                case 32:
+                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(dstData);
+                    floatSrc.CopyTo(dataFloat);
+                    break;
+            }
         }
     }
 }

@@ -9,7 +9,9 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
+using Emotion.Standard.Audio;
 using Emotion.Tools.Windows.HelpWindows;
+using Emotion.Utility;
 using ImGuiNET;
 
 #endregion
@@ -59,6 +61,15 @@ namespace Emotion.Tools.Windows.Audio
             bool mono = Engine.Configuration.ForceMono;
             if (ImGui.Checkbox("Force Mono", ref mono)) Engine.Configuration.ForceMono = mono;
 
+            ImGui.SameLine();
+            string[] resamplerVariants = Enum.GetNames<AudioResampleQuality>();
+            int currentIdx = resamplerVariants.IndexOf(AudioConverter.AudioResampleQuality.ToString());
+            if (ImGui.Combo("Resampler", ref currentIdx, resamplerVariants, resamplerVariants.Length))
+            {
+                var newValue = Enum.Parse<AudioResampleQuality>(resamplerVariants[currentIdx]);
+                AudioConverter.SetResamplerQuality(newValue);
+            }
+
             // Push waveforms down.
             composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, 50, 0)));
 
@@ -72,12 +83,15 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.PushID(i);
                 ImGui.Text($"Layer: {layers[i]} [{layer.Status}] {(layer.CurrentTrack != null ? $" {MathF.Truncate(layer.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration:0.0}s" : "")}");
 
-                float volume = layer.Volume;
-                if (ImGui.DragFloat("Volume", ref volume, 0.01f, 0f, 1f))
+                float volume = layer.VolumeModifier;
+                if (ImGui.DragFloat("VolumeMod", ref volume, 0.01f, 0f, 1f))
                 {
                     cache?.Recreate();
-                    layer.Volume = volume;
+                    layer.VolumeModifier = volume;
                 }
+
+                ImGui.SameLine();
+                ImGui.Text($"CurVol: {layer.GetCurrentVolume()}");
 
                 if (ImGui.Button("Add To Queue"))
                     ExecuteOnFile(layer.AddToQueue);
@@ -125,7 +139,9 @@ namespace Emotion.Tools.Windows.Audio
                     ImGui.TreePop();
                 }
 
+#if DEBUG
                 ImGui.Text($"Missed: {layer.MetricBackendMissedFrames}  |  Ahead: {layer.MetricDataStoredInBlocks}ms  |  Starved: {layer.MetricStarved}");
+#endif
 
                 ImGui.PopID();
                 ImGui.NewLine();

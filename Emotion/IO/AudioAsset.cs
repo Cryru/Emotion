@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Audio.WAV;
@@ -62,7 +63,7 @@ namespace Emotion.IO
                 SoundData = new float[soundDataDecoded.Length / format.SampleSize];
                 for (var i = 0; i < SoundData.Length; i++)
                 {
-                    SoundData[i] = AudioConverter.GetSampleAsFloat(i, soundDataDecoded, format);
+                    SoundData[i] = AudioUtil.GetSampleAsFloat(i, soundDataDecoded, format);
                 }
 
                 OriginalFormat = format.Copy();
@@ -72,7 +73,7 @@ namespace Emotion.IO
                 ByteSize = SoundData.Length;
                 Format = format;
                 Duration = format.GetSoundDuration(SoundData.Length * sizeof(float));
-                AudioConverter = new AudioConverter(Format, SoundData, 10);
+                AudioConverter = new AudioConverter(Format, SoundData);
 
                 if (Format.UnsupportedBitsPerSample())
                     Engine.Log.Error($"The audio format of {Name} has an unsupported number of bits per sample ({Format.BitsPerSample}). Supported values are 8/16/32", MessageSource.Audio);
