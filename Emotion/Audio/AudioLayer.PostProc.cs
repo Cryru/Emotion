@@ -13,15 +13,8 @@ namespace Emotion.Audio
 {
     public abstract partial class AudioLayer
     {
-        /// <summary>
-        /// Converts a volume 0-1 to a float to multiply 32f audio samples by to achieve gain.
-        /// </summary>
-        public static float VolumeToMultiplier(float volume)
-        {
-            volume = 20 * MathF.Log10(volume / 1f);
-            volume = MathF.Pow(10, volume / 20f);
-            return volume;
-        }
+        private float _savedVol;
+        private Stopwatch _volumeUpdate;
 
         protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, ref int playhead, bool applyFading = true)
         {
@@ -42,8 +35,40 @@ namespace Emotion.Audio
             // Apply fading, if needed. For instance we don't want additional fading while crossfading.
             if (!applyFading) return framesOutput;
 
+
             float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
-            ApplyVolumeToFrames(startingSample, memory, framesOutput, baseVolume);
+            if (_savedVol != baseVolume)
+            {
+                _volumeUpdate ??= Stopwatch.StartNew();
+
+                if (!_volumeUpdate.IsRunning)
+                {
+                    _volumeUpdate.Start();
+                    _savedVol = VolumeModifier * Engine.Configuration.MasterVolume;
+                }
+
+                float t = _volumeUpdate.ElapsedMilliseconds / 20f;
+                _savedVol = Maths.Lerp(_savedVol, baseVolume, t * t);
+            }
+            else
+            {
+                _volumeUpdate.Stop();
+                _volumeUpdate.Restart();
+            }
+
+            //if (_volumeUpdate == null)
+            //{
+            //    _volumeUpdate = Stopwatch.StartNew();
+            //    _savedVol = VolumeModifier * Engine.Configuration.MasterVolume;
+            //}
+            
+            //if (_volumeUpdate.ElapsedMilliseconds > 500)
+            //{
+            //    _savedVol = VolumeModifier * Engine.Configuration.MasterVolume;
+            //    _volumeUpdate.Restart();
+            //}
+
+            ApplyVolumeToFrames(startingSample, memory, framesOutput, _savedVol);
 
             //// If cross fading check if there is another track afterward.
             //var modulatedUpToFrame = 0;
@@ -91,130 +116,6 @@ namespace Emotion.Audio
             }
         }
 
-        // Replace with a SetVolume(val, time) API
-        private int PostProcessApplyFading(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
-        {
-            if (_currentFadeOutAndStop != null)
-            {
-                int modulatedUpTo = InnerApplyFadeOut(format, _currentFadeOutAndStop.PlayHead, _currentFadeOutAndStop.DurationSeconds,
-                    frameStart, frameCount, channels, soundData, _currentFadeOutAndStop.VolumeStart);
-                return modulatedUpTo;
-            }
-
-            if (currentTrack.FadeIn != null && (!currentTrack.FadeInOnlyFirstLoop || _loopCount == 0))
-            {
-                int modulatedUpTo = ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
-                return modulatedUpTo;
-            }
-
-            if (currentTrack.FadeOut != null)
-            {
-                int modulatedUpTo = ApplyFadeOut(format, currentTrack, frameStart, frameCount, channels, soundData);
-                return modulatedUpTo;
-            }
-
-            return 0;
-        }
-
-        private int ApplyFadeIn(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
-        {
-            // Calculate fade start.
-            float currentTrackDuration = currentTrack.File.Duration;
-            float fadeInDuration = currentTrack.FadeIn!.Value;
-            if (fadeInDuration < 0)
-                fadeInDuration = currentTrackDuration * -fadeInDuration;
-
-            // How many frames of fade in.
-            var fadeInFrames = (int) MathF.Floor(fadeInDuration * format.SampleRate);
-
-            // Check if in fade in zone.
-            if (frameStart > fadeInFrames) return 0;
-
-            // Snap frame count. It's possible to have gotten frames outside fade zone.
-            frameCount = Math.Min(fadeInFrames - frameStart, frameCount);
-
-            // Go through frame data in granularity steps.
-            float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
-            var localFrame = 0;
-            while (localFrame < frameCount)
-            {
-                // Calculate volume for each granularity step based on the frame index.
-                int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame); // Frames in step.
-                int totalFrameIdx = frameStart + localFrame; // The index of the frame within the total count.
-                float volume = (float) totalFrameIdx / fadeInFrames; // Volume is equal to how many frames into the fade. Linear curve 0-1.
-                volume *= volume; // Cubic
-                volume = baseVolume * volume;
-                volume = VolumeToMultiplier(volume);
-
-                // Apply to frame array.
-                for (var i = 0; i < frames; i++)
-                {
-                    int frameInDataIdx = (localFrame + i) * channels;
-                    for (var c = 0; c < channels; c++)
-                    {
-                        int sampleIdx = frameInDataIdx + c;
-                        soundData[sampleIdx] *= volume;
-                    }
-                }
-
-                localFrame += frames;
-            }
-
-            return localFrame;
-        }
-
-        private int ApplyFadeOut(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
-        {
-            // Refer to FadeIn comments.
-            float currentTrackDuration = currentTrack.File.Duration;
-            float fadeOutDuration = currentTrack.FadeOut!.Value;
-            if (fadeOutDuration < 0)
-                fadeOutDuration = currentTrackDuration * -fadeOutDuration;
-
-            var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
-            int fadeOutFrameStart = _totalSamplesConv / channels - fadeOutFrames;
-            if (frameStart < fadeOutFrameStart) return 0;
-
-            return InnerApplyFadeOut(format, fadeOutFrameStart, fadeOutDuration, frameStart, frameCount, channels, soundData);
-        }
-
-        private int InnerApplyFadeOut(AudioFormat format, int fadeOutFrameStart, float fadeOutDuration, int frameStart, int frameCount, int channels, float[] soundData, float volumeStart = 1f)
-        {
-            var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
-
-            if (frameStart < fadeOutFrameStart) return 0;
-
-            float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
-            var localFrame = 0;
-            while (localFrame < frameCount)
-            {
-                int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame);
-                int frameIdx = frameStart + localFrame;
-                float volume = (float) (frameIdx - fadeOutFrameStart) / fadeOutFrames;
-                volume = 1f - volume;
-
-                if (volume < 0) volume = 0;
-                volume *= volume; // Cubic
-                volume = baseVolume * volume;
-                volume = VolumeToMultiplier(volume);
-                volume *= volumeStart;
-
-                for (var i = 0; i < frames; i++)
-                {
-                    int frameInDataIdx = (localFrame + i) * channels;
-                    for (var c = 0; c < channels; c++)
-                    {
-                        int sampleIdx = frameInDataIdx + c;
-                        soundData[sampleIdx] *= volume;
-                    }
-                }
-
-                localFrame += frames;
-            }
-
-            return localFrame;
-        }
-
         /// <summary>
         /// Apply cross fading between two tracks.
         /// </summary>
@@ -247,8 +148,8 @@ namespace Emotion.Audio
                 float volumeFadingInto = frameT;
                 float volumeFadingFrom = 1.0f - frameT;
 
-                volumeFadingInto = VolumeToMultiplier(baseVolume * volumeFadingInto);
-                volumeFadingFrom = VolumeToMultiplier(baseVolume * volumeFadingFrom);
+                volumeFadingInto = AudioUtil.VolumeToMultiplier(baseVolume * volumeFadingInto);
+                volumeFadingFrom = AudioUtil.VolumeToMultiplier(baseVolume * volumeFadingFrom);
 
                 for (var i = 0; i < frames; i++)
                 {

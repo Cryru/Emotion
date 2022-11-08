@@ -70,8 +70,6 @@ namespace Emotion.Audio
             }
         }
 
-        private VolumeModulationEffect _currentVol;
-
         private VolumeModulationEffect? _fadeInVol;
         private VolumeModulationEffect? _fadeOutVol;
 
@@ -89,13 +87,13 @@ namespace Emotion.Audio
             return mod;
         }
 
-        private void FormatChangedRecalculateFX(AudioTrack track, AudioFormat oldFormat, AudioFormat newFormat)
+        private void FormatChangedRecalculateFx(AudioTrack track, AudioFormat oldFormat, AudioFormat newFormat)
         {
             _fadeInVol?.FormatChanged(track, oldFormat, newFormat);
             _fadeOutVol?.FormatChanged(track, oldFormat, newFormat);
         }
 
-        private void TrackChangedFX(AudioTrack currentTrack)
+        private void TrackChangedFx(AudioTrack currentTrack)
         {
             _fadeInVol = null;
             _fadeOutVol = null;
@@ -143,8 +141,8 @@ namespace Emotion.Audio
             {
                 int sampleIdxOfInterval = i * intervalInSamples;
                 float intervalMod = modifier * GetVolume(sampleIdxOfInterval);
-                intervalMod = VolumeToMultiplier(intervalMod);
-                _testChe = intervalMod;
+                intervalMod = AudioUtil.VolumeToMultiplier(intervalMod);
+                _lastAppliedVolume = intervalMod;
 
                 int sampleAmount = Math.Min(intervalInSamples, samplesInBuffer - sampleIdx);
                 int sampleAmountStart = sampleIdx;
@@ -153,33 +151,20 @@ namespace Emotion.Audio
                 {
                     frames[s] *= intervalMod;
                 }
+
                 sampleIdx += sampleAmount;
             }
         }
 
-        /// <summary>
-        /// Called every request to apply any track defined fades.
-        /// </summary>
-        private void CheckTrackFades(AudioTrack track, int startFrame)
-        {
-            if (track.FadeIn.HasValue && (!track.FadeInOnlyFirstLoop || _loopCount == 0))
-            {
-            }
-
-            //if (track.FadeOut.HasValue) SetVolume(0f, (int) (track.FadeOut.Value * 1000f));
-
-            //if (track.CrossFade.HasValue) SetVolume(0f, (int) (track.CrossFade.Value * 1000f));
-        }
-
-        private float _testChe;
+        private float _lastAppliedVolume;
 
         /// <summary>
         /// Get the volume at the current playhead position.
         /// Use for debugging and visualization.
         /// </summary>
-        public float GetCurrentVolume()
+        public float DebugGetCurrentVolume()
         {
-            return _testChe;
+            return MathF.Round(_lastAppliedVolume, 2);
         }
 
         #region API
