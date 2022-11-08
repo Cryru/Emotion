@@ -91,7 +91,7 @@ namespace Emotion.Tools.Windows.Audio
                 }
 
                 ImGui.SameLine();
-                ImGui.Text($"CurVol: {layer.GetCurrentVolume()}");
+                ImGui.Text($"CurVol: {layer.DebugGetCurrentVolume()}");
 
                 if (ImGui.Button("Add To Queue"))
                     ExecuteOnFile(layer.AddToQueue);

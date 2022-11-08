@@ -475,5 +475,15 @@ namespace Emotion.Audio
                     break;
             }
         }
+
+        /// <summary>
+        /// Converts a volume 0-1 to a float to multiply 32f audio samples by to achieve gain.
+        /// </summary>
+        public static float VolumeToMultiplier(float volume)
+        {
+            volume = 20 * MathF.Log10(volume / 1f);
+            volume = MathF.Pow(10, volume / 20f);
+            return volume;
+        }
     }
 }

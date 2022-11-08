@@ -542,7 +542,7 @@ namespace Emotion.Audio
             {
                 OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
                 _loopCount = 0;
-                if (currentTrack != null) TrackChangedFX(currentTrack);
+                if (currentTrack != null) TrackChangedFx(currentTrack);
             }
 
             // Current changed, but we're not playing. If we don't
@@ -738,7 +738,7 @@ namespace Emotion.Audio
                 {
                     AudioConverter streamer = _currentTrack.File.AudioConverter;
                     _totalSamplesConv = streamer.GetSampleCountInFormat(_streamingFormat);
-                    FormatChangedRecalculateFX(_currentTrack, oldFormat, format);
+                    FormatChangedRecalculateFx(_currentTrack, oldFormat, format);
                 }
                 else
                 {
