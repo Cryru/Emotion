@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 #endregion
 
@@ -103,7 +105,40 @@ namespace OpenAL
 
         public static string GetString(IntPtr device, int param)
         {
-            return Marshal.PtrToStringAnsi(_GetString(device, param));
+            return Marshal.PtrToStringUni(_GetString(device, param));
+        }
+
+        public static string[] GetStrings(IntPtr device, int param)
+        {
+            IntPtr ptr = _GetString(device, param);
+            if (ptr == IntPtr.Zero)
+                return null;
+
+            var strings = new List<string>();
+
+            byte lastByte = 255;
+            byte curByte = 255;
+            var start = 0;
+            var len = 0;
+            while (lastByte != 0 || curByte != 0)
+            {
+                lastByte = curByte;
+                curByte = Marshal.ReadByte(ptr, start + len);
+                if (curByte != 0)
+                {
+                    len++;
+                }
+                else
+                {
+                    var buffer = new byte[len];
+                    Marshal.Copy(ptr + start, buffer, 0, buffer.Length);
+                    start = len;
+                    len = 0;
+                    strings.Add(Encoding.UTF8.GetString(buffer));
+                }
+            }
+
+            return strings.ToArray();
         }
 
         [DllImport(Al.OPEN_AL_DLL, EntryPoint = "alcGetIntegerv")]

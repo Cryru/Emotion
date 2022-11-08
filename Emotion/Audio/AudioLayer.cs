@@ -4,12 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
+#if DEBUG
+using System.Threading;
+#endif
 
 #endregion
 
@@ -28,9 +30,11 @@ namespace Emotion.Audio
         public string Name { get; internal set; }
 
         /// <summary>
-        /// The layer's volume. 0-1
+        /// The layer's volume modifier is applied to the current volume
+        /// which in turn is controlled by things such as fades.
+        /// [0-1]
         /// </summary>
-        public float Volume { get; set; } = 1;
+        public float VolumeModifier { get; set; } = 1;
 
         /// <summary>
         /// Whether the layer is destroyed.
@@ -117,8 +121,9 @@ namespace Emotion.Audio
         {
             get
             {
-                if (_currentTrack == null) return 0;
-                return Progress * _currentTrack.File.Duration;
+                AudioTrack? currentTrack = _currentTrack;
+                if (currentTrack == null) return 0;
+                return Progress * currentTrack.File.Duration;
             }
         }
 
@@ -156,9 +161,17 @@ namespace Emotion.Audio
         /// </summary>
         public event Action<PlaybackStatus, PlaybackStatus>? OnStatusChanged;
 
+        /// <summary>
+        /// The audio format audio is streamed in. This is set by the backend.
+        /// </summary>
+        public AudioFormat CurrentStreamingFormat
+        {
+            get => _streamingFormat;
+        }
+
         // For fade effects volume is calculated per chunk of frames, rather than for every frame.
-        private const int VOLUME_MODULATION_FRAME_GRANULARITY = 100;
-        private const int INITIAL_INTERNAL_BUFFER_SIZE = 4000;
+        private const int VOLUME_MODULATION_FRAME_GRANULARITY = 100; //tudu delete
+        private const int INITIAL_INTERNAL_BUFFER_SIZE = 4000; // 4 * sizeof(float) = 16kb
 
         private List<AudioTrack> _playlist = new(); // Always read and written in locks
 
@@ -342,18 +355,20 @@ namespace Emotion.Audio
 
         /// <summary>
         /// The max number of blocks to sample ahead.
-        /// Each block is between MinAudioAdvanceTime and MaxAudioAdvanceTime (AudioContext) of audio data
+        /// Each block is between AudioUpdateRate and AudioUpdateRate * 2 ms of audio data
         /// But if too small, then blocks will be overriden before you hear them.
+        /// Unless the driver is lagging significantly behind you should never have more than 1-2 blocks ready.
         /// </summary>
-        public static int MaxDataBlocks = 20;
+        public static int MaxDataBlocks = 10;
 
+#if DEBUG
         /// <summary>
-        /// Total bytes allocated for all data blocks. Shared between audio layers.
+        /// Total bytes allocated for all data blocks. Blocks and memory are shared between audio layers.
         /// </summary>
         public static int MetricAllocatedDataBlocks;
 
         /// <summary>
-        /// How many frames were requested that couldn't be served.
+        /// How many ms of data is currently stored in all ready blocks.
         /// </summary>
         public int MetricDataStoredInBlocks;
 
@@ -363,9 +378,12 @@ namespace Emotion.Audio
         public int MetricBackendMissedFrames;
 
         /// <summary>
-        /// Whether the buffer was starved in the last X ms.
+        /// How many frames was the buffer starved of - AKA didn't get them from ready blocks
+        /// but had to resample on the fly.
         /// </summary>
         public int MetricStarved;
+
+#endif
 
         private static ObjectPool<AudioDataBlock> _dataPool = new ObjectPool<AudioDataBlock>(null, MaxDataBlocks);
         private Queue<AudioDataBlock> _readyBlocks = new Queue<AudioDataBlock>();
@@ -433,14 +451,17 @@ namespace Emotion.Audio
                 int extraTime = timePassed - tooMuchTime;
 
                 timePassed = tooMuchTime;
+
+#if DEBUG
                 MetricStarved += extraTime * _streamingFormat.SampleSize / 1000;
+#endif
             }
 
             // Convert time to frames and bytes.
             int framesToGet = _streamingFormat.GetFrameCount(timePassed / 1000f);
 
             // If none blocks left or one block with little data in it, then do a larger request to prevent starvation.
-            if (!_readyBlocks.TryPeek(out AudioDataBlock? topBlock) || _readyBlocks.Count == 1 && topBlock.FramesWritten - topBlock.FramesRead < framesToGet)
+            if (!_readyBlocks.TryPeek(out AudioDataBlock? topBlock) || (_readyBlocks.Count == 1 && topBlock.FramesWritten - topBlock.FramesRead < framesToGet))
                 framesToGet *= 2;
 
             // Buffer data in advance, so the next update can be as fast as possible (just a copy).
@@ -521,6 +542,7 @@ namespace Emotion.Audio
             {
                 OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
                 _loopCount = 0;
+                if (currentTrack != null) TrackChangedFX(currentTrack);
             }
 
             // Current changed, but we're not playing. If we don't
@@ -542,7 +564,9 @@ namespace Emotion.Audio
             AudioDataBlock dataBlock;
             if (_readyBlocks.Count >= MaxDataBlocks && _readyBlocks.TryDequeue(out AudioDataBlock? b))
             {
+#if DEBUG
                 MetricBackendMissedFrames += b.FramesWritten - b.FramesRead;
+#endif
                 dataBlock = b;
             }
             else
@@ -554,7 +578,9 @@ namespace Emotion.Audio
             // The data a data block will usually carry is around AudioUpdateRate * 2 in time.
             if (dataBlock.Data.Length < bytesToGet)
             {
+#if DEBUG
                 Interlocked.Add(ref MetricAllocatedDataBlocks, -dataBlock.Data.Length + bytesToGet); // metric shared between threads (layers)
+#endif
                 Array.Resize(ref dataBlock.Data, bytesToGet);
             }
 
@@ -676,7 +702,7 @@ namespace Emotion.Audio
             // Convert data to the destination sample size format.
             Span<byte> destBuffer = dest.Slice(framesOffset * _streamingFormat.FrameSize);
             var srcBuffer = new Span<float>(_internalBuffer, 0, samplesRequested);
-            AudioConverter.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, _streamingFormat);
+            AudioUtil.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, _streamingFormat);
 
             // Check if the buffer was filled.
             // If less frames were drawn than the buffer can take - the current track is over.
@@ -712,6 +738,7 @@ namespace Emotion.Audio
                 {
                     AudioConverter streamer = _currentTrack.File.AudioConverter;
                     _totalSamplesConv = streamer.GetSampleCountInFormat(_streamingFormat);
+                    FormatChangedRecalculateFX(_currentTrack, oldFormat, format);
                 }
                 else
                 {
@@ -723,6 +750,7 @@ namespace Emotion.Audio
                 // Readjust fade effect playheads if in use.
                 _currentCrossFade?.AudioFormatChanged(oldFormat, format);
                 _currentFadeOutAndStop?.AudioFormatChanged(oldFormat, format);
+                
 
                 InvalidateAudioBlocks();
             }
@@ -766,7 +794,9 @@ namespace Emotion.Audio
             // the backend buffer requests data further into the future initially.
             if (framesLeft > 0 && _readyBlocks.Count == 0)
             {
+#if DEBUG
                 MetricStarved += framesLeft;
+#endif
 
                 int framesGot = GetDataToBuffer(framesLeft, buffer);
                 framesGotten += framesGot;
@@ -780,8 +810,10 @@ namespace Emotion.Audio
             while (_readyBlocks.Count != 0 && _readyBlocks.TryDequeue(out AudioDataBlock? r))
                 _dataPool.Return(r);
 
+#if DEBUG
             MetricBackendMissedFrames = 0;
             MetricDataStoredInBlocks = 0;
+#endif
             _headBlockDataLeft = 0;
         }
 

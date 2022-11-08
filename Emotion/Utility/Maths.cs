@@ -328,12 +328,6 @@ namespace Emotion.Utility
         /// <summary>
         /// Performs a Hermite spline interpolation using the specified floats.
         /// </summary>
-        /// <param name="value1"></param>
-        /// <param name="tangent1"></param>
-        /// <param name="value2"></param>
-        /// <param name="tangent2"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
         public static float Hermite(float value1, float tangent1, float value2, float tangent2, float amount)
         {
             // All transformed to double not to lose precision
@@ -350,6 +344,22 @@ namespace Emotion.Utility
             };
 
             return (float) result;
+        }
+
+        /// <summary>
+        /// Performs a CatmullRom spline interpolation.
+        /// The control points 1 and 4 are the points before and after 2 and 3 respectively.
+        /// </summary>
+        public static float CatmullRom(float value1, float value2, float value3, float value4, float amount)
+        {
+            // Using formula from http://www.mvps.org/directx/articles/catmull/
+            // Internally using doubles not to lose precision
+            double amountSquared = amount * amount;
+            double amountCubed = amountSquared * amount;
+            return (float)(0.5 * (2.0 * value2 +
+                                  (value3 - value1) * amount +
+                                  (2.0 * value1 - 5.0 * value2 + 4.0 * value3 - value4) * amountSquared +
+                                  (3.0 * value2 - value1 - 3.0 * value3 + value4) * amountCubed));
         }
 
         /// <summary>

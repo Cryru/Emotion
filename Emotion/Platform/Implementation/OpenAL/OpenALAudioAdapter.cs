@@ -10,6 +10,7 @@ using OpenAL;
 
 namespace Emotion.Platform.Implementation.OpenAL
 {
+    // todo: default device swiching
     public sealed class OpenALAudioAdapter : AudioContext
     {
         public IntPtr AudioDevice { get; private set; }
@@ -22,34 +23,51 @@ namespace Emotion.Platform.Implementation.OpenAL
         public static OpenALAudioAdapter TryCreate(PlatformBase platform)
         {
             var newCtx = new OpenALAudioAdapter(platform);
-            newCtx.AudioDevice = Alc.OpenDevice(null);
-            if (newCtx.AudioDevice == IntPtr.Zero)
-            {
-                Engine.Log.Error("Couldn't find an OpenAL device.", MessageSource.OpenAL);
-                return null;
-            }
-
-            var attr = new int[0];
-            newCtx.AudioContext = Alc.CreateContext(newCtx.AudioDevice, attr);
-            if (newCtx.AudioContext == IntPtr.Zero)
-            {
-                Engine.Log.Error("Couldn't create OpenAL context.", MessageSource.OpenAL);
-                return null;
-            }
-
-            bool success = Alc.MakeContextCurrent(newCtx.AudioContext);
-            if (!success)
-            {
-                Engine.Log.Error("Couldn't make OpenAL context current.", MessageSource.OpenAL);
-                return null;
-            }
-
-            return newCtx;
+            bool created = newCtx.RecreateAudioContext();
+            return !created ? null : newCtx;
         }
 
         public override AudioLayer CreatePlatformAudioLayer(string layerName)
         {
             return new OpenALAudioLayer(layerName, this);
+        }
+
+        /// <summary>
+        /// OpenAL doesn't detect device changes easily.
+        /// </summary>
+        public bool RecreateAudioContext()
+        {
+            AudioDevice = Alc.OpenDevice(null);
+            if (AudioDevice == IntPtr.Zero)
+            {
+                Engine.Log.Error("Couldn't find an OpenAL device.", MessageSource.OpenAL);
+                return false;
+            }
+
+            var attr = new int[0];
+            AudioContext = Alc.CreateContext(AudioDevice, attr);
+            if (AudioContext == IntPtr.Zero)
+            {
+                Engine.Log.Error("Couldn't create OpenAL context.", MessageSource.OpenAL);
+                return false;
+            }
+
+            bool success = Alc.MakeContextCurrent(AudioContext);
+            if (!success)
+            {
+                Engine.Log.Error("Couldn't make OpenAL context current.", MessageSource.OpenAL);
+                return false;
+            }
+
+            if (_layerMapping != null)
+                for (var i = 0; i < _layerMapping.Count; i++)
+                {
+                    AudioLayer layer = _layerMapping[i];
+                    if (layer is OpenALAudioLayer alLayer) // All of them should be.
+                        alLayer.RecreateALObjects();
+                }
+
+            return true;
         }
 
         public override void Dispose()

@@ -47,16 +47,21 @@ namespace Emotion.Platform.Implementation.OpenAL
             }
 
             _parent = parent;
-            Al.GenSource(out _source);
-
             _buffers = new uint[BUFFER_COUNT];
             _bufferBusy = new bool[BUFFER_COUNT];
+            _uploadBuffer = new byte[_frameRequestSize * _openALAudioFormat.FrameSize];
+
+            RecreateALObjects();
+        }
+
+        public void RecreateALObjects()
+        {
+            Al.GenSource(out _source);
             for (var i = 0; i < _buffers.Length; i++)
             {
                 Al.GenBuffer(out _buffers[i]);
+                _bufferBusy[i] = false;
             }
-
-            _uploadBuffer = new byte[_frameRequestSize * _openALAudioFormat.FrameSize];
         }
 
         protected override unsafe void UpdateBackend()
@@ -118,7 +123,16 @@ namespace Emotion.Platform.Implementation.OpenAL
         private void SyncLayerAndALState()
         {
             Al.GetSourcei(_source, Al.SOURCE_STATE, out int status);
-            if (Status == PlaybackStatus.Playing && status != Al.PLAYING) Al.SourcePlay(_source);
+            if (Status == PlaybackStatus.Playing && status != Al.PLAYING)
+            {
+                Al.SourcePlay(_source);
+
+                // Check if the source started playing.
+                // If it didn't, it is likely we lost the handle to the audio device.
+                Al.GetSourcei(_source, Al.SOURCE_STATE, out status);
+                if (status == Al.STOPPED) _parent.RecreateAudioContext();
+            }
+
             if (Status == PlaybackStatus.NotPlaying && status == Al.PLAYING) Al.SourceStop(_source);
             CheckALError();
         }

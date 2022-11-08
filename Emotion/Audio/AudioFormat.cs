@@ -36,7 +36,7 @@
         public int Channels { get; set; }
 
         /// <summary>
-        /// How many samples are per second.
+        /// How many frames are per second. FRAMES not SAMPLES wtf
         /// </summary>
         public int SampleRate { get; set; }
 

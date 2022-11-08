@@ -16,7 +16,7 @@ namespace Emotion.Audio
         /// <summary>
         /// Converts a volume 0-1 to a float to multiply 32f audio samples by to achieve gain.
         /// </summary>
-        private static float VolumeToMultiplier(float volume)
+        public static float VolumeToMultiplier(float volume)
         {
             volume = 20 * MathF.Log10(volume / 1f);
             volume = MathF.Pow(10, volume / 20f);
@@ -27,12 +27,11 @@ namespace Emotion.Audio
         {
             // Record where these frames are gotten from.
             int channels = format.Channels;
-            int startingFrame = playhead / channels;
+            int startingSample = playhead;
 
             // Get data.
-            int samples = track.File.AudioConverter.GetConvertedSamplesAt(format, playhead, frames, memory);
-            playhead += samples;
-            int framesOutput = samples / channels;
+            int framesOutput = track.File.AudioConverter.GetResamplesFrames(format, playhead, frames, memory);
+            playhead += framesOutput * channels;
             Debug.Assert(framesOutput <= frames);
 
             // Force mono post process.
@@ -43,26 +42,29 @@ namespace Emotion.Audio
             // Apply fading, if needed. For instance we don't want additional fading while crossfading.
             if (!applyFading) return framesOutput;
 
-            // If cross fading check if there is another track afterward.
-            var modulatedUpToFrame = 0;
+            float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
+            ApplyVolumeToFrames(startingSample, memory, framesOutput, baseVolume);
 
-            if (_currentCrossFade != null)
-            {
-                modulatedUpToFrame = PostProcessCrossFade(format, _currentCrossFade, startingFrame, framesOutput, memory);
-                if (modulatedUpToFrame == 0) _currentCrossFade = null;
-            }
+            //// If cross fading check if there is another track afterward.
+            //var modulatedUpToFrame = 0;
 
-            // Apply fading. If the current track doesn't have a crossfade active.
-            if (modulatedUpToFrame == 0)
-                modulatedUpToFrame = PostProcessApplyFading(format, track, startingFrame, framesOutput, channels, memory);
+            //if (_currentCrossFade != null)
+            //{
+            //    modulatedUpToFrame = PostProcessCrossFade(format, _currentCrossFade, startingFrame, framesOutput, memory);
+            //    if (modulatedUpToFrame == 0) _currentCrossFade = null;
+            //}
 
-            // Apply base volume modulation to the rest of the samples.
-            float baseVolume = Volume * Engine.Configuration.MasterVolume;
-            baseVolume = VolumeToMultiplier(baseVolume);
-            for (int i = modulatedUpToFrame * format.Channels; i < samples; i++)
-            {
-                memory[i] *= baseVolume;
-            }
+            //// Apply fading. If the current track doesn't have a crossfade active.
+            //if (modulatedUpToFrame == 0)
+            //    modulatedUpToFrame = PostProcessApplyFading(format, track, startingFrame, framesOutput, channels, memory);
+
+            //// Apply base volume modulation to the rest of the samples.
+            //float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
+            //baseVolume = VolumeToMultiplier(baseVolume);
+            //for (int i = modulatedUpToFrame * format.Channels; i < samples; i++)
+            //{
+            //    memory[i] *= baseVolume;
+            //}
 
             return framesOutput;
         }
@@ -132,7 +134,7 @@ namespace Emotion.Audio
             frameCount = Math.Min(fadeInFrames - frameStart, frameCount);
 
             // Go through frame data in granularity steps.
-            float baseVolume = Volume * Engine.Configuration.MasterVolume;
+            float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
             var localFrame = 0;
             while (localFrame < frameCount)
             {
@@ -182,7 +184,7 @@ namespace Emotion.Audio
 
             if (frameStart < fadeOutFrameStart) return 0;
 
-            float baseVolume = Volume * Engine.Configuration.MasterVolume;
+            float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
             var localFrame = 0;
             while (localFrame < frameCount)
             {
@@ -232,7 +234,7 @@ namespace Emotion.Audio
 
             // Apply fade in increments.
             int channels = format.Channels;
-            float baseVolume = Volume * Engine.Configuration.MasterVolume;
+            float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
             var localFrame = 0;
             while (localFrame < frameCount)
             {
