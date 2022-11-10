@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
@@ -51,7 +52,7 @@ namespace Tests.Classes
 
             AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, false, 2, 48000), ref copy);
             float ratio = 48000f / pepsi.Format.SampleRate;
-            Assert.Equal(copy.Length, (int) (pepsiByteSize / 2) * ratio); // divide by 2 because 16bps
+            Assert.Equal(copy.Length, pepsiByteSize / 2 * ratio); // divide by 2 because 16bps
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
             int moneyByteSize = money.SoundData.Length * 4;
@@ -180,7 +181,7 @@ namespace Tests.Classes
         {
             for (var i = 0; i < src.SoundData.Length; i++)
             {
-                AudioConverter.SetSampleAsFloat(i, src.SoundData[i], dst, src.Format);
+                AudioUtil.SetSampleAsFloat(i, src.SoundData[i], dst, src.Format);
             }
         }
     }
@@ -191,11 +192,11 @@ namespace Tests.Classes
         {
             int sampleCount = frameCount * format.Channels;
             var conversionBuffer = new Span<float>(new float[sampleCount]);
-            int samplesGotten = converter.GetConvertedSamplesAt(format, startIdx, frameCount, conversionBuffer);
+            int samplesGotten = converter.GetResamplesFrames(format, startIdx, frameCount, conversionBuffer);
             if (samplesGotten == 0) return 0;
             for (var i = 0; i < samplesGotten; i++)
             {
-                AudioConverter.SetSampleAsFloat(i, conversionBuffer[i], buffer, format);
+                AudioUtil.SetSampleAsFloat(i, conversionBuffer[i], buffer, format);
             }
 
             return samplesGotten;

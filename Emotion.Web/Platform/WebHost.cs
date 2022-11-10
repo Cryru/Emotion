@@ -35,7 +35,7 @@ namespace Emotion.Web.Platform
             _canvasElement = canvasElement;
             _canvasElement.JsRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
             Context = new WebGLContext(JsRuntime);
-            Audio = new NullAudioContext();
+            Audio = new NullAudioContext(this);
             // Audio : https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode
         }
 
