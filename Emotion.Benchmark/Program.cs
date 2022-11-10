@@ -32,13 +32,13 @@ namespace Emotion.Benchmark
         {
             Engine.Setup();
             _asset = Engine.AssetLoader.Get<AudioAsset>("Audio/pepsi.wav");
-            var testAudio = new AudioTests.TestAudioContext();
+            var testAudio = new AudioTests.TestAudioContext(null);
             _layer = (AudioTests.TestAudioContext.TestAudioLayer) testAudio.CreateLayer("Benchmark");
             _layer.PlayNext(new AudioTrack(_asset)
             {
                 SetLoopingCurrent = true
             });
-            _layer.ProcessAhead(1); // To create test array.
+            _layer.Update(1); // To create test array.
 
             _textureOne = Engine.AssetLoader.Get<TextureAsset>("logoAlpha.png");
             _textureTwo = Engine.AssetLoader.Get<TextureAsset>("logoAsymmetric.png");
@@ -55,7 +55,7 @@ namespace Emotion.Benchmark
         [Benchmark]
         public void AudioResample()
         {
-            _layer?.ProcessAhead(1);
+            _layer?.Update(1);
         }
 
         [Benchmark]

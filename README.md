@@ -20,8 +20,9 @@ I would recommend checking out the tests in the "Tests" project as examples, and
   - Or DirectX 11 if ANGLE is enabled
   - Or a multi-core CPU if the Mesa software renderer is enabled
   - WebGL 2.0 on Web
-- Be able to run the Net 5 runtime.
+- Be able to run the Net 7 runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+  - For Windows 7 you'll also need a specific security update [KB3063858](https://learn.microsoft.com/en-us/dotnet/core/install/windows?tabs=net60#dependencies)
 	- WASM support on Web
 - A supported platform.
 
@@ -41,6 +42,8 @@ Currently supported:
   - Windows 7+ x64 & x86
   - MacOSX 10.13+ x64 (Compile with "GLFW;OpenAL")
   - Ubuntu/Mint 20.03+ x64 (Compile with "GLFW;OpenAL")
+
+Note: WebAssembly support (Emotion.Web) isn't functional since .Net 7
 
 ### Configurations Tested On:
 

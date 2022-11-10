@@ -1,29 +1,26 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using Emotion.Audio;
-using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32.Audio;
 using Emotion.Platform.Implementation.Win32.Wgl;
 using Emotion.Platform.Input;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using WinApi;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
+
 #if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
 #endif
+
 #if OpenAL
 using Emotion.Platform.Implementation.OpenAL;
-
 #endif
 
 #endregion

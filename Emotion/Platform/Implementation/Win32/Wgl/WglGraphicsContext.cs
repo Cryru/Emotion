@@ -439,10 +439,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             return 0;
         }
 
-        #endregion
-
-        #region Helpers
-
         private static int FindAttributeValue(int[] attributes, int[] values, WglAttributes attribute)
         {
             for (var i = 0; i < attributes.Length; i++)
