@@ -48,9 +48,10 @@ namespace Emotion.Standard.XML.TypeHandlers
 				MethodInfo writeMethod = property.SetMethod;
 				if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null) continue;
 
-				// Since .Net 7 it seems some system types have setters that take in multiple arguments.
-				// One example is Vector2's SetItem
-				if (readMethod.GetParameters().Length > 1 || writeMethod.GetParameters().Length > 1) continue;
+				// If a type has an indexer declared (this[]) it will show up as a property called Item.
+				// We won't serialize those.
+				if (property.Name == "Item" && writeMethod.GetParameters().Length > 1)
+					continue;
 
 				bool nonPublicAllowed = property.GetCustomAttribute<SerializeNonPublicGetSetAttribute>() != null;
 				bool valid = nonPublicAllowed || (readMethod.IsPublic && writeMethod.IsPublic);
