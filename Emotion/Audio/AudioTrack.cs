@@ -8,6 +8,7 @@ namespace Emotion.Audio
 {
     /// <summary>
     /// Lightweight class which holds the playback settings for a file.
+    /// Settings are applied when the track starts playing. Any changes will not be applied.
     /// </summary>
     public class AudioTrack
     {

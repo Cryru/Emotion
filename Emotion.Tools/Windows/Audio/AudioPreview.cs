@@ -83,11 +83,19 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.PushID(i);
                 ImGui.Text($"Layer: {layers[i]} [{layer.Status}] {(layer.CurrentTrack != null ? $" {MathF.Truncate(layer.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration:0.0}s" : "")}");
 
+                ImGui.SetNextItemWidth(150);
                 float volume = layer.VolumeModifier;
                 if (ImGui.DragFloat("VolumeMod", ref volume, 0.01f, 0f, 1f))
                 {
                     cache?.Recreate();
                     layer.VolumeModifier = volume;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("SetVolume"))
+                {
+	                var setVolumeModal = new AudioSetVolumeModModal(layer);
+	                Parent.AddWindow(setVolumeModal);
                 }
 
                 ImGui.SameLine();

@@ -8,6 +8,7 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Standard.Audio;
+using OpenGL;
 
 #endregion
 
@@ -87,9 +88,11 @@ namespace Emotion.Tools.Windows.Audio
 
         public void Render(RenderComposer c)
         {
-            if (Track == null || _cache == null) return;
+            if (Track == null || _cache == null || Gl.SoftwareRenderer) return;
 
             c.RenderSprite(new Rectangle(0, 0, _cacheWidth, _cacheHeight), new Color(74, 74, 96));
+
+            c.RenderLine(new Vector2(0, _cacheHeight / 2f), new Vector2(_cacheWidth, _cacheHeight / 2f), Color.Magenta);
 
             for (var i = 1; i < _cache.Length; i++)
             {

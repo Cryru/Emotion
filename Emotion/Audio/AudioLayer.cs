@@ -387,7 +387,6 @@ namespace Emotion.Audio
 
         private static ObjectPool<AudioDataBlock> _dataPool = new ObjectPool<AudioDataBlock>(null, MaxDataBlocks);
         private Queue<AudioDataBlock> _readyBlocks = new Queue<AudioDataBlock>();
-        private int _headBlockDataLeft;
 
         // Debug
         private Stopwatch? _updateTimer;
@@ -429,7 +428,7 @@ namespace Emotion.Audio
 #if DEBUG
             _updateTimer ??= Stopwatch.StartNew();
 
-            if (_updateTimer.ElapsedMilliseconds > 1000)
+            if (_updateTimer.ElapsedMilliseconds > 5000)
             {
                 MetricStarved = 0;
 
@@ -509,6 +508,8 @@ namespace Emotion.Audio
             bool currentChanged = _currentTrack != currentTrack;
             bool nextChanged = _nextTrack != nextTrack;
 
+            int prevTracKPlayHead = _playHead;
+
             // If both the current and next changed (or just current if no next)
             // that means everything has changed. This usually happens when the current track
             // is over and we transition into the next one. It could also be the result of a stop + new playlist.
@@ -542,7 +543,7 @@ namespace Emotion.Audio
             {
                 OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
                 _loopCount = 0;
-                if (currentTrack != null) TrackChangedFx(currentTrack);
+                TrackChangedFx(currentTrack, prevTracKPlayHead);
             }
 
             // Current changed, but we're not playing. If we don't
@@ -597,8 +598,6 @@ namespace Emotion.Audio
                 dataBlock.FramesWritten = framesGotten;
                 dataBlock.FramesRead = 0;
                 _readyBlocks.Enqueue(dataBlock);
-
-                if (_readyBlocks.Count == 1) _headBlockDataLeft = framesGotten;
             }
         }
 
@@ -608,9 +607,12 @@ namespace Emotion.Audio
             if (LoopingCurrent && !ignoreLoop)
             {
                 // Manually update playhead as track wont change.
+                int prevTrackPlayHead = _playHead;
+                Debug.Assert(prevTrackPlayHead == _totalSamplesConv);
                 _playHead = 0;
                 _loopCount++;
                 OnTrackLoop?.Invoke(_currentTrack!.File);
+                TrackChangedFx(_currentTrack!, prevTrackPlayHead);
             }
             // Otherwise, go to next track.
             else
@@ -647,52 +649,52 @@ namespace Emotion.Audio
 #endif
 
             // Check for trigger FX.
-            if (_currentTrack!.CrossFade.HasValue && _nextTrack != null && _currentCrossFade == null)
-            {
-                int startingFrame = _playHead / _streamingFormat.Channels;
-                bool startFade = CheckIfShouldCrossFade(_streamingFormat, _currentTrack, _nextTrack, startingFrame);
-                if (startFade) StartCrossFade(_currentTrack.CrossFade.Value);
-            }
+            //if (_currentTrack!.CrossFade.HasValue && _nextTrack != null && _currentCrossFade == null)
+            //{
+            //    int startingFrame = _playHead / _streamingFormat.Channels;
+            //    bool startFade = CheckIfShouldCrossFade(_streamingFormat, _currentTrack, _nextTrack, startingFrame);
+            //    if (startFade) StartCrossFade(_currentTrack.CrossFade.Value);
+            //}
 
-            if (_triggerCrossFade)
-            {
-                _triggerCrossFade = false;
-                if (_currentCrossFade == null && _nextTrack != null) StartCrossFade(_triggerCrossFadeDurationSetting, true);
-                _triggerCrossFadeDurationSetting = -1;
-            }
+            //if (_triggerCrossFade)
+            //{
+            //    _triggerCrossFade = false;
+            //    if (_currentCrossFade == null && _nextTrack != null) StartCrossFade(_triggerCrossFadeDurationSetting, true);
+            //    _triggerCrossFadeDurationSetting = -1;
+            //}
 
-            if (_triggerStopWithFadeWithDuration != -1 && _currentFadeOutAndStop == null)
-            {
-                Debug.Assert(_playListAtFadeOutStop != null);
+            //if (_triggerStopWithFadeWithDuration != -1 && _currentFadeOutAndStop == null)
+            //{
+            //    Debug.Assert(_playListAtFadeOutStop != null);
 
-                int startingFrame = _playHead / _streamingFormat.Channels;
-                if (!CheckIfCurrentlyFadingOut(_streamingFormat, _currentTrack, startingFrame))
-                {
-                    if (_triggerStopWithFadeWithDuration < 0.0f) _triggerStopWithFadeWithDuration = _currentTrack.File.Duration * -_triggerStopWithFadeWithDuration;
-                    _currentFadeOutAndStop = new StopAfterFadeEffectData(_currentTrack, startingFrame, _triggerStopWithFadeWithDuration, _playListAtFadeOutStop);
+            //    int startingFrame = _playHead / _streamingFormat.Channels;
+            //    if (!CheckIfCurrentlyFadingOut(_streamingFormat, _currentTrack, startingFrame))
+            //    {
+            //        if (_triggerStopWithFadeWithDuration < 0.0f) _triggerStopWithFadeWithDuration = _currentTrack.File.Duration * -_triggerStopWithFadeWithDuration;
+            //        _currentFadeOutAndStop = new StopAfterFadeEffectData(_currentTrack, startingFrame, _triggerStopWithFadeWithDuration, _playListAtFadeOutStop);
 
-                    if (CheckIfInFadeInAndGetVolume(_streamingFormat, _currentTrack, startingFrame, out float startVolume))
-                        _currentFadeOutAndStop.VolumeStart = startVolume;
-                }
+            //        if (CheckIfInFadeInAndGetVolume(_streamingFormat, _currentTrack, startingFrame, out float startVolume))
+            //            _currentFadeOutAndStop.VolumeStart = startVolume;
+            //    }
 
-                _triggerStopWithFadeWithDuration = -1;
-                _playListAtFadeOutStop = null;
-            }
-            else if (_currentFadeOutAndStop != null && CheckIfFadeOutOver(_streamingFormat, _currentTrack, _currentFadeOutAndStop))
-            {
-                _loopCount = 0;
-                List<AudioTrack> playListToRemove = _currentFadeOutAndStop.PlaylistAtStop;
-                lock (_playlist)
-                {
-                    for (var i = 0; i < playListToRemove.Count; i++)
-                    {
-                        _playlist.Remove(playListToRemove[i]);
-                    }
-                }
+            //    _triggerStopWithFadeWithDuration = -1;
+            //    _playListAtFadeOutStop = null;
+            //}
+            //else if (_currentFadeOutAndStop != null && CheckIfFadeOutOver(_streamingFormat, _currentTrack, _currentFadeOutAndStop))
+            //{
+            //    _loopCount = 0;
+            //    List<AudioTrack> playListToRemove = _currentFadeOutAndStop.PlaylistAtStop;
+            //    lock (_playlist)
+            //    {
+            //        for (var i = 0; i < playListToRemove.Count; i++)
+            //        {
+            //            _playlist.Remove(playListToRemove[i]);
+            //        }
+            //    }
 
-                InvalidateCurrentTrack();
-                UpdateCurrentTrack();
-            }
+            //    InvalidateCurrentTrack();
+            //    UpdateCurrentTrack();
+            //}
 
             if (_currentTrack == null) return 0;
 
@@ -782,10 +784,6 @@ namespace Emotion.Audio
                         _readyBlocks.TryDequeue(out AudioDataBlock? _);
                         _dataPool.Return(b);
                     }
-                    else
-                    {
-                        _headBlockDataLeft = b.FramesWritten - b.FramesRead;
-                    }
                 }
             }
 
@@ -814,7 +812,6 @@ namespace Emotion.Audio
             MetricBackendMissedFrames = 0;
             MetricDataStoredInBlocks = 0;
 #endif
-            _headBlockDataLeft = 0;
         }
 
         #endregion
