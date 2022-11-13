@@ -59,8 +59,11 @@ namespace Emotion.Standard.Logging
         {
             if (once)
             {
-                if (_oncePrint.Contains(message)) return;
-                _oncePrint.Add(message);
+	            lock (_oncePrint)
+	            {
+		            if (_oncePrint.Contains(message)) return;
+		            _oncePrint.Add(message);
+	            }
             }
 
             Log(MessageType.Warning, source, message);
