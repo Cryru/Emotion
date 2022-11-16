@@ -483,8 +483,8 @@ namespace Emotion.Audio
         {
             //volume = 20 * MathF.Log10(volume / 1f);
             //volume = MathF.Pow(10, volume / 20f);
-            //volume = MathF.Pow(volume, 2.718f);
-            volume = volume * volume;
+            volume = MathF.Pow(volume, 2.718f);
+            //volume = volume * volume;
             return volume;
         }
     }

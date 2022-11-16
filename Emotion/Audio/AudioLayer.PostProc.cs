@@ -1,28 +1,24 @@
 ﻿#region Using
 
 using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Standard.Audio;
-using Emotion.Utility;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Audio
 {
 	public abstract partial class AudioLayer
 	{
-		private float _baseVolumeLastApplied;
+		private float _baseVolumeLastApplied = -1;
 
-		protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, ref int playhead, bool applyFading = true)
+		protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, int sampleStartOffset, bool crossFade = false)
 		{
-			// Record where these frames are gotten from.
-			int channels = format.Channels;
-			int startingSample = playhead;
-
 			// Get data.
-			int framesOutput = track.File.AudioConverter.GetResamplesFrames(format, playhead, frames, memory);
-			playhead += framesOutput * channels;
+			int channels = format.Channels;
+			int framesOutput = track.File.AudioConverter.GetResamplesFrames(format, sampleStartOffset, frames, memory);
 			Debug.Assert(framesOutput <= frames);
 
 			// Force mono post process.
@@ -30,33 +26,45 @@ namespace Emotion.Audio
 			bool mergeChannels = Engine.Configuration.ForceMono && channels != 1 && track.File.Format.Channels != 1;
 			if (mergeChannels) PostProcessConvertToMono(framesOutput, memory, channels);
 
-			// Apply fading, if needed. For instance we don't want additional fading while crossfading.
-			if (!applyFading) return framesOutput;
+			// If this is for the second cross fade track, we can skip the checks below.
+			if (crossFade)
+			{
+				ApplyVolumeToFrames(_playHead, memory, framesOutput, _baseVolumeLastApplied, _baseVolumeLastApplied, true);
+				return framesOutput;
+			}
 
 			float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
-			float lastApplied = ApplyVolumeToFrames(startingSample, memory, framesOutput, baseVolume, _baseVolumeLastApplied);
+			if (_baseVolumeLastApplied == -1) _baseVolumeLastApplied = baseVolume;
+
+			float lastApplied = ApplyVolumeToFrames(sampleStartOffset, memory, framesOutput, baseVolume, _baseVolumeLastApplied);
 			_baseVolumeLastApplied = lastApplied; // Record the base volume applied, as it is possible for the new one to not have applied in a single tick.
 
-			//// If cross fading check if there is another track afterward.
-			//var modulatedUpToFrame = 0;
+			int endSample = sampleStartOffset + framesOutput * channels;
+			if (_fadeOutCrossFadeVol != null && _fadeOutCrossFadeVol.StartSample < endSample)
+			{
+				_fadeOutCrossFadeVol.SetCrossFadeProps(track, endSample);
 
-			//if (_currentCrossFade != null)
-			//{
-			//    modulatedUpToFrame = PostProcessCrossFade(format, _currentCrossFade, startingFrame, framesOutput, memory);
-			//    if (modulatedUpToFrame == 0) _currentCrossFade = null;
-			//}
+				// Transfer effect from "out" of the previous track to the "in" of the new track.
+				CrossFadeVolModEffect crossFadeEffect = _fadeOutCrossFadeVol;
+				GoNextTrack();
+				_fadeInCrossFadeVol = crossFadeEffect;
+				_fadeInVol = null; // Remove fade in.
+			}
+			else if (_fadeInCrossFadeVol != null)
+			{
+				Debug.Assert(_fadeInCrossFadeVol.Track != null);
 
-			//// Apply fading. If the current track doesn't have a crossfade active.
-			//if (modulatedUpToFrame == 0)
-			//    modulatedUpToFrame = PostProcessApplyFading(format, track, startingFrame, framesOutput, channels, memory);
+				// Get the frames from the track we're cross fading from and merge them with the current.
+				// They'll be modulated to match volumes.
+				int framesGotten = GetProcessedFramesFromTrack(format, _fadeInCrossFadeVol.Track, framesOutput, _internalBufferCrossFade, _fadeInCrossFadeVol.PlayHead, true);
+				_fadeInCrossFadeVol.PlayHead += framesGotten * channels;
+				for (var i = 0; i < framesGotten * channels; i++)
+				{
+					memory[i] += _internalBufferCrossFade[i];
+				}
 
-			//// Apply base volume modulation to the rest of the samples.
-			//float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
-			//baseVolume = VolumeToMultiplier(baseVolume);
-			//for (int i = modulatedUpToFrame * format.Channels; i < samples; i++)
-			//{
-			//    memory[i] *= baseVolume;
-			//}
+				if (framesGotten < framesOutput) _fadeInCrossFadeVol = null;
+			}
 
 			return framesOutput;
 		}
@@ -76,7 +84,7 @@ namespace Emotion.Audio
 
 					float leftData = soundData[sampleLeft];
 					float rightData = soundData[sampleRight];
-					float combined = (leftData + rightData);
+					float combined = leftData + rightData;
 					soundData[sampleLeft] = combined;
 					soundData[sampleRight] = combined;
 				}
@@ -101,57 +109,222 @@ namespace Emotion.Audio
 			}
 		}
 
+		// The interval in seconds to apply volume modulation in.
+		// Calculating it for every frame is expensive, so we chunk it.
+		// If this is too small it's a huge performance hit,
+		// If it is too big though, it will cause discontinuity.
+		public const float VOLUME_MODULATION_INTERVAL = 0.05f;
+
+		private VolumeModulationEffect? _fadeInVol;
+		private VolumeModulationEffect? _fadeOutVol;
+		private CrossFadeVolModEffect? _fadeOutCrossFadeVol; // Effect which triggers cross fade to start at end
+		private CrossFadeVolModEffect? _fadeInCrossFadeVol; // Current cross fade from previous track.
+		private VolumeModulationEffect? _userModifier;
+
 		/// <summary>
-		/// Apply cross fading between two tracks.
+		/// Get the layer volume at the specified sample index.
+		/// Used for debugging.
 		/// </summary>
+		/// <param name="atSample"></param>
+		/// <returns></returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private int PostProcessCrossFade(AudioFormat format, FadeEffectData crossFadeData, int startingFrame, int frameCount, float[] soundData)
+		public float GetVolume(int atSample)
 		{
-			// Assuming we crossfade from the start of the new track, the duration is all we need.
-			var crossFadeDurationFrames = (int) MathF.Floor(crossFadeData.DurationSeconds * format.SampleRate);
-			if (crossFadeDurationFrames <= startingFrame) return 0;
+			var mod = 1f;
+			if (_fadeInVol != null) mod *= _fadeInVol.GetVolumeAt(atSample);
+			if (_fadeOutVol != null) mod *= _fadeOutVol.GetVolumeAt(atSample);
+			if (_userModifier != null) mod *= _userModifier.GetVolumeAt(atSample);
+			return AudioUtil.VolumeToMultiplier(mod);
+		}
 
-			// Clamp to wherever the crossfade will finish.
-			if (startingFrame + frameCount > crossFadeDurationFrames) frameCount = crossFadeDurationFrames - startingFrame;
-			Debug.Assert(frameCount > 0);
+		private void FormatChangedRecalculateFx(AudioTrack track, AudioFormat oldFormat, AudioFormat newFormat)
+		{
+			_fadeInVol?.FormatChanged(track, oldFormat, newFormat);
+			_fadeOutVol?.FormatChanged(track, oldFormat, newFormat);
+			_fadeOutCrossFadeVol?.FormatChanged(track, oldFormat, newFormat);
+			_userModifier?.FormatChanged(track, oldFormat, newFormat);
+		}
 
-			// Get data from the track we were fading from.
-			frameCount = GetProcessedFramesFromTrack(format, crossFadeData.Track, frameCount, _internalBufferCrossFade, ref crossFadeData.PlayHead, false);
+		private void TrackChangedFx(AudioTrack? currentTrack, int prevTrackPlayHead)
+		{
+			_fadeInVol = null;
+			_fadeOutVol = null;
+			_fadeOutCrossFadeVol = null;
+			_fadeInCrossFadeVol = null;
 
-			// Apply fade in increments.
-			int channels = format.Channels;
-			float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
-			var localFrame = 0;
-			while (localFrame < frameCount)
+			if (currentTrack != null && currentTrack.FadeIn.HasValue && (!currentTrack.FadeInOnlyFirstLoop || _loopCount == 0))
 			{
-				int frames = Math.Min(VOLUME_MODULATION_FRAME_GRANULARITY, frameCount - localFrame);
-				int frameIdx = startingFrame + localFrame;
-				float frameT = (float) frameIdx / crossFadeDurationFrames;
-				frameT = Maths.Clamp01(frameT);
-				frameT = frameT * frameT; // Cubic
+				AudioFormat format = CurrentStreamingFormat;
 
-				float volumeFadingInto = frameT;
-				float volumeFadingFrom = 1.0f - frameT;
+				// Calculate fade in frames.
+				float val = currentTrack.FadeIn.Value;
+				if (val < 0) val = currentTrack.File.Duration * -val;
+				int fadeInSamples = format.GetFrameCount(val) * format.Channels;
 
-				volumeFadingInto = AudioUtil.VolumeToMultiplier(baseVolume * volumeFadingInto);
-				volumeFadingFrom = AudioUtil.VolumeToMultiplier(baseVolume * volumeFadingFrom);
-
-				for (var i = 0; i < frames; i++)
-				{
-					int frameInDataIdx = (localFrame + i) * channels;
-					for (var c = 0; c < channels; c++)
-					{
-						int sampleIdx = frameInDataIdx + c;
-						float sampleCurrentTrack = soundData[sampleIdx] * volumeFadingInto;
-						float sampleNextTrack = _internalBufferCrossFade[sampleIdx] * volumeFadingFrom;
-						soundData[sampleIdx] = sampleCurrentTrack + sampleNextTrack;
-					}
-				}
-
-				localFrame += frames;
+				_fadeInVol = new VolumeModulationEffect(0f, 1f, 0, fadeInSamples, EffectPosition.TrackRelative);
 			}
 
-			return localFrame;
+			if (currentTrack != null && (currentTrack.FadeOut.HasValue || currentTrack.CrossFade.HasValue))
+			{
+				AudioFormat format = CurrentStreamingFormat;
+
+				// Calculate fade in frames.
+				float val = currentTrack.CrossFade ?? currentTrack.FadeOut!.Value;
+				if (val < 0) val = currentTrack.File.Duration * -val;
+				val = currentTrack.File.Duration - val;
+				int fadeOutSampleStart = format.GetFrameCount(val) * format.Channels;
+
+				if (currentTrack.CrossFade.HasValue)
+					_fadeOutCrossFadeVol = new CrossFadeVolModEffect(1f, 0f, fadeOutSampleStart, _totalSamplesConv, EffectPosition.TrackRelative);
+				else
+					_fadeOutVol = new VolumeModulationEffect(1f, 0f, fadeOutSampleStart, _totalSamplesConv, EffectPosition.TrackRelative);
+			}
+
+			// Transition "absolute" positions fx.
+			if (_userModifier != null)
+			{
+				int samplesLeft = _userModifier.EndSample - prevTrackPlayHead;
+				if (samplesLeft > 0)
+				{
+					_userModifier.StartVolume = _userModifier.GetVolumeAt(prevTrackPlayHead);
+					_userModifier.StartSample = 0;
+					_userModifier.EndSample = samplesLeft;
+				}
+				else
+				{
+					_userModifier.StartSample = 0;
+					_userModifier.EndSample = _totalSamplesConv;
+					_userModifier.StartVolume = _userModifier.EndVolume;
+				}
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private float ApplyVolumeToFrames(int sampleStart, Span<float> frames, int framesInBuffer, float baseMod, float lastAppliedBaseMod, bool crossFade = false)
+		{
+			int channels = CurrentStreamingFormat.Channels;
+			int samplesInBuffer = framesInBuffer * channels;
+
+			int finalSample = sampleStart + samplesInBuffer;
+			int intervalInSamples = CurrentStreamingFormat.GetFrameCount(VOLUME_MODULATION_INTERVAL) * channels;
+
+			var startingInterval = (int) MathF.Floor((float) sampleStart / intervalInSamples);
+			var endingInterval = (int) MathF.Ceiling((float) finalSample / intervalInSamples);
+
+			int firstZeroCrossIdx = -1;
+
+			// If changing base mod, find a zero crossing on all channels at once,
+			// to ensure no click is heard.
+			if (baseMod != lastAppliedBaseMod)
+			{
+				Span<float> lastSampleValues = stackalloc float[channels];
+
+				var crossZeroSampleIdx = 0;
+				for (int i = startingInterval; i < endingInterval; i++)
+				{
+					int sampleAmount = Math.Min(intervalInSamples, samplesInBuffer - crossZeroSampleIdx);
+					int sampleAmountStart = crossZeroSampleIdx;
+					int sampleEnd = sampleAmountStart + sampleAmount;
+
+					// Initialize last sample values.
+					if (i == startingInterval)
+						for (var c = 0; c < channels; c++)
+						{
+							lastSampleValues[c] = frames[sampleAmountStart + c];
+						}
+
+					for (int s = sampleAmountStart + channels; s < sampleEnd; s += channels)
+					{
+						var isZeroCrossing = true;
+						for (var c = 0; c < channels; c++)
+						{
+							float thisSample = frames[s + c];
+							float lastSample = lastSampleValues[c];
+
+							// Where the sound sine wave crosses 0 (-1 to 1 or vice versa) you
+							// can safely apply gain without causing clicks.
+							bool zeroCrossingOnThisChannel = thisSample * lastSample <= 0;
+							isZeroCrossing = isZeroCrossing && zeroCrossingOnThisChannel;
+							lastSampleValues[c] = thisSample;
+						}
+
+						if (isZeroCrossing)
+						{
+							firstZeroCrossIdx = s;
+							break;
+						}
+					}
+
+					if (firstZeroCrossIdx != -1) break;
+					crossZeroSampleIdx += sampleAmount;
+				}
+			}
+
+			var sampleIdx = 0;
+			for (int i = startingInterval; i < endingInterval; i++)
+			{
+				int sampleAmount = Math.Min(intervalInSamples, samplesInBuffer - sampleIdx);
+				int sampleAmountStart = sampleIdx;
+				int sampleEnd = sampleAmountStart + sampleAmount;
+
+				int sampleIdxOfInterval = i * intervalInSamples;
+
+				float intervalMod;
+				if (crossFade)
+				{
+					// In the cross fade track apply just the user modifier and reverse the cross fade modifier (as this is the track fading out)
+					intervalMod = 1f;
+					if (_userModifier != null) intervalMod *= AudioUtil.VolumeToMultiplier(_userModifier.GetVolumeAt(sampleIdxOfInterval));
+					if (_fadeInCrossFadeVol != null) intervalMod *= 1.0f - _fadeInCrossFadeVol.GetVolumeAt(sampleIdxOfInterval);
+				}
+				else
+				{
+					intervalMod = GetVolume(sampleIdxOfInterval);
+					if (_fadeInCrossFadeVol != null) intervalMod *= _fadeInCrossFadeVol.GetVolumeAt(sampleIdxOfInterval);
+				}
+
+				float combinedMod = lastAppliedBaseMod * intervalMod;
+
+				// Apply old gain up to crossing and then switch.
+				if (firstZeroCrossIdx != -1 && firstZeroCrossIdx >= sampleAmountStart && firstZeroCrossIdx < sampleEnd)
+				{
+					for (int s = sampleAmountStart; s < firstZeroCrossIdx; s++)
+					{
+						frames[s] *= combinedMod;
+					}
+
+					lastAppliedBaseMod = baseMod;
+					combinedMod = lastAppliedBaseMod * intervalMod;
+					sampleAmountStart = firstZeroCrossIdx;
+				}
+
+				// Apply volume to samples of interval.
+				for (int s = sampleAmountStart; s < sampleEnd; s++)
+				{
+					frames[s] *= combinedMod;
+				}
+
+				_debugLastAppliedSampleMod = combinedMod;
+				sampleIdx += sampleAmount;
+			}
+
+			return lastAppliedBaseMod;
+		}
+
+		private float _debugLastAppliedSampleMod;
+
+		/// <summary>
+		/// Get the volume at the current playhead position.
+		/// Use for debugging and visualization.
+		/// </summary>
+		public float DebugGetCurrentVolume()
+		{
+			return MathF.Round(_debugLastAppliedSampleMod, 2);
+		}
+
+		public void DebugSetPlaybackAtSecond(float second)
+		{
+			_playHead = CurrentStreamingFormat.GetFrameCount(second) * CurrentStreamingFormat.Channels;
 		}
 	}
 }

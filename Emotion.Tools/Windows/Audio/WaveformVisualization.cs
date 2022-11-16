@@ -81,7 +81,6 @@ namespace Emotion.Tools.Windows.Audio
                 int frameIndex = i * intervalInFrames;
                 float intervalVolume = Layer.GetVolume(frameIndex * layerFormat.Channels);
                 intervalVolume *= baseModifier;
-                intervalVolume = AudioUtil.VolumeToMultiplier(intervalVolume);
                 _cacheVolume[i] = new Vector2(frameIntervalVisually * i, _cacheHeight * ((2.0f - intervalVolume) / 2f));
             }
         }
