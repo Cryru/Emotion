@@ -68,7 +68,7 @@ namespace Emotion.Tools.Windows.Audio
             if (Track == null) return;
 
             AudioFormat layerFormat = Layer.CurrentStreamingFormat;
-            int intervalInFrames = layerFormat.GetFrameCount(AudioLayer.VOLUME_MODULATION_INTERVAL);
+            int intervalInFrames = layerFormat.SecondsToFrames(AudioLayer.VOLUME_MODULATION_INTERVAL);
             int frames = Track.File.AudioConverter.GetSampleCountInFormat(layerFormat) / layerFormat.Channels;
             int frameIntervals = frames / intervalInFrames;
             _cacheVolume = new Vector2[frameIntervals];

@@ -14,6 +14,18 @@ namespace Emotion.Audio
 	{
 		private float _baseVolumeLastApplied = -1;
 
+		private bool _triggerCrossFadeToNext; // On the next tick start a crossfade into the next track.
+
+		private bool _triggerFadeOutAndStop; // On the next tick start a fade out and then stop
+		private List<AudioTrack>? _triggeredFadeOutStopPlaylist; // The tracks to remove from the playlist when ^ ends.
+
+		private float _triggerEffectDuration = -1; // The duration of the trigger fade.
+
+		// Whether the triggered crossfade is currently fading out rather than crossfading, because there is no current track.
+		// It will start crossfading as soon as a track is added.
+		// If this is too late it will sound weird tho.
+		private bool _triggeredCrossFadeFadingOut;
+
 		protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, int sampleStartOffset, bool crossFade = false)
 		{
 			// Get data.
@@ -34,6 +46,7 @@ namespace Emotion.Audio
 			}
 
 			float baseVolume = VolumeModifier * Engine.Configuration.MasterVolume;
+			baseVolume = baseVolume * baseVolume;
 			if (_baseVolumeLastApplied == -1) _baseVolumeLastApplied = baseVolume;
 
 			float lastApplied = ApplyVolumeToFrames(sampleStartOffset, memory, framesOutput, baseVolume, _baseVolumeLastApplied);
@@ -64,6 +77,87 @@ namespace Emotion.Audio
 				}
 
 				if (framesGotten < framesOutput) _fadeInCrossFadeVol = null;
+			}
+			else if (_triggerFadeOutAndStop && _fadeOutTriggered == null)
+			{
+				int curTrackPlayHead = endSample;
+				AudioTrack curTrack = track;
+
+				// Calculate duration samples.
+				float val = _triggerEffectDuration;
+				if (val < 0) val = curTrack.File.Duration * -val;
+				int sampleDur = format.SecondsToFrames(val) * format.Channels;
+
+				_fadeOutTriggered = new VolumeModulationEffect(1, 0, curTrackPlayHead, curTrackPlayHead + sampleDur, EffectPosition.Absolute);
+				_triggerFadeOutAndStop = false;
+			}
+			else if (_triggerCrossFadeToNext && _fadeOutTriggered == null) // Triggered cross fade into next track (ignore loop), cannot occur while a crossfade is ongoing.
+			{
+				int curTrackPlayHead = endSample;
+				AudioTrack curTrack = track;
+
+				// Calculate duration samples.
+				float val = _triggerEffectDuration;
+				if (val < 0) val = curTrack.File.Duration * -val;
+				int sampleDur = format.SecondsToFrames(val) * format.Channels;
+
+				var effect = new CrossFadeVolModEffect(1, 0, curTrackPlayHead, curTrackPlayHead + sampleDur, EffectPosition.TrackRelative);
+
+				// If there is a next non-loop track change to it.
+				if (_nextTrack != null && _nextTrack != _currentTrack)
+				{
+					GoNextTrack(true);
+					effect.SetCrossFadeProps(track, curTrackPlayHead, LoopingCurrent);
+					_fadeInVol = null; // Remove fade in as it is going to be part of the crossfade.
+					_fadeInCrossFadeVol = effect;
+					effect.Pos = EffectPosition.TrackRelative;
+				}
+				else
+				{
+					_triggeredCrossFadeFadingOut = true;
+					_fadeOutTriggered = effect;
+
+					// Remove track crossfade as it could interfere.
+					_fadeOutCrossFadeVol = null;
+
+					effect.Pos = EffectPosition.Absolute;
+				}
+
+				_triggerCrossFadeToNext = false;
+			}
+			else if (_fadeOutTriggered != null) // Performing a triggered fade out. Could be an actual tfo or cross fade with no next track.
+			{
+				Debug.Assert(_fadeOutTriggered != null);
+
+				// We ended out in a fade
+				if (endSample >= _fadeOutTriggered.EndSample)
+				{
+					if (_triggeredCrossFadeFadingOut)
+					{
+						GoNextTrack(true);
+					}
+					else
+					{
+						Debug.Assert(_triggeredFadeOutStopPlaylist != null);
+						lock (_playlist)
+						{
+							for (var i = 0; i < _triggeredFadeOutStopPlaylist.Count; i++)
+							{
+								AudioTrack trackToRemove = _triggeredFadeOutStopPlaylist[i];
+								_playlist.Remove(trackToRemove);
+							}
+						}
+						_triggeredFadeOutStopPlaylist.Clear();
+						InvalidateCurrentTrack();
+						UpdateCurrentTrack();
+					}
+					
+					_fadeOutTriggered = null;
+				}
+				// A track to crossfade to was added.
+				else if (_triggeredCrossFadeFadingOut && _nextTrack != null && _nextTrack != _currentTrack)
+				{
+				}
 			}
 
 			return framesOutput;
@@ -119,6 +213,7 @@ namespace Emotion.Audio
 		private VolumeModulationEffect? _fadeOutVol;
 		private CrossFadeVolModEffect? _fadeOutCrossFadeVol; // Effect which triggers cross fade to start at end
 		private CrossFadeVolModEffect? _fadeInCrossFadeVol; // Current cross fade from previous track.
+		private VolumeModulationEffect? _fadeOutTriggered; // Current cross fade from previous track.
 		private VolumeModulationEffect? _userModifier;
 
 		/// <summary>
@@ -134,6 +229,7 @@ namespace Emotion.Audio
 			if (_fadeInVol != null) mod *= _fadeInVol.GetVolumeAt(atSample);
 			if (_fadeOutVol != null) mod *= _fadeOutVol.GetVolumeAt(atSample);
 			if (_userModifier != null) mod *= _userModifier.GetVolumeAt(atSample);
+			if (_fadeOutTriggered != null) mod *= _fadeOutTriggered.GetVolumeAt(atSample);
 			return AudioUtil.VolumeToMultiplier(mod);
 		}
 
@@ -143,6 +239,7 @@ namespace Emotion.Audio
 			_fadeOutVol?.FormatChanged(track, oldFormat, newFormat);
 			_fadeOutCrossFadeVol?.FormatChanged(track, oldFormat, newFormat);
 			_userModifier?.FormatChanged(track, oldFormat, newFormat);
+			_fadeOutTriggered?.FormatChanged(track, oldFormat, newFormat);
 		}
 
 		private void TrackChangedFx(AudioTrack? currentTrack, int prevTrackPlayHead)
@@ -152,14 +249,25 @@ namespace Emotion.Audio
 			_fadeOutCrossFadeVol = null;
 			_fadeInCrossFadeVol = null;
 
+			// Triggered cross fade
+			_triggerEffectDuration = -1;
+			_triggerCrossFadeToNext = false;
+			_triggerFadeOutAndStop = false;
+			if (_fadeOutTriggered != null && (_fadeOutTriggered.Pos == EffectPosition.TrackRelative || prevTrackPlayHead == 0 || currentTrack == null))
+			{
+				_fadeOutTriggered = null;
+				_triggeredCrossFadeFadingOut = false;
+				_triggeredFadeOutStopPlaylist?.Clear();
+			}
+
 			if (currentTrack != null && currentTrack.FadeIn.HasValue && (!currentTrack.FadeInOnlyFirstLoop || _loopCount == 0))
 			{
 				AudioFormat format = CurrentStreamingFormat;
 
-				// Calculate fade in frames.
+				// Calculate fade in samples.
 				float val = currentTrack.FadeIn.Value;
 				if (val < 0) val = currentTrack.File.Duration * -val;
-				int fadeInSamples = format.GetFrameCount(val) * format.Channels;
+				int fadeInSamples = format.SecondsToFrames(val) * format.Channels;
 
 				_fadeInVol = new VolumeModulationEffect(0f, 1f, 0, fadeInSamples, EffectPosition.TrackRelative);
 			}
@@ -168,11 +276,11 @@ namespace Emotion.Audio
 			{
 				AudioFormat format = CurrentStreamingFormat;
 
-				// Calculate fade in frames.
+				// Calculate fade in samples.
 				float val = currentTrack.CrossFade ?? currentTrack.FadeOut!.Value;
 				if (val < 0) val = currentTrack.File.Duration * -val;
 				val = currentTrack.File.Duration - val;
-				int fadeOutSampleStart = format.GetFrameCount(val) * format.Channels;
+				int fadeOutSampleStart = format.SecondsToFrames(val) * format.Channels;
 
 				if (currentTrack.CrossFade.HasValue)
 					_fadeOutCrossFadeVol = new CrossFadeVolModEffect(1f, 0f, fadeOutSampleStart, _totalSamplesConv, EffectPosition.TrackRelative);
@@ -181,22 +289,8 @@ namespace Emotion.Audio
 			}
 
 			// Transition "absolute" positions fx.
-			if (_userModifier != null)
-			{
-				int samplesLeft = _userModifier.EndSample - prevTrackPlayHead;
-				if (samplesLeft > 0)
-				{
-					_userModifier.StartVolume = _userModifier.GetVolumeAt(prevTrackPlayHead);
-					_userModifier.StartSample = 0;
-					_userModifier.EndSample = samplesLeft;
-				}
-				else
-				{
-					_userModifier.StartSample = 0;
-					_userModifier.EndSample = _totalSamplesConv;
-					_userModifier.StartVolume = _userModifier.EndVolume;
-				}
-			}
+			if (_userModifier != null) _userModifier.AlignAbsolutePosition(prevTrackPlayHead, _totalSamplesConv);
+			if (_fadeOutTriggered != null && _fadeOutTriggered.Pos == EffectPosition.Absolute) _fadeOutTriggered.AlignAbsolutePosition(prevTrackPlayHead, _totalSamplesConv);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -206,7 +300,7 @@ namespace Emotion.Audio
 			int samplesInBuffer = framesInBuffer * channels;
 
 			int finalSample = sampleStart + samplesInBuffer;
-			int intervalInSamples = CurrentStreamingFormat.GetFrameCount(VOLUME_MODULATION_INTERVAL) * channels;
+			int intervalInSamples = CurrentStreamingFormat.SecondsToFrames(VOLUME_MODULATION_INTERVAL) * channels;
 
 			var startingInterval = (int) MathF.Floor((float) sampleStart / intervalInSamples);
 			var endingInterval = (int) MathF.Ceiling((float) finalSample / intervalInSamples);
@@ -324,7 +418,7 @@ namespace Emotion.Audio
 
 		public void DebugSetPlaybackAtSecond(float second)
 		{
-			_playHead = CurrentStreamingFormat.GetFrameCount(second) * CurrentStreamingFormat.Channels;
+			_playHead = CurrentStreamingFormat.SecondsToFrames(second) * CurrentStreamingFormat.Channels;
 		}
 	}
 }

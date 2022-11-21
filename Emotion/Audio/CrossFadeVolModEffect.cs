@@ -4,14 +4,17 @@ using Emotion.Standard.Audio;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Audio
 {
 	public class CrossFadeVolModEffect : VolumeModulationEffect
 	{
 		public AudioTrack? Track;
 		public int PlayHead;
+		public bool Looping;
 
-		public void SetCrossFadeProps(AudioTrack track, int playHead)
+		public void SetCrossFadeProps(AudioTrack track, int playHead, bool looping = false)
 		{
 			Track = track;
 			PlayHead = playHead;
@@ -19,6 +22,7 @@ namespace Emotion.Audio
 			StartSample = 0;
 			StartVolume = 0;
 			EndVolume = 1f;
+			Looping = looping;
 		}
 
 		public CrossFadeVolModEffect(float startVol, float endVol, int startSample, int endSample, EffectPosition pos) : base(startVol, endVol, startSample, endSample, pos)

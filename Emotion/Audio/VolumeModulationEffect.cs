@@ -70,5 +70,22 @@ namespace Emotion.Audio
 			float progressEndSample = EndSample / totalSamplesWere;
 			EndSample = (int) MathF.Floor(progressEndSample * totalSamplesNow);
 		}
+
+		public void AlignAbsolutePosition(int prevTrackPlayHead, int totalSamplesConv)
+		{
+			int samplesLeft = EndSample - prevTrackPlayHead;
+			if (samplesLeft > 0)
+			{
+				StartVolume = GetVolumeAt(prevTrackPlayHead);
+				StartSample = 0;
+				EndSample = samplesLeft;
+			}
+			else
+			{
+				StartSample = 0;
+				EndSample = totalSamplesConv;
+				StartVolume = EndVolume;
+			}
+		}
 	}
 }
