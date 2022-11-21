@@ -97,7 +97,7 @@
         /// <summary>
         /// Get the number of frames a time period contains.
         /// </summary>
-        public int GetFrameCount(float timeSeconds)
+        public int SecondsToFrames(float timeSeconds)
         {
             return (int) (timeSeconds * SampleRate);
         }
