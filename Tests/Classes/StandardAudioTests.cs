@@ -94,7 +94,7 @@ namespace Tests.Classes
                     var playHead = 0;
                     while (DateTime.Now.Subtract(start).TotalMinutes < minutesTimeout) // timeout
                     {
-                        var spanData = new Span<byte>(new byte[framesGet * format.FrameSize]);
+	                    var spanData = new Span<byte>(new byte[framesGet * format.FrameSize]);
                         int samplesAmount = streamer.GetSamplesAtByte(format, playHead, framesGet, spanData);
                         if (samplesAmount == 0) break;
                         playHead += samplesAmount;
@@ -192,8 +192,10 @@ namespace Tests.Classes
         {
             int sampleCount = frameCount * format.Channels;
             var conversionBuffer = new Span<float>(new float[sampleCount]);
-            int samplesGotten = converter.GetResamplesFrames(format, startIdx, frameCount, conversionBuffer);
-            if (samplesGotten == 0) return 0;
+            int framesGotten = converter.GetResamplesFrames(format, startIdx, frameCount, conversionBuffer);
+            if (framesGotten == 0) return 0;
+
+            int samplesGotten = framesGotten * format.Channels;
             for (var i = 0; i < samplesGotten; i++)
             {
                 AudioUtil.SetSampleAsFloat(i, conversionBuffer[i], buffer, format);
