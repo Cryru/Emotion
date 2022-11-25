@@ -98,7 +98,7 @@ namespace Tests.Classes
             Assert.True(layer.CurrentTrack.File == pepsi);
 
             // Advance time ahead.
-            ((TestAudioContext.TestAudioLayer) layer).Update((int) (MathF.Ceiling(pepsi.Duration) + 1) * 1000);
+            ((TestAudioContext.TestAudioLayer) layer).Update((int) (MathF.Ceiling(pepsi.Duration) + 1) * 1000, true);
             Assert.True(layer.CurrentTrack.File == money);
 
             ctx.RemoveLayer("test");

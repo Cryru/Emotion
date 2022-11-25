@@ -416,7 +416,8 @@ namespace Emotion.Audio
 		/// Process audio data ahead.
 		/// </summary>
 		/// <param name="timePassed">Time to process, in milliseconds</param>
-		public void Update(int timePassed)
+		/// <param name="exact">Whether to update exactly that amount. Used for testing.</param>
+		public void Update(int timePassed, bool exact = false)
 		{
 			using var updateLoopTrack = new UpdateScopeTracker();
 			_inUpdateLoop = updateLoopTrack;
@@ -448,7 +449,7 @@ namespace Emotion.Audio
 
 			// Prevent spiral of death, hopefully.
 			const int tooMuchTime = 50;
-			if (timePassed > tooMuchTime)
+			if (timePassed > tooMuchTime && !exact)
 			{
 				int extraTime = timePassed - tooMuchTime;
 
@@ -463,8 +464,11 @@ namespace Emotion.Audio
 			int framesToGet = CurrentStreamingFormat.SecondsToFrames(timePassed / 1000f);
 
 			// If none blocks left or one block with little data in it, then do a larger request to prevent starvation.
-			if (!_readyBlocks.TryPeek(out AudioDataBlock? topBlock) || (_readyBlocks.Count == 1 && topBlock.FramesWritten - topBlock.FramesRead < framesToGet))
-				framesToGet *= 2;
+			if (!exact)
+			{
+				if (!_readyBlocks.TryPeek(out AudioDataBlock? topBlock) || (_readyBlocks.Count == 1 && topBlock.FramesWritten - topBlock.FramesRead < framesToGet))
+					framesToGet *= 2;
+			}
 
 			// Buffer data in advance, so the next update can be as fast as possible (just a copy).
 			BufferDataInAdvance(framesToGet);
