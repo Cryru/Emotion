@@ -537,12 +537,12 @@ namespace Emotion.Audio
 				OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
 				_loopCount = 0;
 				TrackChangedFx(currentTrack, prevTracKPlayHead);
-			}
 
-			// Current changed, but we're not playing. If we don't
-			// drop the cached audio then once we start playing a couple
-			// of frames of the old current will leak.
-			if (currentChanged && Status != PlaybackStatus.Playing) InvalidateAudioBlocks();
+				// Current changed, but we're not playing. If we don't
+				// drop the cached audio then once we start playing a couple
+				// of frames of the old current will leak.
+				if (Status != PlaybackStatus.Playing) InvalidateAudioBlocks();
+			}
 
 			_currentTrack = currentTrack;
 			_nextTrack = nextTrack;

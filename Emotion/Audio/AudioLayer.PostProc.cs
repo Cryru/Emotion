@@ -53,7 +53,7 @@ namespace Emotion.Audio
 			_baseVolumeLastApplied = lastApplied; // Record the base volume applied, as it is possible for the new one to not have applied in a single tick.
 
 			int endSample = sampleStartOffset + framesOutput * channels;
-			if (_fadeOutCrossFadeVol != null && _fadeOutCrossFadeVol.StartSample < endSample)
+			if (_fadeOutCrossFadeVol != null && _fadeOutCrossFadeVol.StartSample < endSample) // Normal track triggered cross fade
 			{
 				_fadeOutCrossFadeVol.SetCrossFadeProps(track, endSample);
 
@@ -63,22 +63,41 @@ namespace Emotion.Audio
 				_fadeInCrossFadeVol = crossFadeEffect;
 				_fadeInVol = null; // Remove fade in.
 			}
-			else if (_fadeInCrossFadeVol != null)
+			else if (_fadeInCrossFadeVol != null) // Cross fade in progress
 			{
 				Debug.Assert(_fadeInCrossFadeVol.Track != null);
 
-				// Get the frames from the track we're cross fading from and merge them with the current.
-				// They'll be modulated to match volumes.
-				int framesGotten = GetProcessedFramesFromTrack(format, _fadeInCrossFadeVol.Track, framesOutput, _internalBufferCrossFade, _fadeInCrossFadeVol.PlayHead, true);
-				_fadeInCrossFadeVol.PlayHead += framesGotten * channels;
-				for (var i = 0; i < framesGotten * channels; i++)
+				bool end = _fadeInCrossFadeVol.EndSample < endSample;
+				var framesGotten = 0;
+				var writeOffset = 0;
+				while (!end && framesGotten < framesOutput)
 				{
-					memory[i] += _internalBufferCrossFade[i];
+					// Get the frames from the track we're cross fading from and merge them with the current.
+					// They'll be modulated to match volumes.
+					framesGotten = GetProcessedFramesFromTrack(format, _fadeInCrossFadeVol.Track, framesOutput, _internalBufferCrossFade, _fadeInCrossFadeVol.PlayHead, true);
+					int samplesGotten = framesGotten * channels;
+					_fadeInCrossFadeVol.PlayHead += samplesGotten;
+					for (var i = 0; i < samplesGotten; i++)
+					{
+						memory[writeOffset + i] += _internalBufferCrossFade[i];
+					}
+
+					writeOffset += samplesGotten;
+
+					// Cross fade track finished
+					if (framesGotten < framesOutput)
+					{
+						// If looping restart.
+						if (_fadeInCrossFadeVol.Looping)
+							_fadeInCrossFadeVol.PlayHead = 0;
+						else // If not lopping end cross fade. This might suck.
+							end = true;
+					}
 				}
 
-				if (framesGotten < framesOutput) _fadeInCrossFadeVol = null;
+				if (end) _fadeInCrossFadeVol = null;
 			}
-			else if (_triggerFadeOutAndStop && _fadeOutTriggered == null)
+			else if (_triggerFadeOutAndStop && _fadeOutTriggered == null) // Triggered fade and stop
 			{
 				int curTrackPlayHead = endSample;
 				AudioTrack curTrack = track;
@@ -99,12 +118,20 @@ namespace Emotion.Audio
 				// Calculate duration samples.
 				float val = _triggerEffectDuration;
 				if (val < 0) val = curTrack.File.Duration * -val;
+				if (!LoopingCurrent) // if not looping, clamp duration to remaining.
+				{
+					float played = (float) endSample / _totalSamplesConv;
+					float playedSeconds = curTrack.File.Duration * played;
+					float timeLeft = curTrack.File.Duration - playedSeconds;
+					if (val > timeLeft)
+						val = timeLeft;
+				}
 				int sampleDur = format.SecondsToFrames(val) * format.Channels;
 
 				var effect = new CrossFadeVolModEffect(1, 0, curTrackPlayHead, curTrackPlayHead + sampleDur, EffectPosition.TrackRelative);
 
 				// If there is a next non-loop track change to it.
-				if (_nextTrack != null && _nextTrack != _currentTrack)
+				if (_nextTrack != null && _playlist.Count > 1)
 				{
 					GoNextTrack(true);
 					effect.SetCrossFadeProps(track, curTrackPlayHead, LoopingCurrent);
@@ -134,10 +161,15 @@ namespace Emotion.Audio
 				{
 					if (_triggeredCrossFadeFadingOut)
 					{
+						// Fade to Next with no next track ended up just fading out.
+						// Go to the next track which would probably be nothing unless
+						// something was added in the very last tick.
 						GoNextTrack(true);
 					}
 					else
 					{
+						// Clear the playlist of the tracks that were in there when
+						// stop with fade was called. More tracks could've been added.
 						Debug.Assert(_triggeredFadeOutStopPlaylist != null);
 						lock (_playlist)
 						{
@@ -147,16 +179,30 @@ namespace Emotion.Audio
 								_playlist.Remove(trackToRemove);
 							}
 						}
+
 						_triggeredFadeOutStopPlaylist.Clear();
 						InvalidateCurrentTrack();
 						UpdateCurrentTrack();
 					}
-					
+
 					_fadeOutTriggered = null;
 				}
-				// A track to crossfade to was added.
-				else if (_triggeredCrossFadeFadingOut && _nextTrack != null && _nextTrack != _currentTrack)
+				// A fade to next started out as just a fade out because there was no next track,
+				// but not a track to crossfade to was added. Switch modes. Switching back is unsupported lol.
+				else if (_triggeredCrossFadeFadingOut && _nextTrack != null && _playlist.Count > 1)
 				{
+					var fadeOutTriggerAsCrossFade = _fadeOutTriggered as CrossFadeVolModEffect;
+					_fadeOutTriggered = null;
+					Debug.Assert(fadeOutTriggerAsCrossFade != null);
+
+					float curVol = fadeOutTriggerAsCrossFade.GetVolumeAt(endSample);
+					fadeOutTriggerAsCrossFade.SetCrossFadeProps(track, endSample, LoopingCurrent);
+					fadeOutTriggerAsCrossFade.StartVolume = curVol;
+
+					GoNextTrack(true);
+					_fadeInVol = null; // Remove fade in as it is going to be part of the crossfade.
+					_fadeInCrossFadeVol = fadeOutTriggerAsCrossFade;
+					fadeOutTriggerAsCrossFade.Pos = EffectPosition.TrackRelative;
 				}
 			}
 
