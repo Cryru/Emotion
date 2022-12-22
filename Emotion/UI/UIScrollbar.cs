@@ -144,7 +144,7 @@ namespace Emotion.UI
 
                 float size = Maths.Map(PageArea, 0, TotalArea, 0, Height);
                 size /= GetScale();
-                size = MathF.Round(size);
+                size = MathF.Ceiling(size);
 
                 _selector.Offset = new Vector2(0, progress);
                 if (!float.IsNaN(size) && _selector.MaxSize.Y != size)
