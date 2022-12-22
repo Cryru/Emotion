@@ -29,7 +29,7 @@ namespace Emotion.Game.World2D
         // Selection and MouseOver
         private GameObject2D? _lastMouseOverObject;
         private bool _objectSelect = true;
-        private List<GameObject2D>? _mouseOverOverlapping;
+        private List<GameObject2D>? _mouseOverOverlapping; // List of objects under the mouse cursor (could be more than one)
         private int _mouseOverIndex = -1; // Index in ^
         private GameObject2D? _objectDragging;
         private Vector2 _objectDragOffset;

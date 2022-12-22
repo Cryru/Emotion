@@ -18,6 +18,7 @@ using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using Emotion.Standard.XML;
 using Emotion.UI;
 using Emotion.Utility;
 
@@ -182,9 +183,25 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// Reset the map as if it was reloaded.
         /// </summary>
-        public void Reset()
+        public virtual async Task Reset()
         {
+            _mapLoadedStarted = false;
+            _worldTree = null;
+            Initialized = false;
 
+            _objectsToRemove.Clear();
+            _objectsToUpdate.Clear();
+            _objectLoading.Clear();
+
+            // Ensure reset is identical to deserialize by serialize-copying objects.
+            // This will clear any initialized values etc.
+            string objectsXML = XMLFormat.To(ObjectsToSerialize);
+            ObjectsToSerialize = XMLFormat.From<List<GameObject2D>>(objectsXML);
+
+            Dispose();
+
+            // todo: should we reset tile data?
+            await InitAsync();
         }
 
         #endregion
