@@ -97,7 +97,7 @@ namespace Emotion.Game.Text
                     Vector2 lineSize = MeasureString(currentLine);
                     if (lineSize.X > longestLine) longestLine = lineSize.X;
                     NeededHeight += MathF.Max(lineHeight, MathF.Floor(lineSize.Y));
-                    Debug.Assert(lineHeight >= lineSize.Y);
+                    Debug.Assert(lineHeight >= MathF.Floor(lineSize.Y));
 
                     // Push new line.
                     if (!lineBreakChar) _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
