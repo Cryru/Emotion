@@ -14,6 +14,7 @@ namespace Emotion.UI
     {
         public bool MultiLine = false;
         public int MaxCharacters = -1;
+        public bool SizeOfText = false;
 
         private bool _cursorOn;
         private Every _blinkingTimer;
@@ -78,10 +79,10 @@ namespace Emotion.UI
             float scale = GetScale();
             _scaledCursorDistance = 1 * scale;
 
-            base.InternalMeasure(space);
+            Vector2 textSize = base.InternalMeasure(space);
+            if (SizeOfText) return textSize;
 
-            if (!MultiLine && _atlas != null) return new Vector2(space.X, _atlas.FontHeight);
-            return space;
+            return new Vector2(space.X, MultiLine ? space.Y : textSize.Y);
         }
 
         protected override bool UpdateInternal()
