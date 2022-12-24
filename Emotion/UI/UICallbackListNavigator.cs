@@ -104,8 +104,8 @@ namespace Emotion.UI
 		{
 			Vector2 measuredSize = _measuredSize;
 
-			//// Make area as big as the children shown. Might look weird if all children are not the same size.
-			//// This will also tell us how big the page size is.
+			// Make area as big as the children shown. Might look weird if all children are not the same size.
+			// This will also tell us how big the page size is.
 			float spaceTaken = 0;
 			if (Children != null)
 			{
@@ -239,18 +239,6 @@ namespace Emotion.UI
 						break;
 					}
 				}
-
-			// todo: horizontal
-			if (_scrollBar != null)
-			{
-				//float spaceTaken = _scrollArea.Height > _fullSize.Y ? Height : _fullSize.Y;
-				//spaceTaken /= GetScale();
-				//if (spaceTaken != _scrollBar.MaxSize.Y)
-				//{
-				//	_scrollBar.MaxSize = new Vector2(_scrollBar.MaxSize.X, spaceTaken);
-				//	_scrollBar.InvalidateLayout();
-				//}
-			}
 
 			// Restore or reset scroll.
 			if (!ScrollToPos(_scrollPos) && !ScrollToPos(Vector2.Zero))
@@ -415,6 +403,11 @@ namespace Emotion.UI
 			else
 				ScrollToPos(_scrollPos + new Vector2(0, 1));
 
+			// If scrolling invalidate the mouse cache as something else will scroll under.
+			_lastMousePos = Vector2.Zero;
+			_renderBoundsCalculatedFrom = Rectangle.Empty;
+			_renderBounds = Rectangle.Empty;
+
 			// Debug code to check if all windows are the same distance from each other.
 			//UIBaseWindow? lastChild = null;
 			//foreach (KeyValuePair<Vector2, UIBaseWindow> child in _gridPosToChild)
@@ -545,8 +538,13 @@ namespace Emotion.UI
 				}
 			}
 
-			_lastMousePos = pos;
-			_lastResult = focus;
+			// Cache mouse target only if calculation is done.
+			// It is done so that moving the selection via buttons isn't overriden by the mouse.
+			if (_renderBoundsCalculatedFrom != Rectangle.Empty)
+			{
+				_lastMousePos = pos;
+				_lastResult = focus;
+			}
 
 			if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) return _scrollBar;
 			return focus;
