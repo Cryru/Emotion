@@ -61,7 +61,7 @@ namespace Emotion.Game.World2D
             if (!_objects.Remove(obj)) return;
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObjectRoot(obj);
+                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObjectRoot(obj);
             }
         }
 
@@ -72,7 +72,7 @@ namespace Emotion.Game.World2D
         {
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.UpdateObject(obj);
+                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.UpdateObject(obj);
             }
         }
 

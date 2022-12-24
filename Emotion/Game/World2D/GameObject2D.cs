@@ -15,6 +15,11 @@ namespace Emotion.Game.World2D
     public class GameObject2D : Transform
     {
         /// <summary>
+        /// The unique id of the object. Is assigned when added to the map.
+        /// </summary>
+        public int UniqueId;
+
+        /// <summary>
         /// The object's name. Should be unique map-wide, but
         /// isn't actually enforced.
         /// </summary>
@@ -110,6 +115,7 @@ namespace Emotion.Game.World2D
         /// </summary>
         public virtual void Destroy()
         {
+	        Map = null;
         }
 
         protected override void Moved()
@@ -170,11 +176,12 @@ namespace Emotion.Game.World2D
         public virtual void PreMapEditorSave()
         {
             // you can prepare the obj for serialization here.
+            UniqueId = 0;
         }
 
         public override string ToString()
         {
-            return $"{GetType().Name} {base.ToString()}";
+            return $"{UniqueId} {ObjectName} {GetType().Name} {base.ToString()}";
         }
     }
 }

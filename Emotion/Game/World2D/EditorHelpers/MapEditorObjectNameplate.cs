@@ -21,7 +21,7 @@ namespace Emotion.Game.World2D.EditorHelpers
             StretchX = true;
             StretchY = true;
             Anchor = UIAnchor.BottomCenter;
-            ParentAnchor = UIAnchor.TopCenter;
+            ParentAnchor = UIAnchor.TopLeft;
             ZOffset = -10;
             InputTransparent = false;
 
@@ -47,7 +47,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
         public override Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
         {
-            parentSize = Object.Bounds.Size * GetScale();
+            parentSize = _measuredSize;
             return base.CalculateContentPos(parentPos, parentSize, parentScaledPadding);
         }
 
@@ -64,7 +64,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 
         protected override bool UpdateInternal()
         {
-            AttachToPosition(Object.Bounds.Position.ToVec3());
+            AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
+
             _label.Text = $"{(Object.ObjectName ?? "null")}{(Object.ObjectState != ObjectState.Alive ? " (Unspawned)" : "")}";
             return base.UpdateInternal();
         }

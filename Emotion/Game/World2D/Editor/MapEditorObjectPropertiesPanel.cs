@@ -1,181 +1,315 @@
 ﻿#region Using
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Primitives;
+using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Game.World2D
 {
-    internal class MapEditorObjectPropertiesPanel : MapEditorPanel
-    {
-        public GameObject2D Object;
+	public sealed class MapEditorObjectPropertiesPanel : MapEditorPanel
+	{
+		public GameObject2D Object;
+		public int ObjectUId;
+		public Map2D ObjectMap;
 
-        private List<EditorUtility.TypeAndFieldHandlers> _fields;
-        private UIBaseWindow _openEditor;
-        private XMLFieldHandler _openEditorHandler;
+		private Action<GameObject2D> _objectChangedCallback;
+		private List<EditorUtility.TypeAndFieldHandlers> _fields;
+		private UIBaseWindow? _openEditor;
+		private XMLFieldHandler? _openEditorHandler;
+		private Action? _editConfirmCallback;
 
-        public MapEditorObjectPropertiesPanel(GameObject2D obj) : base($"{obj.ObjectName ?? obj.GetHashCode().ToString()} Properties")
-        {
-            Object = obj;
-            _fields = EditorUtility.GetTypeFields(obj);
-        }
+		private bool _objectReferenceInvalidated;
 
-        public override void AttachedToController(UIController controller)
-        {
-            base.AttachedToController(controller);
+		public MapEditorObjectPropertiesPanel(GameObject2D obj, Action<GameObject2D> objectChangeCallback) : base("Properties")
+		{
+			Object = obj;
+			ObjectUId = Object.UniqueId;
+			ObjectMap = Object.Map;
 
-            UIBaseWindow contentWin = _contentParent;
-            contentWin.InputTransparent = false;
+			_objectChangedCallback = objectChangeCallback;
+			_fields = EditorUtility.GetTypeFields(obj);
+		}
 
-            UIBaseWindow innerContainer = new UIBaseWindow();
-            innerContainer.StretchX = true;
-            innerContainer.StretchY = true;
-            innerContainer.InputTransparent = false;
-            innerContainer.LayoutMode = LayoutMode.VerticalList;
-            innerContainer.ListSpacing = new Vector2(0, 3);
-            innerContainer.ChildrenAllSameWidth = true;
-            contentWin.AddChild(innerContainer);
+		public override void AttachedToController(UIController controller)
+		{
+			Header = $"{Object.ObjectName ?? "Object"} [{ObjectUId}] Properties";
 
-            var listContainer = new UIBaseWindow();
-            listContainer.StretchX = true;
-            listContainer.StretchY = true;
-            listContainer.InputTransparent = false;
-            innerContainer.AddChild(listContainer);
+			base.AttachedToController(controller);
 
-            var listNav = new UICallbackListNavigator();
-            listNav.LayoutMode = LayoutMode.VerticalList;
-            listNav.StretchX = true;
-            listNav.ListSpacing = new Vector2(0, 1);
-            listNav.Margins = new Rectangle(0, 0, 10, 0);
-            listNav.MinSize = new Vector2(100, 200);
-            listNav.MaxSize = new Vector2(9999, 200);
-            listNav.InputTransparent = false;
-            listNav.ChildrenAllSameWidth = true;
-            listContainer.AddChild(listNav);
+			UIBaseWindow contentWin = _contentParent;
+			contentWin.InputTransparent = false;
 
-            var scrollBar = new UIScrollbar();
-            scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
-            scrollBar.SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
-            scrollBar.WindowColor = Color.Black * 0.5f;
-            scrollBar.Anchor = UIAnchor.TopRight;
-            scrollBar.ParentAnchor = UIAnchor.TopRight;
-            scrollBar.MinSize = new Vector2(5, 0);
-            scrollBar.MaxSize = new Vector2(5, 999);
-            listNav.SetScrollbar(scrollBar);
-            listContainer.AddChild(scrollBar);
+			var innerContainer = new UIBaseWindow();
+			innerContainer.StretchX = true;
+			innerContainer.StretchY = true;
+			innerContainer.InputTransparent = false;
+			innerContainer.LayoutMode = LayoutMode.VerticalList;
+			innerContainer.ListSpacing = new Vector2(0, 3);
+			innerContainer.ChildrenAllSameWidth = true;
+			contentWin.AddChild(innerContainer);
 
-            for (int i = 0; i < _fields.Count; i++)
-            {
-                var fieldGroup = _fields[i];
+			var statusLabel = new UIText();
+			statusLabel.ScaleMode = UIScaleMode.FloatScale;
+			statusLabel.WindowColor = MapEditorColorPalette.TextColor;
+			statusLabel.FontFile = "Editor/UbuntuMono-Regular.ttf";
+			statusLabel.FontSize = MapEditorColorPalette.EditorButtonTextSize;
 
-                UIBaseWindow fieldGroupHeaderContainer = new UIBaseWindow();
-                fieldGroupHeaderContainer.InputTransparent = false;
-                fieldGroupHeaderContainer.StretchX = true;
-                fieldGroupHeaderContainer.StretchY = true;
+			var statusText = Object.ObjectState.ToString();
+			if (Object.MapFlags.HasFlag(Map2DObjectFlags.Serializable)) statusText += ", Serialized";
+			statusLabel.Text = statusText;
 
-                var fieldGroupHeader = new UIText();
-                fieldGroupHeader.ScaleMode = UIScaleMode.FloatScale;
-                fieldGroupHeader.WindowColor = MapEditorColorPalette.TextColor;
-                fieldGroupHeader.FontFile = "Editor/UbuntuMono-Regular.ttf";
-                fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
-                fieldGroupHeader.Underline = true;
-                fieldGroupHeader.IgnoreParentColor = true;
-                fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
-                fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
+			innerContainer.AddChild(statusLabel);
 
-                listNav.AddChild(fieldGroupHeaderContainer);
+			var listContainer = new UIBaseWindow();
+			listContainer.StretchX = true;
+			listContainer.StretchY = true;
+			listContainer.InputTransparent = false;
+			innerContainer.AddChild(listContainer);
 
-                for (var j = 0; j < fieldGroup.Fields.Count; j++)
-                {
-                    XMLFieldHandler field = fieldGroup.Fields[j];
+			var listNav = new UICallbackListNavigator();
+			listNav.LayoutMode = LayoutMode.VerticalList;
+			listNav.StretchX = true;
+			listNav.ListSpacing = new Vector2(0, 1);
+			listNav.Margins = new Rectangle(0, 0, 10, 0);
+			listNav.InputTransparent = false;
+			listNav.ChildrenAllSameWidth = true;
+			listContainer.AddChild(listNav);
 
-                    var fieldEditorContainer = new UIBaseWindow();
-                    fieldEditorContainer.InputTransparent = false;
-                    fieldEditorContainer.StretchX = true;
-                    fieldEditorContainer.StretchY = true;
-                    fieldEditorContainer.Margins = new Rectangle(3, 0, 0, 0);
-                    fieldEditorContainer.LayoutMode = LayoutMode.HorizontalList;
-                    fieldEditorContainer.ListSpacing = new Vector2(5, 0);
+			var scrollBar = new UIScrollbar();
+			scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
+			scrollBar.SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
+			scrollBar.WindowColor = Color.Black * 0.5f;
+			scrollBar.Anchor = UIAnchor.TopRight;
+			scrollBar.ParentAnchor = UIAnchor.TopRight;
+			scrollBar.MinSize = new Vector2(5, 0);
+			scrollBar.MaxSize = new Vector2(5, 9999);
+			listNav.SetScrollbar(scrollBar);
+			listContainer.AddChild(scrollBar);
 
-                    var label = new UIText();
-                    label.ScaleMode = UIScaleMode.FloatScale;
-                    label.WindowColor = MapEditorColorPalette.TextColor;
-                    label.FontFile = "Editor/UbuntuMono-Regular.ttf";
-                    label.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-                    label.IgnoreParentColor = true;
-                    label.Anchor = UIAnchor.CenterLeft;
-                    label.ParentAnchor = UIAnchor.CenterLeft;
-                    label.Text = field.Name + ": ";
-                    label.MinSize = new Vector2(50, 0);
-                    fieldEditorContainer.AddChild(label);
+			for (var i = 0; i < _fields.Count; i++)
+			{
+				EditorUtility.TypeAndFieldHandlers fieldGroup = _fields[i];
 
-                    SpawnEditorButton(field, fieldEditorContainer);
-                    
-                    listNav.AddChild(fieldEditorContainer);
-                }
-            }
-        }
+				var fieldGroupHeaderContainer = new UIBaseWindow();
+				fieldGroupHeaderContainer.InputTransparent = false;
+				fieldGroupHeaderContainer.StretchX = true;
+				fieldGroupHeaderContainer.StretchY = true;
 
-        protected override bool UpdateInternal()
-        {
-            UIBaseWindow focus = Controller?.InputFocus;
-            if (_openEditor != null && focus != null && !focus.IsWithin(this)) FieldExitEditor();
+				var fieldGroupHeader = new UIText();
+				fieldGroupHeader.ScaleMode = UIScaleMode.FloatScale;
+				fieldGroupHeader.WindowColor = MapEditorColorPalette.TextColor;
+				fieldGroupHeader.FontFile = "Editor/UbuntuMono-Regular.ttf";
+				fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
+				fieldGroupHeader.Underline = true;
+				fieldGroupHeader.IgnoreParentColor = true;
+				fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
+				fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
 
-            return base.UpdateInternal();
-        }
+				listNav.AddChild(fieldGroupHeaderContainer);
 
-        private void FieldEnterEditor(XMLFieldHandler field, UIBaseWindow fieldEditor)
-        {
-            if (_openEditor != null) FieldExitEditor();
+				for (var j = 0; j < fieldGroup.Fields.Count; j++)
+				{
+					XMLFieldHandler field = fieldGroup.Fields[j];
 
-            UIController controller = Controller;
+					// todo: map editor readonly property
+					// todo: map editor hidden property (like uniqueId)
+					if (field.Name == "UniqueId") continue;
 
-            UIBaseWindow button = fieldEditor.GetWindowById("EditorButton");
-            Debug.Assert(button != null);
-            if (button != null) fieldEditor.RemoveChild(button);
+					var fieldEditorContainer = new UIBaseWindow();
+					fieldEditorContainer.InputTransparent = false;
+					fieldEditorContainer.StretchX = true;
+					fieldEditorContainer.StretchY = true;
+					fieldEditorContainer.Margins = new Rectangle(3, 0, 0, 0);
+					fieldEditorContainer.LayoutMode = LayoutMode.HorizontalList;
+					fieldEditorContainer.ListSpacing = new Vector2(5, 0);
 
-            var textInput = new UITextInput();
-            textInput.Text = (field.ReflectionInfo.GetValue(Object) ?? "null").ToString();
-            textInput.WindowColor = MapEditorColorPalette.TextColor;
-            textInput.FontFile = "Editor/UbuntuMono-Regular.ttf";
-            textInput.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-            textInput.MinSize = new Vector2(40, 0);
-            textInput.Margins = new Rectangle(2, 1, 2, 1);
-            textInput.Id = "EditorFieldEditor";
+					var label = new UIText();
+					label.ScaleMode = UIScaleMode.FloatScale;
+					label.WindowColor = MapEditorColorPalette.TextColor;
+					label.FontFile = "Editor/UbuntuMono-Regular.ttf";
+					label.FontSize = MapEditorColorPalette.EditorButtonTextSize;
+					label.IgnoreParentColor = true;
+					label.Anchor = UIAnchor.CenterLeft;
+					label.ParentAnchor = UIAnchor.CenterLeft;
+					label.Text = field.Name + ": ";
+					label.MinSize = new Vector2(50, 0);
+					fieldEditorContainer.AddChild(label);
 
-            fieldEditor.AddChild(textInput);
-            controller?.SetInputFocus(textInput);
+					SpawnEditorButton(field, fieldEditorContainer);
 
-            _openEditor = fieldEditor;
-            _openEditorHandler = field;
-        }
+					listNav.AddChild(fieldEditorContainer);
+				}
+			}
+		}
 
-        private void FieldExitEditor()
-        {
-            UIBaseWindow button = _openEditor.GetWindowById("EditorFieldEditor");
-            Debug.Assert(button != null);
-            if (button != null) _openEditor.RemoveChild(button);
+		protected override bool UpdateInternal()
+		{
+			UIBaseWindow? focus = Controller?.InputFocus;
+			if (_openEditor != null && focus != null && !focus.IsWithin(this)) FieldExitEditor();
 
-            SpawnEditorButton(_openEditorHandler, _openEditor);
+			if (_objectReferenceInvalidated)
+			{
+				ObjectReferenceUpdated();
+				_objectReferenceInvalidated = false;
+				return false;
+			}
 
-            _openEditor = null;
-            _openEditorHandler = null;
-        }
+			return base.UpdateInternal();
+		}
 
-        private void SpawnEditorButton(XMLFieldHandler field, UIBaseWindow fieldEditor)
-        {
-            var editorButton = new MapEditorTopBarButton();
-            editorButton.Text = (field.ReflectionInfo.GetValue(Object) ?? "null").ToString();
-            editorButton.StretchY = true;
-            editorButton.OnClickedProxy = _ => { FieldEnterEditor(field, fieldEditor); };
-            editorButton.Id = "EditorButton";
-            fieldEditor.AddChild(editorButton);
-        }
-    }
+		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+		{
+			if (key == Key.Enter && status == KeyStatus.Down && _openEditor != null) _editConfirmCallback?.Invoke();
+			if (key == Key.Escape && status == KeyStatus.Down && _openEditor != null) FieldExitEditor();
+
+			return base.OnKey(key, status, mousePos);
+		}
+
+		private void FieldEnterEditor(XMLFieldHandler field, UIBaseWindow fieldEditor)
+		{
+			if (_openEditor != null) FieldExitEditor();
+
+			UIBaseWindow? button = fieldEditor.GetWindowById("EditorButton");
+			Debug.Assert(button != null);
+			if (button != null) fieldEditor.RemoveChild(button);
+
+			// todo: Insert switch for different types based on field
+
+			UISolidColor editorBg = new UISolidColor();
+			editorBg.StretchX = true;
+			editorBg.StretchY = true;
+			editorBg.WindowColor = Color.Black * 0.7f;
+			editorBg.Id = "EditorFieldEditor";
+			editorBg.InputTransparent = false;
+			fieldEditor.AddChild(editorBg);
+
+			object? propertyValue = field.ReflectionInfo.GetValue(Object);
+			var defaultTextValue = (propertyValue ?? "null").ToString()!;
+			string editorValue = defaultTextValue;
+			if (propertyValue == null) editorValue = "";
+
+			var invisibleTextStretch = new UIText();
+			invisibleTextStretch.WindowColor = new Color(230, 230, 230, 100);
+			invisibleTextStretch.Text = defaultTextValue;
+			invisibleTextStretch.FontFile = "Editor/UbuntuMono-Regular.ttf";
+			invisibleTextStretch.FontSize = MapEditorColorPalette.EditorButtonTextSize;
+			invisibleTextStretch.Margins = new Rectangle(2, 1, 2, 1);
+			invisibleTextStretch.IgnoreParentColor = true;
+			editorBg.AddChild(invisibleTextStretch);
+
+			var textInput = new UITextInput();
+			textInput.Text = editorValue;
+			textInput.WindowColor = MapEditorColorPalette.TextColor;
+			textInput.FontFile = "Editor/UbuntuMono-Regular.ttf";
+			textInput.FontSize = MapEditorColorPalette.EditorButtonTextSize;
+			textInput.SizeOfText = true;
+			textInput.Margins = new Rectangle(2, 1, 2, 1);
+			textInput.IgnoreParentColor = true;
+
+			_editConfirmCallback = () =>
+			{
+				string? text = textInput.Text;
+				if (field.TypeHandler.Type == typeof(string)) ApplyObjectChange(field, text);
+			};
+
+			editorBg.AddChild(textInput);
+			Controller?.SetInputFocus(textInput);
+
+			_openEditor = fieldEditor;
+			_openEditorHandler = field;
+		}
+
+		private void FieldExitEditor()
+		{
+			if (_openEditorHandler == null || _openEditor == null) return;
+
+			UIBaseWindow? button = _openEditor.GetWindowById("EditorFieldEditor");
+			Debug.Assert(button != null);
+			if (button != null) _openEditor.RemoveChild(button);
+
+			SpawnEditorButton(_openEditorHandler, _openEditor);
+
+			_openEditor = null;
+			_openEditorHandler = null;
+			_editConfirmCallback = null;
+
+			Controller?.SetInputFocus(this);
+		}
+
+		private void SpawnEditorButton(XMLFieldHandler field, UIBaseWindow fieldEditor)
+		{
+			var editorButton = new MapEditorTopBarButton();
+			editorButton.Text = (field.ReflectionInfo.GetValue(Object) ?? "null").ToString();
+			editorButton.StretchY = true;
+			editorButton.OnClickedProxy = _ => { FieldEnterEditor(field, fieldEditor); };
+			editorButton.Id = "EditorButton";
+			fieldEditor.AddChild(editorButton);
+		}
+
+		public void ApplyObjectChange(XMLFieldHandler field, object value)
+		{
+			GameObject2D oldObject = Object;
+			Map2D objectMap = oldObject.Map;
+
+			Debug.Assert(objectMap != null);
+
+			// Save the id.
+			int id = oldObject.UniqueId;
+			oldObject.PreMapEditorSave();
+			oldObject.UniqueId = id;
+			_objectChangedCallback(oldObject);
+			objectMap.RemoveObject(Object, true);
+
+			// Keep parity with UndoAction
+			string? objectAsData = XMLFormat.To(oldObject);
+			var newObject = XMLFormat.From<GameObject2D>(objectAsData);
+
+			if (oldObject.MapFlags.HasFlag(Map2DObjectFlags.Serializable))
+				newObject.MapFlags = Map2DObjectFlags.Serializable;
+
+			field.ReflectionInfo.SetValue(newObject, value);
+			objectMap.AddObject(newObject);
+		}
+
+		public void InvalidateObjectReference()
+		{
+			_objectReferenceInvalidated = true;
+		}
+
+		private void ObjectReferenceUpdated()
+		{
+			FieldExitEditor();
+
+			// Try to find the object we were showing.
+			GameObject2D? newObjectReference = null;
+			foreach (GameObject2D obj in ObjectMap.GetObjects())
+			{
+				if (obj.UniqueId == ObjectUId)
+				{
+					newObjectReference = obj;
+					break;
+				}
+			}
+
+			if (newObjectReference == null)
+			{
+				Controller?.RemoveChild(this);
+				return;
+			}
+
+			Debug.Assert(newObjectReference.GetType() == Object.GetType());
+			Object = newObjectReference;
+
+			UIBaseWindow? parent = Parent;
+			parent!.RemoveChild(this);
+			ClearChildren(); // Clear old ui.
+			parent.AddChild(this); // Reattaching will cause the new ui to spawn.
+		}
+	}
 }

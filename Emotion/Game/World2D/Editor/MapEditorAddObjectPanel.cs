@@ -13,7 +13,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D
 {
-    public class MapEditorAddObjectPanel : MapEditorPanel
+    public sealed class MapEditorAddObjectPanel : MapEditorPanel
     {
         private Action<Type> _addObjectCallback;
 
@@ -24,10 +24,12 @@ namespace Emotion.Game.World2D
 
         public override void AttachedToController(UIController controller)
         {
+	        base.AttachedToController(controller);
+
             UIBaseWindow contentWin = _contentParent;
             contentWin.InputTransparent = false;
 
-            UIBaseWindow innerContainer = new UIBaseWindow();
+            var innerContainer = new UIBaseWindow();
             innerContainer.StretchX = true;
             innerContainer.StretchY = true;
             innerContainer.InputTransparent = false;
@@ -87,8 +89,6 @@ namespace Emotion.Game.World2D
             scrollBar.MaxSize = new Vector2(5, 999);
             listNav.SetScrollbar(scrollBar);
             listContainer.AddChild(scrollBar);
-
-            base.AttachedToController(controller);
         }
     }
 }
