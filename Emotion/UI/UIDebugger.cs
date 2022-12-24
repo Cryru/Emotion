@@ -24,7 +24,9 @@ namespace Emotion.UI
 
     public class UIDebugger
     {
-        private UIDebugNode? _debugNodeRoot;
+        public UIBaseWindow DebugThisWindow;
+	    
+	    private UIDebugNode? _debugNodeRoot;
         private Dictionary<UIBaseWindow, UIDebugNode>? _windowToNode;
 
         public UIDebugNode? GetMetricsForWindow(UIBaseWindow window)
