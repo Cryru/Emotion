@@ -147,6 +147,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
             {
                 DrawableGlyph glyph = glyphsMissingReferences[i];
                 glyph.GlyphUV.Location = new Vector2(glyph.GlyphUV.X, bufferHeight - glyph.GlyphUV.Bottom);
+                glyph.GlyphUV.Location = glyph.GlyphUV.Location.RoundClosest();
+                glyph.GlyphUV.Size = glyph.GlyphUV.Size.RoundClosest();
 
                 DrawableGlyph g = glyphsMissing[i];
                 g.GlyphUV = glyph.GlyphUV;
