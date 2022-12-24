@@ -57,6 +57,7 @@ namespace Emotion.Graphics.Text
             XAdvance = g.AdvanceWidth * scale;
             XBearing = g.LeftSideBearing * scale;
             Descent = g.Min.Y * scale;
+            if (Descent > 0) Descent = 0;
         }
 
         public override string ToString()
