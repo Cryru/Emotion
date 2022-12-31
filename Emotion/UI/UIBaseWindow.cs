@@ -255,13 +255,13 @@ namespace Emotion.UI
 			}
 		}
 
-		public virtual void RemoveChild(UIBaseWindow win, bool evict = true)
+		public virtual void RemoveChild(UIBaseWindow child, bool evict = true)
 		{
 			if (Children == null) return;
-			Debug.Assert(win.Parent == this);
+			Debug.Assert(child.Parent == this);
 
-			if (evict) Children.Remove(win);
-			if (Controller != null) win.DetachedFromController(Controller);
+			if (evict) Children.Remove(child);
+			if (Controller != null) child.DetachedFromController(Controller);
 		}
 
 		public virtual void ClearChildren()
