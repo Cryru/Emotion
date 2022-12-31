@@ -122,7 +122,7 @@ namespace Emotion.Game.Text
         /// </summary>
         public Vector2 MeasureString(string text)
         {
-            var sizeSoFar = new Vector2(0, 0);
+	        var sizeSoFar = new Vector2(0, 0);
             float largestLine = 0;
             float tallestOnLine = 0;
             for (var i = 0; i < text.Length; i++)
@@ -137,8 +137,8 @@ namespace Emotion.Game.Text
                     tallestOnLine = 0;
                 }
 
-                // Spaces on the end of lines are not counted.
-                if (!MeasureTrailingWhiteSpace && c == ' ' && (i == text.Length - 1 || text[i + 1] == '\n')) continue;
+                // Spaces on the end of lines are not counted. Unless the whole text is a space.
+                if (!MeasureTrailingWhiteSpace && c == ' ' && (i == text.Length - 1 || text[i + 1] == '\n') && text.Length != 1) continue;
 
                 Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out DrawableGlyph g);
                 sizeSoFar = pos;
@@ -162,8 +162,8 @@ namespace Emotion.Game.Text
         /// </summary>
         public void MeasureStringsHeight(string text, out float largestHeight, out float smallestHeight, out float fontYOffset)
         {
-            fontYOffset = _atlas.Ascent;
-            largestHeight = 0;
+	        fontYOffset = _atlas.Ascent;
+	        largestHeight = 0;
             smallestHeight = float.MaxValue;
             for (var i = 0; i < text.Length; i++)
             {
@@ -171,9 +171,6 @@ namespace Emotion.Game.Text
 
                 // If going on a new line, stop checking and return current height.
                 if (c == '\n') return;
-
-                // Skip space as it has wacky height.
-                if (c == ' ') continue;
 
                 if (!_atlas.Glyphs.TryGetValue(c, out DrawableGlyph g))
                 {
