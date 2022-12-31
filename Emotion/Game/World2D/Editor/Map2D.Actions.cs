@@ -62,9 +62,6 @@ namespace Emotion.Game.World2D
 				string oldDataAsXML = XMLFormat.To(OldData);
 				var oldDataRecreated = XMLFormat.From<GameObject2D>(oldDataAsXML);
 
-				if (OldData.MapFlags.HasFlag(Map2DObjectFlags.Serializable))
-					oldDataRecreated.MapFlags = Map2DObjectFlags.Serializable;
-
 				map.AddObject(oldDataRecreated);
 			}
 		}

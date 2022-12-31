@@ -131,7 +131,7 @@ namespace Emotion.Game.World2D
 				if (!obj.ShouldSpawnSerializedObject(this)) continue;
 
 				AddObject(obj);
-				obj.MapFlags |= Map2DObjectFlags.Serializable; // Flags aren't saved, so we need to apply it.
+				obj.ObjectFlags |= ObjectFlags.Serializable; // Flag it in case it isn't flagged.
 			}
 
 			_loadingSerializedObjects = false;
@@ -253,7 +253,7 @@ namespace Emotion.Game.World2D
 			}
 
 #endif
-			if (obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable) && !_loadingSerializedObjects)
+			if (obj.ObjectFlags.HasFlag(ObjectFlags.Serializable) && !_loadingSerializedObjects)
 			{
 				Debug.Assert(!ObjectsToSerialize.Contains(obj));
 				ObjectsToSerialize.Add(obj);

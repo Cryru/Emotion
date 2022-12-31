@@ -115,7 +115,7 @@ namespace Emotion.Game.World2D
 
                         if (obj != null)
                         {
-                            obj.MapFlags |= Map2DObjectFlags.Serializable;
+	                        obj.ObjectFlags |= ObjectFlags.Serializable;
                             newMap.AddObject(obj);
                         }
                     }

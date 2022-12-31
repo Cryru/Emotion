@@ -61,7 +61,12 @@ namespace Emotion.Game.World2D
 			statusLabel.FontSize = MapEditorColorPalette.EditorButtonTextSize;
 
 			var statusText = Object.ObjectState.ToString();
-			if (Object.MapFlags.HasFlag(Map2DObjectFlags.Serializable)) statusText += ", Serialized";
+			ObjectFlags[]? objectFlags = Enum.GetValues<ObjectFlags>();
+			for (var i = 0; i < objectFlags.Length; i++)
+			{
+				ObjectFlags flag = objectFlags[i];
+				if (Object.ObjectFlags.HasFlag(flag)) statusText += $", {flag}";
+			}
 			statusLabel.Text = statusText;
 
 			innerContainer.AddChild(statusLabel);
@@ -269,9 +274,6 @@ namespace Emotion.Game.World2D
 			// Keep parity with UndoAction
 			string? objectAsData = XMLFormat.To(oldObject);
 			var newObject = XMLFormat.From<GameObject2D>(objectAsData);
-
-			if (oldObject.MapFlags.HasFlag(Map2DObjectFlags.Serializable))
-				newObject.MapFlags = Map2DObjectFlags.Serializable;
 
 			field.ReflectionInfo.SetValue(newObject, value);
 			objectMap.AddObject(newObject);

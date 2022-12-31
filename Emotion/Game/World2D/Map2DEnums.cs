@@ -11,8 +11,15 @@ namespace Emotion.Game.World2D
     {
         None = 0,
 
-        UpdateWorldTree = 2 << 0,
-        Serializable = 2 << 1,
+        UpdateWorldTree = 2 << 0, // The object moved or resized.
+    }
+
+    [Flags]
+    public enum ObjectFlags : uint
+    {
+        None = 0,
+
+        Serializable = 2 << 0 // The object is part of the map file.
     }
 
     public enum ObjectState : byte

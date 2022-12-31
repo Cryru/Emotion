@@ -30,6 +30,11 @@ namespace Emotion.Game.World2D
         /// </summary>
         public Color Tint { get; set; } = Color.White;
 
+        /// <summary>
+        /// Flags that specify systemtic treatment of the object.
+        /// </summary>
+        public ObjectFlags ObjectFlags { get; set; }
+
         #region Runtime
 
         /// <summary>

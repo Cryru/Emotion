@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using Emotion.Game.Text;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
@@ -23,7 +24,6 @@ namespace Emotion.Game.World2D
 			topBar.ScaleMode = UIScaleMode.FloatScale;
 			topBar.WindowColor = MapEditorColorPalette.BarColor;
 			topBar.InputTransparent = false;
-			topBar.ZOffset = 100; // Above dropdown click eater, but below dropdown.
 			topBar.Id = "TopBar";
 
 			var mapName = new UIText();
@@ -58,112 +58,43 @@ namespace Emotion.Game.World2D
 			return topBar;
 		}
 
-		private class DropDownButtonDescription
+		private MapEditorTopBarButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)
 		{
-			public string Name = null!;
-			public Action<MapEditorTopBarButton>? Click;
-			public Func<bool>? Enabled;
-		}
+			// todo: maybe the drop down exclusivity logic should be handled by the top bar or some kind of parent ui.
+			// though either way a SetDropDownMode function will need to exist on buttons to change their style.
 
-		private void SpawnDropDown(MapEditorTopBarButton button, DropDownButtonDescription[] menuButtons)
-		{
-			var dropDownWin = new UIDropDown();
-			dropDownWin.InputTransparent = false;
-			dropDownWin.WindowColor = MapEditorColorPalette.ActiveButtonColor;
-			dropDownWin.Anchor = UIAnchor.TopLeft;
-			dropDownWin.ParentAnchor = UIAnchor.BottomLeft;
-			dropDownWin.StretchX = true;
-			dropDownWin.StretchY = true;
-			dropDownWin.Offset = new Vector2(-5, 1);
-
-			var innerBg = new UISolidColor();
-			innerBg.IgnoreParentColor = true;
-			innerBg.InputTransparent = false;
-			innerBg.WindowColor = MapEditorColorPalette.BarColor.SetAlpha(255);
-			innerBg.StretchX = true;
-			innerBg.StretchY = true;
-			innerBg.Paddings = new Rectangle(3, 3, 3, 3);
-
-			dropDownWin.AddChild(innerBg);
-
-			var list = new UICallbackListNavigator();
-			list.IgnoreParentColor = true;
-			list.LayoutMode = LayoutMode.VerticalList;
-			list.InputTransparent = false;
-			list.StretchX = true;
-			list.StretchY = true;
-			list.ChildrenAllSameWidth = true;
-			list.ListSpacing = new Vector2(0, 2);
-
-			for (var i = 0; i < menuButtons.Length; i++)
-			{
-				DropDownButtonDescription buttonMeta = menuButtons[i];
-
-				var ddButton = new MapEditorTopBarButton();
-				ddButton.StretchX = true;
-				ddButton.StretchY = true;
-				ddButton.InputTransparent = false;
-				ddButton.Text = buttonMeta.Name;
-				ddButton.MinSize = new Vector2(50, 0);
-				ddButton.OnClickedProxy = _ =>
-				{
-					if (buttonMeta.Click == null) return;
-					if (buttonMeta.Enabled != null)
-					{
-						bool enabled = buttonMeta.Enabled();
-						if (!enabled) return;
-					}
-
-					buttonMeta.Click(ddButton);
-				};
-				ddButton.Enabled = buttonMeta.Enabled?.Invoke() ?? true;
-
-				list.AddChild(ddButton);
-			}
-
-			innerBg.AddChild(list);
-
-			dropDownWin.RelativeTo = $"button{button.Text}";
-			_topBarDropDown = dropDownWin;
-			_dropDownOpen = button;
-
-			List<UIBaseWindow> siblings = button.Parent!.Children!;
-			for (var i = 0; i < siblings.Count; i++)
-			{
-				UIBaseWindow child = siblings[i];
-				if (child is MapEditorTopBarButton but) but.SetDropDownMode(child == button, dropDownWin);
-			}
-
-			button.Controller!.AddChild(dropDownWin);
-		}
-
-		private MapEditorTopBarButton DropDownButton(string label, DropDownButtonDescription[] menuButtons)
-		{
 			var button = new MapEditorTopBarButton();
+
+			void SpawnDropDown()
+			{
+				bool openOnMe = _editUI?.DropDown?.OwningObject == button;
+				_editUI?.RemoveChild(_editUI.DropDown);
+				if (openOnMe) return;
+
+				var dropDownWin = new MapEditorDropdown();
+				dropDownWin.ParentAnchor = UIAnchor.BottomLeft;
+				dropDownWin.OwningObject = button;
+				dropDownWin.SetItems(menuButtons);
+
+				dropDownWin.RelativeTo = $"button{button.Text}";
+
+				List<UIBaseWindow> siblings = button.Parent!.Children!;
+				for (var i = 0; i < siblings.Count; i++)
+				{
+					UIBaseWindow child = siblings[i];
+					if (child is MapEditorTopBarButton but) but.SetDropDownMode(child == button, dropDownWin);
+				}
+
+				_editUI!.AddChild(dropDownWin);
+			}
+
 			button.Text = label;
 			button.OnMouseEnterProxy = _ =>
 			{
-				if (_topBarDropDown != null && _topBarDropDown.Controller != null)
-					if (_dropDownOpen != button)
-					{
-						_topBarDropDown.Controller.RemoveChild(_topBarDropDown);
-						SpawnDropDown(button, menuButtons);
-					}
+				if (_editUI?.DropDown != null && _editUI.DropDown?.OwningObject != button && _editUI.DropDown?.OwningObject is MapEditorTopBarButton)
+					SpawnDropDown();
 			};
-			button.OnClickedProxy = _ =>
-			{
-				if (_topBarDropDown != null && _topBarDropDown.Controller != null)
-				{
-					_topBarDropDown.Controller.RemoveChild(_topBarDropDown);
-					if (_dropDownOpen == button)
-					{
-						_dropDownOpen = null;
-						return;
-					}
-				}
-
-				SpawnDropDown(button, menuButtons);
-			};
+			button.OnClickedProxy = _ => { SpawnDropDown(); };
 			button.Id = $"button{label}";
 
 			return button;
@@ -176,82 +107,70 @@ namespace Emotion.Game.World2D
 				return $"Selection: {(_objectSelect ? "Enabled" : "Disabled")}";
 			}
 
-			MapEditorTopBarButton fileMenu = DropDownButton("File", new[]
+			MapEditorTopBarButton fileMenu = EditorDropDownButton("File", new[]
 			{
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = "Save",
 					Click = _ => EditorSaveMap(),
 					Enabled = () => FileName != null
 				},
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = "Save As"
 				}
 			});
 
-			MapEditorTopBarButton objectsMenu = DropDownButton("Objects", new[]
+			MapEditorTopBarButton objectsMenu = EditorDropDownButton("Objects", new[]
 			{
 				// true by default, mouseover shows props
 				// click selects the obj and shows prop editor window
 				// alt switch between overlapping objects
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = GetObjectSelectionLabel(),
 					Click = t =>
 					{
-						_objectSelect = !_objectSelect;
+						EditorSetObjectSelect(!_objectSelect);
 						t.Text = GetObjectSelectionLabel();
 					}
 				},
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = "Object Filters",
 					Click = t => { }
 				},
 				// Object creation dialog
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
-					Name = "Add Object (Ctrl+N)",
+					Name = "Add Object",
 					Click = t =>
 					{
 						var objectAddPanel = new MapEditorAddObjectPanel(EditorAddObject);
 						_editUI!.AddChild(objectAddPanel);
-						_topBarDropDown!.Parent!.RemoveChild(_topBarDropDown);
+						_editUI.RemoveChild(_editUI.DropDown);
 					}
-				},
-				new DropDownButtonDescription
-				{
-					Name = "Copy Selected (Ctrl+C)"
-				},
-				new DropDownButtonDescription
-				{
-					Name = "Paste Selected (Ctrl+V)"
-				},
-				new DropDownButtonDescription
-				{
-					Name = "Delete Selected (Delete)"
 				}
 			});
 
-			MapEditorTopBarButton tilesMenu = DropDownButton("Tiles", new[]
+			MapEditorTopBarButton tilesMenu = EditorDropDownButton("Tiles", new[]
 			{
 				// false by default, mouseover shows props, alt switch layers
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = $"Selection: {(_tileSelect ? "Enabled" : "Disabled")}"
 				},
 				// Shows layers, tilesets and other special editors for this mode, disables object selection while open
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = "Open Tile Editor"
 				},
 			});
 
-			MapEditorTopBarButton otherTools = DropDownButton("Other", new[]
+			MapEditorTopBarButton otherTools = EditorDropDownButton("Other", new[]
 			{
 				// Shows actions done in the editor, can be undone
-				new DropDownButtonDescription
+				new EditorDropDownButtonDescription
 				{
 					Name = "Action List"
 				},
@@ -293,7 +212,7 @@ namespace Emotion.Game.World2D
 			return worldAttachUI;
 		}
 
-		private MapEditorObjectPropertiesPanel? EditorGetOpenPropertiesPanelForObject(int objectUid)
+		private MapEditorObjectPropertiesPanel? EditorGetAlreadyOpenPropertiesPanelForObject(int objectUid)
 		{
 			List<UIBaseWindow>? children = _editUI!.Children!;
 			for (var i = 0; i < children.Count; i++)
@@ -311,7 +230,7 @@ namespace Emotion.Game.World2D
 			Debug.Assert(_objectDragging != null);
 			Debug.Assert(_editUI != null);
 
-			MapEditorObjectPropertiesPanel? existingPanel = EditorGetOpenPropertiesPanelForObject(obj.UniqueId);
+			MapEditorObjectPropertiesPanel? existingPanel = EditorGetAlreadyOpenPropertiesPanelForObject(obj.UniqueId);
 			if (existingPanel != null)
 			{
 				_editUI.SetInputFocus(existingPanel);
@@ -321,6 +240,90 @@ namespace Emotion.Game.World2D
 			var propsPanel = new MapEditorObjectPropertiesPanel(_objectDragging, EditorRegisterObjectPropertyChange);
 			_editUI.AddChild(propsPanel);
 			_editUI.SetInputFocus(propsPanel);
+		}
+
+		private void EditorOpenContextMenuObjectModeNoSelection()
+		{
+			var contextMenu = new MapEditorDropdown();
+			contextMenu.Offset = Engine.Host.MousePosition / _editUI.GetScale();
+
+			Vector2 mousePos = Engine.Host.MousePosition;
+			var dropDownMenu = new[]
+			{
+				new EditorDropDownButtonDescription
+				{
+					Name = "Paste",
+					Click = _ =>
+					{
+						var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
+						if (newObj != null)
+						{
+							newObj.PreMapEditorSave(); // to make sure dirty properties are reset or whatever.
+							AddObject(newObj);
+
+							Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos);
+							newObj.Position2 = worldPos;
+						}
+
+						contextMenu.Parent!.RemoveChild(contextMenu);
+					},
+					Enabled = () => !string.IsNullOrEmpty(_objectCopyClipboard)
+				}
+			};
+
+			contextMenu.SetItems(dropDownMenu);
+			_editUI.AddChild(contextMenu);
+		}
+
+		private void EditorOpenContextMenuForObject(GameObject2D obj)
+		{
+			var contextMenu = new MapEditorDropdown();
+			contextMenu.Offset = Engine.Host.MousePosition / _editUI.GetScale();
+			contextMenu.OwningObject = obj;
+
+			var dropDownMenu = new[]
+			{
+				new EditorDropDownButtonDescription
+				{
+					Name = "Copy",
+					Click = _ =>
+					{
+						_objectCopyClipboard = XMLFormat.To(obj);
+						contextMenu.Parent!.RemoveChild(contextMenu);
+					}
+				},
+				new EditorDropDownButtonDescription
+				{
+					Name = "Cut",
+					Click = _ =>
+					{
+						_objectCopyClipboard = XMLFormat.To(obj);
+						RemoveObject(obj, true); // todo: register undo as delete
+						contextMenu.Parent!.RemoveChild(contextMenu);
+					}
+				},
+				new EditorDropDownButtonDescription
+				{
+					Name = "Delete",
+					Click = _ =>
+					{
+						RemoveObject(obj, true); // todo: register undo
+						contextMenu.Parent!.RemoveChild(contextMenu);
+					}
+				},
+				new EditorDropDownButtonDescription
+				{
+					Name = "Properties",
+					Click = _ =>
+					{
+						EditorOpenPropertiesPanelForObject(obj);
+						contextMenu.Parent!.RemoveChild(contextMenu);
+					}
+				}
+			};
+
+			contextMenu.SetItems(dropDownMenu);
+			_editUI.AddChild(contextMenu);
 		}
 	}
 }

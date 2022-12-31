@@ -30,14 +30,13 @@ namespace Emotion.Game.World2D
 		private Vector2 _objectDragOffset;
 		private bool _ignoreNextObjectDragLetGo;
 		private Vector2 _objectDragStartPos;
+		private static string _objectCopyClipboard; // todo: platform based clipboard?
 
 		// Tile selection
 		private bool _tileSelect = false;
 		private Vector2 _tileBrush = Vector2.Zero;
 
 		// UI stuff
-		private MapEditorTopBarButton? _dropDownOpen;
-		private UIDropDown? _topBarDropDown;
 
 		private void SetupDebug()
 		{
@@ -78,6 +77,13 @@ namespace Emotion.Game.World2D
 					if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
 					_ignoreNextObjectDragLetGo = false;
 				}
+				else if (key == Key.MouseKeyRight && status == KeyStatus.Up && _objectDragging == null)
+				{
+					if(_lastMouseOverObject != null)
+						EditorOpenContextMenuForObject(_lastMouseOverObject);
+					else
+						EditorOpenContextMenuObjectModeNoSelection();
+				}
 
 				if (key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld()) EditorUndoLastAction();
 
@@ -89,9 +95,6 @@ namespace Emotion.Game.World2D
 
 		private void EnterEditor()
 		{
-			// Reset certain settings
-			_objectSelect = true;
-
 			_editUI = new UIController();
 			_editUI.KeyPriority = KeyListenerType.EditorUI;
 
@@ -105,15 +108,8 @@ namespace Emotion.Game.World2D
 			Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
 			Engine.Renderer.Camera.Position = _gameCamera.Position;
 
-			foreach (GameObject2D obj in GetObjects())
-			{
-				EnsureObjectNameplate(obj);
-			}
-
-			foreach (GameObject2D obj in ObjectsToSerialize)
-			{
-				EnsureObjectNameplate(obj);
-			}
+			// Reset setting
+			EditorSetObjectSelect(true);
 
 			EditorMode = true;
 		}
@@ -207,39 +203,43 @@ namespace Emotion.Game.World2D
 				c.ClearDepth();
 			}
 
-			// Show selection of object, if any.
-			if (_lastMouseOverObject != null)
+			if (_objectSelect)
 			{
-				Rectangle bound = _lastMouseOverObject.Bounds;
-				c.RenderSprite(bound, Color.White * 0.3f);
-			}
-
-			// Draw some indication of unspawned serialized objects.
-			for (var i = 0; i < ObjectsToSerialize.Count; i++)
-			{
-				GameObject2D obj = ObjectsToSerialize[i];
-				if (obj.ObjectState != ObjectState.Alive)
+				// Show selection of object, if any.
+				var objectWithContextMenu = _editUI?.DropDown?.OwningObject as GameObject2D;
+				if (_lastMouseOverObject != null || objectWithContextMenu != null)
 				{
+					Rectangle bound = (objectWithContextMenu ?? _lastMouseOverObject)!.Bounds;
+					c.RenderSprite(bound, Color.White * 0.3f);
+				}
+
+				// Draw some indication of unspawned serialized objects.
+				for (var i = 0; i < ObjectsToSerialize.Count; i++)
+				{
+					GameObject2D obj = ObjectsToSerialize[i];
+					if (obj.ObjectState != ObjectState.Alive)
+					{
+						Rectangle bounds = obj.Bounds;
+						c.RenderSprite(bounds, Color.Magenta * 0.2f);
+						c.RenderOutline(bounds, Color.White * 0.4f);
+					}
+				}
+
+				int count = GetObjectCount();
+				for (var i = 0; i < count; i++)
+				{
+					GameObject2D obj = GetObjectByIndex(i);
 					Rectangle bounds = obj.Bounds;
-					c.RenderSprite(bounds, Color.Magenta * 0.2f);
+
+					if (!obj.ObjectFlags.HasFlag(ObjectFlags.Serializable))
+					{
+						c.RenderSprite(bounds, Color.Black * 0.5f);
+						c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black);
+						c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black);
+					}
+
 					c.RenderOutline(bounds, Color.White * 0.4f);
 				}
-			}
-
-			int count = GetObjectCount();
-			for (var i = 0; i < count; i++)
-			{
-				GameObject2D obj = GetObjectByIndex(i);
-				Rectangle bounds = obj.Bounds;
-
-				if (!obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable))
-				{
-					c.RenderSprite(bounds, Color.Black * 0.5f);
-					c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black);
-					c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black);
-				}
-
-				c.RenderOutline(bounds, Color.White * 0.4f);
 			}
 
 			c.SetUseViewMatrix(false);
@@ -367,7 +367,7 @@ namespace Emotion.Game.World2D
 					txt.Append("\n");
 
 					if (obj.ObjectState == ObjectState.Alive)
-						txt.AppendLine($"   Serialized: {obj.MapFlags.HasFlag(Map2DObjectFlags.Serializable)}");
+						txt.AppendLine($"   Serialized: {obj.ObjectFlags.HasFlag(ObjectFlags.Serializable)}");
 					else
 						txt.AppendLine($"   Spawn Condition: {obj.ShouldSpawnSerializedObject(this)}");
 
@@ -424,6 +424,32 @@ namespace Emotion.Game.World2D
 			_editUI!.AddChild(namePlate);
 		}
 
+		private void EditorSetObjectSelect(bool val)
+		{
+			_objectSelect = val;
+			if (!_objectSelect)
+			{
+				foreach (KeyValuePair<GameObject2D, MapEditorObjectNameplate> namePlate in _namePlates)
+				{
+					_editUI?.RemoveChild(namePlate.Value);
+				}
+
+				_namePlates.Clear();
+			}
+			else
+			{
+				foreach (GameObject2D obj in GetObjects())
+				{
+					EnsureObjectNameplate(obj);
+				}
+
+				foreach (GameObject2D obj in ObjectsToSerialize)
+				{
+					EnsureObjectNameplate(obj);
+				}
+			}
+		}
+
 		#endregion
 
 		#region Object Control API
@@ -435,7 +461,7 @@ namespace Emotion.Game.World2D
 
 			ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
 			var newObj = (GameObject2D) constructor.Invoke(null);
-			newObj.MapFlags |= Map2DObjectFlags.Serializable;
+			newObj.ObjectFlags |= ObjectFlags.Serializable;
 			newObj.Position = worldPos.ToVec3();
 			AddObject(newObj);
 
@@ -457,7 +483,7 @@ namespace Emotion.Game.World2D
 				nameplate.Parent!.RemoveChild(nameplate);
 			}
 
-			MapEditorObjectPropertiesPanel? propPanelOpen = EditorGetOpenPropertiesPanelForObject(oldObj.UniqueId);
+			MapEditorObjectPropertiesPanel? propPanelOpen = EditorGetAlreadyOpenPropertiesPanelForObject(oldObj.UniqueId);
 			propPanelOpen?.InvalidateObjectReference();
 		}
 
