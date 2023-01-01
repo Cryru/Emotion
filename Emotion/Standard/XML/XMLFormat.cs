@@ -41,9 +41,9 @@ namespace Emotion.Standard.XML
             // Check if the handler is supposed to be of an inherited type. Otherwise use the handler of the requested type.
             XMLTypeHandler handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(reader, out string tag) ?? requestedType;
             Type headerTagType = XMLHelpers.GetTypeByName(tag);
-            if (headerTagType == null || headerTagType != type)
+            if (headerTagType == null || (headerTagType != type && !headerTagType.IsAssignableFrom(type)))
             {
-                Engine.Log.Warning($"Tried to deserialize a document with header type {headerTagType}({tag}) while expecting inherited from {type}.", MessageSource.XML);
+	            Engine.Log.Warning($"Tried to deserialize a document with header type {headerTagType}({tag}) while expecting inherited from {type}.", MessageSource.XML);
                 return default;
             }
 

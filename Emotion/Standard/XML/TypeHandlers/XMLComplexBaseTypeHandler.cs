@@ -49,7 +49,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 				if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null) continue;
 
 				// If a type has an indexer declared (this[]) it will show up as a property called Item.
-				// We won't serialize those.
+				// We won't serialize those. Arrays are handled by another field handler.
 				if (property.Name == "Item" && writeMethod.GetParameters().Length > 1)
 					continue;
 
