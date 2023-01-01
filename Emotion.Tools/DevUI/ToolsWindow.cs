@@ -10,7 +10,6 @@ using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Tools.Editors;
 using Emotion.Tools.Editors.Animation2D;
-using Emotion.Tools.Editors.MapEditor;
 using Emotion.Tools.Editors.UIEditor;
 using Emotion.Tools.Windows;
 using Emotion.Tools.Windows.Art;
@@ -107,8 +106,7 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Gameplay"))
             {
-                if (ImGui.MenuItem("Map Editor")) AddChild(new MapEditor());
-                if (ImGui.MenuItem("Tmx Viewer")) AddChild(new TmxViewer());
+	            if (ImGui.MenuItem("Tmx Viewer")) AddChild(new TmxViewer());
 #if DEBUG
                 if (ImGui.MenuItem("Collision Viewer")) AddLegacyWindow(new CollisionViewer());
 #else

@@ -18,7 +18,7 @@ using ImGuiNET;
 
 #nullable enable
 
-namespace Emotion.Tools.Editors.MapEditor
+namespace Emotion.Tools.Editors
 {
     public class TmxViewer : PresetGenericEditorWindow<TextAsset>
     {
