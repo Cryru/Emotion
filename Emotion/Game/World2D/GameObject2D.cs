@@ -31,7 +31,7 @@ namespace Emotion.Game.World2D
         public Color Tint { get; set; } = Color.White;
 
         /// <summary>
-        /// Flags that specify systemtic treatment of the object.
+        /// Flags that specify systemic treatment of the object.
         /// </summary>
         public ObjectFlags ObjectFlags { get; set; }
 
@@ -175,13 +175,15 @@ namespace Emotion.Game.World2D
         }
 
         /// <summary>
-        /// Prior to saving a map from the editor this function will be called on all serializable objects.
-        /// You can reset properties or whatever here.
+        /// Prior to saving a map from the editor this function will be called on all serializable objects to
+        /// prevent the saving of junk data that is obvious.
         /// </summary>
-        public virtual void PreMapEditorSave()
+        public virtual void TrimPropertiesForSerialize()
         {
-            // you can prepare the obj for serialization here.
+	        // Dont save Z coordinate as the editor has no way of setting it anyway, but game code can. It has to be able to recalculate it.
+            _z = 0;
             UniqueId = 0;
+            ObjectFlags &= ~ObjectFlags.Persistent; // duh
         }
 
         public override string ToString()

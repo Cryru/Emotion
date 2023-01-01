@@ -38,8 +38,9 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 			InputTransparent = false;
 			MinSize = new Vector2(0, 10);
+			StretchX = true;
 			StretchY = true;
-			MaxSize = new Vector2(100, 10);
+			MaxSize = new Vector2(DefaultMaxSize.X, 10);
 		}
 
 		protected override Vector2 InternalMeasure(Vector2 space)

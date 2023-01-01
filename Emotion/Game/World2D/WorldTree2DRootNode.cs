@@ -18,7 +18,7 @@ namespace Emotion.Game.World2D
         {
         }
 
-        public void AddObjectRoot(GameObject2D obj)
+        public void AddObjectToRoot(GameObject2D obj)
         {
             Rectangle bounds = obj.GetBoundsForQuadTree();
             WorldTree2DNode node = GetNodeForBounds(bounds);
@@ -26,7 +26,7 @@ namespace Emotion.Game.World2D
             _objToNode.Add(obj, node);
         }
 
-        public void RemoveObjectRoot(GameObject2D obj)
+        public void RemoveObjectFromRoot(GameObject2D obj)
         {
             if (!_objToNode.TryGetValue(obj, out WorldTree2DNode? node)) return;
             node.RemoveObject(obj);

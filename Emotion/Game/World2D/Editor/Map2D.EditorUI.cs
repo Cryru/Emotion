@@ -140,6 +140,16 @@ namespace Emotion.Game.World2D
 					Name = "Object Filters",
 					Click = t => { }
 				},
+				new EditorDropDownButtonDescription
+				{
+					Name = "View Object List",
+					Click = t =>
+					{
+						var panel = new MapEditorObjectList(this);
+						_editUI!.AddChild(panel);
+						_editUI.RemoveChild(_editUI.DropDown);
+					}
+				},
 				// Object creation dialog
 				new EditorDropDownButtonDescription
 				{
@@ -227,7 +237,7 @@ namespace Emotion.Game.World2D
 
 		private void EditorOpenPropertiesPanelForObject(GameObject2D obj)
 		{
-			Debug.Assert(_objectDragging != null);
+			Debug.Assert(obj != null);
 			Debug.Assert(_editUI != null);
 
 			MapEditorObjectPropertiesPanel? existingPanel = EditorGetAlreadyOpenPropertiesPanelForObject(obj.UniqueId);
@@ -237,7 +247,7 @@ namespace Emotion.Game.World2D
 				return;
 			}
 
-			var propsPanel = new MapEditorObjectPropertiesPanel(_objectDragging, EditorRegisterObjectPropertyChange);
+			var propsPanel = new MapEditorObjectPropertiesPanel(obj, EditorRegisterObjectPropertyChange);
 			_editUI.AddChild(propsPanel);
 			_editUI.SetInputFocus(propsPanel);
 		}
@@ -245,7 +255,7 @@ namespace Emotion.Game.World2D
 		private void EditorOpenContextMenuObjectModeNoSelection()
 		{
 			var contextMenu = new MapEditorDropdown();
-			contextMenu.Offset = Engine.Host.MousePosition / _editUI.GetScale();
+			contextMenu.Offset = Engine.Host.MousePosition / _editUI!.GetScale();
 
 			Vector2 mousePos = Engine.Host.MousePosition;
 			var dropDownMenu = new[]
@@ -258,14 +268,16 @@ namespace Emotion.Game.World2D
 						var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
 						if (newObj != null)
 						{
-							newObj.PreMapEditorSave(); // to make sure dirty properties are reset or whatever.
+							bool serialized = newObj.ObjectFlags.HasFlag(ObjectFlags.Persistent);
+							newObj.TrimPropertiesForSerialize(); // Ensure that the object looks like it would when loading a file.
+							if (serialized) newObj.ObjectFlags |= ObjectFlags.Persistent;
 							AddObject(newObj);
 
 							Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos);
 							newObj.Position2 = worldPos;
 						}
 
-						contextMenu.Parent!.RemoveChild(contextMenu);
+						_editUI.RemoveChild(_editUI.DropDown);
 					},
 					Enabled = () => !string.IsNullOrEmpty(_objectCopyClipboard)
 				}
@@ -278,7 +290,7 @@ namespace Emotion.Game.World2D
 		private void EditorOpenContextMenuForObject(GameObject2D obj)
 		{
 			var contextMenu = new MapEditorDropdown();
-			contextMenu.Offset = Engine.Host.MousePosition / _editUI.GetScale();
+			contextMenu.Offset = Engine.Host.MousePosition / _editUI!.GetScale();
 			contextMenu.OwningObject = obj;
 
 			var dropDownMenu = new[]
@@ -289,7 +301,7 @@ namespace Emotion.Game.World2D
 					Click = _ =>
 					{
 						_objectCopyClipboard = XMLFormat.To(obj);
-						contextMenu.Parent!.RemoveChild(contextMenu);
+						_editUI.RemoveChild(_editUI.DropDown);
 					}
 				},
 				new EditorDropDownButtonDescription
@@ -299,7 +311,7 @@ namespace Emotion.Game.World2D
 					{
 						_objectCopyClipboard = XMLFormat.To(obj);
 						RemoveObject(obj, true); // todo: register undo as delete
-						contextMenu.Parent!.RemoveChild(contextMenu);
+						_editUI.RemoveChild(_editUI.DropDown);
 					}
 				},
 				new EditorDropDownButtonDescription
@@ -308,7 +320,7 @@ namespace Emotion.Game.World2D
 					Click = _ =>
 					{
 						RemoveObject(obj, true); // todo: register undo
-						contextMenu.Parent!.RemoveChild(contextMenu);
+						_editUI.RemoveChild(_editUI.DropDown);
 					}
 				},
 				new EditorDropDownButtonDescription
@@ -317,7 +329,7 @@ namespace Emotion.Game.World2D
 					Click = _ =>
 					{
 						EditorOpenPropertiesPanelForObject(obj);
-						contextMenu.Parent!.RemoveChild(contextMenu);
+						_editUI.RemoveChild(_editUI.DropDown);
 					}
 				}
 			};

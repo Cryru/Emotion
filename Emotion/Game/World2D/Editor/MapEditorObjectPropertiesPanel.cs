@@ -65,6 +65,7 @@ namespace Emotion.Game.World2D
 			for (var i = 0; i < objectFlags.Length; i++)
 			{
 				ObjectFlags flag = objectFlags[i];
+				if (flag == ObjectFlags.None) continue; // All have this :P
 				if (Object.ObjectFlags.HasFlag(flag)) statusText += $", {flag}";
 			}
 			statusLabel.Text = statusText;
@@ -264,19 +265,20 @@ namespace Emotion.Game.World2D
 
 			Debug.Assert(objectMap != null);
 
-			// Save the id.
-			int id = oldObject.UniqueId;
-			oldObject.PreMapEditorSave();
-			oldObject.UniqueId = id;
-			_objectChangedCallback(oldObject);
+			// Remove the object UndoAction and remove the object from the map.
+			_objectChangedCallback(Object);
 			objectMap.RemoveObject(Object, true);
 
-			// Keep parity with UndoAction
+			// Serialize it and deserialize it to copy it.
 			string? objectAsData = XMLFormat.To(oldObject);
 			var newObject = XMLFormat.From<GameObject2D>(objectAsData);
 
+			// Change the property and add the object to map.
 			field.ReflectionInfo.SetValue(newObject, value);
 			objectMap.AddObject(newObject);
+
+			// Now the object has been copied with the changed property and re-added.
+			// This guarantees that objects dont have to handle properties changing after the init.
 		}
 
 		public void InvalidateObjectReference()

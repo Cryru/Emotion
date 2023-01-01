@@ -1,19 +1,25 @@
 ﻿#region Using
 
+using System.Diagnostics;
+using Emotion.Game.ThreeDee;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Platform.Input;
+using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Game.World2D
 {
-	public sealed class MapEditorAddObjectPanel : MapEditorPanel
+	public sealed class MapEditorObjectList : MapEditorPanel
 	{
-		private Action<Type> _addObjectCallback;
+		public Map2D ObjectMap;
 
-		public MapEditorAddObjectPanel(Action<Type> callback) : base("Add Object")
+		public MapEditorObjectList(Map2D objectMap) : base("All Map Objects")
 		{
-			_addObjectCallback = callback;
+			ObjectMap = objectMap;
 		}
 
 		public override void AttachedToController(UIController controller)
@@ -32,16 +38,6 @@ namespace Emotion.Game.World2D
 			innerContainer.ChildrenAllSameWidth = true;
 			contentWin.AddChild(innerContainer);
 
-			var txt = new UIText();
-			txt.ScaleMode = UIScaleMode.FloatScale;
-			txt.WindowColor = MapEditorColorPalette.TextColor;
-			txt.Id = "buttonText";
-			txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
-			txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-			txt.IgnoreParentColor = true;
-			txt.Text = "These are all classes with parameterless constructors\nthat inherit GameObject2D.\nChoose class of object to add:";
-			innerContainer.AddChild(txt);
-
 			var listContainer = new UIBaseWindow();
 			listContainer.StretchX = true;
 			listContainer.StretchY = true;
@@ -53,25 +49,9 @@ namespace Emotion.Game.World2D
 			listNav.StretchX = true;
 			listNav.ListSpacing = new Vector2(0, 1);
 			listNav.Margins = new Rectangle(0, 0, 10, 0);
-			listNav.MinSize = new Vector2(0, 200);
-			listNav.MaxSize = new Vector2(9999, 200);
+			listNav.InputTransparent = false;
+			listNav.ChildrenAllSameWidth = true;
 			listContainer.AddChild(listNav);
-
-			List<Type> objectTypes = EditorUtility.GetTypesWhichInherit<GameObject2D>();
-			for (var i = 0; i < objectTypes.Count; i++)
-			{
-				Type objectType = objectTypes[i];
-
-				var button = new MapEditorTopBarButton();
-				button.StretchY = true;
-				button.Text = objectType.Name;
-				button.OnClickedProxy = _ =>
-				{
-					_addObjectCallback(objectType);
-					Parent!.RemoveChild(this);
-				};
-				listNav.AddChild(button);
-			}
 
 			var scrollBar = new UIScrollbar();
 			scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
@@ -80,9 +60,20 @@ namespace Emotion.Game.World2D
 			scrollBar.Anchor = UIAnchor.TopRight;
 			scrollBar.ParentAnchor = UIAnchor.TopRight;
 			scrollBar.MinSize = new Vector2(5, 0);
-			scrollBar.MaxSize = new Vector2(5, 999);
+			scrollBar.MaxSize = new Vector2(5, 9999);
 			listNav.SetScrollbar(scrollBar);
 			listContainer.AddChild(scrollBar);
+
+			foreach (GameObject2D obj in ObjectMap.GetObjects())
+			{
+				var objectLabel = new UIText();
+				objectLabel.ScaleMode = UIScaleMode.FloatScale;
+				objectLabel.WindowColor = MapEditorColorPalette.TextColor;
+				objectLabel.FontFile = "Editor/UbuntuMono-Regular.ttf";
+				objectLabel.FontSize = MapEditorColorPalette.EditorButtonTextSize;
+				objectLabel.Text = $"[{obj.UniqueId}] {obj.ObjectName ?? $"Object {obj.GetType()}"} {(obj.ObjectState != ObjectState.Alive ? obj.ObjectState : "")}";
+				listNav.AddChild(objectLabel);
+			}
 		}
 	}
 }

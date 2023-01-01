@@ -19,7 +19,7 @@ namespace Emotion.Game.World2D
     {
         None = 0,
 
-        Serializable = 2 << 0 // The object is part of the map file.
+        Persistent = 2 << 0 // The object is part of the map file.
     }
 
     public enum ObjectState : byte
@@ -27,7 +27,11 @@ namespace Emotion.Game.World2D
         None = 0,
         Loading = 1,
         Alive = 2,
-        Destroyed = 3
+        Destroyed = 3,
+
+        // ShouldSpawnSerializedObject returned false
+        // Will be checked again on map reset.
+        ConditionallyNonSpawned = 4
     }
 
     [Flags]

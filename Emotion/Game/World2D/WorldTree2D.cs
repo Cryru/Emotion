@@ -22,6 +22,7 @@ namespace Emotion.Game.World2D
         public WorldTree2D(Vector2 mapSize)
         {
             _mapSize = mapSize;
+            AddTreeLayer(-1);
             AddTreeLayer(0);
         }
 
@@ -37,7 +38,8 @@ namespace Emotion.Game.World2D
             for (var i = 0; i < _objects.Count; i++)
             {
                 GameObject2D obj = _objects[i];
-                if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObjectRoot(obj);
+                if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
+                if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObjectToRoot(obj);
             }
         }
 
@@ -47,9 +49,16 @@ namespace Emotion.Game.World2D
         public void AddObjectToTree(GameObject2D obj)
         {
             _objects.Add(obj);
+
+            if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
+            {
+	            _rootNodes[-1].AddObjectToRoot(obj);
+                return;
+            }
+
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObjectRoot(obj);
+                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.AddObjectToRoot(obj);
             }
         }
 
@@ -59,9 +68,16 @@ namespace Emotion.Game.World2D
         public void RemoveObjectFromTree(GameObject2D obj)
         {
             if (!_objects.Remove(obj)) return;
+
+            if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
+            {
+	            _rootNodes[-1].AddObjectToRoot(obj);
+	            return;
+            }
+
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObjectRoot(obj);
+                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObjectFromRoot(obj);
             }
         }
 

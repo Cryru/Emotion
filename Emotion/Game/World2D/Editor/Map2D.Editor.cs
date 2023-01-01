@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
@@ -77,7 +78,7 @@ namespace Emotion.Game.World2D
 					if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
 					_ignoreNextObjectDragLetGo = false;
 				}
-				else if (key == Key.MouseKeyRight && status == KeyStatus.Up && _objectDragging == null)
+				else if (key == Key.MouseKeyRight && status == KeyStatus.Up && _objectDragging == null && _editUI.MouseFocus == null)
 				{
 					if(_lastMouseOverObject != null)
 						EditorOpenContextMenuForObject(_lastMouseOverObject);
@@ -147,16 +148,6 @@ namespace Emotion.Game.World2D
 					GetObjects(results, treeLayerId, circle, QueryFlags.Unique);
 				}
 
-				for (var i = 0; i < ObjectsToSerialize.Count; i++)
-				{
-					GameObject2D obj = ObjectsToSerialize[i];
-					if (obj.ObjectState != ObjectState.Alive)
-					{
-						Rectangle bounds = obj.Bounds;
-						if (bounds.Contains(mouseWorld)) results.Add(obj);
-					}
-				}
-
 				if (mouseFocusNameplate != null) results.Add(mouseFocusNameplate.Object);
 
 				SelectObjectMulti(results);
@@ -213,29 +204,21 @@ namespace Emotion.Game.World2D
 					c.RenderSprite(bound, Color.White * 0.3f);
 				}
 
-				// Draw some indication of unspawned serialized objects.
-				for (var i = 0; i < ObjectsToSerialize.Count; i++)
-				{
-					GameObject2D obj = ObjectsToSerialize[i];
-					if (obj.ObjectState != ObjectState.Alive)
-					{
-						Rectangle bounds = obj.Bounds;
-						c.RenderSprite(bounds, Color.Magenta * 0.2f);
-						c.RenderOutline(bounds, Color.White * 0.4f);
-					}
-				}
-
 				int count = GetObjectCount();
 				for (var i = 0; i < count; i++)
 				{
 					GameObject2D obj = GetObjectByIndex(i);
 					Rectangle bounds = obj.Bounds;
 
-					if (!obj.ObjectFlags.HasFlag(ObjectFlags.Serializable))
+					if (!obj.ObjectFlags.HasFlag(ObjectFlags.Persistent))
 					{
 						c.RenderSprite(bounds, Color.Black * 0.5f);
 						c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black);
 						c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black);
+					}
+					else if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
+					{
+						c.RenderSprite(bounds, Color.Magenta * 0.2f);
 					}
 
 					c.RenderOutline(bounds, Color.White * 0.4f);
@@ -367,7 +350,7 @@ namespace Emotion.Game.World2D
 					txt.Append("\n");
 
 					if (obj.ObjectState == ObjectState.Alive)
-						txt.AppendLine($"   Serialized: {obj.ObjectFlags.HasFlag(ObjectFlags.Serializable)}");
+						txt.AppendLine($"   Serialized: {obj.ObjectFlags.HasFlag(ObjectFlags.Persistent)}");
 					else
 						txt.AppendLine($"   Spawn Condition: {obj.ShouldSpawnSerializedObject(this)}");
 
@@ -383,7 +366,7 @@ namespace Emotion.Game.World2D
 			}
 		}
 
-		private void EditorSaveMap()
+		private async Task EditorSaveMap()
 		{
 			string? fileName = FileName;
 			if (fileName == null)
@@ -392,10 +375,10 @@ namespace Emotion.Game.World2D
 				return;
 			}
 
-			for (var i = 0; i < ObjectsToSerialize.Count; i++)
+			for (var i = 0; i < PersistentObjects.Count; i++)
 			{
-				GameObject2D obj = ObjectsToSerialize[i];
-				obj.PreMapEditorSave();
+				GameObject2D obj = PersistentObjects[i];
+				obj.TrimPropertiesForSerialize();
 			}
 
 			// Unload the preset in the asset loader cache if loaded. This allows for changes to be observed on re-get.
@@ -404,7 +387,8 @@ namespace Emotion.Game.World2D
 
 			XMLAsset<Map2D>? asset = XMLAsset<Map2D>.CreateFromContent(this, fileName);
 			asset.Save();
-			Reset();
+
+			await Reset();
 		}
 
 		#endregion
@@ -442,11 +426,6 @@ namespace Emotion.Game.World2D
 				{
 					EnsureObjectNameplate(obj);
 				}
-
-				foreach (GameObject2D obj in ObjectsToSerialize)
-				{
-					EnsureObjectNameplate(obj);
-				}
 			}
 		}
 
@@ -461,7 +440,7 @@ namespace Emotion.Game.World2D
 
 			ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
 			var newObj = (GameObject2D) constructor.Invoke(null);
-			newObj.ObjectFlags |= ObjectFlags.Serializable;
+			newObj.ObjectFlags |= ObjectFlags.Persistent;
 			newObj.Position = worldPos.ToVec3();
 			AddObject(newObj);
 
