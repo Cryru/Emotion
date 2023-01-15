@@ -41,14 +41,24 @@ namespace Emotion.UI
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
-            if (key == Key.MouseKeyLeft && status == KeyStatus.Down) Controller?.SetInputFocus(this);
+	        if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
+	        {
+		        Controller?.SetInputFocus(this);
+                return false;
+	        }
 
             return base.OnKey(key, status, mousePos);
         }
 
-        private void TextInputEventHandler(char c)
+		public override void InputFocusChanged(bool haveFocus)
+		{
+			_blinkingTimer.Restart();
+			_cursorOn = true;
+		}
+
+		private void TextInputEventHandler(char c)
         {
-            bool focused = IsWithin(Controller?.InputFocus);
+            bool focused = Controller?.InputFocus == this;
             if (focused)
             {
                 if (c == '\r') c = '\n';
@@ -93,10 +103,10 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            base.RenderInternal(c);
+	        base.RenderInternal(c);
 
-            bool focused = IsWithin(Controller?.InputFocus);
-            if (focused && _cursorOn)
+            bool focused = Controller?.InputFocus == this;
+            if (focused && _cursorOn && _layouter != null)
             {
                 Vector2 cursorDrawStart = _layouter.GetPenLocation() + new Vector2(_scaledCursorDistance, 0);
                 var top = new Vector3(X + cursorDrawStart.X, Y + cursorDrawStart.Y, Z);

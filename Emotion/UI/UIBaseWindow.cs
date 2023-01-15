@@ -190,7 +190,8 @@ namespace Emotion.UI
 
 		public virtual void AddChild(UIBaseWindow child)
 		{
-			Debug.Assert(child != null);
+			Debug.Assert(child != null || child == this);
+			if (child == this) return;
 
 			if (Engine.Configuration.DebugMode && Children != null && !string.IsNullOrEmpty(child.Id))
 				for (var i = 0; i < Children.Count; i++)
@@ -303,6 +304,12 @@ namespace Emotion.UI
 				UIBaseWindow child = Children[i];
 				child.DetachedFromController(controller);
 			}
+		}
+
+		public void Close()
+		{
+			Debug.Assert(Parent != null);
+			Parent?.RemoveChild(this);
 		}
 
 		/// <summary>
@@ -788,8 +795,10 @@ namespace Emotion.UI
 							bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
 							if (windowTakesSpace) highestOnRow = MathF.Max(highestOnRow, child.Size.Y + childMarginsScaled.Y + childMarginsScaled.Height);
 
+							bool anchorInList = insideParent && child.Anchor != UIAnchor.CenterRight && child.Anchor != UIAnchor.TopRight && child.Anchor != UIAnchor.BottomRight;
+
 							// Child space is constrained to allow some anchors to work as expected within lists.
-							Vector2 childSpace = insideParent ? new Vector2(child.Size.X, freeSpace.Y) : freeSpace - pen;
+							Vector2 childSpace = anchorInList ? new Vector2(child.Size.X, freeSpace.Y) : freeSpace - pen;
 							Vector2 pos = child.CalculateContentPos(pen + contentPos, childSpace, parentPadding);
 							child.Layout(pos);
 							if (!windowTakesSpace) continue;
@@ -1114,6 +1123,10 @@ namespace Emotion.UI
 		public virtual void OnMouseScroll(float scroll)
 		{
 			Parent?.OnMouseScroll(scroll);
+		}
+
+		public virtual void InputFocusChanged(bool haveFocus)
+		{
 		}
 
 		#endregion

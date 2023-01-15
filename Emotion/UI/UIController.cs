@@ -42,10 +42,7 @@ namespace Emotion.UI
 		/// <summary>
 		/// The currently open dropdown.
 		/// </summary>
-		public UIDropDown? DropDown { get; protected set; }
-
-		// the dropdown will only close on the outside click if it has seen the down and up.
-		protected bool _dropDownSawDownClick;
+		public UIDropDown? DropDown { get; set; }
 
 		protected bool[] _mouseFocusKeysHeld = new bool[Key.MouseKeyEnd - Key.MouseKeyStart];
 
@@ -135,13 +132,6 @@ namespace Emotion.UI
 			if (child == null) return;
 			base.AddChild(child);
 			child.AttachedToController(this);
-
-			if (child is UIDropDown dropDown)
-			{
-				RemoveChild(DropDown);
-				DropDown = dropDown;
-				_dropDownSawDownClick = false;
-			}
 		}
 
 		public override void RemoveChild(UIBaseWindow? child, bool evict = true)
@@ -150,8 +140,6 @@ namespace Emotion.UI
 			base.RemoveChild(child, evict);
 			child.DetachedFromController(this);
 			InvalidateInputFocus();
-
-			if (child == DropDown) DropDown = null;
 		}
 
 		#region Loading
@@ -257,18 +245,11 @@ namespace Emotion.UI
 			{
 				_mouseFocusKeysHeld[key - Key.MouseKeyStart] = status != KeyStatus.Up;
 
-				// Check if clicking outside the dropdown.
-				if (DropDown != null && (MouseFocus == null || !MouseFocus.IsWithin(DropDown)))
+				if (_inputFocusManual != null && !MouseFocus.IsWithin(_inputFocusManual) && status == KeyStatus.Down)
 				{
-					if (!_dropDownSawDownClick)
-					{
-						if(status == KeyStatus.Down) _dropDownSawDownClick = true;
-						return false;
-					}
-
-					RemoveChild(DropDown);
-					DropDown = null;
-					return false;
+					bool isDropDown = _inputFocusManual is UIDropDown;
+					SetInputFocus(null);
+					if (isDropDown) return false;
 				}
 
 				return MouseFocus.OnKey(key, status, Engine.Host.MousePosition);
@@ -287,10 +268,11 @@ namespace Emotion.UI
 			_updateInputFocus = true;
 		}
 
-		public void SetInputFocus(UIBaseWindow win, bool searchTree = false)
+		public void SetInputFocus(UIBaseWindow? win, bool searchTree = false)
 		{
-			UIBaseWindow focusable = searchTree ? FindInputFocusable(win) : win;
+			UIBaseWindow? focusable = searchTree && win != null ? FindInputFocusable(win) : win;
 			_inputFocusManual = focusable;
+
 			UpdateInputFocus();
 		}
 
@@ -317,10 +299,18 @@ namespace Emotion.UI
 			{
 				// Re-hook event to get up events on down presses.
 				if (InputFocus != null)
+				{
 					Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
+					InputFocus.InputFocusChanged(false);
+				}
+
 				InputFocus = newFocus;
+
 				if (InputFocus != null)
+				{
 					Engine.Host.OnKey.AddListener(KeyboardFocusOnKey, KeyPriority);
+					InputFocus.InputFocusChanged(true);
+				}
 
 				// Kinda spammy.
 				// Engine.Log.Info($"New input focus {InputFocus}", "UI");
@@ -351,7 +341,7 @@ namespace Emotion.UI
 
 				// If the controller is focused that means there is no focus.
 				// But if there is a dropdown open we want to capture the dismiss click.
-				if (newMouseFocus == this && DropDown == null) newMouseFocus = null;
+				if (newMouseFocus == this && _inputFocusManual == null) newMouseFocus = null;
 			}
 
 			if (newMouseFocus != MouseFocus)
@@ -359,8 +349,7 @@ namespace Emotion.UI
 				MouseFocus?.OnMouseLeft(mousePos);
 				if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
 				MouseFocus = newMouseFocus;
-				if (MouseFocus != null)
-					Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
+				if (MouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
 				MouseFocus?.OnMouseEnter(mousePos);
 
 				// This is very spammy.

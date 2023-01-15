@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using Emotion.Graphics;
-using Emotion.Platform.Input;
-
 #endregion
 
 #nullable enable
@@ -17,43 +14,25 @@ namespace Emotion.UI
 		{
 			CodeGenerated = true;
 		}
-	}
 
-	// Detects when the mouse clicks outside the dropdown
-	public class UIDropDownMouseDetect : UIBaseWindow
-	{
-		private UIDropDown DropDown;
-
-		public UIDropDownMouseDetect(UIDropDown dropdown)
+		public override void AttachedToController(UIController controller)
 		{
-			DropDown = dropdown;
-			CodeGenerated = true;
-			InputTransparent = false;
-			ZOffset = 99;
+			base.AttachedToController(controller);
+			controller.SetInputFocus(this);
+			controller.DropDown = this;
 		}
 
-		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+		public override void DetachedFromController(UIController controller)
 		{
-			if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd)
-				if (status == KeyStatus.Down && !DropDown.IsPointInside(mousePos))
-					DropDown.Parent!.RemoveChild(DropDown);
-
-			return base.OnKey(key, status, mousePos);
+			base.DetachedFromController(controller);
+			if (controller.DropDown == this) controller.DropDown = null;
 		}
 
-		protected override void RenderChildren(RenderComposer c)
+		public override void InputFocusChanged(bool haveFocus)
 		{
-			c.RenderSprite(Bounds, Color.Red * 0.3f);
-			base.RenderChildren(c);
-		}
+			base.InputFocusChanged(haveFocus);
 
-		public override UIBaseWindow? FindMouseInput(Vector2 pos)
-		{
-			// Blocker should never block the dropdown itself, even if it is nested somewhere.
-			UIBaseWindow? dropDownFocus = DropDown.FindMouseInput(pos);
-			if (dropDownFocus != null) return dropDownFocus;
-
-			return base.FindMouseInput(pos);
+			if (!haveFocus) Parent?.RemoveChild(this);
 		}
 	}
 }

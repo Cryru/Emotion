@@ -146,10 +146,7 @@ namespace Emotion.UI
 			_scaledUnderlineThickness = UnderlineThickness * scale;
 
 			_layouter.Restart();
-			if (string.IsNullOrEmpty(_text))
-			{
-				return new Vector2(0, _atlas.FontHeight);
-			}
+			if (string.IsNullOrEmpty(_text)) return new Vector2(0, _atlas.FontHeight);
 
 			_layouter.SetupBox(_text, space, TextHeightMode);
 			return new Vector2(_layouter.NeededWidth, _layouter.NeededHeight);
