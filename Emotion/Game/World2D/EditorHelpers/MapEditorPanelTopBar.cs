@@ -71,8 +71,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 					else if (status == KeyStatus.Up)
 						panel.ZOffset--;
 				}
-
-				Controller?.SetInputFocus(this);
 			}
 
 			return base.OnKey(key, status, mousePos);

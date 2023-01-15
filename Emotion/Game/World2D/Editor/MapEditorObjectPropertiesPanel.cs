@@ -68,6 +68,7 @@ namespace Emotion.Game.World2D
 				if (flag == ObjectFlags.None) continue; // All have this :P
 				if (Object.ObjectFlags.HasFlag(flag)) statusText += $", {flag}";
 			}
+
 			statusLabel.Text = statusText;
 
 			innerContainer.AddChild(statusLabel);
@@ -115,6 +116,7 @@ namespace Emotion.Game.World2D
 				fieldGroupHeader.Underline = true;
 				fieldGroupHeader.IgnoreParentColor = true;
 				fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
+				fieldGroupHeader.MinSize = new Vector2(0, 11);
 				fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
 
 				listNav.AddChild(fieldGroupHeaderContainer);
@@ -144,10 +146,18 @@ namespace Emotion.Game.World2D
 					label.Anchor = UIAnchor.CenterLeft;
 					label.ParentAnchor = UIAnchor.CenterLeft;
 					label.Text = field.Name + ": ";
-					label.MinSize = new Vector2(50, 0);
 					fieldEditorContainer.AddChild(label);
 
-					SpawnEditorButton(field, fieldEditorContainer);
+					var editorParent = new UIBaseWindow();
+					editorParent.InputTransparent = false;
+					editorParent.StretchX = true;
+					editorParent.StretchY = true;
+					editorParent.MinSize = new Vector2(70, 0);
+					editorParent.Anchor = UIAnchor.CenterRight;
+					editorParent.ParentAnchor = UIAnchor.CenterRight;
+					fieldEditorContainer.AddChild(editorParent);
+
+					FieldEnterEditor(field, editorParent);
 
 					listNav.AddChild(fieldEditorContainer);
 				}
@@ -179,15 +189,18 @@ namespace Emotion.Game.World2D
 
 		private void FieldEnterEditor(XMLFieldHandler field, UIBaseWindow fieldEditor)
 		{
-			if (_openEditor != null) FieldExitEditor();
-
-			UIBaseWindow? button = fieldEditor.GetWindowById("EditorButton");
-			Debug.Assert(button != null);
-			if (button != null) fieldEditor.RemoveChild(button);
-
 			// todo: Insert switch for different types based on field
 
-			UISolidColor editorBg = new UISolidColor();
+			object? propertyValue = field.ReflectionInfo.GetValue(Object);
+
+			if (field.TypeHandler.Type == typeof(Vector2))
+			{
+				var v2Editor = new MapEditorFloat2((Vector2) propertyValue, _ => { });
+				fieldEditor.AddChild(v2Editor);
+				return;
+			}
+
+			var editorBg = new UISolidColor();
 			editorBg.StretchX = true;
 			editorBg.StretchY = true;
 			editorBg.WindowColor = Color.Black * 0.7f;
@@ -195,28 +208,20 @@ namespace Emotion.Game.World2D
 			editorBg.InputTransparent = false;
 			fieldEditor.AddChild(editorBg);
 
-			object? propertyValue = field.ReflectionInfo.GetValue(Object);
+			//object? propertyValue = field.ReflectionInfo.GetValue(Object);
 			var defaultTextValue = (propertyValue ?? "null").ToString()!;
 			string editorValue = defaultTextValue;
 			if (propertyValue == null) editorValue = "";
-
-			var invisibleTextStretch = new UIText();
-			invisibleTextStretch.WindowColor = new Color(230, 230, 230, 100);
-			invisibleTextStretch.Text = defaultTextValue;
-			invisibleTextStretch.FontFile = "Editor/UbuntuMono-Regular.ttf";
-			invisibleTextStretch.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-			invisibleTextStretch.Margins = new Rectangle(2, 1, 2, 1);
-			invisibleTextStretch.IgnoreParentColor = true;
-			editorBg.AddChild(invisibleTextStretch);
 
 			var textInput = new UITextInput();
 			textInput.Text = editorValue;
 			textInput.WindowColor = MapEditorColorPalette.TextColor;
 			textInput.FontFile = "Editor/UbuntuMono-Regular.ttf";
 			textInput.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-			textInput.SizeOfText = true;
 			textInput.Margins = new Rectangle(2, 1, 2, 1);
 			textInput.IgnoreParentColor = true;
+			textInput.SizeOfText = true;
+			textInput.MinSize = new Vector2(70, 0);
 
 			_editConfirmCallback = () =>
 			{
@@ -225,10 +230,6 @@ namespace Emotion.Game.World2D
 			};
 
 			editorBg.AddChild(textInput);
-			Controller?.SetInputFocus(textInput);
-
-			_openEditor = fieldEditor;
-			_openEditorHandler = field;
 		}
 
 		private void FieldExitEditor()
@@ -240,22 +241,12 @@ namespace Emotion.Game.World2D
 			if (button != null) _openEditor.RemoveChild(button);
 
 			SpawnEditorButton(_openEditorHandler, _openEditor);
-
-			_openEditor = null;
-			_openEditorHandler = null;
 			_editConfirmCallback = null;
-
-			Controller?.SetInputFocus(this);
 		}
 
 		private void SpawnEditorButton(XMLFieldHandler field, UIBaseWindow fieldEditor)
 		{
-			var editorButton = new MapEditorTopBarButton();
-			editorButton.Text = (field.ReflectionInfo.GetValue(Object) ?? "null").ToString();
-			editorButton.StretchY = true;
-			editorButton.OnClickedProxy = _ => { FieldEnterEditor(field, fieldEditor); };
-			editorButton.Id = "EditorButton";
-			fieldEditor.AddChild(editorButton);
+			FieldEnterEditor(field, fieldEditor);
 		}
 
 		public void ApplyObjectChange(XMLFieldHandler field, object value)

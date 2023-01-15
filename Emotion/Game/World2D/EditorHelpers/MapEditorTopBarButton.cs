@@ -14,22 +14,15 @@ namespace Emotion.Game.World2D.EditorHelpers
     {
         public string Text
         {
-            get
-            {
-                var text = (UIText) GetWindowById("buttonText");
-                return text!.Text;
-            }
-            set
-            {
-                var text = (UIText) GetWindowById("buttonText");
-                text!.Text = value;
-            }
+            get => _label.Text;
+            set => _label.Text = value;
         }
 
         public bool Enabled = true;
 
         private UIDropDown _dropDownMode;
         private bool _activeMode;
+        private UIText _label;
 
         public MapEditorTopBarButton()
         {
@@ -45,6 +38,7 @@ namespace Emotion.Game.World2D.EditorHelpers
             txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
             txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
             txt.IgnoreParentColor = true;
+            _label = txt;
             AddChild(txt);
 
             StretchX = true;
@@ -59,14 +53,24 @@ namespace Emotion.Game.World2D.EditorHelpers
 
         protected override bool UpdateInternal()
         {
-            if (_dropDownMode != null && _dropDownMode.Controller == null)
+	        if (!Enabled)
+	        {
+		        WindowColor = MapEditorColorPalette.ButtonColorDisabled.SetAlpha(150);
+		        _label.IgnoreParentColor = false;
+	        }
+	        else
+	        {
+		        WindowColor = MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor;
+		        _label.IgnoreParentColor = true;
+	        }
+	        
+	        if (_dropDownMode != null && _dropDownMode.Controller == null)
             {
                 _dropDownMode = null;
                 _activeMode = false;
-                WindowColor = MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor;
             }
 
-            return base.UpdateInternal();
+	        return base.UpdateInternal();
         }
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
@@ -84,6 +88,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
         public override void OnMouseLeft(Vector2 _)
         {
+	        if (!Enabled) return;
             if (!_activeMode) WindowColor = MapEditorColorPalette.ButtonColor;
             base.OnMouseLeft(_);
         }

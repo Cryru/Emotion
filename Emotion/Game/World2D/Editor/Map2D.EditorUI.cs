@@ -111,6 +111,15 @@ namespace Emotion.Game.World2D
 			{
 				new EditorDropDownButtonDescription
 				{
+					Name = "New",
+					Click = _ =>
+					{
+						_editUI!.AddChild(new MapEditorModal(new MapEditorCreateMapPanel(this)));
+						_editUI!.RemoveChild(_editUI.DropDown);
+					}
+				},
+				new EditorDropDownButtonDescription
+				{
 					Name = "Save",
 					Click = _ => EditorSaveMap(),
 					Enabled = () => FileName != null
@@ -145,7 +154,11 @@ namespace Emotion.Game.World2D
 					Name = "View Object List",
 					Click = t =>
 					{
-						var panel = new MapEditorObjectList(this);
+						var panel = new EditorListOfItemsPanel<GameObject2D>(this, "All Objects", _objects,
+							obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
+							obj => { _objectSelectedState = obj; }
+						);
+
 						_editUI!.AddChild(panel);
 						_editUI.RemoveChild(_editUI.DropDown);
 					}
@@ -156,8 +169,13 @@ namespace Emotion.Game.World2D
 					Name = "Add Object",
 					Click = t =>
 					{
-						var objectAddPanel = new MapEditorAddObjectPanel(EditorAddObject);
-						_editUI!.AddChild(objectAddPanel);
+						List<Type> objectTypes = EditorUtility.GetTypesWhichInherit<GameObject2D>();
+
+						var panel = new EditorListOfItemsPanel<Type>(this, "Add Object", objectTypes, EditorAddObject);
+						panel.Text = "These are all classes with parameterless constructors\nthat inherit GameObject2D.\nChoose class of object to add:";
+						panel.CloseOnClick = true;
+
+						_editUI!.AddChild(panel);
 						_editUI.RemoveChild(_editUI.DropDown);
 					}
 				}

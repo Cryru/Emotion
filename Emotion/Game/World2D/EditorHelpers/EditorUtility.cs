@@ -110,5 +110,19 @@ namespace Emotion.Game.World2D.EditorHelpers
 
             return currentWindowHandlers;
         }
+
+        public static void ReplaceMapButKeepReference(Map2D source, Map2D destination)
+        {
+	        var typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(source.GetType());
+	        if (typeHandler == null) return;
+
+	        IEnumerator<XMLFieldHandler> enumerator = typeHandler.EnumFields();
+	        while (enumerator.MoveNext())
+	        {
+		        XMLFieldHandler handler = enumerator.Current;
+		        object val = handler.ReflectionInfo.GetValue(source);
+		        handler.ReflectionInfo.SetValue(destination, val);
+	        }
+        }
     }
 }

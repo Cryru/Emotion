@@ -24,6 +24,7 @@ namespace Emotion.Game.World2D
 
 		// Selection and MouseOver
 		private GameObject2D? _lastMouseOverObject;
+		private GameObject2D? _objectSelectedState; // An object that is also presented as selected, used to improve ui
 		private bool _objectSelect = true;
 		private List<GameObject2D>? _mouseOverOverlapping; // List of objects under the mouse cursor (could be more than one)
 		private int _mouseOverIndex = -1; // Index in ^
@@ -45,8 +46,15 @@ namespace Emotion.Game.World2D
 			Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
 		}
 
+		private void DisposeDebug()
+		{
+			Engine.Host.OnKey.RemoveListener(DebugInputHandler);
+		}
+
 		private bool DebugInputHandler(Key key, KeyStatus status)
 		{
+			if (!Initialized) return true;
+
 			if (key == Key.F3 && status == KeyStatus.Down)
 			{
 				if (EditorMode)
@@ -80,7 +88,7 @@ namespace Emotion.Game.World2D
 				}
 				else if (key == Key.MouseKeyRight && status == KeyStatus.Up && _objectDragging == null && _editUI.MouseFocus == null)
 				{
-					if(_lastMouseOverObject != null)
+					if (_lastMouseOverObject != null)
 						EditorOpenContextMenuForObject(_lastMouseOverObject);
 					else
 						EditorOpenContextMenuObjectModeNoSelection();
@@ -133,7 +141,7 @@ namespace Emotion.Game.World2D
 		{
 			if (!EditorMode) return;
 
-			bool mouseInUI = _editUI?.MouseFocus != null || _editUI?.InputFocus is UITextInput;
+			bool mouseInUI = (_editUI?.MouseFocus != null && _editUI.MouseFocus != _editUI) || _editUI?.InputFocus is UITextInput;
 			var mouseFocusNameplate = _editUI?.MouseFocus as MapEditorObjectNameplate;
 			bool mouseNotInUIOrInNameplate = !mouseInUI || mouseFocusNameplate != null;
 
@@ -198,9 +206,9 @@ namespace Emotion.Game.World2D
 			{
 				// Show selection of object, if any.
 				var objectWithContextMenu = _editUI?.DropDown?.OwningObject as GameObject2D;
-				if (_lastMouseOverObject != null || objectWithContextMenu != null)
+				if (_lastMouseOverObject != null || objectWithContextMenu != null || _objectSelectedState != null)
 				{
-					Rectangle bound = (objectWithContextMenu ?? _lastMouseOverObject)!.Bounds;
+					Rectangle bound = (objectWithContextMenu ?? _lastMouseOverObject ?? _objectSelectedState)!.Bounds;
 					c.RenderSprite(bound, Color.White * 0.3f);
 				}
 
@@ -350,7 +358,7 @@ namespace Emotion.Game.World2D
 					txt.Append("\n");
 
 					if (obj.ObjectState == ObjectState.Alive)
-						txt.AppendLine($"   Serialized: {obj.ObjectFlags.HasFlag(ObjectFlags.Persistent)}");
+						txt.AppendLine($"   Persistent: {obj.ObjectFlags.HasFlag(ObjectFlags.Persistent)}");
 					else
 						txt.AppendLine($"   Spawn Condition: {obj.ShouldSpawnSerializedObject(this)}");
 
@@ -366,7 +374,7 @@ namespace Emotion.Game.World2D
 			}
 		}
 
-		private async Task EditorSaveMap()
+		public async Task EditorSaveMap()
 		{
 			string? fileName = FileName;
 			if (fileName == null)

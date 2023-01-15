@@ -1,8 +1,7 @@
 ﻿#region Using
 
-using System.Numerics;
 using Emotion.Graphics;
-using Emotion.Primitives;
+using Emotion.Platform.Input;
 using Emotion.UI;
 
 #endregion
@@ -11,25 +10,25 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-    public class MapEditorPanel : UIBaseWindow
-    {
-	    public string Header;
+	public class MapEditorPanel : UIBaseWindow
+	{
+		public string Header;
 
-        protected UIBaseWindow _contentParent;
-        private UIBaseWindow _container;
-        private bool _center;
+		protected UIBaseWindow _contentParent;
+		private UIBaseWindow _container;
+		private bool _center;
 
-        public MapEditorPanel(string header)
-        {
-	        Header = header;
-	        InputTransparent = false;
-            StretchX = true;
-            StretchY = true;
+		public MapEditorPanel(string header)
+		{
+			Header = header;
+			InputTransparent = false;
+			StretchX = true;
+			StretchY = true;
 
-            ParentAnchor = UIAnchor.CenterCenter;
-            Anchor = UIAnchor.CenterCenter;
-            _center = true;
-        }
+			ParentAnchor = UIAnchor.CenterCenter;
+			Anchor = UIAnchor.CenterCenter;
+			_center = true;
+		}
 
 		public override void AttachedToController(UIController controller)
 		{
@@ -57,6 +56,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			contentParent.StretchY = true;
 			contentParent.Id = "Content";
 			contentParent.Margins = new Rectangle(5, 15, 5, 5);
+			contentParent.InputTransparent = false;
 			_contentParent = contentParent;
 			container.AddChild(contentParent);
 
@@ -64,23 +64,30 @@ namespace Emotion.Game.World2D.EditorHelpers
 		}
 
 		protected override void AfterLayout()
-        {
-            base.AfterLayout();
+		{
+			base.AfterLayout();
 
-            if (_center)
-            {
-                Offset = Position2 / GetScale();
-                ParentAnchor = UIAnchor.TopLeft;
-                Anchor = UIAnchor.TopLeft;
-                _center = false;
-            }
-        }
+			if (_center)
+			{
+				Offset = Position2 / GetScale();
+				ParentAnchor = UIAnchor.TopLeft;
+				Anchor = UIAnchor.TopLeft;
+				_center = false;
+			}
+		}
 
-        protected override bool RenderInternal(RenderComposer c)
-        {
-            c.RenderSprite(_container.Bounds, MapEditorColorPalette.BarColor * 0.7f);
-            c.RenderOutline(_container.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
-            return base.RenderInternal(c);
-        }
-    }
+		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+		{ 
+			if (key == Key.MouseKeyLeft && status == KeyStatus.Down) Controller?.SetInputFocus(this);
+
+			return base.OnKey(key, status, mousePos);
+		}
+
+		protected override bool RenderInternal(RenderComposer c)
+		{
+			c.RenderSprite(_container.Bounds, MapEditorColorPalette.BarColor * 0.7f);
+			c.RenderOutline(_container.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
+			return base.RenderInternal(c);
+		}
+	}
 }
