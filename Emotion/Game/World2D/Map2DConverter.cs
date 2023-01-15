@@ -23,10 +23,12 @@ namespace Emotion.Game.World2D
             if (!typeof(Map2D).IsAssignableFrom(mapType)) return null;
             if (map.TiledMap == null) return null;
 
-            var newMap = (Map2D?) Activator.CreateInstance(mapType, map.WorldSize);
+            var newMap = (Map2D?) Activator.CreateInstance(mapType);
             if (newMap == null) return null;
+            newMap.MapSize = map.WorldSize;
             newMap.MapName = map.FileName ?? "Converted TMX";
             newMap.FileName = map.FileName == null ? "converted.xml" : map.FileName.Replace(".tmx", "_new.xml");
+            newMap.PersistentObjects = new List<GameObject2D>(); // Serialization constructor wouldn't have made it.
 
             // Convert tile data.
             var tileData = new Map2DTileMapData(map.TileSize, map.SizeInTiles, map.TiledMap.Tilesets.Count)

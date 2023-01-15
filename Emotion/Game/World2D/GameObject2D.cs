@@ -188,7 +188,7 @@ namespace Emotion.Game.World2D
 
         public override string ToString()
         {
-            return $"{UniqueId} {ObjectName} {GetType().Name} {base.ToString()}";
+	        return $"[{UniqueId}] {ObjectName ?? $"Object {GetType().Name}"} {(ObjectState != ObjectState.Alive ? ObjectState : "")}";
         }
     }
 }

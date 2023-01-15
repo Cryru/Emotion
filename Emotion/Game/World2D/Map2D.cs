@@ -31,8 +31,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// The size of the map in map units.
 		/// </summary>
-		[SerializeNonPublicGetSet]
-		public Vector2 MapSize { get; protected set; }
+		public Vector2 MapSize { get; set; }
 
 		/// <summary>
 		/// Contains tile information, if the map has a tile map portion.
@@ -59,8 +58,7 @@ namespace Emotion.Game.World2D
 		/// List of objects that are part of the map file. Used on map initialization and by the editor.
 		/// Do not modify in gameplay - that's weird!
 		/// </summary>
-		[SerializeNonPublicGetSet]
-		public List<GameObject2D> PersistentObjects { get; protected set; }
+		public List<GameObject2D> PersistentObjects { get; set; }
 
 		#region Runtime State
 
@@ -84,10 +82,9 @@ namespace Emotion.Game.World2D
 
 		#endregion
 
-		public Map2D(Vector2 size)
+		public Map2D(string mapName)
 		{
-			MapName = "New Map";
-			MapSize = size;
+			MapName = mapName;
 
 			_objects = new List<GameObject2D>();
 			PersistentObjects = new List<GameObject2D>();
@@ -141,11 +138,7 @@ namespace Emotion.Game.World2D
 			if (_nextObjectUid < 10_000) _nextObjectUid = 10_000;
 
 			// Load tile data. During this time object loading is running async.
-			if (TileData != null)
-			{
-				Debug.Assert((TileData.SizeInTiles * TileData.TileSize).SmallerOrEqual(MapSize), "Tiles outside map.");
-				await TileData.LoadTileDataAsync();
-			}
+			if (TileData != null) await TileData.LoadTileDataAsync();
 
 			// Wait for the assets of all objects to load.
 			await AwaitAllObjectsLoaded();
@@ -462,14 +455,10 @@ namespace Emotion.Game.World2D
 			RenderDebug(c);
 		}
 
-		public void RenderDebugWorldTree(RenderComposer c)
-		{
-			c.RenderOutline(new Rectangle(0, 0, MapSize), Color.Red);
-		}
-
 		public virtual void Dispose()
 		{
-			Engine.Host.OnKey.RemoveListener(DebugInputHandler);
+			DisposeDebug();
+			Initialized = false;
 		}
 	}
 }
