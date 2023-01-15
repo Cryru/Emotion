@@ -70,7 +70,6 @@ namespace Emotion.UI
 		private Vector2 _scrollPos = Vector2.Zero; // The grid-like-pos of the current child in view.
 		private Vector2 _lastScrollChildPos; // The grid-like-pos of the last child that can be scrolled to.
 		private Matrix4x4 _scrollDisplacement = Matrix4x4.Identity; // The current scroll translation.
-		private Vector2 _fullSize; // The full size the scroll area was given.
 
 		private UIScrollbar? _scrollBar;
 
@@ -123,7 +122,6 @@ namespace Emotion.UI
 			}
 
 			spaceTaken = MathF.Max(spaceTaken, MathF.Ceiling(MinSize.Y * GetScale()));
-			_fullSize = _measuredSize;
 			_measuredSize.Y = spaceTaken;
 
 			_scrollArea.Size = usedSpace.Round();
@@ -398,10 +396,12 @@ namespace Emotion.UI
 			bool up = scroll > 0;
 			if (Children == null) return;
 
+			Vector2 scrollPos = _scrollPos;
 			if (up)
 				ScrollToPos(_scrollPos - new Vector2(0, 1));
 			else
 				ScrollToPos(_scrollPos + new Vector2(0, 1));
+			if (scrollPos == _scrollPos) return; // Nothing changed
 
 			// If scrolling invalidate the mouse cache as something else will scroll under.
 			_lastMousePos = Vector2.Zero;
