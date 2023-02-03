@@ -23,7 +23,7 @@ namespace Emotion.Game.World2D
             if (!typeof(Map2D).IsAssignableFrom(mapType)) return null;
             if (map.TiledMap == null) return null;
 
-            var newMap = (Map2D?) Activator.CreateInstance(mapType);
+            var newMap = (Map2D?) Activator.CreateInstance(mapType, true);
             if (newMap == null) return null;
             newMap.MapSize = map.WorldSize;
             newMap.MapName = map.FileName ?? "Converted TMX";

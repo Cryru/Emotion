@@ -45,6 +45,12 @@ namespace Emotion.Game.World2D
 		public bool Initialized { get; protected set; }
 
 		/// <summary>
+		/// Whether the map has been disposed. It can be reset to be reused.
+		/// </summary>
+		[DontSerialize]
+		public bool Disposed { get; protected set; }
+
+		/// <summary>
 		/// Whether map loading has started.
 		/// </summary>
 		protected bool _mapLoadedStarted { get; set; }
@@ -82,9 +88,10 @@ namespace Emotion.Game.World2D
 
 		#endregion
 
-		public Map2D(string mapName)
+		public Map2D(Vector2 size, string mapName = "Unnamed Map")
 		{
 			MapName = mapName;
+			MapSize = size;
 
 			_objects = new List<GameObject2D>();
 			PersistentObjects = new List<GameObject2D>();
@@ -105,6 +112,22 @@ namespace Emotion.Game.World2D
 		/// </summary>
 		public async Task InitAsync()
 		{
+			if (Disposed)
+			{
+				Engine.Log.Warning("Initializing a disposed map. Resetting instead, verify if you intended this and reset it yourself otherwise.", MessageSource.Game);
+				Disposed = false;
+				await Reset();
+				return;
+			}
+
+			if (Initialized)
+			{
+				Engine.Log.Warning("Initializing an already initialized map. Resetting instead, verify if you intended this and reset it yourself otherwise.", MessageSource.Game);
+				Initialized = false;
+				await Reset();
+				return;
+			}
+
 			var profiler = Stopwatch.StartNew();
 
 			_worldTree = new WorldTree2D(MapSize);
@@ -125,6 +148,7 @@ namespace Emotion.Game.World2D
 			for (var i = 0; i < PersistentObjects.Count; i++)
 			{
 				GameObject2D obj = PersistentObjects[i];
+				obj.ObjectState = ObjectState.None;
 				AddObject(obj);
 
 				// We gotta remark the objects as this flag in particular is not serialized (removed in the Trim function).
@@ -458,7 +482,7 @@ namespace Emotion.Game.World2D
 		public virtual void Dispose()
 		{
 			DisposeDebug();
-			Initialized = false;
+			Disposed = true;
 		}
 	}
 }

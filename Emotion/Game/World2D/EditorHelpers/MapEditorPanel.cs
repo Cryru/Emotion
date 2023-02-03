@@ -14,8 +14,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 	{
 		public string Header;
 
-		protected UIBaseWindow _contentParent;
-		private UIBaseWindow _container;
+		protected UIBaseWindow _contentParent = null!;
+		private UIBaseWindow _container = null!;
 		private bool _center;
 
 		public MapEditorPanel(string header)
@@ -77,7 +77,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 		}
 
 		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
-		{ 
+		{
 			if (key == Key.MouseKeyLeft && status == KeyStatus.Down) Controller?.SetInputFocus(this);
 
 			return base.OnKey(key, status, mousePos);
