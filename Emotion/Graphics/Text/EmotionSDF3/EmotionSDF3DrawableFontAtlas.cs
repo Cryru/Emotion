@@ -145,12 +145,12 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
             if (glyphsMissingReferences.Count == 0) return;
 
-            Binning.BinningResumableState bin = _sdfReference.BinningState;
-            bin = BinGlyphsInAtlas(glyphsMissingReferences, bin);
-            _sdfReference.BinningState = bin;
+            Packing.PackingResumableState bin = _sdfReference.PackingState;
+            bin = PackGlyphsInAtlas(glyphsMissingReferences, bin);
+            _sdfReference.PackingState = bin;
 
             // Create list of missing glyphs in the atlas, from reference ones.
-            // This needs to be recalculated because binning might decide to bin all.
+            // This needs to be recalculated because packing might decide to repack all.
             var glyphsMissing = new List<DrawableGlyph>();
             for (var i = 0; i < glyphsMissingReferences.Count; i++)
             {
@@ -188,7 +188,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
                 atlasGlyph.GlyphUV = atlasGlyph.GlyphUV.Deflate(_sdfAtlasSpacing.X, _sdfAtlasSpacing.Y);
             }
 
-            Vector2? intermediateAtlasSize = Binning.FitRectangles(intermediateAtlasUVs);
+            Vector2? intermediateAtlasSize = Packing.FitRectangles(intermediateAtlasUVs);
             Debug.Assert(intermediateAtlasSize != null);
             for (var i = 0; i < intermediateAtlasUVs.Length; i++)
             {
@@ -212,7 +212,7 @@ namespace Emotion.Graphics.Text.EmotionSDF3
 
             // todo: this can potentially create 16k textures which wont work on all GPUs/drivers.
             // we probably need to split it into multiple draws in those cases.
-            Vector2 sdfBaseAtlas = Binning.FitRectangles(sdfTempRects);
+            Vector2 sdfBaseAtlas = Packing.FitRectangles(sdfTempRects);
 
             // Remove spacing.
             for (var i = 0; i < sdfTempRects.Length; i++)

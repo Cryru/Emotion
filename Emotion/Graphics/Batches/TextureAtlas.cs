@@ -23,7 +23,7 @@ namespace Emotion.Graphics.Batches
     /// batch draw calls using different textures together.
     /// This class is also responsible for remapping the UVs and keeping track of texture-struct(vertex) mapping.
     /// </summary>
-    public class TextureAtlas : Binning.BinningResumableState
+    public class TextureAtlas : Packing.PackingResumableState
     {
         public class TextureMapping
         {
@@ -127,7 +127,7 @@ namespace Emotion.Graphics.Batches
             if (_textureActivity[texture] < _usagesToPack) return false;
 
             // Check if there is space in the internal texture.
-            Vector2? offset = Binning.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
+            Vector2? offset = Packing.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
             if (offset == null) return false;
             _textureToOffset.Add(texture, offset.Value);
             _textureNeedDraw.Add(texture, true);
@@ -284,7 +284,7 @@ namespace Emotion.Graphics.Batches
             IOrderedEnumerable<Texture> allTextures = _textureToOffset.Keys.ToArray().OrderBy(x => x.Size.Y);
             foreach (Texture texture in allTextures)
             {
-                Vector2? offset = Binning.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
+                Vector2? offset = Packing.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
                 if (offset.HasValue)
                 {
                     _textureToOffset[texture] = offset.Value;

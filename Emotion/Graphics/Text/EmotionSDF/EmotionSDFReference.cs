@@ -21,14 +21,14 @@ namespace Emotion.Graphics.Text.EmotionSDF
     public class EmotionSDFReference
     {
         public DrawableFontAtlas ReferenceFont;
-        public Binning.BinningResumableState BinningState;
+        public Packing.PackingResumableState PackingState;
         public FrameBuffer? AtlasFramebuffer;
         public List<DrawableFontAtlas> FontsThatUseReference = new();
 
         public EmotionSDFReference(Font font, int referenceSize, bool pixelFont)
         {
             ReferenceFont = new DrawableFontAtlas(font, referenceSize, pixelFont);
-            BinningState = new Binning.BinningResumableState(Vector2.Zero);
+            PackingState = new Packing.PackingResumableState(Vector2.Zero);
         }
 
         public void CacheToFile(int size, bool pixelFont, string tag)
@@ -66,7 +66,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
             EmotionSDFReferenceSerialized? serialized = atlasMeta.Content;
             var reference = new EmotionSDFReference(atlas.Font, size, pixelFont);
-            reference.BinningState = serialized.BinningState;
+            reference.PackingState = serialized.PackingState;
             foreach ((int glyphCharIdx, Rectangle glyphUV) in serialized.Glyphs)
             {
                 var glyphChar = (char) glyphCharIdx;
@@ -77,7 +77,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
             GLThread.ExecuteGLThreadAsync(() =>
             {
-                reference.AtlasFramebuffer = new FrameBuffer(reference.BinningState.Size).WithColor(true, InternalFormat.Red, PixelFormat.Red);
+                reference.AtlasFramebuffer = new FrameBuffer(reference.PackingState.Size).WithColor(true, InternalFormat.Red, PixelFormat.Red);
                 if (withDepthStencil) reference.AtlasFramebuffer = reference.AtlasFramebuffer.WithDepthStencil();
                 reference.AtlasFramebuffer.ColorAttachment.Smooth = true;
 
@@ -105,7 +105,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
         public class EmotionSDFReferenceSerialized
         {
             public Dictionary<int, Rectangle> Glyphs;
-            public Binning.BinningResumableState BinningState;
+            public Packing.PackingResumableState PackingState;
 
             public EmotionSDFReferenceSerialized(EmotionSDFReference reference)
             {
@@ -115,14 +115,14 @@ namespace Emotion.Graphics.Text.EmotionSDF
                     Glyphs.Add(glyphChar, glyphVal.GlyphUV);
                 }
 
-                BinningState = reference.BinningState;
+                PackingState = reference.PackingState;
             }
 
             // Serialization constructor
             protected EmotionSDFReferenceSerialized()
             {
                 Glyphs = null!;
-                BinningState = null!;
+                PackingState = null!;
             }
         }
     }

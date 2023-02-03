@@ -144,9 +144,9 @@ namespace Emotion.Graphics.Text
         {
         }
 
-        #region Binning
+        #region Packing
 
-        protected Binning.BinningResumableState BinGlyphsInAtlas(List<DrawableGlyph> glyphs, Binning.BinningResumableState bin)
+        protected Packing.PackingResumableState PackGlyphsInAtlas(List<DrawableGlyph> glyphs, Packing.PackingResumableState bin)
         {
             if (bin.Size != Vector2.Zero)
             {
@@ -157,7 +157,7 @@ namespace Emotion.Graphics.Text
                 {
                     DrawableGlyph glyph = glyphs[i];
                     Vector2 glyphSize = BinGetGlyphDimensions(glyph);
-                    Vector2? position = Binning.FitRectanglesResumable(glyphSize, bin);
+                    Vector2? position = Packing.FitRectanglesResumable(glyphSize, bin);
 
                     // Couldn't find space, rebin all.
                     if (position == null)
@@ -182,21 +182,21 @@ namespace Emotion.Graphics.Text
             }
 
             // Create bin rectangles.
-            var binningRects = new Rectangle[glyphs.Count];
+            var packingRects = new Rectangle[glyphs.Count];
             for (var i = 0; i < glyphs.Count; i++)
             {
                 DrawableGlyph refGlyph = glyphs[i];
-                binningRects[i] = new Rectangle(0, 0, BinGetGlyphDimensions(refGlyph));
+                packingRects[i] = new Rectangle(0, 0, BinGetGlyphDimensions(refGlyph));
             }
 
-            bin = new Binning.BinningResumableState(Vector2.Zero);
-            Binning.FitRectangles(binningRects, false, bin);
+            bin = new Packing.PackingResumableState(Vector2.Zero);
+            Packing.FitRectangles(packingRects, false, bin);
 
             // Assign binned uvs.
             for (var i = 0; i < glyphs.Count; i++)
             {
                 DrawableGlyph gRef = glyphs[i];
-                gRef.GlyphUV = binningRects[i];
+                gRef.GlyphUV = packingRects[i];
             }
 
             return bin;

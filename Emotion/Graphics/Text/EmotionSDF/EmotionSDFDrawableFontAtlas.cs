@@ -83,12 +83,12 @@ namespace Emotion.Graphics.Text.EmotionSDF
             if (glyphsMissingReferences.Count == 0) return;
 
             // Bin glyphs.
-            Binning.BinningResumableState bin = _sdfReference.BinningState;
-            bin = BinGlyphsInAtlas(glyphsMissingReferences, bin);
-            _sdfReference.BinningState = bin;
+            Packing.PackingResumableState bin = _sdfReference.PackingState;
+            bin = PackGlyphsInAtlas(glyphsMissingReferences, bin);
+            _sdfReference.PackingState = bin;
 
             // Create list of missing glyphs in the atlas, from reference ones.
-            // This needs to be recalculated because binning might decide to bin all.
+            // This needs to be recalculated because packing might decide to repack all.
             var glyphsMissing = new List<DrawableGlyph>();
             for (var i = 0; i < glyphsMissingReferences.Count; i++)
             {

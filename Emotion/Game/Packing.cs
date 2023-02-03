@@ -12,7 +12,7 @@ using Emotion.Utility;
 
 namespace Emotion.Game
 {
-    public static class Binning
+    public static class Packing
     {
         public class PackingSpace
         {
@@ -28,7 +28,6 @@ namespace Emotion.Game
 
             protected PackingSpace()
             {
-
             }
 
             public Rectangle GetAbsoluteArea(Vector2 outsideSize)
@@ -53,9 +52,9 @@ namespace Emotion.Game
         /// in suboptimal results if the rectangles aren't relatively the same height. False by default.
         /// </param>
         /// <param name="fillResumeState">If a resumable state instance is provided it will be filled with the data needed to
-        /// resume binning from the end state of this operation.</param>
+        /// resume packing from the end state of this operation.</param>
         /// <returns></returns>
-        public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false, BinningResumableState fillResumeState = null)
+        public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false, PackingResumableState fillResumeState = null)
         {
             if (rectMemory.IsEmpty) return Vector2.Zero;
 
@@ -184,19 +183,19 @@ namespace Emotion.Game
             return canvasSize;
         }
 
-        public class BinningResumableState
+        public class PackingResumableState
         {
             public Vector2 CanvasPos;
             public Vector2 Size;
             public List<PackingSpace> PackingSpaces = new List<PackingSpace>();
 
-            public BinningResumableState(Vector2 canvasDimensions)
+            public PackingResumableState(Vector2 canvasDimensions)
             {
                 Size = canvasDimensions;
             }
 
             // Serialization constructor.
-            protected BinningResumableState()
+            protected PackingResumableState()
             {
 
             }
@@ -210,7 +209,7 @@ namespace Emotion.Game
         /// The canvas state so far. If just starting construct a new instance.
         /// </param>
         /// <returns>The position of the rectangle within the canvas, or null if it couldn't fit.</returns>
-        public static Vector2? FitRectanglesResumable(Vector2 rectangleSize, BinningResumableState oldState)
+        public static Vector2? FitRectanglesResumable(Vector2 rectangleSize, PackingResumableState oldState)
         {
             Vector2 canvasSize = oldState.Size;
             List<PackingSpace> packingSpaces = oldState.PackingSpaces;

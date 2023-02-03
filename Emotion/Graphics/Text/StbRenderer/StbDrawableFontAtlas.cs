@@ -25,7 +25,7 @@ namespace Emotion.Graphics.Text.StbRenderer
         private static RenderState? _glyphRenderState;
         private FrameBuffer? _intermediateBuffer;
         private FrameBuffer? _atlasBuffer;
-        private Binning.BinningResumableState? _bin;
+        private Packing.PackingResumableState? _bin;
 
         /// <inheritdoc />
         public override Texture Texture
@@ -55,8 +55,8 @@ namespace Emotion.Graphics.Text.StbRenderer
                 _glyphRenderState.DFactorA = BlendingFactor.One;
             }
 
-            _bin ??= new Binning.BinningResumableState(Vector2.Zero);
-            _bin = BinGlyphsInAtlas(glyphsToAdd, _bin);
+            _bin ??= new Packing.PackingResumableState(Vector2.Zero);
+            _bin = PackGlyphsInAtlas(glyphsToAdd, _bin);
 
             // Sync atlas.
             var clearBuffer = false;
@@ -82,7 +82,7 @@ namespace Emotion.Graphics.Text.StbRenderer
                 atlasGlyph.GlyphUV = atlasGlyph.GlyphUV.Deflate(GLYPH_SPACING, GLYPH_SPACING);
             }
 
-            Vector2 intermediateAtlasSize = Binning.FitRectangles(intermediateAtlasUVs)!;
+            Vector2 intermediateAtlasSize = Packing.FitRectangles(intermediateAtlasUVs)!;
             for (var i = 0; i < intermediateAtlasUVs.Length; i++)
             {
                 intermediateAtlasUVs[i] = intermediateAtlasUVs[i].Deflate(GLYPH_SPACING, GLYPH_SPACING);

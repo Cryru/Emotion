@@ -24,7 +24,7 @@ namespace Emotion.Graphics.Text.EmotionRenderer
         private const int GLYPH_SPACING = 2;
 
         private FrameBuffer? _atlasBuffer;
-        private Binning.BinningResumableState? _bin;
+        private Packing.PackingResumableState? _pack;
 
         /// <inheritdoc />
         public override Texture Texture
@@ -80,20 +80,20 @@ namespace Emotion.Graphics.Text.EmotionRenderer
             InitializeRenderer();
             if (_rendererInitError) return;
 
-            _bin ??= new Binning.BinningResumableState(Vector2.Zero);
-            _bin = BinGlyphsInAtlas(glyphsToAdd, _bin);
+            _pack ??= new Packing.PackingResumableState(Vector2.Zero);
+            _pack = PackGlyphsInAtlas(glyphsToAdd, _pack);
 
             // Sync atlas.
             var clearBuffer = false;
             if (_atlasBuffer == null)
             {
-                _atlasBuffer = new FrameBuffer(_bin.Size).WithColor();
+                _atlasBuffer = new FrameBuffer(_pack.Size).WithColor();
                 _atlasBuffer.ColorAttachment.Smooth = true;
                 clearBuffer = true;
             }
-            else if (_bin.Size != _atlasBuffer.Size)
+            else if (_pack.Size != _atlasBuffer.Size)
             {
-                Vector2 newSize = Vector2.Max(_bin.Size, _atlasBuffer.Size); // Dont size down.
+                Vector2 newSize = Vector2.Max(_pack.Size, _atlasBuffer.Size); // Dont size down.
                 _atlasBuffer.Resize(newSize, true);
                 clearBuffer = true;
             }
@@ -107,7 +107,7 @@ namespace Emotion.Graphics.Text.EmotionRenderer
                 atlasGlyph.GlyphUV = atlasGlyph.GlyphUV.Deflate(GLYPH_SPACING, GLYPH_SPACING);
             }
 
-            Vector2 intermediateAtlasSize = Binning.FitRectangles(intermediateAtlasUVs)!;
+            Vector2 intermediateAtlasSize = Packing.FitRectangles(intermediateAtlasUVs);
             for (var i = 0; i < intermediateAtlasUVs.Length; i++)
             {
                 intermediateAtlasUVs[i] = intermediateAtlasUVs[i].Deflate(GLYPH_SPACING, GLYPH_SPACING);

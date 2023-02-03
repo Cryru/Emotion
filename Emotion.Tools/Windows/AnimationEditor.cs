@@ -249,7 +249,7 @@ namespace Emotion.Tools.Windows
                         frames[i] = frame.Inflate(spacing, spacing);
                     }
 
-                    Vector2 totalSize = Binning.FitRectangles(frames, true);
+                    Vector2 totalSize = Packing.FitRectangles(frames, true);
                     FrameBuffer texture = new FrameBuffer(totalSize).WithColor();
                     composer.RenderTo(texture);
                     for (var i = 0; i < frames.Length; i++)

@@ -10,6 +10,6 @@ namespace Emotion.Graphics.Text
     public class GlyphRendererState
     {
         public FrameBuffer AtlasBuffer;
-        public Binning.BinningResumableState BinningState;
+        public Packing.PackingResumableState PackingState;
     }
 }
