@@ -109,24 +109,7 @@ namespace Emotion.Game.ThreeDee
             if (meshes.Length > 0 && meshes[0].VerticesWithBones != null)
                 RenderBonesVerticesCompat(c, meshes);
             else
-                for (var i = 0; i < meshes.Length; i++)
-                {
-                    Mesh obj = meshes[i];
-                    VertexData[] vertData = obj.Vertices;
-                    ushort[] indices = obj.Indices;
-                    Texture texture = null;
-                    if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                    RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
-
-                    vertData.CopyTo(memory.VerticesData);
-                    indices.CopyTo(memory.IndicesData);
-
-                    ushort structOffset = memory.StructIndex;
-                    for (var j = 0; j < memory.IndicesData.Length; j++)
-                    {
-                        memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
-                    }
-                }
+                RenderMesh(c, meshes);
 
             c.PopModelMatrix();
 
@@ -135,7 +118,33 @@ namespace Emotion.Game.ThreeDee
         }
 
         /// <summary>
-        /// Renders a mesh with bone vertices as if it didn't have any.
+        /// Render the mesh using the default render stream.
+        /// </summary>
+        private void RenderMesh(RenderComposer c, Mesh[] meshes)
+        {
+            for (var i = 0; i < meshes.Length; i++)
+            {
+                Mesh obj = meshes[i];
+                VertexData[] vertData = obj.Vertices;
+                ushort[] indices = obj.Indices;
+                Texture texture = null;
+                if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
+                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint)vertData!.Length, (uint)indices.Length, BatchMode.SequentialTriangles, texture);
+
+                vertData.CopyTo(memory.VerticesData);
+                indices.CopyTo(memory.IndicesData);
+
+                ushort structOffset = memory.StructIndex;
+                for (var j = 0; j < memory.IndicesData.Length; j++)
+                {
+                    memory.IndicesData[j] = (ushort)(memory.IndicesData[j] + structOffset);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Renders a mesh with bone vertices as a non-animated mesh. Allows the mesh to
+        /// be drawn using the default render stream.
         /// </summary>
         private void RenderBonesVerticesCompat(RenderComposer c, Mesh[] meshes)
         {
@@ -169,6 +178,11 @@ namespace Emotion.Game.ThreeDee
             }
         }
 
+        /// <summary>
+        /// Render the mesh animated.
+        /// The normal render stream cannot be used to do so, so one must be passed in.
+        /// Also requires the SkeletanAnim shader or one that supports skinned meshes.
+        /// </summary>
         public void RenderAnimated(RenderComposer c, RenderStreamBatch<VertexDataWithBones> bonedStream)
         {
             if (Entity?.Meshes == null) return;
@@ -193,6 +207,9 @@ namespace Emotion.Game.ThreeDee
                 Texture texture = null;
                 if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
                 RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+
+                // Didn't manage to get enough memory.
+                if (memory.VerticesData.Length == 0) continue;
 
                 vertData.CopyTo(memory.VerticesData);
                 indices.CopyTo(memory.IndicesData);
