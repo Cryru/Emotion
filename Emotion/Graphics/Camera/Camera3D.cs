@@ -40,6 +40,11 @@ namespace Emotion.Graphics.Camera
         {
         }
 
+        public void LookAtPoint(Vector3 point)
+        {
+            LookAt = Vector3.Normalize(point - Position);
+        }
+
         protected override void LookAtChanged(Vector3 oldVal, Vector3 newVal)
         {
             float roll = MathF.Asin(newVal.Z);
