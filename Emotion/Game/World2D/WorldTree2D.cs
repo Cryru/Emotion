@@ -11,6 +11,14 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.World2D
 {
+    /// <summary>
+    /// The world tree is a quad tree that makes querying objects faster.
+    /// The tree also groups objects in "layers". Each layer has a game specific meaning
+    /// and speeds up filtering through objects by grouping them in advance.
+    /// There are two special layers:
+    /// Layer -1 contains all ConditionallyNonSpawned objects
+    /// Layer 0 contains all objects.
+    /// </summary>
     [DontSerialize]
     public class WorldTree2D
     {
