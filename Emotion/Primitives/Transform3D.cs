@@ -1,94 +1,151 @@
-﻿using System;
-using System.Numerics;
+﻿#region Using
+
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Emotion.Common.Serialization;
 using Emotion.Utility;
+
+#endregion
 
 namespace Emotion.Primitives
 {
-    public class Transform3D : Transform
-    {
-         public float Depth
-        {
-            get => _depth;
-            set
-            {
-                if (value == _depth) return;
-                _depth = value;
-                Resized();
-            }
-        }
+	public class Transform3D : Positional
+	{
+		/// <summary>
+		/// The scale of the transform.
+		/// </summary>
+		public Vector3 Size
+		{
+			get => new Vector3(_sizeX, _sizeY, _height);
+			set
+			{
+				if (_sizeX == value.X && _sizeY == value.Y && _height == value.Z)
+					return;
 
-        private float _depth = 1;
+				_sizeX = value.X;
+				_sizeY = value.Y;
+				_height = value.Z;
+				Resized();
+			}
+		}
 
-        public float Scale
-        {
-            get
-            {
-                if (_width == _height && _height == _depth) return _width;
-                return float.NaN;
-            }
-            set
-            {
-                _width = value;
-                _height = value;
-                _depth = value;
-                Resized();
-            }
-        }
+		/// <summary>
+		/// The X axis scale of the transform.
+		/// </summary>
+		[DontSerialize]
+		public float SizeX
+		{
+			get => _sizeX;
+			set
+			{
+				if (_sizeX == value)
+					return;
+				_sizeX = value;
+				Resized();
+			}
+		}
 
-        public Vector3 Rotation
-        {
-            get => _rotationRad;
-            set
-            {
-                if (_rotationRad == value) return;
-                _rotationRad = value;
-                Rotated();
-            }
-        }
+		/// <summary>
+		/// The Y axis scale of the transform.
+		/// </summary>
+		[DontSerialize]
+		public float SizeY
+		{
+			get => _sizeY;
+			set
+			{
+				if (_sizeY == value)
+					return;
+				_sizeY = value;
+				Resized();
+			}
+		}
 
-        public Vector3 RotationDeg
-        {
-            get => new Vector3(Maths.RadiansToDegrees(_rotationRad.X), Maths.RadiansToDegrees(_rotationRad.Y), Maths.RadiansToDegrees(_rotationRad.Z));
-            set
-            {
-                _rotationRad = new Vector3(Maths.DegreesToRadians(value.X), Maths.DegreesToRadians(value.Y), Maths.DegreesToRadians(value.Z));
-                Rotated();
-            }
-        }
+		/// <summary>
+		/// The Z axis scale of the transform.
+		/// </summary>
+		[DontSerialize]
+		public float Height
+		{
+			get => _height;
+			set
+			{
+				if (_height == value)
+					return;
+				Resized();
+			}
+		}
 
-        private Vector3 _rotationRad;
+		private float _sizeX;
+		protected float _sizeY;
+		protected float _height;
 
-        public event EventHandler OnRotate;
+		public Vector3 Rotation
+		{
+			get => _rotationRad;
+			set
+			{
+				if (_rotationRad == value) return;
+				_rotationRad = value;
+				Rotated();
+			}
+		}
 
-        protected override void Resized()
-        {
-            _scaleMatrix = Matrix4x4.CreateScale(_width, _height, _depth);
-            base.Resized();
-        }
+		[DontSerialize]
+		public Vector3 RotationDeg
+		{
+			get => new Vector3(Maths.RadiansToDegrees(_rotationRad.X), Maths.RadiansToDegrees(_rotationRad.Y), Maths.RadiansToDegrees(_rotationRad.Z));
+			set
+			{
+				_rotationRad = new Vector3(Maths.DegreesToRadians(value.X), Maths.DegreesToRadians(value.Y), Maths.DegreesToRadians(value.Z));
+				Rotated();
+			}
+		}
 
-        protected override void Moved()
-        {
-            _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
-            base.Moved();
-        }
+		/// <summary>
+		/// Is invoked when the transform's size is changed.
+		/// </summary>
+		public event EventHandler OnResize;
 
-        protected virtual void Rotated()
-        {
-            _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotationRad.Y, _rotationRad.X, _rotationRad.Z);
-            OnRotate?.Invoke(this, EventArgs.Empty);
-        }
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected void Resized()
+		{
+			_scaleMatrix = Matrix4x4.CreateScale(_sizeX, _sizeY, _height);
 
-        protected Matrix4x4 _rotationMatrix;
-        protected Matrix4x4 _scaleMatrix;
-        protected Matrix4x4 _translationMatrix;
+			Debug.Assert(!float.IsNaN(_sizeX));
+			Debug.Assert(!float.IsNaN(_sizeY));
+			Debug.Assert(!float.IsNaN(_height));
+			OnResize?.Invoke(this, EventArgs.Empty);
+		}
 
-        public Transform3D()
-        {
-            _width = 1;
-            _height = 1;
-            Resized();
-            Moved();
-            Rotated();
-        }
-    }
+		protected override void Moved()
+		{
+			_translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
+			base.Moved();
+		}
+
+		private Vector3 _rotationRad;
+
+		public event EventHandler OnRotate;
+
+		protected virtual void Rotated()
+		{
+			_rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotationRad.Y, _rotationRad.X, _rotationRad.Z);
+			OnRotate?.Invoke(this, EventArgs.Empty);
+		}
+
+		protected Matrix4x4 _rotationMatrix;
+		protected Matrix4x4 _scaleMatrix;
+		protected Matrix4x4 _translationMatrix;
+
+		public Transform3D()
+		{
+			_sizeX = 1;
+			_sizeY = 1;
+			_height = 1;
+			Resized();
+			Moved();
+			Rotated();
+		}
+	}
 }

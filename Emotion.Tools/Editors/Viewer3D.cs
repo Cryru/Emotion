@@ -4,7 +4,6 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
-using Emotion.Game.SpriteStack;
 using Emotion.Game.ThreeDee;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
@@ -144,8 +143,8 @@ namespace Emotion.Tools.Editors
             Vector3 pos = DisplayObject.Position;
             if (ImGui.DragFloat3("Position", ref pos)) DisplayObject.Position = pos;
 
-            float scale = DisplayObject.Scale;
-            if (ImGui.DragFloat("Scale", ref scale)) DisplayObject.Scale = scale;
+            Vector3 scale = DisplayObject.Size;
+            if (ImGui.DragFloat3("Scale", ref scale)) DisplayObject.Size = scale;
 
             Vector3 rot = DisplayObject.RotationDeg;
             if (ImGui.DragFloat3("Rotation", ref rot)) DisplayObject.RotationDeg = rot;
