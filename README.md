@@ -2,7 +2,6 @@
 <img src="EmotionLogo.png" width="128px" />
 
 ![CI-Windows](https://github.com/Cryru/Emotion/workflows/CI-Windows/badge.svg?branch=master)
-[![Gitter](https://badges.gitter.im/EmotionGameEngine/community.svg)](https://gitter.im/EmotionGameEngine/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## What is it?
 
