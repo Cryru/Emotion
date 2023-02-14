@@ -31,16 +31,17 @@ namespace Emotion.Game.ThreeDee
                 for (var x = 0; x < rows; x++)
                 {
                     // Count the filled pixels
-                    int filledPixels = GenerateStackFrame(x + y * rows, columns * rows, frameSize, textureSize, null, null);
+                    int filledPixels = GenerateStackFrame(frameIdx, columns * rows, frameSize, textureSize, null, null);
 
                     // Allocate data for the mesh and run againt to fill.
                     // todo: what if data is outside index range
                     var vertices = new VertexData[filledPixels * 8];
                     var indices = new ushort[filledPixels * 6 * 6]; // 6 sides, one quad is 6 indices
-                    GenerateStackFrame(x + y * rows, columns * rows, frameSize, textureSize, vertices, indices);
+                    GenerateStackFrame(frameIdx, columns * rows, frameSize, textureSize, vertices, indices);
 
                     var frameMesh = new Mesh();
-                    frameMesh.Material = new MeshMaterial();
+                    frameMesh.Name = $"SpriteStack Frame {frameIdx} ({Name})";
+                    frameMesh.Material = MeshMaterial.DefaultMaterial;
                     frameMesh.Vertices = vertices;
                     frameMesh.Indices = indices;
                     frames[frameIdx] = frameMesh;

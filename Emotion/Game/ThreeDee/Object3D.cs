@@ -97,10 +97,13 @@ namespace Emotion.Game.ThreeDee
 
             c.FlushRenderStream();
 
-            Gl.Enable(EnableCap.CullFace);
-            Gl.CullFace(CullFaceMode.Back);
-            Gl.FrontFace(FrontFaceDirection.Ccw);
-            
+            if (Entity.BackFaceCulling)
+            {
+	            Gl.Enable(EnableCap.CullFace); // todo: render stream state
+	            Gl.CullFace(CullFaceMode.Back);
+	            Gl.FrontFace(FrontFaceDirection.Ccw);
+            }
+
             c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 
             Mesh[] meshes = Entity.Meshes;
@@ -114,7 +117,11 @@ namespace Emotion.Game.ThreeDee
             c.PopModelMatrix();
 
             c.FlushRenderStream();
-            Gl.Disable(EnableCap.CullFace);
+
+            if (Entity.BackFaceCulling)
+            {
+	            Gl.Disable(EnableCap.CullFace);
+            }
         }
 
         /// <summary>

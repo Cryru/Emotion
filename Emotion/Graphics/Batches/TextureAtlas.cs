@@ -111,7 +111,7 @@ namespace Emotion.Graphics.Batches
             if (texture.Size.X + _texturesMargin2 > _maxTextureBatchSize.X || texture.Size.Y + _texturesMargin2 > _maxTextureBatchSize.Y) return false;
 
             // Don't batch "no" texture. Those UVs are used for effects.
-            if (texture == Texture.NoTexture) return false;
+            if (texture == Texture.NoTexture || texture == Texture.EmptyWhiteTexture) return false;
 
             // Don't batch tiled or smoothed textures (unless the atlas is smooth).
             if (texture.Tile || texture.Smooth != _fbo.Texture.Smooth) return false;

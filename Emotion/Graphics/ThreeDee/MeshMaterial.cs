@@ -19,6 +19,8 @@ namespace Emotion.Graphics.ThreeDee
         public string? DiffuseTextureName = null;
         public Texture? DiffuseTexture;
 
+        public bool BackFaceCulling = true;
+
         public static MeshMaterial DefaultMaterial = new MeshMaterial();
     }
 }

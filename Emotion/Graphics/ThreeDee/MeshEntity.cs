@@ -16,7 +16,11 @@ namespace Emotion.Graphics.ThreeDee
         public float Scale { get; set; }
         public Mesh[] Meshes { get; set; }
 
+        // Animation
         public SkeletalAnimation[] Animations { get; set; }
         public SkeletonAnimRigNode AnimationRig { get; set; }
+
+        // Render settings
+        public bool BackFaceCulling = true;
     }
 }
