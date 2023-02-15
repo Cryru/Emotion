@@ -10,7 +10,7 @@ namespace Emotion.Primitives
 {
 	public class CylinderMeshGenerator
 	{
-		public int Smoothness = 20;
+		public int Sides = 20;
 
 		public float RadiusTop = 1;
 		public float RadiusBottom = 1;
@@ -20,10 +20,10 @@ namespace Emotion.Primitives
 
 		public Mesh GenerateMesh()
 		{
-			Debug.Assert(Smoothness >= 3);
+			Debug.Assert(Sides >= 3);
 
-			var vertices = new VertexData[Smoothness * 4 + (Capped ? 2 : 0)];
-			var indices = new ushort[Smoothness * 6 + (Capped ? (3 * Smoothness) * 2 : 0)];
+			var vertices = new VertexData[Sides * 4 + (Capped ? 2 : 0)];
+			var indices = new ushort[Sides * 6 + (Capped ? (3 * Sides) * 2 : 0)];
 
 			var prevTopX = (float) (RadiusTop * Math.Cos(0));
 			var prevTopY = (float) (RadiusTop * Math.Sin(0));
@@ -36,8 +36,8 @@ namespace Emotion.Primitives
 			float startingBottomX = prevBottomX;
 			float startingBottomY = prevBottomY;
 
-			float step = 2 * MathF.PI / Smoothness;
-			for (var i = 0; i < Smoothness; i++)
+			float step = 2 * MathF.PI / Sides;
+			for (var i = 0; i < Sides; i++)
 			{
 				float angle = (i + 1) * step;
 
@@ -47,7 +47,7 @@ namespace Emotion.Primitives
 				var bottomX = (float) (RadiusBottom * Math.Cos(angle));
 				var bottomY = (float) (RadiusBottom * Math.Sin(angle));
 
-				if (i == Smoothness - 1)
+				if (i == Sides - 1)
 				{
 					topX = startingTopX;
 					topY = startingTopY;
@@ -61,21 +61,21 @@ namespace Emotion.Primitives
 				// Add the vertices for this quad.
 				ref VertexData v1 = ref vertices[vtxStart];
 				v1.Vertex = new Vector3(prevBottomX, prevBottomY, 0);
-				v1.UV = new Vector2((float) i / Smoothness, 0);
+				v1.UV = new Vector2((float) i / Sides, 0);
 				v1.Color = Color.WhiteUint;
 
 				indices[idxStart] = (ushort) vtxStart;
 
 				ref VertexData v2 = ref vertices[vtxStart + 1];
 				v2.Vertex = new Vector3(bottomX, bottomY, 0);
-				v2.UV = new Vector2((float) (i + 1) / Smoothness, 0);
+				v2.UV = new Vector2((float) (i + 1) / Sides, 0);
 				v2.Color = Color.WhiteUint;
 
 				indices[idxStart + 1] = (ushort) (vtxStart + 1);
 
 				ref VertexData v3 = ref vertices[vtxStart + 2];
 				v3.Vertex = new Vector3(prevTopX, prevTopY, Height);
-				v3.UV = new Vector2((float) i / Smoothness, 1);
+				v3.UV = new Vector2((float) i / Sides, 1);
 				v3.Color = Color.WhiteUint;
 
 				indices[idxStart + 2] = (ushort) (vtxStart + 2);
@@ -84,7 +84,7 @@ namespace Emotion.Primitives
 
 				ref VertexData v6 = ref vertices[vtxStart + 3];
 				v6.Vertex = new Vector3(topX, topY, Height);
-				v6.UV = new Vector2((float) (i + 1) / Smoothness, 1);
+				v6.UV = new Vector2((float) (i + 1) / Sides, 1);
 				v6.Color = Color.WhiteUint;
 				indices[idxStart + 5] = (ushort) (vtxStart + 3);
 
@@ -131,7 +131,7 @@ namespace Emotion.Primitives
 
 			if (Capped)
 			{
-				int vtxStart = Smoothness * 4;
+				int vtxStart = Sides * 4;
 
 				// Top center point
 				ref VertexData v1 = ref vertices[vtxStart];
@@ -140,8 +140,8 @@ namespace Emotion.Primitives
 				v1.Color = Color.WhiteUint;
 
 				// Cap on top
-				int idxStart = Smoothness * 6;
-				for (var i = 0; i < Smoothness; i++)
+				int idxStart = Sides * 6;
+				for (var i = 0; i < Sides; i++)
 				{
 					int quadStart = i * 4;
 					int idxWriting = idxStart + i * 3;
@@ -159,16 +159,16 @@ namespace Emotion.Primitives
 				v2.Color = Color.Red.ToUint();
 
 				// Cap on bottom
-				idxStart = Smoothness * 6 + Smoothness * 3;
-				for (var i = 0; i < Smoothness; i++)
+				idxStart += Sides * 3;
+				for (var i = 0; i < Sides; i++)
 				{
 					int quadStart = i * 4;
 					int idxWriting = idxStart + i * 3;
 
 					// Add the indices for the top triangles
-					indices[idxWriting] = (ushort) (vtxStart + 1);
+					indices[idxWriting + 2] = (ushort) (vtxStart + 1);
 					indices[idxWriting + 1] = (ushort) quadStart;
-					indices[idxWriting + 2] = (ushort) (quadStart + 1);
+					indices[idxWriting] = (ushort) (quadStart + 1);
 				}
 			}
 
