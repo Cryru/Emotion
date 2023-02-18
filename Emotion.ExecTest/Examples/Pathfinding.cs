@@ -64,7 +64,7 @@ namespace Emotion.ExecTest.Examples
 
                     bool walkable = _grid.IsWalkable(x, y);
                     var rect = new Rectangle(pos, new Vector2(_tileSize, _tileSize));
-                    bool inHere = rect.Contains(composer.Camera.ScreenToWorld(Engine.Host.MousePosition));
+                    bool inHere = rect.Contains(composer.Camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2());
                     Color col = inHere ? Color.Blue : walkable ? Color.Green : Color.Red;
 
                     int cantor = Maths.GetCantorPair(x, y);

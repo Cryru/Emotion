@@ -465,7 +465,7 @@ namespace Emotion.Game.World2D
 		{
 			if (!Initialized) return;
 
-			Rectangle clipArea = c.Camera.GetWorldBoundingRect();
+			Rectangle clipArea = c.Camera.GetCameraFrustum();
 			TileData?.RenderTileMap(c, clipArea);
 
 			var renderObjectsList = new List<GameObject2D>();

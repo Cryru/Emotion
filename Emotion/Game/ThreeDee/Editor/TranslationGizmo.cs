@@ -12,39 +12,39 @@ namespace Emotion.Game.ThreeDee.Editor
 		public TranslationGizmo()
 		{
 			var arrowCylinderGen = new CylinderMeshGenerator();
-			arrowCylinderGen.RadiusBottom = 0.25f;
-			arrowCylinderGen.RadiusTop = 0.25f;
-			arrowCylinderGen.Height = 10;
+			arrowCylinderGen.RadiusBottom = 1;
+			arrowCylinderGen.RadiusTop = 1;
+			arrowCylinderGen.Height = 40;
 			arrowCylinderGen.Capped = true;
 
 			var arrowGen = new CylinderMeshGenerator();
-			arrowGen.RadiusBottom = 0.50f;
+			arrowGen.RadiusBottom = 2f;
 			arrowGen.RadiusTop = 0;
-			arrowGen.Height = 2;
+			arrowGen.Height = 8;
 			arrowGen.Capped = true;
 
 			Entity = new MeshEntity
 			{
 				Meshes = new[]
 				{
-					arrowCylinderGen.GenerateMesh().TransformMeshVertices(
+					arrowCylinderGen.GenerateMesh("XCylinder").TransformMeshVertices(
 						Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f)
 					).ColorMeshVertices(new Color(240, 75, 65)),
-					arrowCylinderGen.GenerateMesh().TransformMeshVertices(
+					arrowCylinderGen.GenerateMesh("YCylinder").TransformMeshVertices(
 						Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f)
 					).ColorMeshVertices(new Color(75, 240, 65)),
-					arrowCylinderGen.GenerateMesh().ColorMeshVertices(new Color(65, 75, 240)),
+					arrowCylinderGen.GenerateMesh("ZCylinder").ColorMeshVertices(new Color(65, 75, 240)),
 
-					arrowGen.GenerateMesh().TransformMeshVertices(
+					arrowGen.GenerateMesh("XArrow").TransformMeshVertices(
 						Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
-						Matrix4x4.CreateTranslation(10, 0, 0)
+						Matrix4x4.CreateTranslation(40, 0, 0)
 					).ColorMeshVertices(new Color(165, 40, 40)),
-					arrowGen.GenerateMesh().TransformMeshVertices(
+					arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
 						Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
-						Matrix4x4.CreateTranslation(0, 10, 0)
+						Matrix4x4.CreateTranslation(0, 40, 0)
 					).ColorMeshVertices(new Color(40, 165, 40)),
-					arrowGen.GenerateMesh().TransformMeshVertices(
-							Matrix4x4.CreateTranslation(0, 0, 10)
+					arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
+							Matrix4x4.CreateTranslation(0, 0, 40)
 					).ColorMeshVertices(new Color(40, 40, 165))
 				},
 				Name = "Translation Gizmo",

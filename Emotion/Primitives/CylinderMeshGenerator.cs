@@ -18,7 +18,7 @@ namespace Emotion.Primitives
 
 		public bool Capped;
 
-		public Mesh GenerateMesh()
+		public Mesh GenerateMesh(string name = "CylinderMesh")
 		{
 			Debug.Assert(Sides >= 3);
 
@@ -174,7 +174,7 @@ namespace Emotion.Primitives
 
 			var mesh = new Mesh
 			{
-				Name = "CylinderMesh",
+				Name = name,
 				Material = MeshMaterial.DefaultMaterial,
 				Vertices = vertices,
 				Indices = indices

@@ -291,7 +291,7 @@ namespace Emotion.Game.World2D
 							if (serialized) newObj.ObjectFlags |= ObjectFlags.Persistent;
 							AddObject(newObj);
 
-							Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos);
+							Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
 							newObj.Position2 = worldPos;
 						}
 

@@ -85,7 +85,8 @@ namespace Emotion.Graphics.Camera
             float dirY = 0;
             if (Engine.Host.IsKeyHeld(Key.W))
                 dirX += 1;
-            else if (Engine.Host.IsKeyHeld(Key.S)) dirX -= 1;
+            else if (Engine.Host.IsKeyHeld(Key.S))
+	            dirX -= 1;
 
             if (Engine.Host.IsKeyHeld(Key.Space))
                 dirZ += 1;
@@ -94,9 +95,14 @@ namespace Emotion.Graphics.Camera
 
             if (Engine.Host.IsKeyHeld(Key.A))
                 dirY += 1;
-            else if (Engine.Host.IsKeyHeld(Key.D)) dirY -= 1;
+            else if (Engine.Host.IsKeyHeld(Key.D))
+	            dirY -= 1;
 
             Vector3 movementStraightBack = Engine.Renderer.Camera.LookAt * dirX;
+            float len = movementStraightBack.Length();
+            movementStraightBack.Z = 0;
+            movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
+
             Vector3 movementUpDown = RenderComposer.Up * dirZ;
             Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up * dirY, Engine.Renderer.Camera.LookAt));
             if (!float.IsNaN(movementStraightBack.X)) Engine.Renderer.Camera.Position += movementStraightBack * DebugMovementSpeed;
@@ -122,5 +128,32 @@ namespace Emotion.Graphics.Camera
             float aspectRatio = renderer.CurrentTarget.Size.X / renderer.CurrentTarget.Size.Y;
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
         }
-    }
+
+		public override Vector3 ScreenToWorld(Vector2 position)
+		{
+			// Calculate the normalized device coordinates (-1 to 1)
+			float screenWidth = Engine.Renderer.CurrentTarget.Size.X;
+			float screenHeight = Engine.Renderer.CurrentTarget.Size.Y;
+			float x = (2.0f * position.X) / screenWidth - 1.0f;
+			float y = 1.0f - (2.0f * position.Y) / screenHeight;
+
+			// Reverse projection
+			var clipSpace = new Vector4(x, y, 1f, 1f);
+			Vector4 rayEye = Vector4.Transform(clipSpace, ProjectionMatrix.Inverted());
+			rayEye.Z = -1f;
+			rayEye.W = 0f;
+
+			// Reverse view
+			Vector3 direction = Vector4.Transform(rayEye, ViewMatrix.Inverted()).ToVec3();
+			direction = Vector3.Normalize(direction);
+
+            return Position + direction;
+		}
+
+		public Ray3D GetCameraMouseRay()
+		{
+			Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
+			return new Ray3D(Position, dir - Position);
+		}
+	}
 }

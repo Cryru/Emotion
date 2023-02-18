@@ -75,7 +75,7 @@ namespace Emotion.Game.World2D
 				{
 					_objectDragging = _lastMouseOverObject;
 					Vector2 mouseScreen = Engine.Host.MousePosition;
-					Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
+					Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 					_objectDragOffset = _objectDragging.Position2 - mouseWorld;
 					_objectDragStartPos = _objectDragging.Position2;
 				}
@@ -148,7 +148,7 @@ namespace Emotion.Game.World2D
 			if (_objectSelect && mouseNotInUIOrInNameplate && _objectDragging == null)
 			{
 				Vector2 mouseScreen = Engine.Host.MousePosition;
-				Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
+				Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 				var circle = new Circle(mouseWorld, 1);
 				var results = new List<GameObject2D>();
 				foreach (int treeLayerId in _worldTree!.ForEachLayer())
@@ -172,7 +172,7 @@ namespace Emotion.Game.World2D
 			if (_objectDragging != null && mouseNotInUIOrInNameplate)
 			{
 				Vector2 mouseScreen = Engine.Host.MousePosition;
-				Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen);
+				Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 				_objectDragging.Position = (mouseWorld + _objectDragOffset).ToVec3(_objectDragging.Z);
 				EditorRegisterMoveAction(_objectDragging, _objectDragStartPos, _objectDragging.Position2);
 			}
@@ -192,7 +192,7 @@ namespace Emotion.Game.World2D
 
 			if (TileData != null)
 			{
-				Rectangle clipRect = c.Camera.GetWorldBoundingRect();
+				Rectangle clipRect = c.Camera.GetCameraFrustum();
 				for (var i = 0; i < TileData.Layers.Count; i++)
 				{
 					Map2DTileMapLayer layer = TileData.Layers[i];
@@ -444,7 +444,7 @@ namespace Emotion.Game.World2D
 		private void EditorAddObject(Type type)
 		{
 			Vector2 pos = Engine.Host.MousePosition;
-			Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(pos);
+			Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(pos).ToVec2();
 
 			ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
 			var newObj = (GameObject2D) constructor.Invoke(null);

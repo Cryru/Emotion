@@ -9,6 +9,7 @@ using Emotion.Graphics.Data;
 
 namespace Emotion.Graphics
 {
+    // todo: move this to primitives?
     public sealed partial class RenderComposer
     {
         /// <summary>

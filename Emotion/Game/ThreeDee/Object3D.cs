@@ -232,5 +232,10 @@ namespace Emotion.Game.ThreeDee
             c.PopModelMatrix();
             Gl.Disable(EnableCap.CullFace);
         }
+
+        public Matrix4x4 GetModelMatrix()
+        {
+	        return _scaleMatrix * _rotationMatrix * _translationMatrix;
+        }
     }
 }

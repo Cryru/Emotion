@@ -56,7 +56,7 @@ namespace Emotion.ExecTest.Examples
 
             Engine.Host.OnKey.AddListener((key, status) =>
             {
-                Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
+                Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
 
                 if (key == Key.Space && status == KeyStatus.Down)
                 {
@@ -142,13 +142,13 @@ namespace Emotion.ExecTest.Examples
 
             if (_dragging != null)
             {
-                Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
+                Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
                 composer.RenderLine((_dragging.Position + new Vector2(_circleRadius)).ToVec3(), worldMouse.ToVec3(), Color.Red);
             }
 
             if (_draggingCut != Vector2.Zero)
             {
-                Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
+                Vector2 worldMouse = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
                 composer.RenderLine(_draggingCut.ToVec3(), worldMouse.ToVec3(), Color.Red);
             }
 

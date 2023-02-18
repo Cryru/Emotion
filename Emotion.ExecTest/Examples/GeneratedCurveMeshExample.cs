@@ -26,7 +26,7 @@ namespace Emotion.ExecTest.Examples
 
         public override void Update()
         {
-            if (Engine.Host.IsKeyHeld(Key.MouseKeyLeft)) _curveApex = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition).ToVec3();
+            if (Engine.Host.IsKeyHeld(Key.MouseKeyLeft)) _curveApex = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
         }
 
         public override void Draw(RenderComposer composer)

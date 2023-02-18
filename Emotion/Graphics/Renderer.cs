@@ -426,7 +426,7 @@ namespace Emotion.Graphics
             if (DebugCamera != null)
             {
                 SetUseViewMatrix(true);
-                Rectangle actualCameraBounds = Camera.GetWorldBoundingRect();
+                Rectangle actualCameraBounds = Camera.GetCameraFrustum();
                 RenderOutline(actualCameraBounds, Color.Red);
                 RenderCircle(Camera.Position, 5, Color.Red, true);
                 RenderLine(Camera.Position, actualCameraBounds.TopLeft.ToVec3(), Color.Red);
@@ -436,6 +436,9 @@ namespace Emotion.Graphics
             }
 
 #endif
+
+	        RenderDebugObjects();
+
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
                 // Push a blit from the draw buffer to the screen buffer.
