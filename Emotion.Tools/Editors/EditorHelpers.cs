@@ -48,7 +48,7 @@ namespace Emotion.Tools.Editors
         public bool Update()
         {
             Vector2 mouseWorld = Engine.Host.MousePosition;
-            mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseWorld);
+            mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseWorld).ToVec2();
 
             if (_mouseDragging && Engine.Host.IsKeyHeld(Key.MouseKeyLeft))
             {

@@ -30,6 +30,10 @@ namespace Emotion.Graphics
     {
         public static Vector3 Up { get; } = new Vector3(0, 0, 1);
 
+        public static Vector3 XPlaneNormal = new Vector3(1, 0, 0);
+        public static Vector3 YPlaneNormal = new Vector3(0, 1, 0);
+        public static Vector3 ZPlaneNormal = new Vector3(0, 0, -1);
+
         #region Settings
 
         /// <summary>
@@ -99,7 +103,10 @@ namespace Emotion.Graphics
             get => _camera;
             set
             {
+	            if (_camera != null) _camera.Detach();
+
                 _camera = value;
+                _camera.Attach();
                 _camera.RecreateProjectionMatrix();
             }
         }

@@ -93,7 +93,7 @@ namespace Emotion.Graphics.Camera
 			set
 			{
 				_viewMatrix = value;
-				SyncRenderer();
+				MatricesChanged();
 			}
 		}
 
@@ -106,7 +106,7 @@ namespace Emotion.Graphics.Camera
 			set
 			{
 				_projectionMatrix = value;
-				SyncRenderer();
+				MatricesChanged();
 			}
 		}
 
@@ -151,11 +151,25 @@ namespace Emotion.Graphics.Camera
 		/// <summary>
 		/// Notify the renderer that the matrix has changed, causing a state change.
 		/// </summary>
-		protected void SyncRenderer()
+		protected void MatricesChanged()
 		{
 			if (!Engine.Renderer.InFrame || Engine.Renderer.Camera != this || !GLThread.IsGLThread()) return;
 			Engine.Renderer.FlushRenderStream();
 			Engine.Renderer.SyncShader();
+		}
+
+		/// <summary>
+		/// Called when the camera becomes current.
+		/// </summary>
+		public virtual void Attach()
+		{
+		}
+
+		/// <summary>
+		/// Called when the camera is no longer current.
+		/// </summary>
+		public virtual void Detach()
+		{
 		}
 
 		/// <summary>

@@ -60,9 +60,6 @@ namespace Emotion.Tools.Editors
             // Prevent dragging on controls from moving the camera.
             if (Controller?.InputFocus == this) return true;
 
-            var camera = (Camera3D) Engine.Renderer.Camera;
-            camera.DefaultMovementLogicUpdate();
-
             return true;
         }
 

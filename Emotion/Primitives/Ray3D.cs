@@ -27,6 +27,16 @@ namespace Emotion.Primitives
 			Direction = direction;
 		}
 
+		public Vector3 IntersectWithPlane(Vector3 planeNormal, Vector3 planePoint)
+		{
+			// Check if the ray is parallel to the plane
+			float dot = Vector3.Dot(Direction, planeNormal);
+			if (dot == 0) return Vector3.Zero;
+
+			float distance = Vector3.Dot(planeNormal, planePoint - Start) / dot;
+			return Start + distance * Direction;
+		}
+
 		public bool IntersectWithObject(Object3D obj, out Mesh collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
 		{
 			collidedMesh = null;
@@ -108,10 +118,8 @@ namespace Emotion.Primitives
 			distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
 
 			if (distance < 0)
-			{
 				// The intersection point is behind the ray's origin
 				return false;
-			}
 
 			// Calculate the barycentric coordinates of the intersection point
 			Vector3 edge1 = p2 - p1;
@@ -126,7 +134,7 @@ namespace Emotion.Primitives
 			float v = (d00 * Vector3.Dot(edge2, c) - d01 * Vector3.Dot(edge1, c)) / denom;
 
 			// Check if the intersection point is inside the triangle
-			return (u >= 0) && (v >= 0) && (u + v <= 1);
+			return u >= 0 && v >= 0 && u + v <= 1;
 		}
 	}
 }

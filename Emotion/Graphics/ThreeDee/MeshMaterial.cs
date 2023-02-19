@@ -15,7 +15,7 @@ namespace Emotion.Graphics.ThreeDee
     public class MeshMaterial
     {
         public string Name = null!;
-        public Color DiffuseColor = Color.White;
+        public Color DiffuseColor = Color.White; // todo: Currently unused
         public string? DiffuseTextureName = null;
         public Texture? DiffuseTexture;
 

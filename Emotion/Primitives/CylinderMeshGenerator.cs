@@ -6,6 +6,8 @@ using Emotion.Graphics.ThreeDee;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Primitives
 {
 	public class CylinderMeshGenerator

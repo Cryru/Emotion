@@ -29,7 +29,7 @@ namespace Emotion.ExecTest
             Engine.Run();
         }
 
-        private List<Plane3D> _planes = new List<Plane3D>();
+        private List<Quad3D> _quads = new List<Quad3D>();
         private TranslationGizmo _gizmo;
 
         public void Load()
@@ -38,27 +38,26 @@ namespace Emotion.ExecTest
             cam3d.LookAtPoint(new Vector3(0, 0, 0));
             Engine.Renderer.Camera = cam3d;
 
-            var ground = new Plane3D();
+            var ground = new Quad3D();
             ground.Position = new Vector3(0, 0, 0);
-            ground.Size = new Vector3(30, 30, 1);
+            ground.Size = new Vector3(300, 300, 1);
             ground.Tint = Color.Black;
-            _planes.Add(ground);
+            _quads.Add(ground);
 
-            var wall = new Plane3D();
-            wall.Position = new Vector3(0, 0, 5);
-            wall.Size = new Vector3(10, 10, 1);
+            var wall = new Quad3D();
+            wall.Position = new Vector3(0, 0, 50);
+            wall.Size = new Vector3(100, 100, 1);
             wall.RotationDeg = new Vector3(0, -90, 0);
-            _planes.Add(wall);
+            _quads.Add(wall);
 
             var transGizmo = new TranslationGizmo();
-            transGizmo.Position = new Vector3(0, 0, 0);
+            transGizmo.SetTarget(wall);
             _gizmo = transGizmo;
         }
 
         public void Update()
         {
-	        var cam = (Camera3D)Engine.Renderer.Camera;
-	        cam.DefaultMovementLogicUpdate();
+	        _gizmo.Update(Engine.DeltaTime);
         }
 
         public void Draw(RenderComposer composer)
@@ -72,6 +71,13 @@ namespace Emotion.ExecTest
             //composer.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
             //composer.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
 
+            for (int i = 0; i < _quads.Count; i++)
+            {
+	            Quad3D quad = _quads[i];
+	            quad.Render(composer);
+            }
+
+            composer.ClearDepth();
             _gizmo.Render(composer);
 
             Ray3D ray = ((Camera3D) Engine.Renderer.Camera).GetCameraMouseRay();

@@ -82,7 +82,7 @@ namespace Emotion.Game.ThreeDee
             }
         }
 
-        public void Update(float dt)
+        public virtual void Update(float dt)
         {
             _time += dt;
             _currentAnimation?.ApplyBoneMatrices(Entity, _boneMatrices, _time % _currentAnimation.Duration);
@@ -132,20 +132,7 @@ namespace Emotion.Game.ThreeDee
             for (var i = 0; i < meshes.Length; i++)
             {
                 Mesh obj = meshes[i];
-                VertexData[] vertData = obj.Vertices;
-                ushort[] indices = obj.Indices;
-                Texture texture = null;
-                if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint)vertData!.Length, (uint)indices.Length, BatchMode.SequentialTriangles, texture);
-
-                vertData.CopyTo(memory.VerticesData);
-                indices.CopyTo(memory.IndicesData);
-
-                ushort structOffset = memory.StructIndex;
-                for (var j = 0; j < memory.IndicesData.Length; j++)
-                {
-                    memory.IndicesData[j] = (ushort)(memory.IndicesData[j] + structOffset);
-                }
+                obj.Render(c);
             }
         }
 
@@ -236,6 +223,11 @@ namespace Emotion.Game.ThreeDee
         public Matrix4x4 GetModelMatrix()
         {
 	        return _scaleMatrix * _rotationMatrix * _translationMatrix;
+        }
+
+        public virtual void Dispose()
+        {
+
         }
     }
 }
