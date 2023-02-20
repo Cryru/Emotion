@@ -212,7 +212,7 @@ namespace Emotion.Test
             if (Engine.Renderer == null) return;
 
             // Move the camera center in a way that its center is 0,0
-            Engine.Renderer.Camera.Position += new Vector3(Engine.Renderer.Camera.WorldToScreen(Vector2.Zero), 0);
+            Engine.Renderer.Camera.Position += Engine.Renderer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
             Task.Run(() =>
             {
                 // Wait for the engine to start.
