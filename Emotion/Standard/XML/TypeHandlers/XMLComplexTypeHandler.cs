@@ -16,7 +16,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <summary>
         /// The default value of the complex type when constructed.
         /// </summary>
-        protected object _defaultConstruct;
+        protected object _defaultValue;
 
         public XMLComplexTypeHandler(Type type) : base(type)
         {
@@ -52,7 +52,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             }
 
             // Create default value reference.
-            _defaultConstruct = type.IsInterface || type.IsAbstract ? null : Activator.CreateInstance(type, true);
+            _defaultValue = type.IsInterface || type.IsAbstract ? null : Activator.CreateInstance(type, true);
         }
 
         protected override Dictionary<string, XMLFieldHandler> IndexFields()
@@ -60,7 +60,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             Dictionary<string, XMLFieldHandler> fields = base.IndexFields();
             foreach (KeyValuePair<string, XMLFieldHandler> handler in fields)
             {
-                handler.Value.SetDefaultValue(_defaultConstruct);
+                handler.Value.SetDefaultValue(_defaultValue);
             }
 
             return fields;
