@@ -101,8 +101,8 @@ namespace Emotion.Game.World2D
 		protected Map2D()
 		{
 			MapName = null!;
-			_objects = new List<GameObject2D>();
-			PersistentObjects = null!;
+			_objects = new();
+			PersistentObjects = new();
 		}
 
 		#region Init
