@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Reflection.Metadata;
 using Assimp;
 using Assimp.Configs;
 using Emotion.Common;
@@ -87,9 +88,9 @@ namespace Emotion.PostBuildTool
 				{
 					textureName = material.TextureDiffuse.FilePath;
 					string assetPath = AssetLoader.GetDirectoryName(Name);
-					assetPath += "/" + textureName;
+					assetPath = AssetLoader.GetNonRelativePath(assetPath, textureName, false);
 					var textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath);
-					texture = textureAsset.Texture;
+					texture = textureAsset?.Texture;
 				}
 
 				var emotionMaterial = new MeshMaterial
