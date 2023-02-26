@@ -60,6 +60,18 @@ namespace Emotion.Graphics
             RenderSprite(position.ToVec3(), size, color, texture, textureArea);
         }
 
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector3 position, Color color, Texture texture, Rectangle textureArea)
+        {
+	        RenderSprite(position, textureArea.Size, color, texture, textureArea);
+        }
+
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector2 position, Color color, Texture texture, Rectangle textureArea)
+        {
+	        RenderSprite(position.ToVec3(), textureArea.Size, color, texture, textureArea);
+        }
+
         public enum RenderLineMode
         {
             Center,
