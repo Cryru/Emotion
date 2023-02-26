@@ -205,6 +205,18 @@ namespace Emotion.Graphics.Camera
 			);
 		}
 
+		/// <summary>
+		/// Get a world space ray in the direction of the mouse on the screen frm the camera.
+		/// Used to detect what the player is clicking on.
+		/// </summary>
+		/// <returns></returns>
+		public virtual Ray3D GetCameraMouseRay()
+		{
+			Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
+			dir.Z = ushort.MaxValue;
+			return new Ray3D(dir, LookAt);
+		}
+
 		#region Events
 
 		protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)

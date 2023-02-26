@@ -195,7 +195,7 @@ namespace Emotion.Graphics.Camera
 			return Position + direction;
 		}
 
-		public Ray3D GetCameraMouseRay()
+		public override Ray3D GetCameraMouseRay()
 		{
 			Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
 			return new Ray3D(Position, dir - Position);
