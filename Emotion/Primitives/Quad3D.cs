@@ -3,8 +3,11 @@
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Objects;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Primitives
 {
@@ -14,21 +17,25 @@ namespace Emotion.Primitives
 	public class Quad3D : Transform3D
 	{
 		public Color Tint = Color.White;
+		public Texture? Texture = null;
 
 		public void Render(RenderComposer c)
 		{
 			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 
-			Span<VertexData> vertices = c.RenderStream.GetStreamMemory(4, BatchMode.Quad);
+			Span<VertexData> vertices = c.RenderStream.GetStreamMemory(4, BatchMode.Quad, Texture);
 			vertices[0].Vertex = new Vector3(-0.5f, -0.5f, 0);
+			vertices[0].UV = new Vector2(-0.5f, -0.5f);
 			vertices[1].Vertex = new Vector3(0.5f, -0.5f, 0);
+			vertices[1].UV = new Vector2(0.5f, -0.5f);
 			vertices[2].Vertex = new Vector3(0.5f, 0.5f, 0);
+			vertices[2].UV = new Vector2(0.5f, 0.5f);
 			vertices[3].Vertex = new Vector3(-0.5f, 0.5f, 0);
+			vertices[3].UV = new Vector2(-0.5f, 0.5f);
 
-			for (int i = 0; i < vertices.Length; i++)
+			for (var i = 0; i < vertices.Length; i++)
 			{
 				vertices[i].Color = Tint.ToUint();
-				vertices[i].UV = Vector2.Zero;
 			}
 
 			c.PopModelMatrix();
