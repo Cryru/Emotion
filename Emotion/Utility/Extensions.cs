@@ -314,7 +314,7 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 Perpendicular(this Vector2 me)
         {
-            return new Vector2(me.Y, me.X);
+            return new Vector2(me.Y, -me.X);
         }
 
         /// <summary>
@@ -323,7 +323,7 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 Pow(this Vector2 me, float pow)
         {
-            return new Vector2(MathF.Pow(me.X, pow), MathF.Pow(me.Y, pow));
+	        return new Vector2(MathF.Pow(me.X, pow), MathF.Pow(me.Y, pow));
         }
 
         /// <summary>
