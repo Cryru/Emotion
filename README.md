@@ -9,9 +9,7 @@ Emotion is a cross-platform 2D oriented game engine written in C#. Its goal is t
 
 ## Documentation
 
-Documentation is something which I really want to get around to doing. The existing one in the ["Documentation" folder](/Documentation) is not up to date and is a work in progress.
-
-I would recommend checking out the tests in the "Tests" project as examples, and the comments in the code.
+Check out the "Tests" project for examples, the comments in code, and the [Emotion Examples project](https://github.com/Cryru/EmotionExamples) to learn more about how to use the engine. Proper documentation is a longterm goal.
 
 ## Requirements for Developers and Players:
 
