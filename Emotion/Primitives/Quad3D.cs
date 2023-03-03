@@ -19,7 +19,7 @@ namespace Emotion.Primitives
 		public Color Tint = Color.White;
 		public Texture? Texture = null;
 
-		public void Render(RenderComposer c)
+		public virtual void Render(RenderComposer c)
 		{
 			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 

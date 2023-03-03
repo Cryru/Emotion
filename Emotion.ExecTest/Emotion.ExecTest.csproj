@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
 </Project>

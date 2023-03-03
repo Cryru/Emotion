@@ -64,6 +64,8 @@
     <None Remove="Assets\FontShaders\WindingAA.frag" />
     <None Remove="Assets\FontShaders\WindingAA.vert" />
     <None Remove="Assets\FontShaders\WindingAA.xml" />
+    <None Remove="Assets\Shaders\3DGrid.frag" />
+    <None Remove="Assets\Shaders\3DGrid.xml" />
     <None Remove="Assets\Shaders\Blit.frag" />
     <None Remove="Assets\Shaders\Blit.xml" />
     <None Remove="Assets\Shaders\OutlineShader.frag" />
@@ -169,6 +171,12 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\FontShaders\WindingAA.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\3DGrid.frag">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\3DGrid.xml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blit.frag" />

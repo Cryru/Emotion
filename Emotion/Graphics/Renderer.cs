@@ -30,9 +30,9 @@ namespace Emotion.Graphics
     {
         public static Vector3 Up { get; } = new Vector3(0, 0, 1);
 
-        public static Vector3 XPlaneNormal = new Vector3(1, 0, 0);
-        public static Vector3 YPlaneNormal = new Vector3(0, 1, 0);
-        public static Vector3 ZPlaneNormal = new Vector3(0, 0, -1);
+        public static Vector3 XAxis = new Vector3(1, 0, 0);
+        public static Vector3 YAxis = new Vector3(0, 1, 0);
+        public static Vector3 ZAxis = new Vector3(0, 0, 1);
 
         #region Settings
 
