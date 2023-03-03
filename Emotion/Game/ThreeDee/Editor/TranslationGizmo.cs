@@ -1,5 +1,6 @@
 #region Using
 
+using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Platform.Input;
@@ -25,19 +26,20 @@ namespace Emotion.Game.ThreeDee.Editor
 		protected Mesh? _meshMouseover;
 		protected Vector3 _dragPointStart;
 		protected Vector3 _virtualPos;
+		protected Vector3 _positionMoveStart;
 
 		public TranslationGizmo()
 		{
 			var arrowCylinderGen = new CylinderMeshGenerator();
-			arrowCylinderGen.RadiusBottom = 1;
-			arrowCylinderGen.RadiusTop = 1;
-			arrowCylinderGen.Height = 40;
+			arrowCylinderGen.RadiusBottom = 2;
+			arrowCylinderGen.RadiusTop = 2;
+			arrowCylinderGen.Height = 35;
 			arrowCylinderGen.Capped = true;
 
 			var arrowGen = new CylinderMeshGenerator();
-			arrowGen.RadiusBottom = 2f;
+			arrowGen.RadiusBottom = 4f;
 			arrowGen.RadiusTop = 0;
-			arrowGen.Height = 8;
+			arrowGen.Height = 7;
 			arrowGen.Capped = true;
 
 			Mesh xCylinder = arrowCylinderGen.GenerateMesh().TransformMeshVertices(
@@ -46,7 +48,7 @@ namespace Emotion.Game.ThreeDee.Editor
 
 			Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
 				Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
-				Matrix4x4.CreateTranslation(40, 0, 0)
+				Matrix4x4.CreateTranslation(arrowCylinderGen.Height, 0, 0)
 			).ColorMeshVertices(new Color(165, 40, 40, Alpha));
 
 			XAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
@@ -57,7 +59,7 @@ namespace Emotion.Game.ThreeDee.Editor
 
 			Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
 				Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
-				Matrix4x4.CreateTranslation(0, 40, 0)
+				Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height, 0)
 			).ColorMeshVertices(new Color(40, 165, 40, Alpha));
 
 			YAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
@@ -65,7 +67,7 @@ namespace Emotion.Game.ThreeDee.Editor
 			Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder").ColorMeshVertices(new Color(65, 75, 240, Alpha));
 
 			Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
-				Matrix4x4.CreateTranslation(0, 0, 40)
+				Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height)
 			).ColorMeshVertices(new Color(40, 40, 165, Alpha));
 
 			ZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
@@ -91,6 +93,7 @@ namespace Emotion.Game.ThreeDee.Editor
 				if (_meshMouseover != null && status == KeyStatus.Down)
 				{
 					_dragPointStart = GetPointAlongPlane();
+					_positionMoveStart = Position;
 					_virtualPos = Position;
 					return false;
 				}
@@ -101,6 +104,8 @@ namespace Emotion.Game.ThreeDee.Editor
 					return false;
 				}
 			}
+
+			if (key is Key.LeftControl or Key.RightControl && status == KeyStatus.Up && Target != null) Position = Target.Position;
 
 			return true;
 		}
@@ -119,18 +124,17 @@ namespace Emotion.Game.ThreeDee.Editor
 
 			// Update mouseover
 			if (_dragPointStart == Vector3.Zero)
-				if (camera is Camera3D cam3D)
-				{
-					Ray3D ray = cam3D.GetCameraMouseRay();
-					ray.IntersectWithObject(this, out Mesh collidedMesh, out Vector3 _, out Vector3 _, out int _);
+			{
+				Ray3D ray = camera.GetCameraMouseRay();
+				ray.IntersectWithObject(this, out Mesh collidedMesh, out Vector3 _, out Vector3 _, out int _);
 
-					if (_meshMouseover != collidedMesh)
-					{
-						_meshMouseover?.SetVerticesAlpha((byte) Alpha);
-						collidedMesh?.SetVerticesAlpha(255);
-						_meshMouseover = collidedMesh;
-					}
+				if (_meshMouseover != collidedMesh)
+				{
+					_meshMouseover?.SetVerticesAlpha((byte) Alpha);
+					collidedMesh?.SetVerticesAlpha(255);
+					_meshMouseover = collidedMesh;
 				}
+			}
 
 			if (_dragPointStart != Vector3.Zero)
 			{
@@ -145,8 +149,8 @@ namespace Emotion.Game.ThreeDee.Editor
 				Vector3 p = _virtualPos;
 				if (snap) p = (p / SnapSize).RoundClosest() * SnapSize;
 
-				Position = p;
-				if (Target != null) Target.Position = Position;
+				Position = _virtualPos;
+				if (Target != null) Target.Position = p;
 			}
 		}
 
@@ -154,32 +158,28 @@ namespace Emotion.Game.ThreeDee.Editor
 		{
 			if (_meshMouseover == null) return Vector3.Zero;
 
-			Vector3 planeStart = Vector3.Zero;
-			Vector3 planeNormal;
+			Vector3 axis;
 			if (_meshMouseover.Name == "X")
-				planeNormal = new Vector3(0f, 1, 0);
+				axis = RenderComposer.XAxis;
 			else if (_meshMouseover.Name == "Y")
-				planeNormal = new Vector3(1f, 0f, 0);
-			else
-				planeNormal = new Vector3(0, 1, 0f);
+				axis = RenderComposer.YAxis;
+			else // Z
+				axis = RenderComposer.ZAxis;
 
 			CameraBase? camera = Engine.Renderer.Camera;
-			if (camera is Camera3D cam3D)
-			{
-				Ray3D ray = cam3D.GetCameraMouseRay();
-				Vector3 point = ray.IntersectWithPlane(planeNormal, planeStart);
+			Ray3D ray = camera.GetCameraMouseRay();
 
-				if (_meshMouseover.Name == "X")
-					point.Z = 0;
-				else if (_meshMouseover.Name == "Y")
-					point.Z = 0;
-				else
-					point.X = 0;
+			// Find plane that contains the axis and faces the camera.
+			Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
+			Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
+			planeNormal = planeNormal.Normalize();
 
-				return point;
-			}
+			Vector3 intersection = ray.IntersectWithPlane(planeNormal, Position);
 
-			return Vector3.Zero;
+			// Limit movement along axis
+			intersection = Position + axis * Vector3.Dot(intersection - Position, axis);
+
+			return intersection;
 		}
 
 		public override void Dispose()
