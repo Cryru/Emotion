@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Game.Animation2D;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -16,6 +17,7 @@ namespace Emotion.Game.Animation
     /// <summary>
     /// An interface handling animated textures/sprites.
     /// </summary>
+    [Obsolete("Use SpriteAnimationController")]
     public class AnimatedTexture
     {
         public string SpriteSheetName
@@ -241,7 +243,7 @@ namespace Emotion.Game.Animation
             var frames = new Rectangle[frameCount];
             for (var i = 0; i < frames.Length; i++)
             {
-                frames[i] = GetGridFrameBounds(texture.Texture.Size, frameSize, spacing, i);
+                frames[i] = Animation2DHelpers.GetGridFrameBounds(texture.Texture.Size, frameSize, spacing, i);
             }
 
             _frames = frames;
@@ -478,50 +480,6 @@ namespace Emotion.Game.Animation
         public Rectangle GetFrameBounds(int frameId)
         {
             return Frames == null || frameId < 0 || frameId > Frames.Length - 1 ? Rectangle.Empty : Frames[frameId];
-        }
-
-        /// <summary>
-        /// Returns the bounds of a frame within a spritesheet texture.
-        /// </summary>
-        /// <param name="textureSize">The size of the spritesheet texture.</param>
-        /// <param name="frameSize">The size of individual frames.</param>
-        /// <param name="spacing">The spacing between frames.</param>
-        /// <param name="frameId">The index of the frame we are looking for. 0 based.</param>
-        /// <returns>The bounds of a frame within a spritesheet texture.</returns>
-        public static Rectangle GetGridFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int frameId)
-        {
-            // Get the total number of columns.
-            var columns = (int) (textureSize.X / frameSize.X);
-
-            // If invalid number of columns this means the texture size is larger than the frame size.
-            if (columns == 0)
-            {
-                Engine.Log.Trace($"Invalid frame size of [{frameSize}] for image of size [{textureSize}].", MessageSource.Anim);
-                return new Rectangle(Vector2.Zero, textureSize);
-            }
-
-            // Get the current row and column.
-            var row = (int) (frameId / (float) columns);
-            int column = frameId % columns;
-
-            // Find the frame we are looking for.
-            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
-                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
-        }
-
-        /// <inheritdoc cref="GetGridFrameBounds(Vector2, Vector2, Vector2, int)" />
-        public static Rectangle GetGridFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int row, int column)
-        {
-            // Get the total number of columns.
-            var columns = (int) (textureSize.X / frameSize.X);
-            var rows = (int) (textureSize.Y / frameSize.Y);
-
-            Debug.Assert(columns >= column);
-            Debug.Assert(rows >= row);
-
-            // Find the frame we are looking for.
-            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
-                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
         }
 
         private AnimatedTexture()

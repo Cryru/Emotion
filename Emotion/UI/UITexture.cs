@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation;
+using Emotion.Game.Animation2D;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -181,7 +182,7 @@ namespace Emotion.UI
 
             int rowIdx = Maths.Clamp(_rowBacking, 1, Rows) - 1;
             int columnIdx = Maths.Clamp(_columnBacking, 1, Columns) - 1;
-            _uv = AnimatedTexture.GetGridFrameBounds(textureSize, frameSize, RowAndColumnSpacing, rowIdx, columnIdx);
+            _uv = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, RowAndColumnSpacing, rowIdx, columnIdx);
         }
 
         private Vector2 GetRenderSizeProcessed(Vector2 space)

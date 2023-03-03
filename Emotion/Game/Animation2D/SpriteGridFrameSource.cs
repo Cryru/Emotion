@@ -42,7 +42,7 @@ namespace Emotion.Game.Animation2D
 
             // Legacy class can static method that can compute this for us.
             // In the future this function should be moved here.
-            return AnimatedTexture.GetGridFrameBounds(TextureSize, FrameSize, Spacing, i);
+            return Animation2DHelpers.GetGridFrameBounds(TextureSize, FrameSize, Spacing, i);
         }
     }
 }

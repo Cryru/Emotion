@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Game.Animation;
+using Emotion.Game.Animation2D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
@@ -60,7 +61,7 @@ namespace Emotion.Game.ThreeDee
 
         public int GenerateStackFrame(int frameIdx, int totalFrames, Vector2 frameSize, Vector2 textureSize, VertexData[] vertices, ushort[] indices)
         {
-            Rectangle rect = AnimatedTexture.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx);
+            Rectangle rect = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx);
 
             var frameWidth = (int)frameSize.X;
             var frameHeight = (int)frameSize.Y;
@@ -110,8 +111,8 @@ namespace Emotion.Game.ThreeDee
                     }
                     else
                     {
-                        Rectangle prevFrameRect = AnimatedTexture.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx - 1);
-                        Rectangle nextFrameRect = AnimatedTexture.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx + 1);
+                        Rectangle prevFrameRect = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx - 1);
+                        Rectangle nextFrameRect = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx + 1);
 
                         Vector2 prevRectPixel = prevFrameRect.Position + pixelRelativeOffset;
                         Vector2 nextRectPixel = nextFrameRect.Position + pixelRelativeOffset;

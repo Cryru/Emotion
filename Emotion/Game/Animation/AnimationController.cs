@@ -17,6 +17,7 @@ namespace Emotion.Game.Animation
     /// <summary>
     /// Used for switching between animations in one animated texture.
     /// </summary>
+    [Obsolete("Use SpriteAnimationController")]
     public class AnimationController
     {
         /// <summary>
