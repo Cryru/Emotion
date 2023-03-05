@@ -1,7 +1,6 @@
 #region Using
 
 using Android.Content;
-using Android.Graphics;
 using Android.Opengl;
 using Android.Runtime;
 using Android.Util;

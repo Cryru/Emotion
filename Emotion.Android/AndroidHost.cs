@@ -5,6 +5,7 @@ using Android.Graphics;
 using Android.Opengl;
 using Emotion.Common;
 using Emotion.Graphics;
+using Emotion.Graphics.Objects;
 using Emotion.Platform;
 using Emotion.Scenography;
 using Color = Emotion.Primitives.Color;
@@ -20,6 +21,7 @@ namespace Emotion.Android
 		public void SurfaceChanged()
 		{
 			// todo: gotta recreate everything yikes
+			Resized(Size);
 		}
 
 		public void SurfaceCreated()
@@ -36,6 +38,7 @@ namespace Emotion.Android
 			};
 			_mainMethod?.Invoke(config);
 			_mainMethod = null;
+			FocusChanged(true);
 		}
 
 		public void DrawFrame()
@@ -50,7 +53,7 @@ namespace Emotion.Android
 		private Action<Configurator>? _mainMethod;
 		private Action? _onTick;
 		private Action? _onFrame;
-		private AndroidGraphicsContext _androidContext;
+		public AndroidGraphicsContext AndroidContext;
 
 		public AndroidHost(Activity activity, Action<Configurator> mainMethod)
 		{
@@ -65,8 +68,8 @@ namespace Emotion.Android
 			surface.RenderMode = Rendermode.Continuously;
 			surface.PreserveEGLContextOnPause = true;
 
-			_androidContext = new AndroidGraphicsContext(surface, renderer);
-			Context = _androidContext;
+			AndroidContext = new AndroidGraphicsContext(surface, renderer);
+			Context = AndroidContext;
 
 			_mainMethod = mainMethod;
 		}
@@ -105,7 +108,7 @@ namespace Emotion.Android
 		protected override Vector2 GetSize()
 		{
 			var drawableRect = new Rect();
-			_androidContext.Surface.GetDrawingRect(drawableRect);
+			AndroidContext.Surface.GetDrawingRect(drawableRect);
 			return new Vector2(drawableRect.Width(), drawableRect.Height());
 		}
 

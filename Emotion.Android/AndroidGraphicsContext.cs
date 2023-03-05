@@ -199,7 +199,7 @@ public unsafe class AndroidGraphicsContext : GraphicsContext
 		var arr = new byte[size];
 		Marshal.Copy(ptr, arr, (int) 0, (int) size);
 		ByteBuffer? buffer = ByteBuffer.Wrap(arr);
-		GLES20.GlBufferSubData(target, 0, (int) size, buffer);
+		GLES20.GlBufferSubData(target, (int) offset, (int) size, buffer);
 		buffer?.Dispose();
 	}
 
@@ -398,7 +398,7 @@ public unsafe class AndroidGraphicsContext : GraphicsContext
 	{
 		var arr = new int[count];
 		GLES30.GlGenVertexArrays(count, arr, 0);
-		Marshal.Copy((IntPtr) resp, arr, 0, count);
+		Marshal.Copy(arr, 0, (IntPtr) resp, count);
 	}
 
 	private void BindVertexArray(uint bufferId)

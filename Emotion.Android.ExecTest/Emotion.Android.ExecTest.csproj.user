@@ -6,6 +6,7 @@
     <ActiveDebugProfile>OnePlus EB2103 (Android 12.0 - API 31)</ActiveDebugProfile>
     <DefaultDevice>pixel_5_-_api_33</DefaultDevice>
     <AndroidDesignerPreferredDevice>pixel_3</AndroidDesignerPreferredDevice>
+    <AndroidDesignerPreferredTheme>Theme.NoTitleBar.Fullscreen</AndroidDesignerPreferredTheme>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
