@@ -178,18 +178,18 @@ namespace Emotion.Web.Platform
             return ptr;
         }
 
-        private void GetInteger(int paramId, int* data)
+        private void GetInteger(int paramId, int[] data)
         {
             int[] value = _gl.InvokeUnmarshalled<int, int[]>("glGet", paramId);
             //Engine.Log.Trace($"Integer query {(GetPName) paramId} got {string.Join(", ", value)}", "WebGLInternal");
-            Marshal.Copy(value, 0, (IntPtr) data, value.Length);
+            Array.Copy(value, 0, data, 0, value.Length);
         }
 
-        private void GetFloat(int paramId, float* data)
+        private void GetFloat(int paramId, float[] data)
         {
             float[] value = _gl.InvokeUnmarshalled<int, float[]>("glGet", paramId);
             //Engine.Log.Trace($"Float query {(GetPName) paramId} got {string.Join(", ", value)}", "WebGLInternal");
-            Marshal.Copy(value, 0, (IntPtr) data, value.Length);
+            Array.Copy(value, 0, data, 0, value.Length);
         }
 
         private void GenBuffers(int count, uint* resp)
