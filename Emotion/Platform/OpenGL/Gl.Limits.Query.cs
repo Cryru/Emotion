@@ -69,9 +69,9 @@ namespace OpenGL
                     // Determine which method is used to get the OpenGL limit
                     MethodInfo getMethod;
                     if (field.FieldType != typeof(string))
-                        getMethod = typeof(Gl).GetMethod("Get", field.FieldType.IsArray ? new[] {typeof(int), field.FieldType} : new[] {typeof(int), field.FieldType.MakeByRefType()});
+                        getMethod = typeof(Gl).GetMethod("Get", field.FieldType.IsArray ? new[] {typeof(GetPName), field.FieldType} : new[] {typeof(GetPName), field.FieldType.MakeByRefType()});
                     else
-                        getMethod = typeof(Gl).GetMethod("GetString", new[] {typeof(int)});
+                        getMethod = typeof(Gl).GetMethod("GetString", new[] {typeof(GetPName)});
 
                     if (getMethod == null)
                     {

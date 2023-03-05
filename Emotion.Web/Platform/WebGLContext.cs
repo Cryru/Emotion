@@ -142,14 +142,14 @@ namespace Emotion.Web.Platform
             return IntPtr.Zero;
         }
 
-        public override Delegate GetProcAddressNonNative(string func)
+        public override Delegate GetProcAddressManaged(string func)
         {
             if (_webGlFuncDictionary.ContainsKey(func))
-                //Engine.Log.Trace($"Returning func {func}", "");
+                //Engine.Log.Trace($"Returning func {func}", "GL");
                 return _webGlFuncDictionary[func];
 
-            //Engine.Log.Trace($"Missing WebGL function {func}", "WebGL");
-            return base.GetProcAddressNonNative(func);
+            //Engine.Log.Trace($"Missing GL function {func}", "GL");
+            return base.GetProcAddressManaged(func);
         }
 
         private int GetError()

@@ -132,7 +132,7 @@ namespace Khronos
                 }
                 else
                 {
-                    if ((importDelegate = context.GetProcAddressNonNative(functionName)) != null)
+                    if ((importDelegate = context.GetProcAddressManaged(functionName)) != null)
                     {
                         function.SetValue(null, importDelegate);
                         return;
@@ -155,7 +155,7 @@ namespace Khronos
                 }
                 else
                 {
-                    if ((importDelegate = context.GetProcAddressNonNative(functionName)) != null)
+                    if ((importDelegate = context.GetProcAddressManaged(functionName)) != null)
                     {
                         function.SetValue(null, importDelegate);
                         return;

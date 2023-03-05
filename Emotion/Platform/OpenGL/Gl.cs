@@ -138,7 +138,7 @@ namespace OpenGL
             {
                 string glProfile;
 
-                Get(CONTEXT_PROFILE_MASK, out int ctxProfile);
+                Get(GetPName.ContextProfileMask, out int ctxProfile);
 
                 if ((ctxProfile & CONTEXT_COMPATIBILITY_PROFILE_BIT) != 0)
                     glProfile = KhronosVersion.PROFILE_COMPATIBILITY;

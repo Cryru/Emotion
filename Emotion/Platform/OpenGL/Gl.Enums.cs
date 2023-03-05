@@ -5545,7 +5545,12 @@ namespace OpenGL
         /// <summary>
         /// Strongly typed for value GL_NUM_SHADING_LANGUAGE_VERSIONS.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_4_3")] NumShadingLanguageVersions = Gl.NUM_SHADING_LANGUAGE_VERSIONS
+        [RequiredByFeature("GL_VERSION_4_3")] NumShadingLanguageVersions = Gl.NUM_SHADING_LANGUAGE_VERSIONS,
+
+        /// <summary>
+        /// Strongly typed for value GL_CONTEXT_PROFILE_MASK.
+        /// </summary>
+        ContextProfileMask = Gl.CONTEXT_PROFILE_MASK
     }
 
     /// <summary>

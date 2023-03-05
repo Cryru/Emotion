@@ -3755,7 +3755,7 @@ namespace OpenGL
 
         /// <summary>
         ///     <para>
-        ///     [GL4|GLES3.2] glGetFloatv: return the value or values of a selected parameter
+        ///     [GL4|GLES3.2] glGetIntegerv: return the value or values of a selected parameter
         ///     </para>
         /// </summary>
         /// <param name="pname">
@@ -3768,163 +3768,34 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void Get(int pname, [Out] float[] data)
-        {
-            unsafe
-            {
-                fixed (float* p_data = data)
-                {
-                    Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
-                    Delegates.pglGetFloatv(pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
-        }
-
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetFloatv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Get(GetPName pname, [Out] float[] data)
         {
-            unsafe
-            {
-                fixed (float* p_data = data)
-                {
-                    Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
-                    Delegates.pglGetFloatv((int) pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
+	        Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
+	        Delegates.pglGetFloatv((int) pname, data);
+	        DebugCheckErrors(null);
         }
 
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetFloatv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void Get(int pname, out float data)
-        {
-            unsafe
-            {
-                fixed (float* p_data = &data)
-                {
-                    Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
-                    Delegates.pglGetFloatv(pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
-        }
-
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetFloatv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
+        /// <inheritdoc cref="Get(GetPName, float[])" />
         public static void Get(GetPName pname, out float data)
         {
-            unsafe
-            {
-                fixed (float* p_data = &data)
-                {
-                    Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
-                    Delegates.pglGetFloatv((int) pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
+	        var dataArr = new float[1];
+	        Get(pname, dataArr);
+	        data = dataArr[0];
         }
 
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetFloatv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static unsafe void Get(GetPName pname, [Out] float* data)
+        /// <inheritdoc cref="Get(GetPName, float[])" />
+        public unsafe static void Get(GetPName pname, float* data)
         {
-            Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
-            Delegates.pglGetFloatv((int) pname, data);
-            DebugCheckErrors(null);
+	        var dataArr = new float[1];
+	        Get(pname, dataArr);
+	        *data = dataArr[0];
         }
 
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetFloatv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void GetFloat(GetPName pname, out float[] data)
+        /// <inheritdoc cref="Get(GetPName, float[])" />
+        public unsafe static void Get(GetPName pname, out float[] data)
         {
-            Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
             data = default;
-            unsafe
-            {
-                fixed (float* refDataPtr = &data[0])
-                {
-                    Delegates.pglGetFloatv((int) pname, refDataPtr);
-                }
-            }
-
-            DebugCheckErrors(null);
+	        Get(pname, data);
         }
 
         /// <summary>
@@ -3942,181 +3813,34 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void Get(int pname, [Out] int[] data)
-        {
-            unsafe
-            {
-                fixed (int* p_data = data)
-                {
-                    Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-                    Delegates.pglGetIntegerv(pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
-        }
-
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetIntegerv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Get(GetPName pname, [Out] int[] data)
         {
-            unsafe
-            {
-                fixed (int* p_data = data)
-                {
-                    Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-                    Delegates.pglGetIntegerv((int) pname, p_data);
-                }
-            }
-
+	        Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
+	        Delegates.pglGetIntegerv((int) pname, data);
             DebugCheckErrors(null);
         }
 
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetIntegerv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void Get(int pname, out int data)
-        {
-            unsafe
-            {
-                fixed (int* p_data = &data)
-                {
-                    Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-                    Delegates.pglGetIntegerv(pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
-        }
-
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetIntegerv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
+        /// <inheritdoc cref="Get(GetPName, int[])" />
         public static void Get(GetPName pname, out int data)
         {
-            unsafe
-            {
-                fixed (int* p_data = &data)
-                {
-                    Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-                    Delegates.pglGetIntegerv((int) pname, p_data);
-                }
-            }
-
-            DebugCheckErrors(null);
+	        var dataArr = new int[1];
+	        Get(pname, dataArr);
+	        data = dataArr[0];
         }
 
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetIntegerv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static unsafe void Get(GetPName pname, [Out] int* data)
+        /// <inheritdoc cref="Get(GetPName, int[])" />
+        public unsafe static void Get(GetPName pname, int* data)
         {
-            Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-            Delegates.pglGetIntegerv((int) pname, data);
-            DebugCheckErrors(null);
+	        var dataArr = new int[1];
+	        Get(pname, dataArr);
+	        *data = dataArr[0];
         }
 
-        /// <summary>
-        ///     <para>
-        ///     [GL4|GLES3.2] glGetIntegerv: return the value or values of a selected parameter
-        ///     </para>
-        /// </summary>
-        /// <param name="pname">
-        /// Specifies the parameter value to be returned for non-indexed versions of Gl.Get. The symbolic constants in the list
-        /// below are accepted.
-        /// </param>
-        /// <param name="data">
-        /// Returns the value or values of the specified parameter.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void GetInteger(GetPName pname, ref int[] data)
+        /// <inheritdoc cref="Get(GetPName, int[])" />
+        public unsafe static void Get(GetPName pname, out int[] data)
         {
-            Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-            unsafe
-            {
-                fixed (int* refDataPtr = &data[0])
-                {
-                    Delegates.pglGetIntegerv((int) pname, refDataPtr);
-                }
-            }
-
-            DebugCheckErrors(null);
-        }
-
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void GetInteger(GetPName pname, out int data)
-        {
-            Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-            data = default;
-            unsafe
-            {
-                fixed (int* refDataPtr = &data)
-                {
-                    Delegates.pglGetIntegerv((int) pname, refDataPtr);
-                }
-            }
-
-            DebugCheckErrors(null);
+	        data = default;
+	        Get(pname, data);
         }
 
         /// <summary>
@@ -5228,7 +4952,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glGetFloatv(int pname, float* data);
+            public delegate void glGetFloatv(int pname, [In] [Out] float[] data);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
@@ -5242,7 +4966,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glGetIntegerv(int pname, int* data);
+            public delegate void glGetIntegerv(int pname, [In] [Out] int[] data);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]

@@ -280,7 +280,7 @@ namespace Emotion.Graphics.Objects
                 if (!Engine.Configuration.GlDebugMode) return;
 
                 Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
-                Gl.GetInteger(GetPName.TextureBinding2d, out int actualBound);
+                Gl.Get(GetPName.TextureBinding2d, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed texture bound to slot {slot} was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }

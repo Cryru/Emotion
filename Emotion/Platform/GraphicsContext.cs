@@ -76,7 +76,7 @@ namespace Emotion.Platform
         /// </summary>
         /// <param name="func">The name of the function to return.</param>
         /// <returns>The delegate to the function.</returns>
-        public virtual Delegate GetProcAddressNonNative(string func)
+        public virtual Delegate GetProcAddressManaged(string func)
         {
             return null;
         }
