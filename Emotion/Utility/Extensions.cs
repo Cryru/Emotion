@@ -318,6 +318,15 @@ namespace System.Numerics
         }
 
         /// <summary>
+        /// Flip the X and Y of a vector.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 FlipXY(this Vector2 me)
+        {
+	        return new Vector2(me.Y, me.X);
+        }
+
+        /// <summary>
         /// Pow both components of the vector2.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
