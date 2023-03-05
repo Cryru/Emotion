@@ -27,6 +27,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.PostBuildTool", "Em
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Benchmark", "Emotion.Benchmark\Emotion.Benchmark.csproj", "{5428A7D9-D416-459E-A0EE-DD915A06A7FB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Android", "Emotion.Android\Emotion.Android.csproj", "{83E2F284-68A0-4D00-899B-1F5E5DB13F61}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Android.ExecTest", "Emotion.Android.ExecTest\Emotion.Android.ExecTest.csproj", "{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -124,6 +128,20 @@ Global
 		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
 		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5428A7D9-D416-459E-A0EE-DD915A06A7FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.DebugUnix64|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.DebugUnix64|Any CPU.Build.0 = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugUnix64|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugUnix64|Any CPU.Build.0 = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugUnix64|Any CPU.Deploy.0 = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
