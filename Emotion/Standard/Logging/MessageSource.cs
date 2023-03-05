@@ -20,8 +20,9 @@
 
         public static string Game = "Game"; // General game logic and functionality.
         public static string Anim = "Animation";
+        public static string UI = "UI";
 
-        // Specific
+        // Very Specific
         public static string ImagePng = "ImagePng";
         public static string FontParser = "FontParser";
         public static string XML = "XML";

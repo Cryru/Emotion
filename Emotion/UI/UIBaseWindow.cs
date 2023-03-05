@@ -635,6 +635,14 @@ namespace Emotion.UI
 			AfterMeasureChildren(usedSpace);
 
 			Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
+			
+			if (_measuredSize.X < 0 || _measuredSize.Y < 0)
+			{
+				Engine.Log.Warning($"UIWindow of id {Id} measured with a size smaller than 0.", MessageSource.UI, true);
+				_measuredSize.X = MathF.Max(_measuredSize.X, 0);
+				_measuredSize.Y = MathF.Max(_measuredSize.Y, 0);
+			}
+
 			Size = _measuredSize;
 			return Size;
 		}
