@@ -23,7 +23,7 @@ namespace Emotion.Primitives
         /// The width of the transform.
         /// </summary>
         [DontSerialize]
-        public virtual float Width
+        public float Width
         {
             get => _width;
             set
@@ -39,7 +39,7 @@ namespace Emotion.Primitives
         /// The height of the transform.
         /// </summary>
         [DontSerialize]
-        public virtual float Height
+        public float Height
         {
             get => _height;
             set

@@ -20,7 +20,7 @@ namespace Emotion.Primitives
         /// The location of the object on the X-axis.
         /// </summary>
         [DontSerialize]
-        public virtual float X
+        public float X
         {
             get => _x;
             set
@@ -36,7 +36,7 @@ namespace Emotion.Primitives
         /// The location of the object on the Y-axis.
         /// </summary>
         [DontSerialize]
-        public virtual float Y
+        public float Y
         {
             get => _y;
             set
@@ -52,7 +52,7 @@ namespace Emotion.Primitives
         /// The location of the object on the Z-axis.
         /// </summary>
         [DontSerialize]
-        public virtual float Z
+        public float Z
         {
             get => _z;
             set
