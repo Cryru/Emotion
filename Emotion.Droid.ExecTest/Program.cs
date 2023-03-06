@@ -61,9 +61,7 @@ namespace Emotion.Droid.ExecTest
 		public void Draw(RenderComposer composer)
 		{
 			composer.SetUseViewMatrix(false);
-
-			var ass = Engine.AssetLoader.Get<TextureAsset>("logoAlpha.png");
-			composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue, ass?.Texture);
+			composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
 			composer.ClearDepth();
 			composer.SetUseViewMatrix(true);
 

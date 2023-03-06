@@ -3,6 +3,7 @@
 using System.Numerics;
 using Android.Graphics;
 using Android.Opengl;
+using Android.Views;
 using Emotion.Common;
 using Emotion.Platform;
 using Emotion.Platform.Implementation.CommonDesktop;
@@ -50,11 +51,15 @@ namespace Emotion.Droid
 		private Action<Configurator>? _mainMethod;
 		private Action? _onTick;
 		private Action? _onFrame;
+		private Activity _activity;
+
 		public AndroidGraphicsContext AndroidContext;
 
 		public AndroidHost(Activity activity, Action<Configurator> mainMethod)
 		{
-			var surface = new OpenGLSurface(activity);
+			_activity = activity;
+
+			var surface = new OpenGLSurface(activity, OnTouchEvent);
 			activity.SetContentView(surface);
 			var renderer = new AndroidGLRenderer(this);
 			surface.SetRenderer(renderer);
@@ -73,7 +78,7 @@ namespace Emotion.Droid
 
 		protected override void SetupInternal(Configurator config)
 		{
-			Engine.AssetLoader.AddSource(new FileAssetSource(""));
+			Engine.AssetLoader.AddSource(new AndroidAssetSource(_activity));
 		}
 
 		public override void DisplayMessageBox(string message)
@@ -123,6 +128,28 @@ namespace Emotion.Droid
 		public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
 		{
 			return IntPtr.Zero;
+		}
+
+		private Vector2 _prevTouch;
+
+		private void OnTouchEvent(MotionEvent e)
+		{
+			var pos = new Vector2(e.GetX(), e.GetY());
+			if (e.Action == MotionEventActions.Move ||
+			    e.Action == MotionEventActions.Down)
+			{
+				MousePosition = pos;
+			}
+
+			if (e.Action == MotionEventActions.Down ||
+			    e.Action == MotionEventActions.Up)
+				UpdateKeyStatus(Platform.Input.Key.MouseKeyLeft, e.Action == MotionEventActions.Down);
+
+			_prevTouch = pos;
+			if (e.Action == MotionEventActions.Move)
+			{
+				// todo: pinch to mouse wheel
+			}
 		}
 	}
 }

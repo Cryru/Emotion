@@ -1,0 +1,1 @@
+﻿In order to load assets placed here ensure that their build action is set to "AndroidAsset"
