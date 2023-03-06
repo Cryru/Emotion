@@ -7,12 +7,13 @@ using Emotion.Game.ThreeDee.Editor;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Scenography;
 
 #endregion
 
-namespace Emotion.ExecTest
+namespace Emotion.Droid.ExecTest
 {
 	public class Program : IScene
 	{
@@ -60,7 +61,9 @@ namespace Emotion.ExecTest
 		public void Draw(RenderComposer composer)
 		{
 			composer.SetUseViewMatrix(false);
-			composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
+
+			var ass = Engine.AssetLoader.Get<TextureAsset>("logoAlpha.png");
+			composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue, ass?.Texture);
 			composer.ClearDepth();
 			composer.SetUseViewMatrix(true);
 

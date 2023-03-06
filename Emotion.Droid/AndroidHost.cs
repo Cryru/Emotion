@@ -4,15 +4,12 @@ using System.Numerics;
 using Android.Graphics;
 using Android.Opengl;
 using Emotion.Common;
-using Emotion.Graphics;
-using Emotion.Graphics.Objects;
 using Emotion.Platform;
-using Emotion.Scenography;
-using Color = Emotion.Primitives.Color;
+using Emotion.Platform.Implementation.CommonDesktop;
 
 #endregion
 
-namespace Emotion.Android
+namespace Emotion.Droid
 {
 	public class AndroidHost : PlatformBase
 	{
@@ -76,6 +73,7 @@ namespace Emotion.Android
 
 		protected override void SetupInternal(Configurator config)
 		{
+			Engine.AssetLoader.AddSource(new FileAssetSource(""));
 		}
 
 		public override void DisplayMessageBox(string message)

@@ -3,7 +3,7 @@ using Javax.Microedition.Khronos.Opengles;
 using EGLConfig = Javax.Microedition.Khronos.Egl.EGLConfig;
 using Object = Java.Lang.Object;
 
-namespace Emotion.Android;
+namespace Emotion.Droid;
 
 public class AndroidGLRenderer : Object, GLSurfaceView.IRenderer
 {

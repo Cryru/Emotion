@@ -10,6 +10,15 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Emotion.Android\Emotion.Android.csproj" />
+    <None Remove="Assets\logoAlpha.png" />
+    <None Remove="Resources\logoAlpha.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emotion.Droid\Emotion.Droid.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Update="Assets\logoAlpha.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AndroidAsset>
   </ItemGroup>
 </Project>

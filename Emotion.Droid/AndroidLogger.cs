@@ -5,7 +5,7 @@ using Android.Util;
 
 #endregion
 
-namespace Emotion.Android
+namespace Emotion.Droid
 {
 	public class AndroidLogger : LoggingProvider
 	{
