@@ -10,22 +10,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.Animation2D
 {
-    public enum OriginPosition
-    {
-        TopLeft,
-        TopCenter,
-        TopRight,
-
-        CenterLeft,
-        CenterCenter,
-        CenterRight,
-
-        BottomLeft,
-        BottomCenter,
-        BottomRight,
-    }
-
-    public abstract class SpriteAnimationFrameSource
+	public abstract class SpriteAnimationFrameSource
     {
         /// <summary>
         /// Origin of the sprite frames relative to the object's origin.
