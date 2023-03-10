@@ -17,11 +17,14 @@ namespace Emotion.Game.ThreeDee.Editor
 		public int Alpha = 200;
 		public int SnapSize = 50;
 
-		public Positional? Target;
+		/// <summary>
+		/// The object the gizmo is currently affecting.
+		/// </summary>
+		public Positional? Target { get; protected set; }
 
-		public Mesh XAxis;
-		public Mesh YAxis;
-		public Mesh ZAxis;
+		public Mesh XAxis { get; protected set; }
+		public Mesh YAxis { get; protected set; }
+		public Mesh ZAxis { get; protected set; }
 
 		protected Mesh? _meshMouseover;
 		protected Vector3 _dragPointStart;
