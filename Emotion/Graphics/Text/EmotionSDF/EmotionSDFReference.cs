@@ -78,7 +78,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
             GLThread.ExecuteGLThreadAsync(() =>
             {
                 reference.AtlasFramebuffer = new FrameBuffer(reference.PackingState.Size).WithColor(true, InternalFormat.Red, PixelFormat.Red);
-                if (withDepthStencil) reference.AtlasFramebuffer = reference.AtlasFramebuffer.WithDepthStencil();
+                if (withDepthStencil) reference.AtlasFramebuffer.WithDepthStencil();
                 reference.AtlasFramebuffer.ColorAttachment.Smooth = true;
 
                 RenderComposer composer = Engine.Renderer;

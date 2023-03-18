@@ -1,5 +1,6 @@
 ﻿#region Using
 
+global using Emotion.ExecTest.Examples;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;

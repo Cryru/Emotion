@@ -44,10 +44,10 @@ namespace Emotion.Graphics.Text.EmotionSDF
         {           
             _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
 
-            if (!_renderedFonts.TryGetValue(Font, out EmotionSDFReference? atlas))
+            if (!_renderedFonts.TryGetValue(font, out EmotionSDFReference? atlas))
             {
-                atlas ??= new EmotionSDFReference(Font, GlyphSize, pixelFont);
-                _renderedFonts.TryAdd(Font, atlas);
+                atlas ??= new EmotionSDFReference(font, GlyphSize, pixelFont);
+                _renderedFonts.TryAdd(font, atlas);
             }
 
             _sdfReference = atlas;
