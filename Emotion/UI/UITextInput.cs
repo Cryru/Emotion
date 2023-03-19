@@ -2,11 +2,14 @@
 
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Game.Time;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.UI
 {
@@ -15,6 +18,12 @@ namespace Emotion.UI
         public bool MultiLine = false;
         public int MaxCharacters = -1;
         public bool SizeOfText = false;
+
+        public bool SubmitOnEnter = true;
+        public bool SubmitOnFocusLoss;
+
+        [DontSerialize]
+        public Action<string>? OnSubmit;
 
         private bool _cursorOn;
         private Every _blinkingTimer;
@@ -47,6 +56,11 @@ namespace Emotion.UI
                 return false;
 	        }
 
+	        if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down)
+	        {
+		        OnSubmit?.Invoke(Text);
+	        }
+
             return base.OnKey(key, status, mousePos);
         }
 
@@ -54,6 +68,11 @@ namespace Emotion.UI
 		{
 			_blinkingTimer.Restart();
 			_cursorOn = true;
+
+			if (!haveFocus && SubmitOnFocusLoss)
+			{
+				OnSubmit?.Invoke(Text);
+			}
 		}
 
 		private void TextInputEventHandler(char c)

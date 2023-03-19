@@ -191,7 +191,7 @@ namespace Emotion.UI
 		public virtual void AddChild(UIBaseWindow child)
 		{
 			Debug.Assert(child != null || child == this);
-			if (child == this) return;
+			if (child == this || child == null) return;
 
 			if (Engine.Configuration.DebugMode && Children != null && !string.IsNullOrEmpty(child.Id))
 				for (var i = 0; i < Children.Count; i++)
