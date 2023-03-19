@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,15 +24,22 @@ namespace Emotion.Game.World2D
 		protected CameraBase? _gameCamera;
 
 		// Selection and MouseOver
-		private GameObject2D? _lastMouseOverObject;
-		private GameObject2D? _objectSelectedState; // An object that is also presented as selected, used to improve ui
 		private bool _objectSelect = true;
-		private List<GameObject2D>? _mouseOverOverlapping; // List of objects under the mouse cursor (could be more than one)
-		private int _mouseOverIndex = -1; // Index in ^
+
+		private GameObject2D? _rolloverObject
+		{
+			get => _rolloverIndex == -1 ? null : _allObjectsRollover![_rolloverIndex];
+		}
+		private List<GameObject2D>? _allObjectsRollover; // List of objects under the mouse cursor (could be more than one)
+		private int _rolloverIndex = -1; // Index in ^
+
+		private GameObject2D? _selectedObject; // An object that is also presented as selected, used to improve ui
+
 		private GameObject2D? _objectDragging;
 		private Vector2 _objectDragOffset;
 		private bool _ignoreNextObjectDragLetGo;
 		private Vector2 _objectDragStartPos;
+
 		private static string _objectCopyClipboard; // todo: platform based clipboard?
 
 		// Tile selection
@@ -63,43 +71,57 @@ namespace Emotion.Game.World2D
 					EnterEditor();
 			}
 
-			if (EditorMode)
+			if (!EditorMode) return true;
+
+			if (key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
 			{
-				if (_mouseOverOverlapping != null && key == Key.LeftAlt && status == KeyStatus.Down)
-				{
-					_mouseOverIndex++;
-					if (_mouseOverIndex > _mouseOverOverlapping.Count - 1) _mouseOverIndex = 0;
-				}
-
-				if (key == Key.MouseKeyLeft && status == KeyStatus.Down && _lastMouseOverObject != null)
-				{
-					_objectDragging = _lastMouseOverObject;
-					Vector2 mouseScreen = Engine.Host.MousePosition;
-					Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
-					_objectDragOffset = _objectDragging.Position2 - mouseWorld;
-					_objectDragStartPos = _objectDragging.Position2;
-				}
-				else if (key == Key.MouseKeyLeft && status == KeyStatus.Up && _objectDragging != null)
-				{
-					if (Vector2.Distance(_objectDragging.Position2, _objectDragStartPos) < 1) EditorOpenPropertiesPanelForObject(_objectDragging);
-
-					if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
-					_ignoreNextObjectDragLetGo = false;
-				}
-				else if (key == Key.MouseKeyRight && status == KeyStatus.Up && _objectDragging == null && _editUI.MouseFocus == null)
-				{
-					if (_lastMouseOverObject != null)
-						EditorOpenContextMenuForObject(_lastMouseOverObject);
-					else
-						EditorOpenContextMenuObjectModeNoSelection();
-				}
-
-				if (key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld()) EditorUndoLastAction();
-
+				EditorUndoLastAction();
 				return false;
 			}
 
-			return true;
+			if (key == Key.LeftAlt && status == KeyStatus.Down)
+			{
+				RolloverObjectIncrement();
+			}
+
+			bool leftClick = key == Key.MouseKeyLeft;
+			bool rightClick = key == Key.MouseKeyRight;
+
+			if ((leftClick || rightClick) && status == KeyStatus.Down)
+			{
+				if (_rolloverObject != null)
+				{
+					ObjectSelect(_rolloverObject);
+					if (rightClick)
+					{
+						EditorOpenContextMenuForObject(_rolloverObject);
+					}
+					else
+					{
+						_objectDragging = _rolloverObject;
+						Vector2 mouseScreen = Engine.Host.MousePosition;
+						Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
+						_objectDragOffset = _objectDragging.Position2 - mouseWorld;
+						_objectDragStartPos = _objectDragging.Position2;
+					}
+				}
+				else if (rightClick)
+				{
+					EditorOpenContextMenuObjectModeNoSelection();
+				}
+			}
+			else if (leftClick && status == KeyStatus.Up)
+			{
+				if (_objectDragging != null)
+				{
+					if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
+					_ignoreNextObjectDragLetGo = false;
+				}
+			}
+
+			Helpers.CameraWASDUpdate();
+
+			return false;
 		}
 
 		private void EnterEditor()
@@ -131,8 +153,10 @@ namespace Emotion.Game.World2D
 			_editUI = null;
 
 			_namePlates?.Clear();
-
-			_lastMouseOverObject = null;
+			
+			_selectedObject = null;
+			_rolloverIndex = -1;
+			_allObjectsRollover = null;
 
 			Engine.Renderer.Camera = _gameCamera;
 		}
@@ -141,12 +165,16 @@ namespace Emotion.Game.World2D
 		{
 			if (!EditorMode) return;
 
-			bool mouseInUI = (_editUI?.MouseFocus != null && _editUI.MouseFocus != _editUI) || _editUI?.InputFocus is UITextInput;
+			bool mouseInUI = _editUI?.MouseFocus != null && _editUI.MouseFocus != _editUI; // || _editUI?.InputFocus is UITextInput;
 			var mouseFocusNameplate = _editUI?.MouseFocus as MapEditorObjectNameplate;
 			bool mouseNotInUIOrInNameplate = !mouseInUI || mouseFocusNameplate != null;
 
-			if (_objectSelect && mouseNotInUIOrInNameplate && _objectDragging == null)
+			// Update objects that are rollovered.
+			// If not currently selecting objects, or mouse is in UI, or dragging then dont.
+			if (_objectDragging != null) RolloverObjects(new List<GameObject2D>(1) {_objectDragging});
+			if (_objectSelect && mouseNotInUIOrInNameplate)
 			{
+				// Add objects (and their UI) under the mouse to the rollover list.
 				Vector2 mouseScreen = Engine.Host.MousePosition;
 				Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 				var circle = new Circle(mouseWorld, 1);
@@ -158,17 +186,15 @@ namespace Emotion.Game.World2D
 
 				if (mouseFocusNameplate != null) results.Add(mouseFocusNameplate.Object);
 
-				SelectObjectMulti(results);
-			}
-			else if (_objectDragging != null)
-			{
-				SelectObject(_objectDragging, true);
+				RolloverObjects(results);
 			}
 			else
 			{
-				SelectObject(null);
+				RolloverObjects(null);
 			}
 
+			// If dragging an object - move it with the mouse.
+			// If dragging into ui then dont move.
 			if (_objectDragging != null && mouseNotInUIOrInNameplate)
 			{
 				Vector2 mouseScreen = Engine.Host.MousePosition;
@@ -178,9 +204,6 @@ namespace Emotion.Game.World2D
 			}
 
 			_editUI!.Update();
-
-			if (!mouseNotInUIOrInNameplate) return;
-			Helpers.CameraWASDUpdate();
 		}
 
 		protected void RenderDebug(RenderComposer c)
@@ -205,10 +228,21 @@ namespace Emotion.Game.World2D
 			if (_objectSelect)
 			{
 				// Show selection of object, if any.
-				var objectWithContextMenu = _editUI?.DropDown?.OwningObject as GameObject2D;
-				if (_lastMouseOverObject != null || objectWithContextMenu != null || _objectSelectedState != null)
+				if (_editUI?.DropDown?.OwningObject is GameObject2D objectWithContextMenu)
 				{
-					Rectangle bound = (objectWithContextMenu ?? _lastMouseOverObject ?? _objectSelectedState)!.Bounds;
+					Rectangle bound = objectWithContextMenu.Bounds;
+					c.RenderSprite(bound, Color.White * 0.3f);
+				}
+
+				if (_selectedObject != null)
+				{
+					Rectangle bound = _selectedObject.Bounds;
+					c.RenderSprite(bound, Color.White * 0.3f);
+				}
+
+				if (_rolloverObject != null)
+				{
+					Rectangle bound = _rolloverObject.Bounds;
 					c.RenderSprite(bound, Color.White * 0.3f);
 				}
 
@@ -237,8 +271,44 @@ namespace Emotion.Game.World2D
 			c.SetDepthTest(false);
 			_editUI!.Render(c);
 
+			c.SetUseViewMatrix(true);
+			c.SetDepthTest(true);
+
 			c.SetState(prevState);
 		}
+
+		#region Object Selection
+
+		public void ObjectRollover()
+		{
+		}
+
+		public void ObjectSelect(GameObject2D? obj)
+		{
+			if (_selectedObject == obj) return;
+
+			if (_namePlates != null && _selectedObject != null)
+			{
+				_namePlates.TryGetValue(_selectedObject, out MapEditorObjectNameplate? oldNamePlate);
+				oldNamePlate?.SetSelected(false, "ObjectSelection");
+			}
+
+			if (obj == null)
+			{
+				_selectedObject = null;
+				return;
+			}
+
+			_selectedObject = obj;
+
+			if (_namePlates != null)
+			{
+				_namePlates.TryGetValue(obj, out MapEditorObjectNameplate? namePlate);
+				namePlate?.SetSelected(true, "ObjectSelection");
+			}
+		}
+
+		#endregion
 
 		#region Helpers
 
@@ -253,34 +323,34 @@ namespace Emotion.Game.World2D
 			return MathF.Sign(x.Position.Z - y.Position.Z);
 		}
 
-		private void SelectObjectMulti(List<GameObject2D>? multiple)
+		private void RolloverObjectIncrement()
 		{
-			if (multiple == null || multiple.Count == 0)
-			{
-				_mouseOverIndex = -1;
-				_mouseOverOverlapping = null;
-				SelectObject(null);
-				return;
-			}
+			if (_allObjectsRollover == null) return;
+			RolloverObjects(_allObjectsRollover, true);
+		}
 
-			var forceUpdate = false;
-			multiple.Sort(ObjectSort);
-			if (_mouseOverOverlapping != null) // Update multi
+		private void RolloverObjects(List<GameObject2D>? objs, bool incrementSel = false)
+		{
+			if (objs?.Count == 0) objs = null;
+			objs?.Sort(ObjectSort);
+
+			var rolloverChanged = false;
+
+			// Currently rollovered something, check if its the same.
+			if (_allObjectsRollover != null)
 			{
-				GameObject2D current = _mouseOverOverlapping[_mouseOverIndex];
-				int currentIdxInNew = multiple.IndexOf(current);
-				bool sameCount = multiple.Count == _mouseOverOverlapping.Count;
-				if (!sameCount)
+				if (objs == null || objs.Count != _allObjectsRollover.Count) // none now or different count
 				{
-					forceUpdate = true;
+					rolloverChanged = true;
 				}
-				else if (currentIdxInNew == _mouseOverIndex)
+				else
 				{
+					// Check if all the objects are the same (note: they should be in the same order due to same sort)
 					var allSame = true;
-					for (var i = 0; i < multiple.Count; i++)
+					for (var i = 0; i < objs.Count; i++)
 					{
-						GameObject2D obj = multiple[i];
-						GameObject2D other = _mouseOverOverlapping[i];
+						GameObject2D obj = objs[i];
+						GameObject2D other = _allObjectsRollover[i];
 						if (obj != other)
 						{
 							allSame = false;
@@ -288,86 +358,93 @@ namespace Emotion.Game.World2D
 						}
 					}
 
-					if (!allSame) forceUpdate = true;
+					rolloverChanged = !allSame;
+				}
+			}
+			else if (objs != null)
+			{
+				rolloverChanged = true;
+			}
+
+			if (!rolloverChanged && !incrementSel) return;
+
+			// Update index of current if still here.
+			GameObject2D? prevRolloverObj = _allObjectsRollover?[_rolloverIndex];
+			var currentObjectChanged = true;
+			if (prevRolloverObj != null && objs != null)
+			{
+				Debug.Assert(_allObjectsRollover != null);
+				Debug.Assert(prevRolloverObj == _allObjectsRollover[_rolloverIndex]);
+
+				int currentIdxInNew = objs.IndexOf(prevRolloverObj);
+				if (currentIdxInNew != -1)
+				{
+					_rolloverIndex = currentIdxInNew;
+					currentObjectChanged = false;
+				}
+			}
+
+			// Update current object highlights
+			if (currentObjectChanged || incrementSel)
+			{
+				// Check if none now
+				GameObject2D? newRolloverObj;
+				if (objs == null)
+				{
+					_rolloverIndex = -1;
+					newRolloverObj = null;
+				}
+				else if (incrementSel)
+				{
+					_rolloverIndex++;
+					if (_rolloverIndex > objs.Count - 1) _rolloverIndex = 0;
+					newRolloverObj = objs[_rolloverIndex];
+				}
+				else // Completely different, so change current.
+				{
+					_rolloverIndex = 0;
+					newRolloverObj = objs[0];
 				}
 
-				_mouseOverIndex = currentIdxInNew != -1 ? currentIdxInNew : 0;
-			}
-			else
-			{
-				_mouseOverIndex = 0;
-			}
+				if (prevRolloverObj != null)
+					if (_namePlates != null)
+					{
+						_namePlates.TryGetValue(prevRolloverObj, out MapEditorObjectNameplate? namePlate);
+						namePlate?.SetSelected(false, "Rollover");
+					}
 
-			_mouseOverOverlapping = multiple;
-			SelectObject(_mouseOverOverlapping[_mouseOverIndex], forceUpdate);
-		}
-
-		private void SelectObject(GameObject2D? obj, bool forceUpdate = false)
-		{
-			if (_lastMouseOverObject == obj && !forceUpdate) return;
-
-			MapEditorObjectNameplate? namePlate = null;
-			if (obj != null) _namePlates?.TryGetValue(obj, out namePlate);
-
-			MapEditorObjectNameplate? oldNamePlate = null;
-			if (_lastMouseOverObject != null) _namePlates?.TryGetValue(_lastMouseOverObject, out oldNamePlate);
-			if (namePlate != oldNamePlate)
-			{
-				oldNamePlate?.SetSelected(false);
-				namePlate?.SetSelected(true);
+				if (newRolloverObj != null)
+					if (_namePlates != null)
+					{
+						_namePlates.TryGetValue(newRolloverObj, out MapEditorObjectNameplate? namePlate);
+						namePlate?.SetSelected(true, "Rollover");
+					}
 			}
 
+			_allObjectsRollover = objs;
+
+			// Update rollover
 			var worldAttachUI = (UIWorldAttachedWindow?) _editUI?.GetWindowById("WorldAttach");
-
-			_lastMouseOverObject = obj;
-
-			// Deselecting
-			if (obj == null || _objectDragging != null)
+			if (_rolloverObject == null)
 			{
 				if (worldAttachUI != null) worldAttachUI.Visible = false;
 				return;
 			}
 
-			// Selecting
 			if (worldAttachUI != null)
 			{
 				worldAttachUI.Visible = true;
 
-				var text = (UIText?) worldAttachUI.GetWindowById("text");
-				if (text != null)
-				{
-					var txt = new StringBuilder();
-					txt.AppendLine($"Name: {obj.ObjectName ?? "null"}");
-					txt.AppendLine($"   Type: {obj.GetType().Name}");
-					txt.AppendLine($"   Pos: {obj.Position} Size: {obj.Size}");
-					txt.Append("   In Layers: ");
+				GameObject2D? obj = _rolloverObject;
+				var text = (UIText?) worldAttachUI.GetWindowById("text")!;
+				var txt = new StringBuilder();
+				txt.AppendLine($"Name: {obj.ObjectName ?? "null"}");
+				txt.AppendLine($"   Type: {obj.GetType().Name}");
 
-					// Warning: These objects might not actually be in these layers.
-					// If they reported a different value to IsPartOfMapLayer when being added.
-					var idx = 0;
-					foreach (int treeLayerId in _worldTree!.ForEachLayer())
-					{
-						if (obj.IsPartOfMapLayer(treeLayerId))
-						{
-							if (idx != 0) txt.Append(", ");
-							txt.Append(treeLayerId);
-							idx++;
-						}
-					}
+				if (_allObjectsRollover != null && _allObjectsRollover.Count > 0) txt.AppendLine($"Objects Here: {_rolloverIndex + 1}/{_allObjectsRollover.Count} [ALT] to switch");
 
-					txt.Append("\n");
+				text.Text = txt.ToString();
 
-					if (obj.ObjectState == ObjectState.Alive)
-						txt.AppendLine($"   Persistent: {obj.ObjectFlags.HasFlag(ObjectFlags.Persistent)}");
-					else
-						txt.AppendLine($"   Spawn Condition: {obj.ShouldSpawnSerializedObject(this)}");
-
-					if (_mouseOverOverlapping != null && _mouseOverOverlapping.Count > 0) txt.AppendLine($"Objects Here: {_mouseOverIndex + 1}/{_mouseOverOverlapping.Count} [ALT] to switch");
-
-					text.Text = txt.ToString();
-				}
-
-				// Todo: auto UI keep on screen.
 				Rectangle bounds = GetObjectBoundForEditor(obj);
 				Vector2 attachPoint = bounds.TopRight;
 				worldAttachUI.AttachToPosition(attachPoint.ToVec3());

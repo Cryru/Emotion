@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Diagnostics;
+using System.Text;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Platform.Input;
 using Emotion.Standard.XML;
@@ -60,16 +61,31 @@ namespace Emotion.Game.World2D
 			statusLabel.FontFile = "Editor/UbuntuMono-Regular.ttf";
 			statusLabel.FontSize = MapEditorColorPalette.EditorButtonTextSize;
 
-			var statusText = Object.ObjectState.ToString();
+			var metaText = new StringBuilder();
+			metaText.Append(Object.ObjectState.ToString());
 			ObjectFlags[]? objectFlags = Enum.GetValues<ObjectFlags>();
 			for (var i = 0; i < objectFlags.Length; i++)
 			{
 				ObjectFlags flag = objectFlags[i];
 				if (flag == ObjectFlags.None) continue; // All have this :P
-				if (Object.ObjectFlags.HasFlag(flag)) statusText += $", {flag}";
+				if (Object.ObjectFlags.HasFlag(flag)) metaText.Append($", {flag}");
 			}
 
-			statusLabel.Text = statusText;
+			// Warning: These objects might not actually be in these layers.
+			// If they reported a different value to IsPartOfMapLayer when being added.
+			metaText.Append("\nIn Layers: ");
+			var idx = 0;
+			foreach (int treeLayerId in ObjectMap.GetWorldTree()!.ForEachLayer())
+			{
+				if (Object.IsPartOfMapLayer(treeLayerId))
+				{
+					if (idx != 0) metaText.Append(", ");
+					metaText.Append(treeLayerId);
+					idx++;
+				}
+			}
+
+			statusLabel.Text = metaText.ToString();
 
 			innerContainer.AddChild(statusLabel);
 
@@ -99,6 +115,7 @@ namespace Emotion.Game.World2D
 			listNav.SetScrollbar(scrollBar);
 			listContainer.AddChild(scrollBar);
 
+			// For each group of fields (inherited from the same class)
 			for (var i = 0; i < _fields.Count; i++)
 			{
 				EditorUtility.TypeAndFieldHandlers fieldGroup = _fields[i];
@@ -121,6 +138,7 @@ namespace Emotion.Game.World2D
 
 				listNav.AddChild(fieldGroupHeaderContainer);
 
+				// For each field
 				for (var j = 0; j < fieldGroup.Fields.Count; j++)
 				{
 					XMLFieldHandler field = fieldGroup.Fields[j];
@@ -157,8 +175,18 @@ namespace Emotion.Game.World2D
 					editorParent.ParentAnchor = UIAnchor.CenterRight;
 					fieldEditorContainer.AddChild(editorParent);
 
-					FieldEnterEditor(field, editorParent);
-
+					IMapEditorGeneric? editor = AddEditorForField(field);
+					if (editor != null)
+					{
+						object? propertyValue = field.ReflectionInfo.GetValue(Object);
+						editor.SetValue(propertyValue);
+						editor.SetCallbackValueChanged((newValue) =>
+						{
+							ApplyObjectChange(field, newValue);
+						});
+						editorParent.AddChild((UIBaseWindow) editor);
+					}
+					
 					listNav.AddChild(fieldEditorContainer);
 				}
 			}
@@ -187,7 +215,7 @@ namespace Emotion.Game.World2D
 			return base.OnKey(key, status, mousePos);
 		}
 
-		private void FieldEnterEditor(XMLFieldHandler field, UIBaseWindow fieldEditor)
+		private IMapEditorGeneric AddEditorForField(XMLFieldHandler field)
 		{
 			// todo: Insert switch for different types based on field
 
@@ -195,9 +223,19 @@ namespace Emotion.Game.World2D
 
 			if (field.TypeHandler.Type == typeof(Vector2))
 			{
-				var v2Editor = new MapEditorFloat2((Vector2) propertyValue, _ => { });
-				fieldEditor.AddChild(v2Editor);
-				return;
+				return new MapEditorFloat2();
+			}
+			if (field.TypeHandler.Type == typeof(float))
+			{
+				return new MapEditorFloat();
+			}
+			if (field.TypeHandler.Type == typeof(Vector3))
+			{
+				return new MapEditorFloat3();
+			}
+			if (field.TypeHandler.Type == typeof(string))
+			{
+				return new MapEditorString();
 			}
 
 			var editorBg = new UISolidColor();
@@ -206,7 +244,7 @@ namespace Emotion.Game.World2D
 			editorBg.WindowColor = Color.Black * 0.7f;
 			editorBg.Id = "EditorFieldEditor";
 			editorBg.InputTransparent = false;
-			fieldEditor.AddChild(editorBg);
+			//fieldEditor.AddChild(editorBg);
 
 			//object? propertyValue = field.ReflectionInfo.GetValue(Object);
 			var defaultTextValue = (propertyValue ?? "null").ToString()!;
@@ -230,6 +268,8 @@ namespace Emotion.Game.World2D
 			};
 
 			editorBg.AddChild(textInput);
+
+			return null;
 		}
 
 		private void FieldExitEditor()
@@ -246,7 +286,7 @@ namespace Emotion.Game.World2D
 
 		private void SpawnEditorButton(XMLFieldHandler field, UIBaseWindow fieldEditor)
 		{
-			FieldEnterEditor(field, fieldEditor);
+			//AddEditorForField(field, fieldEditor);
 		}
 
 		public void ApplyObjectChange(XMLFieldHandler field, object value)

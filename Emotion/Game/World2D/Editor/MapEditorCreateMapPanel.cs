@@ -13,8 +13,8 @@ namespace Emotion.Game.World2D
 	public class MapEditorCreateMapPanel : MapEditorPanel
 	{
 		private Map2D _map;
-		private MapEditorTextFieldEditor _nameInput;
-		private MapEditorTextFieldEditor _pathInput;
+		private MapEditorString _nameInput;
+		private MapEditorString _pathInput;
 
 		public MapEditorCreateMapPanel(Map2D map) : base("New Map")
 		{
@@ -28,10 +28,11 @@ namespace Emotion.Game.World2D
 			_contentParent.LayoutMode = LayoutMode.VerticalList;
 			_contentParent.ListSpacing = new Vector2(0, 5);
 
-			_nameInput = new MapEditorTextFieldEditor("Name", null);
-			_contentParent.AddChild(_nameInput);
-			_pathInput = new MapEditorTextFieldEditor("File Path", null);
-			_contentParent.AddChild(_pathInput);
+			_contentParent.AddChild(MapEditorString.CreateStringEditorWithLabel("Name:", out _nameInput));
+			_contentParent.AddChild(MapEditorString.CreateStringEditorWithLabel("File Path:", out _pathInput));
+
+			_nameInput.MinSize = new Vector2(100, 0);
+			_pathInput.MinSize = new Vector2(100, 0);
 
 			MapEditorCreateMapPanel creationDlg = this;
 			Task creationTask = null;

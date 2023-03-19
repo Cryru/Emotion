@@ -235,7 +235,9 @@ namespace Emotion.Game.World2D
 			string objectsXML = XMLFormat.To(PersistentObjects);
 			PersistentObjects = XMLFormat.From<List<GameObject2D>>(objectsXML);
 
+			// Clear resources.
 			Dispose();
+			Disposed = false;
 
 			// todo: should we reset tile data?
 			await InitAsync();
@@ -440,6 +442,11 @@ namespace Emotion.Game.World2D
 		{
 			WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
 			rootNode?.AddObjectsIntersectingShape(list, shape, queryFlags);
+		}
+
+		public WorldTree2D? GetWorldTree()
+		{
+			return _worldTree;
 		}
 
 		#endregion

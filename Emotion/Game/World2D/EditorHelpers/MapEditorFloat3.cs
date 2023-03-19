@@ -6,18 +6,16 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class MapEditorFloat2 : UIBaseWindow, IMapEditorGeneric
+	public class MapEditorFloat3 : UIBaseWindow, IMapEditorGeneric
 	{
-		private Vector2 _value;
+		private Vector3 _value;
 		private Action<object> _callback;
-
-		private string _xEdit;
-		private string _yEdit;
 
 		private MapEditorFloat _editorX;
 		private MapEditorFloat _editorY;
+		private MapEditorFloat _editorZ;
 
-		public MapEditorFloat2()
+		public MapEditorFloat3()
 		{
 			LayoutMode = LayoutMode.HorizontalList;
 			ListSpacing = new Vector2(2, 0);
@@ -54,13 +52,27 @@ namespace Emotion.Game.World2D.EditorHelpers
 				_value.Y = (float) newYVal;
 				_callback?.Invoke(_value);
 			});
+
+			var labelZ = new MapEditorLabel("Z:");
+			labelZ.Margins = new Rectangle(2, 0, 0, 0);
+			AddChild(labelZ);
+			var editorZ = new MapEditorFloat();
+			AddChild(editorZ);
+			_editorZ = editorZ;
+			editorZ.SetValue(_value.Z);
+			editorZ.SetCallbackValueChanged(newZVal =>
+			{
+				_value.Z = (float) newZVal;
+				_callback?.Invoke(_value);
+			});
 		}
 
 		public void SetValue(object value)
 		{
-			_value = (Vector2) value;
+			_value = (Vector3) value;
 			_editorX?.SetValue(_value.X);
 			_editorY?.SetValue(_value.Y);
+			_editorZ?.SetValue(_value.Z);
 		}
 
 		public object GetValue()

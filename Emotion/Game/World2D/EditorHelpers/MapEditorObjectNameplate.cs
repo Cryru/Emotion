@@ -56,7 +56,7 @@ namespace Emotion.Game.World2D.EditorHelpers
             Object = obj;
         }
 
-        public void SetSelected(bool selected)
+        public void SetSelected(bool selected, string reason)
         {
             _bg.WindowColor = selected ? Color.White * 0.4f : Color.Black * 0.4f;
             _label.WindowColor = selected ? Color.Black * 0.9f : MapEditorColorPalette.TextColor * 0.9f;
@@ -66,7 +66,7 @@ namespace Emotion.Game.World2D.EditorHelpers
         {
             AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
 
-            _label.Text = $"{(Object.ObjectName ?? "null")}{(Object.ObjectState != ObjectState.Alive ? " (Unspawned)" : "")}";
+            _label.Text = $"{(Object.ObjectName ?? "null")}{(Object.ObjectState != ObjectState.Alive ? " (NotSpawned)" : "")}";
             return base.UpdateInternal();
         }
     }

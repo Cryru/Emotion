@@ -156,7 +156,7 @@ namespace Emotion.Game.World2D
 					{
 						var panel = new EditorListOfItemsPanel<GameObject2D>(this, "All Objects", _objects,
 							obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
-							obj => { _objectSelectedState = obj; }
+							obj => { _selectedObject = obj; }
 						);
 
 						_editUI!.AddChild(panel);
