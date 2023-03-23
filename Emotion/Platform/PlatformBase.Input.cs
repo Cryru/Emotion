@@ -23,6 +23,7 @@ namespace Emotion.Platform
         /// <summary>
         /// Called when the mouse scrolls.
         /// </summary>
+        [Obsolete("Use OnKey(key, status) where Key == Key.MouseWheel")]
         public event Action<float> OnMouseScroll;
 
         /// <summary>
@@ -141,7 +142,7 @@ namespace Emotion.Platform
 
         protected void UpdateKeyStatus(Key key, bool down)
         {
-            if (_skipKeyInputThisTick) return;
+            if (_skipKeyInputThisTick && down) return;
 
             var keyIndex = (short) key;
             if (keyIndex < 0 || keyIndex >= _keys.Length)
@@ -169,7 +170,13 @@ namespace Emotion.Platform
 
         protected void UpdateScroll(float amount)
         {
-            _mouseScrollAccum += amount;
+	        if (amount != 0)
+	        {
+		        _mouseScrollAccum += amount;
+		        OnKey.Invoke(Key.MouseWheel, amount < 0 ? KeyStatus.MouseWheelScrollDown : KeyStatus.MouseWheelScrollUp);
+		        //UpdateKeyStatus(Key.MouseKeyWheel, amount < 0);
+	        }
+           
             OnMouseScroll?.Invoke(amount);
         }
 

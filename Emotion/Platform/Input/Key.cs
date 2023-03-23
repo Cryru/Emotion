@@ -165,7 +165,8 @@ namespace Emotion.Platform.Input
         MouseKeyMiddle = 353,
         MouseKey4 = 354,
         MouseKey5 = 355,
-        MouseKeyEnd = 356,
+        MouseWheel = 356, // Treated as a key in order to funnel it through input propagation.
+        MouseKeyEnd = 357,
 
         // XInput Gamepad
         GamepadStart = 357,
