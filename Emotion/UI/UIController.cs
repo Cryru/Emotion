@@ -55,7 +55,6 @@ namespace Emotion.UI
 			InputTransparent = false;
 			Debugger = new UIDebugger();
 			Engine.Host.OnResize += Host_OnResize;
-			Engine.Host.OnMouseScroll += MouseScroll;
 			KeepTemplatePreloaded(this);
 			_activeControllers.Add(this);
 		}
@@ -66,7 +65,6 @@ namespace Emotion.UI
 			StopPreloadTemplate(this);
 			Engine.Host.OnResize -= Host_OnResize;
 			if (InputFocus != null) Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
-
 			if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
 		}
 
@@ -243,7 +241,7 @@ namespace Emotion.UI
 
 			if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && MouseFocus != null)
 			{
-				_mouseFocusKeysHeld[key - Key.MouseKeyStart] = status != KeyStatus.Up;
+				_mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyStatus.Down;
 
 				if (_inputFocusManual != null && !MouseFocus.IsWithin(_inputFocusManual) && status == KeyStatus.Down)
 				{
@@ -256,11 +254,6 @@ namespace Emotion.UI
 			}
 
 			return true;
-		}
-
-		private void MouseScroll(float scroll)
-		{
-			MouseFocus?.OnMouseScroll(scroll);
 		}
 
 		public void InvalidateInputFocus()
@@ -340,7 +333,7 @@ namespace Emotion.UI
 				newMouseFocus = Engine.Host.HostPaused || InputTransparent ? null : FindMouseInput(mousePos);
 
 				// If the controller is focused that means there is no focus.
-				// But if there is a dropdown open we want to capture the dismiss click.
+				// But if there is a dropdown open we want to capture the dismiss click so we keep it as a focus.
 				if (newMouseFocus == this && _inputFocusManual == null) newMouseFocus = null;
 			}
 

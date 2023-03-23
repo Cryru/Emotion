@@ -59,9 +59,14 @@ namespace Emotion.UI
 	        if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down)
 	        {
 		        OnSubmit?.Invoke(Text);
+		        return false;
 	        }
 
-            return base.OnKey(key, status, mousePos);
+	        // Block input leaks to parents since TextInputEvents are separate and we will receive duplicate keys.
+            // But not mouse inputs - direct those upward to allow things such as scrolling in a scroll area of text inputs.
+            if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd) return Parent!.OnKey(key, status, mousePos);
+
+            return false;
         }
 
 		public override void InputFocusChanged(bool haveFocus)

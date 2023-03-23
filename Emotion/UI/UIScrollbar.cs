@@ -89,11 +89,6 @@ namespace Emotion.UI
 			base.OnMouseMove(mousePos);
 		}
 
-		public override void OnMouseScroll(float scroll)
-		{
-			ScrollParent?.OnMouseScroll(scroll);
-		}
-
 		public override void OnMouseLeft(Vector2 mousePos)
 		{
 			_selectorColor = DefaultSelectorColor;

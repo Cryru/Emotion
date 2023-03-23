@@ -105,9 +105,10 @@ namespace Emotion.UI
 
 			// Make area as big as the children shown. Might look weird if all children are not the same size.
 			// This will also tell us how big the page size is.
-			float spaceTaken = 0;
+			float pageSize = 0;
 			if (Children != null)
 			{
+				float lastChildSize = 0;
 				Vector2 scaledListSpacing = (ListSpacing * GetScale()).RoundClosest();
 				for (var i = 0; i < Children.Count; i++)
 				{
@@ -115,16 +116,26 @@ namespace Emotion.UI
 					if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
 					float childSize = child.Height;
-					if (spaceTaken != 0) childSize += scaledListSpacing.Y;
-					if (spaceTaken + childSize > measuredSize.Y) break;
-					spaceTaken += childSize;
+					if (pageSize != 0) childSize += scaledListSpacing.Y;
+					if (pageSize + childSize > measuredSize.Y) break;
+					pageSize += childSize;
+					lastChildSize = childSize;
+				}
+
+				// If the scroll bar is to be smaller than the space available then grow it out with more
+				// children like the last (remember this list assumes all children are of the same size).
+				if (pageSize == usedSpace.Y)
+				{
+					float spaceLeft = measuredSize.Y - pageSize;
+					spaceLeft /= lastChildSize;
+					pageSize += MathF.Floor(spaceLeft) * lastChildSize;
 				}
 			}
 
-			spaceTaken = MathF.Max(spaceTaken, MathF.Ceiling(MinSize.Y * GetScale()));
-			_measuredSize.Y = spaceTaken;
-
+			pageSize = MathF.Max(pageSize, MathF.Ceiling(MinSize.Y * GetScale()));
+			_measuredSize.Y = pageSize;
 			_scrollArea.Size = usedSpace.Round();
+
 			base.AfterMeasureChildren(usedSpace);
 		}
 
@@ -387,38 +398,27 @@ namespace Emotion.UI
 				return false;
 			}
 
+			if (key == Key.MouseWheel)
+			{
+				bool up = status == KeyStatus.MouseWheelScrollUp;
+
+				Vector2 scrollPos = _scrollPos;
+				if (up)
+					ScrollToPos(_scrollPos - new Vector2(0, 1));
+				else
+					ScrollToPos(_scrollPos + new Vector2(0, 1));
+
+				if (scrollPos == _scrollPos)
+				{
+					_lastMousePos = Vector2.Zero;
+					_renderBoundsCalculatedFrom = Rectangle.Empty;
+					_renderBounds = Rectangle.Empty;
+				}
+
+				return false;
+			}
+
 			return base.OnKey(key, status, mousePos);
-		}
-
-		public override void OnMouseScroll(float scroll)
-		{
-			// Todo: Horizontal list implementation
-			bool up = scroll > 0;
-			if (Children == null) return;
-
-			Vector2 scrollPos = _scrollPos;
-			if (up)
-				ScrollToPos(_scrollPos - new Vector2(0, 1));
-			else
-				ScrollToPos(_scrollPos + new Vector2(0, 1));
-			if (scrollPos == _scrollPos) return; // Nothing changed
-
-			// If scrolling invalidate the mouse cache as something else will scroll under.
-			_lastMousePos = Vector2.Zero;
-			_renderBoundsCalculatedFrom = Rectangle.Empty;
-			_renderBounds = Rectangle.Empty;
-
-			// Debug code to check if all windows are the same distance from each other.
-			//UIBaseWindow? lastChild = null;
-			//foreach (KeyValuePair<Vector2, UIBaseWindow> child in _gridPosToChild)
-			//{
-			//    if (lastChild != null)
-			//    {
-			//        float diff = lastChild.Y - child.Value.Y;
-			//        Console.WriteLine(child.Key + " " + diff);
-			//    }
-			//    lastChild = child.Value;
-			//}
 		}
 
 		public void ResetSelection(bool nullSelection = false)

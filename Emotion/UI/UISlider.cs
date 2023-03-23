@@ -115,6 +115,11 @@ namespace Emotion.UI
 
             if (ScrollParent != null) return ScrollParent.OnKey(key, status, mousePos);
 
+            if (key == Key.MouseWheel)
+            {
+	            Value += status == KeyStatus.MouseWheelScrollUp ? -1 : 1;
+            }
+
             return base.OnKey(key, status, mousePos);
         }
 
@@ -135,11 +140,6 @@ namespace Emotion.UI
             if (!_dragging) return;
             SetValueFromPos(mousePos);
             base.OnMouseMove(mousePos);
-        }
-
-        public override void OnMouseScroll(float scroll)
-        {
-            Value += scroll > 0 ? -1 : 1;
         }
 
         protected override void AfterMeasure(Vector2 mySize)

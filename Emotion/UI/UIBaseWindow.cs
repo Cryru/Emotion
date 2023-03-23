@@ -1128,11 +1128,6 @@ namespace Emotion.UI
 		{
 		}
 
-		public virtual void OnMouseScroll(float scroll)
-		{
-			Parent?.OnMouseScroll(scroll);
-		}
-
 		public virtual void InputFocusChanged(bool haveFocus)
 		{
 		}
