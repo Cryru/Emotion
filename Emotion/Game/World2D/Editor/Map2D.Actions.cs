@@ -30,6 +30,11 @@ namespace Emotion.Game.World2D
 			{
 				ObjTarget.Position2 = StartPos;
 			}
+
+			public override string ToString()
+			{
+				return $"Move {ObjTarget.ToString()} From {StartPos} to {NewPos}";
+			}
 		}
 
 		private class EditorActionObjectMutate : EditorAction
@@ -64,6 +69,11 @@ namespace Emotion.Game.World2D
 
 				map.AddObject(oldDataRecreated);
 			}
+
+			public override string ToString()
+			{
+				return $"Changed Property on {OldData.UniqueId}";
+			}
 		}
 
 		private List<EditorAction>? _actions;
@@ -90,6 +100,9 @@ namespace Emotion.Game.World2D
 			newMove.StartPos = from;
 			newMove.NewPos = to;
 			_actions.Add(newMove);
+
+			MapEditorObjectPropertiesPanel? propPanelOpen = EditorGetAlreadyOpenPropertiesPanelForObject(obj.UniqueId);
+			propPanelOpen?.InvalidateObjectReference();
 		}
 
 		private void EditorRegisterObjectPropertyChange(GameObject2D oldObjData)

@@ -156,7 +156,7 @@ namespace Emotion.Game.World2D
 					{
 						var panel = new EditorListOfItemsPanel<GameObject2D>(this, "All Objects", _objects,
 							obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
-							obj => { _selectedObject = obj; }
+							obj => { RolloverObjects(new() {obj}); }
 						);
 
 						_editUI!.AddChild(panel);
@@ -200,7 +200,16 @@ namespace Emotion.Game.World2D
 				// Shows actions done in the editor, can be undone
 				new EditorDropDownButtonDescription
 				{
-					Name = "Action List"
+					Name = "Action List",
+					Click = t =>
+					{
+						var panel = new EditorListOfItemsPanel<EditorAction>(this, "Actions", _actions ?? new List<EditorAction>(),
+							obj => { }
+						);
+
+						_editUI!.AddChild(panel);
+						_editUI.RemoveChild(_editUI.DropDown);
+					}
 				},
 			});
 
