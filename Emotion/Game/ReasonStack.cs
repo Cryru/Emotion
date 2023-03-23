@@ -28,5 +28,10 @@ namespace Emotion.Game
         {
             return _stack.Count > 0;
         }
+
+        public bool HasReason(string name)
+        {
+	        return _stack.Contains(name);
+        }
     }
 }
