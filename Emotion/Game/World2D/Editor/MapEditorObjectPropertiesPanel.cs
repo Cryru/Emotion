@@ -3,7 +3,6 @@
 using System.Diagnostics;
 using System.Text;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
@@ -21,9 +20,7 @@ namespace Emotion.Game.World2D
 
 		private Action<GameObject2D> _objectChangedCallback;
 		private List<EditorUtility.TypeAndFieldHandlers> _fields;
-		private UIBaseWindow? _openEditor;
-		private XMLFieldHandler? _openEditorHandler;
-		private Action? _editConfirmCallback;
+		private List<IMapEditorGeneric> _editorUIs;
 
 		private bool _objectReferenceInvalidated;
 
@@ -35,6 +32,7 @@ namespace Emotion.Game.World2D
 
 			_objectChangedCallback = objectChangeCallback;
 			_fields = EditorUtility.GetTypeFields(obj);
+			_editorUIs = new();
 		}
 
 		public override void AttachedToController(UIController controller)
@@ -63,7 +61,7 @@ namespace Emotion.Game.World2D
 
 			var metaText = new StringBuilder();
 			metaText.Append(Object.ObjectState.ToString());
-			ObjectFlags[]? objectFlags = Enum.GetValues<ObjectFlags>();
+			ObjectFlags[] objectFlags = Enum.GetValues<ObjectFlags>();
 			for (var i = 0; i < objectFlags.Length; i++)
 			{
 				ObjectFlags flag = objectFlags[i];
@@ -166,37 +164,29 @@ namespace Emotion.Game.World2D
 					label.Text = field.Name + ": ";
 					fieldEditorContainer.AddChild(label);
 
-					var editorParent = new UIBaseWindow();
-					editorParent.InputTransparent = false;
-					editorParent.StretchX = true;
-					editorParent.StretchY = true;
-					editorParent.MinSize = new Vector2(70, 0);
-					editorParent.Anchor = UIAnchor.CenterRight;
-					editorParent.ParentAnchor = UIAnchor.CenterRight;
-					fieldEditorContainer.AddChild(editorParent);
-
 					IMapEditorGeneric? editor = AddEditorForField(field);
 					if (editor != null)
 					{
-						object? propertyValue = field.ReflectionInfo.GetValue(Object);
-						editor.SetValue(propertyValue);
-						editor.SetCallbackValueChanged((newValue) =>
-						{
-							ApplyObjectChange(field, newValue);
-						});
-						editorParent.AddChild((UIBaseWindow) editor);
+						editor.Field = field;
+						editor.SetCallbackValueChanged(newValue => { ApplyObjectChange(field, newValue); });
+
+						var editorAsWnd = (UIBaseWindow) editor;
+						editorAsWnd.Anchor = UIAnchor.CenterRight;
+						editorAsWnd.ParentAnchor = UIAnchor.CenterRight;
+						fieldEditorContainer.AddChild(editorAsWnd);
+
+						_editorUIs.Add(editor);
 					}
-					
+
 					listNav.AddChild(fieldEditorContainer);
 				}
 			}
+
+			UpdatePropertyValues();
 		}
 
 		protected override bool UpdateInternal()
 		{
-			UIBaseWindow? focus = Controller?.InputFocus;
-			if (_openEditor != null && focus != null && !focus.IsWithin(this)) FieldExitEditor();
-
 			if (_objectReferenceInvalidated)
 			{
 				ObjectReferenceUpdated();
@@ -207,86 +197,16 @@ namespace Emotion.Game.World2D
 			return base.UpdateInternal();
 		}
 
-		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+		private IMapEditorGeneric? AddEditorForField(XMLFieldHandler field)
 		{
-			if (key == Key.Enter && status == KeyStatus.Down && _openEditor != null) _editConfirmCallback?.Invoke();
-			if (key == Key.Escape && status == KeyStatus.Down && _openEditor != null) FieldExitEditor();
-
-			return base.OnKey(key, status, mousePos);
-		}
-
-		private IMapEditorGeneric AddEditorForField(XMLFieldHandler field)
-		{
-			// todo: Insert switch for different types based on field
-
-			object? propertyValue = field.ReflectionInfo.GetValue(Object);
-
-			if (field.TypeHandler.Type == typeof(Vector2))
-			{
-				return new MapEditorFloat2();
-			}
-			if (field.TypeHandler.Type == typeof(float))
-			{
-				return new MapEditorFloat();
-			}
-			if (field.TypeHandler.Type == typeof(Vector3))
-			{
-				return new MapEditorFloat3();
-			}
-			if (field.TypeHandler.Type == typeof(string))
-			{
-				return new MapEditorString();
-			}
-
-			var editorBg = new UISolidColor();
-			editorBg.StretchX = true;
-			editorBg.StretchY = true;
-			editorBg.WindowColor = Color.Black * 0.7f;
-			editorBg.Id = "EditorFieldEditor";
-			editorBg.InputTransparent = false;
-			//fieldEditor.AddChild(editorBg);
-
-			//object? propertyValue = field.ReflectionInfo.GetValue(Object);
-			var defaultTextValue = (propertyValue ?? "null").ToString()!;
-			string editorValue = defaultTextValue;
-			if (propertyValue == null) editorValue = "";
-
-			var textInput = new UITextInput();
-			textInput.Text = editorValue;
-			textInput.WindowColor = MapEditorColorPalette.TextColor;
-			textInput.FontFile = "Editor/UbuntuMono-Regular.ttf";
-			textInput.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-			textInput.Margins = new Rectangle(2, 1, 2, 1);
-			textInput.IgnoreParentColor = true;
-			textInput.SizeOfText = true;
-			textInput.MinSize = new Vector2(70, 0);
-
-			_editConfirmCallback = () =>
-			{
-				string? text = textInput.Text;
-				if (field.TypeHandler.Type == typeof(string)) ApplyObjectChange(field, text);
-			};
-
-			editorBg.AddChild(textInput);
+			if (field.TypeHandler.Type == typeof(Vector2)) return new MapEditorFloat2();
+			if (field.TypeHandler.Type == typeof(float)) return new MapEditorNumber<float>();
+			if (field.TypeHandler.Type == typeof(int)) return new MapEditorNumber<int>();
+			if (field.TypeHandler.Type == typeof(Vector3)) return new MapEditorFloat3();
+			if (field.TypeHandler.Type == typeof(string)) return new MapEditorString();
+			if (field.TypeHandler.Type.IsEnum) return new MapEditorEnum(field.TypeHandler.Type);
 
 			return null;
-		}
-
-		private void FieldExitEditor()
-		{
-			if (_openEditorHandler == null || _openEditor == null) return;
-
-			UIBaseWindow? button = _openEditor.GetWindowById("EditorFieldEditor");
-			Debug.Assert(button != null);
-			if (button != null) _openEditor.RemoveChild(button);
-
-			SpawnEditorButton(_openEditorHandler, _openEditor);
-			_editConfirmCallback = null;
-		}
-
-		private void SpawnEditorButton(XMLFieldHandler field, UIBaseWindow fieldEditor)
-		{
-			//AddEditorForField(field, fieldEditor);
 		}
 
 		public void ApplyObjectChange(XMLFieldHandler field, object value)
@@ -319,8 +239,6 @@ namespace Emotion.Game.World2D
 
 		private void ObjectReferenceUpdated()
 		{
-			FieldExitEditor();
-
 			// Try to find the object we were showing.
 			GameObject2D? newObjectReference = null;
 			foreach (GameObject2D obj in ObjectMap.GetObjects())
@@ -341,10 +259,21 @@ namespace Emotion.Game.World2D
 			Debug.Assert(newObjectReference.GetType() == Object.GetType());
 			Object = newObjectReference;
 
-			UIBaseWindow? parent = Parent;
-			parent!.RemoveChild(this);
-			ClearChildren(); // Clear old ui.
-			parent.AddChild(this); // Reattaching will cause the new ui to spawn.
+			UpdatePropertyValues();
+		}
+
+		private void UpdatePropertyValues()
+		{
+			Controller?.SetInputFocus(null);
+
+			for (var i = 0; i < _editorUIs.Count; i++)
+			{
+				IMapEditorGeneric editor = _editorUIs[i];
+
+				XMLFieldHandler? field = editor.Field;
+				object? propertyValue = field.ReflectionInfo.GetValue(Object);
+				editor.SetValue(propertyValue);
+			}
 		}
 	}
 }

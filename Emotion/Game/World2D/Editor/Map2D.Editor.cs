@@ -10,7 +10,6 @@ using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
-using Emotion.Utility;
 
 #endregion
 
@@ -21,7 +20,8 @@ namespace Emotion.Game.World2D
 	public partial class Map2D
 	{
 		private UIController? _editUI;
-		protected CameraBase? _gameCamera;
+		protected CameraBase? _editorLastGameCamera;
+		protected WASDMoveCamera2D? _editorCamera;
 
 		// Selection and MouseOver
 		private bool _objectSelect = true;
@@ -30,6 +30,7 @@ namespace Emotion.Game.World2D
 		{
 			get => _rolloverIndex == -1 ? null : _allObjectsRollover![_rolloverIndex];
 		}
+
 		private List<GameObject2D>? _allObjectsRollover; // List of objects under the mouse cursor (could be more than one)
 		private int _rolloverIndex = -1; // Index in ^
 
@@ -79,13 +80,11 @@ namespace Emotion.Game.World2D
 				return false;
 			}
 
-			if (key == Key.LeftAlt && status == KeyStatus.Down)
-			{
-				RolloverObjectIncrement();
-			}
+			if (key == Key.LeftAlt && status == KeyStatus.Down) RolloverObjectIncrement();
 
 			bool leftClick = key == Key.MouseKeyLeft;
 			bool rightClick = key == Key.MouseKeyRight;
+			bool noMouseFocus = _editUI!.MouseFocus == _editUI || _editUI.MouseFocus == null || _editUI.MouseFocus is MapEditorObjectNameplate;
 
 			if ((leftClick || rightClick) && status == KeyStatus.Down)
 			{
@@ -94,7 +93,8 @@ namespace Emotion.Game.World2D
 					ObjectSelect(_rolloverObject);
 					if (rightClick)
 					{
-						EditorOpenContextMenuForObject(_rolloverObject);
+						if (noMouseFocus)
+							EditorOpenContextMenuForObject(_rolloverObject);
 					}
 					else
 					{
@@ -107,7 +107,8 @@ namespace Emotion.Game.World2D
 				}
 				else if (rightClick)
 				{
-					EditorOpenContextMenuObjectModeNoSelection();
+					if (noMouseFocus)
+						EditorOpenContextMenuObjectModeNoSelection();
 				}
 			}
 			else if (leftClick && status == KeyStatus.Up)
@@ -119,7 +120,7 @@ namespace Emotion.Game.World2D
 				}
 			}
 
-			Helpers.CameraWASDUpdate();
+			_editorCamera?.CameraKeyHandler(key, status);
 
 			return false;
 		}
@@ -135,9 +136,10 @@ namespace Emotion.Game.World2D
 			UIBaseWindow worldInspect = GetWorldAttachInspectWindow();
 			_editUI.AddChild(worldInspect);
 
-			_gameCamera = Engine.Renderer.Camera;
-			Engine.Renderer.Camera = new FloatScaleCamera2d(Vector3.Zero);
-			Engine.Renderer.Camera.Position = _gameCamera.Position;
+			_editorLastGameCamera = Engine.Renderer.Camera;
+			_editorCamera = new WASDMoveCamera2D(Vector3.Zero);
+			Engine.Renderer.Camera = _editorCamera;
+			Engine.Renderer.Camera.Position = _editorLastGameCamera.Position;
 
 			// Reset setting
 			EditorSetObjectSelect(true);
@@ -153,12 +155,12 @@ namespace Emotion.Game.World2D
 			_editUI = null;
 
 			_namePlates?.Clear();
-			
+
 			_selectedObject = null;
 			_rolloverIndex = -1;
 			_allObjectsRollover = null;
 
-			Engine.Renderer.Camera = _gameCamera;
+			Engine.Renderer.Camera = _editorLastGameCamera;
 		}
 
 		protected void UpdateDebug()
@@ -254,7 +256,6 @@ namespace Emotion.Game.World2D
 
 					if (!obj.ObjectFlags.HasFlag(ObjectFlags.Persistent))
 					{
-						c.RenderSprite(bounds, Color.Black * 0.5f);
 						c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black);
 						c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black);
 					}
@@ -278,10 +279,6 @@ namespace Emotion.Game.World2D
 		}
 
 		#region Object Selection
-
-		public void ObjectRollover()
-		{
-		}
 
 		public void ObjectSelect(GameObject2D? obj)
 		{
@@ -473,7 +470,7 @@ namespace Emotion.Game.World2D
 			XMLAsset<Map2D>? asset = XMLAsset<Map2D>.CreateFromContent(this, fileName);
 			asset.Save();
 
-			await Reset();
+			await Reset(); // Regenerate trimmed properties
 		}
 
 		#endregion
@@ -529,6 +526,7 @@ namespace Emotion.Game.World2D
 			newObj.Position = worldPos.ToVec3();
 			AddObject(newObj);
 
+			// Stick to mouse to be placed.
 			_objectDragging = newObj;
 			_objectDragOffset = newObj.Size / 2f;
 			_ignoreNextObjectDragLetGo = true;

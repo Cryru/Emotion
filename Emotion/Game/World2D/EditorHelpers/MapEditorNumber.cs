@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
@@ -8,16 +9,16 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class MapEditorFloat : UIBaseWindow, IMapEditorGeneric
+	public class MapEditorNumber<T> : UIBaseWindow, IMapEditorGeneric where T : INumber<T>
 	{
-		private float _value;
+		public XMLFieldHandler? Field { get; set; }
+
+		private T _value = T.Zero;
 		private Action<object>? _callback;
 		private UITextInput? _textInput;
 
-		public MapEditorFloat()
+		public MapEditorNumber()
 		{
-			LayoutMode = LayoutMode.HorizontalList;
-			ListSpacing = new Vector2(2, 0);
 			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
@@ -25,7 +26,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		public void SetValue(object value)
 		{
-			_value = (float) value;
+			_value = (T) (value ?? T.Zero);
 			if (_textInput != null) _textInput.Text = _value.ToString();
 		}
 
@@ -62,10 +63,10 @@ namespace Emotion.Game.World2D.EditorHelpers
 			textEditor.Id = "textEditor";
 			textEditor.OnSubmit = val =>
 			{
-				if (!float.TryParse(val, out float floatVal)) return;
+				if (!T.TryParse(val, null, out T? intVal)) return;
 
-				if (floatVal == _value) return;
-				_value = floatVal;
+				if (intVal == _value) return;
+				_value = intVal;
 				_callback?.Invoke(_value);
 			};
 			textEditor.SubmitOnEnter = true;

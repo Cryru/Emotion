@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
@@ -8,12 +9,14 @@ namespace Emotion.Game.World2D.EditorHelpers
 {
 	public class MapEditorFloat3 : UIBaseWindow, IMapEditorGeneric
 	{
+		public XMLFieldHandler Field { get; set; }
+
 		private Vector3 _value;
 		private Action<object> _callback;
 
-		private MapEditorFloat _editorX;
-		private MapEditorFloat _editorY;
-		private MapEditorFloat _editorZ;
+		private MapEditorNumber<float> _editorX;
+		private MapEditorNumber<float> _editorY;
+		private MapEditorNumber<float> _editorZ;
 
 		public MapEditorFloat3()
 		{
@@ -30,7 +33,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 			var labelX = new MapEditorLabel("X:");
 			AddChild(labelX);
-			var editorX = new MapEditorFloat();
+			var editorX = new MapEditorNumber<float>();
 			AddChild(editorX);
 			_editorX = editorX;
 			editorX.SetValue(_value.X);
@@ -43,7 +46,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var labelY = new MapEditorLabel("Y:");
 			labelY.Margins = new Rectangle(2, 0, 0, 0);
 			AddChild(labelY);
-			var editorY = new MapEditorFloat();
+			var editorY = new MapEditorNumber<float>();
 			AddChild(editorY);
 			_editorY = editorY;
 			editorY.SetValue(_value.Y);
@@ -56,7 +59,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var labelZ = new MapEditorLabel("Z:");
 			labelZ.Margins = new Rectangle(2, 0, 0, 0);
 			AddChild(labelZ);
-			var editorZ = new MapEditorFloat();
+			var editorZ = new MapEditorNumber<float>();
 			AddChild(editorZ);
 			_editorZ = editorZ;
 			editorZ.SetValue(_value.Z);

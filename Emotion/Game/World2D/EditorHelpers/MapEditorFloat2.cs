@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
@@ -8,14 +9,13 @@ namespace Emotion.Game.World2D.EditorHelpers
 {
 	public class MapEditorFloat2 : UIBaseWindow, IMapEditorGeneric
 	{
+		public XMLFieldHandler Field { get; set; }
+
 		private Vector2 _value;
 		private Action<object> _callback;
 
-		private string _xEdit;
-		private string _yEdit;
-
-		private MapEditorFloat _editorX;
-		private MapEditorFloat _editorY;
+		private MapEditorNumber<float> _editorX;
+		private MapEditorNumber<float> _editorY;
 
 		public MapEditorFloat2()
 		{
@@ -32,7 +32,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 			var labelX = new MapEditorLabel("X:");
 			AddChild(labelX);
-			var editorX = new MapEditorFloat();
+			var editorX = new MapEditorNumber<float>();
 			AddChild(editorX);
 			_editorX = editorX;
 			editorX.SetValue(_value.X);
@@ -45,7 +45,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var labelY = new MapEditorLabel("Y:");
 			labelY.Margins = new Rectangle(2, 0, 0, 0);
 			AddChild(labelY);
-			var editorY = new MapEditorFloat();
+			var editorY = new MapEditorNumber<float>();
 			AddChild(editorY);
 			_editorY = editorY;
 			editorY.SetValue(_value.Y);

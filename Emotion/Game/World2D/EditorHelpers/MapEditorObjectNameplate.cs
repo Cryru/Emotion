@@ -16,6 +16,8 @@ namespace Emotion.Game.World2D.EditorHelpers
         private UIText _label;
         private UISolidColor _bg;
 
+        private ReasonStack _selectionStack = new();
+
         public MapEditorObjectNameplate()
         {
             StretchX = true;
@@ -58,8 +60,16 @@ namespace Emotion.Game.World2D.EditorHelpers
 
         public void SetSelected(bool selected, string reason)
         {
-            _bg.WindowColor = selected ? Color.White * 0.4f : Color.Black * 0.4f;
-            _label.WindowColor = selected ? Color.Black * 0.9f : MapEditorColorPalette.TextColor * 0.9f;
+	        if (selected)
+		        _selectionStack.AddReason(reason);
+	        else
+		        _selectionStack.RemoveReason(reason);
+
+	        selected = _selectionStack.AnyReason();
+	        bool rollover = _selectionStack.HasReason("Rollover");
+
+	        _bg.WindowColor = selected ? Color.White * (rollover ? 0.6f : 0.4f) : Color.Black * 0.4f;
+	        _label.WindowColor = selected ? Color.Black * 0.9f : MapEditorColorPalette.TextColor * 0.9f;
         }
 
         protected override bool UpdateInternal()
