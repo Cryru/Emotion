@@ -112,17 +112,34 @@ namespace Emotion.UI
 			_updateLayout = false;
 
 			Debugger?.RecordNewPass(this);
+
+#if NEW_UI
 			// 1. Measure the size of all windows.
 			// Children are measured before parents in order for stretching to work.
 			// Children are measured in index order. Layout rules are applied.
-			Size = Engine.Renderer.DrawBuffer.Size;
-			Measure(Size);
+			Vector2 screenSize = Engine.Renderer.DrawBuffer.Size;
+			Measure(screenSize);
 
 			// 2. Layout windows within their parents, starting with the controller taking up the full screen.
 			// Sizes returned during measuring are used. Parents are positioned before children since
 			// positions are absolute and not relative.
 			Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
+			Layout(Vector2.Zero, screenSize);
+
+#else
+
+			// 1. Measure the size of all windows.
+			// Children are measured before parents in order for stretching to work.
+			// Children are measured in index order. Layout rules are applied.
+			Size = Engine.Renderer.DrawBuffer.Size;
+			Measure(Size);
+			// 2. Layout windows within their parents, starting with the controller taking up the full screen.
+			// Sizes returned during measuring are used. Parents are positioned before children since
+			// positions are absolute and not relative.
+			Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
 			Layout(pos);
+
+#endif
 		}
 
 		public override void AddChild(UIBaseWindow? child)
