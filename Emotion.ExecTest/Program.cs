@@ -10,6 +10,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Primitives;
 using Emotion.Scenography;
+using Emotion.Testing;
 
 #endregion
 
@@ -17,7 +18,7 @@ namespace Emotion.ExecTest
 {
 	public class Program : IScene
 	{
-		private static void Main()
+		private static void Main(string[] args)
 		{
 			var config = new Configurator
 			{
@@ -27,6 +28,12 @@ namespace Emotion.ExecTest
 			Engine.Setup(config);
 			Engine.SceneManager.SetScene(new Program());
 			Engine.Run();
+
+			//var config = new Configurator();
+			//TestExecutor.SetupConfigForTests(config);
+			//Engine.Setup(config);
+			//TestExecutor.ExecuteTests(args);
+			//Engine.Run();
 		}
 
 		private List<Quad3D> _quads = new List<Quad3D>();
