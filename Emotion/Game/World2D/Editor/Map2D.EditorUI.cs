@@ -53,12 +53,12 @@ namespace Emotion.Game.World2D
 			accent.ParentAnchor = UIAnchor.BottomLeft;
 			topBar.AddChild(accent);
 
-			AttachTopBarButtons(topBarList);
+			EditorAttachTopBarButtons(topBarList);
 
 			return topBar;
 		}
 
-		private MapEditorTopBarButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)
+		protected MapEditorTopBarButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)
 		{
 			// todo: maybe the drop down exclusivity logic should be handled by the top bar or some kind of parent ui.
 			// though either way a SetDropDownMode function will need to exist on buttons to change their style.
@@ -82,7 +82,7 @@ namespace Emotion.Game.World2D
 				for (var i = 0; i < siblings.Count; i++)
 				{
 					UIBaseWindow child = siblings[i];
-					if (child is MapEditorTopBarButton but) but.SetDropDownMode(child == button, dropDownWin);
+					if (child is MapEditorTopBarButton but) but.SetActiveMode(child == button);
 				}
 
 				_editUI!.AddChild(dropDownWin);
@@ -100,7 +100,7 @@ namespace Emotion.Game.World2D
 			return button;
 		}
 
-		private void AttachTopBarButtons(UIBaseWindow parentList)
+		protected virtual void EditorAttachTopBarButtons(UIBaseWindow parentList)
 		{
 			string GetObjectSelectionLabel()
 			{
@@ -120,14 +120,23 @@ namespace Emotion.Game.World2D
 				},
 				new EditorDropDownButtonDescription
 				{
+					Name = "Open",
+					Click = _ =>
+					{
+						_editUI!.AddChild(new MapEditorModal(new MapEditorOpenMapPanel(this)));
+						_editUI!.RemoveChild(_editUI.DropDown);
+					}
+				},
+				new EditorDropDownButtonDescription
+				{
 					Name = "Save",
 					Click = _ => EditorSaveMap(),
 					Enabled = () => FileName != null
 				},
-				new EditorDropDownButtonDescription
-				{
-					Name = "Save As"
-				}
+				//new EditorDropDownButtonDescription
+				//{
+				//	Name = "Save As"
+				//}
 			});
 
 			MapEditorTopBarButton objectsMenu = EditorDropDownButton("Objects", new[]
@@ -156,9 +165,9 @@ namespace Emotion.Game.World2D
 					{
 						var panel = new EditorListOfItemsPanel<GameObject2D>(this, "All Objects", _objects,
 							obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
-							obj => { RolloverObjects(new() {obj}); }
+							obj => { RolloverObjects(new() {obj}, false); }
 						);
-
+						panel.Id = "ObjectListPanel";
 						_editUI!.AddChild(panel);
 						_editUI.RemoveChild(_editUI.DropDown);
 					}

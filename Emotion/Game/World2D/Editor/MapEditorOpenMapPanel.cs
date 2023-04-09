@@ -10,13 +10,13 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D
 {
-	public class MapEditorCreateMapPanel : MapEditorPanel
+	public class MapEditorOpenMapPanel : MapEditorPanel
 	{
 		private Map2D _map;
 		private MapEditorString _nameInput;
 		private MapEditorString _pathInput;
 
-		public MapEditorCreateMapPanel(Map2D map) : base("New Map")
+		public MapEditorOpenMapPanel(Map2D map) : base("Open Map")
 		{
 			_map = map;
 		}
@@ -34,7 +34,7 @@ namespace Emotion.Game.World2D
 			_nameInput.MinSize = new Vector2(100, 0);
 			_pathInput.MinSize = new Vector2(100, 0);
 
-			MapEditorCreateMapPanel creationDlg = this;
+			MapEditorOpenMapPanel creationDlg = this;
 			Task creationTask = null;
 
 			var confirmButton = new MapEditorTopBarButton();

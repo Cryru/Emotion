@@ -19,7 +19,7 @@ namespace Emotion.Game.World2D
 {
 	public partial class Map2D
 	{
-		private UIController? _editUI;
+		protected UIController? _editUI;
 		protected CameraBase? _editorLastGameCamera;
 		protected WASDMoveCamera2D? _editorCamera;
 
@@ -192,7 +192,17 @@ namespace Emotion.Game.World2D
 			}
 			else
 			{
-				RolloverObjects(null);
+				var removeRollover = true;
+				if (_editUI!.MouseFocus != null)
+				{
+					UIBaseWindow? objectListPanel = _editUI.GetWindowById("ObjectListPanel");
+					if (objectListPanel != null && _editUI.MouseFocus.IsWithin(objectListPanel))
+					{
+						removeRollover = false;
+					}
+				}
+
+				if(removeRollover) RolloverObjects(null);
 			}
 
 			// If dragging an object - move it with the mouse.

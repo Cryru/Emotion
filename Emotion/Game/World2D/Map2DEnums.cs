@@ -38,6 +38,12 @@ namespace Emotion.Game.World2D
     public enum QueryFlags : byte
     {
         None = 0,
+        
+        /// <summary>
+        /// This will ensure that no object is present twice in the result. A single query would never
+        /// add an object twice, but when chaining queries it could be useful to filter objects from the
+        /// preexisting result set.
+        /// </summary>
         Unique = 2 << 0
     }
 }

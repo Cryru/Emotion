@@ -82,6 +82,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			listNav.StretchX = true;
 			listNav.ListSpacing = new Vector2(0, 1);
 			listNav.Margins = new Rectangle(0, 0, 10, 0);
+			listNav.MinSize = new Vector2(100, 100);
 			listNav.InputTransparent = false;
 			listNav.ChildrenAllSameWidth = true;
 			listContainer.AddChild(listNav);

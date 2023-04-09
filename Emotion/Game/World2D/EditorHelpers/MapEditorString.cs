@@ -5,11 +5,13 @@ using Emotion.UI;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Game.World2D.EditorHelpers
 {
 	public class MapEditorString : UIBaseWindow, IMapEditorGeneric
 	{
-		public XMLFieldHandler Field { get; set; }
+		public XMLFieldHandler Field { get; set; } = null!;
 
 		public string Text
 		{
@@ -17,22 +19,28 @@ namespace Emotion.Game.World2D.EditorHelpers
 			set => SetValue(value);
 		}
 
-		private string _value;
+		private string _value = "";
 		private Action<object>? _callback;
 		private UITextInput? _textInput;
 
-		public MapEditorString()
+		private bool _updateOnTextChange;
+		private string _updateOnTextChangeLastText;
+
+		public MapEditorString(bool updateOnTextChange = false)
 		{
 			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
 			MinSize = new Vector2(70, 0);
+
+			_updateOnTextChange = updateOnTextChange;
 		}
 
 		public void SetValue(object value)
 		{
 			_value = (string) value;
 			if (_textInput != null) _textInput.Text = _value;
+			_updateOnTextChangeLastText = _value;
 		}
 
 		public object GetValue()
@@ -59,7 +67,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			inputBg.ParentAnchor = UIAnchor.CenterLeft;
 
 			var textEditor = new UITextInput();
-			textEditor.Text = _value;
 			textEditor.FontFile = "Editor/UbuntuMono-Regular.ttf";
 			textEditor.FontSize = MapEditorColorPalette.EditorButtonTextSize;
 			textEditor.SizeOfText = true;
@@ -71,17 +78,26 @@ namespace Emotion.Game.World2D.EditorHelpers
 			{
 				if (val == _value) return;
 				_value = val;
+				_updateOnTextChangeLastText = val;
 				_callback?.Invoke(_value);
 			};
 			textEditor.SubmitOnEnter = true;
 			textEditor.SubmitOnFocusLoss = true;
 			inputBg.AddChild(textEditor);
 			_textInput = textEditor;
+			SetValue(_value); // To force setting it in the UI
 
 			AddChild(inputBg);
 		}
 
-		public static UIBaseWindow CreateStringEditorWithLabel(string label, out MapEditorString stringEditor)
+		protected override bool UpdateInternal()
+		{
+			if (_updateOnTextChange && _textInput != null && _textInput.Text != _updateOnTextChangeLastText) _textInput.OnSubmit?.Invoke(_textInput.Text);
+
+			return base.UpdateInternal();
+		}
+
+		public static UIBaseWindow CreateStringEditorWithLabel(string label, bool updateOnTextChange, out MapEditorString stringEditor)
 		{
 			var container = new UIBaseWindow();
 			container.LayoutMode = LayoutMode.HorizontalList;
@@ -94,7 +110,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var labelWnd = new MapEditorLabel(label);
 			container.AddChild(labelWnd);
 
-			var stringEditorWnd = new MapEditorString();
+			var stringEditorWnd = new MapEditorString(updateOnTextChange);
 			container.AddChild(stringEditorWnd);
 			stringEditor = stringEditorWnd;
 
