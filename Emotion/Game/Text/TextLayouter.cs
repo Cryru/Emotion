@@ -172,6 +172,10 @@ namespace Emotion.Game.Text
                 // If going on a new line, stop checking and return current height.
                 if (c == '\n') return;
 
+                // Replace space with a wide lowercase character (such as w) since
+                // some fonts specify space as having 0 height.
+                if (c == ' ') c = 'w';
+
                 if (!_atlas.Glyphs.TryGetValue(c, out DrawableGlyph g))
                 {
                     if (_hasZeroGlyph)

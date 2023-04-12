@@ -315,16 +315,6 @@ namespace Emotion.Standard.OpenType
                 LastCharIndex = (uint) (Glyphs.Length - 1);
             }
 
-            // Patch height of space character.
-            if (CharToGlyph.TryGetValue(' ', out FontGlyph? spaceChar) && CharToGlyph.TryGetValue('w', out FontGlyph? lowerCaseW))
-            {
-	            if (spaceChar.Max.Y == 0 && spaceChar.Min.Y == 0)
-	            {
-		            spaceChar.Max.Y = lowerCaseW.Max.Y;
-		            spaceChar.Min.Y = lowerCaseW.Min.Y;
-	            }
-            }
-
             // os/2 parsed, but unused
             // cvt parsed, but unused
             // todo: kern
