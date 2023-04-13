@@ -20,12 +20,12 @@ namespace Emotion.UI
 	[DontSerializeMembers("Position", "Size")]
 	public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
 	{
+		public static float DefaultMaxSizeF = 9999;
+
 		/// <summary>
 		/// By default windows greedily take up all the size they can.
 		/// </summary>
-		public static Vector2 DefaultMaxSize = new(9999, 9999);
-
-		public static float DefaultWindowMaxSize = 9999;
+		public static Vector2 DefaultMaxSize = new(DefaultMaxSizeF, DefaultMaxSizeF);
 
 		/// <summary>
 		/// Unique identifier for this window to be used with GetWindowById. If two windows share an id the one closer
@@ -457,10 +457,10 @@ namespace Emotion.UI
 		}
 
 		[DontSerialize] // will be saved via the Vector2 prop
-		public float MaxSizeX = DefaultWindowMaxSize;
+		public float MaxSizeX = DefaultMaxSizeF;
 
 		[DontSerialize] //
-		public float MaxSizeY = DefaultWindowMaxSize;
+		public float MaxSizeY = DefaultMaxSizeF;
 
 		/// <summary>
 		/// Always added to the position after all other checks.

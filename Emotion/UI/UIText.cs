@@ -26,7 +26,7 @@ namespace Emotion.UI
 			}
 		}
 
-		private string _fontFileName;
+		private string _fontFileName = FontAsset.DefaultBuiltInFontName;
 
 		/// <summary>
 		/// The unscaled font size of the text.
@@ -111,11 +111,7 @@ namespace Emotion.UI
 		{
 			// Load font if not loaded.
 			if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-			if (_fontFile == null)
-			{
-				_fontFile = FontAsset.GetDefaultBuiltIn();
-				if (_fontFile == null) return;
-			}
+			if (_fontFile == null) return;
 
 			if (FontSize == 0)
 			{
