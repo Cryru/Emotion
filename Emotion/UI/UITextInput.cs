@@ -108,9 +108,7 @@ namespace Emotion.UI
 
         protected override Vector2 InternalMeasure(Vector2 space)
         {
-            if (_layouter != null) _layouter.MeasureTrailingWhiteSpace = true;
-
-            float scale = GetScale();
+	        float scale = GetScale();
             _scaledCursorDistance = 1 * scale;
 
             Vector2 textSize = base.InternalMeasure(space);

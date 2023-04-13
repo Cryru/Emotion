@@ -121,6 +121,8 @@ namespace Emotion.IO
             DestroyAtlas((int) MathF.Ceiling(fontSize));
         }
 
+        public static string DefaultBuiltInFontName = "Editor/UbuntuMono-Regular.ttf";
+
         /// <summary>
         /// Loads and returns the default font shipped with the engine.
         /// This font is only available if Editor assets are included
@@ -129,7 +131,7 @@ namespace Emotion.IO
         /// <returns></returns>
         public static FontAsset GetDefaultBuiltIn()
         {
-            return Engine.AssetLoader.Get<FontAsset>("Editor/UbuntuMono-Regular.ttf");
+            return Engine.AssetLoader.Get<FontAsset>(DefaultBuiltInFontName);
         }
     }
 }
