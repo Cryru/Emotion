@@ -85,10 +85,12 @@ namespace Emotion.Game.Text
 
 				// Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
 				bool lineBreakChar = text[i] == '\n';
-				if (textSize.X > bounds.X || lineBreakChar)
+				if ((textSize.X > bounds.X || lineBreakChar) && currentLineLength != 0)
 				{
+					// Remove trailing space when breaking to a new line.
+					if (text[currentLineStart + currentLineLength - 1] == ' ') currentLineLength--;
+
 					// Update measures.
-					if (text[currentLineStart + currentLineLength - 1] == ' ') currentLineLength--; // Remove trailing space when breaking to a new line.
 					Vector2 lineSize = MeasureString(text, currentLineStart, currentLineLength);
 					if (lineSize.X > longestLine) longestLine = lineSize.X;
 					NeededHeight += MathF.Max(lineHeight, MathF.Floor(lineSize.Y));
