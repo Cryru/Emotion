@@ -150,7 +150,7 @@ namespace Emotion.Graphics.Text
         {
             if (bin.Size != Vector2.Zero)
             {
-                var rebinAll = false;
+                var refitAll = false;
 
                 // Try to add new ones.
                 for (var i = 0; i < glyphs.Count; i++)
@@ -170,7 +170,7 @@ namespace Emotion.Graphics.Text
                             glyphs.Add(gRef);
                         }
 
-                        rebinAll = true;
+                        refitAll = true;
                         break;
                     }
 
@@ -178,7 +178,7 @@ namespace Emotion.Graphics.Text
                     glyph.GlyphUV = new Rectangle(position.Value, glyphSize);
                 }
 
-                if (!rebinAll) return bin;
+                if (!refitAll) return bin;
             }
 
             // Create bin rectangles.
