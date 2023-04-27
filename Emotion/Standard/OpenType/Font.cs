@@ -315,9 +315,15 @@ namespace Emotion.Standard.OpenType
                 LastCharIndex = (uint) (Glyphs.Length - 1);
             }
 
+            FontTable? kernTable = GetTable("kern");
+            if (kernTable != null)
+            {
+	            KernTable.ParseKern(r.Branch(kernTable.Offset, true, kernTable.Length));
+            }
+            
+
             // os/2 parsed, but unused
             // cvt parsed, but unused
-            // todo: kern
             // todo: gsub
             // todo: gpos
             // todo: fvar
