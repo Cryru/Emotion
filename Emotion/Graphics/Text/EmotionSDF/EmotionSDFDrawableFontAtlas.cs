@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Emotion.Game;
 using Emotion.Graphics.Batches;
@@ -81,17 +80,18 @@ namespace Emotion.Graphics.Text.EmotionSDF
 			bin = PackGlyphsInAtlas(glyphsMissingReferences, bin);
 			_sdfReference.PackingState = bin;
 
-			// Create list of missing glyphs in the atlas, from reference ones.
+			// Create list of glyphs missing in the atlas that were referenced.
 			// This needs to be recalculated because packing might decide to repack all.
-			var glyphsMissing = new List<DrawableGlyph>();
+			var glyphsMissing = new List<DrawableGlyph?>();
 			for (var i = 0; i < glyphsMissingReferences.Count; i++)
 			{
 				DrawableGlyph referenceGlyph = glyphsMissingReferences[i];
 
-				// Pull out the glyph in the non-reference atlas as well.
-				DrawableGlyph? atlasGlyph = Glyphs[referenceGlyph.Character];
-				glyphsMissing.Add(atlasGlyph);
-				Debug.Assert(atlasGlyph != null);
+				// We need to check if this atlas has the glyph in question. This is because
+				// a total repack will include glyphs that we didnt request and therefore dont have
+				// referenced in this particular instance of the atlas.
+				Glyphs.TryGetValue(referenceGlyph.Character, out DrawableGlyph? glyph);
+				glyphsMissing.Add(glyph);
 			}
 
 			// Resync atlas texture.
@@ -144,8 +144,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
 				glyph.GlyphUV.Location = glyph.GlyphUV.Location.RoundClosest();
 				glyph.GlyphUV.Size = glyph.GlyphUV.Size.RoundClosest();
 
-				DrawableGlyph g = glyphsMissing[i];
-				g.GlyphUV = glyph.GlyphUV;
+				DrawableGlyph? g = glyphsMissing[i];
+				if (g != null) g.GlyphUV = glyph.GlyphUV;
 			}
 
 			// If the reference atlas buffer was recreated we need to reassign the UVs in all atlases
