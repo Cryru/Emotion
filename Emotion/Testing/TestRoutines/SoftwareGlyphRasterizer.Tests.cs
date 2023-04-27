@@ -2,14 +2,16 @@
 
 using System.Collections;
 using System.Threading.Tasks;
-using Emotion.Graphics;
 using Emotion.Standard.OpenType;
+using Emotion.Testing;
+using StbTrueTypeSharp;
 
 #endregion
 
-namespace Emotion.Testing.TestRoutines;
+// ReSharper disable once CheckNamespace
+namespace Emotion.Graphics.Text.RasterizationNew;
 
-public static class SoftwareGlyphRasterizer
+public static partial class SoftwareGlyphRasterizer
 {
 	public class SoftwareGlyphRasterizerTestScene : TestingScene
 	{
@@ -34,17 +36,16 @@ public static class SoftwareGlyphRasterizer
 
 	public static class SoftwareGlyphRasterizerTests
 	{
-		private static unsafe void VerifyGlyphVertices(stbtt_fontinfo info, int glyph, float scale_x, float scale_y)
+		private static unsafe void VerifyGlyphVertices(StbTrueType.stbtt_fontinfo info, int glyph, float scaleX, float scaleY)
 		{
-			float scale = scale_x > scale_y ? scale_y : scale_x;
+			float scale = scaleX > scaleY ? scaleY : scaleX;
 
 			// Get Emotion metrics
-			float flatness = FLATNESS_IN_PIXELS / scale;
 			GlyphVertex[] glyphVertices = GetGlyphVertices(info, glyph);
 
 			// Get STB metrics
-			stbtt_vertex* vertices;
-			int numVerts = stbtt_GetGlyphShape(info, glyph, &vertices);
+			StbTrueType.stbtt_vertex* vertices;
+			int numVerts = StbTrueType.stbtt_GetGlyphShape(info, glyph, &vertices);
 
 			// Compare
 			TestLib.Assert(numVerts, glyphVertices.Length);
@@ -52,7 +53,7 @@ public static class SoftwareGlyphRasterizer
 			for (var i = 0; i < numVerts; i++)
 			{
 				GlyphVertex vertexEmotion = glyphVertices[i];
-				stbtt_vertex vertexStb = vertices[i];
+				StbTrueType.stbtt_vertex vertexStb = vertices[i];
 
 				TestLib.Assert(vertexStb.x, vertexEmotion.X);
 				TestLib.Assert(vertexStb.y, vertexEmotion.Y);
@@ -64,7 +65,7 @@ public static class SoftwareGlyphRasterizer
 			}
 		}
 
-		private static unsafe void VerifyCurves(stbtt_fontinfo info, int glyph, float scale_x, float scale_y)
+		private static unsafe void VerifyCurves(StbTrueType.stbtt_fontinfo info, int glyph, float scale_x, float scale_y)
 		{
 			float scale = scale_x > scale_y ? scale_y : scale_x;
 
@@ -74,18 +75,20 @@ public static class SoftwareGlyphRasterizer
 			VerticesToContours(glyphVertices, flatness, out Vector2[] points, out int[] contourLengths);
 
 			// Get STB metrics
-			stbtt_vertex* vertices;
-			int numVerts = stbtt_GetGlyphShape(info, glyph, &vertices);
+			StbTrueType.stbtt_vertex* vertices;
+			int numVerts = StbTrueType.stbtt_GetGlyphShape(info, glyph, &vertices);
 
 			var windingCount = 0;
 			int* windingLengths = null;
-			stbtt__point* windings = stbtt_FlattenCurves(vertices, numVerts, FLATNESS_IN_PIXELS / scale, &windingLengths, &windingCount, (void*) 0);
+			StbTrueType.stbtt__point* windings = StbTrueType.stbtt_FlattenCurves(vertices, numVerts, FLATNESS_IN_PIXELS / scale, &windingLengths, &windingCount, (void*) 0);
+
+			TestLib.AssertTrue(windingLengths != null);
 
 			// Compare
 			var totalWindings = 0;
 			for (var i = 0; i < windingCount; i++)
 			{
-				totalWindings += windingLengths[i];
+				totalWindings += windingLengths![i];
 			}
 
 			TestLib.Assert(totalWindings, points.Length);
@@ -94,7 +97,7 @@ public static class SoftwareGlyphRasterizer
 			for (var i = 0; i < points.Length; i++)
 			{
 				Vector2 point = points[i];
-				stbtt__point winding = windings[i];
+				StbTrueType.stbtt__point winding = windings[i];
 
 				TestLib.Assert(winding.x, point.X);
 				TestLib.Assert(winding.y, point.Y);

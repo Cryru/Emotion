@@ -9,21 +9,21 @@ namespace Emotion.Graphics.Text.RasterizationNew;
 
 // Based on stbtruetype by nothings
 // https://github.com/nothings/stb/blob/master/stb_truetype.h
-public static class SoftwareGlyphRasterizer
+public static partial class SoftwareGlyphRasterizer
 {
 	public const float FLATNESS_IN_PIXELS = 0.35f;
 
-	public static void RasterizeGlyph(StbTrueType.stbtt_fontinfo info, byte[] output, int width, int height, int stride, float scale_x, float scale_y, float shift_x, float shift_y, int glyph)
+	public static void RenderGlyph(StbTrueType.stbtt_fontinfo info, byte[] output, int width, int height, int stride, float scaleX, float scaleY, float shiftX, float shiftY, int glyph)
 	{
-		float scale = scale_x > scale_y ? scale_y : scale_x;
+		float scale = scaleX > scaleY ? scaleY : scaleX;
 		float flatness = FLATNESS_IN_PIXELS / scale;
 
 		GlyphVertex[] glyphVertices = GetGlyphVertices(info, glyph);
 		VerticesToContours(glyphVertices, flatness, out Vector2[] points, out int[] contourLengths);
-		GetGlyphBitmapBoxSize(info, glyph, scale_x, scale_y, shift_x, shift_y, out int glyphWidth, out int glyphHeight);
+		GetGlyphBitmapBoxSize(info, glyph, scaleX, scaleY, shiftX, shiftY, out int glyphWidth, out int glyphHeight);
 	}
 
-	private static void GetGlyphBitmapBoxSize(StbTrueType.stbtt_fontinfo info, int glyph, float scale_x, float scale_y, float shift_x, float shift_y, out int width, out int height)
+	private static void GetGlyphBitmapBoxSize(StbTrueType.stbtt_fontinfo info, int glyph, float scaleX, float scaleY, float shiftX, float shiftY, out int width, out int height)
 	{
 		// clean
 		// Glyph box
@@ -31,7 +31,7 @@ public static class SoftwareGlyphRasterizer
 		int h;
 		unsafe
 		{
-			StbTrueType.stbtt_GetGlyphBitmapBoxSubpixel(info, glyph, scale_x, scale_y, shift_x, shift_y, &w, &h, (int*) 0, (int*) 0);
+			StbTrueType.stbtt_GetGlyphBitmapBoxSubpixel(info, glyph, scaleX, scaleY, shiftX, shiftY, &w, &h, (int*) 0, (int*) 0);
 		}
 
 		width = w;
@@ -47,10 +47,10 @@ public static class SoftwareGlyphRasterizer
 		unsafe
 		{
 			StbTrueType.stbtt_vertex* vertices;
-			int num_verts = StbTrueType.stbtt_GetGlyphShape(info, glyph, &vertices);
+			int numVerts = StbTrueType.stbtt_GetGlyphShape(info, glyph, &vertices);
 
-			glyphVertices = new GlyphVertex[num_verts];
-			for (var i = 0; i < num_verts; i++)
+			glyphVertices = new GlyphVertex[numVerts];
+			for (var i = 0; i < numVerts; i++)
 			{
 				StbTrueType.stbtt_vertex stbVert = vertices[i];
 				ref GlyphVertex emVert = ref glyphVertices[i];

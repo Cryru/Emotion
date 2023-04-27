@@ -4,9 +4,25 @@ public static class TestLib
 {
 	public class TestAssertException : Exception
 	{
-		public TestAssertException(string txt) : base(txt)
+		public TestAssertException(string txt) : base($"Test Assert Failed: {txt}")
 		{
 
+		}
+	}
+
+	public static void AssertNotNull(object obj)
+	{
+		if (obj == null)
+		{
+			throw new TestAssertException($"Obj was null");
+		}
+	}
+
+	public static void AssertTrue(bool statement)
+	{
+		if (!statement)
+		{
+			throw new TestAssertException($"Statement was false");
 		}
 	}
 
