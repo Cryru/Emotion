@@ -22,9 +22,9 @@ uniform vec4 outlineColor = vec4(0.0);
 uniform vec2 scaleFactor = vec2(2);
 uniform float thickness = 0.5;
 float screenPxRange() {
-    vec2 unitRange = scaleFactor/vec2(getTextureSize(mainTexture));
-    vec2 screenTexSize = vec2(1.0)/fwidth(UV);
-    return max(0.5*dot(unitRange, screenTexSize), 1.0);
+    vec2 unitRange = scaleFactor / vec2(getTextureSize(mainTexture));
+    vec2 screenTexSize = vec2(1.0) / length(vec2(length(dFdx(UV)), length(dFdy(UV))));
+    return max(0.5 * dot(unitRange, screenTexSize), 1.0);
 }
 
 void main()
