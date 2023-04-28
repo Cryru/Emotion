@@ -72,6 +72,12 @@ namespace Emotion.Graphics
 	        RenderSprite(position.ToVec3(), textureArea.Size, color, texture, textureArea);
         }
 
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector3 position, Texture texture, Rectangle? textureArea = null)
+        {
+	        RenderSprite(position, texture.Size, Color.White, texture, textureArea);
+        }
+
         public enum RenderLineMode
         {
             Center,
@@ -95,7 +101,7 @@ namespace Emotion.Graphics
             ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
             SetProjectionBehavior(ProjectionBehavior.AlwaysCameraProjection);
 
-            Matrix4x4 viewMatrix = cameraWasOn ? Camera.ViewMatrix : Matrix4x4.Identity;
+            Matrix4x4 viewMatrix = cameraWasOn ? DebugCamera?.ViewMatrix ?? Camera.ViewMatrix : Matrix4x4.Identity;
             if (cameraWasOn) thickness *= Camera.CalculatedScale;
 
             pointOne = Vector3.Transform(pointOne, ModelMatrix * viewMatrix);
