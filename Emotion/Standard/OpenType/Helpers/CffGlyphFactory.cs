@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Standard.MathLib;
+using Emotion.Utility;
 
 #endregion
 

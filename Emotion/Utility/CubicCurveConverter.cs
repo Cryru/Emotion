@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Standard.MathLib
+namespace Emotion.Utility
 {
     /// <summary>
     /// Converts cubic curved to quadratic curves.
@@ -24,7 +23,7 @@ namespace Emotion.Standard.MathLib
             float[] inflections = SolveInflections(p1, cp1, cp2, p2);
             if (inflections.Length == 0) return CubicToQuadInternal(p1, cp1, cp2, p2);
 
-            Vector2[] curve = {p1, cp1, cp2, p2};
+            Vector2[] curve = { p1, cp1, cp2, p2 };
             var result = new List<Vector2>();
             float prevPoint = 0;
             for (var inflectionIdx = 0; inflectionIdx < inflections.Length; inflectionIdx++)
@@ -84,17 +83,17 @@ namespace Emotion.Standard.MathLib
         // a*x^2 + b*x + c = 0
         private static float[] QuadSolve(float a, float b, float c)
         {
-            if (a == 0) return b == 0 ? Array.Empty<float>() : new[] {-c / b};
+            if (a == 0) return b == 0 ? Array.Empty<float>() : new[] { -c / b };
 
             float d = b * b - 4 * a * c;
-            if (MathF.Abs(d) < Maths.EPSILON) return new[] {-b / (2 * a)};
+            if (MathF.Abs(d) < Maths.EPSILON) return new[] { -b / (2 * a) };
 
             if (d < 0) return Array.Empty<float>();
 
             float dSqrt = MathF.Sqrt(d);
             float first = (-b - dSqrt) / (2 * a);
             float second = (-b + dSqrt) / (2 * a);
-            return new[] {first, second};
+            return new[] { first, second };
         }
 
         /// <summary>
@@ -202,11 +201,11 @@ namespace Emotion.Standard.MathLib
 
             // straight line segment
             if (MathF.Abs(der) < Maths.EPSILON)
-                return new[] {f1, (f1 + f2) / 2f, f2};
+                return new[] { f1, (f1 + f2) / 2f, f2 };
 
             float cx = (f1D.X * (f2.Y * f2D.X - f2.X * f2D.Y) + f2D.X * (f1.X * f1D.Y - f1.Y * f1D.X)) / der;
             float cy = (f1D.Y * (f2.Y * f2D.X - f2.X * f2D.Y) + f2D.Y * (f1.X * f1D.Y - f1.Y * f1D.X)) / der;
-            return new[] {f1, new Vector2(cx, cy), f2};
+            return new[] { f1, new Vector2(cx, cy), f2 };
         }
 
         // a*t^3 + b*t^2 + c*t + d = ((a*t + b)*t + c)*t + d
