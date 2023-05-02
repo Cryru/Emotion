@@ -72,12 +72,8 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             // Pop a reference to check if this type holds a recursive reference.
             recursionChecker ??= new XMLRecursionChecker();
-            if (recursionChecker.PushReference(obj))
-            {
-                Engine.Log.Warning($"Recursive reference in field {fieldName}.", MessageSource.XML);
-                recursionChecker.PopReference(obj);
-                return true;
-            }
+            if (recursionChecker.PushReference(obj, fieldName))
+	            return true;
 
             // Handle field value being of inherited type.
             XMLComplexTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string inheritedType) ?? this;

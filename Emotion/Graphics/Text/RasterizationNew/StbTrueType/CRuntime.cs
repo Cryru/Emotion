@@ -15,10 +15,16 @@ namespace Hebron.Runtime
 		public static void* malloc(long size)
 		{
 			var ptr = Marshal.AllocHGlobal((int)size);
+			byte* bytePtr = (byte*) ptr.ToPointer();
+
+			for (int i = 0; i < size; i++)
+			{
+				bytePtr[i] = 0;
+			}
 
 			MemoryStats.Allocated();
 
-			return ptr.ToPointer();
+			return bytePtr;
 		}
 
 		public static void free(void* a)

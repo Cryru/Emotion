@@ -6,7 +6,7 @@ using System.Linq;
 
 #endregion
 
-namespace StbTrueTypeSharp
+namespace Tests.StbTrueType
 {
 #if !STBSHARP_INTERNAL
     public

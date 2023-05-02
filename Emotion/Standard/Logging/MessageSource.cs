@@ -41,5 +41,6 @@
 
         // Other
         public static string ScriptingEngine = "Scripting";
+        public static string Test = "Testing";
     }
 }

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace StbTrueTypeSharp
+namespace Tests.StbTrueType
 {
     internal static unsafe class CRuntime
     {

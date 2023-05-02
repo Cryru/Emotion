@@ -47,6 +47,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
+    <Compile Remove="Testing\Templates\EmptyTestTemplateClass.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Assets\FontShaders\GenerateSDF.frag" />
     <None Remove="Assets\FontShaders\GenerateSDF.xml" />
     <None Remove="Assets\FontShaders\GlyphRenderFill.frag" />
@@ -213,6 +217,10 @@
     <EmbeddedResource Include="Assets\Shaders\GetTextureSize.c" />
     <EmbeddedResource Include="Assets\Shaders\SSAA.frag" />
     <EmbeddedResource Include="Assets\Shaders\SSAA.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
+    <None Include="Testing\Templates\EmptyTestTemplateClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="UI\UIScrollbar.cs">

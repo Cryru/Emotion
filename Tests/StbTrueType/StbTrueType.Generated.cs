@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace StbTrueTypeSharp
+namespace Tests.StbTrueType
 {
     unsafe partial class StbTrueType
     {

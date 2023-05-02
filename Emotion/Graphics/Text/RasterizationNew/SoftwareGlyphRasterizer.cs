@@ -1,4 +1,6 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using Emotion.Standard.OpenType;
 using StbTrueTypeSharp;
@@ -9,7 +11,7 @@ namespace Emotion.Graphics.Text.RasterizationNew;
 
 // Based on stbtruetype by nothings
 // https://github.com/nothings/stb/blob/master/stb_truetype.h
-public static partial class SoftwareGlyphRasterizer
+public static class SoftwareGlyphRasterizer
 {
 	public const float FLATNESS_IN_PIXELS = 0.35f;
 
@@ -19,11 +21,11 @@ public static partial class SoftwareGlyphRasterizer
 		float flatness = FLATNESS_IN_PIXELS / scale;
 
 		GlyphVertex[] glyphVertices = GetGlyphVertices(info, glyph);
-		VerticesToContours(glyphVertices, flatness, out Vector2[] points, out int[] contourLengths);
+		VerticesToContours(glyphVertices, flatness, out Vector2[]? points, out int[]? contourLengths);
 		GetGlyphBitmapBoxSize(info, glyph, scaleX, scaleY, shiftX, shiftY, out int glyphWidth, out int glyphHeight);
 	}
 
-	private static void GetGlyphBitmapBoxSize(StbTrueType.stbtt_fontinfo info, int glyph, float scaleX, float scaleY, float shiftX, float shiftY, out int width, out int height)
+	public static void GetGlyphBitmapBoxSize(StbTrueType.stbtt_fontinfo info, int glyph, float scaleX, float scaleY, float shiftX, float shiftY, out int width, out int height)
 	{
 		// clean
 		// Glyph box
@@ -38,36 +40,31 @@ public static partial class SoftwareGlyphRasterizer
 		height = h;
 	}
 
-	private static GlyphVertex[] GetGlyphVertices(StbTrueType.stbtt_fontinfo info, int glyph)
+	public static unsafe GlyphVertex[] GetGlyphVertices(StbTrueType.stbtt_fontinfo info, int glyph)
 	{
-		GlyphVertex[] glyphVertices;
-
 		// clean
 		// Convert from STB verts
-		unsafe
-		{
-			StbTrueType.stbtt_vertex* vertices;
-			int numVerts = StbTrueType.stbtt_GetGlyphShape(info, glyph, &vertices);
+		StbTrueType.stbtt_vertex* vertices;
+		int numVerts = StbTrueType.stbtt_GetGlyphShape(info, glyph, &vertices);
 
-			glyphVertices = new GlyphVertex[numVerts];
-			for (var i = 0; i < numVerts; i++)
-			{
-				StbTrueType.stbtt_vertex stbVert = vertices[i];
-				ref GlyphVertex emVert = ref glyphVertices[i];
-				emVert.X = stbVert.x;
-				emVert.Y = stbVert.y;
-				emVert.Cx = stbVert.cx;
-				emVert.Cy = stbVert.cy;
-				emVert.Cx1 = stbVert.cx1;
-				emVert.Cy1 = stbVert.cy1;
-				emVert.Flags = stbVert.type;
-			}
+		var glyphVertices = new GlyphVertex[numVerts];
+		for (var i = 0; i < numVerts; i++)
+		{
+			StbTrueType.stbtt_vertex stbVert = vertices[i];
+			ref GlyphVertex emVert = ref glyphVertices[i];
+			emVert.X = stbVert.x;
+			emVert.Y = stbVert.y;
+			emVert.Cx = stbVert.cx;
+			emVert.Cy = stbVert.cy;
+			emVert.Cx1 = stbVert.cx1;
+			emVert.Cy1 = stbVert.cy1;
+			emVert.Flags = stbVert.type;
 		}
 
 		return glyphVertices;
 	}
 
-	private static void VerticesToContours(GlyphVertex[] vertices, float objFlatness, out Vector2[] points, out int[] windingLengths)
+	public static void VerticesToContours(GlyphVertex[] vertices, float objFlatness, out Vector2[]? points, out int[]? windingLengths)
 	{
 		float flatness2 = objFlatness * objFlatness;
 		points = null;
@@ -135,7 +132,7 @@ public static partial class SoftwareGlyphRasterizer
 		}
 	}
 
-	private static void GeneratePointsForQuadCurve(Vector2[] points, ref int offset, Vector2 p1, Vector2 pc, Vector2 p2, float flatness2, int count = 0)
+	private static void GeneratePointsForQuadCurve(Vector2[]? points, ref int offset, Vector2 p1, Vector2 pc, Vector2 p2, float flatness2, int count = 0)
 	{
 		// 65536 segments on one curve better be enough!
 		if (count > 16)
@@ -152,7 +149,7 @@ public static partial class SoftwareGlyphRasterizer
 		}
 		else
 		{
-			points[offset] = p2;
+			if (points != null) points[offset] = p2;
 			offset++;
 		}
 	}

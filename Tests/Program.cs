@@ -7,6 +7,8 @@ using System.Numerics;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Test;
+using Emotion.Testing;
+using Emotion.Utility;
 using Tests.Results;
 
 #endregion
@@ -42,11 +44,18 @@ namespace Tests
 			{"tag=StandardText", null},
 			{"tag=AnimatedTexture", null},
 			{"tag=XML testOnly", null},
-			{"tag=UITests", null}
+			{"tag=UITests", null},
+			{"EMOTION_TEST_LIBRARY", null}
 		};
 
 		private static void Main(string[] args)
 		{
+			if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
+			{
+				TestExecutor.ExecuteTests(args);
+				return;
+			}
+
 			//FontAsset.GlyphRasterizer = GlyphRasterizer.StbTrueType;
 			ResultDb.LoadCache();
 			var config = new Configurator

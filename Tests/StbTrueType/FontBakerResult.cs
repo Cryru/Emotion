@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 #endregion
 
-namespace StbTrueTypeSharp
+namespace Tests.StbTrueType
 {
 #if !STBSHARP_INTERNAL
     public

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections.Generic;
+using System.Globalization;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 
@@ -20,13 +21,11 @@ namespace Emotion.Standard.XML
         /// The return value is whether the object reference is unique. If false is returned
         /// you've encountered recursion.
         /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public bool PushReference(object obj)
+        public bool PushReference(object obj, string fieldName)
         {
             bool duplicate = !_references.Add(obj);
             if (!duplicate) return false;
-            Engine.Log.Warning("Tried to serialize a recursive reference.", MessageSource.XML);
+            Engine.Log.Warning($"Tried to serialize a recursive reference in field {fieldName}.", MessageSource.XML);
             return true;
         }
 
