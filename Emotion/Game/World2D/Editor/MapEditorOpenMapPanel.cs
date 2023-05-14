@@ -2,8 +2,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Standard.XML;
-using Emotion.Standard.XML.TypeHandlers;
+using Emotion.IO;
 using Emotion.UI;
 
 #endregion
@@ -12,74 +11,78 @@ namespace Emotion.Game.World2D
 {
 	public class MapEditorOpenMapPanel : MapEditorPanel
 	{
-		private Map2D _map;
-		private MapEditorString _nameInput;
-		private MapEditorString _pathInput;
+		private World2DEditor _editor;
+		private Type _mapType;
 
-		public MapEditorOpenMapPanel(Map2D map) : base("Open Map")
+		public MapEditorOpenMapPanel(World2DEditor editor, Type mapType) : base("Open Map")
 		{
-			_map = map;
+			_editor = editor;
+			_mapType = mapType;
 		}
 
 		public override void AttachedToController(UIController controller)
 		{
 			base.AttachedToController(controller);
 
-			_contentParent.LayoutMode = LayoutMode.VerticalList;
-			_contentParent.ListSpacing = new Vector2(0, 5);
+			var listNav = new UICallbackListNavigator();
+			listNav.LayoutMode = LayoutMode.VerticalList;
+			listNav.StretchX = true;
+			listNav.ListSpacing = new Vector2(0, 1);
+			listNav.Margins = new Rectangle(0, 0, 10, 0);
+			listNav.InputTransparent = false;
+			listNav.ChildrenAllSameWidth = true;
+			_contentParent.AddChild(listNav);
 
-			_contentParent.AddChild(MapEditorString.CreateStringEditorWithLabel("Name:", true, out _nameInput));
-			_contentParent.AddChild(MapEditorString.CreateStringEditorWithLabel("File Path:", true, out _pathInput));
+			var scrollBar = new UIScrollbar();
+			scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
+			scrollBar.SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
+			scrollBar.WindowColor = Color.Black * 0.5f;
+			scrollBar.Anchor = UIAnchor.TopRight;
+			scrollBar.ParentAnchor = UIAnchor.TopRight;
+			scrollBar.MinSize = new Vector2(5, 0);
+			scrollBar.MaxSize = new Vector2(5, 9999);
+			listNav.SetScrollbar(scrollBar);
+			_contentParent.AddChild(scrollBar);
 
-			_nameInput.MinSize = new Vector2(100, 0);
-			_pathInput.MinSize = new Vector2(100, 0);
+			var mapAssets = new List<string>();
+			string mapType = _mapType.FullName;
+			var xmlTag = $"<Map2D type=\"{mapType}\"";
 
-			MapEditorOpenMapPanel creationDlg = this;
-			Task creationTask = null;
-
-			var confirmButton = new MapEditorTopBarButton();
-			confirmButton.Text = "Create";
-			confirmButton.Id = "CreateButton";
-			confirmButton.Anchor = UIAnchor.TopCenter;
-			confirmButton.ParentAnchor = UIAnchor.TopCenter;
-			confirmButton.StretchY = true;
-			confirmButton.Enabled = false;
-			confirmButton.OnClickedProxy = _ =>
+			string[] allAssets = Engine.AssetLoader.AllAssets;
+			for (var i = 0; i < allAssets.Length; i++)
 			{
-				if (creationTask != null && !creationTask.IsCompleted) return;
+				string asset = allAssets[i];
+				if (!asset.Contains(".xml")) continue;
 
-				creationTask = Task.Run(() =>
+				var assetLoaded = Engine.AssetLoader.Get<TextAsset>(asset, false);
+				if (assetLoaded?.Content != null && assetLoaded.Content.Contains(xmlTag)) mapAssets.Add(asset);
+			}
+
+			Task openingTask = null;
+			for (var i = 0; i < mapAssets.Count; i++)
+			{
+				string mapAsset = mapAssets[i];
+
+				var mapButton = new MapEditorTopBarButton();
+				mapButton.Text = mapAsset;
+				mapButton.StretchY = true;
+				mapButton.OnClickedProxy = _ =>
 				{
-					var newMap = (Map2D) Activator.CreateInstance(_map.GetType(), true)!;
+					if (openingTask != null && !openingTask.IsCompleted) return;
 
-					string fileName = _pathInput.Text;
-					if (!fileName.EndsWith(".xml")) fileName += ".xml";
+					openingTask = Task.Run(() =>
+					{
+						var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(mapAsset, false);
+						Map2D? newMap = newMapAsset?.Content;
+						if (newMap == null) return;
 
-					// We need to do some manual init as the serialization constructor will expect these to be present.
-					newMap.MapName = _nameInput.Text;
-					newMap.FileName = fileName;
-					newMap.MapSize = new Vector2(1, 1);
-					newMap.PersistentObjects = new List<GameObject2D>();
-					newMap.InitAsync().Wait();
-					newMap.EditorSaveMap().Wait();
+						EditorUtility.ChangeCurrentMapInCurrentScene(newMap);
+						Close();
+					});
+				};
 
-					EditorUtility.ReplaceMapButKeepReference(newMap, _map);
-					newMap.Dispose();
-					_map.Reset().Wait();
-					creationDlg.Close();
-				});
-			};
-			_contentParent.AddChild(confirmButton);
-		}
-
-		protected override bool UpdateInternal()
-		{
-			var createButton = (MapEditorTopBarButton) GetWindowById("CreateButton");
-
-			if (createButton != null && _nameInput != null && _pathInput != null)
-				createButton.Enabled = !string.IsNullOrEmpty(_nameInput.Text) && !string.IsNullOrEmpty(_pathInput.Text);
-
-			return base.UpdateInternal();
+				listNav.AddChild(mapButton);
+			}
 		}
 	}
 }

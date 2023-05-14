@@ -70,6 +70,7 @@ namespace Emotion.Game.World2D
 
 		/// <summary>
 		/// Whether the map is currently open in the editor.
+		/// Mostly used to conditionally render/represent things.
 		/// </summary>
 		[DontSerialize] public bool EditorMode;
 
@@ -176,10 +177,12 @@ namespace Emotion.Game.World2D
 			// Wait for the GLThread work queue to empty up.
 			// This ensures that all assets (texture uploads etc) and stuff are loaded.
 			while (!GLThread.Empty) await Task.Delay(1);
-			Update(0); // Run the update tick once to prevent some flickering on first update.
-			Initialized = true;
 
-			SetupDebug();
+			// Run the update tick once to prevent some flickering on first update as some objects might
+			// initialize something (such as animations) on first update.
+			Update(0); 
+
+			Initialized = true;
 
 			Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
 		}
@@ -225,7 +228,7 @@ namespace Emotion.Game.World2D
 				obj.ObjectState = ObjectState.Destroyed;
 				obj.TrimPropertiesForSerialize();
 
-				if (EditorMode) EditorObjectRemoved(obj);
+				//if (EditorMode) EditorObjectRemoved(obj);
 			}
 
 			_objects.Clear();
@@ -291,8 +294,7 @@ namespace Emotion.Game.World2D
 				obj.ObjectState = ObjectState.ConditionallyNonSpawned;
 				_worldTree?.AddObjectToTree(obj);
 
-				if (EditorMode) EditorObjectAdded(obj);
-
+				OnObjectAdded?.Invoke(obj);
 				return;
 			}
 
@@ -316,7 +318,7 @@ namespace Emotion.Game.World2D
 				ObjectPostLoad(obj);
 			}
 
-			if (EditorMode) EditorObjectAdded(obj);
+			OnObjectAdded?.Invoke(obj);
 		}
 
 		protected void ObjectPostLoad(GameObject2D obj)
@@ -350,11 +352,13 @@ namespace Emotion.Game.World2D
 		public void RemoveObject(GameObject2D obj, bool removeFromMapFile = false)
 		{
 			_objectsToRemove.Enqueue(obj);
-
 			if (removeFromMapFile && PersistentObjects.Contains(obj)) PersistentObjects.Remove(obj);
 
-			if (EditorMode) EditorObjectRemoved(obj);
+			OnObjectRemoved?.Invoke(obj);
 		}
+
+		public event Action<GameObject2D>? OnObjectRemoved;
+		public event Action<GameObject2D>? OnObjectAdded;
 
 		/// <summary>
 		/// Tell the world tree that an object has moved or resized.
@@ -405,10 +409,10 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Get an object from the map by name.
 		/// </summary>
-		public GameObject2D? GetObjectByName(string? name)
+		public GameObject2D? GetObjectByName(string? name, bool includeNonSpawned = false)
 		{
 			if (name == null) return null;
-			foreach (GameObject2D obj in GetObjects())
+			foreach (GameObject2D obj in GetObjects(includeNonSpawned))
 			{
 				if (obj.ObjectName == name) return obj;
 			}
@@ -420,11 +424,13 @@ namespace Emotion.Game.World2D
 
 		#region Iteration and Query
 
-		public IEnumerable<GameObject2D> GetObjects()
+		public IEnumerable<GameObject2D> GetObjects(bool includeNonSpawned = false)
 		{
 			for (var i = 0; i < _objects.Count; i++)
 			{
-				yield return _objects[i];
+				GameObject2D obj = _objects[i];
+				if (!includeNonSpawned && obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
+				yield return obj;
 			}
 		}
 
@@ -462,10 +468,9 @@ namespace Emotion.Game.World2D
 			for (var i = 0; i < objCount; i++)
 			{
 				GameObject2D obj = GetObjectByIndex(i);
+				if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
 				obj.Update(dt);
 			}
-
-			UpdateDebug();
 		}
 
 		public virtual void Render(RenderComposer c)
@@ -482,13 +487,10 @@ namespace Emotion.Game.World2D
 				GameObject2D obj = renderObjectsList[i];
 				obj.Render(c);
 			}
-
-			RenderDebug(c);
 		}
 
 		public virtual void Dispose()
 		{
-			DisposeDebug();
 			Disposed = true;
 		}
 	}

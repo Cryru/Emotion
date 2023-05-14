@@ -27,17 +27,14 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		private string _text;
 
-		public Map2D Map;
-
-		private List<T> _items;
+		private IEnumerable<T> _items;
 		private Action<T> _onClick;
 		private Action<T> _onRollover;
 
 		private T _rollover;
 
-		public EditorListOfItemsPanel(Map2D map, string header, List<T> items, Action<T> onClick, Action<T> onRollover = null) : base(header)
+		public EditorListOfItemsPanel(string header, IEnumerable<T> items, Action<T> onClick, Action<T> onRollover = null) : base(header)
 		{
-			Map = map;
 			_items = items;
 			_onClick = onClick;
 			_onRollover = onRollover;
@@ -98,10 +95,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 			listNav.SetScrollbar(scrollBar);
 			listContainer.AddChild(scrollBar);
 
-			for (var i = 0; i < _items.Count; i++)
+			foreach (T item in _items)
 			{
-				T item = _items[i];
-
 				var itemButton = new MapEditorTopBarButton();
 				itemButton.Text = item.ToString();
 				itemButton.Anchor = UIAnchor.TopCenter;

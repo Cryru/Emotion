@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Common.Serialization;
 using Emotion.UI;
 
 #endregion
@@ -9,6 +10,9 @@ namespace Emotion.Game.World2D.EditorHelpers
 	public class MapEditorDropdown : UIDropDown
 	{
 		public UICallbackListNavigator List;
+
+		[DontSerialize]
+		public Action OnCloseProxy;
 
 		public MapEditorDropdown()
 		{
@@ -70,6 +74,12 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 				List.AddChild(ddButton);
 			}
+		}
+
+		public override void DetachedFromController(UIController controller)
+		{
+			base.DetachedFromController(controller);
+			OnCloseProxy();
 		}
 	}
 }

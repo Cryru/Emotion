@@ -2,8 +2,6 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Standard.XML;
-using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
 
 #endregion
@@ -12,13 +10,16 @@ namespace Emotion.Game.World2D
 {
 	public class MapEditorCreateMapPanel : MapEditorPanel
 	{
-		private Map2D _map;
+		private World2DEditor _editor;
+		private Type _mapType;
+
 		private MapEditorString _nameInput;
 		private MapEditorString _pathInput;
 
-		public MapEditorCreateMapPanel(Map2D map) : base("New Map")
+		public MapEditorCreateMapPanel(World2DEditor editor, Type mapType) : base("New Map")
 		{
-			_map = map;
+			_editor = editor;
+			_mapType = mapType;
 		}
 
 		public override void AttachedToController(UIController controller)
@@ -50,7 +51,7 @@ namespace Emotion.Game.World2D
 
 				creationTask = Task.Run(() =>
 				{
-					var newMap = (Map2D) Activator.CreateInstance(_map.GetType(), true)!;
+					var newMap = (Map2D) Activator.CreateInstance(_mapType, true)!;
 
 					string fileName = _pathInput.Text;
 					if (!fileName.EndsWith(".xml")) fileName += ".xml";
@@ -61,11 +62,9 @@ namespace Emotion.Game.World2D
 					newMap.MapSize = new Vector2(1, 1);
 					newMap.PersistentObjects = new List<GameObject2D>();
 					newMap.InitAsync().Wait();
-					newMap.EditorSaveMap().Wait();
+					_editor.EditorSaveMap(newMap).Wait();
 
-					EditorUtility.ReplaceMapButKeepReference(newMap, _map);
-					newMap.Dispose();
-					_map.Reset().Wait();
+					EditorUtility.ChangeCurrentMapInCurrentScene(newMap);
 					creationDlg.Close();
 				});
 			};
