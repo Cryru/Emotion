@@ -1,9 +1,6 @@
 ﻿#region Using
 
 using System.Reflection;
-using System.Threading.Tasks;
-using Emotion.Game.World2D.SceneControl;
-using Emotion.Scenography;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
@@ -14,6 +11,46 @@ namespace Emotion.Game.World2D.EditorHelpers
 {
 	public static class EditorUtility
 	{
+		public static void SetObjectToSerializationDefault<T>(object obj)
+		{
+			// First serialization copy.
+			string xml = XMLFormat.To(obj);
+			object recreated = XMLFormat.From<T>(xml);
+
+			// Get all field (incl backing fields), inherited too
+			Type type = obj.GetType();
+			var fields = new List<FieldInfo>();
+			var fieldsAdded = new HashSet<string>();
+			while (type != null && type != typeof(object))
+			{
+				FieldInfo[] fieldsInType = type.GetFields(
+					BindingFlags.Public |
+					BindingFlags.NonPublic |
+					BindingFlags.Instance
+				);
+
+				for (var i = 0; i < fieldsInType.Length; i++)
+				{
+					FieldInfo field = fieldsInType[i];
+					string name = field.Name;
+					if (fieldsAdded.Contains(name)) continue;
+
+					fields.Add(field);
+					fieldsAdded.Add(name);
+				}
+
+				type = type.BaseType;
+			}
+
+			// Copy properties from the serialization copy to the obj.
+			for (var i = 0; i < fields.Count; i++)
+			{
+				FieldInfo field = fields[i];
+				object value = field.GetValue(recreated);
+				field.SetValue(obj, value);
+			}
+		}
+
 		public class TypeAndFieldHandlers
 		{
 			public Type DeclaringType;
@@ -110,14 +147,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			});
 
 			return currentWindowHandlers;
-		}
-
-		public static void ChangeCurrentMapInCurrentScene(Map2D newMap)
-		{
-			Scene currentScene = Engine.SceneManager.Current;
-			if (currentScene is not IWorld2DAwareScene w2Scene) return;
-
-			w2Scene.ChangeMapAsync(newMap);
 		}
 	}
 }

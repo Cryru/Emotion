@@ -11,11 +11,13 @@ using Emotion.Graphics;
 
 namespace Emotion.Game.World2D
 {
+	[DontSerializeMembers("Z")]
 	public class GameObject2D : Transform
 	{
 		/// <summary>
 		/// The unique id of the object. Is assigned when added to the map.
 		/// </summary>
+		[DontSerialize]
 		public int UniqueId;
 
 		/// <summary>
@@ -32,6 +34,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Flags that specify systemic treatment of the object.
 		/// </summary>
+		[DontSerializeFlagValue((uint) ObjectFlags.Persistent)]
 		public ObjectFlags ObjectFlags { get; set; }
 
 		#region Runtime
@@ -171,18 +174,6 @@ namespace Emotion.Game.World2D
 		protected virtual void RenderInternal(RenderComposer c)
 		{
 			c.RenderSprite(Position, Size, Color.White);
-		}
-
-		/// <summary>
-		/// Prior to saving a map from the editor this function will be called on all serializable objects to
-		/// prevent the saving of junk data that is obvious.
-		/// </summary>
-		public virtual void TrimPropertiesForSerialize()
-		{
-			// Dont save Z coordinate as the editor has no way of setting it anyway, but game code can. It has to be able to recalculate it.
-			_z = 0;
-			UniqueId = 0;
-			ObjectFlags &= ~ObjectFlags.Persistent; // duh
 		}
 
 		public override string ToString()

@@ -79,7 +79,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 		public override void DetachedFromController(UIController controller)
 		{
 			base.DetachedFromController(controller);
-			OnCloseProxy();
+			OnCloseProxy?.Invoke();
 		}
 	}
 }
