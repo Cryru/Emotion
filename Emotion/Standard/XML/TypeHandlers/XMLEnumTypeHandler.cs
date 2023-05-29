@@ -1,8 +1,8 @@
 ﻿#region Using
 
-using System;
-using Emotion.Common;
-using Emotion.Standard.Logging;
+using System.Reflection;
+using System.Text;
+using Emotion.Common.Serialization;
 
 #endregion
 
@@ -10,24 +10,33 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XMLEnumTypeHandler : XMLPrimitiveTypeHandler
-    {
-        public XMLEnumTypeHandler(Type type, bool opaque) : base(type, opaque)
-        {
-        }
+	public class XMLEnumTypeHandler : XMLPrimitiveTypeHandler
+	{
+		private DontSerializeFlagValueAttribute? _dontSerializeFlag;
 
-        public override object? Deserialize(XMLReader input)
-        {
-            string readValue = input.GoToNextTag();
-            if (readValue == "") return _defaultValue;
+		public XMLEnumTypeHandler(Type type, bool opaque) : base(type, opaque)
+		{
+			var isFlagEnum = type.GetCustomAttribute<FlagsAttribute>();
+			if (isFlagEnum != null && Type.GetEnumUnderlyingType() == typeof(uint))
+				_dontSerializeFlag = type.GetCustomAttribute<DontSerializeFlagValueAttribute>();
+		}
 
-            if (Enum.TryParse(Type, readValue, out object? parsed))
-            {
-                return parsed;
-            }
+		public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null, string? fieldName = null)
+		{
+			if (_dontSerializeFlag != null) obj = Enum.ToObject(Type, _dontSerializeFlag.ClearDontSerialize((uint) obj));
 
-            Engine.Log.Warning($"Couldn't find value {readValue} in enum {Type}.", MessageSource.XML, true);
-            return null;
-        }
-    }
+			return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
+		}
+
+		public override object? Deserialize(XMLReader input)
+		{
+			string readValue = input.GoToNextTag();
+			if (readValue == "") return _defaultValue;
+
+			if (Enum.TryParse(Type, readValue, out object? parsed)) return parsed;
+
+			Engine.Log.Warning($"Couldn't find value {readValue} in enum {Type}.", MessageSource.XML, true);
+			return null;
+		}
+	}
 }
