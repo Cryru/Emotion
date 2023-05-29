@@ -1,11 +1,11 @@
+Editor Main  (World2DEditor) When the current scene doesn't have a map loaded.
+// todo
+
 Editor Main (World2DEditor) When the current scene has a map loaded.
 1. Can start editor by pressing F3
 1.1 The name of the current map is displayed on the right, with its file name
 2. Can move camera WASD and zoom
 3. Object editor can be toggled using Objects->Selection (this doesnt close the dropdown)
-
-Editor Main  (World2DEditor) When the current scene doesn't have a map loaded.
-// todo
 
 Editor UI (World2DEditor.Interface)
 1. Top bar opens dropdowns
@@ -17,8 +17,16 @@ Object Editor (World2DEditor.Objects)
 1. Editor selection is on by default
 2. Can see objects their bounds and nameplates are displayed
 2.1 Conditionally spawned objects that are currently unspawned are presented as pink squares, their nameplates state they aren't spawned
-2.2 Rollover works, on nameplates too
-2.3 Object rollover shows up
-2.4 Can switch object selection when objects overlap using alt
+2.2 Non persistant objects should have a black X on their bounds
+2.3 Rollover works, on nameplates too
+2.4 Object rollover shows up
+2.5 Can switch object selection between overlapping objects by using alt
 3. Can drag and move objects (both bounds and nameplate)
-3.1 The object being dragged is affected by 2.3
+3.1 The object being dragged is affected by the same zones as 2.3
+3.2 While an object is being dragged rollovers are not shown and the object being dragging is lit up as if rollovered.
+
+
+4. Clicking Objects->Add Object opens a panel listing all serializable classes that inherit GameObject2D.
+4.1 Selecting a class will create a new object of that type, and automatically stick it to the mouse.
+4.2 Clicking somewhere will untether the object.
+

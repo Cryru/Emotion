@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World2D.SceneControl;
 using Emotion.IO;
 using Emotion.UI;
 
@@ -45,8 +46,17 @@ namespace Emotion.Game.World2D
 			_contentParent.AddChild(scrollBar);
 
 			var mapAssets = new List<string>();
-			string mapType = _mapType.FullName;
-			var xmlTag = $"<Map2D type=\"{mapType}\"";
+
+			string xmlTag;
+			if (_mapType == typeof(Map2D))
+			{
+				xmlTag = $"<Map2D";
+			}
+			else
+			{
+				string mapType = _mapType.FullName;
+				xmlTag = $"<Map2D type=\"{mapType}\"";
+			}
 
 			string[] allAssets = Engine.AssetLoader.AllAssets;
 			for (var i = 0; i < allAssets.Length; i++)
@@ -73,10 +83,11 @@ namespace Emotion.Game.World2D
 					openingTask = Task.Run(() =>
 					{
 						var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(mapAsset, false);
-						Map2D? newMap = newMapAsset?.Content;
+						Map2D newMap = newMapAsset?.Content;
 						if (newMap == null) return;
+						newMap.FileName = mapAsset;
 
-						EditorUtility.ChangeCurrentMapInCurrentScene(newMap);
+						_editor.ChangeSceneMap(newMap);
 						Close();
 					});
 				};

@@ -43,13 +43,22 @@ public partial class World2DEditor
 
 	protected void InitializeObjectEditor()
 	{
+		if (CurrentMap != null)
+		{
+			CurrentMap.OnObjectAdded += EditorObjectAdded;
+			CurrentMap.OnObjectRemoved += EditorObjectRemoved;
+		}
+
 		SetObjectSelectionEnabled(true);
 	}
 
 	protected void DisposeObjectEditor()
 	{
-		CurrentMap.OnObjectAdded -= EditorObjectAdded;
-		CurrentMap.OnObjectRemoved -= EditorObjectRemoved;
+		if (CurrentMap != null)
+		{
+			CurrentMap.OnObjectAdded -= EditorObjectAdded;
+			CurrentMap.OnObjectRemoved -= EditorObjectRemoved;
+		}
 
 		_namePlates?.Clear();
 
@@ -58,31 +67,26 @@ public partial class World2DEditor
 		_allObjectsRollover = null;
 	}
 
-	protected void ObjectEditorMapChanged(Map2D? oldMap, Map2D newMap)
-	{
-		if (oldMap != null)
-		{
-			oldMap.OnObjectAdded -= EditorObjectAdded;
-			oldMap.OnObjectRemoved -= EditorObjectRemoved;
-		}
-
-		newMap.OnObjectAdded += EditorObjectAdded;
-		newMap.OnObjectRemoved += EditorObjectRemoved;
-	}
-
 	protected void UpdateObjectEditor()
 	{
+		Map2D? map = CurrentMap;
+		if (map == null) return;
+
 		bool mouseInUI = _editUI?.MouseFocus != null && _editUI.MouseFocus != _editUI; // || _editUI?.InputFocus is UITextInput;
 		var mouseFocusNameplate = _editUI?.MouseFocus as MapEditorObjectNameplate;
 		bool mouseNotInUIOrInNameplate = !mouseInUI || mouseFocusNameplate != null;
 
 		// Update objects that are rollovered.
+		// ----
+
+		if (_objectDragging != null)
+		{
+			RolloverObjects(null);
+		}
 		// If not currently selecting objects, or mouse is in UI, or dragging then dont.
-		if (_objectDragging != null) RolloverObjects(new List<GameObject2D>(1) {_objectDragging});
-		if (_canObjectSelect && mouseNotInUIOrInNameplate)
+		else if (_canObjectSelect && mouseNotInUIOrInNameplate)
 		{
 			// Add objects (and their UI) under the mouse to the rollover list.
-			Map2D map = CurrentMap;
 			Vector2 mouseScreen = Engine.Host.MousePosition;
 			Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 			var circle = new Circle(mouseWorld, 1);
@@ -121,6 +125,9 @@ public partial class World2DEditor
 
 	protected void RenderObjectSelection(RenderComposer c)
 	{
+		Map2D? map = CurrentMap;
+		if (map == null) return;
+
 		if (!_canObjectSelect) return;
 
 		// Show selection of object, if any.
@@ -142,14 +149,14 @@ public partial class World2DEditor
 			c.RenderSprite(bound, Color.White * 0.3f);
 		}
 
-		foreach (GameObject2D obj in CurrentMap.GetObjects(true))
+		foreach (GameObject2D obj in map.GetObjects(true))
 		{
 			Rectangle bounds = obj.Bounds;
 
 			if (!obj.ObjectFlags.HasFlag(ObjectFlags.Persistent))
 			{
-				c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black);
-				c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black);
+				c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black * 0.5f);
+				c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black * 0.5f);
 			}
 			else if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
 			{
@@ -232,9 +239,12 @@ public partial class World2DEditor
 		{
 			_namePlates ??= new Dictionary<GameObject2D, MapEditorObjectNameplate>();
 
-			foreach (GameObject2D obj in CurrentMap.GetObjects(true))
+			if (CurrentMap != null)
 			{
-				EnsureObjectNameplate(obj);
+				foreach (GameObject2D obj in CurrentMap.GetObjects(true))
+				{
+					EnsureObjectNameplate(obj);
+				}
 			}
 		}
 	}
@@ -394,6 +404,9 @@ public partial class World2DEditor
 
 	private void EditorAddObject(Type type)
 	{
+		Map2D? map = CurrentMap;
+		if (map == null) return;
+
 		Vector2 pos = Engine.Host.MousePosition;
 		Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(pos).ToVec2();
 
@@ -402,7 +415,8 @@ public partial class World2DEditor
 		newObj.ObjectFlags |= ObjectFlags.Persistent;
 		newObj.Position = worldPos.ToVec3();
 
-		CurrentMap.AddObject(newObj);
+		map.AddObject(newObj);
+		ObjectSelect(newObj);
 
 		// Stick to mouse to be placed.
 		_objectDragging = newObj;
@@ -429,11 +443,6 @@ public partial class World2DEditor
 
 	protected string GetObjectSerialized(GameObject2D obj)
 	{
-		bool serialized = obj.ObjectFlags.HasFlag(ObjectFlags.Persistent);
-		obj.TrimPropertiesForSerialize(); // Ensure that the object looks like it would when loading a file.
-		if (serialized) obj.ObjectFlags |= ObjectFlags.Persistent;
-
-		string data = XMLFormat.To(obj);
-		return data;
+		return XMLFormat.To(obj);
 	}
 }

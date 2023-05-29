@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Threading.Tasks;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
@@ -16,17 +15,19 @@ namespace Emotion.Game.World2D;
 
 public partial class World2DEditor
 {
-	public Map2D CurrentMap { get; protected set; }
+	public Map2D? CurrentMap { get; protected set; }
 	public bool EditorOpen { get; protected set; }
 
 	protected IWorld2DAwareScene _scene;
+	protected Type _mapType;
 	protected WASDMoveCamera2D? _editorCamera;
 	protected CameraBase? _cameraOutsideEditor;
 	protected UIController? _editUI;
 
-	public World2DEditor(IWorld2DAwareScene scene)
+	public World2DEditor(IWorld2DAwareScene scene, Type mapType)
 	{
 		_scene = scene;
+		_mapType = mapType;
 	}
 
 	public void InitializeEditor()
@@ -42,8 +43,7 @@ public partial class World2DEditor
 
 	public void EnterEditor()
 	{
-		CheckMapChange();
-		if (CurrentMap == null!) return;
+		CurrentMap = _scene.GetCurrentMap();
 
 		_cameraOutsideEditor = Engine.Renderer.Camera;
 		_editorCamera = new WASDMoveCamera2D(Vector3.Zero);
@@ -54,7 +54,11 @@ public partial class World2DEditor
 		InitializeObjectEditor();
 
 		EditorOpen = true;
-		CurrentMap.EditorMode = true;
+		if (CurrentMap != null)
+		{
+			CurrentMap.OnMapReset += OnMapReset;
+			CurrentMap.EditorMode = true;
+		}
 	}
 
 	public void ExitEditor()
@@ -66,7 +70,11 @@ public partial class World2DEditor
 		DisposeObjectEditor();
 
 		EditorOpen = false;
-		CurrentMap.EditorMode = false;
+		if (CurrentMap != null)
+		{
+			CurrentMap.OnMapReset -= OnMapReset;
+			CurrentMap.EditorMode = false;
+		}
 	}
 
 	protected void CheckMapChange()
@@ -74,15 +82,25 @@ public partial class World2DEditor
 		Map2D currentMap = _scene.GetCurrentMap();
 		if (currentMap != CurrentMap)
 		{
+			ExitEditor();
 			CurrentMap = currentMap;
-			currentMap.EditorMode = EditorOpen;
-			MapChanged(CurrentMap, currentMap);
+			EnterEditor();
 		}
 	}
 
-	protected void MapChanged(Map2D? oldMap, Map2D newMap)
+	public void ChangeSceneMap(Map2D newMap)
 	{
-		ObjectEditorMapChanged(oldMap, newMap);
+		_scene.ChangeMapAsync(newMap).Wait();
+		CheckMapChange();
+	}
+
+	private void OnMapReset()
+	{
+		// Restart the editor without changing the camera.
+		WASDMoveCamera2D? camera = _editorCamera;
+		ExitEditor();
+		EnterEditor();
+		Engine.Renderer.Camera = camera;
 	}
 
 	public void Render(RenderComposer c)
@@ -91,12 +109,14 @@ public partial class World2DEditor
 
 		RenderState? prevState = c.CurrentState.Clone();
 		c.SetUseViewMatrix(true);
+		c.SetDepthTest(true);
+		c.SetAlphaBlend(true);
 
-		Map2D map = CurrentMap;
+		Map2D? map = CurrentMap;
 
 		// Render invisible tile layers
 		// todo: move to tile editor
-		if (map.TileData != null)
+		if (map?.TileData != null)
 		{
 			Rectangle clipRect = c.Camera.GetCameraFrustum();
 			for (var i = 0; i < map.TileData.Layers.Count; i++)
@@ -113,9 +133,6 @@ public partial class World2DEditor
 		c.SetUseViewMatrix(false);
 		c.SetDepthTest(false);
 		_editUI!.Render(c);
-
-		c.SetUseViewMatrix(true);
-		c.SetDepthTest(true);
 
 		c.SetState(prevState);
 	}
@@ -165,9 +182,10 @@ public partial class World2DEditor
 		return MathF.Sign(x.Position.Z - y.Position.Z);
 	}
 
-	public async Task EditorSaveMap(Map2D? map = null)
+	public void EditorSaveMap(Map2D? map = null)
 	{
 		map ??= CurrentMap;
+		if (map == null) return;
 
 		string? fileName = map.FileName;
 		if (fileName == null)
@@ -176,19 +194,19 @@ public partial class World2DEditor
 			return;
 		}
 
-		for (var i = 0; i < map.PersistentObjects.Count; i++)
-		{
-			GameObject2D obj = map.PersistentObjects[i];
-			obj.TrimPropertiesForSerialize();
-		}
-
 		// Unload the preset in the asset loader cache if loaded. This allows for changes to be observed on re-get.
 		// This won't break anything as XMLAsset doesn't perform any cleanup.
 		if (Engine.AssetLoader.Loaded(fileName)) Engine.AssetLoader.Destroy(fileName);
 
-		XMLAsset<Map2D>? asset = XMLAsset<Map2D>.CreateFromContent(map, fileName);
-		asset.Save();
+		XMLAsset<Map2D> asset = XMLAsset<Map2D>.CreateFromContent(map, fileName);
+		bool saved = asset.Save();
+		EditorMsg(saved ? "Map saved." : "Unable to save map.");
+	}
 
-		await map.Reset(); // Regenerate trimmed properties
+	public void EditorMsg(string txt)
+	{
+		Engine.Log.Trace(txt, "World2DEditor");
+
+		// todo
 	}
 }

@@ -37,7 +37,7 @@ public partial class World2DEditor
 
 	private UIBaseWindow GetEditorTopBar()
 	{
-		Map2D map = CurrentMap;
+		Map2D? map = CurrentMap;
 
 		var topBar = new UISolidColor();
 		topBar.MinSize = new Vector2(0, 15);
@@ -52,7 +52,7 @@ public partial class World2DEditor
 		mapName.Anchor = UIAnchor.CenterRight;
 		mapName.ScaleMode = UIScaleMode.FloatScale;
 		mapName.WindowColor = MapEditorColorPalette.TextColor;
-		mapName.Text = $"{map.MapName} @ {map.FileName ?? "Unsaved"}";
+		mapName.Text = map == null ? "No map loaded." : $"{map.MapName} @ {map.FileName ?? "Unsaved"}";
 		mapName.FontFile = FontAsset.DefaultBuiltInFontName;
 		mapName.FontSize = 6;
 		mapName.Margins = new Rectangle(0, 0, 5, 0);
@@ -130,8 +130,8 @@ public partial class World2DEditor
 			return $"Selection: {(_canObjectSelect ? "Enabled" : "Disabled")}";
 		}
 
-		Map2D map = CurrentMap;
-		Type mapType = map.GetType();
+		Map2D? map = CurrentMap;
+		Type mapType = _mapType;
 
 		MapEditorTopBarButton fileMenu = EditorDropDownButton("File", new[]
 		{
@@ -157,7 +157,7 @@ public partial class World2DEditor
 			{
 				Name = "Save",
 				Click = _ => Task.Run(() => EditorSaveMap()),
-				Enabled = () => map.FileName != null
+				Enabled = () => map?.FileName != null
 			},
 			//new EditorDropDownButtonDescription
 			//{
@@ -189,6 +189,8 @@ public partial class World2DEditor
 				Name = "View Object List",
 				Click = t =>
 				{
+					Debug.Assert(map != null);
+
 					var panel = new EditorListOfItemsPanel<GameObject2D>("All Objects", map.GetObjects(),
 						obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
 						obj => { RolloverObjects(new() {obj}); }
@@ -196,7 +198,8 @@ public partial class World2DEditor
 					panel.Id = "ObjectListPanel";
 					_editUI!.AddChild(panel);
 					_editUI.RemoveChild(_editUI.DropDown);
-				}
+				},
+				Enabled = () => map != null
 			},
 			// Object creation dialog
 			new EditorDropDownButtonDescription
@@ -212,7 +215,8 @@ public partial class World2DEditor
 
 					_editUI!.AddChild(panel);
 					_editUI.RemoveChild(_editUI.DropDown);
-				}
+				},
+				Enabled = () => map != null
 			}
 		});
 
@@ -316,6 +320,9 @@ public partial class World2DEditor
 
 	private void EditorOpenContextMenuObjectModeNoSelection()
 	{
+		Map2D? map = CurrentMap;
+		Debug.Assert(map != null);
+
 		Vector2 mousePos = Engine.Host.MousePosition;
 
 		var contextMenu = new MapEditorDropdown();
@@ -331,7 +338,7 @@ public partial class World2DEditor
 					var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
 					if (newObj != null)
 					{
-						CurrentMap.AddObject(newObj);
+						map.AddObject(newObj);
 
 						Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
 						newObj.Position2 = worldPos;
@@ -349,7 +356,8 @@ public partial class World2DEditor
 
 	private void EditorOpenContextMenuForObject(GameObject2D obj)
 	{
-		Map2D map = CurrentMap;
+		Map2D? map = CurrentMap;
+		Debug.Assert(map != null);
 
 		var contextMenu = new MapEditorDropdown();
 		contextMenu.Offset = Engine.Host.MousePosition / _editUI!.GetScale();

@@ -57,9 +57,8 @@ public partial class World2DEditor
 			// Restore old data in place of new data.
 			Map2D map = ObjectMap;
 
-			for (var i = 0; i < map.GetObjectCount(); i++)
+			foreach (GameObject2D obj in map.GetObjects(true))
 			{
-				GameObject2D obj = map.GetObjectByIndex(i);
 				if (obj.UniqueId == OldData.UniqueId) // Found the new representation of the object.
 				{
 					map.RemoveObject(obj, true);

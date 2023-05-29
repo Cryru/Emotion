@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World2D.SceneControl;
 using Emotion.UI;
 
 #endregion
@@ -62,9 +63,9 @@ namespace Emotion.Game.World2D
 					newMap.MapSize = new Vector2(1, 1);
 					newMap.PersistentObjects = new List<GameObject2D>();
 					newMap.InitAsync().Wait();
-					_editor.EditorSaveMap(newMap).Wait();
 
-					EditorUtility.ChangeCurrentMapInCurrentScene(newMap);
+					_editor.EditorSaveMap(newMap);
+					_editor.ChangeSceneMap(newMap);
 					creationDlg.Close();
 				});
 			};
