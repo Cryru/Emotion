@@ -10,7 +10,7 @@ using Emotion.Standard.XML;
 
 #endregion
 
-namespace Emotion.Game.World2D;
+namespace Emotion.Game.World2D.Editor;
 
 public partial class World2DEditor
 {
@@ -37,7 +37,7 @@ public partial class World2DEditor
 
 		public override string ToString()
 		{
-			return $"Move {ObjTarget.ToString()} From {StartPos} to {NewPos}";
+			return $"Moved {ObjTarget} From {StartPos} to {NewPos}";
 		}
 	}
 

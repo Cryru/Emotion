@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Game.World2D.Editor;
 using Emotion.Graphics;
 using Emotion.Scenography;
 

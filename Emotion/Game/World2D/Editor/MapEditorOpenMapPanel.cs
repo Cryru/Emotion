@@ -9,7 +9,7 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D;
+namespace Emotion.Game.World2D.Editor;
 
 public class MapEditorOpenMapPanel : MapEditorPanel
 {

@@ -1,11 +1,9 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Emotion.Common.Serialization;
-using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
@@ -15,7 +13,7 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D;
+namespace Emotion.Game.World2D.Editor;
 
 public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPanel
 {

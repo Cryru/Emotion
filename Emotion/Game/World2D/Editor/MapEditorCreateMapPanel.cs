@@ -2,12 +2,11 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Game.World2D.SceneControl;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D
+namespace Emotion.Game.World2D.Editor
 {
 	public class MapEditorCreateMapPanel : MapEditorPanel
 	{
