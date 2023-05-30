@@ -159,17 +159,23 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 		field.ReflectionInfo.SetValue(_obj, value);
 	}
 
-	public virtual void UpdatePropertyValues()
+	protected override bool UpdateInternal()
 	{
-		Controller?.SetInputFocus(null);
+		UpdatePropertyValues();
+		return base.UpdateInternal();
+	}
 
+	protected virtual void UpdatePropertyValues()
+	{
 		for (var i = 0; i < _editorUIs.Count; i++)
 		{
 			IMapEditorGeneric editor = _editorUIs[i];
 
+			if (Controller?.InputFocus != null && editor is UIBaseWindow editorWindow && Controller.InputFocus.IsWithin(editorWindow)) continue;
+
 			XMLFieldHandler? field = editor.Field;
 			object? propertyValue = field.ReflectionInfo.GetValue(_obj);
-			editor.SetValue(propertyValue);
+			if (editor.GetValue() != propertyValue) editor.SetValue(propertyValue);
 		}
 	}
 }

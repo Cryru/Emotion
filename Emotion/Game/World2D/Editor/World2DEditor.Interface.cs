@@ -163,6 +163,18 @@ public partial class World2DEditor
 			//{
 			//	Name = "Save As"
 			//}
+			new EditorDropDownButtonDescription
+			{
+				Name = "Reload",
+				Click = _ => Task.Run(map!.Reset),
+				Enabled = () => map != null
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Reset From File",
+				Click = _ => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
+				Enabled = () => map?.FileName != null
+			}
 		});
 
 		MapEditorTopBarButton objectsMenu = EditorDropDownButton("Objects", new[]
@@ -252,6 +264,12 @@ public partial class World2DEditor
 			},
 		});
 
+		// todo: performance tool
+		// todo: GPU texture viewer
+		// todo: animation tool (convert from imgui)
+		// todo: asset preview tool
+		// todo: ema integration
+
 		parentList.AddChild(fileMenu);
 		parentList.AddChild(objectsMenu);
 		parentList.AddChild(tilesMenu);
@@ -313,7 +331,7 @@ public partial class World2DEditor
 			return;
 		}
 
-		var propsPanel = new MapEditorObjectPropertiesPanel(obj, EditorRegisterObjectPropertyChange);
+		var propsPanel = new MapEditorObjectPropertiesPanel(this, obj);
 		_editUI.AddChild(propsPanel);
 		_editUI.SetInputFocus(propsPanel);
 	}
@@ -338,6 +356,7 @@ public partial class World2DEditor
 					var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
 					if (newObj != null)
 					{
+						newObj.ObjectFlags |= ObjectFlags.Persistent;
 						map.AddObject(newObj);
 
 						Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();

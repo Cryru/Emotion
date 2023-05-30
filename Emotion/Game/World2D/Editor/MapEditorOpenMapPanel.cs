@@ -2,98 +2,93 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Game.World2D.SceneControl;
 using Emotion.IO;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D
-{
-	public class MapEditorOpenMapPanel : MapEditorPanel
-	{
-		private World2DEditor _editor;
-		private Type _mapType;
+#nullable enable
 
-		public MapEditorOpenMapPanel(World2DEditor editor, Type mapType) : base("Open Map")
+namespace Emotion.Game.World2D;
+
+public class MapEditorOpenMapPanel : MapEditorPanel
+{
+	private World2DEditor _editor;
+	private Type _mapType;
+
+	public MapEditorOpenMapPanel(World2DEditor editor, Type mapType) : base("Open Map")
+	{
+		_editor = editor;
+		_mapType = mapType;
+	}
+
+	public override void AttachedToController(UIController controller)
+	{
+		base.AttachedToController(controller);
+
+		var listNav = new UICallbackListNavigator();
+		listNav.LayoutMode = LayoutMode.VerticalList;
+		listNav.StretchX = true;
+		listNav.ListSpacing = new Vector2(0, 1);
+		listNav.Margins = new Rectangle(0, 0, 10, 0);
+		listNav.InputTransparent = false;
+		listNav.ChildrenAllSameWidth = true;
+		_contentParent.AddChild(listNav);
+
+		var scrollBar = new UIScrollbar();
+		scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
+		scrollBar.SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
+		scrollBar.WindowColor = Color.Black * 0.5f;
+		scrollBar.Anchor = UIAnchor.TopRight;
+		scrollBar.ParentAnchor = UIAnchor.TopRight;
+		scrollBar.MinSize = new Vector2(5, 0);
+		scrollBar.MaxSize = new Vector2(5, 9999);
+		listNav.SetScrollbar(scrollBar);
+		_contentParent.AddChild(scrollBar);
+
+		var mapAssets = new List<string>();
+
+		string xmlTag;
+		if (_mapType == typeof(Map2D))
 		{
-			_editor = editor;
-			_mapType = mapType;
+			xmlTag = "<Map2D";
+		}
+		else
+		{
+			string mapType = _mapType.FullName ?? "";
+			xmlTag = $"<Map2D type=\"{mapType}\"";
 		}
 
-		public override void AttachedToController(UIController controller)
+		string[] allAssets = Engine.AssetLoader.AllAssets;
+		for (var i = 0; i < allAssets.Length; i++)
 		{
-			base.AttachedToController(controller);
+			string asset = allAssets[i];
+			if (!asset.Contains(".xml")) continue;
 
-			var listNav = new UICallbackListNavigator();
-			listNav.LayoutMode = LayoutMode.VerticalList;
-			listNav.StretchX = true;
-			listNav.ListSpacing = new Vector2(0, 1);
-			listNav.Margins = new Rectangle(0, 0, 10, 0);
-			listNav.InputTransparent = false;
-			listNav.ChildrenAllSameWidth = true;
-			_contentParent.AddChild(listNav);
+			var assetLoaded = Engine.AssetLoader.Get<TextAsset>(asset, false);
+			if (assetLoaded?.Content != null && assetLoaded.Content.Contains(xmlTag)) mapAssets.Add(asset);
+		}
 
-			var scrollBar = new UIScrollbar();
-			scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
-			scrollBar.SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
-			scrollBar.WindowColor = Color.Black * 0.5f;
-			scrollBar.Anchor = UIAnchor.TopRight;
-			scrollBar.ParentAnchor = UIAnchor.TopRight;
-			scrollBar.MinSize = new Vector2(5, 0);
-			scrollBar.MaxSize = new Vector2(5, 9999);
-			listNav.SetScrollbar(scrollBar);
-			_contentParent.AddChild(scrollBar);
+		Task? openingTask = null;
+		for (var i = 0; i < mapAssets.Count; i++)
+		{
+			string mapAsset = mapAssets[i];
 
-			var mapAssets = new List<string>();
-
-			string xmlTag;
-			if (_mapType == typeof(Map2D))
+			var mapButton = new MapEditorTopBarButton();
+			mapButton.Text = mapAsset;
+			mapButton.StretchY = true;
+			mapButton.OnClickedProxy = _ =>
 			{
-				xmlTag = $"<Map2D";
-			}
-			else
-			{
-				string mapType = _mapType.FullName;
-				xmlTag = $"<Map2D type=\"{mapType}\"";
-			}
+				if (openingTask != null && !openingTask.IsCompleted) return;
 
-			string[] allAssets = Engine.AssetLoader.AllAssets;
-			for (var i = 0; i < allAssets.Length; i++)
-			{
-				string asset = allAssets[i];
-				if (!asset.Contains(".xml")) continue;
-
-				var assetLoaded = Engine.AssetLoader.Get<TextAsset>(asset, false);
-				if (assetLoaded?.Content != null && assetLoaded.Content.Contains(xmlTag)) mapAssets.Add(asset);
-			}
-
-			Task openingTask = null;
-			for (var i = 0; i < mapAssets.Count; i++)
-			{
-				string mapAsset = mapAssets[i];
-
-				var mapButton = new MapEditorTopBarButton();
-				mapButton.Text = mapAsset;
-				mapButton.StretchY = true;
-				mapButton.OnClickedProxy = _ =>
+				openingTask = Task.Run(() =>
 				{
-					if (openingTask != null && !openingTask.IsCompleted) return;
+					_editor.ChangeSceneMap(mapAsset);
+					Close();
+				});
+			};
 
-					openingTask = Task.Run(() =>
-					{
-						var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(mapAsset, false);
-						Map2D newMap = newMapAsset?.Content;
-						if (newMap == null) return;
-						newMap.FileName = mapAsset;
-
-						_editor.ChangeSceneMap(newMap);
-						Close();
-					});
-				};
-
-				listNav.AddChild(mapButton);
-			}
+			listNav.AddChild(mapButton);
 		}
 	}
 }

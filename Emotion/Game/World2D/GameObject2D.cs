@@ -11,7 +11,6 @@ using Emotion.Graphics;
 
 namespace Emotion.Game.World2D
 {
-	[DontSerializeMembers("Z")]
 	public class GameObject2D : Transform
 	{
 		/// <summary>
@@ -178,7 +177,7 @@ namespace Emotion.Game.World2D
 
 		public override string ToString()
 		{
-			return $"[{UniqueId}] {ObjectName ?? $"Object {GetType().Name}"} {(ObjectState != ObjectState.Alive ? ObjectState : "")}";
+			return $"[{UniqueId}] {ObjectName ?? $"Object {GetType().Name}"}";
 		}
 
 		#region Changing Origin

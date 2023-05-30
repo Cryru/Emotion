@@ -471,6 +471,13 @@ namespace Emotion.Game.World2D
 			}
 		}
 
+		public static Comparison<GameObject2D> ObjectComparison = ObjectSort; // Prevent delegate allocation
+
+		protected static int ObjectSort(GameObject2D x, GameObject2D y)
+		{
+			return MathF.Sign(x.Position.Z - y.Position.Z);
+		}
+
 		public virtual void Render(RenderComposer c)
 		{
 			if (!Initialized) return;
@@ -480,6 +487,7 @@ namespace Emotion.Game.World2D
 
 			var renderObjectsList = new List<GameObject2D>();
 			GetObjects(renderObjectsList, 0, clipArea);
+			renderObjectsList.Sort(ObjectComparison);
 			for (var i = 0; i < renderObjectsList.Count; i++)
 			{
 				GameObject2D obj = renderObjectsList[i];

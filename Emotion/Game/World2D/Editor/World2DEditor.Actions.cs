@@ -43,39 +43,27 @@ public partial class World2DEditor
 
 	private class EditorActionObjectMutate : EditorAction
 	{
-		public GameObject2D OldData;
-		public Map2D ObjectMap;
+		public World2DEditor Editor;
+		public GameObject2D Obj;
+		public XMLFieldHandler Field;
+		public object OldValue;
 
-		public EditorActionObjectMutate(GameObject2D oldData)
+		public EditorActionObjectMutate(World2DEditor editor, GameObject2D obj, XMLFieldHandler fieldHandler, object oldValue)
 		{
-			OldData = oldData;
-			ObjectMap = oldData.Map;
+			Editor = editor;
+			Obj = obj;
+			Field = fieldHandler;
+			OldValue = oldValue;
 		}
 
 		public override void Undo()
 		{
-			// Restore old data in place of new data.
-			Map2D map = ObjectMap;
-
-			foreach (GameObject2D obj in map.GetObjects(true))
-			{
-				if (obj.UniqueId == OldData.UniqueId) // Found the new representation of the object.
-				{
-					map.RemoveObject(obj, true);
-					break;
-				}
-			}
-
-			// Keep parity with ApplyObjectChange
-			string oldDataAsXML = XMLFormat.To(OldData);
-			var oldDataRecreated = XMLFormat.From<GameObject2D>(oldDataAsXML);
-
-			map.AddObject(oldDataRecreated);
+			Editor.ChangeObjectProperty(Obj, Field, OldValue, false);
 		}
 
 		public override string ToString()
 		{
-			return $"Changed Property on {OldData.UniqueId}";
+			return $"Changed {Obj} property {Field.Name}";
 		}
 	}
 
@@ -103,16 +91,13 @@ public partial class World2DEditor
 		newMove.StartPos = from;
 		newMove.NewPos = to;
 		_actions.Add(newMove);
-
-		MapEditorObjectPropertiesPanel? propPanelOpen = EditorGetAlreadyOpenPropertiesPanelForObject(obj.UniqueId);
-		propPanelOpen?.InvalidateObjectReference();
 	}
 
-	private void EditorRegisterObjectPropertyChange(GameObject2D oldObjData)
+	private void EditorRegisterObjectPropertyChange(GameObject2D obj, XMLFieldHandler fieldHandler, object oldValue)
 	{
 		_actions ??= new();
 
-		var newMutate = new EditorActionObjectMutate(oldObjData);
+		var newMutate = new EditorActionObjectMutate(this, obj, fieldHandler, oldValue);
 		_actions.Add(newMutate);
 	}
 

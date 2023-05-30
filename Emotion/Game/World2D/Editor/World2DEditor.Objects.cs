@@ -35,7 +35,6 @@ public partial class World2DEditor
 	// Dragging
 	protected GameObject2D? _objectDragging;
 	protected Vector2 _objectDragOffset;
-	protected bool _ignoreNextObjectDragLetGo;
 	protected Vector2 _objectDragStartPos;
 
 	// Temp
@@ -118,7 +117,12 @@ public partial class World2DEditor
 		{
 			Vector2 mouseScreen = Engine.Host.MousePosition;
 			Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
-			_objectDragging.Position = (mouseWorld + _objectDragOffset).ToVec3(_objectDragging.Z);
+
+			Vector2 newPos = (mouseWorld + _objectDragOffset);
+			newPos *= 100f;
+			newPos = newPos.Floor();
+			newPos /= 100f;
+			_objectDragging.Position = (newPos).ToVec3(_objectDragging.Z);
 			EditorRegisterMoveAction(_objectDragging, _objectDragStartPos, _objectDragging.Position2);
 		}
 	}
@@ -137,7 +141,7 @@ public partial class World2DEditor
 			c.RenderSprite(bound, Color.White * 0.3f);
 		}
 
-		if (_selectedObject != null)
+		if (_selectedObject != null && _selectedObject.ObjectState != ObjectState.Destroyed)
 		{
 			Rectangle bound = _selectedObject.Bounds;
 			c.RenderSprite(bound, Color.White * 0.3f);
@@ -202,11 +206,7 @@ public partial class World2DEditor
 		}
 		else if (leftClick && status == KeyStatus.Up)
 		{
-			if (_objectDragging != null)
-			{
-				if (!_ignoreNextObjectDragLetGo) _objectDragging = null;
-				_ignoreNextObjectDragLetGo = false;
-			}
+			_objectDragging = null;
 		}
 
 		return true;
@@ -277,7 +277,8 @@ public partial class World2DEditor
 	private void RolloverObjects(List<GameObject2D>? objs, bool incrementSel = false)
 	{
 		if (objs?.Count == 0) objs = null;
-		objs?.Sort(ObjectSort);
+		objs?.Sort(Map2D.ObjectComparison);
+		objs?.Reverse();
 
 		var rolloverChanged = false;
 
@@ -316,7 +317,7 @@ public partial class World2DEditor
 		// Update index of current if still here.
 		GameObject2D? prevRolloverObj = _allObjectsRollover?[_rolloverIndex];
 		var currentObjectChanged = true;
-		if (prevRolloverObj != null && objs != null)
+		if (prevRolloverObj != null && objs != null && (_allObjectsRollover != null && objs[0] == _allObjectsRollover[0]))
 		{
 			Debug.Assert(_allObjectsRollover != null);
 			Debug.Assert(prevRolloverObj == _allObjectsRollover[_rolloverIndex]);
@@ -383,16 +384,16 @@ public partial class World2DEditor
 			GameObject2D? obj = _rolloverObject;
 			var text = (UIText?) worldAttachUI.GetWindowById("text")!;
 			var txt = new StringBuilder();
-			txt.AppendLine($"Name: {obj.ObjectName ?? "null"}");
-			txt.AppendLine($"   Type: {obj.GetType().Name}");
-
+			txt.AppendLine($"Name: [{obj.UniqueId}] {obj.ObjectName ?? "null"}");
+			txt.AppendLine($"Type: {obj.GetType().Name}");
+			txt.AppendLine($"Pos: {obj.Position}");
 			if (_allObjectsRollover != null && _allObjectsRollover.Count > 0) txt.AppendLine($"Objects Here: {_rolloverIndex + 1}/{_allObjectsRollover.Count} [ALT] to switch");
 
 			text.Text = txt.ToString();
 
 			Rectangle bounds = GetObjectBoundForEditor(obj);
 			Vector2 attachPoint = bounds.TopRight;
-			worldAttachUI.AttachToPosition(attachPoint.ToVec3());
+			worldAttachUI.AttachToPosition(attachPoint.ToVec3() + new Vector3(5, 0, 0));
 		}
 	}
 
@@ -421,7 +422,6 @@ public partial class World2DEditor
 		// Stick to mouse to be placed.
 		_objectDragging = newObj;
 		_objectDragOffset = newObj.Size / 2f;
-		_ignoreNextObjectDragLetGo = true;
 	}
 
 	private void EditorObjectAdded(GameObject2D newObj)
@@ -438,11 +438,43 @@ public partial class World2DEditor
 		}
 
 		MapEditorObjectPropertiesPanel? propPanelOpen = EditorGetAlreadyOpenPropertiesPanelForObject(oldObj.UniqueId);
-		propPanelOpen?.InvalidateObjectReference();
+		propPanelOpen?.Close();
 	}
 
 	protected string GetObjectSerialized(GameObject2D obj)
 	{
 		return XMLFormat.To(obj);
+	}
+
+	/// <summary>
+	/// Changes the object property and reinitializes the object without changing its reference.
+	/// </summary>
+	public void ChangeObjectProperty(GameObject2D obj, XMLFieldHandler field, object value, bool recordUndo = true)
+	{
+		Map2D objectMap = obj.Map;
+		Debug.Assert(objectMap != null);
+		Debug.Assert(objectMap == CurrentMap);
+
+		// Register action for undo.
+		if (recordUndo)
+		{
+			object oldValue = field.ReflectionInfo.GetValue(obj);
+			EditorRegisterObjectPropertyChange(obj, field, oldValue);
+		}
+
+		// Clean the project of unserialized properties.
+		// This basically brings it in line to how it will look when loaded the first time..
+		bool isPersist = obj.ObjectFlags.HasFlag(ObjectFlags.Persistent);
+		int id = obj.UniqueId;
+		obj.Destroy(); // Make sure object is correctly cleaned up as it will be reinited.
+		EditorUtility.SetObjectToSerializationDefault<GameObject2D>(obj);
+		obj.UniqueId = id;
+		if (isPersist) obj.ObjectFlags |= ObjectFlags.Persistent;
+
+		// Set the new value.
+		field.ReflectionInfo.SetValue(obj, value);
+
+		// Reinit the object, calling Init etc. as it is basically new.
+		objectMap.Editor_ReinitializeObject(obj);
 	}
 }

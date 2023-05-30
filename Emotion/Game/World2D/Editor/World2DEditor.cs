@@ -93,14 +93,24 @@ public partial class World2DEditor
 		_scene.ChangeMapAsync(newMap).Wait();
 		CheckMapChange();
 	}
+	
+	public void ChangeSceneMap(string fileName)
+	{
+		var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(fileName, false);
+		Map2D? newMap = newMapAsset?.Content;
+		if (newMap == null) return;
+		newMap.FileName = fileName;
+
+		ChangeSceneMap(newMap);
+	}
 
 	private void OnMapReset()
 	{
 		// Restart the editor without changing the camera.
-		WASDMoveCamera2D? camera = _editorCamera;
+		Vector3 cameraPos = _editorCamera!.Position;
 		ExitEditor();
 		EnterEditor();
-		Engine.Renderer.Camera = camera;
+		Engine.Renderer.Camera.Position = cameraPos;
 	}
 
 	public void Render(RenderComposer c)
@@ -175,11 +185,6 @@ public partial class World2DEditor
 	private Rectangle GetObjectBoundForEditor(GameObject2D obj)
 	{
 		return obj.Bounds;
-	}
-
-	private int ObjectSort(GameObject2D x, GameObject2D y)
-	{
-		return MathF.Sign(x.Position.Z - y.Position.Z);
 	}
 
 	public void EditorSaveMap(Map2D? map = null)

@@ -58,7 +58,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			textEditor.FontFile = "Editor/UbuntuMono-Regular.ttf";
 			textEditor.FontSize = MapEditorColorPalette.EditorButtonTextSize;
 			textEditor.SizeOfText = true;
-			textEditor.MinSize = new Vector2(20, 0);
+			textEditor.MinSize = new Vector2(25, 0);
 			textEditor.IgnoreParentColor = true;
 			textEditor.Id = "textEditor";
 			textEditor.OnSubmit = val =>
