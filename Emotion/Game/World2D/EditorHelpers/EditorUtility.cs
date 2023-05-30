@@ -11,6 +11,10 @@ namespace Emotion.Game.World2D.EditorHelpers
 {
 	public static class EditorUtility
 	{
+		/// <summary>
+		/// Set all fields in the object to the values they would have
+		/// if the object is newly created by deserializing it.
+		/// </summary>
 		public static void SetObjectToSerializationDefault<T>(object obj)
 		{
 			// First serialization copy.
@@ -62,6 +66,9 @@ namespace Emotion.Game.World2D.EditorHelpers
 			}
 		}
 
+		/// <summary>
+		/// Get list of types with a parameterless constructor that inherit a specific type.
+		/// </summary>
 		public static List<Type> GetTypesWhichInherit<T>()
 		{
 			List<Type> inheritors = new();
@@ -83,6 +90,9 @@ namespace Emotion.Game.World2D.EditorHelpers
 			return inheritors;
 		}
 
+		/// <summary>
+		/// Get all serializable fields of a type, ordered by declaring type.
+		/// </summary>
 		public static List<TypeAndFieldHandlers> GetTypeFields<T>(T obj)
 		{
 			var typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(obj.GetType());

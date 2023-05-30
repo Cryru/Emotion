@@ -21,12 +21,28 @@ Object Editor (World2DEditor.Objects)
 2.3 Rollover works, on nameplates too
 2.4 Object rollover shows up
 2.5 Can switch object selection between overlapping objects by using alt
+2.6 The object that is visually on top (Z) is rollovered.
 3. Can drag and move objects (both bounds and nameplate)
 3.1 The object being dragged is affected by the same zones as 2.3
 3.2 While an object is being dragged rollovers are not shown and the object being dragging is lit up as if rollovered.
 
-
 4. Clicking Objects->Add Object opens a panel listing all serializable classes that inherit GameObject2D.
 4.1 Selecting a class will create a new object of that type, and automatically stick it to the mouse.
 4.2 Clicking somewhere will untether the object.
+
+5. Right clicking an object opens a context menu.
+5.1 Copy
+5.2 Cut
+5.3 Delete
+5.4 Right clicking in an empty space opens a context menu with "Paste" (test with copy and cut)
+5.4.1 Pasted objects are persistable
+5.5 Properties
+
+6. The properties panel lists all serializable object properties and is updated live. Properties can be changed.
+6.1 Changing a property reinitializes the object. Objects dont need to handle changes mid lifecycle
+6.2 The object reference stays the same.
+6.3 The object is still persistable and has the same unique id after an edit.
+
+Editor Actions (World2DEditor.Actions)
+// todo
 

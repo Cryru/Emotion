@@ -28,6 +28,8 @@ public partial class World2DEditor
 	{
 		_scene = scene;
 		_mapType = mapType;
+		Engine.AssetLoader.GetAsync<FontAsset>(FontAsset.DefaultBuiltInFontName);
+		//FontAsset.GetDefaultBuiltIn();
 	}
 
 	public void InitializeEditor()
