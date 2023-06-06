@@ -211,13 +211,13 @@ namespace Emotion.UI
 
 					switch (LayoutMode)
 					{
-						case LayoutMode.HorizontalListWrap:
+						case LayoutMode.VerticalListWrap:
 						case LayoutMode.HorizontalList:
 							visibleAtOnce = Width;
 							diff = _scrollArea.X + _scrollArea.Width - child.X;
 							isHorizontal = true;
 							break;
-						case LayoutMode.VerticalListWrap:
+						case LayoutMode.HorizontalListWrap:
 						case LayoutMode.VerticalList:
 							visibleAtOnce = Height;
 							diff = _scrollArea.Y + _scrollArea.Height - child.Y;
@@ -538,6 +538,8 @@ namespace Emotion.UI
 				}
 			}
 
+			if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) focus = _scrollBar;
+
 			// Cache mouse target only if calculation is done.
 			// It is done so that moving the selection via buttons isn't overriden by the mouse.
 			if (_renderBoundsCalculatedFrom != Rectangle.Empty)
@@ -546,7 +548,6 @@ namespace Emotion.UI
 				_lastResult = focus;
 			}
 
-			if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) return _scrollBar;
 			return focus;
 		}
 	}
