@@ -88,7 +88,7 @@ namespace Emotion.PostBuildTool
 				{
 					textureName = material.TextureDiffuse.FilePath;
 					string assetPath = AssetLoader.GetDirectoryName(Name);
-					assetPath = AssetLoader.GetNonRelativePath(assetPath, textureName, false);
+					assetPath = AssetLoader.GetNonRelativePath(assetPath, textureName);
 					var textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath);
 					texture = textureAsset?.Texture;
 				}
