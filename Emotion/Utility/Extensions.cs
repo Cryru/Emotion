@@ -386,14 +386,39 @@ namespace Emotion.Utility
     public static class Extensions
     {
         /// <summary>
-        /// Adds an element to an array. This is worse than using a list and will resize the array.
+        /// Creates a new array with the element added.
+        /// This is worse than using a list and it will copy the array.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] AddToArray<T>(this T[] array, T element)
         {
-            Array.Resize(ref array, array.Length + 1);
-            array[^1] = element;
-            return array;
+            var newArray = new T[array.Length + 1];
+            Array.Copy(array, newArray, array.Length);
+            newArray[^1] = element;
+            return newArray;
+        }
+        
+        /// <summary>
+        /// Creates a new array with the item at the specified index removed.
+        /// This is worse than using a list and it will copy the array.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] RemoveFromArray<T>(this T[] array, int elementIdx)
+        {
+            if (array.Length - 1 < elementIdx) return array;
+            if (array.Length == 1 && elementIdx == 0) return Array.Empty<T>();
+            
+            var newArray = new T[array.Length - 1];
+
+            int firstCopyLength = elementIdx;
+            if (elementIdx != 0)
+                Array.Copy(array, 0, newArray, 0, elementIdx);
+            
+            int secondCopyLength = array.Length - elementIdx - 1;
+            if (secondCopyLength != 0)
+                Array.Copy(array, elementIdx, newArray, elementIdx - 1, secondCopyLength);
+            
+            return newArray;
         }
 
         /// <summary>
