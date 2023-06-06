@@ -488,6 +488,28 @@ namespace Emotion.Primitives
             Size = (s - p) * gridSize;
         }
 
+        public void SnapToAspectRatio(float aspectRatio)
+        {
+	        float currentAspectRatio = Width / Height;
+    
+            // Already at this aspect ratio
+	        if (currentAspectRatio == aspectRatio) return;
+
+	        if (currentAspectRatio < aspectRatio)
+	        {
+		        float newWidth = (int)Math.Round(Height * aspectRatio);
+		        float widthDifference = newWidth - Width;
+		        float newX = X - (widthDifference / 2);
+
+		        Width = newWidth;
+	        }
+	        else
+	        {
+		        int newHeight = (int)Math.Round(Width / aspectRatio);
+		        Height = newHeight;
+	        }
+        }
+
         /// <summary>
         /// Get a line which goes through the center of the rectangle to it's two smaller sides.
         /// </summary>

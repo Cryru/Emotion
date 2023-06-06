@@ -95,5 +95,30 @@ namespace Emotion.Game
         {
             return GetEnumerator();
         }
+
+        public Tree<T, T2>? GetBranchFromPath(T[] path)
+        {
+	        Tree<T, T2>? current = this;
+	        for (var i = 0; i < path.Length; i++)
+	        {
+		        T pathItem = path[i];
+
+                var found = false;
+		        for (var j = 0; j < current.Branches.Count; j++)
+		        {
+			        Tree<T, T2> branch = current.Branches[j];
+			        if (branch.Name.Equals(pathItem))
+			        {
+				        current = branch;
+				        found = true;
+                        break;
+			        }
+		        }
+
+		        if (!found) return default;
+	        }
+
+	        return current;
+        }
     }
 }
