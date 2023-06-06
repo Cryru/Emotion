@@ -151,7 +151,29 @@ public partial class World2DEditor
 				Name = "Open",
 				Click = _ =>
 				{
-					_editUI!.AddChild(new MapEditorModal(new MapEditorOpenMapPanel(this, mapType)));
+					var filePicker = new EditorFileExplorer<XMLAsset<Map2D>>(
+						asset => { ChangeSceneMap(asset.Content!); },
+						assetName =>
+						{
+							if (!assetName.Contains(".xml")) return false;
+
+							string xmlTag;
+							if (_mapType == typeof(Map2D))
+							{
+								xmlTag = "<Map2D";
+							}
+							else
+							{
+								string mapTypeName = _mapType.FullName ?? "";
+								xmlTag = $"<Map2D type=\"{mapTypeName}\"";
+							}
+
+							var assetLoaded = Engine.AssetLoader.Get<TextAsset>(assetName, false);
+							return assetLoaded?.Content != null && assetLoaded.Content.Contains(xmlTag);
+						}
+					);
+
+					_editUI!.AddChild(new MapEditorModal(filePicker));
 					_editUI!.RemoveChild(_editUI.DropDown);
 				}
 			},
@@ -307,7 +329,6 @@ public partial class World2DEditor
 		parentList.AddChild(tilesMenu);
 		parentList.AddChild(mapMenu);
 		parentList.AddChild(otherTools);
-		
 	}
 
 	private UIBaseWindow GetWorldAttachInspectWindow()

@@ -9,11 +9,21 @@ using Emotion.Standard.XML;
 
 namespace Emotion.IO;
 
+// Non generic marker class to differentiate XMLAsset classes
+public abstract class XMLAssetMarkerClass : Asset
+{
+	/// <summary>
+	/// Whether the file was successfully parsed,
+	/// and an instance of the type was created.
+	/// </summary>
+	public abstract bool HasContent();
+}
+
 /// <summary>
 /// A file in XML structure.
 /// </summary>
 /// <typeparam name="T">The class to deserialize to.</typeparam>
-public class XMLAsset<T> : Asset
+public class XMLAsset<T> : XMLAssetMarkerClass
 {
 	/// <summary>
 	/// The contents of the file.
@@ -34,6 +44,12 @@ public class XMLAsset<T> : Asset
 
 	protected override void DisposeInternal()
 	{
+	}
+
+	/// <inheritdoc />
+	public override bool HasContent()
+	{
+		return Content != null;
 	}
 
 	/// <summary>

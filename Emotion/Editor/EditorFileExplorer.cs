@@ -16,21 +16,27 @@ using Emotion.Utility;
 namespace Emotion.Editor;
 
 // todo: add asset -> open host dialog that allows filesystem access then copy to debug store and load in.
+// todo: Check if folders contain valid files?
+// todo: display folder file count
+// todo: allow typing in path
+// todo: hide debug store
 public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 {
 	public bool UseAssetLoaderCache;
 
 	private Action<T> _onFileSelected;
+	private Func<string, bool>? _fileFilter;
 	private Tree<string, string> _fileSystem;
 
 	private Task? _loadingTask;
 
 	private string[]? _currentBranch;
 
-	public EditorFileExplorer(Action<T> onFileSelected, bool useAssetLoaderCache = false) : base($"Select [{typeof(T).Name}]")
+	public EditorFileExplorer(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [{typeof(T).Name}]")
 	{
 		_onFileSelected = onFileSelected;
-		UseAssetLoaderCache = useAssetLoaderCache;
+		_fileFilter = fileFilter;
+		UseAssetLoaderCache = false;
 		_fileSystem = FilesToTree(Engine.AssetLoader.AllAssets);
 	}
 
@@ -142,6 +148,13 @@ public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 			};
 			button.SetFileName(leaf);
 
+			// Check if this file is valid.
+			if (_fileFilter != null && !_fileFilter(leaf))
+			{
+				button.WindowColor = button.WindowColor.SetAlpha(50);
+				button.OnClickedProxy = null;
+			}
+
 			list.AddChild(button);
 		}
 	}
@@ -153,11 +166,8 @@ public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 		_loadingTask = Task.Run(() =>
 		{
 			T? file = ExplorerLoadAsset(fileName, UseAssetLoaderCache);
-			if (file == null)
-			{
-				_loadingTask = null;
-				return;
-			}
+			if (file == null) return;
+			if (file is XMLAssetMarkerClass xmlFile && !xmlFile.HasContent()) return;
 
 			_onFileSelected.Invoke(file);
 			Parent?.RemoveChild(this);

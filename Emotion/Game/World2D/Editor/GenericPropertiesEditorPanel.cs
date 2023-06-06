@@ -61,6 +61,7 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 		listNav.Margins = new Rectangle(0, 0, 5, 0);
 		listNav.InputTransparent = false;
 		listNav.ChildrenAllSameWidth = true;
+		listNav.MinSizeX = 100;
 		listContainer.AddChild(listNav);
 
 		var scrollBar = new EditorScrollBar();
