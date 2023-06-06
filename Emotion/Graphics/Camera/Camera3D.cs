@@ -38,16 +38,16 @@ namespace Emotion.Graphics.Camera
 		public override void Attach()
 		{
 			base.Attach();
-			Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Game);
+			Engine.Host.OnKey.AddListener(CameraKeyHandler, KeyListenerType.Game);
 		}
 
 		public override void Detach()
 		{
 			base.Detach();
-			Engine.Host.OnKey.RemoveListener(KeyHandler);
+			Engine.Host.OnKey.RemoveListener(CameraKeyHandler);
 		}
 
-		protected virtual bool KeyHandler(Key key, KeyStatus status)
+		public virtual bool CameraKeyHandler(Key key, KeyStatus status)
 		{
 			if (key == Key.MouseKeyLeft)
 			{

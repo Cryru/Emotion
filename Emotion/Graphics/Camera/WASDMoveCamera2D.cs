@@ -29,7 +29,7 @@ namespace Emotion.Graphics.Camera
 	    {
 	    }
 
-	    public bool CameraKeyHandler(Key key, KeyStatus status)
+	    public virtual bool CameraKeyHandler(Key key, KeyStatus status)
 	    {
 		    Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
 		    if (keyAxisPart != Vector2.Zero)
