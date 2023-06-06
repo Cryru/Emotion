@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Editor.EditorHelpers;
 using Emotion.UI;
 
 #endregion
@@ -72,26 +73,20 @@ namespace Emotion.Game.World2D.EditorHelpers
 			listContainer.StretchX = true;
 			listContainer.StretchY = true;
 			listContainer.InputTransparent = false;
+			listContainer.LayoutMode = LayoutMode.HorizontalList;
 			innerContainer.AddChild(listContainer);
 
 			var listNav = new UICallbackListNavigator();
 			listNav.LayoutMode = LayoutMode.VerticalList;
 			listNav.StretchX = true;
 			listNav.ListSpacing = new Vector2(0, 1);
-			listNav.Margins = new Rectangle(0, 0, 10, 0);
+			listNav.Margins = new Rectangle(0, 0, 5, 0);
 			listNav.MinSize = new Vector2(100, 100);
 			listNav.InputTransparent = false;
 			listNav.ChildrenAllSameWidth = true;
 			listContainer.AddChild(listNav);
 
-			var scrollBar = new UIScrollbar();
-			scrollBar.DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
-			scrollBar.SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
-			scrollBar.WindowColor = Color.Black * 0.5f;
-			scrollBar.Anchor = UIAnchor.TopRight;
-			scrollBar.ParentAnchor = UIAnchor.TopRight;
-			scrollBar.MinSize = new Vector2(5, 0);
-			scrollBar.MaxSize = new Vector2(5, 9999);
+			var scrollBar = new EditorScrollBar();
 			listNav.SetScrollbar(scrollBar);
 			listContainer.AddChild(scrollBar);
 

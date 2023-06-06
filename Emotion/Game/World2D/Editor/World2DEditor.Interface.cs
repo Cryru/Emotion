@@ -4,6 +4,8 @@
 
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Emotion.Editor;
+using Emotion.Editor.EditorWindows;
 using Emotion.Game.Text;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
@@ -156,25 +158,18 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Save",
-				Click = _ => Task.Run(() => EditorSaveMap()),
+				Click = _ =>
+				{
+					Task.Run(() => EditorSaveMap());
+					_editUI?.RemoveChild(_editUI.DropDown);
+				},
 				Enabled = () => map?.FileName != null
 			},
+			// todo: generic text input or explorer ui
 			//new EditorDropDownButtonDescription
 			//{
 			//	Name = "Save As"
 			//}
-			new EditorDropDownButtonDescription
-			{
-				Name = "Reload",
-				Click = _ => Task.Run(map!.Reset),
-				Enabled = () => map != null
-			},
-			new EditorDropDownButtonDescription
-			{
-				Name = "Reset From File",
-				Click = _ => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
-				Enabled = () => map?.FileName != null
-			}
 		});
 
 		MapEditorTopBarButton objectsMenu = EditorDropDownButton("Objects", new[]
@@ -246,12 +241,12 @@ public partial class World2DEditor
 			},
 		});
 
-		MapEditorTopBarButton otherTools = EditorDropDownButton("Other", new[]
+		MapEditorTopBarButton mapMenu = EditorDropDownButton("Map", new[]
 		{
 			// Shows actions done in the editor, can be undone
 			new EditorDropDownButtonDescription
 			{
-				Name = "Action List",
+				Name = "Edit History",
 				Click = t =>
 				{
 					var panel = new EditorListOfItemsPanel<EditorAction>("Actions", _actions ?? new List<EditorAction>(),
@@ -261,6 +256,43 @@ public partial class World2DEditor
 					_editUI!.AddChild(panel);
 					_editUI.RemoveChild(_editUI.DropDown);
 				}
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Reload",
+				Click = _ => Task.Run(map!.Reset),
+				Enabled = () => map != null
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Reset From File",
+				Click = _ => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
+				Enabled = () => map?.FileName != null
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Properties",
+				Click = t =>
+				{
+					var panel = new GenericPropertiesEditorPanel(map);
+					_editUI!.AddChild(panel);
+					_editUI.RemoveChild(_editUI.DropDown);
+				},
+				Enabled = () => map != null
+			},
+		});
+
+		MapEditorTopBarButton otherTools = EditorDropDownButton("Other", new[]
+		{
+			new EditorDropDownButtonDescription
+			{
+				Name = "Model Viewer (WIP)",
+				Click = t =>
+				{
+					var panel = new ModelViewer();
+					_editUI!.AddChild(panel);
+					_editUI.RemoveChild(_editUI.DropDown);
+				},
 			},
 		});
 
@@ -273,7 +305,9 @@ public partial class World2DEditor
 		parentList.AddChild(fileMenu);
 		parentList.AddChild(objectsMenu);
 		parentList.AddChild(tilesMenu);
+		parentList.AddChild(mapMenu);
 		parentList.AddChild(otherTools);
+		
 	}
 
 	private UIBaseWindow GetWorldAttachInspectWindow()

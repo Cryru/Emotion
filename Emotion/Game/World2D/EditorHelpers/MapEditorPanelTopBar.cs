@@ -17,13 +17,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		public MapEditorPanelTopBar()
 		{
-			var closeButton = new MapEditorTopBarButton();
-			closeButton.Text = "X";
-			closeButton.Id = "CloseButton";
-			closeButton.Anchor = UIAnchor.TopRight;
-			closeButton.ParentAnchor = UIAnchor.TopRight;
-			AddChild(closeButton);
-
 			var txt = new UIText();
 			txt.ScaleMode = UIScaleMode.FloatScale;
 			txt.WindowColor = MapEditorColorPalette.TextColor;
@@ -33,14 +26,22 @@ namespace Emotion.Game.World2D.EditorHelpers
 			txt.IgnoreParentColor = true;
 			txt.Anchor = UIAnchor.CenterLeft;
 			txt.ParentAnchor = UIAnchor.CenterLeft;
-			txt.Margins = new Rectangle(5, 0, 0, 0);
+			txt.Margins = new Rectangle(5, 0, 5, 0);
 			AddChild(txt);
+
+			var closeButton = new MapEditorTopBarButton();
+			closeButton.Text = "X";
+			closeButton.Id = "CloseButton";
+			closeButton.Anchor = UIAnchor.TopRight;
+			closeButton.ParentAnchor = UIAnchor.TopRight;
+			AddChild(closeButton);
 
 			InputTransparent = false;
 			MinSize = new Vector2(0, 10);
 			StretchX = true;
 			StretchY = true;
 			MaxSize = new Vector2(DefaultMaxSize.X, 10);
+			LayoutMode = LayoutMode.HorizontalList;
 		}
 
 		protected override Vector2 InternalMeasure(Vector2 space)
@@ -71,6 +72,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 					else if (status == KeyStatus.Up)
 						panel.ZOffset--;
 				}
+				return false;
 			}
 
 			return base.OnKey(key, status, mousePos);
@@ -86,7 +88,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 				UIBaseWindow panelParent = Parent!.Parent!;
 				Vector2 winOffset = panelParent.Offset + posDiff / panelParent.GetScale();
-
+				
 				Rectangle snapArea = Controller!.Bounds;
 				snapArea.Width /= panelParent.GetScale();
 				snapArea.Height /= panelParent.GetScale();
