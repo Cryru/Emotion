@@ -14,6 +14,7 @@ namespace Emotion.UI
         [DontSerialize] public Action<UICallbackButton> OnMouseEnterProxy;
         [DontSerialize] public Action<UICallbackButton> OnMouseLeaveProxy;
         [DontSerialize] public Action<UICallbackButton> OnClickedProxy;
+        [DontSerialize] public Action<UICallbackButton> OnClickedUpProxy;
 
         public UICallbackButton()
         {
@@ -34,10 +35,18 @@ namespace Emotion.UI
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
-	        if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
+	        if (key == Key.MouseKeyLeft)
 	        {
-		        OnClickedProxy?.Invoke(this);
-		        return false;
+		        if (status == KeyStatus.Down)
+		        {
+			        OnClickedProxy?.Invoke(this);
+			        return false;
+		        }
+                if (status == KeyStatus.Up)
+		        {
+			        OnClickedUpProxy?.Invoke(this);
+			        return false;
+		        }
 	        }
 
 	        return base.OnKey(key, status, mousePos);
