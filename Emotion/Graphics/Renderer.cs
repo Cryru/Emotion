@@ -558,7 +558,10 @@ namespace Emotion.Graphics
             if (CurrentTarget == null) return;
 
             CurrentTarget.Bind();
-            Camera.RecreateProjectionMatrix(); // Depends on the current target.
+
+            // Camera matrices depend on the current target.
+            Camera.RecreateViewMatrix();
+            Camera.RecreateProjectionMatrix();
 
             // Functions such as CacheGlyphs and other graphical tasks can run outside of the frame cycle.
             // The ExecuteOnGLThread will inline them despite !InFrame if executed on the GL Thread, and
