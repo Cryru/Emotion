@@ -109,6 +109,7 @@ public partial class World2DEditor
 	private void OnMapReset()
 	{
 		// Restart the editor without changing the camera.
+		_cameraOutsideEditor = Engine.Renderer.Camera;
 		Vector3 cameraPos = _editorCamera!.Position;
 		ExitEditor();
 		EnterEditor();
