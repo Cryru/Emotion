@@ -215,34 +215,14 @@ namespace Emotion.Game.World2D
 		/// </summary>
 		public virtual async Task Reset()
 		{
-			Initialized = false; // Stop updates and renders
-			_mapInitStarted = false;
-
-			// Clear queues
-			_objectLoading.Clear();
-			ProcessObjectChanges();
-
-			_worldTree = null;
-			_nextObjectUid = 1;
-
-			// Clear existing objects.
-			for (var i = 0; i < _objects.Count; i++)
-			{
-				GameObject2D obj = _objects[i];
-				obj.Destroy();
-				obj.ObjectState = ObjectState.Destroyed;
-			}
-
-			_objects.Clear();
+			// Clear resources.
+			Dispose();
+			Disposed = false;
 
 			// Ensure reset is identical to deserialize by serialize-copying objects.
 			// This will clear any initialized values etc.
 			string objectsXML = XMLFormat.To(PersistentObjects);
 			PersistentObjects = XMLFormat.From<List<GameObject2D>>(objectsXML);
-
-			// Clear resources.
-			Dispose();
-			Disposed = false;
 
 			// todo: should we reset tile data?
 			await InitAsync();
@@ -418,6 +398,24 @@ namespace Emotion.Game.World2D
 			return null;
 		}
 
+		public T? GetObjectByType<T>(bool includeNonSpawned = false)
+		{
+			foreach (GameObject2D obj in GetObjects(includeNonSpawned))
+			{
+				if (obj is T objAsT) return objAsT;
+			}
+
+			return default;
+		}
+
+		public IEnumerable<T> GetObjectsByType<T>(bool includeNonSpawned = false)
+		{
+			foreach (GameObject2D obj in GetObjects(includeNonSpawned))
+			{
+				if (obj is T objAsT) yield return objAsT;
+			}
+		}
+
 		#endregion
 
 		#region Iteration and Query
@@ -497,6 +495,27 @@ namespace Emotion.Game.World2D
 
 		public virtual void Dispose()
 		{
+			// Stop updates and rendering
+			Initialized = false;
+			_mapInitStarted = false;
+
+			// Clear queues
+			_objectLoading.Clear();
+			ProcessObjectChanges();
+
+			_worldTree = null;
+			_nextObjectUid = 1;
+
+			// Clear existing objects.
+			for (var i = 0; i < _objects.Count; i++)
+			{
+				GameObject2D obj = _objects[i];
+				obj.Destroy();
+				obj.ObjectState = ObjectState.Destroyed;
+			}
+
+			_objects.Clear();
+
 			Disposed = true;
 		}
 
