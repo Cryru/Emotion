@@ -4,6 +4,7 @@ in vec2 UV;
 
 out vec4 fragColor;
 
+uniform vec2 squareSize;
 uniform vec2 cameraPos;
 uniform vec2 totalSize;
 
@@ -14,7 +15,6 @@ float sdBox( in vec2 p, in vec2 b )
 }
 
 void main() {
-    vec2 squareSize = vec2(100, 100);
     vec2 squares = totalSize / squareSize;
     vec2 uv = UV + cameraPos;//vec2(2.0);
     vec2 p = fract(uv * squares) - 0.5;
