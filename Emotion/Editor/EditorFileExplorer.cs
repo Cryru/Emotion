@@ -32,7 +32,7 @@ public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 
 	private string[]? _currentBranch;
 
-	public EditorFileExplorer(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [{typeof(T).Name}]")
+	public EditorFileExplorer(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [{typeof(T).GetFriendlyName()}]")
 	{
 		_onFileSelected = onFileSelected;
 		_fileFilter = fileFilter;
