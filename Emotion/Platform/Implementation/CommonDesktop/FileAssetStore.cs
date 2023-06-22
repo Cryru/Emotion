@@ -37,9 +37,15 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (!string.IsNullOrEmpty(directoryName))
                 Directory.CreateDirectory(directoryName);
 
-            FileStream stream = File.Open(filePath, FileMode.Create);
+            // Save to another file, and rename to the target file to ensure
+            // no corruption occurs when saving.
+            string tempFile = filePath + ".temp";
+            FileStream stream = File.Open(tempFile, FileMode.Create);
             stream.Write(data, 0, data.Length);
             stream.Dispose();
+
+            File.Copy(tempFile, filePath, true);
+            File.Delete(tempFile);
         }
 
         /// <summary>
