@@ -99,7 +99,7 @@ namespace Emotion.Utility
 		/// </summary>
 		/// <param name="speed">The speed to move the camera at.</param>
 		// ReSharper disable once InconsistentNaming
-		[Obsolete("Dont use this, it interacts weirdly with input focus.")]
+		[Obsolete("Dont use this, it interacts weirdly with input focus. Cameras can attach input handlers")]
 		public static void CameraWASDUpdate(float speed = 0.35f)
 		{
 			Vector2 dir = Vector2.Zero;
@@ -152,6 +152,20 @@ namespace Emotion.Utility
 			if (bytes < _oneMb / 2) return $"{(float) bytes / _oneKb:0.00} Kb";
 			if (bytes < _oneGb / 2) return $"{(float) bytes / _oneMb:0.00} Mb";
 			return $"{(float) bytes / _oneGb:0.00} Gb";
+		}
+
+		/// <summary>
+		/// Get the average value in a float array.
+		/// </summary>
+		public static float GetArrayAverage(float[] arr)
+		{
+			float sum = 0;
+			for (var i = 0; i < arr.Length; i++)
+			{
+				sum += arr[i];
+			}
+
+			return sum / arr.Length;
 		}
 	}
 }
