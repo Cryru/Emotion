@@ -18,9 +18,9 @@ namespace Emotion.Tools.Windows.UIEdit
         public DebugUIController()
         {
             WindowColor = new Color(32, 32, 32);
-            for (var i = 0; i < _activeControllers.Count; i++)
+            for (var i = 0; i < _allControllers.Count; i++)
             {
-                UIController controller = _activeControllers[i];
+                UIController controller = _allControllers[i];
                 if (controller == this) continue;
                 controller.InputTransparent = true;
                 controller.InvalidateInputFocus();
@@ -29,9 +29,9 @@ namespace Emotion.Tools.Windows.UIEdit
 
         public override void Dispose()
         {
-            for (var i = 0; i < _activeControllers.Count; i++)
+            for (var i = 0; i < _allControllers.Count; i++)
             {
-                UIController controller = _activeControllers[i];
+                UIController controller = _allControllers[i];
                 if (controller == this) continue;
                 controller.InputTransparent = false;
                 controller.InvalidateInputFocus();
