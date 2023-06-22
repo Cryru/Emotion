@@ -10,18 +10,18 @@ using Emotion.Platform.Input;
 
 namespace Emotion.UI
 {
-	public class UIController : UIBaseWindow
+	public partial class UIController : UIBaseWindow
 	{
 		/// <summary>
 		/// The priority for key events of this controller.
 		/// </summary>
-		public KeyListenerType KeyPriority = KeyListenerType.UI;
+		public KeyListenerType KeyPriority { get; private set; }
 
 		/// <summary>
 		/// List of all controllers running. Non disposed controllers will still appear here.
 		/// It is maintained in order for controllers to not steal events from each other.
 		/// </summary>
-		protected static List<UIController> _activeControllers = new List<UIController>();
+		protected static List<UIController> _allControllers = new List<UIController>();
 
 		/// <summary>
 		/// The window that will receive keyboard key events.
@@ -34,12 +34,6 @@ namespace Emotion.UI
 		protected UIBaseWindow? _inputFocusManual;
 
 		/// <summary>
-		/// This is usually the first non-input transparent visible window but it can vary depending
-		/// due to specific window logic.
-		/// </summary>
-		public UIBaseWindow? MouseFocus { get; protected set; }
-
-		/// <summary>
 		/// The currently open dropdown.
 		/// </summary>
 		public UIDropDown? DropDown { get; set; }
@@ -50,22 +44,30 @@ namespace Emotion.UI
 		protected bool _updateLayout = true;
 		protected bool _updateInputFocus = true;
 
-		public UIController()
+		public UIController(KeyListenerType inputPriority = KeyListenerType.UI)
 		{
+			KeyPriority = inputPriority;
 			InputTransparent = false;
 			Debugger = new UIDebugger();
 			Engine.Host.OnResize += Host_OnResize;
 			KeepTemplatePreloaded(this);
-			_activeControllers.Add(this);
+
+			_allControllers.Add(this);
+			_allControllers.Sort(UIControllerInputSort);
+		}
+
+		private static int UIControllerInputSort(UIController a, UIController b)
+		{
+			return Math.Sign((byte) a.KeyPriority - (byte) b.KeyPriority);
 		}
 
 		public virtual void Dispose()
 		{
-			_activeControllers.Remove(this);
+			_allControllers.Remove(this);
 			StopPreloadTemplate(this);
 			Engine.Host.OnResize -= Host_OnResize;
 			if (InputFocus != null) Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
-			if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+			if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
 		}
 
 		private void Host_OnResize(Vector2 obj)
@@ -89,7 +91,7 @@ namespace Emotion.UI
 		{
 #if false
             {
-                if(MouseFocus != null) c.RenderOutline(MouseFocus.Bounds, Color.Red);
+                if(_myMouseFocus != null) c.RenderOutline(_myMouseFocus.RenderBounds, Color.Red);
                 c.RenderSprite(new Rectangle(Engine.Host.MousePosition.X, Engine.Host.MousePosition.Y, 1, 1), Color.Pink);
             }
 #endif
@@ -256,18 +258,18 @@ namespace Emotion.UI
 
 			if (!Visible) return true;
 
-			if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && MouseFocus != null)
+			if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && _myMouseFocus != null)
 			{
 				_mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyStatus.Down;
 
-				if (_inputFocusManual != null && !MouseFocus.IsWithin(_inputFocusManual) && status == KeyStatus.Down)
+				if (_inputFocusManual != null && !_myMouseFocus.IsWithin(_inputFocusManual) && status == KeyStatus.Down)
 				{
 					bool isDropDown = _inputFocusManual is UIDropDown;
 					SetInputFocus(null);
 					if (isDropDown) return false;
 				}
 
-				return MouseFocus.OnKey(key, status, Engine.Host.MousePosition);
+				return _myMouseFocus.OnKey(key, status, Engine.Host.MousePosition);
 			}
 
 			return true;
@@ -329,48 +331,6 @@ namespace Emotion.UI
 			_updateInputFocus = false;
 		}
 
-		private void UpdateMouseFocus()
-		{
-			Vector2 mousePos = Engine.Host.MousePosition;
-			UIBaseWindow? newMouseFocus = null;
-
-			// If currently holding down a mouse button don't change the mouse focus if it is still valid.
-			if (MouseFocus != null && MouseFocus.Visible && !MouseFocus.InputTransparent)
-				for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)
-				{
-					if (_mouseFocusKeysHeld[i])
-					{
-						newMouseFocus = MouseFocus;
-						break;
-					}
-				}
-
-			if (newMouseFocus == null)
-			{
-				newMouseFocus = Engine.Host.HostPaused || InputTransparent ? null : FindMouseInput(mousePos);
-
-				// If the controller is focused that means there is no focus.
-				// But if there is a dropdown open we want to capture the dismiss click so we keep it as a focus.
-				if (newMouseFocus == this && _inputFocusManual == null) newMouseFocus = null;
-			}
-
-			if (newMouseFocus != MouseFocus)
-			{
-				MouseFocus?.OnMouseLeft(mousePos);
-				if (MouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
-				MouseFocus = newMouseFocus;
-				if (MouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
-				MouseFocus?.OnMouseEnter(mousePos);
-
-				// This is very spammy.
-				//Engine.Log.Info($"New mouse input focus {newMouseFocus}", "UI");
-			}
-			else
-			{
-				MouseFocus?.OnMouseMove(mousePos);
-			}
-		}
-
 		protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)
 		{
 			if (wnd.Children == null) return wnd;
@@ -384,6 +344,20 @@ namespace Emotion.UI
 		}
 
 		#endregion
+
+		public static List<UIController> GetControllersLesserPriorityThan(KeyListenerType priority)
+		{
+			// Note: Lesser priority means these levels will be suppressed, the actual
+			// numeric value is actually higher.
+			var found = new List<UIController>();
+			for (var i = 0; i < _allControllers.Count; i++)
+			{
+				UIController controller = _allControllers[i];
+				if (controller.Visible && (byte) controller.KeyPriority > (byte) priority) found.Add(controller);
+			}
+
+			return found;
+		}
 
 		/// <summary>
 		/// Get a list if window id and bounds. Used for debugging.

@@ -647,6 +647,11 @@ namespace Emotion.UI
 			_alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, value, null));
 		}
 
+		public void SetVisible(bool val, ITimer? tween = null)
+		{
+			SetVisibleFade(val, tween);
+		}
+
 		public void SetVisibleFade(bool val, ITimer? tween = null)
 		{
 			Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);

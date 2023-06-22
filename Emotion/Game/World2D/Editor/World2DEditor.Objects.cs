@@ -71,8 +71,8 @@ public partial class World2DEditor
 		Map2D? map = CurrentMap;
 		if (map == null) return;
 
-		bool mouseInUI = _editUI?.MouseFocus != null && _editUI.MouseFocus != _editUI; // || _editUI?.InputFocus is UITextInput;
-		var mouseFocusNameplate = _editUI?.MouseFocus as MapEditorObjectNameplate;
+		bool mouseInUI = UIController.MouseFocus != null && UIController.MouseFocus != _editUI; // || _editUI?.InputFocus is UITextInput;
+		var mouseFocusNameplate = UIController.MouseFocus as MapEditorObjectNameplate;
 		bool mouseNotInUIOrInNameplate = !mouseInUI || mouseFocusNameplate != null;
 
 		// Update objects that are rollovered.
@@ -102,10 +102,10 @@ public partial class World2DEditor
 		else
 		{
 			var removeRollover = true;
-			if (_editUI!.MouseFocus != null)
+			if (UIController.MouseFocus != null)
 			{
 				UIBaseWindow? objectListPanel = _editUI.GetWindowById("ObjectListPanel");
-				if (objectListPanel != null && _editUI.MouseFocus.IsWithin(objectListPanel)) removeRollover = false;
+				if (objectListPanel != null && UIController.MouseFocus.IsWithin(objectListPanel)) removeRollover = false;
 			}
 
 			if (removeRollover) RolloverObjects(null);
@@ -177,7 +177,7 @@ public partial class World2DEditor
 
 		bool leftClick = key == Key.MouseKeyLeft;
 		bool rightClick = key == Key.MouseKeyRight;
-		bool noMouseFocus = _editUI!.MouseFocus == _editUI || _editUI.MouseFocus == null || _editUI.MouseFocus is MapEditorObjectNameplate;
+		bool noMouseFocus = UIController.MouseFocus == _editUI || UIController.MouseFocus == null || UIController.MouseFocus is MapEditorObjectNameplate;
 
 		if ((leftClick || rightClick) && status == KeyStatus.Down)
 		{
