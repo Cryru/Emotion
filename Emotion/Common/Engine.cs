@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
+using Emotion.Editor.EditorWindows;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -264,6 +265,8 @@ namespace Emotion.Common
         {
             DetectVSync();
 
+            System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+
             while (Status == EngineStatus.Running)
             {
                 // Run the host events, and check whether it is closing.
@@ -277,6 +280,9 @@ namespace Emotion.Common
                 // After tick, as it might close the host.
                 if (!Host.IsOpen) break;
                 frame();
+
+                // Tell the GC that now is a good time to collect (between frames).
+                GC.Collect(2, GCCollectionMode.Optimized);
             }
 
             Quit();
@@ -383,6 +389,8 @@ namespace Emotion.Common
             CoroutineManager.Update();
             SceneManager.Update();
             Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
+
+            PerformanceMetrics.RegisterTick();
         }
 
         private static void RunFrame()
@@ -421,6 +429,8 @@ namespace Emotion.Common
             PerfProfiler.FrameEventEnd("BufferSwap");
 
             PerfProfiler.FrameEnd();
+
+            PerformanceMetrics.RegisterFrame();
         }
 
         #endregion
