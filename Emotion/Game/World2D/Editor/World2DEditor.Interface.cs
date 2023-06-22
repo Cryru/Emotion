@@ -21,18 +21,33 @@ public partial class World2DEditor
 {
 	protected void InitializeEditorInterface()
 	{
-		_editUI = new UIController();
-		_editUI.KeyPriority = KeyListenerType.EditorUI;
+		_editUI = new UIController(KeyListenerType.EditorUI);
 
 		UIBaseWindow topBar = GetEditorTopBar();
 		_editUI.AddChild(topBar);
 
 		UIBaseWindow worldInspect = GetWorldAttachInspectWindow();
 		_editUI.AddChild(worldInspect);
+
+		_setControllersToVisible = UIController.GetControllersLesserPriorityThan(KeyListenerType.Editor);
+		for (var i = 0; i < _setControllersToVisible.Count; i++)
+		{
+			_setControllersToVisible[i].SetVisible(false);
+		}
 	}
 
 	protected void DisposeEditorInterface()
 	{
+		if (_setControllersToVisible != null)
+		{
+			for (var i = 0; i < _setControllersToVisible.Count; i++)
+			{
+				_setControllersToVisible[i].SetVisible(true);
+			}
+
+			_setControllersToVisible = null;
+		}
+
 		_editUI!.Dispose();
 		_editUI = null;
 	}
@@ -314,6 +329,16 @@ public partial class World2DEditor
 					var panel = new ModelViewer();
 					_editUI!.AddChild(panel);
 					_editUI.RemoveChild(_editUI.DropDown);
+				},
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Performance Monitor",
+				Click = t =>
+				{
+					var panel = new PerformanceMonitor();
+					_editorUIAlways!.AddChild(panel);
+					_editUI!.RemoveChild(_editUI.DropDown);
 				},
 			},
 		});

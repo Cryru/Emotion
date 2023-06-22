@@ -22,20 +22,23 @@ public partial class World2DEditor
 	protected Type _mapType;
 	protected WASDMoveCamera2D? _editorCamera;
 	protected CameraBase? _cameraOutsideEditor;
+
 	protected UIController? _editUI;
+	protected UIController? _editorUIAlways;
+	protected List<UIController>? _setControllersToVisible;
 
 	public World2DEditor(IWorld2DAwareScene scene, Type mapType)
 	{
 		_scene = scene;
 		_mapType = mapType;
 		Engine.AssetLoader.GetAsync<FontAsset>(FontAsset.DefaultBuiltInFontName);
-		//FontAsset.GetDefaultBuiltIn();
 	}
 
 	public void InitializeEditor()
 	{
 		if (!Engine.Configuration.DebugMode) return;
 		Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
+		_editorUIAlways = new UIController(KeyListenerType.EditorUI);
 	}
 
 	public void UnloadEditor()
@@ -95,7 +98,7 @@ public partial class World2DEditor
 		_scene.ChangeMapAsync(newMap).Wait();
 		CheckMapChange();
 	}
-	
+
 	public void ChangeSceneMap(string fileName)
 	{
 		var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(fileName, false);
@@ -118,7 +121,19 @@ public partial class World2DEditor
 
 	public void Render(RenderComposer c)
 	{
-		if (!EditorOpen) return;
+		if (!EditorOpen)
+		{
+			if (_editorUIAlways != null)
+			{
+				RenderState? stateBefore = c.CurrentState.Clone();
+				c.SetUseViewMatrix(false);
+				c.SetDepthTest(false);
+				_editorUIAlways!.Render(c);
+				c.SetState(stateBefore);
+			}
+
+			return;
+		}
 
 		RenderState? prevState = c.CurrentState.Clone();
 		c.SetUseViewMatrix(true);
@@ -145,13 +160,16 @@ public partial class World2DEditor
 
 		c.SetUseViewMatrix(false);
 		c.SetDepthTest(false);
+
 		_editUI!.Render(c);
+		_editorUIAlways!.Render(c);
 
 		c.SetState(prevState);
 	}
 
-	public void Update(float dt)
+	public void Update(float _)
 	{
+		_editorUIAlways?.Update();
 		if (!EditorOpen) return;
 
 		CheckMapChange();
