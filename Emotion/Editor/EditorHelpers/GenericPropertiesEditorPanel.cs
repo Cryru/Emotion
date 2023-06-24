@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
@@ -9,7 +8,7 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.Editor;
+namespace Emotion.Editor.EditorHelpers;
 
 public class GenericPropertiesEditorPanel : MapEditorPanel
 {

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
+using Emotion.Editor;
 using Emotion.Graphics;
 using Emotion.Standard.XML;
 
@@ -36,6 +37,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Contains tile information, if the map has a tile map portion.
 		/// </summary>
+		[DontShowInEditor]
 		public Map2DTileMapData? TileData;
 
 		/// <summary>
@@ -64,6 +66,7 @@ namespace Emotion.Game.World2D
 		/// List of objects that are part of the map file. Used on map initialization and by the editor.
 		/// Do not modify in gameplay - that's weird!
 		/// </summary>
+		[DontShowInEditor]
 		public List<GameObject2D> PersistentObjects { get; set; }
 
 		#region Events

@@ -118,11 +118,11 @@ public partial class World2DEditor
 			Vector2 mouseScreen = Engine.Host.MousePosition;
 			Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 
-			Vector2 newPos = (mouseWorld + _objectDragOffset);
+			Vector2 newPos = mouseWorld + _objectDragOffset;
 			newPos *= 100f;
 			newPos = newPos.Floor();
 			newPos /= 100f;
-			_objectDragging.Position = (newPos).ToVec3(_objectDragging.Z);
+			_objectDragging.Position = newPos.ToVec3(_objectDragging.Z);
 			EditorRegisterMoveAction(_objectDragging, _objectDragStartPos, _objectDragging.Position2);
 		}
 	}
@@ -240,12 +240,10 @@ public partial class World2DEditor
 			_namePlates ??= new Dictionary<GameObject2D, MapEditorObjectNameplate>();
 
 			if (CurrentMap != null)
-			{
 				foreach (GameObject2D obj in CurrentMap.GetObjects(true))
 				{
 					EnsureObjectNameplate(obj);
 				}
-			}
 		}
 	}
 
@@ -317,7 +315,7 @@ public partial class World2DEditor
 		// Update index of current if still here.
 		GameObject2D? prevRolloverObj = _allObjectsRollover?[_rolloverIndex];
 		var currentObjectChanged = true;
-		if (prevRolloverObj != null && objs != null && (_allObjectsRollover != null && objs[0] == _allObjectsRollover[0]))
+		if (prevRolloverObj != null && objs != null && _allObjectsRollover != null && objs[0] == _allObjectsRollover[0])
 		{
 			Debug.Assert(_allObjectsRollover != null);
 			Debug.Assert(prevRolloverObj == _allObjectsRollover[_rolloverIndex]);

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Reflection;
+using Emotion.Editor;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
@@ -106,7 +107,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 			while (fields.MoveNext())
 			{
 				XMLFieldHandler field = fields.Current;
-				if (field == null || field.Name == "Children") continue;
+				if (field == null) continue;
+				if (field.ReflectionInfo.GetAttribute<DontShowInEditorAttribute>() != null) continue;
 
 				TypeAndFieldHandlers handlerMatch = null;
 				for (var i = 0; i < currentWindowHandlers.Count; i++)
