@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Emotion.Editor;
+using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
 using Emotion.Game.Text;
 using Emotion.Game.World2D.EditorHelpers;
