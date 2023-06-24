@@ -156,6 +156,11 @@ namespace Emotion.Game.Text
 		{
 			if (length == -1) length = text.Length - stringStart;
 
+			// Replace space with a wide lowercase character (such as w) since
+			// some fonts specify space as having 0 height.
+			_atlas.CacheGlyphs("w");
+			bool replaceSpace = _atlas.Glyphs.ContainsKey('w');
+
 			fontYOffset = _atlas.Ascent;
 			largestHeight = 0;
 			smallestHeight = float.MaxValue;
@@ -166,9 +171,7 @@ namespace Emotion.Game.Text
 				// If going on a new line, stop checking and return current height.
 				if (c == '\n') return;
 
-				// Replace space with a wide lowercase character (such as w) since
-				// some fonts specify space as having 0 height.
-				if (c == ' ') c = 'w';
+				if (c == ' ' && replaceSpace) c = 'w';
 
 				if (!_atlas.Glyphs.TryGetValue(c, out DrawableGlyph g))
 				{
@@ -181,6 +184,8 @@ namespace Emotion.Game.Text
 				largestHeight = MathF.Max(largestHeight, g.Height);
 				smallestHeight = MathF.Min(smallestHeight, g.Height);
 			}
+
+			if (smallestHeight == float.MaxValue) smallestHeight = 0;
 		}
 	}
 }
