@@ -129,7 +129,7 @@ public partial class UIController
 
 	private void UpdateMouseFocus()
 	{
-#if false
+#if true
 		UpdateMouseFocusAllControllers();
 		_calledUpdateLastTick = true;
 #else
@@ -148,6 +148,7 @@ public partial class UIController
 		}
 
 		SetControllerMouseFocus(newMouseFocus);
+		MouseFocus = newMouseFocus;
 #endif
 	}
 }
