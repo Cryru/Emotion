@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-#region Using
+﻿#region Using
 
 using System.Collections;
 using System.Linq;
@@ -10,6 +8,8 @@ using Emotion.Game.Time.Routines;
 using Emotion.Utility;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Testing;
 
@@ -21,7 +21,7 @@ public static class TestExecutor
 	/// </summary>
 	public static bool AllowInfiniteLoops = true;
 
-	public static void ExecuteTests(string[] args, Configurator config = null)
+	public static void ExecuteTests(string[] args, Configurator? config = null)
 	{
 		// todo: read args and start running split processes, different configs etc.
 
@@ -126,6 +126,7 @@ public static class TestExecutor
 					}
 				}
 			}
+
 			Engine.Log.Info($"Passed {sceneType}!", MessageSource.Test);
 		}
 	}
