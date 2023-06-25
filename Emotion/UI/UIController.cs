@@ -290,6 +290,8 @@ namespace Emotion.UI
 
 		private void UpdateInputFocus()
 		{
+			_updateInputFocus = false;
+
 			UIBaseWindow? newFocus;
 			if (InputTransparent || !Visible)
 			{
@@ -328,7 +330,7 @@ namespace Emotion.UI
 				// Engine.Log.Info($"New input focus {InputFocus}", "UI");
 			}
 
-			_updateInputFocus = false;
+			
 		}
 
 		protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)
