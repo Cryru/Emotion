@@ -88,13 +88,23 @@ namespace Emotion.Primitives
         /// <summary>
         /// Creates a new color, from a normalized vector4.
         /// </summary>
-        /// <param name="v">The vector to create a color from.</param>
         public Color(Vector4 v)
         {
             R = (byte) (v.X * 255);
             G = (byte) (v.Y * 255);
             B = (byte) (v.Z * 255);
             A = (byte) (v.W * 255);
+        }
+
+        /// <summary>
+        /// Creates a new color, from a normalized vector3.
+        /// </summary>
+        public Color(Vector3 v)
+        {
+	        R = (byte) (v.X * 255);
+	        G = (byte) (v.Y * 255);
+	        B = (byte) (v.Z * 255);
+	        A = 255;
         }
 
         /// <summary>

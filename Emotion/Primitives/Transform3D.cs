@@ -76,7 +76,7 @@ namespace Emotion.Primitives
 			}
 		}
 
-		private float _sizeX;
+		protected float _sizeX;
 		protected float _sizeY;
 		protected float _height;
 
