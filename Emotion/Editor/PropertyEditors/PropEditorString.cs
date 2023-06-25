@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
@@ -7,9 +8,9 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.PropertyEditors
 {
-	public class MapEditorString : UIBaseWindow, IMapEditorGeneric
+	public class PropEditorString : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler Field { get; set; } = null!;
 
@@ -26,7 +27,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 		private bool _updateOnTextChange;
 		private string _updateOnTextChangeLastText;
 
-		public MapEditorString(bool updateOnTextChange = false)
+		public PropEditorString(bool updateOnTextChange = false)
 		{
 			InputTransparent = false;
 			StretchX = true;
@@ -97,7 +98,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			return base.UpdateInternal();
 		}
 
-		public static UIBaseWindow CreateStringEditorWithLabel(string label, bool updateOnTextChange, out MapEditorString stringEditor)
+		public static UIBaseWindow CreateStringEditorWithLabel(string label, bool updateOnTextChange, out PropEditorString stringEditor)
 		{
 			var container = new UIBaseWindow();
 			container.LayoutMode = LayoutMode.HorizontalList;
@@ -110,7 +111,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var labelWnd = new MapEditorLabel(label);
 			container.AddChild(labelWnd);
 
-			var stringEditorWnd = new MapEditorString(updateOnTextChange);
+			var stringEditorWnd = new PropEditorString(updateOnTextChange);
 			container.AddChild(stringEditorWnd);
 			stringEditor = stringEditorWnd;
 

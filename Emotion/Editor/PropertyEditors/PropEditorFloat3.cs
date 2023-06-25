@@ -1,25 +1,28 @@
 ﻿#region Using
 
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.PropertyEditors
 {
-	public class MapEditorFloat3 : UIBaseWindow, IMapEditorGeneric
+	public class PropEditorFloat3 : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler Field { get; set; }
 
 		private Vector3 _value;
 		private Action<object> _callback;
+		private bool _withLabels;
 
-		private MapEditorNumber<float> _editorX;
-		private MapEditorNumber<float> _editorY;
-		private MapEditorNumber<float> _editorZ;
+		private PropEditorNumber<float> _editorX;
+		private PropEditorNumber<float> _editorY;
+		private PropEditorNumber<float> _editorZ;
 
-		public MapEditorFloat3()
+		public PropEditorFloat3(bool showLabels = true)
 		{
+			_withLabels = showLabels;
 			LayoutMode = LayoutMode.HorizontalList;
 			ListSpacing = new Vector2(2, 0);
 			InputTransparent = false;
@@ -31,9 +34,13 @@ namespace Emotion.Game.World2D.EditorHelpers
 		{
 			base.AttachedToController(controller);
 
-			var labelX = new MapEditorLabel("X:");
-			AddChild(labelX);
-			var editorX = new MapEditorNumber<float>();
+			if (_withLabels)
+			{
+				var labelX = new MapEditorLabel("X:");
+				AddChild(labelX);
+			}
+			
+			var editorX = new PropEditorNumber<float>();
 			AddChild(editorX);
 			_editorX = editorX;
 			editorX.SetValue(_value.X);
@@ -43,10 +50,14 @@ namespace Emotion.Game.World2D.EditorHelpers
 				_callback?.Invoke(_value);
 			});
 
-			var labelY = new MapEditorLabel("Y:");
-			labelY.Margins = new Rectangle(2, 0, 0, 0);
-			AddChild(labelY);
-			var editorY = new MapEditorNumber<float>();
+			if (_withLabels)
+			{
+				var labelY = new MapEditorLabel("Y:");
+				labelY.Margins = new Rectangle(2, 0, 0, 0);
+				AddChild(labelY);
+			}
+
+			var editorY = new PropEditorNumber<float>();
 			AddChild(editorY);
 			_editorY = editorY;
 			editorY.SetValue(_value.Y);
@@ -56,10 +67,14 @@ namespace Emotion.Game.World2D.EditorHelpers
 				_callback?.Invoke(_value);
 			});
 
-			var labelZ = new MapEditorLabel("Z:");
-			labelZ.Margins = new Rectangle(2, 0, 0, 0);
-			AddChild(labelZ);
-			var editorZ = new MapEditorNumber<float>();
+			if (_withLabels)
+			{
+				var labelZ = new MapEditorLabel("Z:");
+				labelZ.Margins = new Rectangle(2, 0, 0, 0);
+				AddChild(labelZ);
+			}
+
+			var editorZ = new PropEditorNumber<float>();
 			AddChild(editorZ);
 			_editorZ = editorZ;
 			editorZ.SetValue(_value.Z);

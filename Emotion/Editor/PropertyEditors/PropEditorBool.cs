@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.UI;
@@ -8,16 +9,16 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.PropertyEditors
 {
-	public class MapEditorBool : UIBaseWindow, IMapEditorGeneric
+	public class PropEditorBool : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler? Field { get; set; }
 
 		private bool _value;
 		private Action<object>? _callback;
 
-		public MapEditorBool()
+		public PropEditorBool()
 		{
 			InputTransparent = false;
 			StretchX = true;

@@ -1,23 +1,24 @@
 ﻿#region Using
 
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.PropertyEditors
 {
-	public class MapEditorFloat2 : UIBaseWindow, IMapEditorGeneric
+	public class PropEditorFloat2 : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler Field { get; set; }
 
 		private Vector2 _value;
 		private Action<object> _callback;
 
-		private MapEditorNumber<float> _editorX;
-		private MapEditorNumber<float> _editorY;
+		private PropEditorNumber<float> _editorX;
+		private PropEditorNumber<float> _editorY;
 
-		public MapEditorFloat2()
+		public PropEditorFloat2()
 		{
 			LayoutMode = LayoutMode.HorizontalList;
 			ListSpacing = new Vector2(2, 0);
@@ -32,7 +33,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 			var labelX = new MapEditorLabel("X:");
 			AddChild(labelX);
-			var editorX = new MapEditorNumber<float>();
+			var editorX = new PropEditorNumber<float>();
 			AddChild(editorX);
 			_editorX = editorX;
 			editorX.SetValue(_value.X);
@@ -45,7 +46,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var labelY = new MapEditorLabel("Y:");
 			labelY.Margins = new Rectangle(2, 0, 0, 0);
 			AddChild(labelY);
-			var editorY = new MapEditorNumber<float>();
+			var editorY = new PropEditorNumber<float>();
 			AddChild(editorY);
 			_editorY = editorY;
 			editorY.SetValue(_value.Y);

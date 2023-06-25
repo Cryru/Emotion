@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
@@ -7,9 +8,9 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.PropertyEditors
 {
-	public class MapEditorEnum : UIBaseWindow, IMapEditorGeneric
+	public class PropEditorEnum : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler? Field { get; set; }
 
@@ -21,7 +22,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 		private Action<object>? _callback;
 		private MapEditorTopBarButton? _button;
 
-		public MapEditorEnum(Type enumType)
+		public PropEditorEnum(Type enumType)
 		{
 			InputTransparent = false;
 			StretchX = true;
