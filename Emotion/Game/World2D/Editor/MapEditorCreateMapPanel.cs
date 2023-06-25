@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
 
@@ -13,8 +14,8 @@ namespace Emotion.Game.World2D.Editor
 		private World2DEditor _editor;
 		private Type _mapType;
 
-		private MapEditorString _nameInput;
-		private MapEditorString _pathInput;
+		private PropEditorString _nameInput;
+		private PropEditorString _pathInput;
 
 		public MapEditorCreateMapPanel(World2DEditor editor, Type mapType) : base("New Map")
 		{
@@ -29,8 +30,8 @@ namespace Emotion.Game.World2D.Editor
 			_contentParent.LayoutMode = LayoutMode.VerticalList;
 			_contentParent.ListSpacing = new Vector2(0, 5);
 
-			_contentParent.AddChild(MapEditorString.CreateStringEditorWithLabel("Name:", true, out _nameInput));
-			_contentParent.AddChild(MapEditorString.CreateStringEditorWithLabel("File Path:", true, out _pathInput));
+			_contentParent.AddChild(PropEditorString.CreateStringEditorWithLabel("Name:", true, out _nameInput));
+			_contentParent.AddChild(PropEditorString.CreateStringEditorWithLabel("File Path:", true, out _pathInput));
 
 			_nameInput.MinSize = new Vector2(100, 0);
 			_pathInput.MinSize = new Vector2(100, 0);

@@ -15,7 +15,7 @@ namespace Emotion.Game.World2D.SceneControl
 	{
 		public T? CurrentMap { get; private set; }
 
-		private World2DEditor _editor;
+		protected World2DEditor _editor;
 
 		protected World2DBaseScene()
 		{

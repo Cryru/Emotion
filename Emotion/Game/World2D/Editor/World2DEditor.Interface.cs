@@ -284,7 +284,7 @@ public partial class World2DEditor
 			// Shows actions done in the editor, can be undone
 			new EditorDropDownButtonDescription
 			{
-				Name = "Edit History",
+				Name = "Undo History",
 				Click = t =>
 				{
 					var panel = new EditorListOfItemsPanel<EditorAction>("Actions", _actions ?? new List<EditorAction>(),
