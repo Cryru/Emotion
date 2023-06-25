@@ -1,6 +1,9 @@
 ﻿#region Using
 
 using Emotion.Common.Threading;
+using Emotion.Editor.EditorHelpers;
+using Emotion.Editor.EditorWindows.ModelViewerUtil;
+using Emotion.Editor.PropertyEditors;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
@@ -8,6 +11,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.IO.Assimp;
 using Emotion.Platform.Input;
 using Emotion.UI;
 
@@ -27,11 +31,14 @@ public class ModelViewer : MapEditorPanel
 
 	private bool _panelDragResize;
 
+	private Object3D _obj;
+
 	public ModelViewer() : base("Model Viewer")
 	{
 		_camera = new Camera3D(new Vector3(-290, 250, 260));
 		_camera.LookAtPoint(new Vector3(0, 0, 0));
 		_grid = new InfiniteGrid();
+		_obj = new Object3D();
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -72,39 +79,65 @@ public class ModelViewer : MapEditorPanel
 		butObj.Text = "Open .obj";
 		butObj.StretchY = true;
 		butObj.StretchX = false;
-		butObj.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<ObjMeshAsset>(asset => { }))); };
+		butObj.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<ObjMeshAsset>(asset => { SetEntity(asset.Entity); }))); };
 		editorButtons.AddChild(butObj);
 
 		var butEm3 = new MapEditorTopBarButton();
 		butEm3.Text = "Open .em3";
 		butEm3.StretchY = true;
 		butEm3.StretchX = false;
-		butEm3.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<EmotionMeshAsset>(asset => { }))); };
+		butEm3.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<EmotionMeshAsset>(asset => { SetEntity(asset.Entity); }))); };
 		editorButtons.AddChild(butEm3);
+
+#if ASSIMP
+
+		var butAssimp = new MapEditorTopBarButton();
+		butAssimp.Text = "Open via Assimp";
+		butAssimp.StretchY = true;
+		butAssimp.StretchX = false;
+		butAssimp.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<AssimpAsset>(asset => { SetEntity(asset.Entity); }))); };
+		editorButtons.AddChild(butAssimp);
+
+#endif
 
 		var butSprite = new MapEditorTopBarButton();
 		butSprite.Text = "Open Sprite Stack";
 		butSprite.StretchY = true;
 		butSprite.StretchX = false;
-		butSprite.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<SpriteStackTexture>(asset => { }))); };
+		butSprite.OnClickedProxy = _ =>
+		{
+			Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<SpriteStackTexture>(asset =>
+			{
+				//_obj.Entity = asset.GetSpriteStackEntity(Vector2.Zero);
+			})));
+		};
 		editorButtons.AddChild(butSprite);
 
-		var gridSizeEditor = new UIBaseWindow();
-		gridSizeEditor.LayoutMode = LayoutMode.HorizontalList;
-		gridSizeEditor.InputTransparent = false;
-		gridSizeEditor.StretchX = true;
-		gridSizeEditor.StretchY = true;
+		var gridSizeEdit = new PropEditorNumber<float>();
+		gridSizeEdit.SetValue(_grid.TileSize);
+		gridSizeEdit.SetCallbackValueChanged(newVal => { _grid.TileSize = (float) newVal; });
+		editorButtons.AddChild(new FieldEditorWithLabel("Grid Size: ", gridSizeEdit));
 
-		var gridSizeLabel = new MapEditorLabel("Grid Size:");
-		gridSizeLabel.Margins = new Rectangle(0, 0, 3, 0);
-		gridSizeEditor.AddChild(gridSizeLabel);
+		var posEditor = new PropEditorFloat3(false);
+		posEditor.SetValue(_obj.Position);
+		posEditor.SetCallbackValueChanged(newVal => { _obj.Position = (Vector3) newVal; });
+		editorButtons.AddChild(new FieldEditorWithLabel("Position: ", posEditor, LayoutMode.VerticalList));
 
-		var gridSize = new MapEditorNumber<float>();
-		gridSize.SetValue(_grid.TileSize);
-		gridSize.SetCallbackValueChanged(newVal => { _grid.TileSize = (float) newVal; });
-		gridSizeEditor.AddChild(gridSize);
+		var rotEditor = new PropEditorFloat3(false);
+		rotEditor.SetValue(_obj.RotationDeg);
+		rotEditor.SetCallbackValueChanged(newVal => { _obj.RotationDeg = (Vector3) newVal; });
+		editorButtons.AddChild(new FieldEditorWithLabel("Rotation: ", rotEditor, LayoutMode.VerticalList));
 
-		editorButtons.AddChild(gridSizeEditor);
+		var scaleEditor = new PropEditorFloat3(false);
+		scaleEditor.SetValue(_obj.Size);
+		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size = (Vector3) newVal; });
+		editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
+
+		var meshListProp = new EditorCheckboxList("Meshes");
+		meshListProp.Id = "MeshList";
+		scaleEditor.SetValue(_obj.Size);
+		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size = (Vector3) newVal; });
+		editorButtons.AddChild(meshListProp);
 
 		contentSplit.AddChild(editorButtons);
 		_contentParent.AddChild(contentSplit);
@@ -129,6 +162,18 @@ public class ModelViewer : MapEditorPanel
 		dragButton.ParentAnchor = UIAnchor.BottomRight;
 
 		AddChild(dragButton);
+	}
+
+	protected void SetEntity(MeshEntity? entity)
+	{
+		_obj.Entity = entity;
+
+		var meshList = (EditorCheckboxList?) GetWindowById("MeshList");
+		if (meshList != null)
+		{
+			meshList.SetItems(MeshVisibleCheckboxListItem.CreateItemsFromObject3D(_obj));
+			meshList.Text = entity == null ? "Meshes" : $"Meshes [{entity.Meshes.Length}]";
+		}
 	}
 
 	public override void DetachedFromController(UIController controller)
@@ -185,6 +230,8 @@ public class ModelViewer : MapEditorPanel
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
+
+		_obj.Render(c);
 
 		c.RenderTo(null);
 		c.SetState(oldState);
