@@ -1,233 +1,254 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
-using Emotion.Common;
+using System.Diagnostics;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Primitives;
 using OpenGL;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Game.ThreeDee
 {
-    public class Object3D : Transform3D, IRenderable
-    {
-        public MeshEntity Entity
-        {
-            get => _entity;
-            set
-            {
-                _entity = value;
-                _totalNumberOfBones = -1;
-                SetAnimation(null);
-            }
-        }
+	public class Object3D : Transform3D, IRenderable
+	{
+		public MeshEntity? Entity
+		{
+			get => _entity;
+			set
+			{
+				_entity = value;
+				_totalNumberOfBones = -1;
+				EntityMetaState = new MeshEntityMetaState(value);
+				SetAnimation(null); // Reset animation
+			}
+		}
 
-        private MeshEntity _entity;
+		private MeshEntity? _entity;
 
-        public string CurrentAnimation
-        {
-            get => _currentAnimation?.Name;
-        }
+		public MeshEntityMetaState? EntityMetaState { get; private set; }
 
-        private SkeletalAnimation _currentAnimation;
-        private float _time;
-        private int _totalNumberOfBones = -1;
-        private Matrix4x4[] _boneMatrices;
+		public string CurrentAnimation
+		{
+			get => _currentAnimation?.Name ?? "None";
+		}
 
-        public void SetAnimation(string name)
-        {
-            SkeletalAnimation animInstance = null;
-            if (Entity.Animations != null)
-            {
-                for (var i = 0; i < Entity.Animations.Length; i++)
-                {
-                    SkeletalAnimation anim = Entity.Animations[i];
-                    if (anim.Name == name) animInstance = anim;
-                }
-            }
-            _currentAnimation = animInstance;
-            _time = 0;
+		private SkeletalAnimation? _currentAnimation;
+		private float _time;
+		private int _totalNumberOfBones = -1;
+		private Matrix4x4[]? _boneMatrices;
 
-            // Cache some info.
-            if (_totalNumberOfBones == -1)
-            {
-                for (var i = 0; i < Entity.Meshes.Length; i++)
-                {
-                    Mesh mesh = Entity.Meshes[i];
-                    if (mesh.Bones != null) _totalNumberOfBones += mesh.Bones.Length;
-                }
+		public void SetAnimation(string? name)
+		{
+			if (_entity == null)
+			{
+				_currentAnimation = null;
+				_time = 0;
+				return;
+			}
 
-                _totalNumberOfBones++; // Zero index contains identity.
-                _totalNumberOfBones++; // Convert to zero indexed.
-                if (_boneMatrices == null)
-                    _boneMatrices = new Matrix4x4[_totalNumberOfBones];
-                else if (_totalNumberOfBones > _boneMatrices.Length) Array.Resize(ref _boneMatrices, _totalNumberOfBones);
+			SkeletalAnimation? animInstance = null;
+			if (_entity.Animations != null)
+				for (var i = 0; i < _entity.Animations.Length; i++)
+				{
+					SkeletalAnimation anim = _entity.Animations[i];
+					if (anim.Name == name) animInstance = anim;
+				}
 
-                // Must be the same equal or less than constant in the SkeletalAnim.vert
-                if (_totalNumberOfBones > 126) Engine.Log.Error($"Entity {Entity.Name} has more bones in all its meshes combined than allowed.", "3D");
-            }
+			_currentAnimation = animInstance;
+			_time = 0;
 
-            Matrix4x4 defaultMatrix = Matrix4x4.Identity;
-            if (Entity.AnimationRig != null) defaultMatrix = Entity.AnimationRig.LocalTransform;
-            for (var i = 0; i < _boneMatrices.Length; i++)
-            {
-                _boneMatrices[i] = defaultMatrix;
-            }
-        }
+			// Cache some info.
+			if (_totalNumberOfBones == -1)
+			{
+				for (var i = 0; i < _entity.Meshes.Length; i++)
+				{
+					Mesh mesh = _entity.Meshes[i];
+					if (mesh.Bones != null) _totalNumberOfBones += mesh.Bones.Length;
+				}
 
-        public virtual void Update(float dt)
-        {
-            _time += dt;
-            _currentAnimation?.ApplyBoneMatrices(Entity, _boneMatrices, _time % _currentAnimation.Duration);
-        }
+				_totalNumberOfBones++; // Zero index contains identity.
+				_totalNumberOfBones++; // Convert to zero indexed.
+				if (_boneMatrices == null)
+					_boneMatrices = new Matrix4x4[_totalNumberOfBones];
+				else if (_totalNumberOfBones > _boneMatrices.Length) Array.Resize(ref _boneMatrices, _totalNumberOfBones);
 
-        public void Render(RenderComposer c)
-        {
-            // Render using the render stream.
-            // todo: larger meshes should create their own data buffers.
-            // todo: culling state.
-            if (Entity?.Meshes == null) return;
+				// Must be the same equal or less than constant in the SkeletalAnim.vert
+				if (_totalNumberOfBones > 126) Engine.Log.Error($"Entity {_entity.Name} has more bones in all its meshes combined than allowed.", "3D");
+			}
 
-            c.FlushRenderStream();
+			Debug.Assert(_boneMatrices != null);
 
-            if (Entity.BackFaceCulling)
-            {
-	            Gl.Enable(EnableCap.CullFace); // todo: render stream state
-	            Gl.CullFace(CullFaceMode.Back);
-	            Gl.FrontFace(FrontFaceDirection.Ccw);
-            }
+			Matrix4x4 defaultMatrix = Matrix4x4.Identity;
+			if (_entity.AnimationRig != null) defaultMatrix = _entity.AnimationRig.LocalTransform;
+			for (var i = 0; i < _boneMatrices.Length; i++)
+			{
+				_boneMatrices[i] = defaultMatrix;
+			}
+		}
 
-            c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
+		public virtual void Update(float dt)
+		{
+			_time += dt;
+			_currentAnimation?.ApplyBoneMatrices(Entity, _boneMatrices, _time % _currentAnimation.Duration);
+		}
 
-            Mesh[] meshes = Entity.Meshes;
+		public void Render(RenderComposer c)
+		{
+			// Render using the render stream.
+			// todo: larger entities should create their own data buffers.
+			// todo: culling state.
+			// todo: better differentiation between animated and non-animated meshes.
+			if (_entity?.Meshes == null) return;
 
-            // Assume that if the first mesh is boned, all are.
-            if (meshes.Length > 0 && meshes[0].VerticesWithBones != null)
-                RenderBonesVerticesCompat(c, meshes);
-            else
-                RenderMesh(c, meshes);
+			c.FlushRenderStream();
 
-            c.PopModelMatrix();
+			if (_entity.BackFaceCulling)
+			{
+				Gl.Enable(EnableCap.CullFace); // todo: render stream state
+				Gl.CullFace(CullFaceMode.Back);
+				Gl.FrontFace(FrontFaceDirection.Ccw);
+			}
 
-            c.FlushRenderStream();
+			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 
-            if (Entity.BackFaceCulling)
-            {
-	            Gl.Disable(EnableCap.CullFace);
-            }
-        }
+			Mesh[] meshes = _entity.Meshes;
 
-        /// <summary>
-        /// Render the mesh using the default render stream.
-        /// </summary>
-        private void RenderMesh(RenderComposer c, Mesh[] meshes)
-        {
-            for (var i = 0; i < meshes.Length; i++)
-            {
-                Mesh obj = meshes[i];
-                obj.Render(c);
-            }
-        }
+			// Assume that if the first mesh is boned, all are.
+			if (meshes.Length > 0 && meshes[0].VerticesWithBones != null)
+				RenderAnimatedEntityMeshesAsStatic(c);
+			else
+				RenderEntityMeshes(c);
 
-        /// <summary>
-        /// Renders a mesh with bone vertices as a non-animated mesh. Allows the mesh to
-        /// be drawn using the default render stream.
-        /// </summary>
-        private void RenderBonesVerticesCompat(RenderComposer c, Mesh[] meshes)
-        {
-            for (var i = 0; i < meshes.Length; i++)
-            {
-                Mesh obj = meshes[i];
-                VertexDataWithBones[] vertData = obj.VerticesWithBones;
-                ushort[] indices = obj.Indices;
-                Texture texture = null;
-                if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+			c.PopModelMatrix();
 
-                // Copy the part of the vertices that dont contain bone data.
-                for (var j = 0; j < vertData.Length; j++)
-                {
-                    ref VertexDataWithBones vertSrc = ref vertData[j];
-                    ref VertexData vertDst = ref memory.VerticesData[j];
+			c.FlushRenderStream();
 
-                    vertDst.Vertex = vertSrc.Vertex;
-                    vertDst.UV = vertSrc.UV;
-                    vertDst.Color = Color.White.ToUint();
-                }
+			if (_entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
+		}
 
-                indices.CopyTo(memory.IndicesData);
+		/// <summary>
+		/// Render the mesh using the default render stream.
+		/// </summary>
+		private void RenderEntityMeshes(RenderComposer c)
+		{
+			Debug.Assert(_entity != null);
+			Debug.Assert(_entity.Meshes != null);
 
-                ushort structOffset = memory.StructIndex;
-                for (var j = 0; j < memory.IndicesData.Length; j++)
-                {
-                    memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
-                }
-            }
-        }
+			Mesh[] meshes = _entity.Meshes;
+			for (var i = 0; i < meshes.Length; i++)
+			{
+				if (EntityMetaState != null && !EntityMetaState.RenderMesh[i]) continue;
 
-        /// <summary>
-        /// Render the mesh animated.
-        /// The normal render stream cannot be used to do so, so one must be passed in.
-        /// Also requires the SkeletanAnim shader or one that supports skinned meshes.
-        /// </summary>
-        public void RenderAnimated(RenderComposer c, RenderStreamBatch<VertexDataWithBones> bonedStream)
-        {
-            if (Entity?.Meshes == null) return;
-            if (_boneMatrices == null) SetAnimation(null);
+				Mesh obj = meshes[i];
+				obj.Render(c);
+			}
+		}
 
-            c.FlushRenderStream();
+		/// <summary>
+		/// Renders a mesh with bone vertices as a non-animated mesh.
+		/// Allows animated mesh to be drawn using the default render stream (which is a non animated vertex format).
+		/// </summary>
+		private void RenderAnimatedEntityMeshesAsStatic(RenderComposer c)
+		{
+			Debug.Assert(_entity != null);
+			Debug.Assert(_entity.Meshes != null);
 
-            Gl.Enable(EnableCap.CullFace);
-            Gl.CullFace(CullFaceMode.Back);
-            Gl.FrontFace(FrontFaceDirection.Ccw);
+			Mesh[] meshes = _entity.Meshes;
+			for (var i = 0; i < meshes.Length; i++)
+			{
+				if (EntityMetaState != null && !EntityMetaState.RenderMesh[i]) continue;
 
-            c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
-            c.CurrentState.Shader.SetUniformMatrix4("finalBonesMatrices", _boneMatrices, _boneMatrices.Length);
+				Mesh obj = meshes[i];
+				Debug.Assert(obj.VerticesWithBones != null);
 
-            Mesh[] meshes = Entity.Meshes;
+				VertexDataWithBones[] vertData = obj.VerticesWithBones;
+				ushort[] indices = obj.Indices;
+				Texture? texture = null;
+				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
+				RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
-            for (var i = 0; i < meshes.Length; i++)
-            {
-                Mesh obj = meshes[i];
-                VertexDataWithBones[] vertData = obj.VerticesWithBones;
-                ushort[] indices = obj.Indices;
-                Texture texture = null;
-                if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-                RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+				// Copy the part of the vertices that dont contain bone data.
+				for (var j = 0; j < vertData.Length; j++)
+				{
+					ref VertexDataWithBones vertSrc = ref vertData[j];
+					ref VertexData vertDst = ref memory.VerticesData[j];
 
-                // Didn't manage to get enough memory.
-                if (memory.VerticesData.Length == 0) continue;
+					vertDst.Vertex = vertSrc.Vertex;
+					vertDst.UV = vertSrc.UV;
+					vertDst.Color = Color.White.ToUint();
+				}
 
-                vertData.CopyTo(memory.VerticesData);
-                indices.CopyTo(memory.IndicesData);
+				indices.CopyTo(memory.IndicesData);
 
-                ushort structOffset = memory.StructIndex;
-                for (var j = 0; j < memory.IndicesData.Length; j++)
-                {
-                    memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
-                }
-            }
+				ushort structOffset = memory.StructIndex;
+				for (var j = 0; j < memory.IndicesData.Length; j++)
+				{
+					memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
+				}
+			}
+		}
 
-            bonedStream.FlushRender();
-            c.PopModelMatrix();
-            Gl.Disable(EnableCap.CullFace);
-        }
+		/// <summary>
+		/// Render the mesh animated.
+		/// The normal render stream cannot be used to do so, so one must be passed in.
+		/// Also requires the SkeletanAnim shader or one that supports skinned meshes.
+		/// </summary>
+		public void RenderAnimated(RenderComposer c, RenderStreamBatch<VertexDataWithBones> bonedStream)
+		{
+			if (Entity?.Meshes == null) return;
+			if (_boneMatrices == null) SetAnimation(null);
 
-        public Matrix4x4 GetModelMatrix()
-        {
-	        return _scaleMatrix * _rotationMatrix * _translationMatrix;
-        }
+			c.FlushRenderStream();
 
-        public virtual void Dispose()
-        {
+			Gl.Enable(EnableCap.CullFace);
+			Gl.CullFace(CullFaceMode.Back);
+			Gl.FrontFace(FrontFaceDirection.Ccw);
 
-        }
-    }
+			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
+			c.CurrentState.Shader.SetUniformMatrix4("finalBonesMatrices", _boneMatrices, _boneMatrices.Length);
+
+			Mesh[] meshes = Entity.Meshes;
+
+			for (var i = 0; i < meshes.Length; i++)
+			{
+				Mesh obj = meshes[i];
+				VertexDataWithBones[] vertData = obj.VerticesWithBones;
+				ushort[] indices = obj.Indices;
+				Texture texture = null;
+				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
+				RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+
+				// Didn't manage to get enough memory.
+				if (memory.VerticesData.Length == 0) continue;
+
+				vertData.CopyTo(memory.VerticesData);
+				indices.CopyTo(memory.IndicesData);
+
+				ushort structOffset = memory.StructIndex;
+				for (var j = 0; j < memory.IndicesData.Length; j++)
+				{
+					memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
+				}
+			}
+
+			bonedStream.FlushRender();
+			c.PopModelMatrix();
+			Gl.Disable(EnableCap.CullFace);
+		}
+
+		public Matrix4x4 GetModelMatrix()
+		{
+			return _scaleMatrix * _rotationMatrix * _translationMatrix;
+		}
+
+		public virtual void Dispose()
+		{
+		}
+	}
 }
