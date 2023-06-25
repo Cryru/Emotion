@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
@@ -13,7 +14,7 @@ namespace Emotion.Editor.EditorHelpers;
 public class GenericPropertiesEditorPanel : MapEditorPanel
 {
 	protected List<EditorUtility.TypeAndFieldHandlers> _fields;
-	protected List<IMapEditorGeneric> _editorUIs;
+	protected List<IPropEditorGeneric> _editorUIs;
 
 	protected object _obj;
 
@@ -94,7 +95,7 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 			for (var j = 0; j < fieldGroup.Fields.Count; j++)
 			{
 				XMLFieldHandler field = fieldGroup.Fields[j];
-				IMapEditorGeneric? editor = AddEditorForField(field);
+				IPropEditorGeneric? editor = AddEditorForField(field);
 				if (editor != null)
 				{
 					editor.Field = field;
@@ -114,15 +115,15 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 		UpdatePropertyValues();
 	}
 
-	private IMapEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
-		if (field.TypeHandler.Type == typeof(Vector2)) return new MapEditorFloat2();
-		if (field.TypeHandler.Type == typeof(float)) return new MapEditorNumber<float>();
-		if (field.TypeHandler.Type == typeof(int)) return new MapEditorNumber<int>();
-		if (field.TypeHandler.Type == typeof(Vector3)) return new MapEditorFloat3();
-		if (field.TypeHandler.Type == typeof(string)) return new MapEditorString();
-		if (field.TypeHandler.Type == typeof(bool)) return new MapEditorBool();
-		if (field.TypeHandler.Type.IsEnum) return new MapEditorEnum(field.TypeHandler.Type);
+		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
+		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();
+		if (field.TypeHandler.Type == typeof(int)) return new PropEditorNumber<int>();
+		if (field.TypeHandler.Type == typeof(Vector3)) return new PropEditorFloat3();
+		if (field.TypeHandler.Type == typeof(string)) return new PropEditorString();
+		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
+		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type);
 
 		return null;
 	}
@@ -142,7 +143,7 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 	{
 		for (var i = 0; i < _editorUIs.Count; i++)
 		{
-			IMapEditorGeneric editor = _editorUIs[i];
+			IPropEditorGeneric editor = _editorUIs[i];
 
 			if (Controller?.InputFocus != null && editor is UIBaseWindow editorWindow && Controller.InputFocus.IsWithin(editorWindow)) continue;
 
