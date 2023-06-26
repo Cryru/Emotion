@@ -158,6 +158,8 @@ namespace Emotion.Utility
         /// <returns>The <see cref="string" /> contained in <paramref name="ptr" />.</returns>
         public static string StringFromPtr(IntPtr ptr)
         {
+            // todo: Marshal.PtrToStringUTF8
+
             if (ptr == IntPtr.Zero)
                 return null;
 
@@ -177,6 +179,8 @@ namespace Emotion.Utility
         /// <returns>A <see cref="IntPtr" /> to memory with the string copied.</returns>
         public static IntPtr StringToPtr(string text)
         {
+            // todo: Check Marshal.StringToHGlobalUni
+            
             int len = Encoding.UTF8.GetByteCount(text);
             var buffer = new byte[len + 1];
             Encoding.UTF8.GetBytes(text, 0, text.Length, buffer, 0);
@@ -191,6 +195,15 @@ namespace Emotion.Utility
         public static TDelegate GetFunctionByPtr<TDelegate>(IntPtr ptr)
         {
             return ptr == IntPtr.Zero ? default : Marshal.GetDelegateForFunctionPointer<TDelegate>(ptr);
+        }
+
+        public static unsafe void ZeroOutMemory(IntPtr ptr, int size)
+        {
+	        var b = new Span<byte>((void*) ptr, size);
+	        for (var i = 0; i < b.Length; i++)
+	        {
+		        b[i] = 0;
+	        }
         }
     }
 }
