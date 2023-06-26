@@ -21,32 +21,41 @@ namespace Emotion.Utility
             _memoryChunks.Add(memory);
         }
 
+        public override int Read(Span<byte> buffer)
+        {
+	        int count = buffer.Length;
+	        int offset = 0;
+
+	        long length = Length;
+	        if (Position + count > length) count = (int) (length - Position);
+	        if (count == 0) return 0;
+
+	        int writeOffset = offset;
+	        Span<byte> destSpan = buffer;
+	        var totalWritten = 0;
+
+	        while (totalWritten < count)
+	        {
+		        ReadOnlyMemory<byte> chunkAtPosition = GetBufferAtTotalPos(Position, out int bufferOffset);
+		        Debug.Assert(bufferOffset != -1);
+		        int bytesToWrite = Math.Min(chunkAtPosition.Length - bufferOffset, count - totalWritten);
+
+		        ReadOnlySpan<byte> src = chunkAtPosition.Span.Slice(bufferOffset, bytesToWrite);
+		        Span<byte> dst = destSpan.Slice(writeOffset);
+		        src.CopyTo(dst);
+
+		        writeOffset += bytesToWrite;
+		        totalWritten += bytesToWrite;
+		        Position += bytesToWrite;
+	        }
+
+	        return count;
+        }
+
         public override int Read(byte[] buffer, int offset, int count)
         {
-            long length = Length;
-            if (Position + count > length) count = (int) (length - Position);
-            if (count == 0) return 0;
-
-            int writeOffset = offset;
-            Span<byte> destSpan = buffer;
-            var totalWritten = 0;
-
-            while (totalWritten < count)
-            {
-                ReadOnlyMemory<byte> chunkAtPosition = GetBufferAtTotalPos(Position, out int bufferOffset);
-                Debug.Assert(bufferOffset != -1);
-                int bytesToWrite = Math.Min(chunkAtPosition.Length - bufferOffset, count - totalWritten);
-
-                ReadOnlySpan<byte> src = chunkAtPosition.Span.Slice(bufferOffset, bytesToWrite);
-                Span<byte> dst = destSpan.Slice(writeOffset);
-                src.CopyTo(dst);
-
-                writeOffset += bytesToWrite;
-                totalWritten += bytesToWrite;
-                Position += bytesToWrite;
-            }
-
-            return count;
+	        var bufferSpan = new Span<byte>(buffer, offset, count);
+	        return Read(bufferSpan);
         }
 
         private ReadOnlyMemory<byte> GetBufferAtTotalPos(long pos, out int bufferOffset)
