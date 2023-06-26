@@ -76,29 +76,11 @@ public class ModelViewer : MapEditorPanel
 		editorButtons.Paddings = new Rectangle(2, 0, 2, 0);
 
 		var butObj = new MapEditorTopBarButton();
-		butObj.Text = "Open .obj";
+		butObj.Text = "Open MeshAsset";
 		butObj.StretchY = true;
 		butObj.StretchX = false;
-		butObj.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<ObjMeshAsset>(asset => { SetEntity(asset.Entity); }))); };
+		butObj.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); }))); };
 		editorButtons.AddChild(butObj);
-
-		var butEm3 = new MapEditorTopBarButton();
-		butEm3.Text = "Open .em3";
-		butEm3.StretchY = true;
-		butEm3.StretchX = false;
-		butEm3.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<EmotionMeshAsset>(asset => { SetEntity(asset.Entity); }))); };
-		editorButtons.AddChild(butEm3);
-
-#if ASSIMP
-
-		var butAssimp = new MapEditorTopBarButton();
-		butAssimp.Text = "Open via Assimp";
-		butAssimp.StretchY = true;
-		butAssimp.StretchX = false;
-		butAssimp.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<AssimpAsset>(asset => { SetEntity(asset.Entity); }))); };
-		editorButtons.AddChild(butAssimp);
-
-#endif
 
 		var butSprite = new MapEditorTopBarButton();
 		butSprite.Text = "Open Sprite Stack";

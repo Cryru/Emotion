@@ -23,69 +23,128 @@ namespace Emotion.IO.Assimp
 	/// </summary>
 	public class AssimpAsset : Asset
 	{
-		private static AssContext _assContext;
+		public MeshEntity? Entity { get; protected set; }
 
-		public MeshEntity Entity;
-
-		private Scene _scene;
-
-		// Data to construct entity.
-		private List<Mesh> _meshes;
-		private Dictionary<string, int> _boneToIndex;
-		private List<MeshMaterial> _materials;
-		private List<SkeletalAnimation> _animations;
+		private static AssContext _assContext = AssContext.GetApi();
+		private ReadOnlyMemory<byte> _thisData;
 
 		protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
 		{
 			PostProcessSteps postProcFlags = PostProcessSteps.Triangulate |
+			                                 PostProcessSteps.JoinIdenticalVertices |
 			                                 PostProcessSteps.FlipUVs |
+			                                 PostProcessSteps.SortByPrimitiveType |
 			                                 PostProcessSteps.OptimizeGraph |
 			                                 PostProcessSteps.OptimizeMeshes;
+			_thisData = data;
 
-			_assContext = AssContext.GetApi();
+			// Initialize virtual file system.
+			var thisStream = new AssimpStream("this");
+			thisStream.AddMemory(_thisData);
+			_loadedFiles.Add(thisStream);
 
-			ReadOnlySpan<byte> dataSpan = data.Span;
-			Scene* scene = _assContext.ImportFileFromMemory(dataSpan, (uint) data.Length, (uint) postProcFlags, ReadOnlySpan<byte>.Empty);
+			//_assContext.EnableVerboseLogging(1);
+			//_assContext.AttachLogStream(_assContext.GetPredefinedLogStream(DefaultLogStream.Stdout, ""));
 
+			var customIO = new FileIO
+			{
+				OpenProc = PfnFileOpenProc.From(OpenFileCallback),
+				CloseProc = PfnFileCloseProc.From(CloseFileCallback)
+			};
+			Scene* scene = _assContext.ImportFileEx("this", (uint) postProcFlags, ref customIO);
+			if ((IntPtr) scene == IntPtr.Zero)
+			{
+				Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
+				return;
+			}
 
-			//if (Name.Contains("gltf"))
-			//{
-			//	_assContext.SetIOSystem(new AssimpAssetIOSystem());
-			//	scene = _assContext.ImportFile(Name, postProcFlags);
-			//}
-			//else
-			//{
-			//	var str = new ReadOnlyLinkedMemoryStream();
-			//	str.AddMemory(data);
-			//	_assContext.SetIOSystem(null);
-			//	scene = _assContext.ImportFileFromStream(str, postProcFlags);
-			//}
-			//_scene = scene;
+			// Process materials, animations, and meshes.
+			var materials = new List<MeshMaterial>();
+			ProcessMaterials(scene, materials);
 
+			var animations = new List<SkeletalAnimation>();
+			ProcessAnimations(scene, animations);
 
-			_materials = new List<MeshMaterial>();
-			ProcessMaterials(scene, _materials);
-
-			_animations = new List<SkeletalAnimation>();
-			ProcessAnimations(scene, _animations);
-
-			_meshes = new List<Mesh>();
+			var meshes = new List<Mesh>();
 
 			Node* rootNode = scene->MRootNode;
-			SkeletonAnimRigNode? animRigRoot = ProcessNode(scene, rootNode, _meshes);
-			animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(-90 * Maths.DEG2_RAD); // Convert to right handed Z is up.
+			SkeletonAnimRigNode? animRigRoot = ProcessNode(scene, rootNode, meshes, materials);
+
+			// Convert to right handed Z is up.
+			if (animRigRoot != null)
+				animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
 			Entity = new MeshEntity
 			{
 				Name = Name,
-				Meshes = _meshes.ToArray(),
-				Animations = _animations.ToArray(),
+				Meshes = meshes.ToArray(),
+				Animations = animations.ToArray(),
 				AnimationRig = animRigRoot
 			};
 
+			// Properties
 			float scaleF = GetNodeMetadataFloat(rootNode, "UnitScaleFactor") ?? 1f;
 			Entity.Scale = scaleF;
+
+			// Clear virtual file system
+			for (var i = 0; i < _loadedFiles.Count; i++)
+			{
+				AssimpStream file = _loadedFiles[i];
+				file.Dispose();
+			}
+
+			_loadedFiles.Clear();
+			_thisData = null;
 		}
+
+		#region IO
+
+		private List<AssimpStream> _loadedFiles = new();
+
+		private unsafe File* OpenFileCallback(FileIO* arg0, byte* arg1, byte* arg2)
+		{
+			string readMode = NativeHelpers.StringFromPtr((IntPtr) arg2);
+			if (readMode != "rb")
+			{
+				Engine.Log.Error("Only read-binary file mode is supported.", "Assimp");
+				return null;
+			}
+
+			string fileName = NativeHelpers.StringFromPtr((IntPtr) arg1);
+			for (var i = 0; i < _loadedFiles.Count; i++)
+			{
+				AssimpStream alreadyOpenFile = _loadedFiles[i];
+				if (alreadyOpenFile.Name == fileName) return (File*) alreadyOpenFile.Memory;
+			}
+
+			string assetPath = AssetLoader.GetDirectoryName(Name);
+			fileName = AssetLoader.GetNonRelativePath(assetPath, fileName);
+			var byteAsset = Engine.AssetLoader.Get<OtherAsset>(fileName, false);
+			if (byteAsset == null) return null;
+
+			var assimpStream = new AssimpStream(fileName);
+			assimpStream.AddMemory(byteAsset.Content);
+			_loadedFiles.Add(assimpStream);
+			return (File*) assimpStream.Memory;
+		}
+
+		private unsafe void CloseFileCallback(FileIO* arg0, File* arg1)
+		{
+			var filePtr = (IntPtr) arg1;
+			for (var i = 0; i < _loadedFiles.Count; i++)
+			{
+				AssimpStream file = _loadedFiles[i];
+				if (file.Memory == filePtr)
+				{
+					file.Position = 0;
+					//file.Dispose();
+					//_loadedFiles.RemoveAt(i);
+					return;
+				}
+			}
+		}
+
+		#endregion
 
 		#region Materials
 
@@ -266,14 +325,9 @@ namespace Emotion.IO.Assimp
 		private Matrix4x4 AssMatrixToEmoMatrix(Matrix4x4 assMat)
 		{
 			return Matrix4x4.Transpose(assMat);
-			//return new Matrix4x4(
-			//	assMat.A1, assMat.B1, assMat.C1, assMat.D1,
-			//	assMat.A2, assMat.B2, assMat.C2, assMat.D2,
-			//	assMat.A3, assMat.B3, assMat.C3, assMat.D3,
-			//	assMat.A4, assMat.B4, assMat.C4, assMat.D4);
 		}
 
-		protected unsafe SkeletonAnimRigNode? ProcessNode(Scene* scene, Node* n, List<Mesh> list)
+		protected unsafe SkeletonAnimRigNode? ProcessNode(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials)
 		{
 			if ((IntPtr) n == IntPtr.Zero) return null;
 
@@ -288,28 +342,27 @@ namespace Emotion.IO.Assimp
 			{
 				uint meshIdx = n->MMeshes[i];
 				AssMesh* mesh = scene->MMeshes[meshIdx];
-				Mesh emotionMesh = ProcessMesh(mesh);
+				Mesh emotionMesh = ProcessMesh(mesh, materials);
 				list.Add(emotionMesh);
 			}
 
 			for (var i = 0; i < n->MNumChildren; i++)
 			{
 				Node* child = n->MChildren[i];
-				SkeletonAnimRigNode? childRigNode = ProcessNode(scene, child, list);
+				SkeletonAnimRigNode? childRigNode = ProcessNode(scene, child, list, materials);
 				myRigNode.Children[i] = childRigNode;
 			}
 
 			return myRigNode;
 		}
 
-		protected unsafe Mesh ProcessMesh(AssMesh* m)
+		protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials)
 		{
 			var newMesh = new Mesh
 			{
 				Name = m->MName.AsString,
-				Material = _materials[(int) m->MMaterialIndex]
+				Material = materials[(int) m->MMaterialIndex]
 			};
-			_meshes.Add(newMesh);
 
 			// Collect indices
 			uint indicesCount = 0;
@@ -333,6 +386,7 @@ namespace Emotion.IO.Assimp
 					emoIdx++;
 				}
 			}
+
 			newMesh.Indices = emotionIndices;
 
 			// Copy vertices (todo: separate path for boneless)
