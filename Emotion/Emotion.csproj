@@ -147,7 +147,7 @@
     <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
   </ItemGroup> 
   <ItemGroup Condition="!$(DefineConstants.Contains('ASSIMP'))">
-    <Compile Remove="IO\Assimp\**\*.cs" />
+    <Compile Remove="IO\MeshAssetTypes\Assimp\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.frag">

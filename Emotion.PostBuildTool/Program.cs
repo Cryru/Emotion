@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Emotion.Common;
 using Emotion.IO;
+using Emotion.IO.MeshAssetTypes;
 using Emotion.Utility;
 
 #endregion

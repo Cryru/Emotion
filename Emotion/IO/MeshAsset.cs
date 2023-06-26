@@ -1,8 +1,9 @@
 ﻿#region Using
 
 using Emotion.Graphics.ThreeDee;
+using Emotion.IO.MeshAssetTypes;
 #if ASSIMP
-using Emotion.IO.Assimp;
+using Emotion.IO.MeshAssetTypes.Assimp;
 #endif
 
 #endregion

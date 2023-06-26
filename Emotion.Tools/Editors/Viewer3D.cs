@@ -11,6 +11,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.IO.MeshAssetTypes;
 using Emotion.Primitives;
 using Emotion.Tools.DevUI;
 using Emotion.Tools.Windows.HelpWindows;

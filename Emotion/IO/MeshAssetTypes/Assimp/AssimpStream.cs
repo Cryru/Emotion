@@ -10,7 +10,7 @@ using File = Silk.NET.Assimp.File;
 
 #endregion
 
-namespace Emotion.IO.Assimp;
+namespace Emotion.IO.MeshAssetTypes.Assimp;
 
 public sealed class AssimpStream : ReadOnlyLinkedMemoryStream
 {

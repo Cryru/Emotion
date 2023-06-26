@@ -1,17 +1,17 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Emotion.Common;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.IO.MeshAssetTypes
 {
+    /// <summary>
+    /// Represents a material referenced by an obj file.
+    /// </summary>
     public class MtlAsset : Asset
     {
         public List<MeshMaterial> Materials;

@@ -15,7 +15,7 @@ using Texture = Emotion.Graphics.Objects.Texture;
 
 #nullable enable
 
-namespace Emotion.IO.Assimp
+namespace Emotion.IO.MeshAssetTypes.Assimp
 {
 	/// <summary>
 	/// A 3D entity loaded using Assimp. Note that this isn't optimized and is to be used in development builds only.

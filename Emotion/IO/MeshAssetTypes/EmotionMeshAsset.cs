@@ -1,25 +1,24 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Numerics;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Primitives;
 using Emotion.Utility;
 using OpenGL;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.IO.MeshAssetTypes
 {
     /// <summary>
-    /// EM3 file containing a MeshEntity
+    /// An asset containing a MeshEntity serialized in binary format.
+    /// This file can contain meshes, animations, textures, and materials that
+    /// together make up a 3D model. The file extension is .em3 and the format is
+    /// Emotion engine specific.
     /// </summary>
     public class EmotionMeshAsset : Asset
     {

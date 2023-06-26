@@ -11,7 +11,6 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
-using Emotion.IO.Assimp;
 using Emotion.Platform.Input;
 using Emotion.UI;
 
