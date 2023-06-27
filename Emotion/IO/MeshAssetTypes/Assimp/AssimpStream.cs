@@ -30,7 +30,7 @@ public sealed class AssimpStream : ReadOnlyLinkedMemoryStream
 			TellProc = PfnFileTellProc.From(GetFilePointer),
 			FlushProc = PfnFileFlushProc.From(FileFlushProc)
 		};
-		Marshal.StructureToPtr(file, Memory, false);
+		Marshal.StructureToPtr(file, Memory, true);
 	}
 
 	private unsafe nuint GetFileSize(File* _)
@@ -38,10 +38,15 @@ public sealed class AssimpStream : ReadOnlyLinkedMemoryStream
 		return (nuint) (int) Length;
 	}
 
-	private unsafe nuint ReadFileData(File* _, byte* arg1, nuint arg2, nuint arg3)
+	private unsafe nuint ReadFileData(File* _, byte* data, nuint elementSize, nuint elementCount)
 	{
-		var dest = new Span<byte>(arg1, (int) (arg2 * arg3));
-		return (nuint) Read(dest);
+		var bytesLeft = (int) (Length - Position);
+		int elementsCanRead = bytesLeft / (int) elementSize;
+		elementsCanRead = Math.Min(elementsCanRead, (int) elementCount);
+		var dest = new Span<byte>(data, (int) elementSize * elementsCanRead);
+		int bytesRead = Read(dest);
+		Debug.Assert(bytesRead == dest.Length);
+		return (nuint) elementsCanRead;
 	}
 
 	private unsafe Return FileSeek(File* arg0, nuint arg1, Origin arg2)
