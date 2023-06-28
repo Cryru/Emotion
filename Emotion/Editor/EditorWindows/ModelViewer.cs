@@ -7,12 +7,15 @@ using Emotion.Editor.PropertyEditors;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -32,12 +35,22 @@ public class ModelViewer : MapEditorPanel
 
 	private Object3D _obj;
 
+	private static RenderStreamBatch<VertexDataWithBones>? _boneVerticesStream;
+
 	public ModelViewer() : base("Model Viewer")
 	{
 		_camera = new Camera3D(new Vector3(-290, 250, 260));
 		_camera.LookAtPoint(new Vector3(0, 0, 0));
 		_grid = new InfiniteGrid();
 		_obj = new Object3D();
+	}
+
+	protected override async Task LoadContent()
+	{
+		if (_boneVerticesStream == null)
+			GLThread.ExecuteGLThreadAsync(() => { _boneVerticesStream = new RenderStreamBatch<VertexDataWithBones>(0, 1, false); });
+
+		await base.LoadContent();
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -212,9 +225,18 @@ public class ModelViewer : MapEditorPanel
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
 
-		_obj.Render(c);
+		if (_obj.Entity?.AnimationRig != null && _boneVerticesStream != null)
+		{
+			_obj.RenderAnimated(c, _boneVerticesStream);
+		}
+		else
+		{
+			_obj.Render(c);
+		}
 
 		c.RenderTo(null);
+		_boneVerticesStream?.DoTasks(c);
+
 		c.SetState(oldState);
 		c.Camera = oldCamera;
 

@@ -140,9 +140,9 @@ namespace Emotion.Primitives
 
 		public Transform3D()
 		{
-			_sizeX = 100;
-			_sizeY = 100;
-			_height = 100;
+			_sizeX = 1;
+			_sizeY = 1;
+			_height = 1;
 			Resized();
 			Moved();
 			Rotated();

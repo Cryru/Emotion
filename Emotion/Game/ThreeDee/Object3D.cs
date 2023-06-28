@@ -7,6 +7,7 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
+using Emotion.IO;
 using OpenGL;
 
 #endregion
@@ -42,6 +43,8 @@ namespace Emotion.Game.ThreeDee
 		private float _time;
 		private int _totalNumberOfBones = -1;
 		private Matrix4x4[]? _boneMatrices;
+
+		private static ShaderAsset? _skeletalShader;
 
 		public void SetAnimation(string? name)
 		{
@@ -79,7 +82,9 @@ namespace Emotion.Game.ThreeDee
 				else if (_totalNumberOfBones > _boneMatrices.Length) Array.Resize(ref _boneMatrices, _totalNumberOfBones);
 
 				// Must be the same equal or less than constant in the SkeletalAnim.vert
-				if (_totalNumberOfBones > 126) Engine.Log.Error($"Entity {_entity.Name} has more bones in all its meshes combined than allowed.", "3D");
+				// todo: make engine variable that is overwritten in shader.
+				// todo: make into ubo
+				if (_totalNumberOfBones > 126) Engine.Log.Error($"Entity {_entity.Name} has more bones ({_totalNumberOfBones} > 126) in all its meshes combined than allowed.", "3D");
 			}
 
 			Debug.Assert(_boneMatrices != null);
@@ -141,9 +146,11 @@ namespace Emotion.Game.ThreeDee
 			Debug.Assert(_entity.Meshes != null);
 
 			Mesh[] meshes = _entity.Meshes;
+			MeshEntityMetaState? metaState = EntityMetaState;
+
 			for (var i = 0; i < meshes.Length; i++)
 			{
-				if (EntityMetaState != null && !EntityMetaState.RenderMesh[i]) continue;
+				if (metaState != null && !metaState.RenderMesh[i]) continue;
 
 				Mesh obj = meshes[i];
 				obj.Render(c);
@@ -160,9 +167,11 @@ namespace Emotion.Game.ThreeDee
 			Debug.Assert(_entity.Meshes != null);
 
 			Mesh[] meshes = _entity.Meshes;
+			MeshEntityMetaState? metaState = EntityMetaState;
+
 			for (var i = 0; i < meshes.Length; i++)
 			{
-				if (EntityMetaState != null && !EntityMetaState.RenderMesh[i]) continue;
+				if (metaState != null && !metaState.RenderMesh[i]) continue;
 
 				Mesh obj = meshes[i];
 				Debug.Assert(obj.VerticesWithBones != null);
@@ -194,15 +203,23 @@ namespace Emotion.Game.ThreeDee
 			}
 		}
 
+
 		/// <summary>
 		/// Render the mesh animated.
 		/// The normal render stream cannot be used to do so, so one must be passed in.
-		/// Also requires the SkeletanAnim shader or one that supports skinned meshes.
+		/// Also requires the SkeletalAnim shader or one that supports skinned meshes.
 		/// </summary>
 		public void RenderAnimated(RenderComposer c, RenderStreamBatch<VertexDataWithBones> bonedStream)
 		{
-			if (Entity?.Meshes == null) return;
+			_skeletalShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/SkeletalAnim.xml");
+			if (_skeletalShader == null) return;
+
+			Mesh[]? meshes = Entity?.Meshes;
+			MeshEntityMetaState? metaState = EntityMetaState;
+
+			if (meshes == null) return;
 			if (_boneMatrices == null) SetAnimation(null);
+			Debug.Assert(_boneMatrices != null);
 
 			c.FlushRenderStream();
 
@@ -211,16 +228,18 @@ namespace Emotion.Game.ThreeDee
 			Gl.FrontFace(FrontFaceDirection.Ccw);
 
 			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
+			c.SetShader(_skeletalShader.Shader);
 			c.CurrentState.Shader.SetUniformMatrix4("finalBonesMatrices", _boneMatrices, _boneMatrices.Length);
-
-			Mesh[] meshes = Entity.Meshes;
 
 			for (var i = 0; i < meshes.Length; i++)
 			{
 				Mesh obj = meshes[i];
+				if (metaState != null && !metaState.RenderMesh[i]) continue;
+
+				Debug.Assert(obj.VerticesWithBones != null);
 				VertexDataWithBones[] vertData = obj.VerticesWithBones;
 				ushort[] indices = obj.Indices;
-				Texture texture = null;
+				Texture? texture = null;
 				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
 				RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
@@ -237,7 +256,8 @@ namespace Emotion.Game.ThreeDee
 				}
 			}
 
-			bonedStream.FlushRender();
+			if (bonedStream.AnythingMapped) bonedStream.FlushRender();
+			c.SetShader();
 			c.PopModelMatrix();
 			Gl.Disable(EnableCap.CullFace);
 		}

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.IO;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
@@ -8,8 +9,10 @@ using Silk.NET.Assimp;
 using AssContext = Silk.NET.Assimp.Assimp;
 using AssTexture = Silk.NET.Assimp.Texture;
 using AssMesh = Silk.NET.Assimp.Mesh;
+using File = Silk.NET.Assimp.File;
 using Mesh = Emotion.Graphics.ThreeDee.Mesh;
 using Texture = Emotion.Graphics.Objects.Texture;
+using Emotion.Common.Threading;
 
 #endregion
 
@@ -28,14 +31,15 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 		private static AssContext _assContext = AssContext.GetApi();
 		private ReadOnlyMemory<byte> _thisData;
 
+		private PostProcessSteps _postProcFlags = PostProcessSteps.Triangulate |
+		                                          PostProcessSteps.JoinIdenticalVertices |
+		                                          PostProcessSteps.FlipUVs |
+		                                          PostProcessSteps.SortByPrimitiveType |
+		                                          PostProcessSteps.OptimizeGraph |
+		                                          PostProcessSteps.OptimizeMeshes;
+
 		protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
 		{
-			PostProcessSteps postProcFlags = PostProcessSteps.Triangulate |
-			                                 PostProcessSteps.JoinIdenticalVertices |
-			                                 PostProcessSteps.FlipUVs |
-			                                 PostProcessSteps.SortByPrimitiveType |
-			                                 PostProcessSteps.OptimizeGraph |
-			                                 PostProcessSteps.OptimizeMeshes;
 			_thisData = data;
 
 			// Initialize virtual file system.
@@ -51,7 +55,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				OpenProc = PfnFileOpenProc.From(OpenFileCallback),
 				CloseProc = PfnFileCloseProc.From(CloseFileCallback)
 			};
-			Scene* scene = _assContext.ImportFileEx("this", (uint) postProcFlags, ref customIO);
+			Scene* scene = _assContext.ImportFileEx("this", (uint) _postProcFlags, ref customIO);
 			if ((IntPtr) scene == IntPtr.Zero)
 			{
 				Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
@@ -71,7 +75,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			SkeletonAnimRigNode? animRigRoot = ProcessNode(scene, rootNode, meshes, materials);
 
 			// Convert to right handed Z is up.
-			if (animRigRoot != null)
+			if (animRigRoot != null && Name.Contains(".gltf"))
 				animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
 			Entity = new MeshEntity
@@ -83,7 +87,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			};
 
 			// Properties
-			float scaleF = GetNodeMetadataFloat(rootNode, "UnitScaleFactor") ?? 1f;
+			float scaleF = GetNodeMetadataFloat(rootNode, "UnitScaleFactor") ?? 100f;
 			Entity.Scale = scaleF;
 
 			// Clear virtual file system
@@ -130,6 +134,10 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		private unsafe void CloseFileCallback(FileIO* arg0, File* arg1)
 		{
+			// When Assimp wants to close a file we'll keep it loaded
+			// but reset its position instead as it can be requested again and
+			// we want to reduce IO. At the end of the asset parsing all loaded
+			// files will be properly unloaded.
 			var filePtr = (IntPtr) arg1;
 			for (var i = 0; i < _loadedFiles.Count; i++)
 			{
@@ -137,8 +145,6 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				if (file.Memory == filePtr)
 				{
 					file.Position = 0;
-					//file.Dispose();
-					//_loadedFiles.RemoveAt(i);
 					return;
 				}
 			}
@@ -155,13 +161,29 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			{
 				AssTexture* assTexture = scene->MTextures[i];
 
-				// Texture data is always ARGB8888
-				var dataAsByte = new ReadOnlySpan<byte>(assTexture->PcData, (int) (assTexture->MWidth * assTexture->MHeight * 4));
-				byte[] copy = dataAsByte.ToArray();
+				if (assTexture->MHeight == 0) // compressed
+				{
+					// Data in embedded png
+					var dataAsByte = new ReadOnlySpan<byte>(assTexture->PcData, (int) assTexture->MWidth);
+					byte[] dataManaged = dataAsByte.ToArray();
+					var embeddedTexture = new TextureAsset();
+					embeddedTexture.Create(dataManaged);
+					embeddedTextures.Add(embeddedTexture.Texture);
+				}
+				else
+				{
+					// Texture data is ARGB8888
+					var dataAsByte = new ReadOnlySpan<byte>(assTexture->PcData, (int) (assTexture->MWidth * assTexture->MHeight * 4));
 
-				var embeddedTexture = new TextureAsset();
-				embeddedTexture.Create(copy);
-				embeddedTextures.Add(embeddedTexture.Texture);
+					byte[] dataManaged = dataAsByte.ToArray();
+					Texture? embeddedTexture = Texture.NonGLThreadInitialize(new Vector2(assTexture->MWidth, assTexture->MHeight));
+					GLThread.ExecuteGLThreadAsync(() =>
+					{
+						Texture.NonGLThreadInitializedCreatePointer(embeddedTexture);
+						embeddedTexture.Upload(embeddedTexture.Size, dataManaged);
+					});
+					embeddedTextures.Add(embeddedTexture);
+				}
 			}
 
 			for (var i = 0; i < scene->MNumMaterials; i++)
@@ -247,7 +269,6 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				(uint*) 0, (float*) 0, (TextureOp*) 0, (TextureMapMode*) 0, (uint*) 0);
 			if (result == Return.Success)
 			{
-				idx++;
 				texturePath = path.AsString;
 				return true;
 			}
@@ -263,58 +284,55 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 		{
 			for (var i = 0; i < scene->MNumAnimations; i++)
 			{
-				Animation* animation = scene->MAnimations[i];
+				Animation* anim = scene->MAnimations[i];
 
-				//Animation anim = s.Animations[i];
-				//var channels = new SkeletonAnimChannel[anim.NodeAnimationChannelCount];
-				//var emotionAnim = new SkeletalAnimation
-				//{
-				//	Name = anim.Name,
-				//	Duration = anim.DurationInTicks * anim.TicksPerSecond * 1000,
-				//	AnimChannels = channels
-				//};
+				var channels = new SkeletonAnimChannel[anim->MNumChannels];
+				var emotionAnim = new SkeletalAnimation
+				{
+					Name = anim->MName.AsString,
+					Duration = (int) (anim->MDuration * anim->MTicksPerSecond * 1000),
+					AnimChannels = channels
+				};
+				list.Add(emotionAnim);
 
-				//List<NodeAnimationChannel> boneChannels = anim.NodeAnimationChannels;
-				//for (var j = 0; j < boneChannels.Count; j++)
-				//{
-				//	NodeAnimationChannel chan = boneChannels[j];
+				for (var j = 0; j < channels.Length; j++)
+				{
+					NodeAnim* channel = anim->MChannels[j];
 
-				//	var bone = new SkeletonAnimChannel
-				//	{
-				//		Name = chan.NodeName,
-				//		Positions = new MeshAnimBoneTranslation[chan.PositionKeyCount],
-				//		Rotations = new MeshAnimBoneRotation[chan.RotationKeyCount],
-				//		Scales = new MeshAnimBoneScale[chan.ScalingKeyCount]
-				//	};
+					var bone = new SkeletonAnimChannel
+					{
+						Name = channel->MNodeName.AsString,
+						Positions = new MeshAnimBoneTranslation[channel->MNumPositionKeys],
+						Rotations = new MeshAnimBoneRotation[channel->MNumRotationKeys],
+						Scales = new MeshAnimBoneScale[channel->MNumScalingKeys]
+					};
 
-				//	for (var k = 0; k < chan.PositionKeys.Count; k++)
-				//	{
-				//		VectorKey val = chan.PositionKeys[k];
-				//		ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
-				//		translation.Position = new Vector3(val.Value.X, val.Value.Y, val.Value.Z);
-				//		translation.Timestamp = val.Time * anim.TicksPerSecond * 1000;
-				//	}
+					for (var k = 0; k < channel->MNumPositionKeys; k++)
+					{
+						VectorKey val = channel->MPositionKeys[k];
+						ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
+						translation.Position = val.MValue;
+						translation.Timestamp = (int) (val.MTime * anim->MTicksPerSecond * 1000);
+					}
 
-				//	for (var k = 0; k < chan.RotationKeys.Count; k++)
-				//	{
-				//		QuaternionKey val = chan.RotationKeys[k];
-				//		ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
-				//		rotation.Rotation = new Quaternion(val.Value.X, val.Value.Y, val.Value.Z, val.Value.W);
-				//		rotation.Timestamp = val.Time * anim.TicksPerSecond * 1000;
-				//	}
+					for (var k = 0; k < channel->MNumRotationKeys; k++)
+					{
+						QuatKey val = channel->MRotationKeys[k];
+						ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
+						rotation.Rotation = val.MValue.AsQuaternion;
+						rotation.Timestamp = (int) (val.MTime * anim->MTicksPerSecond * 1000);
+					}
 
-				//	for (var k = 0; k < chan.ScalingKeys.Count; k++)
-				//	{
-				//		VectorKey val = chan.ScalingKeys[k];
-				//		ref MeshAnimBoneScale scale = ref bone.Scales[k];
-				//		scale.Scale = new Vector3(val.Value.X, val.Value.Y, val.Value.Z);
-				//		scale.Timestamp = val.Time * anim.TicksPerSecond * 1000;
-				//	}
+					for (var k = 0; k < channel->MNumScalingKeys; k++)
+					{
+						VectorKey val = channel->MScalingKeys[k];
+						ref MeshAnimBoneScale scale = ref bone.Scales[k];
+						scale.Scale = val.MValue;
+						scale.Timestamp = (int) (val.MTime * anim->MTicksPerSecond * 1000);
+					}
 
-				//	channels[j] = bone;
-				//}
-
-				//_animations.Add(emotionAnim);
+					channels[j] = bone;
+				}
 			}
 		}
 
@@ -368,7 +386,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			uint indicesCount = 0;
 			for (var i = 0; i < m->MNumFaces; i++)
 			{
-				Face face = m->MFaces[i];
+				ref Face face = ref m->MFaces[i];
 				indicesCount += face.MNumIndices;
 			}
 
@@ -377,7 +395,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			var emoIdx = 0;
 			for (var p = 0; p < m->MNumFaces; p++)
 			{
-				Face face = m->MFaces[p];
+				ref Face face = ref m->MFaces[p];
 				if ((IntPtr) face.MIndices == IntPtr.Zero) continue;
 
 				for (var j = 0; j < face.MNumIndices; j++)
@@ -394,7 +412,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			for (var i = 0; i < m->MNumVertices; i++)
 			{
 				// todo: check if uvs exist, vert colors, normals
-				Vector3 assVertex = m->MVertices[i];
+				ref Vector3 assVertex = ref m->MVertices[i];
 
 				var uv = new Vector2(0, 0);
 				if ((IntPtr) m->MNumUVComponents != IntPtr.Zero && m->MNumUVComponents[0] >= 2)
@@ -416,63 +434,70 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			newMesh.VerticesWithBones = vertices;
 
 			if (m->MNumBones == 0) return newMesh;
+
+			var boneToIndex = new Dictionary<string, int>();
+			var bones = new MeshBone[m->MNumBones];
+			newMesh.Bones = bones;
+
+			for (var i = 0; i < m->MNumBones; i++)
+			{
+				Bone* bone = m->MBones[i];
+				var emBone = new MeshBone
+				{
+					Name = bone->MName.AsString,
+					OffsetMatrix = AssMatrixToEmoMatrix(bone->MOffsetMatrix)
+				};
+				bones[i] = emBone;
+
+				// Check if this bone has an id assigned.
+				if (!boneToIndex.TryGetValue(bone->MName.AsString, out int boneIndex))
+				{
+					boneIndex = boneToIndex.Count + 1;
+					boneToIndex.Add(bone->MName.AsString, boneIndex);
+				}
+
+				emBone.BoneIndex = boneIndex;
+
+				for (var j = 0; j < bone->MNumWeights; j++)
+				{
+					ref VertexWeight boneDef = ref bone->MWeights[j];
+
+					if (boneDef.MVertexId > vertices.Length - 1)
+					{
+						continue;
+					}
+
+					ref VertexDataWithBones vertex = ref vertices[boneDef.MVertexId];
+
+					// Todo: better way of doing this
+					if (vertex.BoneIds.X == 0)
+					{
+						vertex.BoneIds.X = boneIndex;
+						vertex.BoneWeights.X = boneDef.MWeight;
+					}
+					else if (vertex.BoneIds.Y == 0)
+					{
+						vertex.BoneIds.Y = boneIndex;
+						vertex.BoneWeights.Y = boneDef.MWeight;
+					}
+					else if (vertex.BoneIds.Z == 0)
+					{
+						vertex.BoneIds.Z = boneIndex;
+						vertex.BoneWeights.Z = boneDef.MWeight;
+					}
+					else if (vertex.BoneIds.W == 0)
+					{
+						vertex.BoneIds.W = boneIndex;
+						vertex.BoneWeights.W = boneDef.MWeight;
+					}
+					else
+					{
+						Engine.Log.Warning($"Bone {bone->MName.AsString} affects more than 4 vertices in mesh {m->MName.AsString}.", "Assimp", true);
+					}
+				}
+			}
+
 			return newMesh;
-			//if (!m.HasBones) return;
-
-			//_boneToIndex ??= new Dictionary<string, int>();
-			//var bones = new MeshBone[m.BoneCount];
-			//newMesh.Bones = bones;
-			//for (var i = 0; i < m.Bones.Count; i++)
-			//{
-			//	Bone bone = m.Bones[i];
-			//	var emBone = new MeshBone
-			//	{
-			//		Name = bone.Name,
-			//		OffsetMatrix = AssMatrixToEmoMatrix(bone.OffsetMatrix)
-			//	};
-			//	bones[i] = emBone;
-
-			//	// Check if this bone has an id assigned.
-			//	if (!_boneToIndex.TryGetValue(bone.Name, out int boneIndex))
-			//	{
-			//		boneIndex = _boneToIndex.Count + 1;
-			//		_boneToIndex.Add(bone.Name, boneIndex);
-			//	}
-
-			//	emBone.BoneIndex = boneIndex;
-
-			//	for (var j = 0; j < bone.VertexWeightCount; j++)
-			//	{
-			//		VertexWeight boneDef = bone.VertexWeights[j];
-			//		ref VertexDataWithBones vertex = ref vertices[boneDef.VertexID];
-
-			//		// Todo: better way of doing this
-			//		if (vertex.BoneIds.X == 0)
-			//		{
-			//			vertex.BoneIds.X = boneIndex;
-			//			vertex.BoneWeights.X = boneDef.Weight;
-			//		}
-			//		else if (vertex.BoneIds.Y == 0)
-			//		{
-			//			vertex.BoneIds.Y = boneIndex;
-			//			vertex.BoneWeights.Y = boneDef.Weight;
-			//		}
-			//		else if (vertex.BoneIds.Z == 0)
-			//		{
-			//			vertex.BoneIds.Z = boneIndex;
-			//			vertex.BoneWeights.Z = boneDef.Weight;
-			//		}
-			//		else if (vertex.BoneIds.W == 0)
-			//		{
-			//			vertex.BoneIds.W = boneIndex;
-			//			vertex.BoneWeights.W = boneDef.Weight;
-			//		}
-			//		else
-			//		{
-			//			Engine.Log.Warning($"Bone {bone.Name} affects more than 4 vertices in mesh {m.Name}.", "Assimp", true);
-			//		}
-			//	}
-			//}
 		}
 
 		#endregion
@@ -492,99 +517,39 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			return null;
 		}
 
-		//protected SkeletonAnimRigNode ProcessNode(Scene scene, Node n)
-		//{
-		//	var myRigNode = new SkeletonAnimRigNode
-		//	{
-		//		Name = n.Name,
-		//		LocalTransform = AssMatrixToEmoMatrix(n.Transform),
-		//		Children = new SkeletonAnimRigNode[n.ChildCount]
-		//	};
-
-		//	for (var i = 0; i < n.MeshCount; i++)
-		//	{
-		//		int meshIdx = n.MeshIndices[i];
-		//		ProcessMesh(scene.Meshes[meshIdx]);
-		//	}
-
-		//	for (var i = 0; i < n.Children.Count; i++)
-		//	{
-		//		Node child = n.Children[i];
-		//		SkeletonAnimRigNode childRigNode = ProcessNode(scene, child);
-		//		myRigNode.Children[i] = childRigNode;
-		//	}
-
-		//	return myRigNode;
-		//}
-
-
-		//protected void ProcessAnimations(Scene s)
-		//{
-		//	for (var i = 0; i < s.AnimationCount; i++)
-		//	{
-		//		Animation anim = s.Animations[i];
-		//		var channels = new SkeletonAnimChannel[anim.NodeAnimationChannelCount];
-		//		var emotionAnim = new SkeletalAnimation
-		//		{
-		//			Name = anim.Name,
-		//			Duration = anim.DurationInTicks * anim.TicksPerSecond * 1000,
-		//			AnimChannels = channels
-		//		};
-
-		//		List<NodeAnimationChannel> boneChannels = anim.NodeAnimationChannels;
-		//		for (var j = 0; j < boneChannels.Count; j++)
-		//		{
-		//			NodeAnimationChannel chan = boneChannels[j];
-
-		//			var bone = new SkeletonAnimChannel
-		//			{
-		//				Name = chan.NodeName,
-		//				Positions = new MeshAnimBoneTranslation[chan.PositionKeyCount],
-		//				Rotations = new MeshAnimBoneRotation[chan.RotationKeyCount],
-		//				Scales = new MeshAnimBoneScale[chan.ScalingKeyCount]
-		//			};
-
-		//			for (var k = 0; k < chan.PositionKeys.Count; k++)
-		//			{
-		//				VectorKey val = chan.PositionKeys[k];
-		//				ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
-		//				translation.Position = new Vector3(val.Value.X, val.Value.Y, val.Value.Z);
-		//				translation.Timestamp = val.Time * anim.TicksPerSecond * 1000;
-		//			}
-
-		//			for (var k = 0; k < chan.RotationKeys.Count; k++)
-		//			{
-		//				QuaternionKey val = chan.RotationKeys[k];
-		//				ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
-		//				rotation.Rotation = new Quaternion(val.Value.X, val.Value.Y, val.Value.Z, val.Value.W);
-		//				rotation.Timestamp = val.Time * anim.TicksPerSecond * 1000;
-		//			}
-
-		//			for (var k = 0; k < chan.ScalingKeys.Count; k++)
-		//			{
-		//				VectorKey val = chan.ScalingKeys[k];
-		//				ref MeshAnimBoneScale scale = ref bone.Scales[k];
-		//				scale.Scale = new Vector3(val.Value.X, val.Value.Y, val.Value.Z);
-		//				scale.Timestamp = val.Time * anim.TicksPerSecond * 1000;
-		//			}
-
-		//			channels[j] = bone;
-		//		}
-
-		//		_animations.Add(emotionAnim);
-		//	}
-		//}
-
 		protected override void DisposeInternal()
 		{
 		}
 
-		//public void ExportAs(string formatId, string name)
-		//{
-		//	ExportDataBlob blob = _assContext.ExportToBlob(_scene, formatId);
-		//	var str = new MemoryStream();
-		//	blob.ToStream(str);
-		//	Engine.AssetLoader.Save(str.ToArray(), name, false);
-		//}
+		public unsafe void ExportAs(Scene* scene, string formatId, string name)
+		{
+			ExportDataBlob* blob = _assContext.ExportSceneToBlob(scene, formatId, (uint) _postProcFlags);
+			var str = new MemoryStream();
+			using (var writer = new BinaryWriter(str))
+			{
+				while (true)
+				{
+					if (blob == null) return;
+
+					bool hasNext = blob->Next != null;
+
+					writer.Write(blob->Name.AsString);
+					writer.Write(blob->Size);
+					var data = new Span<byte>(blob->Data, (int) blob->Size);
+					writer.Write(data);
+					writer.Write(hasNext);
+
+					if (hasNext)
+					{
+						blob = blob->Next;
+						continue;
+					}
+
+					break;
+				}
+			}
+
+			Engine.AssetLoader.Save(str.ToArray(), name, false);
+		}
 	}
 }
