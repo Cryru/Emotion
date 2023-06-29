@@ -69,6 +69,17 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			var animations = new List<SkeletalAnimation>();
 			ProcessAnimations(scene, animations);
 
+			// Add animations from a _Animations folder.
+			string myFolder = AssetLoader.GetDirectoryName(Name);
+			string animFolder = AssetLoader.GetFilePathNoExtension(Name) + "_Animations/";
+			string[] assetsInFolder = Engine.AssetLoader.GetAssetsInFolder(animFolder);
+			for (var i = 0; i < assetsInFolder.Length; i++)
+			{
+				string asset = assetsInFolder[i];
+				Scene* otherAssetScene = _assContext.ImportFileEx(asset.Replace(myFolder, ""), (uint) _postProcFlags, ref customIO);
+				if (otherAssetScene != null) ProcessAnimations(otherAssetScene, animations);
+			}
+
 			var meshes = new List<Mesh>();
 
 			Node* rootNode = scene->MRootNode;
@@ -282,17 +293,21 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		private unsafe void ProcessAnimations(Scene* scene, List<SkeletalAnimation> list)
 		{
+			var unnamedAnimations = 0;
 			for (var i = 0; i < scene->MNumAnimations; i++)
 			{
 				Animation* anim = scene->MAnimations[i];
 
 				var channels = new SkeletonAnimChannel[anim->MNumChannels];
+				string animName = anim->MName.AsString;
 				var emotionAnim = new SkeletalAnimation
 				{
-					Name = anim->MName.AsString,
-					Duration = (int) (anim->MDuration * anim->MTicksPerSecond * 1000),
+					Name = string.IsNullOrEmpty(animName) ? $"UnnamedAnimation{unnamedAnimations++}" : animName,
 					AnimChannels = channels
 				};
+				var totalSpeed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
+				Debug.Assert(!float.IsNaN(totalSpeed));
+				emotionAnim.Duration = (float) (anim->MDuration / totalSpeed);
 				list.Add(emotionAnim);
 
 				for (var j = 0; j < channels.Length; j++)
@@ -312,7 +327,10 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						VectorKey val = channel->MPositionKeys[k];
 						ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
 						translation.Position = val.MValue;
-						translation.Timestamp = (int) (val.MTime * anim->MTicksPerSecond * 1000);
+
+						var speed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
+						Debug.Assert(!float.IsNaN(speed));
+						translation.Timestamp = (float) (val.MTime / speed);
 					}
 
 					for (var k = 0; k < channel->MNumRotationKeys; k++)
@@ -320,7 +338,10 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						QuatKey val = channel->MRotationKeys[k];
 						ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
 						rotation.Rotation = val.MValue.AsQuaternion;
-						rotation.Timestamp = (int) (val.MTime * anim->MTicksPerSecond * 1000);
+
+						var speed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
+						Debug.Assert(!float.IsNaN(speed));
+						rotation.Timestamp = (float) (val.MTime / speed);
 					}
 
 					for (var k = 0; k < channel->MNumScalingKeys; k++)
@@ -328,7 +349,10 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						VectorKey val = channel->MScalingKeys[k];
 						ref MeshAnimBoneScale scale = ref bone.Scales[k];
 						scale.Scale = val.MValue;
-						scale.Timestamp = (int) (val.MTime * anim->MTicksPerSecond * 1000);
+
+						var speed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
+						Debug.Assert(!float.IsNaN(speed));
+						scale.Timestamp = (float) (val.MTime / speed);
 					}
 
 					channels[j] = bone;
@@ -340,11 +364,6 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		#region Meshes
 
-		private Matrix4x4 AssMatrixToEmoMatrix(Matrix4x4 assMat)
-		{
-			return Matrix4x4.Transpose(assMat);
-		}
-
 		protected unsafe SkeletonAnimRigNode? ProcessNode(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials)
 		{
 			if ((IntPtr) n == IntPtr.Zero) return null;
@@ -352,7 +371,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			var myRigNode = new SkeletonAnimRigNode
 			{
 				Name = n->MName.AsString,
-				LocalTransform = AssMatrixToEmoMatrix(n->MTransformation),
+				LocalTransform = Matrix4x4.Transpose(n->MTransformation),
 				Children = new SkeletonAnimRigNode[n->MNumChildren]
 			};
 
@@ -445,7 +464,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				var emBone = new MeshBone
 				{
 					Name = bone->MName.AsString,
-					OffsetMatrix = AssMatrixToEmoMatrix(bone->MOffsetMatrix)
+					OffsetMatrix = Matrix4x4.Transpose(bone->MOffsetMatrix)
 				};
 				bones[i] = emBone;
 
