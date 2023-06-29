@@ -229,7 +229,7 @@ namespace Emotion.Game.ThreeDee
 
 			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 			c.SetShader(_skeletalShader.Shader);
-			c.CurrentState.Shader.SetUniformMatrix4("finalBonesMatrices", _boneMatrices, _boneMatrices.Length);
+			_skeletalShader.Shader.SetUniformMatrix4("finalBonesMatrices", _boneMatrices, _boneMatrices.Length);
 
 			for (var i = 0; i < meshes.Length; i++)
 			{
