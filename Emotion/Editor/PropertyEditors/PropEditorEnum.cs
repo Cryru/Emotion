@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
@@ -10,7 +11,7 @@ using Emotion.UI;
 
 namespace Emotion.Editor.PropertyEditors
 {
-	public class PropEditorEnum : UIBaseWindow, IPropEditorGeneric
+	public class PropEditorEnum : EditorButtonDropDown, IPropEditorGeneric
 	{
 		public XMLFieldHandler? Field { get; set; }
 
@@ -24,10 +25,6 @@ namespace Emotion.Editor.PropertyEditors
 
 		public PropEditorEnum(Type enumType)
 		{
-			InputTransparent = false;
-			StretchX = true;
-			StretchY = true;
-
 			_enumType = enumType;
 			_enumValueNames = Enum.GetNames(enumType);
 		}
@@ -52,51 +49,37 @@ namespace Emotion.Editor.PropertyEditors
 		{
 			base.AttachedToController(controller);
 
-			var textEditor = new MapEditorTopBarButton();
-			textEditor.Text = (_value?.ToString() ?? "null");
-			textEditor.MinSize = new Vector2(20, 0);
-			textEditor.IgnoreParentColor = true;
-			textEditor.Id = "textEditor";
-			textEditor.OnClickedProxy = (click) =>
+			var currentIdx = 0;
+			var dropDownItems = new EditorDropDownButtonDescription[_enumValueNames.Length];
+			for (var i = 0; i < _enumValueNames.Length; i++)
 			{
-				var dropDown = new MapEditorDropdown();
-				dropDown.Offset = textEditor.RenderBounds.BottomLeft / textEditor.GetScale();
+				string enumValName = _enumValueNames[i];
+				object enumVal = Enum.Parse(_enumType, enumValName);
 
-				var dropDownItems = new EditorDropDownButtonDescription[_enumValueNames.Length];
-
-				for (int i = 0; i < _enumValueNames.Length; i++)
+				dropDownItems[i] = new EditorDropDownButtonDescription
 				{
-					string enumValName = _enumValueNames[i];
-					object enumVal = Enum.Parse(_enumType, enumValName);
-
-					dropDownItems[i] = new EditorDropDownButtonDescription
+					Name = enumValName,
+					Click = (_, __) =>
 					{
-						Name = enumValName,
-						Click = _ =>
-						{
-							SetValue(enumVal);
-							_callback?.Invoke(enumVal);
-						},
-						Enabled = () => enumVal != _value
-					};
-				}
+						SetValue(enumVal);
+						_callback?.Invoke(enumVal);
+					},
+					Enabled = () => enumVal != _value
+				};
 
-				dropDown.SetItems(dropDownItems);
-				Controller!.AddChild(dropDown);
-			};
-			textEditor.StretchY = true;
-			textEditor.LayoutMode = LayoutMode.HorizontalList;
-			_button = textEditor;
+				if (enumVal == _value) currentIdx = i;
+			}
 
-			var arrowImage = new UITexture();
-			arrowImage.TextureFile = "Editor/LittleArrow.png";
-			arrowImage.ImageScale = new Vector2(0.2f);
-			arrowImage.Anchor = UIAnchor.CenterRight;
-			arrowImage.ParentAnchor = UIAnchor.CenterRight;
-			arrowImage.Margins = new Rectangle(3, 0, 0, 0);
-			textEditor.AddChild(arrowImage);
+			SetItems(dropDownItems, currentIdx);
 
-			AddChild(textEditor);
+			Text = "";
+
+			var button = (MapEditorTopBarButton?) GetWindowById("Button");
+			if (button != null)
+			{
+				button.Text = _value?.ToString() ?? "null";
+				_button = button;
+			}
 		}
 	}
 }

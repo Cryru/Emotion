@@ -156,7 +156,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "New",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					_editUI!.AddChild(new MapEditorModal(new MapEditorCreateMapPanel(this, mapType)));
 					_editUI!.RemoveChild(_editUI.DropDown);
@@ -165,7 +165,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Open",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					var filePicker = new EditorFileExplorer<XMLAsset<Map2D>>(
 						asset => { ChangeSceneMap(asset.Content!); },
@@ -196,7 +196,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Save",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					Task.Run(() => EditorSaveMap());
 					_editUI?.RemoveChild(_editUI.DropDown);
@@ -218,21 +218,21 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = GetObjectSelectionLabel(),
-				Click = t =>
+				Click = (_, button) =>
 				{
 					SetObjectSelectionEnabled(!_canObjectSelect);
-					t.Text = GetObjectSelectionLabel();
+					button.Text = GetObjectSelectionLabel();
 				}
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Object Filters",
-				Click = t => { }
+				Click = (_, __) => { }
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "View Object List",
-				Click = t =>
+				Click = (_, __) =>
 				{
 					Debug.Assert(map != null);
 
@@ -250,7 +250,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Add Object",
-				Click = t =>
+				Click = (_, __) =>
 				{
 					List<Type> objectTypes = EditorUtility.GetTypesWhichInherit<GameObject2D>();
 
@@ -285,7 +285,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Undo History",
-				Click = t =>
+				Click = (_, __) =>
 				{
 					var panel = new EditorListOfItemsPanel<EditorAction>("Actions", _actions ?? new List<EditorAction>(),
 						obj => { }
@@ -298,19 +298,19 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Reload",
-				Click = _ => Task.Run(map!.Reset),
+				Click = (_, __) => Task.Run(map!.Reset),
 				Enabled = () => map != null
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Reset From File",
-				Click = _ => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
+				Click = (_, __) => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
 				Enabled = () => map?.FileName != null
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Properties",
-				Click = t =>
+				Click = (_, __) =>
 				{
 					var panel = new GenericPropertiesEditorPanel(map);
 					_editUI!.AddChild(panel);
@@ -325,7 +325,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Model Viewer (WIP)",
-				Click = t =>
+				Click = (_, __) =>
 				{
 					var panel = new ModelViewer();
 					_editUI!.AddChild(panel);
@@ -335,7 +335,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Performance Monitor",
-				Click = t =>
+				Click = (_, __) =>
 				{
 					var panel = new PerformanceMonitor();
 					_editorUIAlways!.AddChild(panel);
@@ -432,7 +432,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Paste",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
 					if (newObj != null)
@@ -468,7 +468,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Copy",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					_objectCopyClipboard = GetObjectSerialized(obj);
 					_editUI.RemoveChild(_editUI.DropDown);
@@ -477,7 +477,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Cut",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					_objectCopyClipboard = GetObjectSerialized(obj);
 					map.RemoveObject(obj, true); // todo: register undo as delete
@@ -487,7 +487,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Delete",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					map.RemoveObject(obj, true); // todo: register undo
 					_editUI.RemoveChild(_editUI.DropDown);
@@ -496,7 +496,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Properties",
-				Click = _ =>
+				Click = (_, __) =>
 				{
 					EditorOpenPropertiesPanelForObject(obj);
 					_editUI.RemoveChild(_editUI.DropDown);

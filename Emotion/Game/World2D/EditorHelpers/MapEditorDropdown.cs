@@ -65,7 +65,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			return base.RenderInternal(c);
 		}
 
-		public void SetItems(EditorDropDownButtonDescription[] items)
+		public void SetItems(EditorDropDownButtonDescription[] items, Action<EditorDropDownButtonDescription> selectedCallback = null)
 		{
 			List.ClearChildren();
 
@@ -88,7 +88,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 						if (!enabled) return;
 					}
 
-					buttonMeta.Click(ddButton);
+					selectedCallback?.Invoke(buttonMeta);
+					buttonMeta.Click(buttonMeta, ddButton);
 				};
 				ddButton.Enabled = buttonMeta.Enabled?.Invoke() ?? true;
 
