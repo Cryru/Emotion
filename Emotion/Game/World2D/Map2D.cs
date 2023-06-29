@@ -160,6 +160,11 @@ namespace Emotion.Game.World2D
 			for (var i = 0; i < PersistentObjects.Count; i++)
 			{
 				GameObject2D obj = PersistentObjects[i];
+
+				// Object type not found by deserializer.
+				// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+				if (obj == null) continue;
+
 				obj.ObjectState = ObjectState.None;
 				AddObject(obj);
 
