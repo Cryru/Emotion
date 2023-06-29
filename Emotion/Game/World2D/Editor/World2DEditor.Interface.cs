@@ -9,6 +9,7 @@ using Emotion.Editor.EditorWindows;
 using Emotion.Game.Text;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.UI;
@@ -308,6 +309,12 @@ public partial class World2DEditor
 
 		MapEditorTopBarButton otherTools = EditorDropDownButton("Other", new[]
 		{
+			new EditorDropDownButtonDescription
+			{
+				Name = "Open Folder",
+				Click = (_, __) => { Process.Start("explorer.exe", "."); },
+				Enabled = () => Engine.Host is Win32Platform
+			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Model Viewer (WIP)",
