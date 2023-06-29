@@ -158,6 +158,7 @@ This includes dependencies and projects which were used for research references.
 | [OpenAL-Soft](https://github.com/kcat/openal-soft) & [OpenAL.NetCore](https://github.com/nsglover/OpenAL.NETCore) | LGPL & MIT | Mac and Linux Audio | Precompiled for Mac64, Linux64, Win64, Add "OpenAL" symbol
 | [Assimp](https://github.com/assimp/assimp) & [AssimpNet](https://github.com/assimp/assimp-net) | Modified BSD | Reading FBX files | The Emotion build tool
 | [Assimp (Engine)](https://github.com/assimp/assimp) & [Silk.NET.Assimp](https://github.com/dotnet/Silk.NET/pkgs/nuget/Silk.NET.Assimp) | Modified BSD & MIT | 3D Model preview and conversion | Add "ASSIMP" symbol
+| [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) | Six Labors Split License | Developer loading and conversion of unsupported image types such as "jpg" | Add "MORE_IMAGE_TYPES" symbol
 | References
 | [McGill Engineering](http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Samples.html) | X | Hardening WAV and Audio Implementation | None
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
