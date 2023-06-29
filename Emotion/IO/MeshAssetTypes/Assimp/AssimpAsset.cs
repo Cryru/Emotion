@@ -217,7 +217,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					{
 						string assetPath = AssetLoader.GetDirectoryName(Name);
 						assetPath = AssetLoader.GetNonRelativePath(assetPath, diffuseTextureName);
-						var textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath);
+						var textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath, false);
 						diffuseTexture = textureAsset?.Texture;
 					}
 				}
@@ -305,9 +305,9 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					Name = string.IsNullOrEmpty(animName) ? $"UnnamedAnimation{unnamedAnimations++}" : animName,
 					AnimChannels = channels
 				};
-				var totalSpeed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
-				Debug.Assert(!float.IsNaN(totalSpeed));
-				emotionAnim.Duration = (float) (anim->MDuration / totalSpeed);
+				var speedFactor = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond == 1000 ? 1 : anim->MTicksPerSecond);
+				Debug.Assert(!float.IsNaN(speedFactor));
+				emotionAnim.Duration = (float) (anim->MDuration / speedFactor);
 				list.Add(emotionAnim);
 
 				for (var j = 0; j < channels.Length; j++)
@@ -327,10 +327,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						VectorKey val = channel->MPositionKeys[k];
 						ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
 						translation.Position = val.MValue;
-
-						var speed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
-						Debug.Assert(!float.IsNaN(speed));
-						translation.Timestamp = (float) (val.MTime / speed);
+						translation.Timestamp = (float) (val.MTime / speedFactor);
 					}
 
 					for (var k = 0; k < channel->MNumRotationKeys; k++)
@@ -338,10 +335,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						QuatKey val = channel->MRotationKeys[k];
 						ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
 						rotation.Rotation = val.MValue.AsQuaternion;
-
-						var speed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
-						Debug.Assert(!float.IsNaN(speed));
-						rotation.Timestamp = (float) (val.MTime / speed);
+						rotation.Timestamp = (float) (val.MTime / speedFactor);
 					}
 
 					for (var k = 0; k < channel->MNumScalingKeys; k++)
@@ -349,10 +343,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						VectorKey val = channel->MScalingKeys[k];
 						ref MeshAnimBoneScale scale = ref bone.Scales[k];
 						scale.Scale = val.MValue;
-
-						var speed = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond);
-						Debug.Assert(!float.IsNaN(speed));
-						scale.Timestamp = (float) (val.MTime / speed);
+						scale.Timestamp = (float) (val.MTime / speedFactor);
 					}
 
 					channels[j] = bone;
