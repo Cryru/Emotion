@@ -131,6 +131,24 @@ namespace Emotion.IO
 		}
 
 		/// <summary>
+		/// Get a list of all assets in the specified folder.
+		/// </summary>
+		public string[] GetAssetsInFolder(string name)
+		{
+			name = NameToEngineName(name);
+
+			var matches = new List<string>();
+			foreach (string manifestKey in _manifest.Keys)
+			{
+				if (manifestKey.StartsWith(name))
+				{
+					matches.Add(manifestKey);
+				}
+			}
+			return matches.ToArray();
+		}
+
+		/// <summary>
 		/// Whether an asset with the provided name is loaded.
 		/// </summary>
 		/// <param name="name">The name of the asset to check.</param>
