@@ -66,14 +66,13 @@ public class EditorButtonDropDown : UIBaseWindow
 		button.Enabled = _items != null && _items.Length > 1;
 		button.OnClickedProxy = click =>
 		{
-			var dropDown = new MapEditorDropdown();
+			var dropDown = new MapEditorDropdown(true);
 			dropDown.Offset = button.RenderBounds.BottomLeft / button.GetScale();
 
 			dropDown.SetItems(_items, selected =>
 			{
 				_currentOption = selected;
 				UpdateCurrentOptionText();
-				Controller?.RemoveChild(Controller.DropDown);
 			});
 			Controller!.AddChild(dropDown);
 		};

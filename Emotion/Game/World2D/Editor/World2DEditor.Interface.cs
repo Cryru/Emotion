@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Emotion.Editor;
 using Emotion.Editor.EditorHelpers;
@@ -110,7 +109,7 @@ public partial class World2DEditor
 			_editUI?.RemoveChild(_editUI.DropDown);
 			if (openOnMe) return;
 
-			var dropDownWin = new MapEditorDropdown();
+			var dropDownWin = new MapEditorDropdown(true);
 			dropDownWin.ParentAnchor = UIAnchor.BottomLeft;
 			dropDownWin.OwningObject = button;
 			dropDownWin.SetItems(menuButtons);
@@ -124,7 +123,7 @@ public partial class World2DEditor
 				if (child is MapEditorTopBarButton but) but.SetActiveMode(child == button);
 			}
 
-			dropDownWin.OnCloseProxy = () => { button.SetActiveMode(false); };
+			dropDownWin.OnCloseProxy = () => button.SetActiveMode(false);
 
 			_editUI!.AddChild(dropDownWin);
 		}
@@ -135,7 +134,7 @@ public partial class World2DEditor
 			if (_editUI?.DropDown != null && _editUI.DropDown?.OwningObject != button && _editUI.DropDown?.OwningObject is MapEditorTopBarButton)
 				SpawnDropDown();
 		};
-		button.OnClickedProxy = _ => { SpawnDropDown(); };
+		button.OnClickedProxy = _ => SpawnDropDown();
 		button.Id = $"button{label}";
 
 		return button;
@@ -156,11 +155,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "New",
-				Click = (_, __) =>
-				{
-					_editUI!.AddChild(new MapEditorModal(new MapEditorCreateMapPanel(this, mapType)));
-					_editUI!.RemoveChild(_editUI.DropDown);
-				}
+				Click = (_, __) => { _editUI!.AddChild(new MapEditorModal(new MapEditorCreateMapPanel(this, mapType))); }
 			},
 			new EditorDropDownButtonDescription
 			{
@@ -190,17 +185,12 @@ public partial class World2DEditor
 					);
 
 					_editUI!.AddChild(new MapEditorModal(filePicker));
-					_editUI!.RemoveChild(_editUI.DropDown);
 				}
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Save",
-				Click = (_, __) =>
-				{
-					Task.Run(() => EditorSaveMap());
-					_editUI?.RemoveChild(_editUI.DropDown);
-				},
+				Click = (_, __) => { Task.Run(() => EditorSaveMap()); },
 				Enabled = () => map?.FileName != null
 			},
 			// todo: generic text input or explorer ui
@@ -242,7 +232,6 @@ public partial class World2DEditor
 					);
 					panel.Id = "ObjectListPanel";
 					_editUI!.AddChild(panel);
-					_editUI.RemoveChild(_editUI.DropDown);
 				},
 				Enabled = () => map != null
 			},
@@ -259,7 +248,6 @@ public partial class World2DEditor
 					panel.CloseOnClick = true;
 
 					_editUI!.AddChild(panel);
-					_editUI.RemoveChild(_editUI.DropDown);
 				},
 				Enabled = () => map != null
 			}
@@ -292,7 +280,6 @@ public partial class World2DEditor
 					);
 
 					_editUI!.AddChild(panel);
-					_editUI.RemoveChild(_editUI.DropDown);
 				}
 			},
 			new EditorDropDownButtonDescription
@@ -314,7 +301,6 @@ public partial class World2DEditor
 				{
 					var panel = new GenericPropertiesEditorPanel(map);
 					_editUI!.AddChild(panel);
-					_editUI.RemoveChild(_editUI.DropDown);
 				},
 				Enabled = () => map != null
 			},
@@ -329,7 +315,6 @@ public partial class World2DEditor
 				{
 					var panel = new ModelViewer();
 					_editUI!.AddChild(panel);
-					_editUI.RemoveChild(_editUI.DropDown);
 				},
 			},
 			new EditorDropDownButtonDescription
@@ -339,7 +324,6 @@ public partial class World2DEditor
 				{
 					var panel = new PerformanceMonitor();
 					_editorUIAlways!.AddChild(panel);
-					_editUI!.RemoveChild(_editUI.DropDown);
 				},
 			},
 		});
@@ -424,7 +408,7 @@ public partial class World2DEditor
 
 		Vector2 mousePos = Engine.Host.MousePosition;
 
-		var contextMenu = new MapEditorDropdown();
+		var contextMenu = new MapEditorDropdown(true);
 		contextMenu.Offset = mousePos / _editUI!.GetScale();
 
 		var dropDownMenu = new[]
@@ -443,8 +427,6 @@ public partial class World2DEditor
 						Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
 						newObj.Position2 = worldPos;
 					}
-
-					_editUI.RemoveChild(_editUI.DropDown);
 				},
 				Enabled = () => !string.IsNullOrEmpty(_objectCopyClipboard)
 			}
@@ -459,7 +441,7 @@ public partial class World2DEditor
 		Map2D? map = CurrentMap;
 		Debug.Assert(map != null);
 
-		var contextMenu = new MapEditorDropdown();
+		var contextMenu = new MapEditorDropdown(true);
 		contextMenu.Offset = Engine.Host.MousePosition / _editUI!.GetScale();
 		contextMenu.OwningObject = obj;
 
@@ -468,11 +450,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Copy",
-				Click = (_, __) =>
-				{
-					_objectCopyClipboard = GetObjectSerialized(obj);
-					_editUI.RemoveChild(_editUI.DropDown);
-				}
+				Click = (_, __) => { _objectCopyClipboard = GetObjectSerialized(obj); }
 			},
 			new EditorDropDownButtonDescription
 			{
@@ -481,7 +459,6 @@ public partial class World2DEditor
 				{
 					_objectCopyClipboard = GetObjectSerialized(obj);
 					map.RemoveObject(obj, true); // todo: register undo as delete
-					_editUI.RemoveChild(_editUI.DropDown);
 				}
 			},
 			new EditorDropDownButtonDescription
@@ -490,17 +467,12 @@ public partial class World2DEditor
 				Click = (_, __) =>
 				{
 					map.RemoveObject(obj, true); // todo: register undo
-					_editUI.RemoveChild(_editUI.DropDown);
 				}
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Properties",
-				Click = (_, __) =>
-				{
-					EditorOpenPropertiesPanelForObject(obj);
-					_editUI.RemoveChild(_editUI.DropDown);
-				}
+				Click = (_, __) => { EditorOpenPropertiesPanelForObject(obj); }
 			}
 		};
 

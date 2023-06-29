@@ -11,13 +11,15 @@ namespace Emotion.Game.World2D.EditorHelpers
 {
 	public class MapEditorDropdown : UIDropDown
 	{
+		public bool CloseOnClick;
+
 		public UICallbackListNavigator List;
 
-		[DontSerialize]
-		public Action OnCloseProxy;
+		[DontSerialize] public Action OnCloseProxy;
 
-		public MapEditorDropdown()
+		public MapEditorDropdown(bool closeOnClick = false)
 		{
+			CloseOnClick = closeOnClick;
 			InputTransparent = false;
 			WindowColor = MapEditorColorPalette.ActiveButtonColor;
 			StretchX = true;
@@ -90,6 +92,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 					selectedCallback?.Invoke(buttonMeta);
 					buttonMeta.Click(buttonMeta, ddButton);
+
+					if (CloseOnClick) Controller?.RemoveChild(this);
 				};
 				ddButton.Enabled = buttonMeta.Enabled?.Invoke() ?? true;
 
