@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
@@ -217,15 +216,18 @@ namespace Emotion.Game.ThreeDee
 			Mesh[]? meshes = Entity?.Meshes;
 			MeshEntityMetaState? metaState = EntityMetaState;
 
-			if (meshes == null) return;
+			if (Entity == null || meshes == null) return;
 			if (_boneMatrices == null) SetAnimation(null);
 			Debug.Assert(_boneMatrices != null);
 
 			c.FlushRenderStream();
 
-			Gl.Enable(EnableCap.CullFace);
-			Gl.CullFace(CullFaceMode.Back);
-			Gl.FrontFace(FrontFaceDirection.Ccw);
+            if (Entity.BackFaceCulling)
+			{
+                Gl.Enable(EnableCap.CullFace);
+                Gl.CullFace(CullFaceMode.Back);
+                Gl.FrontFace(FrontFaceDirection.Ccw);
+            }
 
 			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 			c.SetShader(_skeletalShader.Shader);
@@ -259,7 +261,9 @@ namespace Emotion.Game.ThreeDee
 			if (bonedStream.AnythingMapped) bonedStream.FlushRender();
 			c.SetShader();
 			c.PopModelMatrix();
-			Gl.Disable(EnableCap.CullFace);
+
+            if (Entity.BackFaceCulling)
+                Gl.Disable(EnableCap.CullFace);
 		}
 
 		public Matrix4x4 GetModelMatrix()
