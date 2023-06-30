@@ -149,7 +149,13 @@ namespace Emotion.Graphics.Shading
                     continue;
                 }
 
-                Gl.ShaderSource(shaderId, preProcSrc);
+                int[] lengths = new int[preProcSrc.Length];
+                for (int l = 0; l < preProcSrc.Length; l++)
+                {
+                    lengths[l] = preProcSrc[l].Length;
+                }
+
+                Gl.ShaderSource(shaderId, preProcSrc, lengths);
                 Gl.CompileShader(shaderId);
 
                 // Check if there's a log to print.

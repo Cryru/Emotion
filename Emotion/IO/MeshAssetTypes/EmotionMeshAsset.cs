@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.IO;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;

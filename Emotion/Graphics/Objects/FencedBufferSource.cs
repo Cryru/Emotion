@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using Emotion.Common;
 using Emotion.Utility;
 using OpenGL;

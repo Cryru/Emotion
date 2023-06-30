@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Emotion.Platform.OpenGL.Meta;

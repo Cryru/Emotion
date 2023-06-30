@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.Linq;
 using Emotion.IO;
 using Emotion.Standard.Audio;

@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Animation2D;

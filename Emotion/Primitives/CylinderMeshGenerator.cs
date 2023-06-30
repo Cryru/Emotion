@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 

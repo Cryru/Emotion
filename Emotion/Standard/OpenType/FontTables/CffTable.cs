@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.Helpers;

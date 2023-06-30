@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Utility;

@@ -1,10 +1,4 @@
-﻿#region Using
-
-using System.Diagnostics;
-
-#endregion
-
-namespace Emotion.Platform.Implementation.CommonDesktop
+﻿namespace Emotion.Platform.Implementation.CommonDesktop
 {
     /// <summary>
     /// Functions relating to the Unix family of OS.

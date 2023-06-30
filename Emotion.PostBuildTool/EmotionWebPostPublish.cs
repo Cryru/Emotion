@@ -2,13 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.IO.AssetPack;
 using Emotion.Standard.XML;
 using Emotion.Utility;
+using Emotion.Testing;
 
 #endregion
 
@@ -101,12 +101,12 @@ namespace Emotion.PostBuildTool
                     byte[] bytesFileSystem = File.ReadAllBytes(realName);
                     ReadOnlySpan<byte> bytesBlob = filePackedSource.GetAsset(AssetLoader.NameToEngineName(blobPath)).Span;
 
-                    Debug.Assert(bytesFileSystem.Length == bytesBlob.Length);
+                    Assert.True(bytesFileSystem.Length == bytesBlob.Length);
                     for (var j = 0; j < bytesFileSystem.Length; j++)
                     {
                         byte byteFile = bytesFileSystem[j];
                         byte byteBlob = bytesBlob[j];
-                        Debug.Assert(byteFile == byteBlob);
+                        Assert.True(byteFile == byteBlob);
                     }
                 }
             }

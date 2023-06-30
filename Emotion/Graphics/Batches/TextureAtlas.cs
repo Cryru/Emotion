@@ -1,16 +1,9 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Numerics;
-using Emotion.Common;
 using Emotion.Game;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
-using Emotion.Primitives;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using OpenGL;
 

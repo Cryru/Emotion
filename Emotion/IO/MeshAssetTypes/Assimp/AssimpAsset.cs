@@ -306,7 +306,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					AnimChannels = channels
 				};
 				var speedFactor = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond == 1000 ? 1 : anim->MTicksPerSecond);
-				Debug.Assert(!float.IsNaN(speedFactor));
+				Assert(!float.IsNaN(speedFactor));
 				emotionAnim.Duration = (float) (anim->MDuration / speedFactor);
 				list.Add(emotionAnim);
 

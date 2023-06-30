@@ -1,8 +1,5 @@
-﻿#nullable enable
+﻿#region Using
 
-#region Using
-
-using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Emotion.Game.World2D.EditorHelpers;
@@ -12,6 +9,8 @@ using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion
+
+#nullable enable
 
 namespace Emotion.Game.World2D.Editor;
 

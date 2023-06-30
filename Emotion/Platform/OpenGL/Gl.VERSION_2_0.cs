@@ -5,7 +5,6 @@
 #region Using
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -2082,11 +2081,11 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_2_0")]
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void ShaderSource(uint shader, string[] @string, int[] length)
+        public static void ShaderSource(uint shader, string[] @string, int[] lengths)
         {
             unsafe
             {
-                fixed (int* p_length = length)
+                fixed (int* p_length = lengths)
                 {
                     Debug.Assert(Delegates.pglShaderSource != null, "pglShaderSource not implemented");
                     Delegates.pglShaderSource(shader, @string.Length, @string, p_length);

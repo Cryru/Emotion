@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;

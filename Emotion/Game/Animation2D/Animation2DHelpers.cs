@@ -1,10 +1,4 @@
-﻿#region Using
-
-using System.Diagnostics;
-
-#endregion
-
-namespace Emotion.Game.Animation2D
+﻿namespace Emotion.Game.Animation2D
 {
 	public static class Animation2DHelpers
 	{

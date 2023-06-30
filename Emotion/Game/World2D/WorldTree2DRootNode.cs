@@ -1,12 +1,4 @@
-﻿#region Using
-
-using System.Collections.Generic;
-using System.Diagnostics;
-using Emotion.Primitives;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Game.World2D
 {

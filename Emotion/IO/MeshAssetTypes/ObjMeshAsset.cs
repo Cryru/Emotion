@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using Emotion.Graphics.Data;

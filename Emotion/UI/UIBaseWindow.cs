@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Collections;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Time;

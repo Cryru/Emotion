@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using DelegateList = System.Collections.Generic.List<System.Reflection.FieldInfo>;
 

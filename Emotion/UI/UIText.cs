@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Emotion.Game.Text;
 using Emotion.Graphics;
