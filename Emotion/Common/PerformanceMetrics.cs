@@ -1,10 +1,4 @@
-﻿#region Using
-
-using System.Diagnostics;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Common;
 
@@ -13,8 +7,8 @@ public static class PerformanceMetrics
 	public static float[] TickRate = new float[100];
 	public static float[] FrameDelta = new float[100];
 
-	private static int _tickRateRingIdx;
-	private static int _frameRateRingIdx;
+	public static int TickRateRingIdx;
+	public static int FrameRateRingIdx;
 
 	/// <summary>
 	/// The frames per second pushed in the last second.
@@ -35,10 +29,10 @@ public static class PerformanceMetrics
 	[Conditional("DEBUG")]
 	public static void RegisterTick()
 	{
-		TickRate[_tickRateRingIdx] = _updateTimer.ElapsedMilliseconds;
+		TickRate[TickRateRingIdx] = _updateTimer.ElapsedMilliseconds;
 		_updateTimer.Restart();
-		_tickRateRingIdx++;
-		if (_tickRateRingIdx > TickRate.Length - 1) _tickRateRingIdx = 0;
+		TickRateRingIdx++;
+		if (TickRateRingIdx > TickRate.Length - 1) TickRateRingIdx = 0;
 
 		_framesPerUpdate = 0;
 	}
@@ -46,10 +40,10 @@ public static class PerformanceMetrics
 	[Conditional("DEBUG")]
 	public static void RegisterFrame()
 	{
-		FrameDelta[_frameRateRingIdx] = _frameTimer.ElapsedMilliseconds;
+		FrameDelta[FrameRateRingIdx] = _frameTimer.ElapsedMilliseconds;
 		_frameTimer.Restart();
-		_frameRateRingIdx++;
-		if (_frameRateRingIdx > FrameDelta.Length - 1) _frameRateRingIdx = 0;
+		FrameRateRingIdx++;
+		if (FrameRateRingIdx > FrameDelta.Length - 1) FrameRateRingIdx = 0;
 
 		_framesPerUpdate++;
 

@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Data;
@@ -15,7 +14,6 @@ using OpenGL;
 #nullable enable
 
 namespace Emotion.Editor.EditorHelpers;
-
 public class EditorPlotLineWindow : UIBaseWindow
 {
 	private class PlotLineInternalData
@@ -53,6 +51,7 @@ public class EditorPlotLineWindow : UIBaseWindow
 	private VertexData[]? _data;
 	private float[]? _sourceData;
 	private float[]? _normalizedData;
+	private int _renderOffset;
 	private float _mouseShownValue;
 
 	public override void AttachedToController(UIController controller)
@@ -80,7 +79,7 @@ public class EditorPlotLineWindow : UIBaseWindow
 		if (_data != null) InitializeData(_data.Length);
 	}
 
-	public void SetData(float[] data)
+	public void SetData(float[] data, int index = 0)
 	{
 		float average = Helpers.GetArrayAverage(data);
 		float highest = average + average * 1.5f;
@@ -94,16 +93,19 @@ public class EditorPlotLineWindow : UIBaseWindow
 		}
 
 		_sourceData = data;
+		_renderOffset = index;
 
-		InitializeData(data.Length);
-	}
+        InitializeData(data.Length);
+		UpdateMouseRollover();
+
+    }
 
 	private void InitializeData(int length)
 	{
 		if (_data == null || _data.Length != length)
 			_data = new VertexData[length];
 
-		float spaceBetween = Width / 100;
+		float spaceBetween = Width / (_data.Length - 1);
 
 		for (var i = 0; i < _data.Length; i++)
 		{
@@ -115,7 +117,12 @@ public class EditorPlotLineWindow : UIBaseWindow
 
 			if (_normalizedData != null)
 			{
-				float normalizedVal = _normalizedData[i];
+				float normalizedVal;
+                
+				int relativeI = i + _renderOffset;
+				relativeI = relativeI % _normalizedData.Length;
+                normalizedVal = _normalizedData[relativeI];
+                
 				vert.Vertex.Y = Y + Height / 2 + (normalizedVal - 0.5f) * Height / 2;
 			}
 		}
@@ -123,20 +130,29 @@ public class EditorPlotLineWindow : UIBaseWindow
 
 	public override void OnMouseMove(Vector2 mousePos)
 	{
-		Vector2 positionWithinSelf = mousePos - _renderBounds.Position;
-		float xPos = positionWithinSelf.X;
-
-		float spaceBetweenLines = Width / 100;
-		var lineIndex = (int) (xPos / spaceBetweenLines);
-
-		if (_sourceData != null)
-		{
-			float value = _sourceData[lineIndex];
-			_mouseShownValue = value;
-		}
-
+		UpdateMouseRollover();
 		base.OnMouseMove(mousePos);
 	}
+	
+	private void UpdateMouseRollover()
+	{
+		if (!MouseInside) return;
+
+        Vector2 positionWithinSelf = Engine.Host.MousePosition - _renderBounds.Position;
+        float xPos = positionWithinSelf.X;
+
+        if (_sourceData != null)
+        {
+            float spaceBetweenLines = Width / (_sourceData.Length - 1);
+            var lineIndex = (int)(xPos / spaceBetweenLines);
+
+			int relativeIdx = lineIndex + _renderOffset;
+            relativeIdx = relativeIdx % _sourceData.Length;
+
+            float value = _sourceData[relativeIdx];
+            _mouseShownValue = value;
+        }
+    }
 
 	protected override bool RenderInternal(RenderComposer c)
 	{

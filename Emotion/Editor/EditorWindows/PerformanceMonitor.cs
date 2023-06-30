@@ -56,8 +56,8 @@ public class PerformanceMonitor : MapEditorPanel
 		_reportedDelta.Text = $"Reported Delta: {Engine.DeltaTime}";
 		_fps.Text = $"FPS: {PerformanceMetrics.FpsLastSecond} ({PerformanceMetrics.FramesPerUpdateLastSecond} FPT)";
 
-		_deltaTimePlot.SetData(PerformanceMetrics.TickRate);
-		_renderTimePlot.SetData(PerformanceMetrics.FrameDelta);
+		_deltaTimePlot.SetData(PerformanceMetrics.TickRate, PerformanceMetrics.TickRateRingIdx);
+		_renderTimePlot.SetData(PerformanceMetrics.FrameDelta, PerformanceMetrics.FrameRateRingIdx);
 
 		return base.RenderInternal(c);
 	}
