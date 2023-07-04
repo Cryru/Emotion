@@ -1,5 +1,7 @@
 ﻿
 
+using System.Diagnostics;
+
 namespace Emotion.Test
 {
     public static class Assert
