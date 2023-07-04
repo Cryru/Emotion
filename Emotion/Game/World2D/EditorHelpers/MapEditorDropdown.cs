@@ -20,7 +20,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 		public MapEditorDropdown(bool closeOnClick = false)
 		{
 			CloseOnClick = closeOnClick;
-			InputTransparent = false;
 			WindowColor = MapEditorColorPalette.ActiveButtonColor;
 			StretchX = true;
 			StretchY = true;
@@ -30,7 +29,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			var innerBg = new UISolidColor
 			{
 				IgnoreParentColor = true,
-				InputTransparent = false,
 				WindowColor = MapEditorColorPalette.BarColor.SetAlpha(255),
 				StretchX = true,
 				StretchY = true,
@@ -43,7 +41,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			{
 				IgnoreParentColor = true,
 				LayoutMode = LayoutMode.VerticalList,
-				InputTransparent = false,
 				StretchX = true,
 				ChildrenAllSameWidth = true,
 				ListSpacing = new Vector2(0, 2),
@@ -78,7 +75,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 				var ddButton = new MapEditorTopBarButton();
 				ddButton.StretchX = true;
 				ddButton.StretchY = true;
-				ddButton.InputTransparent = false;
 				ddButton.Text = buttonMeta.Name;
 				ddButton.MinSize = new Vector2(50, 0);
 				ddButton.OnClickedProxy = _ =>

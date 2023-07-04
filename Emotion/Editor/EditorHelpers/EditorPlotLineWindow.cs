@@ -44,7 +44,7 @@ public class EditorPlotLineWindow : UIBaseWindow
 		MaxSizeY = 20;
 		MaxSizeX = 110;
 		WindowColor = Color.Black;
-		InputTransparent = false;
+		HandleInput = true;
 	}
 
 	private PlotLineInternalData? _plotData;

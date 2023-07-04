@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
@@ -9,7 +10,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.Editor
 {
-	public class MapEditorCreateMapPanel : MapEditorPanel
+	public class MapEditorCreateMapPanel : EditorPanel
 	{
 		private World2DEditor _editor;
 		private Type _mapType;
@@ -21,6 +22,8 @@ namespace Emotion.Game.World2D.Editor
 		{
 			_editor = editor;
 			_mapType = mapType;
+
+			Modal = true;
 		}
 
 		public override void AttachedToController(UIController controller)

@@ -1,10 +1,4 @@
-﻿#region Using
-
-
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.UI;
 
@@ -12,6 +6,13 @@ namespace Emotion.UI;
 
 public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
 {
+	[Obsolete("Deprecated for HandleInput/ChildrenHandleInput")]
+	public bool InputTransparent
+	{
+		get => !ChildrenHandleInput;
+		set => ChildrenHandleInput = !value;
+	}
+
 	/// <summary>
 	/// All child windows will be of the width of the widest child window.
 	/// Only works on vertical list layout mode.

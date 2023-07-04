@@ -82,7 +82,7 @@ namespace Emotion.UI
 
         public UISlider()
         {
-            InputTransparent = false;
+	        HandleInput = true;
         }
 
         public override void AttachedToController(UIController controller)

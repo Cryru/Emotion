@@ -20,7 +20,6 @@ namespace Emotion.Editor.PropertyEditors
 
 		public PropEditorBool()
 		{
-			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
 		}
@@ -49,7 +48,6 @@ namespace Emotion.Editor.PropertyEditors
 			base.AttachedToController(controller);
 
 			var inputBg = new UISolidColor();
-			inputBg.InputTransparent = false;
 			inputBg.StretchX = true;
 			inputBg.StretchY = true;
 			inputBg.WindowColor = MapEditorColorPalette.ButtonColor;

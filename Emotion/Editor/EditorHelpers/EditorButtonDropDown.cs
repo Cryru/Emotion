@@ -29,7 +29,6 @@ public class EditorButtonDropDown : UIBaseWindow
 
 	public EditorButtonDropDown()
 	{
-		InputTransparent = false;
 		StretchX = true;
 		StretchY = true;
 		LayoutMode = LayoutMode.HorizontalList;

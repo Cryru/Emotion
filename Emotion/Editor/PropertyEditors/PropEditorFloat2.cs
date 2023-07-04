@@ -22,7 +22,6 @@ namespace Emotion.Editor.PropertyEditors
 		{
 			LayoutMode = LayoutMode.HorizontalList;
 			ListSpacing = new Vector2(2, 0);
-			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
 		}

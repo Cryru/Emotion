@@ -36,7 +36,7 @@ public partial class UIController
 		{
 			UIController controller = _allControllers[i];
 			if (!controller._calledUpdateLastTick) continue; // Controller inactive via update.
-			if (controller.InputTransparent) continue;
+			if (!controller.ChildrenHandleInput) continue;
 
 			UIBaseWindow? hasPriority = controller.HasPriorityMouseFocus();
 			if (hasPriority == null) continue;
@@ -58,7 +58,7 @@ public partial class UIController
 		{
 			UIController controller = _allControllers[i];
 			if (!controller._calledUpdateLastTick) continue;
-			if (controller.InputTransparent || !controller.Visible) continue;
+			if (!controller.ChildrenHandleInput || !controller.Visible) continue;
 
 			UIBaseWindow? focus = controller.FindMouseInput(mousePos);
 
@@ -97,7 +97,7 @@ public partial class UIController
 	private UIBaseWindow? HasPriorityMouseFocus()
 	{
 		// If currently holding down a mouse button don't change the mouse focus if it is still valid.
-		if (_myMouseFocus == null || !_myMouseFocus.Visible || _myMouseFocus.InputTransparent) return null;
+		if (_myMouseFocus == null || !_myMouseFocus.Visible || !_myMouseFocus.HandleInput) return null;
 
 		for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)
 		{

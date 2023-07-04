@@ -74,7 +74,7 @@ namespace Emotion.UI
 
 		public UICallbackListNavigator()
 		{
-			InputTransparent = false;
+			HandleInput = true;
 		}
 
 		protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
@@ -360,7 +360,7 @@ namespace Emotion.UI
 			{
 				UIBaseWindow? newItem = null;
 				var childIdx = 0;
-				while ((newItem == null || !newItem.Visible || newItem.InputTransparent) && childIdx != Children.Count - 1) // Go next until visible.
+				while ((newItem == null || !newItem.Visible || !HandlesInputAlongTree(newItem)) && childIdx != Children.Count - 1) // Go next until visible.
 				{
 					_selectedPos += axis;
 					_selectedPos = Vector2.Clamp(_selectedPos, Vector2.Zero, _gridSize);
@@ -369,7 +369,7 @@ namespace Emotion.UI
 				}
 
 				if (newItem == null || !newItem.Visible) return true; // Reached end.
-				Debug.Assert(childIdx != -1);
+				Assert(childIdx != -1);
 
 				Vector2 offset = Vector2.Zero;
 				if (ScrollOneAhead) offset = new Vector2(1);
@@ -434,7 +434,7 @@ namespace Emotion.UI
 			for (var i = 0; i < Children.Count; i++)
 			{
 				UIBaseWindow child = Children[i];
-				bool enabled = child.Visible && !child.InputTransparent;
+				bool enabled = child.Visible && HandlesInputAlongTree(child);
 				if (enabled)
 				{
 					SetSelection(child, true);
@@ -457,7 +457,7 @@ namespace Emotion.UI
 					return;
 			}
 
-			Debug.Assert(Children.IndexOf(wnd) != -1);
+			Assert(Children.IndexOf(wnd) != -1);
 			SelectedChildIdx = Children.IndexOf(wnd);
 			SelectedWnd = wnd;
 			_selectedPos = GetGridLikePosFromChild(wnd);
@@ -478,15 +478,15 @@ namespace Emotion.UI
 
 		private void ProxyButtonClicked(UICallbackButton b)
 		{
-			if (!b.Visible || b.InputTransparent) return;
+			if (!b.Visible || !HandlesInputAlongTree(b)) return;
 			SetSelection(b);
-			Debug.Assert(SelectedWnd != null);
+			Assert(SelectedWnd != null);
 			OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
 		}
 
 		private void ProxyButtonSelected(UICallbackButton b)
 		{
-			if (!b.Visible || b.InputTransparent) return;
+			if (!b.Visible || !HandlesInputAlongTree(b)) return;
 			SetSelection(b);
 		}
 
@@ -530,7 +530,7 @@ namespace Emotion.UI
 				for (var i = 0; i < Children.Count; i++)
 				{
 					UIBaseWindow win = Children[i];
-					if (win.InputTransparent || !win.Visible) continue;
+					if (!HandlesInputAlongTree(win) || !win.Visible) continue;
 					if (!win.IsInsideOrIntersectRect(renderRect, out _)) continue;
 					if (!win.IsPointInside(pos)) continue;
 					focus = win.FindMouseInput(pos);

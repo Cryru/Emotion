@@ -36,7 +36,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			closeButton.ParentAnchor = UIAnchor.TopRight;
 			AddChild(closeButton);
 
-			InputTransparent = false;
+			HandleInput = true;
 			MinSize = new Vector2(0, 10);
 			StretchX = true;
 			StretchY = true;
@@ -63,15 +63,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			{
 				_mouseDown = status == KeyStatus.Down;
 				_mouseDownPos = Engine.Host.MousePosition;
-
-				UIBaseWindow? panel = Parent?.Parent;
-				if (panel != null)
-				{
-					if (status == KeyStatus.Down)
-						panel.ZOffset++;
-					else if (status == KeyStatus.Up)
-						panel.ZOffset--;
-				}
 				return false;
 			}
 
@@ -86,25 +77,24 @@ namespace Emotion.Game.World2D.EditorHelpers
 				Vector2 posDiff = mousePosNow - _mouseDownPos;
 				_mouseDownPos = mousePosNow;
 
-				UIBaseWindow panelParent = Parent!.Parent!;
-				Vector2 winOffset = panelParent.Offset + posDiff / panelParent.GetScale();
-				
-				Rectangle snapArea = Controller!.Bounds;
-				snapArea.Width /= panelParent.GetScale();
-				snapArea.Height /= panelParent.GetScale();
+				UIBaseWindow panelParent = Parent!;
+				float parentScale = panelParent.GetScale();
 
-				snapArea.Width -= panelParent.Width / panelParent.GetScale();
-				snapArea.Height -= panelParent.Height / panelParent.GetScale();
+				var panelBounds = new Rectangle(panelParent.Offset * parentScale + posDiff, panelParent.Size);
+
+				Rectangle snapArea = Controller!.Bounds;
+				snapArea.Width += panelBounds.Width / 2f;
+				snapArea.Height += panelBounds.Height / 2f;
 
 				UIBaseWindow? topBar = Controller.GetWindowById("TopBar");
-				if (topBar != null) snapArea.Y = topBar.Bounds.Bottom / topBar.GetScale();
+				if (topBar != null)
+				{
+					float topBarPos = topBar.Bounds.Bottom;
+					snapArea.Y = topBarPos;
+					snapArea.Height -= topBarPos;
+				}
 
-				if (winOffset.X < snapArea.X) winOffset.X = snapArea.X;
-				if (winOffset.Y < snapArea.Y) winOffset.Y = snapArea.Y;
-				if (winOffset.X > snapArea.Width) winOffset.X = snapArea.Width;
-				if (winOffset.Y > snapArea.Height) winOffset.Y = snapArea.Height;
-
-				panelParent.Offset = winOffset;
+				panelParent.Offset = snapArea.SnapRectangleInside(panelBounds) / parentScale;
 				panelParent.InvalidateLayout();
 			}
 
@@ -113,8 +103,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		protected override bool RenderInternal(RenderComposer c)
 		{
-			UIBaseWindow? focus = Controller.InputFocus;
-			var panelParent = Parent?.Parent;
+			UIBaseWindow? focus = Controller!.InputFocus;
+			UIBaseWindow? panelParent = Parent!.Parent;
 			if (focus != null && panelParent != null && focus.IsWithin(panelParent))
 				c.RenderSprite(Bounds, _mouseDown || MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
 			else

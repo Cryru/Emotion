@@ -35,7 +35,6 @@ public class EditorCheckboxList : UIBaseWindow
 	public EditorCheckboxList(string label)
 	{
 		_label = label;
-		InputTransparent = false;
 		StretchX = true;
 		StretchY = true;
 	}

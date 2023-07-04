@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
-using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Editor;
 using Emotion.Graphics;
 using Emotion.IO;
 
@@ -9,11 +9,11 @@ using Emotion.IO;
 
 #nullable enable
 
-namespace Emotion.Game.World2D;
+namespace Emotion.Game.World2D.Objects;
 
 public class StaticTextureAssetObject : GameObject2D
 {
-	[AssetFileName] public string? AssetFile;
+	[AssetFileName<TextureAsset>] public string? AssetFile;
 
 	private TextureAsset? _asset;
 

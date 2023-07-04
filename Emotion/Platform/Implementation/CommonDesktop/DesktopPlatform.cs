@@ -174,7 +174,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             try
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    User32Methods.MessageBox(IntPtr.Zero, message, "Something went wrong!", (uint) 0x00000010L);
+                    User32Methods.MessageBox(IntPtr.Zero, message, "Something went wrong!", (uint) MessageBoxFlags.MB_ICONERROR);
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     UnixNative.ExecuteBashCommand($"osascript -e 'tell app \"System Events\" to display dialog \"{message}\" buttons {{\"OK\"}} with icon caution'");
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

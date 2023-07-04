@@ -47,11 +47,8 @@ namespace Emotion.UI
 			Vector3 pos = c.Camera.WorldToScreen(_worldPos).ToVec3(_worldPos.Z);
 			pos = VerifyWorldPos(pos);
 
-			if (!InputTransparent)
-			{
-				_renderBounds = new Rectangle(pos + Position, Size);
-				_renderBoundsWithChildren = new Rectangle(pos + Position, Size);
-			}
+			_renderBounds = new Rectangle(pos + Position, Size);
+			_renderBoundsWithChildren = new Rectangle(pos + Position, Size);
 
 			c.PushModelMatrix(Matrix4x4.CreateTranslation(pos));
 			return base.RenderInternal(c);

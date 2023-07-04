@@ -38,7 +38,7 @@ namespace Emotion.UI
 
 		public UIScrollbar()
 		{
-			InputTransparent = false;
+			HandleInput = true;
 		}
 
 		public override void AttachedToController(UIController controller)

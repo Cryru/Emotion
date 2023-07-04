@@ -12,7 +12,7 @@ using Emotion.Utility;
 
 namespace Emotion.Editor.EditorWindows;
 
-public class PerformanceMonitor : MapEditorPanel
+public class PerformanceMonitor : EditorPanel
 {
 	private MapEditorLabel _avgDelta = null!;
 	private MapEditorLabel _fps = null!;

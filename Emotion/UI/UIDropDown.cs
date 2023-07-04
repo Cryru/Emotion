@@ -13,6 +13,7 @@ namespace Emotion.UI
 		public UIDropDown()
 		{
 			CodeGenerated = true;
+			HandleInput = true;
 		}
 
 		public override void AttachedToController(UIController controller)

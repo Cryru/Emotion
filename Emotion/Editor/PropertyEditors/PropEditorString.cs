@@ -29,7 +29,6 @@ namespace Emotion.Editor.PropertyEditors
 
 		public PropEditorString(bool updateOnTextChange = false)
 		{
-			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
 			MinSize = new Vector2(70, 0);
@@ -59,7 +58,6 @@ namespace Emotion.Editor.PropertyEditors
 			base.AttachedToController(controller);
 
 			var inputBg = new UISolidColor();
-			inputBg.InputTransparent = false;
 			inputBg.StretchX = true;
 			inputBg.StretchY = true;
 			inputBg.WindowColor = MapEditorColorPalette.ButtonColor;
@@ -102,9 +100,7 @@ namespace Emotion.Editor.PropertyEditors
 		{
 			var container = new UIBaseWindow();
 			container.LayoutMode = LayoutMode.HorizontalList;
-			container.InputTransparent = false;
 			container.ListSpacing = new Vector2(5, 0);
-			container.InputTransparent = false;
 			container.StretchX = true;
 			container.StretchY = true;
 

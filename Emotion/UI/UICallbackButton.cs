@@ -18,7 +18,7 @@ namespace Emotion.UI
 
         public UICallbackButton()
         {
-            InputTransparent = false;
+            HandleInput = true;
         }
 
         public override void OnMouseEnter(Vector2 _)

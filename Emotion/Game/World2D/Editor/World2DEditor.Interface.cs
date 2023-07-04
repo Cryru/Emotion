@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Editor;
+using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
 using Emotion.Game.Text;
@@ -62,7 +63,6 @@ public partial class World2DEditor
 		topBar.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 15);
 		topBar.ScaleMode = UIScaleMode.FloatScale;
 		topBar.WindowColor = MapEditorColorPalette.BarColor;
-		topBar.InputTransparent = false;
 		topBar.Id = "TopBar";
 
 		var mapName = new UIText();
@@ -81,7 +81,6 @@ public partial class World2DEditor
 		topBarList.LayoutMode = LayoutMode.HorizontalList;
 		topBarList.ListSpacing = new Vector2(3, 0);
 		topBarList.Margins = new Rectangle(3, 3, 3, 3);
-		topBarList.InputTransparent = false;
 		topBarList.Id = "List";
 		topBar.AddChild(topBarList);
 
@@ -156,7 +155,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "New",
-				Click = (_, __) => { _editUI!.AddChild(new MapEditorModal(new MapEditorCreateMapPanel(this, mapType))); }
+				Click = (_, __) => { _editUI!.AddChild(new MapEditorCreateMapPanel(this, mapType)); }
 			},
 			new EditorDropDownButtonDescription
 			{
@@ -185,7 +184,7 @@ public partial class World2DEditor
 						}
 					);
 
-					_editUI!.AddChild(new MapEditorModal(filePicker));
+					_editUI!.AddChild(filePicker);
 				}
 			},
 			new EditorDropDownButtonDescription

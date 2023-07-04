@@ -11,7 +11,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 	{
 		public FieldEditorWithLabel(string labelText, IPropEditorGeneric editor, LayoutMode layout = LayoutMode.HorizontalList)
 		{
-			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
 			Margins = new Rectangle(3, 0, 0, 0);

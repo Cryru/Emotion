@@ -46,8 +46,8 @@ namespace Emotion.UI
 
 		public UIController(KeyListenerType inputPriority = KeyListenerType.UI)
 		{
+			HandleInput = true;
 			KeyPriority = inputPriority;
-			InputTransparent = false;
 			Debugger = new UIDebugger();
 			Engine.Host.OnResize += Host_OnResize;
 			KeepTemplatePreloaded(this);
@@ -262,11 +262,21 @@ namespace Emotion.UI
 			{
 				_mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyStatus.Down;
 
-				if (_inputFocusManual != null && !_myMouseFocus.IsWithin(_inputFocusManual) && status == KeyStatus.Down)
+				if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
 				{
-					bool isDropDown = _inputFocusManual is UIDropDown;
-					SetInputFocus(null);
-					if (isDropDown) return false;
+					// todo: there must be a better way of consuming clicks outside yourself? (SetInputFocus param?)
+					UIBaseWindow? oldFocus = _inputFocusManual;
+					bool oldFocusDropDown = oldFocus is UIDropDown;
+					if (oldFocusDropDown && !_myMouseFocus.IsWithin(_inputFocusManual))
+					{
+						SetInputFocus(null);
+						return false;
+					}
+
+					// todo: there also must be a way to consume clicks inside yourself that cause you to focus
+					// as it is possible for another key handler to then change the focus due to propagation.
+					// careful - since we dont want buttons to have to be double clicked xd
+					SetInputFocus(_myMouseFocus);
 				}
 
 				return _myMouseFocus.OnKey(key, status, Engine.Host.MousePosition);
@@ -293,11 +303,11 @@ namespace Emotion.UI
 			_updateInputFocus = false;
 
 			UIBaseWindow? newFocus;
-			if (InputTransparent || !Visible)
+			if (!ChildrenHandleInput || !Visible)
 			{
 				newFocus = null;
 			}
-			else if (_inputFocusManual != null && _inputFocusManual.Visible && !_inputFocusManual.InputTransparent && _inputFocusManual.Controller == this)
+			else if (_inputFocusManual != null && _inputFocusManual.Visible && _inputFocusManual.HandleInput && _inputFocusManual.Controller == this)
 			{
 				newFocus = _inputFocusManual;
 			}
@@ -311,38 +321,71 @@ namespace Emotion.UI
 
 			if (InputFocus != newFocus)
 			{
-				// Re-hook event to get up events on down presses.
+				UIBaseWindow? commonParentWithOldFocus = null;
+
+				// Re-hook event to get KeyUp events on keys that are pressed down.
 				if (InputFocus != null)
 				{
 					Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
-					InputFocus.InputFocusChanged(false);
-				}
 
+					// Send focus remove events only on the part of the tree that will be unfocused.
+					commonParentWithOldFocus = FindCommonParent(InputFocus, newFocus);
+					SetFocusUpTree(InputFocus, false, commonParentWithOldFocus);
+				}
+				
 				InputFocus = newFocus;
 
 				if (InputFocus != null)
 				{
 					Engine.Host.OnKey.AddListener(KeyboardFocusOnKey, KeyPriority);
-					InputFocus.InputFocusChanged(true);
+
+					// Send focus add events down to the child that will be focused.
+					SetFocusUpTree(InputFocus, true, commonParentWithOldFocus);
 				}
 
 				// Kinda spammy.
 				// Engine.Log.Info($"New input focus {InputFocus}", "UI");
 			}
-
-			
 		}
 
-		protected static UIBaseWindow FindInputFocusable(UIBaseWindow wnd)
+		protected void SetFocusUpTree(UIBaseWindow startFrom, bool focus, UIBaseWindow? stopAt)
 		{
-			if (wnd.Children == null) return wnd;
-			for (int i = wnd.Children.Count - 1; i >= 0; i--)
+			if (stopAt == startFrom) return;
+			startFrom.InputFocusChanged(focus);
+
+			UIBaseWindow? p = startFrom.Parent;
+			while (p != null)
 			{
-				UIBaseWindow win = wnd.Children[i];
-				if (!win.InputTransparent && win.Visible) return FindInputFocusable(win);
+				if (p == stopAt) break;
+				p.InputFocusChanged(focus);
+				p = p.Parent;
+			}
+		}
+
+		protected static UIBaseWindow? FindCommonParent(UIBaseWindow one, UIBaseWindow? two)
+		{
+			if (two == null) return null;
+
+			UIBaseWindow? p = one.Parent;
+			while (p != null)
+			{
+				if (two.IsWithin(p)) return p;
+				p = p.Parent;
 			}
 
-			return wnd;
+			return null;
+		}
+
+		protected static UIBaseWindow? FindInputFocusable(UIBaseWindow wnd)
+		{
+			if (wnd.Children != null && wnd.ChildrenHandleInput)
+				for (int i = wnd.Children.Count - 1; i >= 0; i--)
+				{
+					UIBaseWindow win = wnd.Children[i];
+					if (win.Visible) return FindInputFocusable(win);
+				}
+
+			return wnd.HandleInput ? wnd : null;
 		}
 
 		#endregion

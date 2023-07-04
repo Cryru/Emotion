@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
+using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows.ModelViewerUtil;
 using Emotion.Editor.PropertyEditors;
@@ -25,7 +26,7 @@ using Emotion.UI;
 
 namespace Emotion.Editor.EditorWindows;
 
-public class ModelViewer : MapEditorPanel
+public class ModelViewer : EditorPanel
 {
 	private Camera3D _camera;
 	private InfiniteGrid _grid;
@@ -77,15 +78,15 @@ public class ModelViewer : MapEditorPanel
 		contentSplit.LayoutMode = LayoutMode.HorizontalList;
 		contentSplit.StretchX = true;
 		contentSplit.StretchY = true;
-		contentSplit.InputTransparent = false;
 
 		var surface3D = new UIBaseWindow();
 		surface3D.Id = "Surface3D";
-		_surface3D = surface3D;
 		surface3D.MinSize = new Vector2(960, 540) / 2f;
 		surface3D.StretchX = true;
 		surface3D.StretchY = true;
+		surface3D.HandleInput = true;
 		contentSplit.AddChild(surface3D);
+		_surface3D = surface3D;
 
 		var editorButtons = new UIBaseWindow();
 		editorButtons.StretchX = true;
@@ -94,14 +95,13 @@ public class ModelViewer : MapEditorPanel
 		editorButtons.MaxSize = new Vector2(100, DefaultMaxSizeF);
 		editorButtons.LayoutMode = LayoutMode.VerticalList;
 		editorButtons.ListSpacing = new Vector2(0, 2);
-		editorButtons.InputTransparent = false;
 		editorButtons.Paddings = new Rectangle(2, 0, 2, 0);
 
 		var butObj = new MapEditorTopBarButton();
 		butObj.Text = "Open MeshAsset";
 		butObj.StretchY = true;
 		butObj.StretchX = false;
-		butObj.OnClickedProxy = _ => { Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); }))); };
+		butObj.OnClickedProxy = _ => { Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); })); };
 		editorButtons.AddChild(butObj);
 
 		var butSprite = new MapEditorTopBarButton();
@@ -110,10 +110,10 @@ public class ModelViewer : MapEditorPanel
 		butSprite.StretchX = false;
 		butSprite.OnClickedProxy = _ =>
 		{
-			Controller!.AddChild(new MapEditorModal(new EditorFileExplorer<SpriteStackTexture>(asset =>
+			Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
 			{
 				//_obj.Entity = asset.GetSpriteStackEntity(Vector2.Zero);
-			})));
+			}));
 		};
 		editorButtons.AddChild(butSprite);
 
@@ -185,7 +185,7 @@ public class ModelViewer : MapEditorPanel
 		dragButton.Anchor = UIAnchor.BottomRight;
 		dragButton.ParentAnchor = UIAnchor.BottomRight;
 
-		AddChild(dragButton);
+		_container.AddChild(dragButton);
 	}
 
 	protected void SetEntity(MeshEntity? entity)
@@ -244,7 +244,12 @@ public class ModelViewer : MapEditorPanel
 
 	public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
 	{
-		return _camera.CameraKeyHandler(key, status);
+		if (Controller?.InputFocus == _surface3D)
+		{
+			return _camera.CameraKeyHandler(key, status);
+		}
+
+		return true;
 	}
 
 	protected override bool UpdateInternal()

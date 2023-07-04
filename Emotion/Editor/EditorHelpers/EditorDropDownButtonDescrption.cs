@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
-namespace Emotion.Game.World2D.EditorHelpers
+using Emotion.Game.World2D.EditorHelpers;
+
+namespace Emotion.Editor.EditorHelpers
 {
 	public class EditorDropDownButtonDescription
 	{

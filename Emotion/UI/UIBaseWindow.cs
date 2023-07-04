@@ -695,22 +695,20 @@ namespace Emotion.UI
 
 		#region Input
 
-		/// <summary>
-		/// If true then this window will not catch input unless propagated by a child. Used for large containers which
-		/// take up the whole screen and such.
-		/// </summary>
-		public bool InputTransparent
+		public bool ChildrenHandleInput { get; set; } = true;
+
+		public bool HandleInput
 		{
-			get => _inputTransparent;
+			get => _handleInput;
 			set
 			{
-				if (value == _inputTransparent) return;
-				_inputTransparent = value;
+				if (value == _handleInput) return;
+				_handleInput = value;
 				Controller?.InvalidateInputFocus();
 			}
 		}
 
-		private bool _inputTransparent = true;
+		private bool _handleInput;
 
 		public virtual bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
 		{
@@ -778,20 +776,25 @@ namespace Emotion.UI
 			return false;
 		}
 
+		/// <summary>
+		/// Find the window under the mouse cursor in this parent.
+		/// This could be either a child window or the parent itself.
+		/// </summary>
 		public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
 		{
-			if (Children != null)
-				for (int i = Children.Count - 1; i >= 0; i--)
+			if (Children != null && ChildrenHandleInput)
+				for (int i = Children.Count - 1; i >= 0; i--) // Top to bottom
 				{
 					UIBaseWindow win = Children[i];
-					if (!win.InputTransparent && win.Visible && win.IsPointInside(pos))
+					if (win.Visible && win.IsPointInside(pos))
 					{
 						UIBaseWindow? inChild = win.FindMouseInput(pos);
 						if (inChild != null) return inChild;
 					}
 				}
 
-			if (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos)) return this;
+			if (HandleInput && (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos)))
+				return this;
 
 			return null;
 		}
@@ -812,6 +815,11 @@ namespace Emotion.UI
 
 		public virtual void InputFocusChanged(bool haveFocus)
 		{
+		}
+
+		public static bool HandlesInputAlongTree(UIBaseWindow wnd)
+		{
+			return wnd.ChildrenHandleInput || wnd.HandleInput;
 		}
 
 		#endregion

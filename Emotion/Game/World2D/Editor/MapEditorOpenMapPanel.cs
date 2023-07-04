@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
 using Emotion.UI;
@@ -11,7 +12,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.Editor;
 
-public class MapEditorOpenMapPanel : MapEditorPanel
+public class MapEditorOpenMapPanel : EditorPanel
 {
 	private World2DEditor _editor;
 	private Type _mapType;
@@ -31,7 +32,6 @@ public class MapEditorOpenMapPanel : MapEditorPanel
 		listNav.StretchX = true;
 		listNav.ListSpacing = new Vector2(0, 1);
 		listNav.Margins = new Rectangle(0, 0, 10, 0);
-		listNav.InputTransparent = false;
 		listNav.ChildrenAllSameWidth = true;
 		_contentParent.AddChild(listNav);
 

@@ -20,7 +20,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		public PropEditorNumber()
 		{
-			InputTransparent = false;
 			StretchX = true;
 			StretchY = true;
 		}
@@ -46,7 +45,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			base.AttachedToController(controller);
 
 			var inputBg = new UISolidColor();
-			inputBg.InputTransparent = false;
 			inputBg.StretchX = true;
 			inputBg.StretchY = true;
 			inputBg.WindowColor = MapEditorColorPalette.ButtonColor;

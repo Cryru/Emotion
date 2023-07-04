@@ -31,8 +31,8 @@ namespace Emotion.UI
 
         public UITextInput()
         {
-            InputTransparent = false;
-            _blinkingTimer = new Every(650, () => { _cursorOn = !_cursorOn; });
+	        HandleInput = true;
+	        _blinkingTimer = new Every(650, () => { _cursorOn = !_cursorOn; });
         }
 
         public override void AttachedToController(UIController controller)
@@ -50,12 +50,6 @@ namespace Emotion.UI
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
-	        if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
-	        {
-		        Controller?.SetInputFocus(this);
-                return false;
-	        }
-
 	        if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down)
 	        {
 		        OnSubmit?.Invoke(Text);

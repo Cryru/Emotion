@@ -11,7 +11,7 @@ using Emotion.UI;
 
 namespace Emotion.Editor.EditorHelpers;
 
-public class GenericPropertiesEditorPanel : MapEditorPanel
+public class GenericPropertiesEditorPanel : EditorPanel
 {
 	protected List<EditorUtility.TypeAndFieldHandlers> _fields;
 	protected List<IPropEditorGeneric> _editorUIs;
@@ -33,24 +33,19 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 	{
 		base.AttachedToController(controller);
 
-		UIBaseWindow contentWin = _contentParent;
-		contentWin.InputTransparent = false;
-
 		var innerContainer = new UIBaseWindow();
 		innerContainer.StretchX = true;
 		innerContainer.StretchY = true;
-		innerContainer.InputTransparent = false;
 		innerContainer.LayoutMode = LayoutMode.VerticalList;
 		innerContainer.ListSpacing = new Vector2(0, 3);
 		innerContainer.ChildrenAllSameWidth = true;
-		contentWin.AddChild(innerContainer);
+		_contentParent.AddChild(innerContainer);
 
 		AddHeaderUI(innerContainer);
 
 		var listContainer = new UIBaseWindow();
 		listContainer.StretchX = true;
 		listContainer.StretchY = true;
-		listContainer.InputTransparent = false;
 		listContainer.LayoutMode = LayoutMode.HorizontalList;
 		innerContainer.AddChild(listContainer);
 
@@ -59,7 +54,6 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 		listNav.StretchX = true;
 		listNav.ListSpacing = new Vector2(0, 1);
 		listNav.Margins = new Rectangle(0, 0, 5, 0);
-		listNav.InputTransparent = false;
 		listNav.ChildrenAllSameWidth = true;
 		listNav.MinSizeX = 100;
 		listContainer.AddChild(listNav);
@@ -74,7 +68,6 @@ public class GenericPropertiesEditorPanel : MapEditorPanel
 			EditorUtility.TypeAndFieldHandlers fieldGroup = _fields[i];
 
 			var fieldGroupHeaderContainer = new UIBaseWindow();
-			fieldGroupHeaderContainer.InputTransparent = false;
 			fieldGroupHeaderContainer.StretchX = true;
 			fieldGroupHeaderContainer.StretchY = true;
 

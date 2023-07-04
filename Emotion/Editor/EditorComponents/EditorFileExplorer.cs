@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Game;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
 using Emotion.UI;
@@ -13,14 +12,14 @@ using Emotion.Utility;
 
 #nullable enable
 
-namespace Emotion.Editor;
+namespace Emotion.Editor.EditorComponents;
 
 // todo: add asset -> open host dialog that allows filesystem access then copy to debug store and load in.
 // todo: Check if folders contain valid files?
 // todo: display folder file count
 // todo: allow typing in path
 // todo: hide debug store
-public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
+public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
 {
 	public bool UseAssetLoaderCache;
 
@@ -38,6 +37,8 @@ public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 		_fileFilter = fileFilter;
 		UseAssetLoaderCache = false;
 		_fileSystem = FilesToTree(Engine.AssetLoader.AllAssets);
+
+		Modal = true;
 	}
 
 	public static Tree<string, string> FilesToTree(IEnumerable<string> assets)
@@ -81,7 +82,6 @@ public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 		{
 			StretchX = true,
 			StretchY = true,
-			InputTransparent = false,
 			LayoutMode = LayoutMode.HorizontalList
 		};
 
@@ -90,7 +90,6 @@ public class EditorFileExplorer<T> : MapEditorPanel where T : Asset, new()
 		{
 			MinSize = new Vector2(300, 200),
 			MaxSize = new Vector2(300, DefaultMaxSizeF),
-			InputTransparent = false,
 			LayoutMode = LayoutMode.HorizontalListWrap,
 			ListSpacing = new Vector2(5, 0),
 			Margins = new Rectangle(0, 0, 5, 0),
