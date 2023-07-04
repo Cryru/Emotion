@@ -38,7 +38,10 @@ public partial class World2DEditor
 	{
 		if (!Engine.Configuration.DebugMode) return;
 		Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
-		_editorUIAlways = new UIController(KeyListenerType.EditorUI);
+		_editorUIAlways = new UIController(KeyListenerType.EditorUI)
+		{
+			Id = "World2DEditor_AlwaysOnTop"
+		};
 	}
 
 	public void UnloadEditor()

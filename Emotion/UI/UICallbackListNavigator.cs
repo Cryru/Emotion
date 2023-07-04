@@ -360,7 +360,7 @@ namespace Emotion.UI
 			{
 				UIBaseWindow? newItem = null;
 				var childIdx = 0;
-				while ((newItem == null || !newItem.Visible || !HandlesInputAlongTree(newItem)) && childIdx != Children.Count - 1) // Go next until visible.
+				while ((newItem == null || newItem.FindInputFocusable() == null) && childIdx != Children.Count - 1) // Go next until visible.
 				{
 					_selectedPos += axis;
 					_selectedPos = Vector2.Clamp(_selectedPos, Vector2.Zero, _gridSize);
@@ -434,7 +434,7 @@ namespace Emotion.UI
 			for (var i = 0; i < Children.Count; i++)
 			{
 				UIBaseWindow child = Children[i];
-				bool enabled = child.Visible && HandlesInputAlongTree(child);
+				bool enabled = child.FindInputFocusable() != null;
 				if (enabled)
 				{
 					SetSelection(child, true);
@@ -478,7 +478,7 @@ namespace Emotion.UI
 
 		private void ProxyButtonClicked(UICallbackButton b)
 		{
-			if (!b.Visible || !HandlesInputAlongTree(b)) return;
+			if (b.FindInputFocusable() == null) return;
 			SetSelection(b);
 			Assert(SelectedWnd != null);
 			OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
@@ -486,7 +486,7 @@ namespace Emotion.UI
 
 		private void ProxyButtonSelected(UICallbackButton b)
 		{
-			if (!b.Visible || !HandlesInputAlongTree(b)) return;
+			if (b.FindInputFocusable() == null) return;
 			SetSelection(b);
 		}
 
@@ -523,21 +523,25 @@ namespace Emotion.UI
 		{
 			if (pos == _lastMousePos) return _lastResult;
 
-			UIBaseWindow? focus = this;
+			UIBaseWindow? focus = null;
 			if (Children != null)
 			{
 				Rectangle renderRect = _renderBounds;
 				for (var i = 0; i < Children.Count; i++)
 				{
 					UIBaseWindow win = Children[i];
-					if (!HandlesInputAlongTree(win) || !win.Visible) continue;
+					if (!win.Visible) continue;
 					if (!win.IsInsideOrIntersectRect(renderRect, out _)) continue;
 					if (!win.IsPointInside(pos)) continue;
 					focus = win.FindMouseInput(pos);
 				}
 			}
 
-			if (focus == this && _scrollBar != null && _scrollBar.IsPointInside(pos)) focus = _scrollBar;
+			if (focus == null && _scrollBar != null && _scrollBar.IsPointInside(pos))
+				focus = _scrollBar;
+
+			if (focus == null && (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos)))
+				focus = this;
 
 			// Cache mouse target only if calculation is done.
 			// It is done so that moving the selection via buttons isn't overriden by the mouse.

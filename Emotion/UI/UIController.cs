@@ -269,14 +269,15 @@ namespace Emotion.UI
 					bool oldFocusDropDown = oldFocus is UIDropDown;
 					if (oldFocusDropDown && !_myMouseFocus.IsWithin(_inputFocusManual))
 					{
-						SetInputFocus(null);
+						SetInputFocus(_myMouseFocus);
 						return false;
 					}
 
 					// todo: there also must be a way to consume clicks inside yourself that cause you to focus
 					// as it is possible for another key handler to then change the focus due to propagation.
 					// careful - since we dont want buttons to have to be double clicked xd
-					SetInputFocus(_myMouseFocus);
+					if (_myMouseFocus.HandleInput) 
+						SetInputFocus(_myMouseFocus);
 				}
 
 				return _myMouseFocus.OnKey(key, status, Engine.Host.MousePosition);
@@ -307,7 +308,7 @@ namespace Emotion.UI
 			{
 				newFocus = null;
 			}
-			else if (_inputFocusManual != null && _inputFocusManual.Visible && _inputFocusManual.HandleInput && _inputFocusManual.Controller == this)
+			else if (_inputFocusManual != null && _inputFocusManual.VisibleAlongTree() && _inputFocusManual.HandleInput && _inputFocusManual.Controller == this)
 			{
 				newFocus = _inputFocusManual;
 			}
@@ -365,7 +366,9 @@ namespace Emotion.UI
 		protected static UIBaseWindow? FindCommonParent(UIBaseWindow one, UIBaseWindow? two)
 		{
 			if (two == null) return null;
-
+			if (two.IsWithin(one)) return one;
+			if (one.IsWithin(two)) return two;
+ 
 			UIBaseWindow? p = one.Parent;
 			while (p != null)
 			{
@@ -378,11 +381,17 @@ namespace Emotion.UI
 
 		protected static UIBaseWindow? FindInputFocusable(UIBaseWindow wnd)
 		{
+			if (!wnd.Visible) return null;
+
 			if (wnd.Children != null && wnd.ChildrenHandleInput)
 				for (int i = wnd.Children.Count - 1; i >= 0; i--)
 				{
 					UIBaseWindow win = wnd.Children[i];
-					if (win.Visible) return FindInputFocusable(win);
+					if (win.ChildrenHandleInput && win.Visible)
+					{
+						UIBaseWindow? found = FindInputFocusable(win);
+						if (found != null) return found;
+					}
 				}
 
 			return wnd.HandleInput ? wnd : null;

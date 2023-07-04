@@ -17,8 +17,10 @@ public partial class UIController
 	private static float _thisTick; // The timestamp of the current tick. Used to dedupe calls to update since every controller will call it.
 	private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
 
-	private static void UpdateMouseFocusAllControllers()
+	private void UpdateMouseFocus()
 	{
+		_calledUpdateLastTick = true;
+
 		// It was already updated this tick.
 		if (_thisTick == Engine.TotalTime) return;
 		_thisTick = Engine.TotalTime;
@@ -97,7 +99,7 @@ public partial class UIController
 	private UIBaseWindow? HasPriorityMouseFocus()
 	{
 		// If currently holding down a mouse button don't change the mouse focus if it is still valid.
-		if (_myMouseFocus == null || !_myMouseFocus.Visible || !_myMouseFocus.HandleInput) return null;
+		if (_myMouseFocus == null || !_myMouseFocus.VisibleAlongTree() || !_myMouseFocus.HandleInput) return null;
 
 		for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)
 		{
@@ -125,30 +127,5 @@ public partial class UIController
 		{
 			_myMouseFocus?.OnMouseMove(mousePos);
 		}
-	}
-
-	private void UpdateMouseFocus()
-	{
-#if true
-		UpdateMouseFocusAllControllers();
-		_calledUpdateLastTick = true;
-#else
-		Vector2 mousePos = Engine.Host.MousePosition;
-		
-		UIBaseWindow? newMouseFocus = null;
-		newMouseFocus = HasPriorityMouseFocus();
-
-		if (newMouseFocus == null)
-		{
-			newMouseFocus = Engine.Host.HostPaused || InputTransparent ? null : FindMouseInput(mousePos);
-
-			// If the controller is focused that means there is no focus.
-			// But if there is a dropdown open we want to capture the dismiss click so we keep it as a focus.
-			if (newMouseFocus == this && _inputFocusManual == null) newMouseFocus = null;
-		}
-
-		SetControllerMouseFocus(newMouseFocus);
-		MouseFocus = newMouseFocus;
-#endif
 	}
 }

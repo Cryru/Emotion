@@ -22,6 +22,7 @@ namespace Emotion.Editor.PropertyEditors
 		{
 			StretchX = true;
 			StretchY = true;
+			HandleInput = true;
 		}
 
 		public void SetValue(object value)

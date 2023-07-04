@@ -782,6 +782,8 @@ namespace Emotion.UI
 		/// </summary>
 		public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
 		{
+			if (!Visible) return null;
+
 			if (Children != null && ChildrenHandleInput)
 				for (int i = Children.Count - 1; i >= 0; i--) // Top to bottom
 				{
@@ -797,6 +799,28 @@ namespace Emotion.UI
 				return this;
 
 			return null;
+		}
+
+		/// <summary>
+		/// Find a window that handles input in this parent.
+		/// Could be either a child window or the parent itself.
+		/// </summary>
+		public UIBaseWindow? FindInputFocusable()
+		{
+			if (!Visible) return null;
+
+			if (Children != null && ChildrenHandleInput)
+				for (int i = Children.Count - 1; i >= 0; i--)
+				{
+					UIBaseWindow win = Children[i];
+					if (win.Visible)
+					{
+						UIBaseWindow? found = win.FindInputFocusable();
+						if (found != null) return found;
+					}
+				}
+
+			return HandleInput ? this : null;
 		}
 
 		public virtual void OnMouseEnter(Vector2 mousePos)
@@ -815,11 +839,6 @@ namespace Emotion.UI
 
 		public virtual void InputFocusChanged(bool haveFocus)
 		{
-		}
-
-		public static bool HandlesInputAlongTree(UIBaseWindow wnd)
-		{
-			return wnd.ChildrenHandleInput || wnd.HandleInput;
 		}
 
 		#endregion

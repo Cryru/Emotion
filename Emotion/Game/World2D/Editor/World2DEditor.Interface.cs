@@ -23,7 +23,10 @@ public partial class World2DEditor
 {
 	protected void InitializeEditorInterface()
 	{
-		_editUI = new UIController(KeyListenerType.EditorUI);
+		_editUI = new UIController(KeyListenerType.EditorUI)
+		{
+			Id = "World2DEditor"
+		};
 
 		UIBaseWindow topBar = GetEditorTopBar();
 		_editUI.AddChild(topBar);
