@@ -625,6 +625,22 @@ namespace Emotion.Platform.Implementation.Win32
         [DllImport("shell32.dll")]
         private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, int cild, IntPtr apidl, int dwFlags);
 
+        public AssertMessageBoxResponse OpenAssertMessageBox(string message)
+        {
+	        MessageBoxResult result = User32.MessageBox(IntPtr.Zero, message, "Assert", (uint) MessageBoxFlags.MB_ABORTRETRYIGNORE);
+	        switch (result)
+	        {
+                case MessageBoxResult.IDABORT:
+	                return AssertMessageBoxResponse.Break;
+                case MessageBoxResult.IDRETRY:
+	                return AssertMessageBoxResponse.IgnoreCurrent;
+                case MessageBoxResult.IDIGNORE:
+	                return AssertMessageBoxResponse.IgnoreAll;
+	        }
+
+	        return AssertMessageBoxResponse.Break;
+        }
+
         #endregion
     }
 }
