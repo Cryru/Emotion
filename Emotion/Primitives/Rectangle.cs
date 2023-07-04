@@ -511,6 +511,20 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
+        /// Return the position the other rectangle should be at in order
+        /// to be inside this one, or the rectangle's position if it is already inside.
+        /// </summary>
+        public Vector2 SnapRectangleInside(Rectangle otherRect)
+        {
+	        Vector2 posToBeAt = otherRect.Position;
+	        if (otherRect.X < X) posToBeAt.X = X;
+	        if (otherRect.Y < Y) posToBeAt.Y = Y;
+	        if (otherRect.Right > Right) posToBeAt.X = Width - otherRect.Width;
+	        if (otherRect.Bottom > Bottom) posToBeAt.Y = Bottom - otherRect.Height;
+	        return posToBeAt;
+        }
+
+        /// <summary>
         /// Get a line which goes through the center of the rectangle to it's two smaller sides.
         /// </summary>
         /// <param name="vertical">Whether the line is vertical.</param>
