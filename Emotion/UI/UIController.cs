@@ -269,7 +269,7 @@ namespace Emotion.UI
 					bool oldFocusDropDown = oldFocus is UIDropDown;
 					if (oldFocusDropDown && !_myMouseFocus.IsWithin(_inputFocusManual))
 					{
-						SetInputFocus(_myMouseFocus);
+						SetInputFocus(null);
 						return false;
 					}
 
@@ -291,12 +291,30 @@ namespace Emotion.UI
 			_updateInputFocus = true;
 		}
 
-		public void SetInputFocus(UIBaseWindow? win, bool searchTree = false)
+		public void SetInputFocus(UIBaseWindow? win)
 		{
-			UIBaseWindow? focusable = searchTree && win != null ? FindInputFocusable(win) : win;
-			_inputFocusManual = focusable;
+			// todo: old code, remove?
+			//, bool searchTree = false
+			//UIBaseWindow? focusable = searchTree && win != null ? FindInputFocusable(win) : win;
+			//_inputFocusManual = focusable;
 
+			// If focus is being removed (set to null) then we explicitly don't want to
+			// focus the same window as before (or their tree). So we temporary remove their focus.
+			var removedHandleInput = false;
+			UIBaseWindow? oldFocus = InputFocus;
+			if (win == null && oldFocus != null && oldFocus.ChildrenHandleInput)
+			{
+				oldFocus.ChildrenHandleInput = false;
+				removedHandleInput = true;
+			}
+
+			_inputFocusManual = win;
 			UpdateInputFocus();
+
+			if (removedHandleInput)
+			{
+				oldFocus!.ChildrenHandleInput = true;
+			}
 		}
 
 		private void UpdateInputFocus()

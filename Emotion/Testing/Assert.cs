@@ -67,11 +67,11 @@ public static class Assert
 		throw new TestAssertException(msg);
 #elif DEBUG
 		_ignoredAsserts ??= new HashSet<string>();
-		string assertId = msg + Environment.StackTrace;
+		string assertId = msg + "\n" + Environment.StackTrace;
 		if (_ignoredAsserts.Contains(assertId)) return;
 
 		var assertResponse = AssertMessageBoxResponse.Break;
-		if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(msg);
+		if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(assertId);
 
 		switch (assertResponse)
 		{

@@ -405,15 +405,13 @@ public partial class World2DEditor
 			return;
 		}
 
-		var propsPanel = new MapEditorObjectPropertiesPanel(this, obj);
-		_editUI.AddChild(propsPanel);
-		_editUI.SetInputFocus(propsPanel);
+		_editUI.AddChild(new MapEditorObjectPropertiesPanel(this, obj));
 	}
 
 	private void EditorOpenContextMenuObjectModeNoSelection()
 	{
 		Map2D? map = CurrentMap;
-		Debug.Assert(map != null);
+		if (map == null) return;
 
 		Vector2 mousePos = Engine.Host.MousePosition;
 

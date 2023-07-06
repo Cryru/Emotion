@@ -14,6 +14,7 @@ namespace Emotion.UI
 		{
 			CodeGenerated = true;
 			HandleInput = true;
+			ZOffset = 99;
 		}
 
 		public override void AttachedToController(UIController controller)
