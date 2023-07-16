@@ -34,6 +34,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         protected override void UpdateBackend()
         {
+            // No sound device or sound driver not installed.
+            if (_layerContext == null) return;
+
             try
             {
                 // Check if the context is initialized.
