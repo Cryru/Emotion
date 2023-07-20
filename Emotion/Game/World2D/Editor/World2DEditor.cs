@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Common.Threading;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
@@ -71,6 +72,14 @@ public partial class World2DEditor
 
 	public void ExitEditor()
 	{
+		// We want to sync editor closing with the rendering to
+		// prevent race condition exceptions.
+		if(!GLThread.IsGLThread())
+		{
+            GLThread.ExecuteGLThread(ExitEditor);
+			return;
+        }
+
 		Engine.Renderer.Camera = _cameraOutsideEditor;
 		_editorCamera = null;
 
@@ -90,7 +99,7 @@ public partial class World2DEditor
 		Map2D currentMap = _scene.GetCurrentMap();
 		if (currentMap != CurrentMap)
 		{
-			ExitEditor();
+			if(EditorOpen) ExitEditor();
 			CurrentMap = currentMap;
 			EnterEditor();
 		}
@@ -98,9 +107,10 @@ public partial class World2DEditor
 
 	public void ChangeSceneMap(Map2D newMap)
 	{
-		_scene.ChangeMapAsync(newMap).Wait();
-		CheckMapChange();
-	}
+		ExitEditor();
+        _scene.ChangeMapAsync(newMap).Wait();
+        CheckMapChange();
+    }
 
 	public void ChangeSceneMap(string fileName)
 	{
