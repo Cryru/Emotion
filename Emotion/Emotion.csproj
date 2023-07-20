@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);NEW_UI;ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES</DefineConstants>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
