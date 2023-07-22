@@ -36,7 +36,7 @@ namespace Emotion.Utility
                 Owned = true
             };
             _allocatedMemory.Add(memoryHandle);
-            _ptrToHandle.Add(memoryPtr, memoryHandle);
+            _ptrToHandle[memoryPtr] = memoryHandle;
             return memoryPtr;
         }
 
