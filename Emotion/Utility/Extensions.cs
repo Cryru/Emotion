@@ -389,11 +389,14 @@ namespace Emotion.Utility
 		/// This is worse than using a list and it will copy the array.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static T[] AddToArray<T>(this T[] array, T element)
+		public static T[] AddToArray<T>(this T[] array, T element, bool front = false)
 		{
 			var newArray = new T[array.Length + 1];
-			Array.Copy(array, newArray, array.Length);
-			newArray[^1] = element;
+			Array.Copy(array, 0, newArray, front ? 1 : 0, array.Length);
+			if (front)
+				newArray[0] = element;
+			else
+				newArray[^1] = element;
 			return newArray;
 		}
 
