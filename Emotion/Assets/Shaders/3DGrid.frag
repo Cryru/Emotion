@@ -1,6 +1,7 @@
 #version v
  
-in vec2 UV; 
+in vec2 UV;
+in vec4 vertColor;
 
 out vec4 fragColor;
 
@@ -14,20 +15,26 @@ float sdBox( in vec2 p, in vec2 b )
     return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
 }
 
+float filteredGrid( in vec2 p, in vec2 dpdx, in vec2 dpdy )
+{
+    const float N = 30.0;
+    vec2 w = max(abs(dpdx), abs(dpdy));
+    vec2 a = p + 0.5*w;                        
+    vec2 b = p - 0.5*w;           
+    vec2 i = (floor(a)+min(fract(a)*N,1.0)-
+              floor(b)-min(fract(b)*N,1.0))/(N*w);
+    return (1.0-i.x)*(1.0-i.y);
+}
+
 void main() {
     vec2 squares = totalSize / squareSize;
-    vec2 uv = UV + cameraPos;//vec2(2.0);
+    vec2 uv = UV + cameraPos;
     vec2 p = fract(uv * squares) - 0.5;
 
-    float dist = abs(sdBox(p, vec2(0.5))) - 0.025;
-
-    float fwidthValue = fwidth(dist);
-    float alpha = (1.0 - smoothstep(0.0, fwidthValue, dist));
-
-    // Fade away from center
-    float distanceFromCenter = length(UV);
-    float alphaDist = mix(alpha, 0.0, clamp(distanceFromCenter / 0.6, 0.0, 1.0));
-
-    fragColor = vec4(1.0, 1.0, 1.0, alphaDist);
+    vec2 ddx = dFdx( p ); 
+    vec2 ddy = dFdy( p );
+    float col = filteredGrid(p, ddx, ddy);
+    float alphaDist = 1.0 - col;
+    fragColor = vec4(vertColor.rgb, vertColor.a * alphaDist);
     if(fragColor.a < 0.1) discard;
 }

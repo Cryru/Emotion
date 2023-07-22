@@ -259,18 +259,23 @@ public partial class World2DEditor
 		MapEditorTopBarButton tilesMenu = EditorDropDownButton("Tiles", new[]
 		{
 			// false by default, mouseover shows props, alt switch layers
-			new EditorDropDownButtonDescription
-			{
-				Name = $"Selection: {(_tileSelect ? "Enabled" : "Disabled")}"
-			},
+			//new EditorDropDownButtonDescription
+			//{
+			//	Name = $"Selection: {(_tileSelect ? "Enabled" : "Disabled")}"
+			//},
 			// Shows layers, tilesets and other special editors for this mode, disables object selection while open
 			new EditorDropDownButtonDescription
 			{
-				Name = "Open Tile Editor"
+				Name = "Open Tile Editor",
+				Click = (_, __) =>
+				{
+					_editUI!.AddChild(new MapEditorTilePanel(map));
+				},
+				Enabled = () => map != null
 			},
 		});
 
-		MapEditorTopBarButton mapMenu = EditorDropDownButton("Map", new[]
+		MapEditorTopBarButton editorMenu = EditorDropDownButton("Editor", new[]
 		{
 			// Shows actions done in the editor, can be undone
 			new EditorDropDownButtonDescription
@@ -285,6 +290,19 @@ public partial class World2DEditor
 					_editUI!.AddChild(panel);
 				}
 			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Model Viewer (WIP)",
+				Click = (_, __) =>
+				{
+					var panel = new ModelViewer();
+					_editUI!.AddChild(panel);
+				},
+			},
+		});
+
+		MapEditorTopBarButton mapMenu = EditorDropDownButton("Map", new[]
+			{
 			new EditorDropDownButtonDescription
 			{
 				Name = "Reload",
@@ -317,15 +335,7 @@ public partial class World2DEditor
 				Click = (_, __) => { Process.Start("explorer.exe", "."); },
 				Enabled = () => Engine.Host is Win32Platform
 			},
-			new EditorDropDownButtonDescription
-			{
-				Name = "Model Viewer (WIP)",
-				Click = (_, __) =>
-				{
-					var panel = new ModelViewer();
-					_editUI!.AddChild(panel);
-				},
-			},
+
 			new EditorDropDownButtonDescription
 			{
 				Name = "Performance Monitor",
@@ -346,6 +356,7 @@ public partial class World2DEditor
 		parentList.AddChild(fileMenu);
 		parentList.AddChild(objectsMenu);
 		parentList.AddChild(tilesMenu);
+		parentList.AddChild(editorMenu);
 		parentList.AddChild(mapMenu);
 		parentList.AddChild(otherTools);
 	}
