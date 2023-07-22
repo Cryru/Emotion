@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -167,6 +168,7 @@ namespace Emotion.Primitives
         /// Create a copy of this color object.
         /// </summary>
         /// <returns></returns>
+        [Pure]
         public Color Clone()
         {
             return (Color) MemberwiseClone();

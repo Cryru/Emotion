@@ -6,6 +6,7 @@ using Emotion.Common.Threading;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
@@ -61,6 +62,7 @@ public partial class World2DEditor
 
 		InitializeEditorInterface();
 		InitializeObjectEditor();
+		InitializeTileEditor();
 
 		EditorOpen = true;
 		if (CurrentMap != null)
@@ -169,6 +171,8 @@ public partial class World2DEditor
 			c.ClearDepth();
 		}
 
+		_grid?.Render(c);
+		c.RenderSprite(new Vector3(32, 32, 0), new Vector2(32, 32), Color.Pink);
 		RenderObjectSelection(c);
 
 		c.SetUseViewMatrix(false);
