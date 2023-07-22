@@ -58,6 +58,11 @@ namespace OpenGL
         public static bool SoftwareRenderer { get; private set; }
 
         /// <summary>
+        /// Whether the current renderer's vendor is Intel(tm).
+        /// </summary>
+        public static bool IsIntel { get => CurrentVendor == "intel" || CurrentVendor == "Intel"; }
+
+        /// <summary>
         /// OpenGL extension support.
         /// </summary>
         public static Extensions CurrentExtensions { get; private set; }
