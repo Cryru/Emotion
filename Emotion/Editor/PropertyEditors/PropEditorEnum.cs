@@ -4,6 +4,7 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
+using Emotion.Utility;
 
 #endregion
 
@@ -17,17 +18,24 @@ namespace Emotion.Editor.PropertyEditors
 
 		private Type _enumType;
 		private object? _value;
+		private bool _nullable;
 
 		private string[] _enumValueNames;
 
 		private Action<object>? _callback;
 		private MapEditorTopBarButton? _button;
 
-		public PropEditorEnum(Type enumType)
+		public PropEditorEnum(Type enumType, bool nullable)
 		{
 			_enumType = enumType;
 			_enumValueNames = Enum.GetNames(enumType);
-		}
+			_nullable = nullable;
+
+			if (_nullable)
+			{
+                _enumValueNames = _enumValueNames.AddToArray("<null>", true);
+			}
+        }
 
 		public void SetValue(object value)
 		{
@@ -49,12 +57,12 @@ namespace Emotion.Editor.PropertyEditors
 		{
 			base.AttachedToController(controller);
 
-			var currentIdx = 0;
+            var currentIdx = 0;
 			var dropDownItems = new EditorDropDownButtonDescription[_enumValueNames.Length];
 			for (var i = 0; i < _enumValueNames.Length; i++)
 			{
 				string enumValName = _enumValueNames[i];
-				object enumVal = Enum.Parse(_enumType, enumValName);
+				object enumVal = enumValName == "<null>" ? null : Enum.Parse(_enumType, enumValName);
 
 				dropDownItems[i] = new EditorDropDownButtonDescription
 				{

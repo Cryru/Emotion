@@ -19,10 +19,15 @@ public class ReflectedMemberHandler
 	/// </summary>
 	public string Name { get; }
 
-	/// <summary>
-	/// The type this member was declared in.
-	/// </summary>
-	public Type? DeclaredIn
+    /// <summary>
+    /// Whether the type is a nullable type.
+    /// </summary>
+    public bool Nullable { get; set; }
+
+    /// <summary>
+    /// The type this member was declared in.
+    /// </summary>
+    public Type? DeclaredIn
 	{
 		get => _prop?.DeclaringType ?? _field?.DeclaringType ?? null;
 	}
@@ -38,7 +43,10 @@ public class ReflectedMemberHandler
 	{
 		_prop = prop;
 		Name = _prop.Name;
-	}
+
+        Type type = _prop.PropertyType;
+        Nullable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+    }
 
 	/// <summary>
 	/// Create a new reflection handler for the specified field.
@@ -46,9 +54,12 @@ public class ReflectedMemberHandler
 	/// <param name="field"></param>
 	public ReflectedMemberHandler(FieldInfo field)
 	{
-		_field = field;
+        _field = field;
 		Name = _field.Name;
-	}
+
+        Type type = _field.FieldType;
+		Nullable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+    }
 
 	/// <summary>
 	/// Get the value of the field or property this handler manages from the object instance.

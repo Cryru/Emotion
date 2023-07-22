@@ -117,7 +117,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(Rectangle)) return new PropEditorRect();
 		if (field.TypeHandler.Type == typeof(string)) return new PropEditorString();
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
-		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type);
+		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo.Nullable);
 
 		return null;
 	}
