@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Utility;
@@ -57,8 +58,16 @@ public static class TestExecutor
 
 		Task.Run(async () =>
 		{
-			RunTestClasses(testFunctions);
-			await RunTestScenes(testScenes);
+			try
+			{
+				RunTestClasses(testFunctions);
+				await RunTestScenes(testScenes);
+			}
+			catch (Exception)
+			{
+				// ignored, prevent stalling
+			}
+
 			Engine.Quit();
 		});
 
@@ -70,21 +79,45 @@ public static class TestExecutor
 		Type? currentClass = null;
 		object? currentClassInstance = null;
 
+		var completed = 0;
+		var total = 0;
+
+		void TestClassSwitch()
+		{
+			if (currentClass != null)
+			{
+				Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
+				completed = 0;
+				total = 0;
+			}
+		}
+
 		foreach (MethodInfo func in testFunctions)
 		{
-			// Create an instance of the test class.
-			if (currentClass != func.DeclaringType)
+			try
 			{
-				if (currentClass != null) Engine.Log.Info($"Passed test class {currentClass}!", MessageSource.Test);
-				currentClass = func.DeclaringType!;
-				currentClassInstance = Activator.CreateInstance(currentClass);
-				Engine.Log.Info($"Running test class {currentClass}...", MessageSource.Test);
-			}
+				// Create an instance of the test class.
+				if (currentClass != func.DeclaringType)
+				{
+					TestClassSwitch();
+					currentClass = func.DeclaringType!;
+					currentClassInstance = Activator.CreateInstance(currentClass);
+					Engine.Log.Info($"Running test class {currentClass}...", MessageSource.Test);
+				}
 
-			// Run test.
-			Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
-			func.Invoke(currentClassInstance, new object[] { });
+				// Run test.
+				total++;
+				Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+				func.Invoke(currentClassInstance, new object[] { });
+				completed++;
+			}
+			catch (Exception)
+			{
+				// ignored, it's printed by the internal engine error handling
+			}
 		}
+
+		TestClassSwitch();
 	}
 
 	private static async Task RunTestScenes(List<Type> testScenes)

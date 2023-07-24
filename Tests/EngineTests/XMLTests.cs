@@ -738,7 +738,7 @@ public class XMLTests
 		Assert.False(restored.NestedClassExclusion.GrandparentBool);
 	}
 
-	private class ClassWithExcludedComplexType
+	public class ClassWithExcludedComplexType
 	{
 		[DontSerialize]
 		public ClassWithExcluded A { get; set; }
@@ -879,5 +879,33 @@ public class XMLTests
 	{
 		// If this test fails it will stack overflow :P
 		XMLFormat.To(new OverflowRootClass());
+	}
+
+	[Test]
+	public void DictionaryWithObjectKeysThatArePrimitiveTypes()
+	{
+		var test = new List<Dictionary<string, object>>();
+		var firstDict = new Dictionary<string, object>
+		{
+			{"enumType", TestEnum.Test},
+			{"numberType", 1},
+			{"booleanType", true},
+			{"complexType", new StringContainer
+			{
+				Test = "Member!"
+			}},
+			{"stringType", "this is text"}
+		};
+		test.Add(firstDict);
+
+		string xml = XMLFormat.To(test);
+		var deserialized = XMLFormat.From<List<Dictionary<string, object>>>(xml);
+		Dictionary<string, object> deserializedFirstDist = deserialized[0];
+
+		Assert.True((TestEnum) deserializedFirstDist["enumType"] == TestEnum.Test);
+		Assert.True((int) deserializedFirstDist["numberType"] == 1);
+		Assert.True((bool) deserializedFirstDist["booleanType"] == true);
+		Assert.True(((StringContainer) deserializedFirstDist["complexType"]).Test == "Member!");
+		Assert.True((string) deserializedFirstDist["stringType"] == "this is text");
 	}
 }

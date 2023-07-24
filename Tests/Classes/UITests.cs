@@ -197,7 +197,7 @@ namespace Tests.Classes
             public MouseTestWindow()
             {
                 MaxSize = new Vector2(50, 50);
-                InputTransparent = false;
+                HandleInput = true;
             }
 
             public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
