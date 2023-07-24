@@ -15,6 +15,7 @@ public partial class UIController
 
 	private UIBaseWindow? _myMouseFocus; // The mouse focus of this controller in particular.
 	private static float _thisTick; // The timestamp of the current tick. Used to dedupe calls to update since every controller will call it.
+	private static Vector2 _thisTickMP;
 	private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
 
 	private void UpdateMouseFocus()
@@ -22,8 +23,10 @@ public partial class UIController
 		_calledUpdateLastTick = true;
 
 		// It was already updated this tick.
-		if (_thisTick == Engine.TotalTime) return;
+		Vector2 mousePos = Engine.Host.MousePosition;
+		if (_thisTick == Engine.TotalTime && _thisTickMP == mousePos) return;
 		_thisTick = Engine.TotalTime;
+		_thisTickMP = mousePos;
 
 		if (Engine.Host.HostPaused)
 		{
@@ -55,7 +58,6 @@ public partial class UIController
 		}
 
 		// Check if any controller has a window under the cursor.
-		Vector2 mousePos = Engine.Host.MousePosition;
 		for (var i = 0; i < _allControllers.Count; i++)
 		{
 			UIController controller = _allControllers[i];
