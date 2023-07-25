@@ -18,6 +18,8 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	protected object _obj;
 
+	protected bool _spawnFieldGroupHeaders = true;
+
 	public GenericPropertiesEditorPanel(object obj) : base($"{obj} Properties")
 	{
 		_obj = obj;
@@ -71,16 +73,19 @@ public class GenericPropertiesEditorPanel : EditorPanel
 			fieldGroupHeaderContainer.StretchX = true;
 			fieldGroupHeaderContainer.StretchY = true;
 
-			var fieldGroupHeader = new UIText();
-			fieldGroupHeader.ScaleMode = UIScaleMode.FloatScale;
-			fieldGroupHeader.WindowColor = MapEditorColorPalette.TextColor;
-			fieldGroupHeader.FontFile = "Editor/UbuntuMono-Regular.ttf";
-			fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
-			fieldGroupHeader.Underline = true;
-			fieldGroupHeader.IgnoreParentColor = true;
-			fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
-			fieldGroupHeader.MinSize = new Vector2(0, 11);
-			fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
+			if (_spawnFieldGroupHeaders)
+			{
+                var fieldGroupHeader = new UIText();
+                fieldGroupHeader.ScaleMode = UIScaleMode.FloatScale;
+                fieldGroupHeader.WindowColor = MapEditorColorPalette.TextColor;
+                fieldGroupHeader.FontFile = "Editor/UbuntuMono-Regular.ttf";
+                fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
+                fieldGroupHeader.Underline = true;
+                fieldGroupHeader.IgnoreParentColor = true;
+                fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
+                fieldGroupHeader.MinSize = new Vector2(0, 11);
+                fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
+            }
 
 			listNav.AddChild(fieldGroupHeaderContainer);
 
@@ -101,14 +106,21 @@ public class GenericPropertiesEditorPanel : EditorPanel
 					_editorUIs.Add(editor);
 				}
 
-				listNav.AddChild(new FieldEditorWithLabel($"{field.Name}: ", editor));
+				var editorWithLabel = new FieldEditorWithLabel($"{field.Name}: ", editor);
+				OnFieldEditorCreated(field, editor, editorWithLabel);
+                listNav.AddChild(editorWithLabel);
 			}
 		}
 
 		UpdatePropertyValues();
 	}
 
-	private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	protected virtual void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
+	{
+
+	}
+
+    private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
 		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();

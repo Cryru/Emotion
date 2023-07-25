@@ -46,9 +46,9 @@ public partial class World2DEditor
 		public World2DEditor Editor;
 		public GameObject2D Obj;
 		public XMLFieldHandler Field;
-		public object OldValue;
+		public object? OldValue;
 
-		public EditorActionObjectMutate(World2DEditor editor, GameObject2D obj, XMLFieldHandler fieldHandler, object oldValue)
+		public EditorActionObjectMutate(World2DEditor editor, GameObject2D obj, XMLFieldHandler fieldHandler, object? oldValue)
 		{
 			Editor = editor;
 			Obj = obj;
@@ -93,7 +93,7 @@ public partial class World2DEditor
 		_actions.Add(newMove);
 	}
 
-	private void EditorRegisterObjectPropertyChange(GameObject2D obj, XMLFieldHandler fieldHandler, object oldValue)
+	private void EditorRegisterObjectPropertyChange(GameObject2D obj, XMLFieldHandler fieldHandler, object? oldValue)
 	{
 		_actions ??= new();
 

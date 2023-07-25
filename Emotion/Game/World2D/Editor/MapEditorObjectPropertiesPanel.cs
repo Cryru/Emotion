@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
+using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
@@ -84,4 +85,16 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 	{
 		Editor.ChangeObjectProperty(Object, field, value);
 	}
+
+    protected override void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
+    {
+		if (Object.PrefabOrigin == null) return;
+		if (!Editor.IsPropertyDifferentFromPrefab(Object, field)) return;
+
+		UISolidColor valueDiffAlert = new UISolidColor();
+		valueDiffAlert.WindowColor = Color.Yellow;
+		valueDiffAlert.MinSize = new Vector2(5, 5);
+		valueDiffAlert.MaxSize = new Vector2(5, 5);
+		editorWithLabel.AddChild(valueDiffAlert);
+    }
 }
