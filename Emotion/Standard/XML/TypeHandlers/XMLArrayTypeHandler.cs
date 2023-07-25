@@ -43,7 +43,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 output.Append($"<{_elementTypeHandler.TypeName}></{_elementTypeHandler.TypeName}>\n");
             }
 
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation - 1]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
         }
 
         public override object Deserialize(XMLReader input)

@@ -59,11 +59,15 @@ namespace Emotion.Standard.XML.TypeHandlers
         protected override Dictionary<string, XMLFieldHandler> IndexFields()
         {
             Dictionary<string, XMLFieldHandler> fields = base.IndexFields();
-            foreach (KeyValuePair<string, XMLFieldHandler> handler in fields)
-            {
-                handler.Value.SetDefaultValue(_defaultValue);
-            }
 
+            if (_defaultValue != null)
+            {
+                foreach (KeyValuePair<string, XMLFieldHandler> handler in fields)
+                {
+                    handler.Value.SetDefaultValue(_defaultValue);
+                }
+            }
+     
             return fields;
         }
 
@@ -82,7 +86,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             XMLTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string inheritedType) ?? this;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append(inheritedType == null ? $"<{fieldName}>" : $"<{fieldName} type=\"{inheritedType}\">");
-            typeHandler.SerializeValue(obj, output, indentation + 1, recursionChecker);
+            typeHandler.SerializeValue(obj, output, indentation, recursionChecker);
             output.Append($"</{fieldName}>\n");
 
             recursionChecker.PopReference(obj);
@@ -107,7 +111,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (propertyVal == null)
                 {
                     if (defaultValue == null) continue;
-                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
                     output.Append($"<{fieldName}/>\n");
                     continue;
                 }
@@ -115,17 +119,17 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // If the property value is the same as the default value don't serialize it.
                 if (propertyVal.Equals(defaultValue)) continue;
 
-                bool serialized = field.TypeHandler.Serialize(propertyVal, output, indentation, recursionChecker, fieldName);
+                bool serialized = field.TypeHandler.Serialize(propertyVal, output, indentation + 1, recursionChecker, fieldName);
 
                 // If not serialized that means the value passed is the default one of the type.
                 // However we want to serialize it in this case, since it isn't the default of the field.
                 // We do so by creating a field tag without contents, which will result in a default for the field-type value.
                 if (serialized) continue;
-                output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+                output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
                 output.Append($"<{fieldName}></{fieldName}>\n");
             }
 
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation - 1]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
         }
 
         public override object Deserialize(XMLReader input)

@@ -19,15 +19,30 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// </summary>
         private object? _defaultValue;
 
-        public XMLComplexValueTypeHandler(Type type, bool nullable) : base(type)
+        public XMLComplexValueTypeHandler(Type type, bool nonNullable) : base(type)
         {
             // Create default value reference.
-            _defaultValue = nullable ? Activator.CreateInstance(type, true) : null;
+            _defaultValue = nonNullable ? Activator.CreateInstance(type, true) : null;
         }
 
-        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null, string? fieldName = null)
+        protected override Dictionary<string, XMLFieldHandler> IndexFields()
         {
-            if (_defaultValue != null && obj.Equals(_defaultValue)) return false;
+            Dictionary<string, XMLFieldHandler> fields = base.IndexFields();
+
+            if (_defaultValue != null)
+            {
+                foreach (KeyValuePair<string, XMLFieldHandler> handler in fields)
+                {
+                    handler.Value.SetDefaultValue(_defaultValue);
+                }
+            }
+          
+            return fields;
+        }
+
+        public override bool Serialize(object? obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null, string? fieldName = null)
+        {
+            if (obj == null || (_defaultValue != null && obj.Equals(_defaultValue))) return false;
             return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
         }
 
@@ -41,10 +56,14 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (field.Skip) continue;
 
                 object? propertyVal = field.ReflectionInfo.GetValue(obj);
+                object defaultValue = field.DefaultValue;
+
+                // If the property value is the same as the default value don't serialize it.
+                if (propertyVal != null && propertyVal.Equals(defaultValue)) continue;
                 field.TypeHandler.Serialize(propertyVal, output, indentation + 1, recursionChecker, field.Name);
             }
 
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation - 1]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
         }
 
         public override object? Deserialize(XMLReader input)
@@ -63,7 +82,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                     return newObj;
                 }
 
-                object val = field.TypeHandler.Deserialize(input);
+                object? val = field.TypeHandler.Deserialize(input);
                 if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
                 input.GoToNextTag();
             }

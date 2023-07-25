@@ -6,6 +6,8 @@ using System.Text;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.XML.TypeHandlers
 {
     /// <summary>
@@ -30,14 +32,14 @@ namespace Emotion.Standard.XML.TypeHandlers
         protected XMLTypeHandler(Type type)
         {
             Type = type;
-            TypeName = XMLHelpers.GetTypeName(Type);
+            TypeName = XMLHelpers.GetTypeName(Type) ?? "UnknownType";
         }
 
         /// <summary>
         /// Serialize the object.
         /// Includes indentation and field tags.
         /// </summary>
-        public virtual bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
+        public virtual bool Serialize(object? obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null, string? fieldName = null)
         {
             if (obj == null) return false;
 
@@ -53,7 +55,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// Serialize just the value of the object without extra tags.
         /// Used by complex handlers.
         /// </summary>
-        public virtual void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null)
+        public virtual void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null)
         {
             output.Append(Convert.ToString(obj, CultureInfo.InvariantCulture));
         }
@@ -61,8 +63,6 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <summary>
         /// Deserialize the object.
         /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public abstract object Deserialize(XMLReader input);
+        public abstract object? Deserialize(XMLReader input);
     }
 }

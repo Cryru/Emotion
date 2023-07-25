@@ -47,7 +47,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             keyHandler.TypeHandler.Serialize(keyHandler.ReflectionInfo.GetValue(obj), output, indentation + 1, recursionChecker, "Key");
             valueHandler.TypeHandler.Serialize(valueHandler.ReflectionInfo.GetValue(obj), output, indentation + 1, recursionChecker, "Value");
 
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation - 1]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
         }
 
         /// <inheritdoc />
