@@ -15,6 +15,7 @@ namespace Emotion.Standard.XML.TypeHandlers
     {
         /// <summary>
         /// The default value of the complex type when constructed.
+        /// Used to skip serializing fields whose values are the default.
         /// </summary>
         protected object _defaultValue;
 
@@ -75,14 +76,13 @@ namespace Emotion.Standard.XML.TypeHandlers
             if (recursionChecker.PushReference(obj, fieldName))
 	            return true;
 
-            // Handle field value being of inherited type.
-            XMLComplexTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string inheritedType) ?? this;
-
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             fieldName ??= TypeName;
-            output.Append(inheritedType == null ? $"<{fieldName}>\n" : $"<{fieldName} type=\"{inheritedType}\">\n");
-            typeHandler.SerializeFields(obj, output, indentation + 1, recursionChecker);
+
+            // Handle field value being of inherited type.
+            XMLTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string inheritedType) ?? this;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append(inheritedType == null ? $"<{fieldName}>" : $"<{fieldName} type=\"{inheritedType}\">");
+            typeHandler.SerializeValue(obj, output, indentation + 1, recursionChecker);
             output.Append($"</{fieldName}>\n");
 
             recursionChecker.PopReference(obj);
@@ -90,8 +90,10 @@ namespace Emotion.Standard.XML.TypeHandlers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        public override void SerializeValue(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
+            output.Append("\n");
+
             Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
             foreach ((string _, XMLFieldHandler field) in fieldHandlers)
             {
@@ -122,6 +124,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                 output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
                 output.Append($"<{fieldName}></{fieldName}>\n");
             }
+
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation - 1]);
         }
 
         public override object Deserialize(XMLReader input)
@@ -170,7 +174,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected XMLComplexTypeHandler GetInheritedTypeHandler(object obj, out string inheritedType)
+        protected XMLTypeHandler GetInheritedTypeHandler(object obj, out string inheritedType)
         {
             inheritedType = null;
             Type objType = obj.GetType();
@@ -180,7 +184,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             if (Type.IsAssignableFrom(objType))
             {
                 inheritedType = XMLHelpers.GetTypeName(objType, true);
-                return (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(objType);
+                return (XMLTypeHandler) XMLHelpers.GetTypeHandler(objType);
             }
 
             // wtf?

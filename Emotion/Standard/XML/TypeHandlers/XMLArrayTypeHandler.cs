@@ -21,14 +21,11 @@ namespace Emotion.Standard.XML.TypeHandlers
             _elementType = nonOpaqueElementType;
         }
 
-        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
+        public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null)
         {
-            if (obj == null) return false;
+            output.Append("\n");
 
-            fieldName ??= TypeName;
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-            output.Append($"<{fieldName}>\n");
-            var iterable = (IEnumerable) obj;
+            var iterable = (IEnumerable)obj;
             foreach (object item in iterable)
             {
                 if (item == null)
@@ -46,9 +43,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 output.Append($"<{_elementTypeHandler.TypeName}></{_elementTypeHandler.TypeName}>\n");
             }
 
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-            output.Append($"</{fieldName}>\n");
-            return true;
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation - 1]);
         }
 
         public override object Deserialize(XMLReader input)
