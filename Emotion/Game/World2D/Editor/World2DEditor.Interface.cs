@@ -253,8 +253,21 @@ public partial class World2DEditor
 					_editUI!.AddChild(panel);
 				},
 				Enabled = () => map != null
-			}
-		});
+			},
+            new EditorDropDownButtonDescription
+            {
+                Name = "Add From Prefab",
+                Click = (_, __) =>
+                {
+                    var panel = new EditorListOfItemsPanel<GameObjectPrefab>("Prefab Library", _prefabDatabase.Values, PlaceObjectFromPrefab);
+                    panel.Text = "Choose prefab to add as a new object:";
+                    panel.CloseOnClick = true;
+
+                    _editUI!.AddChild(panel);
+                },
+                Enabled = () => map != null && _prefabDatabase.Count > 0
+            }
+        });
 
 		MapEditorTopBarButton tilesMenu = EditorDropDownButton("Tiles", new[]
 		{
@@ -491,8 +504,33 @@ public partial class World2DEditor
 			{
 				Name = "Properties",
 				Click = (_, __) => { EditorOpenPropertiesPanelForObject(obj); }
-			}
-		};
+			},
+            new EditorDropDownButtonDescription
+            {
+                Name = "Create Prefab",
+                Click = (_, __) =>
+				{
+					PropertyInputModal<StringInputModalEnvelope> nameInput = new PropertyInputModal<StringInputModalEnvelope>((input) =>
+					{
+						string text = input.Name;
+						if (text.Length < 1) return false;
+
+                        CreateObjectPrefab(text, obj);
+                        return true;
+					}, "Input name for the prefab:");
+					_editUI!.AddChild(nameInput);
+                }
+            },
+            new EditorDropDownButtonDescription
+            {
+                Name = "Overwrite Prefab",
+                Click = (_, __) =>
+                {
+                    CreateObjectPrefab(obj.PrefabOrigin!.PrefabName, obj);
+                },
+				Enabled = () => obj.PrefabOrigin != null
+            },
+        };
 
 		contextMenu.SetItems(dropDownMenu);
 		_editUI.AddChild(contextMenu);

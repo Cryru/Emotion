@@ -37,13 +37,9 @@ namespace Emotion.Standard.XML.TypeHandlers
         }
 
         /// <inheritdoc />
-        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
+        public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null)
         {
-            if (obj == null) return false;
-
-            fieldName ??= TypeName;
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-            output.Append($"<{fieldName}>\n");
+            output.Append("\n");
 
             XMLFieldHandler keyHandler = _keyHandler.Value;
             XMLFieldHandler valueHandler = _valueHandler.Value;
@@ -52,8 +48,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             valueHandler.TypeHandler.Serialize(valueHandler.ReflectionInfo.GetValue(obj), output, indentation + 1, recursionChecker, "Value");
 
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-            output.Append($"</{fieldName}>\n");
-            return true;
         }
 
         /// <inheritdoc />

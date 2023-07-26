@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation2D;
 using Emotion.Graphics;
+using static Emotion.Game.World2D.Editor.World2DEditor;
 
 #endregion
 
@@ -26,6 +27,11 @@ namespace Emotion.Game.World2D
 		public string? ObjectName { get; set; }
 
 		/// <summary>
+		/// If the object is spawned from a prefab this is the a handle to that prefab.
+		/// </summary>
+		public GameObjectPrefabOriginData? PrefabOrigin { get; set; }
+
+		/// <summary>
 		/// The object's multiplicative color tint.
 		/// </summary>
 		public Color Tint { get; set; } = Color.White;
@@ -33,7 +39,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Flags that specify systemic treatment of the object.
 		/// </summary>
-		[DontSerializeFlagValue((uint) ObjectFlags.Persistent)]
+		// [DontSerializeFlagValue((uint) ObjectFlags.Persistent)]
 		public ObjectFlags ObjectFlags { get; set; }
 
 		#region Runtime

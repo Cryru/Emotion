@@ -74,7 +74,7 @@ public class ReflectedMemberHandler
 	/// Set the value of the field or property this handler manages from the object instance.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void SetValue(object obj, object val)
+	public void SetValue(object obj, object? val)
 	{
 		_prop?.SetValue(obj, val);
 		_field?.SetValue(obj, val);

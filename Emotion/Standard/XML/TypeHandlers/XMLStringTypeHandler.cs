@@ -18,12 +18,10 @@ namespace Emotion.Standard.XML.TypeHandlers
         }
 
         /// <inheritdoc />
-        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
+        public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null)
         {
-            if (obj == null) return false;
-
-            obj = SanitizeString((string) obj);
-            return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
+            obj = SanitizeString((string)obj);
+            base.SerializeValue(obj, output, indentation, recursionChecker);
         }
 
         /// <inheritdoc />
