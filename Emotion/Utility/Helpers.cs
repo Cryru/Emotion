@@ -167,5 +167,17 @@ namespace Emotion.Utility
 
 			return sum / arr.Length;
 		}
+
+		/// <summary>
+		/// Returns whether two objects of type object are equal.
+		/// The check is a bit tricky as the equals operator will not
+		/// invoke the right virtual method.
+		/// </summary>
+		public static bool AreObjectsEqual(object a, object b)
+		{
+            if (a != null) return a.Equals(b);
+            if (b != null) return b.Equals(a);
+            return a == b;
+        }
 	}
 }

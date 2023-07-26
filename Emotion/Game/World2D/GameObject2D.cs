@@ -39,7 +39,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Flags that specify systemic treatment of the object.
 		/// </summary>
-		[DontSerializeFlagValue((uint) ObjectFlags.Persistent)]
+		// [DontSerializeFlagValue((uint) ObjectFlags.Persistent)]
 		public ObjectFlags ObjectFlags { get; set; }
 
 		#region Runtime

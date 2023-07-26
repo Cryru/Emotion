@@ -4,6 +4,7 @@ using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
+using Emotion.Utility;
 
 #endregion
 
@@ -27,10 +28,6 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		_editorUIs = new();
 	}
 
-	protected virtual void AddHeaderUI(UIBaseWindow uiContainer)
-	{
-	}
-
 	public override void AttachedToController(UIController controller)
 	{
 		base.AttachedToController(controller);
@@ -41,14 +38,14 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		innerContainer.LayoutMode = LayoutMode.VerticalList;
 		innerContainer.ListSpacing = new Vector2(0, 3);
 		innerContainer.ChildrenAllSameWidth = true;
+		innerContainer.Id = "InnerContainer";
 		_contentParent.AddChild(innerContainer);
-
-		AddHeaderUI(innerContainer);
 
 		var listContainer = new UIBaseWindow();
 		listContainer.StretchX = true;
 		listContainer.StretchY = true;
 		listContainer.LayoutMode = LayoutMode.HorizontalList;
+		listContainer.ZOffset = 10;
 		innerContainer.AddChild(listContainer);
 
 		var listNav = new UICallbackListNavigator();
@@ -97,11 +94,12 @@ public class GenericPropertiesEditorPanel : EditorPanel
 				if (editor != null)
 				{
 					editor.Field = field;
-					editor.SetCallbackValueChanged(newValue => { ApplyObjectChange(field, newValue); });
+					editor.SetCallbackValueChanged(newValue => { ApplyObjectChange(editor, field, newValue); });
 
 					var editorAsWnd = (UIBaseWindow) editor;
 					editorAsWnd.Anchor = UIAnchor.CenterRight;
 					editorAsWnd.ParentAnchor = UIAnchor.CenterRight;
+					editorAsWnd.ZOffset = 10;
 
 					_editorUIs.Add(editor);
 				}
@@ -120,6 +118,11 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	}
 
+    protected virtual void OnFieldEditorUpdated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
+    {
+
+    }
+
     private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
@@ -131,13 +134,16 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
 		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo.Nullable);
 
-		return null;
+        return new PropEditorNone();
 	}
 
-	protected virtual void ApplyObjectChange(XMLFieldHandler field, object value)
+	protected virtual void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)
 	{
 		field.ReflectionInfo.SetValue(_obj, value);
-	}
+
+        UIBaseWindow? editorWindow = editor as UIBaseWindow;
+        OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);
+    }
 
 	protected override bool UpdateInternal()
 	{
@@ -150,12 +156,17 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		for (var i = 0; i < _editorUIs.Count; i++)
 		{
 			IPropEditorGeneric editor = _editorUIs[i];
+            UIBaseWindow? editorWindow = editor as UIBaseWindow;
 
-			if (Controller?.InputFocus != null && editor is UIBaseWindow editorWindow && Controller.InputFocus.IsWithin(editorWindow)) continue;
+            if (Controller?.InputFocus != null && editorWindow != null && Controller.InputFocus.IsWithin(editorWindow)) continue;
 
 			XMLFieldHandler? field = editor.Field;
 			object? propertyValue = field.ReflectionInfo.GetValue(_obj);
-			if (editor.GetValue() != propertyValue) editor.SetValue(propertyValue);
+			if (!Helpers.AreObjectsEqual(editor.GetValue(), propertyValue))
+			{
+                editor.SetValue(propertyValue);
+				OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+            }
 		}
 	}
 }

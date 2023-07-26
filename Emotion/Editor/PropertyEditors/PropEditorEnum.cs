@@ -22,7 +22,7 @@ namespace Emotion.Editor.PropertyEditors
 
 		private string[] _enumValueNames;
 
-		private Action<object>? _callback;
+		private Action<object?>? _callback;
 		private MapEditorTopBarButton? _button;
 
 		public PropEditorEnum(Type enumType, bool nullable)
@@ -37,7 +37,7 @@ namespace Emotion.Editor.PropertyEditors
 			}
         }
 
-		public void SetValue(object value)
+		public void SetValue(object? value)
 		{
 			_value = value;
 			if (_button != null) _button.Text = _value?.ToString() ?? "null";
@@ -62,7 +62,7 @@ namespace Emotion.Editor.PropertyEditors
 			for (var i = 0; i < _enumValueNames.Length; i++)
 			{
 				string enumValName = _enumValueNames[i];
-				object enumVal = enumValName == "<null>" ? null : Enum.Parse(_enumType, enumValName);
+				object? enumVal = enumValName == "<null>" ? null : Enum.Parse(_enumType, enumValName);
 
 				dropDownItems[i] = new EditorDropDownButtonDescription
 				{

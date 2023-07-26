@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common.Serialization;
 
@@ -23,8 +24,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null)
         {
-            if (_dontSerializeFlag != null) obj = Enum.ToObject(Type, _dontSerializeFlag.ClearDontSerialize((uint)obj));
-
+			obj = StripDontSerializeValues(obj)!;
             base.SerializeValue(obj, output, indentation, recursionChecker);
         }
 
@@ -38,5 +38,12 @@ namespace Emotion.Standard.XML.TypeHandlers
 			Engine.Log.Warning($"Couldn't find value {readValue} in enum {Type}.", MessageSource.XML, true);
 			return null;
 		}
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public object? StripDontSerializeValues(object? obj)
+		{
+			if (_dontSerializeFlag == null || obj == null) return obj;
+            return Enum.ToObject(Type, _dontSerializeFlag.ClearDontSerialize((uint)obj));
+        }
 	}
 }

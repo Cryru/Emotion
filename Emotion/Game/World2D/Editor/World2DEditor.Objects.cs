@@ -10,6 +10,7 @@ using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
+using Emotion.Utility;
 using static Emotion.Game.World2D.EditorHelpers.EditorUtility;
 
 #endregion
@@ -482,45 +483,7 @@ public partial class World2DEditor
 		objectMap.Editor_ReinitializeObject(obj);
 	}
 
-	#region Prefab System
-
-	public class GameObjectPrefab
-	{
-		public string PrefabName;
-		public int PrefabVersion;
-
-        public string ObjectData;
-
-		/// <summary>
-		/// Used for comparison to placed objects, and to avoid having to
-		/// initialize the object. Also it keeps tracks of properties in
-		/// previous versions.
-		/// </summary>
-		public List<Dictionary<string, object?>>? DefaultProperties;
-
-        public override string ToString()
-        {
-			return PrefabName;
-        }
-    }
-
-	public class GameObjectPrefabOriginData
-	{
-		public string PrefabName;
-		public int PrefabVersion;
-
-		public GameObjectPrefabOriginData(GameObjectPrefab prefab)
-		{
-			PrefabName = prefab.PrefabName;
-			PrefabVersion = prefab.PrefabVersion;
-        }
-
-		protected GameObjectPrefabOriginData()
-		{
-			// serialization
-			PrefabName = null!;
-        }
-    }
+#region Prefab System
 
 	protected static Dictionary<string, GameObjectPrefab> _prefabDatabase = new();
 	protected static string ObjectPrefabFolderAssets = $"EditorGame/Prefabs";
@@ -539,15 +502,18 @@ public partial class World2DEditor
 				{
 					var prefabName = prefabAsset.Content.PrefabName;
 
-                    string originalName = prefabName;
-                    int num = 1;
-                    while (_prefabDatabase.ContainsKey(prefabName))
-                    {
-                        prefabName = $"{originalName}_{num}";
-                        num++;
-                    }
+					lock(_prefabDatabase)
+					{
+                        string originalName = prefabName;
+                        int num = 1;
+                        while (_prefabDatabase.ContainsKey(prefabName))
+                        {
+                            prefabName = $"{originalName}_{num}";
+                            num++;
+                        }
 
-					_prefabDatabase.Add(prefabName, prefabAsset.Content);
+                        _prefabDatabase.Add(prefabName, prefabAsset.Content);
+                    }
                 }
 			});
 		}
@@ -589,10 +555,17 @@ public partial class World2DEditor
 		{
             XMLFieldHandler field = fields.Current;
             if (field == null) continue;
-			if (field.Name is "Position" or "Center") continue; // We expect these to be always different.
+			if (ShouldIgnorePrefabProperty(field.Name)) continue; // We expect these to be always different.
 
 			var valueInProp = field.ReflectionInfo.GetValue(obj);
-			if (!field.Skip && valueInProp != field.DefaultValue)
+
+            // ObjectFlags doesn't persist some values.
+            if (field.TypeHandler is XMLEnumTypeHandler enumHandler)
+            {
+                valueInProp = enumHandler.StripDontSerializeValues(valueInProp);
+            }
+
+            if (!field.Skip && valueInProp != field.DefaultValue)
 			{
 				thisVersionPropertyList.Add(field.Name, valueInProp);
 			}
@@ -632,15 +605,22 @@ public partial class World2DEditor
 		var prefabOrigin = obj.PrefabOrigin;
 		if (!_prefabDatabase.TryGetValue(prefabOrigin.PrefabName, out GameObjectPrefab? prefab)) return false;
 		if (prefab.DefaultProperties == null || prefab.DefaultProperties.Count < prefabOrigin.PrefabVersion) return false;
+		if (ShouldIgnorePrefabProperty(field.Name, true)) return false;
 
 		var versionProperties = prefab.DefaultProperties[prefabOrigin.PrefabVersion - 1];
 		var objectVal = field.ReflectionInfo.GetValue(obj);
 		bool isDefault = field.DefaultValue == objectVal;
 
+		// ObjectFlags doesn't persist some values.
+		if (field.TypeHandler is XMLEnumTypeHandler enumHandler)
+		{
+            objectVal = enumHandler.StripDontSerializeValues(objectVal);
+		}
+
         // If it's missing that means the prefab has it set to the default value for the class.
         if (versionProperties.TryGetValue(field.Name, out object? val))
 		{
-			return val == objectVal;
+			return !Helpers.AreObjectsEqual(val, objectVal);
 		}
 		else if(!isDefault)
 		{
@@ -654,6 +634,19 @@ public partial class World2DEditor
 	{
 
 	}
+
+	private bool ShouldIgnorePrefabProperty(string name, bool checkingForDiff = false)
+	{
+		// When checking for diffs dont show diffs in these properties
+		// as they are expected to be customized.
+		if (checkingForDiff && name is "ObjectName")
+		{
+			return true;
+		}
+
+		// We expect these to be different
+		return name is "Position" or "Center" or "PrefabOrigin";
+    }
 
     #endregion
 }
