@@ -22,13 +22,13 @@ namespace Emotion.Standard.XML.TypeHandlers
 				_dontSerializeFlag = type.GetCustomAttribute<DontSerializeFlagValueAttribute>();
 		}
 
-        public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null)
-        {
+		public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null)
+		{
 			obj = StripDontSerializeValues(obj)!;
-            base.SerializeValue(obj, output, indentation, recursionChecker);
-        }
+			base.SerializeValue(obj, output, indentation, recursionChecker);
+		}
 
-        public override object? Deserialize(XMLReader input)
+		public override object? Deserialize(XMLReader input)
 		{
 			string readValue = input.GoToNextTag();
 			if (readValue == "") return _defaultValue;
@@ -39,11 +39,11 @@ namespace Emotion.Standard.XML.TypeHandlers
 			return null;
 		}
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public object? StripDontSerializeValues(object? obj)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public object? StripDontSerializeValues(object? obj)
 		{
 			if (_dontSerializeFlag == null || obj == null) return obj;
-            return Enum.ToObject(Type, _dontSerializeFlag.ClearDontSerialize((uint)obj));
-        }
+			return Enum.ToObject(Type, _dontSerializeFlag.ClearDontSerialize((uint) obj));
+		}
 	}
 }
