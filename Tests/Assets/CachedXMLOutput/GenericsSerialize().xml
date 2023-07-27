@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<GenericTypesContainerOfTransformRectangleString>
+  <Stuff>
+    <Size>
+      <X>400</X>
+      <Y>500</Y>
+    </Size>
+    <Position>
+      <X>100</X>
+      <Y>200</Y>
+      <Z>300</Z>
+    </Position>
+  </Stuff>
+  <StuffTwo>
+    <X>1</X>
+    <Y>2</Y>
+    <Width>3</Width>
+    <Height>4</Height>
+  </StuffTwo>
+  <StuffThree>Dudeee</StuffThree>
+</GenericTypesContainerOfTransformRectangleString>
