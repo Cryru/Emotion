@@ -24,6 +24,7 @@ namespace Tests.EngineTests;
 /// Due to Emotion rolling its own parser we need to test it :P
 /// </summary>
 [Test]
+[TestClassRunParallel]
 public class XMLTests
 {
 	[Test]
@@ -925,10 +926,13 @@ public class XMLTests
 		fileName = fileName.Replace("Tests.EngineTests.XMLTests.", "");
 		fileName = AssetLoader.MakeStringPathSafe(fileName);
 
-		var counter = 1;
-		string originalName = fileName;
-		while (_usedNamed.Contains(fileName)) fileName = originalName + "_" + counter++;
-		_usedNamed.Add(fileName);
+		lock (_usedNamed)
+		{
+			var counter = 1;
+			string originalName = fileName;
+			while (_usedNamed.Contains(fileName)) fileName = originalName + "_" + counter++;
+			_usedNamed.Add(fileName);
+		}
 
 		string xmlsFolder = Path.Join(TestExecutor.TestRunFolder, "XMLOutput");
 		Directory.CreateDirectory(xmlsFolder);

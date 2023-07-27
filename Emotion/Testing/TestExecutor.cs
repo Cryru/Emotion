@@ -4,7 +4,6 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Utility;
@@ -27,12 +26,12 @@ public static class TestExecutor
 	/// The folder this test run will store output in, such as logs and
 	/// reference renders.
 	/// </summary>
-	public static string TestRunFolder;
+	public static string TestRunFolder = "";
 
 	/// <summary>
 	/// The folder this test run will store reference renders in.
 	/// </summary>
-	public static string ReferenceImageFolder;
+	public static string ReferenceImageFolder = "";
 
 	public static void ExecuteTests(string[] args, Configurator? config = null)
 	{
@@ -93,48 +92,76 @@ public static class TestExecutor
 
 	private static void RunTestClasses(List<MethodInfo> testFunctions)
 	{
+		Dictionary<Type, List<MethodInfo>> testsByClass = new();
+		List<MethodInfo>? currentClassList = null;
 		Type? currentClass = null;
-		object? currentClassInstance = null;
+		foreach (MethodInfo func in testFunctions)
+		{
+			// Create an instance of the test class.
+			if (currentClass != func.DeclaringType)
+			{
+				if (currentClassList != null && currentClass != null) testsByClass.Add(currentClass, currentClassList);
+				currentClassList = new List<MethodInfo>();
+				currentClass = func.DeclaringType;
+			}
+
+			currentClassList?.Add(func);
+		}
+
+		if (currentClassList != null && currentClass != null) testsByClass.Add(currentClass, currentClassList);
 
 		var completed = 0;
 		var total = 0;
 
-		void TestClassSwitch()
+		foreach (KeyValuePair<Type, List<MethodInfo>> testClass in testsByClass)
 		{
-			if (currentClass != null)
-			{
-				Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
-				completed = 0;
-				total = 0;
-			}
-		}
+			List<MethodInfo> functions = testClass.Value;
+			total += functions.Count;
 
-		foreach (MethodInfo func in testFunctions)
-		{
-			try
+			Type declaringType = testClass.Key;
+			Engine.Log.Info($"Running test class {declaringType}...", MessageSource.Test);
+			object? currentClassInstance = Activator.CreateInstance(declaringType);
+
+			if (declaringType.GetCustomAttribute<TestClassRunParallel>() != null)
 			{
-				// Create an instance of the test class.
-				if (currentClass != func.DeclaringType)
+				Engine.Log.Info($"=-= Parallel Execution =-=", MessageSource.Test);
+
+				var tasks = new Task[functions.Count];
+				for (var i = 0; i < functions.Count; i++)
 				{
-					TestClassSwitch();
-					currentClass = func.DeclaringType!;
-					currentClassInstance = Activator.CreateInstance(currentClass);
-					Engine.Log.Info($"Running test class {currentClass}...", MessageSource.Test);
+					MethodInfo func = functions[i];
+					tasks[i] = Task.Run(() =>
+					{
+						Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+						func.Invoke(currentClassInstance, new object[] { });
+						completed++;
+					});
 				}
 
-				// Run test.
-				total++;
-				Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
-				func.Invoke(currentClassInstance, new object[] { });
-				completed++;
+				Task.WaitAll(tasks, 10_000);
 			}
-			catch (Exception)
+			else
 			{
-				// ignored, it's printed by the internal engine error handling
+				for (var i = 0; i < testClass.Value.Count; i++)
+				{
+					MethodInfo func = testClass.Value[i];
+					try
+					{
+						// Run test.
+						Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+						func.Invoke(currentClassInstance, new object[] { });
+						completed++;
+					}
+					catch (Exception)
+					{
+						// ignored, it's printed by the internal engine error handling
+					}
+				}
 			}
-		}
 
-		TestClassSwitch();
+			// The format of this message must match the old system's regex!
+			Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
+		}
 	}
 
 	private static async Task RunTestScenes(List<Type> testScenes)
