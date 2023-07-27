@@ -244,6 +244,7 @@ namespace Tests.Classes
             var ui = new UIController();
             ui.AddChild(template.Content);
             ui.PreloadUI().Wait();
+            Engine.TickCount++;
             ui.Update();
 
             var winOne = (MouseTestWindow) ui.GetWindowById("WinOne");
@@ -251,6 +252,7 @@ namespace Tests.Classes
 
             // Mouse outside.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, new Vector2(0, 0));
+            Engine.TickCount++;
             ui.Update();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
@@ -259,6 +261,7 @@ namespace Tests.Classes
 
             // Mouse inside.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winOne.Position2 + new Vector2(10, 10));
+            Engine.TickCount++;
             ui.Update();
             Assert.Equal(winOne.WindowColor, Color.Red);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
@@ -266,6 +269,7 @@ namespace Tests.Classes
             Assert.Equal(winOne.ClickedCount, 1);
 
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winThree.Position2 + new Vector2(10, 10));
+            Engine.TickCount++;
             ui.Update();
             Assert.Equal(winOne.WindowColor, Color.White);
             Assert.Equal(winThree.WindowColor, Color.Red);
@@ -281,6 +285,7 @@ namespace Tests.Classes
             ui.ClearChildren();
             ui.AddChild(templateOutOfParent.Content);
             ui.PreloadUI().Wait();
+            Engine.TickCount++;
             ui.Update();
 
             var outOfParent = (MouseTestWindow) ui.GetWindowById("OutOfParent");
@@ -288,6 +293,7 @@ namespace Tests.Classes
 
             // Try to click on the out of parent window.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, outOfParent.Position2 + new Vector2(10, 10));
+            Engine.TickCount++;
             ui.Update();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
@@ -296,6 +302,7 @@ namespace Tests.Classes
 
             // Try to click on the window that is within the parental bounds, but not a child.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, notChild.Position2 + new Vector2(10, 10));
+            Engine.TickCount++;
             ui.Update();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
@@ -311,6 +318,7 @@ namespace Tests.Classes
             controller.ClearChildren();
             controller.AddChild(template.Content);
             controller.PreloadUI().Wait();
+            Engine.TickCount++;
             controller.Update();
 
             (string, Rectangle)[] layoutDesc = controller.GetLayoutDescription();

@@ -14,8 +14,7 @@ public partial class UIController
 	public static UIBaseWindow? MouseFocus { get; private set; }
 
 	private UIBaseWindow? _myMouseFocus; // The mouse focus of this controller in particular.
-	private static float _thisTick; // The timestamp of the current tick. Used to dedupe calls to update since every controller will call it.
-	private static Vector2 _thisTickMP;
+	private static uint _thisTick; // The index of the current tick. Used to dedupe calls to update since every controller will call it.
 	private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
 
 	private void UpdateMouseFocus()
@@ -24,9 +23,8 @@ public partial class UIController
 
 		// It was already updated this tick.
 		Vector2 mousePos = Engine.Host.MousePosition;
-		if (_thisTick == Engine.TotalTime && _thisTickMP == mousePos) return;
-		_thisTick = Engine.TotalTime;
-		_thisTickMP = mousePos;
+		if (_thisTick == Engine.TickCount) return;
+		_thisTick = Engine.TickCount;
 
 		if (Engine.Host.HostPaused)
 		{
