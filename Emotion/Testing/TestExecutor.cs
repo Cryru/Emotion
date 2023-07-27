@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -22,14 +23,30 @@ public static class TestExecutor
 	/// </summary>
 	public static bool AllowInfiniteLoops = true;
 
+	/// <summary>
+	/// The folder this test run will store output in, such as logs and
+	/// reference renders.
+	/// </summary>
+	public static string TestRunFolder;
+
+	/// <summary>
+	/// The folder this test run will store reference renders in.
+	/// </summary>
+	public static string ReferenceImageFolder;
+
 	public static void ExecuteTests(string[] args, Configurator? config = null)
 	{
 		// todo: read args and start running split processes, different configs etc.
 
+		string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
+
+		TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
+		ReferenceImageFolder = Path.Join(TestRunFolder, "ReferenceImages");
+
 		config ??= new Configurator();
 		config.DebugMode = true;
 		config.NoErrorPopup = true;
-		config.Logger = new TestLogger("Logs");
+		config.Logger = new TestLogger(Path.Join(TestRunFolder, "Logs"));
 
 		Engine.Setup(config);
 
