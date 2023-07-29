@@ -536,8 +536,14 @@ public partial class World2DEditor
             };
         }
 
+		// Strip old prefab origin from serialization.
+		var prefabOrigin = obj.PrefabOrigin;
+		obj.PrefabOrigin = null;
+
 		string objData = GetObjectSerialized(obj);
         prefabData.ObjectData = objData;
+
+		obj.PrefabOrigin = prefabOrigin;
 
 		// Fill properties
 		prefabData.DefaultProperties ??= new List<Dictionary<string, object?>>();
