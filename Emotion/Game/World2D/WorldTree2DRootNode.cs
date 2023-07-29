@@ -15,6 +15,8 @@ namespace Emotion.Game.World2D
             Rectangle bounds = obj.GetBoundsForQuadTree();
             WorldTree2DNode node = GetNodeForBounds(bounds);
             node = node.AddObject(bounds, obj);
+
+            if (_objToNode.ContainsKey(obj)) return; // Crash prevention in error cases.
             _objToNode.Add(obj, node);
         }
 

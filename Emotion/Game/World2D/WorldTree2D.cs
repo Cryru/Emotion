@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common.Serialization;
 using Emotion.Primitives;
+using Emotion.Testing;
 
 #endregion
 
@@ -77,15 +78,31 @@ namespace Emotion.Game.World2D
         {
             if (!_objects.Remove(obj)) return;
 
-            if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
+            // We check if the object is part of the "Unspawned Objects" layer
+            // rather than its state because it could have changed. If it was part of this
+            // layer there is no shot it was part of any other layer.
+            // Also we cant use IsPartOfMapLayer to check since the object is not natively
+            // part of this layer and must instead ask the layer to tell us whether it is present.
+            var unspawnedNode = _rootNodes[-1];
+            if (unspawnedNode.GetNodeForObject(obj) != null)
             {
-	            _rootNodes[-1].AddObjectToRoot(obj);
+                unspawnedNode.RemoveObjectFromRoot(obj);
+
+                if (Engine.Configuration.DebugMode)
+                {
+                    foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
+                    {
+                        Assert(rootNode.Value.GetNodeForObject(obj) == null);
+                    }
+                }
+
 	            return;
             }
 
             foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
             {
-                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key)) rootNode.Value.RemoveObjectFromRoot(obj);
+                if (rootNode.Key == 0 || obj.IsPartOfMapLayer(rootNode.Key))
+                    rootNode.Value.RemoveObjectFromRoot(obj);
             }
         }
 

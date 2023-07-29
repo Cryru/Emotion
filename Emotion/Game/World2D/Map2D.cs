@@ -283,6 +283,7 @@ namespace Emotion.Game.World2D
 			{
 				_objects.Add(obj);
 				obj.ObjectState = ObjectState.ConditionallyNonSpawned;
+				obj.AttachToMap(this);
 				_worldTree?.AddObjectToTree(obj);
 				OnObjectAdded?.Invoke(obj);
 				return;
@@ -353,6 +354,7 @@ namespace Emotion.Game.World2D
 		/// </summary>
 		public void InvalidateObjectBounds(GameObject2D obj)
 		{
+			if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) return;
 			if (obj.MapFlags.HasFlag(Map2DObjectFlags.UpdateWorldTree)) return;
 			_objectsToUpdate.Enqueue(obj);
 			obj.MapFlags |= Map2DObjectFlags.UpdateWorldTree;
