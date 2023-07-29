@@ -43,13 +43,13 @@ namespace Tests
 			{"tag=Audio", null},
 			{"tag=StandardText", null},
 			{"tag=AnimatedTexture", null},
-			{"tag=XML testOnly", null},
 			{"tag=UITests", null},
 			{"EMOTION_TEST_LIBRARY", null}
 		};
 
 		private static void Main(string[] args)
 		{
+			//Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
 			if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
 			{
 				TestExecutor.ExecuteTests(args);

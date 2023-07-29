@@ -1,17 +1,21 @@
-﻿#nullable enable
+﻿#region Using
 
-#region Using
-
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using Emotion.Common;
 using Emotion.Common.Serialization;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Testing;
 
 #endregion
+
+#nullable enable
 
 namespace Tests.EngineTests;
 
@@ -20,12 +24,13 @@ namespace Tests.EngineTests;
 /// Due to Emotion rolling its own parser we need to test it :P
 /// </summary>
 [Test]
+[TestClassRunParallel]
 public class XMLTests
 {
 	[Test]
 	public void BasicValueType()
 	{
-		string v2 = XMLFormat.To(new Vector2(100, 100));
+		string v2 = ToXMLForTest(new Vector2(100, 100));
 		var restored = XMLFormat.From<Vector2>(v2);
 		Assert.Equal(restored.X, 100);
 		Assert.Equal(restored.Y, 100);
@@ -39,7 +44,7 @@ public class XMLTests
 	[Test]
 	public void BasicString()
 	{
-		string str = XMLFormat.To(new StringContainer {Test = "Hello"});
+		string str = ToXMLForTest(new StringContainer {Test = "Hello"});
 		var restored = XMLFormat.From<StringContainer>(str);
 		Assert.Equal(restored.Test, "Hello");
 	}
@@ -47,7 +52,7 @@ public class XMLTests
 	[Test]
 	public void BasicStringNull()
 	{
-		string str = XMLFormat.To(new StringContainer {Test = null});
+		string str = ToXMLForTest(new StringContainer {Test = null});
 		var restored = XMLFormat.From<StringContainer>(str);
 		Assert.True(restored.Test == null);
 	}
@@ -55,7 +60,7 @@ public class XMLTests
 	[Test]
 	public void ComplexValueType()
 	{
-		string r = XMLFormat.To(new Rectangle(100, 100, 200, 200));
+		string r = ToXMLForTest(new Rectangle(100, 100, 200, 200));
 		var restored = XMLFormat.From<Rectangle>(r);
 		Assert.Equal(restored.X, 100);
 		Assert.Equal(restored.Y, 100);
@@ -66,7 +71,7 @@ public class XMLTests
 	[Test]
 	public void ComplexType()
 	{
-		string p = XMLFormat.To(new Positional(100, 200, 300));
+		string p = ToXMLForTest(new Positional(100, 200, 300));
 		var restored = XMLFormat.From<Positional>(p);
 		Assert.Equal(restored.X, 100);
 		Assert.Equal(restored.Y, 200);
@@ -76,7 +81,7 @@ public class XMLTests
 	[Test]
 	public void ComplexInheritedType()
 	{
-		string t = XMLFormat.To(new Transform(100, 200, 300, 400, 500));
+		string t = ToXMLForTest(new Transform(100, 200, 300, 400, 500));
 		var restored = XMLFormat.From<Transform>(t);
 		Assert.Equal(restored.X, 100);
 		Assert.Equal(restored.Y, 200);
@@ -102,7 +107,7 @@ public class XMLTests
 	[Test]
 	public void ComplexTypeRecursiveType()
 	{
-		string tl = XMLFormat.To(new TransformLink(100, 200, 300, 400, 500)
+		string tl = ToXMLForTest(new TransformLink(100, 200, 300, 400, 500)
 		{
 			Left = new Transform(600, 700, 800, 900, 1000)
 		});
@@ -130,7 +135,7 @@ public class XMLTests
 	[Test]
 	public void ComplexTypeRecursiveTypeInherited()
 	{
-		string tld = XMLFormat.To(new TransformLink(100, 200, 300, 400, 500) {Left = new TransformInherited {CoolStuff = true, Height = 1100}});
+		string tld = ToXMLForTest(new TransformLink(100, 200, 300, 400, 500) {Left = new TransformInherited {CoolStuff = true, Height = 1100}});
 		var restored = XMLFormat.From<TransformLink>(tld);
 		Assert.Equal(restored.X, 100);
 		Assert.Equal(restored.Y, 200);
@@ -151,7 +156,7 @@ public class XMLTests
 	[SuppressMessage("ReSharper", "PossibleNullReferenceException")]
 	public void ComplexTypeRecursiveTypeArrayWithInherited()
 	{
-		string tlda = XMLFormat.To(new TransformArrayHolder
+		string tlda = ToXMLForTest(new TransformArrayHolder
 		{
 			X = 100,
 			Children = new[]
@@ -197,7 +202,7 @@ public class XMLTests
 	[SuppressMessage("ReSharper", "PossibleNullReferenceException")]
 	public void ComplexTypeRecursiveListWitInherited()
 	{
-		string tldl = XMLFormat.To(new TransformListHolder
+		string tldl = ToXMLForTest(new TransformListHolder
 		{
 			X = 100,
 			Children = new List<Transform>
@@ -247,7 +252,7 @@ public class XMLTests
 	{
 		var transformLink = new TransformRecursiveRef {X = 100};
 		transformLink.Other = transformLink;
-		string re = XMLFormat.To(transformLink);
+		string re = ToXMLForTest(transformLink);
 
 		var restored = XMLFormat.From<TransformRecursiveRef>(re);
 		Assert.Equal(restored.X, 100);
@@ -268,15 +273,15 @@ public class XMLTests
 	{
 		var transformLink = new TransformRecursiveRefArray {X = 100};
 		transformLink.Others = new[] {transformLink};
-		string re = XMLFormat.To(transformLink);
+		string re = ToXMLForTest(transformLink);
 
 		var restored = XMLFormat.From<TransformRecursiveRefArray>(re);
 		Assert.Equal(restored.X, 100);
 		Assert.True(restored.Others != null);
-		Assert.True(restored.Others.Length == 0);
+		Assert.True(restored.Others.Length == 1);
 
 		var transformLinkNull = new TransformRecursiveRefArray {X = 100};
-		string reTwo = XMLFormat.To(transformLinkNull);
+		string reTwo = ToXMLForTest(transformLinkNull);
 		restored = XMLFormat.From<TransformRecursiveRefArray>(reTwo);
 		Assert.Equal(restored.X, 100);
 		Assert.True(restored.Others == null);
@@ -293,7 +298,7 @@ public class XMLTests
 	public void ComplexTypeExcludedProperties()
 	{
 		var classWithExcluded = new ClassWithExcluded {NotMe = true, Me = true};
-		string ex = XMLFormat.To(classWithExcluded);
+		string ex = ToXMLForTest(classWithExcluded);
 
 		var restored = XMLFormat.From<ClassWithExcluded>(ex);
 		Assert.True(restored.Me);
@@ -321,12 +326,12 @@ public class XMLTests
 			JustMe = true
 		};
 
-		string ex = XMLFormat.To(excludedContainer);
+		string ex = ToXMLForTest(excludedContainer);
 		var restored = XMLFormat.From<ContainingExcludedClass>(ex);
 		Assert.True(restored.JustMe);
 		Assert.True(restored.NotMe == null);
 
-		string exTwo = XMLFormat.To(new ExcludedClass {Hello = true});
+		string exTwo = ToXMLForTest(new ExcludedClass {Hello = true});
 		var restoredTwo = XMLFormat.From<ExcludedClass>(exTwo);
 		Assert.True(restoredTwo == null);
 	}
@@ -352,7 +357,7 @@ public class XMLTests
 			Hello = TestEnum.Test
 		};
 
-		string enm = XMLFormat.To(enumContainer);
+		string enm = ToXMLForTest(enumContainer);
 		var restored = XMLFormat.From<EnumContainer>(enm);
 		Assert.Equal(restored.Hello, TestEnum.Test);
 	}
@@ -360,7 +365,7 @@ public class XMLTests
 	[Test]
 	public void StringSanitizeSerialize()
 	{
-		string str = XMLFormat.To("Test test <<<:O<< Whaaa");
+		string str = ToXMLForTest("Test test <<<:O<< Whaaa");
 		var restored = XMLFormat.From<string>(str);
 		Assert.Equal(restored, "Test test <<<:O<< Whaaa");
 	}
@@ -378,7 +383,7 @@ public class XMLTests
 			Stuff = new Transform(100, 200, 300, 400, 500)
 		};
 
-		string gen = XMLFormat.To(genericContainer);
+		string gen = ToXMLForTest(genericContainer);
 		var restored = XMLFormat.From<GenericTypeContainer<Transform>>(gen);
 		Assert.Equal(restored.Stuff.X, 100);
 		Assert.Equal(restored.Stuff.Y, 200);
@@ -398,7 +403,7 @@ public class XMLTests
 			}
 		};
 
-		string gen = XMLFormat.To(genericContainers);
+		string gen = ToXMLForTest(genericContainers);
 		GenericTypeContainer<Transform>[] restored = XMLFormat.From<GenericTypeContainer<Transform>[]>(gen);
 		Assert.Equal(restored.Length, 1);
 		Assert.Equal(restored[0].Stuff.X, 100);
@@ -425,7 +430,7 @@ public class XMLTests
 			StuffThree = "Dudeee"
 		};
 
-		string gen = XMLFormat.To(generics);
+		string gen = ToXMLForTest(generics);
 		var restored = XMLFormat.From<GenericTypesContainer<Transform, Rectangle, string>>(gen);
 		Assert.Equal(restored.Stuff.X, 100);
 		Assert.Equal(restored.Stuff.Y, 200);
@@ -462,7 +467,7 @@ public class XMLTests
 			}
 		};
 
-		string nul = XMLFormat.To(nullableComplex);
+		string nul = ToXMLForTest(nullableComplex);
 		var restored = XMLFormat.From<NullableComplexContainer>(nul);
 		Assert.True(restored.Stuff != null);
 		// ReSharper disable once PossibleInvalidOperationException
@@ -476,7 +481,7 @@ public class XMLTests
 			}
 		};
 
-		nul = XMLFormat.To(nullableComplex);
+		nul = ToXMLForTest(nullableComplex);
 		restored = XMLFormat.From<NullableComplexContainer>(nul);
 		Assert.True(restored.Stuff != null);
 		// ReSharper disable once PossibleInvalidOperationException
@@ -487,7 +492,7 @@ public class XMLTests
 			Stuff = new ComplexNullableSubject()
 		};
 
-		nul = XMLFormat.To(nullableComplex);
+		nul = ToXMLForTest(nullableComplex);
 		restored = XMLFormat.From<NullableComplexContainer>(nul);
 		Assert.True(restored.Stuff != null);
 		// ReSharper disable once PossibleInvalidOperationException
@@ -498,7 +503,7 @@ public class XMLTests
 			Stuff = null
 		};
 
-		nul = XMLFormat.To(nullableComplex);
+		nul = ToXMLForTest(nullableComplex);
 		restored = XMLFormat.From<NullableComplexContainer>(nul);
 		Assert.True(restored.Stuff == null);
 	}
@@ -516,7 +521,7 @@ public class XMLTests
 			Number = default(int) // This is intentionally the default value of int.
 		};
 
-		string nul = XMLFormat.To(nullableTrivial);
+		string nul = ToXMLForTest(nullableTrivial);
 		var restored = XMLFormat.From<NullableTrivialContainer>(nul);
 		Assert.Equal(restored.Number, 0);
 
@@ -525,7 +530,7 @@ public class XMLTests
 			Number = 11 // This is intentionally the default value of int.
 		};
 
-		nul = XMLFormat.To(nullableTrivial);
+		nul = ToXMLForTest(nullableTrivial);
 		restored = XMLFormat.From<NullableTrivialContainer>(nul);
 		Assert.Equal(restored.Number, 11);
 	}
@@ -538,7 +543,7 @@ public class XMLTests
 			Number = null
 		};
 
-		string nul = XMLFormat.To(nullableTrivial);
+		string nul = ToXMLForTest(nullableTrivial);
 		var restored = XMLFormat.From<NullableTrivialContainer>(nul);
 		Assert.True(restored.Number == null);
 	}
@@ -548,7 +553,7 @@ public class XMLTests
 	{
 		var primitiveDict = new Dictionary<string, int> {{"testOne", 1}, {"testTwo", 2}, {"", 4}, {" ", 0}};
 
-		string xml = XMLFormat.To(primitiveDict);
+		string xml = ToXMLForTest(primitiveDict);
 		var restored = XMLFormat.From<Dictionary<string, int>>(xml);
 		Assert.True(restored != null);
 		// ReSharper disable once PossibleNullReferenceException
@@ -564,7 +569,7 @@ public class XMLTests
 	{
 		var complexDict = new Dictionary<TestEnum, Transform> {{TestEnum.Test, new Transform(1, 2, 3, 4)}, {TestEnum.This, null}};
 
-		string xml = XMLFormat.To(complexDict);
+		string xml = ToXMLForTest(complexDict);
 		var restored = XMLFormat.From<Dictionary<TestEnum, Transform>>(xml);
 		Assert.True(restored != null);
 		// ReSharper disable once PossibleNullReferenceException
@@ -586,7 +591,7 @@ public class XMLTests
 			new Rectangle(5, 6, 7, 8)
 		};
 
-		string xml = XMLFormat.To(array);
+		string xml = ToXMLForTest(array);
 		Rectangle[] restored = XMLFormat.From<Rectangle[]>(xml);
 		Assert.Equal(restored.Length, 3);
 		Assert.Equal(restored[0].Width, 3);
@@ -607,7 +612,7 @@ public class XMLTests
 			null
 		};
 
-		string xml = XMLFormat.To(array);
+		string xml = ToXMLForTest(array);
 		Rectangle?[] restored = XMLFormat.From<Rectangle?[]>(xml);
 		Assert.Equal(restored.Length, 5);
 		Assert.Equal(restored[0].Value.Width, 3);
@@ -633,7 +638,7 @@ public class XMLTests
 	[Test]
 	public void ComplexTypeWithCustomDefaults()
 	{
-		string xml = XMLFormat.To(new CustomDefaultsComplex
+		string xml = ToXMLForTest(new CustomDefaultsComplex
 		{
 			Test = TestEnum.A,
 			Number = 0,
@@ -694,7 +699,7 @@ public class XMLTests
 	[Test]
 	public void Exclusions()
 	{
-		string xml = XMLFormat.To(new TypeWithExcludedMembers
+		string xml = ToXMLForTest(new TypeWithExcludedMembers
 		{
 			Num = 1,
 			ParentNum = 2,
@@ -738,7 +743,7 @@ public class XMLTests
 		Assert.False(restored.NestedClassExclusion.GrandparentBool);
 	}
 
-	private class ClassWithExcludedComplexType
+	public class ClassWithExcludedComplexType
 	{
 		[DontSerialize]
 		public ClassWithExcluded A { get; set; }
@@ -827,7 +832,7 @@ public class XMLTests
 		{
 			Field = "Hi"
 		};
-		string document = XMLFormat.To(overridingClass);
+		string document = ToXMLForTest(overridingClass);
 		var rgx = new Regex("Hi");
 		Assert.Equal(rgx.Matches(document).Count, 1);
 
@@ -835,7 +840,7 @@ public class XMLTests
 		{
 			Field = "Hi"
 		};
-		document = XMLFormat.To(overridingClassWithExclusion);
+		document = ToXMLForTest(overridingClassWithExclusion);
 		Assert.Equal(rgx.Matches(document).Count, 0);
 	}
 
@@ -855,7 +860,7 @@ public class XMLTests
 	{
 		var obj = new ClassWithNonPublicField();
 		obj.SetFieldSecretFunction("Helloo");
-		string document = XMLFormat.To(obj);
+		string document = ToXMLForTest(obj);
 		var deserialized = XMLFormat.From<ClassWithNonPublicField>(document);
 		Assert.Equal(deserialized.Field, "Helloo");
 	}
@@ -875,9 +880,68 @@ public class XMLTests
 		public ClassContainingOverflow A;
 	}
 
-	public void RecursiveArrayType()
+	[Test]
+	public void RecursiveArrayType() // This tests type handler creation recursion
 	{
-		// If this test fails it will stack overflow :P
-		XMLFormat.To(new OverflowRootClass());
+		ToXMLForTest(new OverflowRootClass());
+	}
+
+	[Test]
+	public void DictionaryWithObjectKeysThatArePrimitiveTypes() // Editor object prefabs use this
+	{
+		var test = new List<Dictionary<string, object>>();
+		var firstDict = new Dictionary<string, object>
+		{
+			{"enumType", TestEnum.Test},
+			{"numberType", 1},
+			{"booleanType", true},
+			{
+				"complexType", new StringContainer
+				{
+					Test = "Member!"
+				}
+			},
+			{"stringType", "this is text"}
+		};
+		test.Add(firstDict);
+
+		string xml = ToXMLForTest(test);
+		var deserialized = XMLFormat.From<List<Dictionary<string, object>>>(xml);
+		Dictionary<string, object> deserializedFirstDist = deserialized[0];
+
+		Assert.True((TestEnum) deserializedFirstDist["enumType"] == TestEnum.Test);
+		Assert.True((int) deserializedFirstDist["numberType"] == 1);
+		Assert.True((bool) deserializedFirstDist["booleanType"]);
+		Assert.True(((StringContainer) deserializedFirstDist["complexType"]).Test == "Member!");
+		Assert.True((string) deserializedFirstDist["stringType"] == "this is text");
+	}
+
+	private HashSet<string> _usedNamed = new();
+
+	private string? ToXMLForTest<T>(T obj)
+	{
+		string? data = XMLFormat.To(obj);
+
+		string fileName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
+		fileName = fileName.Replace("Tests.EngineTests.XMLTests.", "");
+		fileName = AssetLoader.MakeStringPathSafe(fileName);
+
+		lock (_usedNamed)
+		{
+			var counter = 1;
+			string originalName = fileName;
+			while (_usedNamed.Contains(fileName)) fileName = originalName + "_" + counter++;
+			_usedNamed.Add(fileName);
+		}
+
+		string xmlsFolder = Path.Join(TestExecutor.TestRunFolder, "XMLOutput");
+		Directory.CreateDirectory(xmlsFolder);
+		string thisFile = Path.Join(xmlsFolder, $"{fileName}.xml");
+		File.WriteAllText(thisFile, data);
+
+		var referenceAsset = Engine.AssetLoader.Get<TextAsset>($"CachedXMLOutput/{fileName}.xml");
+		if (referenceAsset?.Content != null) Assert.True(referenceAsset.Content == data);
+
+		return data;
 	}
 }

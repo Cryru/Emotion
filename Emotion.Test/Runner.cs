@@ -395,6 +395,11 @@ namespace Emotion.Test
                     error = true;
                     anyError = "ERR ";
                 }
+                else if (failedTests > 0)
+                {
+                    error = true;
+                    anyError = "ERR ";
+                }
 
                 results.Add($"LR{linked.Id} ({linked.Args}) {result} {anyError}{linked.TimeElapsed}ms");
 

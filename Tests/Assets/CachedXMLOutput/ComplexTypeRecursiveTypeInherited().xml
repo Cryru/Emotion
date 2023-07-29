@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<TransformLink>
+  <Left type="Tests.EngineTests.XMLTests+TransformInherited">
+    <CoolStuff>True</CoolStuff>
+    <Size>
+      <Y>1100</Y>
+    </Size>
+  </Left>
+  <Size>
+    <X>400</X>
+    <Y>500</Y>
+  </Size>
+  <Position>
+    <X>100</X>
+    <Y>200</Y>
+    <Z>300</Z>
+  </Position>
+</TransformLink>

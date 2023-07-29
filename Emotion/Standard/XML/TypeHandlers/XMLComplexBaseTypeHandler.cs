@@ -87,6 +87,12 @@ namespace Emotion.Standard.XML.TypeHandlers
 				fieldHandlers.TryAdd(fieldName, handler);
 			}
 
+			if (_defaultValue != null)
+				foreach (KeyValuePair<string, XMLFieldHandler> handler in fieldHandlers)
+				{
+					handler.Value.SetDefaultValue(_defaultValue);
+				}
+
 			return fieldHandlers;
 		}
 
@@ -95,7 +101,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
 		public XMLComplexBaseTypeHandler CloneWithExclusions(DontSerializeMembersAttribute exclusions)
 		{
-			Debug.Assert(exclusions != null);
+			Assert(exclusions != null);
 
 			var clone = (XMLComplexBaseTypeHandler) MemberwiseClone();
 			clone._clonedFrom = this;

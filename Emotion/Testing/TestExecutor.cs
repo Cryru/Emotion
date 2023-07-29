@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -21,14 +22,30 @@ public static class TestExecutor
 	/// </summary>
 	public static bool AllowInfiniteLoops = true;
 
+	/// <summary>
+	/// The folder this test run will store output in, such as logs and
+	/// reference renders.
+	/// </summary>
+	public static string TestRunFolder = "";
+
+	/// <summary>
+	/// The folder this test run will store reference renders in.
+	/// </summary>
+	public static string ReferenceImageFolder = "";
+
 	public static void ExecuteTests(string[] args, Configurator? config = null)
 	{
 		// todo: read args and start running split processes, different configs etc.
 
+		string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
+
+		TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
+		ReferenceImageFolder = Path.Join(TestRunFolder, "ReferenceImages");
+
 		config ??= new Configurator();
 		config.DebugMode = true;
 		config.NoErrorPopup = true;
-		config.Logger = new TestLogger("Logs");
+		config.Logger = new TestLogger(Path.Join(TestRunFolder, "Logs"));
 
 		Engine.Setup(config);
 
@@ -57,8 +74,16 @@ public static class TestExecutor
 
 		Task.Run(async () =>
 		{
-			RunTestClasses(testFunctions);
-			await RunTestScenes(testScenes);
+			try
+			{
+				RunTestClasses(testFunctions);
+				await RunTestScenes(testScenes);
+			}
+			catch (Exception)
+			{
+				// ignored, prevent stalling
+			}
+
 			Engine.Quit();
 		});
 
@@ -67,23 +92,75 @@ public static class TestExecutor
 
 	private static void RunTestClasses(List<MethodInfo> testFunctions)
 	{
+		Dictionary<Type, List<MethodInfo>> testsByClass = new();
+		List<MethodInfo>? currentClassList = null;
 		Type? currentClass = null;
-		object? currentClassInstance = null;
-
 		foreach (MethodInfo func in testFunctions)
 		{
 			// Create an instance of the test class.
 			if (currentClass != func.DeclaringType)
 			{
-				if (currentClass != null) Engine.Log.Info($"Passed test class {currentClass}!", MessageSource.Test);
-				currentClass = func.DeclaringType!;
-				currentClassInstance = Activator.CreateInstance(currentClass);
-				Engine.Log.Info($"Running test class {currentClass}...", MessageSource.Test);
+				if (currentClassList != null && currentClass != null) testsByClass.Add(currentClass, currentClassList);
+				currentClassList = new List<MethodInfo>();
+				currentClass = func.DeclaringType;
 			}
 
-			// Run test.
-			Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
-			func.Invoke(currentClassInstance, new object[] { });
+			currentClassList?.Add(func);
+		}
+
+		if (currentClassList != null && currentClass != null) testsByClass.Add(currentClass, currentClassList);
+
+		var completed = 0;
+		var total = 0;
+
+		foreach (KeyValuePair<Type, List<MethodInfo>> testClass in testsByClass)
+		{
+			List<MethodInfo> functions = testClass.Value;
+			total += functions.Count;
+
+			Type declaringType = testClass.Key;
+			Engine.Log.Info($"Running test class {declaringType}...", MessageSource.Test);
+			object? currentClassInstance = Activator.CreateInstance(declaringType);
+
+			if (declaringType.GetCustomAttribute<TestClassRunParallel>() != null)
+			{
+				Engine.Log.Info($"=-= Parallel Execution =-=", MessageSource.Test);
+
+				var tasks = new Task[functions.Count];
+				for (var i = 0; i < functions.Count; i++)
+				{
+					MethodInfo func = functions[i];
+					tasks[i] = Task.Run(() =>
+					{
+						Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+						func.Invoke(currentClassInstance, new object[] { });
+						completed++;
+					});
+				}
+
+				Task.WaitAll(tasks, 10_000);
+			}
+			else
+			{
+				for (var i = 0; i < testClass.Value.Count; i++)
+				{
+					MethodInfo func = testClass.Value[i];
+					try
+					{
+						// Run test.
+						Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+						func.Invoke(currentClassInstance, new object[] { });
+						completed++;
+					}
+					catch (Exception)
+					{
+						// ignored, it's printed by the internal engine error handling
+					}
+				}
+			}
+
+			// The format of this message must match the old system's regex!
+			Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
 		}
 	}
 

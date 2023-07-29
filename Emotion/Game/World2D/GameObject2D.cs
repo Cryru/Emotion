@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation2D;
+using Emotion.Game.World2D.Editor;
 using Emotion.Graphics;
 using static Emotion.Game.World2D.Editor.World2DEditor;
 

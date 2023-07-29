@@ -91,6 +91,11 @@ namespace Emotion.Common
         /// </summary>
         public static float TotalTime { get; set; }
 
+        /// <summary>
+        /// The index of the current tick.
+        /// </summary>
+        public static uint TickCount { get; set; }
+
         static Engine()
         {
             Helpers.AssociatedAssemblies = new List<Assembly>
@@ -383,6 +388,7 @@ namespace Emotion.Common
         private static void RunTickInternal()
         {
             TotalTime += DeltaTime;
+            TickCount++;
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update();

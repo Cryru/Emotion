@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<TransformLink>
+  <Left>
+    <Size>
+      <X>900</X>
+      <Y>1000</Y>
+    </Size>
+    <Position>
+      <X>600</X>
+      <Y>700</Y>
+      <Z>800</Z>
+    </Position>
+  </Left>
+  <Size>
+    <X>400</X>
+    <Y>500</Y>
+  </Size>
+  <Position>
+    <X>100</X>
+    <Y>200</Y>
+    <Z>300</Z>
+  </Position>
+</TransformLink>
