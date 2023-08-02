@@ -6,7 +6,6 @@ using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.IO;
 using Emotion.Platform.Input;
 
 #endregion
@@ -70,7 +69,6 @@ public partial class World2DEditor : WorldBaseEditorGeneric<Map2D>
 		}
 
 		_grid?.Render(c);
-		c.RenderSprite(new Vector3(32, 32, 0), new Vector2(32, 32), Color.Pink);
 		RenderObjectSelection(c);
 	}
 

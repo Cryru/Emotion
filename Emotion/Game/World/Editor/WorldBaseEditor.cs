@@ -2,9 +2,9 @@
 
 #region Using
 
+using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Game.World2D;
-using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
@@ -15,23 +15,13 @@ using Emotion.UI;
 
 namespace Emotion.Game.World.Editor;
 
-public abstract class WorldBaseEditorGeneric<T> : WorldBaseEditor where T : Map2D
-{
-	public T? CurrentMape { get; protected set; }
-
-	protected WorldBaseEditorGeneric(IWorld2DAwareScene scene, Type mapType) : base(scene, mapType)
-	{
-	}
-}
-
 public abstract partial class WorldBaseEditor
 {
-	public Map2D? CurrentMap { get; protected set; }
+	public BaseMap? CurrentMap { get; protected set; }
 
 	public object? CurrentMapObject { get; protected set; }
 	public bool EditorOpen { get; protected set; }
 
-	protected IWorld2DAwareScene _scene;
 	protected Type _mapType;
 	protected CameraBase? _editorCamera;
 	protected CameraBase? _cameraOutsideEditor;
@@ -40,9 +30,8 @@ public abstract partial class WorldBaseEditor
 	protected UIController? _editorUIAlways;
 	protected List<UIController>? _setControllersToVisible;
 
-	protected WorldBaseEditor(IWorld2DAwareScene scene, Type mapType)
+	protected WorldBaseEditor(Type mapType)
 	{
-		_scene = scene;
 		_mapType = mapType;
 		Engine.AssetLoader.GetAsync<FontAsset>(FontAsset.DefaultBuiltInFontName);
 	}
@@ -64,7 +53,7 @@ public abstract partial class WorldBaseEditor
 
 	public void EnterEditor()
 	{
-		CurrentMap = _scene.GetCurrentMap();
+		CurrentMap = GetCurrentSceneMap();
 
 		_cameraOutsideEditor = Engine.Renderer.Camera;
 		_editorCamera = GetEditorCamera();
@@ -106,7 +95,7 @@ public abstract partial class WorldBaseEditor
 
 	protected void CheckMapChange()
 	{
-		Map2D currentMap = _scene.GetCurrentMap();
+		BaseMap? currentMap = GetCurrentSceneMap();
 		if (currentMap != CurrentMap)
 		{
 			if (EditorOpen) ExitEditor();
@@ -115,10 +104,10 @@ public abstract partial class WorldBaseEditor
 		}
 	}
 
-	public void ChangeSceneMap(Map2D newMap)
+	public void ChangeSceneMap(BaseMap newMap)
 	{
 		ExitEditor();
-		_scene.ChangeMapAsync(newMap).Wait();
+		ChangeSceneMapAsync(newMap).Wait();
 		CheckMapChange();
 	}
 
@@ -209,7 +198,7 @@ public abstract partial class WorldBaseEditor
 		return false;
 	}
 
-	public void EditorSaveMap(Map2D? map = null)
+	public void EditorSaveMap(BaseMap? map = null)
 	{
 		map ??= CurrentMap;
 		if (map == null) return;
@@ -225,8 +214,8 @@ public abstract partial class WorldBaseEditor
 		// This won't break anything as XMLAsset doesn't perform any cleanup.
 		if (Engine.AssetLoader.Loaded(fileName)) Engine.AssetLoader.Destroy(fileName);
 
-		XMLAsset<Map2D> asset = XMLAsset<Map2D>.CreateFromContent(map, fileName);
-		bool saved = asset.Save();
+		XMLAssetMarkerClass asset = GetCurrentMapAsXMLAsset(map);
+		bool saved = asset.SaveAs(fileName);
 		EditorMsg(saved ? "Map saved." : "Unable to save map.");
 	}
 
@@ -236,6 +225,14 @@ public abstract partial class WorldBaseEditor
 
 		// todo
 	}
+
+	#region Internal Generic Conversion API
+
+	protected abstract BaseMap? GetCurrentSceneMap();
+	protected abstract Task ChangeSceneMapAsync(BaseMap map);
+	protected abstract XMLAssetMarkerClass GetCurrentMapAsXMLAsset(BaseMap map);
+
+	#endregion
 
 	#region Internal API
 

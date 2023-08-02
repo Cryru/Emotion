@@ -1,53 +1,19 @@
-﻿#region Using
+﻿#nullable enable
 
-using System.Threading.Tasks;
+#region Using
+
+using Emotion.Game.World.Editor;
+using Emotion.Game.World.SceneControl;
 using Emotion.Game.World2D.Editor;
-using Emotion.Graphics;
-using Emotion.Scenography;
 
 #endregion
 
-#nullable enable
+namespace Emotion.Game.World2D.SceneControl;
 
-namespace Emotion.Game.World2D.SceneControl
+public abstract class World2DBaseScene<T> : WorldBaseScene<Map2D>, IWorld2DAwareScene where T : Map2D
 {
-	public abstract class World2DBaseScene<T> : Scene, IWorld2DAwareScene where T : Map2D
+	protected override WorldBaseEditor CreateEditor()
 	{
-		public T? CurrentMap { get; private set; }
-
-		protected World2DEditor _editor;
-
-		protected World2DBaseScene()
-		{
-			_editor = new World2DEditor(this, typeof(T));
-			_editor.InitializeEditor();
-		}
-
-		public override void Update()
-		{
-			CurrentMap?.Update(Engine.DeltaTime);
-			_editor.Update(Engine.DeltaTime);
-		}
-
-		public override void Draw(RenderComposer composer)
-		{
-			CurrentMap?.Render(composer);
-			_editor.Render(composer);
-		}
-
-		public Map2D GetCurrentMap()
-		{
-			return CurrentMap!;
-		}
-
-		public async Task ChangeMapAsync(Map2D? map)
-		{
-			if (map == null) return;
-			var mapT = map as T;
-
-			CurrentMap?.Dispose();
-			CurrentMap = mapT;
-			await map.InitAsync();
-		}
+		return new World2DEditor(this, typeof(T));
 	}
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Editor;
+using Emotion.Game.World;
 using Emotion.Graphics;
 using Emotion.Standard.XML;
 
@@ -16,18 +17,8 @@ using Emotion.Standard.XML;
 
 namespace Emotion.Game.World2D
 {
-	public class Map2D
+	public class Map2D : BaseMap
 	{
-		/// <summary>
-		/// The name of the map. Not to be confused with the asset name carried by the XMLAsset.
-		/// </summary>
-		public string MapName { get; set; }
-
-		/// <summary>
-		/// The file the map was loaded from, if any. Should equal the XMLAsset name.
-		/// </summary>
-		public string? FileName { get; set; }
-
 		/// <summary>
 		/// The size of the map in map units.
 		/// </summary>
@@ -69,19 +60,12 @@ namespace Emotion.Game.World2D
 
 		#region Events
 
-		public event Action? OnMapReset;
 		public event Action<GameObject2D>? OnObjectRemoved;
 		public event Action<GameObject2D>? OnObjectAdded;
 
 		#endregion
 
 		#region Runtime State
-
-		/// <summary>
-		/// Whether the map is currently open in the editor.
-		/// Mostly used to conditionally render/represent things.
-		/// </summary>
-		[DontSerialize] public bool EditorMode;
 
 		// This list contains all runtime objects.
 		protected List<GameObject2D> _objects { get; set; }
@@ -98,9 +82,8 @@ namespace Emotion.Game.World2D
 
 		#endregion
 
-		public Map2D(Vector2 size, string mapName = "Unnamed Map")
+		public Map2D(Vector2 size, string mapName = "Unnamed Map") : base(mapName)
 		{
-			MapName = mapName;
 			MapSize = size;
 
 			_objects = new List<GameObject2D>();
@@ -120,7 +103,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Initialize the map. This will create the map internal structures, load assets, and fill caches.
 		/// </summary>
-		public async Task InitAsync()
+		public override async Task InitAsync()
 		{
 			if (Disposed)
 			{
@@ -219,7 +202,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Reset the map as if it was reloaded.
 		/// </summary>
-		public virtual async Task Reset()
+		public override async Task Reset()
 		{
 			// Clear resources.
 			Dispose();
@@ -227,13 +210,11 @@ namespace Emotion.Game.World2D
 
 			// Ensure reset is identical to deserialize by serialize-copying objects.
 			// This will clear any initialized values etc.
-			string objectsXML = XMLFormat.To(PersistentObjects);
-			PersistentObjects = XMLFormat.From<List<GameObject2D>>(objectsXML);
+			string objectsXML = XMLFormat.To(PersistentObjects) ?? "";
+			PersistentObjects = XMLFormat.From<List<GameObject2D>>(objectsXML) ?? new List<GameObject2D>();
 
 			// todo: should we reset tile data?
-			await InitAsync();
-
-			OnMapReset?.Invoke();
+			await base.Reset();
 		}
 
 		#endregion
@@ -361,7 +342,7 @@ namespace Emotion.Game.World2D
 
 		protected virtual void ProcessObjectChanges()
 		{
-			Assert(_worldTree != null);
+			AssertNotNull(_worldTree);
 
 			// Check if objects we're waiting to load, have loaded.
 			for (int i = _objectLoading.Count - 1; i >= 0; i--)
@@ -461,7 +442,7 @@ namespace Emotion.Game.World2D
 
 		#endregion
 
-		public virtual void Update(float dt)
+		public override void Update(float dt)
 		{
 			if (!Initialized) return;
 
@@ -484,7 +465,7 @@ namespace Emotion.Game.World2D
 			return MathF.Sign(x.Position.Z - y.Position.Z);
 		}
 
-		public virtual void Render(RenderComposer c)
+		public override void Render(RenderComposer c)
 		{
 			if (!Initialized) return;
 
@@ -501,7 +482,7 @@ namespace Emotion.Game.World2D
 			}
 		}
 
-		public virtual void Dispose()
+		public override void Dispose()
 		{
 			// Stop updates and rendering
 			Initialized = false;
