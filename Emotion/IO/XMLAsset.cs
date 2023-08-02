@@ -17,6 +17,16 @@ public abstract class XMLAssetMarkerClass : Asset
 	/// and an instance of the type was created.
 	/// </summary>
 	public abstract bool HasContent();
+
+	/// <summary>
+	/// Save the file to the asset store.
+	/// </summary>
+	public abstract bool Save();
+
+	/// <summary>
+	/// Save the file to the asset store with the provided name.
+	/// </summary>
+	public abstract bool SaveAs(string name, bool backup = true);
 }
 
 /// <summary>
@@ -52,6 +62,27 @@ public class XMLAsset<T> : XMLAssetMarkerClass
 		return Content != null;
 	}
 
+	/// <inheritdoc />
+	public override bool Save()
+	{
+		return SaveAs(Name);
+	}
+
+	/// <inheritdoc />
+	public override bool SaveAs(string name, bool backup = true)
+	{
+		string? data = XMLFormat.To(Content);
+		if (data == null)
+		{
+			Engine.Log.Error($"Couldn't serialize content of type {typeof(T)}.", MessageSource.Other);
+			return false;
+		}
+
+		bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name, backup);
+		if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
+		return saved;
+	}
+
 	/// <summary>
 	/// Create a new xml file from content and a name.
 	/// </summary>
@@ -62,25 +93,6 @@ public class XMLAsset<T> : XMLAssetMarkerClass
 			Content = content,
 			Name = name
 		};
-	}
-
-	/// <summary>
-	/// Save the file to the asset store.
-	/// </summary>
-	public bool Save()
-	{
-		return SaveAs(Name);
-	}
-
-	/// <summary>
-	/// Save the file to the asset store with the provided name.
-	/// </summary>
-	public bool SaveAs(string name, bool backup = true)
-	{
-		string data = XMLFormat.To(Content);
-		bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name, backup);
-		if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
-		return saved;
 	}
 
 	/// <summary>
