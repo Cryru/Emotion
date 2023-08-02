@@ -5,7 +5,6 @@ using Emotion.Common.Serialization;
 using Emotion.Game.Animation2D;
 using Emotion.Game.World2D.Editor;
 using Emotion.Graphics;
-using static Emotion.Game.World2D.Editor.World2DEditor;
 
 #endregion
 
@@ -18,8 +17,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// The unique id of the object. Is assigned when added to the map.
 		/// </summary>
-		[DontSerialize]
-		public int UniqueId;
+		[DontSerialize] public int UniqueId;
 
 		/// <summary>
 		/// The object's name. Should be unique map-wide, but
@@ -198,14 +196,14 @@ namespace Emotion.Game.World2D
 		private int _boundsHash;
 		private Rectangle _cachedBounds = Rectangle.Empty;
 
-		/// <inheritdoc/>
+		/// <inheritdoc />
 		public override Rectangle Bounds
 		{
 			get => GetBoundsWithOriginModified();
 			set => base.Bounds = value;
 		}
 
-		/// <inheritdoc/>
+		/// <inheritdoc />
 		public override Vector2 Center
 		{
 			get => Bounds.Center;

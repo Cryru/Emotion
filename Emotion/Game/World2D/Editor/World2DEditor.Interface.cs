@@ -3,7 +3,6 @@
 #region Using
 
 using System.Threading.Tasks;
-using Emotion.Editor;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
@@ -227,7 +226,7 @@ public partial class World2DEditor
 				Name = "View Object List",
 				Click = (_, __) =>
 				{
-					Debug.Assert(map != null);
+					Assert(map != null);
 
 					var panel = new EditorListOfItemsPanel<GameObject2D>("All Objects", map.GetObjects(),
 						obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
@@ -254,20 +253,20 @@ public partial class World2DEditor
 				},
 				Enabled = () => map != null
 			},
-            new EditorDropDownButtonDescription
-            {
-                Name = "Add From Prefab",
-                Click = (_, __) =>
-                {
-                    var panel = new EditorListOfItemsPanel<GameObjectPrefab>("Prefab Library", _prefabDatabase.Values, PlaceObjectFromPrefab);
-                    panel.Text = "Choose prefab to add as a new object:";
-                    panel.CloseOnClick = true;
+			new EditorDropDownButtonDescription
+			{
+				Name = "Add From Prefab",
+				Click = (_, __) =>
+				{
+					var panel = new EditorListOfItemsPanel<GameObjectPrefab>("Prefab Library", _prefabDatabase.Values, PlaceObjectFromPrefab);
+					panel.Text = "Choose prefab to add as a new object:";
+					panel.CloseOnClick = true;
 
-                    _editUI!.AddChild(panel);
-                },
-                Enabled = () => map != null && _prefabDatabase.Count > 0
-            }
-        });
+					_editUI!.AddChild(panel);
+				},
+				Enabled = () => map != null && _prefabDatabase.Count > 0
+			}
+		});
 
 		MapEditorTopBarButton tilesMenu = EditorDropDownButton("Tiles", new[]
 		{
@@ -280,10 +279,7 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Open Tile Editor",
-				Click = (_, __) =>
-				{
-					_editUI!.AddChild(new MapEditorTilePanel(map));
-				},
+				Click = (_, __) => { _editUI!.AddChild(new MapEditorTilePanel(map)); },
 				Enabled = () => map != null
 			},
 		});
@@ -315,7 +311,7 @@ public partial class World2DEditor
 		});
 
 		MapEditorTopBarButton mapMenu = EditorDropDownButton("Map", new[]
-			{
+		{
 			new EditorDropDownButtonDescription
 			{
 				Name = "Reload",
@@ -419,8 +415,8 @@ public partial class World2DEditor
 
 	private void EditorOpenPropertiesPanelForObject(GameObject2D obj)
 	{
-		Debug.Assert(obj != null);
-		Debug.Assert(_editUI != null);
+		Assert(obj != null);
+		Assert(_editUI != null);
 
 		MapEditorObjectPropertiesPanel? existingPanel = EditorGetAlreadyOpenPropertiesPanelForObject(obj.UniqueId);
 		if (existingPanel != null)
@@ -470,7 +466,7 @@ public partial class World2DEditor
 	private void EditorOpenContextMenuForObject(GameObject2D obj)
 	{
 		Map2D? map = CurrentMap;
-		Debug.Assert(map != null);
+		Assert(map != null);
 
 		var contextMenu = new MapEditorDropdown(true);
 		contextMenu.Offset = Engine.Host.MousePosition / _editUI!.GetScale();
@@ -505,32 +501,29 @@ public partial class World2DEditor
 				Name = "Properties",
 				Click = (_, __) => { EditorOpenPropertiesPanelForObject(obj); }
 			},
-            new EditorDropDownButtonDescription
-            {
-                Name = "Create Prefab",
-                Click = (_, __) =>
+			new EditorDropDownButtonDescription
+			{
+				Name = "Create Prefab",
+				Click = (_, __) =>
 				{
-					PropertyInputModal<StringInputModalEnvelope> nameInput = new PropertyInputModal<StringInputModalEnvelope>((input) =>
+					PropertyInputModal<StringInputModalEnvelope> nameInput = new PropertyInputModal<StringInputModalEnvelope>(input =>
 					{
 						string text = input.Name;
 						if (text.Length < 1) return false;
 
-                        CreateObjectPrefab(text, obj);
-                        return true;
+						CreateObjectPrefab(text, obj);
+						return true;
 					}, "Input name for the prefab:");
 					_editUI!.AddChild(nameInput);
-                }
-            },
-            new EditorDropDownButtonDescription
-            {
-                Name = "Overwrite Prefab",
-                Click = (_, __) =>
-                {
-                    CreateObjectPrefab(obj.PrefabOrigin!.PrefabName, obj);
-                },
+				}
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Overwrite Prefab",
+				Click = (_, __) => { CreateObjectPrefab(obj.PrefabOrigin!.PrefabName, obj); },
 				Enabled = () => obj.PrefabOrigin != null
-            },
-        };
+			},
+		};
 
 		contextMenu.SetItems(dropDownMenu);
 		_editUI.AddChild(contextMenu);

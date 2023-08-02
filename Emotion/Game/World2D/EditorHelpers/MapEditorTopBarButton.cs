@@ -28,9 +28,9 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		private bool _enabled = true;
 
-        public bool RenderInactiveBG = true;
+		public bool RenderInactiveBG = true;
 
-        private bool _activeMode;
+		private bool _activeMode;
 		private UIText _label;
 
 		public MapEditorTopBarButton()

@@ -36,8 +36,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Contains tile information, if the map has a tile map portion.
 		/// </summary>
-		[DontShowInEditor]
-		public Map2DTileMapData? TileData;
+		[DontShowInEditor] public Map2DTileMapData? TileData;
 
 		/// <summary>
 		/// Whether the map is loaded and ready to be used.
@@ -192,7 +191,7 @@ namespace Emotion.Game.World2D
 
 			// Run the update tick once to prevent some flickering on first update as some objects might
 			// initialize something (such as animations) on first update.
-			Update(0); 
+			Update(0);
 
 			Initialized = true;
 
@@ -250,7 +249,7 @@ namespace Emotion.Game.World2D
 		/// </summary>
 		public void AddObject(GameObject2D obj)
 		{
-			Debug.Assert(obj.ObjectState == ObjectState.None);
+			Assert(obj.ObjectState == ObjectState.None);
 
 			if (obj.UniqueId == 0)
 			{
@@ -264,13 +263,13 @@ namespace Emotion.Game.World2D
 			{
 				GameObject2D otherObj = _objects[i];
 				if (_objectsToRemove.Contains(otherObj)) continue; // During reset?
-				Debug.Assert(otherObj.UniqueId != obj.UniqueId);
+				Assert(otherObj.UniqueId != obj.UniqueId);
 			}
 
 #endif
 			if (obj.ObjectFlags.HasFlag(ObjectFlags.Persistent) && !_loadingPersistentObjects)
 			{
-				Debug.Assert(!PersistentObjects.Contains(obj));
+				Assert(!PersistentObjects.Contains(obj));
 				PersistentObjects.Add(obj);
 
 				// Serializable objects added before map load will be loaded in bulk and join the map file.
@@ -325,7 +324,7 @@ namespace Emotion.Game.World2D
 				if (!loadingTask.IsCompleted)
 				{
 					await loadingTask;
-					Debug.Assert(loadingTask.IsCompleted);
+					Assert(loadingTask.IsCompleted);
 				}
 
 				_objectLoading.RemoveAt(i);
@@ -362,7 +361,7 @@ namespace Emotion.Game.World2D
 
 		protected virtual void ProcessObjectChanges()
 		{
-			Debug.Assert(_worldTree != null);
+			Assert(_worldTree != null);
 
 			// Check if objects we're waiting to load, have loaded.
 			for (int i = _objectLoading.Count - 1; i >= 0; i--)
@@ -536,8 +535,8 @@ namespace Emotion.Game.World2D
 		/// </summary>
 		public void Editor_ReinitializeObject(GameObject2D obj)
 		{
-			Debug.Assert(EditorMode);
-			Debug.Assert(!_loadingPersistentObjects);
+			Assert(EditorMode);
+			Assert(!_loadingPersistentObjects);
 
 			_objects.Remove(obj);
 			_worldTree?.RemoveObjectFromTree(obj);

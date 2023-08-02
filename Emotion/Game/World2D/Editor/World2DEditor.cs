@@ -6,7 +6,6 @@ using Emotion.Common.Threading;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
@@ -76,11 +75,11 @@ public partial class World2DEditor
 	{
 		// We want to sync editor closing with the rendering to
 		// prevent race condition exceptions.
-		if(!GLThread.IsGLThread())
+		if (!GLThread.IsGLThread())
 		{
-            GLThread.ExecuteGLThread(ExitEditor);
+			GLThread.ExecuteGLThread(ExitEditor);
 			return;
-        }
+		}
 
 		Engine.Renderer.Camera = _cameraOutsideEditor;
 		_editorCamera = null;
@@ -101,7 +100,7 @@ public partial class World2DEditor
 		Map2D currentMap = _scene.GetCurrentMap();
 		if (currentMap != CurrentMap)
 		{
-			if(EditorOpen) ExitEditor();
+			if (EditorOpen) ExitEditor();
 			CurrentMap = currentMap;
 			EnterEditor();
 		}
@@ -110,9 +109,9 @@ public partial class World2DEditor
 	public void ChangeSceneMap(Map2D newMap)
 	{
 		ExitEditor();
-        _scene.ChangeMapAsync(newMap).Wait();
-        CheckMapChange();
-    }
+		_scene.ChangeMapAsync(newMap).Wait();
+		CheckMapChange();
+	}
 
 	public void ChangeSceneMap(string fileName)
 	{

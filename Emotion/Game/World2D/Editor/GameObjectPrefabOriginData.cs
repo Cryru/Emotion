@@ -1,31 +1,26 @@
-﻿#region Using
-
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Game.World2D.Editor;
 
 public class GameObjectPrefabOriginData
 {
-    public string PrefabName;
-    public int PrefabVersion;
+	public string PrefabName;
+	public int PrefabVersion;
 
-    public GameObjectPrefabOriginData(GameObjectPrefab prefab)
-    {
-        PrefabName = prefab.PrefabName;
-        PrefabVersion = prefab.PrefabVersion;
-    }
+	public GameObjectPrefabOriginData(GameObjectPrefab prefab)
+	{
+		PrefabName = prefab.PrefabName;
+		PrefabVersion = prefab.PrefabVersion;
+	}
 
-    protected GameObjectPrefabOriginData()
-    {
-        // serialization
-        PrefabName = null!;
-    }
+	protected GameObjectPrefabOriginData()
+	{
+		// serialization
+		PrefabName = null!;
+	}
 
-    public override string ToString()
-    {
-        return $"{PrefabName} v{PrefabVersion}";
-    }
+	public override string ToString()
+	{
+		return $"{PrefabName} v{PrefabVersion}";
+	}
 }
