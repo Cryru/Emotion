@@ -184,7 +184,7 @@ public partial class World2DEditor
 		}
 	}
 
-	private bool ObjectEditorInputHandler(Key key, KeyStatus status)
+	private void ObjectEditorInputHandler(Key key, KeyStatus status)
 	{
 		if (key == Key.LeftAlt && status == KeyStatus.Down) RolloverObjectIncrement();
 
@@ -221,8 +221,6 @@ public partial class World2DEditor
 		{
 			_objectDragging = null;
 		}
-
-		return true;
 	}
 
 	protected void EnsureObjectNameplate(GameObject2D obj)
@@ -460,7 +458,7 @@ public partial class World2DEditor
 	/// <summary>
 	/// Changes the object property and reinitializes the object without changing its reference.
 	/// </summary>
-	public void ChangeObjectProperty(GameObject2D obj, XMLFieldHandler field, object? value, bool recordUndo = true)
+	public override void ChangeObjectProperty(GameObject2D obj, XMLFieldHandler field, object? value, bool recordUndo = true)
 	{
 		Map2D? objectMap = obj.Map;
 		AssertNotNull(objectMap);

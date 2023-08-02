@@ -1,15 +1,14 @@
-﻿#nullable enable
-
-#region Using
+﻿#region Using
 
 using Emotion.Game.World.Editor.Actions;
+using Emotion.Game.World2D;
 using Emotion.Standard.XML;
 
 #endregion
 
-namespace Emotion.Game.World2D.Editor;
+namespace Emotion.Game.World.Editor;
 
-public partial class World2DEditor
+public abstract partial class WorldBaseEditor
 {
 	protected List<IWorldEditorAction> _actions = new();
 
