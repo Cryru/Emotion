@@ -108,7 +108,7 @@ public partial class World2DEditor
 			var removeRollover = true;
 			if (UIController.MouseFocus != null)
 			{
-				UIBaseWindow? objectListPanel = _editUI.GetWindowById("ObjectListPanel");
+				UIBaseWindow? objectListPanel = _editUI!.GetWindowById("ObjectListPanel");
 				if (objectListPanel != null && UIController.MouseFocus.IsWithin(objectListPanel)) removeRollover = false;
 			}
 
@@ -321,7 +321,7 @@ public partial class World2DEditor
 		var currentObjectChanged = true;
 		if (prevRolloverObj != null && objs != null && _allObjectsRollover != null && objs[0] == _allObjectsRollover[0])
 		{
-			Assert(_allObjectsRollover != null);
+			AssertNotNull(_allObjectsRollover);
 			Assert(prevRolloverObj == _allObjectsRollover[_rolloverIndex]);
 
 			int currentIdxInNew = objs.IndexOf(prevRolloverObj);
@@ -445,7 +445,7 @@ public partial class World2DEditor
 
 	protected string GetObjectSerialized(GameObject2D obj)
 	{
-		return XMLFormat.To(obj);
+		return XMLFormat.To(obj) ?? "";
 	}
 
 	/// <summary>
@@ -454,7 +454,7 @@ public partial class World2DEditor
 	public void ChangeObjectProperty(GameObject2D obj, XMLFieldHandler field, object? value, bool recordUndo = true)
 	{
 		Map2D? objectMap = obj.Map;
-		Assert(objectMap != null);
+		AssertNotNull(objectMap);
 		Assert(objectMap == CurrentMap);
 		objectMap = CurrentMap;
 		if (objectMap == null) return;
@@ -463,14 +463,14 @@ public partial class World2DEditor
 		if (recordUndo)
 		{
 			object? oldValue = field.ReflectionInfo!.GetValue(obj);
-			EditorRegisterObjectPropertyChange(obj, field, oldValue);
+			EditorRegisterObjectMutateAction(obj, field, oldValue);
 		}
 
 		// Clean the object of unserialized properties.
 		// This basically brings it in line to how it will look when loaded the first time.
 		bool isPersist = obj.ObjectFlags.HasFlag(ObjectFlags.Persistent);
 		int id = obj.UniqueId;
-		obj.Destroy(); // Make sure object is correctly cleaned up as it will be reinited.
+		obj.Destroy(); // Make sure object is correctly cleaned up as it will be reinitialized.
 		SetObjectToSerializationDefault<GameObject2D>(obj);
 		obj.UniqueId = id;
 		if (isPersist) obj.ObjectFlags |= ObjectFlags.Persistent;
@@ -478,42 +478,40 @@ public partial class World2DEditor
 		// Set the new value.
 		field.ReflectionInfo.SetValue(obj, value);
 
-		// Reinit the object, calling Init etc. as it is basically new.
+		// Reinitialize the object, calling Init etc. as it is basically new.
 		objectMap.Editor_ReinitializeObject(obj);
 	}
 
 	#region Prefab System
 
 	protected static Dictionary<string, GameObjectPrefab> _prefabDatabase = new();
-	protected static string ObjectPrefabFolderAssets = "EditorGame/Prefabs";
+	protected const string OBJECT_PREFAB_FOLDER_ASSETS = "EditorGame/Prefabs";
 
 	private static void LoadPrefabs()
 	{
 		if (_prefabDatabase.Count != 0) return; // Already loaded.
 
-		string[] prefabs = Engine.AssetLoader.GetAssetsInFolder(ObjectPrefabFolderAssets);
-		for (int i = 0; i < prefabs.Length; i++)
+		string[] prefabs = Engine.AssetLoader.GetAssetsInFolder(OBJECT_PREFAB_FOLDER_ASSETS);
+		for (var i = 0; i < prefabs.Length; i++)
 		{
-			var prefabPath = prefabs[i];
+			string prefabPath = prefabs[i];
 			Task.Run(() =>
 			{
 				var prefabAsset = Engine.AssetLoader.Get<XMLAsset<GameObjectPrefab>>(prefabPath, false);
-				if (prefabAsset != null && prefabAsset.Content != null)
+				if (prefabAsset?.Content == null) return;
+
+				string prefabName = prefabAsset.Content.PrefabName;
+				lock (_prefabDatabase)
 				{
-					var prefabName = prefabAsset.Content.PrefabName;
-
-					lock (_prefabDatabase)
+					string originalName = prefabName;
+					var num = 1;
+					while (_prefabDatabase.ContainsKey(prefabName))
 					{
-						string originalName = prefabName;
-						int num = 1;
-						while (_prefabDatabase.ContainsKey(prefabName))
-						{
-							prefabName = $"{originalName}_{num}";
-							num++;
-						}
-
-						_prefabDatabase.Add(prefabName, prefabAsset.Content);
+						prefabName = $"{originalName}_{num}";
+						num++;
 					}
+
+					_prefabDatabase.Add(prefabName, prefabAsset.Content);
 				}
 			});
 		}
@@ -521,7 +519,7 @@ public partial class World2DEditor
 
 	protected void CreateObjectPrefab(string prefabName, GameObject2D obj)
 	{
-		// Check if overwritting existing prefab.
+		// Check if overwriting existing prefab.
 		GameObjectPrefab prefabData;
 		if (_prefabDatabase.TryGetValue(prefabName, out GameObjectPrefab? existingPrefab))
 		{
@@ -538,7 +536,7 @@ public partial class World2DEditor
 		}
 
 		// Strip old prefab origin from serialization.
-		var prefabOrigin = obj.PrefabOrigin;
+		GameObjectPrefabOriginData? prefabOrigin = obj.PrefabOrigin;
 		obj.PrefabOrigin = null;
 
 		string objData = GetObjectSerialized(obj);
@@ -552,17 +550,16 @@ public partial class World2DEditor
 		Assert(prefabData.DefaultProperties.Count == prefabData.PrefabVersion);
 		while (prefabData.DefaultProperties.Count < prefabData.PrefabVersion) // Fill until we reach it?
 			prefabData.DefaultProperties.Add(new Dictionary<string, object?>());
-		var thisVersionPropertyList = prefabData.DefaultProperties[prefabData.PrefabVersion - 1];
+		Dictionary<string, object?> thisVersionPropertyList = prefabData.DefaultProperties[prefabData.PrefabVersion - 1];
 
 		var typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(obj.GetType())!;
 		IEnumerator<XMLFieldHandler> fields = typeHandler.EnumFields();
 		while (fields.MoveNext())
 		{
 			XMLFieldHandler field = fields.Current;
-			if (field == null) continue;
 			if (ShouldIgnorePrefabProperty(field.Name)) continue; // We expect these to be always different.
 
-			var valueInProp = field.ReflectionInfo.GetValue(obj);
+			object? valueInProp = field.ReflectionInfo.GetValue(obj);
 
 			// ObjectFlags doesn't persist some values.
 			if (field.TypeHandler is XMLEnumTypeHandler enumHandler) valueInProp = enumHandler.StripDontSerializeValues(valueInProp);
@@ -571,7 +568,7 @@ public partial class World2DEditor
 		}
 
 		string filePath = AssetLoader.MakeStringPathSafe(prefabName);
-		filePath = $"{ObjectPrefabFolderAssets}/{filePath}.xml";
+		filePath = $"{OBJECT_PREFAB_FOLDER_ASSETS}/{filePath}.xml";
 
 		XMLAsset<GameObjectPrefab>.CreateFromContent(prefabData).SaveAs(filePath);
 		_prefabDatabase[prefabName] = prefabData;
@@ -585,7 +582,9 @@ public partial class World2DEditor
 		Vector2 pos = Engine.Host.MousePosition;
 		Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(pos).ToVec2();
 
-		GameObject2D newObj = XMLFormat.From<GameObject2D>(prefab.ObjectData);
+		var newObj = XMLFormat.From<GameObject2D>(prefab.ObjectData);
+		if (newObj == null) return;
+
 		newObj.ObjectFlags |= ObjectFlags.Persistent;
 		newObj.Position = worldPos.ToVec3();
 		newObj.PrefabOrigin = new GameObjectPrefabOriginData(prefab);
@@ -601,13 +600,13 @@ public partial class World2DEditor
 	public bool IsPropertyDifferentFromPrefab(GameObject2D obj, XMLFieldHandler field)
 	{
 		if (obj.PrefabOrigin == null) return false;
-		var prefabOrigin = obj.PrefabOrigin;
+		GameObjectPrefabOriginData? prefabOrigin = obj.PrefabOrigin;
 		if (!_prefabDatabase.TryGetValue(prefabOrigin.PrefabName, out GameObjectPrefab? prefab)) return false;
 		if (prefab.DefaultProperties == null || prefab.DefaultProperties.Count < prefabOrigin.PrefabVersion) return false;
 		if (ShouldIgnorePrefabProperty(field.Name, true)) return false;
 
-		var versionProperties = prefab.DefaultProperties[prefabOrigin.PrefabVersion - 1];
-		var objectVal = field.ReflectionInfo.GetValue(obj);
+		Dictionary<string, object?> versionProperties = prefab.DefaultProperties[prefabOrigin.PrefabVersion - 1];
+		object? objectVal = field.ReflectionInfo.GetValue(obj);
 		bool isDefault = field.DefaultValue == objectVal;
 
 		// ObjectFlags doesn't persist some values.
@@ -616,9 +615,8 @@ public partial class World2DEditor
 		// If it's missing that means the prefab has it set to the default value for the class.
 		if (versionProperties.TryGetValue(field.Name, out object? val))
 			return !Helpers.AreObjectsEqual(val, objectVal);
-		if (!isDefault) return true;
 
-		return false;
+		return !isDefault;
 	}
 
 	protected void UpdateObjectToLatestPrefabVersion(GameObject2D obj)

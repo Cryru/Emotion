@@ -7,6 +7,7 @@ using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
 using Emotion.Game.Text;
+using Emotion.Game.World.Editor.Actions;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
@@ -226,13 +227,17 @@ public partial class World2DEditor
 				Name = "View Object List",
 				Click = (_, __) =>
 				{
-					Assert(map != null);
+					AssertNotNull(map);
 
-					var panel = new EditorListOfItemsPanel<GameObject2D>("All Objects", map.GetObjects(),
+					var panel = new EditorListOfItemsPanel<GameObject2D>(
+						"All Objects", 
+						map.GetObjects(),
 						obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
-						obj => { RolloverObjects(new() {obj}); }
-					);
-					panel.Id = "ObjectListPanel";
+						obj => { RolloverObjects(new List<GameObject2D> {obj}); }
+					)
+					{
+						Id = "ObjectListPanel"
+					};
 					_editUI!.AddChild(panel);
 				},
 				Enabled = () => map != null
@@ -279,7 +284,11 @@ public partial class World2DEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Open Tile Editor",
-				Click = (_, __) => { _editUI!.AddChild(new MapEditorTilePanel(map)); },
+				Click = (_, __) =>
+				{
+					AssertNotNull(map);
+					_editUI!.AddChild(new MapEditorTilePanel(map));
+				},
 				Enabled = () => map != null
 			},
 		});
@@ -292,10 +301,7 @@ public partial class World2DEditor
 				Name = "Undo History",
 				Click = (_, __) =>
 				{
-					var panel = new EditorListOfItemsPanel<EditorAction>("Actions", _actions ?? new List<EditorAction>(),
-						obj => { }
-					);
-
+					var panel = new EditorListOfItemsPanel<IWorldEditorAction>("Actions", _actions, obj => { });
 					_editUI!.AddChild(panel);
 				}
 			},
@@ -329,6 +335,7 @@ public partial class World2DEditor
 				Name = "Properties",
 				Click = (_, __) =>
 				{
+					AssertNotNull(map);
 					var panel = new GenericPropertiesEditorPanel(map);
 					_editUI!.AddChild(panel);
 				},
@@ -415,8 +422,8 @@ public partial class World2DEditor
 
 	private void EditorOpenPropertiesPanelForObject(GameObject2D obj)
 	{
-		Assert(obj != null);
-		Assert(_editUI != null);
+		AssertNotNull(obj);
+		AssertNotNull(_editUI);
 
 		MapEditorObjectPropertiesPanel? existingPanel = EditorGetAlreadyOpenPropertiesPanelForObject(obj.UniqueId);
 		if (existingPanel != null)
@@ -435,8 +442,10 @@ public partial class World2DEditor
 
 		Vector2 mousePos = Engine.Host.MousePosition;
 
-		var contextMenu = new MapEditorDropdown(true);
-		contextMenu.Offset = mousePos / _editUI!.GetScale();
+		var contextMenu = new MapEditorDropdown(true)
+		{
+			Offset = mousePos / _editUI!.GetScale()
+		};
 
 		var dropDownMenu = new[]
 		{
@@ -445,15 +454,16 @@ public partial class World2DEditor
 				Name = "Paste",
 				Click = (_, __) =>
 				{
-					var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
-					if (newObj != null)
-					{
-						newObj.ObjectFlags |= ObjectFlags.Persistent;
-						map.AddObject(newObj);
+					AssertNotNull(_objectCopyClipboard);
 
-						Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
-						newObj.Position2 = worldPos;
-					}
+					var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
+					if (newObj == null) return;
+
+					newObj.ObjectFlags |= ObjectFlags.Persistent;
+					map.AddObject(newObj);
+
+					Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
+					newObj.Position2 = worldPos;
 				},
 				Enabled = () => !string.IsNullOrEmpty(_objectCopyClipboard)
 			}
@@ -466,11 +476,13 @@ public partial class World2DEditor
 	private void EditorOpenContextMenuForObject(GameObject2D obj)
 	{
 		Map2D? map = CurrentMap;
-		Assert(map != null);
+		AssertNotNull(map);
 
-		var contextMenu = new MapEditorDropdown(true);
-		contextMenu.Offset = Engine.Host.MousePosition / _editUI!.GetScale();
-		contextMenu.OwningObject = obj;
+		var contextMenu = new MapEditorDropdown(true)
+		{
+			Offset = Engine.Host.MousePosition / _editUI!.GetScale(),
+			OwningObject = obj
+		};
 
 		var dropDownMenu = new[]
 		{
@@ -506,7 +518,7 @@ public partial class World2DEditor
 				Name = "Create Prefab",
 				Click = (_, __) =>
 				{
-					PropertyInputModal<StringInputModalEnvelope> nameInput = new PropertyInputModal<StringInputModalEnvelope>(input =>
+					var nameInput = new PropertyInputModal<StringInputModalEnvelope>(input =>
 					{
 						string text = input.Name;
 						if (text.Length < 1) return false;

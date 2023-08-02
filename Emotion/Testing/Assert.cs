@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Diagnostics.CodeAnalysis;
 using Emotion.Platform.Implementation.Win32;
 
 #endregion
@@ -100,9 +101,16 @@ public static class AssertWrapper
 {
 	[Conditional("DEBUG")]
 	[Conditional("AUTOBUILD")]
-	public static void Assert(bool condition, string? text = null)
+	public static void Assert( bool condition, string? text = null)
 	{
 		Testing.Assert.True(condition, text);
+	}
+
+	[Conditional("DEBUG")]
+	[Conditional("AUTOBUILD")]
+	public static void AssertNotNull([NotNull] object? obj)
+	{
+		Testing.Assert.True(obj != null);
 	}
 }
 

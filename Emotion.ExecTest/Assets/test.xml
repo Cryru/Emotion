@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Map2D>
+  <MapName>test</MapName>
+  <FileName>test.xml</FileName>
+  <MapSize>
+    <X>1</X>
+    <Y>1</Y>
+  </MapSize>
+  <PersistentObjects>
+  </PersistentObjects>
+</Map2D>
