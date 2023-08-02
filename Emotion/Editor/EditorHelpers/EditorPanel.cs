@@ -104,4 +104,10 @@ public class EditorPanel : UIBaseWindow
 		c.RenderOutline(_container.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
 		return base.RenderInternal(c);
 	}
+
+	public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+	{
+		bool returnVal = base.OnKey(key, status, mousePos);
+		return !Modal && returnVal;
+	}
 }
