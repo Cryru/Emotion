@@ -1,8 +1,4 @@
-﻿#region Using
-
-#endregion
-
-namespace Emotion.Game.World2D.EditorHelpers
+﻿namespace Emotion.Game.World2D.EditorHelpers
 {
 	public static class MapEditorColorPalette
 	{

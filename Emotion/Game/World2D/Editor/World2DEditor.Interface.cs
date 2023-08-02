@@ -230,7 +230,7 @@ public partial class World2DEditor
 					AssertNotNull(map);
 
 					var panel = new EditorListOfItemsPanel<GameObject2D>(
-						"All Objects", 
+						"All Objects",
 						map.GetObjects(),
 						obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
 						obj => { RolloverObjects(new List<GameObject2D> {obj}); }

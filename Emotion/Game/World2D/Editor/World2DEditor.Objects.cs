@@ -127,7 +127,7 @@ public partial class World2DEditor
 			newPos = newPos.Floor();
 			newPos /= 100f;
 
-			if(Engine.Host.IsCtrlModifierHeld() && map.TileData != null)
+			if (Engine.Host.IsCtrlModifierHeld() && map.TileData != null)
 			{
 				var tileSize = map.TileData.TileSize;
 				newPos /= tileSize;
