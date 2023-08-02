@@ -580,7 +580,7 @@ public partial class World2DEditor
                 valueInProp = enumHandler.StripDontSerializeValues(valueInProp);
             }
 
-            if (!field.Skip && valueInProp != field.DefaultValue)
+            if (!field.Skip && !Helpers.AreObjectsEqual(valueInProp, field.DefaultValue))
 			{
 				thisVersionPropertyList.Add(field.Name, valueInProp);
 			}
