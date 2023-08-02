@@ -476,7 +476,7 @@ namespace Emotion.Game.World2D
 		/// </summary>
 		/// <param name="location">The coordinates in world space you want to sample.</param>
 		/// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
-		public Vector2 GetTileCoordinateFromLocation(Vector2 location)
+		public Vector2 GetTilePosOfWorldPos(Vector2 location)
 		{
 			var left = (int) Math.Max(0, location.X / TileSize.X);
 			var top = (int) Math.Max(0, location.Y / TileSize.Y);

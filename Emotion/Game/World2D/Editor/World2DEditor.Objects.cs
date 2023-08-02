@@ -126,6 +126,15 @@ public partial class World2DEditor
 			newPos *= 100f;
 			newPos = newPos.Floor();
 			newPos /= 100f;
+
+			if(Engine.Host.IsCtrlModifierHeld() && map.TileData != null)
+			{
+				var tileSize = map.TileData.TileSize;
+				newPos /= tileSize;
+				newPos = newPos.Floor();
+				newPos *= tileSize;
+			}
+
 			_objectDragging.Position = newPos.ToVec3(_objectDragging.Z);
 			EditorRegisterMoveAction(_objectDragging, _objectDragStartPos, _objectDragging.Position2);
 		}
@@ -564,7 +573,7 @@ public partial class World2DEditor
 			// ObjectFlags doesn't persist some values.
 			if (field.TypeHandler is XMLEnumTypeHandler enumHandler) valueInProp = enumHandler.StripDontSerializeValues(valueInProp);
 
-			if (!field.Skip && valueInProp != field.DefaultValue) thisVersionPropertyList.Add(field.Name, valueInProp);
+			if (!field.Skip && !Helpers.AreObjectsEqual(valueInProp, field.DefaultValue)) thisVersionPropertyList.Add(field.Name, valueInProp);
 		}
 
 		string filePath = AssetLoader.MakeStringPathSafe(prefabName);
