@@ -17,7 +17,17 @@ using UIDescriptionAsset = Emotion.IO.XMLAsset<(string, Emotion.Primitives.Recta
 
 namespace Tests.Classes
 {
-    [Test("UITests", true)]
+	public static class UITestsExtension
+	{
+		public static void TestUpdate(this UIController controller)
+		{
+            // Increments the current tick to force updating of mouse input.
+			Engine.TickCount++;
+			controller.Update();
+		}
+	}
+
+	[Test("UITests", true)]
     public class UITests
     {
         [Test]
@@ -244,16 +254,14 @@ namespace Tests.Classes
             var ui = new UIController();
             ui.AddChild(template.Content);
             ui.PreloadUI().Wait();
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
 
             var winOne = (MouseTestWindow) ui.GetWindowById("WinOne");
             var winThree = (MouseTestWindow) ui.GetWindowById("WinThree");
 
             // Mouse outside.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, new Vector2(0, 0));
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(winOne.ClickedCount, 0);
@@ -261,16 +269,14 @@ namespace Tests.Classes
 
             // Mouse inside.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winOne.Position2 + new Vector2(10, 10));
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
             Assert.Equal(winOne.WindowColor, Color.Red);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(winOne.ClickedCount, 1);
 
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winThree.Position2 + new Vector2(10, 10));
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
             Assert.Equal(winOne.WindowColor, Color.White);
             Assert.Equal(winThree.WindowColor, Color.Red);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
@@ -285,16 +291,14 @@ namespace Tests.Classes
             ui.ClearChildren();
             ui.AddChild(templateOutOfParent.Content);
             ui.PreloadUI().Wait();
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
 
             var outOfParent = (MouseTestWindow) ui.GetWindowById("OutOfParent");
             var notChild = (MouseTestWindow) ui.GetWindowById("WithinParentButNotChild");
 
             // Try to click on the out of parent window.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, outOfParent.Position2 + new Vector2(10, 10));
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(outOfParent.ClickedCount, 1);
@@ -302,8 +306,7 @@ namespace Tests.Classes
 
             // Try to click on the window that is within the parental bounds, but not a child.
             Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, notChild.Position2 + new Vector2(10, 10));
-            Engine.TickCount++;
-            ui.Update();
+            ui.TestUpdate();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(notChild.ClickedCount, 1);
@@ -318,7 +321,6 @@ namespace Tests.Classes
             controller.ClearChildren();
             controller.AddChild(template.Content);
             controller.PreloadUI().Wait();
-            Engine.TickCount++;
             controller.Update();
 
             (string, Rectangle)[] layoutDesc = controller.GetLayoutDescription();
