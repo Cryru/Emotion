@@ -349,6 +349,14 @@ namespace Emotion.Primitives
 
         public static readonly uint WhiteUint = White.ToUint();
 
+        public static readonly Color PrettyPurple = new Color("#8062D6");
+        public static readonly Color PrettyPink = new Color("#E966A0");
+        public static readonly Color PrettyOrange = new Color("#FD8D14");
+        public static readonly Color PrettyYellow = new Color("#FFE17B");
+        public static readonly Color PrettyRed = new Color("#EF6262");
+        public static readonly Color PrettyBlue = new Color("#39B5E0");
+        public static readonly Color PrettyGreen = new Color("#A4BE7B");
+
         #endregion
 
         /// <summary>
