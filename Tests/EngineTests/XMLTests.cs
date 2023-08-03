@@ -918,9 +918,10 @@ public class XMLTests
 
 	private HashSet<string> _usedNamed = new();
 
-	private string? ToXMLForTest<T>(T obj)
+	private string ToXMLForTest<T>(T obj)
 	{
 		string? data = XMLFormat.To(obj);
+		data ??= "<?xml version=\"1.0\"?>";
 
 		string fileName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
 		fileName = fileName.Replace("Tests.EngineTests.XMLTests.", "");
