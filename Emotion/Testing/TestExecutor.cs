@@ -131,9 +131,16 @@ public static class TestExecutor
 					MethodInfo func = functions[i];
 					tasks[i] = Task.Run(() =>
 					{
-						Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
-						func.Invoke(currentClassInstance, new object[] { });
-						completed++;
+						try
+						{
+							Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+							func.Invoke(currentClassInstance, new object[] { });
+							completed++;
+						}
+						catch (Exception)
+						{
+							// ignored, it's printed by the internal engine error handling
+						}
 					});
 				}
 

@@ -921,7 +921,7 @@ public class XMLTests
 	private string ToXMLForTest<T>(T obj)
 	{
 		string? data = XMLFormat.To(obj);
-		data ??= "<?xml version=\"1.0\"?>";
+		data ??= "<null/>";
 
 		string fileName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
 		fileName = fileName.Replace("Tests.EngineTests.XMLTests.", "");
@@ -941,7 +941,8 @@ public class XMLTests
 		File.WriteAllText(thisFile, data);
 
 		var referenceAsset = Engine.AssetLoader.Get<TextAsset>($"CachedXMLOutput/{fileName}.xml");
-		if (referenceAsset?.Content != null) Assert.True(referenceAsset.Content == data);
+		if (referenceAsset?.Content != null)
+			Assert.True(referenceAsset.Content == data, $"Serialization {fileName} must produce same result");
 
 		return data;
 	}
