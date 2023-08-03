@@ -17,10 +17,24 @@ namespace Emotion.Game.World.Editor;
 
 public abstract partial class WorldBaseEditor
 {
+	/// <summary>
+	/// The map currently editing. Taken from the world aware scene the editor was initialized with.
+	/// </summary>
 	public BaseMap? CurrentMap { get; protected set; }
 
-	public object? CurrentMapObject { get; protected set; }
+	/// <summary>
+	/// Whether the editor is currently open.
+	/// </summary>
 	public bool EditorOpen { get; protected set; }
+
+	/// <summary>
+	/// A UI controller to use for debug ui.
+	/// This controller this active even when the editor isn't open.
+	/// </summary>
+	public UIController? UIController
+	{
+		get => _editorUIAlways;
+	}
 
 	protected Type _mapType;
 	protected CameraBase? _editorCamera;
