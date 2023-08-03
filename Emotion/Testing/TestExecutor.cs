@@ -29,9 +29,9 @@ public static class TestExecutor
 	public static string TestRunFolder = "";
 
 	/// <summary>
-	/// The folder this test run will store reference renders in.
+	/// What percentage of the whole image's pixels can be different.
 	/// </summary>
-	public static string ReferenceImageFolder = "";
+	public static float PixelDerivationTolerance = 10;
 
 	public static void ExecuteTests(string[] args, Configurator? config = null)
 	{
@@ -40,7 +40,6 @@ public static class TestExecutor
 		string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
 
 		TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
-		ReferenceImageFolder = Path.Join(TestRunFolder, "ReferenceImages");
 
 		config ??= new Configurator();
 		config.DebugMode = true;
