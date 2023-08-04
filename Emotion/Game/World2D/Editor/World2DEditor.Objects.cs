@@ -1,6 +1,9 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Emotion.Graphics;
@@ -13,8 +16,6 @@ using Emotion.Utility;
 using static Emotion.Game.World2D.EditorHelpers.EditorUtility;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.Game.World2D.Editor;
 
@@ -614,13 +615,14 @@ public partial class World2DEditor
 
 		Dictionary<string, object?> versionProperties = prefab.DefaultProperties[prefabOrigin.PrefabVersion - 1];
 		object? objectVal = field.ReflectionInfo.GetValue(obj);
-		bool isDefault = field.DefaultValue == objectVal;
 
 		// ObjectFlags doesn't persist some values.
 		if (field.TypeHandler is XMLEnumTypeHandler enumHandler) objectVal = enumHandler.StripDontSerializeValues(objectVal);
 
-		// If it's missing that means the prefab has it set to the default value for the class.
-		if (versionProperties.TryGetValue(field.Name, out object? val))
+        bool isDefault = Helpers.AreObjectsEqual(field.DefaultValue, objectVal);
+
+        // If it's missing that means the prefab has it set to the default value for the class.
+        if (versionProperties.TryGetValue(field.Name, out object? val))
 			return !Helpers.AreObjectsEqual(val, objectVal);
 
 		return !isDefault;
