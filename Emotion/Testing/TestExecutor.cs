@@ -1,4 +1,6 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Collections;
 using System.IO;
@@ -10,8 +12,6 @@ using Emotion.Utility;
 
 #endregion
 
-#nullable enable
-
 namespace Emotion.Testing;
 
 public static class TestExecutor
@@ -20,7 +20,11 @@ public static class TestExecutor
 	/// Whether we allow tests to halt with an infinite game loop waiter.
 	/// Disable in CI and such.
 	/// </summary>
+#if AUTOBUILD
+	public static bool AllowInfiniteLoops = false;
+#else
 	public static bool AllowInfiniteLoops = true;
+#endif
 
 	/// <summary>
 	/// The folder this test run will store output in, such as logs and
@@ -123,7 +127,7 @@ public static class TestExecutor
 
 			if (declaringType.GetCustomAttribute<TestClassRunParallel>() != null)
 			{
-				Engine.Log.Info($"=-= Parallel Execution =-=", MessageSource.Test);
+				Engine.Log.Info("=-= Parallel Execution =-=", MessageSource.Test);
 
 				var tasks = new Task[functions.Count];
 				for (var i = 0; i < functions.Count; i++)
