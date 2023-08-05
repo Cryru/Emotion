@@ -195,6 +195,7 @@ public static class TestExecutor
 				string functionName = routineReflect.Name;
 				Engine.Log.Info($"  Running test {functionName}...", MessageSource.Test);
 
+				sc.RunningTestRoutineIndex++;
 				IEnumerator enumerator = testRoutine();
 				Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(enumerator);
 				while (!coroutine.Finished && !coroutine.Stopped)

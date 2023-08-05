@@ -20,6 +20,8 @@ namespace Emotion.Testing;
 
 public abstract class TestingScene : Scene
 {
+	public int RunningTestRoutineIndex = 0;
+
 	protected static FrameBuffer? _screenShotBuffer;
 
 	public override void Update()
@@ -41,16 +43,17 @@ public abstract class TestingScene : Scene
 			composer.RenderToAndClear(_screenShotBuffer);
 
 			TestDraw(composer);
-			_runRenderLoop.Set();
 
 			composer.RenderTo(null);
 			composer.RenderFrameBuffer(_screenShotBuffer);
+
+			_runRenderLoop.Set();
 		}
 	}
 
 	private HashSet<string> _usedNamed = new();
 
-	public void VerifyScreenshot()
+	public void VerifyScreenshot(string? addToScreenshotName = null)
 	{
 		string fullFunctionName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
 		int lastDot = fullFunctionName.LastIndexOf('.');
@@ -68,6 +71,8 @@ public abstract class TestingScene : Scene
 			testClass = testClass.Replace("+MoveNext()", "");
 		}
 
+		fileName = $"{RunningTestRoutineIndex} {fileName}";
+		if (addToScreenshotName != null) fileName += addToScreenshotName;
 		lock (_usedNamed)
 		{
 			var counter = 1;
