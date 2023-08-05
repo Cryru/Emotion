@@ -11,6 +11,7 @@ using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Scenography;
 using Emotion.Standard.Image.PNG;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -37,12 +38,13 @@ public abstract class TestingScene : Scene
 
 		if (!_runRenderLoop.IsSet || _runLoopsConstant)
 		{
-			composer.RenderTo(_screenShotBuffer);
+			composer.RenderToAndClear(_screenShotBuffer);
 
 			TestDraw(composer);
 			_runRenderLoop.Set();
 
 			composer.RenderTo(null);
+			composer.RenderFrameBuffer(_screenShotBuffer);
 		}
 	}
 
@@ -77,7 +79,7 @@ public abstract class TestingScene : Scene
 		if (_screenShotBuffer == null) return;
 
 		// Capture screenshot of last thing rendered.
-		var screenshot = Array.Empty<byte>();
+		byte[]? screenshot = Array.Empty<byte>();
 		Vector2 screenShotSize = Vector2.Zero;
 		GLThread.ExecuteGLThread(() =>
 		{
@@ -85,8 +87,9 @@ public abstract class TestingScene : Scene
 			screenshot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
 			screenShotSize = drawBuffer.Size;
 		});
+		ImageUtil.FlipImageY(screenshot, (int) screenShotSize.Y);
 
-		var screenShotFolder = Path.Join(TestExecutor.TestRunFolder, "Renders");
+		string screenShotFolder = Path.Join(TestExecutor.TestRunFolder, "Renders");
 		screenShotFolder = Path.Join(screenShotFolder, testClass);
 		Directory.CreateDirectory(screenShotFolder);
 

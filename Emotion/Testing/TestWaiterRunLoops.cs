@@ -33,7 +33,7 @@ public class TestWaiterRunLoops : IRoutineWaiter
 
 	public TestWaiterRunLoops(int loopsToRun)
 	{
-		if (loopsToRun == -1 && TestExecutor.AllowInfiniteLoops)
+		if (loopsToRun == -1 && !TestExecutor.AllowInfiniteLoops)
 		{
 			Engine.Log.Error("Tried to run infinite loops in CI.", "Test");
 			loopsToRun = 1;
