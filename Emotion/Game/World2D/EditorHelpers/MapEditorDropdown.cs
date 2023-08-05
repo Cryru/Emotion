@@ -23,8 +23,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			WindowColor = MapEditorColorPalette.ActiveButtonColor;
 			StretchX = true;
 			StretchY = true;
-			Offset = new Vector2(-5, 1);
-			Paddings = new Rectangle(1, 1, 1, 1);
+			Offset = new Vector2(-2, 1);
 
 			var innerBg = new UISolidColor
 			{
@@ -58,10 +57,10 @@ namespace Emotion.Game.World2D.EditorHelpers
 			List = list;
 		}
 
-		protected override bool RenderInternal(RenderComposer c)
+		protected override void AfterRenderChildren(RenderComposer c)
 		{
-			c.RenderOutline(Bounds, WindowColor);
-			return base.RenderInternal(c);
+			base.AfterRenderChildren(c);
+			c.RenderOutline(Position, Size, WindowColor);
 		}
 
 		public void SetItems(EditorDropDownButtonDescription[] items, Action<EditorDropDownButtonDescription> selectedCallback = null)
