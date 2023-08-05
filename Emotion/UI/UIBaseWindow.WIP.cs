@@ -19,6 +19,94 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 	public bool ChildrenAllSameWidth; // todo: delete
 
+	/// <summary>
+	/// Whether the window should fill the available space of its parent.
+	/// On by default. Doesn't apply when the parent is of a list layout.
+	/// </summary>
+	public bool FillX
+	{
+		get => _fillX;
+		set
+		{
+			if (_fillX == value) return;
+			_fillX = value;
+			InvalidateLayout();
+		}
+	}
+
+	private bool _fillX = true;
+
+	/// <inheritdoc cref="FillX" />
+	public bool FillY
+	{
+		get => _fillY;
+		set
+		{
+			if (_fillY == value) return;
+			_fillY = value;
+			InvalidateLayout();
+		}
+	}
+
+	private bool _fillY = true;
+
+	/// <summary>
+	/// Whether the window should fill the available space of its parent, when
+	/// its parent is using a list layout. Off by default.
+	/// </summary>
+	public bool FillXInList
+	{
+		get => _fillXInList;
+		set
+		{
+			if (_fillXInList == value) return;
+			_fillXInList = value;
+			InvalidateLayout();
+		}
+	}
+
+	private bool _fillXInList;
+
+	/// <inheritdoc cref="FillXInList" />
+	public bool FillYInList
+	{
+		get => _fillYInList;
+		set
+		{
+			if (_fillYInList == value) return;
+			_fillYInList = value;
+			InvalidateLayout();
+		}
+	}
+
+	private bool _fillYInList;
+
+	[DontSerialize]
+	public UIAnchor AlignAnchor
+	{
+		get => ParentAnchor == Anchor ? Anchor : UIAnchor.TopLeft;
+		set
+		{
+			ParentAnchor = value;
+			Anchor = value;
+		}
+	}
+
+	// todo: delete, here for compilation reasons
+	public bool StretchX { get; set; }
+	public bool StretchY { get; set; }
+
+	protected virtual Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
+	{
+		Vector2 freeSpace = StretchX || StretchY ? space : measuredSize;
+		freeSpace.X -= paddingSize.X;
+		freeSpace.Y -= paddingSize.Y;
+		return freeSpace;
+	}
+
+	// ReSharper disable once InconsistentNaming
+	protected static List<UIBaseWindow> EMPTY_CHILDREN_LIST = new(0);
+
 	protected virtual Vector2 InternalMeasure(Vector2 space)
 	{
 		return Vector2.Zero;
@@ -40,7 +128,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 		Rectangle scaledMargins = Margins * scale;
 
-		// If inside the parent apply margins, otherwise we are are measuring against the whole controller.
+		// If inside the parent subtract margins from the total space.
 		if (amInsideParent)
 		{
 			float marginsX = scaledMargins.X + scaledMargins.Width;
@@ -56,32 +144,63 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 			space = Controller!.Size;
 		}
 
-		// Reduce available space due to paddings.
-		Rectangle scaledPadding = Paddings * scale;
-		float paddingX = scaledPadding.X + scaledPadding.Width;
-		float paddingY = scaledPadding.Y + scaledPadding.Height;
-		space.X -= paddingX;
-		space.Y -= paddingY;
-		usedSpace.X += paddingX;
-		usedSpace.Y += paddingY;
+		// Measure myself so we know how much space we have for children.
+		Vector2 minWindowSize = InternalMeasure(space);
+		minWindowSize = Vector2.Clamp(minWindowSize, MinSize * scale, MaxSize * scale).Ceiling();
+		minWindowSize = minWindowSize.Ceiling();
 
-		Vector2 spaceClampedToConstraints = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).Ceiling();
+		List<UIBaseWindow> children = Children ?? EMPTY_CHILDREN_LIST;
+		Vector2 childrenUsed = Vector2.Zero;
+		if (children.Count > 0)
+		{
+			// Then calculate how much the children will use.
+			// If we're going to fill we need to give children that extra space.
+			// todo: we probably shouldnt if not expanded by children and assert on usedspace higher?
+			Vector2 spaceForChildren = minWindowSize;
+			if (FillX) spaceForChildren.X = space.X;
+			if (FillY) spaceForChildren.Y = space.Y;
 
-		// First calculate the size of children.
-		// Windows of children need to be able to accomodate them.
-		if (Children != null) usedSpace += MeasureChildrenLayoutWise(spaceClampedToConstraints);
+			// Reduce their space by paddings.
+			// This does mean that paddings will affect children outside the parent.
+			Rectangle scaledPadding = Paddings * scale;
+			float paddingX = scaledPadding.X + scaledPadding.Width;
+			float paddingY = scaledPadding.Y + scaledPadding.Height;
+			spaceForChildren.X -= paddingX;
+			spaceForChildren.Y -= paddingY;
 
-		Vector2 minWindowSize = InternalMeasure(spaceClampedToConstraints);
-		//Vector2 contentSize = usedSpace;
-		//contentSize = Vector2.Clamp(contentSize, MinSize * scale, MaxSize * scale).Ceiling();
+			switch (LayoutMode)
+			{
+				case LayoutMode.HorizontalList:
+				case LayoutMode.HorizontalListWrap:
+				case LayoutMode.VerticalList:
+				case LayoutMode.VerticalListWrap:
+					bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
+					int mask = LayoutMode switch
+					{
+						LayoutMode.HorizontalList or LayoutMode.HorizontalListWrap => 0,
+						LayoutMode.VerticalList or LayoutMode.VerticalListWrap => 1,
 
-		Vector2 size = usedSpace; // + minWindowSize;
-		size = Vector2.Clamp(size, MinSize * scale, MaxSize * scale).Ceiling();
-		size = size.Ceiling();
+						_ => 0 // ???
+					};
+
+					if (children.Count == 1)
+						childrenUsed = LayoutMode_FreeMeasure(children, spaceForChildren);
+					else
+						childrenUsed = LayoutMode_ListMeasure(children, spaceForChildren, wrap, mask);
+					break;
+				case LayoutMode.Free:
+					childrenUsed = LayoutMode_FreeMeasure(children, spaceForChildren);
+					break;
+			}
+		}
+
+		// Windows with children will accomodate their children.
+		// todo: ChildrenCanExpandX, ChildrenCanExpandY
+		Vector2 size = Vector2.Max(minWindowSize, childrenUsed);
 
 		if (size.X < 0 || size.Y < 0)
 		{
-			Engine.Log.Warning($"UIWindow of id {Id} measured with a size smaller than 0.", MessageSource.UI, true);
+			Assert(false, $"UIWindow of id {Id} measured with a size smaller than 0.");
 			size.X = MathF.Max(size.X, 0);
 			size.Y = MathF.Max(size.Y, 0);
 		}
@@ -91,122 +210,218 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		return size;
 	}
 
-	private Vector2 MeasureChildrenLayoutWise(Vector2 spaceForChildren)
+	private Vector2 LayoutMode_FreeMeasure(List<UIBaseWindow> children, Vector2 spaceForChildren)
 	{
-		Debug.Assert(Children != null);
+		Vector2 usedSpace = Vector2.Zero;
+		for (var i = 0; i < children.Count; i++)
+		{
+			UIBaseWindow child = children[i];
+			if (child.RelativeTo != null) continue;
 
-		float scale = GetScale();
-		bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
-		Vector2 scaledSpacing = (ListSpacing * scale).RoundClosest();
+			Vector2 childSize = child.Measure(spaceForChildren);
+			if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+			if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
 
+			usedSpace = Vector2.Max(usedSpace, childSize);
+		}
+
+		return usedSpace;
+	}
+
+	private void LayoutMode_FreeLayout(List<UIBaseWindow> children, Rectangle childSpaceRect)
+	{
+		for (var i = 0; i < children.Count; i++)
+		{
+			UIBaseWindow child = children[i];
+			if (child.RelativeTo != null) continue;
+			if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+
+			Vector2 childPos = Vector2.Zero;
+			Vector2 childSize = child._measuredSize;
+
+			if (insideParent)
+			{
+				Vector2 childSizeFilled = childSize;
+				if (child.FillX) childSizeFilled.X = childSpaceRect.Width;
+				if (child.FillY) childSizeFilled.Y = childSpaceRect.Height;
+
+				float childScale = child.GetScale();
+				childSizeFilled = Vector2.Clamp(childSizeFilled, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
+
+				childPos = GetUIAnchorPosition(child.ParentAnchor, Size, childSpaceRect, child.Anchor, childSizeFilled);
+
+				if (child.FillX) childSize.X = childSpaceRect.Width - childPos.X;
+				if (child.FillY) childSize.Y = childSpaceRect.Height - childPos.Y;
+				childSize = Vector2.Clamp(childSize, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
+			}
+			//if (childIsInsideMe)
+			//{
+			//	Rectangle spaceForChild = GetSpaceForChild(child);
+
+			//	childSize = child._measuredSize;
+			//	childPos = GetUIAnchorPosition(child.ParentAnchor, Size, spaceForChild, child.Anchor, childSize);
+			//	if (child.StretchX)
+			//		childSize.X = spaceForChild.Width - childPos.X;
+			//	if (child.StretchY)
+			//		childSize.Y = spaceForChild.Height - childPos.Y;
+
+			//	childPos += Position2;
+			//}
+			//else
+			//{
+			//	childSize = child._measuredSize;
+			//	if (child.StretchX)
+			//		childSize.X = Width;
+			//	if (child.StretchY)
+			//		childSize.Y = Height;
+			//	child._measuredSize = childSize;
+			//	childPos = child.CalculateContentPos(Position2, Size, Paddings * GetScale());
+			//}
+
+			child.Layout(childPos, childSize);
+		}
+
+
+		//for (var i = 0; i < Children.Count; i++)
+		//{
+		//	UIBaseWindow child = Children[i];
+		//	if (child.RelativeTo != null) continue; 
+
+		//	Vector2 childSize = child.Measure(spaceForChildren);
+		//	if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+		//	if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
+
+		//	usedSpace = Vector2.Max(usedSpace, childSize);
+		//}
+	}
+
+	private Vector2 LayoutMode_ListMeasure(List<UIBaseWindow> children, Vector2 freeSpace, bool wrap, int axisMask)
+	{
 		Vector2 pen = Vector2.Zero;
 
-		float highestOnRow = 0;
-		float widestInColumn = 0;
+		Vector2 usedSpace = Vector2.Zero;
+		float highestOtherAxis = 0;
+
+		int invertedMask = 1 - axisMask;
+
+		float scale = GetScale();
+		Vector2 spacing = (ListSpacing * scale).RoundClosest();
+
+		for (var i = 0; i < children.Count; i++)
+		{
+			UIBaseWindow child = children[i];
+			if (child.RelativeTo != null) continue;
+			if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+			Vector2 childSize = child.Measure(freeSpace - pen);
+
+			// Dont count space taken by windows outside parent.
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+			if (insideParent)
+			{
+				pen[axisMask] += childSize[axisMask];
+				highestOtherAxis = MathF.Max(highestOtherAxis, childSize[invertedMask]);
+				usedSpace[axisMask] = MathF.Max(usedSpace[axisMask], pen[axisMask]);
+			}
+
+			bool addSpacing = insideParent && pen[axisMask] != 0; // Skip spacing at start.
+			if (addSpacing) pen[axisMask] += spacing[axisMask];
+		}
+
+		usedSpace[invertedMask] = pen[invertedMask] + highestOtherAxis;
+		return usedSpace;
+	}
+
+	private Vector2 LayoutMode_ListLayout(List<UIBaseWindow> children, Rectangle childSpaceRect, bool wrap, int axisMask)
+	{
+		Vector2 pen = Vector2.Zero;
 
 		Vector2 usedSpace = Vector2.Zero;
+		float highestOtherAxis = 0;
 
-		switch (LayoutMode)
+		int invertedMask = 1 - axisMask;
+
+		float scale = GetScale();
+		Vector2 spacing = (ListSpacing * scale).RoundClosest();
+
+		// Calculate the size for filling windows.
+		// All leftover size will be equally distributed.
+		// For this we basically need to precalculate the layout.
+		Vector2 fillingPen = Vector2.Zero;
+		Vector2 fillingWindowPerAxis = Vector2.Zero;
+		Vector2 fillingPrevChildSize = Vector2.Zero;
+		for (var i = 0; i < children.Count; i++)
 		{
-			case LayoutMode.HorizontalList:
-			case LayoutMode.HorizontalListWrap:
-				for (var i = 0; i < Children.Count; i++)
-				{
-					UIBaseWindow child = Children[i];
-					if (child.RelativeTo != null) continue;
+			UIBaseWindow child = children[i];
+			if (child.RelativeTo != null) continue;
+			if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
-					bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-					bool addSpacing = insideParent && pen.X != 0; // Skip spacing at start of row.
+			Vector2 childSize = child._measuredSize;
 
-					// Give full space as available space if wrapping.
-					// If we run out of space in the non-wrapping direction we're screwed anyway.
-					Vector2 childSpace = wrap ? spaceForChildren : spaceForChildren - pen;
-					if (addSpacing)
-						childSpace.X -= scaledSpacing.X;
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
 
-					Vector2 childSize = child.Measure(childSpace);
-					if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-					if (!insideParent) continue;
+			// Don't add spacing before 0 size windows.
+			bool addSpacing = insideParent && childSize[axisMask] != 0;
+			if (addSpacing) fillingPen[axisMask] += spacing[axisMask];
 
-					highestOnRow = MathF.Max(highestOnRow, childSize.Y);
+			// Dont count space taken by windows outside parent.
+			if (insideParent)
+			{
+				fillingPen[axisMask] += childSize[axisMask];
 
-					if (wrap && pen.X + childSize.X > spaceForChildren.X)
-					{
-						pen.X = 0;
-						pen.Y += highestOnRow + scaledSpacing.Y;
-						highestOnRow = 0;
-						addSpacing = false;
-					}
-
-					if (addSpacing) pen.X += scaledSpacing.X;
-					pen.X += childSize.X;
-
-					usedSpace.X = MathF.Max(usedSpace.X, pen.X);
-					usedSpace.Y = pen.Y + highestOnRow;
-				}
-
-				break;
-			case LayoutMode.VerticalList:
-			case LayoutMode.VerticalListWrap:
-				for (var i = 0; i < Children.Count; i++)
-				{
-					UIBaseWindow child = Children[i];
-					if (child.RelativeTo != null) continue;
-
-					bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-					bool addSpacing = insideParent && pen.Y != 0; // Skip spacing at start of row.
-
-					// Give full space as available space if wrapping.
-					// If we run out of space in the non-wrapping direction we're screwed anyway.
-					Vector2 childSpace = wrap ? spaceForChildren : spaceForChildren - pen;
-					if (addSpacing)
-						childSpace.Y -= scaledSpacing.Y;
-
-					Vector2 childSize = child.Measure(childSpace);
-					if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-					if (!insideParent) continue;
-
-					if (wrap && pen.Y + childSize.Y > spaceForChildren.Y)
-					{
-						pen.Y = 0;
-						pen.X += widestInColumn + scaledSpacing.X;
-						widestInColumn = 0;
-						addSpacing = false;
-					}
-
-					if (addSpacing) pen.Y += scaledSpacing.Y;
-					pen.Y += childSize.Y;
-					widestInColumn = MathF.Max(widestInColumn, childSize.X);
-
-					usedSpace.X = pen.X + widestInColumn;
-					usedSpace.Y = MathF.Max(usedSpace.Y, pen.Y);
-				}
-
-				break;
-			case LayoutMode.Free:
-				for (var i = 0; i < Children.Count; i++)
-				{
-					UIBaseWindow child = Children[i];
-					if (child.RelativeTo != null) continue;
-
-					Vector2 childSize = child.Measure(spaceForChildren);
-					if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-					if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
-
-					usedSpace = Vector2.Max(usedSpace, childSize);
-				}
-
-				break;
+				// Count up filling windows per axis.
+				if (child.FillXInList && axisMask == 0)
+					fillingWindowPerAxis.X++;
+				if (child.FillYInList && axisMask == 1)
+					fillingWindowPerAxis.Y++;
+			}
 		}
 
-		// Layout children relative to other windows. Might be a better idea to do this in a separate pass to
-		// ensure that everything else layouted, but for now we'll do it here.
-		for (int i = 0; i < Children.Count; i++)
+		fillingWindowPerAxis = Vector2.Max(fillingWindowPerAxis, Vector2.One);
+		Vector2 fillWindowsSize = (childSpaceRect.Size - fillingPen) / fillingWindowPerAxis;
+
+		// Layout the children.
+		Vector2 prevChildSize = Vector2.Zero;
+		for (var i = 0; i < children.Count; i++)
 		{
-			UIBaseWindow child = Children[i];
-			if (child.RelativeTo == null) continue;
+			UIBaseWindow child = children[i];
+			if (child.RelativeTo != null) continue;
+			if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+			Vector2 childSize = child._measuredSize;
+			if (child.FillXInList || child.FillYInList)
+			{
+				if (child.FillXInList) childSize.X = fillWindowsSize.X;
+				if (child.FillYInList) childSize.Y = fillWindowsSize.Y;
+
+				// todo: different max/min sizes in a list would mean that not all filling windows would
+				// be the same size. This is currently unhandled.
+				float childScale = child.GetScale();
+				childSize = Vector2.Clamp(childSize, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
+			}
+
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+
+			// Don't add spacing before 0 size windows.
+			bool addSpacing = insideParent && childSize[axisMask] != 0 && prevChildSize[axisMask] != 0;
+			if (addSpacing) pen[axisMask] += spacing[axisMask];
+
+			child.Layout(pen + childSpaceRect.Position, childSize);
+
+			// Dont count space taken by windows outside parent.
+			if (insideParent)
+			{
+				pen[axisMask] += childSize[axisMask];
+				prevChildSize = childSize;
+
+				highestOtherAxis = MathF.Max(highestOtherAxis, childSize[invertedMask]);
+				usedSpace[axisMask] = MathF.Max(usedSpace[axisMask], pen[axisMask]);
+			}
 		}
 
+		usedSpace[invertedMask] = pen[invertedMask] + highestOtherAxis;
 		return usedSpace;
 	}
 
@@ -233,172 +448,89 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 	protected virtual void Layout(Vector2 pos, Vector2 size)
 	{
-		float scale = GetScale();
+		if (size.X < 0 || size.Y < 0)
+		{
+			Assert(false, $"UIWindow of id {Id} layouted with a size smaller than 0.");
+			size.X = MathF.Max(size.X, 0);
+			size.Y = MathF.Max(size.Y, 0);
+		}
+
 		Size = size;
 
-		pos = pos + Offset * scale;
-		Position = pos.RoundClosest().ToVec3(Z);
+		float scale = GetScale();
+		pos += Offset * scale;
+		pos = pos.RoundClosest();
+		Position = pos.ToVec3(Z);
 
 		// Invalidate transformations.
 		if (_transformationStackBacking != null) _transformationStackBacking.MatrixDirty = true;
 
-		if (Children != null)
+		List<UIBaseWindow> children = Children ?? EMPTY_CHILDREN_LIST;
+
+		if (children.Count > 0)
 		{
-			bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
-			Vector2 scaledSpacing = (ListSpacing * scale).RoundClosest();
-
-			Vector2 pen = Vector2.Zero;
-			Vector2 freeSpace = size;
-
-			float highestOnRow = 0;
-			float widestInColumn = 0;
+			var spaceForChildren = new Rectangle(Position, size);
+			Rectangle scaledPadding = Paddings * scale;
+			spaceForChildren.X += scaledPadding.X;
+			spaceForChildren.Y += scaledPadding.Y;
+			spaceForChildren.Width += scaledPadding.X + scaledPadding.Width;
+			spaceForChildren.Height += scaledPadding.Y + scaledPadding.Height;
 
 			switch (LayoutMode)
 			{
 				case LayoutMode.HorizontalList:
 				case LayoutMode.HorizontalListWrap:
-					for (var i = 0; i < Children.Count; i++)
-					{
-						UIBaseWindow child = Children[i];
-						if (child.RelativeTo != null) continue;
-						if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-
-						bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-						bool addSpacing = insideParent && pen.X != 0; // Skip spacing at start of row.
-
-						Vector2 childSize = child._measuredSize;
-						if (child.StretchY)
-							childSize.Y = Height;
-
-						if (!insideParent)
-							if (child.StretchX)
-								childSize.X = Width;
-
-						child.Layout(pen, childSize);
-
-						// Dont count space taken by windows outside parent.
-						bool windowTakesSpace = insideParent && (child.Visible || !child.DontTakeSpaceWhenHidden);
-						if (windowTakesSpace) widestInColumn = MathF.Max(widestInColumn, childSize.X);
-
-						if (wrap && pen.X + childSize.X > freeSpace.X)
-						{
-							pen.X = 0;
-							pen.Y += highestOnRow + scaledSpacing.Y;
-							highestOnRow = 0;
-							addSpacing = false;
-						}
-
-						if (addSpacing)
-							pen.X += scaledSpacing.X;
-					}
-
-					break;
 				case LayoutMode.VerticalList:
 				case LayoutMode.VerticalListWrap:
-					//for (var i = 0; i < Children.Count; i++)
-					//{
-					//	UIBaseWindow child = Children[i];
-					//	if (child.RelativeTo != null) continue;
-
-					//	bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-					//	bool addSpacing = insideParent && pen.Y != 0; // Skip spacing at start of row.
-
-					//	// Give full space as available space if wrapping.
-					//	// If we run out of space in the non-wrapping direction we're screwed anyway.
-					//	Vector2 childSpace = wrap ? spaceForChildren : spaceForChildren - pen; 
-					//	if (addSpacing)
-					//		childSpace.Y -= scaledSpacing.Y;
-
-					//	Vector2 childSize = child.Measure(childSpace);
-					//	if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-					//	if (!insideParent) continue;
-
-					//	float spaceTaken = childSize.Y;
-					//	if (wrap && pen.Y + spaceTaken > spaceForChildren.Y)
-					//	{
-					//		pen.Y = 0;
-					//		pen.X += widestInColumn + scaledSpacing.X;
-					//		widestInColumn = 0;
-					//		addSpacing = false;
-					//	}
-
-					//	if (addSpacing) pen.Y += scaledSpacing.Y;
-					//	pen.Y += spaceTaken;
-					//	widestInColumn = MathF.Max(widestInColumn, childSize.X);
-
-					//	usedSpace.X = pen.X + widestInColumn;
-					//	usedSpace.Y = MathF.Max(usedSpace.Y, pen.Y);
-					//}
-					break;
-				case LayoutMode.Free:
-					for (var i = 0; i < Children.Count; i++)
+					bool wrap = LayoutMode is LayoutMode.HorizontalListWrap or LayoutMode.VerticalListWrap;
+					int mask = LayoutMode switch
 					{
-						UIBaseWindow child = Children[i];
-						if (child.RelativeTo != null) continue;
-						if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+						LayoutMode.HorizontalList or LayoutMode.HorizontalListWrap => 0,
+						LayoutMode.VerticalList or LayoutMode.VerticalListWrap => 1,
 
-						Vector2 childPos;
-						Vector2 childSize;
-						bool childIsInsideMe = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
-						if (childIsInsideMe)
-						{
-							Rectangle spaceForChild = GetSpaceForChild(child);
+						_ => 0 // ???
+					};
 
-							childSize = child._measuredSize;
-							childPos = GetUIAnchorPosition(child.ParentAnchor, Size, spaceForChild, child.Anchor, childSize);
-							if (child.StretchX)
-								childSize.X = spaceForChild.Width - childPos.X;
-							if (child.StretchY)
-								childSize.Y = spaceForChild.Height - childPos.Y;
+					if (children.Count == 1)
+					{
+						LayoutMode_FreeLayout(children, spaceForChildren);
+					}
+					else
+					{
+						Vector2 usedSpace = LayoutMode_ListLayout(children, spaceForChildren, wrap, mask);
 
-							childPos += Position2;
-						}
-						else
-						{
-							childSize = child._measuredSize;
-							if (child.StretchX)
-								childSize.X = Width;
-							if (child.StretchY)
-								childSize.Y = Height;
-							child._measuredSize = childSize;
-							childPos = child.CalculateContentPos(Position2, Size, Paddings * GetScale());
-						}
+						// todo: list in list will break stuff
+						if (FillX) usedSpace.X = Size.X;
+						if (FillY) usedSpace.Y = Size.Y;
+						Assert(usedSpace.X <= Size.X, "Layout used space X is more than parent set size!");
+						Assert(usedSpace.Y <= Size.Y, "Layout used space Y is more than parent set size!");
 
-						child.Layout(childPos, childSize);
+						usedSpace = Vector2.Clamp(usedSpace, MinSize * scale, MaxSize * scale).Ceiling();
+						Size = usedSpace;
 					}
 
-
-					//for (var i = 0; i < Children.Count; i++)
-					//{
-					//	UIBaseWindow child = Children[i];
-					//	if (child.RelativeTo != null) continue; 
-
-					//	Vector2 childSize = child.Measure(spaceForChildren);
-					//	if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-					//	if (!AnchorsInsideParent(child.ParentAnchor, child.Anchor)) continue;
-
-					//	usedSpace = Vector2.Max(usedSpace, childSize);
-					//}
 					break;
-			}
-
-			// Layout children relative to other windows. Might be a better idea to do this in a separate pass to
-			// ensure that everything else layouted, but for now we'll do it here.
-			for (int i = 0; i < Children.Count; i++)
-			{
-				UIBaseWindow child = Children[i];
-				if (child.RelativeTo == null) continue;
+				case LayoutMode.Free:
+					LayoutMode_FreeLayout(children, spaceForChildren);
+					break;
 			}
 		}
 
-		// Construct input detecting boundary.
+		// Layout children relative to other windows. Might be a better idea to do this in a separate pass to
+		// ensure that everything else layouted, but for now we'll do it here.
+		for (var i = 0; i < children.Count; i++)
+		{
+			UIBaseWindow child = children[i];
+			if (child.RelativeTo == null) continue;
+		}
+
+		// Construct input detecting boundary that includes this window's children.
 		_inputBoundsWithChildren = Bounds;
-		if (Children != null)
-			for (var i = 0; i < Children.Count; i++)
-			{
-				UIBaseWindow child = Children[i];
-				_inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
-			}
+		for (var i = 0; i < children.Count; i++)
+		{
+			UIBaseWindow child = children[i];
+			_inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
+		}
 	}
 }
 

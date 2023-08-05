@@ -189,7 +189,7 @@ namespace Emotion.UI
 		[SerializeNonPublicGetSet]
 		public List<UIBaseWindow>? Children { get; protected set; }
 
-		public virtual void AddChild(UIBaseWindow child)
+		public virtual void AddChild(UIBaseWindow? child)
 		{
 			Debug.Assert(child != null || child == this);
 			if (child == this || child == null) return;
@@ -369,7 +369,18 @@ namespace Emotion.UI
 		/// <summary>
 		/// Spacing if the LayoutMode is a list.
 		/// </summary>
-		public Vector2 ListSpacing { get; set; }
+		public Vector2 ListSpacing
+		{
+			get => _listSpacing;
+			set
+			{
+				if (value == _listSpacing) return;
+				_listSpacing = value;
+				InvalidateLayout();
+			}
+		}
+
+		private Vector2 _listSpacing;
 
 		/// <summary>
 		/// Whether the window is visible.
@@ -472,10 +483,6 @@ namespace Emotion.UI
 		/// </summary>
 		public UIScaleMode ScaleMode { get; set; } = UIScaleMode.FloatScale;
 
-		public bool StretchX { get; set; }
-
-		public bool StretchY { get; set; }
-
 		/// <summary>
 		/// Position relative to another window in the same controller.
 		/// </summary>
@@ -484,14 +491,6 @@ namespace Emotion.UI
 		public virtual void InvalidateLayout()
 		{
 			Parent?.InvalidateLayout();
-		}
-
-		protected virtual Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
-		{
-			Vector2 freeSpace = StretchX || StretchY ? space : measuredSize;
-			freeSpace.X -= paddingSize.X;
-			freeSpace.Y -= paddingSize.Y;
-			return freeSpace;
 		}
 
 		public virtual Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)

@@ -26,6 +26,18 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		return space;
 	}
 
+	public bool StretchX { get; set; }
+
+	public bool StretchY { get; set; }
+
+	protected virtual Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
+	{
+		Vector2 freeSpace = StretchX || StretchY ? space : measuredSize;
+		freeSpace.X -= paddingSize.X;
+		freeSpace.Y -= paddingSize.Y;
+		return freeSpace;
+	}
+
 	// On Rounding In UI Layout:
 	// Sizes should always be rounded up.
 	// Positions should always be rounded down.
