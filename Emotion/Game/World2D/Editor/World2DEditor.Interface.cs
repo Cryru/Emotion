@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
+using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Text;
 using Emotion.Game.World.Editor.Actions;
 using Emotion.Game.World2D.EditorHelpers;
@@ -363,18 +364,39 @@ public partial class World2DEditor
 			},
 		});
 
-		// todo: performance tool
-		// todo: GPU texture viewer
-		// todo: animation tool (convert from imgui)
-		// todo: asset preview tool
-		// todo: ema integration
+		var dataTypes = GameDataDatabase.GetGameDataTypes();
+		var dataEditors = new EditorDropDownButtonDescription[dataTypes?.Length ?? 0];
+		for (int i = 0; i < dataEditors.Length; i++)
+		{
+			AssertNotNull(dataTypes);
+			var type = dataTypes[i];
 
-		parentList.AddChild(fileMenu);
+			var editor = new EditorDropDownButtonDescription
+			{
+				Name = $"{type.Name} Editor",
+				Click = (_, __) =>
+				{
+					var editor = new DataEditorGeneric(type);
+					_editorUIAlways!.AddChild(editor);
+                }
+			};
+			dataEditors[i] = editor;
+        }
+		MapEditorTopBarButton dataEditorsButton = EditorDropDownButton("GameData", dataEditors);
+
+        // todo: performance tool
+        // todo: GPU texture viewer
+        // todo: animation tool (convert from imgui)
+        // todo: asset preview tool
+        // todo: ema integration
+
+        parentList.AddChild(fileMenu);
 		parentList.AddChild(objectsMenu);
 		parentList.AddChild(tilesMenu);
 		parentList.AddChild(editorMenu);
 		parentList.AddChild(mapMenu);
 		parentList.AddChild(otherTools);
+		parentList.AddChild(dataEditorsButton);
 	}
 
 	private UIBaseWindow GetWorldAttachInspectWindow()

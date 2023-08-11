@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
+using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.World2D;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
@@ -48,6 +49,7 @@ public abstract partial class WorldBaseEditor
 	{
 		_mapType = mapType;
 		Engine.AssetLoader.GetAsync<FontAsset>(FontAsset.DefaultBuiltInFontName);
+		GameDataDatabase.Load().Wait();
 	}
 
 	public void InitializeEditor()

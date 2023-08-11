@@ -30,6 +30,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		public bool RenderInactiveBG = true;
 
+		public object? UserData;
+
 		private bool _activeMode;
 		private UIText _label;
 
