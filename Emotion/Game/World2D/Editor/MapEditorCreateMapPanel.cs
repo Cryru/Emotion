@@ -23,8 +23,8 @@ namespace Emotion.Game.World2D.Editor
 			_editor = editor;
 			_mapType = mapType;
 
-			Modal = true;
-		}
+            PanelMode = PanelMode.Modal;
+        }
 
 		public override void AttachedToController(UIController controller)
 		{

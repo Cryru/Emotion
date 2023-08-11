@@ -14,6 +14,8 @@ namespace Emotion.Editor.EditorHelpers;
 
 public class GenericPropertiesEditorPanel : EditorPanel
 {
+	public Action<string, object?>? OnPropertyEdited;
+
 	protected List<EditorUtility.TypeAndFieldHandlers> _fields;
 	protected List<IPropEditorGeneric> _editorUIs;
 
@@ -139,7 +141,13 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	protected virtual void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)
 	{
+		object? oldValue = field.ReflectionInfo.GetValue(_obj);
 		field.ReflectionInfo.SetValue(_obj, value);
+
+		if (!Helpers.AreObjectsEqual(oldValue, value))
+		{
+			OnPropertyEdited?.Invoke(field.Name, oldValue);
+        }
 
         UIBaseWindow? editorWindow = editor as UIBaseWindow;
         OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);

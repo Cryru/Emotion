@@ -24,7 +24,7 @@ namespace Emotion.Editor.EditorHelpers
             Text = text;
             Header = "Input";
             _spawnFieldGroupHeaders = false;
-            Modal = true;
+            PanelMode = PanelMode.Modal;
         }
 
         public override void AttachedToController(UIController controller)

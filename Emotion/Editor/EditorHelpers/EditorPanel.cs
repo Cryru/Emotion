@@ -11,23 +11,36 @@ using Emotion.UI;
 
 namespace Emotion.Editor.EditorHelpers;
 
+public enum PanelMode
+{
+	Default,
+	Modal,
+	Embedded
+}
+
 public class EditorPanel : UIBaseWindow
 {
 	public string Header;
 
-	public bool Modal
+	public PanelMode PanelMode
 	{
-		get => _modal;
+		get => _panelMode;
 		set
 		{
-			_modal = value;
-			HandleInput = _modal;
+			if ((value == PanelMode.Embedded || _panelMode == PanelMode.Embedded) && Controller != null)
+			{
+				Assert(false, "Embedded mode can only be set prior to it attaching to a controller.");
+				return;
+			}
+
+			_panelMode = value;
+			HandleInput = value == PanelMode.Modal;
 		}
 	}
+		
+	private PanelMode _panelMode = PanelMode.Default;
 
-	private bool _modal;
-
-	protected UIBaseWindow _contentParent = null!;
+    protected UIBaseWindow _contentParent = null!;
 	protected UIBaseWindow _container = null!;
 	private bool _centered;
 
@@ -41,25 +54,35 @@ public class EditorPanel : UIBaseWindow
 		base.AttachedToController(controller);
 
 		var container = new UIBaseWindow();
-		container.StretchX = true;
-		container.StretchY = true;
-		container.MinSize = new Vector2(100, 100);
-		container.MaxSize = new Vector2(500, 200);
-		container.ParentAnchor = UIAnchor.CenterCenter;
-		container.Anchor = UIAnchor.CenterCenter;
+
 		container.HandleInput = true;
 		_container = container;
 		_centered = true;
 
-		var topBar = new MapEditorPanelTopBar();
-		container.AddChild(topBar);
+		if (PanelMode != PanelMode.Embedded)
+		{
+            container.StretchX = true;
+            container.StretchY = true;
 
-		var closeButton = (MapEditorTopBarButton) topBar.GetWindowById("CloseButton")!;
-		closeButton.OnClickedProxy = _ => { controller.RemoveChild(this); };
+            container.MinSize = new Vector2(100, 100);
+            container.MaxSize = new Vector2(500, 200);
+            container.ParentAnchor = UIAnchor.CenterCenter;
+            container.Anchor = UIAnchor.CenterCenter;
 
-		var panelLabel = (UIText) topBar.GetWindowById("PanelLabel")!;
-		panelLabel.Text = Header;
+            var topBar = new MapEditorPanelTopBar();
+            container.AddChild(topBar);
 
+            var closeButton = (MapEditorTopBarButton)topBar.GetWindowById("CloseButton")!;
+            closeButton.OnClickedProxy = _ => { controller.RemoveChild(this); };
+
+            var panelLabel = (UIText)topBar.GetWindowById("PanelLabel")!;
+            panelLabel.Text = Header;
+        }
+		else
+		{
+			container.Margins = new Rectangle(5, 5, 5, 5);
+		}
+		
 		var contentParent = new UIBaseWindow();
 		contentParent.StretchX = true;
 		contentParent.StretchY = true;
@@ -87,7 +110,7 @@ public class EditorPanel : UIBaseWindow
 	{
 		base.AfterLayout();
 
-		if (_centered)
+		if (_centered && PanelMode != PanelMode.Embedded)
 		{
 			_container.Offset = _container.Position2 / GetScale();
 			_container.ParentAnchor = UIAnchor.TopLeft;
@@ -98,7 +121,7 @@ public class EditorPanel : UIBaseWindow
 
 	protected override bool RenderInternal(RenderComposer c)
 	{
-		if (Modal) c.RenderSprite(Bounds, Color.Black * 0.7f);
+		if (PanelMode == PanelMode.Modal) c.RenderSprite(Bounds, Color.Black * 0.7f);
 
 		c.RenderSprite(_container.Bounds, MapEditorColorPalette.BarColor * 0.8f);
 		c.RenderOutline(_container.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
@@ -108,6 +131,6 @@ public class EditorPanel : UIBaseWindow
 	public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
 	{
 		bool returnVal = base.OnKey(key, status, mousePos);
-		return !Modal && returnVal;
+		return PanelMode != PanelMode.Modal && returnVal;
 	}
 }

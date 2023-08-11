@@ -38,7 +38,7 @@ public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
         UseAssetLoaderCache = false;
         _fileSystem = FilesToTree(Engine.AssetLoader.AllAssets);
 
-        Modal = true;
+        PanelMode = PanelMode.Modal;
     }
 
     public static Tree<string, string> FilesToTree(IEnumerable<string> assets)
