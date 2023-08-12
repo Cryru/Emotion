@@ -63,8 +63,7 @@ public partial class World2DEditor
 		Map2D? map = CurrentMap;
 
 		var topBar = new UISolidColor();
-		topBar.MinSize = new Vector2(0, 15);
-		topBar.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 15);
+		topBar.MaxSizeY = 15;
 		topBar.ScaleMode = UIScaleMode.FloatScale;
 		topBar.WindowColor = MapEditorColorPalette.BarColor;
 		topBar.Id = "TopBar";
@@ -84,7 +83,12 @@ public partial class World2DEditor
 		topBarList.ScaleMode = UIScaleMode.FloatScale;
 		topBarList.LayoutMode = LayoutMode.HorizontalList;
 		topBarList.ListSpacing = new Vector2(3, 0);
+#if NEW_UI
+		topBarList.Margins = new Rectangle(3, 0, 3, 0);
+		topBarList.Anchor = UIAnchor.CenterLeft;
+#else
 		topBarList.Margins = new Rectangle(3, 3, 3, 3);
+#endif
 		topBarList.Id = "List";
 		topBar.AddChild(topBarList);
 
@@ -112,6 +116,17 @@ public partial class World2DEditor
 			bool openOnMe = _editUI?.DropDown?.OwningObject == button;
 			_editUI?.RemoveChild(_editUI.DropDown);
 			if (openOnMe) return;
+
+			// Make sure we don't display an empty dropdown.
+			if (menuButtons.Length == 0)
+				menuButtons = new[]
+				{
+					new EditorDropDownButtonDescription
+					{
+						Name = "None",
+						Enabled = () => false
+					}
+				};
 
 			var dropDownWin = new MapEditorDropdown(true);
 			dropDownWin.ParentAnchor = UIAnchor.BottomLeft;
@@ -364,12 +379,12 @@ public partial class World2DEditor
 			},
 		});
 
-		var dataTypes = GameDataDatabase.GetGameDataTypes();
+		Type[]? dataTypes = GameDataDatabase.GetGameDataTypes();
 		var dataEditors = new EditorDropDownButtonDescription[dataTypes?.Length ?? 0];
-		for (int i = 0; i < dataEditors.Length; i++)
+		for (var i = 0; i < dataEditors.Length; i++)
 		{
 			AssertNotNull(dataTypes);
-			var type = dataTypes[i];
+			Type type = dataTypes[i];
 
 			var editor = new EditorDropDownButtonDescription
 			{
@@ -378,19 +393,19 @@ public partial class World2DEditor
 				{
 					var editor = new DataEditorGeneric(type);
 					_editorUIAlways!.AddChild(editor);
-                }
+				}
 			};
 			dataEditors[i] = editor;
-        }
+		}
+
 		MapEditorTopBarButton dataEditorsButton = EditorDropDownButton("GameData", dataEditors);
 
-        // todo: performance tool
-        // todo: GPU texture viewer
-        // todo: animation tool (convert from imgui)
-        // todo: asset preview tool
-        // todo: ema integration
+		// todo: GPU texture viewer
+		// todo: animation tool (convert from imgui)
+		// todo: asset preview tool
+		// todo: ema integration
 
-        parentList.AddChild(fileMenu);
+		parentList.AddChild(fileMenu);
 		parentList.AddChild(objectsMenu);
 		parentList.AddChild(tilesMenu);
 		parentList.AddChild(editorMenu);

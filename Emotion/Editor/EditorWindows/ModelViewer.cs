@@ -74,46 +74,56 @@ public class ModelViewer : EditorPanel
 
 		base.AttachedToController(controller);
 
-		var contentSplit = new UIBaseWindow();
-		contentSplit.LayoutMode = LayoutMode.HorizontalList;
-		contentSplit.StretchX = true;
-		contentSplit.StretchY = true;
+		var contentSplit = new UIBaseWindow
+		{
+			LayoutMode = LayoutMode.HorizontalList,
+			StretchX = true,
+			StretchY = true
+		};
 
-		var surface3D = new UIBaseWindow();
-		surface3D.Id = "Surface3D";
-		surface3D.MinSize = new Vector2(960, 540) / 2f;
-		surface3D.StretchX = true;
-		surface3D.StretchY = true;
-		surface3D.HandleInput = true;
+		var surface3D = new UIBaseWindow
+		{
+			Id = "Surface3D",
+			MinSize = new Vector2(960, 540) / 2f,
+			StretchX = true,
+			StretchY = true,
+			HandleInput = true
+		};
 		contentSplit.AddChild(surface3D);
 		_surface3D = surface3D;
 
-		var editorButtons = new UIBaseWindow();
-		editorButtons.StretchX = true;
-		editorButtons.StretchY = true;
-		editorButtons.MinSize = new Vector2(100, 0);
-		editorButtons.MaxSize = new Vector2(100, DefaultMaxSizeF);
-		editorButtons.LayoutMode = LayoutMode.VerticalList;
-		editorButtons.ListSpacing = new Vector2(0, 2);
-		editorButtons.Paddings = new Rectangle(2, 0, 2, 0);
+		var editorButtons = new UIBaseWindow
+		{
+			StretchX = true,
+			StretchY = true,
+			MinSize = new Vector2(100, 0),
+			MaxSize = new Vector2(100, DefaultMaxSizeF),
+			LayoutMode = LayoutMode.VerticalList,
+			ListSpacing = new Vector2(0, 2),
+			Paddings = new Rectangle(2, 0, 2, 0)
+		};
 
-		var butObj = new MapEditorTopBarButton();
-		butObj.Text = "Open MeshAsset";
-		butObj.StretchY = true;
-		butObj.StretchX = false;
-		butObj.OnClickedProxy = _ => { Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); })); };
+		var butObj = new MapEditorTopBarButton
+		{
+			Text = "Open MeshAsset",
+			StretchY = true,
+			StretchX = false,
+			OnClickedProxy = _ => { Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); })); }
+		};
 		editorButtons.AddChild(butObj);
 
-		var butSprite = new MapEditorTopBarButton();
-		butSprite.Text = "Open Sprite Stack";
-		butSprite.StretchY = true;
-		butSprite.StretchX = false;
-		butSprite.OnClickedProxy = _ =>
+		var butSprite = new MapEditorTopBarButton
 		{
-			Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
+			Text = "Open Sprite Stack",
+			StretchY = true,
+			StretchX = false,
+			OnClickedProxy = _ =>
 			{
-				//_obj.Entity = asset.GetSpriteStackEntity(Vector2.Zero);
-			}));
+				Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
+				{
+					//_obj.Entity = asset.GetSpriteStackEntity(Vector2.Zero);
+				}));
+			}
 		};
 		editorButtons.AddChild(butSprite);
 
@@ -137,29 +147,35 @@ public class ModelViewer : EditorPanel
 		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size = (Vector3) newVal; });
 		editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
 
-		var meshListProp = new EditorCheckboxList("Meshes: ");
-		meshListProp.Id = "MeshList";
+		var meshListProp = new EditorCheckboxList("Meshes: ")
+		{
+			Id = "MeshList"
+		};
 		scaleEditor.SetValue(_obj.Size);
 		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size = (Vector3) newVal; });
 		editorButtons.AddChild(meshListProp);
 
-		var animationsList = new EditorButtonDropDown();
-		animationsList.Id = "Animations";
-		animationsList.Text = "Animation: ";
-		animationsList.LayoutMode = LayoutMode.VerticalList;
+		var animationsList = new EditorButtonDropDown
+		{
+			Id = "Animations",
+			Text = "Animation: ",
+			LayoutMode = LayoutMode.VerticalList
+		};
 		animationsList.SetItems(_noAnimationItems, 0);
 		_noAnimationItems[0].Click = SetAnimationDropDownCallback;
 		editorButtons.AddChild(animationsList);
 
-		var saveAsEm3Button = new MapEditorTopBarButton();
-		saveAsEm3Button.Text = "Export as Em3 (WIP)";
-		saveAsEm3Button.StretchY = true;
-		saveAsEm3Button.StretchX = false;
-		saveAsEm3Button.OnClickedProxy = _ =>
+		var saveAsEm3Button = new MapEditorTopBarButton
 		{
-			if (_obj.Entity == null) return;
-			byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
-			Engine.AssetLoader.Save(data, $"Player/converted_{_obj.Entity.Name}.em3");
+			Text = "Export as Em3 (WIP)",
+			StretchY = true,
+			StretchX = false,
+			OnClickedProxy = _ =>
+			{
+				if (_obj.Entity == null) return;
+				byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
+				Engine.AssetLoader.Save(data, $"Player/converted_{_obj.Entity.Name}.em3");
+			}
 		};
 		editorButtons.AddChild(saveAsEm3Button);
 
@@ -168,19 +184,23 @@ public class ModelViewer : EditorPanel
 
 		// Dragging
 		// todo: move to panel property
-		var dragArea = new UITexture();
-		dragArea.TextureFile = "Editor/PanelDragArea.png";
-		dragArea.RenderSize = new Vector2(8, 8);
-		dragArea.Smooth = true;
-		dragArea.WindowColor = MapEditorColorPalette.ButtonColor;
+		var dragArea = new UITexture
+		{
+			TextureFile = "Editor/PanelDragArea.png",
+			RenderSize = new Vector2(8, 8),
+			Smooth = true,
+			WindowColor = MapEditorColorPalette.ButtonColor
+		};
 
-		var dragButton = new UICallbackButton();
-		dragButton.StretchX = true;
-		dragButton.StretchY = true;
-		dragButton.OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; };
-		dragButton.OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; };
-		dragButton.OnClickedProxy = _ => { _panelDragResize = true; };
-		dragButton.OnClickedUpProxy = _ => { _panelDragResize = false; };
+		var dragButton = new UICallbackButton
+		{
+			StretchX = true,
+			StretchY = true,
+			OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; },
+			OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
+			OnClickedProxy = _ => { _panelDragResize = true; },
+			OnClickedUpProxy = _ => { _panelDragResize = false; }
+		};
 		dragButton.AddChild(dragArea);
 		dragButton.Anchor = UIAnchor.BottomRight;
 		dragButton.ParentAnchor = UIAnchor.BottomRight;

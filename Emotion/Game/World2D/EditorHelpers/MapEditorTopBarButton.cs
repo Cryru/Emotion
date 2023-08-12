@@ -46,7 +46,6 @@ namespace Emotion.Game.World2D.EditorHelpers
 			txt.ScaleMode = UIScaleMode.FloatScale;
 			txt.WindowColor = MapEditorColorPalette.TextColor;
 			txt.Id = "buttonText";
-			txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
 			txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
 			txt.IgnoreParentColor = true;
 			_label = txt;

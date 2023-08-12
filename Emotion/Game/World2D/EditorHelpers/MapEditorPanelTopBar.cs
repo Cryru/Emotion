@@ -38,10 +38,9 @@ namespace Emotion.Game.World2D.EditorHelpers
 			AddChild(closeButton);
 
 			HandleInput = true;
-			MinSize = new Vector2(0, 10);
 			StretchX = true;
 			StretchY = true;
-			MaxSize = new Vector2(DefaultMaxSize.X, 10);
+			MaxSizeY = 10;
 			LayoutMode = LayoutMode.HorizontalList;
 		}
 
