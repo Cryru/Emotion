@@ -30,6 +30,52 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 	public bool StretchY { get; set; }
 
+	public virtual Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
+	{
+		float scale = GetScale();
+		var parentSpaceForChild = new Rectangle(0, 0, parentSize);
+		Rectangle childScaledMargins = Margins * scale;
+		if (AnchorsInsideParent(ParentAnchor, Anchor))
+		{
+			parentSpaceForChild.X += childScaledMargins.X;
+			parentSpaceForChild.Y += childScaledMargins.Y;
+			parentSpaceForChild.Width -= childScaledMargins.Width;
+			parentSpaceForChild.Height -= childScaledMargins.Height;
+
+			parentSpaceForChild.X += parentScaledPadding.X;
+			parentSpaceForChild.Y += parentScaledPadding.Y;
+			parentSpaceForChild.Width -= parentScaledPadding.Width;
+			parentSpaceForChild.Height -= parentScaledPadding.Height;
+		}
+		else
+		{
+			bool applyYMargin = ParentAnchor is UIAnchor.TopCenter;
+			if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.TopRight && Anchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight) applyYMargin = true;
+
+			bool applyXMargin = ParentAnchor is UIAnchor.CenterLeft;
+			if (ParentAnchor is UIAnchor.TopLeft or UIAnchor.BottomLeft && Anchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight) applyXMargin = true;
+
+			if (applyYMargin)
+				parentSpaceForChild.Y -= childScaledMargins.Height;
+			else if (applyXMargin)
+				parentSpaceForChild.X -= childScaledMargins.Width;
+
+			parentSpaceForChild.Width += childScaledMargins.X;
+			parentSpaceForChild.Height += childScaledMargins.Y;
+
+			// Quirk: Parent padding will be applied to out of parent children.
+			// This might be a bad idea, but allows for some interesting layouts.
+			// Leaving it in for now.
+			parentSpaceForChild.X += parentScaledPadding.X;
+			parentSpaceForChild.Y += parentScaledPadding.Y;
+			parentSpaceForChild.Width -= parentScaledPadding.Width;
+			parentSpaceForChild.Height -= parentScaledPadding.Height;
+		}
+
+		//Debugger?.RecordMetric(this, "Layout_ParentContentRect", parentSpaceForChild);
+		return parentPos + GetUIAnchorPosition(ParentAnchor, parentSize, parentSpaceForChild, Anchor, _measuredSize);
+	}
+
 	protected virtual Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
 	{
 		Vector2 freeSpace = StretchX || StretchY ? space : measuredSize;
@@ -242,6 +288,11 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 				{
 					case LayoutMode.Free:
 					{
+						if (child.Id == "text")
+						{
+							bool a = true;
+						}
+
 						UIBaseWindow parent = this;
 						if (child.RelativeTo != null)
 						{

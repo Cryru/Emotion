@@ -14,7 +14,7 @@ namespace Emotion.Testing;
 #if NEW_UI
 public class NewUITests : TestingScene
 {
-	public UIController UI;
+	public UIController UI = null!;
 
 	public override Task LoadAsync()
 	{
@@ -47,6 +47,8 @@ public class NewUITests : TestingScene
 			FillList,
 			FillListThreeItems,
 			FillListFillingItems,
+
+			WorldEditorTopBar
 		};
 	}
 
@@ -415,6 +417,128 @@ public class NewUITests : TestingScene
 			yield return new TestWaiterRunLoops(1);
 			VerifyScreenshot(screenshotExtraText);
 		}
+	}
+
+	private IEnumerator WorldEditorTopBar()
+	{
+		// This tests:
+		// 1. Whether the world editor toolbar (first UI you see) layouts the same.
+		// 2. list spacing
+		// 3. margins in free layout
+		// 4. anchors in free layout
+		// 5. paddings in free layout
+		// 6. UIText in a window in a list
+		// 7. UIText in a window with paddings
+		// 8. Whether children can expand their parents beyond grandparent's maxsize.
+
+		UI.ClearChildren();
+
+		{
+			var win = new UISolidColor();
+			win.MaxSizeY = 15;
+			win.WindowColor = Color.PrettyOrange;
+			win.Id = "test";
+
+			var list = new UISolidColor();
+			list.LayoutMode = LayoutMode.HorizontalList;
+			list.ListSpacing = new Vector2(3, 0);
+			list.Margins = new Rectangle(3, 3, 3, 3);
+			list.Id = "list";
+			list.WindowColor = Color.PrettyGreen;
+			win.AddChild(list);
+
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.Black;
+				a.MinSize = new Vector2(9);
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "Black";
+				text.WindowColor = Color.White;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			UI.AddChild(win);
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+
+		{
+			UIBaseWindow list = UI.GetWindowById("list")!;
+
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.White;
+				a.MinSize = new Vector2(9);
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				//a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "White";
+				text.WindowColor = Color.Black;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.PrettyPink;
+				a.MinSize = new Vector2(9);
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				//a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "Pink";
+				text.WindowColor = Color.White;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+
+		// Bar v2
+		{
+			UIBaseWindow list = UI.GetWindowById("list")!;
+
+			list.Margins = new Rectangle(3, 0, 3, 0);
+			list.AlignAnchor = UIAnchor.CenterLeft;
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+	}
+
+	private IEnumerator PreloadUI()
+	{
+		Task task = UI.PreloadUI();
+		while (!task.IsCompleted) yield return new TestWaiterRunLoops(1);
 	}
 }
 #endif
