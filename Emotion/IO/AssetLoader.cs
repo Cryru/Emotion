@@ -81,8 +81,7 @@ namespace Emotion.IO
 		/// Add a source to the asset loader.
 		/// Conflicting asset names are overwritten by whichever was added first.
 		/// </summary>
-		/// <param name="source">A new source to load assets from.</param>
-		public void AddSource(AssetSource source)
+		public void AddSource(AssetSource source, bool logAdding = true)
 		{
 			string[] sourceManifest = source.GetManifest();
 			foreach (string asset in sourceManifest)
@@ -94,7 +93,8 @@ namespace Emotion.IO
 				//_manifest.AddOrUpdate(NameToEngineName(asset), source, (_,__) => source);
 			}
 
-			Engine.Log.Info($"Mounted asset source '{source}' containing {sourceManifest.Length} assets.", MessageSource.AssetLoader);
+			if (logAdding) 
+				Engine.Log.Info($"Mounted asset source '{source}' containing {sourceManifest.Length} assets.", MessageSource.AssetLoader);
 		}
 
 		/// <summary>

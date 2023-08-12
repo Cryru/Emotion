@@ -25,8 +25,13 @@ namespace Emotion.IO
             base.SaveAsset(data, Path.Join(".", "Assets", name), false);
 
             // This will cause any new assets to be added to the manifest.
+            // This is fine since sources are only held as a reference per asset
+            // in the current (not very good) system.
             if (!Engine.AssetLoader.Exists(name))
-                Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
+            {
+	            Engine.AssetLoader.AddSource(new FileAssetSource("Assets"), false);
+	            Assert(Engine.AssetLoader.Exists(name));
+            }
         }
 
         public override ReadOnlyMemory<byte> GetAsset(string enginePath)
