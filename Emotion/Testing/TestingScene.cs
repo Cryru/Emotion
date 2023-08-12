@@ -23,6 +23,7 @@ public abstract class TestingScene : Scene
 	public int RunningTestRoutineIndex = 0;
 
 	protected static FrameBuffer? _screenShotBuffer;
+	protected static byte[]? _lastScreenShot;
 
 	public override void Update()
 	{
@@ -46,6 +47,10 @@ public abstract class TestingScene : Scene
 
 			composer.RenderTo(null);
 			composer.RenderFrameBuffer(_screenShotBuffer);
+
+			FrameBuffer drawBuffer = _screenShotBuffer;
+			_lastScreenShot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
+			
 
 			_runRenderLoop.Set();
 		}
@@ -84,17 +89,17 @@ public abstract class TestingScene : Scene
 		if (_screenShotBuffer == null) return;
 
 		// Capture screenshot of last thing rendered.
-		byte[]? screenshot = Array.Empty<byte>();
-		Vector2 screenShotSize = Vector2.Zero;
-		GLThread.ExecuteGLThread(() =>
-		{
-			Gl.Flush();
-			Gl.Finish();
+		byte[] screenshot = _lastScreenShot ?? Array.Empty<byte>();//Array.Empty<byte>();
+		Vector2 screenShotSize = _screenShotBuffer.Size;// Vector2.Zero;
+		//GLThread.ExecuteGLThread(() =>
+		//{
+		//	Gl.Flush();
+		//	Gl.Finish();
 
-			FrameBuffer drawBuffer = _screenShotBuffer;
-			screenshot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
-			screenShotSize = drawBuffer.Size;
-		});
+		//	FrameBuffer drawBuffer = _screenShotBuffer;
+		//	screenshot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
+		//	screenShotSize = drawBuffer.Size;
+		//});
 		ImageUtil.FlipImageY(screenshot, (int) screenShotSize.Y);
 
 		string screenShotFolder = Path.Join(TestExecutor.TestRunFolder, "Renders");
