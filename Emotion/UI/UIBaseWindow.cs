@@ -354,12 +354,34 @@ namespace Emotion.UI
 		/// <summary>
 		/// The point in the parent to anchor the window to.
 		/// </summary>
-		public UIAnchor ParentAnchor { get; set; } = UIAnchor.TopLeft;
+		public UIAnchor ParentAnchor
+		{
+			get => _parentAnchor;
+			set
+			{
+				if (value == _parentAnchor) return;
+				_parentAnchor = value;
+				InvalidateLayout();
+			}
+		}
+
+		private UIAnchor _parentAnchor { get; set; } = UIAnchor.TopLeft;
 
 		/// <summary>
 		/// Where the window should anchor to relative to the alignment in its parent.
 		/// </summary>
-		public UIAnchor Anchor { get; set; } = UIAnchor.TopLeft;
+		public UIAnchor Anchor
+		{
+			get => _anchor;
+			set
+			{
+				if (value == _anchor) return;
+				_anchor = value;
+				InvalidateLayout();
+			}
+		}
+
+		private UIAnchor _anchor { get; set; } = UIAnchor.TopLeft;
 
 		/// <summary>
 		/// How to layout the children of this window.
@@ -427,12 +449,34 @@ namespace Emotion.UI
 		/// Margins push the window in one of the four directions, only if it is against another window.
 		/// This is applied after alignment, but before the anchor.
 		/// </summary>
-		public Rectangle Margins { get; set; }
+		public Rectangle Margins
+		{
+			get => _margins;
+			set
+			{
+				if(_margins == value) return;
+				_margins = value;
+				InvalidateLayout();
+			}
+		}
+
+		private Rectangle _margins;
 
 		/// <summary>
 		/// Paddings push children windows if they are inside the parent.
 		/// </summary>
-		public Rectangle Paddings { get; set; }
+		public Rectangle Paddings
+		{
+			get => _paddings;
+			set
+			{
+				if(_paddings == value) return;
+				_paddings = value;
+				InvalidateLayout();
+			}
+		}
+
+		private Rectangle _paddings;
 
 		/// <summary>
 		/// The minimum size the window can be.
