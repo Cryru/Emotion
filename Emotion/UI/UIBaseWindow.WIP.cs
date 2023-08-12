@@ -39,7 +39,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 	/// <inheritdoc cref="FillX" />
 	public bool FillY
 	{
-		get => _fillY && Anchor is not UIAnchor.CenterLeft and not UIAnchor.CenterCenter and not UIAnchor.CenterRight;
+		get => _fillY; // && Anchor is not UIAnchor.CenterLeft and not UIAnchor.CenterCenter and not UIAnchor.CenterRight;
 		set
 		{
 			if (_fillY == value) return;
@@ -290,21 +290,19 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 				thisChildSpaceRect.Width -= childScaledMargins.Width + childScaledMargins.X;
 				thisChildSpaceRect.Height -= childScaledMargins.Height + childScaledMargins.Y;
 
-				Vector2 childSizeFilled = childSize;
-				if (child.FillX) childSizeFilled.X = thisChildSpaceRect.Width;
-				if (child.FillY) childSizeFilled.Y = thisChildSpaceRect.Height;
-				childSizeFilled = Vector2.Clamp(childSizeFilled, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
+				bool childFillX = child.FillX && child.Anchor is not UIAnchor.TopCenter and not UIAnchor.CenterCenter and not UIAnchor.BottomCenter;
+				bool childFillY = child.FillY && child.Anchor is not UIAnchor.CenterLeft and not UIAnchor.CenterCenter and not UIAnchor.CenterRight;
 
-				if (child.Id == "text")
-				{
-					var a = true;
-				}
+				Vector2 childSizeFilled = childSize;
+				if (childFillX) childSizeFilled.X = thisChildSpaceRect.Width;
+				if (childFillY) childSizeFilled.Y = thisChildSpaceRect.Height;
+				childSizeFilled = Vector2.Clamp(childSizeFilled, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
 
 				childPos = GetChildPositionAnchorWise(child.ParentAnchor, child.Anchor, thisChildSpaceRect, childSizeFilled);
 
 				// Subtract only right and bottom margins as the childPos is the top left.
-				if (child.FillX) childSize.X = childSpaceRect.Width - childScaledMargins.Width - childPos.X;
-				if (child.FillY) childSize.Y = childSpaceRect.Height - childScaledMargins.Height - childPos.Y;
+				if (childFillX) childSize.X = childSpaceRect.Width - childScaledMargins.Width - childPos.X;
+				if (childFillY) childSize.Y = childSpaceRect.Height - childScaledMargins.Height - childPos.Y;
 				childSize = Vector2.Clamp(childSize, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
 			}
 			//if (childIsInsideMe)
@@ -523,8 +521,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 					Vector2 usedSpace = LayoutMode_ListLayout(children, spaceForChildren, wrap, mask);
 
 					// todo: list in list will break stuff
-					if (FillX) usedSpace.X = Size.X;
-					if (FillY) usedSpace.Y = Size.Y;
+					if (FillX && Anchor is not UIAnchor.TopCenter and not UIAnchor.CenterCenter and not UIAnchor.BottomCenter) usedSpace.X = Size.X;
+					if (FillY && Anchor is not UIAnchor.CenterLeft and not UIAnchor.CenterCenter and not UIAnchor.CenterRight) usedSpace.Y = Size.Y;
 					Assert(usedSpace.X <= Size.X, "Layout used space X is more than parent set size!");
 					Assert(usedSpace.Y <= Size.Y, "Layout used space Y is more than parent set size!");
 

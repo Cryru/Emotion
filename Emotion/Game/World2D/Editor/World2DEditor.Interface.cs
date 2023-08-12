@@ -85,7 +85,8 @@ public partial class World2DEditor
 		topBarList.ListSpacing = new Vector2(3, 0);
 #if NEW_UI
 		topBarList.Margins = new Rectangle(3, 0, 3, 0);
-		topBarList.Anchor = UIAnchor.CenterLeft;
+		topBarList.Paddings = new Rectangle(0, 3, 0, 3);
+		topBarList.AlignAnchor = UIAnchor.CenterLeft;
 #else
 		topBarList.Margins = new Rectangle(3, 3, 3, 3);
 #endif
@@ -94,7 +95,7 @@ public partial class World2DEditor
 
 		var accent = new UISolidColor();
 		accent.WindowColor = MapEditorColorPalette.ActiveButtonColor;
-		accent.MaxSize = new Vector2(UIBaseWindow.DefaultMaxSize.X, 1);
+		accent.MaxSizeY = 1;
 		accent.Anchor = UIAnchor.BottomLeft;
 		accent.ParentAnchor = UIAnchor.BottomLeft;
 		topBar.AddChild(accent);

@@ -450,7 +450,6 @@ public class NewUITests : TestingScene
 			{
 				var a = new UISolidColor();
 				a.WindowColor = Color.Black;
-				a.MinSize = new Vector2(9);
 				a.Paddings = new Rectangle(2, 1, 2, 1);
 				a.Id = "text-bg";
 				list.AddChild(a);
@@ -480,7 +479,6 @@ public class NewUITests : TestingScene
 			{
 				var a = new UISolidColor();
 				a.WindowColor = Color.White;
-				a.MinSize = new Vector2(9);
 				a.Paddings = new Rectangle(2, 1, 2, 1);
 				//a.Id = "text-bg";
 				list.AddChild(a);
@@ -500,7 +498,6 @@ public class NewUITests : TestingScene
 			{
 				var a = new UISolidColor();
 				a.WindowColor = Color.PrettyPink;
-				a.MinSize = new Vector2(9);
 				a.Paddings = new Rectangle(2, 1, 2, 1);
 				//a.Id = "text-bg";
 				list.AddChild(a);
@@ -522,7 +519,7 @@ public class NewUITests : TestingScene
 		yield return new TestWaiterRunLoops(1);
 		VerifyScreenshot();
 
-		// Bar v2
+		// Bar v2 (Possible only with the new UI)
 		{
 			UIBaseWindow list = UI.GetWindowById("list")!;
 
