@@ -104,12 +104,12 @@ public partial class World2DEditor
 		return topBar;
 	}
 
-	protected MapEditorTopBarButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)
+	protected EditorButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)
 	{
 		// todo: maybe the drop down exclusivity logic should be handled by the top bar or some kind of parent ui.
 		// though either way a SetDropDownMode function will need to exist on buttons to change their style.
 
-		var button = new MapEditorTopBarButton();
+		var button = new EditorButton();
 
 		void SpawnDropDown()
 		{
@@ -139,7 +139,7 @@ public partial class World2DEditor
 			for (var i = 0; i < siblings.Count; i++)
 			{
 				UIBaseWindow child = siblings[i];
-				if (child is MapEditorTopBarButton but) but.SetActiveMode(child == button);
+				if (child is EditorButton but) but.SetActiveMode(child == button);
 			}
 
 			dropDownWin.OnCloseProxy = () => button.SetActiveMode(false);
@@ -150,7 +150,7 @@ public partial class World2DEditor
 		button.Text = label;
 		button.OnMouseEnterProxy = _ =>
 		{
-			if (_editUI?.DropDown != null && _editUI.DropDown?.OwningObject != button && _editUI.DropDown?.OwningObject is MapEditorTopBarButton)
+			if (_editUI?.DropDown != null && _editUI.DropDown?.OwningObject != button && _editUI.DropDown?.OwningObject is EditorButton)
 				SpawnDropDown();
 		};
 		button.OnClickedProxy = _ => SpawnDropDown();
@@ -169,7 +169,7 @@ public partial class World2DEditor
 		Map2D? map = CurrentMap;
 		Type mapType = _mapType;
 
-		MapEditorTopBarButton fileMenu = EditorDropDownButton("File", new[]
+		EditorButton fileMenu = EditorDropDownButton("File", new[]
 		{
 			new EditorDropDownButtonDescription
 			{
@@ -219,7 +219,7 @@ public partial class World2DEditor
 			//}
 		});
 
-		MapEditorTopBarButton objectsMenu = EditorDropDownButton("Objects", new[]
+		EditorButton objectsMenu = EditorDropDownButton("Objects", new[]
 		{
 			// true by default, mouseover shows props
 			// click selects the obj and shows prop editor window
@@ -289,7 +289,7 @@ public partial class World2DEditor
 			}
 		});
 
-		MapEditorTopBarButton tilesMenu = EditorDropDownButton("Tiles", new[]
+		EditorButton tilesMenu = EditorDropDownButton("Tiles", new[]
 		{
 			// false by default, mouseover shows props, alt switch layers
 			//new EditorDropDownButtonDescription
@@ -309,7 +309,7 @@ public partial class World2DEditor
 			},
 		});
 
-		MapEditorTopBarButton editorMenu = EditorDropDownButton("Editor", new[]
+		EditorButton editorMenu = EditorDropDownButton("Editor", new[]
 		{
 			// Shows actions done in the editor, can be undone
 			new EditorDropDownButtonDescription
@@ -332,7 +332,7 @@ public partial class World2DEditor
 			},
 		});
 
-		MapEditorTopBarButton mapMenu = EditorDropDownButton("Map", new[]
+		EditorButton mapMenu = EditorDropDownButton("Map", new[]
 		{
 			new EditorDropDownButtonDescription
 			{
@@ -359,7 +359,7 @@ public partial class World2DEditor
 			},
 		});
 
-		MapEditorTopBarButton otherTools = EditorDropDownButton("Other", new[]
+		EditorButton otherTools = EditorDropDownButton("Other", new[]
 		{
 			new EditorDropDownButtonDescription
 			{
@@ -398,7 +398,7 @@ public partial class World2DEditor
 			dataEditors[i] = editor;
 		}
 
-		MapEditorTopBarButton dataEditorsButton = EditorDropDownButton("GameData", dataEditors);
+		EditorButton dataEditorsButton = EditorDropDownButton("GameData", dataEditors);
 
 		// todo: GPU texture viewer
 		// todo: animation tool (convert from imgui)

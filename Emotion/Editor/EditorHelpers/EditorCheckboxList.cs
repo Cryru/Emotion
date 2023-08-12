@@ -29,7 +29,7 @@ public class EditorCheckboxList : UIBaseWindow
 	}
 
 	private string _label;
-	private MapEditorTopBarButton? _button;
+	private EditorButton? _button;
 	private IEditorCheckboxListItem[]? _items;
 
 	public EditorCheckboxList(string label)
@@ -49,7 +49,7 @@ public class EditorCheckboxList : UIBaseWindow
 	{
 		base.AttachedToController(controller);
 
-		var button = new MapEditorTopBarButton();
+		var button = new EditorButton();
 		button.Text = _label;
 		button.MinSize = new Vector2(20, 0);
 		button.IgnoreParentColor = true;

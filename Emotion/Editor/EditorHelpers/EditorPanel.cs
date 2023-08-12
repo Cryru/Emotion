@@ -72,7 +72,7 @@ public class EditorPanel : UIBaseWindow
             var topBar = new MapEditorPanelTopBar();
             container.AddChild(topBar);
 
-            var closeButton = (MapEditorTopBarButton)topBar.GetWindowById("CloseButton")!;
+            var closeButton = (EditorButton)topBar.GetWindowById("CloseButton")!;
             closeButton.OnClickedProxy = _ => { controller.RemoveChild(this); };
 
             var panelLabel = (UIText)topBar.GetWindowById("PanelLabel")!;

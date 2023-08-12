@@ -7,7 +7,7 @@ namespace Emotion.Editor.EditorHelpers
 	public class EditorDropDownButtonDescription
 	{
 		public string Name = null!;
-		public Action<EditorDropDownButtonDescription, MapEditorTopBarButton>? Click;
+		public Action<EditorDropDownButtonDescription, EditorButton>? Click;
 		public Func<bool>? Enabled;
 		public object? UserData;
 	}

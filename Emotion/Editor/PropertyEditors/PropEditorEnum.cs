@@ -23,7 +23,7 @@ namespace Emotion.Editor.PropertyEditors
 		private string[] _enumValueNames;
 
 		private Action<object?>? _callback;
-		private MapEditorTopBarButton? _button;
+		private EditorButton? _button;
 
 		public PropEditorEnum(Type enumType, bool nullable)
 		{
@@ -82,7 +82,7 @@ namespace Emotion.Editor.PropertyEditors
 
 			Text = "";
 
-			var button = (MapEditorTopBarButton?) GetWindowById("Button");
+			var button = (EditorButton?) GetWindowById("Button");
 			if (button != null)
 			{
 				button.Text = _value?.ToString() ?? "null";

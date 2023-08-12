@@ -74,7 +74,7 @@ public class MapEditorOpenMapPanel : EditorPanel
 		{
 			string mapAsset = mapAssets[i];
 
-			var mapButton = new MapEditorTopBarButton();
+			var mapButton = new EditorButton();
 			mapButton.Text = mapAsset;
 			mapButton.StretchY = true;
 			mapButton.OnClickedProxy = _ =>

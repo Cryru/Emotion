@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Editor.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;
@@ -29,12 +30,12 @@ namespace Emotion.Game.World2D.EditorHelpers
 			txt.Margins = new Rectangle(5, 0, 5, 0);
 			AddChild(txt);
 
-			var closeButton = new MapEditorTopBarButton();
+			var closeButton = new EditorButton();
 			closeButton.Text = "X";
 			closeButton.Id = "CloseButton";
 			closeButton.Anchor = UIAnchor.TopRight;
 			closeButton.ParentAnchor = UIAnchor.TopRight;
-			closeButton.RenderInactiveBG = false;
+			closeButton.RenderNonActiveBackground = false;
 			AddChild(closeButton);
 
 			HandleInput = true;

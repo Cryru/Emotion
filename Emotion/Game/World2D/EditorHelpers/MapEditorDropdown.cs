@@ -71,7 +71,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			{
 				EditorDropDownButtonDescription buttonMeta = items[i];
 
-				var ddButton = new MapEditorTopBarButton();
+				var ddButton = new EditorButton();
 				ddButton.StretchX = true;
 				ddButton.StretchY = true;
 				ddButton.Text = buttonMeta.Name;

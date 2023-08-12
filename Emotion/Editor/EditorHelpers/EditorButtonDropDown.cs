@@ -43,7 +43,7 @@ public class EditorButtonDropDown : UIBaseWindow
 
 	private void UpdateCurrentOptionText()
 	{
-		var button = (MapEditorTopBarButton?) GetWindowById("Button");
+		var button = (EditorButton?) GetWindowById("Button");
 		if (button == null || _currentOption == null) return;
 		button.Text = _currentOption.Name;
 		button.Enabled = _items != null && _items.Length > 1;
@@ -57,7 +57,7 @@ public class EditorButtonDropDown : UIBaseWindow
 		label.Id = "Label";
 		AddChild(label);
 
-		var button = new MapEditorTopBarButton();
+		var button = new EditorButton();
 		button.Text = _currentOption?.Name ?? "null";
 		button.MinSize = new Vector2(20, 0);
 		button.IgnoreParentColor = true;

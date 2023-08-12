@@ -107,7 +107,7 @@ public class ItemListWithActions<T> : UICallbackListNavigator
 
 		foreach (ItemListWithActionsItem<T> item in _items)
 		{
-			var button = new MapEditorTopBarButton
+			var button = new EditorButton
 			{
 				Text = item.Object?.ToString() ?? "<null>",
 				StretchY = true,

@@ -42,7 +42,7 @@ namespace Emotion.Game.World2D.Editor
 			MapEditorCreateMapPanel creationDlg = this;
 			Task creationTask = null;
 
-			var confirmButton = new MapEditorTopBarButton();
+			var confirmButton = new EditorButton();
 			confirmButton.Text = "Create";
 			confirmButton.Id = "CreateButton";
 			confirmButton.Anchor = UIAnchor.TopCenter;
@@ -77,7 +77,7 @@ namespace Emotion.Game.World2D.Editor
 
 		protected override bool UpdateInternal()
 		{
-			var createButton = (MapEditorTopBarButton) GetWindowById("CreateButton");
+			var createButton = (EditorButton) GetWindowById("CreateButton");
 
 			if (createButton != null && _nameInput != null && _pathInput != null)
 				createButton.Enabled = !string.IsNullOrEmpty(_nameInput.Text) && !string.IsNullOrEmpty(_pathInput.Text);

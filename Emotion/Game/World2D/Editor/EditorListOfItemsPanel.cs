@@ -89,7 +89,7 @@ public class EditorListOfItemsPanel<T> : EditorPanel where T : class
 
 		foreach (T item in _items)
 		{
-			var itemButton = new MapEditorTopBarButton();
+			var itemButton = new EditorButton();
 			itemButton.Text = item.ToString();
 			itemButton.Anchor = UIAnchor.TopCenter;
 			itemButton.ParentAnchor = UIAnchor.TopCenter;

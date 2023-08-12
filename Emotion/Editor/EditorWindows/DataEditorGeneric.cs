@@ -49,7 +49,7 @@ public class DataEditorGeneric : EditorPanel
 			};
 			leftPart.AddChild(buttonList);
 
-			var newButton = new MapEditorTopBarButton
+			var newButton = new EditorButton
 			{
 				StretchY = true,
 				Text = "New",
@@ -57,7 +57,7 @@ public class DataEditorGeneric : EditorPanel
 			};
 			buttonList.AddChild(newButton);
 
-			var saveButton = new MapEditorTopBarButton
+			var saveButton = new EditorButton
 			{
 				StretchY = true,
 				Text = "Save",
@@ -85,7 +85,7 @@ public class DataEditorGeneric : EditorPanel
 			};
 			listNav.OnChoiceConfirmed += (wnd, idx) =>
 			{
-				if (wnd is not MapEditorTopBarButton nuSelButton) return;
+				if (wnd is not EditorButton nuSelButton) return;
 
 				object? userData = nuSelButton.UserData;
 				if (userData == null || !userData.GetType().IsAssignableTo(_type)) return;
@@ -141,7 +141,7 @@ public class DataEditorGeneric : EditorPanel
 
 		foreach (KeyValuePair<string, GameDataObject> item in data)
 		{
-			var uiForItem = new MapEditorTopBarButton
+			var uiForItem = new EditorButton
 			{
 				StretchY = true,
 				Text = item.Key,

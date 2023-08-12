@@ -39,7 +39,7 @@ namespace Emotion.Editor.EditorHelpers
             textLbl.ZOffset = -100;
             _contentParent?.AddChild(textLbl);
 
-            MapEditorTopBarButton button = new MapEditorTopBarButton();
+            EditorButton button = new EditorButton();
             button.OnClickedProxy = (b) =>
             {
                 bool success = _doneCallback((T)_obj);

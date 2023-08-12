@@ -103,7 +103,7 @@ public class ModelViewer : EditorPanel
 			Paddings = new Rectangle(2, 0, 2, 0)
 		};
 
-		var butObj = new MapEditorTopBarButton
+		var butObj = new EditorButton
 		{
 			Text = "Open MeshAsset",
 			StretchY = true,
@@ -112,7 +112,7 @@ public class ModelViewer : EditorPanel
 		};
 		editorButtons.AddChild(butObj);
 
-		var butSprite = new MapEditorTopBarButton
+		var butSprite = new EditorButton
 		{
 			Text = "Open Sprite Stack",
 			StretchY = true,
@@ -165,7 +165,7 @@ public class ModelViewer : EditorPanel
 		_noAnimationItems[0].Click = SetAnimationDropDownCallback;
 		editorButtons.AddChild(animationsList);
 
-		var saveAsEm3Button = new MapEditorTopBarButton
+		var saveAsEm3Button = new EditorButton
 		{
 			Text = "Export as Em3 (WIP)",
 			StretchY = true,
@@ -247,7 +247,7 @@ public class ModelViewer : EditorPanel
 		}
 	}
 
-	protected void SetAnimationDropDownCallback(EditorDropDownButtonDescription item, MapEditorTopBarButton _)
+	protected void SetAnimationDropDownCallback(EditorDropDownButtonDescription item, EditorButton _)
 	{
 		_obj.SetAnimation(item.Name);
 	}
