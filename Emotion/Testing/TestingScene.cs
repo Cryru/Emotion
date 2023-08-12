@@ -88,6 +88,9 @@ public abstract class TestingScene : Scene
 		Vector2 screenShotSize = Vector2.Zero;
 		GLThread.ExecuteGLThread(() =>
 		{
+			Gl.Flush();
+			Gl.Finish();
+
 			FrameBuffer drawBuffer = _screenShotBuffer;
 			screenshot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
 			screenShotSize = drawBuffer.Size;

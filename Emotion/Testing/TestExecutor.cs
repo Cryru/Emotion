@@ -200,7 +200,10 @@ public static class TestExecutor
 				Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(enumerator);
 				while (!coroutine.Finished && !coroutine.Stopped)
 				{
-					if (coroutine.CurrentWaiter is TestWaiterRunLoops runLoopsWaiter && !runLoopsWaiter.Finished)
+					IRoutineWaiter? currentWaiter = coroutine.CurrentWaiter;
+					while (currentWaiter is Coroutine subRoutine) currentWaiter = subRoutine.CurrentWaiter;
+
+					if (currentWaiter is TestWaiterRunLoops runLoopsWaiter && !runLoopsWaiter.Finished)
 					{
 						if (runLoopsWaiter.LoopsToRun == -1)
 						{
