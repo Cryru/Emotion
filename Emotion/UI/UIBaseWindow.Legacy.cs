@@ -387,4 +387,28 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		AfterLayout();
 	}
 }
+#else
+public partial class UIBaseWindow
+{
+	// todo: delete, here for compilation reasons
+	public bool StretchX { get; set; }
+	public bool StretchY { get; set; }
+
+	protected virtual Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
+	{
+		Vector2 freeSpace = StretchX || StretchY ? space : measuredSize;
+		freeSpace.X -= paddingSize.X;
+		freeSpace.Y -= paddingSize.Y;
+		return freeSpace;
+	}
+
+	public virtual Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
+	{
+		return Vector2.Zero;
+	}
+
+	protected virtual void AfterMeasureChildren(Vector2 usedSpace)
+	{
+	}
+}
 #endif

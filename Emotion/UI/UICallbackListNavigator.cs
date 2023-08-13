@@ -10,6 +10,10 @@ using Emotion.Platform.Input;
 
 namespace Emotion.UI
 {
+	public class UIList : UICallbackListNavigator
+	{
+	}
+
 	/// <summary>
 	/// Provides list navigation to UICallbackButton children.
 	/// </summary>
@@ -77,6 +81,51 @@ namespace Emotion.UI
 			HandleInput = true;
 		}
 
+#if NEW_UI
+
+		protected override Vector2 Measure(Vector2 space)
+		{
+			Vector2 measuredSize = base.Measure(space);
+			Vector2 usedSpace = _measureChildrenUsedSpace;
+
+			// Make area as big as the children shown. Might look weird if all children are not the same size.
+			// This will also tell us how big the page size is.
+			float pageSize = 0;
+			if (Children != null)
+			{
+				float lastChildSize = 0;
+				Vector2 scaledListSpacing = (ListSpacing * GetScale()).RoundClosest();
+				for (var i = 0; i < Children.Count; i++)
+				{
+					UIBaseWindow child = Children[i];
+					if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+					float childSize = child.Height;
+					if (pageSize != 0) childSize += scaledListSpacing.Y;
+					if (pageSize + childSize > measuredSize.Y) break;
+					pageSize += childSize;
+					lastChildSize = childSize;
+				}
+
+				// If the scroll bar is to be smaller than the space available then grow it out with more
+				// children like the last (remember this list assumes all children are of the same size).
+				if (pageSize == usedSpace.Y)
+				{
+					float spaceLeft = measuredSize.Y - pageSize;
+					spaceLeft /= lastChildSize;
+					pageSize += MathF.Floor(spaceLeft) * lastChildSize;
+				}
+			}
+
+			pageSize = MathF.Max(pageSize, MathF.Ceiling(MinSize.Y * GetScale()));
+			_measuredSize.Y = pageSize;
+			_scrollArea.Position = Vector2.Zero;
+			_scrollArea.Size = usedSpace.Round();
+
+			return _measuredSize;
+		}
+
+#else
 		protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
 		{
 			Vector2 baseChildSize = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
@@ -137,6 +186,8 @@ namespace Emotion.UI
 
 			base.AfterMeasureChildren(usedSpace);
 		}
+
+#endif
 
 		protected override void AfterLayout()
 		{
@@ -265,7 +316,7 @@ namespace Emotion.UI
 			// c.RenderOutline(renderRect, Color.Red);
 
 			c.PushModelMatrix(_scrollDisplacement);
-			// c.RenderOutline(_scrollArea, Color.Red);
+			// c.RenderOutline(Bounds, Color.Red);
 			for (var i = 0; i < Children!.Count; i++)
 			{
 				UIBaseWindow child = Children[i];

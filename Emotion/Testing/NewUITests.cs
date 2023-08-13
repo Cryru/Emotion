@@ -48,7 +48,8 @@ public class NewUITests : TestingScene
 			FillListThreeItems,
 			FillListFillingItems,
 
-			WorldEditorTopBar
+			WorldEditorTopBar,
+			VerticalListWithText
 		};
 	}
 
@@ -525,6 +526,168 @@ public class NewUITests : TestingScene
 
 			list.Margins = new Rectangle(3, 0, 3, 0);
 			list.AlignAnchor = UIAnchor.CenterLeft;
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+	}
+
+	private IEnumerator VerticalListWithText()
+	{
+		UI.ClearChildren();
+
+		{
+			var list = new UISolidColor
+			{
+				WindowColor = Color.PrettyOrange,
+				FillX = false,
+				FillY = false,
+				LayoutMode = LayoutMode.VerticalList
+			};
+
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.Black;
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "Black";
+				text.WindowColor = Color.White;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.White;
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				//a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "White";
+				text.WindowColor = Color.Black;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.PrettyPink;
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				//a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "Pink";
+				text.WindowColor = Color.White;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			UI.AddChild(list);
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+
+		UI.ClearChildren();
+
+		// Prototype of the editor dropdown.
+		// This tests:
+		// 1. paddings on all sides of a fill
+		// 2. Vertical UIList
+		// 3. FillInListX
+
+		{
+			var dropDown = new UISolidColor
+			{
+				WindowColor = Color.PrettyOrange,
+				FillX = false,
+				FillY = false
+			};
+
+			var innerBg = new UISolidColor
+			{
+				IgnoreParentColor = true,
+				WindowColor = Color.PrettyGreen,
+				Paddings = new Rectangle(3, 3, 3, 3),
+			};
+			dropDown.AddChild(innerBg);
+
+			var list = new UIList
+			{
+				Id = "list",
+				LayoutMode = LayoutMode.VerticalList,
+				ListSpacing = new Vector2(0, 2),
+			};
+			innerBg.AddChild(list);
+
+			for (var i = 0; i < 5; i++)
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.Black;
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				//a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "Black " + new string('A', i);
+				text.WindowColor = Color.White;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			UI.AddChild(dropDown);
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+
+		{
+			UIBaseWindow? list = UI.GetWindowById("list");
+			AssertNotNull(list);
+			AssertNotNull(list.Children);
+			for (var i = 0; i < list.Children.Count; i++)
+			{
+				UIBaseWindow child = list.Children[i];
+				child.FillXInList = true;
+			}
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+
+		{
+			UIBaseWindow? list = UI.GetWindowById("list");
+			AssertNotNull(list);
+			list.Margins = new Rectangle(0, 0, 8, 0);
 		}
 
 		yield return PreloadUI();

@@ -546,10 +546,6 @@ namespace Emotion.UI
 		{
 		}
 
-		protected virtual void AfterMeasureChildren(Vector2 usedSpace)
-		{
-		}
-
 		protected virtual void AfterLayout()
 		{
 			// nop - to be overriden
