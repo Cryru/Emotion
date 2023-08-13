@@ -386,6 +386,10 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 		AfterLayout();
 	}
+
+	protected virtual void AfterMeasureChildren(Vector2 usedSpace)
+	{
+	}
 }
 #else
 public partial class UIBaseWindow
