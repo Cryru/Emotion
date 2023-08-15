@@ -7,6 +7,7 @@ using Emotion.Game.Time;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
+using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 
@@ -123,7 +124,7 @@ namespace Emotion.UI
 			var matrixPushed = false;
 			if (_transformationStackBacking != null)
 			{
-				if (_transformationStackBacking.MatrixDirty) _transformationStackBacking.RecalculateMatrix(GetScale());
+				if (_transformationStackBacking.MatrixDirty) _transformationStackBacking.RecalculateMatrix(GetScale(), Bounds);
 				c.PushModelMatrix(_transformationStackBacking.CurrentMatrix, !IgnoreParentDisplacement);
 				matrixPushed = true;
 			}
@@ -855,7 +856,8 @@ namespace Emotion.UI
 		private NamedTransformationStack? _transformationStackBacking;
 
 		/// <summary>
-		/// Create a translation displacement routine.
+		/// Displace the position of a UI window over time.
+		/// At the end of the tween the window will remain displaced.
 		/// </summary>
 		public IEnumerator TranslationDisplacement(Vector3 position, ITimer tween, string id = "translation")
 		{
@@ -869,6 +871,52 @@ namespace Emotion.UI
 				yield return null;
 			}
 		}
+
+		/// <summary>
+		/// The window's rotation around its center, in degrees.
+		/// </summary>
+		public float Rotation
+		{
+			get => _rotation;
+			set
+			{
+				if (_rotation == value) return;
+				SetRotation(value);
+			}
+		}
+
+		private float _rotation;
+
+		/// <summary>
+		/// Set a rotation (in degrees) for this window around its center.
+		/// </summary>
+		public void SetRotation(float degrees, ITimer? tween = null)
+		{
+			_rotation = degrees;
+            Engine.CoroutineManager.StartCoroutine(RotationDisplacement(degrees, tween));
+		}
+
+		/// <summary>
+		/// Rotate a UI window around its center. Optionally over time.
+		/// </summary>>
+		public IEnumerator RotationDisplacement(float degrees, ITimer? tween = null, string id = "rotation")
+		{
+			if (tween == null)
+			{
+                TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(degrees)), true, MatrixSpecialFlag.RotateBoundsCenter);
+				yield break;
+            }
+
+            while (true)
+            {
+                tween.Update(Engine.DeltaTime);
+				float current = Maths.LerpAngle(0, degrees, tween.Progress);
+                TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(current)), true, MatrixSpecialFlag.RotateBoundsCenter);
+                if (tween.Finished) yield break;
+
+                yield return null;
+            }
+        }
 
 		#endregion
 

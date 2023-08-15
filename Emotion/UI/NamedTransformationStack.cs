@@ -9,6 +9,12 @@ using System.Numerics;
 
 namespace Emotion.UI
 {
+    public enum MatrixSpecialFlag
+    {
+        None,
+        RotateBoundsCenter
+    }
+
     /// <summary>
     /// A stack of 4x4 matrices. Each matrix pushed is multiplied by the last one in the stack.
     /// </summary>
@@ -29,6 +35,7 @@ namespace Emotion.UI
             public string Id;
             public Matrix4x4 Matrix;
             public bool ResetToIdentity;
+            public MatrixSpecialFlag Flag = MatrixSpecialFlag.None;
 
             public MatrixWithId(Matrix4x4 mat, string id, bool reset)
             {
@@ -48,7 +55,8 @@ namespace Emotion.UI
         /// <param name="id">The id of the matrix.</param>
         /// <param name="matrix">The value of the matrix.</param>
         /// <param name="multiply">Whether to multiply the new matrix by the previous matrix.</param>
-        public void AddOrUpdate(string id, Matrix4x4 matrix, bool multiply = true)
+        /// <param name="flag">Special transformation to apply to the matrix when applying it to the UI window.</param>
+        public void AddOrUpdate(string id, Matrix4x4 matrix, bool multiply = true, MatrixSpecialFlag flag = MatrixSpecialFlag.None)
         {
             _stack ??= new List<MatrixWithId>();
 
@@ -57,10 +65,12 @@ namespace Emotion.UI
             {
                 matWithId.Matrix = matrix;
                 matWithId.ResetToIdentity = !multiply;
+                matWithId.Flag = flag;
             }
             else
             {
                 matWithId = new MatrixWithId(matrix, id, multiply);
+                matWithId.Flag = flag;
                 _stack.Add(matWithId);
             }
 
@@ -86,7 +96,6 @@ namespace Emotion.UI
         /// <summary>
         /// Remove the matrix with the specified id.
         /// </summary>
-        /// <param name="id"></param>
         public void Remove(string id)
         {
             if (_stack == null) return;
@@ -101,8 +110,7 @@ namespace Emotion.UI
         /// Recalculate the current matrix. This should be done before getting CurrentMatrix when
         /// DirtyMatrix is true.
         /// </summary>
-        /// <param name="scale"></param>
-        public void RecalculateMatrix(float scale)
+        public void RecalculateMatrix(float scale, Rectangle bounds)
         {
             if (_stack == null)
             {
@@ -116,7 +124,18 @@ namespace Emotion.UI
             {
                 MatrixWithId matWithId = _stack[i];
                 if (matWithId.ResetToIdentity) mat = Matrix4x4.Identity;
-                mat *= matWithId.Matrix;
+
+                if (matWithId.Flag == MatrixSpecialFlag.RotateBoundsCenter)
+                {
+                    var boundsCenter = bounds.Center / scale;
+                    mat *= Matrix4x4.CreateTranslation(-boundsCenter.X, -boundsCenter.Y, 0) *
+                        matWithId.Matrix *
+                        Matrix4x4.CreateTranslation(boundsCenter.X, boundsCenter.Y, 0);
+                }
+                else
+                {
+                    mat *= matWithId.Matrix;
+                }
             }
 
             // Scale the matrix according to the UI scale.
