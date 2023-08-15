@@ -87,7 +87,7 @@ public class EditorPanel : UIBaseWindow
 		contentParent.StretchX = true;
 		contentParent.StretchY = true;
 		contentParent.Id = "Content";
-		contentParent.Margins = new Rectangle(5, 15, 5, 5);
+		contentParent.Margins = new Rectangle(5, PanelMode == PanelMode.Embedded ? 5 : 15, 5, 5);
 		_contentParent = contentParent;
 		container.AddChild(contentParent);
 
