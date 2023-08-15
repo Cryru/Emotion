@@ -131,7 +131,7 @@ public static class GameDataDatabase
 			if (oldObjId != objId)
 			{
 				toReAdd ??= new List<string>();
-				toReAdd.Add(objId);
+				toReAdd.Add(oldObjId);
 			}
 		}
 
