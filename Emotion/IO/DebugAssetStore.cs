@@ -40,6 +40,14 @@ namespace Emotion.IO
             return base.GetAsset(enginePath);
         }
 
+        public static void DeleteFile(string path)
+        {
+            string oldFileSystemPath = Path.Join(AssetDevPath, path);
+            if (File.Exists(oldFileSystemPath)) File.Delete(oldFileSystemPath);
+            string assetPath = Path.Join("Assets", path);
+            if (File.Exists(assetPath)) File.Delete(assetPath);
+        }
+
         public override string ToString()
         {
             return "Debug Asset Source";

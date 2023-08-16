@@ -20,6 +20,7 @@ public class DataEditorGeneric : EditorPanel
 	protected UICallbackListNavigator _list = null!;
 	protected UIBaseWindow _rightSide = null!;
 	protected GameDataObject? _selectedObject;
+	protected HashSet<GameDataObject> _unsaved = new();
 
 	public DataEditorGeneric(Type type) : base($"{type.Name} Editor")
 	{
@@ -65,7 +66,24 @@ public class DataEditorGeneric : EditorPanel
 			};
 			buttonList.AddChild(saveButton);
 
-			var listContainer = new UIBaseWindow
+			var deleteCurrent = new EditorButton
+			{
+				Id = "DeleteButton",
+				StretchY = true,
+				Text = "Delete",
+				OnClickedProxy = _ =>
+				{
+					AssertNotNull(_selectedObject);
+					GameDataDatabase.EditorDeleteObject(_type, _selectedObject);
+					_selectedObject = null;
+					RegenerateList();
+					RegenerateSelection();
+				},
+				Enabled = false
+            };
+            buttonList.AddChild(deleteCurrent);
+
+            var listContainer = new UIBaseWindow
 			{
 				StretchX = true,
 				StretchY = true,
@@ -125,12 +143,21 @@ public class DataEditorGeneric : EditorPanel
 		RegenerateList();
 	}
 
-	private void SaveToFile()
+	private void SaveToFile(bool force = false)
 	{
-		if (_selectedObject == null || _selectedObject.AssetPath == null) return;
-		XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(_selectedObject, _selectedObject.AssetPath);
-		asset.Save();
-	}
+        Dictionary<string, GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
+		if (data == null) return;
+        foreach (KeyValuePair<string, GameDataObject> item in data)
+        {
+			if (!force && !_unsaved.Contains(item.Value)) continue;
+
+            XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item.Value);
+            asset.SaveAs(item.Value.AssetPath ?? GameDataDatabase.GetAssetPath(item.Value));
+
+        }
+
+		_unsaved.Clear();
+    }
 
 	private void RegenerateList()
 	{
@@ -141,10 +168,13 @@ public class DataEditorGeneric : EditorPanel
 
 		foreach (KeyValuePair<string, GameDataObject> item in data)
 		{
+			string label = item.Key;
+			if (_unsaved.Contains(item.Value)) label += "(*)";
+
 			var uiForItem = new EditorButton
 			{
 				StretchY = true,
-				Text = item.Key,
+				Text = label,
 				UserData = item.Value
 			};
 			_list.AddChild(uiForItem);
@@ -155,6 +185,13 @@ public class DataEditorGeneric : EditorPanel
 
 	private void RegenerateSelection()
 	{
+		var deleteButton = GetWindowById("DeleteButton");
+		if (deleteButton != null)
+		{
+			var deleteButtAsObject = (EditorButton)deleteButton;
+			deleteButtAsObject.Enabled = _selectedObject != null;
+		}
+
 		_rightSide.ClearChildren();
 		if (_selectedObject == null) return;
 		var properties = new GenericPropertiesEditorPanel(_selectedObject)
@@ -162,9 +199,14 @@ public class DataEditorGeneric : EditorPanel
 			PanelMode = PanelMode.Embedded,
 			OnPropertyEdited = (propertyName, oldValue) =>
 			{
-				// If id is changed we need to change the save file as well.
-				// todo: think about assigning generated non-user displayed ids to files
-				if (propertyName == "Id")
+				if (_unsaved.Add(_selectedObject))
+				{
+					RegenerateList();
+				}
+
+                // If id is changed we need to change the save file as well.
+                // todo: think about assigning generated non-user displayed ids to files
+                if (propertyName == "Id")
 				{
 					string newId = GameDataDatabase.EnsureNonDuplicatedId(_selectedObject.Id, _type);
 					_selectedObject.Id = newId;
@@ -174,14 +216,10 @@ public class DataEditorGeneric : EditorPanel
 					_selectedObject.AssetPath = newPath;
 					SaveToFile();
 
-					// Remove the old file.
+					// Remove the old file. (the object is resaved with the new id)
 					// Keep in mind that if it was already loaded (by the game or such)
 					// as an asset it will stay loaded.
-					string? path = DebugAssetStore.AssetDevPath;
-					string oldFileSystemPath = Path.Join(path, oldAssetPath);
-					if (File.Exists(oldFileSystemPath)) File.Delete(oldFileSystemPath);
-					string assetPath = Path.Join("Assets", oldAssetPath);
-					if (File.Exists(assetPath)) File.Delete(assetPath);
+					DebugAssetStore.DeleteFile(oldAssetPath);
 
 					GameDataDatabase.EditorReIndex(_type);
 					RegenerateList();
