@@ -157,6 +157,7 @@ public class DataEditorGeneric : EditorPanel
         }
 
 		_unsaved.Clear();
+		RegenerateList();
     }
 
 	private void RegenerateList()

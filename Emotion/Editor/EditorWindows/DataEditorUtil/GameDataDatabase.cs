@@ -242,7 +242,7 @@ public static class GameDataDatabase
                         builder.AppendLine($"		public static readonly string {item.Key} = \"{item.Key}\";");
                     }
                 }
-                builder.AppendLine("    }");
+                builder.AppendLine("	}");
             }
 		}
         builder.AppendLine("}");
