@@ -124,7 +124,9 @@ public class DataEditorGeneric : EditorPanel
 		{
 			StretchX = true,
 			StretchY = true,
-			LayoutMode = LayoutMode.VerticalList
+			LayoutMode = LayoutMode.VerticalList,
+			MaxSizeX = 200,
+			MinSizeX = 200
 		};
 		_rightSide = rightPart;
 		_contentParent.AddChild(rightPart);
@@ -167,19 +169,33 @@ public class DataEditorGeneric : EditorPanel
 		Dictionary<string, GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
 		if (data == null) return;
 
-		foreach (KeyValuePair<string, GameDataObject> item in data)
-		{
-			string label = item.Key;
-			if (_unsaved.Contains(item.Value)) label += "(*)";
+		// Sort the items
+		string[] names = new string[data.Count];
+		int nameIdx = 0;
+        foreach (KeyValuePair<string, GameDataObject> item in data)
+        {
+			names[nameIdx] = item.Key;
+			nameIdx++;
+        }
+		Array.Sort(names);
 
-			var uiForItem = new EditorButton
-			{
-				StretchY = true,
-				Text = label,
-				UserData = item.Value
-			};
-			_list.AddChild(uiForItem);
-		}
+		// Create buttons for each of them.
+		for (int i = 0; i < names.Length; i++)
+		{
+			var key = names[i];
+			var item = data[key];
+
+            string label = key;
+            if (_unsaved.Contains(item)) label += "(*)";
+
+            var uiForItem = new EditorButton
+            {
+                StretchY = true,
+                Text = label,
+                UserData = item,
+            };
+            _list.AddChild(uiForItem);
+        }
 
 		_list.SetupMouseSelection();
 	}
