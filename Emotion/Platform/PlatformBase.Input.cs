@@ -182,6 +182,7 @@ namespace Emotion.Platform
 
         protected void UpdateTextInput(char c)
         {
+            if (char.IsControl(c) && c != '\b' && c != '\n' && c != '\r') return;
             OnTextInputAll?.Invoke(c);
             if (_skipTextInputThisTick) return;
             OnTextInput?.Invoke(c);

@@ -60,6 +60,7 @@ namespace Emotion.UI
 			get => _text;
 			set
 			{
+				value ??= "";
 				if (_text == value) return;
 				_text = value;
 				InvalidateLayout();
