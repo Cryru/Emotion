@@ -43,6 +43,7 @@ public class ModelViewer : EditorPanel
 	};
 
 	private bool _panelDragResize;
+	private bool _renderSkeleton;
 
 	private Object3D _obj;
 
@@ -164,6 +165,11 @@ public class ModelViewer : EditorPanel
 		animationsList.SetItems(_noAnimationItems, 0);
 		_noAnimationItems[0].Click = SetAnimationDropDownCallback;
 		editorButtons.AddChild(animationsList);
+
+		var viewSkeleton = new PropEditorBool();
+		viewSkeleton.SetValue(false);
+		viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool) newVal; });
+		editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton, LayoutMode.HorizontalList));
 
 		var saveAsEm3Button = new EditorButton
 		{
@@ -314,10 +320,22 @@ public class ModelViewer : EditorPanel
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
 
-		if (_obj.Entity?.AnimationRig != null && _boneVerticesStream != null)
-			_obj.RenderAnimated(c, _boneVerticesStream);
+		if (_renderSkeleton)
+		{
+			_obj.DebugDrawSkeleton(c);
+		}
 		else
-			_obj.Render(c);
+		{
+			switch (_obj.RenderMode)
+			{
+				case Object3D.RenderLike.RenderStream:
+					_obj.Render(c);
+					break;
+				case Object3D.RenderLike.RenderStreamAnimated when _boneVerticesStream != null:
+					_obj.RenderAnimated(c, _boneVerticesStream);
+					break;
+			}
+		}
 
 		c.RenderTo(null);
 		_boneVerticesStream?.DoTasks(c);
