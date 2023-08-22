@@ -56,12 +56,19 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				OpenProc = PfnFileOpenProc.From(OpenFileCallback),
 				CloseProc = PfnFileCloseProc.From(CloseFileCallback)
 			};
-
+			
 			Scene* scene = _assContext.ImportFileEx("this", (uint) _postProcFlags, ref customIO);
 			if ((IntPtr) scene == IntPtr.Zero)
 			{
 				Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
 				return;
+			}
+
+			var isYUp = false;
+			if (scene->MMetaData != null)
+			{
+				int? upAxis = GetMetadataInt(scene->MMetaData, "UpAxis");
+				if (upAxis == 1) isYUp = true;
 			}
 
 			// Process materials, animations, and meshes.
@@ -88,10 +95,10 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			SkeletonAnimRigNode? animRigRoot = WalkNodesForSkeleton( rootNode);
 			SkeletonAnimRigRoot? animRigAsRoot = animRigRoot != null ? SkeletonAnimRigRoot.PromoteNode(animRigRoot) : null;
 
-			WalkNodesForMeshes(scene, rootNode, meshes, materials, animRigAsRoot);
+			WalkNodesForMeshes(scene, rootNode, meshes, materials);
 
 			// Convert to right handed Z is up.
-			if (animRigAsRoot != null && Name.Contains(".gltf"))
+			if (animRigAsRoot != null && (Name.Contains(".gltf") || isYUp))
 				animRigAsRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
 			Entity = new MeshEntity
@@ -103,7 +110,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			};
 
 			// Properties
-			float scaleF = GetNodeMetadataFloat(rootNode, "UnitScaleFactor") ?? 100f;
+			float scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor") ?? 100f;
 			Entity.Scale = scaleF;
 
 			// Clear virtual file system
@@ -389,7 +396,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		#region Meshes
 
-		protected unsafe void WalkNodesForMeshes(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials, SkeletonAnimRigRoot? skeleton)
+		protected unsafe void WalkNodesForMeshes(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials)
 		{
 			if ((IntPtr) n == IntPtr.Zero) return;
 
@@ -397,18 +404,18 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			{
 				uint meshIdx = n->MMeshes[i];
 				AssMesh* mesh = scene->MMeshes[meshIdx];
-				Mesh emotionMesh = ProcessMesh(mesh, materials, skeleton);
+				Mesh emotionMesh = ProcessMesh(mesh, materials);
 				list.Add(emotionMesh);
 			}
 
 			for (var i = 0; i < n->MNumChildren; i++)
 			{
 				Node* child = n->MChildren[i];
-				WalkNodesForMeshes(scene, child, list, materials, skeleton);
+				WalkNodesForMeshes(scene, child, list, materials);
 			}
 		}
 
-		protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials, SkeletonAnimRigRoot? skeleton)
+		protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials)
 		{
 			var newMesh = new Mesh
 			{
@@ -487,6 +494,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				// Check if this bone has an id assigned.
 				if (!boneToIndex.TryGetValue(bone->MName.AsString, out int boneIndex))
 				{
+					// 0 is identity
 					boneIndex = boneToIndex.Count + 1;
 					boneToIndex.Add(bone->MName.AsString, boneIndex);
 				}
@@ -545,9 +553,8 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		#endregion
 
-		private unsafe float? GetNodeMetadataFloat(Node* node, string key)
+		private unsafe float? GetMetadataFloat(Metadata* meta, string key)
 		{
-			Metadata* meta = node->MMetaData;
 			if ((IntPtr) meta == IntPtr.Zero) return null;
 
 			for (var i = 0; i < meta->MNumProperties; i++)
@@ -555,6 +562,20 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				AssimpString k = meta->MKeys[i];
 				if (k.AsString == key && meta->MValues->MType == MetadataType.Float)
 					return *(float*) meta->MValues->MData;
+			}
+
+			return null;
+		}
+
+		private unsafe int? GetMetadataInt(Metadata* meta, string key)
+		{
+			if ((IntPtr) meta == IntPtr.Zero) return null;
+
+			for (var i = 0; i < meta->MNumProperties; i++)
+			{
+				AssimpString k = meta->MKeys[i];
+				if (k.AsString == key && meta->MValues->MType == MetadataType.Int32)
+					return *(int*) meta->MValues->MData;
 			}
 
 			return null;

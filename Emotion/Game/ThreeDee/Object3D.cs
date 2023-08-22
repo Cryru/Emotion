@@ -25,9 +25,12 @@ namespace Emotion.Game.ThreeDee
 			get => _entity;
 			set
 			{
-				_entity = value;
-				EntityMetaState = new MeshEntityMetaState(value);
-				OnSetEntity();
+				lock (this)
+				{
+					_entity = value;
+					EntityMetaState = new MeshEntityMetaState(value);
+					OnSetEntity();
+				}
 			}
 		}
 
@@ -121,45 +124,8 @@ namespace Emotion.Game.ThreeDee
 
 			_currentAnimation = animInstance;
 			_time = 0;
-
+			
 			// Initialize bones
-			//AssertNotNull(_boneMatricesPerMesh);
-
-			//for (var i = 0; i < _boneMatricesPerMesh.Length; i++)
-			//{
-			//	Matrix4x4[] matricesForMesh = _boneMatricesPerMesh[i];
-			//	if (matricesForMesh.Length == 1)
-			//	{
-			//		matricesForMesh[0] = Matrix4x4.Identity;
-			//	}
-			//	else
-			//	{
-			//		Mesh mesh = _entity.Meshes[i];
-
-			//		void DefaultAnimationSkeletonApplyToBone()
-			//		{
-
-			//		}
-
-			//	}
-			//}
-
-			//if (_entity.AnimationRig != null)
-			//{
-
-			//	for (var i = 0; i < _boneMatrices.Length; i++)
-			//	{
-			//		_boneMatrices[i] = defaultMatrix;
-			//	}
-			//}
-			//else
-			//{
-			//	for (var i = 0; i < _boneMatrices.Length; i++)
-			//	{
-			//		_boneMatrices[i] = Matrix4x4.Identity;
-			//	}
-			//}
-
 			ApplyBoneMatrices();
 		}
 
@@ -171,22 +137,22 @@ namespace Emotion.Game.ThreeDee
 
 		private void ApplyBoneMatrices()
 		{
-			if (_entity?.Meshes == null) return;
-
-			AssertNotNull(_boneMatricesPerMesh);
-			SkeletonAnimRigRoot? animationRig = _entity.AnimationRig;
-			if (animationRig == null)
+			lock (this)
 			{
+				if (_entity?.Meshes == null) return;
+
+				AssertNotNull(_boneMatricesPerMesh);
 				for (var i = 0; i < _boneMatricesPerMesh.Length; i++)
 				{
 					Matrix4x4[] matricesForMesh = _boneMatricesPerMesh[i];
 					matricesForMesh[0] = Matrix4x4.Identity;
 				}
 
-				return;
-			}
+				SkeletonAnimRigRoot? animationRig = _entity.AnimationRig;
+				if (animationRig == null) return;
 
-			ApplyBoneMatricesWalkTree(_time % _currentAnimation?.Duration ?? 0, animationRig, Matrix4x4.Identity);
+				ApplyBoneMatricesWalkTree(_time % _currentAnimation?.Duration ?? 0, animationRig, Matrix4x4.Identity);
+			}
 		}
 
 		private void ApplyBoneMatricesWalkTree(float timeStamp, SkeletonAnimRigNode node, Matrix4x4 parentMatrix)
@@ -366,7 +332,8 @@ namespace Emotion.Game.ThreeDee
 			c.PushModelMatrix(GetModelMatrix());
 			c.SetShader(_skeletalShader.Shader);
 
-			AssertNotNull(_boneMatricesPerMesh);
+			Matrix4x4[][]? boneMatricesPerMesh = _boneMatricesPerMesh;
+			AssertNotNull(boneMatricesPerMesh);
 
 			for (var i = 0; i < meshes.Length; i++)
 			{
@@ -374,7 +341,7 @@ namespace Emotion.Game.ThreeDee
 				if (metaState != null && !metaState.RenderMesh[i]) continue;
 				_skeletalShader.Shader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
 
-				Matrix4x4[] boneMats = _boneMatricesPerMesh[i];
+				Matrix4x4[] boneMats = boneMatricesPerMesh[i];
 				_skeletalShader.Shader.SetUniformMatrix4("finalBonesMatrices", boneMats, boneMats.Length);
 
 				AssertNotNull(obj.VerticesWithBones);
