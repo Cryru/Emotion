@@ -68,11 +68,34 @@ public static class Assert
 		throw new TestAssertException(msg);
 #elif DEBUG
 		_ignoredAsserts ??= new HashSet<string>();
-		string assertId = msg + "\n" + Environment.StackTrace;
+
+		string stack = Environment.StackTrace;
+		string assertText = msg + "\n" + stack;
+
+		// Get assert id to be msg + function in which it occured in
+		string assertId = msg;
+		int idx = stack.IndexOf("at Emotion.Testing.Assert", StringComparison.OrdinalIgnoreCase);
+		while (idx != -1)
+		{
+			int newIdx = stack.IndexOf("at Emotion.Testing.Assert", idx + 1, StringComparison.OrdinalIgnoreCase);
+			if (newIdx == -1)
+			{
+				int nextNewLine = stack.IndexOf("\n", idx, StringComparison.OrdinalIgnoreCase);
+				int oneAfterThat = nextNewLine != -1 ? stack.IndexOf("\n", nextNewLine + 1, StringComparison.OrdinalIgnoreCase) : -1;
+				if (oneAfterThat != -1)
+					assertId += stack.Substring(nextNewLine, oneAfterThat - nextNewLine).Trim();
+				else
+					assertId += stack;
+				break;
+			}
+
+			idx = newIdx;
+		}
+
 		if (_ignoredAsserts.Contains(assertId)) return;
 
 		var assertResponse = AssertMessageBoxResponse.Break;
-		if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(assertId);
+		if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(assertText);
 
 		switch (assertResponse)
 		{
@@ -101,7 +124,7 @@ public static class AssertWrapper
 {
 	[Conditional("DEBUG")]
 	[Conditional("AUTOBUILD")]
-	public static void Assert( bool condition, string? text = null)
+	public static void Assert(bool condition, string? text = null)
 	{
 		Testing.Assert.True(condition, text);
 	}
