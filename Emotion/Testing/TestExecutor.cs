@@ -186,6 +186,9 @@ public static class TestExecutor
 				continue;
 			}
 
+			var completed = 0;
+			var total = 0;
+
 			Engine.Log.Info($"Running test scene {sceneType}...", MessageSource.Test);
 			await Engine.SceneManager.SetScene(sc);
 			Func<IEnumerator>[] testRoutines = sc.GetTestCoroutines();
@@ -216,9 +219,12 @@ public static class TestExecutor
 						}
 					}
 				}
+
+				total++;
+				if (coroutine.Finished) completed++;
 			}
 
-			Engine.Log.Info($"Passed {sceneType}!", MessageSource.Test);
+			Engine.Log.Info($"Completed {sceneType}: {completed}/{total}!", MessageSource.Test);
 		}
 	}
 }

@@ -49,7 +49,9 @@ public class NewUITests : TestingScene
 			FillListFillingItems,
 
 			WorldEditorTopBar,
-			VerticalListWithText
+			VerticalListWithText,
+
+			TextWithBackground,
 		};
 	}
 
@@ -688,6 +690,33 @@ public class NewUITests : TestingScene
 			UIBaseWindow? list = UI.GetWindowById("list");
 			AssertNotNull(list);
 			list.Margins = new Rectangle(0, 0, 8, 0);
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+	}
+
+	private IEnumerator TextWithBackground()
+	{
+		// This is a layout that is not possible in the old UI system.
+
+		UI.ClearChildren();
+
+		{
+			var container = new UIBaseWindow();
+			container.FillX = false;
+			container.FillY = false;
+
+			var bg = new UISolidColor();
+			bg.WindowColor = Color.Red * 0.5f;
+			container.AddChild(bg);
+
+			var textc = new UIText();
+			textc.Text = "Hello ladies and gentlemen, and welcome to the show!";
+			container.AddChild(textc);
+
+			UI.AddChild(container);
 		}
 
 		yield return PreloadUI();
