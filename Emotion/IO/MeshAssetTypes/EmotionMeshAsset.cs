@@ -239,7 +239,7 @@ namespace Emotion.IO.MeshAssetTypes
             }
 
             bool hasRig = reader.ReadBoolean();
-            if (hasRig) entity.AnimationRig = ReadSkeletonRig(reader);
+            if (hasRig) entity.AnimationRig = SkeletonAnimRigRoot.PromoteNode(ReadSkeletonRig(reader));
 
             reader.Dispose();
 

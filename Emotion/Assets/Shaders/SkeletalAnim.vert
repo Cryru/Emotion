@@ -16,6 +16,7 @@ layout(location = 3)in vec4 boneWeights;
 const int MAX_BONES = 126;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
+uniform vec4 diffuseColor;
 
 // Goes to the frag shader.  
 out vec2 UV; 
@@ -24,7 +25,7 @@ out vec4 vertColor;
 void main() { 
     // Pass to frag.
     UV = uv;
-    vertColor = vec4(1.0);
+    vertColor = diffuseColor;
 
     mat4 totalTransform = finalBonesMatrices[int(boneIds[0])] * boneWeights[0];
     for (int i = 1; i < MAX_BONE_INFLUENCE; i++)

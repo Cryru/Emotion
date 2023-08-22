@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Reflection.Metadata;
 using Assimp;
-using Assimp.Configs;
 using Emotion.Common;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
@@ -59,6 +57,7 @@ namespace Emotion.PostBuildTool
 				_assContext.SetIOSystem(null);
 				scene = _assContext.ImportFileFromStream(str, postProcFlags);
 			}
+
 			_scene = scene;
 
 			var embeddedTextures = new List<Texture>();
@@ -110,6 +109,8 @@ namespace Emotion.PostBuildTool
 			_meshes = new List<Mesh>();
 			Node rootNode = scene.RootNode;
 			SkeletonAnimRigNode animRigRoot = ProcessNode(scene, rootNode);
+			SkeletonAnimRigRoot animRigAsRoot = SkeletonAnimRigRoot.PromoteNode(animRigRoot);
+
 			//animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(-90 * Maths.DEG2_RAD); // Convert to right handed Z is up.
 
 			Entity = new MeshEntity
@@ -117,7 +118,7 @@ namespace Emotion.PostBuildTool
 				Name = Name,
 				Meshes = _meshes.ToArray(),
 				Animations = _animations.ToArray(),
-				AnimationRig = animRigRoot
+				AnimationRig = animRigAsRoot
 			};
 
 			object scaleData = scene.RootNode.Metadata.GetValueOrDefault("UnitScaleFactor").Data;

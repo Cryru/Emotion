@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.IO;
+using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
@@ -12,7 +13,6 @@ using AssMesh = Silk.NET.Assimp.Mesh;
 using File = Silk.NET.Assimp.File;
 using Mesh = Emotion.Graphics.ThreeDee.Mesh;
 using Texture = Emotion.Graphics.Objects.Texture;
-using Emotion.Common.Threading;
 
 #endregion
 
@@ -36,7 +36,8 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 		                                          PostProcessSteps.FlipUVs |
 		                                          PostProcessSteps.SortByPrimitiveType |
 		                                          PostProcessSteps.OptimizeGraph |
-		                                          PostProcessSteps.OptimizeMeshes;
+		                                          PostProcessSteps.OptimizeMeshes |
+		                                          PostProcessSteps.LimitBoneWeights;
 
 		protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
 		{
@@ -55,6 +56,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				OpenProc = PfnFileOpenProc.From(OpenFileCallback),
 				CloseProc = PfnFileCloseProc.From(CloseFileCallback)
 			};
+
 			Scene* scene = _assContext.ImportFileEx("this", (uint) _postProcFlags, ref customIO);
 			if ((IntPtr) scene == IntPtr.Zero)
 			{
@@ -83,18 +85,21 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			var meshes = new List<Mesh>();
 
 			Node* rootNode = scene->MRootNode;
-			SkeletonAnimRigNode? animRigRoot = ProcessNode(scene, rootNode, meshes, materials);
+			SkeletonAnimRigNode? animRigRoot = WalkNodesForSkeleton( rootNode);
+			SkeletonAnimRigRoot? animRigAsRoot = animRigRoot != null ? SkeletonAnimRigRoot.PromoteNode(animRigRoot) : null;
+
+			WalkNodesForMeshes(scene, rootNode, meshes, materials, animRigAsRoot);
 
 			// Convert to right handed Z is up.
-			if (animRigRoot != null && Name.Contains(".gltf"))
-				animRigRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
+			if (animRigAsRoot != null && Name.Contains(".gltf"))
+				animRigAsRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
 			Entity = new MeshEntity
 			{
 				Name = Name,
 				Meshes = meshes.ToArray(),
 				Animations = animations.ToArray(),
-				AnimationRig = animRigRoot
+				AnimationRig = animRigAsRoot
 			};
 
 			// Properties
@@ -201,7 +206,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			{
 				Material* material = scene->MMaterials[i];
 				string materialName = GetMaterialString(material, AssContext.DefaultMaterialName);
-				Color diffColor = GetMaterialColor(material, AssContext.MaterialColorDiffuse);
+				Color diffColor = GetMaterialColor(material, AssContext.MaterialColorDiffuseBase);
 
 				Texture? diffuseTexture = null;
 				bool hasDiffuseTexture = GetMaterialTexture(material, TextureType.Diffuse, out uint idx, out string? diffuseTextureName);
@@ -291,6 +296,32 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		#region Animations
 
+		protected unsafe SkeletonAnimRigNode? WalkNodesForSkeleton(Node* n)
+		{
+			if ((IntPtr) n == IntPtr.Zero) return null;
+
+			string nodeName = n->MName.AsString;
+
+			var myNode = new SkeletonAnimRigNode
+			{
+				Name = nodeName,
+				LocalTransform = Matrix4x4.Transpose(n->MTransformation),
+				Children = new SkeletonAnimRigNode[n->MNumChildren],
+				DontAnimate = nodeName.Contains("$AssimpFbx$")
+			};
+
+			AssertNotNull(myNode.Children);
+			for (var i = 0; i < n->MNumChildren; i++)
+			{
+				Node* child = n->MChildren[i];
+				SkeletonAnimRigNode? childRigNode = WalkNodesForSkeleton(child);
+				if (childRigNode == null) continue;
+				myNode.Children[i] = childRigNode;
+			}
+
+			return myNode;
+		}
+
 		private unsafe void ProcessAnimations(Scene* scene, List<SkeletalAnimation> list)
 		{
 			var unnamedAnimations = 0;
@@ -305,9 +336,12 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					Name = string.IsNullOrEmpty(animName) ? $"UnnamedAnimation{unnamedAnimations++}" : animName,
 					AnimChannels = channels
 				};
-				var speedFactor = (float) (anim->MTicksPerSecond == 1 ? 1f/1000f : anim->MTicksPerSecond == 1000 ? 1 : anim->MTicksPerSecond);
+
+				// wtf is happening here, idk
+				var speedFactor = (float) (anim->MTicksPerSecond == 1 ? 1f / 1000f : anim->MTicksPerSecond == 1000 ? 1 : anim->MTicksPerSecond);
 				Assert(!float.IsNaN(speedFactor));
 				emotionAnim.Duration = (float) (anim->MDuration / speedFactor);
+
 				list.Add(emotionAnim);
 
 				for (var j = 0; j < channels.Length; j++)
@@ -355,36 +389,26 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		#region Meshes
 
-		protected unsafe SkeletonAnimRigNode? ProcessNode(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials)
+		protected unsafe void WalkNodesForMeshes(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials, SkeletonAnimRigRoot? skeleton)
 		{
-			if ((IntPtr) n == IntPtr.Zero) return null;
-
-			var myRigNode = new SkeletonAnimRigNode
-			{
-				Name = n->MName.AsString,
-				LocalTransform = Matrix4x4.Transpose(n->MTransformation),
-				Children = new SkeletonAnimRigNode[n->MNumChildren]
-			};
+			if ((IntPtr) n == IntPtr.Zero) return;
 
 			for (var i = 0; i < n->MNumMeshes; i++)
 			{
 				uint meshIdx = n->MMeshes[i];
 				AssMesh* mesh = scene->MMeshes[meshIdx];
-				Mesh emotionMesh = ProcessMesh(mesh, materials);
+				Mesh emotionMesh = ProcessMesh(mesh, materials, skeleton);
 				list.Add(emotionMesh);
 			}
 
 			for (var i = 0; i < n->MNumChildren; i++)
 			{
 				Node* child = n->MChildren[i];
-				SkeletonAnimRigNode? childRigNode = ProcessNode(scene, child, list, materials);
-				myRigNode.Children[i] = childRigNode;
+				WalkNodesForMeshes(scene, child, list, materials, skeleton);
 			}
-
-			return myRigNode;
 		}
 
-		protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials)
+		protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials, SkeletonAnimRigRoot? skeleton)
 		{
 			var newMesh = new Mesh
 			{
@@ -400,7 +424,8 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				indicesCount += face.MNumIndices;
 			}
 
-			// Todo: dynamically change type based on size
+			// dynamically change type based on vertex count?
+			// is it realistic to have meshes with 65k+ vertices?
 			var emotionIndices = new ushort[indicesCount];
 			var emoIdx = 0;
 			for (var p = 0; p < m->MNumFaces; p++)
@@ -472,37 +497,45 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				{
 					ref VertexWeight boneDef = ref bone->MWeights[j];
 
-					if (boneDef.MVertexId > vertices.Length - 1)
-					{
-						continue;
-					}
+					if (boneDef.MVertexId > vertices.Length - 1) continue;
 
 					ref VertexDataWithBones vertex = ref vertices[boneDef.MVertexId];
 
 					// Todo: better way of doing this
-					if (vertex.BoneIds.X == 0)
+					var found = false;
+					for (var dim = 0; dim < 4; dim++)
 					{
-						vertex.BoneIds.X = boneIndex;
-						vertex.BoneWeights.X = boneDef.MWeight;
+						if (vertex.BoneIds[dim] != 0) continue;
+
+						vertex.BoneIds[dim] = boneIndex;
+						vertex.BoneWeights[dim] = boneDef.MWeight;
+						found = true;
+						break;
 					}
-					else if (vertex.BoneIds.Y == 0)
-					{
-						vertex.BoneIds.Y = boneIndex;
-						vertex.BoneWeights.Y = boneDef.MWeight;
-					}
-					else if (vertex.BoneIds.Z == 0)
-					{
-						vertex.BoneIds.Z = boneIndex;
-						vertex.BoneWeights.Z = boneDef.MWeight;
-					}
-					else if (vertex.BoneIds.W == 0)
-					{
-						vertex.BoneIds.W = boneIndex;
-						vertex.BoneWeights.W = boneDef.MWeight;
-					}
-					else
+
+					// If no free bone weight replace the lowest weight if it is lower than this one.
+					if (!found)
 					{
 						Engine.Log.Warning($"Bone {bone->MName.AsString} affects more than 4 vertices in mesh {m->MName.AsString}.", "Assimp", true);
+
+						var lowestWeight = float.MaxValue;
+						int lowestWeightIdx = -1;
+
+						for (var dim = 0; dim < 4; dim++)
+						{
+							float thisWeight = vertex.BoneWeights[dim];
+							if (thisWeight < lowestWeight)
+							{
+								lowestWeight = thisWeight;
+								lowestWeightIdx = dim;
+							}
+						}
+
+						if (lowestWeight < boneDef.MWeight)
+						{
+							vertex.BoneIds[lowestWeightIdx] = boneIndex;
+							vertex.BoneWeights[lowestWeightIdx] = boneDef.MWeight;
+						}
 					}
 				}
 			}
