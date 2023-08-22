@@ -88,7 +88,7 @@ namespace Emotion.Graphics.Batches
 				var vao = new VertexArrayObject<T>(vbo);
 				return new FencedBufferObjects(vbo, vao);
 			});
-			_memoryIndices = new FencedBufferSource(_indexByteSize * _structCapacity, _bufferCount, s =>
+			_memoryIndices = new FencedBufferSource(_indexByteSize * _structCapacity * 3, _bufferCount, s =>
 			{
 				var ibo = new IndexBuffer(s, BufferUsage.StreamDraw);
 				return new FencedBufferObjects(ibo, null);

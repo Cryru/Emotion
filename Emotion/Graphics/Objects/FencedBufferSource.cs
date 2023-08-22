@@ -17,9 +17,9 @@ namespace Emotion.Graphics.Objects;
 public sealed class FencedBufferObjects
 {
     public DataBuffer DataBuffer { get; private set; }
-    public VertexArrayObject VAO { get; private set; }
+    public VertexArrayObject? VAO { get; private set; }
 
-    public FencedBufferObjects(DataBuffer dataBuffer, VertexArrayObject vao)
+    public FencedBufferObjects(DataBuffer dataBuffer, VertexArrayObject? vao)
     {
         DataBuffer = dataBuffer;
         VAO = vao;
