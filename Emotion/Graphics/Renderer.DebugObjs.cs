@@ -26,13 +26,15 @@ namespace Emotion.Graphics
 			_triangles.Add(p3);
 		}
 
-		public void DbgAddPoint(Vector3 p)
+		public void DbgAddPoint(Vector3 p, float radius = 1f)
 		{
 			if (!Engine.Configuration.DebugMode) return;
 
 			var meshGen = new SphereMeshGenerator();
 			_spheres ??= new();
-			_spheres.Add(meshGen.GenerateMesh().TransformMeshVertices(Matrix4x4.CreateTranslation(p)).ColorMeshVertices(Color.Green * 0.5f));
+			_spheres.Add(meshGen.GenerateMesh().TransformMeshVertices(
+					Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
+				).ColorMeshVertices(Color.Green * 0.5f));
 		}
 
 		public void DbgAddLine(Vector3 p, Vector3 p2, bool relative = false)
@@ -50,7 +52,7 @@ namespace Emotion.Graphics
 			_lines?.Clear();
 		}
 
-		private void RenderDebugObjects()
+		public void RenderDebugObjects()
 		{
 			if (_triangles != null && _triangles.Count != 0)
 			{
