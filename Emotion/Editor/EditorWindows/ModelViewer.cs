@@ -8,6 +8,7 @@ using Emotion.Editor.EditorWindows.ModelViewerUtil;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
@@ -53,9 +54,10 @@ public class EditorPanel : UIBaseWindow
 	{
 		base.AttachedToController(controller);
 
-		var container = new UIBaseWindow();
-
-		container.HandleInput = true;
+		var container = new UIBaseWindow
+		{
+			HandleInput = true
+		};
 		_container = container;
 		_centered = true;
 

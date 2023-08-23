@@ -1,4 +1,4 @@
-﻿using Emotion.Game.World2D.EditorHelpers;
+﻿using Emotion.Game.World.Editor;
 using Emotion.UI;
 
 namespace Emotion.Editor.EditorHelpers;

@@ -130,7 +130,7 @@ public partial class World2DEditor
 
 			if (Engine.Host.IsCtrlModifierHeld() && map.TileData != null)
 			{
-				var tileSize = map.TileData.TileSize;
+				Vector2 tileSize = map.TileData.TileSize;
 				newPos /= tileSize;
 				newPos = newPos.Floor();
 				newPos *= tileSize;

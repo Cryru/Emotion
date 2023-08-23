@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;
@@ -11,7 +12,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class MapEditorPanelTopBar : UIBaseWindow
+    public class MapEditorPanelTopBar : UIBaseWindow
 	{
 		private bool _mouseDown;
 		private Vector2 _mouseDownPos;

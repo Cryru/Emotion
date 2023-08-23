@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Editor.PropertyEditors;
+using Emotion.Game.World.Editor;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
@@ -10,7 +11,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class PropEditorNumber<T> : UIBaseWindow, IPropEditorGeneric where T : INumber<T>
+    public class PropEditorNumber<T> : UIBaseWindow, IPropEditorGeneric where T : INumber<T>
 	{
 		public XMLFieldHandler? Field { get; set; }
 

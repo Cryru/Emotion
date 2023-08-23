@@ -76,6 +76,7 @@ public abstract partial class WorldBaseEditor
 		Engine.Renderer.Camera = _editorCamera;
 		Engine.Renderer.Camera.Position = _cameraOutsideEditor.Position;
 
+		InitializeEditorInterface();
 		EnterEditorInternal();
 
 		EditorOpen = true;
@@ -99,6 +100,7 @@ public abstract partial class WorldBaseEditor
 		Engine.Renderer.Camera = _cameraOutsideEditor;
 		_editorCamera = null;
 
+		DisposeEditorInterface();
 		ExitEditorInternal();
 
 		EditorOpen = false;

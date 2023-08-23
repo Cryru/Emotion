@@ -53,6 +53,12 @@ public abstract class BaseMap
 		OnMapReset?.Invoke();
 	}
 
+	// We need to do some manual init as the serialization constructor will expect these to be present.
+	public virtual void EditorCreateInitialize()
+	{
+		InitAsync().Wait();
+	}
+
 	#region Internal API
 
 	public abstract Task InitAsync();

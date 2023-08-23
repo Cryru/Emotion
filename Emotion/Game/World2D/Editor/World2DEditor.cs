@@ -25,14 +25,12 @@ public partial class World2DEditor : WorldBaseEditorGeneric<Map2D>
 
 	protected override void EnterEditorInternal()
 	{
-		InitializeEditorInterface();
 		InitializeObjectEditor();
 		InitializeTileEditor();
 	}
 
 	protected override void ExitEditorInternal()
 	{
-		DisposeEditorInterface();
 		DisposeObjectEditor();
 	}
 

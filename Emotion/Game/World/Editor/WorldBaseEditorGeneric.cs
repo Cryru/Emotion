@@ -4,14 +4,13 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World.SceneControl;
-using Emotion.Game.World2D;
 using Emotion.IO;
 
 #endregion
 
 namespace Emotion.Game.World.Editor;
 
-public abstract class WorldBaseEditorGeneric<T> : WorldBaseEditor where T : Map2D
+public abstract class WorldBaseEditorGeneric<T> : WorldBaseEditor where T : BaseMap
 {
 	public new T? CurrentMap
 	{

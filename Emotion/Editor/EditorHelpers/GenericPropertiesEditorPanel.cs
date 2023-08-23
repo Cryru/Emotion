@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Editor.PropertyEditors;
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;

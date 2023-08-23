@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;

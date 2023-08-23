@@ -58,7 +58,7 @@ public class EditorCheckboxList : UIBaseWindow
 		{
 			if (_items == null) return;
 
-			var dropDown = new MapEditorDropdown();
+			var dropDown = new EditorDropdown();
 			dropDown.Offset = button.RenderBounds.BottomLeft / button.GetScale();
 
 			var editors = new UIBaseWindow[_items.Length];

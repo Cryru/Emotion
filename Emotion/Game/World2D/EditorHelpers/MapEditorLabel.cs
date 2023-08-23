@@ -1,12 +1,13 @@
 ﻿#region Using
 
+using Emotion.Game.World.Editor;
 using Emotion.UI;
 
 #endregion
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class MapEditorLabel : UIText
+    public class MapEditorLabel : UIText
 	{
 		public MapEditorLabel(string label)
 		{

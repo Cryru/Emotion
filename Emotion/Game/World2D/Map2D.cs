@@ -98,6 +98,14 @@ namespace Emotion.Game.World2D
 			PersistentObjects = new();
 		}
 
+		public override void EditorCreateInitialize()
+		{
+			MapSize = new Vector2(1, 1);
+			PersistentObjects = new List<GameObject2D>();
+
+			base.EditorCreateInitialize();
+		}
+
 		#region Init
 
 		/// <summary>

@@ -4,7 +4,7 @@ using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Game.World.Editor
 {
 	public class MapEditorInfoWorldAttach : UIWorldAttachedWindow
 	{
