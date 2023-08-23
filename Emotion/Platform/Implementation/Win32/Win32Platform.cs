@@ -14,6 +14,9 @@ using WinApi;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
+using WinApi.Kernel32;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text;
 
 #if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
@@ -639,6 +642,52 @@ namespace Emotion.Platform.Implementation.Win32
 	        }
 
 	        return AssertMessageBoxResponse.Break;
+        }
+
+        #endregion
+
+        #region Clipboard
+
+        public override void SetClipboard(string data)
+        {
+            User32.OpenClipboard(_helperWindowHandle);
+            User32.EmptyClipboard();
+
+            var dataAsBytes = Encoding.Unicode.GetBytes(data);
+            nint globalMemoryHandle = Kernel32.GlobalAlloc((uint) GlobalMemoryFlags.GMEM_MOVEABLE, (nuint)dataAsBytes.Length + 2);
+
+            nint ptr = Kernel32.GlobalLock(globalMemoryHandle);
+            Marshal.Copy(dataAsBytes, 0, ptr, dataAsBytes.Length);
+            Marshal.WriteByte(ptr + dataAsBytes.Length, 0);
+            Marshal.WriteByte(ptr + dataAsBytes.Length + 1, 0);
+            Kernel32.GlobalUnlock(globalMemoryHandle);
+
+            User32.SetClipboardData((uint) ClipboardFormat.CF_UNICODETEXT, globalMemoryHandle);
+            User32.CloseClipboard();
+            CheckError("ClipboardSet");
+
+            // no need to free the clipboard memory, SetClipboardData will do it for us
+            // (only if the copy is successful, but don't worry about it)
+        }
+
+        public override string GetClipboard()
+        {
+            User32.OpenClipboard(_helperWindowHandle);
+            
+            nint globalMemoryHandle = User32.GetClipboardData((uint)ClipboardFormat.CF_UNICODETEXT);
+
+            if (globalMemoryHandle != 0)
+            {
+                nint ptr = Kernel32.GlobalLock(globalMemoryHandle);
+                string str = Marshal.PtrToStringUni(ptr);
+                Kernel32.GlobalUnlock(globalMemoryHandle);
+                return str;
+            }
+         
+            User32.CloseClipboard();
+            CheckError("ClipboardGet");
+
+            return string.Empty;
         }
 
         #endregion

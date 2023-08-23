@@ -337,6 +337,22 @@ namespace Emotion.Platform
 
         #endregion
 
+        #region Clipboard
+
+        private string _clipBoard = string.Empty;
+
+        public virtual void SetClipboard(string data)
+        {
+            _clipBoard = data;
+        }
+
+        public virtual string GetClipboard()
+        {
+            return _clipBoard;
+        }
+
+        #endregion
+
         /// <summary>
         /// Close the platform.
         /// This call is meant to notify the platform of a shut-down.

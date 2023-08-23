@@ -553,4 +553,26 @@ namespace WinApi.Kernel32
         CpBig5 = 950,
         CpShiftJIs = 932
     }
+
+    [Flags]
+    enum GlobalMemoryFlags : uint
+    {
+        GMEM_FIXED = 0x0000,
+        GMEM_MOVEABLE = 0x0002,
+        GMEM_ZEROINIT = 0x0040,
+        GMEM_MODIFY = 0x0080,
+        GMEM_VALID_FLAGS = 0x7F72,
+        GMEM_INVALID_HANDLE = 0x8000,
+        GHND = (GMEM_MOVEABLE | GMEM_ZEROINIT),
+        GPTR = (GMEM_FIXED | GMEM_ZEROINIT),
+        /*The following values are obsolete, but are provided for compatibility with 16-bit Windows. They are ignored.*/
+        GMEM_DDESHARE = 0x2000,
+        GMEM_DISCARDABLE = 0x0100,
+        GMEM_LOWER = GMEM_NOT_BANKED,
+        GMEM_NOCOMPACT = 0x0010,
+        GMEM_NODISCARD = 0x0020,
+        GMEM_NOT_BANKED = 0x1000,
+        GMEM_NOTIFY = 0x4000,
+        GMEM_SHARE = 0x2000
+    }
 }

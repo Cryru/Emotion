@@ -180,6 +180,8 @@ namespace Emotion.Utility
         public static IntPtr StringToPtr(string text)
         {
             // todo: Check Marshal.StringToHGlobalUni
+            // note: that AllocHGlobal allocates mem as fixed which means it cannot be used
+            // for clipboards.
             
             int len = Encoding.UTF8.GetByteCount(text);
             var buffer = new byte[len + 1];

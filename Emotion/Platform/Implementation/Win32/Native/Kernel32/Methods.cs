@@ -247,5 +247,15 @@ namespace WinApi.Kernel32
             out bool lpUsedDefaultChar);
 
         #endregion
+
+        [DllImport(LibraryName)]
+        public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+
+        [DllImport(LibraryName)]
+        public static extern IntPtr GlobalLock(IntPtr hMem);
+
+        [DllImport(LibraryName)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GlobalUnlock(IntPtr hMem);
     }
 }
