@@ -168,6 +168,11 @@ namespace Emotion.Game.Text
 			return position;
 		}
 
+		public bool IsNextCharacterGoingToWrap()
+		{
+			return _newLineIndices.IndexOf(_counter) != -1;
+        }
+
 		/// <summary>
 		/// Restart only the pen position.
 		/// </summary>

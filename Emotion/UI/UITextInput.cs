@@ -66,16 +66,64 @@ namespace Emotion.UI
 
             if (key == Key.LeftArrow && status == KeyStatus.Down)
             {
-                _selectionEnd--;
-                EnsureSelectionRight();
-                _selectionStart = _selectionEnd;
+                if (_selectionEnd != _selectionStart)
+                {
+                    int smaller = Math.Min(_selectionEnd, _selectionStart);
+                    _selectionEnd = smaller;
+                    _selectionStart = smaller;
+                }
+                else
+                {
+                    _selectionEnd--;
+                    EnsureSelectionRight();
+                    _selectionStart = _selectionEnd;
+                }
+                ResetBlinkingCursor();
             }
 
             if (key == Key.RightArrow && status == KeyStatus.Down)
             {
-                _selectionEnd++;
-                EnsureSelectionRight();
-                _selectionStart = _selectionEnd;
+                if (_selectionEnd != _selectionStart)
+                {
+                    int larger = Math.Max(_selectionEnd, _selectionStart);
+                    _selectionEnd = larger;
+                    _selectionStart = larger;
+                }
+                else
+                {
+                    _selectionEnd++;
+                    EnsureSelectionRight();
+                    _selectionStart = _selectionEnd;
+                }
+                ResetBlinkingCursor();
+            }
+
+            if (key == Key.UpArrow && status == KeyStatus.Down)
+            {
+                var posOfCurrent = GetPositonOfSelection(_selectionStart);
+                posOfCurrent.Y -= _atlas.FontHeight / 2;
+                var closestSepIdx = GetSelectionIndexUnderCursor(posOfCurrent);
+                if (closestSepIdx != -1)
+                {
+                    _selectionStart = closestSepIdx;
+                    _selectionEnd = _selectionStart;
+                    EnsureSelectionRight();
+                }
+                ResetBlinkingCursor();
+            }
+
+            if (key == Key.DownArrow && status == KeyStatus.Down)
+            {
+                var posOfCurrent = GetPositonOfSelection(_selectionStart);
+                posOfCurrent.Y += _atlas.FontHeight * 2;
+                var closestSepIdx = GetSelectionIndexUnderCursor(posOfCurrent);
+                if (closestSepIdx != -1)
+                {
+                    _selectionStart = closestSepIdx;
+                    _selectionEnd = _selectionStart;
+                    EnsureSelectionRight();
+                }
+                ResetBlinkingCursor();
             }
 
             // Selection drag
@@ -114,13 +162,19 @@ namespace Emotion.UI
                     var selection = GetSelectedText();
                     if (selection.Length != 0)
                     {
-
+                        Engine.Host.SetClipboard(new string(selection));
                     }
 
                     return false;
                 }
                 else if (key == Key.V) // Paste
                 {
+                    var clipboardStr = Engine.Host.GetClipboard();
+                    if (!string.IsNullOrEmpty(clipboardStr))
+                    {
+                        InsertString(clipboardStr);
+                    }
+
                     return false;
                 }
                 else if (key == Key.Z) // Undo
@@ -230,6 +284,37 @@ namespace Emotion.UI
             }
         }
 
+        protected void InsertString(string str)
+        {
+            EnsureSelectionRight();
+            int smallerSelIdx = Math.Min(_selectionStart, _selectionEnd);
+            int largerSelIdx = Math.Max(_selectionStart, _selectionEnd);
+
+            ReadOnlySpan<char> leftOfSelection = Text.AsSpan(0, smallerSelIdx);
+            ReadOnlySpan<char> rightOfSelection = Text.AsSpan(largerSelIdx, Text.Length - largerSelIdx);
+
+            StringBuilder b = new StringBuilder();
+            b.Append(leftOfSelection);
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                char c = str[i];
+                if (CanAddCharacter(c))
+                {
+                    b.Append(c);
+                }
+            }
+
+            b.Append(rightOfSelection);
+            Text = b.ToString();
+
+            _selectionEnd = leftOfSelection.Length + 1;
+            _selectionStart = _selectionEnd;
+            EnsureSelectionRight();
+
+            TextChanged();
+        }
+
         protected override Vector2 InternalMeasure(Vector2 space)
         {
             Vector2 textSize = base.InternalMeasure(space);
@@ -248,51 +333,88 @@ namespace Emotion.UI
         {
             base.RenderInternal(c);
 
+            // Maybe recalculate selection box only when text/selection changes?
+            // On the other hand only one can be focused at a time soooo
             bool focused = Controller?.InputFocus == this;
             if (focused && _layouter != null)
             {
                 _layouter.RestartPen();
 
-                Vector2 selectionStartPos = Vector2.Zero;
-                Vector2 selectionEndPos = Vector2.Zero;
+                List<Rectangle> selectionRects = new List<Rectangle>(1); // maybe cache this per text+selection change?
 
                 int idx = 0;
                 for (int i = 0; i < Text.Length + 1; i++)
                 {
                     Vector2 gPos;
-                    float glyphWidth = 0;
+                    Vector2 gPosPreWrap = Vector2.Zero;
                     if (i < Text.Length)
                     {
                         char ch = Text[i];
-                        gPos = _layouter.AddLetter(ch, out DrawableGlyph g);
+
+                        bool willWrapNext = _layouter.IsNextCharacterGoingToWrap();
+                        if (willWrapNext)
+                        {
+                            gPosPreWrap = _layouter.GetNextGlyphPosition(_layouter.GetPenLocation(), ch, out Vector2 _, out DrawableGlyph _);
+                        }
+
+                        gPos = _layouter.AddLetter(ch, out DrawableGlyph _);
                     }
                     else
                     {
                         gPos = _layouter.GetPenLocation();
                     }
 
-                    //if (g == null || g.GlyphUV == Rectangle.Empty) continue;
-
                     if (_cursorOn && idx == _selectionEnd)
                     {
                         Vector2 cursorDrawStart = gPos;
+
+                        // Doesn't cover all cases, but good enough.
+                        if (gPosPreWrap != Vector2.Zero && _selectionEnd != _selectionStart)
+                        {
+                            cursorDrawStart = gPosPreWrap;
+                        }
+
                         var top = new Vector3(X + cursorDrawStart.X, Y + cursorDrawStart.Y, Z);
                         var bottom = new Vector3(X + cursorDrawStart.X, Y + cursorDrawStart.Y + _atlas.FontHeight, Z);
 
                         c.RenderLine(top, bottom, _calculatedColor);
                     }
 
-                    if (idx == _selectionStart) selectionStartPos = gPos;
-                    if (idx == _selectionEnd) selectionEndPos = gPos;
+                    // Fill selection boxes for every line.
+                    if (_selectionStart != _selectionEnd && 
+                        ((idx >= _selectionStart && idx <= _selectionEnd) || (idx >= _selectionEnd && idx <= _selectionStart)))
+                    {
+                        var currentPosRect = new Rectangle(gPos.X, gPos.Y, 0, _atlas.FontHeight);
+                        if (selectionRects.Count == 0)
+                        {
+                            selectionRects.Add(currentPosRect);
+                        }
+                        else
+                        {
+                            if (gPosPreWrap != Vector2.Zero)
+                            {
+                                var altGlyphPosRect = new Rectangle(gPosPreWrap.X, gPosPreWrap.Y, 0, _atlas.FontHeight);
+                                selectionRects[^1] = Rectangle.Union(selectionRects[^1], altGlyphPosRect);
+                            }
+
+                            // Check if new line
+                            var currentRect = selectionRects[^1];
+                            if (gPos.Y != currentRect.Y)
+                                selectionRects.Add(currentPosRect);
+                            else
+                                selectionRects[^1] = Rectangle.Union(currentRect, currentPosRect);
+                        }
+                    }
 
                     idx++;
                 }
 
-                if (selectionStartPos != Vector2.Zero && selectionEndPos != Vector2.Zero)
+                for (int i = 0; i < selectionRects.Count; i++)
                 {
+                    var rect = selectionRects[i];
                     c.RenderSprite(
-                        new Vector3(X + selectionStartPos.X, Y + selectionStartPos.Y, Z - 1),
-                        new Vector2(selectionEndPos.X - selectionStartPos.X, _atlas.FontHeight), Color.PrettyBlue * 0.3f);
+                       new Vector2(X + rect.X, Y + rect.Y).IntCastRound().ToVec3(Z - 1),
+                       rect.Size, Color.PrettyBlue * 0.3f);
                 }
             }
 
@@ -340,6 +462,60 @@ namespace Emotion.UI
             for (int i = 0; i < Text.Length + 1; i++)
             {
                 Vector2 gPos;
+                Vector2 gPosPreWrap = Vector2.Zero;
+                if (i < Text.Length)
+                {
+                    char ch = Text[i];
+
+                    bool willWrapNext = _layouter.IsNextCharacterGoingToWrap();
+                    if (willWrapNext)
+                    {
+                        gPosPreWrap = _layouter.GetNextGlyphPosition(_layouter.GetPenLocation(), ch, out Vector2 _, out DrawableGlyph _);
+                    }
+
+                    gPos = _layouter.AddLetter(ch, out DrawableGlyph g);
+                }
+                else
+                {
+                    gPos = _layouter.GetPenLocation();
+                }
+
+                gPos.Y += _atlas.FontHeight / 2f;
+
+                float dist = Vector2.Distance(Position2 + gPos, mousePos);
+                if (dist < closestSepDist)
+                {
+                    closestSepDist = dist;
+                    closestSepIdx = idx;
+                }
+
+                // Also check the cursor position of the last character on the previous line
+                // prior to it wrapping for this line.
+                if (gPosPreWrap != Vector2.Zero)
+                {
+                    gPosPreWrap.Y += _atlas.FontHeight / 2f;
+                    dist = Vector2.Distance(Position2 + gPosPreWrap, mousePos);
+                    if (dist < closestSepDist)
+                    {
+                        closestSepDist = dist;
+                        closestSepIdx = idx;
+                    }
+                }
+
+                idx++;
+            }
+
+            return closestSepIdx;
+        }
+
+        private Vector2 GetPositonOfSelection(int selId)
+        {
+            _layouter.RestartPen();
+
+            int idx = 0;
+            for (int i = 0; i < Text.Length + 1; i++)
+            {
+                Vector2 gPos;
                 if (i < Text.Length)
                 {
                     char ch = Text[i];
@@ -350,17 +526,15 @@ namespace Emotion.UI
                     gPos = _layouter.GetPenLocation();
                 }
 
-                float dist = Vector2.Distance(Position2 + gPos, mousePos);
-                if (dist < closestSepDist)
+                if (selId == idx)
                 {
-                    closestSepDist = dist;
-                    closestSepIdx = idx;
+                    return Position2 + gPos;
                 }
 
                 idx++;
             }
 
-            return closestSepIdx;
+            return Vector2.Zero;
         }
 
         private ReadOnlySpan<char> GetSelectedText()
@@ -368,6 +542,12 @@ namespace Emotion.UI
             int smallerSelIdx = Math.Min(_selectionStart, _selectionEnd);
             int largerSelIdx = Math.Max(_selectionStart, _selectionEnd);
             return Text.AsSpan(smallerSelIdx, largerSelIdx - smallerSelIdx);
+        }
+
+        private void ResetBlinkingCursor()
+        {
+            _cursorOn = true;
+            _blinkingTimer.Restart();
         }
 
         #endregion
