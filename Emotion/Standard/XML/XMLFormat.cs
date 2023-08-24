@@ -40,28 +40,34 @@ namespace Emotion.Standard.XML
 
 			// This is called first in order to index the type.
 			XMLTypeHandler? requestedTypeHandler = XMLHelpers.GetTypeHandler(requestedType);
-
-			// Check if the handler is supposed to be of an inherited type. Otherwise use the handler of the requested type.
-			XMLTypeHandler? handler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(reader, out string tag) ?? requestedTypeHandler;
-			if (handler == null)
+			if (requestedTypeHandler == null)
 			{
-				Engine.Log.Warning($"Couldn't find type handler for type {requestedType}.", MessageSource.XML);
 				return default;
 			}
 
-			// Try to find the type of the tag in the XML document.
-			Type? headerTagType = XMLHelpers.GetTypeByNameWithTypeHint(requestedType, tag);
-			if (headerTagType == null)
+			// Check if the handler is supposed to be of an inherited type based on the tag's type attribute.
+			XMLTypeHandler? inheritingHandler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(reader, out string tag);
+
+			XMLTypeHandler? handler;
+			if (inheritingHandler == null)
 			{
-				Engine.Log.Warning($"Tried to deserialize a document with header {tag} but found no such type that is assignable to {requestedType}.", MessageSource.XML);
-				return default;
-			}
-			
-			// If the document was serialized as another type...
-			if (headerTagType != requestedType)
-			{
-				// but if it can be assigned to the requested type (inheriting type)
-				if (headerTagType.IsAssignableTo(requestedType))
+				// Try to find the type XML document via its document tag
+				Type? headerTagType = XMLHelpers.GetTypeByNameWithTypeHint(requestedType, tag);
+				if (headerTagType == null)
+				{
+					Engine.Log.Warning($"Tried to deserialize a document with header {tag} but found no such type that is assignable to {requestedType}.", MessageSource.XML);
+					return default;
+				}
+
+				// Best case scenario it is the same type as the requested type.
+				if (headerTagType == requestedType)
+				{
+					handler = requestedTypeHandler;
+				}
+				// It could be a type that inherits the requested type,
+				// but didn't hit the inheritingHandler case since the document itself
+				// was serialized as that higher order type (check comment in GetTypeByNameWithTypeHint)
+				else if (headerTagType.IsAssignableTo(requestedType))
 				{
 					// then the handler is of the tag type.
 					XMLTypeHandler? headerTypeHandler = XMLHelpers.GetTypeHandler(headerTagType);
@@ -73,16 +79,21 @@ namespace Emotion.Standard.XML
 
 					handler = headerTypeHandler;
 				}
-				// or if the document type can be cast from the requested type (inherited type)
-				else if (headerTagType.IsAssignableFrom(requestedType))
-				{
-					// no changes
-				}
 				else
 				{
 					Engine.Log.Warning($"Tried to deserialize a document with header type {headerTagType}({tag}) while expecting inherited from {requestedType}.", MessageSource.XML);
 					return default;
 				}
+			}
+			else
+			{
+				handler = inheritingHandler;
+			}
+
+			if (handler == null)
+			{
+				Engine.Log.Warning($"Couldn't find type handler for type {requestedType}.", MessageSource.XML);
+				return default;
 			}
 
 			// Verify whether document is of an assignable type.
