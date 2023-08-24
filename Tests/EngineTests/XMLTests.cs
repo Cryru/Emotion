@@ -916,6 +916,41 @@ public class XMLTests
 		Assert.True((string) deserializedFirstDist["stringType"] == "this is text");
 	}
 
+	private class TypeBase
+	{
+		public int Val;
+	}
+	
+	private class TypeInherit : TypeBase
+	{
+		public int Val2;
+	}
+
+	[Test]
+	public void LoadingDocumentSerializedAsOneTypeAsItsBaseType() // BaseEditor uses this to load maps
+	{
+		//var obj = new TypeInherit
+		//{
+		//	Val = 100,
+		//	Val2 = 120
+		//};
+
+		// We don't serialize this obj here in order to prevent it from being cached by
+		// the XML type handlers.
+		const string xml = @"<?xml version=""1.0""?>
+			<TypeInherit>
+			  <Val2>120</Val2>
+			  <Val>100</Val>
+			</TypeInherit>
+		";
+
+		var restored = XMLFormat.From<TypeBase>(xml);
+		Assert.NotNull(restored);
+		Assert.True(restored.Val == 100);
+		Assert.True(restored is TypeInherit);
+		Assert.True(((TypeInherit) restored).Val2 == 120);
+	}
+
 	private HashSet<string> _usedNamed = new();
 
 	private string ToXMLForTest<T>(T obj)

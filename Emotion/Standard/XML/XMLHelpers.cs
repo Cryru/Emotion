@@ -105,11 +105,48 @@ namespace Emotion.Standard.XML
 			return ResolvedTypes.GetOrAddValue(typeName, GetTypeByNameFactory);
 		}
 
+		public static Type? GetTypeByNameWithTypeHint(Type typeHint, string typeName)
+		{
+			if (ResolvedTypes.TryGetValue(typeName, out Lazy<Type?>? evalForKey)) return evalForKey.Value;
+
+			// It is possible to load a document which was serialized as its own type, and now
+			// try to match it via that short non-qualified type and load it as a type it inherits from.
+			//
+			// For example:
+			// Document tag <TypeBar> where TypeBar : TypeFoo and XMLFormat.From<TypeFoo>
+			// Since TypeBar's name is actually AssemblyName.NameSpace.TypeBar it won't be found
+			// by the conventional function.
+			// If the document was serialized as TypeFoo then the would would've been
+			// <TypeFoo type="AssemblyName.NameSpace.TypeBar">
+			//
+			// However we can assume that it exists and it is assignable to the type the user specified, so we
+			// can find it if we look for it.
+			if (!typeName.Contains('.')) 
+			{
+				for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
+				{
+					Assembly? assembly = Helpers.AssociatedAssemblies[i];
+					Type[] allTypes = assembly.GetTypes();
+					for (var j = 0; j < allTypes.Length; j++)
+					{
+						Type type = allTypes[j];
+						if (type.Name != typeName || !type.IsAssignableTo(typeHint)) continue;
+
+						ResolvedTypes.TryAdd(typeName, new Lazy<Type?>(type));
+						return type;
+					}
+				}
+			}
+
+			return ResolvedTypes.GetOrAddValue(typeName, GetTypeByNameFactory);
+		}
+
 		private static Type? GetTypeByNameFactory(string typeName)
 		{
 			for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
 			{
-				Type? type = Helpers.AssociatedAssemblies[i].GetType(typeName, false, true);
+				Assembly? assembly = Helpers.AssociatedAssemblies[i];
+				Type? type = assembly.GetType(typeName, false, true);
 				if (type == null) continue;
 				return type;
 			}
@@ -120,6 +157,9 @@ namespace Emotion.Standard.XML
 			{
 				Type? type = assembly.GetType(typeName, false, true);
 				if (type == null) continue;
+
+				// If we found the type in a domain assembly, add it to the
+				// associated assemblies list as it seems the user wants to use stuff from it.
 				Helpers.AssociatedAssemblies.AddToArray(assembly);
 				return type;
 			}
