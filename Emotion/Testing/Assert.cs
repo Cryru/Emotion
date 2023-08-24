@@ -55,7 +55,7 @@ public static class Assert
 
 	[Conditional("DEBUG")]
 	[Conditional("AUTOBUILD")]
-	public static void NotNull(object? obj, string? text = null)
+	public static void NotNull([NotNull] object? obj, string? text = null)
 	{
 		if (obj == null) AssertFailed($"{text ?? "object"} was null");
 	}
