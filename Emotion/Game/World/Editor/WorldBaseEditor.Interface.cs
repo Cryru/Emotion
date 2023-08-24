@@ -105,8 +105,8 @@ public abstract partial class WorldBaseEditor
 
 	private class CreateNewMapEnvelope
 	{
-		public string Name;
-		public string FilePath;
+		public string? Name;
+		public string? FilePath;
 	}
 
 	protected virtual void EditorAttachTopBarButtons(UIBaseWindow parentList)
@@ -114,7 +114,7 @@ public abstract partial class WorldBaseEditor
 		BaseMap? map = CurrentMap;
 		Type mapType = _mapType;
 
-		EditorButton fileMenu = EditorDropDownButton("File", new[]
+		EditorButton fileMenu = EditorDropDownButton("Map", new[]
 		{
 			new EditorDropDownButtonDescription
 			{
@@ -140,7 +140,7 @@ public abstract partial class WorldBaseEditor
 						return true;
 					}, "", "New Map", "Create");
 
-					_editUI!.AddChild(createMapModal); //new MapEditorCreateMapPanel(this, mapType));
+					_editUI!.AddChild(createMapModal);
 				}
 			},
 			new EditorDropDownButtonDescription
@@ -148,7 +148,7 @@ public abstract partial class WorldBaseEditor
 				Name = "Open",
 				Click = (_, __) =>
 				{
-					var filePicker = new EditorFileExplorer<XMLAsset<Map2D>>(
+					var filePicker = new EditorFileExplorer<XMLAsset<BaseMap>>(
 						asset => { ChangeSceneMap(asset.Content!); },
 						assetName =>
 						{
@@ -189,6 +189,29 @@ public abstract partial class WorldBaseEditor
 			//{
 			//	Name = "Save As"
 			//}
+			new EditorDropDownButtonDescription
+			{
+				Name = "Reload",
+				Click = (_, __) => Task.Run(map!.Reset),
+				Enabled = () => map != null
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Reset From File",
+				Click = (_, __) => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
+				Enabled = () => map?.FileName != null
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "Properties",
+				Click = (_, __) =>
+				{
+					AssertNotNull(map);
+					var panel = new GenericPropertiesEditorPanel(map);
+					_editUI!.AddChild(panel);
+				},
+				Enabled = () => map != null
+			},
 		});
 
 		Type[]? dataTypes = GameDataDatabase.GetGameDataTypes();

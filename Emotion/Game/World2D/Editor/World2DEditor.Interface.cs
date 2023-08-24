@@ -144,33 +144,6 @@ public partial class World2DEditor
 			},
 		});
 
-		EditorButton mapMenu = EditorDropDownButton("Map", new[]
-		{
-			new EditorDropDownButtonDescription
-			{
-				Name = "Reload",
-				Click = (_, __) => Task.Run(map!.Reset),
-				Enabled = () => map != null
-			},
-			new EditorDropDownButtonDescription
-			{
-				Name = "Reset From File",
-				Click = (_, __) => Task.Run(() => ChangeSceneMap(map!.FileName!)), // todo: pending changes
-				Enabled = () => map?.FileName != null
-			},
-			new EditorDropDownButtonDescription
-			{
-				Name = "Properties",
-				Click = (_, __) =>
-				{
-					AssertNotNull(map);
-					var panel = new GenericPropertiesEditorPanel(map);
-					_editUI!.AddChild(panel);
-				},
-				Enabled = () => map != null
-			},
-		});
-
 		EditorButton otherTools = EditorDropDownButton("Other", new[]
 		{
 			new EditorDropDownButtonDescription
@@ -199,7 +172,6 @@ public partial class World2DEditor
 		parentList.AddChild(objectsMenu);
 		parentList.AddChild(tilesMenu);
 		parentList.AddChild(editorMenu);
-		parentList.AddChild(mapMenu);
 		parentList.AddChild(otherTools);
 	}
 
