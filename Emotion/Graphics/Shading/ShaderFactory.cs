@@ -160,7 +160,7 @@ namespace Emotion.Graphics.Shading
 
                 // Check if there's a log to print.
                 Gl.GetShader(shaderId, ShaderParameterName.InfoLogLength, out int lLength);
-                if (lLength > 0)
+                if (lLength > 1) // 0 without null termination
                 {
                     // Get the info log.
                     var compileStatusReader = new StringBuilder(lLength);
