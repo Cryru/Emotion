@@ -4,6 +4,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
+using Emotion.Utility;
 
 #endregion
 
@@ -26,7 +27,7 @@ namespace Emotion.Editor.PropertyEditors
 		private UITextInput? _textInput;
 
 		private bool _updateOnTextChange;
-		private string _updateOnTextChangeLastText;
+		private string? _updateOnTextChangeLastText;
 
 		public PropEditorString(bool updateOnTextChange = false)
 		{
@@ -39,9 +40,12 @@ namespace Emotion.Editor.PropertyEditors
 
 		public void SetValue(object value)
 		{
+			if (Helpers.AreObjectsEqual(_value, value)) return;
+
 			_value = (string) value;
 			if (_textInput != null) _textInput.Text = _value;
 			_updateOnTextChangeLastText = _value;
+			_callback?.Invoke(value);
 		}
 
 		public object GetValue()
@@ -76,13 +80,11 @@ namespace Emotion.Editor.PropertyEditors
 			textEditor.Id = "textEditor";
 			textEditor.OnSubmit = val =>
 			{
-				if (val == _value) return;
-				_value = val;
-				_updateOnTextChangeLastText = val;
-				_callback?.Invoke(_value);
+				SetValue(val);
 			};
 			textEditor.SubmitOnEnter = true;
 			textEditor.SubmitOnFocusLoss = true;
+			textEditor.Text = _value;
 			inputBg.AddChild(textEditor);
 			_textInput = textEditor;
 			SetValue(_value); // To force setting it in the UI

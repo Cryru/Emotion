@@ -97,6 +97,9 @@ public class GenericPropertiesEditorPanel : EditorPanel
 				if (editor != null)
 				{
 					editor.Field = field;
+
+					object? propertyValue = field.ReflectionInfo.GetValue(_obj);
+					editor.SetValue(propertyValue); // Initialize value before attaching callback.
 					editor.SetCallbackValueChanged(newValue => { ApplyObjectChange(editor, field, newValue); });
 
 					var editorAsWnd = (UIBaseWindow) editor;
@@ -113,7 +116,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 			}
 		}
 
-		UpdatePropertyValues();
+		//UpdatePropertyValues();
 	}
 
 	protected virtual void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)

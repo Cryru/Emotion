@@ -22,9 +22,9 @@ namespace Emotion.Editor.EditorComponents;
 public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
 {
     public bool UseAssetLoaderCache;
+    public Func<string, bool>? FileFilterFunc;
 
     private Action<T> _onFileSelected;
-    private Func<string, bool>? _fileFilter;
     private Tree<string, string> _fileSystem;
 
     private Task? _loadingTask;
@@ -34,7 +34,7 @@ public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
     public EditorFileExplorer(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [{typeof(T).GetFriendlyName()}]")
     {
         _onFileSelected = onFileSelected;
-        _fileFilter = fileFilter;
+        FileFilterFunc = fileFilter;
         UseAssetLoaderCache = false;
         _fileSystem = FilesToTree(Engine.AssetLoader.AllAssets);
 
@@ -144,7 +144,7 @@ public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
             string? leaf = branch.Leaves[i];
 
             // Check if this file is valid.
-            if (_fileFilter != null && _fileFilter(leaf))
+            if (FileFilterFunc != null && FileFilterFunc(leaf))
             {
                 var button = new FileExplorerButton
                 {
@@ -163,7 +163,7 @@ public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
             string? leaf = branch.Leaves[i];
 
             // Check if this file is valid.
-            if (_fileFilter == null || !_fileFilter(leaf))
+            if (FileFilterFunc == null || !FileFilterFunc(leaf))
             {
                 var button = new FileExplorerButton
                 {
@@ -171,7 +171,7 @@ public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
                 };
                 button.SetFileName(leaf);
 
-                if (_fileFilter != null)
+                if (FileFilterFunc != null)
                 {
                     button.WindowColor = button.WindowColor.SetAlpha(50);
                     button.OnClickedProxy = null;
