@@ -92,7 +92,7 @@ namespace Emotion.Graphics
 			bool cameraWasOn = CurrentState.ViewMatrix!.Value;
 			SetUseViewMatrix(false);
 			ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
-			SetProjectionBehavior(ProjectionBehavior.AlwaysDefault2D);
+			SetProjectionBehavior(cameraWasOn ? ProjectionBehavior.AlwaysCameraProjection : ProjectionBehavior.AlwaysDefault2D);
 
 			Matrix4x4 viewMatrix;
 			if (cameraWasOn)
