@@ -288,11 +288,6 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 				{
 					case LayoutMode.Free:
 					{
-						if (child.Id == "text")
-						{
-							bool a = true;
-						}
-
 						UIBaseWindow parent = this;
 						if (child.RelativeTo != null)
 						{
