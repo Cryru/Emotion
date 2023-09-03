@@ -36,8 +36,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 		                                          PostProcessSteps.FlipUVs |
 		                                          PostProcessSteps.SortByPrimitiveType |
 		                                          PostProcessSteps.OptimizeGraph |
-		                                          PostProcessSteps.OptimizeMeshes |
-		                                          PostProcessSteps.LimitBoneWeights;
+		                                          PostProcessSteps.OptimizeMeshes;
 
 		protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
 		{
@@ -468,7 +467,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					Vertex = assVertex,
 					UV = uv,
 
-					BoneIds = new Vector4(0),
+					BoneIds = new Vector4(0, 0, 0, 0),
 					BoneWeights = new Vector4(1, 0, 0, 0)
 				};
 			}
@@ -506,6 +505,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					ref VertexWeight boneDef = ref bone->MWeights[j];
 
 					if (boneDef.MVertexId > vertices.Length - 1) continue;
+					if (boneDef.MWeight == 0) continue;
 
 					ref VertexDataWithBones vertex = ref vertices[boneDef.MVertexId];
 
@@ -530,9 +530,9 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						int lowestWeightIdx = -1;
 
 						for (var dim = 0; dim < 4; dim++)
-						{
+						{	
 							float thisWeight = vertex.BoneWeights[dim];
-							if (thisWeight < lowestWeight)
+							if (thisWeight < lowestWeight && thisWeight != 0)
 							{
 								lowestWeight = thisWeight;
 								lowestWeightIdx = dim;
@@ -544,6 +544,34 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 							vertex.BoneIds[lowestWeightIdx] = boneIndex;
 							vertex.BoneWeights[lowestWeightIdx] = boneDef.MWeight;
 						}
+					}
+				}
+			}
+
+			// Normalize bone weights to 1.
+			for (var i = 0; i < vertices.Length; i++)
+			{
+				ref VertexDataWithBones vertex = ref vertices[i];
+
+				float totalWeightAmount = 0;
+				var nonZeroWeights = 0;
+				for (var j = 0; j < 4; j++)
+				{
+					float weight = vertex.BoneWeights[j];
+					totalWeightAmount += weight;
+
+					if (weight != 0) nonZeroWeights++;
+				}
+
+				float leftOver = 1.0f - totalWeightAmount;
+				float perBone = leftOver / nonZeroWeights;
+
+				for (var j = 0; j < 4; j++)
+				{
+					float weight = vertex.BoneWeights[j];
+					if (weight != 0)
+					{
+						vertex.BoneWeights[j] += perBone;
 					}
 				}
 			}
