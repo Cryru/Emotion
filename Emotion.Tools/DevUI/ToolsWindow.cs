@@ -100,7 +100,7 @@ namespace Emotion.Tools.DevUI
                 if (ImGui.MenuItem("Palette Editor")) AddLegacyWindow(new PaletteEditor());
                 if (ImGui.MenuItem("Font Preview")) AddLegacyWindow(new FontPreview());
                 if (ImGui.MenuItem("PNG Exporter")) AddLegacyWindow(new PngExporter());
-                if (ImGui.MenuItem("3D Object Viewer")) AddChild(new Viewer3D());
+                //if (ImGui.MenuItem("3D Object Viewer")) AddChild(new Viewer3D());
                 ImGui.EndMenu();
             }
 
