@@ -551,30 +551,35 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			// Normalize bone weights to 1.
 			for (var i = 0; i < vertices.Length; i++)
 			{
-				ref VertexDataWithBones vertex = ref vertices[i];
+                // The code below is basically
+                // float vecLength = vertex.BoneWeights.Length();
+                // float ratio = 1f / vecLength;
+                // vertex.BoneWeights = vertex.BoneWeights * ratio;
+				// But written out with doubles due to some weights being so tiny.
 
-				float totalWeightAmount = 0;
-				var nonZeroWeights = 0;
-				for (var j = 0; j < 4; j++)
+                ref VertexDataWithBones vertex = ref vertices[i];
+				double vecLength = 0;
+				for (int c = 0; c < 4; c++)
 				{
-					float weight = vertex.BoneWeights[j];
-					totalWeightAmount += weight;
+					double weight = vertex.BoneWeights[c];
+					if (weight == 0) continue;
+					vecLength += weight * weight;
+                }
+				vecLength = Math.Sqrt(vecLength);
 
-					if (weight != 0) nonZeroWeights++;
-				}
+				double ratio = 1.0 / vecLength;
+                for (int c = 0; c < 4; c++)
+                {
+                    double weight = vertex.BoneWeights[c];
+                    if (weight == 0) continue;
 
-				float leftOver = 1.0f - totalWeightAmount;
-				float perBone = leftOver / nonZeroWeights;
+					weight = weight * ratio;
 
-				for (var j = 0; j < 4; j++)
-				{
-					float weight = vertex.BoneWeights[j];
-					if (weight != 0)
-					{
-						vertex.BoneWeights[j] += perBone;
-					}
-				}
-			}
+					float weightFloat = (float)weight;
+					if (weightFloat == 0) weightFloat = Maths.EPSILON;
+					vertex.BoneWeights[c] = weightFloat;
+                }
+            }
 
 			return newMesh;
 		}
