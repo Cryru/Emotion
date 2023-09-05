@@ -1,59 +1,41 @@
 ﻿#region Using
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
 
 namespace Emotion.Graphics.Batches
 {
-	public unsafe class RenderStreamBatch<T> where T : new()
+    public unsafe partial class RenderStreamBatch
 	{
-		public ref struct StreamData
-		{
-			public Span<T> VerticesData;
-			public Span<ushort> IndicesData;
-			public ushort StructIndex;
-		}
-
-		protected Type _structType;
-		protected uint _structByteSize;
 		protected uint _structCapacity;
-		protected int _bufferCount;
 		protected uint _indexByteSize;
 
 		/// <summary>
 		/// The current batch mode of the stream. This determines the primitives drawing mode.
 		/// </summary>
 		public BatchMode BatchMode { get; protected set; } = BatchMode.Quad;
+		
+		/// <summary>
+		/// The data type of the vertices currently being mapped.
+		/// </summary>
+		public Type CurrentVertexType { get; protected set; } = typeof(VertexData);
+
+        // Performance cache for GetStreamMemory
+        private uint _currentVertexTypeByteSize = (uint) VertexData.SizeInBytes;
 
 		/// <summary>
 		/// Whether anything is mapped to the stream.
 		/// </summary>
 		public bool AnythingMapped
 		{
-			get => _dataPointer != IntPtr.Zero;
+			get => _backingBufferOffset != 0;
 		}
-
-		#region Memory
-
-		protected FencedBufferSource _memory;
-		protected FencedBufferSource _memoryIndices;
-
-		#endregion
-
-		// The pointers are mapped to the buffers started from the offset at which the mapping started, indicated by the offset variables.
-
-		#region Mapping
-
-		protected uint _mapOffsetStart;
-		protected IntPtr _dataPointer;
-		protected uint _indexMapOffsetStart;
-		protected IntPtr _indexPointer;
-		protected ushort _vertexIndex;
-
-		#endregion
 
 		#region MultiDraw
 
@@ -70,29 +52,68 @@ namespace Emotion.Graphics.Batches
 
 		#endregion
 
-		public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3, bool useAtlas = true)
+		#region Mapping Memory
+
+		protected IntPtr _backingBuffer;
+		protected uint _backingBufferSize;
+		protected uint _backingBufferOffset;
+
+        protected ushort _vertexIndex;
+
+        protected uint BackingSizeLeft
+        {
+            get => _backingBufferSize - _backingBufferOffset;
+        }
+
+        protected IntPtr _backingIndexBuffer;
+		protected uint _backingIndexBufferSize;
+		protected uint _backingIndexOffset;
+        protected uint BackingIndexSizeLeft
+        {
+            get => _backingIndexBufferSize - _backingIndexOffset;
+        }
+
+		#endregion
+
+		#region GL Objects
+
+		// todo: these could be shared by render batches that share vertex layout.
+		protected class GLRenderObjects
 		{
-			_structType = typeof(T);
-			_structByteSize = (uint)Marshal.SizeOf<T>();
+			public VertexBuffer VBO;
+			public IndexBuffer IBO;
+
+			public VertexArrayObject VAO;
+
+			public uint FrameUsed;
+        }
+
+		protected Dictionary<Type, List<GLRenderObjects>> _renderObjects = new Dictionary<Type, List<GLRenderObjects>>();
+
+        #endregion
+
+        public RenderStreamBatch(bool useAtlas = true)
+		{
 			_indexByteSize = sizeof(ushort);
 
-			_structCapacity = sizeStructs == 0 ? ushort.MaxValue : sizeStructs;
-			_bufferCount = bufferCount;
+			_structCapacity = ushort.MaxValue / 3;
 
-			Debug.Assert(_structCapacity <= ushort.MaxValue);
-			uint bufferSizeBytes = _structByteSize * _structCapacity;
+			const int defaultStructSize = 32;
+            uint bufferSizeBytes = defaultStructSize * _structCapacity;
 
-			_memory = new FencedBufferSource(bufferSizeBytes, _bufferCount, s =>
+			_backingBufferSize = bufferSizeBytes;
+			_backingBuffer = UnmanagedMemoryAllocator.MemAlloc((int)_backingBufferSize);
+            _backingIndexBufferSize = _indexByteSize * _structCapacity * 3;
+            _backingIndexBuffer = UnmanagedMemoryAllocator.MemAlloc((int)_backingIndexBufferSize);
+
+			// Arbitrary chosen number.
+			// The number of objects we'll need can vary greatly, and there is no
+			// reliable way to determine how many the driver can create.
+			// Godspeed.
+			for (int i = 0; i < 16; i++)
 			{
-				var vbo = new VertexBuffer(s, BufferUsage.StreamDraw);
-				var vao = new VertexArrayObject<T>(vbo);
-				return new FencedBufferObjects(vbo, vao);
-			});
-			_memoryIndices = new FencedBufferSource(_indexByteSize * _structCapacity * 3, _bufferCount, s =>
-			{
-				var ibo = new IndexBuffer(s, BufferUsage.StreamDraw);
-				return new FencedBufferObjects(ibo, null);
-			});
+				CreateRenderObject(typeof(VertexData));
+			}
 
 			if (!useAtlas) return;
 			_atlas = new TextureAtlas();
@@ -100,9 +121,25 @@ namespace Emotion.Graphics.Batches
 			_currentTexture = _atlas.AtlasPointer;
 		}
 
-		public StreamData GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture texture = null)
-		{
-			if (batchMode != BatchMode && AnythingMapped) FlushRender();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StreamData<VertexData> GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture texture = null)
+        {
+			return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texture);
+		}
+
+        public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, Texture texture = null) where T : struct
+        {
+			Type type = typeof(T);
+			if (CurrentVertexType != type)
+			{
+				if (AnythingMapped) FlushRender();
+				EnsureRenderObjectsOfType(type);
+                _currentVertexTypeByteSize = (uint)Marshal.SizeOf<T>();
+            }
+			CurrentVertexType = type;
+			uint typeByteSize = _currentVertexTypeByteSize;
+
+            if (batchMode != BatchMode && AnythingMapped) FlushRender();
 			BatchMode = batchMode;
 
 			texture ??= Texture.EmptyWhiteTexture;
@@ -125,51 +162,35 @@ namespace Emotion.Graphics.Batches
 				_currentTexture = texturePointer;
 			}
 
-			uint vBytesNeeded = structCount * _structByteSize;
+			uint vBytesNeeded = structCount * typeByteSize;
 			uint iBytesNeeded = indexCount * _indexByteSize;
 
 			// This request can never be serviced, as it itself is larger that an empty buffer.
-			if (vBytesNeeded > _memory.Size || iBytesNeeded > _memoryIndices.Size) return default;
+			if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
 
 			// Check if the request can be served, if not - flush the buffers.
-			bool gotStructs = _memory.CurrentBufferSize >= vBytesNeeded && _vertexIndex + structCount + indexCount <= ushort.MaxValue;
-			bool gotIndices = _memoryIndices.CurrentBufferSize >= iBytesNeeded;
+			bool gotStructs = BackingSizeLeft >= vBytesNeeded && _vertexIndex + structCount + indexCount <= ushort.MaxValue;
+			bool gotIndices = BackingIndexSizeLeft >= iBytesNeeded;
 			if (!gotStructs || !gotIndices)
 			{
 				if (AnythingMapped) FlushRender();
 
-				if (!gotStructs)
-				{
-					Debug.Assert(!_memory.CurrentBuffer.DataBuffer.Mapping);
-					_memory.SwapBuffer();
-					_vertexIndex = 0;
-				}
-
-				if (!gotIndices)
-				{
-					Debug.Assert(!_memoryIndices.CurrentBuffer.DataBuffer.Mapping);
-					_memoryIndices.SwapBuffer();
-				}
-
 				// Should have enough size now.
-				Debug.Assert(_memory.CurrentBufferSize >= vBytesNeeded);
-				Debug.Assert(_memoryIndices.CurrentBufferSize >= iBytesNeeded);
+				Debug.Assert(BackingSizeLeft >= vBytesNeeded);
+				Debug.Assert(BackingIndexSizeLeft >= iBytesNeeded);
 			}
 
-			// This will start mapping. It needs to finish with a flush in all cases.
-			EnsureMemoryMapped();
-			Debug.Assert(_indexPointer != IntPtr.Zero);
-			Debug.Assert(_dataPointer != IntPtr.Zero);
-
 			// Mark memory area as used.
-			uint vOffset = _memory.CurrentBufferOffset - _mapOffsetStart;
-			uint iOffset = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
-			_memory.SetUsed(vBytesNeeded);
-			_memoryIndices.SetUsed(iBytesNeeded);
+			uint vOffset = _backingBufferOffset;
+			uint iOffset = _backingIndexOffset;
+			_backingBufferOffset += vBytesNeeded;
+			_backingIndexOffset += iBytesNeeded;
 
-			// ReSharper disable PossibleNullReferenceException
-			var verticesData = new Span<T>(&((byte*)_dataPointer)[vOffset], (int)structCount);
-			var indicesData = new Span<ushort>(&((byte*)_indexPointer)[iOffset], (int)indexCount);
+            // ReSharper disable PossibleNullReferenceException
+            Debug.Assert(_backingBuffer != IntPtr.Zero);
+            Debug.Assert(_backingIndexBuffer != IntPtr.Zero);
+            var verticesData = new Span<T>(&((byte*)_backingBuffer)[vOffset], (int)structCount);
+			var indicesData = new Span<ushort>(&((byte*)_backingIndexBuffer)[iOffset], (int)indexCount);
 			// ReSharper enable PossibleNullReferenceException
 
 			ushort index = _vertexIndex;
@@ -197,13 +218,13 @@ namespace Emotion.Graphics.Batches
 			// This needs to happen after any potential flushes.
 			if (batchedTexture)
 			{
-				var structsMappedInCurrentMapping = (int)(vOffset / _structByteSize);
+				var structsMappedInCurrentMapping = (int)(vOffset / typeByteSize);
 				var upToStructNow = (int)(structsMappedInCurrentMapping + structCount);
 				if (_currentTexture == _atlas.AtlasPointer) _atlas.RecordTextureMapping(texture, upToStructNow);
 				else if (_currentTexture == _smoothAtlas.AtlasPointer) _smoothAtlas.RecordTextureMapping(texture, upToStructNow);
 			}
 
-			return new StreamData
+			return new StreamData<T>
 			{
 				VerticesData = verticesData,
 				IndicesData = indicesData,
@@ -214,26 +235,36 @@ namespace Emotion.Graphics.Batches
 		public void FlushRender()
 		{
 			Debug.Assert(AnythingMapped);
-			Debug.Assert(_dataPointer != IntPtr.Zero);
-			Debug.Assert(_indexPointer != IntPtr.Zero);
 
-			uint mappedBytes = _memory.CurrentBufferOffset - _mapOffsetStart;
-			uint mappedBytesIndices = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
+			uint mappedBytes = _backingBufferOffset;
+			uint mappedBytesIndices = _backingIndexOffset;
 
-			PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+            var renderObj = GetFirstFreeRenderObject(CurrentVertexType);
+			uint structByteSize = (uint) renderObj.VAO.ByteSize;
+
+            PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
 
 			// Remap UVs to be within the atlas, if using the atlas.
-			if (_currentTexture == _atlas?.AtlasPointer) _atlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
-			else if (_currentTexture == _smoothAtlas?.AtlasPointer) _smoothAtlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
+			if (_currentTexture == _atlas?.AtlasPointer)
+				_atlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
+			else if (_currentTexture == _smoothAtlas?.AtlasPointer)
+				_smoothAtlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
 
-			// Range is relative to the mapped range, not the whole buffer.
-			_memory.Flush(mappedBytes);
-			_memoryIndices.Flush(mappedBytesIndices);
+			// Avoid allocations
+			if (renderObj.VBO.Size < mappedBytes)
+				renderObj.VBO.Upload(_backingBuffer, mappedBytes);
+			else
+				renderObj.VBO.UploadPartial(_backingBuffer, mappedBytes);
 
-			// Bind GL state.
-			Texture.EnsureBound(_currentTexture);
-			VertexArrayObject.EnsureBound(_memory.CurrentBuffer.VAO);
-			IndexBuffer.EnsureBound(_memoryIndices.CurrentBuffer.DataBuffer.Pointer);
+            if (renderObj.IBO.Size < mappedBytesIndices)
+                renderObj.IBO.Upload(_backingIndexBuffer, mappedBytesIndices);
+            else
+                renderObj.IBO.UploadPartial(_backingIndexBuffer, mappedBytesIndices);
+
+            // Bind GL state.
+            Texture.EnsureBound(_currentTexture);
+			VertexArrayObject.EnsureBound(renderObj.VAO);
+			IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
 
 			// Draw with the appropriate state.
 			PrimitiveType primitiveType = BatchMode switch
@@ -257,24 +288,37 @@ namespace Emotion.Graphics.Batches
 			}
 			else
 			{
-				var startIndexInt = (IntPtr)_indexMapOffsetStart;
 				var count = (int)(mappedBytesIndices / _indexByteSize);
-				Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, startIndexInt);
+				Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, IntPtr.Zero);
 			}
 
 			PerfProfiler.FrameEventEnd("Stream Render");
 
-			// Reset mapping.
-			_dataPointer = IntPtr.Zero;
-			_indexPointer = IntPtr.Zero;
-			_mapOffsetStart = 0;
-			_indexMapOffsetStart = 0;
+            _vertexIndex = 0;
+            _backingBufferOffset = 0;
+            _backingIndexOffset = 0;
 
-			// Reset texture mapping, if using it.
-			if (_atlas == null) return;
+			// This render obj will be reused only in the next frame,
+			// to ensure synchronization and not having to fence.
+			//
+			// todo: figure out how this interfaces with double buffering,
+			// is it possible for the object to still be in use?
+			renderObj.FrameUsed = Engine.FrameCount;
+
+            // Reset texture mapping, if using it.
+            if (_atlas == null) return;
 			_atlas.ResetMapping();
 			_smoothAtlas.ResetMapping();
-		}
+
+			// According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
+			// in the pipeline references the buffer object, regardless of whether it concerns the region
+			// being updated. Nvidia and AMD gracefully handle this, but Intel GPUs will silently fail to
+			// render some triangles.
+			//
+			// Because of this we swap buffers after every render, regardless of how small it is.
+			// This sucks and makes the FencedBufferSource more or less useless and a more general solution
+			// should be implemented. For now this is the bandaid.
+        }
 
 		public void DoTasks(RenderComposer c)
 		{
@@ -282,30 +326,66 @@ namespace Emotion.Graphics.Batches
 			_smoothAtlas?.Update(c);
 		}
 
-		#region Helpers and Overloads
+        #region GL Render Objects
 
-		/// <summary>
-		/// Ensures the memory pointers are mapped and lazily initializes memory.
-		/// </summary>
-		protected void EnsureMemoryMapped()
+		protected GLRenderObjects CreateRenderObject(Type vertexType)
 		{
-			if (_dataPointer == IntPtr.Zero)
-			{
-				_mapOffsetStart = _memory.CurrentBufferOffset;
-				_dataPointer = _memory.StartMapping();
-			}
+            var vbo = new VertexBuffer(0, BufferUsage.StreamDraw);
+            var ibo = new IndexBuffer(0, BufferUsage.StreamDraw);
+            var vao = new VertexArrayObjectTypeArg(vertexType, vbo, ibo);
 
-			if (_indexPointer == IntPtr.Zero)
+            GLRenderObjects objectsPair = new GLRenderObjects()
 			{
-				_indexMapOffsetStart = _memoryIndices.CurrentBufferOffset;
-				_indexPointer = _memoryIndices.StartMapping();
+				VBO = vbo,
+				VAO = vao,
+				IBO = ibo,
+			};
+
+            List<GLRenderObjects> renderObjsOfType;
+            if (!_renderObjects.TryGetValue(vertexType, out renderObjsOfType))
+			{
+				renderObjsOfType = new List<GLRenderObjects>();
+				_renderObjects.Add(vertexType, renderObjsOfType);
 			}
+            renderObjsOfType.Add(objectsPair);
+			return objectsPair;
+        }
+
+		protected void EnsureRenderObjectsOfType(Type type)
+		{
+            if (!_renderObjects.ContainsKey(type))
+            {
+				CreateRenderObject(type);
+            }
+        }
+
+        protected GLRenderObjects GetFirstFreeRenderObject(Type vertexType)
+        {
+            List<GLRenderObjects> renderObjsOfType;
+            if (!_renderObjects.TryGetValue(vertexType, out renderObjsOfType))
+            {
+				Assert(false, $"No render object of vertex type {vertexType.Name}");
+				return null;
+            }
+
+            for (int i = 0; i < renderObjsOfType.Count; i++)
+			{
+				var obj = renderObjsOfType[i];
+				if (obj.FrameUsed == Engine.FrameCount) continue;
+				return obj;
+            }
+
+			return CreateRenderObject(vertexType);
 		}
 
-		/// <summary>
-		/// Get stream memory and automatically map indices depending on the batch mode.
-		/// </summary>
-		public Span<T> GetStreamMemory(uint structCount, BatchMode batchMode, Texture texture = null)
+		#endregion
+
+		#region Helpers and Overloads
+
+        /// <summary>
+        /// Get stream memory and automatically map indices depending on the batch mode.
+        /// </summary>
+        public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, Texture texture = null) where T : struct
 		{
 			uint indexCount = 0;
 			switch (batchMode)
@@ -319,7 +399,7 @@ namespace Emotion.Graphics.Batches
 					break;
 			}
 
-			StreamData streamData = GetStreamMemory(structCount, indexCount, batchMode, texture);
+			StreamData<T> streamData = GetStreamMemory<T>(structCount, indexCount, batchMode, texture);
 			Span<ushort> indicesSpan = streamData.IndicesData;
 			ushort offset = streamData.StructIndex;
 			switch (batchMode)
@@ -340,6 +420,12 @@ namespace Emotion.Graphics.Batches
 			return streamData.VerticesData;
 		}
 
-		#endregion
-	}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<VertexData> GetStreamMemory(uint structCount, BatchMode batchMode, Texture texture = null)
+        {
+            return GetStreamMemory<VertexData>(structCount, batchMode, texture);
+        }
+
+        #endregion
+    }
 }

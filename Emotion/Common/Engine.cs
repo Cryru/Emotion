@@ -96,6 +96,11 @@ namespace Emotion.Common
         /// </summary>
         public static uint TickCount { get; set; }
 
+        /// <summary>
+        /// The index of the current frame.
+        /// </summary>
+        public static uint FrameCount { get; set; }
+
         static Engine()
         {
             Helpers.AssociatedAssemblies = new List<Assembly>
@@ -400,6 +405,7 @@ namespace Emotion.Common
 
         private static void RunFrame()
         {
+            FrameCount++;
             PerfProfiler.FrameStart();
 
             // Reset cached bound state, because on some drivers SwapBuffers unbinds all objects.

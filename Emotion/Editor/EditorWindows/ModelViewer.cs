@@ -48,22 +48,12 @@ public class ModelViewer : EditorPanel
 
 	private Object3D _obj;
 
-	private static RenderStreamBatch<VertexDataWithBones>? _boneVerticesStream;
-
 	public ModelViewer() : base("Model Viewer")
 	{
 		_camera = new Camera3D(new Vector3(-290, 250, 260));
 		_camera.LookAtPoint(new Vector3(0, 0, 0));
 		_grid = new InfiniteGrid();
 		_obj = new Object3D();
-	}
-
-	protected override async Task LoadContent()
-	{
-		if (_boneVerticesStream == null)
-			GLThread.ExecuteGLThreadAsync(() => { _boneVerticesStream = new RenderStreamBatch<VertexDataWithBones>(0, 1, false); });
-
-		await base.LoadContent();
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -332,14 +322,13 @@ public class ModelViewer : EditorPanel
 				case Object3D.RenderLike.RenderStream:
 					_obj.Render(c);
 					break;
-				case Object3D.RenderLike.RenderStreamAnimated when _boneVerticesStream != null:
-					_obj.RenderAnimated(c, _boneVerticesStream);
+				case Object3D.RenderLike.RenderStreamAnimated:
+					_obj.RenderAnimated(c);
 					break;
 			}
 		}
 
 		c.RenderTo(null);
-		_boneVerticesStream?.DoTasks(c);
 
 		c.SetState(oldState);
 		c.Camera = oldCamera;

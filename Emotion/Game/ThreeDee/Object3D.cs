@@ -275,7 +275,7 @@ namespace Emotion.Game.ThreeDee
 				ushort[] indices = obj.Indices;
 				Texture? texture = null;
 				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-				RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+				StreamData<VertexData> memory = c.RenderStream.GetStreamMemory<VertexData>((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
 				if (memory.VerticesData.Length == 0)
 				{
@@ -309,7 +309,7 @@ namespace Emotion.Game.ThreeDee
 		/// The normal render stream cannot be used to do so, so one must be passed in.
 		/// Also requires the SkeletalAnim shader or one that supports skinned meshes.
 		/// </summary>
-		public void RenderAnimated(RenderComposer c, RenderStreamBatch<VertexDataWithBones> bonedStream)
+		public void RenderAnimated(RenderComposer c)
 		{
 			_skeletalShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/SkeletalAnim.xml");
 			if (_skeletalShader == null) return;
@@ -349,7 +349,7 @@ namespace Emotion.Game.ThreeDee
 				ushort[] indices = obj.Indices;
 				Texture? texture = null;
 				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-				RenderStreamBatch<VertexDataWithBones>.StreamData memory = bonedStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+				var memory = c.RenderStream.GetStreamMemory<VertexDataWithBones>((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
 				// Didn't manage to get enough memory.
 				if (memory.VerticesData.Length == 0)
@@ -367,11 +367,11 @@ namespace Emotion.Game.ThreeDee
 					memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
 				}
 
-				if (bonedStream.AnythingMapped) bonedStream.FlushRender();
-			}
+				c.FlushRenderStream();
+            }
 
-			if (bonedStream.AnythingMapped) bonedStream.FlushRender();
-			c.SetShader();
+			c.FlushRenderStream();
+            c.SetShader();
 			c.PopModelMatrix();
 
 			if (_entity.BackFaceCulling)

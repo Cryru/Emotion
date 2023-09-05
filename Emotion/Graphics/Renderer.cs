@@ -76,12 +76,6 @@ namespace Emotion.Graphics
         public bool Dsa { get; private set; }
 
         /// <summary>
-        /// Whether FencedBufferSource should use MapBufferRange instead of
-        /// BufferSubData to update its data.
-        /// </summary>
-        public bool FencedBufferUseMapBufferRange { get; private set; }
-
-        /// <summary>
         /// The maximum textures that can be bound at the same time.
         /// </summary>
         public int TextureArrayLimit { get; private set; } = -1;
@@ -93,7 +87,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The vertex data batch currently active.
         /// </summary>
-        public RenderStreamBatch<VertexData> RenderStream { get; private set; }
+        public RenderStreamBatch RenderStream { get; private set; }
 
         /// <summary>
         /// A representation of the screen's frame buffer.
@@ -215,12 +209,10 @@ namespace Emotion.Graphics
             CompatibilityMode = Gl.SoftwareRenderer || Engine.Configuration.RendererCompatMode;
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
             TextureArrayLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 16 : Gl.CurrentLimits.MaxTextureImageUnits;
-            FencedBufferUseMapBufferRange = Gl.IsIntel; // There is some kind of intel xe sychronization driver bug
 
             Engine.Log.Info($" Flags: " +
                 $"{(CompatibilityMode ? "Compat, " : "")}" +
                 $"{(Dsa ? "Dsa, " : "")}" +
-                $"{(FencedBufferUseMapBufferRange ? "MapBufferRange, " : "")}" +
                 $"Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 
             // Attach callback if debug mode is enabled.
@@ -282,7 +274,7 @@ namespace Emotion.Graphics
             BlitState.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml")!.Shader;
 
             // Create render stream. This is used for IM-like rendering.
-            RenderStream = new RenderStreamBatch<VertexData>();
+            RenderStream = new RenderStreamBatch();
 
             // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();

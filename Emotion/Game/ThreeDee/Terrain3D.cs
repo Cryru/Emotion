@@ -68,7 +68,7 @@ namespace Emotion.Game.ThreeDee
 
         public void Render(RenderComposer c)
         {
-            RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint)_terrainMesh.Length, (uint)_terrainIndices.Length, BatchMode.Quad);
+            StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint)_terrainMesh.Length, (uint)_terrainIndices.Length, BatchMode.Quad);
             new Span<VertexData>(_terrainMesh).CopyTo(memory.VerticesData);
             new Span<ushort>(_terrainIndices).CopyTo(memory.IndicesData);
             for (var i = 0; i < memory.IndicesData.Length; i++)

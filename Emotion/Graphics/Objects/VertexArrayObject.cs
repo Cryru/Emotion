@@ -74,27 +74,55 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="type">The managed type to convert.</param>
         /// <returns>The vertex attribute type corresponding to the provided managed type.</returns>
-        public static VertexAttribType GetAttribTypeFromManagedType(MemberInfo type)
+        public static VertexAttribType GetAttribTypeFromManagedType(Type type)
         {
-            switch (type.Name)
+            if (type == typeof(int))
             {
-                default:
-                    return VertexAttribType.Float;
-                case "Int32":
-                    return VertexAttribType.Int;
-                case "UInt32":
-                    return VertexAttribType.UnsignedInt;
-                case "SByte":
-                    return VertexAttribType.Byte;
-                case "Byte":
-                    return VertexAttribType.UnsignedByte;
+                return VertexAttribType.Int;
             }
+            else if(type == typeof(uint))
+            {
+                return VertexAttribType.UnsignedInt;
+            }
+            else if (type == typeof(byte))
+            {
+                return VertexAttribType.UnsignedByte;
+            }
+            else if (type == typeof(sbyte))
+            {
+                return VertexAttribType.Byte;
+            }
+
+            return VertexAttribType.Float;
         }
 
         /// <summary>
         /// Setup vertex attributes.
         /// </summary>
-        public abstract void SetupAttributes();
+        protected void SetupAttributes(Type vertexType)
+        {
+            Assert(vertexType.IsValueType);
+
+            ByteSize = Marshal.SizeOf(vertexType);
+           
+            EnsureBound(this);
+            FieldInfo[] fields = vertexType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            for (uint i = 0; i < fields.Length; i++)
+            {
+                var field = fields[i];
+                var vertexAttributeData = field.GetCustomAttribute<VertexAttributeAttribute>();
+                if (vertexAttributeData == null) continue;
+
+                string fieldName = field.Name;
+                nint offset = Marshal.OffsetOf(vertexType, fieldName);
+                Type fieldType = vertexAttributeData.TypeOverride ?? field.FieldType;
+                if (fieldName == "UV") UVByteOffset = (int)offset;
+
+                uint position = vertexAttributeData.PositionOverride != -1 ? (uint)vertexAttributeData.PositionOverride : i;
+                Gl.EnableVertexAttribArray(position);
+                Gl.VertexAttribPointer(position, vertexAttributeData.ComponentCount, GetAttribTypeFromManagedType(fieldType), vertexAttributeData.Normalized, ByteSize, offset);
+            }
+        }
 
         #region Cleanup
 
@@ -113,53 +141,33 @@ namespace Emotion.Graphics.Objects
     }
 
     /// <summary>
-    /// Create a vertex array object from the described structure.
+    /// Create a vertex array object describing the vertex layout provided as a
+    /// C# value structure.
     /// </summary>
-    /// <typeparam name="T">The structure to convert to a vertex array object.</typeparam>
-    public sealed class VertexArrayObject<T> : VertexArrayObject where T : new()
+    public sealed class VertexArrayObject<T> : VertexArrayObject where T : struct
     {
         public VertexArrayObject(VertexBuffer vbo, IndexBuffer ibo = null)
         {
             Pointer = Gl.GenVertexArray();
             VBO = vbo;
             IBO = ibo;
-            SetupAttributes();
+            SetupAttributes(typeof(T));
             EnsureBound(null);
         }
+    }
 
-        public override void SetupAttributes()
+    public sealed class VertexArrayObjectTypeArg : VertexArrayObject
+    {
+        public VertexArrayObjectTypeArg(Type vertexType, VertexBuffer vbo, IndexBuffer ibo = null)
         {
-            EnsureBound(this);
+            Assert(vertexType.IsValueType);
+            if (!vertexType.IsValueType) return;
 
-            Type structFormat = typeof(T);
-            FieldInfo[] fields = structFormat.GetFields(BindingFlags.Public | BindingFlags.Instance);
-            ByteSize = Marshal.SizeOf(new T());
-
-            for (uint i = 0; i < fields.Length; i++)
-            {
-                Attribute[] fieldAttributes = fields[i].GetCustomAttributes().ToArray();
-                VertexAttributeAttribute vertexAttributeData = null;
-
-                // Go through all attributes and find the VertexAttributeAttribute.
-                foreach (Attribute attribute in fieldAttributes)
-                {
-                    if (!(attribute is VertexAttributeAttribute data)) continue;
-                    vertexAttributeData = data;
-                    break;
-                }
-
-                // If the vertex attribute data not found, stop searching.
-                if (vertexAttributeData == null) continue;
-
-                string fieldName = fields[i].Name;
-                IntPtr offset = Marshal.OffsetOf(structFormat, fieldName);
-                Type fieldType = vertexAttributeData.TypeOverride ?? fields[i].FieldType;
-                if (fieldName == "UV") UVByteOffset = (int) offset;
-
-                uint position = vertexAttributeData.PositionOverride != -1 ? (uint) vertexAttributeData.PositionOverride : i;
-                Gl.EnableVertexAttribArray(position);
-                Gl.VertexAttribPointer(position, vertexAttributeData.ComponentCount, GetAttribTypeFromManagedType(fieldType), vertexAttributeData.Normalized, ByteSize, offset);
-            }
+            Pointer = Gl.GenVertexArray();
+            VBO = vbo;
+            IBO = ibo;
+            SetupAttributes(vertexType);
+            EnsureBound(null);
         }
     }
 }

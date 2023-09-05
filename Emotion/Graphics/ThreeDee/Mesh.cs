@@ -127,7 +127,7 @@ public class Mesh
 		ushort[] indices = Indices;
 		Texture? texture = null;
 		if (Material.DiffuseTexture != null) texture = Material.DiffuseTexture;
-		RenderStreamBatch<VertexData>.StreamData memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+		StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
 		vertData.CopyTo(memory.VerticesData);
 		indices.CopyTo(memory.IndicesData);

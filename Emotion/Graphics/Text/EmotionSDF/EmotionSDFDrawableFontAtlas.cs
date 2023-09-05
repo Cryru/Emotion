@@ -168,7 +168,6 @@ namespace Emotion.Graphics.Text.EmotionSDF
 			}
 		}
 
-		private static RenderStreamBatch<SdfVertex>? _sdfVertexStream;
 		private static ShaderAsset? _lineShader;
 		private static ShaderAsset? _fillShader;
 		private static ShaderAsset? _sdfShader;
@@ -176,7 +175,6 @@ namespace Emotion.Graphics.Text.EmotionSDF
 		public static void GenerateSdfBackend(RenderComposer renderer, Font font, List<DrawableGlyph> glyphs, float sdfDist, float scale)
 		{
 			// Initialize objects.
-			_sdfVertexStream ??= new RenderStreamBatch<SdfVertex>(0, 1, false);
 			_lineShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderLine.xml");
 			_fillShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
 
@@ -200,10 +198,9 @@ namespace Emotion.Graphics.Text.EmotionSDF
 
 			// Draw lines
 			renderer.SetShader(_lineShader.Shader);
-			Span<SdfVertex> memory = _sdfVertexStream.GetStreamMemory((uint) painter.LinePainter.Vertices.Count, BatchMode.SequentialTriangles);
+			Span<SdfVertex> memory = renderer.RenderStream.GetStreamMemory<SdfVertex>((uint) painter.LinePainter.Vertices.Count, BatchMode.SequentialTriangles);
 			Span<SdfVertex> lineDataSpan = CollectionsMarshal.AsSpan(painter.LinePainter.Vertices);
 			lineDataSpan.CopyTo(memory);
-			_sdfVertexStream.FlushRender();
 			renderer.SetShader();
 
 			// Draw fill
@@ -213,10 +210,9 @@ namespace Emotion.Graphics.Text.EmotionSDF
 			renderer.ToggleRenderColor(false);
 
 			renderer.SetShader(_fillShader.Shader);
-			memory = _sdfVertexStream.GetStreamMemory((uint) painter.FillPainter.Vertices.Count, BatchMode.SequentialTriangles);
+			memory = renderer.RenderStream.GetStreamMemory<SdfVertex>((uint) painter.FillPainter.Vertices.Count, BatchMode.SequentialTriangles);
 			Span<SdfVertex> fillDataSpan = CollectionsMarshal.AsSpan(painter.FillPainter.Vertices);
 			fillDataSpan.CopyTo(memory);
-			_sdfVertexStream.FlushRender();
 			renderer.SetShader();
 
 			// Draw full screen quad, inverting stencil where it is 1
