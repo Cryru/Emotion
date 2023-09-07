@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using Emotion.Graphics.ThreeDee;
-
 #endregion
 
 namespace Emotion.Game.Animation3D

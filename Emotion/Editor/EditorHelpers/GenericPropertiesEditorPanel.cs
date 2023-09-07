@@ -75,17 +75,17 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 			if (_spawnFieldGroupHeaders)
 			{
-                var fieldGroupHeader = new UIText();
-                fieldGroupHeader.ScaleMode = UIScaleMode.FloatScale;
-                fieldGroupHeader.WindowColor = MapEditorColorPalette.TextColor;
-                fieldGroupHeader.FontFile = "Editor/UbuntuMono-Regular.ttf";
-                fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
-                fieldGroupHeader.Underline = true;
-                fieldGroupHeader.IgnoreParentColor = true;
-                fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
-                fieldGroupHeader.MinSize = new Vector2(0, 11);
-                fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
-            }
+				var fieldGroupHeader = new UIText();
+				fieldGroupHeader.ScaleMode = UIScaleMode.FloatScale;
+				fieldGroupHeader.WindowColor = MapEditorColorPalette.TextColor;
+				fieldGroupHeader.FontFile = "Editor/UbuntuMono-Regular.ttf";
+				fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
+				fieldGroupHeader.Underline = true;
+				fieldGroupHeader.IgnoreParentColor = true;
+				fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
+				fieldGroupHeader.MinSize = new Vector2(0, 11);
+				fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
+			}
 
 			listNav.AddChild(fieldGroupHeaderContainer);
 
@@ -112,7 +112,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 				var editorWithLabel = new FieldEditorWithLabel($"{field.Name}: ", editor);
 				OnFieldEditorCreated(field, editor, editorWithLabel);
-                listNav.AddChild(editorWithLabel);
+				listNav.AddChild(editorWithLabel);
 			}
 		}
 
@@ -121,15 +121,13 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	protected virtual void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
 	{
-
 	}
 
-    protected virtual void OnFieldEditorUpdated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
-    {
+	protected virtual void OnFieldEditorUpdated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
+	{
+	}
 
-    }
-
-    private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
 		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();
@@ -139,15 +137,16 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(string))
 		{
 			var assetFileNameAttribute = field.ReflectionInfo.GetAttribute<AssetFileNameAttribute>();
-            if (assetFileNameAttribute != null)
-                return new PropEditorStringPath(assetFileNameAttribute);
+			if (assetFileNameAttribute != null)
+				return new PropEditorStringPath(assetFileNameAttribute);
 
 			return new PropEditorString();
 		}
+
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
 		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo.Nullable);
 
-        return new PropEditorNone();
+		return new PropEditorNone();
 	}
 
 	protected virtual void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)
@@ -155,14 +154,11 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		object? oldValue = field.ReflectionInfo.GetValue(_obj);
 		field.ReflectionInfo.SetValue(_obj, value);
 
-		if (!Helpers.AreObjectsEqual(oldValue, value))
-		{
-			OnPropertyEdited?.Invoke(field.Name, oldValue);
-        }
+		if (!Helpers.AreObjectsEqual(oldValue, value)) OnPropertyEdited?.Invoke(field.Name, oldValue);
 
-        UIBaseWindow? editorWindow = editor as UIBaseWindow;
-        OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);
-    }
+		UIBaseWindow? editorWindow = editor as UIBaseWindow;
+		OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+	}
 
 	protected override bool UpdateInternal()
 	{
@@ -175,17 +171,17 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		for (var i = 0; i < _editorUIs.Count; i++)
 		{
 			IPropEditorGeneric editor = _editorUIs[i];
-            UIBaseWindow? editorWindow = editor as UIBaseWindow;
+			UIBaseWindow? editorWindow = editor as UIBaseWindow;
 
-            if (Controller?.InputFocus != null && editorWindow != null && Controller.InputFocus.IsWithin(editorWindow)) continue;
+			if (Controller?.InputFocus != null && editorWindow != null && Controller.InputFocus.IsWithin(editorWindow)) continue;
 
 			XMLFieldHandler? field = editor.Field;
 			object? propertyValue = field.ReflectionInfo.GetValue(_obj);
 			if (!Helpers.AreObjectsEqual(editor.GetValue(), propertyValue))
 			{
-                editor.SetValue(propertyValue);
+				editor.SetValue(propertyValue);
 				OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
-            }
+			}
 		}
 	}
 }

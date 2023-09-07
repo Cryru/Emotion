@@ -14,6 +14,7 @@ using OpenGL;
 #nullable enable
 
 namespace Emotion.Editor.EditorHelpers;
+
 public class EditorPlotLineWindow : UIBaseWindow
 {
 	private class PlotLineInternalData
@@ -56,7 +57,7 @@ public class EditorPlotLineWindow : UIBaseWindow
 
 	public override void AttachedToController(UIController controller)
 	{
-		Debug.Assert(_plotData == null);
+		Assert(_plotData == null);
 
 		_plotData = PlotLineDataPool.Get();
 		base.AttachedToController(controller);
@@ -95,10 +96,9 @@ public class EditorPlotLineWindow : UIBaseWindow
 		_sourceData = data;
 		_renderOffset = index;
 
-        InitializeData(data.Length);
+		InitializeData(data.Length);
 		UpdateMouseRollover();
-
-    }
+	}
 
 	private void InitializeData(int length)
 	{
@@ -118,11 +118,11 @@ public class EditorPlotLineWindow : UIBaseWindow
 			if (_normalizedData != null)
 			{
 				float normalizedVal;
-                
+
 				int relativeI = i + _renderOffset;
 				relativeI = relativeI % _normalizedData.Length;
-                normalizedVal = _normalizedData[relativeI];
-                
+				normalizedVal = _normalizedData[relativeI];
+
 				vert.Vertex.Y = Y + Height / 2 + (normalizedVal - 0.5f) * Height / 2;
 			}
 		}
@@ -133,26 +133,26 @@ public class EditorPlotLineWindow : UIBaseWindow
 		UpdateMouseRollover();
 		base.OnMouseMove(mousePos);
 	}
-	
+
 	private void UpdateMouseRollover()
 	{
 		if (!MouseInside) return;
 
-        Vector2 positionWithinSelf = Engine.Host.MousePosition - _renderBounds.Position;
-        float xPos = positionWithinSelf.X;
+		Vector2 positionWithinSelf = Engine.Host.MousePosition - _renderBounds.Position;
+		float xPos = positionWithinSelf.X;
 
-        if (_sourceData != null)
-        {
-            float spaceBetweenLines = Width / (_sourceData.Length - 1);
-            var lineIndex = (int)(xPos / spaceBetweenLines);
+		if (_sourceData != null)
+		{
+			float spaceBetweenLines = Width / (_sourceData.Length - 1);
+			var lineIndex = (int) (xPos / spaceBetweenLines);
 
 			int relativeIdx = lineIndex + _renderOffset;
-            relativeIdx = relativeIdx % _sourceData.Length;
+			relativeIdx = relativeIdx % _sourceData.Length;
 
-            float value = _sourceData[relativeIdx];
-            _mouseShownValue = value;
-        }
-    }
+			float value = _sourceData[relativeIdx];
+			_mouseShownValue = value;
+		}
+	}
 
 	protected override bool RenderInternal(RenderComposer c)
 	{
@@ -162,8 +162,8 @@ public class EditorPlotLineWindow : UIBaseWindow
 		// todo: LineStrip render mode in RenderStream
 		if (_plotData != null && _plotData.Ready && _data != null)
 		{
-			Debug.Assert(_plotData.LinesVao != null);
-			Debug.Assert(_plotData.LinesVertexBuffer != null);
+			Assert(_plotData.LinesVao != null);
+			Assert(_plotData.LinesVertexBuffer != null);
 
 			Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer);
 			VertexArrayObject.EnsureBound(_plotData.LinesVao);

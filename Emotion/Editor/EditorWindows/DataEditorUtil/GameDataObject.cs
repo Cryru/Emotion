@@ -12,8 +12,7 @@ public abstract class GameDataObject
 {
 	public string Id = "Untitled";
 
-	[DontShowInEditorAttribute]
-	public string? AssetPath;
+	[DontShowInEditorAttribute] public string? AssetPath;
 
 	public bool Save()
 	{

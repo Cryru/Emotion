@@ -2,8 +2,6 @@
 
 #region Using
 
-using Emotion.Common.Serialization;
-
 #endregion
 
 namespace Emotion.Game.Animation3D;

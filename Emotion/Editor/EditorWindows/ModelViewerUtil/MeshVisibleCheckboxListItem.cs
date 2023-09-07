@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using Emotion.Editor.EditorHelpers;
-using Emotion.Game.ThreeDee;
-using Emotion.Game.World2D;
 using Emotion.Game.World3D;
 using Emotion.Graphics.ThreeDee;
 

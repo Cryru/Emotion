@@ -1,4 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿#region Using
+
+using System.Runtime.CompilerServices;
+
+#endregion
 
 namespace Emotion.Game.Animation2D
 {
@@ -56,6 +60,7 @@ namespace Emotion.Game.Animation2D
 					renderPos.Y -= h;
 					break;
 			}
+
 			return renderPos;
 		}
 	}

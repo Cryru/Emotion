@@ -7,7 +7,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-    public class MapEditorLabel : UIText
+	public class MapEditorLabel : UIText
 	{
 		public MapEditorLabel(string label)
 		{

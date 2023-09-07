@@ -1,33 +1,38 @@
 ﻿#nullable enable
 
+#region Using
+
 using Emotion.Editor.EditorHelpers;
 using Emotion.UI;
+
+#endregion
 
 namespace Emotion.Editor.PropertyEditors;
 
 public class PropEditorStringPath : PropEditorString
 {
-    private AssetFileNameAttribute _attribute;
-    public PropEditorStringPath(AssetFileNameAttribute attribute)
-    {
-        _attribute = attribute;
-    }
+	private AssetFileNameAttribute _attribute;
 
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
+	public PropEditorStringPath(AssetFileNameAttribute attribute)
+	{
+		_attribute = attribute;
+	}
 
-        var b = new EditorButton();
-        b.Margins = new Rectangle(1, 0, 0, 0);
-        b.StretchY = true;
-        b.Text = "...";
-        b.OnClickedProxy = (_) =>
-        {
-            var fileExplorer = _attribute.CreateFileExplorer(this);
-            Controller!.AddChild(fileExplorer);
-        };
-        AddChild(b);
+	public override void AttachedToController(UIController controller)
+	{
+		base.AttachedToController(controller);
 
-        LayoutMode = LayoutMode.HorizontalList;
-    }
+		var b = new EditorButton();
+		b.Margins = new Rectangle(1, 0, 0, 0);
+		b.StretchY = true;
+		b.Text = "...";
+		b.OnClickedProxy = _ =>
+		{
+			var fileExplorer = _attribute.CreateFileExplorer(this);
+			Controller!.AddChild(fileExplorer);
+		};
+		AddChild(b);
+
+		LayoutMode = LayoutMode.HorizontalList;
+	}
 }

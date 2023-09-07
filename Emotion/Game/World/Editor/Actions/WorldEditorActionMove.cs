@@ -2,8 +2,6 @@
 
 #region Using
 
-using Emotion.Game.World2D;
-
 #endregion
 
 namespace Emotion.Game.World.Editor.Actions;

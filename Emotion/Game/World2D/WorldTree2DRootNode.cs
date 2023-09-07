@@ -1,6 +1,10 @@
 ﻿#nullable enable
 
+#region Using
+
 using Emotion.Game.World;
+
+#endregion
 
 namespace Emotion.Game.World2D
 {

@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
 using Emotion.Utility;
@@ -31,11 +30,8 @@ namespace Emotion.Editor.PropertyEditors
 			_enumValueNames = Enum.GetNames(enumType);
 			_nullable = nullable;
 
-			if (_nullable)
-			{
-                _enumValueNames = _enumValueNames.AddToArray("<null>", true);
-			}
-        }
+			if (_nullable) _enumValueNames = _enumValueNames.AddToArray("<null>", true);
+		}
 
 		public void SetValue(object? value)
 		{
@@ -57,7 +53,7 @@ namespace Emotion.Editor.PropertyEditors
 		{
 			base.AttachedToController(controller);
 
-            var currentIdx = 0;
+			var currentIdx = 0;
 			var dropDownItems = new EditorDropDownButtonDescription[_enumValueNames.Length];
 			for (var i = 0; i < _enumValueNames.Length; i++)
 			{

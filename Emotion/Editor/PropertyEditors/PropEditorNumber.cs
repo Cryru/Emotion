@@ -11,7 +11,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-    public class PropEditorNumber<T> : UIBaseWindow, IPropEditorGeneric where T : INumber<T>
+	public class PropEditorNumber<T> : UIBaseWindow, IPropEditorGeneric where T : INumber<T>
 	{
 		public XMLFieldHandler? Field { get; set; }
 

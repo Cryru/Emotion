@@ -37,7 +37,7 @@ namespace Emotion.Editor.PropertyEditors
 			_txt = value?.ToString() ?? "null";
 			if (_label != null)
 				_label.Text = _txt;
-        }
+		}
 
 		public object? GetValue()
 		{
@@ -56,7 +56,7 @@ namespace Emotion.Editor.PropertyEditors
 			var lbl = new MapEditorLabel("");
 			lbl.Text = _txt;
 			AddChild(lbl);
-	
+
 			_label = lbl;
 			SetValue(_value); // To force setting it in the UI
 		}

@@ -11,7 +11,7 @@ using Emotion.UI;
 
 namespace Emotion.Editor.PropertyEditors
 {
-    public class PropEditorBool : UIBaseWindow, IPropEditorGeneric
+	public class PropEditorBool : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler? Field { get; set; }
 

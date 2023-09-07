@@ -1,10 +1,7 @@
 ﻿#region Using
 
-using System.Threading.Tasks;
-using Emotion.Common.Serialization;
 using Emotion.Game.Animation2D;
 using Emotion.Game.World;
-using Emotion.Game.World2D.Editor;
 using Emotion.Graphics;
 
 #endregion
@@ -20,12 +17,12 @@ namespace Emotion.Game.World2D
 		}
 
 		// Serialization constructor.
-		protected GameObject2D() : base()
+		protected GameObject2D()
 		{
 		}
 
-        /// <inheritdoc />
-        protected override void RenderInternal(RenderComposer c)
+		/// <inheritdoc />
+		protected override void RenderInternal(RenderComposer c)
 		{
 			c.RenderSprite(Position, Size, Color.White);
 		}

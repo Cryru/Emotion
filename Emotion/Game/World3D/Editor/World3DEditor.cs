@@ -2,11 +2,8 @@
 
 using Emotion.Game.World.Editor;
 using Emotion.Game.World.SceneControl;
-using Emotion.Game.World2D;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
-using Emotion.Standard.XML;
 
 #endregion
 
@@ -25,22 +22,18 @@ namespace Emotion.Game.World3D.Editor
 
 		protected override void EnterEditorInternal()
 		{
-			
 		}
 
 		protected override void ExitEditorInternal()
 		{
-			
 		}
 
 		protected override void UpdateInternal(float dt)
 		{
-			
 		}
 
 		protected override void RenderInternal(RenderComposer c)
 		{
-			
 		}
 	}
 }

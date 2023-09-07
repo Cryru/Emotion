@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Game.World.Editor.Actions;
-using Emotion.Game.World2D;
 using Emotion.Standard.XML;
 
 #endregion

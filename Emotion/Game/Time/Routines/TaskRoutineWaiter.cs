@@ -6,26 +6,26 @@ using System.Threading.Tasks;
 
 namespace Emotion.Game.Time.Routines
 {
-    /// <summary>
-    /// Used to wait for a task in a coroutine continuously.
-    /// Better used for shorter running tasks.
-    /// </summary>
-    public class TaskRoutineWaiter : IRoutineWaiter
-    {
-        public bool Finished
-        {
-            get => _task.IsCompleted;
-        }
+	/// <summary>
+	/// Used to wait for a task in a coroutine continuously.
+	/// Better used for shorter running tasks.
+	/// </summary>
+	public class TaskRoutineWaiter : IRoutineWaiter
+	{
+		public bool Finished
+		{
+			get => _task.IsCompleted;
+		}
 
-        private readonly Task _task;
+		private readonly Task _task;
 
-        public TaskRoutineWaiter(Task task)
-        {
-            _task = task;
-        }
+		public TaskRoutineWaiter(Task task)
+		{
+			_task = task;
+		}
 
-        public void Update()
-        {
-        }
-    }
+		public void Update()
+		{
+		}
+	}
 }

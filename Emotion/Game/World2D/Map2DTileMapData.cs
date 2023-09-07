@@ -187,11 +187,11 @@ namespace Emotion.Game.World2D
 			tid = data & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
 		}
 
-        public override string ToString()
-        {
-            return Name;
-        }
-    }
+		public override string ToString()
+		{
+			return Name;
+		}
+	}
 
 	/// <summary>
 	/// Represents a tileset image that contains all the tiles used by a tile layer.
@@ -575,6 +575,6 @@ namespace Emotion.Game.World2D
 			return tiRect;
 		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

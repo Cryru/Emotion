@@ -6,7 +6,6 @@ using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
 
 #endregion
 
@@ -30,12 +29,10 @@ public partial class World2DEditor : WorldBaseEditorGeneric<Map2D>
 
 	protected override void ExitEditorInternal()
 	{
-
 	}
 
 	protected override void UpdateInternal(float dt)
 	{
-		
 	}
 
 	protected override void RenderInternal(RenderComposer c)

@@ -2,11 +2,9 @@
 
 #region Using
 
-using System.IO;
 using System.Reflection;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
 using Emotion.UI;
 
@@ -80,10 +78,10 @@ public class DataEditorGeneric : EditorPanel
 					RegenerateSelection();
 				},
 				Enabled = false
-            };
-            buttonList.AddChild(deleteCurrent);
+			};
+			buttonList.AddChild(deleteCurrent);
 
-            var listContainer = new UIBaseWindow
+			var listContainer = new UIBaseWindow
 			{
 				StretchX = true,
 				StretchY = true,
@@ -147,20 +145,19 @@ public class DataEditorGeneric : EditorPanel
 
 	private void SaveToFile(bool force = false)
 	{
-        Dictionary<string, GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
+		Dictionary<string, GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
 		if (data == null) return;
-        foreach (KeyValuePair<string, GameDataObject> item in data)
-        {
+		foreach (KeyValuePair<string, GameDataObject> item in data)
+		{
 			if (!force && !_unsaved.Contains(item.Value)) continue;
 
-            XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item.Value);
-            asset.SaveAs(item.Value.AssetPath ?? GameDataDatabase.GetAssetPath(item.Value));
-
-        }
+			XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item.Value);
+			asset.SaveAs(item.Value.AssetPath ?? GameDataDatabase.GetAssetPath(item.Value));
+		}
 
 		_unsaved.Clear();
 		RegenerateList();
-    }
+	}
 
 	private void RegenerateList()
 	{
@@ -172,11 +169,12 @@ public class DataEditorGeneric : EditorPanel
 		// Sort the items
 		string[] names = new string[data.Count];
 		int nameIdx = 0;
-        foreach (KeyValuePair<string, GameDataObject> item in data)
-        {
+		foreach (KeyValuePair<string, GameDataObject> item in data)
+		{
 			names[nameIdx] = item.Key;
 			nameIdx++;
-        }
+		}
+
 		Array.Sort(names);
 
 		// Create buttons for each of them.
@@ -185,17 +183,17 @@ public class DataEditorGeneric : EditorPanel
 			var key = names[i];
 			var item = data[key];
 
-            string label = key;
-            if (_unsaved.Contains(item)) label += "(*)";
+			string label = key;
+			if (_unsaved.Contains(item)) label += "(*)";
 
-            var uiForItem = new EditorButton
-            {
-                StretchY = true,
-                Text = label,
-                UserData = item,
-            };
-            _list.AddChild(uiForItem);
-        }
+			var uiForItem = new EditorButton
+			{
+				StretchY = true,
+				Text = label,
+				UserData = item,
+			};
+			_list.AddChild(uiForItem);
+		}
 
 		_list.SetupMouseSelection();
 	}
@@ -205,7 +203,7 @@ public class DataEditorGeneric : EditorPanel
 		var deleteButton = GetWindowById("DeleteButton");
 		if (deleteButton != null)
 		{
-			var deleteButtAsObject = (EditorButton)deleteButton;
+			var deleteButtAsObject = (EditorButton) deleteButton;
 			deleteButtAsObject.Enabled = _selectedObject != null;
 		}
 
@@ -216,14 +214,11 @@ public class DataEditorGeneric : EditorPanel
 			PanelMode = PanelMode.Embedded,
 			OnPropertyEdited = (propertyName, oldValue) =>
 			{
-				if (_unsaved.Add(_selectedObject))
-				{
-					RegenerateList();
-				}
+				if (_unsaved.Add(_selectedObject)) RegenerateList();
 
-                // If id is changed we need to change the save file as well.
-                // todo: think about assigning generated non-user displayed ids to files
-                if (propertyName == "Id")
+				// If id is changed we need to change the save file as well.
+				// todo: think about assigning generated non-user displayed ids to files
+				if (propertyName == "Id")
 				{
 					string newId = GameDataDatabase.EnsureNonDuplicatedId(_selectedObject.Id, _type);
 					_selectedObject.Id = newId;

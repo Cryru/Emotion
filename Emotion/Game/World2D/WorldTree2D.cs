@@ -43,7 +43,7 @@ namespace Emotion.Game.World2D
 
 			for (var i = 0; i < _objects.Count; i++)
 			{
-                BaseGameObject obj = _objects[i];
+				BaseGameObject obj = _objects[i];
 				if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
 				if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObjectToRoot(obj);
 			}

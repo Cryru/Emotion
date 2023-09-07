@@ -38,7 +38,7 @@ namespace Emotion.Editor.PropertyEditors
 				var labelX = new MapEditorLabel("X:");
 				AddChild(labelX);
 			}
-			
+
 			var editorX = new PropEditorNumber<float>();
 			AddChild(editorX);
 			_editorX = editorX;

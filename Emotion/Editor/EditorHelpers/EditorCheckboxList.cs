@@ -42,7 +42,7 @@ public class EditorCheckboxList : UIBaseWindow
 	public void SetItems(IEditorCheckboxListItem[]? items)
 	{
 		_items = items;
-		if(_button != null) _button.Enabled = _items != null;
+		if (_button != null) _button.Enabled = _items != null;
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -68,10 +68,7 @@ public class EditorCheckboxList : UIBaseWindow
 
 				var checkMark = new PropEditorBool();
 				checkMark.SetValue(item.Checked);
-				checkMark.SetCallbackValueChanged((newVal) =>
-				{
-					item.Checked = (bool) newVal;
-				});
+				checkMark.SetCallbackValueChanged(newVal => { item.Checked = (bool) newVal; });
 				checkMark.ZOffset = -1;
 				var editor = new FieldEditorWithLabel(item.Name, checkMark);
 				editor.Margins = Rectangle.Empty;

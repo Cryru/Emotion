@@ -82,11 +82,11 @@ public static class GameDataDatabase
 
 	public static T? GetDataObject<T>(string name) where T : GameDataObject
 	{
-        Dictionary<string, GameDataObject>? dict = GetObjectsOfType(typeof(T));
+		Dictionary<string, GameDataObject>? dict = GetObjectsOfType(typeof(T));
 		if (dict == null) return null;
 		dict.TryGetValue(name, out GameDataObject? obj);
-		return (T?)obj;
-    }
+		return (T?) obj;
+	}
 
 	public static Type[]? GetGameDataTypes()
 	{
@@ -102,10 +102,10 @@ public static class GameDataDatabase
 		return !_database.ContainsKey(t) ? null : _database[t];
 	}
 
-    public static T[]? GetObjectsOfType<T>() where T : GameDataObject
-    {
-        if (!Initialized) return null;
-        AssertNotNull(_database);
+	public static T[]? GetObjectsOfType<T>() where T : GameDataObject
+	{
+		if (!Initialized) return null;
+		AssertNotNull(_database);
 
 		var t = typeof(T);
 		if (!_database.ContainsKey(t)) return null;
@@ -119,10 +119,10 @@ public static class GameDataDatabase
 			idx++;
 		}
 
-        return arr;
-    }
+		return arr;
+	}
 
-    public static bool EditorAddObject(Type t, GameDataObject obj)
+	public static bool EditorAddObject(Type t, GameDataObject obj)
 	{
 		if (!Initialized) return false;
 		AssertNotNull(_database);
@@ -143,7 +143,7 @@ public static class GameDataDatabase
 		objectsOfThisType.Add(safeId, obj);
 		GenerateCode();
 
-        string path = GetAssetPath(obj);
+		string path = GetAssetPath(obj);
 		obj.AssetPath = path;
 		GameDataObjectAsset asAsset = GameDataObjectAsset.CreateFromContent(obj, path);
 		return asAsset.Save();
@@ -156,11 +156,11 @@ public static class GameDataDatabase
 
 		obj.AssetPath = null;
 		Engine.AssetLoader.Destroy(assetPath);
-        DebugAssetStore.DeleteFile(assetPath);
+		DebugAssetStore.DeleteFile(assetPath);
 		EditorReIndex(t);
-    }
+	}
 
-    public static void EditorReIndex(Type type)
+	public static void EditorReIndex(Type type)
 	{
 		Dictionary<string, GameDataObject>? data = GetObjectsOfType(type);
 		if (data == null) return;
@@ -172,10 +172,10 @@ public static class GameDataDatabase
 		foreach ((string? oldObjId, GameDataObject? obj) in data)
 		{
 			string? objId = obj.Id;
-			if(obj.AssetPath == null)
+			if (obj.AssetPath == null)
 			{
 				toRemove ??= new List<string>();
-                toRemove.Add(objId);
+				toRemove.Add(objId);
 			}
 			else if (oldObjId != objId)
 			{
@@ -184,17 +184,17 @@ public static class GameDataDatabase
 			}
 		}
 
-        // Add them back as their new Id.
-        if (toRemove != null)
-            for (var i = 0; i < toRemove.Count; i++)
-            {
-                string objName = toRemove[i];
-                data.Remove(objName, out GameDataObject? val);
-                AssertNotNull(val);
-            }
+		// Add them back as their new Id.
+		if (toRemove != null)
+			for (var i = 0; i < toRemove.Count; i++)
+			{
+				string objName = toRemove[i];
+				data.Remove(objName, out GameDataObject? val);
+				AssertNotNull(val);
+			}
 
-        // Add them back as their new Id.
-        if (toReAdd != null)
+		// Add them back as their new Id.
+		if (toReAdd != null)
 			for (var i = 0; i < toReAdd.Count; i++)
 			{
 				string objName = toReAdd[i];
@@ -204,7 +204,7 @@ public static class GameDataDatabase
 			}
 
 		GenerateCode();
-    }
+	}
 
 	public static string GetAssetPath(GameDataObject obj)
 	{
@@ -213,41 +213,39 @@ public static class GameDataDatabase
 		return $"{DATA_OBJECTS_PATH}/{type.Name}/{obj.Id}.xml";
 	}
 
-    private static void GenerateCode()
-    {
-        // Don't code gen in release mode lol
-        if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
+	private static void GenerateCode()
+	{
+		// Don't code gen in release mode lol
+		if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
 
-        var builder = new StringBuilder();
-        builder.AppendLine("// THIS IS AN AUTO-GENERATED FILE (GameDataDatabase.cs) TO HELP WITH INTELLISENSE");
-        builder.AppendLine("");
-        builder.AppendLine("namespace GameData");
-        builder.AppendLine("{");
+		var builder = new StringBuilder();
+		builder.AppendLine("// THIS IS AN AUTO-GENERATED FILE (GameDataDatabase.cs) TO HELP WITH INTELLISENSE");
+		builder.AppendLine("");
+		builder.AppendLine("namespace GameData");
+		builder.AppendLine("{");
 		var types = GetGameDataTypes();
 		if (types != null)
-		{
 			for (var i = 0; i < types.Length; i++)
 			{
 				var type = types[i];
 
 				if (i != 0) builder.AppendLine("");
 
-                builder.AppendLine($"	public static class {type.Name}Defs");
-                builder.AppendLine("	{");
+				builder.AppendLine($"	public static class {type.Name}Defs");
+				builder.AppendLine("	{");
 				var items = GetObjectsOfType(type);
 				if (items != null)
-				{
-                    foreach (var item in items)
-                    {
-                        builder.AppendLine($"		public static readonly string {item.Key} = \"{item.Key}\";");
-                    }
-                }
-                builder.AppendLine("	}");
-            }
-		}
-        builder.AppendLine("}");
+					foreach (var item in items)
+					{
+						builder.AppendLine($"		public static readonly string {item.Key} = \"{item.Key}\";");
+					}
 
-        byte[] fileData = Encoding.UTF8.GetBytes(builder.ToString());
-        Engine.AssetLoader.Save(fileData, $"{DATA_OBJECTS_PATH}/Intellisense.cs");
-    }
+				builder.AppendLine("	}");
+			}
+
+		builder.AppendLine("}");
+
+		byte[] fileData = Encoding.UTF8.GetBytes(builder.ToString());
+		Engine.AssetLoader.Save(fileData, $"{DATA_OBJECTS_PATH}/Intellisense.cs");
+	}
 }

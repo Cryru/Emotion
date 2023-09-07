@@ -6,8 +6,6 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
 using Emotion.Utility;
-using System.Collections.Generic;
-using System.Linq;
 
 #endregion
 
@@ -26,13 +24,13 @@ public class MapEditorTilePanel : EditorPanel
 
 	public override void AttachedToController(UIController controller)
 	{
-        base.AttachedToController(controller);
+		base.AttachedToController(controller);
 
 		_centered = false;
-        _container.Anchor = UIAnchor.TopRight;
-        _container.ParentAnchor = UIAnchor.TopRight;
-        _container.StretchY = false;
-        _container.StretchX = true;
+		_container.Anchor = UIAnchor.TopRight;
+		_container.ParentAnchor = UIAnchor.TopRight;
+		_container.StretchY = false;
+		_container.StretchX = true;
 		_container.Offset = new Vector2(0, 10); // Top bar size, todo: const from MapEditorPanelTopBar
 
 		var topPartContainer = new UIBaseWindow();
@@ -40,33 +38,33 @@ public class MapEditorTilePanel : EditorPanel
 		topPartContainer.StretchX = true;
 		topPartContainer.LayoutMode = LayoutMode.HorizontalList;
 		topPartContainer.Id = "TopPartContainer";
-        _contentParent.AddChild(topPartContainer);
+		_contentParent.AddChild(topPartContainer);
 
 		var layerListContainer = new UIBaseWindow();
 		layerListContainer.LayoutMode = LayoutMode.VerticalList;
 		layerListContainer.StretchX = true;
 		layerListContainer.StretchY = true;
-        layerListContainer.ListSpacing = new Vector2(0, 1);
-        topPartContainer.AddChild(layerListContainer);
+		layerListContainer.ListSpacing = new Vector2(0, 1);
+		topPartContainer.AddChild(layerListContainer);
 
-        var layerLabel = new MapEditorLabel("Layers:");
-        layerListContainer.AddChild(layerLabel);
+		var layerLabel = new MapEditorLabel("Layers:");
+		layerListContainer.AddChild(layerLabel);
 
 		var list = new ItemListWithActions<Map2DTileMapLayer>();
 		list.OnSelectionChanged = ListSelectionChanged;
-		list.NewItemCreated = (item) =>
+		list.NewItemCreated = item =>
 		{
 			Map2DTileMapData? tileData = _map.TileData;
 			if (tileData == null) return;
 			tileData.Layers.Add(item);
 		};
 		_layerList = list;
-        layerListContainer.AddChild(list);
+		layerListContainer.AddChild(list);
 
 		PopulateLayerList();
 	}
 
-    public void PopulateLayerList()
+	public void PopulateLayerList()
 	{
 		Map2DTileMapData? tileData = _map.TileData;
 		if (tileData == null) return;
@@ -102,19 +100,16 @@ public class MapEditorTilePanel : EditorPanel
 			var oldProperties = contentParent.GetWindowById("Properties");
 			if (oldProperties != null) contentParent.RemoveChild(oldProperties);
 
-            var propertyEditor = new GenericPropertiesEditorPanel(selected);
+			var propertyEditor = new GenericPropertiesEditorPanel(selected);
 			propertyEditor.Id = "Properties";
 			propertyEditor.PanelMode = PanelMode.Embedded;
 			propertyEditor.StretchX = true;
 			propertyEditor.StretchY = true;
-			propertyEditor.OnPropertyEdited = (key, newVal) =>
-			{
-				_layerList.Modified(selected);
-			};
+			propertyEditor.OnPropertyEdited = (key, newVal) => { _layerList.Modified(selected); };
 
 			contentParent.AddChild(propertyEditor);
-        }
-    }
+		}
+	}
 }
 
 public class ItemListWithActionsItem<T>
@@ -141,9 +136,9 @@ public class ItemListWithActions<T> : UIBaseWindow
 		StretchY = true;
 	}
 
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
+	public override void AttachedToController(UIController controller)
+	{
+		base.AttachedToController(controller);
 
 		LayoutMode = LayoutMode.VerticalList;
 
@@ -157,7 +152,7 @@ public class ItemListWithActions<T> : UIBaseWindow
 		EditorButton addItem = new EditorButton();
 		addItem.Text = "Add";
 		addItem.StretchY = true;
-		addItem.OnClickedProxy = (_) =>
+		addItem.OnClickedProxy = _ =>
 		{
 			if (_items == null) return;
 
@@ -169,42 +164,42 @@ public class ItemListWithActions<T> : UIBaseWindow
 
 			if (newItem == null) return;
 
-			_items.Add(new ItemListWithActionsItem<T>()
+			_items.Add(new ItemListWithActionsItem<T>
 			{
 				Object = newItem
 			});
 			NewItemCreated?.Invoke(newItem);
 			SetSelectedItem(newItem);
-        };
+		};
 		buttonsContainer.AddChild(addItem);
 
-  //      EditorButton deleteSelectedItem = new EditorButton();
+		//      EditorButton deleteSelectedItem = new EditorButton();
 		//deleteSelectedItem.Text = "Remove";
-  //      deleteSelectedItem.StretchY = true;
-  //      buttonsContainer.AddChild(deleteSelectedItem);
+		//      deleteSelectedItem.StretchY = true;
+		//      buttonsContainer.AddChild(deleteSelectedItem);
 
-  //      EditorButton moveUp = new EditorButton();
+		//      EditorButton moveUp = new EditorButton();
 		//moveUp.Text = "^";
 		//moveUp.StretchY = true;
-  //      buttonsContainer.AddChild(moveUp);
+		//      buttonsContainer.AddChild(moveUp);
 
-  //      EditorButton moveDown = new EditorButton();
+		//      EditorButton moveDown = new EditorButton();
 		//moveDown.Text = "V";
 		//moveDown.StretchY = true;
 		//buttonsContainer.AddChild(moveDown);
 
-        _list = new UICallbackListNavigator();
-        _list.StretchX = true;
-        _list.ChildrenAllSameWidth = true;
+		_list = new UICallbackListNavigator();
+		_list.StretchX = true;
+		_list.ChildrenAllSameWidth = true;
 		_list.LayoutMode = LayoutMode.VerticalList;
-        AddChild(_list);
-    }
+		AddChild(_list);
+	}
 
-    // can add (callback)
-    // can create children/can move in
-    // can delete (callback)
+	// can add (callback)
+	// can create children/can move in
+	// can delete (callback)
 
-    public void SetItems(List<ItemListWithActionsItem<T>> items)
+	public void SetItems(List<ItemListWithActionsItem<T>> items)
 	{
 		_list.ClearChildren();
 		_items = items;
@@ -215,7 +210,7 @@ public class ItemListWithActions<T> : UIBaseWindow
 	{
 		_selectedItem = selectedItem;
 		OnSelectionChanged?.Invoke(selectedItem);
-    }
+	}
 
 	public void Modified(T obj) // todo: UI data bindings?
 	{
@@ -224,15 +219,12 @@ public class ItemListWithActions<T> : UIBaseWindow
 
 		for (int i = 0; i < _list.Children.Count; i++)
 		{
-            EditorButton? button = _list.Children[i] as EditorButton;
-			if (button != null && Helpers.AreObjectsEqual(obj, button.UserData))
-			{
-				button.Text = obj.ToString() ?? "<null>";
-			}
+			EditorButton? button = _list.Children[i] as EditorButton;
+			if (button != null && Helpers.AreObjectsEqual(obj, button.UserData)) button.Text = obj.ToString() ?? "<null>";
 		}
 	}
 
-    private void GenerateChildrenFromItems()
+	private void GenerateChildrenFromItems()
 	{
 		if (_items == null) return;
 
@@ -246,7 +238,7 @@ public class ItemListWithActions<T> : UIBaseWindow
 
 				OnClickedProxy = _ => { SetSelectedItem(item.Object); }
 			};
-            _list.AddChild(button);
+			_list.AddChild(button);
 		}
 	}
 }

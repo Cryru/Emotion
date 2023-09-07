@@ -93,7 +93,7 @@ namespace Emotion.Game.Text
 					Vector2 lineSize = MeasureString(text, currentLineStart, currentLineLength);
 					if (lineSize.X > longestLine) longestLine = lineSize.X;
 					NeededHeight += MathF.Max(lineHeight, MathF.Floor(lineSize.Y));
-					Debug.Assert(lineHeight >= MathF.Floor(lineSize.Y));
+					Assert(lineHeight >= MathF.Floor(lineSize.Y));
 
 					// Push new line.
 					if (!lineBreakChar) _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
@@ -171,7 +171,7 @@ namespace Emotion.Game.Text
 		public bool IsNextCharacterGoingToWrap()
 		{
 			return _newLineIndices.IndexOf(_counter) != -1;
-        }
+		}
 
 		/// <summary>
 		/// Restart only the pen position.

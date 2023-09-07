@@ -12,7 +12,7 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-    public class MapEditorPanelTopBar : UIBaseWindow
+	public class MapEditorPanelTopBar : UIBaseWindow
 	{
 		private bool _mouseDown;
 		private Vector2 _mouseDownPos;

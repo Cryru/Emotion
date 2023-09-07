@@ -38,10 +38,10 @@ public class EditorPanel : UIBaseWindow
 			HandleInput = value == PanelMode.Modal;
 		}
 	}
-		
+
 	private PanelMode _panelMode = PanelMode.Default;
 
-    protected UIBaseWindow _contentParent = null!;
+	protected UIBaseWindow _contentParent = null!;
 	protected UIBaseWindow _container = null!;
 	protected bool _centered;
 
@@ -63,30 +63,30 @@ public class EditorPanel : UIBaseWindow
 
 		if (PanelMode != PanelMode.Embedded)
 		{
-            container.StretchX = true;
-            container.StretchY = true;
+			container.StretchX = true;
+			container.StretchY = true;
 
-            container.MinSize = new Vector2(100, 100);
-            container.MaxSize = new Vector2(500, 200);
-            container.ParentAnchor = UIAnchor.CenterCenter;
-            container.Anchor = UIAnchor.CenterCenter;
+			container.MinSize = new Vector2(100, 100);
+			container.MaxSize = new Vector2(500, 200);
+			container.ParentAnchor = UIAnchor.CenterCenter;
+			container.Anchor = UIAnchor.CenterCenter;
 
-            var topBar = new MapEditorPanelTopBar();
-            container.AddChild(topBar);
+			var topBar = new MapEditorPanelTopBar();
+			container.AddChild(topBar);
 
-            var closeButton = (EditorButton)topBar.GetWindowById("CloseButton")!;
-            closeButton.OnClickedProxy = _ => { controller.RemoveChild(this); };
+			var closeButton = (EditorButton) topBar.GetWindowById("CloseButton")!;
+			closeButton.OnClickedProxy = _ => { controller.RemoveChild(this); };
 
-            var panelLabel = (UIText)topBar.GetWindowById("PanelLabel")!;
-            panelLabel.Text = Header;
-        }
+			var panelLabel = (UIText) topBar.GetWindowById("PanelLabel")!;
+			panelLabel.Text = Header;
+		}
 		else
 		{
-            container.StretchX = true;
-            container.StretchY = true;
-            container.Margins = new Rectangle(5, 5, 5, 5);
+			container.StretchX = true;
+			container.StretchY = true;
+			container.Margins = new Rectangle(5, 5, 5, 5);
 		}
-		
+
 		var contentParent = new UIBaseWindow();
 		contentParent.StretchX = true;
 		contentParent.StretchY = true;

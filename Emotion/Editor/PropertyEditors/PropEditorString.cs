@@ -12,7 +12,7 @@ using Emotion.Utility;
 
 namespace Emotion.Editor.PropertyEditors
 {
-    public class PropEditorString : UIBaseWindow, IPropEditorGeneric
+	public class PropEditorString : UIBaseWindow, IPropEditorGeneric
 	{
 		public XMLFieldHandler Field { get; set; } = null!;
 
@@ -78,10 +78,7 @@ namespace Emotion.Editor.PropertyEditors
 			textEditor.MinSize = new Vector2(70, 0);
 			textEditor.IgnoreParentColor = true;
 			textEditor.Id = "textEditor";
-			textEditor.OnSubmit = val =>
-			{
-				SetValue(val);
-			};
+			textEditor.OnSubmit = val => { SetValue(val); };
 			textEditor.SubmitOnEnter = true;
 			textEditor.SubmitOnFocusLoss = true;
 			textEditor.Text = _value;

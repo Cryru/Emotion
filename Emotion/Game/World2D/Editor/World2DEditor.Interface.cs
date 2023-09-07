@@ -2,16 +2,10 @@
 
 #region Using
 
-using System.Threading.Tasks;
-using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.World.Editor.Actions;
-using Emotion.Game.World2D.EditorHelpers;
-using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
-using Emotion.Standard.XML;
 using Emotion.UI;
 
 #endregion

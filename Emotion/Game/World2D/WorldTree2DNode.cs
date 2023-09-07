@@ -77,7 +77,7 @@ namespace Emotion.Game.World2D
 
 			for (var i = 0; i < _objects.Count; i++)
 			{
-                BaseGameObject obj = _objects[i];
+				BaseGameObject obj = _objects[i];
 				Rectangle bounds = obj.GetBoundsForQuadTree();
 				if (!shape.Intersects(ref bounds)) continue;
 				if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;

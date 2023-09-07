@@ -39,7 +39,7 @@ namespace Emotion.Editor.PropertyEditors
 				var labelX = new MapEditorLabel("X:");
 				AddChild(labelX);
 			}
-			
+
 			var editorX = new PropEditorNumber<float>();
 			AddChild(editorX);
 			_editorX = editorX;
@@ -84,23 +84,23 @@ namespace Emotion.Editor.PropertyEditors
 				_callback?.Invoke(_value);
 			});
 
-            if (_withLabels)
-            {
-                var label = new MapEditorLabel("Height:");
-                label.Margins = new Rectangle(2, 0, 0, 0);
-                AddChild(label);
-            }
+			if (_withLabels)
+			{
+				var label = new MapEditorLabel("Height:");
+				label.Margins = new Rectangle(2, 0, 0, 0);
+				AddChild(label);
+			}
 
-            var editorW = new PropEditorNumber<float>();
-            AddChild(editorW);
-            _editorW = editorW;
-            editorW.SetValue(_value.Height);
-            editorW.SetCallbackValueChanged(newZVal =>
-            {
-                _value.Height = (float)newZVal;
-                _callback?.Invoke(_value);
-            });
-        }
+			var editorW = new PropEditorNumber<float>();
+			AddChild(editorW);
+			_editorW = editorW;
+			editorW.SetValue(_value.Height);
+			editorW.SetCallbackValueChanged(newZVal =>
+			{
+				_value.Height = (float) newZVal;
+				_callback?.Invoke(_value);
+			});
+		}
 
 		public void SetValue(object value)
 		{

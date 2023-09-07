@@ -38,8 +38,8 @@
 			var columns = (int) (textureSize.X / frameSize.X);
 			var rows = (int) (textureSize.Y / frameSize.Y);
 
-			Debug.Assert(columns >= column);
-			Debug.Assert(rows >= row);
+			Assert(columns >= column);
+			Assert(rows >= row);
 
 			// Find the frame we are looking for.
 			return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
