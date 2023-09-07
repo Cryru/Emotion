@@ -11,6 +11,7 @@ using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.IO;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
@@ -36,9 +37,6 @@ public abstract partial class WorldBaseEditor
 	protected BaseGameObject? _objectDragging;
 	protected Vector2 _objectDragOffset;
 	protected Vector2 _objectDragStartPos;
-
-	// Temp
-	protected static string? _objectCopyClipboard; // todo: platform based clipboard?
 
 	protected virtual void InitializeObjectEditor()
 	{
@@ -637,6 +635,13 @@ public abstract partial class WorldBaseEditor
 		_editUI.AddChild(new MapEditorObjectPropertiesPanel(this, obj));
 	}
 
+	private string GetClipboard()
+	{
+		var clipBoard = "";
+		if (Engine.Host is Win32Platform winPlat) clipBoard = winPlat.GetClipboard();
+		return clipBoard;
+	}
+
 	private void EditorOpenContextMenuObjectModeNoSelection()
 	{
 		BaseMap? map = CurrentMap;
@@ -656,10 +661,15 @@ public abstract partial class WorldBaseEditor
 				Name = "Paste",
 				Click = (_, __) =>
 				{
-					AssertNotNull(_objectCopyClipboard);
+					string clipBoard = GetClipboard();
+					AssertNotNull(clipBoard);
 
-					var newObj = XMLFormat.From<GameObject2D>(_objectCopyClipboard);
-					if (newObj == null) return;
+					var newObj = XMLFormat.From<GameObject2D>(clipBoard);
+					if (newObj == null)
+					{
+						EditorMsg("Couldn't paste object.");
+						return;
+					}
 
 					newObj.ObjectFlags |= ObjectFlags.Persistent;
 					map.AddObject(newObj);
@@ -667,7 +677,7 @@ public abstract partial class WorldBaseEditor
 					Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
 					newObj.Position2 = worldPos;
 				},
-				Enabled = () => !string.IsNullOrEmpty(_objectCopyClipboard)
+				Enabled = () => !string.IsNullOrEmpty(GetClipboard())
 			}
 		};
 
@@ -691,14 +701,20 @@ public abstract partial class WorldBaseEditor
 			new EditorDropDownButtonDescription
 			{
 				Name = "Copy",
-				Click = (_, __) => { _objectCopyClipboard = GetObjectSerialized(obj); }
+				Click = (_, __) =>
+				{
+					string objectData = GetObjectSerialized(obj);
+					if (Engine.Host is Win32Platform winPlat) winPlat.SetClipboard(objectData);
+				}
 			},
 			new EditorDropDownButtonDescription
 			{
 				Name = "Cut",
 				Click = (_, __) =>
 				{
-					_objectCopyClipboard = GetObjectSerialized(obj);
+					string objectData = GetObjectSerialized(obj);
+					if (Engine.Host is Win32Platform winPlat) winPlat.SetClipboard(objectData);
+
 					map.RemoveObject(obj, true); // todo: register undo as delete
 				}
 			},

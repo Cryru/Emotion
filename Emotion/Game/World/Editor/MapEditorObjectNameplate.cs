@@ -79,7 +79,7 @@ public class MapEditorObjectNameplate : UIWorldAttachedWindow
 			AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
 		else if (Object is GameObject3D)
 			// todo: 3d bounds
-			AttachToPosition(new Vector3(Object.X, Object.Y, _height));
+			AttachToPosition(new Vector3(Object.X, Object.Y, Object.Z + _height));
 
 		_label.Text = $"{Object.ObjectName ?? "null"}{(Object.ObjectState != ObjectState.Alive ? " (NotSpawned)" : "")}";
 		return base.UpdateInternal();
