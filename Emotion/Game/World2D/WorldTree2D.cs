@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common.Serialization;
+using Emotion.Game.World;
 
 #endregion
 
@@ -22,7 +23,7 @@ namespace Emotion.Game.World2D
 		private Dictionary<int, WorldTree2DRootNode> _rootNodes = new();
 		private Vector2 _mapSize;
 
-		private List<GameObject2D> _objects = new();
+		private List<BaseGameObject> _objects = new();
 
 		public WorldTree2D(Vector2 mapSize)
 		{
@@ -42,7 +43,7 @@ namespace Emotion.Game.World2D
 
 			for (var i = 0; i < _objects.Count; i++)
 			{
-				GameObject2D obj = _objects[i];
+                BaseGameObject obj = _objects[i];
 				if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
 				if (obj.IsPartOfMapLayer(layerId)) newLayerTopNode.AddObjectToRoot(obj);
 			}
@@ -51,7 +52,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Add an object to the tree. It will be part of the layers filtered by its IsPartOfMapLayer function.
 		/// </summary>
-		public void AddObjectToTree(GameObject2D obj)
+		public void AddObjectToTree(BaseGameObject obj)
 		{
 			_objects.Add(obj);
 
@@ -70,7 +71,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Remove an object from all layers in the tree.
 		/// </summary>
-		public void RemoveObjectFromTree(GameObject2D obj)
+		public void RemoveObjectFromTree(BaseGameObject obj)
 		{
 			if (!_objects.Remove(obj)) return;
 
@@ -103,7 +104,7 @@ namespace Emotion.Game.World2D
 		/// <summary>
 		/// Update an object's bounds in all layers it can be found in.
 		/// </summary>
-		public void UpdateObjectInTree(GameObject2D obj)
+		public void UpdateObjectInTree(BaseGameObject obj)
 		{
 			foreach (KeyValuePair<int, WorldTree2DRootNode> rootNode in _rootNodes)
 			{

@@ -1,5 +1,6 @@
 #region Using
 
+using Emotion.Game.World3D;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
@@ -14,12 +15,11 @@ namespace Emotion.Primitives
 	/// <summary>
 	/// A plane facing the Z axis, with the origin in the middle.
 	/// </summary>
-	public class Quad3D : Transform3D
+	public class Quad3D : GameObject3D
 	{
-		public Color Tint = Color.White;
 		public Texture? Texture = null;
 
-		public virtual void Render(RenderComposer c)
+		protected override void RenderInternal(RenderComposer c)
 		{
 			c.PushModelMatrix(_scaleMatrix * _rotationMatrix * _translationMatrix);
 

@@ -2,6 +2,8 @@
 
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.ThreeDee;
+using Emotion.Game.World2D;
+using Emotion.Game.World3D;
 using Emotion.Graphics.ThreeDee;
 
 #endregion
@@ -26,11 +28,11 @@ namespace Emotion.Editor.EditorWindows.ModelViewerUtil
 		public string Name { get; set; }
 
 		protected bool _visible = true;
-		protected Object3D _obj;
+		protected GameObject3D _obj;
 		protected Mesh _mesh;
 		protected int _meshIndex;
 
-		protected MeshVisibleCheckboxListItem(Object3D obj, Mesh mesh, int index)
+		protected MeshVisibleCheckboxListItem(GameObject3D obj, Mesh mesh, int index)
 		{
 			Name = mesh.Name;
 			_obj = obj;
@@ -38,7 +40,7 @@ namespace Emotion.Editor.EditorWindows.ModelViewerUtil
 			_meshIndex = index;
 		}
 
-		public static IEditorCheckboxListItem[] CreateItemsFromObject3D(Object3D obj)
+		public static IEditorCheckboxListItem[] CreateItemsFromObject3D(GameObject3D obj)
 		{
 			MeshEntity entity = obj.Entity;
 			Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();

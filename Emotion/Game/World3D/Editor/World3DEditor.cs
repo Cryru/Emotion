@@ -18,11 +18,6 @@ namespace Emotion.Game.World3D.Editor
 		{
 		}
 
-		public override void ChangeObjectProperty(GameObject2D obj, XMLFieldHandler field, object value, bool recordUndo = true)
-		{
-			
-		}
-
 		protected override CameraBase GetEditorCamera()
 		{
 			return new Camera3D(Vector3.Zero);
@@ -34,11 +29,6 @@ namespace Emotion.Game.World3D.Editor
 		}
 
 		protected override void ExitEditorInternal()
-		{
-			
-		}
-
-		protected override void EditorInputHandlerInternal(Key key, KeyStatus status)
 		{
 			
 		}

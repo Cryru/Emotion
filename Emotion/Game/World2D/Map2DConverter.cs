@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using Emotion.Game.Tiled;
+using Emotion.Game.World;
 using Emotion.IO;
 using Emotion.Standard.TMX;
 using Emotion.Standard.TMX.Layer;
@@ -25,7 +26,7 @@ namespace Emotion.Game.World2D
 			newMap.MapSize = map.WorldSize;
 			newMap.MapName = map.FileName ?? "Converted TMX";
 			newMap.FileName = map.FileName == null ? "converted.xml" : map.FileName.Replace(".tmx", "_new.xml");
-			newMap.PersistentObjects = new List<GameObject2D>(); // Serialization constructor wouldn't have made it.
+			newMap.PersistentObjects = new List<BaseGameObject>(); // Serialization constructor wouldn't have made it.
 
 			// Convert tile data.
 			var tileData = new Map2DTileMapData(map.TileSize, map.SizeInTiles, map.TiledMap.Tilesets.Count)

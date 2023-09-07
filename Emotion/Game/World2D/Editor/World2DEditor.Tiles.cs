@@ -29,6 +29,7 @@ public partial class World2DEditor
 			Task.Run(() =>
 			{
 				_grid = new InfiniteGrid();
+				_grid.LoadAssetsAsync().Wait();
 				InitializeTileGrid();
 			});
 			return;

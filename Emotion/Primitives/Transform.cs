@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Game.QuadTree;
+using Emotion.Utility;
 
 #endregion
 
@@ -36,6 +37,7 @@ namespace Emotion.Primitives
 
         /// <summary>
         /// The height of the transform.
+        /// (Y in 2D and Z in 3D)
         /// </summary>
         [DontSerialize]
         public float Height
@@ -50,12 +52,29 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The depth of the transform.
+        /// (Z in 2D and Y in 3D)
+        /// </summary>
+        public float Depth
+        {
+            get => _depth;
+            set
+            {
+                if (_depth == value) return;
+
+                _depth = value;
+                Resized();
+            }
+        }
+
         #endregion
 
         #region Higher Properties
 
         /// <summary>
         /// The size of the transform.
+        /// This is the property that gets serialized.
         /// </summary>
         public virtual Vector2 Size
         {
@@ -67,6 +86,26 @@ namespace Emotion.Primitives
                 _width = value.X;
                 _height = value.Y;
 
+                Resized();
+            }
+        }
+
+        /// <summary>
+        /// The scale of the transform in 3D.
+        /// Width, Depth, Height
+        /// </summary>
+        [DontSerialize]
+        public Vector3 Size3D
+        {
+            get => new Vector3(_width, _depth, _height);
+            set
+            {
+                if (_width == value.X && _depth == value.Y && _height == value.Z)
+                    return;
+
+                _width = value.X;
+                _depth = value.Y;
+                _height = value.Z;
                 Resized();
             }
         }
@@ -117,6 +156,45 @@ namespace Emotion.Primitives
 
         #endregion
 
+        #region Rotation
+
+        /// <summary>
+        /// The rotation of the transform in radians.
+        /// </summary>
+        public Vector3 Rotation
+        {
+            get => _rotation;
+            set
+            {
+                if (_rotation == value) return;
+                _rotation = value;
+                Rotated();
+            }
+        }
+
+        /// <summary>
+        /// The rotation of the transform in decimal degrees.
+        /// </summary>
+        [DontSerialize]
+        public Vector3 RotationDeg
+        {
+            get => new Vector3(Maths.RadiansToDegrees(_rotation.X), Maths.RadiansToDegrees(_rotation.Y), Maths.RadiansToDegrees(_rotation.Z));
+            set
+            {
+                _rotation = new Vector3(Maths.DegreesToRadians(value.X), Maths.DegreesToRadians(value.Y), Maths.DegreesToRadians(value.Z));
+                Rotated();
+            }
+        }
+
+        protected Vector3 _rotation;
+
+        protected virtual void Rotated()
+        {
+            OnRotate?.Invoke(this, EventArgs.Empty);
+        }
+
+        #endregion
+
         #region Events
 
         /// <summary>
@@ -124,12 +202,15 @@ namespace Emotion.Primitives
         /// </summary>
         public event EventHandler OnResize;
 
+        public event EventHandler OnRotate;
+
         #endregion
 
         #region Private Holders
 
         protected float _width;
         protected float _height;
+        protected float _depth;
 
         #endregion
 

@@ -10,6 +10,7 @@ using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World3D;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Camera;
@@ -46,14 +47,14 @@ public class ModelViewer : EditorPanel
 	private bool _panelDragResize;
 	private bool _renderSkeleton;
 
-	private Object3D _obj;
+	private GameObject3D _obj;
 
 	public ModelViewer() : base("Model Viewer")
 	{
 		_camera = new Camera3D(new Vector3(-290, 250, 260));
 		_camera.LookAtPoint(new Vector3(0, 0, 0));
 		_grid = new InfiniteGrid();
-		_obj = new Object3D();
+		_obj = new GameObject3D("ModelViewerDummy");
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -136,7 +137,7 @@ public class ModelViewer : EditorPanel
 
 		var scaleEditor = new PropEditorFloat3(false);
 		scaleEditor.SetValue(_obj.Size);
-		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size = (Vector3) newVal; });
+		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3) newVal; });
 		editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
 
 		var meshListProp = new EditorCheckboxList("Meshes: ")
@@ -144,7 +145,7 @@ public class ModelViewer : EditorPanel
 			Id = "MeshList"
 		};
 		scaleEditor.SetValue(_obj.Size);
-		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size = (Vector3) newVal; });
+		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3) newVal; });
 		editorButtons.AddChild(meshListProp);
 
 		var animationsList = new EditorButtonDropDown
@@ -317,16 +318,8 @@ public class ModelViewer : EditorPanel
 		}
 		else
 		{
-			switch (_obj.RenderMode)
-			{
-				case Object3D.RenderLike.RenderStream:
-					_obj.Render(c);
-					break;
-				case Object3D.RenderLike.RenderStreamAnimated:
-					_obj.RenderAnimated(c);
-					break;
-			}
-		}
+            _obj.Render(c);
+        }
 
 		c.RenderTo(null);
 

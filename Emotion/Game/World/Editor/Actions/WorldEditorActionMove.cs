@@ -10,11 +10,11 @@ namespace Emotion.Game.World.Editor.Actions;
 
 public class EditorActionMove : IWorldEditorAction
 {
-	public GameObject2D ObjTarget;
+	public BaseGameObject ObjTarget;
 	public Vector2 StartPos;
 	public Vector2 NewPos;
 
-	public EditorActionMove(GameObject2D obj)
+	public EditorActionMove(BaseGameObject obj)
 	{
 		ObjTarget = obj;
 	}

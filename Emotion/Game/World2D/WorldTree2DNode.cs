@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using Emotion.Game.World;
 using Emotion.Graphics;
 
 #endregion
@@ -19,7 +20,7 @@ namespace Emotion.Game.World2D
 		public WorldTree2DNode[]? ChildNodes;
 
 		// Node objects if undivided, and objects which span multiple nodes if divided.
-		protected List<GameObject2D>? _objects;
+		protected List<BaseGameObject>? _objects;
 
 		public WorldTree2DNode(WorldTree2DNode? parent, Rectangle bounds, int capacity = 3, int maxDepth = 5)
 		{
@@ -42,9 +43,9 @@ namespace Emotion.Game.World2D
 			return this;
 		}
 
-		public WorldTree2DNode AddObject(Rectangle bounds, GameObject2D obj)
+		public WorldTree2DNode AddObject(Rectangle bounds, BaseGameObject obj)
 		{
-			_objects ??= new List<GameObject2D>();
+			_objects ??= new List<BaseGameObject>();
 			if (_objects.Count + 1 > Capacity && ChildNodes == null && MaxDepth > 0)
 			{
 				float halfWidth = Bounds.Width / 2;
@@ -65,7 +66,7 @@ namespace Emotion.Game.World2D
 			return this;
 		}
 
-		public void RemoveObject(GameObject2D obj)
+		public void RemoveObject(BaseGameObject obj)
 		{
 			_objects?.Remove(obj);
 		}
@@ -76,7 +77,7 @@ namespace Emotion.Game.World2D
 
 			for (var i = 0; i < _objects.Count; i++)
 			{
-				GameObject2D obj = _objects[i];
+                BaseGameObject obj = _objects[i];
 				Rectangle bounds = obj.GetBoundsForQuadTree();
 				if (!shape.Intersects(ref bounds)) continue;
 				if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;

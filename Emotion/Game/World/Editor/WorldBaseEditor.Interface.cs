@@ -9,6 +9,8 @@ using Emotion.Editor.EditorWindows;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Text;
 using Emotion.Game.World2D;
+using Emotion.Game.World2D.Editor;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.IO;
 using Emotion.Platform.Input;
@@ -20,7 +22,13 @@ namespace Emotion.Game.World.Editor;
 
 public abstract partial class WorldBaseEditor
 {
-	protected void InitializeEditorInterface()
+    // Selection and MouseOver
+    protected bool _canObjectSelect;
+
+    // Interface
+    protected Dictionary<BaseGameObject, MapEditorObjectNameplate>? _namePlates;
+
+    protected void InitializeEditorInterface()
 	{
 		_editUI = new UIController(KeyListenerType.EditorUI)
 		{
@@ -235,9 +243,85 @@ public abstract partial class WorldBaseEditor
 
 		EditorButton dataEditorsButton = EditorDropDownButton("GameData", dataEditors);
 
-		parentList.AddChild(fileMenu);
+        string GetObjectSelectionLabel()
+        {
+            return $"Selection: {(_canObjectSelect ? "Enabled" : "Disabled")}";
+        }
+
+        EditorButton objectsMenu = EditorDropDownButton("Objects", new[]
+        {
+			// true by default, mouseover shows props
+			// click selects the obj and shows prop editor window
+			// alt switch between overlapping objects
+			new EditorDropDownButtonDescription
+            {
+                Name = GetObjectSelectionLabel(),
+                Click = (_, button) =>
+                {
+                    SetObjectSelectionEnabled(!_canObjectSelect);
+                    button.Text = GetObjectSelectionLabel();
+                }
+            },
+            new EditorDropDownButtonDescription
+            {
+                Name = "Object Filters",
+                Click = (_, __) => { }
+            },
+            new EditorDropDownButtonDescription
+            {
+                Name = "View Object List",
+                Click = (_, __) =>
+                {
+                    AssertNotNull(map);
+					
+                    var panel = new EditorListOfItemsPanel<BaseGameObject>(
+                        "All Objects",
+                        map.GetObjects(),
+                        obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
+                        obj => { RolloverObjects(new List<BaseGameObject> {obj}); }
+                    )
+                    {
+                        Id = "ObjectListPanel"
+                    };
+                    _editUI!.AddChild(panel);
+                },
+                Enabled = () => map != null
+            },
+			// Object creation dialog
+			new EditorDropDownButtonDescription
+            {
+                Name = "Add Object",
+                Click = (_, __) =>
+                {
+                    List<Type> objectTypes = EditorUtility.GetTypesWhichInherit<BaseGameObject>();
+
+                    var panel = new EditorListOfItemsPanel<Type>("Add Object", objectTypes, EditorAddObject);
+                    panel.Text = "These are all classes with parameterless constructors\nthat inherit GameObject2D.\nChoose class of object to add:";
+                    panel.CloseOnClick = true;
+
+                    _editUI!.AddChild(panel);
+                },
+                Enabled = () => map != null
+            },
+            new EditorDropDownButtonDescription
+            {
+                Name = "Add From Prefab",
+                Click = (_, __) =>
+                {
+                    var panel = new EditorListOfItemsPanel<GameObjectPrefab>("Prefab Library", _prefabDatabase.Values, PlaceObjectFromPrefab);
+                    panel.Text = "Choose prefab to add as a new object:";
+                    panel.CloseOnClick = true;
+
+                    _editUI!.AddChild(panel);
+                },
+                Enabled = () => map != null && _prefabDatabase.Count > 0
+            }
+        });
+
+        parentList.AddChild(fileMenu);
 		parentList.AddChild(dataEditorsButton);
-	}
+        parentList.AddChild(objectsMenu);
+    }
 
 	protected EditorButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)
 	{

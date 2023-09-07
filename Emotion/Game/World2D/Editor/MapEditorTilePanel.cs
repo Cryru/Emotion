@@ -5,6 +5,9 @@
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
+using Emotion.Utility;
+using System.Collections.Generic;
+using System.Linq;
 
 #endregion
 
@@ -23,26 +26,48 @@ public class MapEditorTilePanel : EditorPanel
 
 	public override void AttachedToController(UIController controller)
 	{
-		base.AttachedToController(controller);
+        base.AttachedToController(controller);
 
-		var layerLabel = new MapEditorLabel("Layers:");
-		_contentParent.AddChild(layerLabel);
+		_centered = false;
+        _container.Anchor = UIAnchor.TopRight;
+        _container.ParentAnchor = UIAnchor.TopRight;
+        _container.StretchY = false;
+        _container.StretchX = true;
+		_container.Offset = new Vector2(0, 10); // Top bar size, todo: const from MapEditorPanelTopBar
+
+		var topPartContainer = new UIBaseWindow();
+		topPartContainer.StretchY = true;
+		topPartContainer.StretchX = true;
+		topPartContainer.LayoutMode = LayoutMode.HorizontalList;
+		topPartContainer.Id = "TopPartContainer";
+        _contentParent.AddChild(topPartContainer);
+
+		var layerListContainer = new UIBaseWindow();
+		layerListContainer.LayoutMode = LayoutMode.VerticalList;
+		layerListContainer.StretchX = true;
+		layerListContainer.StretchY = true;
+        layerListContainer.ListSpacing = new Vector2(0, 1);
+        topPartContainer.AddChild(layerListContainer);
+
+        var layerLabel = new MapEditorLabel("Layers:");
+        layerListContainer.AddChild(layerLabel);
 
 		var list = new ItemListWithActions<Map2DTileMapLayer>();
-		list.LayoutMode = LayoutMode.VerticalList;
-		list.StretchX = true;
-		list.ChildrenAllSameWidth = true;
 		list.OnSelectionChanged = ListSelectionChanged;
+		list.NewItemCreated = (item) =>
+		{
+			Map2DTileMapData? tileData = _map.TileData;
+			if (tileData == null) return;
+			tileData.Layers.Add(item);
+		};
 		_layerList = list;
-		_contentParent.AddChild(list);
+        layerListContainer.AddChild(list);
 
 		PopulateLayerList();
 	}
 
-	public void PopulateLayerList()
+    public void PopulateLayerList()
 	{
-		_layerList.ClearChildren();
-
 		Map2DTileMapData? tileData = _map.TileData;
 		if (tileData == null) return;
 
@@ -69,7 +94,27 @@ public class MapEditorTilePanel : EditorPanel
 	private void ListSelectionChanged(Map2DTileMapLayer selected)
 	{
 		_currentLayer = selected;
-	}
+		if (selected != null)
+		{
+			var contentParent = GetWindowById("TopPartContainer");
+			AssertNotNull(contentParent);
+
+			var oldProperties = contentParent.GetWindowById("Properties");
+			if (oldProperties != null) contentParent.RemoveChild(oldProperties);
+
+            var propertyEditor = new GenericPropertiesEditorPanel(selected);
+			propertyEditor.Id = "Properties";
+			propertyEditor.PanelMode = PanelMode.Embedded;
+			propertyEditor.StretchX = true;
+			propertyEditor.StretchY = true;
+			propertyEditor.OnPropertyEdited = (key, newVal) =>
+			{
+				_layerList.Modified(selected);
+			};
+
+			contentParent.AddChild(propertyEditor);
+        }
+    }
 }
 
 public class ItemListWithActionsItem<T>
@@ -78,20 +123,91 @@ public class ItemListWithActionsItem<T>
 	public List<ItemListWithActionsItem<T>> Children;
 }
 
-public class ItemListWithActions<T> : UICallbackListNavigator
+public class ItemListWithActions<T> : UIBaseWindow
 {
-	public Action<T> OnSelectionChanged;
+	public Action<T>? OnSelectionChanged;
+	public Action<T>? NewItemCreated;
 
-	private IEnumerable<ItemListWithActionsItem<T>>? _items;
+	public Func<T>? FactoryCreateNew;
+
+	private List<ItemListWithActionsItem<T>>? _items;
 	private T? _selectedItem;
 
-	// can add (callback)
-	// can create children/can move in
-	// can delete (callback)
+	protected UICallbackListNavigator _list = null!;
 
-	public void SetItems(IEnumerable<ItemListWithActionsItem<T>>? items)
+	public ItemListWithActions()
 	{
-		ClearChildren();
+		StretchX = true;
+		StretchY = true;
+	}
+
+    public override void AttachedToController(UIController controller)
+    {
+        base.AttachedToController(controller);
+
+		LayoutMode = LayoutMode.VerticalList;
+
+		UIBaseWindow buttonsContainer = new UIBaseWindow();
+		buttonsContainer.StretchX = true;
+		buttonsContainer.StretchY = true;
+		buttonsContainer.LayoutMode = LayoutMode.HorizontalList;
+		buttonsContainer.ListSpacing = new Vector2(1, 0);
+		AddChild(buttonsContainer);
+
+		EditorButton addItem = new EditorButton();
+		addItem.Text = "Add";
+		addItem.StretchY = true;
+		addItem.OnClickedProxy = (_) =>
+		{
+			if (_items == null) return;
+
+			T? newItem;
+			if (FactoryCreateNew == null)
+				newItem = (T?) Activator.CreateInstance(typeof(T), true);
+			else
+				newItem = FactoryCreateNew();
+
+			if (newItem == null) return;
+
+			_items.Add(new ItemListWithActionsItem<T>()
+			{
+				Object = newItem
+			});
+			NewItemCreated?.Invoke(newItem);
+			SetSelectedItem(newItem);
+        };
+		buttonsContainer.AddChild(addItem);
+
+  //      EditorButton deleteSelectedItem = new EditorButton();
+		//deleteSelectedItem.Text = "Remove";
+  //      deleteSelectedItem.StretchY = true;
+  //      buttonsContainer.AddChild(deleteSelectedItem);
+
+  //      EditorButton moveUp = new EditorButton();
+		//moveUp.Text = "^";
+		//moveUp.StretchY = true;
+  //      buttonsContainer.AddChild(moveUp);
+
+  //      EditorButton moveDown = new EditorButton();
+		//moveDown.Text = "V";
+		//moveDown.StretchY = true;
+		//buttonsContainer.AddChild(moveDown);
+
+        _list = new UICallbackListNavigator();
+        _list.StretchX = true;
+        _list.ChildrenAllSameWidth = true;
+		_list.LayoutMode = LayoutMode.VerticalList;
+        AddChild(_list);
+    }
+
+    // can add (callback)
+    // can create children/can move in
+    // can delete (callback)
+
+    public void SetItems(List<ItemListWithActionsItem<T>> items)
+	{
+		_list.ClearChildren();
+		_items = items;
 		GenerateChildrenFromItems();
 	}
 
@@ -99,9 +215,24 @@ public class ItemListWithActions<T> : UICallbackListNavigator
 	{
 		_selectedItem = selectedItem;
 		OnSelectionChanged?.Invoke(selectedItem);
+    }
+
+	public void Modified(T obj) // todo: UI data bindings?
+	{
+		if (_list == null || _list.Children == null) return;
+		if (obj == null) return;
+
+		for (int i = 0; i < _list.Children.Count; i++)
+		{
+            EditorButton? button = _list.Children[i] as EditorButton;
+			if (button != null && Helpers.AreObjectsEqual(obj, button.UserData))
+			{
+				button.Text = obj.ToString() ?? "<null>";
+			}
+		}
 	}
 
-	private void GenerateChildrenFromItems()
+    private void GenerateChildrenFromItems()
 	{
 		if (_items == null) return;
 
@@ -111,10 +242,11 @@ public class ItemListWithActions<T> : UICallbackListNavigator
 			{
 				Text = item.Object?.ToString() ?? "<null>",
 				StretchY = true,
+				UserData = item,
 
 				OnClickedProxy = _ => { SetSelectedItem(item.Object); }
 			};
-			AddChild(button);
+            _list.AddChild(button);
 		}
 	}
 }

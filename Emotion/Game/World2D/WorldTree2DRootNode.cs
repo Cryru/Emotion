@@ -1,16 +1,18 @@
 ﻿#nullable enable
 
+using Emotion.Game.World;
+
 namespace Emotion.Game.World2D
 {
 	public class WorldTree2DRootNode : WorldTree2DNode
 	{
-		protected Dictionary<GameObject2D, WorldTree2DNode> _objToNode = new();
+		protected Dictionary<BaseGameObject, WorldTree2DNode> _objToNode = new();
 
 		public WorldTree2DRootNode(Rectangle bounds) : base(null, bounds)
 		{
 		}
 
-		public void AddObjectToRoot(GameObject2D obj)
+		public void AddObjectToRoot(BaseGameObject obj)
 		{
 			Rectangle bounds = obj.GetBoundsForQuadTree();
 			WorldTree2DNode node = GetNodeForBounds(bounds);
@@ -20,20 +22,20 @@ namespace Emotion.Game.World2D
 			_objToNode.Add(obj, node);
 		}
 
-		public void RemoveObjectFromRoot(GameObject2D obj)
+		public void RemoveObjectFromRoot(BaseGameObject obj)
 		{
 			if (!_objToNode.TryGetValue(obj, out WorldTree2DNode? node)) return;
 			node.RemoveObject(obj);
 			_objToNode.Remove(obj);
 		}
 
-		public WorldTree2DNode? GetNodeForObject(GameObject2D obj)
+		public WorldTree2DNode? GetNodeForObject(BaseGameObject obj)
 		{
 			_objToNode.TryGetValue(obj, out WorldTree2DNode? node);
 			return node;
 		}
 
-		public void UpdateObject(GameObject2D obj)
+		public void UpdateObject(BaseGameObject obj)
 		{
 			_objToNode.TryGetValue(obj, out WorldTree2DNode? node);
 			Assert(node != null);

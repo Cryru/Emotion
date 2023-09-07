@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Game.World;
 using Emotion.Game.World.Editor;
 using Emotion.UI;
 
@@ -9,7 +10,7 @@ namespace Emotion.Game.World2D.Editor;
 
 public class MapEditorObjectNameplate : UIWorldAttachedWindow
 {
-	public GameObject2D Object;
+	public BaseGameObject Object;
 
 	private UIText _label;
 	private UISolidColor _bg;
@@ -51,7 +52,7 @@ public class MapEditorObjectNameplate : UIWorldAttachedWindow
 		return base.CalculateContentPos(parentPos, parentSize, parentScaledPadding);
 	}
 
-	public void AttachToObject(GameObject2D obj)
+	public void AttachToObject(BaseGameObject obj)
 	{
 		Object = obj;
 	}

@@ -43,7 +43,7 @@ public class EditorPanel : UIBaseWindow
 
     protected UIBaseWindow _contentParent = null!;
 	protected UIBaseWindow _container = null!;
-	private bool _centered;
+	protected bool _centered;
 
 	public EditorPanel(string header)
 	{
@@ -82,7 +82,9 @@ public class EditorPanel : UIBaseWindow
         }
 		else
 		{
-			container.Margins = new Rectangle(5, 5, 5, 5);
+            container.StretchX = true;
+            container.StretchY = true;
+            container.Margins = new Rectangle(5, 5, 5, 5);
 		}
 		
 		var contentParent = new UIBaseWindow();

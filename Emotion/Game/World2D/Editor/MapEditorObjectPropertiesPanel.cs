@@ -6,6 +6,7 @@ using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
+using Emotion.Game.World;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
@@ -20,13 +21,13 @@ namespace Emotion.Game.World2D.Editor;
 
 public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPanel
 {
-	public World2DEditor Editor;
+	public WorldBaseEditor Editor;
 
-	public GameObject2D Object;
+	public BaseGameObject Object;
 	public int ObjectUId;
-	public Map2D ObjectMap;
+	public BaseMap ObjectMap;
 
-	public MapEditorObjectPropertiesPanel(World2DEditor editor, GameObject2D obj) : base(obj)
+	public MapEditorObjectPropertiesPanel(WorldBaseEditor editor, BaseGameObject obj) : base(obj)
 	{
 		Editor = editor;
 		Object = obj;

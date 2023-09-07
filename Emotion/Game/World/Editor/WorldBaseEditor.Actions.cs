@@ -12,7 +12,7 @@ public abstract partial class WorldBaseEditor
 {
 	protected List<IWorldEditorAction> _actions = new();
 
-	protected void EditorRegisterMoveAction(GameObject2D obj, Vector2 from, Vector2 to)
+	protected void EditorRegisterMoveAction(BaseGameObject obj, Vector2 from, Vector2 to)
 	{
 		if (from == to) return;
 
@@ -36,7 +36,7 @@ public abstract partial class WorldBaseEditor
 		_actions.Add(newMove);
 	}
 
-	protected void EditorRegisterObjectMutateAction(GameObject2D obj, XMLFieldHandler fieldHandler, object? oldValue)
+	protected void EditorRegisterObjectMutateAction(BaseGameObject obj, XMLFieldHandler fieldHandler, object? oldValue)
 	{
 		var newMutate = new WorldEditorActionMutate(this, obj, fieldHandler, oldValue);
 		_actions.Add(newMutate);

@@ -12,11 +12,11 @@ namespace Emotion.Game.World.Editor.Actions;
 public class WorldEditorActionMutate : IWorldEditorAction
 {
 	public WorldBaseEditor Editor;
-	public GameObject2D ObjTarget;
+	public BaseGameObject ObjTarget;
 	public XMLFieldHandler Field;
 	public object? OldValue;
 
-	public WorldEditorActionMutate(WorldBaseEditor editor, GameObject2D objTarget, XMLFieldHandler fieldHandler, object? oldValue)
+	public WorldEditorActionMutate(WorldBaseEditor editor, BaseGameObject objTarget, XMLFieldHandler fieldHandler, object? oldValue)
 	{
 		Editor = editor;
 		ObjTarget = objTarget;

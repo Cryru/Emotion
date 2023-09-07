@@ -1,5 +1,6 @@
 #region Using
 
+using Emotion.Game.World3D;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
@@ -12,7 +13,7 @@ using Emotion.Utility;
 
 namespace Emotion.Game.ThreeDee.Editor
 {
-	public class TranslationGizmo : Object3D
+	public class TranslationGizmo : GameObject3D
 	{
 		public int Alpha = 200;
 		public int SnapSize = 50;
@@ -119,9 +120,9 @@ namespace Emotion.Game.ThreeDee.Editor
 			Position = target.Position;
 		}
 
-		public override void Update(float dt)
+		protected override void UpdateInternal(float dt)
 		{
-			base.Update(dt);
+			base.UpdateInternal(dt);
 
 			CameraBase? camera = Engine.Renderer.Camera;
 
@@ -185,9 +186,9 @@ namespace Emotion.Game.ThreeDee.Editor
 			return intersection;
 		}
 
-		public override void Dispose()
+		public override void Destroy()
 		{
-			base.Dispose();
+			base.Destroy();
 			Engine.Host.OnKey.RemoveListener(KeyHandler);
 		}
 	}

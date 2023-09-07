@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Game.ThreeDee;
+using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 
@@ -37,7 +38,7 @@ namespace Emotion.Primitives
 			return Start + distance * Direction;
 		}
 
-		public bool IntersectWithObject(Object3D obj, out Mesh collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+		public bool IntersectWithObject(GameObject3D obj, out Mesh collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
 		{
 			collidedMesh = null;
 			collisionPoint = Vector3.Zero;

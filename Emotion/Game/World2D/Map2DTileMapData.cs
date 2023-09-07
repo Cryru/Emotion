@@ -3,6 +3,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
+using Emotion.Editor;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
@@ -40,6 +41,7 @@ namespace Emotion.Game.World2D
 		[SerializeNonPublicGetSet]
 		public string Name { get; protected set; }
 
+		[DontShowInEditor]
 		[SerializeNonPublicGetSet]
 		public string StringData { get; protected set; }
 
@@ -184,7 +186,12 @@ namespace Emotion.Game.World2D
 			flipD = (data & FLIPPED_DIAGONALLY_FLAG) != 0;
 			tid = data & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
 		}
-	}
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
 
 	/// <summary>
 	/// Represents a tileset image that contains all the tiles used by a tile layer.
@@ -568,6 +575,6 @@ namespace Emotion.Game.World2D
 			return tiRect;
 		}
 
-		#endregion
-	}
+        #endregion
+    }
 }

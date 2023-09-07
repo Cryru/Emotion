@@ -25,23 +25,17 @@ public partial class World2DEditor : WorldBaseEditorGeneric<Map2D>
 
 	protected override void EnterEditorInternal()
 	{
-		InitializeObjectEditor();
 		InitializeTileEditor();
 	}
 
 	protected override void ExitEditorInternal()
 	{
-		DisposeObjectEditor();
-	}
 
-	protected override void EditorInputHandlerInternal(Key key, KeyStatus status)
-	{
-		ObjectEditorInputHandler(key, status);
 	}
 
 	protected override void UpdateInternal(float dt)
 	{
-		UpdateObjectEditor();
+		
 	}
 
 	protected override void RenderInternal(RenderComposer c)
@@ -67,12 +61,5 @@ public partial class World2DEditor : WorldBaseEditorGeneric<Map2D>
 		}
 
 		_grid?.Render(c);
-		RenderObjectSelection(c);
-	}
-
-	// this handles unspawned objects which might not have sizes.
-	private Rectangle GetObjectBoundForEditor(GameObject2D obj)
-	{
-		return obj.Bounds;
 	}
 }
