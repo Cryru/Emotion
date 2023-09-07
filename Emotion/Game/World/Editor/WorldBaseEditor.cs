@@ -56,6 +56,7 @@ public abstract partial class WorldBaseEditor
 	{
 		if (!Engine.Configuration.DebugMode) return;
 		Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
+		Engine.Host.OnKey.AddListener(EditorBarrierInputHandler, KeyListenerType.EditorBarrier);
 		_editorUIAlways = new UIController(KeyListenerType.EditorUI)
 		{
 			Id = "WorldEditor_AlwaysOnTop"
@@ -65,6 +66,7 @@ public abstract partial class WorldBaseEditor
 	public void UnloadEditor()
 	{
 		Engine.Host.OnKey.RemoveListener(DebugInputHandler);
+		Engine.Host.OnKey.RemoveListener(EditorBarrierInputHandler);
 	}
 
 	public void EnterEditor()
@@ -75,6 +77,7 @@ public abstract partial class WorldBaseEditor
 		_editorCamera = GetEditorCamera();
 		Engine.Renderer.Camera = _editorCamera;
 		Engine.Renderer.Camera.Position = _cameraOutsideEditor.Position;
+		Engine.Renderer.Camera.LookAt = _cameraOutsideEditor.LookAt;
 
 		InitializeEditorInterface();
 		InitializeObjectEditor();
@@ -218,6 +221,11 @@ public abstract partial class WorldBaseEditor
 
 		ObjectEditorInputHandler(key, status);
 
+		return true;
+	}
+	
+	private bool EditorBarrierInputHandler(Key key, KeyStatus status)
+	{
 		return false;
 	}
 

@@ -40,7 +40,7 @@ public abstract partial class WorldBaseEditor
 	// Temp
 	protected static string? _objectCopyClipboard; // todo: platform based clipboard?
 
-	protected void InitializeObjectEditor()
+	protected virtual void InitializeObjectEditor()
 	{
 		if (CurrentMap != null)
 		{
@@ -52,7 +52,7 @@ public abstract partial class WorldBaseEditor
 		LoadPrefabs();
 	}
 
-	protected void DisposeObjectEditor()
+	protected virtual void DisposeObjectEditor()
 	{
 		if (CurrentMap != null)
 		{
@@ -67,7 +67,7 @@ public abstract partial class WorldBaseEditor
 		_allObjectsRollover = null;
 	}
 
-	protected void UpdateObjectEditor()
+	protected virtual void UpdateObjectEditor()
 	{
 		BaseMap? map = CurrentMap;
 		if (map == null) return;
@@ -244,55 +244,16 @@ public abstract partial class WorldBaseEditor
 		newObj.Position = worldPos.ToVec3();
 
 		map.AddObject(newObj);
-		ObjectSelect(newObj);
+		SelectObject(newObj);
 
 		// Stick to mouse to be placed.
 		_objectDragging = newObj;
 		_objectDragOffset = newObj.Size / 2f;
 	}
 
-	protected void RenderObjectSelection(RenderComposer c)
+	protected virtual void RenderObjectSelection(RenderComposer c)
 	{
-		BaseMap? map = CurrentMap;
-		if (map == null) return;
-
-		if (!_canObjectSelect) return;
-
-		// Show selection of object, if any.
-		if (_editUI?.DropDown?.OwningObject is BaseGameObject objectWithContextMenu)
-		{
-			Rectangle bound = objectWithContextMenu.Bounds;
-			c.RenderSprite(bound, Color.White * 0.3f);
-		}
-
-		if (_selectedObject != null && _selectedObject.ObjectState != ObjectState.Destroyed)
-		{
-			Rectangle bound = _selectedObject.Bounds;
-			c.RenderSprite(bound, Color.White * 0.3f);
-		}
-
-		if (_rolloverObject != null)
-		{
-			Rectangle bound = _rolloverObject.Bounds;
-			c.RenderSprite(bound, Color.White * 0.3f);
-		}
-
-		foreach (BaseGameObject obj in map.GetObjects(true))
-		{
-			Rectangle bounds = obj.Bounds;
-
-			if (!obj.ObjectFlags.HasFlag(ObjectFlags.Persistent))
-			{
-				c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black * 0.5f);
-				c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black * 0.5f);
-			}
-			else if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
-			{
-				c.RenderSprite(bounds, Color.Magenta * 0.2f);
-			}
-
-			c.RenderOutline(bounds, Color.White * 0.4f);
-		}
+		// nop
 	}
 
 	private void ObjectEditorInputHandler(Key key, KeyStatus status)
@@ -307,7 +268,7 @@ public abstract partial class WorldBaseEditor
 		{
 			if (_rolloverObject != null)
 			{
-				ObjectSelect(_rolloverObject);
+				SelectObject(_rolloverObject);
 				if (rightClick)
 				{
 					if (noMouseFocus)
@@ -336,7 +297,7 @@ public abstract partial class WorldBaseEditor
 
 	#region Object Selection and Rollover
 
-	public void ObjectSelect(BaseGameObject? obj)
+	public virtual void SelectObject(BaseGameObject? obj)
 	{
 		if (_selectedObject == obj) return;
 
@@ -600,7 +561,7 @@ public abstract partial class WorldBaseEditor
 		newObj.PrefabOrigin = new GameObjectPrefabOriginData(prefab);
 
 		map.AddObject(newObj);
-		ObjectSelect(newObj);
+		SelectObject(newObj);
 
 		// Stick to mouse to be placed.
 		_objectDragging = newObj;

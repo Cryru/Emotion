@@ -1,16 +1,18 @@
-﻿#region Using
+﻿#nullable enable
 
-using Emotion.Game.World;
-using Emotion.Game.World.Editor;
+#region Using
+
+using Emotion.Game.World2D;
+using Emotion.Game.World3D;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D.Editor;
+namespace Emotion.Game.World.Editor;
 
 public class MapEditorObjectNameplate : UIWorldAttachedWindow
 {
-	public BaseGameObject Object;
+	public BaseGameObject? Object;
 
 	private UIText _label;
 	private UISolidColor _bg;
@@ -73,7 +75,11 @@ public class MapEditorObjectNameplate : UIWorldAttachedWindow
 
 	protected override bool UpdateInternal()
 	{
-		AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
+		if (Object is GameObject2D)
+			AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
+		else if (Object is GameObject3D)
+			// todo: 3d bounds
+			AttachToPosition(new Vector3(Object.X, Object.Y, _height));
 
 		_label.Text = $"{Object.ObjectName ?? "null"}{(Object.ObjectState != ObjectState.Alive ? " (NotSpawned)" : "")}";
 		return base.UpdateInternal();

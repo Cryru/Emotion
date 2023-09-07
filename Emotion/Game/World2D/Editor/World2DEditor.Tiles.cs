@@ -3,6 +3,7 @@
 #region Using
 
 using System.Threading.Tasks;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.ThreeDee;
 
 #endregion

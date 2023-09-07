@@ -98,18 +98,18 @@ namespace Emotion.Graphics.Batches
 			_structCapacity = ushort.MaxValue / 3;
 
 			const int defaultStructSize = 32;
-            uint bufferSizeBytes = defaultStructSize * _structCapacity;
+            uint bufferSizeBytes = defaultStructSize * ushort.MaxValue;
 
 			_backingBufferSize = bufferSizeBytes;
 			_backingBuffer = UnmanagedMemoryAllocator.MemAlloc((int)_backingBufferSize);
-            _backingIndexBufferSize = _indexByteSize * _structCapacity * 3;
+            _backingIndexBufferSize = _indexByteSize * _structCapacity * 6;
             _backingIndexBuffer = UnmanagedMemoryAllocator.MemAlloc((int)_backingIndexBufferSize);
 
 			// Arbitrary chosen number.
 			// The number of objects we'll need can vary greatly, and there is no
 			// reliable way to determine how many the driver can create.
 			// Godspeed.
-			for (int i = 0; i < 16; i++)
+			for (var i = 0; i < 16; i++)
 			{
 				CreateRenderObject(typeof(VertexData));
 			}

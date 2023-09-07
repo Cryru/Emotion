@@ -4,6 +4,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
+using Emotion.Editor;
 using Emotion.Game.QuadTree;
 using Emotion.Utility;
 
@@ -161,6 +162,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The rotation of the transform in radians.
         /// </summary>
+        [DontShowInEditor]
         public Vector3 Rotation
         {
             get => _rotation;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.ThreeDee.Editor;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
@@ -43,7 +44,7 @@ namespace Emotion.Droid.ExecTest
 
 			var wall = new Quad3D();
 			wall.Position = new Vector3(0, 0, 50);
-			wall.Size = new Vector3(100, 100, 1);
+			wall.Size3D = new Vector3(100, 100, 1);
 			wall.RotationDeg = new Vector3(0, -90, 0);
 			wall.Tint = Color.Black;
 			_quads.Add(wall);

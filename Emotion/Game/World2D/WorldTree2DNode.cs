@@ -93,6 +93,15 @@ namespace Emotion.Game.World2D
 			}
 		}
 
+		public void AddAllObjects(IList list)
+		{
+			if (_objects == null) return;
+			for (var i = 0; i < _objects.Count; i++)
+			{
+				list.Add(_objects[i]);
+			}
+		}
+
 		public void RenderDebug(RenderComposer c)
 		{
 			c.RenderOutline(Bounds, Color.Blue);

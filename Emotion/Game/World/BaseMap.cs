@@ -10,6 +10,7 @@ using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Editor;
 using Emotion.Game.World2D;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Standard.XML;
 
@@ -139,6 +140,11 @@ public abstract class BaseMap
 		_loadingPersistentObjects = true;
 		AddObject(obj);
 		_loadingPersistentObjects = false;
+	}
+
+	public virtual List<Type> GetValidObjectTypes()
+	{
+		return EditorUtility.GetTypesWhichInherit<BaseGameObject>();
 	}
 
 	#endregion
@@ -504,6 +510,12 @@ public abstract class BaseMap
 	{
 		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
 		rootNode?.AddObjectsIntersectingShape(list, shape, queryFlags);
+	}
+
+	public void GetObjects(IList list, int layer)
+	{
+		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
+		rootNode?.AddAllObjects(list);
 	}
 
 	public WorldTree2D? GetWorldTree()

@@ -5,9 +5,13 @@ using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.SceneControl;
+using Emotion.Game.World3D;
+using Emotion.Game.World3D.SceneControl;
 using Emotion.Graphics;
+using Emotion.Graphics.Camera;
 using Emotion.Primitives;
 using Emotion.Testing;
+using Emotion.UI;
 using Emotion.Utility;
 
 #endregion
@@ -46,16 +50,18 @@ public class Program
 			DebugMode = true
 		};
 
-		Engine.Setup(config);
 		TestExecutor.ExecuteTests(args, config);
-		Engine.Run();
 	}
 }
 
-public class TestScene3D : World2DBaseScene<Map2D>
+public class TestScene3D : World3DBaseScene<Map3D>
 {
 	public override Task LoadAsync()
 	{
+		var cam3D = new Camera3D(new Vector3(100));
+		cam3D.LookAtPoint(Vector3.Zero);
+		Engine.Renderer.Camera = cam3D;
+
 		_editor.EnterEditor();
 		return Task.CompletedTask;
 	}

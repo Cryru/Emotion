@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
@@ -11,10 +10,9 @@ using Emotion.Game.ThreeDee;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics;
-using Emotion.Graphics.Batches;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
@@ -161,7 +159,7 @@ public class ModelViewer : EditorPanel
 		var viewSkeleton = new PropEditorBool();
 		viewSkeleton.SetValue(false);
 		viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool) newVal; });
-		editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton, LayoutMode.HorizontalList));
+		editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton));
 
 		var saveAsEm3Button = new EditorButton
 		{
@@ -313,13 +311,9 @@ public class ModelViewer : EditorPanel
 		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
 
 		if (_renderSkeleton)
-		{
 			_obj.DebugDrawSkeleton(c);
-		}
 		else
-		{
-            _obj.Render(c);
-        }
+			_obj.Render(c);
 
 		c.RenderTo(null);
 

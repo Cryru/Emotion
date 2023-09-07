@@ -114,10 +114,11 @@ namespace Emotion.Game.ThreeDee.Editor
 			return true;
 		}
 
-		public void SetTarget(Positional target)
+		public void SetTarget(Transform? target)
 		{
 			Target = target;
-			Position = target.Position;
+			if (target != null)
+				Position = target.Position;
 		}
 
 		protected override void UpdateInternal(float dt)
@@ -155,6 +156,11 @@ namespace Emotion.Game.ThreeDee.Editor
 
 				Position = _virtualPos;
 				if (Target != null) Target.Position = p;
+			}
+
+			if (Target != null && _dragPointStart == Vector3.Zero)
+			{
+				Position = Target.Position;
 			}
 		}
 

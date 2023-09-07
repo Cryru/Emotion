@@ -22,7 +22,13 @@ namespace Emotion.Game.World2D
 			WorldTree2DNode node = GetNodeForBounds(bounds);
 			node = node.AddObject(bounds, obj);
 
-			if (_objToNode.ContainsKey(obj)) return; // Crash prevention in error cases.
+			// Crash prevention in error cases.
+			if (_objToNode.ContainsKey(obj))
+			{
+				Assert(false, "Object already present in WorldTreeNode");
+				return;
+			}
+
 			_objToNode.Add(obj, node);
 		}
 
@@ -42,7 +48,7 @@ namespace Emotion.Game.World2D
 		public void UpdateObject(BaseGameObject obj)
 		{
 			_objToNode.TryGetValue(obj, out WorldTree2DNode? node);
-			Assert(node != null);
+			AssertNotNull(node);
 
 			Rectangle bounds = obj.GetBoundsForQuadTree();
 			WorldTree2DNode newNode = GetNodeForBounds(bounds);

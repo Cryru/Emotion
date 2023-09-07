@@ -293,7 +293,9 @@ public abstract partial class WorldBaseEditor
 				Name = "Add Object",
 				Click = (_, __) =>
 				{
-					List<Type> objectTypes = EditorUtility.GetTypesWhichInherit<BaseGameObject>();
+					AssertNotNull(map);
+
+					List<Type> objectTypes = map.GetValidObjectTypes();
 
 					var panel = new EditorListOfItemsPanel<Type>("Add Object", objectTypes, EditorAddObject);
 					panel.Text = "These are all classes with parameterless constructors\nthat inherit GameObject2D.\nChoose class of object to add:";

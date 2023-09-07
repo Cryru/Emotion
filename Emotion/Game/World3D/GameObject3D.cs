@@ -88,7 +88,7 @@ public class GameObject3D : BaseGameObject
 
 	public override async Task LoadAssetsAsync()
 	{
-		if (_skeletalShader == null) _skeletalShader = await Engine.AssetLoader.GetAsync<ShaderAsset>("");
+		if (_skeletalShader == null) _skeletalShader = await Engine.AssetLoader.GetAsync<ShaderAsset>("Shaders/SkeletalAnim.xml");
 
 		if (string.IsNullOrEmpty(EntityPath)) return;
 
@@ -155,7 +155,7 @@ public class GameObject3D : BaseGameObject
 				ushort[] indices = obj.Indices;
 				Texture? texture = null;
 				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-				var memory = c.RenderStream.GetStreamMemory<VertexDataWithBones>((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+				StreamData<VertexDataWithBones> memory = c.RenderStream.GetStreamMemory<VertexDataWithBones>((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
 				// Didn't manage to get enough memory.
 				if (memory.VerticesData.Length == 0)

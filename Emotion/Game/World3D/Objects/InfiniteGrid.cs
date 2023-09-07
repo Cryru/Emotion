@@ -1,13 +1,14 @@
-﻿#region Using
+﻿#nullable enable
 
-using Emotion.IO;
+#region Using
+
 using System.Threading.Tasks;
+using Emotion.Graphics;
+using Emotion.IO;
 
 #endregion
 
-#nullable enable
-
-namespace Emotion.Graphics.ThreeDee;
+namespace Emotion.Game.World3D.Objects;
 
 public sealed class InfiniteGrid : Quad3D
 {
@@ -19,7 +20,7 @@ public sealed class InfiniteGrid : Quad3D
 
 	public InfiniteGrid()
 	{
-		Size = _infiniteGridSize;
+		Size3D = _infiniteGridSize.ToVec3(1);
 	}
 
     public override async Task LoadAssetsAsync()
@@ -39,6 +40,7 @@ public sealed class InfiniteGrid : Quad3D
 		_shader.Shader.SetUniformVector2("squareSize", new Vector2(TileSize));
 		_shader.Shader.SetUniformVector2("cameraPos", (cameraPos + Offset) / _infiniteGridSize); // Camera position in UV space.
 		_shader.Shader.SetUniformVector2("totalSize", _infiniteGridSize);
+		base.RenderInternal(c);
 		c.SetShader();
 	}
 }

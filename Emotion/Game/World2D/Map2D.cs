@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Emotion.Editor;
 using Emotion.Game.World;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 
 #endregion
@@ -27,15 +28,16 @@ public class Map2D : BaseMap
 	{
 	}
 
-	#region Init
+	public override List<Type> GetValidObjectTypes()
+	{
+		return EditorUtility.GetTypesWhichInherit<GameObject2D>();
+	}
 
 	protected override async Task InitAsyncInternal()
 	{
 		// Load tile data. During this time object loading is running async.
 		if (TileData != null) await TileData.LoadTileDataAsync();
 	}
-
-	#endregion
 
 	public static Comparison<BaseGameObject> ObjectComparison = ObjectSort; // Prevent delegate allocation
 

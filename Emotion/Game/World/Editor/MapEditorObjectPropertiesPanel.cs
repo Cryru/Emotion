@@ -1,4 +1,6 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Linq;
 using System.Reflection;
@@ -6,8 +8,8 @@ using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
-using Emotion.Game.World;
-using Emotion.Game.World.Editor;
+using Emotion.Game.World2D;
+using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
@@ -15,9 +17,7 @@ using Emotion.UI;
 
 #endregion
 
-#nullable enable
-
-namespace Emotion.Game.World2D.Editor;
+namespace Emotion.Game.World.Editor;
 
 public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPanel
 {
@@ -36,13 +36,21 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
 		// Inject the "Center" property of Transform.
 		// Since it isn't serialized it wont be returned, but its handy to have for objects.
-		// todo: Make this injection function generic? In the base class or w/e.
-		EditorUtility.TypeAndFieldHandlers? positionalType = _fields.FirstOrDefault(x => x.DeclaringType == typeof(Transform));
-		if (positionalType != null)
+		InjectDontSerializeProperty<Transform>("Center");
+		InjectDontSerializeProperty<Transform>("RotationDeg");
+	}
+
+	private void InjectDontSerializeProperty<T>(string name)
+	{
+		EditorUtility.TypeAndFieldHandlers? declaringType = _fields.FirstOrDefault(x => x.DeclaringType == typeof(T));
+		if (declaringType != null)
 		{
-			XMLTypeHandler? v2Handler = XMLHelpers.GetTypeHandler(typeof(Vector2));
-			PropertyInfo? centerProp = typeof(Transform).GetProperty("Center");
-			if (centerProp != null) positionalType.Fields.Add(new XMLFieldHandler(new ReflectedMemberHandler(centerProp), v2Handler));
+			PropertyInfo? injectedProp = typeof(T).GetProperty(name);
+			if (injectedProp != null)
+			{
+				XMLTypeHandler? editor = XMLHelpers.GetTypeHandler(injectedProp.PropertyType);
+				declaringType.Fields.Add(new XMLFieldHandler(new ReflectedMemberHandler(injectedProp), editor));
+			}
 		}
 	}
 
@@ -50,7 +58,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 	{
 		base.AttachedToController(controller);
 
-		var uiContainer = GetWindowById("InnerContainer");
+		UIBaseWindow? uiContainer = GetWindowById("InnerContainer");
 		if (uiContainer == null) return;
 
 		var statusLabel = new UIText();
@@ -92,7 +100,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 	{
 		Editor.ChangeObjectProperty(Object, field, value);
 
-		UIBaseWindow? editorWindow = editor as UIBaseWindow;
+		var editorWindow = editor as UIBaseWindow;
 		OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
 	}
 
@@ -100,7 +108,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 	{
 		if (Object.PrefabOrigin == null) return;
 
-		MapEditorGameObjectPrefabValueDiff valueDiffAlert = new MapEditorGameObjectPrefabValueDiff();
+		var valueDiffAlert = new MapEditorGameObjectPrefabValueDiff();
 		valueDiffAlert.Anchor = UIAnchor.CenterLeft;
 		valueDiffAlert.ParentAnchor = UIAnchor.CenterLeft;
 		valueDiffAlert.Offset = new Vector2(-3, 0); // Combat list spacing
@@ -111,7 +119,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
 	protected override void OnFieldEditorUpdated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
 	{
-		var diffAlert = editorWithLabel.GetWindowById("DiffAlert");
+		UIBaseWindow? diffAlert = editorWithLabel.GetWindowById("DiffAlert");
 		if (diffAlert == null) return;
 		diffAlert.Visible = Editor.IsPropertyDifferentFromPrefab(Object, field);
 	}

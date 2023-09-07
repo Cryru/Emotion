@@ -14,10 +14,10 @@ namespace Emotion.Game.World2D.Editor;
 
 public class MapEditorOpenMapPanel : EditorPanel
 {
-	private World2DEditor _editor;
+	private WorldBaseEditor _editor;
 	private Type _mapType;
 
-	public MapEditorOpenMapPanel(World2DEditor editor, Type mapType) : base("Open Map")
+	public MapEditorOpenMapPanel(WorldBaseEditor editor, Type mapType) : base("Open Map")
 	{
 		_editor = editor;
 		_mapType = mapType;
