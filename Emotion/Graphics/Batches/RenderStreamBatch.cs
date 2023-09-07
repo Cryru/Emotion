@@ -78,17 +78,16 @@ namespace Emotion.Graphics.Batches
 		#region GL Objects
 
 		// todo: these could be shared by render batches that share vertex layout.
+		// implying that there would be more than one batch lol
 		protected class GLRenderObjects
 		{
 			public VertexBuffer VBO;
 			public IndexBuffer IBO;
-
 			public VertexArrayObject VAO;
-
-			public uint FrameUsed;
         }
 
-		protected Dictionary<Type, List<GLRenderObjects>> _renderObjects = new Dictionary<Type, List<GLRenderObjects>>();
+		protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjects = new();
+		protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjectsUsed = new();
 
         #endregion
 
@@ -298,32 +297,27 @@ namespace Emotion.Graphics.Batches
             _backingBufferOffset = 0;
             _backingIndexOffset = 0;
 
-			// This render obj will be reused only in the next frame,
-			// to ensure synchronization and not having to fence.
-			//
-			// todo: figure out how this interfaces with double buffering,
-			// is it possible for the object to still be in use?
-			renderObj.FrameUsed = Engine.FrameCount;
-
             // Reset texture mapping, if using it.
             if (_atlas == null) return;
 			_atlas.ResetMapping();
 			_smoothAtlas.ResetMapping();
-
-			// According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
-			// in the pipeline references the buffer object, regardless of whether it concerns the region
-			// being updated. Nvidia and AMD gracefully handle this, but Intel GPUs will silently fail to
-			// render some triangles.
-			//
-			// Because of this we swap buffers after every render, regardless of how small it is.
-			// This sucks and makes the FencedBufferSource more or less useless and a more general solution
-			// should be implemented. For now this is the bandaid.
         }
 
 		public void DoTasks(RenderComposer c)
 		{
 			_atlas?.Update(c);
 			_smoothAtlas?.Update(c);
+
+			// Funnel used objects back into the usable pool.
+			foreach (var usedStackPair in _renderObjectsUsed)
+			{
+				var usableStack = _renderObjects[usedStackPair.Key];
+				var usedStack = usedStackPair.Value;
+				while (usedStack.Count > 0)
+				{
+					usableStack.Push(usedStack.Pop());
+                }
+			}
 		}
 
         #region GL Render Objects
@@ -341,13 +335,16 @@ namespace Emotion.Graphics.Batches
 				IBO = ibo,
 			};
 
-            List<GLRenderObjects> renderObjsOfType;
+            Stack<GLRenderObjects> renderObjsOfType;
             if (!_renderObjects.TryGetValue(vertexType, out renderObjsOfType))
 			{
-				renderObjsOfType = new List<GLRenderObjects>();
+				renderObjsOfType = new Stack<GLRenderObjects>();
 				_renderObjects.Add(vertexType, renderObjsOfType);
-			}
-            renderObjsOfType.Add(objectsPair);
+
+				var usedStack = new Stack<GLRenderObjects>();
+				_renderObjectsUsed.Add(vertexType, usedStack);
+            }
+            renderObjsOfType.Push(objectsPair);
 			return objectsPair;
         }
 
@@ -359,23 +356,33 @@ namespace Emotion.Graphics.Batches
             }
         }
 
+        // According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
+        // in the pipeline references the buffer object, regardless of whether it concerns the region
+        // being updated. Nvidia and AMD gracefully handle this, but Intel GPUs will silently fail to
+        // render some triangles.
+        //
+        // Because of this we cannot reuse buffers in the same frame, regardless of how small of a draw there is.
         protected GLRenderObjects GetFirstFreeRenderObject(Type vertexType)
         {
-            List<GLRenderObjects> renderObjsOfType;
+            Stack<GLRenderObjects> renderObjsOfType;
             if (!_renderObjects.TryGetValue(vertexType, out renderObjsOfType))
             {
 				Assert(false, $"No render object of vertex type {vertexType.Name}");
 				return null;
             }
 
-            for (int i = 0; i < renderObjsOfType.Count; i++)
+			if (renderObjsOfType.Count == 0) CreateRenderObject(vertexType);
+
+			if (renderObjsOfType.Count > 0)
 			{
-				var obj = renderObjsOfType[i];
-				if (obj.FrameUsed == Engine.FrameCount) continue;
+				var obj = renderObjsOfType.Pop();
+				var usedStack = _renderObjectsUsed[vertexType];
+				usedStack.Push(obj);
 				return obj;
             }
 
-			return CreateRenderObject(vertexType);
+			Assert(false, "No free render object for stream!?");
+			return null;
 		}
 
 		#endregion
