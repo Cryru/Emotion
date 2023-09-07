@@ -29,16 +29,19 @@ namespace Emotion.Graphics.Camera
 		private Vector2 _inputDirection;
 		public float _inputDirectionZ;
 
-		public Camera3D(Vector3 position, float zoom = 1) : base(position, zoom)
+		private KeyListenerType _inputPriority;
+
+		public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom)
 		{
 			NearZ = 0.1f;
 			FarZ = 10_000;
+			_inputPriority = inputPriority;
 		}
 
 		public override void Attach()
 		{
 			base.Attach();
-			Engine.Host.OnKey.AddListener(CameraKeyHandler, KeyListenerType.Game);
+			Engine.Host.OnKey.AddListener(CameraKeyHandler, _inputPriority);
 		}
 
 		public override void Detach()
@@ -193,6 +196,27 @@ namespace Emotion.Graphics.Camera
 			direction = Vector3.Normalize(direction);
 
 			return Position + direction;
+		}
+
+		public override Vector2 WorldToScreen(Vector3 position)
+		{
+			// Transform the world position to camera space (view space)
+			var position4D = new Vector4(position, 1.0f); // Create a 4D vector with a W component of 1
+			Vector4 viewPosition = Vector4.Transform(position4D, ViewMatrix);
+
+			// Perform projection
+			Vector4 clipPosition = Vector4.Transform(viewPosition, ProjectionMatrix);
+
+			// Divide by W component to get normalized device coordinates (NDC)
+			var ndcPosition = new Vector3(clipPosition.X / clipPosition.W, clipPosition.Y / clipPosition.W, clipPosition.Z / clipPosition.W);
+
+			// Calculate the normalized device coordinates (-1 to 1)
+			float screenWidth = Engine.Renderer.CurrentTarget.Size.X;
+			float screenHeight = Engine.Renderer.CurrentTarget.Size.Y;
+			float screenX = (ndcPosition.X + 1.0f) * 0.5f * screenWidth;
+			float screenY = (1.0f - ndcPosition.Y) * 0.5f * screenHeight;
+
+			return new Vector2(screenX, screenY);
 		}
 
 		public override Ray3D GetCameraMouseRay()
