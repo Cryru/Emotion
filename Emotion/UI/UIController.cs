@@ -116,6 +116,8 @@ namespace Emotion.UI
 			Debugger?.RecordNewPass(this);
 
 #if NEW_UI
+			BuildRelativeToMapping();
+
 			// 1. Measure the size of all windows.
 			// Children are measured before parents in order for stretching to work.
 			// Children are measured in index order. Layout rules are applied.
@@ -125,11 +127,10 @@ namespace Emotion.UI
 			// 2. Layout windows within their parents, starting with the controller taking up the full screen.
 			// Sizes returned during measuring are used. Parents are positioned before children since
 			// positions are absolute and not relative.
-			Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
+			//Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
 			Layout(Vector2.Zero, screenSize);
 
 #else
-
 			// 1. Measure the size of all windows.
 			// Children are measured before parents in order for stretching to work.
 			// Children are measured in index order. Layout rules are applied.
@@ -158,6 +159,60 @@ namespace Emotion.UI
 			child.DetachedFromController(this);
 			InvalidateInputFocus();
 		}
+
+		#region RelativeTo Layout
+
+		private Dictionary<UIBaseWindow, List<UIBaseWindow>>? _parentToRelatives;
+
+		public List<UIBaseWindow>? GetWindowsRelativeToWindow(UIBaseWindow win)
+		{
+			if (_parentToRelatives == null) return null;
+			_parentToRelatives.TryGetValue(win, out List<UIBaseWindow>? list);
+			return list;
+		}
+
+		protected void BuildRelativeToMapping()
+		{
+			var toCheck = new Queue<UIBaseWindow>();
+			Dictionary<UIBaseWindow, List<UIBaseWindow>>? parentToRelatives = null;
+
+			if (Children != null)
+				toCheck.Enqueue(this);
+
+			while (toCheck.Count > 0)
+			{
+				UIBaseWindow checkChildren = toCheck.Dequeue();
+				List<UIBaseWindow>? children = checkChildren.Children;
+				AssertNotNull(children);
+
+				for (var i = 0; i < children.Count; i++)
+				{
+					UIBaseWindow child = children[i];
+					if (child.RelativeTo != null)
+					{
+						UIBaseWindow? parent = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
+
+						if (parent != null)
+						{
+							parentToRelatives ??= new Dictionary<UIBaseWindow, List<UIBaseWindow>>();
+							if (!parentToRelatives.TryGetValue(parent, out List<UIBaseWindow>? list))
+							{
+								list = new List<UIBaseWindow>();
+								parentToRelatives.Add(parent, list);
+							}
+
+							list.Add(child);
+						}
+					}
+
+					if (child.Children != null) toCheck.Enqueue(child);
+				}
+			}
+
+			_parentToRelatives = parentToRelatives;
+		}
+
+		#endregion
 
 		#region Loading
 
@@ -276,7 +331,7 @@ namespace Emotion.UI
 					// todo: there also must be a way to consume clicks inside yourself that cause you to focus
 					// as it is possible for another key handler to then change the focus due to propagation.
 					// careful - since we dont want buttons to have to be double clicked xd
-					if (_myMouseFocus.HandleInput) 
+					if (_myMouseFocus.HandleInput)
 						SetInputFocus(_myMouseFocus);
 				}
 
@@ -311,10 +366,7 @@ namespace Emotion.UI
 			_inputFocusManual = win;
 			UpdateInputFocus();
 
-			if (removedHandleInput)
-			{
-				oldFocus!.ChildrenHandleInput = true;
-			}
+			if (removedHandleInput) oldFocus!.ChildrenHandleInput = true;
 		}
 
 		private void UpdateInputFocus()
@@ -351,7 +403,7 @@ namespace Emotion.UI
 					commonParentWithOldFocus = FindCommonParent(InputFocus, newFocus);
 					SetFocusUpTree(InputFocus, false, commonParentWithOldFocus);
 				}
-				
+
 				InputFocus = newFocus;
 
 				if (InputFocus != null)
@@ -386,7 +438,7 @@ namespace Emotion.UI
 			if (two == null) return null;
 			if (two.IsWithin(one)) return one;
 			if (one.IsWithin(two)) return two;
- 
+
 			UIBaseWindow? p = one.Parent;
 			while (p != null)
 			{

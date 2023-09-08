@@ -23,16 +23,20 @@ public class EditorDropdown : UIDropDown
 	{
 		CloseOnClick = closeOnClick;
 		WindowColor = MapEditorColorPalette.ActiveButtonColor;
+#if !NEW_UI
 		StretchX = true;
 		StretchY = true;
+#endif
 		Offset = new Vector2(-2, 1);
 
 		var innerBg = new UISolidColor
 		{
 			IgnoreParentColor = true,
 			WindowColor = MapEditorColorPalette.BarColor.SetAlpha(255),
+#if !NEW_UI
 			StretchX = true,
 			StretchY = true,
+#endif
 			Paddings = new Rectangle(3, 3, 3, 3),
 		};
 
@@ -42,12 +46,17 @@ public class EditorDropdown : UIDropDown
 		{
 			IgnoreParentColor = true,
 			LayoutMode = LayoutMode.VerticalList,
+#if !NEW_UI
 			StretchX = true,
 			ChildrenAllSameWidth = true,
-			ListSpacing = new Vector2(0, 2),
 			Margins = new Rectangle(0, 0, 8, 0),
+#else
+
+#endif
+			ListSpacing = new Vector2(0, 2),
+			
 			MaxSizeY = 100,
-			HideScrollBarWhenNothingToScroll = true
+			HideScrollBarWhenNothingToScroll = true,
 		};
 
 		var scrollBar = new EditorScrollBar();
@@ -75,10 +84,15 @@ public class EditorDropdown : UIDropDown
 
 			var ddButton = new EditorButton
 			{
+#if !NEW_UI
 				StretchX = true,
 				StretchY = true,
+				
+				MinSize = new Vector2(50, 0),
+#else
+				FillXInList = true,
+#endif
 				Text = buttonMeta.Name,
-				MinSize = new Vector2(50, 0)
 			};
 			ddButton.OnClickedProxy = _ =>
 			{
@@ -107,9 +121,11 @@ public class EditorDropdown : UIDropDown
 		for (var i = 0; i < items.Length; i++)
 		{
 			UIBaseWindow item = items[i];
+#if !NEW_UI
 			item.StretchX = true;
 			item.StretchY = true;
 			item.MinSize = new Vector2(50, 0);
+#endif
 			List.AddChild(item);
 		}
 	}

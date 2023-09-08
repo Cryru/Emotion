@@ -57,7 +57,9 @@ public class EditorButton : UICallbackButton
 		_label = txt;
 		AddChild(txt);
 
+#if !NEW_UI
 		StretchX = true;
+#endif
 		Paddings = new Rectangle(2, 1, 2, 1);
 	}
 
