@@ -664,7 +664,7 @@ public abstract partial class WorldBaseEditor
 					string clipBoard = GetClipboard();
 					AssertNotNull(clipBoard);
 
-					var newObj = XMLFormat.From<GameObject2D>(clipBoard);
+					var newObj = XMLFormat.From<BaseGameObject>(clipBoard);
 					if (newObj == null)
 					{
 						EditorMsg("Couldn't paste object.");

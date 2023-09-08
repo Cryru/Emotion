@@ -13,6 +13,7 @@ using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using OpenGL;
@@ -23,7 +24,8 @@ namespace Emotion.Game.World3D;
 
 public class GameObject3D : BaseGameObject
 {
-	[AssetFileName<MeshAsset>] public string? EntityPath;
+	[AssetFileName<MeshAsset>]
+	public string? EntityPath;
 
 	/// <summary>
 	/// The current visual of this object.
@@ -108,14 +110,15 @@ public class GameObject3D : BaseGameObject
 	{
 		// todo: larger entities should create their own data buffers.
 		// todo: culling state.
-		if (_entity?.Meshes == null) return;
+		MeshEntity? entity = _entity;
+		if (entity?.Meshes == null) return;
 
-		Mesh[] meshes = _entity.Meshes;
+		Mesh[] meshes = entity.Meshes;
 		MeshEntityMetaState? metaState = EntityMetaState;
 
 		c.FlushRenderStream();
 
-		if (_entity.BackFaceCulling)
+		if (entity.BackFaceCulling)
 		{
 			Gl.Enable(EnableCap.CullFace); // todo: render stream state
 			Gl.CullFace(CullFaceMode.Back);
@@ -124,7 +127,7 @@ public class GameObject3D : BaseGameObject
 
 		c.PushModelMatrix(GetModelMatrix());
 
-		if (_entity.AnimationRig == null)
+		if (entity.AnimationRig == null)
 		{
 			for (var i = 0; i < meshes.Length; i++)
 			{
@@ -136,7 +139,8 @@ public class GameObject3D : BaseGameObject
 		}
 		else if (_skeletalShader != null)
 		{
-			c.SetShader(_skeletalShader.Shader);
+			ShaderProgram? shader = _skeletalShader.Shader;
+			c.SetShader(shader);
 
 			Matrix4x4[][]? boneMatricesPerMesh = _boneMatricesPerMesh;
 			AssertNotNull(boneMatricesPerMesh);
@@ -147,8 +151,11 @@ public class GameObject3D : BaseGameObject
 				if (metaState != null && !metaState.RenderMesh[i]) continue;
 				_skeletalShader.Shader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
 
-				Matrix4x4[] boneMats = boneMatricesPerMesh[i];
-				_skeletalShader.Shader.SetUniformMatrix4("finalBonesMatrices", boneMats, boneMats.Length);
+				if (boneMatricesPerMesh != null)
+				{
+					Matrix4x4[] boneMats = boneMatricesPerMesh[i];
+					shader.SetUniformMatrix4("finalBonesMatrices", boneMats, boneMats.Length);
+				}
 
 				AssertNotNull(obj.VerticesWithBones);
 				VertexDataWithBones[] vertData = obj.VerticesWithBones;
@@ -180,7 +187,7 @@ public class GameObject3D : BaseGameObject
 		}
 
 		c.PopModelMatrix();
-		if (_entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
+		if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
 	}
 
 	#region Transform 3D
@@ -256,7 +263,8 @@ public class GameObject3D : BaseGameObject
 
 	public void SetAnimation(string? name)
 	{
-		if (_entity?.Meshes == null)
+		MeshEntity? entity = _entity;
+		if (entity?.Meshes == null)
 		{
 			_currentAnimation = null;
 			_time = 0;
@@ -265,10 +273,10 @@ public class GameObject3D : BaseGameObject
 
 		// Try to find the animation instance.
 		SkeletalAnimation? animInstance = null;
-		if (_entity.Animations != null)
-			for (var i = 0; i < _entity.Animations.Length; i++)
+		if (entity.Animations != null)
+			for (var i = 0; i < entity.Animations.Length; i++)
 			{
-				SkeletalAnimation anim = _entity.Animations[i];
+				SkeletalAnimation anim = entity.Animations[i];
 				if (anim.Name == name) animInstance = anim;
 			}
 
