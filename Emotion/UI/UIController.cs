@@ -109,6 +109,13 @@ namespace Emotion.UI
 			return true;
 		}
 
+#if NEW_UI
+		protected override Vector2 InternalMeasure(Vector2 space)
+		{
+			return Engine.Renderer.DrawBuffer.Size;
+		}
+#endif
+
 		protected void UpdateLayout()
 		{
 			_updateLayout = false;
@@ -121,14 +128,12 @@ namespace Emotion.UI
 			// 1. Measure the size of all windows.
 			// Children are measured before parents in order for stretching to work.
 			// Children are measured in index order. Layout rules are applied.
-			Vector2 screenSize = Engine.Renderer.DrawBuffer.Size;
-			Measure(screenSize);
+			Measure(Engine.Renderer.DrawBuffer.Size);
 
 			// 2. Layout windows within their parents, starting with the controller taking up the full screen.
 			// Sizes returned during measuring are used. Parents are positioned before children since
 			// positions are absolute and not relative.
-			//Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
-			Layout(Vector2.Zero, screenSize);
+			Layout(Vector2.Zero, Size);
 
 #else
 			// 1. Measure the size of all windows.

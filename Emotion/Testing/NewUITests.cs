@@ -52,6 +52,7 @@ public class NewUITests : TestingScene
 			VerticalListWithText,
 
 			TextWithBackground,
+			EditorDropDownRelativeToAndOutsideParent
 		};
 	}
 
@@ -717,6 +718,86 @@ public class NewUITests : TestingScene
 			container.AddChild(textc);
 
 			UI.AddChild(container);
+		}
+
+		yield return PreloadUI();
+		yield return new TestWaiterRunLoops(1);
+		VerifyScreenshot();
+	}
+
+	private IEnumerator EditorDropDownRelativeToAndOutsideParent()
+	{
+		UI.ClearChildren();
+
+		{
+			var a = new UISolidColor();
+			a.WindowColor = Color.PrettyPink;
+			a.Paddings = new Rectangle(2, 1, 2, 1);
+			a.Id = "AttachToMe";
+			a.FillX = false;
+			a.FillY = false;
+			UI.AddChild(a);
+
+			var text = new UIText();
+			text.FontSize = 9;
+			text.Text = "Attach To Me!";
+			text.WindowColor = Color.White;
+			text.ScaleMode = UIScaleMode.FloatScale;
+			
+			text.ParentAnchor = UIAnchor.CenterLeft;
+			text.Anchor = UIAnchor.CenterLeft;
+
+			a.AddChild(text);
+		}
+		
+		{
+			var dropDown = new UISolidColor
+			{
+				WindowColor = Color.PrettyOrange,
+				FillX = false,
+				FillY = false,
+				RelativeTo = "AttachToMe",
+				ParentAnchor = UIAnchor.BottomLeft,
+				Anchor = UIAnchor.TopLeft
+			};
+
+			var innerBg = new UISolidColor
+			{
+				IgnoreParentColor = true,
+				WindowColor = Color.PrettyGreen,
+				Paddings = new Rectangle(3, 3, 3, 3),
+			};
+			dropDown.AddChild(innerBg);
+
+			var list = new UIList
+			{
+				Id = "list",
+				LayoutMode = LayoutMode.VerticalList,
+				ListSpacing = new Vector2(0, 2),
+			};
+			innerBg.AddChild(list);
+
+			for (var i = 0; i < 5; i++)
+			{
+				var a = new UISolidColor();
+				a.WindowColor = Color.Black;
+				a.Paddings = new Rectangle(2, 1, 2, 1);
+				//a.Id = "text-bg";
+				list.AddChild(a);
+
+				var text = new UIText();
+				text.FontSize = 9;
+				text.Text = "Black " + new string('A', i);
+				text.WindowColor = Color.White;
+				text.ScaleMode = UIScaleMode.FloatScale;
+				text.Id = "text";
+				text.ParentAnchor = UIAnchor.CenterLeft;
+				text.Anchor = UIAnchor.CenterLeft;
+
+				a.AddChild(text);
+			}
+
+			UI.AddChild(dropDown);
 		}
 
 		yield return PreloadUI();
