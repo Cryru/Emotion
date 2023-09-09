@@ -7,6 +7,7 @@ using Emotion.Editor.EditorWindows.ModelViewerUtil;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
+using Emotion.Game.World;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
@@ -28,303 +29,320 @@ namespace Emotion.Editor.EditorWindows;
 
 public class ModelViewer : EditorPanel
 {
-	private Camera3D _camera;
-	private InfiniteGrid _grid;
-	private FrameBuffer? _renderBuffer;
+    private Camera3D _camera;
+    private InfiniteGrid _grid;
+    private FrameBuffer? _renderBuffer;
 
-	private UIBaseWindow? _surface3D;
+    private UIBaseWindow? _surface3D;
 
-	private EditorDropDownButtonDescription[] _noAnimationItems =
-	{
-		new()
-		{
-			Name = "No Animation"
-		}
-	};
+    private EditorDropDownButtonDescription[] _noAnimationItems =
+    {
+        new()
+        {
+            Name = "No Animation"
+        }
+    };
 
-	private bool _panelDragResize;
-	private bool _renderSkeleton;
+    private bool _panelDragResize;
+    private bool _renderSkeleton;
 
-	private GameObject3D _obj;
+    private GameObject3D _obj;
 
-	public ModelViewer() : base("Model Viewer")
-	{
-		_camera = new Camera3D(new Vector3(-290, 250, 260));
-		_camera.LookAtPoint(new Vector3(0, 0, 0));
-		_grid = new InfiniteGrid();
-		_obj = new GameObject3D("ModelViewerDummy");
-	}
+    private class SpriteStackCreationEnvelope
+    {
+        public Vector2 TileSize;
+    }
 
-	public override void AttachedToController(UIController controller)
-	{
-		GLThread.ExecuteGLThreadAsync(() =>
-		{
-			_renderBuffer = new FrameBuffer(new Vector2(1920, 1080)).WithColor().WithDepth();
-			_renderBuffer.ColorAttachment.Smooth = true;
-		});
+    public ModelViewer() : base("Model Viewer")
+    {
+        _camera = new Camera3D(new Vector3(-290, 250, 260));
+        _camera.LookAtPoint(new Vector3(0, 0, 0));
+        _grid = new InfiniteGrid();
+        _obj = new GameObject3D("ModelViewerDummy");
+    }
 
-		base.AttachedToController(controller);
+    public override void AttachedToController(UIController controller)
+    {
+        GLThread.ExecuteGLThreadAsync(() =>
+        {
+            _renderBuffer = new FrameBuffer(new Vector2(1920, 1080)).WithColor().WithDepth();
+            _renderBuffer.ColorAttachment.Smooth = true;
+        });
 
-		var contentSplit = new UIBaseWindow
-		{
-			LayoutMode = LayoutMode.HorizontalList,
-			StretchX = true,
-			StretchY = true
-		};
+        base.AttachedToController(controller);
 
-		var surface3D = new UIBaseWindow
-		{
-			Id = "Surface3D",
-			MinSize = new Vector2(960, 540) / 2f,
-			StretchX = true,
-			StretchY = true,
-			HandleInput = true
-		};
-		contentSplit.AddChild(surface3D);
-		_surface3D = surface3D;
+        var contentSplit = new UIBaseWindow
+        {
+            LayoutMode = LayoutMode.HorizontalList,
+            StretchX = true,
+            StretchY = true
+        };
 
-		var editorButtons = new UIBaseWindow
-		{
-			StretchX = true,
-			StretchY = true,
-			MinSize = new Vector2(100, 0),
-			MaxSize = new Vector2(100, DefaultMaxSizeF),
-			LayoutMode = LayoutMode.VerticalList,
-			ListSpacing = new Vector2(0, 2),
-			Paddings = new Rectangle(2, 0, 2, 0)
-		};
+        var surface3D = new UIBaseWindow
+        {
+            Id = "Surface3D",
+            MinSize = new Vector2(960, 540) / 2f,
+            StretchX = true,
+            StretchY = true,
+            HandleInput = true
+        };
+        contentSplit.AddChild(surface3D);
+        _surface3D = surface3D;
 
-		var butObj = new EditorButton
-		{
-			Text = "Open MeshAsset",
-			StretchY = true,
-			StretchX = false,
-			OnClickedProxy = _ => { Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); })); }
-		};
-		editorButtons.AddChild(butObj);
+        var editorButtons = new UIBaseWindow
+        {
+            StretchX = true,
+            StretchY = true,
+            MinSize = new Vector2(100, 0),
+            MaxSize = new Vector2(100, DefaultMaxSizeF),
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 2),
+            Paddings = new Rectangle(2, 0, 2, 0)
+        };
 
-		var butSprite = new EditorButton
-		{
-			Text = "Open Sprite Stack",
-			StretchY = true,
-			StretchX = false,
-			OnClickedProxy = _ =>
-			{
-				Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
-				{
-					//_obj.Entity = asset.GetSpriteStackEntity(Vector2.Zero);
-				}));
-			}
-		};
-		editorButtons.AddChild(butSprite);
+        var butObj = new EditorButton
+        {
+            Text = "Open MeshAsset",
+            StretchY = true,
+            StretchX = false,
+            OnClickedProxy = _ => { Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); })); }
+        };
+        editorButtons.AddChild(butObj);
 
-		var gridSizeEdit = new PropEditorNumber<float>();
-		gridSizeEdit.SetValue(_grid.TileSize);
-		gridSizeEdit.SetCallbackValueChanged(newVal => { _grid.TileSize = (float) newVal; });
-		editorButtons.AddChild(new FieldEditorWithLabel("Grid Size: ", gridSizeEdit));
+        var butSprite = new EditorButton
+        {
+            Text = "Open Sprite Stack",
+            StretchY = true,
+            StretchX = false,
+            OnClickedProxy = _ =>
+            {
+                Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
+                {
+                    var createMapModal = new PropertyInputModal<SpriteStackCreationEnvelope>(data =>
+                    {
+                        if (data.TileSize == Vector2.Zero) return false;
 
-		var posEditor = new PropEditorFloat3(false);
-		posEditor.SetValue(_obj.Position);
-		posEditor.SetCallbackValueChanged(newVal => { _obj.Position = (Vector3) newVal; });
-		editorButtons.AddChild(new FieldEditorWithLabel("Position: ", posEditor, LayoutMode.VerticalList));
+                        var entity = asset.GetSpriteStackEntity(data.TileSize);
+                        if (entity != null)
+                        {
+                            SetEntity(entity);
+                            return true;
+                        }
 
-		var rotEditor = new PropEditorFloat3(false);
-		rotEditor.SetValue(_obj.RotationDeg);
-		rotEditor.SetCallbackValueChanged(newVal => { _obj.RotationDeg = (Vector3) newVal; });
-		editorButtons.AddChild(new FieldEditorWithLabel("Rotation: ", rotEditor, LayoutMode.VerticalList));
+                        return false;
+                    }, "", "SpriteStack Entity", "Create");
 
-		var scaleEditor = new PropEditorFloat3(false);
-		scaleEditor.SetValue(_obj.Size);
-		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3) newVal; });
-		editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
+                    Controller!.AddChild(createMapModal);
+                }));
+            }
+        };
+        editorButtons.AddChild(butSprite);
 
-		var meshListProp = new EditorCheckboxList("Meshes: ")
-		{
-			Id = "MeshList"
-		};
-		scaleEditor.SetValue(_obj.Size);
-		scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3) newVal; });
-		editorButtons.AddChild(meshListProp);
+        var gridSizeEdit = new PropEditorNumber<float>();
+        gridSizeEdit.SetValue(_grid.TileSize);
+        gridSizeEdit.SetCallbackValueChanged(newVal => { _grid.TileSize = (float)newVal; });
+        editorButtons.AddChild(new FieldEditorWithLabel("Grid Size: ", gridSizeEdit));
 
-		var animationsList = new EditorButtonDropDown
-		{
-			Id = "Animations",
-			Text = "Animation: ",
-			LayoutMode = LayoutMode.VerticalList
-		};
-		animationsList.SetItems(_noAnimationItems, 0);
-		_noAnimationItems[0].Click = SetAnimationDropDownCallback;
-		editorButtons.AddChild(animationsList);
+        var posEditor = new PropEditorFloat3(false);
+        posEditor.SetValue(_obj.Position);
+        posEditor.SetCallbackValueChanged(newVal => { _obj.Position = (Vector3)newVal; });
+        editorButtons.AddChild(new FieldEditorWithLabel("Position: ", posEditor, LayoutMode.VerticalList));
 
-		var viewSkeleton = new PropEditorBool();
-		viewSkeleton.SetValue(false);
-		viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool) newVal; });
-		editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton));
+        var rotEditor = new PropEditorFloat3(false);
+        rotEditor.SetValue(_obj.RotationDeg);
+        rotEditor.SetCallbackValueChanged(newVal => { _obj.RotationDeg = (Vector3)newVal; });
+        editorButtons.AddChild(new FieldEditorWithLabel("Rotation: ", rotEditor, LayoutMode.VerticalList));
 
-		var saveAsEm3Button = new EditorButton
-		{
-			Text = "Export as Em3 (WIP)",
-			StretchY = true,
-			StretchX = false,
-			OnClickedProxy = _ =>
-			{
-				if (_obj.Entity == null) return;
-				byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
-				Engine.AssetLoader.Save(data, $"Player/converted_{_obj.Entity.Name}.em3");
-			}
-		};
-		editorButtons.AddChild(saveAsEm3Button);
+        var scaleEditor = new PropEditorFloat3(false);
+        scaleEditor.SetValue(_obj.Size3D);
+        scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3)newVal; });
+        editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
 
-		contentSplit.AddChild(editorButtons);
-		_contentParent.AddChild(contentSplit);
+        var meshListProp = new EditorCheckboxList("Meshes: ")
+        {
+            Id = "MeshList"
+        };
+        editorButtons.AddChild(meshListProp);
 
-		// Dragging
-		// todo: move to panel property
-		var dragArea = new UITexture
-		{
-			TextureFile = "Editor/PanelDragArea.png",
-			RenderSize = new Vector2(8, 8),
-			Smooth = true,
-			WindowColor = MapEditorColorPalette.ButtonColor
-		};
+        var animationsList = new EditorButtonDropDown
+        {
+            Id = "Animations",
+            Text = "Animation: ",
+            LayoutMode = LayoutMode.VerticalList
+        };
+        animationsList.SetItems(_noAnimationItems, 0);
+        _noAnimationItems[0].Click = SetAnimationDropDownCallback;
+        editorButtons.AddChild(animationsList);
 
-		var dragButton = new UICallbackButton
-		{
-			StretchX = true,
-			StretchY = true,
-			OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; },
-			OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
-			OnClickedProxy = _ => { _panelDragResize = true; },
-			OnClickedUpProxy = _ => { _panelDragResize = false; }
-		};
-		dragButton.AddChild(dragArea);
-		dragButton.Anchor = UIAnchor.BottomRight;
-		dragButton.ParentAnchor = UIAnchor.BottomRight;
+        var viewSkeleton = new PropEditorBool();
+        viewSkeleton.SetValue(false);
+        viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool)newVal; });
+        editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton));
 
-		_container.AddChild(dragButton);
-	}
+        var saveAsEm3Button = new EditorButton
+        {
+            Text = "Export as Em3 (WIP)",
+            StretchY = true,
+            StretchX = false,
+            OnClickedProxy = _ =>
+            {
+                if (_obj.Entity == null) return;
+                byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
+                Engine.AssetLoader.Save(data, $"Player/converted_{_obj.Entity.Name}.em3");
+            }
+        };
+        editorButtons.AddChild(saveAsEm3Button);
 
-	protected void SetEntity(MeshEntity? entity)
-	{
-		_obj.Entity = entity;
+        contentSplit.AddChild(editorButtons);
+        _contentParent.AddChild(contentSplit);
 
-		var meshList = (EditorCheckboxList?) GetWindowById("MeshList");
-		if (meshList != null)
-		{
-			meshList.SetItems(MeshVisibleCheckboxListItem.CreateItemsFromObject3D(_obj));
-			meshList.Text = entity == null ? "Meshes" : $"Meshes [{entity.Meshes.Length}]";
-		}
+        // Dragging
+        // todo: move to panel property
+        var dragArea = new UITexture
+        {
+            TextureFile = "Editor/PanelDragArea.png",
+            RenderSize = new Vector2(8, 8),
+            Smooth = true,
+            WindowColor = MapEditorColorPalette.ButtonColor
+        };
 
-		var animationList = (EditorButtonDropDown?) GetWindowById("Animations");
-		if (animationList != null)
-		{
-			SkeletalAnimation[]? animations = entity?.Animations;
-			if (animations != null)
-			{
-				var animationButtons = new EditorDropDownButtonDescription[animations.Length + 1];
-				animationButtons[0] = _noAnimationItems[0];
-				for (var i = 0; i < animations.Length; i++)
-				{
-					SkeletalAnimation anim = animations[i];
-					animationButtons[i + 1] = new EditorDropDownButtonDescription
-					{
-						Name = anim.Name,
-						UserData = anim.Name,
-						Click = SetAnimationDropDownCallback
-					};
-				}
+        var dragButton = new UICallbackButton
+        {
+            StretchX = true,
+            StretchY = true,
+            OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; },
+            OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
+            OnClickedProxy = _ => { _panelDragResize = true; },
+            OnClickedUpProxy = _ => { _panelDragResize = false; }
+        };
+        dragButton.AddChild(dragArea);
+        dragButton.Anchor = UIAnchor.BottomRight;
+        dragButton.ParentAnchor = UIAnchor.BottomRight;
 
-				animationList.SetItems(animationButtons, 0);
-			}
-			else
-			{
-				animationList.SetItems(_noAnimationItems, 0);
-			}
-		}
-	}
+        _container.AddChild(dragButton);
+    }
 
-	protected void SetAnimationDropDownCallback(EditorDropDownButtonDescription item, EditorButton _)
-	{
-		_obj.SetAnimation(item.Name);
-	}
+    protected void SetEntity(MeshEntity? entity)
+    {
+        _obj.Entity = entity;
 
-	public override void DetachedFromController(UIController controller)
-	{
-		GLThread.ExecuteGLThreadAsync(() =>
-		{
-			_renderBuffer?.Dispose();
-			_renderBuffer = null;
-		});
-		base.DetachedFromController(controller);
-	}
+        var meshList = (EditorCheckboxList?)GetWindowById("MeshList");
+        if (meshList != null)
+        {
+            meshList.SetItems(MeshVisibleCheckboxListItem.CreateItemsFromObject3D(_obj));
+            meshList.Text = entity == null ? "Meshes" : $"Meshes [{entity.Meshes.Length}]";
+        }
 
-	public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
-	{
-		if (Controller?.InputFocus == _surface3D)
-		{
-			_camera.CameraKeyHandler(key, status);
-			return false;
-		}
+        var animationList = (EditorButtonDropDown?)GetWindowById("Animations");
+        if (animationList != null)
+        {
+            SkeletalAnimation[]? animations = entity?.Animations;
+            if (animations != null)
+            {
+                var animationButtons = new EditorDropDownButtonDescription[animations.Length + 1];
+                animationButtons[0] = _noAnimationItems[0];
+                for (var i = 0; i < animations.Length; i++)
+                {
+                    SkeletalAnimation anim = animations[i];
+                    animationButtons[i + 1] = new EditorDropDownButtonDescription
+                    {
+                        Name = anim.Name,
+                        UserData = anim.Name,
+                        Click = SetAnimationDropDownCallback
+                    };
+                }
 
-		return true;
-	}
+                animationList.SetItems(animationButtons, 0);
+            }
+            else
+            {
+                animationList.SetItems(_noAnimationItems, 0);
+            }
+        }
+    }
 
-	protected override bool UpdateInternal()
-	{
-		_camera.Update();
-		_obj.Update(Engine.DeltaTime);
+    protected void SetAnimationDropDownCallback(EditorDropDownButtonDescription item, EditorButton _)
+    {
+        _obj.SetAnimation(item.Name);
+    }
 
-		if (_panelDragResize && _surface3D != null)
-		{
-			Vector2 curMouse = Engine.Host.MousePosition;
-			Rectangle r = Rectangle.FromMinMaxPoints(_surface3D.Position2 + new Vector2(100, 0) * GetScale(), curMouse);
-			r.SnapToAspectRatio(16f / 9f);
-			if (r.Size.X > 100 && r.Size.Y > 200)
-			{
-				_surface3D.MinSize = r.Size / GetScale();
-				_surface3D.InvalidateLayout();
-			}
-		}
+    public override void DetachedFromController(UIController controller)
+    {
+        GLThread.ExecuteGLThreadAsync(() =>
+        {
+            _renderBuffer?.Dispose();
+            _renderBuffer = null;
+        });
+        base.DetachedFromController(controller);
+    }
 
-		return base.UpdateInternal();
-	}
+    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    {
+        if (Controller?.InputFocus == _surface3D)
+        {
+            _camera.CameraKeyHandler(key, status);
+            return false;
+        }
 
-	protected override bool RenderInternal(RenderComposer c)
-	{
-		if (_renderBuffer == null) return true;
+        return true;
+    }
 
-		CameraBase oldCamera = c.Camera;
-		c.RenderTo(_renderBuffer);
-		c.Camera = _camera;
+    protected override bool UpdateInternal()
+    {
+        _camera.Update();
+        _obj.Update(Engine.DeltaTime);
 
-		RenderState oldState = c.CurrentState.Clone();
-		c.SetState(RenderState.Default);
-		c.SetUseViewMatrix(false);
-		c.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
-		c.SetUseViewMatrix(true);
-		c.ClearDepth();
+        if (_panelDragResize && _surface3D != null)
+        {
+            Vector2 curMouse = Engine.Host.MousePosition;
+            Rectangle r = Rectangle.FromMinMaxPoints(_surface3D.Position2 + new Vector2(100, 0) * GetScale(), curMouse);
+            r.SnapToAspectRatio(16f / 9f);
+            if (r.Size.X > 100 && r.Size.Y > 200)
+            {
+                _surface3D.MinSize = r.Size / GetScale();
+                _surface3D.InvalidateLayout();
+            }
+        }
 
-		_grid.Render(c);
+        return base.UpdateInternal();
+    }
 
-		c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
-		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
-		c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
+    protected override bool RenderInternal(RenderComposer c)
+    {
+        if (_renderBuffer == null) return true;
 
-		if (_renderSkeleton)
-			_obj.DebugDrawSkeleton(c);
-		else
-			_obj.Render(c);
+        CameraBase oldCamera = c.Camera;
+        c.RenderTo(_renderBuffer);
+        c.Camera = _camera;
 
-		c.RenderTo(null);
+        RenderState oldState = c.CurrentState.Clone();
+        c.SetState(RenderState.Default);
+        c.SetUseViewMatrix(false);
+        c.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
+        c.SetUseViewMatrix(true);
+        c.ClearDepth();
 
-		c.SetState(oldState);
-		c.Camera = oldCamera;
+        _grid.Render(c);
 
-		base.RenderInternal(c);
+        c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
+        c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
+        c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
 
-		if (_surface3D != null)
-			c.RenderSprite(_surface3D.Position, _surface3D.Size, _renderBuffer.Texture);
+        if (_renderSkeleton)
+            _obj.DebugDrawSkeleton(c);
+        else
+            _obj.Render(c);
 
-		return true;
-	}
+        c.RenderTo(null);
+
+        c.SetState(oldState);
+        c.Camera = oldCamera;
+
+        base.RenderInternal(c);
+
+        if (_surface3D != null)
+            c.RenderSprite(_surface3D.Position, _surface3D.Size, _renderBuffer.Texture);
+
+        return true;
+    }
 }
