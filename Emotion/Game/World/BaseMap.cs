@@ -464,10 +464,29 @@ public abstract class BaseMap
 		}
 	}
 
-	/// <summary>
-	/// Get an object from the map by name.
-	/// </summary>
-	public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
+	public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
+    {
+		List<BaseGameObject> objects = new List<BaseGameObject>();
+		GetObjects(objects, layer, shape, queryFlags);
+
+        foreach (BaseGameObject obj in objects)
+		{
+			if (obj is T objT)
+			{
+				if(queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj))
+				{
+					continue;
+				}
+				list.Add(objT);
+			}
+		}
+		
+	}
+
+    /// <summary>
+    /// Get an object from the map by name.
+    /// </summary>
+    public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
 	{
 		if (name == null) return null;
 		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
