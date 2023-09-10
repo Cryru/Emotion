@@ -21,6 +21,9 @@ namespace Emotion.Graphics.ThreeDee
 
         public bool BackFaceCulling = true;
 
-        public static MeshMaterial DefaultMaterial = new MeshMaterial();
+        public static MeshMaterial DefaultMaterial = new MeshMaterial()
+        {
+            Name = "Default"
+        };
     }
 }
