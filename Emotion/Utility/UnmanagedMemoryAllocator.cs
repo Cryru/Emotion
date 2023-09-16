@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,9 +22,9 @@ namespace Emotion.Utility
         }
 
         public static int AllocatedSize;
-        private static List<UnmanagedMemory> _allocatedMemory = new List<UnmanagedMemory>();
-        private static Dictionary<IntPtr, UnmanagedMemory> _ptrToHandle = new Dictionary<IntPtr, UnmanagedMemory>();
-        private static Dictionary<string, UnmanagedMemory> _labeledMemory = new Dictionary<string, UnmanagedMemory>();
+        private static ConcurrentDictionary<UnmanagedMemory, bool> _allocatedMemory = new ConcurrentDictionary<UnmanagedMemory, bool>();
+        private static ConcurrentDictionary<IntPtr, UnmanagedMemory> _ptrToHandle = new ConcurrentDictionary<IntPtr, UnmanagedMemory>();
+        private static ConcurrentDictionary<string, UnmanagedMemory> _labeledMemory = new ConcurrentDictionary<string, UnmanagedMemory>();
 
         private static IntPtr AllocInternal(int size, out UnmanagedMemory memoryHandle)
         {
@@ -35,7 +36,7 @@ namespace Emotion.Utility
                 Address = memoryPtr,
                 Owned = true
             };
-            _allocatedMemory.Add(memoryHandle);
+            _allocatedMemory.TryAdd(memoryHandle, false);
             _ptrToHandle[memoryPtr] = memoryHandle;
             return memoryPtr;
         }
@@ -62,8 +63,8 @@ namespace Emotion.Utility
 
             handle.Address = IntPtr.Zero;
             _ptrToHandle[ptr] = null;
-            if (handle.Label != null) _labeledMemory.Remove(handle.Label);
-            _allocatedMemory.Remove(handle);
+            if (handle.Label != null) _labeledMemory.TryRemove(handle.Label, out UnmanagedMemory _);
+            _allocatedMemory.TryRemove(handle, out bool _);
 
             Marshal.FreeHGlobal(ptr);
             return true;
@@ -79,7 +80,7 @@ namespace Emotion.Utility
         {
             IntPtr memoryPtr = AllocInternal(size, out UnmanagedMemory memory);
             memory.Label = name;
-            _labeledMemory.Add(name, memory);
+            _labeledMemory.TryAdd(name, memory);
             return memoryPtr;
         }
 
@@ -123,7 +124,7 @@ namespace Emotion.Utility
             };
             _ptrToHandle[ptr] = info;
             _labeledMemory[name] = info;
-            _allocatedMemory.Add(info);
+            _allocatedMemory.TryAdd(info, false);
         }
 
         /// <summary>
@@ -143,14 +144,15 @@ namespace Emotion.Utility
         public static string GetDebugInformation()
         {
             var dbg = new StringBuilder($"Unmanaged Allocated: {Helpers.FormatByteAmountAsString(AllocatedSize)}");
-            for (var i = 0; i < _allocatedMemory.Count; i++)
+
+            bool first = true;
+            foreach (var handleKVP in _allocatedMemory)
             {
-                if (i == 0) dbg.Append("\n");
-
-                UnmanagedMemory handle = _allocatedMemory[i];
+                var handle = handleKVP.Key;
+                if (first) dbg.Append("\n");
                 dbg.AppendLine($" {handle.Address} [{handle.Label}]: {Helpers.FormatByteAmountAsString(handle.Size)}");
+                first = false;
             }
-
             return dbg.ToString();
         }
     }
