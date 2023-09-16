@@ -71,16 +71,20 @@ namespace Emotion.Primitives
 			var intersectionFound = false;
 
 			VertexData[] meshVertices = mesh.Vertices;
+			VertexDataWithBones[] verticesWithBones = mesh.VerticesWithBones;
 			ushort[] meshIndices = mesh.Indices;
 
-			// todo: support alternate vertex types.
-			if (meshVertices == null) return false;
+			if (meshVertices == null && verticesWithBones == null) return false;
 
 			for (var i = 0; i < meshIndices.Length; i += 3)
 			{
-				Vector3 p1 = meshVertices[meshIndices[i]]!.Vertex;
-				Vector3 p2 = meshVertices[meshIndices[i + 1]]!.Vertex;
-				Vector3 p3 = meshVertices[meshIndices[i + 2]]!.Vertex;
+                ushort idx1 = meshIndices[i];
+                ushort idx2 = meshIndices[i + 1];
+                ushort idx3 = meshIndices[i + 2];
+
+				Vector3 p1 = meshVertices == null ? verticesWithBones[idx1]!.Vertex : meshVertices[idx1]!.Vertex;
+				Vector3 p2 = meshVertices == null ? verticesWithBones[idx2]!.Vertex : meshVertices[idx2]!.Vertex;
+				Vector3 p3 = meshVertices == null ? verticesWithBones[idx3]!.Vertex : meshVertices[idx3]!.Vertex;
 
 				p1 = Vector4.Transform(new Vector4(p1, 1.0f), matrix).ToVec3();
 				p2 = Vector4.Transform(new Vector4(p2, 1.0f), matrix).ToVec3();
