@@ -127,7 +127,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 	{
 	}
 
-	private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	protected virtual IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
 		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();

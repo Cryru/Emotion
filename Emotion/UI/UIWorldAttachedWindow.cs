@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Graphics;
+using Emotion.Utility;
 
 #endregion
 
@@ -44,7 +45,7 @@ namespace Emotion.UI
 			if (Children == null || _awaitingLayout) return false;
 
 			// We update this in the renderer rather than through the transformation matrix to ensure it is always up to date.
-			Vector3 pos = c.Camera.WorldToScreen(_worldPos).ToVec3(_worldPos.Z);
+			Vector3 pos = c.Camera.WorldToScreen(_worldPos).ToVec3(Maths.Clamp(_worldPos.Z, c.Camera.NearZ, c.Camera.FarZ));
 			pos = VerifyWorldPos(pos);
 
 			_renderBounds = new Rectangle(pos + Position, Size);

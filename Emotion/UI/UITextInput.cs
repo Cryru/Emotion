@@ -144,6 +144,8 @@ namespace Emotion.UI
 				{
 					_selectionHeld = false;
 				}
+
+				return false;
 			}
 
 			if (status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())

@@ -135,6 +135,10 @@ public class EditorPanel : UIBaseWindow
 	public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
 	{
 		bool returnVal = base.OnKey(key, status, mousePos);
-		return PanelMode != PanelMode.Modal && returnVal;
+
+		if (key == Key.MouseKeyLeft) return false;
+		if (PanelMode != PanelMode.Modal) return false;
+
+		return returnVal;
 	}
 }

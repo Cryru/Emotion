@@ -87,7 +87,7 @@ namespace Emotion.Game.ThreeDee.Editor
 				Name = "Translation Gizmo",
 			};
 
-			Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.EditorUI);
+			Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Editor);
 		}
 
 		private bool KeyHandler(Key key, KeyStatus status)
