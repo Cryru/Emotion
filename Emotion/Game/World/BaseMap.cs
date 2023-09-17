@@ -459,34 +459,31 @@ public abstract class BaseMap
 		for (var i = 0; i < _objects.Count; i++)
 		{
 			BaseGameObject obj = _objects[i];
+			if (obj.ObjectState != ObjectState.Alive) continue;
 			if (!includeNonSpawned && obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
 			yield return obj;
 		}
 	}
 
 	public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
-    {
-		List<BaseGameObject> objects = new List<BaseGameObject>();
+	{
+		var objects = new List<BaseGameObject>();
 		GetObjects(objects, layer, shape, queryFlags);
 
-        foreach (BaseGameObject obj in objects)
+		foreach (BaseGameObject obj in objects)
 		{
 			if (obj is T objT)
 			{
-				if(queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj))
-				{
-					continue;
-				}
+				if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;
 				list.Add(objT);
 			}
 		}
-		
 	}
 
-    /// <summary>
-    /// Get an object from the map by name.
-    /// </summary>
-    public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
+	/// <summary>
+	/// Get an object from the map by name.
+	/// </summary>
+	public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
 	{
 		if (name == null) return null;
 		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
@@ -497,32 +494,12 @@ public abstract class BaseMap
 		return null;
 	}
 
-	public T? GetObjectByType<T>(bool includeNonSpawned = false)
-	{
-		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
-		{
-			if (obj is T objAsT) return objAsT;
-		}
-
-		return default;
-	}
-
 	public IEnumerable<T> GetObjectsByType<T>(bool includeNonSpawned = false)
 	{
 		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
 		{
 			if (obj is T objAsT) yield return objAsT;
 		}
-	}
-
-	public int GetObjectCount()
-	{
-		return _objects.Count;
-	}
-
-	public BaseGameObject GetObjectByIndex(int idx)
-	{
-		return _objects[idx];
 	}
 
 	public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
@@ -537,9 +514,29 @@ public abstract class BaseMap
 		rootNode?.AddAllObjects(list);
 	}
 
+	public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)
+	{
+		foreach (T obj in GetObjectsByType<T>(includeNonSpawned))
+		{
+			return obj;
+		}
+
+		return default;
+	}
+
 	public WorldTree2D? GetWorldTree()
 	{
 		return _worldTree;
+	}
+
+	public int GetObjectCount()
+	{
+		return _objects.Count;
+	}
+
+	public BaseGameObject GetObjectByIndex(int idx)
+	{
+		return _objects[idx];
 	}
 
 	#endregion
