@@ -11,6 +11,7 @@ using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World3D;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
@@ -37,7 +38,16 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		// Inject the "Center" property of Transform.
 		// Since it isn't serialized it wont be returned, but its handy to have for objects.
 		InjectDontSerializeProperty<Transform>("Center");
-		InjectDontSerializeProperty<Transform>("RotationDeg");
+		
+		if (obj is GameObject3D)
+		{
+			InjectDontSerializeProperty<Transform>("RotationDeg");
+			InjectDontSerializeProperty<GameObject3D>("CurrentAnimation");
+
+			// Remove Size to show Size3D so axes are intuitive to the 3D world.
+			InjectDontSerializeProperty<Transform>("Size3D");
+			RemoveSerializedProperty<Transform>("Size");
+		}
 	}
 
 	private void InjectDontSerializeProperty<T>(string name)
@@ -52,6 +62,31 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 				declaringType.Fields.Add(new XMLFieldHandler(new ReflectedMemberHandler(injectedProp), editor));
 			}
 		}
+	}
+
+	private void RemoveSerializedProperty<T>(string name)
+	{
+		EditorUtility.TypeAndFieldHandlers? declaringType = _fields.FirstOrDefault(x => x.DeclaringType == typeof(T));
+		if (declaringType == null) return;
+
+		for (var i = 0; i < declaringType.Fields.Count; i++)
+		{
+			XMLFieldHandler? field = declaringType.Fields[i];
+			if (field.Name != name) continue;
+			declaringType.Fields.Remove(field);
+			return;
+		}
+	}
+
+	protected override IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	{
+		// Special handling for the animation selection.
+		if (field.ReflectionInfo.DeclaredIn == typeof(GameObject3D) && field.Name == "CurrentAnimation")
+		{
+			bool a = true;
+		}
+
+		return base.AddEditorForField(field);
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -94,6 +129,12 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		statusLabel.Text = metaText.ToString();
 
 		uiContainer.AddChild(statusLabel);
+
+		var viewObjectButton = new EditorButton();
+		viewObjectButton.Text = "Show Me";
+		viewObjectButton.StretchY = true;
+		viewObjectButton.OnClickedProxy = _ => { Engine.Renderer.Camera.Position = Object.Position; };
+		uiContainer.AddChild(viewObjectButton);
 	}
 
 	protected override void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)

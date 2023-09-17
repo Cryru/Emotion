@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
@@ -14,6 +15,7 @@ namespace Emotion.Game.World3D.Objects;
 /// <summary>
 /// A plane facing the Z axis, with the origin in the middle.
 /// </summary>
+[DontSerializeMembers("EntityPath")]
 public class Quad3D : GameObject3D
 {
 	public Texture? Texture = null;
