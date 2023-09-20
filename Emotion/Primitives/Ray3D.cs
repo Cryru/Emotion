@@ -1,145 +1,182 @@
-﻿#region Using
+﻿#nullable enable
 
-using Emotion.Game.ThreeDee;
+#region Using
+
 using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 
 #endregion
 
-namespace Emotion.Primitives
+namespace Emotion.Primitives;
+
+/// <summary>
+/// A struct representing a ray.
+/// </summary>
+public struct Ray3D
 {
+	public Vector3 Start;
+	public Vector3 Direction;
+
 	/// <summary>
-	/// A struct representing a ray.
+	/// Create a ray from a starting position, direction and length.
 	/// </summary>
-	public struct Ray3D
+	/// <param name="start">The ray's start.</param>
+	/// <param name="direction">The direction of the ray.</param>
+	public Ray3D(Vector3 start, Vector3 direction)
 	{
-		public Vector3 Start;
-		public Vector3 Direction;
+		Start = start;
+		Direction = direction;
+	}
 
-		/// <summary>
-		/// Create a ray from a starting position, direction and length.
-		/// </summary>
-		/// <param name="start">The ray's start.</param>
-		/// <param name="direction">The direction of the ray.</param>
-		public Ray3D(Vector3 start, Vector3 direction)
+	public Vector3 IntersectWithPlane(Vector3 planeNormal, Vector3 planePoint)
+	{
+		// Check if the ray is parallel to the plane
+		float dot = Vector3.Dot(Direction, planeNormal);
+		if (dot == 0) return Vector3.Zero;
+
+		float distance = Vector3.Dot(planeNormal, planePoint - Start) / dot;
+		return Start + distance * Direction;
+	}
+
+	/// <summary>
+	/// Returns whether the ray intersects the specified GameObject3D.
+	/// Animated objects will be intersected according to the state of their vertices at their last
+	/// CacheVerticesForCollision call. Keep in mind that applying the animation is slow.
+	/// </summary>
+	public bool IntersectWithObject(GameObject3D obj, out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+	{
+		collidedMesh = null;
+		collisionPoint = Vector3.Zero;
+		normal = Vector3.Zero;
+		triangleIndex = -1;
+
+		Mesh[]? meshes = obj.Entity?.Meshes;
+		if (meshes == null) return false;
+
+		Sphere boundSphere = obj.BoundingSphere;
+		if (!IntersectWithSphere(boundSphere, out Vector3 _, out Vector3 _)) return false;
+
+		for (var i = 0; i < meshes.Length; i++)
 		{
-			Start = start;
-			Direction = direction;
-		}
-
-		public Vector3 IntersectWithPlane(Vector3 planeNormal, Vector3 planePoint)
-		{
-			// Check if the ray is parallel to the plane
-			float dot = Vector3.Dot(Direction, planeNormal);
-			if (dot == 0) return Vector3.Zero;
-
-			float distance = Vector3.Dot(planeNormal, planePoint - Start) / dot;
-			return Start + distance * Direction;
-		}
-
-		public bool IntersectWithObject(GameObject3D obj, out Mesh collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
-		{
-			collidedMesh = null;
-			collisionPoint = Vector3.Zero;
-			normal = Vector3.Zero;
-			triangleIndex = -1;
-
-			Matrix4x4 matrix = obj.GetModelMatrix();
-			MeshEntity entity = obj.Entity;
-
-			for (var i = 0; i < entity.Meshes.Length; i++)
+			Mesh mesh = meshes[i];
+			if (IntersectWithObjectMesh(obj, i, out collisionPoint, out normal, out triangleIndex))
 			{
-				Mesh mesh = entity.Meshes[i];
-				if (IntersectWithMesh(mesh, matrix, out collisionPoint, out normal, out triangleIndex))
-				{
-					collidedMesh = mesh;
-					return true;
-				}
+				collidedMesh = mesh;
+				return true;
 			}
+		}
 
+		return false;
+	}
+
+	public bool IntersectWithObjectMesh(GameObject3D obj, int meshIdx, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+	{
+		collisionPoint = Vector3.Zero;
+		normal = Vector3.Zero;
+		triangleIndex = -1;
+
+		Mesh[]? meshes = obj.Entity?.Meshes;
+		if (meshes == null) return false;
+		Mesh mesh = meshes[meshIdx];
+
+		var closestDistance = float.MaxValue;
+		var intersectionFound = false;
+
+		VertexData[]? meshVertices = mesh.Vertices;
+		VertexDataWithBones[]? verticesWithBones = mesh.VerticesWithBones;
+		ushort[] meshIndices = mesh.Indices;
+
+		if (meshVertices == null && verticesWithBones == null) return false;
+
+		Matrix4x4 matrix = obj.GetModelMatrix();
+		for (var i = 0; i < meshIndices.Length; i += 3)
+		{
+			ushort idx1 = meshIndices[i];
+			ushort idx2 = meshIndices[i + 1];
+			ushort idx3 = meshIndices[i + 2];
+
+			obj.GetMeshTriangleForCollision(meshIdx, idx1, idx2, idx3, out Vector3 p1, out Vector3 p2, out Vector3 p3);
+
+			p1 = Vector3.Transform(p1, matrix);
+			p2 = Vector3.Transform(p2, matrix);
+			p3 = Vector3.Transform(p3, matrix);
+
+			Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
+
+			if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
+
+			if (t < closestDistance)
+			{
+				closestDistance = t;
+				normal = triangleNormal;
+				triangleIndex = i;
+				intersectionFound = true;
+			}
+		}
+
+		if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
+
+		return intersectionFound;
+	}
+
+	public bool IntersectWithTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 normal, out float distance)
+	{
+		// Check if the ray is parallel to the triangle
+		float normalRayDot = Vector3.Dot(normal, Direction);
+		if (Math.Abs(normalRayDot) < float.Epsilon)
+		{
+			distance = 0;
 			return false;
 		}
 
-		public bool IntersectWithMesh(Mesh mesh, Matrix4x4 matrix, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
-		{
-			collisionPoint = Vector3.Zero;
-			normal = Vector3.Zero;
-			triangleIndex = -1;
+		// Calculate the intersection point
+		Vector3 rayToTriangle = p1 - Start;
+		distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
 
-			var closestDistance = float.MaxValue;
-			var intersectionFound = false;
+		if (distance < 0)
+			// The intersection point is behind the ray's origin
+			return false;
 
-			VertexData[] meshVertices = mesh.Vertices;
-			VertexDataWithBones[] verticesWithBones = mesh.VerticesWithBones;
-			ushort[] meshIndices = mesh.Indices;
+		// Calculate the barycentric coordinates of the intersection point
+		Vector3 edge1 = p2 - p1;
+		Vector3 edge2 = p3 - p1;
+		Vector3 intersectionPoint = Start + distance * Direction;
+		Vector3 c = intersectionPoint - p1;
+		float d00 = Vector3.Dot(edge1, edge1);
+		float d01 = Vector3.Dot(edge1, edge2);
+		float d11 = Vector3.Dot(edge2, edge2);
+		float denom = d00 * d11 - d01 * d01;
+		float u = (d11 * Vector3.Dot(edge1, c) - d01 * Vector3.Dot(edge2, c)) / denom;
+		float v = (d00 * Vector3.Dot(edge2, c) - d01 * Vector3.Dot(edge1, c)) / denom;
 
-			if (meshVertices == null && verticesWithBones == null) return false;
+		// Check if the intersection point is inside the triangle
+		return u >= 0 && v >= 0 && u + v <= 1;
+	}
 
-			for (var i = 0; i < meshIndices.Length; i += 3)
-			{
-                ushort idx1 = meshIndices[i];
-                ushort idx2 = meshIndices[i + 1];
-                ushort idx3 = meshIndices[i + 2];
+	public bool IntersectWithSphere(Sphere sphere, out Vector3 intersectionPoint1, out Vector3 intersectionPoint2)
+	{
+		intersectionPoint1 = Vector3.Zero;
+		intersectionPoint2 = Vector3.Zero;
 
-				Vector3 p1 = meshVertices == null ? verticesWithBones[idx1]!.Vertex : meshVertices[idx1]!.Vertex;
-				Vector3 p2 = meshVertices == null ? verticesWithBones[idx2]!.Vertex : meshVertices[idx2]!.Vertex;
-				Vector3 p3 = meshVertices == null ? verticesWithBones[idx3]!.Vertex : meshVertices[idx3]!.Vertex;
+		Vector3 sphereToRay = Start - sphere.Origin;
 
-				p1 = Vector4.Transform(new Vector4(p1, 1.0f), matrix).ToVec3();
-				p2 = Vector4.Transform(new Vector4(p2, 1.0f), matrix).ToVec3();
-				p3 = Vector4.Transform(new Vector4(p3, 1.0f), matrix).ToVec3();
+		// Calculate the coefficients for the quadratic equation
+		float a = Vector3.Dot(Direction, Direction);
+		float b = 2 * Vector3.Dot(sphereToRay, Direction);
+		float c = Vector3.Dot(sphereToRay, sphereToRay) - sphere.Radius * sphere.Radius;
 
-				Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
+		// Calculate the discriminant, if negative - no intersections.
+		float discriminant = b * b - 4 * a * c;
+		if (discriminant < 0) return false;
 
-				if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
+		// Calculate the two possible values for t (intersection points)
+		float t1 = (-b + (float) Math.Sqrt(discriminant)) / (2 * a);
+		float t2 = (-b - (float) Math.Sqrt(discriminant)) / (2 * a);
 
-				if (t < closestDistance)
-				{
-					closestDistance = t;
-					normal = triangleNormal;
-					triangleIndex = i;
-					intersectionFound = true;
-				}
-			}
+		intersectionPoint1 = Start + t1 * Direction;
+		intersectionPoint2 = Start + t2 * Direction;
 
-			if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
-
-			return intersectionFound;
-		}
-
-		public bool IntersectWithTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 normal, out float distance)
-		{
-			// Check if the ray is parallel to the triangle
-			float normalRayDot = Vector3.Dot(normal, Direction);
-			if (Math.Abs(normalRayDot) < float.Epsilon)
-			{
-				distance = 0;
-				return false;
-			}
-
-			// Calculate the intersection point
-			Vector3 rayToTriangle = p1 - Start;
-			distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
-
-			if (distance < 0)
-				// The intersection point is behind the ray's origin
-				return false;
-
-			// Calculate the barycentric coordinates of the intersection point
-			Vector3 edge1 = p2 - p1;
-			Vector3 edge2 = p3 - p1;
-			Vector3 intersectionPoint = Start + distance * Direction;
-			Vector3 c = intersectionPoint - p1;
-			float d00 = Vector3.Dot(edge1, edge1);
-			float d01 = Vector3.Dot(edge1, edge2);
-			float d11 = Vector3.Dot(edge2, edge2);
-			float denom = d00 * d11 - d01 * d01;
-			float u = (d11 * Vector3.Dot(edge1, c) - d01 * Vector3.Dot(edge2, c)) / denom;
-			float v = (d00 * Vector3.Dot(edge2, c) - d01 * Vector3.Dot(edge1, c)) / denom;
-
-			// Check if the intersection point is inside the triangle
-			return u >= 0 && v >= 0 && u + v <= 1;
-		}
+		return true;
 	}
 }
