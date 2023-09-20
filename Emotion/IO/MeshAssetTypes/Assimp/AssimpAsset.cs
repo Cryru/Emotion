@@ -96,10 +96,6 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 			WalkNodesForMeshes(scene, rootNode, meshes, materials);
 
-			// Convert to right handed Z is up.
-			if (animRigAsRoot != null && (Name.Contains(".gltf") || isYUp))
-				animRigAsRoot.LocalTransform *= Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
-
 			Entity = new MeshEntity
 			{
 				Name = Name,
@@ -108,9 +104,16 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				AnimationRig = animRigAsRoot
 			};
 
+			// Convert to right handed Z up, if not.
+			if (Name.Contains(".gltf") || isYUp)
+			{
+				Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
+			}
+
 			// Properties
-			float scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor") ?? 100f;
-			Entity.Scale = scaleF;
+			float? scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor");
+			if (scaleF != null)
+				Entity.Scale = scaleF.Value;
 
 			// Clear virtual file system
 			for (var i = 0; i < _loadedFiles.Count; i++)

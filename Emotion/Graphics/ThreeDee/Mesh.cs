@@ -19,35 +19,14 @@ public class Mesh
 {
 	public string Name = null!;
 	public MeshMaterial Material = null!;
+	public ushort[] Indices = null!;
 
-	/// <summary>
-	/// One of these must be present, but not both.
-	/// </summary>
+	// One of these must be present, but not both.
 	public VertexData[]? Vertices;
-
 	public VertexDataWithBones[]? VerticesWithBones;
 
-	public ushort[] Indices = null!;
+	// Bones referenced. Must if present if vertices are with bones.
 	public MeshBone[]? Bones = null;
-
-	public void GetTriangleAtIndex(int index, out Vector3 p1, out Vector3 p2, out Vector3 p3)
-	{
-		VertexData[]? verts = Vertices;
-		ushort[] indices = Indices;
-
-		// todo: implement for other vertex types.
-		if (verts == null)
-		{
-			p1 = Vector3.Zero;
-			p2 = Vector3.Zero;
-			p3 = Vector3.Zero;
-			return;
-		}
-
-		p1 = verts[indices[index]].Vertex;
-		p2 = verts[indices[index + 1]].Vertex;
-		p3 = verts[indices[index + 2]].Vertex;
-	}
 
 	#region Transformations
 

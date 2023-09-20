@@ -15,7 +15,8 @@ namespace Emotion.Graphics.ThreeDee;
 public class MeshEntity
 {
 	public string? Name { get; set; }
-	public float Scale { get; set; }
+	public float Scale { get; set; } = 1f;
+	public Matrix4x4 LocalTransform { get; set; } = Matrix4x4.Identity;
 	public Mesh[]? Meshes { get; set; }
 
 	// Animation
