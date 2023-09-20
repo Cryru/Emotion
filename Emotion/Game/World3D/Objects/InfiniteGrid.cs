@@ -40,6 +40,7 @@ public sealed class InfiniteGrid : Quad3D
 		_shader.Shader.SetUniformVector2("squareSize", new Vector2(TileSize));
 		_shader.Shader.SetUniformVector2("cameraPos", (cameraPos + Offset) / _infiniteGridSize); // Camera position in UV space.
 		_shader.Shader.SetUniformVector2("totalSize", _infiniteGridSize);
+		_shader.Shader.SetUniformColor("color", Tint);
 		base.RenderInternal(c);
 		c.SetShader();
 	}
