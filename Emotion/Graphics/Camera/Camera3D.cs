@@ -143,11 +143,6 @@ namespace Emotion.Graphics.Camera
 			}
 		}
 
-		public void LookAtPoint(Vector3 point)
-		{
-			LookAt = Vector3.Normalize(point - Position);
-		}
-
 		protected override void LookAtChanged(Vector3 oldVal, Vector3 newVal)
 		{
 			float roll = MathF.Asin(newVal.Z);
@@ -209,6 +204,8 @@ namespace Emotion.Graphics.Camera
 
 			// Divide by W component to get normalized device coordinates (NDC)
 			var ndcPosition = new Vector3(clipPosition.X / clipPosition.W, clipPosition.Y / clipPosition.W, clipPosition.Z / clipPosition.W);
+
+			if (ndcPosition.Z > 1.0f) return new Vector2(float.MaxValue, float.MaxValue);
 
 			// Calculate the normalized device coordinates (-1 to 1)
 			float screenWidth = Engine.Renderer.CurrentTarget.Size.X;
