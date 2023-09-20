@@ -35,10 +35,6 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		ObjectUId = Object.UniqueId;
 		ObjectMap = Object.Map;
 
-		// Inject the "Center" property of Transform.
-		// Since it isn't serialized it wont be returned, but its handy to have for objects.
-		InjectDontSerializeProperty<Transform>("Center");
-		
 		if (obj is GameObject3D)
 		{
 			InjectDontSerializeProperty<Transform>("RotationDeg");
@@ -47,6 +43,15 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 			// Remove Size to show Size3D so axes are intuitive to the 3D world.
 			InjectDontSerializeProperty<Transform>("Size3D");
 			RemoveSerializedProperty<Transform>("Size");
+
+			RemoveSerializedProperty<Transform>("Depth");
+		}
+		else
+		{
+			// Inject the "Center" property of Transform.
+			// Since it isn't serialized it wont be returned, but its handy to have for objects.
+			InjectDontSerializeProperty<Transform>("Center");
+			RemoveSerializedProperty<Transform>("Depth");
 		}
 	}
 
@@ -133,7 +138,19 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		var viewObjectButton = new EditorButton();
 		viewObjectButton.Text = "Show Me";
 		viewObjectButton.StretchY = true;
-		viewObjectButton.OnClickedProxy = _ => { Engine.Renderer.Camera.Position = Object.Position; };
+		viewObjectButton.OnClickedProxy = _ =>
+		{
+			if (Object is GameObject3D obj3D)
+			{
+				Sphere boundingSphere = obj3D.BoundingSphere;
+				Engine.Renderer.Camera.Position = boundingSphere.Origin - new Vector3(boundingSphere.Radius, boundingSphere.Radius, -boundingSphere.Radius);
+				Engine.Renderer.Camera.LookAtPoint(boundingSphere.Origin);
+			}
+			else
+			{
+				Engine.Renderer.Camera.Position = Object.Position;
+			}
+		};
 		uiContainer.AddChild(viewObjectButton);
 	}
 

@@ -137,7 +137,7 @@ public class EditorPanel : UIBaseWindow
 		bool returnVal = base.OnKey(key, status, mousePos);
 
 		if (key == Key.MouseKeyLeft) return false;
-		if (PanelMode != PanelMode.Modal) return false;
+		if (PanelMode == PanelMode.Modal) return false;
 
 		return returnVal;
 	}

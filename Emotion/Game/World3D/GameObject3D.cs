@@ -204,16 +204,6 @@ public class GameObject3D : BaseGameObject
 
 		c.PopModelMatrix();
 		if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
-
-		var meshGen = new SphereMeshGenerator();
-		Sphere sphere = BoundingSphere;
-		Mesh mesh = meshGen.GenerateMesh().TransformMeshVertices(
-			Matrix4x4.CreateScale(sphere.Radius) * Matrix4x4.CreateTranslation(sphere.Origin)
-		).ColorMeshVertices(Color.Green * 0.5f);
-		mesh.Render(c);
-
-		//var cube = Bounds3D;
-		//cube.RenderOutline(c);
 	}
 
 	#region Transform 3D

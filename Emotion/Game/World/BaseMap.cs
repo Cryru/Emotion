@@ -228,7 +228,7 @@ public abstract class BaseMap
 
 		Initialized = true;
 
-		Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
+		Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "World");
 	}
 
 	protected virtual Task InitAsyncInternal()
@@ -283,6 +283,7 @@ public abstract class BaseMap
 		ProcessObjectChanges();
 
 		// todo: obj update, clipped?
+		dt = EditorMode ? 0 : dt;
 		int objCount = GetObjectCount();
 		for (var i = 0; i < objCount; i++)
 		{

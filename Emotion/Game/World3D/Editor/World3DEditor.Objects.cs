@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World;
+using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 
 #endregion
@@ -26,6 +27,14 @@ public partial class World3DEditor
 				gizmo.LoadAssetsAsync().Wait();
 				_moveGizmo = gizmo;
 			});
+
+		// Cache collision vertices for all objects on editor enter.
+		// Since animations are frozen this will allow for skinned meshes to be mouse picked.
+		if (CurrentMap != null)
+			foreach (BaseGameObject obj in CurrentMap.GetObjects())
+			{
+				if (obj is GameObject3D obj3D) obj3D.CacheVerticesForCollision();
+			}
 	}
 
 	protected override void DisposeObjectEditor()
@@ -40,6 +49,12 @@ public partial class World3DEditor
 		{
 			c.ClearDepth();
 			_moveGizmo?.Render(c);
+
+			if (_selectedObject is GameObject3D obj3D)
+			{
+				Cube boundCube = obj3D.Bounds3D;
+				boundCube.RenderOutline(c, Color.PrettyYellow);
+			}
 		}
 	}
 

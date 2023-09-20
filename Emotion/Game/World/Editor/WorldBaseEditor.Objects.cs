@@ -9,7 +9,10 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World3D;
+using Emotion.Game.World3D.Editor;
 using Emotion.Graphics;
+using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
@@ -84,11 +87,29 @@ public abstract partial class WorldBaseEditor
 		// If not currently selecting objects, or mouse is in UI, or dragging then dont.
 		else if (_canObjectSelect && mouseNotInUIOrInNameplate)
 		{
+			var results = new List<BaseGameObject>();
+
+			// =============================================
+			// temp
+			// todo: ray3d should be passable into get objects.
+			// world tree 3d should perform calculation on mesh
+			if (this is World3DEditor)
+			{
+				Ray3D mouseRay = Engine.Renderer.Camera.GetCameraMouseRay();
+				IEnumerable<GameObject3D> objects3D = map.GetObjectsByType<GameObject3D>();
+				foreach (GameObject3D obj in objects3D)
+				{
+					if (mouseRay.IntersectWithObject(obj, out Mesh _, out Vector3 _, out Vector3 _, out int _)) results.Add(obj);
+				}
+			}
+			// temp
+			// =============================================
+
 			// Add objects (and their UI) under the mouse to the rollover list.
 			Vector2 mouseScreen = Engine.Host.MousePosition;
 			Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
 			var circle = new Circle(mouseWorld, 1);
-			var results = new List<BaseGameObject>();
+
 			foreach (int treeLayerId in map.GetWorldTree()!.ForEachLayer())
 			{
 				map.GetObjects(results, treeLayerId, circle, QueryFlags.Unique);
@@ -431,15 +452,27 @@ public abstract partial class WorldBaseEditor
 			var text = (UIText?) worldAttachUI.GetWindowById("text")!;
 			var txt = new StringBuilder();
 			txt.AppendLine($"Name: [{obj.UniqueId}] {obj.ObjectName ?? "null"}");
-			txt.AppendLine($"Type: {obj.GetType().Name}");
+			txt.AppendLine($"Class: {obj.GetType().Name}");
 			txt.AppendLine($"Pos: {obj.Position}");
-			if (_allObjectsRollover != null && _allObjectsRollover.Count > 0) txt.AppendLine($"Objects Here: {_rolloverIndex + 1}/{_allObjectsRollover.Count} [ALT] to switch");
+
+			// todo:
+			Vector3 attachRolloverTo;
+			if (obj is GameObject3D obj3D)
+			{
+				txt.AppendLine($"Entity: {obj3D.Entity?.Name}");
+				attachRolloverTo = obj3D.Position;
+			}
+			else
+			{
+				if (_allObjectsRollover != null && _allObjectsRollover.Count > 0)
+					txt.AppendLine($"Objects Here: {_rolloverIndex + 1}/{_allObjectsRollover.Count} [ALT] to switch");
+				Rectangle bounds = obj.Bounds;
+				Vector2 attachPoint = bounds.TopRight;
+				attachRolloverTo = attachPoint.ToVec3() + new Vector3(5, 0, 0);
+			}
 
 			text.Text = txt.ToString();
-
-			Rectangle bounds = obj.Bounds;
-			Vector2 attachPoint = bounds.TopRight;
-			worldAttachUI.AttachToPosition(attachPoint.ToVec3() + new Vector3(5, 0, 0));
+			worldAttachUI.AttachToPosition(attachRolloverTo);
 		}
 	}
 

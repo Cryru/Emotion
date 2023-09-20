@@ -40,56 +40,11 @@ public partial class World2DEditor
 			},
 		});
 
-		EditorButton editorMenu = EditorDropDownButton("Editor", new[]
-		{
-			// Shows actions done in the editor, can be undone
-			new EditorDropDownButtonDescription
-			{
-				Name = "Undo History",
-				Click = (_, __) =>
-				{
-					var panel = new EditorListOfItemsPanel<IWorldEditorAction>("Actions", _actions, obj => { });
-					_editUI!.AddChild(panel);
-				}
-			},
-			new EditorDropDownButtonDescription
-			{
-				Name = "Model Viewer (WIP)",
-				Click = (_, __) =>
-				{
-					var panel = new ModelViewer();
-					_editUI!.AddChild(panel);
-				},
-			},
-		});
-
-		EditorButton otherTools = EditorDropDownButton("Other", new[]
-		{
-			new EditorDropDownButtonDescription
-			{
-				Name = "Open Folder",
-				Click = (_, __) => { Process.Start("explorer.exe", "."); },
-				Enabled = () => Engine.Host is Win32Platform
-			},
-
-			new EditorDropDownButtonDescription
-			{
-				Name = "Performance Monitor",
-				Click = (_, __) =>
-				{
-					var panel = new PerformanceMonitor();
-					_editorUIAlways!.AddChild(panel);
-				},
-			},
-		});
-
 		// todo: GPU texture viewer
 		// todo: animation tool (convert from imgui)
 		// todo: asset preview tool
 		// todo: ema integration
 
 		parentList.AddChild(tilesMenu);
-		parentList.AddChild(editorMenu);
-		parentList.AddChild(otherTools);
 	}
 }

@@ -136,8 +136,8 @@ public abstract partial class WorldBaseEditor
 
 	public void ChangeSceneMap(string fileName)
 	{
-		var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(fileName, false);
-		Map2D? newMap = newMapAsset?.Content;
+		var newMapAsset = Engine.AssetLoader.Get<XMLAsset<BaseMap>>(fileName, false);
+		BaseMap newMap = newMapAsset?.Content;
 		if (newMap == null) return;
 		newMap.FileName = fileName;
 
