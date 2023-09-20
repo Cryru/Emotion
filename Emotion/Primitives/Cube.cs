@@ -63,29 +63,26 @@ public struct Cube
 		return new Cube(center, halfExtent);
 	}
 
+	private static int[][] _outlineEdges = new int[][]
+	{
+		new int[] { 0, 1 }, // Bottom face
+		new int[] { 1, 3 },
+		new int[] { 3, 2 },
+		new int[] { 2, 0 },
+		new int[] { 4, 5 }, // Top face
+		new int[] { 5, 7 },
+		new int[] { 7, 6 },
+		new int[] { 6, 4 },
+		new int[] { 0, 4 }, // Connecting lines
+		new int[] { 1, 5 },
+		new int[] { 2, 6 },
+		new int[] { 3, 7 }
+	};
+
 	public void RenderOutline(RenderComposer c, Color? color = null)
 	{
 		Vector3[] vertices = GetVertices();
-
-		// Define the indices for the cube's edges (pairs of vertices)
-		var edges = new int[][]
-		{
-			new int[] { 0, 1 }, // Bottom face
-			new int[] { 1, 3 },
-			new int[] { 3, 2 },
-			new int[] { 2, 0 },
-			new int[] { 4, 5 }, // Top face
-			new int[] { 5, 7 },
-			new int[] { 7, 6 },
-			new int[] { 6, 4 },
-			new int[] { 0, 4 }, // Connecting lines
-			new int[] { 1, 5 },
-			new int[] { 2, 6 },
-			new int[] { 3, 7 }
-		};
-
-		// Render each line segment
-		foreach (int[] edge in edges)
+		foreach (int[] edge in _outlineEdges)
 		{
 			c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, 1, false);
 		}
