@@ -125,8 +125,6 @@ public class GameObject3D : BaseGameObject
 		MeshEntity? entity = _entity;
 		if (entity?.Meshes == null) return;
 
-		CalculateBounds(out _bSphereBase, out _bCubeBase);
-
 		Mesh[] meshes = entity.Meshes;
 		MeshEntityMetaState? metaState = EntityMetaState;
 
