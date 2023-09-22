@@ -133,7 +133,8 @@ public abstract partial class WorldBaseEditor
 
 		// If dragging an object - move it with the mouse.
 		// If dragging into ui then dont move.
-		if (_objectDragging != null && mouseNotInUIOrInNameplate)
+		// todo: move this to 2d
+		if (_objectDragging != null && mouseNotInUIOrInNameplate && _objectDragging is not GameObject3D)
 		{
 			Vector2 mouseScreen = Engine.Host.MousePosition;
 			Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();

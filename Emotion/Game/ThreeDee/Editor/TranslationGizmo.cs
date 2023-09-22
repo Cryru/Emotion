@@ -32,6 +32,8 @@ namespace Emotion.Game.ThreeDee.Editor
 		protected Vector3 _virtualPos;
 		protected Vector3 _positionMoveStart;
 
+		protected Vector3 _lastCameraPos;
+
 		public TranslationGizmo()
 		{
 			var arrowCylinderGen = new CylinderMeshGenerator();
@@ -126,6 +128,8 @@ namespace Emotion.Game.ThreeDee.Editor
 			base.UpdateInternal(dt);
 
 			CameraBase? camera = Engine.Renderer.Camera;
+			if (camera.Position != _lastCameraPos) _dragPointStart = Vector3.Zero;
+			_lastCameraPos = camera.Position;
 
 			// Update mouseover
 			if (_dragPointStart == Vector3.Zero)
@@ -158,10 +162,7 @@ namespace Emotion.Game.ThreeDee.Editor
 				if (Target != null) Target.Position = p;
 			}
 
-			if (Target != null && _dragPointStart == Vector3.Zero)
-			{
-				Position = Target.Position;
-			}
+			if (Target != null && _dragPointStart == Vector3.Zero) Position = Target.Position;
 		}
 
 		private Vector3 GetPointAlongPlane()
