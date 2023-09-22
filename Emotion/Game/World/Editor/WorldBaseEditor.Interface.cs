@@ -335,7 +335,7 @@ public abstract partial class WorldBaseEditor
 			},
 			new EditorDropDownButtonDescription
 			{
-				Name = "Model Viewer (WIP)",
+				Name = "3D Mesh Viewer",
 				Click = (_, __) =>
 				{
 					var panel = new ModelViewer();

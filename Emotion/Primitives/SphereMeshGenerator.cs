@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 
@@ -21,6 +22,7 @@ namespace Emotion.Primitives
 			int numIndices = Segments * Rings * 6;
 
 			var vertices = new VertexData[numVertices];
+			var vertices3D = new VertexDataMesh3DExtra[numVertices];
 			var indices = new ushort[numIndices];
 
 			float phiStep = MathF.PI / Rings;
@@ -44,6 +46,8 @@ namespace Emotion.Primitives
 					vertices[index].Vertex = new Vector3(x, y, z);
 					vertices[index].UV = new Vector2(s / Segments, r / Rings);
 					vertices[index].Color = Color.WhiteUint;
+
+					vertices3D[index].Normal = Vector3.Zero;
 				}
 			}
 
@@ -68,14 +72,7 @@ namespace Emotion.Primitives
 				}
 			}
 
-			var sphereMesh = new Mesh
-			{
-				Vertices = vertices,
-				Material = MeshMaterial.DefaultMaterial,
-				Indices = indices,
-				Name = "SphereMesh"
-			};
-			return sphereMesh;
+			return new Mesh("SphereMesh", vertices, vertices3D, indices);
 		}
 	}
 }

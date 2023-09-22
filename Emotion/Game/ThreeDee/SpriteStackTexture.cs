@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Game.Animation2D;
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
@@ -31,19 +32,16 @@ namespace Emotion.Game.ThreeDee
 				for (var x = 0; x < rows; x++)
 				{
 					// Count the filled pixels
-					int filledPixels = GenerateStackFrame(frameIdx, columns * rows, frameSize, textureSize, null, null);
+					int filledPixels = GenerateStackFrame(frameIdx, columns * rows, frameSize, textureSize, null, null, null);
 
 					// Allocate data for the mesh and run againt to fill.
 					// todo: what if data is outside index range
 					var vertices = new VertexData[filledPixels * 8];
+					var meshData = new VertexDataMesh3DExtra[vertices.Length];
 					var indices = new ushort[filledPixels * 6 * 6]; // 6 sides, one quad is 6 indices
-					GenerateStackFrame(frameIdx, columns * rows, frameSize, textureSize, vertices, indices);
+					GenerateStackFrame(frameIdx, columns * rows, frameSize, textureSize, vertices, meshData, indices);
 
-					var frameMesh = new Mesh();
-					frameMesh.Name = $"SpriteStack Frame {frameIdx} ({Name})";
-					frameMesh.Material = MeshMaterial.DefaultMaterial;
-					frameMesh.Vertices = vertices;
-					frameMesh.Indices = indices;
+					var frameMesh = new Mesh($"SpriteStack Frame {frameIdx} ({Name})", vertices, meshData, indices);
 					frames[frameIdx] = frameMesh;
 					frameIdx++;
 				}
@@ -58,14 +56,14 @@ namespace Emotion.Game.ThreeDee
 		}
 
 
-		public int GenerateStackFrame(int frameIdx, int totalFrames, Vector2 frameSize, Vector2 textureSize, VertexData[] vertices, ushort[] indices)
+		public int GenerateStackFrame(int frameIdx, int totalFrames, Vector2 frameSize, Vector2 textureSize, VertexData[] vertices, VertexDataMesh3DExtra[] meshData, ushort[] indices)
 		{
 			Rectangle rect = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, Vector2.Zero, frameIdx);
 
 			var frameWidth = (int) frameSize.X;
 			var frameHeight = (int) frameSize.Y;
 
-			Vector2 meshCenter = new Vector2(frameWidth - 1, -frameHeight + 1);
+			var meshCenter = new Vector2(frameWidth - 1, -frameHeight + 1);
 
 			// Count pixels that will be turned into voxels
 			var filledPixelCount = 0;
@@ -169,6 +167,15 @@ namespace Emotion.Game.ThreeDee
 						thisPixel[5].Vertex = new Vector3(1, -1, -1);
 						thisPixel[6].Vertex = new Vector3(1, 1, -1);
 						thisPixel[7].Vertex = new Vector3(-1, 1, -1);
+
+						meshData[0].Normal = new Vector3(0, 0, 1);
+						meshData[1].Normal = new Vector3(0, 0, 1);
+						meshData[2].Normal = new Vector3(0, 0, 1);
+						meshData[3].Normal = new Vector3(0, 0, 1);
+						meshData[4].Normal = new Vector3(0, 0, -1);
+						meshData[5].Normal = new Vector3(0, 0, -1);
+						meshData[6].Normal = new Vector3(0, 0, -1);
+						meshData[7].Normal = new Vector3(0, 0, -1);
 
 						// Front
 						thisPixelIndices[00] = 0;

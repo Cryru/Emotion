@@ -83,11 +83,7 @@ public struct Ray3D
 		var closestDistance = float.MaxValue;
 		var intersectionFound = false;
 
-		VertexData[]? meshVertices = mesh.Vertices;
-		VertexDataWithBones[]? verticesWithBones = mesh.VerticesWithBones;
 		ushort[] meshIndices = mesh.Indices;
-
-		if (meshVertices == null && verticesWithBones == null) return false;
 
 		Matrix4x4 matrix = obj.GetModelMatrix();
 		for (var i = 0; i < meshIndices.Length; i += 3)

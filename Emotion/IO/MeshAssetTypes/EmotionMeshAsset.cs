@@ -5,6 +5,7 @@
 using System.IO;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
@@ -57,6 +58,9 @@ public class EmotionMeshAsset : Asset
 		else if (version == 2) // Entity.LocalTransform & RigNode.DontAnimate
 		{
 		}
+		else if (version == 3) // new vertex data format
+		{
+		}
 		else // ????
 		{
 			return null;
@@ -74,19 +78,17 @@ public class EmotionMeshAsset : Asset
 		entity.Meshes = meshArray;
 		for (var i = 0; i < meshesCount; i++)
 		{
-			var newMesh = new Mesh
-			{
-				Name = reader.ReadString()
-			};
+			string name = reader.ReadString();
 
 			string materialName = reader.ReadString();
+			MeshMaterial material;
 			if (materialMap.TryGetValue(materialName, out MeshMaterial? mat))
 			{
-				newMesh.Material = mat;
+				material = mat;
 			}
 			else
 			{
-				mat = new MeshMaterial
+				material = new MeshMaterial
 				{
 					Name = materialName,
 					DiffuseColor = new Color(reader.ReadUInt32())
@@ -96,11 +98,11 @@ public class EmotionMeshAsset : Asset
 				if (hasDiffuseTexture)
 				{
 					string textureName = reader.ReadString();
-					mat.DiffuseTextureName = textureName;
+					material.DiffuseTextureName = textureName;
 
 					if (textureMap.TryGetValue(textureName, out Texture? diffuseTexture))
 					{
-						mat.DiffuseTexture = diffuseTexture;
+						material.DiffuseTexture = diffuseTexture;
 					}
 					else
 					{
@@ -109,7 +111,7 @@ public class EmotionMeshAsset : Asset
 						float height = reader.ReadSingle();
 						int textureFormat = reader.ReadInt32();
 						Texture t = Texture.NonGLThreadInitialize(new Vector2(width, height));
-						mat.DiffuseTexture = t;
+						material.DiffuseTexture = t;
 
 						byte[] data = reader.ReadBytes(textureByteLength);
 						GLThread.ExecuteGLThreadAsync(() =>
@@ -122,43 +124,16 @@ public class EmotionMeshAsset : Asset
 					}
 				}
 
-				newMesh.Material = mat;
-				materialMap.Add(materialName, mat);
+				materialMap.Add(materialName, material);
 			}
 
-			int vertexFormat = reader.ReadByte();
-			int length = reader.ReadInt32();
-			if (vertexFormat == 0) // Normal vertices
-			{
-				var vertices = new VertexData[length];
-
-				for (var j = 0; j < length; j++)
-				{
-					ref VertexData vert = ref vertices[j];
-
-					vert.Vertex = ReadVector3(reader);
-					vert.UV = ReadVector2(reader);
-					vert.Color = reader.ReadUInt32();
-				}
-
-				newMesh.Vertices = vertices;
-			}
-			else // Vertices with bone data
-			{
-				var vertices = new VertexDataWithBones[length];
-
-				for (var j = 0; j < length; j++)
-				{
-					ref VertexDataWithBones vert = ref vertices[j];
-
-					vert.Vertex = ReadVector3(reader);
-					vert.UV = ReadVector2(reader);
-					vert.BoneIds = ReadVector4(reader);
-					vert.BoneWeights = ReadVector4(reader);
-				}
-
-				newMesh.VerticesWithBones = vertices;
-			}
+			VertexData[] vertices;
+			VertexDataMesh3DExtra[] meshData;
+			Mesh3DVertexDataBones[]? boneData;
+			if (version < 3)
+				ReadPreVer3Vertices(reader, out vertices, out meshData, out boneData);
+			else
+				ReadPostVer3Vertices(reader, out vertices, out meshData, out boneData);
 
 			int indicesLength = reader.ReadInt32();
 			var indices = new ushort[indicesLength];
@@ -166,8 +141,6 @@ public class EmotionMeshAsset : Asset
 			{
 				indices[j] = reader.ReadUInt16();
 			}
-
-			newMesh.Indices = indices;
 
 			int bonesLength = reader.ReadInt32();
 			MeshBone[]? bones = bonesLength > 0 ? new MeshBone[bonesLength] : null;
@@ -182,7 +155,13 @@ public class EmotionMeshAsset : Asset
 				bones![j] = bone;
 			}
 
-			newMesh.Bones = bones;
+			var newMesh = new Mesh(name, vertices, meshData, indices)
+			{
+				Material = material,
+
+				BoneData = boneData,
+				Bones = bones
+			};
 
 			meshArray[i] = newMesh;
 		}
@@ -315,32 +294,28 @@ public class EmotionMeshAsset : Asset
 				writtenMaterials.Add(materialName);
 			}
 
-			if (mesh.VerticesWithBones == null)
+			bool isSkinnedMesh = mesh.BoneData != null;
+			writer.Write((byte) (isSkinnedMesh ? 1 : 0));
+			writer.Write(mesh.Vertices.Length);
+			for (var j = 0; j < mesh.Vertices.Length; j++)
 			{
-				writer.Write((byte) 0);
-				writer.Write(mesh.Vertices!.Length);
-				for (var j = 0; j < mesh.Vertices.Length; j++)
+				ref VertexData vert = ref mesh.Vertices[j];
+
+				WriteVector3(writer, ref vert.Vertex);
+				WriteVector2(writer, ref vert.UV);
+				writer.Write(vert.Color);
+
+				ref VertexDataMesh3DExtra extraData = ref mesh.ExtraVertexData[j];
+				WriteVector3(writer, ref extraData.Normal);
+
+				if (isSkinnedMesh)
 				{
-					VertexData vert = mesh.Vertices[j];
+					AssertNotNull(mesh.BoneData);
 
-					WriteVector3(writer, ref vert.Vertex);
-					WriteVector2(writer, ref vert.UV);
+					ref Mesh3DVertexDataBones boneVert = ref mesh.BoneData[j];
 
-					writer.Write(vert.Color);
-				}
-			}
-			else
-			{
-				writer.Write((byte) 1);
-				writer.Write(mesh.VerticesWithBones.Length);
-				for (var j = 0; j < mesh.VerticesWithBones.Length; j++)
-				{
-					VertexDataWithBones vert = mesh.VerticesWithBones[j];
-
-					WriteVector3(writer, ref vert.Vertex);
-					WriteVector2(writer, ref vert.UV);
-					WriteVector4(writer, ref vert.BoneIds);
-					WriteVector4(writer, ref vert.BoneWeights);
+					WriteVector4(writer, ref boneVert.BoneIds);
+					WriteVector4(writer, ref boneVert.BoneWeights);
 				}
 			}
 
@@ -414,6 +389,76 @@ public class EmotionMeshAsset : Asset
 		memoryStream.Dispose();
 
 		return byteArray;
+	}
+
+		private static void ReadPreVer3Vertices(BinaryReader reader, out VertexData[] vertices, out VertexDataMesh3DExtra[] meshData, out Mesh3DVertexDataBones[]? boneData)
+	{
+		int vertexFormat = reader.ReadByte();
+		int length = reader.ReadInt32();
+
+		vertices = new VertexData[length];
+		meshData = new VertexDataMesh3DExtra[length];
+		boneData = null;
+
+		if (vertexFormat == 0) // Normal vertices
+		{
+			for (var j = 0; j < length; j++)
+			{
+				ref VertexData vert = ref vertices[j];
+
+				vert.Vertex = ReadVector3(reader);
+				vert.UV = ReadVector2(reader);
+				vert.Color = reader.ReadUInt32();
+			}
+		}
+		else // Vertices with bone data
+		{
+			boneData = new Mesh3DVertexDataBones[length];
+			for (var j = 0; j < length; j++)
+			{
+				ref VertexData vert = ref vertices[j];
+
+				vert.Vertex = ReadVector3(reader);
+				vert.UV = ReadVector2(reader);
+
+				ref Mesh3DVertexDataBones boneVertexMeta = ref boneData[j];
+
+				boneVertexMeta.BoneIds = ReadVector4(reader);
+				boneVertexMeta.BoneWeights = ReadVector4(reader);
+			}
+		}
+	}
+
+	private static void ReadPostVer3Vertices(BinaryReader reader, out VertexData[] vertices, out VertexDataMesh3DExtra[] meshData, out Mesh3DVertexDataBones[]? boneData)
+	{
+		int vertexFormat = reader.ReadByte();
+		int length = reader.ReadInt32();
+
+		vertices = new VertexData[length];
+		meshData = new VertexDataMesh3DExtra[length];
+		boneData = vertexFormat == 1 ? new Mesh3DVertexDataBones[length] : null;
+
+		for (var v = 0; v < length; v++)
+		{
+			ref VertexData vert = ref vertices[v];
+
+			vert.Vertex = ReadVector3(reader);
+			vert.UV = ReadVector2(reader);
+			vert.Color = reader.ReadUInt32();
+
+			ref VertexDataMesh3DExtra extraData = ref meshData[v];
+			extraData.Normal = ReadVector3(reader);
+
+			if (vertexFormat == 1)
+			{
+				AssertNotNull(boneData);
+
+				ref Mesh3DVertexDataBones boneVertexMeta = ref boneData[v];
+
+				boneVertexMeta.BoneIds = ReadVector4(reader);
+				boneVertexMeta.BoneWeights = ReadVector4(reader);
+			}
+		}
 	}
 
 	private static void WriteSkeletonRig(BinaryWriter writer, SkeletonAnimRigNode rigNode)

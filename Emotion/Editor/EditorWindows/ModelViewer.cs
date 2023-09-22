@@ -53,7 +53,7 @@ public class ModelViewer : EditorPanel
         public Vector2 TileSize;
     }
 
-    public ModelViewer() : base("Model Viewer")
+    public ModelViewer() : base("3D Mesh Viewer")
     {
         _camera = new Camera3D(new Vector3(-290, 250, 260));
         _camera.LookAtPoint(new Vector3(0, 0, 0));

@@ -101,6 +101,12 @@ namespace Emotion.Graphics.Batches
 
 		#endregion
 
+		#region SubSystems
+
+		public MeshEntityStreamRenderer MeshRenderer { get; init; }
+
+		#endregion
+
 		public RenderStreamBatch(bool useAtlas = true)
 		{
 			_indexByteSize = sizeof(ushort);
@@ -129,10 +135,15 @@ namespace Emotion.Graphics.Batches
 				_batchableLengths[i] = new int[1];
 			}
 
-			if (!useAtlas) return;
-			_atlas = new TextureAtlas();
-			_smoothAtlas = new TextureAtlas(true);
-			_currentTexture = _atlas.AtlasPointer;
+			if (useAtlas)
+			{
+				_atlas = new TextureAtlas();
+				_smoothAtlas = new TextureAtlas(true);
+				_currentTexture = _atlas.AtlasPointer;
+			}
+
+			MeshRenderer = new MeshEntityStreamRenderer();
+			MeshRenderer.LoadAssets();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -343,6 +354,8 @@ namespace Emotion.Graphics.Batches
 				Stack<GLRenderObjects> usedStack = usedStackPair.Value;
 				while (usedStack.Count > 0) usableStack.Push(usedStack.Pop());
 			}
+
+			MeshRenderer.DoTasks();
 		}
 
 		#region GL Render Objects

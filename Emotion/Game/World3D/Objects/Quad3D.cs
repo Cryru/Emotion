@@ -3,6 +3,7 @@
 #region Using
 
 using System.Threading.Tasks;
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
@@ -39,18 +40,18 @@ public class Quad3D : GameObject3D
 			var indices = new ushort[6];
 			IndexBuffer.FillQuadIndices(indices, 0);
 
+			var meshData = new VertexDataMesh3DExtra[4];
+			for (var i = 0; i < meshData.Length; i++)
+			{
+				meshData[i].Normal = new Vector3(0, 0, 1);
+			}
+
 			QuadEntity = new MeshEntity
 			{
 				Name = "Quad",
 				Meshes = new[]
 				{
-					new Mesh
-					{
-						Name = "Quad",
-						Vertices = vertices,
-						Material = MeshMaterial.DefaultMaterial,
-						Indices = indices
-					}
+					new Mesh("Quad", vertices, meshData, indices)
 				},
 				BackFaceCulling = false
 			};

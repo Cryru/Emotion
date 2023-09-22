@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 
@@ -21,10 +22,11 @@ namespace Emotion.Primitives
 
 		public Mesh GenerateMesh(string name = "CylinderMesh")
 		{
-			Debug.Assert(Sides >= 3);
+			Assert(Sides >= 3);
 
 			var vertices = new VertexData[Sides * 4 + (Capped ? 2 : 0)];
-			var indices = new ushort[Sides * 6 + (Capped ? (3 * Sides) * 2 : 0)];
+			var meshData = new VertexDataMesh3DExtra[vertices.Length];
+			var indices = new ushort[Sides * 6 + (Capped ? 3 * Sides * 2 : 0)];
 
 			var prevTopX = (float) (RadiusTop * Math.Cos(0));
 			var prevTopY = (float) (RadiusTop * Math.Sin(0));
@@ -47,6 +49,12 @@ namespace Emotion.Primitives
 
 				var bottomX = (float) (RadiusBottom * Math.Cos(angle));
 				var bottomY = (float) (RadiusBottom * Math.Sin(angle));
+
+				float nextAngle = (i + 2) * step;
+				var topXNext = (float) (RadiusTop * Math.Cos(nextAngle));
+				var topYNext = (float) (RadiusTop * Math.Sin(nextAngle));
+				var bottomXNext = (float) (RadiusBottom * Math.Cos(nextAngle));
+				var bottomYNext = (float) (RadiusBottom * Math.Sin(nextAngle));
 
 				if (i == Sides - 1)
 				{
@@ -97,37 +105,45 @@ namespace Emotion.Primitives
 				prevBottomY = bottomY;
 
 				// Add normals
-				//float n1x = bottomX;
-				//float n1y = bottomY;
-				//float n1z = 0;
-				//float n1Length = (float)Math.Sqrt(n1x * n1x + n1y * n1y + n1z * n1z);
-				//n1x /= n1Length;
-				//n1y /= n1Length;
-				//n1z /= n1Length;
+				var n1 = new Vector3(bottomX, bottomY, 0);
+				meshData[vtxStart].Normal = Vector3.Normalize(n1);
 
 				//float n2x = topX;
 				//float n2y = topY;
 				//float n2z = Height;
-				//float n2Length = (float)Math.Sqrt(n2x * n2x + n2y * n2y + n2z * n2z);
+				//var n2Length = (float)Math.Sqrt(n2x * n2x + n2y * n2y + n2z * n2z);
 				//n2x /= n2Length;
 				//n2y /= n2Length;
 				//n2z /= n2Length;
+				//normals[idxStart + 1].Normal = new Vector3(n2x, n2y, n2z);
+
+				var n2 = new Vector3(topX, topY, Height);
+				meshData[vtxStart + 1].Normal = Vector3.Normalize(n2);
 
 				//float n3x = bottomXNext;
 				//float n3y = bottomYNext;
 				//float n3z = 0;
-				//float n3Length = (float)Math.Sqrt(n3x * n3x + n3y * n3y + n3z * n3z);
+				//var n3Length = (float)Math.Sqrt(n3x * n3x + n3y * n3y + n3z * n3z);
 				//n3x /= n3Length;
 				//n3y /= n3Length;
 				//n3z /= n3Length;
+				//normals[idxStart + 2].Normal = new Vector3(n3x, n3y, n3z);
+
+
+				var n3 = new Vector3(bottomXNext, bottomYNext, 0);
+				meshData[vtxStart + 2].Normal = Vector3.Normalize(n3);
 
 				//float n4x = topXNext;
 				//float n4y = topYNext;
 				//float n4z = Height;
-				//float n4Length = (float)Math.Sqrt(n4x * n4x + n4y * n4y + n4z * n4z);
+				//var n4Length = (float)Math.Sqrt(n4x * n4x + n4y * n4y + n4z * n4z);
 				//n4x /= n4Length;
 				//n4y /= n4Length;
 				//n4z /= n4Length;
+				//normals[idxStart + 3].Normal = new Vector3(n4x, n4y, n4z);
+
+				var n4 = new Vector3(topXNext, topYNext, Height);
+				meshData[vtxStart + 3].Normal = Vector3.Normalize(n4);
 			}
 
 			if (Capped)
@@ -173,15 +189,7 @@ namespace Emotion.Primitives
 				}
 			}
 
-			var mesh = new Mesh
-			{
-				Name = name,
-				Material = MeshMaterial.DefaultMaterial,
-				Vertices = vertices,
-				Indices = indices
-			};
-
-			return mesh;
+			return new Mesh(name, vertices, meshData, indices);
 		}
 	}
 }

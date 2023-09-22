@@ -7,6 +7,8 @@ using Emotion.Game.Animation3D;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using System;
+
 
 #endregion
 
@@ -17,23 +19,42 @@ namespace Emotion.Graphics.ThreeDee;
 /// </summary>
 public class Mesh
 {
-	public string Name = null!;
-	public MeshMaterial Material = null!;
-	public ushort[] Indices = null!;
+	private const string DEFAULT_MESH_NAME = "Untitled";
 
-	// One of these must be present, but not both.
-	public VertexData[]? Vertices;
-	public VertexDataWithBones[]? VerticesWithBones;
+	public string Name;
 
-	// Bones referenced. Must if present if vertices are with bones.
+	public MeshMaterial Material;
+	public ushort[] Indices;
+
+	public VertexData[] Vertices;
+	public VertexDataMesh3DExtra[] ExtraVertexData;
+
+	public Mesh3DVertexDataBones[]? BoneData;
 	public MeshBone[]? Bones = null;
+
+	public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
+	{
+		Name = DEFAULT_MESH_NAME;
+		Vertices = vertices;
+		ExtraVertexData = extraData;
+		Indices = indices;
+		Material = MeshMaterial.DefaultMaterial;
+	}
+
+	public Mesh(string name, VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
+	{
+		Name = name;
+		Vertices = vertices;
+		ExtraVertexData = extraData;
+		Indices = indices;
+		Material = MeshMaterial.DefaultMaterial;
+	}
 
 	#region Transformations
 
 	public Mesh TransformMeshVertices(Matrix4x4 mat)
 	{
 		VertexData[]? vertices = Vertices;
-		if (vertices == null) return this;
 		for (var i = 0; i < vertices.Length; i++)
 		{
 			ref Vector3 vertex = ref vertices[i].Vertex;
@@ -61,7 +82,6 @@ public class Mesh
 	public Mesh SetVerticesAlpha(byte alpha)
 	{
 		VertexData[]? vertices = Vertices;
-		if (vertices == null) return this;
 		for (var i = 0; i < vertices.Length; i++)
 		{
 			ref VertexData vertex = ref vertices[i];
@@ -73,16 +93,16 @@ public class Mesh
 
 	public static Mesh CombineMeshes(Mesh m1, Mesh m2, string name)
 	{
-		var m = new Mesh
-		{
-			Name = name,
-			Material = m1.Material,
-			Vertices = new VertexData[m1.Vertices.Length + m2.Vertices.Length],
-			Indices = new ushort[m1.Indices.Length + m2.Indices.Length]
-		};
+		var m = new Mesh(
+			name,
+			new VertexData[m1.Vertices.Length + m2.Vertices.Length],
+			new VertexDataMesh3DExtra[m1.ExtraVertexData.Length + m2.ExtraVertexData.Length],
+			new ushort[m1.Indices.Length + m2.Indices.Length]);
 
 		m1.Vertices.CopyTo(new Span<VertexData>(m.Vertices));
 		m2.Vertices.CopyTo(new Span<VertexData>(m.Vertices, m1.Vertices.Length, m2.Vertices.Length));
+		m1.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData));
+		m2.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData, m1.ExtraVertexData.Length, m2.ExtraVertexData.Length));
 		m1.Indices.CopyTo(new Span<ushort>(m.Indices));
 		m2.Indices.CopyTo(new Span<ushort>(m.Indices, m1.Indices.Length, m2.Indices.Length));
 
@@ -91,6 +111,8 @@ public class Mesh
 		{
 			m.Indices[i] = (ushort) (m.Indices[i] + vertexOffset);
 		}
+
+		m.Material = m1.Material;
 
 		return m;
 	}

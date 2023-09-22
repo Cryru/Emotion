@@ -3,6 +3,7 @@
 using System.IO;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
@@ -55,7 +56,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				OpenProc = PfnFileOpenProc.From(OpenFileCallback),
 				CloseProc = PfnFileCloseProc.From(CloseFileCallback)
 			};
-			
+
 			Scene* scene = _assContext.ImportFileEx("this", (uint) _postProcFlags, ref customIO);
 			if ((IntPtr) scene == IntPtr.Zero)
 			{
@@ -91,7 +92,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			var meshes = new List<Mesh>();
 
 			Node* rootNode = scene->MRootNode;
-			SkeletonAnimRigNode? animRigRoot = WalkNodesForSkeleton( rootNode);
+			SkeletonAnimRigNode? animRigRoot = WalkNodesForSkeleton(rootNode);
 			SkeletonAnimRigRoot? animRigAsRoot = animRigRoot != null ? SkeletonAnimRigRoot.PromoteNode(animRigRoot) : null;
 
 			WalkNodesForMeshes(scene, rootNode, meshes, materials);
@@ -105,10 +106,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			};
 
 			// Convert to right handed Z up, if not.
-			if (Name.Contains(".gltf") || isYUp)
-			{
-				Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
-			}
+			if (Name.Contains(".gltf") || isYUp) Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
 			// Properties
 			float? scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor");
@@ -419,12 +417,6 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
 		protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials)
 		{
-			var newMesh = new Mesh
-			{
-				Name = m->MName.AsString,
-				Material = materials[(int) m->MMaterialIndex]
-			};
-
 			// Collect indices
 			uint indicesCount = 0;
 			for (var i = 0; i < m->MNumFaces; i++)
@@ -449,10 +441,10 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				}
 			}
 
-			newMesh.Indices = emotionIndices;
-
 			// Copy vertices (todo: separate path for boneless)
-			var vertices = new VertexDataWithBones[m->MNumVertices];
+			var vertices = new VertexData[m->MNumVertices];
+			var meshData = new VertexDataMesh3DExtra[m->MNumVertices];
+
 			for (var i = 0; i < m->MNumVertices; i++)
 			{
 				// todo: check if uvs exist, vert colors, normals
@@ -465,19 +457,48 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					uv = new Vector2(uv3.X, uv3.Y);
 				}
 
-				vertices[i] = new VertexDataWithBones
+				Color vertexColor = Color.White;
+				if ((IntPtr) m->MColors[0] != IntPtr.Zero)
+				{
+					Vector4 assVertColor = m->MColors[0][i]; // BGRA
+					//Vector4 rgba = new Vector4(assVertColor.)
+
+					vertexColor = new Color(assVertColor);
+					bool a = true;
+				}
+
+				vertices[i] = new VertexData
 				{
 					Vertex = assVertex,
 					UV = uv,
+					Color = vertexColor.ToUint()
+				};
 
+				ref Vector3 normal = ref m->MNormals[i];
+				meshData[i] = new VertexDataMesh3DExtra
+				{
+					Normal = normal
+				};
+			}
+
+			var newMesh = new Mesh(m->MName.AsString, vertices, meshData, emotionIndices)
+			{
+				Material = materials[(int) m->MMaterialIndex]
+			};
+
+			if (m->MNumBones == 0) return newMesh;
+
+			var boneData = new Mesh3DVertexDataBones[m->MNumVertices];
+			for (var i = 0; i < boneData.Length; i++)
+			{
+				boneData[i] = new Mesh3DVertexDataBones
+				{
 					BoneIds = new Vector4(0, 0, 0, 0),
 					BoneWeights = new Vector4(1, 0, 0, 0)
 				};
 			}
 
-			newMesh.VerticesWithBones = vertices;
-
-			if (m->MNumBones == 0) return newMesh;
+			newMesh.BoneData = boneData;
 
 			var boneToIndex = new Dictionary<string, int>();
 			var bones = new MeshBone[m->MNumBones];
@@ -510,7 +531,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					if (boneDef.MVertexId > vertices.Length - 1) continue;
 					if (boneDef.MWeight == 0) continue;
 
-					ref VertexDataWithBones vertex = ref vertices[boneDef.MVertexId];
+					ref Mesh3DVertexDataBones vertex = ref boneData[boneDef.MVertexId];
 
 					// Todo: better way of doing this
 					var found = false;
@@ -533,7 +554,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						int lowestWeightIdx = -1;
 
 						for (var dim = 0; dim < 4; dim++)
-						{	
+						{
 							float thisWeight = vertex.BoneWeights[dim];
 							if (thisWeight < lowestWeight && thisWeight != 0)
 							{
@@ -554,35 +575,37 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			// Normalize bone weights to 1.
 			for (var i = 0; i < vertices.Length; i++)
 			{
-                // The code below is basically
-                // float vecLength = vertex.BoneWeights.Length();
-                // float ratio = 1f / vecLength;
-                // vertex.BoneWeights = vertex.BoneWeights * ratio;
-				// But written out with doubles due to some weights being so tiny.
+				// The code below is basically
+				// float vecLength = vertex.BoneWeights.Length();
+				// float ratio = 1f / vecLength;
+				// vertex.BoneWeights = vertex.BoneWeights * ratio;
+				// But written out with doubles due to models with
+				// very tiny weights weights that cannot be ignored.
 
-                ref VertexDataWithBones vertex = ref vertices[i];
+				ref Mesh3DVertexDataBones vertex = ref boneData[i];
 				double vecLength = 0;
-				for (int c = 0; c < 4; c++)
+				for (var c = 0; c < 4; c++)
 				{
 					double weight = vertex.BoneWeights[c];
 					if (weight == 0) continue;
 					vecLength += weight * weight;
-                }
+				}
+
 				vecLength = Math.Sqrt(vecLength);
 
 				double ratio = 1.0 / vecLength;
-                for (int c = 0; c < 4; c++)
-                {
-                    double weight = vertex.BoneWeights[c];
-                    if (weight == 0) continue;
+				for (var c = 0; c < 4; c++)
+				{
+					double weight = vertex.BoneWeights[c];
+					if (weight == 0) continue;
 
-					weight = weight * ratio;
+					weight *= ratio;
 
-					float weightFloat = (float)weight;
+					var weightFloat = (float) weight;
 					if (weightFloat == 0) weightFloat = Maths.EPSILON;
 					vertex.BoneWeights[c] = weightFloat;
-                }
-            }
+				}
+			}
 
 			return newMesh;
 		}

@@ -1,10 +1,10 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using Emotion.Graphics.ThreeDee;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.Game.ThreeDee;
 
@@ -17,6 +17,12 @@ public class MeshEntityMetaState
 	/// Whether the mesh index should be rendered.
 	/// </summary>
 	public bool[] RenderMesh = Array.Empty<bool>();
+
+	/// <summary>
+	/// A color to tint all vertices of the entity in.
+	/// Is multiplied by the material color.
+	/// </summary>
+	public Color Tint = Color.White;
 
 	public MeshEntityMetaState(MeshEntity? entity)
 	{

@@ -33,7 +33,7 @@ public abstract class BaseGameObject : Transform
 	/// <summary>
 	/// The object's multiplicative color tint.
 	/// </summary>
-	public Color Tint { get; set; } = Color.White;
+	public virtual Color Tint { get; set; } = Color.White;
 
 	/// <summary>
 	/// Flags that specify systemic treatment of the object.
