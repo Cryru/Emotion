@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Threading.Tasks;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.UI;
 
@@ -56,6 +57,13 @@ public class NewUITests : TestingScene
 		};
 	}
 
+	private IEnumerator WaitUILayout()
+	{
+		UI.Update();
+		yield return new TaskRoutineWaiter(UI.PreloadUI());
+		yield return new TestWaiterRunLoops(1);
+	}
+
 	private IEnumerator Fill()
 	{
 		UI.ClearChildren();
@@ -67,7 +75,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -90,7 +98,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -114,7 +122,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -139,7 +147,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -165,7 +173,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -199,7 +207,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -222,7 +230,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 
 		{
@@ -230,7 +238,7 @@ public class NewUITests : TestingScene
 			list.LayoutMode = LayoutMode.VerticalList;
 		}
 
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -285,7 +293,7 @@ public class NewUITests : TestingScene
 				screenshotExtraText = "+VerticalList";
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -293,7 +301,7 @@ public class NewUITests : TestingScene
 				list.FillX = false;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -302,7 +310,7 @@ public class NewUITests : TestingScene
 				list.FillX = true;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -311,7 +319,7 @@ public class NewUITests : TestingScene
 				list.FillX = false;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -319,7 +327,7 @@ public class NewUITests : TestingScene
 				list.ListSpacing = new Vector2(5, 5);
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 		}
 	}
@@ -375,7 +383,7 @@ public class NewUITests : TestingScene
 				screenshotExtraText = "+VerticalList";
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -383,7 +391,7 @@ public class NewUITests : TestingScene
 				list.FillX = false;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -392,7 +400,7 @@ public class NewUITests : TestingScene
 				list.FillX = true;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -401,7 +409,7 @@ public class NewUITests : TestingScene
 				list.FillX = false;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -409,7 +417,7 @@ public class NewUITests : TestingScene
 				list.ListSpacing = new Vector2(5, 5);
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 
 			{
@@ -418,7 +426,7 @@ public class NewUITests : TestingScene
 				list.FillX = true;
 			}
 
-			yield return new TestWaiterRunLoops(1);
+			yield return WaitUILayout();
 			VerifyScreenshot(screenshotExtraText);
 		}
 	}
@@ -473,8 +481,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(win);
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 
 		{
@@ -519,8 +526,7 @@ public class NewUITests : TestingScene
 			}
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 
 		// Bar v2 (Possible only with the new UI)
@@ -531,8 +537,7 @@ public class NewUITests : TestingScene
 			list.AlignAnchor = UIAnchor.CenterLeft;
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -609,8 +614,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(list);
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 
 		UI.ClearChildren();
@@ -668,8 +672,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(dropDown);
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 
 		{
@@ -683,8 +686,7 @@ public class NewUITests : TestingScene
 			}
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 
 		{
@@ -693,8 +695,7 @@ public class NewUITests : TestingScene
 			list.Margins = new Rectangle(0, 0, 8, 0);
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -720,8 +721,7 @@ public class NewUITests : TestingScene
 			UI.AddChild(container);
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
 	}
 
@@ -800,15 +800,8 @@ public class NewUITests : TestingScene
 			UI.AddChild(dropDown);
 		}
 
-		yield return PreloadUI();
-		yield return new TestWaiterRunLoops(1);
+		yield return WaitUILayout();
 		VerifyScreenshot();
-	}
-
-	private IEnumerator PreloadUI()
-	{
-		Task task = UI.PreloadUI();
-		while (!task.IsCompleted) yield return new TestWaiterRunLoops(1);
 	}
 }
 #endif
