@@ -21,6 +21,8 @@ namespace Emotion.Graphics.Camera
 
 		private float _fieldOfView = 45;
 
+		public Key DragKey = Key.MouseKeyLeft;
+
 		// Movement
 		public float MovementSpeed = 3;
 		private Vector2 _lastMousePos;
@@ -52,7 +54,7 @@ namespace Emotion.Graphics.Camera
 
 		public virtual bool CameraKeyHandler(Key key, KeyStatus status)
 		{
-			if (key == Key.MouseKeyLeft)
+			if (key == DragKey)
 			{
 				if (status == KeyStatus.Down)
 				{

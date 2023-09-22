@@ -24,7 +24,10 @@ public partial class World3DEditor : WorldBaseEditorGeneric<Map3D>
 
 	protected override CameraBase GetEditorCamera()
 	{
-		return new Camera3D(Vector3.Zero, 1f, KeyListenerType.EditorCamera);
+		return new Camera3D(Vector3.Zero, 1f, KeyListenerType.EditorCamera)
+		{
+			DragKey = Key.MouseKeyMiddle
+		};
 	}
 
 	protected override void EnterEditorInternal()
