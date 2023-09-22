@@ -86,10 +86,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 	protected override IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
 		// Special handling for the animation selection.
-		if (field.ReflectionInfo.DeclaredIn == typeof(GameObject3D) && field.Name == "CurrentAnimation")
-		{
-			bool a = true;
-		}
+		if (field.ReflectionInfo.DeclaredIn == typeof(GameObject3D) && field.Name == "CurrentAnimation") return new PropEditorObject3DAnimationList(Object as GameObject3D);
 
 		return base.AddEditorForField(field);
 	}
@@ -164,6 +161,14 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
 	protected override void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
 	{
+		// bruh
+		if (field.ReflectionInfo.Name == "Entity")
+			for (var i = 0; i < _editorUIs.Count; i++)
+			{
+				IPropEditorGeneric editorUI = _editorUIs[i];
+				if (editorUI is PropEditorObject3DAnimationList animList) animList.EntityChanged();
+			}
+
 		if (Object.PrefabOrigin == null) return;
 
 		var valueDiffAlert = new MapEditorGameObjectPrefabValueDiff();

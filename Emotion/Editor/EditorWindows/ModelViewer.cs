@@ -122,7 +122,7 @@ public class ModelViewer : EditorPanel
                     {
                         if (data.TileSize == Vector2.Zero) return false;
 
-                        var entity = asset.GetSpriteStackEntity(data.TileSize);
+                        MeshEntity? entity = asset.GetSpriteStackEntity(data.TileSize);
                         if (entity != null)
                         {
                             SetEntity(entity);
@@ -188,7 +188,7 @@ public class ModelViewer : EditorPanel
             {
                 if (_obj.Entity == null) return;
                 byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
-                Engine.AssetLoader.Save(data, $"Player/converted_{_obj.Entity.Name}.em3");
+                Engine.AssetLoader.Save(data, $"Player/Em3Export/{_obj.Entity.Name}.em3");
             }
         };
         editorButtons.AddChild(saveAsEm3Button);
