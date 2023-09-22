@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using System.Collections.Generic;
 using Emotion.Game.World;
 using Emotion.Graphics;
 
@@ -70,7 +71,7 @@ namespace Emotion.Game.World2D
 		{
 			_objects?.Remove(obj);
 		}
-
+        /*
 		public void AddObjectsIntersectingShape(IList list, IShape shape, QueryFlags queryFlags = 0)
 		{
 			if (_objects == null) return;
@@ -92,8 +93,42 @@ namespace Emotion.Game.World2D
 				if (shape.Intersects(ref node.Bounds)) node.AddObjectsIntersectingShape(list, shape, queryFlags);
 			}
 		}
+		*/
 
-		public void AddAllObjects(IList list)
+        public IEnumerable<BaseGameObject> AddObjectsIntersectingShape(IShape shape, QueryFlags queryFlags = 0)
+        {
+            if (_objects != null)
+            {
+                foreach (BaseGameObject obj in _objects)
+                {
+                    Rectangle bounds = obj.GetBoundsForQuadTree();
+                    if (shape.Intersects(ref bounds))
+                    {
+						// NOT SURE ABOUT THIS ONEEEE... WE DON'T HAVE THE LIST TO CHECK IF THE OBJECT IS ALREADY ADDED ?!?!??!?!?
+                        if (!queryFlags.HasFlag(QueryFlags.Unique))
+                        {
+                            yield return obj;
+                        }
+                    }
+                }
+            }
+
+            if (ChildNodes != null)
+            {
+                foreach (WorldTree2DNode node in ChildNodes)
+                {
+                    if (shape.Intersects(ref node.Bounds))
+                    {
+                        foreach (BaseGameObject obj in node.AddObjectsIntersectingShape(shape, queryFlags))
+                        {
+                            yield return obj;
+                        }
+                    }
+                }
+            }
+        }
+        /*
+        public void AddAllObjects(IList list)
 		{
 			if (_objects == null) return;
 			for (var i = 0; i < _objects.Count; i++)
@@ -101,8 +136,18 @@ namespace Emotion.Game.World2D
 				list.Add(_objects[i]);
 			}
 		}
+		*/
+        public IEnumerable<BaseGameObject> GetAllObjects()
+        {
+            if (_objects == null) yield break;
 
-		public void RenderDebug(RenderComposer c)
+            for (var i = 0; i < _objects.Count; i++)
+            {
+                yield return _objects[i];
+            }
+        }
+
+        public void RenderDebug(RenderComposer c)
 		{
 			c.RenderOutline(Bounds, Color.Blue);
 			if (ChildNodes == null) return;

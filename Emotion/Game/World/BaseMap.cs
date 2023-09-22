@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
@@ -464,6 +465,7 @@ public abstract class BaseMap
 		}
 	}
 
+    /*
 	public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
     {
 		List<BaseGameObject> objects = new List<BaseGameObject>();
@@ -482,6 +484,22 @@ public abstract class BaseMap
 		}
 		
 	}
+	*/
+    public IEnumerable<T> GetObjectsByType<T>(int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
+    {
+        foreach (BaseGameObject obj in GetObjects(layer, shape, queryFlags))
+        {
+            if (obj is T objT)
+            {
+                // NOT SURE ABOUT THIS ONEEEE... 
+                if (queryFlags.HasFlag(QueryFlags.Unique))
+                {
+                    continue;
+                }
+                yield return objT;
+            }
+        }
+    }
 
     /// <summary>
     /// Get an object from the map by name.
@@ -525,19 +543,45 @@ public abstract class BaseMap
 		return _objects[idx];
 	}
 
+    /*
 	public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
 	{
 		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-		rootNode?.AddObjectsIntersectingShape(list, shape, queryFlags);
+		rootNode?.AddObjectsIntersectingShape(shape, queryFlags);
 	}
-
-	public void GetObjects(IList list, int layer)
+	*/
+    public IEnumerable<BaseGameObject> GetObjects(int layer, IShape shape, QueryFlags queryFlags = 0)
+    {
+        WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
+        if (rootNode != null)
+        {
+            foreach (BaseGameObject obj in rootNode.AddObjectsIntersectingShape(shape, queryFlags))
+            {
+                yield return obj;
+            }
+        }
+    }
+    /*
+    public void GetObjects(IList list, int layer)
 	{
 		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
 		rootNode?.AddAllObjects(list);
 	}
+	*/
 
-	public WorldTree2D? GetWorldTree()
+    public IEnumerable<BaseGameObject> GetObjects(int layer)
+    {
+        WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
+        if (rootNode != null)
+        {
+            foreach (BaseGameObject obj in rootNode.GetAllObjects())
+            {
+                yield return obj;
+            }
+        }
+    }
+
+    public WorldTree2D? GetWorldTree()
 	{
 		return _worldTree;
 	}

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Editor;
 using Emotion.Game.World;
@@ -45,7 +46,7 @@ public class Map2D : BaseMap
 	{
 		return MathF.Sign(x.Position.Z - y.Position.Z);
 	}
-
+    /*
 	public override void Render(RenderComposer c)
 	{
 		if (!Initialized) return;
@@ -62,4 +63,20 @@ public class Map2D : BaseMap
 			obj.Render(c);
 		}
 	}
+	*/
+
+    public override void Render(RenderComposer c)
+    {
+        if (!Initialized) return;
+
+        Rectangle clipArea = c.Camera.GetCameraFrustum();
+        TileData?.RenderTileMap(c, clipArea);
+
+        List<BaseGameObject> renderObjectsList = new List<BaseGameObject>(GetObjects(0, clipArea));
+        renderObjectsList.Sort(ObjectComparison);
+        foreach (BaseGameObject obj in renderObjectsList)
+        {
+            obj.Render(c);
+        }
+    }
 }
