@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Common.Threading;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
@@ -15,7 +16,7 @@ public class AssetFileNameAttribute : Attribute
 {
 	public virtual EditorPanel CreateFileExplorer(PropEditorStringPath editor)
 	{
-		var fileExplorer = new EditorFileExplorer<OtherAsset>(asset => { editor.SetValue(asset.Name); });
+		var fileExplorer = new EditorFileExplorer<OtherAsset>(asset => { GLThread.ExecuteGLThread(() => { editor.SetValue(asset.Name); }); });
 		return fileExplorer;
 	}
 }
@@ -26,7 +27,7 @@ public class AssetFileNameAttribute<T> : AssetFileNameAttribute where T : Asset,
 	// where we have a reference to the generic param.
 	public override EditorPanel CreateFileExplorer(PropEditorStringPath editor)
 	{
-		var fileExplorer = new EditorFileExplorer<T>(asset => { editor.SetValue(asset.Name); });
+		var fileExplorer = new EditorFileExplorer<T>(asset => { GLThread.ExecuteGLThread(() => { editor.SetValue(asset.Name); }); });
 		return fileExplorer;
 	}
 }
