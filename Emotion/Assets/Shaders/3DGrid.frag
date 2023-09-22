@@ -8,7 +8,7 @@ out vec4 fragColor;
 uniform vec2 squareSize;
 uniform vec2 cameraPos;
 uniform vec2 totalSize;
-uniform vec4 color;
+uniform vec4 objectTint;
 
 float sdBox( in vec2 p, in vec2 b )
 {
@@ -36,6 +36,7 @@ void main() {
     vec2 ddy = dFdy( p );
     float col = filteredGrid(p, ddx, ddy);
     float alphaDist = 1.0 - col;
-    fragColor = vec4(color.rgb, color.a * alphaDist);
+
+    fragColor = vec4(objectTint.rgb, objectTint.a * alphaDist);
     if(fragColor.a < 0.1) discard;
 }

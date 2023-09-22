@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Runtime.InteropServices;
 using Emotion.Game.ThreeDee;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -83,19 +82,27 @@ namespace Emotion.Graphics
 				Gl.FrontFace(FrontFaceDirection.Ccw);
 			}
 
+			ShaderProgram? shaderOverride = null;
+			if (metaState.ShaderAsset != null)
+			{
+				shaderOverride = metaState.ShaderAsset.Shader;
+				Engine.Renderer.SetShader(shaderOverride);
+				metaState.ApplyShaderUniforms(shaderOverride);
+			}
+
 			for (var i = 0; i < meshes.Length; i++)
 			{
 				Mesh obj = meshes[i];
 				if (!metaState.RenderMesh[i]) continue;
 
-				if (obj.Vertices == null || obj.ExtraVertexData == null || obj.Vertices.Length != obj.ExtraVertexData.Length)
+				if (obj.Vertices.Length != obj.ExtraVertexData.Length)
 				{
 					Assert(false, "Invalid mesh data.");
 					continue;
 				}
 
 				bool isSkinnedMesh = obj.Bones != null;
-				ShaderProgram currentShader = isSkinnedMesh ? _skinnedMeshShader : _meshShader;
+				ShaderProgram currentShader = shaderOverride ?? (isSkinnedMesh ? _skinnedMeshShader : _meshShader);
 				Engine.Renderer.SetShader(currentShader);
 
 				currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
@@ -135,6 +142,7 @@ namespace Emotion.Graphics
 			}
 
 			if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
+			Engine.Renderer.SetShader(null);
 		}
 
 		public void DoTasks()
