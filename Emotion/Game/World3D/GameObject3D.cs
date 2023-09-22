@@ -367,8 +367,30 @@ public class GameObject3D : BaseGameObject
 				MeshAnimBoneTranslation[] positionFrames;
 				if (channels != null)
 				{
-					SkeletonAnimChannel channel = channels[j];
-					positionFrames = channel.Positions;
+					// Going through every single frame is too heavy.
+					// SkeletonAnimChannel channel = channels[j];
+					// positionFrames = channel.Positions; 
+
+					float animationDuration = currentAnimation!.Duration;
+					positionFrames = new[]
+					{
+						new MeshAnimBoneTranslation
+						{
+							Timestamp = 0
+						},
+						new MeshAnimBoneTranslation
+						{
+							Timestamp = animationDuration * 0.25f
+						},
+						new MeshAnimBoneTranslation
+						{
+							Timestamp = animationDuration * 0.5f
+						},
+						new MeshAnimBoneTranslation
+						{
+							Timestamp = animationDuration
+						}
+					};
 				}
 				else
 				{
@@ -389,19 +411,20 @@ public class GameObject3D : BaseGameObject
 					for (var v = 0; v < boneData.Length; v++)
 					{
 						Mesh3DVertexDataBones vertexData = boneData[v];
+						Vector3 vertex = meshVertices[v].Vertex;
 
-						Matrix4x4 boneMatrix = Matrix4x4.Identity;
+						Vector3 vertexTransformed = Vector3.Zero;
 						for (var w = 0; w < 4; w++)
 						{
 							float boneId = vertexData.BoneIds[w];
 							float weight = vertexData.BoneWeights[w];
-							if (boneId == 0 || weight == 0) continue;
 
-							Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
-							boneMatrix *= boneMat * weight;
+							Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
+							Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
+							vertexTransformed += thisWeightPos * weight;
 						}
 
-						yield return Vector3.Transform(meshVertices[v].Vertex, entityTransform * boneMatrix);
+						yield return Vector3.Transform(vertexTransformed, entityTransform);
 					}
 				}
 			}
@@ -410,6 +433,8 @@ public class GameObject3D : BaseGameObject
 
 	protected void CalculateBounds(out Sphere boundingSphere, out Cube boundingCube)
 	{
+		// todo: these can be cached via entity x animation pair.
+
 		var first = true;
 		var min = new Vector3(0);
 		var max = new Vector3(0);
@@ -476,21 +501,21 @@ public class GameObject3D : BaseGameObject
 
 				for (var vertexIdx = 0; vertexIdx < boneData.Length; vertexIdx++)
 				{
-					ref Mesh3DVertexDataBones vertexDataBoned = ref boneData[vertexIdx];
-					Vector3 vertex = vertices[vertexIdx].Vertex;
+					ref Mesh3DVertexDataBones vertexDataBones = ref boneData[vertexIdx];
+					ref Vector3 vertex = ref vertices[vertexIdx].Vertex;
 
-					Matrix4x4 boneMatrix = Matrix4x4.Identity;
+					Vector3 vertexTransformed = Vector3.Zero;
 					for (var w = 0; w < 4; w++)
 					{
-						float boneId = vertexDataBoned.BoneIds[w];
-						float weight = vertexDataBoned.BoneWeights[w];
-						if (weight == 0) continue;
+						float boneId = vertexDataBones.BoneIds[w];
+						float weight = vertexDataBones.BoneWeights[w];
 
-						Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
-						boneMatrix *= boneMat * weight;
+						Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
+						Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
+						vertexTransformed += thisWeightPos * weight;
 					}
 
-					thisMesh[vertexIdx] = Vector3.Transform(vertex, entityTransform * boneMatrix);
+					thisMesh[vertexIdx] = Vector3.Transform(vertexTransformed, entityTransform);
 				}
 			}
 			else
@@ -592,7 +617,7 @@ public class GameObject3D : BaseGameObject
 
 		DrawSkeleton(rig, Matrix4x4.Identity, Vector3.Zero);
 
-		c.PushModelMatrix(GetModelMatrix());
+		c.PushModelMatrix(_entity!.LocalTransform * GetModelMatrix());
 		for (var i = 0; i < visualizationMeshes.Count; i++)
 		{
 			Mesh mesh = visualizationMeshes[i];

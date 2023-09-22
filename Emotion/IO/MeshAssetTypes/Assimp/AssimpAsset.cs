@@ -209,6 +209,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				}
 			}
 
+			var materialNameDuplicatePrevent = new HashSet<string>();
 			for (var i = 0; i < scene->MNumMaterials; i++)
 			{
 				Material* material = scene->MMaterials[i];
@@ -233,6 +234,15 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						diffuseTexture = textureAsset?.Texture;
 					}
 				}
+
+				string originalName = materialName;
+				var counter = 2;
+				while (materialNameDuplicatePrevent.Contains(materialName))
+				{
+					materialName = $"{originalName}_{counter}";
+					counter++;
+				}
+				materialNameDuplicatePrevent.Add(materialName);
 
 				var emotionMaterial = new MeshMaterial
 				{
@@ -344,10 +354,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					AnimChannels = channels
 				};
 
-				// wtf is happening here, idk
-				var speedFactor = (float) (anim->MTicksPerSecond == 1 ? 1f / 1000f : anim->MTicksPerSecond == 1000 ? 1 : anim->MTicksPerSecond);
-				Assert(!float.IsNaN(speedFactor));
-				emotionAnim.Duration = (float) (anim->MDuration / speedFactor);
+				emotionAnim.Duration = (float) (anim->MDuration / anim->MTicksPerSecond) * 1000;
 
 				list.Add(emotionAnim);
 
@@ -368,7 +375,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						VectorKey val = channel->MPositionKeys[k];
 						ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
 						translation.Position = val.MValue;
-						translation.Timestamp = (float) (val.MTime / speedFactor);
+						translation.Timestamp = (float) (val.MTime /  anim->MTicksPerSecond) * 1000;
 					}
 
 					for (var k = 0; k < channel->MNumRotationKeys; k++)
@@ -376,7 +383,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						QuatKey val = channel->MRotationKeys[k];
 						ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
 						rotation.Rotation = val.MValue.AsQuaternion;
-						rotation.Timestamp = (float) (val.MTime / speedFactor);
+						rotation.Timestamp = (float) (val.MTime / anim->MTicksPerSecond) * 1000;
 					}
 
 					for (var k = 0; k < channel->MNumScalingKeys; k++)
@@ -384,7 +391,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 						VectorKey val = channel->MScalingKeys[k];
 						ref MeshAnimBoneScale scale = ref bone.Scales[k];
 						scale.Scale = val.MValue;
-						scale.Timestamp = (float) (val.MTime / speedFactor);
+						scale.Timestamp = (float) (val.MTime / anim->MTicksPerSecond) * 1000;
 					}
 
 					channels[j] = bone;
@@ -460,11 +467,8 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 				Color vertexColor = Color.White;
 				if ((IntPtr) m->MColors[0] != IntPtr.Zero)
 				{
-					Vector4 assVertColor = m->MColors[0][i]; // BGRA
-					//Vector4 rgba = new Vector4(assVertColor.)
-
+					Vector4 assVertColor = m->MColors[0][i]; // RGBA
 					vertexColor = new Color(assVertColor);
-					bool a = true;
 				}
 
 				vertices[i] = new VertexData
@@ -575,25 +579,19 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 			// Normalize bone weights to 1.
 			for (var i = 0; i < vertices.Length; i++)
 			{
-				// The code below is basically
-				// float vecLength = vertex.BoneWeights.Length();
-				// float ratio = 1f / vecLength;
-				// vertex.BoneWeights = vertex.BoneWeights * ratio;
-				// But written out with doubles due to models with
+				// The code below is written out with doubles due to models with
 				// very tiny weights weights that cannot be ignored.
 
 				ref Mesh3DVertexDataBones vertex = ref boneData[i];
-				double vecLength = 0;
+				double sum = 0;
 				for (var c = 0; c < 4; c++)
 				{
 					double weight = vertex.BoneWeights[c];
 					if (weight == 0) continue;
-					vecLength += weight * weight;
+					sum += weight;
 				}
 
-				vecLength = Math.Sqrt(vecLength);
-
-				double ratio = 1.0 / vecLength;
+				double ratio = 1.0 / sum;
 				for (var c = 0; c < 4; c++)
 				{
 					double weight = vertex.BoneWeights[c];
@@ -602,7 +600,7 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 					weight *= ratio;
 
 					var weightFloat = (float) weight;
-					if (weightFloat == 0) weightFloat = Maths.EPSILON;
+					if (weightFloat == 0) weightFloat = Maths.EPSILON; // Ensure it doesn't hit 0
 					vertex.BoneWeights[c] = weightFloat;
 				}
 			}
