@@ -129,7 +129,7 @@ public class GameObject3D : BaseGameObject
 		MeshEntityMetaState? metaState = EntityMetaState;
 		if (entity == null || meshes == null || metaState == null) return;
 
-		c.PushModelMatrix(entity.LocalTransform * GetModelMatrix());
+		c.PushModelMatrix(GetModelMatrix());
 		c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null);
 		c.PopModelMatrix();
 	}
@@ -172,6 +172,7 @@ public class GameObject3D : BaseGameObject
 
 	public Matrix4x4 GetModelMatrix()
 	{
+		if (_entity != null) return _entity.LocalTransform * _scaleMatrix * _rotationMatrix * _translationMatrix;
 		return _scaleMatrix * _rotationMatrix * _translationMatrix;
 	}
 
@@ -322,7 +323,6 @@ public class GameObject3D : BaseGameObject
 		if (meshes == null) yield break;
 
 		AssertNotNull(_entity);
-		Matrix4x4 entityTransform = _entity.LocalTransform;
 
 		Matrix4x4[][]? boneMatricesPerMesh = null;
 
@@ -337,7 +337,7 @@ public class GameObject3D : BaseGameObject
 			{
 				for (var v = 0; v < meshVertices.Length; v++)
 				{
-					yield return Vector3.Transform(meshVertices[v].Vertex, entityTransform);
+					yield return meshVertices[v].Vertex;
 				}
 
 				continue;
@@ -424,7 +424,7 @@ public class GameObject3D : BaseGameObject
 							vertexTransformed += thisWeightPos * weight;
 						}
 
-						yield return Vector3.Transform(vertexTransformed, entityTransform);
+						yield return vertexTransformed;
 					}
 				}
 			}
@@ -473,9 +473,6 @@ public class GameObject3D : BaseGameObject
 		Mesh[]? meshes = _entity?.Meshes;
 		if (meshes == null) return;
 
-		AssertNotNull(_entity);
-		Matrix4x4 entityTransform = _entity.LocalTransform;
-
 		if (!reuseMeshData) _verticesCacheCollision = null;
 		_verticesCacheCollision ??= new Vector3[meshes.Length][];
 		for (var m = 0; m < meshes.Length; m++)
@@ -515,14 +512,14 @@ public class GameObject3D : BaseGameObject
 						vertexTransformed += thisWeightPos * weight;
 					}
 
-					thisMesh[vertexIdx] = Vector3.Transform(vertexTransformed, entityTransform);
+					thisMesh[vertexIdx] = vertexTransformed;
 				}
 			}
 			else
 			{
 				for (var vertexIdx = 0; vertexIdx < vertices.Length; vertexIdx++)
 				{
-					thisMesh[vertexIdx] = Vector3.Transform(vertices[vertexIdx].Vertex, entityTransform);
+					thisMesh[vertexIdx] = vertices[vertexIdx].Vertex;
 				}
 			}
 		}
@@ -617,7 +614,7 @@ public class GameObject3D : BaseGameObject
 
 		DrawSkeleton(rig, Matrix4x4.Identity, Vector3.Zero);
 
-		c.PushModelMatrix(_entity!.LocalTransform * GetModelMatrix());
+		c.PushModelMatrix(GetModelMatrix());
 		for (var i = 0; i < visualizationMeshes.Count; i++)
 		{
 			Mesh mesh = visualizationMeshes[i];
