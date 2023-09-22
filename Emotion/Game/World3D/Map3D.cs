@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion.Game.World;
-using Emotion.Game.World2D;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 
@@ -13,6 +12,8 @@ namespace Emotion.Game.World3D;
 
 public class Map3D : BaseMap
 {
+	public LightModel LightModel = new();
+
 	public override List<Type> GetValidObjectTypes()
 	{
 		return EditorUtility.GetTypesWhichInherit<GameObject3D>();

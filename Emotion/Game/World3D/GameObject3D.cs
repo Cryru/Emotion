@@ -130,7 +130,7 @@ public class GameObject3D : BaseGameObject
 		if (entity == null || meshes == null || metaState == null) return;
 
 		c.PushModelMatrix(entity.LocalTransform * GetModelMatrix());
-		c.RenderStream.MeshRenderer.StreamRenderMeshEntity(entity, metaState, _boneMatricesPerMesh);
+		c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null);
 		c.PopModelMatrix();
 	}
 
@@ -419,7 +419,7 @@ public class GameObject3D : BaseGameObject
 							float boneId = vertexData.BoneIds[w];
 							float weight = vertexData.BoneWeights[w];
 
-							Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
+							Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
 							Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
 							vertexTransformed += thisWeightPos * weight;
 						}
@@ -510,7 +510,7 @@ public class GameObject3D : BaseGameObject
 						float boneId = vertexDataBones.BoneIds[w];
 						float weight = vertexDataBones.BoneWeights[w];
 
-						Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
+						Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
 						Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
 						vertexTransformed += thisWeightPos * weight;
 					}

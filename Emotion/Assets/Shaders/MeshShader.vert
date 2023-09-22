@@ -12,7 +12,7 @@ layout(location = 0)in vec3 vertPos;
 layout(location = 1)in vec2 uv; 
 layout(location = 2)in vec4 color;
 
-layout(location = 3)in vec3 normals; 
+layout(location = 3)in vec3 normal; 
 
 #ifdef SKINNED
 layout(location = 4)in vec4 boneIds;
@@ -22,6 +22,9 @@ layout(location = 5)in vec4 boneWeights;
 uniform vec4 diffuseColor;
 uniform vec4 objectTint;
 
+uniform vec4 sunColor;
+uniform vec3 sunDirection;
+
 #ifdef SKINNED
 const int MAX_BONES = 126;
 const int MAX_BONE_INFLUENCE = 4;
@@ -30,12 +33,18 @@ uniform mat4 boneMatrices[MAX_BONES];
 
 // Goes to the frag shader.  
 out vec2 UV; 
-out vec4 vertColor; 
+out vec4 vertColor;
+
+out vec3 fragNormal;
+out vec3 fragLightDir;
 
 void main() { 
     // Pass to frag.
     UV = uv;
     vertColor = color * diffuseColor * objectTint;
+
+    fragNormal = mat3(transpose(inverse(modelMatrix))) * normal;
+    fragLightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);
 

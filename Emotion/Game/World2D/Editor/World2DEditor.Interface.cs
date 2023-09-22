@@ -16,10 +16,9 @@ public partial class World2DEditor
 {
 	protected override void EditorAttachTopBarButtons(UIBaseWindow parentList)
 	{
-		Map2D? map = CurrentMap;
-
 		base.EditorAttachTopBarButtons(parentList);
 
+		Map2D? map = CurrentMap;
 		EditorButton tilesMenu = EditorDropDownButton("Tiles", new[]
 		{
 			// false by default, mouseover shows props, alt switch layers

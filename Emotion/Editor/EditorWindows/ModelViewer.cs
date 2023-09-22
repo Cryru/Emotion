@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
@@ -31,6 +32,7 @@ public class ModelViewer : EditorPanel
 {
     private Camera3D _camera;
     private InfiniteGrid _grid;
+    private Task _gridLoadingTask;
     private FrameBuffer? _renderBuffer;
 
     private UIBaseWindow? _surface3D;
@@ -58,6 +60,7 @@ public class ModelViewer : EditorPanel
         _camera = new Camera3D(new Vector3(-290, 250, 260));
         _camera.LookAtPoint(new Vector3(0, 0, 0));
         _grid = new InfiniteGrid();
+        _gridLoadingTask = Task.Run(_grid.LoadAssetsAsync);
         _obj = new GameObject3D("ModelViewerDummy");
     }
 
@@ -322,7 +325,8 @@ public class ModelViewer : EditorPanel
         c.SetUseViewMatrix(true);
         c.ClearDepth();
 
-        _grid.Render(c);
+        if (_gridLoadingTask.IsCompletedSuccessfully)
+			_grid.Render(c);
 
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);

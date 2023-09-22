@@ -29,6 +29,12 @@ public class MeshEntityMetaState
 	/// </summary>
 	public Color Tint = Color.White;
 
+	/// <summary>
+	/// Whether this object should ignore the light model and
+	/// be rendered as its diffuse color.
+	/// </summary>
+	public bool IgnoreLightModel = false;
+
 	public class MeshMaterialShaderParameter
 	{
 		public string ParamName;

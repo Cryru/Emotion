@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Game.ThreeDee;
+using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
@@ -64,7 +65,7 @@ namespace Emotion.Graphics
 			Initialized = true;
 		}
 
-		public void StreamRenderMeshEntity(MeshEntity entity, MeshEntityMetaState metaState, Matrix4x4[][]? boneMatricesPerMesh = null)
+		public void RenderMeshEntity(MeshEntity entity, MeshEntityMetaState metaState, Matrix4x4[][]? boneMatricesPerMesh = null, LightModel? light = null)
 		{
 			if (!Initialized) return;
 			AssertNotNull(_meshShader);
@@ -101,20 +102,33 @@ namespace Emotion.Graphics
 					continue;
 				}
 
-				bool isSkinnedMesh = obj.Bones != null;
-				ShaderProgram currentShader = shaderOverride ?? (isSkinnedMesh ? _skinnedMeshShader : _meshShader);
+				bool skinnedMesh = obj.Bones != null;
+				ShaderProgram currentShader = shaderOverride ?? (skinnedMesh ? _skinnedMeshShader : _meshShader);
 				Engine.Renderer.SetShader(currentShader);
 
 				currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
 				currentShader.SetUniformColor("objectTint", metaState.Tint);
 
-				if (isSkinnedMesh && boneMatricesPerMesh != null)
+				if (light == null || metaState.IgnoreLightModel)
+				{
+					currentShader.SetUniformColor("ambientColor", Color.White);
+				}
+				else
+				{
+					LightModel lightModel = light;
+
+					currentShader.SetUniformVector3("sunDirection", lightModel.SunDirection);
+					currentShader.SetUniformColor("sunColor", lightModel.SunColor);
+					currentShader.SetUniformColor("ambientColor", lightModel.AmbientLightColor);
+				}
+
+				if (skinnedMesh && boneMatricesPerMesh != null)
 				{
 					Matrix4x4[] boneMats = boneMatricesPerMesh[i];
 					currentShader.SetUniformMatrix4("boneMatrices", boneMats, boneMats.Length);
 				}
 
-				GLRenderObjects? renderObj = GetFirstFreeRenderObject(isSkinnedMesh);
+				GLRenderObjects? renderObj = GetFirstFreeRenderObject(skinnedMesh);
 				if (renderObj == null) // Impossible!
 				{
 					Assert(false, "RenderStream had no render object to flush with.");
@@ -124,7 +138,7 @@ namespace Emotion.Graphics
 				renderObj.VBO.UploadPartial(obj.Vertices);
 				renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
 
-				if (isSkinnedMesh)
+				if (skinnedMesh)
 				{
 					AssertNotNull(renderObj.VBOBones);
 					renderObj.VBOBones.UploadPartial(obj.BoneData);
