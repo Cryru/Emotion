@@ -5,7 +5,6 @@
 using System.IO;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
-using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
@@ -68,7 +67,7 @@ public class EmotionMeshAsset : Asset
 
 		entity.Name = reader.ReadString();
 		entity.Scale = reader.ReadSingle();
-		if (version == 2) entity.LocalTransform = ReadMatrix4X4(reader);
+		if (version > 2) entity.LocalTransform = ReadMatrix4X4(reader);
 
 		var materialMap = new Dictionary<string, MeshMaterial>();
 		var textureMap = new Dictionary<string, Texture>();
@@ -248,7 +247,7 @@ public class EmotionMeshAsset : Asset
 		writer.Write('M');
 		writer.Write('3');
 
-		writer.Write((byte) 2); // Version
+		writer.Write((byte) 3); // Version
 
 		writer.Write(entity.Name ?? "null");
 		writer.Write(entity.Scale);
@@ -391,7 +390,7 @@ public class EmotionMeshAsset : Asset
 		return byteArray;
 	}
 
-		private static void ReadPreVer3Vertices(BinaryReader reader, out VertexData[] vertices, out VertexDataMesh3DExtra[] meshData, out Mesh3DVertexDataBones[]? boneData)
+	private static void ReadPreVer3Vertices(BinaryReader reader, out VertexData[] vertices, out VertexDataMesh3DExtra[] meshData, out Mesh3DVertexDataBones[]? boneData)
 	{
 		int vertexFormat = reader.ReadByte();
 		int length = reader.ReadInt32();
@@ -492,7 +491,7 @@ public class EmotionMeshAsset : Asset
 			}
 		}
 
-		if (version == 2) rigNode.DontAnimate = reader.ReadBoolean();
+		if (version > 2) rigNode.DontAnimate = reader.ReadBoolean();
 
 		return rigNode;
 	}
