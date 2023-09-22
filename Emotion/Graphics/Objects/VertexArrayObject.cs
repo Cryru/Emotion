@@ -109,7 +109,7 @@ namespace Emotion.Graphics.Objects
             FieldInfo[] fields = vertexType.GetFields(BindingFlags.Public | BindingFlags.Instance);
             for (uint i = 0; i < fields.Length; i++)
             {
-                var field = fields[i];
+                FieldInfo field = fields[i];
                 var vertexAttributeData = field.GetCustomAttribute<VertexAttributeAttribute>();
                 if (vertexAttributeData == null) continue;
 
