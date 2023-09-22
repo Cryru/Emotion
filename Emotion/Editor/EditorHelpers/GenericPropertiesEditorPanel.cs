@@ -156,7 +156,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 		if (!Helpers.AreObjectsEqual(oldValue, value)) OnPropertyEdited?.Invoke(field.Name, oldValue);
 
-		UIBaseWindow? editorWindow = editor as UIBaseWindow;
+		var editorWindow = editor as UIBaseWindow;
 		OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
 	}
 
@@ -171,7 +171,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		for (var i = 0; i < _editorUIs.Count; i++)
 		{
 			IPropEditorGeneric editor = _editorUIs[i];
-			UIBaseWindow? editorWindow = editor as UIBaseWindow;
+			var editorWindow = editor as UIBaseWindow;
 
 			if (Controller?.InputFocus != null && editorWindow != null && Controller.InputFocus.IsWithin(editorWindow)) continue;
 

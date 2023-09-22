@@ -28,7 +28,7 @@ public class PropEditorStringPath : PropEditorString
 		b.Text = "...";
 		b.OnClickedProxy = _ =>
 		{
-			var fileExplorer = _attribute.CreateFileExplorer(this);
+			EditorPanel fileExplorer = _attribute.CreateFileExplorer(this);
 			Controller!.AddChild(fileExplorer);
 		};
 		AddChild(b);
