@@ -37,7 +37,7 @@ public class EditorButtonDropDown : UIBaseWindow
 	public void SetItems(EditorDropDownButtonDescription[] items, int current)
 	{
 		_items = items;
-		_currentOption = items[current];
+		_currentOption = items.Length > current ? items[current] : null;
 		UpdateCurrentOptionText();
 	}
 
