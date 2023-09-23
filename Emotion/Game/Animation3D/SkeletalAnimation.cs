@@ -32,5 +32,10 @@ namespace Emotion.Game.Animation3D
 
 			return null;
 		}
-	}
+
+        public override string ToString()
+        {
+            return $"Animation {Name} [{Duration}ms]";
+        }
+    }
 }

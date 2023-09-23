@@ -50,6 +50,16 @@ public class Mesh
 		Material = MeshMaterial.DefaultMaterial;
 	}
 
+	// Serialization constructor.
+	protected Mesh()
+	{
+		Name = DEFAULT_MESH_NAME;
+		Vertices = null!;
+        ExtraVertexData = null!;
+		Indices = null!;
+		Material = MeshMaterial.DefaultMaterial;
+	}
+
 	#region Transformations
 
 	public Mesh TransformMeshVertices(Matrix4x4 mat)
