@@ -96,11 +96,19 @@ namespace Emotion.Game.World2D
 		public void AddAllObjects(IList list)
 		{
 			if (_objects == null) return;
+
 			for (var i = 0; i < _objects.Count; i++)
 			{
 				list.Add(_objects[i]);
 			}
-		}
+
+            if (ChildNodes == null) return;
+            for (var i = 0; i < ChildNodes.Length; i++)
+            {
+                WorldTree2DNode node = ChildNodes[i];
+				node.AddAllObjects(list);
+            }
+        }
 
 		public void RenderDebug(RenderComposer c)
 		{
