@@ -4,6 +4,7 @@ using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
+using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
 using Emotion.Utility;
 
@@ -134,6 +135,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(int)) return new PropEditorNumber<int>();
 		if (field.TypeHandler.Type == typeof(Vector3)) return new PropEditorFloat3();
 		if (field.TypeHandler.Type == typeof(Rectangle)) return new PropEditorRect();
+		if (field.TypeHandler.Type == typeof(Matrix4x4)) return new PropEditorMatrix();
 		if (field.TypeHandler.Type == typeof(string))
 		{
 			var assetFileNameAttribute = field.ReflectionInfo.GetAttribute<AssetFileNameAttribute>();
@@ -145,6 +147,10 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
 		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo.Nullable);
+
+		if (field.TypeHandler is XMLComplexTypeHandler) return new PropEditorNestedObject();
+		if (field.TypeHandler.Type == typeof(Color)) return new PropEditorNestedObject(); // temp
+		if (field.TypeHandler is XMLArrayTypeHandler) return new PropEditorArray();
 
 		return new PropEditorNone();
 	}

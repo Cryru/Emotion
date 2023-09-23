@@ -41,7 +41,7 @@ public class EditorButtonDropDown : UIBaseWindow
 		UpdateCurrentOptionText();
 	}
 
-	private void UpdateCurrentOptionText()
+	protected virtual void UpdateCurrentOptionText()
 	{
 		var button = (EditorButton?) GetWindowById("Button");
 		if (button == null || _currentOption == null) return;
