@@ -203,18 +203,19 @@ public class GameObject3D : BaseGameObject
 			mesh.BuildRuntimeBoneCache();
 		}
 
-		// Reset the animation.
-		// This will also set the default bone matrices.
-		SetAnimation(null);
+		_verticesCacheCollision = null;
 
-		// Update unit scale.
-		Resized();
+        // Update unit scale.
+        Resized();
 
-		CacheVerticesForCollision(false);
-		CalculateBounds(out _bSphereBase, out _bCubeBase);
+        // Reset the animation.
+        // This will also set the default bone matrices.
+		// This will also calculate bounds.
+		// This will also calculate the vertices collisions.
+        SetAnimation(null);
 	}
 
-	public void SetAnimation(string? name)
+	public virtual void SetAnimation(string? name)
 	{
 		MeshEntity? entity = _entity;
 		if (entity?.Meshes == null)
