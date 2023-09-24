@@ -133,6 +133,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
 		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();
 		if (field.TypeHandler.Type == typeof(int)) return new PropEditorNumber<int>();
+		if (field.TypeHandler.Type == typeof(byte)) return new PropEditorNumber<byte>();
 		if (field.TypeHandler.Type == typeof(Vector3)) return new PropEditorFloat3();
 		if (field.TypeHandler.Type == typeof(Rectangle)) return new PropEditorRect();
 		if (field.TypeHandler.Type == typeof(Matrix4x4)) return new PropEditorMatrix();

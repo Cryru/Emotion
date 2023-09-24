@@ -22,6 +22,10 @@ namespace Emotion.Editor.PropertyEditors
             {
                 if (_value == null) return;
                 var panel = new GenericPropertiesEditorPanel(_value);
+                panel.OnPropertyEdited = (_, __) =>
+                {
+	                _changeCallback?.Invoke(_value);
+                };
                 Controller?.AddChild(panel);
             };
             StretchY = true;
