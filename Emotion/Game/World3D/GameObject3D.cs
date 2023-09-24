@@ -115,7 +115,7 @@ public class GameObject3D : BaseGameObject
 	protected override void UpdateInternal(float dt)
 	{
 		_time += dt;
-		CalculateBoneMatrices(_boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
 		base.UpdateInternal(dt);
 	}
 
@@ -204,6 +204,7 @@ public class GameObject3D : BaseGameObject
 		}
 
 		_verticesCacheCollision = null;
+		_entity.CacheBounds(); // Ensure entity bounds are cached.
 
         // Update unit scale.
         Resized();
@@ -237,235 +238,13 @@ public class GameObject3D : BaseGameObject
 		_currentAnimation = animInstance;
 		_time = 0;
 
-		// Initialize bones
-		CalculateBoneMatrices(_boneMatricesPerMesh, 0);
-
+		// todo: add some way for the entity to calculate and hold a collision mesh.
+		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, 0);
 		CacheVerticesForCollision();
-		CalculateBounds(out _bSphereBase, out _bCubeBase);
+		_entity?.GetBounds(name, out _bSphereBase, out _bCubeBase);
 	}
 
-	private void CalculateBoneMatrices(Matrix4x4[][]? matrices, float timeStamp)
-	{
-		if (matrices == null) return;
-
-		SkeletonAnimRigRoot? animationRig;
-		Mesh[]? meshes;
-		SkeletalAnimation? currentAnimation;
-
-		lock (this)
-		{
-			meshes = _entity?.Meshes;
-			animationRig = _entity?.AnimationRig;
-			currentAnimation = _currentAnimation;
-		}
-
-		if (animationRig == null || meshes == null) return;
-
-		// Initialize identity for all meshes matrices.
-		for (var i = 0; i < matrices.Length; i++)
-		{
-			Matrix4x4[] matricesForMesh = matrices[i];
-			matricesForMesh[0] = Matrix4x4.Identity;
-		}
-
-		CalculateBoneMatricesWalkTree(meshes, matrices, currentAnimation, timeStamp, animationRig, Matrix4x4.Identity);
-	}
-
-	private void CalculateBoneMatricesWalkTree(
-		Mesh[] meshes,
-		Matrix4x4[][] matrices,
-		SkeletalAnimation? currentAnimation,
-		float timeStamp,
-		SkeletonAnimRigNode node,
-		Matrix4x4 parentMatrix)
-	{
-		string nodeName = node.Name ?? "Unknown";
-
-		Matrix4x4 currentMatrix = node.LocalTransform;
-		if (currentAnimation != null)
-		{
-			if (node.DontAnimate)
-			{
-				currentMatrix = Matrix4x4.Identity;
-			}
-			else
-			{
-				SkeletonAnimChannel? channel = currentAnimation.GetMeshAnimBone(nodeName);
-				if (channel != null)
-					currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
-			}
-		}
-
-		Matrix4x4 myMatrix = currentMatrix * parentMatrix;
-		for (var i = 0; i < meshes.Length; i++)
-		{
-			Mesh mesh = meshes[i];
-			if (mesh.Bones == null) continue;
-
-			Matrix4x4[] myMatrices = matrices[i];
-
-			AssertNotNull(mesh.BoneNameCache);
-			if (mesh.BoneNameCache.TryGetValue(nodeName, out MeshBone? meshBone)) myMatrices[meshBone.BoneIndex] = meshBone.OffsetMatrix * myMatrix;
-		}
-
-		if (node.Children == null) return;
-		for (var i = 0; i < node.Children.Length; i++)
-		{
-			SkeletonAnimRigNode child = node.Children[i];
-			CalculateBoneMatricesWalkTree(meshes, matrices, currentAnimation, timeStamp, child, myMatrix);
-		}
-	}
-
-	#region Bounds and Collision
-
-	protected IEnumerator<Vector3> ForEachVertexInEveryKeyFrameForBounds()
-	{
-		Mesh[]? meshes = _entity?.Meshes;
-		if (meshes == null) yield break;
-
-		AssertNotNull(_entity);
-
-		Matrix4x4[][]? boneMatricesPerMesh = null;
-
-		for (var i = 0; i < meshes.Length; i++)
-		{
-			Mesh mesh = meshes[i];
-			VertexData[] meshVertices = mesh.Vertices;
-			Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
-
-			// Non animated mesh ezpz
-			if (boneData == null)
-			{
-				for (var v = 0; v < meshVertices.Length; v++)
-				{
-					yield return meshVertices[v].Vertex;
-				}
-
-				continue;
-			}
-
-			AssertNotNull(_boneMatricesPerMesh);
-
-			// We will calculate the bone matrices at every keyframe to sum
-			// up their bounds and get the total animated bound.
-			if (boneMatricesPerMesh == null)
-			{
-				boneMatricesPerMesh = new Matrix4x4[_boneMatricesPerMesh.Length][];
-				for (var j = 0; j < _boneMatricesPerMesh.Length; j++)
-				{
-					boneMatricesPerMesh[j] = new Matrix4x4[_boneMatricesPerMesh[j].Length];
-				}
-			}
-
-			// Check if there is a current animation, if not we still need to apply the node transforms.
-			SkeletalAnimation? currentAnimation = _currentAnimation;
-
-			// If there is a current animation go through all key frames.
-			SkeletonAnimChannel[]? channels = currentAnimation?.AnimChannels;
-			int channelLength = channels?.Length ?? 1;
-			for (var j = 0; j < channelLength; j++)
-			{
-				MeshAnimBoneTranslation[] positionFrames;
-				if (channels != null)
-				{
-					// Going through every single frame is too heavy.
-					// SkeletonAnimChannel channel = channels[j];
-					// positionFrames = channel.Positions; 
-
-					float animationDuration = currentAnimation!.Duration;
-					positionFrames = new[]
-					{
-						new MeshAnimBoneTranslation
-						{
-							Timestamp = 0
-						},
-						new MeshAnimBoneTranslation
-						{
-							Timestamp = animationDuration * 0.25f
-						},
-						new MeshAnimBoneTranslation
-						{
-							Timestamp = animationDuration * 0.5f
-						},
-						new MeshAnimBoneTranslation
-						{
-							Timestamp = animationDuration
-						}
-					};
-				}
-				else
-				{
-					positionFrames = new[]
-					{
-						new MeshAnimBoneTranslation
-						{
-							Timestamp = 0
-						}
-					};
-				}
-
-				for (var k = 0; k < positionFrames.Length; k++)
-				{
-					CalculateBoneMatrices(boneMatricesPerMesh, positionFrames[k].Timestamp);
-
-					Matrix4x4[] bonesForThisMesh = boneMatricesPerMesh[i];
-					for (var v = 0; v < boneData.Length; v++)
-					{
-						Mesh3DVertexDataBones vertexData = boneData[v];
-						Vector3 vertex = meshVertices[v].Vertex;
-
-						Vector3 vertexTransformed = Vector3.Zero;
-						for (var w = 0; w < 4; w++)
-						{
-							float boneId = vertexData.BoneIds[w];
-							float weight = vertexData.BoneWeights[w];
-
-							Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
-							Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
-							vertexTransformed += thisWeightPos * weight;
-						}
-
-						yield return vertexTransformed;
-					}
-				}
-			}
-		}
-	}
-
-	protected void CalculateBounds(out Sphere boundingSphere, out Cube boundingCube)
-	{
-		// todo: these can be cached via entity x animation pair.
-
-		var first = true;
-		var min = new Vector3(0);
-		var max = new Vector3(0);
-
-		IEnumerator<Vector3> vertices = ForEachVertexInEveryKeyFrameForBounds();
-		while (vertices.MoveNext())
-		{
-			Vector3 vertex = vertices.Current;
-			if (first)
-			{
-				min = vertex;
-				max = vertex;
-				first = false;
-			}
-			else
-			{
-				// Find the minimum and maximum extents of the vertices
-				min = Vector3.Min(min, vertex);
-				max = Vector3.Max(max, vertex);
-			}
-		}
-
-		Vector3 center = (min + max) / 2f;
-
-		float radius = Vector3.Distance(center, max);
-		boundingSphere = new Sphere(center, radius);
-
-		Vector3 halfExtent = (max - min) / 2f;
-		boundingCube = new Cube(center, halfExtent);
-	}
+	#region Collision
 
 	private Vector3[]?[]? _verticesCacheCollision;
 
