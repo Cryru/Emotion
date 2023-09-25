@@ -2,8 +2,10 @@
 
 #region Using
 
+using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics;
 
 #endregion
@@ -16,7 +18,13 @@ public class Map3D : BaseMap
 
 	public override List<Type> GetValidObjectTypes()
 	{
-		return EditorUtility.GetTypesWhichInherit<GameObject3D>();
+		var types = EditorUtility.GetTypesWhichInherit<GameObject3D>();
+
+		// Editor only
+		types.Remove(typeof(TranslationGizmo));
+		types.Remove(typeof(InfiniteGrid));
+
+		return types;
 	}
 
 	public override void Render(RenderComposer c)
