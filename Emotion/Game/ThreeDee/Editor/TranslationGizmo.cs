@@ -13,190 +13,200 @@ using Emotion.Utility;
 
 namespace Emotion.Game.ThreeDee.Editor
 {
-	public class TranslationGizmo : GameObject3D
-	{
-		public int Alpha = 200;
-		public int SnapSize = 50;
+    public class TranslationGizmo : GameObject3D
+    {
+        public int Alpha = 200;
+        public int SnapSize = 50;
 
-		/// <summary>
-		/// The object the gizmo is currently affecting.
-		/// </summary>
-		public Positional? Target { get; protected set; }
+        public bool MouseInside { get => _meshMouseover != null; }
 
-		public Mesh XAxis { get; protected set; }
-		public Mesh YAxis { get; protected set; }
-		public Mesh ZAxis { get; protected set; }
+        /// <summary>
+        /// The object the gizmo is currently affecting.
+        /// </summary>
+        public Positional? Target { get; protected set; }
 
-		protected Mesh? _meshMouseover;
-		protected Vector3 _dragPointStart;
-		protected Vector3 _virtualPos;
-		protected Vector3 _positionMoveStart;
+        public Mesh XAxis { get; protected set; }
+        public Mesh YAxis { get; protected set; }
+        public Mesh ZAxis { get; protected set; }
 
-		protected Vector3 _lastCameraPos;
+        public Action<Positional, Vector3, Vector3> TargetMoved;
 
-		public TranslationGizmo()
-		{
-			var arrowCylinderGen = new CylinderMeshGenerator();
-			arrowCylinderGen.RadiusBottom = 2;
-			arrowCylinderGen.RadiusTop = 2;
-			arrowCylinderGen.Height = 35;
-			arrowCylinderGen.Capped = true;
+        protected Mesh? _meshMouseover;
+        protected Vector3 _dragPointStart;
+        protected Vector3 _dragPointStartAbsolute;
+        protected Vector3 _virtualPos;
+        protected Vector3 _positionMoveStart;
 
-			var arrowGen = new CylinderMeshGenerator();
-			arrowGen.RadiusBottom = 4f;
-			arrowGen.RadiusTop = 0;
-			arrowGen.Height = 7;
-			arrowGen.Capped = true;
+        protected Vector3 _lastCameraPos;
 
-			Mesh xCylinder = arrowCylinderGen.GenerateMesh().TransformMeshVertices(
-				Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f)
-			).ColorMeshVertices(new Color(240, 75, 65, Alpha));
+        public TranslationGizmo()
+        {
+            var arrowCylinderGen = new CylinderMeshGenerator();
+            arrowCylinderGen.RadiusBottom = 2;
+            arrowCylinderGen.RadiusTop = 2;
+            arrowCylinderGen.Height = 35;
+            arrowCylinderGen.Capped = true;
 
-			Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
-				Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
-				Matrix4x4.CreateTranslation(arrowCylinderGen.Height, 0, 0)
-			).ColorMeshVertices(new Color(165, 40, 40, Alpha));
+            var arrowGen = new CylinderMeshGenerator();
+            arrowGen.RadiusBottom = 4f;
+            arrowGen.RadiusTop = 0;
+            arrowGen.Height = 7;
+            arrowGen.Capped = true;
 
-			XAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
+            Mesh xCylinder = arrowCylinderGen.GenerateMesh().TransformMeshVertices(
+                Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f)
+            ).ColorMeshVertices(new Color(240, 75, 65, Alpha));
 
-			Mesh yCylinder = arrowCylinderGen.GenerateMesh("YCylinder").TransformMeshVertices(
-				Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f)
-			).ColorMeshVertices(new Color(75, 240, 65, Alpha));
+            Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
+                Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
+                Matrix4x4.CreateTranslation(arrowCylinderGen.Height, 0, 0)
+            ).ColorMeshVertices(new Color(165, 40, 40, Alpha));
 
-			Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
-				Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
-				Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height, 0)
-			).ColorMeshVertices(new Color(40, 165, 40, Alpha));
+            XAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
 
-			YAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
+            Mesh yCylinder = arrowCylinderGen.GenerateMesh("YCylinder").TransformMeshVertices(
+                Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f)
+            ).ColorMeshVertices(new Color(75, 240, 65, Alpha));
 
-			Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder").ColorMeshVertices(new Color(65, 75, 240, Alpha));
+            Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
+                Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
+                Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height, 0)
+            ).ColorMeshVertices(new Color(40, 165, 40, Alpha));
 
-			Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
-				Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height)
-			).ColorMeshVertices(new Color(40, 40, 165, Alpha));
+            YAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
 
-			ZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
+            Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder").ColorMeshVertices(new Color(65, 75, 240, Alpha));
 
-			Entity = new MeshEntity
-			{
-				Meshes = new[]
-				{
-					XAxis,
-					YAxis,
-					ZAxis
-				},
-				Name = "Translation Gizmo",
-			};
+            Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
+                Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height)
+            ).ColorMeshVertices(new Color(40, 40, 165, Alpha));
 
-			Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Editor);
-		}
+            ZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
 
-		private bool KeyHandler(Key key, KeyStatus status)
-		{
-			if (key == Key.MouseKeyLeft)
-			{
-				if (_meshMouseover != null && status == KeyStatus.Down)
-				{
-					_dragPointStart = GetPointAlongPlane();
-					_positionMoveStart = Position;
-					_virtualPos = Position;
-					return false;
-				}
+            Entity = new MeshEntity
+            {
+                Meshes = new[]
+                {
+                    XAxis,
+                    YAxis,
+                    ZAxis
+                },
+                Name = "Translation Gizmo",
+            };
 
-				if (status == KeyStatus.Up)
-				{
-					_dragPointStart = Vector3.Zero;
-					return false;
-				}
-			}
+            Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Editor);
+        }
 
-			if (key is Key.LeftControl or Key.RightControl && status == KeyStatus.Up && Target != null) Position = Target.Position;
+        private bool KeyHandler(Key key, KeyStatus status)
+        {
+            if (key == Key.MouseKeyLeft)
+            {
+                if (_meshMouseover != null && status == KeyStatus.Down)
+                {
+                    _dragPointStart = GetPointAlongPlane();
+                    _positionMoveStart = Position;
+                    _virtualPos = Position;
+                    _dragPointStartAbsolute = Position;
+                    return false;
+                }
 
-			return true;
-		}
+                if (status == KeyStatus.Up)
+                {
+                    _dragPointStart = Vector3.Zero;
+                    return false;
+                }
+            }
 
-		public void SetTarget(Transform? target)
-		{
-			Target = target;
-			if (target != null)
-				Position = target.Position;
-		}
+            if (key is Key.LeftControl or Key.RightControl && status == KeyStatus.Up && Target != null) Position = Target.Position;
 
-		protected override void UpdateInternal(float dt)
-		{
-			base.UpdateInternal(dt);
+            return true;
+        }
 
-			CameraBase? camera = Engine.Renderer.Camera;
-			if (camera.Position != _lastCameraPos) _dragPointStart = Vector3.Zero;
-			_lastCameraPos = camera.Position;
+        public void SetTarget(Transform? target)
+        {
+            Target = target;
+            if (target != null)
+                Position = target.Position;
+        }
 
-			// Update mouseover
-			if (_dragPointStart == Vector3.Zero)
-			{
-				Ray3D ray = camera.GetCameraMouseRay();
-				ray.IntersectWithObject(this, out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _);
+        protected override void UpdateInternal(float dt)
+        {
+            base.UpdateInternal(dt);
 
-				if (_meshMouseover != collidedMesh)
-				{
-					_meshMouseover?.SetVerticesAlpha((byte) Alpha);
-					collidedMesh?.SetVerticesAlpha(255);
-					_meshMouseover = collidedMesh;
-				}
-			}
+            CameraBase? camera = Engine.Renderer.Camera;
+            if (camera.Position != _lastCameraPos) _dragPointStart = Vector3.Zero;
+            _lastCameraPos = camera.Position;
 
-			if (_dragPointStart != Vector3.Zero)
-			{
-				Vector3 newPoint = GetPointAlongPlane();
-				Vector3 change = newPoint - _dragPointStart;
+            // Update mouseover
+            if (_dragPointStart == Vector3.Zero)
+            {
+                Ray3D ray = camera.GetCameraMouseRay();
+                ray.IntersectWithObject(this, out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _);
 
-				bool snap = Engine.Host.IsCtrlModifierHeld();
+                if (_meshMouseover != collidedMesh)
+                {
+                    _meshMouseover?.SetVerticesAlpha((byte)Alpha);
+                    collidedMesh?.SetVerticesAlpha(255);
+                    _meshMouseover = collidedMesh;
+                }
+            }
 
-				_virtualPos += change;
-				_dragPointStart = newPoint;
+            if (_dragPointStart != Vector3.Zero)
+            {
+                Vector3 newPoint = GetPointAlongPlane();
+                Vector3 change = newPoint - _dragPointStart;
 
-				Vector3 p = _virtualPos;
-				if (snap) p = (p / SnapSize).RoundClosest() * SnapSize;
+                bool snap = Engine.Host.IsCtrlModifierHeld();
 
-				Position = _virtualPos;
-				if (Target != null) Target.Position = p;
-			}
+                _virtualPos += change;
+                _dragPointStart = newPoint;
 
-			if (Target != null && _dragPointStart == Vector3.Zero) Position = Target.Position;
-		}
+                Vector3 p = _virtualPos;
+                if (snap) p = (p / SnapSize).RoundClosest() * SnapSize;
 
-		private Vector3 GetPointAlongPlane()
-		{
-			if (_meshMouseover == null) return Vector3.Zero;
+                Position = _virtualPos;
+                if (Target != null)
+                {
+                    Target.Position = p;
+                    TargetMoved?.Invoke(Target, _dragPointStartAbsolute, p);
+                }
+            }
 
-			Vector3 axis;
-			if (_meshMouseover.Name == "X")
-				axis = RenderComposer.XAxis;
-			else if (_meshMouseover.Name == "Y")
-				axis = RenderComposer.YAxis;
-			else // Z
-				axis = RenderComposer.ZAxis;
+            if (Target != null && _dragPointStart == Vector3.Zero) Position = Target.Position;
+        }
 
-			CameraBase? camera = Engine.Renderer.Camera;
-			Ray3D ray = camera.GetCameraMouseRay();
+        private Vector3 GetPointAlongPlane()
+        {
+            if (_meshMouseover == null) return Vector3.Zero;
 
-			// Find plane that contains the axis and faces the camera.
-			Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
-			Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
-			planeNormal = planeNormal.Normalize();
+            Vector3 axis;
+            if (_meshMouseover.Name == "X")
+                axis = RenderComposer.XAxis;
+            else if (_meshMouseover.Name == "Y")
+                axis = RenderComposer.YAxis;
+            else // Z
+                axis = RenderComposer.ZAxis;
 
-			Vector3 intersection = ray.IntersectWithPlane(planeNormal, Position);
+            CameraBase? camera = Engine.Renderer.Camera;
+            Ray3D ray = camera.GetCameraMouseRay();
 
-			// Limit movement along axis
-			intersection = Position + axis * Vector3.Dot(intersection - Position, axis);
+            // Find plane that contains the axis and faces the camera.
+            Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
+            Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
+            planeNormal = planeNormal.Normalize();
 
-			return intersection;
-		}
+            Vector3 intersection = ray.IntersectWithPlane(planeNormal, Position);
 
-		public override void Destroy()
-		{
-			base.Destroy();
-			Engine.Host.OnKey.RemoveListener(KeyHandler);
-		}
-	}
+            // Limit movement along axis
+            intersection = Position + axis * Vector3.Dot(intersection - Position, axis);
+
+            return intersection;
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+            Engine.Host.OnKey.RemoveListener(KeyHandler);
+        }
+    }
 }
