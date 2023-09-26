@@ -7,8 +7,6 @@ using Emotion.Game.Animation3D;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
-using System;
-
 
 #endregion
 
@@ -55,7 +53,7 @@ public class Mesh
 	{
 		Name = DEFAULT_MESH_NAME;
 		Vertices = null!;
-        ExtraVertexData = null!;
+		ExtraVertexData = null!;
 		Indices = null!;
 		Material = MeshMaterial.DefaultMaterial;
 	}
@@ -133,7 +131,6 @@ public class Mesh
 	public void Render(RenderComposer c)
 	{
 		VertexData[]? vertData = Vertices;
-		if (vertData == null) return; // Animated meshes need to be rendered by Object3D as it holds the animation context.
 
 		ushort[] indices = Indices;
 		Texture? texture = null;

@@ -29,7 +29,7 @@ namespace Emotion.Graphics.Camera
 		private Vector3 _yawPitchRoll = Vector3.Zero;
 		private bool _held;
 		private Vector2 _inputDirection;
-		public float _inputDirectionZ;
+		private float _inputDirectionZ;
 
 		private KeyListenerType _inputPriority;
 
