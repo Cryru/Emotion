@@ -130,7 +130,7 @@ public class GameObject3D : BaseGameObject
 		if (entity == null || meshes == null || metaState == null) return;
 
 		c.PushModelMatrix(GetModelMatrix());
-		c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null);
+		c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null, ObjectFlags);
 		c.PopModelMatrix();
 	}
 

@@ -20,7 +20,10 @@ namespace Emotion.Game.World2D
 	{
 		None = 0,
 
-		Persistent = 2 << 0 // The object is part of the map file.
+		Persistent = 2 << 0, // The object is part of the map file.
+		Map3DDontThrowShadow = 2 << 1, // This object will not be rendered in the shadow map, and will not throw shadow.
+		Map3DDontReceiveShadow = 2 << 2, // This object will not blended with the rendered shadow map, and will now be shadowed by it.
+		Map3DDontReceiveAmbient = 2 << 3 // This object will not be tinted by the ambient light.
 	}
 
 	public enum ObjectState : byte

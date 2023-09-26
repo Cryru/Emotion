@@ -58,7 +58,7 @@ public class Quad3D : GameObject3D
 		}
 
 		Entity = QuadEntity;
-		EntityMetaState!.IgnoreLightModel = true;
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveAmbient;
 
 		return base.LoadAssetsAsync();
 	}

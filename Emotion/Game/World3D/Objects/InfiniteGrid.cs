@@ -18,6 +18,9 @@ public sealed class InfiniteGrid : Quad3D
 	public InfiniteGrid()
 	{
 		Size3D = _infiniteGridSize.ToVec3(1);
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveShadow;
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontThrowShadow;
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveAmbient;
 	}
 
 	public override async Task LoadAssetsAsync()
