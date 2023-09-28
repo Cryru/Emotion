@@ -1,7 +1,11 @@
 ﻿#nullable enable
 
+#region Using
+
+using System.Runtime.CompilerServices;
 using Emotion.Graphics;
-using Emotion.Graphics.Text.EmotionRenderer;
+
+#endregion
 
 namespace Emotion.Primitives;
 
@@ -19,9 +23,18 @@ public struct Cube
 		HalfExtents = halfExtent;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Vector3[] GetVertices()
 	{
-		var vertices = new Vector3[8];
+		var arr = new Vector3[8];
+		GetVertices(arr);
+		return arr;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void GetVertices(Span<Vector3> vertices)
+	{
+		Assert(vertices.Length >= 8);
 		vertices[0] = new Vector3(Origin.X - HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z - HalfExtents.Z);
 		vertices[1] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z - HalfExtents.Z);
 		vertices[2] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z - HalfExtents.Z);
@@ -30,7 +43,6 @@ public struct Cube
 		vertices[5] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z + HalfExtents.Z);
 		vertices[6] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
 		vertices[7] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
-		return vertices;
 	}
 
 	public Cube Transform(Matrix4x4 mat)
@@ -63,27 +75,29 @@ public struct Cube
 		return new Cube(center, halfExtent);
 	}
 
-	private static int[][] _outlineEdges = new int[][]
+	private static int[][] _outlineEdges =
 	{
-		new int[] { 0, 1 }, // Bottom face
-		new int[] { 1, 3 },
-		new int[] { 3, 2 },
-		new int[] { 2, 0 },
-		new int[] { 4, 5 }, // Top face
-		new int[] { 5, 7 },
-		new int[] { 7, 6 },
-		new int[] { 6, 4 },
-		new int[] { 0, 4 }, // Connecting lines
-		new int[] { 1, 5 },
-		new int[] { 2, 6 },
-		new int[] { 3, 7 }
+		new[] {0, 1}, // Bottom face
+		new[] {1, 3},
+		new[] {3, 2},
+		new[] {2, 0},
+		new[] {4, 5}, // Top face
+		new[] {5, 7},
+		new[] {7, 6},
+		new[] {6, 4},
+		new[] {0, 4}, // Connecting lines
+		new[] {1, 5},
+		new[] {2, 6},
+		new[] {3, 7}
 	};
 
 	public void RenderOutline(RenderComposer c, Color? color = null)
 	{
-		Vector3[] vertices = GetVertices();
-		foreach (int[] edge in _outlineEdges)
+		Span<Vector3> vertices = stackalloc Vector3[8];
+		GetVertices(vertices);
+		for (var i = 0; i < _outlineEdges.Length; i++)
 		{
+			int[] edge = _outlineEdges[i];
 			c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, 1, false);
 		}
 	}
