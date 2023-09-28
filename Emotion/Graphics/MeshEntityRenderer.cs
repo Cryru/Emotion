@@ -93,7 +93,7 @@ namespace Emotion.Graphics
 			if (meshes == null) return;
 
 			// Shadow map pass - object doesn't throw shadow.
-			if (_renderingShadowMap && flags.HasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
+			if (_renderingShadowMap && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
 
 			Engine.Renderer.FlushRenderStream();
 
@@ -122,10 +122,10 @@ namespace Emotion.Graphics
 					Assert(false, "Invalid mesh data.");
 					continue;
 				}
-
+				
 				// Decide which shader to use.
-				bool receiveShadow = light != null && !flags.HasFlag(ObjectFlags.Map3DDontReceiveShadow);
-				bool receiveAmbient = light != null && !flags.HasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+				bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+				bool receiveAmbient = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
 				bool skinnedMesh = obj.Bones != null;
 				ShaderProgram currentShader;
 				if (shaderOverride != null)
