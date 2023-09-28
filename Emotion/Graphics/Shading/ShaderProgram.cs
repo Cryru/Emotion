@@ -145,7 +145,7 @@ namespace Emotion.Graphics.Shading
 			}
 
 			// Check if uniform location is present in cache.
-			if (_uniformLocationsMap.ContainsKey(name)) return _uniformLocationsMap[name];
+			if (_uniformLocationsMap.TryGetValue(name, out int val)) return val;
 
 			// If not, request it from OpenGL and cache it.
 			int location = Gl.GetUniformLocation(Pointer, name);
