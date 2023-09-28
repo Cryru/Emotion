@@ -102,6 +102,8 @@ namespace Emotion.Graphics
             get => _camera;
             set
             {
+	            Assert(GLThread.IsGLThread());
+
 	            if (_camera != null) _camera.Detach();
 
                 _camera = value;
