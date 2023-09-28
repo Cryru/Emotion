@@ -495,7 +495,7 @@ public abstract class BaseMap
 		return null;
 	}
 
-	public IEnumerable<T> GetObjectsByType<T>(bool includeNonSpawned = false)
+	public IEnumerator<T> GetObjectsByType<T>(bool includeNonSpawned = false)
 	{
 		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
 		{
@@ -517,11 +517,11 @@ public abstract class BaseMap
 
 	public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)
 	{
-		foreach (T obj in GetObjectsByType<T>(includeNonSpawned))
+		IEnumerator<T> enumerator = GetObjectsByType<T>(includeNonSpawned);
+		if (enumerator.MoveNext())
 		{
-			return obj;
+			return enumerator.Current;
 		}
-
 		return default;
 	}
 

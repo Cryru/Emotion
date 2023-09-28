@@ -98,10 +98,11 @@ public abstract partial class WorldBaseEditor
                 if (w3D.MoveGizmo == null || !w3D.MoveGizmo.MouseInside)
                 {
                     Ray3D mouseRay = Engine.Renderer.Camera.GetCameraMouseRay();
-                    IEnumerable<GameObject3D> objects3D = map.GetObjectsByType<GameObject3D>();
-                    foreach (GameObject3D obj in objects3D)
+                    IEnumerator<GameObject3D> objects3D = map.GetObjectsByType<GameObject3D>();
+                    while (objects3D.MoveNext())
                     {
-                        if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 _, out Vector3 _, out int _)) results.Add(obj);
+	                    GameObject3D obj = objects3D.Current;
+	                    if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 _, out Vector3 _, out int _)) results.Add(obj);
                     }
                 }
             }
