@@ -258,8 +258,9 @@ public class GameObject3D : BaseGameObject
 		for (var m = 0; m < meshes.Length; m++)
 		{
 			Mesh mesh = meshes[m];
-			VertexData[] vertices = mesh.Vertices;
+			if (mesh.BoneData == null) continue;
 
+			VertexData[] vertices = mesh.Vertices;
 			Vector3[] thisMesh;
 			if (_verticesCacheCollision[m] != null)
 			{
@@ -313,6 +314,16 @@ public class GameObject3D : BaseGameObject
 
 		Mesh[]? meshes = _entity?.Meshes;
 		if (meshes == null) return;
+
+		var mesh = meshes[meshIdx];
+		if (mesh.BoneData == null)
+		{
+			var vertices = mesh.Vertices;
+			vert1 = vertices[v1].Vertex;
+			vert2 = vertices[v2].Vertex;
+			vert3 = vertices[v3].Vertex;
+			return;
+		}
 
 		Vector3[]? meshData = _verticesCacheCollision?[meshIdx];
 		if (meshData == null) return; // todo: maybe fallback to the vertices?
