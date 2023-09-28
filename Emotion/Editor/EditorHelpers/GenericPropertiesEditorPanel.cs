@@ -151,7 +151,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 		if (field.TypeHandler is XMLComplexTypeHandler) return new PropEditorNestedObject();
 		if (field.TypeHandler.Type == typeof(Color)) return new PropEditorNestedObject(); // temp
-		if (field.TypeHandler is XMLArrayTypeHandler) return new PropEditorArray();
+		if (field.TypeHandler is XMLArrayTypeHandler && field.TypeHandler is not XMLDictionaryTypeHandler) return new PropEditorArray();
 
 		return new PropEditorNone();
 	}
