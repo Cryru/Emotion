@@ -50,6 +50,8 @@ namespace Emotion.Graphics
 			}
 		}
 
+		private Dictionary<Mesh, GLRenderObjects> _meshToRenderObject = new();
+
 		private Stack<GLRenderObjects> _renderObjects = new();
 		private Stack<GLRenderObjects> _renderObjectsUsed = new();
 
@@ -194,24 +196,30 @@ namespace Emotion.Graphics
 					Texture.EnsureBound(_shadowDepth?.DepthStencilAttachment.Pointer ?? Texture.EmptyWhiteTexture.Pointer, 1);
 
 				// Upload geometry
-				GLRenderObjects? renderObj = GetFirstFreeRenderObject(skinnedMesh);
+				GLRenderObjects? renderObj = GetFirstFreeRenderObject(obj, skinnedMesh, out bool alreadyUploaded);
 				if (renderObj == null) // Impossible!
 				{
 					Assert(false, "RenderStream had no render object to flush with.");
 					return;
 				}
 
-				renderObj.VBO.UploadPartial(obj.Vertices);
-				renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
-
-				if (skinnedMesh)
+				if (!alreadyUploaded)
 				{
-					AssertNotNull(renderObj.VBOBones);
-					renderObj.VBOBones.UploadPartial(obj.BoneData);
+					renderObj.VBO.UploadPartial(obj.Vertices);
+					renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
+
+					if (skinnedMesh)
+					{
+						AssertNotNull(renderObj.VBOBones);
+						renderObj.VBOBones.UploadPartial(obj.BoneData);
+					}
+
+					renderObj.IBO.UploadPartial(obj.Indices);
 				}
 
 				// Render geometry
-				renderObj.IBO.UploadPartial(obj.Indices);
+				VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
+				VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
 				VertexArrayObject.EnsureBound(renderObj.VAO);
 				IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
 				Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
@@ -226,6 +234,8 @@ namespace Emotion.Graphics
 			// Funnel used objects back into the usable pool.
 			while (_renderObjectsUsed.Count > 0) _renderObjects.Push(_renderObjectsUsed.Pop());
 			while (_renderObjectsBonesUsed.Count > 0) _renderObjectsBones.Push(_renderObjectsBonesUsed.Pop());
+
+			_meshToRenderObject.Clear();
 		}
 
 		private GLRenderObjects CreateRenderObject(bool withBones)
@@ -250,8 +260,17 @@ namespace Emotion.Graphics
 			return objectsPair;
 		}
 
-		private GLRenderObjects? GetFirstFreeRenderObject(bool withBones)
+		private GLRenderObjects? GetFirstFreeRenderObject(Mesh mesh, bool withBones, out bool alreadyUploaded)
 		{
+			alreadyUploaded = false;
+
+			// If this entity was already rendered this frame, we can reuse its render object.
+			if (_meshToRenderObject.ContainsKey(mesh))
+			{
+				alreadyUploaded = true;
+				return _meshToRenderObject[mesh];
+			}
+			
 			Stack<GLRenderObjects> stack = withBones ? _renderObjectsBones : _renderObjects;
 			if (stack.Count == 0) CreateRenderObject(withBones);
 
@@ -260,6 +279,8 @@ namespace Emotion.Graphics
 				GLRenderObjects obj = stack.Pop();
 				Stack<GLRenderObjects> usedStack = withBones ? _renderObjectsBonesUsed : _renderObjectsUsed;
 				usedStack.Push(obj);
+
+				_meshToRenderObject.Add(mesh, obj);
 				return obj;
 			}
 
@@ -303,7 +324,7 @@ namespace Emotion.Graphics
 
 			// todo: cascades
 			float nearClip = 1f;
-			float farClip = 500;
+			float farClip = 1000;
 
 			// Get camera frustum for the current cascade clip.
 			var cam3D = c.Camera as Camera3D;
