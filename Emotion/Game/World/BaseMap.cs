@@ -259,8 +259,7 @@ public abstract class BaseMap
 	/// </summary>
 	public virtual async Task Reset()
 	{
-		// Clear resources.
-		Dispose();
+		GLThread.ExecuteGLThread(Dispose);
 		Disposed = false;
 
 		// Ensure reset is identical to deserialize by serialize-copying objects.
