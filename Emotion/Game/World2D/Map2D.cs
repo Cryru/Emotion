@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Editor;
 using Emotion.Game.World;
@@ -46,7 +45,7 @@ public class Map2D : BaseMap
 	{
 		return MathF.Sign(x.Position.Z - y.Position.Z);
 	}
-    
+
 	public override void Render(RenderComposer c)
 	{
 		if (!Initialized) return;

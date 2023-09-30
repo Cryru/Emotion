@@ -27,7 +27,7 @@ public class Map3D : BaseMap
 
 		return types;
 	}
-    
+
 	public override void Render(RenderComposer c)
 	{
 		if (!Initialized) return;
