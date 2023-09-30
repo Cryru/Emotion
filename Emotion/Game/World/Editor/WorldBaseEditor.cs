@@ -5,7 +5,8 @@
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
-using Emotion.Game.World2D;
+using Emotion.Game.World.SceneControl;
+using Emotion.Game.World2D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
@@ -45,8 +46,11 @@ public abstract partial class WorldBaseEditor
 	protected UIController? _editorUIAlways;
 	protected List<UIController>? _setControllersToVisible;
 
-	protected WorldBaseEditor(Type mapType)
+	protected IWorldAwareScene _scene;
+
+	protected WorldBaseEditor(IWorldAwareScene scene, Type mapType)
 	{
+		_scene = scene;
 		_mapType = mapType;
 		Engine.AssetLoader.GetAsync<FontAsset>(FontAsset.DefaultBuiltInFontName);
 		GameDataDatabase.Load().Wait();
@@ -80,9 +84,9 @@ public abstract partial class WorldBaseEditor
 		InitializeEditorInterface();
 		InitializeObjectEditor();
 		EnterEditorInternal();
-        Engine.Host.OnKey.AddListener(EditorBarrierInputHandler, KeyListenerType.EditorBarrier);
+		Engine.Host.OnKey.AddListener(EditorBarrierInputHandler, KeyListenerType.EditorBarrier);
 
-        EditorOpen = true;
+		EditorOpen = true;
 		if (CurrentMap != null)
 		{
 			CurrentMap.OnMapReset += OnMapReset;
@@ -106,9 +110,9 @@ public abstract partial class WorldBaseEditor
 		DisposeEditorInterface();
 		DisposeObjectEditor();
 		ExitEditorInternal();
-        Engine.Host.OnKey.RemoveListener(EditorBarrierInputHandler);
+		Engine.Host.OnKey.RemoveListener(EditorBarrierInputHandler);
 
-        EditorOpen = false;
+		EditorOpen = false;
 		if (CurrentMap != null)
 		{
 			CurrentMap.OnMapReset -= OnMapReset;
@@ -136,8 +140,8 @@ public abstract partial class WorldBaseEditor
 
 	public void ChangeSceneMap(string fileName)
 	{
-		var newMapAsset = Engine.AssetLoader.Get<XMLAsset<Map2D>>(fileName, false);
-		Map2D? newMap = newMapAsset?.Content;
+		var newMapAsset = Engine.AssetLoader.Get<XMLAsset<BaseMap>>(fileName, false);
+		BaseMap? newMap = newMapAsset?.Content;
 		if (newMap == null) return;
 		newMap.FileName = fileName;
 
@@ -223,7 +227,7 @@ public abstract partial class WorldBaseEditor
 
 		return true;
 	}
-	
+
 	private bool EditorBarrierInputHandler(Key key, KeyStatus status)
 	{
 		return false;
@@ -257,11 +261,22 @@ public abstract partial class WorldBaseEditor
 		// todo
 	}
 
-	#region Internal Generic Conversion API
+	#region Scene Control
 
-	protected abstract BaseMap? GetCurrentSceneMap();
-	protected abstract Task ChangeSceneMapAsync(BaseMap map);
-	protected abstract XMLAssetMarkerClass GetCurrentMapAsXMLAsset(BaseMap map);
+	protected BaseMap? GetCurrentSceneMap()
+	{
+		return _scene.GetCurrentMap();
+	}
+
+	protected Task ChangeSceneMapAsync(BaseMap map)
+	{
+		return _scene.ChangeMapAsync(map);
+	}
+
+	protected XMLAssetMarkerClass GetCurrentMapAsXMLAsset(BaseMap map)
+	{
+		return XMLAsset<object>.CreateFromContent(map);
+	}
 
 	#endregion
 

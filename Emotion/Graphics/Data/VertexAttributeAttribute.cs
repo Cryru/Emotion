@@ -24,18 +24,11 @@ namespace Emotion.Graphics.Data
         /// </summary>
         public Type TypeOverride { get; set; }
 
-        /// <summary>
-        /// The position of the attribute within the vertex data.
-        /// This is usually taken to be the field index, but can be overriden.
-        /// </summary>
-        public int PositionOverride { get; set; }
-
-        public VertexAttributeAttribute(int componentCount, bool normalized, Type typeOverride = null, int positionOverride = -1)
+        public VertexAttributeAttribute(int componentCount, bool normalized, Type typeOverride = null)
         {
             ComponentCount = componentCount;
             Normalized = normalized;
             TypeOverride = typeOverride;
-            PositionOverride = positionOverride;
         }
     }
 }

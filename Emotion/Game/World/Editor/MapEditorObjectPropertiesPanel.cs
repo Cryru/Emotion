@@ -11,6 +11,7 @@ using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World3D;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
@@ -34,10 +35,24 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		ObjectUId = Object.UniqueId;
 		ObjectMap = Object.Map;
 
-		// Inject the "Center" property of Transform.
-		// Since it isn't serialized it wont be returned, but its handy to have for objects.
-		InjectDontSerializeProperty<Transform>("Center");
-		InjectDontSerializeProperty<Transform>("RotationDeg");
+		if (obj is GameObject3D)
+		{
+			InjectDontSerializeProperty<Transform>("RotationDeg");
+			InjectDontSerializeProperty<GameObject3D>("CurrentAnimation");
+
+			// Remove Size to show Size3D so axes are intuitive to the 3D world.
+			InjectDontSerializeProperty<Transform>("Size3D");
+			RemoveSerializedProperty<Transform>("Size");
+
+			RemoveSerializedProperty<Transform>("Depth");
+		}
+		else
+		{
+			// Inject the "Center" property of Transform.
+			// Since it isn't serialized it wont be returned, but its handy to have for objects.
+			InjectDontSerializeProperty<Transform>("Center");
+			RemoveSerializedProperty<Transform>("Depth");
+		}
 	}
 
 	private void InjectDontSerializeProperty<T>(string name)
@@ -52,6 +67,28 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 				declaringType.Fields.Add(new XMLFieldHandler(new ReflectedMemberHandler(injectedProp), editor));
 			}
 		}
+	}
+
+	private void RemoveSerializedProperty<T>(string name)
+	{
+		EditorUtility.TypeAndFieldHandlers? declaringType = _fields.FirstOrDefault(x => x.DeclaringType == typeof(T));
+		if (declaringType == null) return;
+
+		for (var i = 0; i < declaringType.Fields.Count; i++)
+		{
+			XMLFieldHandler? field = declaringType.Fields[i];
+			if (field.Name != name) continue;
+			declaringType.Fields.Remove(field);
+			return;
+		}
+	}
+
+	protected override IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	{
+		// Special handling for the animation selection.
+		if (field.ReflectionInfo.DeclaredIn == typeof(GameObject3D) && field.Name == "CurrentAnimation") return new PropEditorObject3DAnimationList(Object as GameObject3D);
+
+		return base.AddEditorForField(field);
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -94,6 +131,24 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		statusLabel.Text = metaText.ToString();
 
 		uiContainer.AddChild(statusLabel);
+
+		var viewObjectButton = new EditorButton();
+		viewObjectButton.Text = "Show Me";
+		viewObjectButton.StretchY = true;
+		viewObjectButton.OnClickedProxy = _ =>
+		{
+			if (Object is GameObject3D obj3D)
+			{
+				Sphere boundingSphere = obj3D.BoundingSphere;
+				Engine.Renderer.Camera.Position = boundingSphere.Origin - new Vector3(boundingSphere.Radius, boundingSphere.Radius, -boundingSphere.Radius);
+				Engine.Renderer.Camera.LookAtPoint(boundingSphere.Origin);
+			}
+			else
+			{
+				Engine.Renderer.Camera.Position = Object.Position;
+			}
+		};
+		uiContainer.AddChild(viewObjectButton);
 	}
 
 	protected override void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)
@@ -106,6 +161,14 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
 	protected override void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
 	{
+		// bruh
+		if (field.ReflectionInfo.Name == "Entity")
+			for (var i = 0; i < _editorUIs.Count; i++)
+			{
+				IPropEditorGeneric editorUI = _editorUIs[i];
+				if (editorUI is PropEditorObject3DAnimationList animList) animList.EntityChanged();
+			}
+
 		if (Object.PrefabOrigin == null) return;
 
 		var valueDiffAlert = new MapEditorGameObjectPrefabValueDiff();

@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Emotion.Graphics;
-using Emotion.IO;
 
 #endregion
 
@@ -14,33 +13,31 @@ public sealed class InfiniteGrid : Quad3D
 {
 	public float TileSize = 100;
 	public Vector2 Offset;
-
-	private static ShaderAsset? _shader;
 	private Vector2 _infiniteGridSize = new Vector2(10_000, 10_000);
 
 	public InfiniteGrid()
 	{
 		Size3D = _infiniteGridSize.ToVec3(1);
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveShadow;
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontThrowShadow;
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveAmbient;
 	}
 
-    public override async Task LoadAssetsAsync()
-    {
-        _shader ??= await Engine.AssetLoader.GetAsync<ShaderAsset>("Shaders/3DGrid.xml");
-
-        await base.LoadAssetsAsync();
-    }
-
-    protected override void RenderInternal(RenderComposer c)
+	public override async Task LoadAssetsAsync()
 	{
-		if (_shader == null) return;
+		await base.LoadAssetsAsync();
+		await EntityMetaState!.SetShader("Shaders/3DGrid.xml");
+	}
 
+	protected override void RenderInternal(RenderComposer c)
+	{
 		Vector2 cameraPos = c.Camera.Position.ToVec2();
 		Position = cameraPos.ToVec3(Z); // Set position to camera position without the Z
-		c.SetShader(_shader.Shader);
-		_shader.Shader.SetUniformVector2("squareSize", new Vector2(TileSize));
-		_shader.Shader.SetUniformVector2("cameraPos", (cameraPos + Offset) / _infiniteGridSize); // Camera position in UV space.
-		_shader.Shader.SetUniformVector2("totalSize", _infiniteGridSize);
+
+		EntityMetaState!.SetShaderParam("squareSize", new Vector2(TileSize));
+		EntityMetaState.SetShaderParam("cameraPos", (cameraPos + Offset) / _infiniteGridSize);
+		EntityMetaState.SetShaderParam("totalSize", _infiniteGridSize);
+
 		base.RenderInternal(c);
-		c.SetShader();
 	}
 }

@@ -9,6 +9,6 @@ using Emotion.Game.World.SceneControl;
 namespace Emotion.Game.World3D.SceneControl;
 
 /// <inheritdoc />
-public interface IWorld3DAwareScene : IWorldAwareScene<Map3D>
+public interface IWorld3DAwareScene<T> : IWorldAwareScene where T : Map3D
 {
 }

@@ -21,13 +21,15 @@ namespace Emotion.Graphics.Camera
 
 		private float _fieldOfView = 45;
 
+		public Key DragKey = Key.MouseKeyLeft;
+
 		// Movement
 		public float MovementSpeed = 3;
 		private Vector2 _lastMousePos;
 		private Vector3 _yawPitchRoll = Vector3.Zero;
 		private bool _held;
 		private Vector2 _inputDirection;
-		public float _inputDirectionZ;
+		private float _inputDirectionZ;
 
 		private KeyListenerType _inputPriority;
 
@@ -52,7 +54,14 @@ namespace Emotion.Graphics.Camera
 
 		public virtual bool CameraKeyHandler(Key key, KeyStatus status)
 		{
-			if (key == Key.MouseKeyLeft)
+			bool dragKey = key == DragKey;
+			if (DragKey != Key.MouseKeyLeft) // Secondary way of moving camera in editor.
+			{
+                bool leftClickWithControlOrLeftClickLetGo = key == Key.MouseKeyLeft && (Engine.Host.IsCtrlModifierHeld() || status == KeyStatus.Up);
+				dragKey = dragKey || leftClickWithControlOrLeftClickLetGo;
+            }
+			
+            if (dragKey)
 			{
 				if (status == KeyStatus.Down)
 				{
@@ -143,11 +152,6 @@ namespace Emotion.Graphics.Camera
 			}
 		}
 
-		public void LookAtPoint(Vector3 point)
-		{
-			LookAt = Vector3.Normalize(point - Position);
-		}
-
 		protected override void LookAtChanged(Vector3 oldVal, Vector3 newVal)
 		{
 			float roll = MathF.Asin(newVal.Z);
@@ -209,6 +213,8 @@ namespace Emotion.Graphics.Camera
 
 			// Divide by W component to get normalized device coordinates (NDC)
 			var ndcPosition = new Vector3(clipPosition.X / clipPosition.W, clipPosition.Y / clipPosition.W, clipPosition.Z / clipPosition.W);
+
+			if (ndcPosition.Z > 1.0f) return new Vector2(float.MaxValue, float.MaxValue);
 
 			// Calculate the normalized device coordinates (-1 to 1)
 			float screenWidth = Engine.Renderer.CurrentTarget.Size.X;

@@ -111,6 +111,12 @@ namespace Emotion.Common.Threading
             _threadManager.ExecuteOnThreadAsync(action, arg1);
         }
 
+        /// <inheritdoc cref="ExecuteOnGLThreadAsync{T}(Action{T}, T)" />
+        public static void ExecuteOnGLThreadAsync<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2)
+        {
+	        _threadManager.ExecuteOnThreadAsync(action, arg1, arg2);
+        }
+
         /// <inheritdoc cref="ExecuteGLThread{T}(Func{T})" />
         public static T ExecuteGLThread<T, T1>(Func<T1, T> action, T1 arg1)
         {

@@ -8,11 +8,12 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Text;
+using Emotion.Game.World.Editor.Actions;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.IO;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.UI;
 
@@ -277,7 +278,7 @@ public abstract partial class WorldBaseEditor
 					var panel = new EditorListOfItemsPanel<BaseGameObject>(
 						"All Objects",
 						map.GetObjects(),
-						obj => { Engine.Renderer.Camera.Position = obj.Bounds.Center.ToVec3(); },
+						EditorOpenPropertiesPanelForObject,
 						obj => { RolloverObjects(new List<BaseGameObject> {obj}); }
 					)
 					{
@@ -320,9 +321,54 @@ public abstract partial class WorldBaseEditor
 			}
 		});
 
+		EditorButton editorMenu = EditorDropDownButton("Editor", new[]
+		{
+			// Shows actions done in the editor, can be undone
+			new EditorDropDownButtonDescription
+			{
+				Name = "Undo History",
+				Click = (_, __) =>
+				{
+					var panel = new EditorListOfItemsPanel<IWorldEditorAction>("Actions", _actions, obj => { });
+					_editUI!.AddChild(panel);
+				}
+			},
+			new EditorDropDownButtonDescription
+			{
+				Name = "3D Mesh Viewer",
+				Click = (_, __) =>
+				{
+					var panel = new ModelViewer();
+					_editUI!.AddChild(panel);
+				},
+			},
+		});
+
+		EditorButton otherTools = EditorDropDownButton("Other", new[]
+		{
+			new EditorDropDownButtonDescription
+			{
+				Name = "Open Folder",
+				Click = (_, __) => { Process.Start("explorer.exe", "."); },
+				Enabled = () => Engine.Host is Win32Platform
+			},
+
+			new EditorDropDownButtonDescription
+			{
+				Name = "Performance Monitor",
+				Click = (_, __) =>
+				{
+					var panel = new PerformanceMonitor();
+					_editorUIAlways!.AddChild(panel);
+				},
+			},
+		});
+
 		parentList.AddChild(fileMenu);
 		parentList.AddChild(dataEditorsButton);
 		parentList.AddChild(objectsMenu);
+		parentList.AddChild(editorMenu);
+		parentList.AddChild(otherTools);
 	}
 
 	protected EditorButton EditorDropDownButton(string label, EditorDropDownButtonDescription[] menuButtons)

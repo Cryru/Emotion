@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
@@ -20,6 +21,7 @@ using Emotion.IO;
 using Emotion.IO.MeshAssetTypes;
 using Emotion.Platform.Input;
 using Emotion.UI;
+using Emotion.Utility;
 
 #endregion
 
@@ -31,6 +33,7 @@ public class ModelViewer : EditorPanel
 {
     private Camera3D _camera;
     private InfiniteGrid _grid;
+    private Task _gridLoadingTask;
     private FrameBuffer? _renderBuffer;
 
     private UIBaseWindow? _surface3D;
@@ -53,11 +56,12 @@ public class ModelViewer : EditorPanel
         public Vector2 TileSize;
     }
 
-    public ModelViewer() : base("Model Viewer")
+    public ModelViewer() : base("3D Mesh Viewer")
     {
         _camera = new Camera3D(new Vector3(-290, 250, 260));
         _camera.LookAtPoint(new Vector3(0, 0, 0));
         _grid = new InfiniteGrid();
+        _gridLoadingTask = Task.Run(_grid.LoadAssetsAsync);
         _obj = new GameObject3D("ModelViewerDummy");
     }
 
@@ -93,8 +97,8 @@ public class ModelViewer : EditorPanel
         {
             StretchX = true,
             StretchY = true,
-            MinSize = new Vector2(100, 0),
-            MaxSize = new Vector2(100, DefaultMaxSizeF),
+            MinSize = new Vector2(130, 0),
+            MaxSize = new Vector2(130, DefaultMaxSizeF),
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 2),
             Paddings = new Rectangle(2, 0, 2, 0)
@@ -122,7 +126,7 @@ public class ModelViewer : EditorPanel
                     {
                         if (data.TileSize == Vector2.Zero) return false;
 
-                        var entity = asset.GetSpriteStackEntity(data.TileSize);
+                        MeshEntity? entity = asset.GetSpriteStackEntity(data.TileSize);
                         if (entity != null)
                         {
                             SetEntity(entity);
@@ -138,10 +142,46 @@ public class ModelViewer : EditorPanel
         };
         editorButtons.AddChild(butSprite);
 
+        var saveAsEm3Button = new EditorButton
+        {
+            Text = "Export as Em3",
+            StretchY = true,
+            StretchX = false,
+            OnClickedProxy = _ =>
+            {
+                if (_obj.Entity == null) return;
+                byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
+                Engine.AssetLoader.Save(data, $"Player/Em3Export/{_obj.Entity.Name}.em3");
+            },
+            Id = "ButtonExportEm3",
+            Enabled = false
+        };
+        editorButtons.AddChild(saveAsEm3Button);
+
         var gridSizeEdit = new PropEditorNumber<float>();
         gridSizeEdit.SetValue(_grid.TileSize);
         gridSizeEdit.SetCallbackValueChanged(newVal => { _grid.TileSize = (float)newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Grid Size: ", gridSizeEdit));
+
+        var label = new MapEditorLabel("No model loaded");
+        label.Id = "ModelLabel";
+        editorButtons.AddChild(label);
+
+        var editAnimationProps = new EditorButton
+        {
+            Text = "Edit Props",
+            StretchY = true,
+            StretchX = true,
+            Id = "buttonEditProps",
+            Enabled = false,
+            OnClickedProxy = _ =>
+            {
+                AssertNotNull(_obj.Entity);
+                var panel = new GenericPropertiesEditorPanel(_obj.Entity);
+                Controller!.AddChild(panel);
+            }
+        };
+        editorButtons.AddChild(editAnimationProps);
 
         var posEditor = new PropEditorFloat3(false);
         posEditor.SetValue(_obj.Position);
@@ -174,24 +214,53 @@ public class ModelViewer : EditorPanel
         _noAnimationItems[0].Click = SetAnimationDropDownCallback;
         editorButtons.AddChild(animationsList);
 
+        var animButtonsContainer = new UIBaseWindow();
+        animButtonsContainer.LayoutMode = LayoutMode.HorizontalList;
+        animButtonsContainer.StretchX = true;
+        animButtonsContainer.StretchY = true;
+        animButtonsContainer.ListSpacing = new Vector2(2, 2);
+        editorButtons.AddChild(animButtonsContainer);
+
+        var mergeAnimation = new EditorButton
+        {
+            Text = "Import Animations",
+            StretchY = true,
+            StretchX = true,
+            Id = "buttonImportAnim",
+            Enabled = false,
+            OnClickedProxy = _ =>
+            {
+                Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => {
+                    var currentEntity = _obj.Entity;
+                    if (currentEntity == null || currentEntity.Animations == null) return;
+
+                    var assetEntity = asset.Entity;
+                    if (assetEntity == null || assetEntity.Animations == null) return;
+
+                    HashSet<string> takenNames = new HashSet<string>();
+                    for (int a = 0; a < currentEntity.Animations.Length; a++)
+                    {
+                        var animCurrent = currentEntity.Animations[a];
+                        takenNames.Add(animCurrent.Name);
+                    }
+
+                    for (int i = 0; i < assetEntity.Animations.Length; i++)
+                    {
+                        var anim = assetEntity.Animations[i];
+                        anim.Name = Helpers.EnsureNoStringCollision(takenNames, anim.Name);
+                    }
+
+                    currentEntity.Animations = Utility.Extensions.JoinArrays(currentEntity.Animations, assetEntity.Animations);
+                    UpdateAnimationList();
+                }));
+            }
+        };
+        animButtonsContainer.AddChild(mergeAnimation);
+
         var viewSkeleton = new PropEditorBool();
         viewSkeleton.SetValue(false);
         viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool)newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton));
-
-        var saveAsEm3Button = new EditorButton
-        {
-            Text = "Export as Em3 (WIP)",
-            StretchY = true,
-            StretchX = false,
-            OnClickedProxy = _ =>
-            {
-                if (_obj.Entity == null) return;
-                byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
-                Engine.AssetLoader.Save(data, $"Player/converted_{_obj.Entity.Name}.em3");
-            }
-        };
-        editorButtons.AddChild(saveAsEm3Button);
 
         contentSplit.AddChild(editorButtons);
         _contentParent.AddChild(contentSplit);
@@ -232,6 +301,28 @@ public class ModelViewer : EditorPanel
             meshList.SetItems(MeshVisibleCheckboxListItem.CreateItemsFromObject3D(_obj));
             meshList.Text = entity == null ? "Meshes" : $"Meshes [{entity.Meshes.Length}]";
         }
+
+        UpdateAnimationList();
+
+        var label = (MapEditorLabel?)GetWindowById("ModelLabel");
+        if (label != null)
+        {
+            label.Text = $"Entity: {entity.Name}\nRadius: {_obj.BoundingSphere.Radius}";
+        }
+
+        var exportButton = (EditorButton?)GetWindowById("ButtonExportEm3");
+        if (exportButton != null) exportButton.Enabled = true;
+        
+        var editPropsButton = (EditorButton?)GetWindowById("buttonEditProps");
+        if (editPropsButton != null) editPropsButton.Enabled = true;
+        
+        var importAnimButton = (EditorButton?)GetWindowById("buttonImportAnim");
+        if (importAnimButton != null) importAnimButton.Enabled = entity?.Animations != null;
+    }
+
+    protected void UpdateAnimationList()
+    {
+        MeshEntity? entity = _obj.Entity;
 
         var animationList = (EditorButtonDropDown?)GetWindowById("Animations");
         if (animationList != null)
@@ -322,7 +413,8 @@ public class ModelViewer : EditorPanel
         c.SetUseViewMatrix(true);
         c.ClearDepth();
 
-        _grid.Render(c);
+        if (_gridLoadingTask.IsCompletedSuccessfully)
+			_grid.Render(c);
 
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);

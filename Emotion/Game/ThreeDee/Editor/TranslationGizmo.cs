@@ -1,5 +1,6 @@
 #region Using
 
+using Emotion.Game.World2D;
 using Emotion.Game.World3D;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
@@ -18,6 +19,11 @@ namespace Emotion.Game.ThreeDee.Editor
 		public int Alpha = 200;
 		public int SnapSize = 50;
 
+		public bool MouseInside
+		{
+			get => _meshMouseover != null;
+		}
+
 		/// <summary>
 		/// The object the gizmo is currently affecting.
 		/// </summary>
@@ -27,10 +33,15 @@ namespace Emotion.Game.ThreeDee.Editor
 		public Mesh YAxis { get; protected set; }
 		public Mesh ZAxis { get; protected set; }
 
+		public Action<Positional, Vector3, Vector3> TargetMoved;
+
 		protected Mesh? _meshMouseover;
 		protected Vector3 _dragPointStart;
+		protected Vector3 _dragPointStartAbsolute;
 		protected Vector3 _virtualPos;
 		protected Vector3 _positionMoveStart;
+
+		protected Vector3 _lastCameraPos;
 
 		public TranslationGizmo()
 		{
@@ -48,33 +59,57 @@ namespace Emotion.Game.ThreeDee.Editor
 
 			Mesh xCylinder = arrowCylinderGen.GenerateMesh().TransformMeshVertices(
 				Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f)
-			).ColorMeshVertices(new Color(240, 75, 65, Alpha));
+			);
 
 			Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
 				Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
 				Matrix4x4.CreateTranslation(arrowCylinderGen.Height, 0, 0)
-			).ColorMeshVertices(new Color(165, 40, 40, Alpha));
+			);
 
 			XAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
 
 			Mesh yCylinder = arrowCylinderGen.GenerateMesh("YCylinder").TransformMeshVertices(
 				Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f)
-			).ColorMeshVertices(new Color(75, 240, 65, Alpha));
+			);
 
 			Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
 				Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
 				Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height, 0)
-			).ColorMeshVertices(new Color(40, 165, 40, Alpha));
+			);
 
 			YAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
 
-			Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder").ColorMeshVertices(new Color(65, 75, 240, Alpha));
+			Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder");
 
 			Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
 				Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height)
-			).ColorMeshVertices(new Color(40, 40, 165, Alpha));
+			);
 
 			ZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
+
+			var materialX = new MeshMaterial
+			{
+				Name = "Tool-X",
+				DiffuseColor = new Color(165, 40, 40)
+			};
+			XAxis.Material = materialX;
+			XAxis.SetVerticesAlpha((byte) Alpha);
+
+			var materialY = new MeshMaterial
+			{
+				Name = "Tool-Y",
+				DiffuseColor = new Color(40, 165, 40)
+			};
+			YAxis.Material = materialY;
+			YAxis.SetVerticesAlpha((byte) Alpha);
+
+			var materialZ = new MeshMaterial
+			{
+				Name = "Tool-Z",
+				DiffuseColor = new Color(40, 40, 165)
+			};
+			ZAxis.Material = materialZ;
+			ZAxis.SetVerticesAlpha((byte) Alpha);
 
 			Entity = new MeshEntity
 			{
@@ -87,7 +122,11 @@ namespace Emotion.Game.ThreeDee.Editor
 				Name = "Translation Gizmo",
 			};
 
-			Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.EditorUI);
+			ObjectFlags |= ObjectFlags.Map3DDontReceiveShadow;
+			ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
+			ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
+
+			Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Editor);
 		}
 
 		private bool KeyHandler(Key key, KeyStatus status)
@@ -99,6 +138,7 @@ namespace Emotion.Game.ThreeDee.Editor
 					_dragPointStart = GetPointAlongPlane();
 					_positionMoveStart = Position;
 					_virtualPos = Position;
+					_dragPointStartAbsolute = Position;
 					return false;
 				}
 
@@ -126,12 +166,14 @@ namespace Emotion.Game.ThreeDee.Editor
 			base.UpdateInternal(dt);
 
 			CameraBase? camera = Engine.Renderer.Camera;
+			if (camera.Position != _lastCameraPos) _dragPointStart = Vector3.Zero;
+			_lastCameraPos = camera.Position;
 
 			// Update mouseover
 			if (_dragPointStart == Vector3.Zero)
 			{
 				Ray3D ray = camera.GetCameraMouseRay();
-				ray.IntersectWithObject(this, out Mesh collidedMesh, out Vector3 _, out Vector3 _, out int _);
+				ray.IntersectWithObject(this, out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _);
 
 				if (_meshMouseover != collidedMesh)
 				{
@@ -155,13 +197,14 @@ namespace Emotion.Game.ThreeDee.Editor
 				if (snap) p = (p / SnapSize).RoundClosest() * SnapSize;
 
 				Position = _virtualPos;
-				if (Target != null) Target.Position = p;
+				if (Target != null)
+				{
+					Target.Position = p;
+					TargetMoved?.Invoke(Target, _dragPointStartAbsolute, p);
+				}
 			}
 
-			if (Target != null && _dragPointStart == Vector3.Zero)
-			{
-				Position = Target.Position;
-			}
+			if (Target != null && _dragPointStart == Vector3.Zero) Position = Target.Position;
 		}
 
 		private Vector3 GetPointAlongPlane()

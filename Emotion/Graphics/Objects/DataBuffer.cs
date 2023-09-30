@@ -114,7 +114,7 @@ namespace Emotion.Graphics.Objects
         }
 
         /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)"/>
-        public void UploadPartial<T>(T[] data, uint offset = 0)
+        public void UploadPartial<T>(T[] data, uint offset = 0) where T : unmanaged
         {
             // Finish mapping - if it was.
             FinishMapping();
@@ -126,12 +126,19 @@ namespace Emotion.Graphics.Objects
             if (offset > Size || offset + partSize > Size)
             {
                 Engine.Log.Warning("Tried to map buffer out of range.", MessageSource.GL);
-                Debug.Assert(false);
+                Assert(false);
                 return;
             }
 
             EnsureBound(Pointer, Type);
-            Gl.BufferSubData(Type, offsetPtr, partSize, data);
+
+            unsafe
+            {
+	            fixed (void* bPtr = &data[0])
+	            {
+		            Gl.BufferSubData(Type, offsetPtr, partSize, (nint) bPtr);
+	            }
+            }
         }
 
         /// <summary>

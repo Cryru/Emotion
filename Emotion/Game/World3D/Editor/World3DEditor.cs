@@ -3,7 +3,6 @@
 #region Using
 
 using System.Threading.Tasks;
-using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World.SceneControl;
 using Emotion.Game.World3D.Objects;
@@ -15,17 +14,25 @@ using Emotion.Platform.Input;
 
 namespace Emotion.Game.World3D.Editor;
 
-public partial class World3DEditor : WorldBaseEditorGeneric<Map3D>
+public partial class World3DEditor : WorldBaseEditor
 {
+	public new Map3D? CurrentMap
+	{
+		get => (Map3D?) base.CurrentMap;
+	}
+
 	protected InfiniteGrid? _grid;
 
-	public World3DEditor(IWorldAwareScene<Map3D> scene, Type mapType) : base(scene, mapType)
+	public World3DEditor(IWorldAwareScene scene, Type mapType) : base(scene, mapType)
 	{
 	}
 
 	protected override CameraBase GetEditorCamera()
 	{
-		return new Camera3D(Vector3.Zero, 1f, KeyListenerType.Editor);
+		return new Camera3D(Vector3.Zero, 1f, KeyListenerType.EditorCamera)
+		{
+			DragKey = Key.MouseKeyMiddle
+		};
 	}
 
 	protected override void EnterEditorInternal()

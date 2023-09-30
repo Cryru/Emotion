@@ -3,7 +3,7 @@
 #region Using
 
 using Emotion.Game.World.Editor;
-using Emotion.Game.World2D.SceneControl;
+using Emotion.Game.World.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 
@@ -11,9 +11,14 @@ using Emotion.Graphics.Camera;
 
 namespace Emotion.Game.World2D.Editor;
 
-public partial class World2DEditor : WorldBaseEditorGeneric<Map2D>
+public partial class World2DEditor : WorldBaseEditor
 {
-	public World2DEditor(IWorld2DAwareScene scene, Type mapType) : base(scene, mapType)
+	public new Map2D? CurrentMap
+	{
+		get => (Map2D?) base.CurrentMap;
+	}
+
+	public World2DEditor(IWorldAwareScene scene, Type mapType) : base(scene, mapType)
 	{
 	}
 

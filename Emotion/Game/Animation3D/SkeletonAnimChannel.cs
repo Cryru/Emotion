@@ -44,7 +44,7 @@ namespace Emotion.Game.Animation3D
 			for (var i = 0; i < Positions.Length; i++)
 			{
 				ref MeshAnimBoneTranslation key = ref Positions[i];
-				if (key.Timestamp > timestamp) return i == 0 ? 0 : i - 1;
+				if (key.Timestamp >= timestamp) return i == 0 ? 0 : i - 1;
 			}
 
 			return 0;
@@ -55,7 +55,7 @@ namespace Emotion.Game.Animation3D
 			for (var i = 0; i < Rotations.Length; i++)
 			{
 				ref MeshAnimBoneRotation key = ref Rotations[i];
-				if (key.Timestamp > timestamp) return i == 0 ? 0 : i - 1;
+				if (key.Timestamp >= timestamp) return i == 0 ? 0 : i - 1;
 			}
 
 			return 0;
@@ -66,7 +66,7 @@ namespace Emotion.Game.Animation3D
 			for (var i = 0; i < Scales.Length; i++)
 			{
 				ref MeshAnimBoneScale key = ref Scales[i];
-				if (key.Timestamp > timestamp) return i == 0 ? 0 : i - 1;
+				if (key.Timestamp >= timestamp) return i == 0 ? 0 : i - 1;
 			}
 
 			return 0;

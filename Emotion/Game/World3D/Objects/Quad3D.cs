@@ -2,10 +2,11 @@
 
 #region Using
 
+using System.Threading.Tasks;
 using Emotion.Graphics;
-using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.ThreeDee;
 
 #endregion
 
@@ -18,25 +19,53 @@ public class Quad3D : GameObject3D
 {
 	public Texture? Texture = null;
 
-	protected override void RenderInternal(RenderComposer c)
+	public static MeshEntity? QuadEntity;
+
+	public override Task LoadAssetsAsync()
 	{
-		c.PushModelMatrix(GetModelMatrix());
-
-		Span<VertexData> vertices = c.RenderStream.GetStreamMemory(4, BatchMode.Quad, Texture);
-		vertices[0].Vertex = new Vector3(-0.5f, -0.5f, 0);
-		vertices[0].UV = new Vector2(-0.5f, -0.5f);
-		vertices[1].Vertex = new Vector3(0.5f, -0.5f, 0);
-		vertices[1].UV = new Vector2(0.5f, -0.5f);
-		vertices[2].Vertex = new Vector3(0.5f, 0.5f, 0);
-		vertices[2].UV = new Vector2(0.5f, 0.5f);
-		vertices[3].Vertex = new Vector3(-0.5f, 0.5f, 0);
-		vertices[3].UV = new Vector2(-0.5f, 0.5f);
-
-		for (var i = 0; i < vertices.Length; i++)
+		if (QuadEntity == null)
 		{
-			vertices[i].Color = Tint.ToUint();
+			var vertices = new VertexData[4];
+			VertexData.SpriteToVertexData(vertices, Vector3.Zero, Vector2.Zero, Color.White);
+
+			vertices[0].Vertex = new Vector3(-0.5f, -0.5f, 0);
+			vertices[0].UV = new Vector2(-0.5f, -0.5f);
+			vertices[1].Vertex = new Vector3(0.5f, -0.5f, 0);
+			vertices[1].UV = new Vector2(0.5f, -0.5f);
+			vertices[2].Vertex = new Vector3(0.5f, 0.5f, 0);
+			vertices[2].UV = new Vector2(0.5f, 0.5f);
+			vertices[3].Vertex = new Vector3(-0.5f, 0.5f, 0);
+			vertices[3].UV = new Vector2(-0.5f, 0.5f);
+
+			var indices = new ushort[6];
+			IndexBuffer.FillQuadIndices(indices, 0);
+
+			var meshData = new VertexDataMesh3DExtra[4];
+			for (var i = 0; i < meshData.Length; i++)
+			{
+				meshData[i].Normal = new Vector3(0, 0, 1);
+			}
+
+			QuadEntity = new MeshEntity
+			{
+				Name = "Quad",
+				Meshes = new[]
+				{
+					new Mesh("Quad", vertices, meshData, indices)
+				},
+				BackFaceCulling = false
+			};
 		}
 
-		c.PopModelMatrix();
+		Entity = QuadEntity;
+		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveAmbient;
+
+		return base.LoadAssetsAsync();
+	}
+
+	protected override void Resized()
+	{
+		base.Resized();
+		_height = 1;
 	}
 }

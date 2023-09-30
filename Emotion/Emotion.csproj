@@ -77,12 +77,13 @@
     <None Remove="Assets\Shaders\3DGrid.xml" />
     <None Remove="Assets\Shaders\Blit.frag" />
     <None Remove="Assets\Shaders\Blit.xml" />
+    <None Remove="Assets\Shaders\MeshShader.frag" />
+    <None Remove="Assets\Shaders\MeshShader.vert" />
+    <None Remove="Assets\Shaders\MeshShader.xml" />
     <None Remove="Assets\Shaders\OutlineShader.frag" />
     <None Remove="Assets\Shaders\OutlineShader.xml" />
     <None Remove="Assets\Shaders\RoundedRectangle.frag" />
     <None Remove="Assets\Shaders\RoundedRectangle.xml" />
-    <None Remove="Assets\Shaders\SkeletalAnim.vert" />
-    <None Remove="Assets\Shaders\SkeletalAnim.xml" />
     <None Remove="Assets\Shaders\TextureColorMask.frag" />
     <None Remove="Assets\Shaders\TextureColorMask.xml" />
   </ItemGroup>
@@ -208,8 +209,9 @@
     <EmbeddedResource Include="Assets\Shaders\Blur.xml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\SkeletalAnim.xml" />
-    <EmbeddedResource Include="Assets\Shaders\SkeletalAnim.vert" />
+    <EmbeddedResource Include="Assets\Shaders\MeshShader.frag" />
+    <EmbeddedResource Include="Assets\Shaders\MeshShader.vert" />
+    <EmbeddedResource Include="Assets\Shaders\MeshShader.xml" />
     <EmbeddedResource Include="Assets\Shaders\OutlineShader.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

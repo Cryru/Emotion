@@ -10,7 +10,7 @@ using Emotion.Game.World3D.Editor;
 
 namespace Emotion.Game.World3D.SceneControl;
 
-public abstract class World3DBaseScene<T> : WorldBaseScene<Map3D>, IWorld3DAwareScene where T : Map3D
+public abstract class World3DBaseScene<T> : WorldBaseScene<T>, IWorld3DAwareScene<T> where T : Map3D
 {
 	protected override WorldBaseEditor CreateEditor()
 	{

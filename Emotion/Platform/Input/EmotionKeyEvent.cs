@@ -14,10 +14,11 @@ public enum KeyListenerType : byte
 	System = 1,
 	EditorUI = 2,
 	Editor = 3,
-	EditorBarrier = 4, // Prevents keys from leaking into UI/Game while editor is open.
+	EditorCamera = 4,
+	EditorBarrier = 5, // Prevents keys from leaking into UI/Game while editor is open.
 
-	UI = 5,
-	Game = 6,
+	UI = 6,
+	Game = 7,
 	Last
 }
 

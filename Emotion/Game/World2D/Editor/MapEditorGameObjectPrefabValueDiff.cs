@@ -18,7 +18,7 @@ public class MapEditorGameObjectPrefabValueDiff : UIBaseWindow
 		MaxSize = new Vector2(10);
 		WindowColor = new Color("df9821");
 
-		MapEditorLabel text = new MapEditorLabel("P");
+		var text = new MapEditorLabel("P");
 		text.WindowColor = Color.Black;
 		text.Anchor = UIAnchor.CenterCenter;
 		text.ParentAnchor = UIAnchor.CenterCenter;

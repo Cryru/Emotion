@@ -37,11 +37,11 @@ public class EditorButtonDropDown : UIBaseWindow
 	public void SetItems(EditorDropDownButtonDescription[] items, int current)
 	{
 		_items = items;
-		_currentOption = items[current];
+		_currentOption = items.Length > current ? items[current] : null;
 		UpdateCurrentOptionText();
 	}
 
-	private void UpdateCurrentOptionText()
+	protected virtual void UpdateCurrentOptionText()
 	{
 		var button = (EditorButton?) GetWindowById("Button");
 		if (button == null || _currentOption == null) return;

@@ -229,7 +229,7 @@ public abstract class BaseMap
 
 		Initialized = true;
 
-		Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "Map2D");
+		Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "World");
 	}
 
 	protected virtual Task InitAsyncInternal()
@@ -260,8 +260,7 @@ public abstract class BaseMap
 	/// </summary>
 	public virtual async Task Reset()
 	{
-		// Clear resources.
-		Dispose();
+		GLThread.ExecuteGLThread(Dispose);
 		Disposed = false;
 
 		// Ensure reset is identical to deserialize by serialize-copying objects.
@@ -284,6 +283,7 @@ public abstract class BaseMap
 		ProcessObjectChanges();
 
 		// todo: obj update, clipped?
+		dt = EditorMode ? 0 : dt;
 		int objCount = GetObjectCount();
 		for (var i = 0; i < objCount; i++)
 		{
@@ -460,34 +460,31 @@ public abstract class BaseMap
 		for (var i = 0; i < _objects.Count; i++)
 		{
 			BaseGameObject obj = _objects[i];
+			if (obj.ObjectState != ObjectState.Alive) continue;
 			if (!includeNonSpawned && obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
 			yield return obj;
 		}
 	}
 
 	public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
-    {
-		List<BaseGameObject> objects = new List<BaseGameObject>();
+	{
+		var objects = new List<BaseGameObject>();
 		GetObjects(objects, layer, shape, queryFlags);
 
-        foreach (BaseGameObject obj in objects)
+		foreach (BaseGameObject obj in objects)
 		{
 			if (obj is T objT)
 			{
-				if(queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj))
-				{
-					continue;
-				}
+				if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;
 				list.Add(objT);
 			}
 		}
-		
 	}
 
-    /// <summary>
-    /// Get an object from the map by name.
-    /// </summary>
-    public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
+	/// <summary>
+	/// Get an object from the map by name.
+	/// </summary>
+	public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
 	{
 		if (name == null) return null;
 		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
@@ -498,32 +495,12 @@ public abstract class BaseMap
 		return null;
 	}
 
-	public T? GetObjectByType<T>(bool includeNonSpawned = false)
-	{
-		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
-		{
-			if (obj is T objAsT) return objAsT;
-		}
-
-		return default;
-	}
-
-	public IEnumerable<T> GetObjectsByType<T>(bool includeNonSpawned = false)
+	public IEnumerator<T> GetObjectsByType<T>(bool includeNonSpawned = false)
 	{
 		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
 		{
 			if (obj is T objAsT) yield return objAsT;
 		}
-	}
-
-	public int GetObjectCount()
-	{
-		return _objects.Count;
-	}
-
-	public BaseGameObject GetObjectByIndex(int idx)
-	{
-		return _objects[idx];
 	}
 
     public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
@@ -546,17 +523,37 @@ public abstract class BaseMap
     {
         WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
         var enumerator = rootNode?.AddAllObjects();
-		if (enumerator == null) return;
-		while (enumerator.MoveNext())
-		{
-			BaseGameObject currentObject = enumerator.Current;
+		    if (enumerator == null) return;
+		    while (enumerator.MoveNext())
+		    {
+            BaseGameObject currentObject = enumerator.Current;
             list.Add(currentObject);
-		}
+		    }
     }
 
-    public WorldTree2D? GetWorldTree()
+	public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)
+	{
+		IEnumerator<T> enumerator = GetObjectsByType<T>(includeNonSpawned);
+		if (enumerator.MoveNext())
+		{
+			return enumerator.Current;
+		}
+		return default;
+	}
+
+	public WorldTree2D? GetWorldTree()
 	{
 		return _worldTree;
+	}
+
+	public int GetObjectCount()
+	{
+		return _objects.Count;
+	}
+
+	public BaseGameObject GetObjectByIndex(int idx)
+	{
+		return _objects[idx];
 	}
 
 	#endregion

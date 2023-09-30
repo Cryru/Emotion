@@ -4,6 +4,7 @@ using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
+using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
 using Emotion.Utility;
 
@@ -127,13 +128,15 @@ public class GenericPropertiesEditorPanel : EditorPanel
 	{
 	}
 
-	private IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
+	protected virtual IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
 		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();
 		if (field.TypeHandler.Type == typeof(int)) return new PropEditorNumber<int>();
+		if (field.TypeHandler.Type == typeof(byte)) return new PropEditorNumber<byte>();
 		if (field.TypeHandler.Type == typeof(Vector3)) return new PropEditorFloat3();
 		if (field.TypeHandler.Type == typeof(Rectangle)) return new PropEditorRect();
+		if (field.TypeHandler.Type == typeof(Matrix4x4)) return new PropEditorMatrix();
 		if (field.TypeHandler.Type == typeof(string))
 		{
 			var assetFileNameAttribute = field.ReflectionInfo.GetAttribute<AssetFileNameAttribute>();
@@ -146,6 +149,10 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
 		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo.Nullable);
 
+		if (field.TypeHandler is XMLComplexTypeHandler) return new PropEditorNestedObject();
+		if (field.TypeHandler.Type == typeof(Color)) return new PropEditorNestedObject(); // temp
+		if (field.TypeHandler is XMLArrayTypeHandler && field.TypeHandler is not XMLDictionaryTypeHandler) return new PropEditorArray();
+
 		return new PropEditorNone();
 	}
 
@@ -156,7 +163,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 		if (!Helpers.AreObjectsEqual(oldValue, value)) OnPropertyEdited?.Invoke(field.Name, oldValue);
 
-		UIBaseWindow? editorWindow = editor as UIBaseWindow;
+		var editorWindow = editor as UIBaseWindow;
 		OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
 	}
 
@@ -171,7 +178,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		for (var i = 0; i < _editorUIs.Count; i++)
 		{
 			IPropEditorGeneric editor = _editorUIs[i];
-			UIBaseWindow? editorWindow = editor as UIBaseWindow;
+			var editorWindow = editor as UIBaseWindow;
 
 			if (Controller?.InputFocus != null && editorWindow != null && Controller.InputFocus.IsWithin(editorWindow)) continue;
 

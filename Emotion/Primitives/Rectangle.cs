@@ -342,10 +342,10 @@ namespace Emotion.Primitives
         /// Get the line segments making up the rectangle.
         /// </summary>
         /// <param name="array">The array to fill with the segments.</param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void GetLineSegments(Span<LineSegment> array)
         {
+	        Assert(array.Length >= 4);
             array[0] = new LineSegment(TopLeft, TopRight);
             array[1] = new LineSegment(TopRight, BottomRight);
             array[2] = new LineSegment(BottomRight, BottomLeft);

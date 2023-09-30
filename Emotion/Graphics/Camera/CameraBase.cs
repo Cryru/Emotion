@@ -217,20 +217,30 @@ namespace Emotion.Graphics.Camera
 			return new Ray3D(dir, LookAt);
 		}
 
-		#region Events
+		/// <summary>
+		/// Set the camera's look at to a point in space.
+		/// </summary>
+		public void LookAtPoint(Vector3 point)
+		{
+			LookAt = Vector3.Normalize(point - Position);
+		}
 
 		protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
 		{
 		}
 
-		#endregion
+		public static float NearZDefault2DProjection = -100;
+		public static float FarZDefault2DProjection = 100;
 
 		/// <summary>
 		/// Get the default 2d projection matrix for the currently bound framebuffer.
 		/// </summary>
 		/// <returns></returns>
-		public static Matrix4x4 GetDefault2DProjection(float nearZ = -100, float farZ = 100)
+		public static Matrix4x4 GetDefault2DProjection(float nearZ = 1337, float farZ = 1337)
 		{
+			if (nearZ == 1337) nearZ = NearZDefault2DProjection;
+			if (farZ == 1337) farZ = FarZDefault2DProjection;
+
 			RenderComposer renderer = Engine.Renderer;
 			return Matrix4x4.CreateOrthographicOffCenter(0, renderer.CurrentTarget.Size.X, renderer.CurrentTarget.Size.Y, 0, nearZ, farZ);
 		}

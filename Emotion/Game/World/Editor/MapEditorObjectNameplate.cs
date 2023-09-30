@@ -76,10 +76,14 @@ public class MapEditorObjectNameplate : UIWorldAttachedWindow
 	protected override bool UpdateInternal()
 	{
 		if (Object is GameObject2D)
+		{
 			AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
-		else if (Object is GameObject3D)
-			// todo: 3d bounds
-			AttachToPosition(new Vector3(Object.X, Object.Y, Object.Z + _height));
+		}
+		else if (Object is GameObject3D obj3d)
+		{
+			Cube cube = obj3d.Bounds3D;
+			AttachToPosition(new Vector3(cube.Origin.X, cube.Origin.Y, cube.Origin.Z + cube.HalfExtents.Z));
+		}
 
 		_label.Text = $"{Object.ObjectName ?? "null"}{(Object.ObjectState != ObjectState.Alive ? " (NotSpawned)" : "")}";
 		return base.UpdateInternal();

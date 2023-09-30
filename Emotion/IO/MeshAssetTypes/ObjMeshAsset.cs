@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Text.RegularExpressions;
+using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
@@ -43,6 +44,7 @@ namespace Emotion.IO.MeshAssetTypes
 			public Dictionary<string, ushort> IndexComboHash;
 			public ushort IndexComboCount;
 			public List<VertexData> VertexData;
+			public List<VertexDataMesh3DExtra> MeshData;
 			public List<ushort> VertexDataIndices;
 
 			public MeshMaterial Material;
@@ -53,6 +55,7 @@ namespace Emotion.IO.MeshAssetTypes
 
 				IndexComboHash = new Dictionary<string, ushort>();
 				VertexData = new List<VertexData>();
+				MeshData = new List<VertexDataMesh3DExtra>();
 				VertexDataIndices = new List<ushort>();
 			}
 		}
@@ -129,7 +132,7 @@ namespace Emotion.IO.MeshAssetTypes
 					case "f":
 						currentGroup.Init();
 
-						Debug.Assert(args.Length == 4); // Triangle faces expected.
+						Assert(args.Length == 4); // Triangle faces expected.
 						for (var i = 1; i < args.Length; i++)
 						{
 							string combo = args[i];
@@ -167,12 +170,14 @@ namespace Emotion.IO.MeshAssetTypes
 									Engine.Log.Warning($"Referenced vertex out of range ({uvIdx}) in {Name}/{currentSubObject.Name}.", MessageSource.ObjFile);
 							}
 
-							if (spl.Length > 2 && ushort.TryParse(spl[2], out ushort _))
-							{
-								// vtxData.Normal = currentSubObject.Normals[normalIdx - 1];
-							}
+							Vector3 normal = Vector3.Zero;
+							if (spl.Length > 2 && ushort.TryParse(spl[2], out ushort normalIdx)) normal = currentSubObject.Normals[normalIdx - 1];
 
 							currentGroup.VertexData.Add(vtxData);
+							currentGroup.MeshData.Add(new VertexDataMesh3DExtra
+							{
+								Normal = normal
+							});
 						}
 
 						break;
@@ -205,11 +210,12 @@ namespace Emotion.IO.MeshAssetTypes
 				for (var i = 0; i < entityMeshes.Count; i++)
 				{
 					ObjFileBuildingGroup builtMesh = entityMeshes[i];
-					var mesh = new Mesh
+					VertexData[] vertices = builtMesh.VertexData.GetRange(0, Math.Min(builtMesh.VertexData.Count, ushort.MaxValue)).ToArray();
+					VertexDataMesh3DExtra[] meshData = builtMesh.MeshData.GetRange(0, Math.Min(builtMesh.MeshData.Count, ushort.MaxValue)).ToArray();
+					ushort[] indices = builtMesh.VertexDataIndices.GetRange(0, Math.Min(builtMesh.VertexDataIndices.Count, ushort.MaxValue)).ToArray();
+
+					var mesh = new Mesh(builtMesh.GroupName, vertices, meshData, indices)
 					{
-						Name = builtMesh.GroupName,
-						Vertices = builtMesh.VertexData.GetRange(0, Math.Min(builtMesh.VertexData.Count, ushort.MaxValue)).ToArray(),
-						Indices = builtMesh.VertexDataIndices.GetRange(0, Math.Min(builtMesh.VertexDataIndices.Count, ushort.MaxValue)).ToArray(),
 						Material = builtMesh.Material ?? new MeshMaterial()
 					};
 

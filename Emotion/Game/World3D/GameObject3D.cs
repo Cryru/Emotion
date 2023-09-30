@@ -3,20 +3,13 @@
 #region Using
 
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Emotion.Common.Serialization;
-using Emotion.Editor;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World;
 using Emotion.Graphics;
-using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
-using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
-using Emotion.IO;
-using OpenGL;
 
 #endregion
 
@@ -24,9 +17,6 @@ namespace Emotion.Game.World3D;
 
 public class GameObject3D : BaseGameObject
 {
-	[AssetFileName<MeshAsset>]
-	public string? EntityPath;
-
 	/// <summary>
 	/// The current visual of this object.
 	/// </summary>
@@ -39,7 +29,10 @@ public class GameObject3D : BaseGameObject
 			lock (this)
 			{
 				_entity = value;
-				EntityMetaState = new MeshEntityMetaState(value);
+				EntityMetaState = new MeshEntityMetaState(value)
+				{
+					Tint = Tint
+				};
 				OnSetEntity();
 			}
 		}
@@ -52,6 +45,17 @@ public class GameObject3D : BaseGameObject
 	/// </summary>
 	public MeshEntityMetaState? EntityMetaState { get; private set; }
 
+	/// <inheritdoc />
+	public override Color Tint
+	{
+		get => base.Tint;
+		set
+		{
+			base.Tint = value;
+			if (EntityMetaState != null) EntityMetaState.Tint = value;
+		}
+	}
+
 	/// <summary>
 	/// The name of the current animation playing (if any).
 	/// </summary>
@@ -60,11 +64,31 @@ public class GameObject3D : BaseGameObject
 		get => _currentAnimation?.Name ?? "None";
 	}
 
+	/// <summary>
+	/// Sphere that encompasses the whole object.
+	/// If the mesh is animated the sphere encompasses all keyframes of the animation.
+	/// </summary>
+	public Sphere BoundingSphere
+	{
+		get => _bSphereBase.Transform(GetModelMatrix());
+	}
+
+	/// <summary>
+	/// Axis aligned cube that encompasses the whole object.
+	/// If the mesh is animated the AABB encompasses all keyframes of the animation.
+	/// </summary>
+	public Cube Bounds3D
+	{
+		get => _bCubeBase.Transform(GetModelMatrix());
+	}
+
+	protected Sphere _bSphereBase;
+	protected Cube _bCubeBase;
+
 	private SkeletalAnimation? _currentAnimation;
 	private float _time;
 	private Matrix4x4[][]? _boneMatricesPerMesh;
 
-	private static ShaderAsset? _skeletalShader;
 	private const int MAX_BONES = 126; // Must match number in SkeletalAnim.vert
 
 	public GameObject3D(string name) : base(name)
@@ -88,20 +112,10 @@ public class GameObject3D : BaseGameObject
 		Rotated();
 	}
 
-	public override async Task LoadAssetsAsync()
-	{
-		if (_skeletalShader == null) _skeletalShader = await Engine.AssetLoader.GetAsync<ShaderAsset>("Shaders/SkeletalAnim.xml");
-
-		if (string.IsNullOrEmpty(EntityPath)) return;
-
-		var asset = await Engine.AssetLoader.GetAsync<MeshAsset>(EntityPath);
-		Entity = asset?.Entity;
-	}
-
 	protected override void UpdateInternal(float dt)
 	{
 		_time += dt;
-		ApplyBoneMatrices();
+		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
 		base.UpdateInternal(dt);
 	}
 
@@ -111,83 +125,13 @@ public class GameObject3D : BaseGameObject
 		// todo: larger entities should create their own data buffers.
 		// todo: culling state.
 		MeshEntity? entity = _entity;
-		if (entity?.Meshes == null) return;
-
-		Mesh[] meshes = entity.Meshes;
+		Mesh[]? meshes = entity?.Meshes;
 		MeshEntityMetaState? metaState = EntityMetaState;
-
-		c.FlushRenderStream();
-
-		if (entity.BackFaceCulling)
-		{
-			Gl.Enable(EnableCap.CullFace); // todo: render stream state
-			Gl.CullFace(CullFaceMode.Back);
-			Gl.FrontFace(FrontFaceDirection.Ccw);
-		}
+		if (entity == null || meshes == null || metaState == null) return;
 
 		c.PushModelMatrix(GetModelMatrix());
-
-		if (entity.AnimationRig == null)
-		{
-			for (var i = 0; i < meshes.Length; i++)
-			{
-				if (metaState != null && !metaState.RenderMesh[i]) continue;
-
-				Mesh obj = meshes[i];
-				obj.Render(c);
-			}
-		}
-		else if (_skeletalShader != null)
-		{
-			ShaderProgram? shader = _skeletalShader.Shader;
-			c.SetShader(shader);
-
-			Matrix4x4[][]? boneMatricesPerMesh = _boneMatricesPerMesh;
-			AssertNotNull(boneMatricesPerMesh);
-
-			for (var i = 0; i < meshes.Length; i++)
-			{
-				Mesh obj = meshes[i];
-				if (metaState != null && !metaState.RenderMesh[i]) continue;
-				_skeletalShader.Shader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
-
-				if (boneMatricesPerMesh != null)
-				{
-					Matrix4x4[] boneMats = boneMatricesPerMesh[i];
-					shader.SetUniformMatrix4("finalBonesMatrices", boneMats, boneMats.Length);
-				}
-
-				AssertNotNull(obj.VerticesWithBones);
-				VertexDataWithBones[] vertData = obj.VerticesWithBones;
-				ushort[] indices = obj.Indices;
-				Texture? texture = null;
-				if (obj.Material.DiffuseTexture != null) texture = obj.Material.DiffuseTexture;
-				StreamData<VertexDataWithBones> memory = c.RenderStream.GetStreamMemory<VertexDataWithBones>((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
-
-				// Didn't manage to get enough memory.
-				if (memory.VerticesData.Length == 0)
-				{
-					Engine.Log.Warning($"Couldn't render mesh {obj.Name} due to it requiring more indices than available in the render stream.", "3D", true);
-					continue;
-				}
-
-				vertData.CopyTo(memory.VerticesData);
-				indices.CopyTo(memory.IndicesData);
-
-				ushort structOffset = memory.StructIndex;
-				for (var j = 0; j < memory.IndicesData.Length; j++)
-				{
-					memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
-				}
-
-				c.FlushRenderStream();
-			}
-
-			c.SetShader();
-		}
-
+		c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null, ObjectFlags);
 		c.PopModelMatrix();
-		if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
 	}
 
 	#region Transform 3D
@@ -201,10 +145,12 @@ public class GameObject3D : BaseGameObject
 	{
 		base.Resized();
 
+		float entityScale = Entity?.Scale ?? 1f;
+
 		Assert(!float.IsNaN(_width));
 		Assert(!float.IsNaN(_depth));
 		Assert(!float.IsNaN(_height));
-		_scaleMatrix = Matrix4x4.CreateScale(_width, _depth, _height);
+		_scaleMatrix = Matrix4x4.CreateScale(_width * entityScale, _depth * entityScale, _height * entityScale);
 	}
 
 	protected override void Moved()
@@ -226,6 +172,7 @@ public class GameObject3D : BaseGameObject
 
 	public Matrix4x4 GetModelMatrix()
 	{
+		if (_entity != null) return _entity.LocalTransform * _scaleMatrix * _rotationMatrix * _translationMatrix;
 		return _scaleMatrix * _rotationMatrix * _translationMatrix;
 	}
 
@@ -256,12 +203,20 @@ public class GameObject3D : BaseGameObject
 			mesh.BuildRuntimeBoneCache();
 		}
 
-		// Reset the animation.
-		// This will also set the default bone matrices.
-		SetAnimation(null);
+		_verticesCacheCollision = null;
+		_entity.CacheBounds(); // Ensure entity bounds are cached.
+
+        // Update unit scale.
+        Resized();
+
+        // Reset the animation.
+        // This will also set the default bone matrices.
+		// This will also calculate bounds.
+		// This will also calculate the vertices collisions.
+        SetAnimation(null);
 	}
 
-	public void SetAnimation(string? name)
+	public virtual void SetAnimation(string? name)
 	{
 		MeshEntity? entity = _entity;
 		if (entity?.Meshes == null)
@@ -283,72 +238,102 @@ public class GameObject3D : BaseGameObject
 		_currentAnimation = animInstance;
 		_time = 0;
 
-		// Initialize bones
-		ApplyBoneMatrices();
+		// todo: add some way for the entity to calculate and hold a collision mesh.
+		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, 0);
+		CacheVerticesForCollision();
+		_entity?.GetBounds(name, out _bSphereBase, out _bCubeBase);
 	}
 
-	private void ApplyBoneMatrices()
+	#region Collision
+
+	private Vector3[]?[]? _verticesCacheCollision;
+
+	public void CacheVerticesForCollision(bool reuseMeshData = true)
 	{
-		lock (this)
+		Mesh[]? meshes = _entity?.Meshes;
+		if (meshes == null) return;
+
+		if (!reuseMeshData) _verticesCacheCollision = null;
+		_verticesCacheCollision ??= new Vector3[meshes.Length][];
+		for (var m = 0; m < meshes.Length; m++)
 		{
-			if (_entity?.Meshes == null) return;
+			Mesh mesh = meshes[m];
+			if (mesh.BoneData == null) continue;
 
-			AssertNotNull(_boneMatricesPerMesh);
-			for (var i = 0; i < _boneMatricesPerMesh.Length; i++)
+			VertexData[] vertices = mesh.Vertices;
+			Vector3[] thisMesh;
+			if (_verticesCacheCollision[m] != null)
 			{
-				Matrix4x4[] matricesForMesh = _boneMatricesPerMesh[i];
-				matricesForMesh[0] = Matrix4x4.Identity;
-			}
-
-			SkeletonAnimRigRoot? animationRig = _entity.AnimationRig;
-			if (animationRig == null) return;
-
-			ApplyBoneMatricesWalkTree(_time % _currentAnimation?.Duration ?? 0, animationRig, Matrix4x4.Identity);
-		}
-	}
-
-	private void ApplyBoneMatricesWalkTree(float timeStamp, SkeletonAnimRigNode node, Matrix4x4 parentMatrix)
-	{
-		string nodeName = node.Name ?? "Unknown";
-
-		Matrix4x4 currentMatrix = node.LocalTransform;
-		if (_currentAnimation != null)
-		{
-			if (node.DontAnimate)
-			{
-				currentMatrix = Matrix4x4.Identity;
+				thisMesh = _verticesCacheCollision[m]!;
 			}
 			else
 			{
-				SkeletonAnimChannel? channel = _currentAnimation.GetMeshAnimBone(nodeName);
-				if (channel != null)
-					currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
+				thisMesh = new Vector3[vertices.Length];
+				_verticesCacheCollision[m] = thisMesh;
+			}
+
+			Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
+			if (boneData != null)
+			{
+				Matrix4x4[] bonesForThisMesh = _boneMatricesPerMesh![m];
+
+				for (var vertexIdx = 0; vertexIdx < boneData.Length; vertexIdx++)
+				{
+					ref Mesh3DVertexDataBones vertexDataBones = ref boneData[vertexIdx];
+					ref Vector3 vertex = ref vertices[vertexIdx].Vertex;
+
+					Vector3 vertexTransformed = Vector3.Zero;
+					for (var w = 0; w < 4; w++)
+					{
+						float boneId = vertexDataBones.BoneIds[w];
+						float weight = vertexDataBones.BoneWeights[w];
+
+						Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
+						Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
+						vertexTransformed += thisWeightPos * weight;
+					}
+
+					thisMesh[vertexIdx] = vertexTransformed;
+				}
+			}
+			else
+			{
+				for (var vertexIdx = 0; vertexIdx < vertices.Length; vertexIdx++)
+				{
+					thisMesh[vertexIdx] = vertices[vertexIdx].Vertex;
+				}
 			}
 		}
-
-		Matrix4x4 myMatrix = currentMatrix * parentMatrix;
-
-		AssertNotNull(_entity);
-		AssertNotNull(_entity.Meshes);
-		for (var i = 0; i < _entity.Meshes.Length; i++)
-		{
-			Mesh mesh = _entity.Meshes[i];
-			if (mesh.Bones == null) continue;
-
-			AssertNotNull(_boneMatricesPerMesh);
-			Matrix4x4[] myMatrices = _boneMatricesPerMesh[i];
-
-			AssertNotNull(mesh.BoneNameCache);
-			if (mesh.BoneNameCache.TryGetValue(nodeName, out MeshBone? meshBone)) myMatrices[meshBone.BoneIndex] = meshBone.OffsetMatrix * myMatrix;
-		}
-
-		if (node.Children == null) return;
-		for (var i = 0; i < node.Children.Length; i++)
-		{
-			SkeletonAnimRigNode child = node.Children[i];
-			ApplyBoneMatricesWalkTree(timeStamp, child, myMatrix);
-		}
 	}
+
+	public void GetMeshTriangleForCollision(int meshIdx, int v1, int v2, int v3, out Vector3 vert1, out Vector3 vert2, out Vector3 vert3)
+	{
+		vert1 = Vector3.Zero;
+		vert2 = Vector3.Zero;
+		vert3 = Vector3.Zero;
+
+		Mesh[]? meshes = _entity?.Meshes;
+		if (meshes == null) return;
+
+		var mesh = meshes[meshIdx];
+		if (mesh.BoneData == null)
+		{
+			var vertices = mesh.Vertices;
+			vert1 = vertices[v1].Vertex;
+			vert2 = vertices[v2].Vertex;
+			vert3 = vertices[v3].Vertex;
+			return;
+		}
+
+		Vector3[]? meshData = _verticesCacheCollision?[meshIdx];
+		if (meshData == null) return; // todo: maybe fallback to the vertices?
+
+		vert1 = meshData[v1];
+		vert2 = meshData[v2];
+		vert3 = meshData[v3];
+	}
+
+	#endregion
 
 	#region Debug
 

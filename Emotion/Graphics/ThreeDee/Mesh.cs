@@ -17,36 +17,45 @@ namespace Emotion.Graphics.ThreeDee;
 /// </summary>
 public class Mesh
 {
-	public string Name = null!;
-	public MeshMaterial Material = null!;
+	private const string DEFAULT_MESH_NAME = "Untitled";
 
-	/// <summary>
-	/// One of these must be present, but not both.
-	/// </summary>
-	public VertexData[]? Vertices;
+	public string Name;
 
-	public VertexDataWithBones[]? VerticesWithBones;
+	public MeshMaterial Material;
+	public ushort[] Indices;
 
-	public ushort[] Indices = null!;
+	public VertexData[] Vertices;
+	public VertexDataMesh3DExtra[] ExtraVertexData;
+
+	public Mesh3DVertexDataBones[]? BoneData;
 	public MeshBone[]? Bones = null;
 
-	public void GetTriangleAtIndex(int index, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+	public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
 	{
-		VertexData[]? verts = Vertices;
-		ushort[] indices = Indices;
+		Name = DEFAULT_MESH_NAME;
+		Vertices = vertices;
+		ExtraVertexData = extraData;
+		Indices = indices;
+		Material = MeshMaterial.DefaultMaterial;
+	}
 
-		// todo: implement for other vertex types.
-		if (verts == null)
-		{
-			p1 = Vector3.Zero;
-			p2 = Vector3.Zero;
-			p3 = Vector3.Zero;
-			return;
-		}
+	public Mesh(string name, VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
+	{
+		Name = name;
+		Vertices = vertices;
+		ExtraVertexData = extraData;
+		Indices = indices;
+		Material = MeshMaterial.DefaultMaterial;
+	}
 
-		p1 = verts[indices[index]].Vertex;
-		p2 = verts[indices[index + 1]].Vertex;
-		p3 = verts[indices[index + 2]].Vertex;
+	// Serialization constructor.
+	protected Mesh()
+	{
+		Name = DEFAULT_MESH_NAME;
+		Vertices = null!;
+		ExtraVertexData = null!;
+		Indices = null!;
+		Material = MeshMaterial.DefaultMaterial;
 	}
 
 	#region Transformations
@@ -54,7 +63,6 @@ public class Mesh
 	public Mesh TransformMeshVertices(Matrix4x4 mat)
 	{
 		VertexData[]? vertices = Vertices;
-		if (vertices == null) return this;
 		for (var i = 0; i < vertices.Length; i++)
 		{
 			ref Vector3 vertex = ref vertices[i].Vertex;
@@ -82,7 +90,6 @@ public class Mesh
 	public Mesh SetVerticesAlpha(byte alpha)
 	{
 		VertexData[]? vertices = Vertices;
-		if (vertices == null) return this;
 		for (var i = 0; i < vertices.Length; i++)
 		{
 			ref VertexData vertex = ref vertices[i];
@@ -94,16 +101,16 @@ public class Mesh
 
 	public static Mesh CombineMeshes(Mesh m1, Mesh m2, string name)
 	{
-		var m = new Mesh
-		{
-			Name = name,
-			Material = m1.Material,
-			Vertices = new VertexData[m1.Vertices.Length + m2.Vertices.Length],
-			Indices = new ushort[m1.Indices.Length + m2.Indices.Length]
-		};
+		var m = new Mesh(
+			name,
+			new VertexData[m1.Vertices.Length + m2.Vertices.Length],
+			new VertexDataMesh3DExtra[m1.ExtraVertexData.Length + m2.ExtraVertexData.Length],
+			new ushort[m1.Indices.Length + m2.Indices.Length]);
 
 		m1.Vertices.CopyTo(new Span<VertexData>(m.Vertices));
 		m2.Vertices.CopyTo(new Span<VertexData>(m.Vertices, m1.Vertices.Length, m2.Vertices.Length));
+		m1.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData));
+		m2.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData, m1.ExtraVertexData.Length, m2.ExtraVertexData.Length));
 		m1.Indices.CopyTo(new Span<ushort>(m.Indices));
 		m2.Indices.CopyTo(new Span<ushort>(m.Indices, m1.Indices.Length, m2.Indices.Length));
 
@@ -112,6 +119,8 @@ public class Mesh
 		{
 			m.Indices[i] = (ushort) (m.Indices[i] + vertexOffset);
 		}
+
+		m.Material = m1.Material;
 
 		return m;
 	}
@@ -122,7 +131,6 @@ public class Mesh
 	public void Render(RenderComposer c)
 	{
 		VertexData[]? vertData = Vertices;
-		if (vertData == null) return; // Animated meshes need to be rendered by Object3D as it holds the animation context.
 
 		ushort[] indices = Indices;
 		Texture? texture = null;

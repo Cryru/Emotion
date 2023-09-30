@@ -36,7 +36,9 @@ namespace Emotion.Graphics.Objects
         public bool IsSignaled()
         {
             var result = (SyncStatus) Gl.GetSync(Pointer, SyncParameterName.SyncStatus);
-            return result == SyncStatus.Signaled;
+            bool finished = result == SyncStatus.Signaled;
+            if (finished) Finished = true;
+            return finished;
         }
 
         /// <summary>

@@ -5,7 +5,6 @@
 using System.Collections;
 using System.IO;
 using System.Threading;
-using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
@@ -23,7 +22,7 @@ public abstract class TestingScene : Scene
 	public int RunningTestRoutineIndex = 0;
 
 	protected static FrameBuffer? _screenShotBuffer;
-	protected static byte[]? _lastScreenShot;
+	protected static byte[]? _lastFrameScreenShot;
 
 	public override void Update()
 	{
@@ -46,11 +45,14 @@ public abstract class TestingScene : Scene
 			TestDraw(composer);
 
 			composer.RenderTo(null);
-			composer.RenderFrameBuffer(_screenShotBuffer);
+			composer.RenderSprite(Vector3.Zero, _screenShotBuffer.Size, _screenShotBuffer.Texture);
+
+			// We need to sample and store screenshots here as the GLThread tasks are ran at the beginning of a frame
+			// rather than end, which means there is no way for a coroutine to obtain it.
+			composer.FlushRenderStream();
 
 			FrameBuffer drawBuffer = _screenShotBuffer;
-			_lastScreenShot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
-			
+			_lastFrameScreenShot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
 
 			_runRenderLoop.Set();
 		}
@@ -86,20 +88,9 @@ public abstract class TestingScene : Scene
 			_usedNamed.Add(fileName);
 		}
 
-		if (_screenShotBuffer == null) return;
-
-		// Capture screenshot of last thing rendered.
-		byte[] screenshot = _lastScreenShot ?? Array.Empty<byte>();//Array.Empty<byte>();
-		Vector2 screenShotSize = _screenShotBuffer.Size;// Vector2.Zero;
-		//GLThread.ExecuteGLThread(() =>
-		//{
-		//	Gl.Flush();
-		//	Gl.Finish();
-
-		//	FrameBuffer drawBuffer = _screenShotBuffer;
-		//	screenshot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
-		//	screenShotSize = drawBuffer.Size;
-		//});
+		if (_screenShotBuffer == null || _lastFrameScreenShot == null) return;
+		Vector2 screenShotSize = _screenShotBuffer.Size;
+		byte[] screenshot = _lastFrameScreenShot;
 		ImageUtil.FlipImageY(screenshot, (int) screenShotSize.Y);
 
 		string screenShotFolder = Path.Join(TestExecutor.TestRunFolder, "Renders");
@@ -149,7 +140,7 @@ public abstract class TestingScene : Scene
 			if (different) differentPixels++;
 
 			// Don't count empty pixels towards the total.
-			if (different || (r != 0 || g != 0 || b != 0 || a != 0)) totalPixels++;
+			if (different || r != 0 || g != 0 || b != 0 || a != 0) totalPixels++;
 
 			pixelDifference[i / 4] = different;
 		}

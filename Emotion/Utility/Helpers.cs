@@ -179,5 +179,22 @@ namespace Emotion.Utility
             if (b != null) return b.Equals(a);
             return a == b;
         }
+
+		/// <summary>
+		/// Ensures the input string isn't contained in the taken set by
+		/// appending an incrementing number to it until it doesn't match.
+		/// </summary>
+		public static string EnsureNoStringCollision(HashSet<string> takenSet, string input)
+		{
+			string testing = input;
+			int counter = 1;
+			while (takenSet.Contains(testing))
+			{
+				testing = $"{input}_{counter}";
+				counter++;
+			}
+
+			return testing;
+		}
 	}
 }
