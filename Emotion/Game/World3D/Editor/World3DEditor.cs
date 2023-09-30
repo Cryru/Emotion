@@ -14,11 +14,16 @@ using Emotion.Platform.Input;
 
 namespace Emotion.Game.World3D.Editor;
 
-public partial class World3DEditor : WorldBaseEditorGeneric<Map3D>
+public partial class World3DEditor : WorldBaseEditor
 {
+	public new Map3D? CurrentMap
+	{
+		get => (Map3D?) base.CurrentMap;
+	}
+
 	protected InfiniteGrid? _grid;
 
-	public World3DEditor(IWorldAwareScene<Map3D> scene, Type mapType) : base(scene, mapType)
+	public World3DEditor(IWorldAwareScene scene, Type mapType) : base(scene, mapType)
 	{
 	}
 

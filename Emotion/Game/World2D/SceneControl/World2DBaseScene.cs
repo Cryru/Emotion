@@ -10,7 +10,7 @@ using Emotion.Game.World2D.Editor;
 
 namespace Emotion.Game.World2D.SceneControl;
 
-public abstract class World2DBaseScene<T> : WorldBaseScene<Map2D>, IWorld2DAwareScene where T : Map2D
+public abstract class World2DBaseScene<T> : WorldBaseScene<T>, IWorld2DAwareScene<T> where T : Map2D
 {
 	protected override WorldBaseEditor CreateEditor()
 	{

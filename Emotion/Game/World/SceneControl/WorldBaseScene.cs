@@ -11,7 +11,7 @@ using Emotion.Scenography;
 
 namespace Emotion.Game.World.SceneControl;
 
-public abstract class WorldBaseScene<T> : Scene, IWorldAwareScene<T> where T : BaseMap
+public abstract class WorldBaseScene<T> : Scene, IWorldAwareScene where T : BaseMap
 {
 	public T? CurrentMap { get; private set; }
 
@@ -37,17 +37,17 @@ public abstract class WorldBaseScene<T> : Scene, IWorldAwareScene<T> where T : B
 		_editor.Render(composer);
 	}
 
-	public T GetCurrentMap()
+	public BaseMap? GetCurrentMap()
 	{
-		return CurrentMap!;
+		return CurrentMap;
 	}
 
-	public async Task ChangeMapAsync(T? map)
+	public async Task ChangeMapAsync(BaseMap? map)
 	{
-		if (map == null) return;
+		if(map is not T baseMap) return;
 
 		CurrentMap?.Dispose();
-		CurrentMap = map;
-		await map.InitAsync();
+		CurrentMap = baseMap;
+		await baseMap.InitAsync();
 	}
 }
