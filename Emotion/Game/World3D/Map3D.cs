@@ -17,7 +17,7 @@ public class Map3D : BaseMap
 	{
 		return EditorUtility.GetTypesWhichInherit<GameObject3D>();
 	}
-    /*
+    
 	public override void Render(RenderComposer c)
 	{
 		if (!Initialized) return;
@@ -30,14 +30,4 @@ public class Map3D : BaseMap
 			obj.Render(c);
 		}
 	}
-	*/
-    public override void Render(RenderComposer c)
-    {
-        if (!Initialized) return;
-
-        foreach (var obj in GetObjects(0))
-        {
-            obj.Render(c);
-        }
-    }
 }

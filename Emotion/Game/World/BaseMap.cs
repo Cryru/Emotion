@@ -465,7 +465,6 @@ public abstract class BaseMap
 		}
 	}
 
-    /*
 	public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
     {
 		List<BaseGameObject> objects = new List<BaseGameObject>();
@@ -484,22 +483,6 @@ public abstract class BaseMap
 		}
 		
 	}
-	*/
-    public IEnumerable<T> GetObjectsByType<T>(int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
-    {
-        foreach (BaseGameObject obj in GetObjects(layer, shape, queryFlags))
-        {
-            if (obj is T objT)
-            {
-                // NOT SURE ABOUT THIS ONEEEE... 
-                if (queryFlags.HasFlag(QueryFlags.Unique))
-                {
-                    continue;
-                }
-                yield return objT;
-            }
-        }
-    }
 
     /// <summary>
     /// Get an object from the map by name.
@@ -543,42 +526,32 @@ public abstract class BaseMap
 		return _objects[idx];
 	}
 
-    /*
-	public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
-	{
-		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-		rootNode?.AddObjectsIntersectingShape(shape, queryFlags);
-	}
-	*/
-    public IEnumerable<BaseGameObject> GetObjects(int layer, IShape shape, QueryFlags queryFlags = 0)
+    public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
     {
         WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-        if (rootNode != null)
+        var enumerator = rootNode?.AddObjectsIntersectingShape(shape);
+        if (enumerator == null) return;
+        while (enumerator.MoveNext())
         {
-            foreach (BaseGameObject obj in rootNode.AddObjectsIntersectingShape(shape, queryFlags))
+            BaseGameObject currentObject = enumerator.Current;
+            if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(currentObject))
             {
-                yield return obj;
+                continue;
             }
+            list.Add(currentObject);
         }
     }
-    /*
-    public void GetObjects(IList list, int layer)
-	{
-		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-		rootNode?.AddAllObjects(list);
-	}
-	*/
 
-    public IEnumerable<BaseGameObject> GetObjects(int layer)
+    public void GetObjects(IList list, int layer)
     {
         WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-        if (rootNode != null)
-        {
-            foreach (BaseGameObject obj in rootNode.GetAllObjects())
-            {
-                yield return obj;
-            }
-        }
+        var enumerator = rootNode?.AddAllObjects();
+		if (enumerator == null) return;
+		while (enumerator.MoveNext())
+		{
+			BaseGameObject currentObject = enumerator.Current;
+            list.Add(currentObject);
+		}
     }
 
     public WorldTree2D? GetWorldTree()

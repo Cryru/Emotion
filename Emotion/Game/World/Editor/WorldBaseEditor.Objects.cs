@@ -91,8 +91,7 @@ public abstract partial class WorldBaseEditor
 			var results = new List<BaseGameObject>();
 			foreach (int treeLayerId in map.GetWorldTree()!.ForEachLayer())
 			{
-				results.Add((BaseGameObject)map.GetObjects(treeLayerId, circle, QueryFlags.Unique));
-				//map.GetObjects(results, treeLayerId, circle, QueryFlags.Unique);
+				map.GetObjects(results, treeLayerId, circle, QueryFlags.Unique);
 			}
 
 			if (mouseFocusNameplate != null) results.Add(mouseFocusNameplate.Object);
