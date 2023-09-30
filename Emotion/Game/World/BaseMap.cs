@@ -505,13 +505,29 @@ public abstract class BaseMap
 	public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
 	{
 		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-		rootNode?.AddObjectsIntersectingShape(list, shape, queryFlags);
+		var enumerator = rootNode?.AddObjectsIntersectingShape(shape);
+		if (enumerator == null) return;
+		while (enumerator.MoveNext())
+		{
+			BaseGameObject currentObject = enumerator.Current;
+			if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(currentObject))
+			{
+				continue;
+			}
+			list.Add(currentObject);
+		}
 	}
 
 	public void GetObjects(IList list, int layer)
 	{
 		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-		rootNode?.AddAllObjects(list);
+		var enumerator = rootNode?.AddAllObjects();
+		if (enumerator == null) return;
+		while (enumerator.MoveNext())
+		{
+			BaseGameObject currentObject = enumerator.Current;
+			list.Add(currentObject);
+		}
 	}
 
 	public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)

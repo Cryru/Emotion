@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Collections;
 using Emotion.Game.World;
 using Emotion.Graphics;
 
@@ -20,7 +19,7 @@ namespace Emotion.Game.World2D
 		public WorldTree2DNode[]? ChildNodes;
 
 		// Node objects if undivided, and objects which span multiple nodes if divided.
-		protected List<BaseGameObject>? _objects;
+		public List<BaseGameObject>? Objects;
 
 		public WorldTree2DNode(WorldTree2DNode? parent, Rectangle bounds, int capacity = 3, int maxDepth = 5)
 		{
@@ -45,8 +44,8 @@ namespace Emotion.Game.World2D
 
 		public WorldTree2DNode AddObject(Rectangle bounds, BaseGameObject obj)
 		{
-			_objects ??= new List<BaseGameObject>();
-			if (_objects.Count + 1 > Capacity && ChildNodes == null && MaxDepth > 0)
+			Objects ??= new List<BaseGameObject>();
+			if (Objects.Count + 1 > Capacity && ChildNodes == null && MaxDepth > 0)
 			{
 				float halfWidth = Bounds.Width / 2;
 				float halfHeight = Bounds.Height / 2;
@@ -61,54 +60,15 @@ namespace Emotion.Game.World2D
 				return subNode.AddObject(bounds, obj);
 			}
 
-			Assert(_objects.IndexOf(obj) == -1);
-			_objects.Add(obj);
+			Assert(Objects.IndexOf(obj) == -1);
+			Objects.Add(obj);
 			return this;
 		}
 
 		public void RemoveObject(BaseGameObject obj)
 		{
-			_objects?.Remove(obj);
+			Objects?.Remove(obj);
 		}
-
-		public void AddObjectsIntersectingShape(IList list, IShape shape, QueryFlags queryFlags = 0)
-		{
-			if (_objects == null) return;
-
-			for (var i = 0; i < _objects.Count; i++)
-			{
-				BaseGameObject obj = _objects[i];
-				Rectangle bounds = obj.GetBoundsForQuadTree();
-				if (!shape.Intersects(ref bounds)) continue;
-				if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;
-
-				list.Add(obj);
-			}
-
-			if (ChildNodes == null) return;
-			for (var i = 0; i < ChildNodes.Length; i++)
-			{
-				WorldTree2DNode node = ChildNodes[i];
-				if (shape.Intersects(ref node.Bounds)) node.AddObjectsIntersectingShape(list, shape, queryFlags);
-			}
-		}
-
-		public void AddAllObjects(IList list)
-		{
-			if (_objects == null) return;
-
-			for (var i = 0; i < _objects.Count; i++)
-			{
-				list.Add(_objects[i]);
-			}
-
-            if (ChildNodes == null) return;
-            for (var i = 0; i < ChildNodes.Length; i++)
-            {
-                WorldTree2DNode node = ChildNodes[i];
-				node.AddAllObjects(list);
-            }
-        }
 
 		public void RenderDebug(RenderComposer c)
 		{
