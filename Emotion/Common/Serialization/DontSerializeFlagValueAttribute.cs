@@ -16,4 +16,9 @@ public class DontSerializeFlagValueAttribute : Attribute
 	{
 		return val & ~FlagsSkip;
 	}
+
+	public bool SkipThisOne(uint val)
+	{
+		return (FlagsSkip & val) != 0;
+	}
 }

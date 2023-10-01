@@ -106,13 +106,6 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
 		var metaText = new StringBuilder();
 		metaText.Append(Object.ObjectState.ToString());
-		ObjectFlags[] objectFlags = Enum.GetValues<ObjectFlags>();
-		for (var i = 0; i < objectFlags.Length; i++)
-		{
-			ObjectFlags flag = objectFlags[i];
-			if (flag == ObjectFlags.None) continue; // All have this :P
-			if (Object.ObjectFlags.HasFlag(flag)) metaText.Append($", {flag}");
-		}
 
 		// Warning: These objects might not actually be in these layers.
 		// If they reported a different value to IsPartOfMapLayer when being added.

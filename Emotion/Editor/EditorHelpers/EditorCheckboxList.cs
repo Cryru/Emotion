@@ -10,10 +10,9 @@ using Emotion.UI;
 
 namespace Emotion.Editor.EditorHelpers;
 
-public interface IEditorCheckboxListItem
+public class EditorCheckboxListItem : EditorDropDownButtonDescription
 {
-	public bool Checked { get; set; }
-	public string Name { get; set; }
+	public Func<bool> Checked { get; set; }
 }
 
 public class EditorCheckboxList : UIBaseWindow
@@ -30,7 +29,7 @@ public class EditorCheckboxList : UIBaseWindow
 
 	private string _label;
 	private EditorButton? _button;
-	private IEditorCheckboxListItem[]? _items;
+	private EditorCheckboxListItem[]? _items;
 
 	public EditorCheckboxList(string label)
 	{
@@ -39,7 +38,7 @@ public class EditorCheckboxList : UIBaseWindow
 		StretchY = true;
 	}
 
-	public void SetItems(IEditorCheckboxListItem[]? items)
+	public void SetItems(EditorCheckboxListItem[]? items)
 	{
 		_items = items;
 		if (_button != null) _button.Enabled = _items != null;
@@ -64,11 +63,11 @@ public class EditorCheckboxList : UIBaseWindow
 			var editors = new UIBaseWindow[_items.Length];
 			for (var i = 0; i < _items.Length; i++)
 			{
-				IEditorCheckboxListItem item = _items[i];
+				EditorCheckboxListItem item = _items[i];
 
 				var checkMark = new PropEditorBool();
 				checkMark.SetValue(item.Checked);
-				checkMark.SetCallbackValueChanged(newVal => { item.Checked = (bool) newVal; });
+				//checkMark.SetCallbackValueChanged(newVal => { item.Checked = (bool) newVal; });
 				checkMark.ZOffset = -1;
 				var editor = new FieldEditorWithLabel(item.Name, checkMark);
 				editor.Margins = Rectangle.Empty;

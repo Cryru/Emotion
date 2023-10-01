@@ -24,8 +24,8 @@ public class EditorButtonDropDown : UIBaseWindow
 
 	private string? _text;
 
-	private EditorDropDownButtonDescription? _currentOption;
-	private EditorDropDownButtonDescription[]? _items;
+	protected EditorDropDownButtonDescription? _currentOption;
+	protected EditorDropDownButtonDescription[]? _items;
 
 	public EditorButtonDropDown()
 	{

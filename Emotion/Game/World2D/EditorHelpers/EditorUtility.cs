@@ -91,6 +91,12 @@ namespace Emotion.Game.World2D.EditorHelpers
 			return inheritors;
 		}
 
+		public static bool HasParameterlessConstructor(object obj)
+		{
+			Type t = obj.GetType();
+			return t.GetConstructor(Type.EmptyTypes) != null;
+		}
+
 		/// <summary>
 		/// Get all serializable fields of a type, ordered by declaring type.
 		/// </summary>
@@ -159,6 +165,72 @@ namespace Emotion.Game.World2D.EditorHelpers
 			});
 
 			return currentWindowHandlers;
+		}
+		public static Enum EnumSetFlag(Enum value, Enum flag, bool set)
+		{
+			var valueType = value.GetType();
+			Type underlyingType = Enum.GetUnderlyingType(valueType);
+
+			// note: AsInt mean: math integer vs enum (not the c# int type)
+			dynamic valueAsInt = Convert.ChangeType(value, underlyingType);
+			dynamic flagAsInt = Convert.ChangeType(flag, underlyingType);
+			if (set)
+			{
+				valueAsInt |= flagAsInt;
+			}
+			else
+			{
+				valueAsInt &= ~flagAsInt;
+			}
+
+			return (Enum) Enum.ToObject(valueType, valueAsInt);
+		}
+
+		public static string GetEnumFlagsAsBinaryString(Enum value)
+		{
+			// Get the underlying type of the enum
+			Type enumType = value.GetType();
+
+			var values = Enum.GetValues(enumType);
+			int numFlags = values.Length;
+
+			// Find out if there is a zero flag value.
+			Enum zeroFlagValue = null;
+			Type underlyingType = Enum.GetUnderlyingType(enumType);
+			for (int i = 0; i < numFlags; i++)
+			{
+				var thisVal = values.GetValue(i) as Enum;
+				dynamic underlyingValue = Convert.ChangeType(thisVal, underlyingType);
+				if (underlyingValue == 0)
+				{
+					zeroFlagValue = thisVal;
+					break;
+				}
+			}
+
+			// Dont write the zero flag as a flag.
+			int flagsToWrite = numFlags;
+			if (zeroFlagValue != null)
+			{
+				flagsToWrite--;
+			}
+
+			int writeI = 0;
+			char[] binaryChars = new char[flagsToWrite];
+			for (int i = 0; i < numFlags; i++)
+			{
+				var thisVal = values.GetValue(i) as Enum;
+
+				if (zeroFlagValue != null && Helpers.AreObjectsEqual(thisVal, zeroFlagValue)) continue;
+
+				if (value.HasFlag(thisVal))
+					binaryChars[writeI] = '1';
+				else
+					binaryChars[writeI] = '0';
+				writeI++;
+			}
+
+			return new string(binaryChars);
 		}
 	}
 }

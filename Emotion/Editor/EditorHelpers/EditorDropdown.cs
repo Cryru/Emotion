@@ -3,7 +3,9 @@
 #region Using
 
 using Emotion.Common.Serialization;
+using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World.Editor;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.UI;
 
@@ -74,43 +76,82 @@ public class EditorDropdown : UIDropDown
 		c.RenderOutline(Position, Size, WindowColor);
 	}
 
-	public void SetItems(EditorDropDownButtonDescription[] items, Action<EditorDropDownButtonDescription>? selectedCallback = null)
+	public void SetItems(EditorDropDownButtonDescription[]? items, Action<EditorDropDownButtonDescription>? selectedCallback = null)
 	{
 		List.ClearChildren();
 
+		if (items == null) return;
+
+		List<PropEditorBool>? checkBoxes = null;
 		for (var i = 0; i < items.Length; i++)
 		{
-			EditorDropDownButtonDescription buttonMeta = items[i];
-
-			var ddButton = new EditorButton
+			EditorDropDownButtonDescription item = items[i];
+			if (item is EditorCheckboxListItem itemCheckBox)
 			{
+				checkBoxes ??= new List<PropEditorBool>();
+
+				var checkMark = new PropEditorBool();
+				checkMark.SetValue(itemCheckBox.Checked());
+				checkMark.SetCallbackValueChanged(newVal => {
+					if (item.Click == null) return;
+					if (item.Enabled != null)
+					{
+						bool enabled = item.Enabled();
+						if (!enabled) return;
+					}
+
+					selectedCallback?.Invoke(itemCheckBox);
+					item.Click(item, null);
+
+					AssertNotNull(checkBoxes);
+					for (int c = 0; c < checkBoxes.Count; c++)
+					{
+						var checkBox = checkBoxes[c];
+						var thatCheckBoxItem = items[c];
+						var thatCheckBoxItemAsCheckBoxItem = thatCheckBoxItem as EditorCheckboxListItem;
+						checkBox.SetValue(thatCheckBoxItemAsCheckBoxItem?.Checked() ?? false);
+					}
+				});
+				checkMark.ZOffset = -1;
+
+				checkBoxes.Add(checkMark);
+
+				var editor = new FieldEditorWithLabel(itemCheckBox.Name, checkMark);
+				editor.Margins = Rectangle.Empty;
+				List.AddChild(editor);
+			}
+			else
+			{
+				var ddButton = new EditorButton
+				{
 #if !NEW_UI
-				StretchX = true,
-				StretchY = true,
-				
-				MinSize = new Vector2(50, 0),
+					StretchX = true,
+					StretchY = true,
+
+					MinSize = new Vector2(50, 0),
 #else
 				FillXInList = true,
 #endif
-				Text = buttonMeta.Name,
-			};
-			ddButton.OnClickedProxy = _ =>
-			{
-				if (buttonMeta.Click == null) return;
-				if (buttonMeta.Enabled != null)
+					Text = item.Name,
+				};
+				ddButton.OnClickedProxy = _ =>
 				{
-					bool enabled = buttonMeta.Enabled();
-					if (!enabled) return;
-				}
+					if (item.Click == null) return;
+					if (item.Enabled != null)
+					{
+						bool enabled = item.Enabled();
+						if (!enabled) return;
+					}
 
-				selectedCallback?.Invoke(buttonMeta);
-				buttonMeta.Click(buttonMeta, ddButton);
+					selectedCallback?.Invoke(item);
+					item.Click(item, ddButton);
 
-				if (CloseOnClick) Controller?.RemoveChild(this);
-			};
-			ddButton.Enabled = buttonMeta.Enabled?.Invoke() ?? true;
+					if (CloseOnClick) Controller?.RemoveChild(this);
+				};
+				ddButton.Enabled = item.Enabled?.Invoke() ?? true;
 
-			List.AddChild(ddButton);
+				List.AddChild(ddButton);
+			}
 		}
 	}
 

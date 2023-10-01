@@ -27,6 +27,11 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	public GenericPropertiesEditorPanel(object obj) : base($"{obj} Properties")
 	{
+		if (!EditorUtility.HasParameterlessConstructor(obj))
+		{
+			return;
+		}
+
 		_obj = obj;
 		_fields = EditorUtility.GetTypeFields(obj);
 		_editorUIs = new();
@@ -35,6 +40,13 @@ public class GenericPropertiesEditorPanel : EditorPanel
 	public override void AttachedToController(UIController controller)
 	{
 		base.AttachedToController(controller);
+
+		if (_obj == null)
+		{
+			var editorLabel = new MapEditorLabel("Object has no parameterless constructor and cannot be serialized (or edited).");
+			_contentParent.AddChild(editorLabel);
+			return;
+		}
 
 		var innerContainer = new UIBaseWindow();
 		innerContainer.StretchX = true;

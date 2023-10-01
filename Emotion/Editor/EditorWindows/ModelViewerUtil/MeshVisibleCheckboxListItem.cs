@@ -8,7 +8,7 @@ using Emotion.Graphics.ThreeDee;
 
 namespace Emotion.Editor.EditorWindows.ModelViewerUtil
 {
-	public class MeshVisibleCheckboxListItem : IEditorCheckboxListItem
+	public class MeshVisibleCheckboxListItem : EditorCheckboxListItem
 	{
 		public bool Checked
 		{
@@ -38,12 +38,12 @@ namespace Emotion.Editor.EditorWindows.ModelViewerUtil
 			_meshIndex = index;
 		}
 
-		public static IEditorCheckboxListItem[] CreateItemsFromObject3D(GameObject3D obj)
+		public static EditorCheckboxListItem[] CreateItemsFromObject3D(GameObject3D obj)
 		{
 			MeshEntity entity = obj.Entity;
 			Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();
 
-			var checkboxItemList = new IEditorCheckboxListItem[meshes.Length];
+			var checkboxItemList = new EditorCheckboxListItem[meshes.Length];
 			for (var i = 0; i < meshes.Length; i++)
 			{
 				Mesh mesh = meshes[i];
