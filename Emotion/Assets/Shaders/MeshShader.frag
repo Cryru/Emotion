@@ -61,7 +61,8 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 void main()
 {
     // Diffuse
-    vec3 diffuse = max(dot(fragNormal, fragLightDir), 0.0) * sunColor.rgb;
+    vec3 diffuseCalc = max(dot(fragNormal, fragLightDir), 0.0) * sunColor.rgb;
+	vec3 diffuse = sunColor.rgb == vec3(0.0) ? vec3(1.0) : diffuseCalc;
 
     // Shadow
     float shadow = ShadowCalculation(fragPositionLightSpace);       

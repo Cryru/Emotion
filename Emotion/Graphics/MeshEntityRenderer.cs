@@ -127,7 +127,7 @@ namespace Emotion.Graphics
 				
 				// Decide which shader to use.
 				bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
-				bool receiveAmbient = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+				bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
 				bool skinnedMesh = obj.Bones != null;
 				ShaderProgram currentShader;
 				if (shaderOverride != null)
@@ -163,14 +163,19 @@ namespace Emotion.Graphics
 				currentShader.SetUniformColor("objectTint", metaState.Tint);
 
 				// Lighting
-				if (receiveAmbient)
+				if (light != null)
 				{
-					AssertNotNull(light);
-
 					currentShader.SetUniformVector3("sunDirection", light.SunDirection);
-					currentShader.SetUniformColor("sunColor", light.SunColor);
+					currentShader.SetUniformColor("sunColor", receiveAmbient ? light.SunColor : Color.Black);
 					currentShader.SetUniformColor("ambientColor", light.AmbientLightColor);
 				}
+				else
+				{
+					currentShader.SetUniformVector3("sunDirection", Vector3.Zero);
+					currentShader.SetUniformColor("sunColor", receiveAmbient ? Color.White : Color.Black);
+					currentShader.SetUniformColor("ambientColor", Color.White);
+				}
+
 				currentShader.SetUniformMatrix4("lightViewProj", _lightViewProj);
 
 				// Upload bone matrices for skinned meshes (if not missing).
