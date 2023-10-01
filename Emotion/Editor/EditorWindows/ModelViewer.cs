@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Editor.EditorWindows.ModelViewerUtil;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
@@ -198,10 +197,12 @@ public class ModelViewer : EditorPanel
         scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3)newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
 
-        var meshListProp = new EditorCheckboxList("Meshes: ")
+        var meshListProp = new EditorButtonDropDown()
         {
-            Id = "MeshList"
-        };
+			Text = "Meshes: ",
+            Id = "MeshList",
+			LayoutMode = LayoutMode.VerticalList
+		};
         editorButtons.AddChild(meshListProp);
 
         var animationsList = new EditorButtonDropDown
@@ -295,10 +296,31 @@ public class ModelViewer : EditorPanel
     {
         _obj.Entity = entity;
 
-        var meshList = (EditorCheckboxList?)GetWindowById("MeshList");
+        var meshList = (EditorButtonDropDown?)GetWindowById("MeshList");
         if (meshList != null)
         {
-            meshList.SetItems(MeshVisibleCheckboxListItem.CreateItemsFromObject3D(_obj));
+			Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();
+
+			var checkboxItemList = new EditorDropDownChecklboxDescription[meshes.Length];
+			for (var i = 0; i < meshes.Length; i++)
+			{
+				Mesh mesh = meshes[i];
+				int idx = i;
+				checkboxItemList[i] = new EditorDropDownChecklboxDescription()
+				{
+					Name = mesh.Name,
+					Checked = () =>
+					{
+						return _obj.EntityMetaState!.RenderMesh[idx];
+					},
+					Click = (_, __) =>
+					{
+						_obj.EntityMetaState!.RenderMesh[idx] = !_obj.EntityMetaState!.RenderMesh[idx];
+					}
+				};
+			}
+
+			meshList.SetItems(checkboxItemList, 0);
             meshList.Text = entity == null ? "Meshes" : $"Meshes [{entity.Meshes.Length}]";
         }
 
