@@ -27,14 +27,16 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	public GenericPropertiesEditorPanel(object obj) : base($"{obj} Properties")
 	{
-		if (!EditorUtility.HasParameterlessConstructor(obj))
+		_editorUIs = new();
+
+		var objType = obj.GetType();
+		if (!objType.IsValueType && !EditorUtility.HasParameterlessConstructor(obj))
 		{
 			return;
 		}
 
 		_obj = obj;
 		_fields = EditorUtility.GetTypeFields(obj);
-		_editorUIs = new();
 	}
 
 	public override void AttachedToController(UIController controller)
