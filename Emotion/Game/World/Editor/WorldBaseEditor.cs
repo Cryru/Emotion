@@ -164,7 +164,7 @@ public abstract partial class WorldBaseEditor
 		{
 			if (_editorUIAlways != null)
 			{
-				RenderState? stateBefore = c.CurrentState.Clone();
+				RenderState stateBefore = c.CurrentState.Clone();
 				c.SetUseViewMatrix(false);
 				c.SetDepthTest(false);
 				_editorUIAlways!.Render(c);
@@ -174,7 +174,7 @@ public abstract partial class WorldBaseEditor
 			return;
 		}
 
-		RenderState? prevState = c.CurrentState.Clone();
+		RenderState prevState = c.CurrentState.Clone();
 
 		RenderInternal(c);
 		RenderObjectSelection(c);

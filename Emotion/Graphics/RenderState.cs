@@ -30,7 +30,7 @@ namespace Emotion.Graphics
         AlwaysCameraProjection
     }
 
-    public class RenderState
+    public struct RenderState
     {
         public bool? AlphaBlending;
         public BlendingFactor? SFactorRgb;

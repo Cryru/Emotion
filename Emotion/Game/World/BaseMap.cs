@@ -465,6 +465,17 @@ public abstract class BaseMap
 		}
 	}
 
+	public IEnumerator<BaseGameObject> GetAllObjectsCoroutine(bool includeNonSpawned = false)
+	{
+		for (var i = 0; i < _objects.Count; i++)
+		{
+			BaseGameObject obj = _objects[i];
+			if (obj.ObjectState != ObjectState.Alive) continue;
+			if (!includeNonSpawned && obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
+			yield return obj;
+		}
+	}
+
 	public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
 	{
 		var objects = new List<BaseGameObject>();
@@ -486,9 +497,16 @@ public abstract class BaseMap
 	public BaseGameObject? GetObjectByName(string? name, bool includeNonSpawned = false)
 	{
 		if (name == null) return null;
-		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
+
+		// todo: cache per name?
+		var enumerator = GetAllObjectsCoroutine(includeNonSpawned);
+		while (enumerator.MoveNext())
 		{
-			if (obj.ObjectName == name) return obj;
+			var obj = enumerator.Current;
+			if (obj.ObjectName == name)
+			{
+				return obj;
+			}
 		}
 
 		return null;
@@ -496,9 +514,14 @@ public abstract class BaseMap
 
 	public IEnumerator<T> GetObjectsByType<T>(bool includeNonSpawned = false)
 	{
-		foreach (BaseGameObject obj in GetObjects(includeNonSpawned))
+		var enumerator = GetAllObjectsCoroutine(includeNonSpawned);
+		while (enumerator.MoveNext())
 		{
-			if (obj is T objAsT) yield return objAsT;
+			var obj = enumerator.Current;
+			if (obj is T objAsT)
+			{
+				yield return objAsT;
+			}
 		}
 	}
 
@@ -521,13 +544,7 @@ public abstract class BaseMap
 	public void GetObjects(IList list, int layer)
 	{
 		WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-		var enumerator = rootNode?.AddAllObjects();
-		if (enumerator == null) return;
-		while (enumerator.MoveNext())
-		{
-			BaseGameObject currentObject = enumerator.Current;
-			list.Add(currentObject);
-		}
+		rootNode?.AddAllObjects(list);
 	}
 
 	public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)
