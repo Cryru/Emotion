@@ -40,20 +40,22 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float currentDepth = projCoords.z;
 
     // Fight shadow acne
-    float bias = 0.0001;
+    float biasMax = 0.0003;
+	float biasMin = 0.0001;
+	float bias = max(biasMax * (1.0 - dot(normalize(fragPosLightSpace.xyz), fragLightDir)), biasMin);
     //float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;  
 
 	float shadow = 0.0;
 	vec2 texelSize = (1.0 / textureSize(shadowMapTexture, 0)) * 0.5f;
-	for(int x = -1; x <= 1; ++x)
+	for(int x = 0; x <= 1; ++x)
 	{
-		for(int y = -1; y <= 1; ++y)
+		for(int y = 0; y <= 1; ++y)
 		{
 			float pcfDepth = texture(shadowMapTexture, projCoords.xy + vec2(x, y) * texelSize).r; 
 			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
 		}    
 	}
-	shadow /= 9.0;
+	shadow /= 4.0;
 
     return shadow;
 }
