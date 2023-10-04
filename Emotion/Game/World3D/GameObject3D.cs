@@ -243,6 +243,10 @@ public class GameObject3D : BaseGameObject
 		CacheVerticesForCollision();
 		_entity?.GetBounds(name, out _bSphereBase, out _bCubeBase);
 	}
+	public bool IsTransparent()
+	{
+		return Tint.A != 255;
+	}
 
 	#region Collision
 

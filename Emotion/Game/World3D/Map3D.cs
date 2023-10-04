@@ -4,6 +4,7 @@
 
 using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World;
+using Emotion.Game.World2D;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D.Objects;
 using Emotion.Graphics;
@@ -28,29 +29,50 @@ public class Map3D : BaseMap
 		return types;
 	}
 
+	public static Comparison<BaseGameObject> ObjectComparison = ObjectSort; // Prevent delegate allocation
+
+	protected static int ObjectSort(BaseGameObject x, BaseGameObject y)
+	{
+		var camera = Engine.Renderer.Camera;
+		float distToA = Vector3.Distance(camera.Position, x.Position);
+		float distToB = Vector3.Distance(camera.Position, y.Position);
+		return MathF.Sign(distToB - distToA);
+	}
+
+	private List<GameObject3D> _renderQuery = new List<GameObject3D>(32);
+
 	public override void Render(RenderComposer c)
 	{
 		if (!Initialized) return;
 
-		var renderObjectsList = new List<BaseGameObject>();
-		GetObjects(renderObjectsList, 0);
+		_renderQuery.Clear();
+		GetObjects(_renderQuery, 0);
 
 		if (RenderShadowMap)
 		{
 			c.RenderStream.MeshRenderer.StartRenderShadowMap(c, LightModel);
 
-			for (var i = 0; i < renderObjectsList.Count; i++)
+			for (var i = 0; i < _renderQuery.Count; i++)
 			{
-				BaseGameObject obj = renderObjectsList[i];
+				GameObject3D obj = _renderQuery[i];
 				obj.Render(c);
 			}
 
 			c.RenderStream.MeshRenderer.EndRenderShadowMap(c);
 		}
 
-		for (var i = 0; i < renderObjectsList.Count; i++)
+		for (var i = 0; i < _renderQuery.Count; i++)
 		{
-			BaseGameObject obj = renderObjectsList[i];
+			GameObject3D obj = _renderQuery[i];
+			if (obj.IsTransparent()) continue;
+			obj.Render(c);
+		}
+
+		_renderQuery.Sort(ObjectComparison);
+		for (var i = 0; i < _renderQuery.Count; i++)
+		{
+			GameObject3D obj = _renderQuery[i];
+			if (!obj.IsTransparent()) continue;
 			obj.Render(c);
 		}
 	}
