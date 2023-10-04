@@ -121,6 +121,13 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 			}
 		}
 
+		if (Object is GameObject3D obj3D)
+		{
+			metaText.Append("\n");
+			metaText.Append("Bound Radius: ");
+			metaText.Append(obj3D.BoundingSphere.Radius);
+		}
+
 		statusLabel.Text = metaText.ToString();
 
 		uiContainer.AddChild(statusLabel);

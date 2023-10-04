@@ -68,6 +68,19 @@ public abstract partial class WorldBaseEditor
         _allObjectsRollover = null;
     }
 
+    protected static Comparison<(GameObject3D, Vector3)> ObjectComparison3D = ObjectSort3D; // Prevent delegate allocation
+
+    protected static int ObjectSort3D((GameObject3D, Vector3) x, (GameObject3D, Vector3) y)
+    {
+        var collisionPointX = x.Item2;
+        var collisionPointY = y.Item2;
+
+        var camera = Engine.Renderer.Camera;
+        float distToA = Vector3.Distance(camera.Position, collisionPointX);
+        float distToB = Vector3.Distance(camera.Position, collisionPointY);
+        return MathF.Sign(distToA - distToB);
+    }
+
     protected virtual void UpdateObjectEditor()
     {
         BaseMap? map = CurrentMap;
@@ -89,6 +102,8 @@ public abstract partial class WorldBaseEditor
         {
             var results = new List<BaseGameObject>();
 
+            if (mouseFocusNameplate != null) results.Add(mouseFocusNameplate.Object);
+
             // =============================================
             // temp
             // todo: ray3d should be passable into get objects.
@@ -97,13 +112,28 @@ public abstract partial class WorldBaseEditor
             {
                 if (w3D.MoveGizmo == null || !w3D.MoveGizmo.MouseInside)
                 {
+                    List<(GameObject3D, Vector3)> collisionPoints = new();
                     Ray3D mouseRay = Engine.Renderer.Camera.GetCameraMouseRay();
                     IEnumerator<GameObject3D> objects3D = map.GetObjectsByType<GameObject3D>();
                     while (objects3D.MoveNext())
                     {
 	                    GameObject3D obj = objects3D.Current;
-	                    if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 _, out Vector3 _, out int _)) results.Add(obj);
+                        if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 collisionPoint, out Vector3 _, out int _))
+                        {
+                            collisionPoints.Add((obj, collisionPoint));
+                        }
                     }
+
+                    collisionPoints.Sort(ObjectComparison3D);
+                    for (int i = 0; i < collisionPoints.Count; i++)
+                    {
+                        var pair = collisionPoints[i];
+                        results.Add(pair.Item1);
+                    }
+                }
+                else
+                {
+                    results.Clear();
                 }
             }
             else
@@ -121,8 +151,6 @@ public abstract partial class WorldBaseEditor
 
             // temp
             // =============================================
-
-            if (mouseFocusNameplate != null) results.Add(mouseFocusNameplate.Object);
 
             RolloverObjects(results);
         }
@@ -352,8 +380,11 @@ public abstract partial class WorldBaseEditor
     private void RolloverObjects(List<BaseGameObject>? objs, bool incrementSel = false)
     {
         if (objs?.Count == 0) objs = null;
-        objs?.Sort(Map2D.ObjectComparison);
-        objs?.Reverse();
+        if (this is World2DEditor)
+        {
+            objs?.Sort(Map2D.ObjectComparison);
+            objs?.Reverse();
+        }
 
         var rolloverChanged = false;
 
