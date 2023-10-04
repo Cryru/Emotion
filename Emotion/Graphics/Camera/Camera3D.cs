@@ -35,7 +35,7 @@ namespace Emotion.Graphics.Camera
 
 		public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom)
 		{
-			NearZ = 0.1f;
+			NearZ = 10f;
 			FarZ = 10_000;
 			_inputPriority = inputPriority;
 		}

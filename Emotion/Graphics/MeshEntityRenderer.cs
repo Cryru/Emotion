@@ -328,7 +328,7 @@ namespace Emotion.Graphics
 			Gl.ReadBuffer(Gl.NONE);
 
 			// todo: cascades
-			float nearClip = 1f;
+			float nearClip = 10f;
 			float farClip = 1000;
 
 			// Get camera frustum for the current cascade clip.
@@ -336,7 +336,8 @@ namespace Emotion.Graphics
 			float fov = cam3D.FieldOfView;
 			var cameraProjection = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, nearClip, farClip);
 			Matrix4x4 cameraView = c.Camera.ViewMatrix;
-			Vector4[] corners = GetFrustumCornersWorldSpace(cameraView * cameraProjection, out Vector3 center);
+			Span<Vector4> corners = stackalloc Vector4[8];
+			GetFrustumCornersWorldSpace(corners, cameraView * cameraProjection, out Vector3 center);
 
 			// The light view matrix looks at the center of the frustum.
 			Vector3 eye = center + model.SunDirection;
@@ -380,12 +381,11 @@ namespace Emotion.Graphics
 			_renderingShadowMap = true;
 		}
 
-		private static Vector4[] GetFrustumCornersWorldSpace(Matrix4x4 cameraViewProj, out Vector3 frustumCenter)
+		private static void GetFrustumCornersWorldSpace(Span<Vector4> frustumCorners, Matrix4x4 cameraViewProj, out Vector3 frustumCenter)
 		{
 			Matrix4x4 inv = cameraViewProj.Inverted();
 
 			Vector4 center = Vector4.Zero;
-			var frustumCorners = new Vector4[8];
 			var idx = 0;
 			for (var x = 0; x < 2; ++x)
 			{
@@ -403,7 +403,6 @@ namespace Emotion.Graphics
 			}
 
 			frustumCenter = (center / 8).ToVec3();
-			return frustumCorners;
 		}
 
 		public void EndRenderShadowMap(RenderComposer c)
