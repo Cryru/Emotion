@@ -29,21 +29,21 @@ void main()
 #else
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5; 
+	// perform perspective divide
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	projCoords = projCoords * 0.5 + 0.5; 
 
-    if (projCoords.z > 1.0)
-        return 0.0;
+	if (projCoords.z > 1.0)
+		return 0.0;
 
-    float closestDepth = getTextureColor(shadowMapTexture, projCoords.xy).r;
-    float currentDepth = projCoords.z;
+	float closestDepth = getTextureColor(shadowMapTexture, projCoords.xy).r;
+	float currentDepth = projCoords.z;
 
-    // Fight shadow acne
-    float biasMax = 0.0003;
+	// Fight shadow acne
+	float biasMax = 0.0003;
 	float biasMin = 0.0001;
 	float bias = max(biasMax * (1.0 - dot(normalize(fragPosLightSpace.xyz), fragLightDir)), biasMin);
-    //float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;  
+	//float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
 	float shadow = 0.0;
 	vec2 texelSize = (1.0 / textureSize(shadowMapTexture, 0)) * 0.5f;
@@ -51,13 +51,13 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	{
 		for(int y = 0; y <= 1; ++y)
 		{
-			float pcfDepth = texture(shadowMapTexture, projCoords.xy + vec2(x, y) * texelSize).r; 
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
-		}    
+			float pcfDepth = texture(shadowMapTexture, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
 	}
 	shadow /= 4.0;
 
-    return shadow;
+	return shadow;
 }
 
 void main()
