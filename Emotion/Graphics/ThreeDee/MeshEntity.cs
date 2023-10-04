@@ -20,6 +20,8 @@ public class MeshEntity
     public Matrix4x4 LocalTransform { get; set; } = Matrix4x4.Identity;
     public Mesh[]? Meshes { get; set; }
 
+	public Vector3 Forward = new Vector3(1, 0, 0);
+
     // Animation
     public SkeletalAnimation[]? Animations { get; set; }
     public SkeletonAnimRigRoot? AnimationRig { get; set; }

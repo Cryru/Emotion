@@ -230,5 +230,22 @@ namespace Emotion.Graphics.Camera
 			Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
 			return new Ray3D(Position, dir - Position);
 		}
+
+		public Quaternion GetCameraOrientation()
+		{
+			Vector3 lookat = LookAt;
+			Vector3 forward = Vector3.Normalize(new Vector3(lookat.X, lookat.Y, 0));
+			Vector3 up = RenderComposer.Up;
+			Vector3 right = Vector3.Cross(forward, up);
+
+			Matrix4x4 rotationMatrix = new Matrix4x4(
+				right.X, right.Y, right.Z, 0,
+				forward.X, forward.Y, forward.Z, 0,
+				up.X, up.Y, up.Z, 0,
+				0, 0, 0, 1
+			);
+
+			return Quaternion.CreateFromRotationMatrix(rotationMatrix);
+		}
 	}
 }

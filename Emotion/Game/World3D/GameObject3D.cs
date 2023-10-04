@@ -10,6 +10,7 @@ using Emotion.Game.World;
 using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
+using Emotion.Utility;
 
 #endregion
 
@@ -420,4 +421,16 @@ public class GameObject3D : BaseGameObject
 	}
 
 	#endregion
+	
+	public void RotateZToFacePoint(Vector3 pt)
+	{
+		Vector3 forward = Entity == null ? Vector3.UnitX : Entity.Forward;
+
+		var direction = Vector3.Normalize(Position - pt);
+		var angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
+
+		var rotation = Rotation;
+		rotation.Z = angle;
+		Rotation = rotation;
+	}
 }
