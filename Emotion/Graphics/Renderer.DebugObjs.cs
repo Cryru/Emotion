@@ -17,6 +17,8 @@ namespace Emotion.Graphics
 		private List<Mesh>? _spheres;
 		private List<(Vector3, Vector3)>? _lines;
 
+		private static Color _defaultDbgObjectColor = Color.Green * 0.5f;
+
 		public void DbgAddTriangle(Vector3 p1, Vector3 p2, Vector3 p3)
 		{
 			if (!Engine.Configuration.DebugMode) return;
@@ -26,15 +28,16 @@ namespace Emotion.Graphics
 			_triangles.Add(p3);
 		}
 
-		public void DbgAddPoint(Vector3 p, float radius = 1f)
+		public void DbgAddPoint(Vector3 p, float radius = 1f, Color? color = null)
 		{
 			if (!Engine.Configuration.DebugMode) return;
 
+			color ??= _defaultDbgObjectColor;
 			var meshGen = new SphereMeshGenerator();
 			_spheres ??= new();
 			_spheres.Add(meshGen.GenerateMesh().TransformMeshVertices(
 					Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
-				).ColorMeshVertices(Color.Green * 0.5f));
+				).ColorMeshVertices(color.Value));
 		}
 
 		public void DbgAddLine(Vector3 p, Vector3 p2, bool relative = false)
@@ -54,13 +57,15 @@ namespace Emotion.Graphics
 
 		public void RenderDebugObjects()
 		{
+			SetUseViewMatrix(true);
+
 			if (_triangles != null && _triangles.Count != 0)
 			{
 				Span<VertexData> memory = RenderStream.GetStreamMemory((uint) _triangles.Count, BatchMode.SequentialTriangles);
 				for (var i = 0; i < memory.Length; i++)
 				{
 					memory[i].Vertex = _triangles[i];
-					memory[i].Color = (Color.Green * 0.5f).ToUint();
+					memory[i].Color = _defaultDbgObjectColor.ToUint();
 					memory[i].UV = Vector2.Zero;
 				}
 			}
@@ -78,7 +83,7 @@ namespace Emotion.Graphics
 				for (int i = 0; i < _lines.Count; i++)
 				{
 					var line = _lines[i];
-					RenderLine(line.Item1, line.Item2, Color.Green * 0.5f, 1, false);
+					RenderLine(line.Item1, line.Item2, _defaultDbgObjectColor, 1, false);
 				}
 			}
 		}
