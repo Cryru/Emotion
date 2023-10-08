@@ -35,6 +35,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		ObjectUId = Object.UniqueId;
 		ObjectMap = Object.Map;
 
+		if (_fields == null) return;
 		if (obj is GameObject3D)
 		{
 			InjectDontSerializeProperty<Transform>("RotationDeg");
