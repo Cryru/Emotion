@@ -1,6 +1,6 @@
 #version v 
 
-#if SKINNED_SHADOW_MAP
+#ifdef SKINNED_SHADOW_MAP
 #define SHADOW_MAP 1
 #define SKINNED 1
 #endif
@@ -19,7 +19,7 @@ layout(location = 2)in vec4 color;
 
 layout(location = 3)in vec3 normal; 
 
-#if SKINNED
+#ifdef SKINNED
 layout(location = 4)in vec4 boneIds;
 layout(location = 5)in vec4 boneWeights;
 #endif
@@ -30,12 +30,9 @@ uniform vec4 objectTint;
 uniform vec4 sunColor;
 uniform vec3 sunDirection;
 
-#if SHADOW_MAP
-
-#endif
 uniform mat4 lightViewProj;
 
-#if SKINNED
+#ifdef SKINNED
 const int MAX_BONES = 126;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 boneMatrices[MAX_BONES];
@@ -64,7 +61,7 @@ void main() {
 
     vec4 totalPosition = vec4(vertPos, 1.0);
 
-    #if SKINNED
+    #ifdef SKINNED
 
     mat4 totalTransform = boneMatrices[int(boneIds[0])] * boneWeights[0];
     for (int i = 1; i < MAX_BONE_INFLUENCE; i++)
@@ -76,7 +73,7 @@ void main() {
     #endif
 
     // Multiply by projection.
-    #if SHADOW_MAP
+    #ifdef SHADOW_MAP
         gl_Position = lightViewProj * modelMatrix * totalPosition;
     #else
         gl_Position = projectionMatrix * viewMatrix * modelMatrix * totalPosition;
