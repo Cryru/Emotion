@@ -40,4 +40,9 @@ public sealed class InfiniteGrid : Quad3D
 
 		base.RenderInternal(c);
 	}
+
+	public override bool IsTransparent()
+	{
+		return true;
+	}
 }
