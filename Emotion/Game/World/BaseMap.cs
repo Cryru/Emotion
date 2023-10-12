@@ -412,9 +412,9 @@ public abstract class BaseMap
 	public void InvalidateObjectBounds(BaseGameObject obj)
 	{
 		if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) return;
-		if (obj.MapFlags.HasFlag(Map2DObjectFlags.UpdateWorldTree)) return;
+		if (obj.MapFlags.HasFlag(MapFlags.UpdateWorldTree)) return;
 		_objectsToUpdate.Enqueue(obj);
-		obj.MapFlags |= Map2DObjectFlags.UpdateWorldTree;
+		obj.MapFlags |= MapFlags.UpdateWorldTree;
 	}
 
 	protected virtual void ProcessObjectChanges()
@@ -446,7 +446,7 @@ public abstract class BaseMap
 		{
 			if (obj.ObjectState == ObjectState.Destroyed) continue;
 			_worldTree.UpdateObjectInTree(obj);
-			obj.MapFlags &= ~Map2DObjectFlags.UpdateWorldTree;
+			obj.MapFlags &= ~MapFlags.UpdateWorldTree;
 		}
 	}
 

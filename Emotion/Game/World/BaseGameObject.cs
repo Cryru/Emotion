@@ -59,7 +59,7 @@ public abstract class BaseGameObject : Transform
 	/// Object flags managed by the map in runtime.
 	/// </summary>
 	[DontSerialize]
-	public Map2DObjectFlags MapFlags { get; set; }
+	public MapFlags MapFlags { get; set; }
 
 	#endregion
 
