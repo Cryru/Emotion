@@ -3,9 +3,12 @@
 uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMapTexture;
 uniform vec3 iResolution; // viewport resolution (in pixels)
- 
+
 uniform vec4 sunColor;
 uniform vec3 sunDirection;
+
+uniform vec4 diffuseColor;
+uniform vec4 objectTint;
 uniform vec4 ambientColor;
 
 // Comes in from the vertex shader. 
@@ -60,17 +63,43 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	return shadow;
 }
 
+vec3 toGrayscale(in vec3 color)
+{
+    // Perceptual greyscale
+    float grey = color.r * 0.3 + color.g * 0.7 + color.b * 0.1;
+    return vec3(grey, grey, grey);
+}
+
 void main()
 {
     // Diffuse
     vec3 diffuseCalc = max(dot(fragNormal, fragLightDir), 0.0) * sunColor.rgb;
-	vec3 diffuse = sunColor.rgb == vec3(0.0) ? vec3(1.0) : diffuseCalc;
+    vec3 diffuse = sunColor.rgb == vec3(0.0) ? vec3(1.0) : diffuseCalc;
 
     // Shadow
-    float shadow = ShadowCalculation(fragPositionLightSpace);       
+    float shadow = ShadowCalculation(fragPositionLightSpace);
 
-    vec4 objectColor = getTextureColor(diffuseTexture, UV) * vertColor;
+    vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
     vec4 finalColor = vec4((ambientColor.rgb + (1.0 - shadow) * diffuse), 1.0) * objectColor;
+	
+	vec3 tintColor = objectTint.rgb;
+	if (tintColor != vec3(1.0))
+	{
+		// Centre the colour values using the RGB average
+		vec3 power = (tintColor.r+tintColor.g+tintColor.b)*0.3333-tintColor;
+
+		// Increase the perceptual saturation (this is the downside of simple RGB calculations - you easily lose hue/sat accuracy)
+		power *= 2.0;
+		
+		vec3 finalColorGray = toGrayscale(finalColor.rgb);
+		vec3 finalColorTinted = pow(finalColorGray, 1.0 + power);
+		finalColor = vec4(finalColorTinted.rgb, finalColor.a);
+	}
+	else
+	{
+		// None or alpha only.
+		finalColor = finalColor * objectTint;
+	}
 
     fragColor = finalColor;
     if (fragColor.a < 0.01)discard;

@@ -24,9 +24,6 @@ layout(location = 4)in vec4 boneIds;
 layout(location = 5)in vec4 boneWeights;
 #endif
 
-uniform vec4 diffuseColor;
-uniform vec4 objectTint;
-
 uniform vec4 sunColor;
 uniform vec3 sunDirection;
 
@@ -51,7 +48,7 @@ out vec4 fragPositionLightSpace;
 void main() { 
     // Pass to frag.
     UV = uv;
-    vertColor = color * diffuseColor * objectTint;
+    vertColor = color;
 
     fragPosition = vec3(modelMatrix * vec4(vertPos, 1.0));
     fragPositionLightSpace = lightViewProj * vec4(fragPosition, 1.0);
