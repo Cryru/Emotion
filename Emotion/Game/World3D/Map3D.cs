@@ -61,19 +61,44 @@ public class Map3D : BaseMap
 			c.RenderStream.MeshRenderer.EndRenderShadowMap(c);
 		}
 
+		bool anyTransparent = false;
 		for (var i = 0; i < _renderQuery.Count; i++)
 		{
 			GameObject3D obj = _renderQuery[i];
-			if (obj.IsTransparent()) continue;
+			if (obj.IsTransparent())
+			{
+				anyTransparent = true;
+				continue;
+			}
 			obj.Render(c);
 		}
 
-		_renderQuery.Sort(ObjectComparison);
-		for (var i = 0; i < _renderQuery.Count; i++)
+		if (anyTransparent)
 		{
-			GameObject3D obj = _renderQuery[i];
-			if (!obj.IsTransparent()) continue;
-			obj.Render(c);
+			// Transparent objects are first sorted by distance from the camera, so they
+			// can be drawn from furthest to closest and alpha blend with each other.
+			//
+			// Then they are drawn twice - first without writing to the color buffer
+			// so they can populate the depth buffer with the highest depth, and then
+			// drawn normally. This will prevent faces of one object from occluding other
+			// faces in that same object, since they will be depth clipped.
+
+			_renderQuery.Sort(ObjectComparison);
+			c.ToggleRenderColor(false);
+			for (var i = 0; i < _renderQuery.Count; i++)
+			{
+				GameObject3D obj = _renderQuery[i];
+				if (!obj.IsTransparent()) continue;
+				obj.Render(c);
+			}
+
+			c.ToggleRenderColor(true);
+			for (var i = 0; i < _renderQuery.Count; i++)
+			{
+				GameObject3D obj = _renderQuery[i];
+				if (!obj.IsTransparent()) continue;
+				obj.Render(c);
+			}
 		}
 	}
 }
