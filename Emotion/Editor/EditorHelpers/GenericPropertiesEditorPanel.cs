@@ -45,7 +45,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 		if (_obj == null)
 		{
-			var editorLabel = new MapEditorLabel("Object has no parameterless constructor and cannot be serialized (or edited).");
+			var editorLabel = new MapEditorLabel("Object has no parameterless constructor\nand cannot be serialized (or edited).");
 			_contentParent.AddChild(editorLabel);
 			return;
 		}

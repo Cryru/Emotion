@@ -94,8 +94,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 		public static bool HasParameterlessConstructor(object obj)
 		{
 			Type t = obj.GetType();
-			return t.GetConstructor(BindingFlags.NonPublic, Type.EmptyTypes) != null ||
-					t.GetConstructor(Type.EmptyTypes) != null; ;
+			return t.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, Type.EmptyTypes) != null ||
+					t.GetConstructor(BindingFlags.Public | BindingFlags.Instance, Type.EmptyTypes) != null;
 		}
 
 		/// <summary>
