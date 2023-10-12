@@ -8,7 +8,6 @@ using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
-using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
@@ -125,7 +124,7 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 		if (Object is GameObject3D obj3D)
 		{
 			metaText.Append("\n");
-			metaText.Append("Bound Radius: ");
+			metaText.Append($"[{obj3D.Entity?.Name ?? "<null>"}] Bound Radius: ");
 			metaText.Append(obj3D.BoundingSphere.Radius);
 		}
 
