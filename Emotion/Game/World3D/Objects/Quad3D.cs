@@ -3,6 +3,7 @@
 #region Using
 
 using System.Threading.Tasks;
+using Emotion.Game.World;
 using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -20,6 +21,11 @@ public class Quad3D : GameObject3D
 	public Texture? Texture = null;
 
 	public static MeshEntity? QuadEntity;
+
+	public Quad3D()
+	{
+		Size3D = new Vector3(10);
+	}
 
 	public override Task LoadAssetsAsync()
 	{
@@ -58,7 +64,7 @@ public class Quad3D : GameObject3D
 		}
 
 		Entity = QuadEntity;
-		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveAmbient;
+		ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
 
 		return base.LoadAssetsAsync();
 	}

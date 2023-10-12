@@ -13,7 +13,9 @@ using Emotion.IO;
 namespace Emotion.Game.ThreeDee;
 
 /// <summary>
-/// Holds state information referring to a mesh entity.
+/// Holds runtime state information referring to a mesh entity.
+/// This is information that only applies to the particular instance of the
+/// entity is use by the object, but not pertaining to the object itself.
 /// </summary>
 [DontSerialize]
 public class MeshEntityMetaState
@@ -22,6 +24,11 @@ public class MeshEntityMetaState
 	/// Whether the mesh index should be rendered.
 	/// </summary>
 	public bool[] RenderMesh = Array.Empty<bool>();
+
+	/// <summary>
+	/// Additional scale for all dimensions of the entity.
+	/// </summary>
+	public float Scale = 1f;
 
 	/// <summary>
 	/// A color to tint all vertices of the entity in.
