@@ -10,7 +10,6 @@ using Emotion.Game.World;
 using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
 
 #endregion
 
@@ -94,6 +93,9 @@ public class GameObject3D : BaseGameObject
 
 	public GameObject3D(string name) : base(name)
 	{
+		Entity = Cube.GetEntity();
+		EntityMetaState!.Scale = 10f;
+
 		_width = 1;
 		_depth = 1;
 		_height = 1;
@@ -105,6 +107,9 @@ public class GameObject3D : BaseGameObject
 	// Serialization constructor.
 	protected GameObject3D()
 	{
+		Entity = Cube.GetEntity();
+		EntityMetaState!.Scale = 10f;
+
 		_width = 1;
 		_depth = 1;
 		_height = 1;
@@ -147,6 +152,7 @@ public class GameObject3D : BaseGameObject
 		base.Resized();
 
 		float entityScale = Entity?.Scale ?? 1f;
+		entityScale = entityScale * EntityMetaState.Scale;
 
 		Assert(!float.IsNaN(_width));
 		Assert(!float.IsNaN(_depth));
@@ -207,14 +213,14 @@ public class GameObject3D : BaseGameObject
 		_verticesCacheCollision = null;
 		_entity.CacheBounds(); // Ensure entity bounds are cached.
 
-        // Update unit scale.
-        Resized();
+		// Update unit scale.
+		Resized();
 
-        // Reset the animation.
-        // This will also set the default bone matrices.
+		// Reset the animation.
+		// This will also set the default bone matrices.
 		// This will also calculate bounds.
 		// This will also calculate the vertices collisions.
-        SetAnimation(null);
+		SetAnimation(null);
 	}
 
 	public virtual void SetAnimation(string? name)
@@ -422,15 +428,15 @@ public class GameObject3D : BaseGameObject
 	}
 
 	#endregion
-	
+
 	public void RotateZToFacePoint(Vector3 pt)
 	{
-		Vector3 forward = Entity == null ? Vector3.UnitX : Entity.Forward;
+		Vector3 forward = Entity?.Forward ?? Vector3.UnitX;
 
-		var direction = Vector3.Normalize(Position - pt);
-		var angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
+		Vector3 direction = Vector3.Normalize(Position - pt);
+		float angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
 
-		var rotation = Rotation;
+		Vector3 rotation = Rotation;
 		rotation.Z = angle;
 		Rotation = rotation;
 	}

@@ -4,6 +4,8 @@
 
 using System.Threading.Tasks;
 using Emotion.Editor;
+using Emotion.Game.World;
+using Emotion.Game.World2D;
 using Emotion.IO;
 
 #endregion
@@ -12,10 +14,9 @@ namespace Emotion.Game.World3D.Objects;
 
 public class GenericObject3D : GameObject3D
 {
-	[AssetFileName<MeshAsset>]
-	public string? EntityPath;
+	[AssetFileName<MeshAsset>] public string? EntityPath;
 
-	private string? _setAnimationToOnLoad = null;
+	private string? _setAnimationToOnLoad;
 
 	public override async Task LoadAssetsAsync()
 	{
@@ -24,7 +25,6 @@ public class GenericObject3D : GameObject3D
 
 		var asset = await Engine.AssetLoader.GetAsync<MeshAsset>(EntityPath);
 		Entity = asset?.Entity;
-
 	}
 
 	public override void Init()
@@ -39,13 +39,13 @@ public class GenericObject3D : GameObject3D
 	}
 
 	public override void SetAnimation(string? name)
-    {
-		if (ObjectState == World2D.ObjectState.None && name != null)
+	{
+		if (ObjectState == ObjectState.None && name != null)
 		{
 			_setAnimationToOnLoad = name;
 			return;
-        }
+		}
 
-        base.SetAnimation(name);
-    }
+		base.SetAnimation(name);
+	}
 }

@@ -3,6 +3,7 @@
 #region Using
 
 using System.Threading.Tasks;
+using Emotion.Game.World;
 using Emotion.Graphics;
 
 #endregion
@@ -18,9 +19,9 @@ public sealed class InfiniteGrid : Quad3D
 	public InfiniteGrid()
 	{
 		Size3D = _infiniteGridSize.ToVec3(1);
-		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveShadow;
-		ObjectFlags |= World2D.ObjectFlags.Map3DDontThrowShadow;
-		ObjectFlags |= World2D.ObjectFlags.Map3DDontReceiveAmbient;
+		ObjectFlags |= ObjectFlags.Map3DDontReceiveShadow;
+		ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
+		ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
 	}
 
 	public override async Task LoadAssetsAsync()
