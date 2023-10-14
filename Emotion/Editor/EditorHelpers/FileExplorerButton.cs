@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.IO;
+using System.Threading.Tasks;
 using Emotion.Game.World.Editor;
 using Emotion.IO;
 using Emotion.UI;
@@ -16,7 +17,11 @@ public class FileExplorerButton : UICallbackButton
 	private UIText _label;
 	private UISolidColor _bg;
 	private UISolidColor _notch;
-	private UIText _extension;
+
+	private string _extension = "";
+	private string _fileName = "";
+
+	private Task? _previewTask;
 
 	public FileExplorerButton()
 	{
@@ -38,23 +43,10 @@ public class FileExplorerButton : UICallbackButton
 			WindowColor = MapEditorColorPalette.ButtonColor,
 			Margins = new Rectangle(0, 0, 0, 2),
 			MaxSizeY = 30,
+			Id = "buttonBackground"
 		};
 		_bg = bg;
 		AddChild(bg);
-
-		var ext = new UIText
-		{
-			ParentAnchor = UIAnchor.CenterCenter,
-			Anchor = UIAnchor.CenterCenter,
-			ScaleMode = UIScaleMode.FloatScale,
-			WindowColor = MapEditorColorPalette.TextColor,
-			FontFile = "Editor/UbuntuMono-Regular.ttf",
-			FontSize = MapEditorColorPalette.EditorButtonTextSize,
-			IgnoreParentColor = true,
-			Margins = new Rectangle(5, 0, 5, 0)
-		};
-		_extension = ext;
-		bg.AddChild(ext);
 
 		var txt = new UIText
 		{
@@ -77,17 +69,21 @@ public class FileExplorerButton : UICallbackButton
 
 	public void SetFileName(string fileName)
 	{
+		_fileName = fileName;
 		string extension = Path.GetExtension(fileName);
-		_extension.Text = extension;
+		_extension = extension;
 		_label.Text = AssetLoader.GetFileName(fileName);
 		_notch.Visible = false;
+		GeneratePreviewUI();
 	}
 
 	public void SetDirectory(string dirName)
 	{
-		_extension.Text = dirName;
+		_fileName = dirName;
+		_extension = dirName;
 		_label.Text = "";
 		_notch.Visible = true;
+		GeneratePreviewUI();
 	}
 
 	public override void OnMouseEnter(Vector2 _)
@@ -102,5 +98,61 @@ public class FileExplorerButton : UICallbackButton
 		base.OnMouseLeft(_);
 		_bg.WindowColor = MapEditorColorPalette.ButtonColor;
 		_notch.WindowColor = MapEditorColorPalette.ButtonColor;
+	}
+
+	private void GeneratePreviewUI()
+	{
+		Task? currentTask = null;
+		currentTask = Task.Run(() =>
+		{
+			var previewWindow = GeneratePreviewUIInternal(_extension);
+			if (currentTask == _previewTask)
+			{
+				var filePreview = GetWindowById("FilePreview");
+				if (filePreview != null) filePreview.Parent.RemoveChild(filePreview);
+
+				previewWindow.Id = "FilePreview";
+				var bg = GetWindowById("buttonBackground");
+				bg.AddChild(previewWindow);
+			}
+		});
+		_previewTask = currentTask;
+	}
+
+	private UIBaseWindow GeneratePreviewUIInternal(string extension)
+	{
+		var bg = GetWindowById("buttonBackground");
+
+		if (_extension == ".em3" || _extension == ".obj"
+#if ASSIMP
+			|| _extension == ".fbx" || _extension == ".gltf" || _extension == ".dae"
+#endif
+			)
+		{
+			var obj3DPreview = new UIMeshEntityWindow();
+			obj3DPreview.AssetPath = _fileName;
+			obj3DPreview.ParentAnchor = UIAnchor.CenterCenter;
+			obj3DPreview.Anchor = UIAnchor.CenterCenter;
+
+			return obj3DPreview;
+		}
+		// If unknown file type then display the
+		// preview as a label of the file extension.
+		else
+		{
+			var ext = new UIText
+			{
+				ParentAnchor = UIAnchor.CenterCenter,
+				Anchor = UIAnchor.CenterCenter,
+				ScaleMode = UIScaleMode.FloatScale,
+				WindowColor = MapEditorColorPalette.TextColor,
+				FontFile = "Editor/UbuntuMono-Regular.ttf",
+				FontSize = MapEditorColorPalette.EditorButtonTextSize,
+				IgnoreParentColor = true,
+				Margins = new Rectangle(5, 0, 5, 0),
+				Text = _extension
+			};
+			return ext;
+		}
 	}
 }
