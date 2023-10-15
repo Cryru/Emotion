@@ -17,11 +17,13 @@ namespace Emotion.Editor.EditorHelpers;
 public class GenericPropertiesEditorPanel : EditorPanel
 {
 	public Action<string, object?>? OnPropertyEdited;
+	public Action<object?>? OnNonComplexTypeValueChanged;
 
-	protected List<EditorUtility.TypeAndFieldHandlers> _fields;
+	protected List<EditorUtility.TypeAndFieldHandlers>? _fields;
 	protected List<IPropEditorGeneric> _editorUIs;
 
-	protected object _obj;
+	protected object? _obj;
+	protected bool _nonComplexType;
 
 	protected bool _spawnFieldGroupHeaders = true;
 
@@ -30,10 +32,33 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		_editorUIs = new();
 
 		var objType = obj.GetType();
-		if (!objType.IsValueType && !EditorUtility.HasParameterlessConstructor(obj))
+
+		// Non complex types (string, int, etc.) can also be editted via this
+		// panel but since there is no reference back to the object field that contains
+		// them they need to be updated via a OnNonComplexTypeValueChanged callback.
+		var fieldHandler = XMLHelpers.GetTypeHandler(objType);
+		bool nonComplexType = fieldHandler is not XMLComplexBaseTypeHandler;
+		if (nonComplexType)
 		{
+			_obj = obj;
+			_fields = new List<EditorUtility.TypeAndFieldHandlers>
+			{
+				new EditorUtility.TypeAndFieldHandlers(objType)
+				{
+					Fields = new List<XMLFieldHandler>()
+					{
+						new XMLFieldHandler(null, fieldHandler)
+					}
+				}
+			};
+			_nonComplexType = true;
 			return;
 		}
+
+		// Types without parameterless constructors will explode since they cannot be created.
+		// todo: look into at least displaying their values.
+		if (!objType.IsValueType && !EditorUtility.HasParameterlessConstructor(obj))
+			return;
 
 		_obj = obj;
 		_fields = EditorUtility.GetTypeFields(obj);
@@ -113,11 +138,11 @@ public class GenericPropertiesEditorPanel : EditorPanel
 				{
 					editor.Field = field;
 
-					object? propertyValue = field.ReflectionInfo.GetValue(_obj);
+					object? propertyValue = _nonComplexType ? _obj: field.ReflectionInfo.GetValue(_obj); // Non-complex types have no reflection info.
 					editor.SetValue(propertyValue); // Initialize value before attaching callback.
 					editor.SetCallbackValueChanged(newValue => { ApplyObjectChange(editor, field, newValue); });
 
-					var editorAsWnd = (UIBaseWindow) editor;
+					var editorAsWnd = (UIBaseWindow)editor;
 					editorAsWnd.Anchor = UIAnchor.CenterRight;
 					editorAsWnd.ParentAnchor = UIAnchor.CenterRight;
 					editorAsWnd.ZOffset = 10;
@@ -153,7 +178,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(Matrix4x4)) return new PropEditorMatrix();
 		if (field.TypeHandler.Type == typeof(string))
 		{
-			var assetFileNameAttribute = field.ReflectionInfo.GetAttribute<AssetFileNameAttribute>();
+			var assetFileNameAttribute = field.ReflectionInfo?.GetAttribute<AssetFileNameAttribute>();
 			if (assetFileNameAttribute != null)
 				return new PropEditorStringPath(assetFileNameAttribute);
 
@@ -161,7 +186,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		}
 
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
-		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo.Nullable);
+		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo?.Nullable ?? false);
 
 		if (field.TypeHandler is XMLComplexTypeHandler) return new PropEditorNestedObject();
 		if (field.TypeHandler.Type == typeof(Color)) return new PropEditorNestedObject(); // temp
@@ -172,13 +197,25 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	protected virtual void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)
 	{
+		var editorWindow = editor as UIBaseWindow;
+
+		if (_nonComplexType)
+		{
+			if (!Helpers.AreObjectsEqual(_obj, value)) OnNonComplexTypeValueChanged?.Invoke(value);
+			_obj = value;
+			OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);
+			return;
+		}
+
+		AssertNotNull(_obj);
+
 		object? oldValue = field.ReflectionInfo.GetValue(_obj);
 		field.ReflectionInfo.SetValue(_obj, value);
 
-		if (!Helpers.AreObjectsEqual(oldValue, value)) OnPropertyEdited?.Invoke(field.Name, oldValue);
+		if (field.TypeHandler is XMLArrayTypeHandler || !Helpers.AreObjectsEqual(oldValue, value))
+			OnPropertyEdited?.Invoke(field.Name, oldValue);
 
-		var editorWindow = editor as UIBaseWindow;
-		OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+		OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);
 	}
 
 	protected override bool UpdateInternal()
@@ -197,11 +234,11 @@ public class GenericPropertiesEditorPanel : EditorPanel
 			if (Controller?.InputFocus != null && editorWindow != null && Controller.InputFocus.IsWithin(editorWindow)) continue;
 
 			XMLFieldHandler? field = editor.Field;
-			object? propertyValue = field.ReflectionInfo.GetValue(_obj);
+			object? propertyValue = _nonComplexType ? _obj : field.ReflectionInfo?.GetValue(_obj);
 			if (!Helpers.AreObjectsEqual(editor.GetValue(), propertyValue))
 			{
 				editor.SetValue(propertyValue);
-				OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+				OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);
 			}
 		}
 	}
