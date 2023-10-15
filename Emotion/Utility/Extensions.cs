@@ -418,7 +418,26 @@ namespace Emotion.Utility
 
 			int secondCopyLength = array.Length - elementIdx - 1;
 			if (secondCopyLength != 0)
-				Array.Copy(array, elementIdx, newArray, elementIdx - 1, secondCopyLength);
+				Array.Copy(array, elementIdx, newArray, Math.Max(0, elementIdx - 1), secondCopyLength);
+
+			return newArray;
+		}
+
+		/// <inheritdoc cref="RemoveFromArray{T}(T[], int)"/>
+		public static Array RemoveFromArray(this Array array, int elementIdx)
+		{
+			if (array.Length - 1 < elementIdx) return array;
+			if (array.Length == 1 && elementIdx == 0) return null;
+
+			var newArray = Array.CreateInstance(array.GetType().GetElementType(), array.Length - 1);
+
+			int firstCopyLength = elementIdx;
+			if (elementIdx != 0)
+				Array.Copy(array, 0, newArray, 0, elementIdx);
+
+			int secondCopyLength = array.Length - elementIdx;
+			if (secondCopyLength != 0)
+				Array.Copy(array, elementIdx, newArray, Math.Max(0, elementIdx - 1), secondCopyLength);
 
 			return newArray;
 		}
@@ -448,6 +467,18 @@ namespace Emotion.Utility
 			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i].Equals(element)) return i;
+			}
+
+			return -1;
+		}
+
+		/// <inheritdoc cref="IndexOf{T}(T[], T)" />
+		public static int IndexOf(this Array array, object element)
+		{
+			for (var i = 0; i < array.Length; i++)
+			{
+				object item = array.GetValue(i);
+				if (object.ReferenceEquals(item, element)) return i;
 			}
 
 			return -1;
