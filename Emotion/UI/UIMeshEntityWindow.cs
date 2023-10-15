@@ -66,7 +66,7 @@ public class UIMeshEntityWindow : UIBaseWindow
 			_previewObject.Entity = _meshAsset.Entity;
 		}
 
-		if (!_previewImageValid)
+		if (!_previewImageValid && _previewObject != null)
 		{
 			_previewObject.ObjectState = ObjectState.Alive;
 			_previewObject.Init();
