@@ -100,13 +100,15 @@ namespace Emotion.Standard.XML
 		/// <param name="typeName">The name of the type.</param>
 		/// <returns>The type under that name.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static Type? GetTypeByName(string typeName)
+		public static Type? GetTypeByName(string? typeName)
 		{
+			if (typeName == null) return null;
 			return ResolvedTypes.GetOrAddValue(typeName, GetTypeByNameFactory);
 		}
 
-		public static Type? GetTypeByNameWithTypeHint(Type typeHint, string typeName)
+		public static Type? GetTypeByNameWithTypeHint(Type typeHint, string? typeName)
 		{
+			if (typeName == null) return null;
 			if (ResolvedTypes.TryGetValue(typeName, out Lazy<Type?>? evalForKey)) return evalForKey.Value;
 
 			// It is possible to load a document which was serialized as its own type, and now

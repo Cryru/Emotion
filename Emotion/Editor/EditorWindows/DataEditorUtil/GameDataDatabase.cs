@@ -95,9 +95,10 @@ public static class GameDataDatabase
 		return _database.Keys.ToArray();
 	}
 
-	public static Dictionary<string, GameDataObject>? GetObjectsOfType(Type t)
+	public static Dictionary<string, GameDataObject>? GetObjectsOfType(Type? t)
 	{
 		if (!Initialized) return null;
+		if (t == null) return null;
 		AssertNotNull(_database);
 		return !_database.ContainsKey(t) ? null : _database[t];
 	}
