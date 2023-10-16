@@ -25,6 +25,7 @@ public class Quad3D : GameObject3D
 	public Quad3D()
 	{
 		Size3D = new Vector3(10);
+		ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
 	}
 
 	public override Task LoadAssetsAsync()
@@ -64,7 +65,6 @@ public class Quad3D : GameObject3D
 		}
 
 		Entity = QuadEntity;
-		ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
 
 		return base.LoadAssetsAsync();
 	}

@@ -121,7 +121,13 @@ public class GameObject3D : BaseGameObject
 	protected override void UpdateInternal(float dt)
 	{
 		_time += dt;
-		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+		if (_entity != null)
+		{
+			lock (_entity)
+			{
+				_entity.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+			}
+		}
 		base.UpdateInternal(dt);
 	}
 
@@ -189,38 +195,41 @@ public class GameObject3D : BaseGameObject
 	{
 		if (_entity?.Meshes == null) return;
 
-		// Create bone matrices for the meshes (if they have bones)
-		_boneMatricesPerMesh = new Matrix4x4[_entity.Meshes.Length][];
-
-		for (var i = 0; i < _entity.Meshes.Length; i++)
+		lock(_entity)
 		{
-			Mesh mesh = _entity.Meshes[i];
-			var boneCount = 1; // idx 0 is identity
-			if (mesh.Bones != null)
+			// Create bone matrices for the meshes (if they have bones)
+			_boneMatricesPerMesh = new Matrix4x4[_entity.Meshes.Length][];
+
+			for (var i = 0; i < _entity.Meshes.Length; i++)
 			{
-				boneCount += mesh.Bones.Length;
-				if (boneCount > MAX_BONES)
+				Mesh mesh = _entity.Meshes[i];
+				var boneCount = 1; // idx 0 is identity
+				if (mesh.Bones != null)
 				{
-					Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({boneCount} > {MAX_BONES}).", "3D");
-					boneCount = MAX_BONES;
+					boneCount += mesh.Bones.Length;
+					if (boneCount > MAX_BONES)
+					{
+						Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({boneCount} > {MAX_BONES}).", "3D");
+						boneCount = MAX_BONES;
+					}
 				}
+
+				_boneMatricesPerMesh[i] = new Matrix4x4[boneCount];
+				mesh.BuildRuntimeBoneCache();
 			}
 
-			_boneMatricesPerMesh[i] = new Matrix4x4[boneCount];
-			mesh.BuildRuntimeBoneCache();
+			_verticesCacheCollision = null;
+			_entity.CacheBounds(); // Ensure entity bounds are cached.
+
+			// Update unit scale.
+			Resized();
+
+			// Reset the animation.
+			// This will also set the default bone matrices.
+			// This will also calculate bounds.
+			// This will also calculate the vertices collisions.
+			SetAnimation(null);
 		}
-
-		_verticesCacheCollision = null;
-		_entity.CacheBounds(); // Ensure entity bounds are cached.
-
-		// Update unit scale.
-		Resized();
-
-		// Reset the animation.
-		// This will also set the default bone matrices.
-		// This will also calculate bounds.
-		// This will also calculate the vertices collisions.
-		SetAnimation(null);
 	}
 
 	public virtual void SetAnimation(string? name)

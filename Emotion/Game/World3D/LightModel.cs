@@ -2,8 +2,9 @@
 {
 	public class LightModel
 	{
-		public Color SunColor = Color.White;
+		public float AmbientLightStrength = 1f;
+		public float DiffuseStrength = 1f;
+		public Color AmbientLightColor = new Color(255, 255, 255);
 		public Vector3 SunDirection = new Vector3(0.3f, -0.25f, 0.3f);
-		public Color AmbientLightColor = new Color(220, 220, 220);
 	}
 }

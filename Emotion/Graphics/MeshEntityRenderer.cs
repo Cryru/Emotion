@@ -167,14 +167,16 @@ namespace Emotion.Graphics
 				if (light != null)
 				{
 					currentShader.SetUniformVector3("sunDirection", light.SunDirection);
-					currentShader.SetUniformColor("sunColor", receiveAmbient ? light.SunColor : Color.Black);
-					currentShader.SetUniformColor("ambientColor", light.AmbientLightColor);
+					currentShader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
+					currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
+					currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
 				}
 				else
 				{
 					currentShader.SetUniformVector3("sunDirection", Vector3.Zero);
-					currentShader.SetUniformColor("sunColor", receiveAmbient ? Color.White : Color.Black);
 					currentShader.SetUniformColor("ambientColor", Color.White);
+					currentShader.SetUniformFloat("ambientLightStrength", 1f);
+					currentShader.SetUniformFloat("diffuseStrength", 0f);
 				}
 
 				currentShader.SetUniformMatrix4("lightViewProj", _lightViewProj);

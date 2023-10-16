@@ -4,12 +4,14 @@ uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMapTexture;
 uniform vec3 iResolution; // viewport resolution (in pixels)
 
-uniform vec4 sunColor;
+// LightModel
 uniform vec3 sunDirection;
+uniform float ambientLightStrength;
+uniform float diffuseStrength;
+uniform vec4 ambientColor;
 
 uniform vec4 diffuseColor;
 uniform vec4 objectTint;
-uniform vec4 ambientColor;
 
 // Comes in from the vertex shader. 
 in vec2 UV; 
@@ -72,34 +74,46 @@ vec3 toGrayscale(in vec3 color)
 
 void main()
 {
-    // Diffuse
-    vec3 diffuseCalc = max(dot(fragNormal, fragLightDir), 0.0) * sunColor.rgb;
-    vec3 diffuse = sunColor.rgb == vec3(0.0) ? vec3(1.0) : diffuseCalc;
+	// Calculate the color of the object.
+	vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
 
-    // Shadow
-    float shadow = ShadowCalculation(fragPositionLightSpace);
-
-    vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
-    vec4 finalColor = vec4((ambientColor.rgb + (1.0 - shadow) * diffuse), 1.0) * objectColor;
-	
-	vec3 tintColor = objectTint.rgb;
-	if (tintColor != vec3(1.0))
+	// Tint
 	{
-		// Centre the colour values using the RGB average
-		vec3 power = (tintColor.r+tintColor.g+tintColor.b)*0.3333-tintColor;
+		vec3 tintColor = objectTint.rgb;
 
+		// Calculate the brightness of the tint color
+		float brightness = (tintColor.r + tintColor.g + tintColor.b) / 3.0;
+
+		// Calculate a saturation adjustment factor based on the brightness
+		// The point is to avoid desaturation when the tint color is bright.
+		float saturationFactor = 1.0 - brightness;
+		//saturationFactor *= saturationFactor;
+
+		// Centre the colour values using the RGB average and
 		// Increase the perceptual saturation (this is the downside of simple RGB calculations - you easily lose hue/sat accuracy)
+		vec3 power = brightness-tintColor;
 		power *= 2.0;
 		
-		vec3 finalColorGray = toGrayscale(finalColor.rgb);
-		vec3 finalColorTinted = pow(finalColorGray, 1.0 + power);
-		finalColor = vec4(finalColorTinted.rgb, finalColor.a);
+		vec3 objectColorGray = toGrayscale(objectColor.rgb);
+		vec3 objectGrayscaleTinted = pow(objectColorGray, 1.0 + power);
+
+		vec3 objectColorTinted = objectGrayscaleTinted;//mix(objectColor.rgb * tintColor, objectGrayscaleTinted, saturationFactor);
+		objectColor = vec4(objectColorTinted.rgb, objectColor.a * objectTint.a);
 	}
-	else
-	{
-		// None or alpha only.
-		finalColor = finalColor * objectTint;
-	}
+
+	// Lighting
+	vec3 ambient = ambientLightStrength * ambientColor.rgb;
+
+	float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
+	vec3 diffuse = diffuseStrength * diffuseFactor * ambientColor.rgb;
+
+	// todo: specular
+
+	// Shadow
+	float shadow = ShadowCalculation(fragPositionLightSpace);
+
+	// Combine
+	vec4 finalColor = vec4(ambient + (1.0 - shadow) * diffuse, 1.0) * objectColor;
 
     fragColor = finalColor;
     if (fragColor.a < 0.01)discard;
