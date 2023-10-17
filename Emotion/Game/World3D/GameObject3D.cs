@@ -120,8 +120,11 @@ public class GameObject3D : BaseGameObject
 
 	protected override void UpdateInternal(float dt)
 	{
-		_time += dt;
-		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+		lock (this)
+		{
+			_time += dt;
+			_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+		}
 		base.UpdateInternal(dt);
 	}
 
@@ -300,7 +303,7 @@ public class GameObject3D : BaseGameObject
 						float boneId = vertexDataBones.BoneIds[w];
 						float weight = vertexDataBones.BoneWeights[w];
 
-						Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
+						Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
 						Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
 						vertexTransformed += thisWeightPos * weight;
 					}
