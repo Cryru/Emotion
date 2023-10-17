@@ -250,6 +250,7 @@ public class EmotionMeshAsset : Asset
 				Vector3 cubeExtents = ReadVector3(reader);
 				var cub = new Cube(cubeOrigin, cubeExtents);
 
+				if (name == "null") name = "<null>";
 				entity.SetCachedBounds(name, sph, cub);
 			}
 		}
