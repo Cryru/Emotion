@@ -7,6 +7,8 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
+using Emotion.Standard.TMX;
+using Emotion.Standard.XML;
 using Emotion.UI;
 using Emotion.Utility;
 
@@ -178,12 +180,16 @@ public class PropEditorArrayPanel : EditorPanel
 		for (int i = 0; i < arrayVal.Length; i++)
 		{
 			var item = arrayVal.GetValue(i);
+			var itemType = item?.GetType();
+			string itemString = item?.ToString() ?? "<null>";
+
 			var uiForItem = new EditorButton
 			{
 				StretchY = true,
-				Text = $"[{i}] {item}",
+				Text = $"[{i}] {(itemString == itemType?.ToString() ? XMLHelpers.GetTypeName(itemType) : itemString)}",
 				UserData = i,
 			};
+			uiForItem.MaxSizeX = 200;
 			_list.AddChild(uiForItem);
 		}
 

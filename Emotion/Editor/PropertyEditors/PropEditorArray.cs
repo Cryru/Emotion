@@ -41,7 +41,7 @@ public class PropEditorArray : EditorButton, IPropEditorGeneric
 
 		var declType = Field!.TypeHandler.Type;
 		var itemType = declType.GetElementType();
-		Text = $"{itemType}[{valAsArray.Length}]";
+		Text = $"{XMLHelpers.GetTypeName(itemType)}[{valAsArray.Length}]";
 		if (value == null) Text += " (null)";
 
 		if (Helpers.AreObjectsEqual(Value, value)) return;
