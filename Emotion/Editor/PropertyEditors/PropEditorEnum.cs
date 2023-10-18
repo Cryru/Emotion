@@ -125,12 +125,12 @@ namespace Emotion.Editor.PropertyEditors
 					var valueAsEnum = _value as Enum;
 					bool hasFlag = Helpers.AreObjectsEqual(enumValAsEnum, _flagZeroValue) ?
 									Helpers.AreObjectsEqual(valueAsEnum, _flagZeroValue) : valueAsEnum.HasFlag(enumValAsEnum);
-					dropDownItems[i] = new EditorDropDownChecklboxDescription
+					dropDownItems[i] = new EditorDropDownCheckboxDescription
 					{
 						Name = enumValName,
 						Click = (thisItem, __) =>
 						{
-							var checkListItem = thisItem as EditorDropDownChecklboxDescription;
+							var checkListItem = thisItem as EditorDropDownCheckboxDescription;
 
 							var valueAsEnum = _value as Enum;
 							bool hasFlag = checkListItem.Checked();

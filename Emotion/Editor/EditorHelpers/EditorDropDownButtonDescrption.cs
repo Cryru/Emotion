@@ -10,7 +10,7 @@ namespace Emotion.Editor.EditorHelpers
 		public object? UserData;
 	}
 
-	public class EditorDropDownChecklboxDescription : EditorDropDownButtonDescription
+	public class EditorDropDownCheckboxDescription : EditorDropDownButtonDescription
 	{
 		public Func<bool> Checked { get; set; }
 	}

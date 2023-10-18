@@ -86,7 +86,7 @@ public class EditorDropdown : UIDropDown
 		for (var i = 0; i < items.Length; i++)
 		{
 			EditorDropDownButtonDescription item = items[i];
-			if (item is EditorDropDownChecklboxDescription itemCheckBox)
+			if (item is EditorDropDownCheckboxDescription itemCheckBox)
 			{
 				checkBoxes ??= new List<PropEditorBool>();
 
@@ -108,7 +108,7 @@ public class EditorDropdown : UIDropDown
 					{
 						var checkBox = checkBoxes[c];
 						var thatCheckBoxItem = items[c];
-						var thatCheckBoxItemAsCheckBoxItem = thatCheckBoxItem as EditorDropDownChecklboxDescription;
+						var thatCheckBoxItemAsCheckBoxItem = thatCheckBoxItem as EditorDropDownCheckboxDescription;
 						checkBox.SetValue(thatCheckBoxItemAsCheckBoxItem?.Checked() ?? false);
 					}
 				});
