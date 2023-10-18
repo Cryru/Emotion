@@ -301,12 +301,12 @@ public class ModelViewer : EditorPanel
         {
 			Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();
 
-			var checkboxItemList = new EditorDropDownChecklboxDescription[meshes.Length];
+			var checkboxItemList = new EditorDropDownCheckboxDescription[meshes.Length];
 			for (var i = 0; i < meshes.Length; i++)
 			{
 				Mesh mesh = meshes[i];
 				int idx = i;
-				checkboxItemList[i] = new EditorDropDownChecklboxDescription()
+				checkboxItemList[i] = new EditorDropDownCheckboxDescription()
 				{
 					Name = mesh.Name,
 					Checked = () =>

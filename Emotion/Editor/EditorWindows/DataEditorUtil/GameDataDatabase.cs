@@ -80,12 +80,14 @@ public static class GameDataDatabase
 		return dict != null ? EnsureNonDuplicatedId(name, dict) : name;
 	}
 
-	public static T? GetDataObject<T>(string name) where T : GameDataObject
+	public static T? GetDataObject<T>(string? name) where T : GameDataObject
 	{
+		if (name == null) return null;
+
 		Dictionary<string, GameDataObject>? dict = GetObjectsOfType(typeof(T));
 		if (dict == null) return null;
 		dict.TryGetValue(name, out GameDataObject? obj);
-		return (T?) obj;
+		return (T?)obj;
 	}
 
 	public static Type[]? GetGameDataTypes()
@@ -103,6 +105,18 @@ public static class GameDataDatabase
 		return !_database.ContainsKey(t) ? null : _database[t];
 	}
 
+	public static string[]? GetObjectIdsOfType(Type? t)
+	{
+		if (!Initialized) return null;
+		if (t == null) return null;
+		AssertNotNull(_database);
+
+		var dict = GetObjectsOfType(t);
+		if (dict == null) return null;
+
+		return dict.Keys.ToArray();
+	}
+
 	public static T[]? GetObjectsOfType<T>() where T : GameDataObject
 	{
 		if (!Initialized) return null;
@@ -116,7 +130,7 @@ public static class GameDataDatabase
 		int idx = 0;
 		foreach (var item in dict)
 		{
-			arr[idx] = (T) item.Value;
+			arr[idx] = (T)item.Value;
 			idx++;
 		}
 

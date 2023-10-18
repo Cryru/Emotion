@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
@@ -22,6 +23,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 	protected List<EditorUtility.TypeAndFieldHandlers>? _fields;
 	protected List<IPropEditorGeneric> _editorUIs;
 
+	protected Type _objType;
 	protected object? _obj;
 	protected bool _nonComplexType;
 
@@ -32,6 +34,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		_editorUIs = new();
 
 		var objType = obj.GetType();
+		_objType = objType;
 
 		// Non complex types (string, int, etc.) can also be editted via this
 		// panel but since there is no reference back to the object field that contains
@@ -169,6 +172,14 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	protected virtual IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
+		if (_objType.Name.StartsWith("GameDataReference") && field.Name == "Id")
+		{
+			var genericArg = _objType.GetGenericArguments();
+			string[] ids = GameDataDatabase.GetObjectIdsOfType(genericArg[0]) ?? Array.Empty<string>();
+			return new PropEditorGameDataReference<string>(ids);
+		}
+
+		// Primitives
 		if (field.TypeHandler.Type == typeof(Vector2)) return new PropEditorFloat2();
 		if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();
 		if (field.TypeHandler.Type == typeof(int)) return new PropEditorNumber<int>();
@@ -188,6 +199,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		if (field.TypeHandler.Type == typeof(bool)) return new PropEditorBool();
 		if (field.TypeHandler.Type.IsEnum) return new PropEditorEnum(field.TypeHandler.Type, field.ReflectionInfo?.Nullable ?? false);
 
+		// Complex
 		if (field.TypeHandler is XMLComplexTypeHandler) return new PropEditorNestedObject();
 		if (field.TypeHandler.Type == typeof(Color)) return new PropEditorNestedObject(); // temp
 		if (field.TypeHandler is XMLArrayTypeHandler && field.TypeHandler is not XMLDictionaryTypeHandler) return new PropEditorArray();
