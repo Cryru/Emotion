@@ -4,12 +4,14 @@ uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMapTexture;
 uniform vec3 iResolution; // viewport resolution (in pixels)
 
-uniform vec4 sunColor;
+// LightModel
 uniform vec3 sunDirection;
+uniform float ambientLightStrength;
+uniform float diffuseStrength;
+uniform vec4 ambientColor;
 
 uniform vec4 diffuseColor;
 uniform vec4 objectTint;
-uniform vec4 ambientColor;
 
 // Comes in from the vertex shader. 
 in vec2 UV; 
@@ -63,43 +65,117 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	return shadow;
 }
 
-vec3 toGrayscale(in vec3 color)
+vec3 PerceptualGrayscale(in vec3 color)
 {
     // Perceptual greyscale
     float grey = color.r * 0.3 + color.g * 0.7 + color.b * 0.1;
     return vec3(grey, grey, grey);
 }
 
+float cbrt(float x)
+{
+    float y = uintBitsToFloat(709973695u+floatBitsToUint(x)/3u);
+    y = y*(2.0/3.0) + (1.0/3.0)*x/(y*y);
+    y = y*(2.0/3.0) + (1.0/3.0)*x/(y*y);
+    return y;
+}
+
+vec3 RGBToOklab(vec3 rgb)
+{
+
+  float r = rgb.x;
+  float g = rgb.g;
+  float b = rgb.b;
+
+  // This is the Oklab math:
+  float l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+  float m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+  float s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+  l = cbrt(l);
+  m = cbrt(m);
+  s = cbrt(s);
+
+  return vec3(
+	l * +0.2104542553 + m * +0.7936177850 + s * -0.0040720468,
+	l * +1.9779984951 + m * -2.4285922050 + s * +0.4505937099,
+	l * +0.0259040371 + m * +0.7827717662 + s * -0.8086757660
+  );
+}
+
+vec3 OklabToRGB(vec3 lab) {
+  float L = lab.x;
+  float a = lab.y;
+  float b = lab.z;
+
+  float l = L + a * +0.3963377774 + b * +0.2158037573;
+  float m = L + a * -0.1055613458 + b * -0.0638541728;
+  float s = L + a * -0.0894841775 + b * -1.2914855480;
+
+  l = pow(l, 3);
+  m = pow(m, 3);
+  s = pow(s, 3);
+
+  float R = l * +4.0767416621 + m * -3.3077115913 + s * +0.2309699292;
+  float G = l * -1.2684380046 + m * +2.6097574011 + s * -0.3413193965;
+  float B = l * -0.0041960863 + m * -0.7034186147 + s * +1.7076147010;
+  
+  return vec3(R, G, B);
+}
+
 void main()
 {
-    // Diffuse
-    vec3 diffuseCalc = max(dot(fragNormal, fragLightDir), 0.0) * sunColor.rgb;
-    vec3 diffuse = sunColor.rgb == vec3(0.0) ? vec3(1.0) : diffuseCalc;
+	// Calculate the color of the object.
+	vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
 
-    // Shadow
-    float shadow = ShadowCalculation(fragPositionLightSpace);
-
-    vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
-    vec4 finalColor = vec4((ambientColor.rgb + (1.0 - shadow) * diffuse), 1.0) * objectColor;
-	
-	vec3 tintColor = objectTint.rgb;
-	if (tintColor != vec3(1.0))
+	// Tint
 	{
-		// Centre the colour values using the RGB average
-		vec3 power = (tintColor.r+tintColor.g+tintColor.b)*0.3333-tintColor;
+		vec3 tintColor = objectTint.rgb;
 
-		// Increase the perceptual saturation (this is the downside of simple RGB calculations - you easily lose hue/sat accuracy)
-		power *= 2.0;
-		
-		vec3 finalColorGray = toGrayscale(finalColor.rgb);
-		vec3 finalColorTinted = pow(finalColorGray, 1.0 + power);
-		finalColor = vec4(finalColorTinted.rgb, finalColor.a);
+		// Convert both the object and tint colors to OKLab space
+		vec3 oklabColor = RGBToOklab(objectColor.rgb);
+		vec3 oklabTint = RGBToOklab(tintColor);
+
+		// Calculate the hue difference between the original color and the tint color
+		// y holds green-red
+		// z holds blue-yellow
+		float hueDifference = atan(oklabTint.z, oklabTint.y) - atan(oklabColor.z, oklabColor.y);
+
+		// Modify the hue by rotating it by the difference in hue
+		oklabColor.yz = mat2(
+			cos(hueDifference), sin(hueDifference),
+			-sin(hueDifference), cos(hueDifference)
+		) * oklabColor.yz;
+
+		// Convert the modified color back to RGB
+		vec3 modifiedRGB = OklabToRGB(oklabColor);
+
+		// Take whichever color is brighter between the source and tint color,
+		// and use that to adjust the saturation to avoid desaturation when
+		// either the object or tint is too bright.
+		float brightness = (tintColor.r + tintColor.g + tintColor.b) / 3.0;
+		float brightnessSource = (objectColor.r + objectColor.g + objectColor.b) / 3.0;
+		brightness = max(brightness, brightnessSource);
+
+		float saturationFactor = 1.0 - brightness;
+		vec3 objectColorTinted = mix(objectColor.rgb * tintColor, modifiedRGB, saturationFactor);
+
+		objectColor = vec4(objectColorTinted.rgb, objectColor.a * objectTint.a);
 	}
-	else
-	{
-		// None or alpha only.
-		finalColor = finalColor * objectTint;
-	}
+
+	// Lighting
+	vec3 ambient = ambientLightStrength * ambientColor.rgb;
+
+	float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
+	vec3 diffuse = diffuseStrength * diffuseFactor * ambientColor.rgb;
+
+	// todo: specular
+
+	// Shadow
+	float shadow = ShadowCalculation(fragPositionLightSpace);
+
+	// Combine
+	vec4 finalColor = vec4(ambient + (1.0 - shadow) * diffuse, 1.0) * objectColor;
 
     fragColor = finalColor;
     if (fragColor.a < 0.01)discard;
