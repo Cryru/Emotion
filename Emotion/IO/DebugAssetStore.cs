@@ -11,7 +11,8 @@ namespace Emotion.IO
 {
     public class DebugAssetStore : FileAssetStore
     {
-        public static string AssetDevPath = Path.Join("..", "..", "..", "Assets");
+		public static string ProjectDevPath = Path.Join("..", "..", "..");
+		public static string AssetDevPath = Path.Join(ProjectDevPath, "Assets");
 
         public DebugAssetStore() : base(AssetDevPath)
         {

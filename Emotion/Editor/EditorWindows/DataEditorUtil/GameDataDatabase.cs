@@ -3,11 +3,13 @@
 #region Using
 
 using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
+using Emotion.Utility;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
 
 #endregion
@@ -157,6 +159,7 @@ public static class GameDataDatabase
 		obj.Id = safeId;
 		objectsOfThisType.Add(safeId, obj);
 		GenerateCode();
+		UpdateCsProjFile();
 
 		string path = GetAssetPath(obj);
 		obj.AssetPath = path;
@@ -219,6 +222,7 @@ public static class GameDataDatabase
 			}
 
 		GenerateCode();
+		UpdateCsProjFile();
 	}
 
 	public static string GetAssetPath(GameDataObject obj)
@@ -262,5 +266,81 @@ public static class GameDataDatabase
 
 		byte[] fileData = Encoding.UTF8.GetBytes(builder.ToString());
 		Engine.AssetLoader.Save(fileData, $"{DATA_OBJECTS_PATH}/Intellisense.cs");
+	}
+
+	// Patch the csproj file to copy to output the data xml files.
+	private static void UpdateCsProjFile()
+	{
+		// Don't code gen in release mode lol
+		if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
+
+		string fileFolder = DebugAssetStore.ProjectDevPath;
+		string[] allFilesHere = Directory.GetFiles(fileFolder);
+		string? csProjFile = null;
+		for (int i = 0; i < allFilesHere.Length; i++)
+		{
+			var file = allFilesHere[i];
+			if (file.EndsWith(".csproj"))
+			{
+				csProjFile = file;
+				break;
+			}
+		}
+		if (csProjFile == null) return; // No file
+
+		string csProjFileContents = File.ReadAllText(csProjFile);
+
+		// Clean up old item group.
+		string autoAddGroupStart = $"  <ItemGroup Label=\"GameDataAutoAdded\">";
+		string autoAddGroupEnd = "</ItemGroup>";
+		int itemGroupStart = csProjFileContents.IndexOf(autoAddGroupStart);
+		if (itemGroupStart != -1)
+		{
+			int itemGroupEnd = csProjFileContents.IndexOf(autoAddGroupEnd, itemGroupStart);
+			if (itemGroupEnd == -1) return; // Invalid file.
+			itemGroupEnd = itemGroupEnd + autoAddGroupEnd.Length;
+			csProjFileContents = csProjFileContents.Remove(itemGroupStart, itemGroupEnd - itemGroupStart);
+		}
+		else
+		{
+			int endOfProjectTag = csProjFileContents.IndexOf("</Project>");
+			if (endOfProjectTag == -1) return; // Invalid file
+
+			csProjFileContents = csProjFileContents.Insert(endOfProjectTag, "\n\n");
+			itemGroupStart = endOfProjectTag;
+		}
+
+		StringBuilder builder = new StringBuilder();
+		builder.AppendLine(autoAddGroupStart);
+
+		var types = GetGameDataTypes();
+		if (types != null)
+			for (var i = 0; i < types.Length; i++)
+			{
+				var type = types[i];
+				var items = GetObjectsOfType(type);
+				if (items == null) continue;
+
+				foreach (var item in items)
+				{
+					var itemPath = item.Value.AssetPath;
+					if (itemPath == null) continue;
+
+					var itemFilePath = $"Assets\\{itemPath.Replace("/", "\\")}";
+
+					// Dont add items that are referenced elsewhere in the csproj.
+					// Assuming some form of manual setting.
+					if (csProjFileContents.Contains(itemFilePath, StringComparison.OrdinalIgnoreCase)) continue;
+
+					builder.AppendLine($"    <None Update=\"{itemFilePath}\">");
+					builder.AppendLine($"      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>");
+					builder.AppendLine($"    </None>");
+				}
+			}
+
+		builder.Append("  </ItemGroup>");
+		csProjFileContents = csProjFileContents.Insert(itemGroupStart, builder.ToString());
+		csProjFileContents = csProjFileContents.Replace("\r\n", "\n");
+		File.WriteAllText(csProjFile, csProjFileContents);
 	}
 }
