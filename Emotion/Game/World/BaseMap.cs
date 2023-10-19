@@ -196,9 +196,10 @@ public abstract class BaseMap
 			if (obj == null) continue;
 
 			obj.ObjectState = ObjectState.None;
-			AddObject(obj);
+			AddObject(obj, true);
 
-			// We gotta remark the objects as this flag in particular is not serialized (removed in the Trim function).
+			// We gotta remark the objects as this flag in particular is not serialized
+			// (removed by serialization since all persistent objects will have it).
 			// The reason being that all objects will have it, so no point in saving it.
 			obj.ObjectFlags |= ObjectFlags.Persistent;
 		}
@@ -305,7 +306,7 @@ public abstract class BaseMap
 	/// <summary>
 	/// Add an object to the map. The object should be uninitialized.
 	/// </summary>
-	public void AddObject(BaseGameObject obj)
+	public void AddObject(BaseGameObject obj, bool async = false)
 	{
 		Assert(obj.ObjectState == ObjectState.None);
 
@@ -351,18 +352,28 @@ public abstract class BaseMap
 		_objects.Add(obj);
 		_worldTree?.AddObjectToTree(obj);
 
-		// Start loading object assets. While loading the object is considered part of the world.
-		// If the object is added during map load its loading will be awaited.
-		// Otherwise the object will be drawn and updated before being considered loaded.
-		// This can easily be checked using the ObjectState, and Init wouldn't have been called.
-		Task loading = Task.Run(obj.LoadAssetsAsync);
-		if (!loading.IsCompleted)
+		if (async)
+		{
+			// Start loading object assets. While loading the object is considered part of the world.
+			// If the object is added during map load its loading will be awaited.
+			// Otherwise the object will be drawn and updated before being considered loaded.
+			// This can easily be checked using the ObjectState, and Init wouldn't have been called.
+			Task loading = Task.Run(obj.LoadAssetsAsync);
+			if (!loading.IsCompleted)
+			{
+				obj.ObjectState = ObjectState.Loading;
+				_objectLoading.Add((obj, loading));
+			}
+			else // Consider loaded instantly if no asset loading
+			{
+				ObjectPostLoad(obj);
+			}
+		}
+		else
 		{
 			obj.ObjectState = ObjectState.Loading;
-			_objectLoading.Add((obj, loading));
-		}
-		else // Consider loaded instantly if no asset loading
-		{
+			Task loadingTask = obj.LoadAssetsAsync();
+			loadingTask.Wait();
 			ObjectPostLoad(obj);
 		}
 	}

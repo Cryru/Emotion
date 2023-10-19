@@ -188,7 +188,7 @@ public class GameObject3D : BaseGameObject
 
 	#endregion
 
-	private void OnSetEntity()
+	protected virtual void OnSetEntity()
 	{
 		if (_entity?.Meshes == null) return;
 

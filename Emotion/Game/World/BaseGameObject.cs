@@ -86,8 +86,9 @@ public abstract class BaseGameObject : Transform
 	}
 
 	/// <summary>
-	/// Load all assets in use by the object. This is called first and is expected to be ran
-	/// in parallel with other objects.
+	/// Load all assets in use by the object. When the object is added to the map this is called after AttachToMap.
+	/// If the AddObject call is specified to be async then this could run
+	/// parallel with other objects(which is why it is an async func)
 	/// </summary>
 	public virtual Task LoadAssetsAsync()
 	{
@@ -95,9 +96,10 @@ public abstract class BaseGameObject : Transform
 	}
 
 	/// <summary>
-	/// Attach the object to the map. It is assumed that after this call the object will be
-	/// returned by various map querries. Note that if the object's size or position is calculated
-	/// at init/based on assets it might not be where you expect it to be spatially.
+	/// When the map does AddObject this is called first and populates the Map property.
+	/// After this call the object will be returned by various map querries.
+	/// Note that if the object's size or position is calculated based on assets or during init
+	/// then it wont be where you expect it to be spatially.
 	/// </summary>
 	public virtual void AttachToMap(BaseMap map)
 	{
@@ -105,17 +107,10 @@ public abstract class BaseGameObject : Transform
 	}
 
 	/// <summary>
-	/// Init game data. All changes from this process shouldn't be serialized.
-	/// It is assumed that LoadAssetsAsync has finished completion at the time this is called.
+	/// Init the game, this is called after LoadAssetsAsync has finished.
+	/// All changes from this process shouldn't be serialized.
 	/// </summary>
 	public virtual void Init()
-	{
-	}
-
-	/// <summary>
-	/// Called after all objects init and LoadAssetsAsync is complete.
-	/// </summary>
-	public virtual void LateInit()
 	{
 	}
 
@@ -141,6 +136,8 @@ public abstract class BaseGameObject : Transform
 		Map?.InvalidateObjectBounds(this);
 	}
 
+	// todo: deprecate this and start making layers based on object type with some kind of
+	// automatic detection based on what querries are ran.
 	/// <summary>
 	/// Whether the object is part of the specified layer in the map's world tree.
 	/// Objects are always part of layer 0 - ALL.
@@ -153,6 +150,7 @@ public abstract class BaseGameObject : Transform
 		return layer == 0;
 	}
 
+	// todo: is this wrapper (and the render one) necessary?
 	public void Update(float dt)
 	{
 		UpdateInternal(dt);
@@ -181,6 +179,6 @@ public abstract class BaseGameObject : Transform
 
 	public override string ToString()
 	{
-		return $"[{UniqueId}] {ObjectName ?? $"Object {GetType().Name}"}";
+		return $"Object [{UniqueId}] {ObjectName ?? $"{GetType().Name}"}";
 	}
 }
