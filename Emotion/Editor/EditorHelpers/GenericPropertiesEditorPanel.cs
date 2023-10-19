@@ -125,7 +125,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 				fieldGroupHeader.FontSize = MapEditorColorPalette.EditorButtonTextSize + 1;
 				fieldGroupHeader.Underline = true;
 				fieldGroupHeader.IgnoreParentColor = true;
-				fieldGroupHeader.Text = fieldGroup.DeclaringType.Name;
+				fieldGroupHeader.Text = XMLHelpers.GetTypeName(fieldGroup.DeclaringType);
 				fieldGroupHeader.MinSize = new Vector2(0, 11);
 				fieldGroupHeaderContainer.AddChild(fieldGroupHeader);
 			}
@@ -172,11 +172,20 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
 	protected virtual IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
 	{
-		if (_objType.Name.StartsWith("GameDataReference") && field.Name == "Id")
+		if (_objType.IsAssignableTo(typeof(IGameDataReferenceEditorMarker)) && field.Name == "Id")
 		{
-			var genericArg = _objType.GetGenericArguments();
-			string[] ids = GameDataDatabase.GetObjectIdsOfType(genericArg[0]) ?? Array.Empty<string>();
-			return new PropEditorGameDataReference<string>(ids);
+			var gameDataRefInherit = _objType;
+			Type[] genericArgs = gameDataRefInherit.GetGenericArguments();
+			while (genericArgs == null || genericArgs.Length == 0)
+			{
+				gameDataRefInherit = gameDataRefInherit.BaseType;
+				if (gameDataRefInherit == null) return null;
+
+				genericArgs = gameDataRefInherit.GetGenericArguments();
+			}
+
+			string[] ids = GameDataDatabase.GetObjectIdsOfType(genericArgs[0]) ?? Array.Empty<string>();
+			return new MetaPropEditorCombo<string>(ids);
 		}
 
 		// Primitives

@@ -221,6 +221,11 @@ public class PropEditorArrayPanel : EditorPanel
 				arrayVal.SetValue(value, _selectedObjectIdx);
 				_propEditor.ArrayItemModified(_selectedObjectIdx);
 				RegenerateList();
+			},
+			OnPropertyEdited = (_, __) =>
+			{
+				_propEditor.ArrayItemModified(_selectedObjectIdx);
+				RegenerateList();
 			}
 		};
 

@@ -1,6 +1,11 @@
 ﻿namespace Emotion.Editor.EditorWindows.DataEditorUtil
 {
-	public class GameDataReference<T> where T : GameDataObject
+	public interface IGameDataReferenceEditorMarker
+	{
+
+	}
+
+	public class GameDataReference<T> : IGameDataReferenceEditorMarker where T : GameDataObject
 	{
 		public string Id;
 
