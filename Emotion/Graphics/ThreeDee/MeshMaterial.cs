@@ -1,6 +1,8 @@
 ﻿#region Using
 
+using Emotion.Editor;
 using Emotion.Graphics.Objects;
+using Emotion.IO;
 using Emotion.Primitives;
 
 #endregion
@@ -16,6 +18,8 @@ namespace Emotion.Graphics.ThreeDee
     {
         public string Name = null!;
         public Color DiffuseColor = Color.White; // todo: Currently unused
+
+		[AssetFileName<TextureAsset>]
         public string? DiffuseTextureName = null;
         public Texture? DiffuseTexture;
 
