@@ -40,6 +40,7 @@ public partial class World3DEditor
 	protected override void DisposeObjectEditor()
 	{
 		base.DisposeObjectEditor();
+		MoveGizmo?.Destroy();
 	}
 
 	protected override void RenderObjectSelection(RenderComposer c)
