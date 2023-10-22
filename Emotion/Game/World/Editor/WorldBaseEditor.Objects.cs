@@ -288,11 +288,8 @@ public abstract partial class WorldBaseEditor
 		_editUI!.AddChild(namePlate);
 	}
 
-	private void EditorAddObject(Type type)
+	private Vector3 GetMouseWorldPosition()
 	{
-		BaseMap? map = CurrentMap;
-		if (map == null) return;
-
 		Vector3 worldPos;
 		if (this is World3DEditor w3D)
 		{
@@ -306,9 +303,17 @@ public abstract partial class WorldBaseEditor
 			Vector2 pos = Engine.Host.MousePosition;
 			worldPos = Engine.Renderer.Camera.ScreenToWorld(pos);
 		}
+		return worldPos;
+	}
 
+	private void EditorAddObject(Type type)
+	{
+		BaseMap? map = CurrentMap;
+		if (map == null) return;
+
+		Vector3 worldPos = GetMouseWorldPosition();
 		ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
-		var newObj = (BaseGameObject) constructor.Invoke(null);
+		var newObj = (BaseGameObject)constructor.Invoke(null);
 		newObj.ObjectFlags |= ObjectFlags.Persistent;
 		newObj.Position = worldPos;
 
@@ -335,6 +340,7 @@ public abstract partial class WorldBaseEditor
 		bool leftClick = key == Key.MouseKeyLeft;
 		bool rightClick = key == Key.MouseKeyRight;
 		bool noMouseFocus = UIController.MouseFocus == _editUI || UIController.MouseFocus == null || UIController.MouseFocus is MapEditorObjectNameplate;
+		bool controlHeld = Engine.Host.IsCtrlModifierHeld();
 
 		if ((leftClick || rightClick) && status == KeyStatus.Down)
 		{
@@ -364,6 +370,22 @@ public abstract partial class WorldBaseEditor
 		else if (leftClick && status == KeyStatus.Up)
 		{
 			_objectDragging = null;
+		}
+
+		if (noMouseFocus && controlHeld && status == KeyStatus.Up)
+		{
+			if (key == Key.C)
+			{
+				CopyCurrentObject();
+			}
+			else if (key == Key.V)
+			{
+				PasteObject();
+			}
+			else if (key == Key.D)
+			{
+				DuplicateCurrentObject();
+			}
 		}
 	}
 
@@ -493,7 +515,7 @@ public abstract partial class WorldBaseEditor
 		_allObjectsRollover = objs;
 
 		// Update rollover
-		var worldAttachUI = (UIWorldAttachedWindow?) _editUI?.GetWindowById("WorldAttach");
+		var worldAttachUI = (UIWorldAttachedWindow?)_editUI?.GetWindowById("WorldAttach");
 		if (_rolloverObject == null)
 		{
 			if (worldAttachUI != null) worldAttachUI.Visible = false;
@@ -505,7 +527,7 @@ public abstract partial class WorldBaseEditor
 			worldAttachUI.Visible = true;
 
 			BaseGameObject? obj = _rolloverObject;
-			var text = (UIText?) worldAttachUI.GetWindowById("text")!;
+			var text = (UIText?)worldAttachUI.GetWindowById("text")!;
 			var txt = new StringBuilder();
 			txt.AppendLine($"Name: [{obj.UniqueId}] {obj.ObjectName ?? "null"}");
 			txt.AppendLine($"Class: {obj.GetType().Name}");
@@ -611,7 +633,7 @@ public abstract partial class WorldBaseEditor
 			prefabData.DefaultProperties.Add(new Dictionary<string, object?>());
 		Dictionary<string, object?> thisVersionPropertyList = prefabData.DefaultProperties[prefabData.PrefabVersion - 1];
 
-		var typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(obj.GetType())!;
+		var typeHandler = (XMLComplexBaseTypeHandler)XMLHelpers.GetTypeHandler(obj.GetType())!;
 		IEnumerator<XMLFieldHandler> fields = typeHandler.EnumFields();
 		while (fields.MoveNext())
 		{
@@ -695,6 +717,59 @@ public abstract partial class WorldBaseEditor
 
 	#endregion
 
+	#region Object Copy-Pasta
+
+	public void CopyCurrentObject()
+	{
+		if (_selectedObject == null) return;
+
+		string objectData = GetObjectSerialized(_selectedObject);
+		if (Engine.Host is Win32Platform winPlat) winPlat.SetClipboard(objectData);
+	}
+
+	public void PasteObject()
+	{
+		if (CurrentMap == null) return;
+
+		string clipBoard = GetClipboard();
+		if (string.IsNullOrEmpty(clipBoard)) return;
+
+		var newObj = XMLFormat.From<BaseGameObject>(clipBoard);
+		if (newObj == null)
+		{
+			EditorMsg("Couldn't paste object.");
+			return;
+		}
+
+		newObj.ObjectFlags |= ObjectFlags.Persistent;
+		CurrentMap!.AddObject(newObj);
+
+		Vector3 worldPos = GetMouseWorldPosition();
+		newObj.Position2 = worldPos.ToVec2();
+
+		SelectObject(newObj);
+	}
+
+	public void DuplicateCurrentObject()
+	{
+		if (_selectedObject == null) return;
+
+		string objectData = GetObjectSerialized(_selectedObject);
+		var newObj = XMLFormat.From<BaseGameObject>(objectData);
+		if (newObj == null)
+		{
+			EditorMsg("Couldn't paste object.");
+			return;
+		}
+
+		newObj.ObjectFlags |= ObjectFlags.Persistent;
+		CurrentMap!.AddObject(newObj);
+		SelectObject(newObj);
+	}
+
+
+	#endregion
+
 	#region Interface
 
 	private MapEditorObjectPropertiesPanel? EditorGetAlreadyOpenPropertiesPanelForObject(int objectUid)
@@ -732,6 +807,16 @@ public abstract partial class WorldBaseEditor
 		return clipBoard;
 	}
 
+	private EditorDropDownButtonDescription GetPasteButton()
+	{
+		return new EditorDropDownButtonDescription
+		{
+			Name = "Paste",
+			Click = (_, __) => PasteObject(),
+			Enabled = () => CurrentMap != null && !string.IsNullOrEmpty(GetClipboard())
+		};
+	}
+
 	private void EditorOpenContextMenuObjectModeNoSelection()
 	{
 		BaseMap? map = CurrentMap;
@@ -746,29 +831,7 @@ public abstract partial class WorldBaseEditor
 
 		var dropDownMenu = new[]
 		{
-			new EditorDropDownButtonDescription
-			{
-				Name = "Paste",
-				Click = (_, __) =>
-				{
-					string clipBoard = GetClipboard();
-					AssertNotNull(clipBoard);
-
-					var newObj = XMLFormat.From<BaseGameObject>(clipBoard);
-					if (newObj == null)
-					{
-						EditorMsg("Couldn't paste object.");
-						return;
-					}
-
-					newObj.ObjectFlags |= ObjectFlags.Persistent;
-					map.AddObject(newObj);
-
-					Vector2 worldPos = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
-					newObj.Position2 = worldPos;
-				},
-				Enabled = () => !string.IsNullOrEmpty(GetClipboard())
-			}
+			GetPasteButton()
 		};
 
 		contextMenu.SetItems(dropDownMenu);
@@ -808,6 +871,7 @@ public abstract partial class WorldBaseEditor
 					map.RemoveObject(obj, true); // todo: register undo as delete
 				}
 			},
+			GetPasteButton(),
 			new EditorDropDownButtonDescription
 			{
 				Name = "Delete",
