@@ -104,6 +104,7 @@ public struct Ray3D
 
 			if (t < closestDistance)
 			{
+				IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
 				closestDistance = t;
 				normal = triangleNormal;
 				triangleIndex = i;
@@ -130,19 +131,28 @@ public struct Ray3D
 		Vector3 rayToTriangle = p1 - Start;
 		distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
 
+		// The intersection point is behind the ray's origin
 		if (distance < 0)
-			// The intersection point is behind the ray's origin
 			return false;
 
 		// Calculate the barycentric coordinates of the intersection point
 		Vector3 edge1 = p2 - p1;
 		Vector3 edge2 = p3 - p1;
+
+		// Calculate the area of the triangle.
+		// The magnitude of the cross product is equal to twice the area of the triangle
+		float triangleArea = 0.5f * Vector3.Cross(edge1, edge2).Length();
+
+		// Degenerate triangle, area is too small.
+		if (triangleArea < 0.001f) return false;
+
 		Vector3 intersectionPoint = Start + distance * Direction;
 		Vector3 c = intersectionPoint - p1;
 		float d00 = Vector3.Dot(edge1, edge1);
 		float d01 = Vector3.Dot(edge1, edge2);
 		float d11 = Vector3.Dot(edge2, edge2);
 		float denom = d00 * d11 - d01 * d01;
+
 		float u = (d11 * Vector3.Dot(edge1, c) - d01 * Vector3.Dot(edge2, c)) / denom;
 		float v = (d00 * Vector3.Dot(edge2, c) - d01 * Vector3.Dot(edge1, c)) / denom;
 
