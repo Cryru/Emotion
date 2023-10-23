@@ -249,7 +249,7 @@ public abstract partial class WorldBaseEditor
 		// This won't break anything as XMLAsset doesn't perform any cleanup.
 		if (Engine.AssetLoader.Loaded(fileName)) Engine.AssetLoader.Destroy(fileName);
 
-		XMLAssetMarkerClass asset = GetCurrentMapAsXMLAsset(map);
+		var asset = GetCurrentMapAsXMLAsset(map);
 		bool saved = asset.SaveAs(fileName);
 		EditorMsg(saved ? "Map saved." : "Unable to save map.");
 	}
@@ -273,9 +273,9 @@ public abstract partial class WorldBaseEditor
 		return _scene.ChangeMapAsync(map);
 	}
 
-	protected XMLAssetMarkerClass GetCurrentMapAsXMLAsset(BaseMap map)
+	protected XMLAsset<BaseMap> GetCurrentMapAsXMLAsset(BaseMap map)
 	{
-		return XMLAsset<object>.CreateFromContent(map);
+		return XMLAsset<BaseMap>.CreateFromContent(map);
 	}
 
 	#endregion

@@ -176,7 +176,7 @@ public abstract partial class WorldBaseEditor
 							else
 							{
 								string mapTypeName = _mapType.FullName ?? "";
-								xmlTag = $"<Map2D type=\"{mapTypeName}\"";
+								xmlTag = $"<BaseMap type=\"{mapTypeName}\"";
 							}
 
 							var assetLoaded = Engine.AssetLoader.Get<TextAsset>(assetName, false);
