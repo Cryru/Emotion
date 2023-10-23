@@ -681,6 +681,7 @@ namespace Emotion.Platform.Implementation.Win32
                 nint ptr = Kernel32.GlobalLock(globalMemoryHandle);
                 string str = Marshal.PtrToStringUni(ptr);
                 Kernel32.GlobalUnlock(globalMemoryHandle);
+                User32.CloseClipboard();
                 return str;
             }
          
