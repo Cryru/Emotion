@@ -203,7 +203,7 @@ namespace Emotion.Graphics
 						Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint) (j + 1));
 					}
 				}
-				else
+				else if(_initializedShadowMapObjects)
 				{
 					AssertNotNull(_shadowCascades);
 					AssertNotNull(cascadePlaneFarZUniformNames);
