@@ -252,6 +252,7 @@ public class GameObject3D : BaseGameObject
 		_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, 0);
 		CacheVerticesForCollision();
 		_entity?.GetBounds(name, out _bSphereBase, out _bCubeBase);
+		Assert(_bSphereBase.Radius != 0, "Bounding radius is not 0");
 	}
 
 	public virtual bool IsTransparent()

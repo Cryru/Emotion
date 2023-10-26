@@ -33,7 +33,7 @@ namespace Emotion.Game.ThreeDee.Editor
 		public Mesh YAxis { get; protected set; }
 		public Mesh ZAxis { get; protected set; }
 
-		public Action<Positional, Vector3, Vector3> TargetMoved;
+		public Action<Positional, Vector3, Vector3>? TargetMoved;
 
 		protected Mesh? _meshMouseover;
 		protected Vector3 _dragPointStart;
@@ -158,7 +158,20 @@ namespace Emotion.Game.ThreeDee.Editor
 		{
 			Target = target;
 			if (target != null)
+			{
 				Position = target.Position;
+
+				float height = 35;
+				float targetHeight = 35;
+				if (Target is GameObject3D g3D)
+				{
+					targetHeight = g3D.BoundingSphere.Radius / 2f;
+					targetHeight = Math.Max(targetHeight, 5f);
+				}
+
+				float scale = targetHeight / height;
+				Size3D = new Vector3(scale);
+			}
 		}
 
 		protected override void UpdateInternal(float dt)
