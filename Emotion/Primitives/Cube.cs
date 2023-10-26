@@ -93,14 +93,14 @@ public struct Cube
 		new[] {3, 7}
 	};
 
-	public void RenderOutline(RenderComposer c, Color? color = null)
+	public void RenderOutline(RenderComposer c, Color? color = null, float thickness = 1f)
 	{
 		Span<Vector3> vertices = stackalloc Vector3[8];
 		GetVertices(vertices);
 		for (var i = 0; i < _outlineEdges.Length; i++)
 		{
 			int[] edge = _outlineEdges[i];
-			c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, 1, false);
+			c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, thickness, false);
 		}
 	}
 
