@@ -89,11 +89,14 @@ public class MeshEntity
 		CacheBounds();
 		if (_cachedBounds == null) return;
 
-		anim ??= "<null>";
-		if (_cachedBounds.TryGetValue(anim, out (Sphere, Cube) bounds))
+		lock (this)
 		{
-			sphere = bounds.Item1;
-			cube = bounds.Item2;
+			anim ??= "<null>";
+			if (_cachedBounds.TryGetValue(anim, out (Sphere, Cube) bounds))
+			{
+				sphere = bounds.Item1;
+				cube = bounds.Item2;
+			}
 		}
 	}
 
