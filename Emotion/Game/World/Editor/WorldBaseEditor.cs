@@ -2,11 +2,13 @@
 
 #region Using
 
+using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
+using Emotion.Game.Time;
 using Emotion.Game.World.SceneControl;
-using Emotion.Game.World2D.SceneControl;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
@@ -223,9 +225,8 @@ public abstract partial class WorldBaseEditor
 			return false;
 		}
 
-		ObjectEditorInputHandler(key, status);
-
-		return true;
+		bool propagate = ObjectEditorInputHandler(key, status);
+		return propagate;
 	}
 
 	private bool EditorBarrierInputHandler(Key key, KeyStatus status)
@@ -249,16 +250,34 @@ public abstract partial class WorldBaseEditor
 		// This won't break anything as XMLAsset doesn't perform any cleanup.
 		if (Engine.AssetLoader.Loaded(fileName)) Engine.AssetLoader.Destroy(fileName);
 
-		var asset = GetCurrentMapAsXMLAsset(map);
+		XMLAsset<BaseMap> asset = GetCurrentMapAsXMLAsset(map);
 		bool saved = asset.SaveAs(fileName);
 		EditorMsg(saved ? "Map saved." : "Unable to save map.");
 	}
 
 	public void EditorMsg(string txt)
 	{
-		Engine.Log.Trace(txt, "World2DEditor");
+		Engine.Log.Trace(txt, "Editor");
 
-		// todo
+		UIBaseWindow? logContainer = _bottomBar.GetWindowById("LogContainer");
+		AssertNotNull(logContainer);
+
+		// todo: do this properly with the new UI background stuff and delete this class
+		var lbl = new MapEditorLabelWithBackground(txt)
+		{
+			DontTakeSpaceWhenHidden = true,
+			Margins = new Rectangle(3, 0, 3, 1),
+			BackgroundColor = MapEditorColorPalette.BarColor * 0.75f
+		};
+		Engine.CoroutineManager.StartCoroutine(LabelTimeout(lbl));
+		logContainer.AddChild(lbl);
+	}
+
+	private IEnumerator LabelTimeout(UIBaseWindow lbl)
+	{
+		yield return new After(2500);
+		yield return lbl.SetVisibleFade(false, new After(500));
+		lbl.Parent?.RemoveChild(lbl);
 	}
 
 	#region Scene Control

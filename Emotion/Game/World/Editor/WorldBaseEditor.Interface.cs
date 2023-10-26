@@ -11,6 +11,7 @@ using Emotion.Game.Text;
 using Emotion.Game.World.Editor.Actions;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
@@ -29,6 +30,9 @@ public abstract partial class WorldBaseEditor
 	// Interface
 	protected Dictionary<BaseGameObject, MapEditorObjectNameplate>? _namePlates;
 
+	private UIBaseWindow _bottomBar;
+	private MapEditorLabel _bottomBarText;
+
 	protected void InitializeEditorInterface()
 	{
 		_editUI = new UIController(KeyListenerType.EditorUI)
@@ -38,6 +42,11 @@ public abstract partial class WorldBaseEditor
 
 		UIBaseWindow topBar = GetEditorTopBar();
 		_editUI.AddChild(topBar);
+
+		UIBaseWindow bottomBar = GetEditorBottomBar();
+		_bottomBar = bottomBar;
+		_bottomBarText = (MapEditorLabel) bottomBar.GetWindowById("Label")!;
+		_editUI.AddChild(bottomBar);
 
 		UIBaseWindow worldInspect = GetWorldAttachInspectWindow();
 		_editUI.AddChild(worldInspect);
@@ -110,6 +119,36 @@ public abstract partial class WorldBaseEditor
 		EditorAttachTopBarButtons(topBarList);
 
 		return topBar;
+	}
+
+	private UIBaseWindow GetEditorBottomBar()
+	{
+		var bottomBar = new UISolidColor();
+		bottomBar.MaxSizeY = 12;
+		bottomBar.ScaleMode = UIScaleMode.FloatScale;
+		bottomBar.WindowColor = MapEditorColorPalette.BarColor;
+		bottomBar.Id = "BottomBar";
+		bottomBar.Anchor = UIAnchor.BottomLeft;
+		bottomBar.ParentAnchor = UIAnchor.BottomLeft;
+
+		var label = new MapEditorLabel("No object selected");
+		label.Margins = new Rectangle(3, 3, 3, 3);
+		label.FontSize = MapEditorColorPalette.EditorButtonTextSize - 2;
+		label.ParentAnchor = UIAnchor.CenterLeft;
+		label.Anchor = UIAnchor.CenterLeft;
+		label.Id = "Label";
+		bottomBar.AddChild(label);
+
+		var bottomBarLogTextContainer = new UIBaseWindow();
+		bottomBarLogTextContainer.Anchor = UIAnchor.BottomLeft;
+		bottomBarLogTextContainer.ParentAnchor = UIAnchor.TopLeft;
+		bottomBarLogTextContainer.LayoutMode = LayoutMode.VerticalList;
+		bottomBarLogTextContainer.Id = "LogContainer";
+		bottomBarLogTextContainer.StretchX = true;
+		bottomBarLogTextContainer.StretchY = true;
+		bottomBar.AddChild(bottomBarLogTextContainer);
+
+		return bottomBar;
 	}
 
 	private class CreateNewMapEnvelope
