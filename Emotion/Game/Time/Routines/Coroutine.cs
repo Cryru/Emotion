@@ -18,6 +18,11 @@ namespace Emotion.Game.Time.Routines
 	public class Coroutine : IRoutineWaiter
 	{
 		/// <summary>
+		/// A routine considered completed.
+		/// </summary>
+		public static Coroutine CompletedRoutine = new Coroutine(null);
+
+		/// <summary>
 		/// Whether the routine has finished running.
 		/// If the routine was stopped, it will also be considered finished as to
 		/// continue the calling routine.
