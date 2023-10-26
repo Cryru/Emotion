@@ -265,6 +265,7 @@ namespace Emotion.UI
 
 			if (evict) Children.Remove(child);
 			if (Controller != null) child.DetachedFromController(Controller);
+			InvalidateLayout();
 		}
 
 		public virtual void ClearChildren()
@@ -645,7 +646,7 @@ namespace Emotion.UI
 			SetVisibleFade(val, tween);
 		}
 
-		public void SetVisibleFade(bool val, ITimer? tween = null)
+		public IRoutineWaiter SetVisibleFade(bool val, ITimer? tween = null)
 		{
 			Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
 			_alphaTweenTimer?.End();
@@ -656,18 +657,19 @@ namespace Emotion.UI
 			{
 				WindowColor = WindowColor.SetAlpha(targetAlpha);
 				Visible = val;
-				return;
+				return Coroutine.CompletedRoutine;
 			}
 
 			if (Visible == val && WindowColor.A == targetAlpha)
 			{
 				tween.End();
 				_alphaTweenRoutine = null;
-				return;
+				return Coroutine.CompletedRoutine;
 			}
 
 			_alphaTweenTimer = tween;
 			_alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, Visible == val ? null : val));
+			return new PassiveRoutineObserver(_alphaTweenRoutine);
 		}
 
 		protected void CalculateColor()
