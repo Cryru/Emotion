@@ -4,7 +4,6 @@
 
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World;
-using Emotion.Game.World2D;
 using Emotion.Game.World3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
@@ -125,7 +124,7 @@ namespace Emotion.Graphics
 					Assert(false, "Invalid mesh data.");
 					continue;
 				}
-				
+
 				// Decide which shader to use.
 				bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
 				bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
@@ -138,25 +137,18 @@ namespace Emotion.Graphics
 				else if (skinnedMesh)
 				{
 					if (_renderingShadowMap)
-					{
 						currentShader = _meshShaderShadowMapSkinned;
-					}
 					else
-					{
 						currentShader = _skinnedMeshShader;
-					}
 				}
 				else
 				{
 					if (_renderingShadowMap)
-					{
 						currentShader = _meshShaderShadowMap;
-					}
 					else
-					{
 						currentShader = _meshShader;
-					}
 				}
+
 				Engine.Renderer.SetShader(currentShader);
 
 				// Material colors
@@ -179,7 +171,10 @@ namespace Emotion.Graphics
 					currentShader.SetUniformFloat("diffuseStrength", 0f);
 				}
 
-				currentShader.SetUniformMatrix4("lightViewProj", _lightViewProj);
+				if (_renderingShadowMap)
+					currentShader.SetUniformMatrix4("lightViewProj", _renderingShadowMapCurrentLightViewProj);
+
+				currentShader.SetUniformVector3("cameraPosition", Engine.Renderer.Camera.Position);
 
 				// Upload bone matrices for skinned meshes (if not missing).
 				if (skinnedMesh && boneMatricesPerMesh != null)
@@ -190,18 +185,40 @@ namespace Emotion.Graphics
 
 				// Bind textures.
 				// 0 - Diffuse
-				// 1 - ShadowMap
+				// 1-2-3 - ShadowMap (based on cascades)
+				// todo: convert cascades into array texture
 				currentShader.SetUniformInt("diffuseTexture", 0);
 
 				Texture? diffuseTexture = obj.Material.DiffuseTexture;
-				Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer, 0);
+				Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-				currentShader.SetUniformInt("shadowMapTexture", 1);
+				currentShader.SetUniformInt("shadowMapTextureC1", 1);
+				currentShader.SetUniformInt("shadowMapTextureC2", 2);
+				currentShader.SetUniformInt("shadowMapTextureC3", 3);
 
 				if (_renderingShadowMap || !receiveShadow)
-					Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, 1);
+				{
+					for (var j = 0; j < _shadowCascadeCount; j++)
+					{
+						Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint) (j + 1));
+					}
+				}
 				else
-					Texture.EnsureBound(_shadowDepth?.DepthStencilAttachment.Pointer ?? Texture.EmptyWhiteTexture.Pointer, 1);
+				{
+					AssertNotNull(_shadowCascades);
+					AssertNotNull(cascadePlaneFarZUniformNames);
+					AssertNotNull(cascadeLightProjUniformNames);
+
+					for (var j = 0; j < _shadowCascades.Length; j++)
+					{
+						ShadowCascade cascade = _shadowCascades[j];
+						uint bufferPointer = cascade.Buffer.DepthStencilAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer;
+						Texture.EnsureBound(bufferPointer, (uint) (j + 1));
+
+						currentShader.SetUniformFloat(cascadePlaneFarZUniformNames[j], cascade.FarZ);
+						currentShader.SetUniformMatrix4(cascadeLightProjUniformNames[j], cascade.LightViewProj);
+					}
+				}
 
 				// Upload geometry
 				GLRenderObjects? renderObj = GetFirstFreeRenderObject(obj, skinnedMesh, out bool alreadyUploaded);
@@ -278,7 +295,7 @@ namespace Emotion.Graphics
 				alreadyUploaded = true;
 				return _meshToRenderObject[mesh];
 			}
-			
+
 			Stack<GLRenderObjects> stack = withBones ? _renderObjectsBones : _renderObjects;
 			if (stack.Count == 0) CreateRenderObject(withBones);
 
@@ -298,23 +315,67 @@ namespace Emotion.Graphics
 
 		private bool _initializedShadowMapObjects;
 		private bool _renderingShadowMap;
-		private FrameBuffer? _shadowDepth;
-		private Matrix4x4 _lightViewProj;
+		private Matrix4x4 _renderingShadowMapCurrentLightViewProj;
+		private string[]? cascadePlaneFarZUniformNames;
+		private string[]? cascadeLightProjUniformNames;
+
+		private class ShadowCascade
+		{
+			public FrameBuffer Buffer;
+			public float NearZ;
+			public float FarZ;
+			public Matrix4x4 LightViewProj;
+
+			public ShadowCascade(float nearZ, float farZ)
+			{
+				var resolution = new Vector2(2048);
+				NearZ = nearZ;
+				FarZ = farZ;
+
+				Buffer = new FrameBuffer(resolution).WithDepth(true);
+				Texture.EnsureBound(Buffer.DepthStencilAttachment.Pointer);
+				Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
+				Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
+
+				float[] borderColor = {1.0f, 1.0f, 1.0f, 1.0f};
+				Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
+			}
+		}
+
+		private int _shadowCascadeCount = 3;
+		private ShadowCascade[]? _shadowCascades;
 
 		private void InitializeShadowMapObjects()
 		{
-			_shadowDepth = new FrameBuffer(new Vector2(2048)).WithDepth(true);
-			Texture.EnsureBound(_shadowDepth.DepthStencilAttachment.Pointer);
-			Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
-			Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
+			_shadowCascades = new ShadowCascade[3]
+			{
+				new ShadowCascade(10f, 200f),
+				new ShadowCascade(200f, 1000f),
+				new ShadowCascade(1000f, 1600f)
+			};
+			Assert(_shadowCascades.Length == _shadowCascadeCount);
 
-			float[] borderColor = {1.0f, 1.0f, 1.0f, 1.0f};
-			Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
+			cascadePlaneFarZUniformNames = new string[_shadowCascadeCount];
+			cascadeLightProjUniformNames = new string[_shadowCascadeCount];
+
+			for (var i = 0; i < _shadowCascadeCount; i++)
+			{
+				cascadePlaneFarZUniformNames[i] = $"cascadePlaneFarZ[{i}]";
+				cascadeLightProjUniformNames[i] = $"cascadeLightProj[{i}]";
+			}
 
 			_initializedShadowMapObjects = true;
 		}
 
-		public void StartRenderShadowMap(RenderComposer c, LightModel model)
+		public int GetShadowMapCascadeCount()
+		{
+			if (!Initialized) return 0;
+			if (!_initializedShadowMapObjects) InitializeShadowMapObjects();
+			AssertNotNull(_shadowCascades);
+			return _shadowCascades.Length;
+		}
+
+		public void StartRenderShadowMap(int cascIdx, RenderComposer c, LightModel model)
 		{
 			if (!Initialized) return;
 			AssertNotNull(_meshShaderShadowMap);
@@ -323,16 +384,17 @@ namespace Emotion.Graphics
 			c.FlushRenderStream();
 
 			if (!_initializedShadowMapObjects) InitializeShadowMapObjects();
+			AssertNotNull(_shadowCascades);
 
 			float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
 
-			c.RenderToAndClear(_shadowDepth);
+			ShadowCascade cascade = _shadowCascades[cascIdx];
+			c.RenderToAndClear(cascade.Buffer);
 			Gl.DrawBuffers(Gl.NONE);
 			Gl.ReadBuffer(Gl.NONE);
 
-			// todo: cascades
-			float nearClip = 10f;
-			float farClip = 1000;
+			float nearClip = cascade.NearZ;
+			float farClip = cascade.FarZ;
 
 			// Get camera frustum for the current cascade clip.
 			var cam3D = c.Camera as Camera3D;
@@ -379,8 +441,8 @@ namespace Emotion.Graphics
 			// The projection of the light encompasses the frustum in a square.
 			var lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
 
-			_lightViewProj = lightView * lightProjection;
-
+			cascade.LightViewProj = lightView * lightProjection;
+			_renderingShadowMapCurrentLightViewProj = cascade.LightViewProj;
 			_renderingShadowMap = true;
 		}
 
@@ -411,15 +473,11 @@ namespace Emotion.Graphics
 		public void EndRenderShadowMap(RenderComposer c)
 		{
 			if (!_renderingShadowMap) return;
-			AssertNotNull(_shadowDepth);
+			AssertNotNull(_shadowCascades);
 
 			c.RenderTo(null);
 			c.FlushRenderStream();
 			_renderingShadowMap = false;
-
-			//c.SetUseViewMatrix(false);
-			//c.RenderSprite(Vector3.Zero, _shadowDepth.DepthStencilAttachment);
-			//c.SetUseViewMatrix(true);
 		}
 	}
 }

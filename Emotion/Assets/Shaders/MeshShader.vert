@@ -43,7 +43,6 @@ out vec3 fragNormal;
 out vec3 fragLightDir;
 
 out vec3 fragPosition;
-out vec4 fragPositionLightSpace;
 
 void main() { 
     // Pass to frag.
@@ -51,9 +50,8 @@ void main() {
     vertColor = color;
 
     fragPosition = vec3(modelMatrix * vec4(vertPos, 1.0));
-    fragPositionLightSpace = lightViewProj * vec4(fragPosition, 1.0);
 
-    fragNormal = mat3(transpose(inverse(modelMatrix))) * normal;
+    fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
     fragLightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);

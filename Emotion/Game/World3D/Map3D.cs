@@ -50,18 +50,23 @@ public class Map3D : BaseMap
 
 		if (RenderShadowMap)
 		{
-			c.RenderStream.MeshRenderer.StartRenderShadowMap(c, LightModel);
-
-			for (var i = 0; i < _renderQuery.Count; i++)
+			// todo: cull objects per cascade
+			int cascades = c.RenderStream.MeshRenderer.GetShadowMapCascadeCount();
+			for (var cascIdx = 0; cascIdx < cascades; cascIdx++)
 			{
-				GameObject3D obj = _renderQuery[i];
-				obj.Render(c);
-			}
+				c.RenderStream.MeshRenderer.StartRenderShadowMap(cascIdx, c, LightModel);
 
-			c.RenderStream.MeshRenderer.EndRenderShadowMap(c);
+				for (var i = 0; i < _renderQuery.Count; i++)
+				{
+					GameObject3D obj = _renderQuery[i];
+					obj.Render(c);
+				}
+
+				c.RenderStream.MeshRenderer.EndRenderShadowMap(c);
+			}
 		}
 
-		bool anyTransparent = false;
+		var anyTransparent = false;
 		for (var i = 0; i < _renderQuery.Count; i++)
 		{
 			GameObject3D obj = _renderQuery[i];
