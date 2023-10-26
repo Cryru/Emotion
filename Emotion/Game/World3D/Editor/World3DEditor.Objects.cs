@@ -55,14 +55,14 @@ public partial class World3DEditor
 			if (_selectedObject is GameObject3D obj3D)
 			{
 				Cube boundCube = obj3D.Bounds3D;
-				boundCube.RenderOutline(c, Color.PrettyYellow);
+				boundCube.RenderOutline(c, Color.PrettyYellow, 0.5f);
 			}
 		}
 
 		if (_rolloverObject is GameObject3D rollover3D)
 		{
 			Cube boundCube = rollover3D.Bounds3D;
-			boundCube.RenderOutline(c, Color.PrettyYellow * 0.5f);
+			boundCube.RenderOutline(c, Color.PrettyYellow * 0.5f, 0.5f);
 		}
 	}
 

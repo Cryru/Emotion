@@ -12,6 +12,7 @@ using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.Game.World3D.Editor;
 using Emotion.Graphics;
+using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
@@ -68,14 +69,14 @@ public abstract partial class WorldBaseEditor
 		_allObjectsRollover = null;
 	}
 
-	protected static Comparison<(GameObject3D, Vector3)> ObjectComparison3D = ObjectSort3D; // Prevent delegate allocation
+	protected static Comparison<(GameObject3D, Vector3)> _distanceFromCamera = ObjectDistanceFromCameraCompare; // Prevent delegate allocation
 
-	protected static int ObjectSort3D((GameObject3D, Vector3) x, (GameObject3D, Vector3) y)
+	protected static int ObjectDistanceFromCameraCompare((GameObject3D, Vector3) x, (GameObject3D, Vector3) y)
 	{
-		var collisionPointX = x.Item2;
-		var collisionPointY = y.Item2;
+		Vector3 collisionPointX = x.Item2;
+		Vector3 collisionPointY = y.Item2;
 
-		var camera = Engine.Renderer.Camera;
+		CameraBase? camera = Engine.Renderer.Camera;
 		float distToA = Vector3.Distance(camera.Position, collisionPointX);
 		float distToB = Vector3.Distance(camera.Position, collisionPointY);
 		return MathF.Sign(distToA - distToB);
@@ -118,10 +119,11 @@ public abstract partial class WorldBaseEditor
 					while (objects3D.MoveNext())
 					{
 						GameObject3D obj = objects3D.Current;
-						if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 collisionPoint, out Vector3 _, out int _)) collisionPoints.Add((obj, collisionPoint));
+						if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 collisionPoint, out Vector3 _, out int _))
+							collisionPoints.Add((obj, collisionPoint));
 					}
 
-					collisionPoints.Sort(ObjectComparison3D);
+					collisionPoints.Sort(_distanceFromCamera);
 					for (var i = 0; i < collisionPoints.Count; i++)
 					{
 						(GameObject3D, Vector3) pair = collisionPoints[i];
@@ -133,10 +135,7 @@ public abstract partial class WorldBaseEditor
 					results.Clear();
 
 					// If the mouse is both on top of the nameplate and move gizmo, then show the rollover.
-					if (mouseFocusNameplate != null && w3D.MoveGizmo.MouseInside)
-					{
-						results.Add(mouseFocusNameplate.Object);
-					}
+					if (mouseFocusNameplate != null && w3D.MoveGizmo.MouseInside) results.Add(mouseFocusNameplate.Object);
 				}
 			}
 			else
@@ -283,6 +282,7 @@ public abstract partial class WorldBaseEditor
 		if (_namePlates == null || _namePlates.ContainsKey(obj)) return;
 
 		var namePlate = new MapEditorObjectNameplate();
+		namePlate.Visible = _nameplatesShown;
 		namePlate.AttachToObject(obj);
 		_namePlates.Add(obj, namePlate);
 		_editUI!.AddChild(namePlate);
@@ -303,6 +303,7 @@ public abstract partial class WorldBaseEditor
 			Vector2 pos = Engine.Host.MousePosition;
 			worldPos = Engine.Renderer.Camera.ScreenToWorld(pos);
 		}
+
 		return worldPos;
 	}
 
@@ -313,7 +314,7 @@ public abstract partial class WorldBaseEditor
 
 		Vector3 worldPos = GetMouseWorldPosition();
 		ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
-		var newObj = (BaseGameObject)constructor.Invoke(null);
+		var newObj = (BaseGameObject) constructor.Invoke(null);
 		newObj.ObjectFlags |= ObjectFlags.Persistent;
 		newObj.Position = worldPos;
 
@@ -333,7 +334,7 @@ public abstract partial class WorldBaseEditor
 		// nop
 	}
 
-	private void ObjectEditorInputHandler(Key key, KeyStatus status)
+	private bool ObjectEditorInputHandler(Key key, KeyStatus status)
 	{
 		if (key == Key.LeftAlt && status == KeyStatus.Down) RolloverObjectIncrement();
 
@@ -372,21 +373,34 @@ public abstract partial class WorldBaseEditor
 			_objectDragging = null;
 		}
 
-		if (noMouseFocus && controlHeld && status == KeyStatus.Up)
+		if (noMouseFocus && controlHeld && status == KeyStatus.Down)
 		{
 			if (key == Key.C)
 			{
-				CopyCurrentObject();
+				CopySelectedObject();
+				return false;
 			}
-			else if (key == Key.V)
+
+			if (key == Key.V)
 			{
 				PasteObject();
+				return false;
 			}
-			else if (key == Key.D)
+
+			if (key == Key.D)
 			{
-				DuplicateCurrentObject();
+				DuplicateSelectedObject();
+				return false;
 			}
 		}
+
+		if (key == Key.N && status == KeyStatus.Down)
+		{
+			ShowObjectNameplates(!_nameplatesShown);
+			return false;
+		}
+
+		return true;
 	}
 
 	#region Object Selection and Rollover
@@ -515,11 +529,24 @@ public abstract partial class WorldBaseEditor
 		_allObjectsRollover = objs;
 
 		// Update rollover
-		var worldAttachUI = (UIWorldAttachedWindow?)_editUI?.GetWindowById("WorldAttach");
+		UIWorldAttachedWindow worldAttachUI = null; //(UIWorldAttachedWindow?)_editUI?.GetWindowById("WorldAttach");
 		if (_rolloverObject == null)
 		{
+			_bottomBarText.Text = _selectedObject != null ? $"Selected: {_selectedObject}" : "No object selected";
 			if (worldAttachUI != null) worldAttachUI.Visible = false;
 			return;
+		}
+
+		if (_allObjectsRollover != null && _allObjectsRollover.Count > 0)
+		{
+			var txt = new StringBuilder();
+			txt.Append($"Rollover {_rolloverIndex + 1}/{_allObjectsRollover.Count} ([ALT] to switch): ");
+			txt.Append($"{_rolloverObject}");
+			_bottomBarText.Text = txt.ToString();
+		}
+		else
+		{
+			_bottomBarText.Text = "";
 		}
 
 		if (worldAttachUI != null)
@@ -527,17 +554,17 @@ public abstract partial class WorldBaseEditor
 			worldAttachUI.Visible = true;
 
 			BaseGameObject? obj = _rolloverObject;
-			var text = (UIText?)worldAttachUI.GetWindowById("text")!;
+			var text = (UIText?) worldAttachUI.GetWindowById("text")!;
 			var txt = new StringBuilder();
 			txt.AppendLine($"Name: [{obj.UniqueId}] {obj.ObjectName ?? "null"}");
 			txt.AppendLine($"Class: {obj.GetType().Name}");
-			txt.AppendLine($"Pos: {obj.Position}");
+			//txt.AppendLine($"Pos: {obj.Position}");
 
 			// todo:
 			Vector3 attachRolloverTo;
 			if (obj is GameObject3D obj3D)
 			{
-				txt.AppendLine($"Entity: {obj3D.Entity?.Name}");
+				//txt.AppendLine($"Entity: {obj3D.Entity?.Name}");
 				attachRolloverTo = obj3D.Position;
 			}
 			else
@@ -559,6 +586,18 @@ public abstract partial class WorldBaseEditor
 	{
 		if (_allObjectsRollover == null) return;
 		RolloverObjects(_allObjectsRollover, true);
+	}
+
+	private bool _nameplatesShown;
+
+	protected void ShowObjectNameplates(bool show)
+	{
+		if (_namePlates == null) return;
+		_nameplatesShown = show;
+		foreach (KeyValuePair<BaseGameObject, MapEditorObjectNameplate> namePlate in _namePlates)
+		{
+			namePlate.Value.Visible = show;
+		}
 	}
 
 	#endregion
@@ -633,7 +672,7 @@ public abstract partial class WorldBaseEditor
 			prefabData.DefaultProperties.Add(new Dictionary<string, object?>());
 		Dictionary<string, object?> thisVersionPropertyList = prefabData.DefaultProperties[prefabData.PrefabVersion - 1];
 
-		var typeHandler = (XMLComplexBaseTypeHandler)XMLHelpers.GetTypeHandler(obj.GetType())!;
+		var typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(obj.GetType())!;
 		IEnumerator<XMLFieldHandler> fields = typeHandler.EnumFields();
 		while (fields.MoveNext())
 		{
@@ -719,7 +758,7 @@ public abstract partial class WorldBaseEditor
 
 	#region Object Copy-Pasta
 
-	public void CopyCurrentObject()
+	public void CopySelectedObject()
 	{
 		if (_selectedObject == null) return;
 
@@ -750,7 +789,7 @@ public abstract partial class WorldBaseEditor
 		SelectObject(newObj);
 	}
 
-	public void DuplicateCurrentObject()
+	public void DuplicateSelectedObject()
 	{
 		if (_selectedObject == null) return;
 
@@ -765,8 +804,8 @@ public abstract partial class WorldBaseEditor
 		newObj.ObjectFlags |= ObjectFlags.Persistent;
 		CurrentMap!.AddObject(newObj);
 		SelectObject(newObj);
+		EditorMsg($"Duplicated object {_selectedObject}");
 	}
-
 
 	#endregion
 
@@ -829,7 +868,7 @@ public abstract partial class WorldBaseEditor
 			Offset = mousePos / _editUI!.GetScale()
 		};
 
-		var dropDownMenu = new[]
+		EditorDropDownButtonDescription[] dropDownMenu =
 		{
 			GetPasteButton()
 		};
@@ -849,7 +888,7 @@ public abstract partial class WorldBaseEditor
 			OwningObject = obj
 		};
 
-		var dropDownMenu = new[]
+		EditorDropDownButtonDescription[] dropDownMenu =
 		{
 			new EditorDropDownButtonDescription
 			{
