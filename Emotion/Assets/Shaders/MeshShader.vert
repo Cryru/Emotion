@@ -50,22 +50,21 @@ void main() {
     vertColor = color;
 
     fragPosition = vec3(modelMatrix * vec4(vertPos, 1.0));
-
-    fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
     fragLightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);
 
-    #ifdef SKINNED
-
+#ifdef SKINNED
     mat4 totalTransform = boneMatrices[int(boneIds[0])] * boneWeights[0];
     for (int i = 1; i < MAX_BONE_INFLUENCE; i++)
     {
         totalTransform += boneMatrices[int(boneIds[i])] * boneWeights[i];
     }
     totalPosition = totalTransform * totalPosition;
-
-    #endif
+	fragNormal = normalize(mat3(transpose(inverse(modelMatrix * totalTransform))) * normal);
+#else
+	fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
+#endif
 
     // Multiply by projection.
     #ifdef SHADOW_MAP
