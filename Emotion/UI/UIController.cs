@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 
@@ -44,11 +45,12 @@ namespace Emotion.UI
 		protected bool _updateLayout = true;
 		protected bool _updateInputFocus = true;
 
+		protected HashSet<UIBaseWindow> _doubleAddChecker = new HashSet<UIBaseWindow>();
+
 		public UIController(KeyListenerType inputPriority = KeyListenerType.UI)
 		{
 			HandleInput = true;
 			KeyPriority = inputPriority;
-			Debugger = new UIDebugger();
 			Engine.Host.OnResize += Host_OnResize;
 			KeepTemplatePreloaded(this);
 
@@ -120,8 +122,6 @@ namespace Emotion.UI
 		{
 			_updateLayout = false;
 
-			Debugger?.RecordNewPass(this);
-
 #if NEW_UI
 			BuildRelativeToMapping();
 
@@ -164,6 +164,25 @@ namespace Emotion.UI
 			child.DetachedFromController(this);
 			InvalidateInputFocus();
 		}
+
+		#region Dedupe Hierarchy Checker
+
+		public bool IsWindowPresentInHierarchy(UIBaseWindow win)
+		{
+			return _doubleAddChecker.Contains(win);
+		}
+
+		public void RegisterWindowInController(UIBaseWindow win)
+		{
+			_doubleAddChecker.Add(win);
+		}
+
+		public void RemoveWindowFromController(UIBaseWindow win)
+		{
+			_doubleAddChecker.Remove(win);
+		}
+
+		#endregion
 
 		#region RelativeTo Layout
 

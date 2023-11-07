@@ -280,38 +280,38 @@ namespace Emotion.Tools.Editors.UIEditor
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Calculated Props"))
-            {
-                ImGui.BeginChild("Debug Properties", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
+            //if (ImGui.BeginTabItem("Calculated Props"))
+            //{
+            //    ImGui.BeginChild("Debug Properties", new Vector2(450, 500), true, ImGuiWindowFlags.HorizontalScrollbar);
 
-                UIDebugger debugger = _ui.Debugger;
-                if (debugger != null)
-                {
-                    UIDebugNode win = debugger.GetMetricsForWindow(_selectedWindow);
-                    if (win != null)
-                    {
-                        Dictionary<string, object> metrics = win.Metrics;
-                        foreach (KeyValuePair<string, object> metric in metrics)
-                        {
-                            ImGui.Text($"{metric.Key}: {metric.Value}");
-                        }
-                    }
-                    else
-                    {
-                        ImGui.Text("No metrics for selected window. Try refreshing the preview.");
-                    }
+            //    UIDebugger debugger = _ui.Debugger;
+            //    if (debugger != null)
+            //    {
+            //        UIDebugNode win = debugger.GetMetricsForWindow(_selectedWindow);
+            //        if (win != null)
+            //        {
+            //            Dictionary<string, object> metrics = win.Metrics;
+            //            foreach (KeyValuePair<string, object> metric in metrics)
+            //            {
+            //                ImGui.Text($"{metric.Key}: {metric.Value}");
+            //            }
+            //        }
+            //        else
+            //        {
+            //            ImGui.Text("No metrics for selected window. Try refreshing the preview.");
+            //        }
 
-                    ImGui.Text($"Final_Position: {_selectedWindow.Position}");
-                    ImGui.Text($"Final_Size: {_selectedWindow.Size}");
-                }
-                else
-                {
-                    ImGui.Text("Debugger not attached to controller.");
-                }
+            //        ImGui.Text($"Final_Position: {_selectedWindow.Position}");
+            //        ImGui.Text($"Final_Size: {_selectedWindow.Size}");
+            //    }
+            //    else
+            //    {
+            //        ImGui.Text("Debugger not attached to controller.");
+            //    }
 
-                ImGui.EndChild();
-                ImGui.EndTabItem();
-            }
+            //    ImGui.EndChild();
+            //    ImGui.EndTabItem();
+            //}
 
             ImGui.EndTabBar();
             ImGui.EndGroup();

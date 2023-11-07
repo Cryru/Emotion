@@ -103,10 +103,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		}
 
 		Vector2 contentSize = InternalMeasure(space);
-		Debugger?.RecordMetric(this, "Measure_Internal", contentSize);
 		contentSize = Vector2.Clamp(contentSize, MinSize * scale, MaxSize * scale).Ceiling();
 		AfterMeasure(contentSize);
-		Debugger?.RecordMetric(this, "Measure_Internal_PostClamp", contentSize);
 		Vector2 usedSpace = Vector2.Zero;
 		Rectangle scaledPadding = Paddings * scale;
 		var paddingSize = new Vector2(scaledPadding.X + scaledPadding.Width, scaledPadding.Y + scaledPadding.Height);
@@ -135,8 +133,6 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 							UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
 							if (win != null)
 							{
-								if (Debugger != null && Debugger.GetMetricsForWindow(win) == null)
-									Engine.Log.Warning($"{this} will layout relative to {child.RelativeTo}, before it had a chance to layout itself.", "UI");
 								// All windows are measured in one pass. For the "relative to" measure to work, windows attached to other windows need
 								// to be lower in the hierarchy than/following their attached parent.
 								child.Measure(win.Size);
@@ -221,7 +217,6 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		_measuredSize = new Vector2(measuredX, measuredY);
 		_measuredSize = _measuredSize.Ceiling();
 		AfterMeasureChildren(usedSpace);
-		Debugger?.RecordMetric(this, "Measure_PostChildren", _measuredSize);
 
 		if (_measuredSize.X < 0 || _measuredSize.Y < 0)
 		{
@@ -258,7 +253,6 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 	protected void Layout(Vector2 contentPos)
 	{
-		Debugger?.RecordMetric(this, "Layout_ContentPos", contentPos);
 		float scale = GetScale();
 		Debug.Assert(Size == _measuredSize);
 		Size = _measuredSize;
@@ -294,8 +288,6 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 							UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
 							if (win != null)
 							{
-								if (Debugger != null && Debugger.GetMetricsForWindow(win) == null)
-									Engine.Log.Warning($"{this} will layout relative to {child.RelativeTo}, before it had a chance to layout itself.", "UI");
 								parent = win;
 							}
 							else

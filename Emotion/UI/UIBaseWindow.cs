@@ -39,9 +39,6 @@ namespace Emotion.UI
 		public UIBaseWindow? Parent { get; protected set; }
 
 		[DontSerialize]
-		public UIDebugger? Debugger { get; protected set; }
-
-		[DontSerialize]
 		public UIController? Controller { get; protected set; }
 
 		#endregion
@@ -169,17 +166,6 @@ namespace Emotion.UI
 		{
 		}
 
-		protected void AttachDebugger(UIDebugger debugger)
-		{
-			Debugger = debugger;
-			if (Children == null) return;
-			for (var i = 0; i < Children.Count; i++)
-			{
-				UIBaseWindow child = Children[i];
-				child.AttachDebugger(debugger);
-			}
-		}
-
 		#endregion
 
 		#region Hierarchy
@@ -213,7 +199,6 @@ namespace Emotion.UI
 			child.InvalidateLayout();
 			child.InvalidateColor();
 			child.EnsureParentLinks();
-			if (Debugger != null) child.AttachDebugger(Debugger);
 			if (Controller != null) child.AttachedToController(Controller);
 			SortChildren();
 		}
@@ -280,8 +265,21 @@ namespace Emotion.UI
 			Children = null;
 		}
 
+		public void RecalculateZValue()
+		{
+			Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
+		}
+
 		public virtual void AttachedToController(UIController controller)
 		{
+			bool isPresent = controller.IsWindowPresentInHierarchy(this);
+			if (isPresent)
+			{
+				Assert(false, "Window is present in hierarchy twice!");
+				return;
+			}
+			controller.RegisterWindowInController(this);
+
 			Controller = controller;
 			Controller?.InvalidatePreload();
 			RecalculateZValue();
@@ -293,13 +291,10 @@ namespace Emotion.UI
 			}
 		}
 
-		public void RecalculateZValue()
-		{
-			Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
-		}
-
 		public virtual void DetachedFromController(UIController controller)
 		{
+			controller.RemoveWindowFromController(this);
+
 			Controller = null;
 			if (Children == null) return;
 			for (var i = 0; i < Children.Count; i++)
