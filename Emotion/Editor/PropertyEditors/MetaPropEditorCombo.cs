@@ -67,13 +67,13 @@ public class MetaPropEditorCombo<T> : EditorButtonDropDown, IPropEditorGeneric
 		base.AttachedToController(controller);
 
 		var currentIdx = 0;
-		var dropDownItems = new EditorDropDownButtonDescription[_optionNames.Length];
+		var dropDownItems = new EditorDropDownItem[_optionNames.Length];
 		for (var i = 0; i < _optionNames.Length; i++)
 		{
 			string thisOption = _optionNames[i];
 			object? val = _options[i];
 
-			dropDownItems[i] = new EditorDropDownButtonDescription
+			dropDownItems[i] = new EditorDropDownItem
 			{
 				Name = thisOption,
 				Click = (_, __) =>

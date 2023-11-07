@@ -13,7 +13,7 @@ using Emotion.UI;
 
 namespace Emotion.Editor.EditorHelpers;
 
-public class EditorDropdown : UIDropDown
+public class EditorDropDown : UIDropDown
 {
 	public bool CloseOnClick;
 
@@ -21,7 +21,7 @@ public class EditorDropdown : UIDropDown
 
 	[DontSerialize] public Action? OnCloseProxy;
 
-	public EditorDropdown(bool closeOnClick = false)
+	public EditorDropDown(bool closeOnClick = false)
 	{
 		CloseOnClick = closeOnClick;
 		WindowColor = MapEditorColorPalette.ActiveButtonColor;
@@ -76,7 +76,7 @@ public class EditorDropdown : UIDropDown
 		c.RenderOutline(Position, Size, WindowColor);
 	}
 
-	public void SetItems(EditorDropDownButtonDescription[]? items, Action<EditorDropDownButtonDescription>? selectedCallback = null)
+	public void SetItems(EditorDropDownItem[]? items, Action<EditorDropDownItem>? selectedCallback = null)
 	{
 		List.ClearChildren();
 
@@ -85,8 +85,8 @@ public class EditorDropdown : UIDropDown
 		List<PropEditorBool>? checkBoxes = null;
 		for (var i = 0; i < items.Length; i++)
 		{
-			EditorDropDownButtonDescription item = items[i];
-			if (item is EditorDropDownCheckboxDescription itemCheckBox)
+			EditorDropDownItem item = items[i];
+			if (item is EditorDropDownCheckboxItem itemCheckBox)
 			{
 				checkBoxes ??= new List<PropEditorBool>();
 
@@ -108,7 +108,7 @@ public class EditorDropdown : UIDropDown
 					{
 						var checkBox = checkBoxes[c];
 						var thatCheckBoxItem = items[c];
-						var thatCheckBoxItemAsCheckBoxItem = thatCheckBoxItem as EditorDropDownCheckboxDescription;
+						var thatCheckBoxItemAsCheckBoxItem = thatCheckBoxItem as EditorDropDownCheckboxItem;
 						checkBox.SetValue(thatCheckBoxItemAsCheckBoxItem?.Checked() ?? false);
 					}
 				});
@@ -132,7 +132,7 @@ public class EditorDropdown : UIDropDown
 #else
 				FillXInList = true,
 #endif
-					Text = item.Name,
+					Text = item.NameFunc != null ? item.NameFunc() : item.Name,
 				};
 				ddButton.OnClickedProxy = _ =>
 				{

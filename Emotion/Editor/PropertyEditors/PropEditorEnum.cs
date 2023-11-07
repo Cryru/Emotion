@@ -115,7 +115,7 @@ namespace Emotion.Editor.PropertyEditors
 			{
 				var underlyingType = Enum.GetUnderlyingType(_enumType);
 
-				var dropDownItems = new EditorDropDownButtonDescription[_enumValueNames.Length];
+				var dropDownItems = new EditorDropDownItem[_enumValueNames.Length];
 				for (var i = 0; i < _enumValueNames.Length; i++)
 				{
 					string enumValName = _enumValueNames[i];
@@ -125,12 +125,12 @@ namespace Emotion.Editor.PropertyEditors
 					var valueAsEnum = _value as Enum;
 					bool hasFlag = Helpers.AreObjectsEqual(enumValAsEnum, _flagZeroValue) ?
 									Helpers.AreObjectsEqual(valueAsEnum, _flagZeroValue) : valueAsEnum.HasFlag(enumValAsEnum);
-					dropDownItems[i] = new EditorDropDownCheckboxDescription
+					dropDownItems[i] = new EditorDropDownCheckboxItem
 					{
 						Name = enumValName,
 						Click = (thisItem, __) =>
 						{
-							var checkListItem = thisItem as EditorDropDownCheckboxDescription;
+							var checkListItem = thisItem as EditorDropDownCheckboxItem;
 
 							var valueAsEnum = _value as Enum;
 							bool hasFlag = checkListItem.Checked();
@@ -158,13 +158,13 @@ namespace Emotion.Editor.PropertyEditors
 			else
 			{
 				var currentIdx = 0;
-				var dropDownItems = new EditorDropDownButtonDescription[_enumValueNames.Length];
+				var dropDownItems = new EditorDropDownItem[_enumValueNames.Length];
 				for (var i = 0; i < _enumValueNames.Length; i++)
 				{
 					string enumValName = _enumValueNames[i];
 					object? enumVal = enumValName == "<null>" ? null : Enum.Parse(_enumType, enumValName);
 
-					dropDownItems[i] = new EditorDropDownButtonDescription
+					dropDownItems[i] = new EditorDropDownItem
 					{
 						Name = enumValName,
 						Click = (_, __) =>

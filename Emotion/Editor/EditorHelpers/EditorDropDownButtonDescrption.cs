@@ -2,15 +2,17 @@
 
 namespace Emotion.Editor.EditorHelpers
 {
-	public class EditorDropDownButtonDescription
+	public class EditorDropDownItem
 	{
 		public string Name = null!;
-		public Action<EditorDropDownButtonDescription, EditorButton>? Click;
+		public Func<string> NameFunc = null!;
+
+		public Action<EditorDropDownItem, EditorButton>? Click;
 		public Func<bool>? Enabled;
 		public object? UserData;
 	}
 
-	public class EditorDropDownCheckboxDescription : EditorDropDownButtonDescription
+	public class EditorDropDownCheckboxItem : EditorDropDownItem
 	{
 		public Func<bool> Checked { get; set; }
 	}

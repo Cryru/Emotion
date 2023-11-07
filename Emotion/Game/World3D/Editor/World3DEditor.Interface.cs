@@ -19,7 +19,7 @@ public partial class World3DEditor
 		EditorButton menu3D = EditorDropDownButton("3D", new[]
 		{
 			// todo: when the property panel can edit sub objects this will be accessible via map->properties
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Light Model",
 				Click = (_, __) =>

@@ -24,8 +24,8 @@ public class EditorButtonDropDown : UIBaseWindow
 
 	private string? _text;
 
-	protected EditorDropDownButtonDescription? _currentOption;
-	protected EditorDropDownButtonDescription[]? _items;
+	protected EditorDropDownItem? _currentOption;
+	protected EditorDropDownItem[]? _items;
 
 	public EditorButtonDropDown()
 	{
@@ -34,7 +34,7 @@ public class EditorButtonDropDown : UIBaseWindow
 		LayoutMode = LayoutMode.HorizontalList;
 	}
 
-	public void SetItems(EditorDropDownButtonDescription[] items, int current)
+	public void SetItems(EditorDropDownItem[] items, int current)
 	{
 		_items = items;
 		_currentOption = items.Length > current ? items[current] : null;
@@ -65,7 +65,7 @@ public class EditorButtonDropDown : UIBaseWindow
 		button.Enabled = _items != null && _items.Length > 1;
 		button.OnClickedProxy = click =>
 		{
-			var dropDown = new EditorDropdown(true);
+			var dropDown = new EditorDropDown(true);
 			dropDown.Offset = button.RenderBounds.BottomLeft / button.GetScale();
 
 			dropDown.SetItems(_items, selected =>

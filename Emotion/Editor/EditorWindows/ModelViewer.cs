@@ -37,7 +37,7 @@ public class ModelViewer : EditorPanel
 
     private UIBaseWindow? _surface3D;
 
-    private EditorDropDownButtonDescription[] _noAnimationItems =
+    private EditorDropDownItem[] _noAnimationItems =
     {
         new()
         {
@@ -301,12 +301,12 @@ public class ModelViewer : EditorPanel
         {
 			Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();
 
-			var checkboxItemList = new EditorDropDownCheckboxDescription[meshes.Length];
+			var checkboxItemList = new EditorDropDownCheckboxItem[meshes.Length];
 			for (var i = 0; i < meshes.Length; i++)
 			{
 				Mesh mesh = meshes[i];
 				int idx = i;
-				checkboxItemList[i] = new EditorDropDownCheckboxDescription()
+				checkboxItemList[i] = new EditorDropDownCheckboxItem()
 				{
 					Name = mesh.Name,
 					Checked = () =>
@@ -352,12 +352,12 @@ public class ModelViewer : EditorPanel
             SkeletalAnimation[]? animations = entity?.Animations;
             if (animations != null)
             {
-                var animationButtons = new EditorDropDownButtonDescription[animations.Length + 1];
+                var animationButtons = new EditorDropDownItem[animations.Length + 1];
                 animationButtons[0] = _noAnimationItems[0];
                 for (var i = 0; i < animations.Length; i++)
                 {
                     SkeletalAnimation anim = animations[i];
-                    animationButtons[i + 1] = new EditorDropDownButtonDescription
+                    animationButtons[i + 1] = new EditorDropDownItem
                     {
                         Name = anim.Name,
                         UserData = anim.Name,
@@ -374,7 +374,7 @@ public class ModelViewer : EditorPanel
         }
     }
 
-    protected void SetAnimationDropDownCallback(EditorDropDownButtonDescription item, EditorButton _)
+    protected void SetAnimationDropDownCallback(EditorDropDownItem item, EditorButton _)
     {
         _obj.SetAnimation(item.Name);
     }

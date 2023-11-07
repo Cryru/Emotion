@@ -18,7 +18,7 @@ namespace Emotion.Editor.PropertyEditors
 
 		public GameObject3D Object;
 
-		private EditorDropDownButtonDescription[] _noAnimationItems =
+		private EditorDropDownItem[] _noAnimationItems =
 		{
 			new()
 			{
@@ -64,7 +64,7 @@ namespace Emotion.Editor.PropertyEditors
 			if (animations != null)
 			{
 				var currentIdx = 0;
-				var animationButtons = new EditorDropDownButtonDescription[animations.Length + 1];
+				var animationButtons = new EditorDropDownItem[animations.Length + 1];
 				animationButtons[0] = _noAnimationItems[0];
 				_noAnimationItems[0].Click = (_, __) =>
 				{
@@ -73,7 +73,7 @@ namespace Emotion.Editor.PropertyEditors
 				for (var i = 0; i < animations.Length; i++)
 				{
 					SkeletalAnimation anim = animations[i];
-					animationButtons[i + 1] = new EditorDropDownButtonDescription
+					animationButtons[i + 1] = new EditorDropDownItem
 					{
 						Name = anim.Name,
 						Click = (_, __) =>

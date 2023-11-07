@@ -27,17 +27,19 @@ public partial class World2DEditor
 			//	Name = $"Selection: {(_tileSelect ? "Enabled" : "Disabled")}"
 			//},
 			// Shows layers, tilesets and other special editors for this mode, disables object selection while open
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Open Tile Editor",
 				Click = (_, __) =>
 				{
 					AssertNotNull(map);
-					_editUI!.AddChild(new MapEditorTilePanel(map));
+					_tileEditor = new MapEditorTilePanel(map);
+					_editUI!.AddChild(_tileEditor);
 				},
 				Enabled = () => map != null
 			},
 		});
+		tilesMenu.ZOffset = 4;
 
 		// todo: GPU texture viewer
 		// todo: animation tool (convert from imgui)
