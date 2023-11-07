@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING</DefineConstants>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
@@ -243,6 +243,7 @@
   <ItemGroup>
     <PackageReference Include="Silk.NET.Assimp" Version="2.17.1" Condition="$(DefineConstants.Contains('ASSIMP'))" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.7.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="UI\UIScrollbar.cs">
