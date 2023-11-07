@@ -11,12 +11,17 @@ namespace Emotion.Game.World2D.Editor;
 
 public partial class World2DEditor
 {
+	protected override bool CanSelectObjects()
+	{
+		return base.CanSelectObjects() && !IsTileEditorOpen();
+	}
+
 	protected override void RenderObjectSelection(RenderComposer c)
 	{
 		BaseMap? map = CurrentMap;
 		if (map == null) return;
 
-		if (!_canObjectSelect) return;
+		if (!CanSelectObjects()) return;
 
 		// Show selection of object, if any.
 		if (_editUI?.DropDown?.OwningObject is BaseGameObject objectWithContextMenu)

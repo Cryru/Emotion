@@ -40,7 +40,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		// panel but since there is no reference back to the object field that contains
 		// them they need to be updated via a OnNonComplexTypeValueChanged callback.
 		var fieldHandler = XMLHelpers.GetTypeHandler(objType);
-		bool nonComplexType = fieldHandler is not XMLComplexBaseTypeHandler;
+		bool nonComplexType = fieldHandler != null && fieldHandler is not XMLComplexBaseTypeHandler;
 		if (nonComplexType)
 		{
 			_obj = obj;
@@ -55,6 +55,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 				}
 			};
 			_nonComplexType = true;
+			_spawnFieldGroupHeaders = false;
 			return;
 		}
 

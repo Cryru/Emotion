@@ -9,7 +9,7 @@ namespace Emotion.Editor.EditorHelpers
 {
 	public class StringInputModalEnvelope
 	{
-		public string Name;
+		public string Text;
 	}
 
 	public class PropertyInputModal<T> : GenericPropertiesEditorPanel where T : new()

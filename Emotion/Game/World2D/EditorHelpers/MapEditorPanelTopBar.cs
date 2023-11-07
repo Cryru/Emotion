@@ -14,6 +14,8 @@ namespace Emotion.Game.World2D.EditorHelpers
 {
 	public class MapEditorPanelTopBar : UIBaseWindow
 	{
+		public bool CanMove = true;
+
 		private bool _mouseDown;
 		private Vector2 _mouseDownPos;
 
@@ -44,6 +46,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			StretchY = true;
 			MaxSizeY = 10;
 			LayoutMode = LayoutMode.HorizontalList;
+			Id = "TopBar";
 		}
 
 		protected override Vector2 InternalMeasure(Vector2 space)
@@ -73,7 +76,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 		protected override bool UpdateInternal()
 		{
-			if (_mouseDown)
+			if (_mouseDown && CanMove)
 			{
 				Vector2 mousePosNow = Engine.Host.MousePosition;
 				Vector2 posDiff = mousePosNow - _mouseDownPos;

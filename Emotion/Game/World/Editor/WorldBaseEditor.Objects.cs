@@ -82,6 +82,11 @@ public abstract partial class WorldBaseEditor
 		return MathF.Sign(distToA - distToB);
 	}
 
+	protected virtual bool CanSelectObjects()
+	{
+		return _canObjectSelect;
+	}
+
 	protected virtual void UpdateObjectEditor()
 	{
 		BaseMap? map = CurrentMap;
@@ -99,7 +104,7 @@ public abstract partial class WorldBaseEditor
 			RolloverObjects(null);
 		}
 		// If not currently selecting objects, or mouse is in UI, or dragging then dont.
-		else if (_canObjectSelect && mouseNotInUIOrInNameplate)
+		else if (CanSelectObjects() && mouseNotInUIOrInNameplate)
 		{
 			var results = new List<BaseGameObject>();
 
@@ -846,9 +851,9 @@ public abstract partial class WorldBaseEditor
 		return clipBoard;
 	}
 
-	private EditorDropDownButtonDescription GetPasteButton()
+	private EditorDropDownItem GetPasteButton()
 	{
-		return new EditorDropDownButtonDescription
+		return new EditorDropDownItem
 		{
 			Name = "Paste",
 			Click = (_, __) => PasteObject(),
@@ -863,12 +868,12 @@ public abstract partial class WorldBaseEditor
 
 		Vector2 mousePos = Engine.Host.MousePosition;
 
-		var contextMenu = new EditorDropdown(true)
+		var contextMenu = new EditorDropDown(true)
 		{
 			Offset = mousePos / _editUI!.GetScale()
 		};
 
-		EditorDropDownButtonDescription[] dropDownMenu =
+		EditorDropDownItem[] dropDownMenu =
 		{
 			GetPasteButton()
 		};
@@ -882,15 +887,15 @@ public abstract partial class WorldBaseEditor
 		BaseMap? map = CurrentMap;
 		AssertNotNull(map);
 
-		var contextMenu = new EditorDropdown(true)
+		var contextMenu = new EditorDropDown(true)
 		{
 			Offset = Engine.Host.MousePosition / _editUI!.GetScale(),
 			OwningObject = obj
 		};
 
-		EditorDropDownButtonDescription[] dropDownMenu =
+		EditorDropDownItem[] dropDownMenu =
 		{
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Copy",
 				Click = (_, __) =>
@@ -899,7 +904,7 @@ public abstract partial class WorldBaseEditor
 					if (Engine.Host is Win32Platform winPlat) winPlat.SetClipboard(objectData);
 				}
 			},
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Cut",
 				Click = (_, __) =>
@@ -911,7 +916,7 @@ public abstract partial class WorldBaseEditor
 				}
 			},
 			GetPasteButton(),
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Delete",
 				Click = (_, __) =>
@@ -919,19 +924,19 @@ public abstract partial class WorldBaseEditor
 					map.RemoveObject(obj, true); // todo: register undo
 				}
 			},
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Properties",
 				Click = (_, __) => { EditorOpenPropertiesPanelForObject(obj); }
 			},
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Create Prefab",
 				Click = (_, __) =>
 				{
 					var nameInput = new PropertyInputModal<StringInputModalEnvelope>(input =>
 					{
-						string text = input.Name;
+						string text = input.Text;
 						if (text.Length < 1) return false;
 
 						CreateObjectPrefab(text, obj);
@@ -940,7 +945,7 @@ public abstract partial class WorldBaseEditor
 					_editUI!.AddChild(nameInput);
 				}
 			},
-			new EditorDropDownButtonDescription
+			new EditorDropDownItem
 			{
 				Name = "Overwrite Prefab",
 				Click = (_, __) => { CreateObjectPrefab(obj.PrefabOrigin!.PrefabName, obj); },

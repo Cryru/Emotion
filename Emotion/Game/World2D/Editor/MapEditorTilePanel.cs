@@ -6,6 +6,8 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
 using Emotion.Utility;
+using System.Reflection.Emit;
+
 
 #endregion
 
@@ -15,7 +17,9 @@ public class MapEditorTilePanel : EditorPanel
 {
 	private Map2D _map;
 	private ItemListWithActions<Map2DTileMapLayer> _layerList = null!;
+	private ItemListWithActions<Map2DTileset> _tileSetList = null!;
 	private Map2DTileMapLayer? _currentLayer;
+	private Map2DTileset? _currentTileset;
 
 	public MapEditorTilePanel(Map2D map) : base("Tile Editor")
 	{
@@ -26,19 +30,30 @@ public class MapEditorTilePanel : EditorPanel
 	{
 		base.AttachedToController(controller);
 
+		var topBar = GetWindowById("TopBar") as MapEditorPanelTopBar;
+		if (topBar != null) topBar.CanMove = false;
+
+		// todo: with new ui this can go between top bar and bottom bar snuggly.
 		_centered = false;
 		_container.Anchor = UIAnchor.TopRight;
 		_container.ParentAnchor = UIAnchor.TopRight;
-		_container.StretchY = false;
+		_container.StretchY = true;
 		_container.StretchX = true;
-		_container.Offset = new Vector2(0, 10); // Top bar size, todo: const from MapEditorPanelTopBar
+		_container.MaxSizeY = Engine.Renderer.CurrentTarget.Size.Y;
+
+		var innerContainer = new UIBaseWindow();
+		innerContainer.StretchX = true;
+		innerContainer.StretchY = true;
+		innerContainer.LayoutMode = LayoutMode.VerticalList;
+		_contentParent.AddChild(innerContainer);
 
 		var topPartContainer = new UIBaseWindow();
 		topPartContainer.StretchY = true;
 		topPartContainer.StretchX = true;
 		topPartContainer.LayoutMode = LayoutMode.HorizontalList;
 		topPartContainer.Id = "TopPartContainer";
-		_contentParent.AddChild(topPartContainer);
+		topPartContainer.MaxSizeY = 200;
+		innerContainer.AddChild(topPartContainer);
 
 		var layerListContainer = new UIBaseWindow();
 		layerListContainer.LayoutMode = LayoutMode.VerticalList;
@@ -61,7 +76,36 @@ public class MapEditorTilePanel : EditorPanel
 		_layerList = list;
 		layerListContainer.AddChild(list);
 
+		var bottomPartContainer = new UIBaseWindow();
+		bottomPartContainer.StretchY = true;
+		bottomPartContainer.StretchX = true;
+		bottomPartContainer.LayoutMode = LayoutMode.HorizontalList;
+		bottomPartContainer.Id = "BottomPartContainer";
+		innerContainer.AddChild(bottomPartContainer);
+
+		var tileSetListContainer = new UIBaseWindow();
+		tileSetListContainer.LayoutMode = LayoutMode.VerticalList;
+		tileSetListContainer.StretchX = true;
+		tileSetListContainer.StretchY = true;
+		tileSetListContainer.ListSpacing = new Vector2(0, 1);
+		bottomPartContainer.AddChild(tileSetListContainer);
+
+		var tileSetLabel = new MapEditorLabel("Tilesets:");
+		tileSetListContainer.AddChild(tileSetLabel);
+
+		var tileSetList = new ItemListWithActions<Map2DTileset>(true);
+		tileSetList.OnSelectionChanged = TilesetSelectionChanged;
+		tileSetList.NewItemCreated = item =>
+		{
+			//Map2DTileMapData? tileData = _map.TileData;
+			//if (tileData == null) return;
+			//tileData.Layers.Add(item);
+		};
+		_tileSetList = tileSetList;
+		tileSetListContainer.AddChild(tileSetList);
+
 		PopulateLayerList();
+		PopulateTileSets();
 	}
 
 	public void PopulateLayerList()
@@ -110,6 +154,33 @@ public class MapEditorTilePanel : EditorPanel
 			contentParent.AddChild(propertyEditor);
 		}
 	}
+
+	public void PopulateTileSets()
+	{
+		var tileData = _map.TileData;
+		if (tileData == null) return;
+
+		List<ItemListWithActionsItem<Map2DTileset>> items = new();
+		var tileSets = tileData.Tilesets;
+		for (int i = 0; i < tileSets.Length; i++)
+		{
+			var tileSet = tileSets[i];
+			if (tileSet == null) continue;
+
+			_currentTileset ??= tileSet;
+			items.Add(new ItemListWithActionsItem<Map2DTileset>
+			{
+				Object = tileSet,
+			});
+		}
+		_tileSetList.SetItems(items);
+		_tileSetList.SetSelectedItem(_currentTileset);
+	}
+
+	private void TilesetSelectionChanged(Map2DTileset tileset)
+	{
+
+	}
 }
 
 public class ItemListWithActionsItem<T>
@@ -128,12 +199,14 @@ public class ItemListWithActions<T> : UIBaseWindow
 	private List<ItemListWithActionsItem<T>>? _items;
 	private T? _selectedItem;
 
-	protected UICallbackListNavigator _list = null!;
+	private bool _dropDownMode = false;
 
-	public ItemListWithActions()
+	public ItemListWithActions(bool dropDownMode = false)
 	{
 		StretchX = true;
 		StretchY = true;
+
+		_dropDownMode = dropDownMode;
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -141,6 +214,7 @@ public class ItemListWithActions<T> : UIBaseWindow
 		base.AttachedToController(controller);
 
 		LayoutMode = LayoutMode.VerticalList;
+		ListSpacing = new Vector2(0, 2);
 
 		UIBaseWindow buttonsContainer = new UIBaseWindow();
 		buttonsContainer.StretchX = true;
@@ -158,7 +232,7 @@ public class ItemListWithActions<T> : UIBaseWindow
 
 			T? newItem;
 			if (FactoryCreateNew == null)
-				newItem = (T?) Activator.CreateInstance(typeof(T), true);
+				newItem = (T?)Activator.CreateInstance(typeof(T), true);
 			else
 				newItem = FactoryCreateNew();
 
@@ -188,22 +262,91 @@ public class ItemListWithActions<T> : UIBaseWindow
 		//moveDown.StretchY = true;
 		//buttonsContainer.AddChild(moveDown);
 
-		_list = new UICallbackListNavigator();
-		_list.StretchX = true;
-		_list.ChildrenAllSameWidth = true;
-		_list.LayoutMode = LayoutMode.VerticalList;
-		AddChild(_list);
+		if (_dropDownMode)
+		{
+			var dropDown = new EditorButtonDropDown();
+			dropDown.Id = "DropDown";
+			AddChild(dropDown);
+		}
+		else
+		{
+
+			var list = new UICallbackListNavigator();
+			list.Id = "List";
+			list.StretchX = true;
+			list.ChildrenAllSameWidth = true;
+			list.LayoutMode = LayoutMode.VerticalList;
+			AddChild(list);
+		}
 	}
 
 	// can add (callback)
 	// can create children/can move in
 	// can delete (callback)
 
+	private EditorDropDownItem[] _dropDownNoItems =
+	{
+		new()
+		{
+			Name = "Empty"
+		}
+	};
+
 	public void SetItems(List<ItemListWithActionsItem<T>> items)
 	{
-		_list.ClearChildren();
 		_items = items;
-		GenerateChildrenFromItems();
+
+		if (_dropDownMode)
+		{
+			var dropDownButton = GetWindowById("DropDown") as EditorButtonDropDown;
+			AssertNotNull(dropDownButton);
+
+			int selectedItem = 0;
+			EditorDropDownItem[] dropDownItems = _items == null ? _dropDownNoItems : new EditorDropDownItem[_items.Count];
+			if (items != null)
+			{
+				for (int i = 0; i < items.Count; i++)
+				{
+					var item = items[i];
+
+					EditorDropDownItem desc = new EditorDropDownItem()
+					{
+						Name = item.Object?.ToString() ?? "<null>",
+						UserData = item,
+						Click = (_, __) =>
+						{
+							SetSelectedItem(item.Object);
+						}
+					};
+					dropDownItems[i] = desc;
+
+					if (ReferenceEquals(_selectedItem, item.Object)) selectedItem = i;
+				}
+			}
+
+			dropDownButton.SetItems(dropDownItems, selectedItem);
+		}
+		else
+		{
+			var list = GetWindowById("List") as UICallbackListNavigator;
+			AssertNotNull(list);
+
+			list.ClearChildren();
+			if (_items == null) return;
+			for (int i = 0; i < _items.Count; i++)
+			{
+				ItemListWithActionsItem<T> item = _items[i];
+				var button = new EditorButton
+				{
+					Text = item.Object?.ToString() ?? "<null>",
+					StretchY = true,
+					UserData = item,
+
+					OnClickedProxy = _ => { SetSelectedItem(item.Object); }
+				};
+				list.AddChild(button);
+			}
+		}
 	}
 
 	public void SetSelectedItem(T selectedItem)
@@ -214,13 +357,20 @@ public class ItemListWithActions<T> : UIBaseWindow
 
 	public void Modified(T obj) // todo: UI data bindings?
 	{
-		if (_list == null || _list.Children == null) return;
 		if (obj == null) return;
 
-		for (int i = 0; i < _list.Children.Count; i++)
+		if (!_dropDownMode)
 		{
-			EditorButton? button = _list.Children[i] as EditorButton;
-			if (button != null && Helpers.AreObjectsEqual(obj, button.UserData)) button.Text = obj.ToString() ?? "<null>";
+			var list = GetWindowById("List") as UICallbackListNavigator;
+			AssertNotNull(list);
+
+			if (list == null || list.Children == null) return;
+
+			for (int i = 0; i < list.Children.Count; i++)
+			{
+				EditorButton? button = list.Children[i] as EditorButton;
+				if (button != null && Helpers.AreObjectsEqual(obj, button.UserData)) button.Text = obj.ToString() ?? "<null>";
+			}
 		}
 	}
 
@@ -228,17 +378,6 @@ public class ItemListWithActions<T> : UIBaseWindow
 	{
 		if (_items == null) return;
 
-		foreach (ItemListWithActionsItem<T> item in _items)
-		{
-			var button = new EditorButton
-			{
-				Text = item.Object?.ToString() ?? "<null>",
-				StretchY = true,
-				UserData = item,
 
-				OnClickedProxy = _ => { SetSelectedItem(item.Object); }
-			};
-			_list.AddChild(button);
-		}
 	}
 }

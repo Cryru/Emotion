@@ -218,6 +218,11 @@ namespace Emotion.Game.World2D
 			AssetFile = "";
 			FirstTileId = 0;
 		}
+
+		public override string ToString()
+		{
+			return AssetFile;
+		}
 	}
 
 	/// <summary>

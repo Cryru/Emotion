@@ -38,6 +38,7 @@ public partial class World2DEditor : WorldBaseEditor
 
 	protected override void UpdateInternal(float dt)
 	{
+		UpdateTileEditor();
 	}
 
 	protected override void RenderInternal(RenderComposer c)
@@ -62,6 +63,6 @@ public partial class World2DEditor : WorldBaseEditor
 			c.ClearDepth();
 		}
 
-		_grid?.Render(c);
+		RenderTileEditor(c);
 	}
 }
