@@ -19,7 +19,6 @@ namespace Emotion.Editor.PropertyEditors;
 public class PropEditorArrayPanel : EditorPanel
 {
 	protected PropEditorArray _propEditor;
-	protected Type _elementType;
 	protected bool _canCreateItems;
 
 	protected UICallbackListNavigator _list = null!;
@@ -29,8 +28,8 @@ public class PropEditorArrayPanel : EditorPanel
 	public PropEditorArrayPanel(PropEditorArray propEditor) : base($"Array Editor - Field {propEditor.Field.Name}")
 	{
 		_propEditor = propEditor;
-		_elementType = _propEditor.Field!.TypeHandler.Type.GetElementType()!;
-		_canCreateItems = EditorUtility.HasParameterlessConstructor(_elementType);
+		var elementType = propEditor.GetElementType();
+		_canCreateItems = EditorUtility.HasParameterlessConstructor(elementType);
 	}
 
 	public override void AttachedToController(UIController controller)
@@ -139,32 +138,13 @@ public class PropEditorArrayPanel : EditorPanel
 	private void AddNewToArray()
 	{
 		AssertNotNull(_propEditor.Field);
-
-		Array? arrayVal = _propEditor.Value as Array;
-		if(arrayVal == null)
-		{
-			arrayVal = Array.CreateInstance(_elementType, 1);
-		}
-		else
-		{
-			var biggerArray = Array.CreateInstance(_elementType, arrayVal.Length + 1);
-			arrayVal.CopyTo(biggerArray, 0);
-			arrayVal = biggerArray;
-		}
-
-		var newItem = _elementType == typeof(string) ? new string("Empty") : Activator.CreateInstance(_elementType, true);
-		arrayVal.SetValue(newItem, arrayVal.Length - 1);
-
-		_propEditor.SetValue(arrayVal);
+		_propEditor.CreateItem();
 		RegenerateList();
 	}
 
 	private void RemoveSelectedFromArray()
 	{
-		Array? arrayVal = _propEditor.Value as Array;
-		arrayVal = arrayVal.RemoveFromArray(_selectedObjectIdx);
-
-		_propEditor.SetValue(arrayVal);
+		_propEditor.RemoveItemAtIndex(_selectedObjectIdx);
 		_selectedObjectIdx = -1;
 		RegenerateList();
 		RegenerateSelection();
@@ -174,12 +154,10 @@ public class PropEditorArrayPanel : EditorPanel
 	{
 		_list.ClearChildren();
 
-		Array? arrayVal = _propEditor.Value as Array;
-		if (arrayVal == null) arrayVal = Array.Empty<object>();
-
-		for (int i = 0; i < arrayVal.Length; i++)
+		var length = _propEditor.GetLength();
+		for (int i = 0; i < length; i++)
 		{
-			var item = arrayVal.GetValue(i);
+			var item = _propEditor.GetItemAtIndex(i);
 			var itemType = item?.GetType();
 			string itemString = item?.ToString() ?? "<null>";
 
@@ -208,17 +186,15 @@ public class PropEditorArrayPanel : EditorPanel
 		_rightSide.ClearChildren();
 
 		if (_selectedObjectIdx == -1) return;
-		Array? arrayVal = _propEditor.Value as Array;
-		arrayVal ??= Array.Empty<object>();
 
-		var selectedObj = arrayVal.GetValue(_selectedObjectIdx);
+		var selectedObj = _propEditor.GetItemAtIndex(_selectedObjectIdx);
 		if (selectedObj == null) return;
 		var properties = new GenericPropertiesEditorPanel(selectedObj)
 		{
 			PanelMode = PanelMode.Embedded,
 			OnNonComplexTypeValueChanged = (value) =>
 			{
-				arrayVal.SetValue(value, _selectedObjectIdx);
+				_propEditor.SetItemAtIndex(_selectedObjectIdx, value);
 				_propEditor.ArrayItemModified(_selectedObjectIdx);
 				RegenerateList();
 			},
