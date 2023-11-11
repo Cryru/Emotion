@@ -31,7 +31,7 @@ in vec4 vertColor;
  
 in vec3 fragPosition;
 in vec3 fragNormal;
-in vec3 fragLightDir;
+in vec3 lightDir;
 
 out vec4 fragColor; 
  
@@ -119,6 +119,21 @@ float GetBiasScaleForCascade(int cascade)
 	return 0.0;
 }
 
+float random(vec2 co)
+{
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Define a function to generate a random sample within a disk
+vec2 randomSampleInDisk(vec2 center, vec2 radius)
+{
+	return center;
+
+    float randAngle = 2.0 * 3.14159265359 * random(center);
+    vec2 randRadius = radius;
+    return center + randRadius * vec2(cos(randAngle), sin(randAngle));
+}
+
 float GetShadowAmount()
 {
 	// Determine which cascade this fragment is in
@@ -137,13 +152,24 @@ float GetShadowAmount()
 	float minDepth = cascade == 0 ? 10.0f : cascadePlaneFarZ[cascade - 1];
 	float maxDepth = cascadePlaneFarZ[cascade];
 
-	float slopeBias = 0.02 * biasScaleForCascade;
-	float minBias = 0.002 * biasScaleForCascade;
+	float slopeBias = 0.001 * biasScaleForCascade;
+	float minBias = 0.0001 * biasScaleForCascade;
 
-	float bias = max(slopeBias * (1.0 - dot(fragNormal, fragLightDir)), minBias);
+	float bias = max(slopeBias * (1.0 - dot(fragNormal, lightDir)), minBias);
 	bias *= 1.0 / ((maxDepth - minDepth) * 0.5);
+	bias = 0.0;
 
 	// Percentage Closer Filtering
+	//float shadow = 0.0;
+	//vec2 texelSize = 1.0 / vec2(2048); // assume all the same size, this is how it will behave as a texture array
+	//for(int i = 0; i < 16; ++i) // You can adjust the number of samples as needed
+	//{
+	//	vec2 randomSample = randomSampleInDisk(projCoords.xy, 0.5 * texelSize);
+	//	float pcfDepth = sampleShadowMapAtCascade(cascade, randomSample).r;
+	//	shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+	//}
+	//shadow /= 16.0;
+
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / vec2(textureSize(shadowMapTextureC1, 0)); // assume all the same size, this is how it will behave as a texture array
 	for(int x = 0; x <= 1; ++x)
@@ -162,10 +188,13 @@ float GetShadowAmount()
 
 void main()
 {
+
+
 	// Cascade debug
-	//int cascade = GetCurrentShadowCascade();
-	//fragColor = GetCascadeDebugColor(cascade);
-	//return;
+	int cascade = GetCurrentShadowCascade();
+	//
+	//fragColor = ;
+	//if(cascade != 0) return;
 
 	// Calculate the color of the object.
 	vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
@@ -174,7 +203,7 @@ void main()
 	// Lighting
 	vec3 ambient = ambientLightStrength * ambientColor.rgb;
 
-	float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
+	float diffuseFactor = max(dot(fragNormal, lightDir), 0.0);
 	vec3 diffuse = diffuseStrength * diffuseFactor * vec3(1.0);
 
 	// Shadow

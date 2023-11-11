@@ -123,10 +123,10 @@ namespace Emotion.Graphics.Objects
 		{
 			// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 			if (!bindable)
-				DepthStencilAttachment = new FrameBufferTexture(this, CreateRenderBuffer(InternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment), Size,
-					InternalFormat.DepthComponent24);
+				DepthStencilAttachment = new FrameBufferTexture(this, CreateRenderBuffer(InternalFormat.DepthComponent32F, FramebufferAttachment.DepthAttachment), Size,
+					InternalFormat.DepthComponent32F);
 			else
-				DepthStencilAttachment = CreateTexture(InternalFormat.DepthComponent24, PixelFormat.DepthComponent, PixelType.UnsignedInt, FramebufferAttachment.DepthAttachment);
+				DepthStencilAttachment = CreateTexture(InternalFormat.DepthComponent32F, PixelFormat.DepthComponent, PixelType.Float, FramebufferAttachment.DepthAttachment);
 
 			return this;
 		}

@@ -13,6 +13,8 @@ using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Utility;
 using OpenGL;
+using Silk.NET.Maths;
+
 
 #endregion
 
@@ -68,7 +70,7 @@ namespace Emotion.Graphics
 			ShaderAsset? skinnedShadowMapShader = meshShaderAsset?.GetShaderVariation("SKINNED_SHADOW_MAP");
 
 			if (meshShaderAsset?.Shader == null || skinnedMeshShader?.Shader == null ||
-			    shadowMapShader == null || skinnedShadowMapShader == null) return;
+				shadowMapShader == null || skinnedShadowMapShader == null) return;
 
 			_meshShader = meshShaderAsset.Shader;
 			_skinnedMeshShader = skinnedMeshShader.Shader;
@@ -102,8 +104,19 @@ namespace Emotion.Graphics
 			if (entity.BackFaceCulling)
 			{
 				Gl.Enable(EnableCap.CullFace); // todo: render stream state
-				Gl.CullFace(CullFaceMode.Back);
+				Gl.CullFace(_renderingShadowMap ? CullFaceMode.Front : CullFaceMode.Back);
 				Gl.FrontFace(FrontFaceDirection.Ccw);
+			}
+
+			// Slope scale depth bias
+			if (_renderingShadowMap)
+			{
+				Gl.Enable(EnableCap.PolygonOffsetFill);
+				Gl.PolygonOffset(1f, 1f);
+			}
+			else
+			{
+				Gl.Disable(EnableCap.PolygonOffsetFill);
 			}
 
 			ShaderProgram? shaderOverride = null;
@@ -200,10 +213,10 @@ namespace Emotion.Graphics
 				{
 					for (var j = 0; j < _shadowCascadeCount; j++)
 					{
-						Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint) (j + 1));
+						Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)(j + 1));
 					}
 				}
-				else if(_initializedShadowMapObjects)
+				else if (_initializedShadowMapObjects)
 				{
 					AssertNotNull(_shadowCascades);
 					AssertNotNull(cascadePlaneFarZUniformNames);
@@ -213,7 +226,7 @@ namespace Emotion.Graphics
 					{
 						ShadowCascade cascade = _shadowCascades[j];
 						uint bufferPointer = cascade.Buffer.DepthStencilAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer;
-						Texture.EnsureBound(bufferPointer, (uint) (j + 1));
+						Texture.EnsureBound(bufferPointer, (uint)(j + 1));
 
 						currentShader.SetUniformFloat(cascadePlaneFarZUniformNames[j], cascade.FarZ);
 						currentShader.SetUniformMatrix4(cascadeLightProjUniformNames[j], cascade.LightViewProj);
@@ -265,10 +278,10 @@ namespace Emotion.Graphics
 
 		private GLRenderObjects CreateRenderObject(bool withBones)
 		{
-			var vbo = new VertexBuffer((uint) (ushort.MaxValue * VertexData.SizeInBytes), BufferUsage.StreamDraw);
-			var vboExt = new VertexBuffer((uint) (ushort.MaxValue * VertexDataMesh3DExtra.SizeInBytes), BufferUsage.StreamDraw);
+			var vbo = new VertexBuffer((uint)(ushort.MaxValue * VertexData.SizeInBytes), BufferUsage.StreamDraw);
+			var vboExt = new VertexBuffer((uint)(ushort.MaxValue * VertexDataMesh3DExtra.SizeInBytes), BufferUsage.StreamDraw);
 			VertexBuffer? vboBones = null;
-			if (withBones) vboBones = new VertexBuffer((uint) (ushort.MaxValue * Mesh3DVertexDataBones.SizeInBytes), BufferUsage.StreamDraw);
+			if (withBones) vboBones = new VertexBuffer((uint)(ushort.MaxValue * Mesh3DVertexDataBones.SizeInBytes), BufferUsage.StreamDraw);
 
 			var ibo = new IndexBuffer(ushort.MaxValue * sizeof(ushort) * 3, BufferUsage.StreamDraw);
 
@@ -318,6 +331,11 @@ namespace Emotion.Graphics
 		private Matrix4x4 _renderingShadowMapCurrentLightViewProj;
 		private string[]? cascadePlaneFarZUniformNames;
 		private string[]? cascadeLightProjUniformNames;
+		private static float _shadowMapResolution = 1024;
+
+		private FrameBuffer? pingPongBlur1;
+		private FrameBuffer? pingPongBlur2;
+		private ShaderAsset? _blurShader;
 
 		private class ShadowCascade
 		{
@@ -328,7 +346,7 @@ namespace Emotion.Graphics
 
 			public ShadowCascade(float nearZ, float farZ)
 			{
-				var resolution = new Vector2(2048);
+				var resolution = new Vector2(_shadowMapResolution);
 				NearZ = nearZ;
 				FarZ = farZ;
 
@@ -337,7 +355,7 @@ namespace Emotion.Graphics
 				Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
 				Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
 
-				float[] borderColor = {1.0f, 1.0f, 1.0f, 1.0f};
+				float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 				Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
 			}
 		}
@@ -349,9 +367,9 @@ namespace Emotion.Graphics
 		{
 			_shadowCascades = new ShadowCascade[3]
 			{
-				new ShadowCascade(10f, 200f),
-				new ShadowCascade(200f, 1000f),
-				new ShadowCascade(1000f, 1600f)
+				new ShadowCascade(0.1f, 200f),
+				new ShadowCascade(200f, 800f),
+				new ShadowCascade(800f, 4000f)
 			};
 			Assert(_shadowCascades.Length == _shadowCascadeCount);
 
@@ -364,7 +382,37 @@ namespace Emotion.Graphics
 				cascadeLightProjUniformNames[i] = $"cascadeLightProj[{i}]";
 			}
 
+			pingPongBlur1 = new FrameBuffer(new Vector2(_shadowMapResolution / 2f)).WithDepth(true);
+			pingPongBlur2 = new FrameBuffer(new Vector2(_shadowMapResolution / 2f)).WithDepth(true);
+
+			_blurShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlurShadowMap.xml");
+
 			_initializedShadowMapObjects = true;
+		}
+
+		private void DownscaleAndBlurShadowMap(RenderComposer c, FrameBuffer shadowmap)
+		{
+			if (!_initializedShadowMapObjects || _blurShader == null) return;
+			AssertNotNull(pingPongBlur1);
+			AssertNotNull(pingPongBlur2);
+
+			c.SetUseViewMatrix(false);
+			c.SetShader(_blurShader.Shader);
+			c.RenderToAndClear(pingPongBlur1);
+			_blurShader.Shader.SetUniformVector2("direction", new Vector2(1f, 0));
+			c.RenderSprite(Vector3.Zero, pingPongBlur1.Size, shadowmap.DepthStencilAttachment);
+			c.RenderTo(null);
+			c.RenderToAndClear(shadowmap);
+			_blurShader.Shader.SetUniformVector2("direction", new Vector2(0, 1f));
+			c.RenderSprite(Vector3.Zero, shadowmap.Size, pingPongBlur1.DepthStencilAttachment);
+			//c.RenderTo(null);
+			//c.SetShader(null);
+
+			//c.RenderToAndClear(shadowmap);
+			//c.RenderSprite(Vector3.Zero, shadowmap.Size, pingPongBlur2.DepthStencilAttachment);
+			c.RenderTo(null);
+			c.SetShader(null);
+			c.SetUseViewMatrix(true);
 		}
 
 		public int GetShadowMapCascadeCount()
@@ -401,73 +449,86 @@ namespace Emotion.Graphics
 			float fov = cam3D.FieldOfView;
 			var cameraProjection = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, nearClip, farClip);
 			Matrix4x4 cameraView = c.Camera.ViewMatrix;
-			Span<Vector4> corners = stackalloc Vector4[8];
+			//Span<Vector3> corners = stackalloc Vector3[8];
+			Span<Vector3> corners = new Vector3[8];
 			GetFrustumCornersWorldSpace(corners, cameraView * cameraProjection, out Vector3 center);
 
+			// Furthest two points in the frustum tell us how big it is, and the radius is /2f
+			float radius = (corners[0] - corners[6]).Length() / 2f;
+
+			// The resolution of the buffer devided by the covered space of the frustum (radius * 2f)
+			// gives us how many texels cover a world space unit.
+			float texelsPerUnit = cascade.Buffer.DepthStencilAttachment.Size.X / (radius * 2f);
+
+			Matrix4x4 scaleMat = Matrix4x4.CreateScale(texelsPerUnit);
+
+			Vector3 baseLookAt = model.SunDirection;
+			Matrix4x4 lookatCorrected = Matrix4x4.CreateLookAt(Vector3.Zero, baseLookAt, RenderComposer.Up);
+			lookatCorrected = scaleMat * lookatCorrected;
+			Matrix4x4 lookAtInv = lookatCorrected.Inverted();
+
+			// Round the frustum center to texels and then return it back to world space.
+			center = Vector3.Transform(center, lookatCorrected);
+			center.X = (float)MathF.Floor(center.X);
+			center.Y = (float)Math.Floor(center.Y);
+			center = Vector3.Transform(center, lookAtInv);
+
 			// The light view matrix looks at the center of the frustum.
-			Vector3 eye = center + model.SunDirection;
+			Vector3 eye = center + (model.SunDirection * radius * 2f);
 			var lightView = Matrix4x4.CreateLookAt(eye, center, Vector3.UnitZ);
 
-			float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
-			float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
-
-			for (var i = 0; i < corners.Length; i++)
-			{
-				Vector4 v = corners[i];
-				Vector4 trf = Vector4.Transform(v, lightView);
-
-				minX = Math.Min(minX, trf.X);
-				maxX = Math.Max(maxX, trf.X);
-
-				minY = Math.Min(minY, trf.Y);
-				maxY = Math.Max(maxY, trf.Y);
-
-				minZ = Math.Min(minZ, trf.Z);
-				maxZ = Math.Max(maxZ, trf.Z);
-			}
-
-			// Fudge the depth range of the shadow map.
-			var zMult = 10f;
-			if (minZ < 0)
-				minZ *= zMult;
-			else
-				minZ /= zMult;
-
-			if (maxZ < 0)
-				maxZ /= zMult;
-			else
-				maxZ *= zMult;
-
 			// The projection of the light encompasses the frustum in a square.
-			var lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
+			var lightProjection = Matrix4x4.CreateOrthographicOffCenter(-radius, radius, -radius, radius, -radius * 6, radius * 6);
 
 			cascade.LightViewProj = lightView * lightProjection;
 			_renderingShadowMapCurrentLightViewProj = cascade.LightViewProj;
 			_renderingShadowMap = true;
 		}
 
-		private static void GetFrustumCornersWorldSpace(Span<Vector4> frustumCorners, Matrix4x4 cameraViewProj, out Vector3 frustumCenter)
+		private static void GetFrustumCornersWorldSpace(Span<Vector3> frustumCorners, Matrix4x4 cameraViewProj, out Vector3 frustumCenter)
 		{
 			Matrix4x4 inv = cameraViewProj.Inverted();
 
-			Vector4 center = Vector4.Zero;
-			var idx = 0;
-			for (var x = 0; x < 2; ++x)
+			frustumCorners[0] = new Vector3(-1f, +1f, 0f);
+			frustumCorners[1] = new Vector3(+1f, +1f, 0f);
+			frustumCorners[2] = new Vector3(+1f, -1f, 0f);
+			frustumCorners[3] = new Vector3(-1f, -1f, 0f);
+
+			frustumCorners[4] = new Vector3(-1f, +1f, 1f);
+			frustumCorners[5] = new Vector3(+1f, +1f, 1f);
+			frustumCorners[6] = new Vector3(+1f, -1f, 1f);
+			frustumCorners[7] = new Vector3(-1f, -1f, 1f);
+
+			Vector3 center = Vector3.Zero;
+			for (int i = 0; i < frustumCorners.Length; i++)
 			{
-				for (var y = 0; y < 2; ++y)
-				{
-					for (var z = 0; z < 2; ++z)
-					{
-						var ndcPos = new Vector4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
-						Vector4 pt = Vector4.Transform(ndcPos, inv);
-						Vector4 cartPt = pt / pt.W;
-						frustumCorners[idx++] = cartPt;
-						center += cartPt;
-					}
-				}
+				var corner = frustumCorners[i];
+				Vector4 worldSpace = Vector4.Transform(new Vector4(corner, 1.0f), inv);
+				Vector4 cartPt = worldSpace / worldSpace.W;
+
+				Vector3 cartVec3 = cartPt.ToVec3();
+				frustumCorners[i] = cartVec3;
+				center += cartVec3;
 			}
 
-			frustumCenter = (center / 8).ToVec3();
+			//Vector4 center = Vector4.Zero;
+			//var idx = 0;
+			//for (var x = 0; x < 2; ++x)
+			//{
+			//	for (var y = 0; y < 2; ++y)
+			//	{
+			//		for (var z = 0; z < 2; ++z)
+			//		{
+			//			var ndcPos = new Vector4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+			//			Vector4 pt = Vector4.Transform(ndcPos, inv);
+			//			Vector4 cartPt = pt / pt.W;
+			//			frustumCorners[idx++] = cartPt;
+			//			center += cartPt;
+			//		}
+			//	}
+			//}
+
+			frustumCenter = center / 8f;
 		}
 
 		public void EndRenderShadowMap(RenderComposer c)
@@ -477,6 +538,13 @@ namespace Emotion.Graphics
 
 			c.RenderTo(null);
 			c.FlushRenderStream();
+
+			for (int i = 0; i < _shadowCascades.Length; i++)
+			{
+				var cascade = _shadowCascades[i];
+				DownscaleAndBlurShadowMap(c, cascade.Buffer);
+			}
+
 			_renderingShadowMap = false;
 		}
 	}

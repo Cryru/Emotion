@@ -77,6 +77,8 @@
     <None Remove="Assets\Shaders\3DGrid.xml" />
     <None Remove="Assets\Shaders\Blit.frag" />
     <None Remove="Assets\Shaders\Blit.xml" />
+    <None Remove="Assets\Shaders\BlurShadowMap.frag" />
+    <None Remove="Assets\Shaders\BlurShadowMap.xml" />
     <None Remove="Assets\Shaders\ColorHelpers.c" />
     <None Remove="Assets\Shaders\MeshShader.frag" />
     <None Remove="Assets\Shaders\MeshShader.vert" />
@@ -204,6 +206,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blit.frag" />
     <EmbeddedResource Include="Assets\Shaders\Blit.xml" />
+    <EmbeddedResource Include="Assets\Shaders\BlurShadowMap.frag">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\BlurShadowMap.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blur.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

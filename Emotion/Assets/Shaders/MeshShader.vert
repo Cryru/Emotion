@@ -40,7 +40,7 @@ out vec2 UV;
 out vec4 vertColor;
 
 out vec3 fragNormal;
-out vec3 fragLightDir;
+out vec3 lightDir;
 
 out vec3 fragPosition;
 
@@ -50,7 +50,7 @@ void main() {
     vertColor = color;
 
     fragPosition = vec3(modelMatrix * vec4(vertPos, 1.0));
-    fragLightDir = normalize(sunDirection);
+    lightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);
 
