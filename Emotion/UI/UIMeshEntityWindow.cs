@@ -77,7 +77,7 @@ public class UIMeshEntityWindow : UIBaseWindow
 			previewCamera.LookAtPoint(boundSphere.Origin);
 			previewCamera.Update();
 
-			_previewImage ??= new FrameBuffer(PreviewSize).WithColor();
+			_previewImage ??= new FrameBuffer(PreviewSize).WithColor().WithDepth();
 
 			CameraBase oldCamera = c.Camera;
 			c.RenderToAndClear(_previewImage);
