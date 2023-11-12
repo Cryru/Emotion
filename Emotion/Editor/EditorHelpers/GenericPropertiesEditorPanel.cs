@@ -36,6 +36,11 @@ public class GenericPropertiesEditorPanel : EditorPanel
 		var objType = obj.GetType();
 		_objType = objType;
 
+		// Types without parameterless constructors will explode since they cannot be created.
+		// todo: look into at least displaying their values.
+		if (!objType.IsValueType && !EditorUtility.HasParameterlessConstructor(obj))
+			return;
+
 		// Non complex types (string, int, etc.) can also be editted via this
 		// panel but since there is no reference back to the object field that contains
 		// them they need to be updated via a OnNonComplexTypeValueChanged callback.
@@ -58,11 +63,6 @@ public class GenericPropertiesEditorPanel : EditorPanel
 			_spawnFieldGroupHeaders = false;
 			return;
 		}
-
-		// Types without parameterless constructors will explode since they cannot be created.
-		// todo: look into at least displaying their values.
-		if (!objType.IsValueType && !EditorUtility.HasParameterlessConstructor(obj))
-			return;
 
 		_obj = obj;
 		_fields = EditorUtility.GetTypeFields(obj);
