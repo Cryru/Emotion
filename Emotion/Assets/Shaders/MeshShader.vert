@@ -49,7 +49,7 @@ void main() {
     UV = uv;
     vertColor = color;
 
-    fragPosition = vec3(modelMatrix * vec4(vertPos, 1.0));
+    
     fragLightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);
@@ -65,6 +65,8 @@ void main() {
 #else
 	fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
 #endif
+
+	fragPosition = vec3(modelMatrix * totalPosition);
 
     // Multiply by projection.
     #ifdef SHADOW_MAP

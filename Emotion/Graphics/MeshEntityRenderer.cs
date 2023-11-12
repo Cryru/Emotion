@@ -160,8 +160,8 @@ namespace Emotion.Graphics
 				{
 					currentShader.SetUniformVector3("sunDirection", light.SunDirection);
 					currentShader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
-					currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
-					currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
+					currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 0.5f);
+					currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 1f);
 				}
 				else
 				{
@@ -349,9 +349,9 @@ namespace Emotion.Graphics
 		{
 			_shadowCascades = new ShadowCascade[3]
 			{
-				new ShadowCascade(10f, 200f),
-				new ShadowCascade(200f, 1000f),
-				new ShadowCascade(1000f, 1600f)
+				new ShadowCascade(10f, 300f),
+				new ShadowCascade(300f, 500f),
+				new ShadowCascade(500f, 1000f)
 			};
 			Assert(_shadowCascades.Length == _shadowCascadeCount);
 
