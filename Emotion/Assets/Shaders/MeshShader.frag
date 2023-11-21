@@ -6,6 +6,19 @@ uniform vec3 iResolution; // viewport resolution (in pixels)
 
 #define CASCADE_COUNT 3
 
+struct Material {
+	float metallic;
+	float roughness;
+}; 
+  
+uniform Material material;
+
+struct LightData {
+	float shadowOpacity;
+};
+
+uniform LightData LightModel;
+
 uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMapTextureC1;
 uniform sampler2D shadowMapTextureC2;
@@ -152,13 +165,59 @@ float GetShadowAmount()
 		{
 			vec2 sampleCoord = vec2(projCoords.xy + vec2(x, y) * texelSize);
 			float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-			shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;        
+			shadow += (currentDepth - bias) > pcfDepth ? LightModel.shadowOpacity : 0.0;        
 		}    
 	}
 	shadow /= 4.0;
 
 	return shadow;
 }
+
+const float PI = 3.14159265359;
+
+vec3 FresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+float DistributionGGX(float NdotH, float roughness)
+{
+    float a      = roughness*roughness;
+    float a2     = a*a;
+    float NdotH2 = NdotH*NdotH;
+	
+    float num   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+	
+    return num / denom;
+}
+
+// float GeometrySchlickGGX(float NdotV, float roughness)
+// {
+//     float r = (roughness + 1.0);
+//     float k = (r*r) / 8.0;
+// 
+//     float num   = NdotV;
+//     float denom = NdotV * (1.0 - k) + k;
+// 	
+//     return num / denom;
+// }
+
+// Disney GGX
+float GeometrySchlickGGX( float hdotN, float alphaG )
+{
+	float a2 = alphaG * alphaG;
+	float tmp = ( hdotN * hdotN ) * ( a2 - 1.0 ) + 1.0;
+	//tmp *= tmp;
+
+	return ( a2 / ( PI * tmp ) );
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}   
 
 void main()
 {
@@ -167,23 +226,77 @@ void main()
 	//fragColor = GetCascadeDebugColor(cascade);
 	//return;
 
-	// Calculate the color of the object.
+	// Material props
 	vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
 	objectColor = ApplyColorTint(objectColor, objectTint);
+	vec3 albedo = pow(objectColor.rgb, vec3(2.2));
 
-	// Lighting
-	vec3 ambient = ambientLightStrength * ambientColor.rgb;
+	float metallic = material.metallic;
+	float roughness = material.roughness;
 
-	float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
-	vec3 diffuse = diffuseStrength * diffuseFactor * vec3(1.0);
+	vec3 F0 = vec3(0.0); //vec3(0.04); // non metallic metallicness
+	F0 = mix(F0, albedo, metallic);
 
-	// Shadow
+	// Ambient light (PBR)
+	vec3 finalColor = vec3(0.0);
+	{
+		vec3 ambientIntensity = ambientColor.rgb * ambientLightStrength;
+
+		vec3 n = normalize(fragNormal);
+		vec3 v = normalize(cameraPosition - fragPosition);
+		vec3 l = normalize(fragLightDir);
+		vec3 h = normalize(v + l); // half vector
+
+		float nDotH = max(dot(n, h), 0.0);
+		float vDotH = max(dot(v, h), 0.0);
+		float nDotL = max(dot(n, l), 0.0);
+		float nDotV = max(dot(n, v), 0.0);
+
+		// Specular BRDF
+		// ---
+		// Normal distribution function (microfacets reflected)
+		float NDF = DistributionGGX(nDotH, roughness);
+
+		// Geometry function
+		float ggx2  = GeometrySchlickGGX(nDotV, roughness);
+		float ggx1  = GeometrySchlickGGX(nDotL, roughness);
+		float G = ggx1 * ggx2;
+
+		// Fresnel function
+		vec3 F = FresnelSchlick(nDotH, F0);
+
+		// kS + kD == 1.0
+		vec3 kS = F0;//fresnelSchlickRoughness(nDotV, F0, roughness); // specular
+		vec3 kD = vec3(1.0) - kS; // diffuse
+		kD *= 1.0 - metallic;
+
+		vec3 numerator = NDF * G * F;
+		float denominator = 4.0 * nDotV * nDotL;
+		denominator = max(denominator, 0.0001); // prevent division by zero
+		vec3 specular = numerator / denominator;
+	
+		// Diffuse BRDF
+		// ---
+		
+		// Valve Half Lambert
+		// https://developer.valvesoftware.com/wiki/Half_Lambert
+		vec3 fHalfLambert = vec3(0.5) * (nDotL + vec3(1.0));
+		vec3 fLambert = albedo; // color of the surface
+
+		vec3 diffuse = kD * fLambert;
+
+		nDotL = max(nDotL, diffuseStrength);
+		finalColor += (diffuse + specular) * nDotL * ambientIntensity;
+	}
+
 	float shadow = GetShadowAmount();
+	finalColor *= 1.0 - shadow;
+	
+	vec3 color = finalColor;
+	//color = color / (color + vec3(1.0)); // tone mapping
+	color = pow(color, vec3(1.0/2.2)); // gamma correction
 
-	// Combine
-	vec4 finalColor = vec4(ambient + max((1.0 - shadow), 0.1) * diffuse, 1.0) * objectColor;
-
-    fragColor = finalColor;
+    fragColor = vec4(color, objectColor.a);
     if (fragColor.a < 0.01)discard;
 }
 #endif

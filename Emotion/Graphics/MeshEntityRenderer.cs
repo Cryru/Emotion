@@ -151,9 +151,15 @@ namespace Emotion.Graphics
 
 				Engine.Renderer.SetShader(currentShader);
 
+				
+
 				// Material colors
 				currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
 				currentShader.SetUniformColor("objectTint", metaState.Tint);
+
+				// PBR
+				currentShader.SetUniformFloat("material.metallic", 0.0f);
+				currentShader.SetUniformFloat("material.roughness", 0.0f);
 
 				// Lighting
 				if (light != null)
@@ -162,6 +168,7 @@ namespace Emotion.Graphics
 					currentShader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
 					currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 0.5f);
 					currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 1f);
+					currentShader.SetUniformFloat("LightModel.shadowOpacity", light.ShadowOpacity);
 				}
 				else
 				{
@@ -169,6 +176,7 @@ namespace Emotion.Graphics
 					currentShader.SetUniformColor("ambientColor", Color.White);
 					currentShader.SetUniformFloat("ambientLightStrength", 1f);
 					currentShader.SetUniformFloat("diffuseStrength", 0f);
+					currentShader.SetUniformFloat("LightModel.shadowOpacity", 0.0f);
 				}
 
 				if (_renderingShadowMap)
