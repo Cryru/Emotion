@@ -49,7 +49,6 @@ void main() {
     UV = uv;
     vertColor = color;
 
-    
     fragLightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);

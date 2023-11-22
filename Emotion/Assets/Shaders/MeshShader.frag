@@ -26,6 +26,11 @@ uniform sampler2D shadowMapTextureC3;
 uniform float cascadePlaneFarZ[CASCADE_COUNT];
 uniform mat4 cascadeLightProj[CASCADE_COUNT];
 
+uniform sampler2D albedoTexture;
+uniform sampler2D metallicTexture;
+uniform sampler2D normalTexture;
+uniform sampler2D roughnessTexture;
+
 // LightModel
 uniform vec3 sunDirection;
 uniform float ambientLightStrength;
@@ -233,6 +238,12 @@ void main()
 
 	float metallic = material.metallic;
 	float roughness = material.roughness;
+	vec3 normal = fragNormal;
+
+	albedo = getTextureColor(albedoTexture, UV).rgb;
+	//metallic = getTextureColor(metallicTexture, UV).r;
+	//roughness = getTextureColor(roughnessTexture, UV).r;
+	//normal = getTextureColor(normalTexture, UV).rgb;
 
 	vec3 F0 = vec3(0.0); //vec3(0.04); // non metallic metallicness
 	F0 = mix(F0, albedo, metallic);
@@ -242,7 +253,7 @@ void main()
 	{
 		vec3 ambientIntensity = ambientColor.rgb * ambientLightStrength;
 
-		vec3 n = normalize(fragNormal);
+		vec3 n = normalize(normal);
 		vec3 v = normalize(cameraPosition - fragPosition);
 		vec3 l = normalize(fragLightDir);
 		vec3 h = normalize(v + l); // half vector
@@ -285,7 +296,7 @@ void main()
 
 		vec3 diffuse = kD * fLambert;
 
-		nDotL = max(nDotL, diffuseStrength);
+		nDotL = max(nDotL, 1.0 - diffuseStrength);
 		finalColor += (diffuse + specular) * nDotL * ambientIntensity;
 	}
 
@@ -293,7 +304,7 @@ void main()
 	finalColor *= 1.0 - shadow;
 	
 	vec3 color = finalColor;
-	//color = color / (color + vec3(1.0)); // tone mapping
+	color = color / (color + vec3(1.0)); // tone mapping
 	color = pow(color, vec3(1.0/2.2)); // gamma correction
 
     fragColor = vec4(color, objectColor.a);
