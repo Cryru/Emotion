@@ -133,7 +133,6 @@ public struct Cube
 			for (var ic = 0; ic < vertexData.Length; ic++)
 			{
 				vertexData[ic].Color = Color.WhiteUint;
-				vertexData[ic].UV = Vector2.Zero;
 			}
 
 			// Cube - 36 vertices, 12 triangles, 6 sides
@@ -147,6 +146,16 @@ public struct Cube
 			vertexData[5].Vertex = new Vector3(1, -1, -1);
 			vertexData[6].Vertex = new Vector3(1, 1, -1);
 			vertexData[7].Vertex = new Vector3(-1, 1, -1);
+
+			vertexData[0].UV = new Vector2(0, 0);
+			vertexData[1].UV = new Vector2(0.5f, 0);
+			vertexData[2].UV = new Vector2(0.5f, 0.5f);
+			vertexData[3].UV = new Vector2(0, 0.5f);
+
+			vertexData[4].UV = new Vector2(0, 0);
+			vertexData[5].UV = new Vector2(0.5f, 0);
+			vertexData[6].UV = new Vector2(0.5f, 0.5f);
+			vertexData[7].UV = new Vector2(0, 0.5f);
 
 			extraData[0].Normal = new Vector3(0, 0, 1);
 			extraData[1].Normal = new Vector3(0, 0, 1);
