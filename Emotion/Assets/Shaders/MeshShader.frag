@@ -1,12 +1,12 @@
 #version v
 
-
-uniform vec3 cameraPosition;
 uniform vec3 iResolution; // viewport resolution (in pixels)
 
-#define CASCADE_COUNT 3
+uniform vec3 cameraPosition; // world pos
+uniform mat4 viewMatrix;
 
-uniform sampler2D diffuseTexture;
+// Shadow
+#define CASCADE_COUNT 3
 uniform sampler2D shadowMapTextureC1;
 uniform sampler2D shadowMapTextureC2;
 uniform sampler2D shadowMapTextureC3;
@@ -17,20 +17,21 @@ uniform mat4 cascadeLightProj[CASCADE_COUNT];
 uniform vec3 sunDirection;
 uniform float ambientLightStrength;
 uniform float diffuseStrength;
+uniform float shadowOpacity;
 uniform vec4 ambientColor;
 
+// Material
+uniform sampler2D diffuseTexture;
 uniform vec4 diffuseColor;
 uniform vec4 objectTint;
-
-uniform mat4 viewMatrix;
 
 // Comes in from the vertex shader.
 in vec3 vertPos;
 in vec2 UV; 
 in vec4 vertColor;
  
-in vec3 fragPosition;
-in vec3 fragNormal;
+in vec3 fragPosition; // world pos
+in vec3 fragNormal; // multiplied by normal matrix
 in vec3 fragLightDir;
 
 out vec4 fragColor; 
@@ -152,7 +153,7 @@ float GetShadowAmount()
 		{
 			vec2 sampleCoord = vec2(projCoords.xy + vec2(x, y) * texelSize);
 			float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-			shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;        
+			shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
 		}    
 	}
 	shadow /= 4.0;
@@ -171,19 +172,25 @@ void main()
 	vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
 	objectColor = ApplyColorTint(objectColor, objectTint);
 
-	// Lighting
-	vec3 ambient = ambientLightStrength * ambientColor.rgb;
+	// Normal diffuse factor
+	//float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
 
-	float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
-	vec3 diffuse = diffuseStrength * diffuseFactor * vec3(1.0);
+	// Valve Half Lambert diffuse factor
+	// https://developer.valvesoftware.com/wiki/Half_Lambert
+	float diffuseFactor = dot(fragNormal, fragLightDir) * 0.5 + 0.5;
+
+	diffuseFactor = max(diffuseFactor, 1.0 - diffuseStrength);
+	vec3 diffuse = objectColor.rgb * diffuseFactor;
+
+	// Combine ambient and diffuse
+	vec3 ambient = ambientLightStrength * ambientColor.rgb;
+	vec3 finalColor = diffuse * ambient;
 
 	// Shadow
-	float shadow = GetShadowAmount();
+	float shadow = GetShadowAmount() * shadowOpacity;
+	finalColor *= 1.0 - shadow;
 
-	// Combine
-	vec4 finalColor = vec4(ambient + max((1.0 - shadow), 0.1) * diffuse, 1.0) * objectColor;
-
-    fragColor = finalColor;
+    fragColor = vec4(finalColor.rgb, objectColor.a);
     if (fragColor.a < 0.01)discard;
 }
 #endif

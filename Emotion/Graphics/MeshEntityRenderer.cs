@@ -160,8 +160,9 @@ namespace Emotion.Graphics
 				{
 					currentShader.SetUniformVector3("sunDirection", light.SunDirection);
 					currentShader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
-					currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 0.5f);
-					currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 1f);
+					currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
+					currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
+					currentShader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
 				}
 				else
 				{
