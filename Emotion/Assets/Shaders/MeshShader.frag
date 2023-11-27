@@ -153,7 +153,7 @@ float GetShadowAmount()
 		{
 			vec2 sampleCoord = vec2(projCoords.xy + vec2(x, y) * texelSize);
 			float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-			shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
+			shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;        
 		}    
 	}
 	shadow /= 4.0;
