@@ -221,13 +221,6 @@ namespace Emotion.Game.AStar
 			{
 				AStarNode left = CreateNodeFromIfValid(x - 1, y);
 				if (left != null) _neighbors.Add(left);
-
-				// Check top left diagonal.
-				if (diagonal && hasTop)
-				{
-					AStarNode topLeft = CreateNodeFromIfValid(x - 1, y - 1);
-					if (topLeft != null) _neighbors.Add(topLeft);
-				}
 			}
 
 			// Check for right.
@@ -235,13 +228,6 @@ namespace Emotion.Game.AStar
 			{
 				AStarNode right = CreateNodeFromIfValid(x + 1, y);
 				if (right != null) _neighbors.Add(right);
-
-				// Check top right diagonal.
-				if (diagonal && hasTop)
-				{
-					AStarNode topRight = CreateNodeFromIfValid(x + 1, y - 1);
-					if (topRight != null) _neighbors.Add(topRight);
-				}
 			}
 
 			// Check for top.
@@ -252,22 +238,40 @@ namespace Emotion.Game.AStar
 			}
 
 			// Check for bottom.
-			// ReSharper disable once InvertIf
 			if (hasBottom)
 			{
 				AStarNode bottom = CreateNodeFromIfValid(x, y + 1);
 				if (bottom != null) _neighbors.Add(bottom);
+			}
 
+			if (diagonal && hasTop)
+			{
+				// Check top left diagonal.
+				if (hasLeft)
+				{
+					AStarNode topLeft = CreateNodeFromIfValid(x - 1, y - 1);
+					if (topLeft != null) _neighbors.Add(topLeft);
+				}
+
+				// Check top right diagonal.
+				if (hasRight)
+				{
+					AStarNode topRight = CreateNodeFromIfValid(x + 1, y - 1);
+					if (topRight != null) _neighbors.Add(topRight);
+				}
+			}
+
+			if (diagonal && hasBottom)
+			{
 				// Check bottom left diagonal.
-				if (diagonal && hasLeft)
+				if (hasLeft)
 				{
 					AStarNode bottomLeft = CreateNodeFromIfValid(x - 1, y + 1);
 					if (bottomLeft != null) _neighbors.Add(bottomLeft);
 				}
 
 				// Check bottom right diagonal.
-				// ReSharper disable once InvertIf
-				if (diagonal && hasRight)
+				if (hasRight)
 				{
 					AStarNode bottomRight = CreateNodeFromIfValid(x + 1, y + 1);
 					if (bottomRight != null) _neighbors.Add(bottomRight);
