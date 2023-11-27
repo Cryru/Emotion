@@ -24,7 +24,7 @@ namespace Emotion.Game.World2D
 		/// <inheritdoc />
 		protected override void RenderInternal(RenderComposer c)
 		{
-			c.RenderSprite(Position, Size, Color.White);
+			c.RenderSprite(Position, Size, Tint);
 		}
 
 		#region Changing Origin
