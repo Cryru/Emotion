@@ -193,7 +193,7 @@ namespace Emotion.Game
 				// In any case, this *shouldn't* break anything.
 				//
 				// Note: This does cause the collision depth to be exceeded in many cases, such as right angled corners, but doesn't break anything.
-				if ((colShape is Rectangle && Vector2.Dot(normal, movementVector) == 0) || Vector2.Dot(normal, movementVector) == -1)
+				if (colShape is Rectangle && (Vector2.Dot(normal, movementVector) == 0 || Vector2.Dot(normal, movementVector) == -1))
 				{
 					var inflatedRect = (Rectangle) colShape.CloneShape();
 					inflatedRect.Inflate(1, 1);
