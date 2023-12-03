@@ -139,6 +139,7 @@ namespace Emotion.Platform
 
             // Set display mode, show and focus.
             DisplayMode = config.InitialDisplayMode;
+            Size = config.HostSize;
             if (!config.HiddenWindow) WindowState = WindowState.Normal;
             IsOpen = true;
             _pauseOnFocusLoss = !config.DebugMode;
@@ -290,7 +291,7 @@ namespace Emotion.Platform
                 // Pull all buttons up.
                 for (var i = 0; i < _keys.Length; i++)
                 {
-                    UpdateKeyStatus((Key) i, false);
+                    UpdateKeyStatus((Key)i, false);
                 }
             }
 

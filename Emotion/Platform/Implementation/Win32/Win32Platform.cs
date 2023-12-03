@@ -99,15 +99,6 @@ namespace Emotion.Platform.Implementation.Win32
             PollMonitors();
             Engine.Log.Trace("Platform helpers created.", MessageSource.Win32);
 
-            var windowInitialSize = new Rect
-            {
-                Right = (int) config.HostSize.X,
-                Bottom = (int) config.HostSize.Y
-            };
-            GetFullWindowRect(DEFAULT_WINDOW_STYLE, DEFAULT_WINDOW_STYLE_EX, DEFAULT_DPI, ref windowInitialSize);
-            int initialWidth = windowInitialSize.Right - windowInitialSize.Left;
-            int initialHeight = windowInitialSize.Bottom - windowInitialSize.Top;
-
             WindowStyles windowStyle = DEFAULT_WINDOW_STYLE;
             if (config.HiddenWindow)
             {
@@ -124,7 +115,7 @@ namespace Emotion.Platform.Implementation.Win32
                 config.HostTitle,
                 windowStyle,
                 (int) CreateWindowFlags.CW_USEDEFAULT, (int) CreateWindowFlags.CW_USEDEFAULT, // Position - default
-                initialWidth, initialHeight, // Size - initial
+                (int) config.HostSize.X, (int) config.HostSize.Y, // Size - initial
                 IntPtr.Zero, // No parent window
                 IntPtr.Zero, // No window menu
                 Kernel32.GetModuleHandle(null),
@@ -188,21 +179,7 @@ namespace Emotion.Platform.Implementation.Win32
                 return;
             }
 
-            // Adjust window size to account for DPI scaling of the window frame and optionally DPI scaling of the content area.
-            // This cannot be done until we know what monitor it was placed on - so it's done post creation.
-            var rect = new Rect
-            {
-                Right = (int) config.HostSize.X,
-                Bottom = (int) config.HostSize.Y
-            };
-            rect.ClientToScreen(windowHandle);
-            GetFullWindowRect(ref rect);
-            User32.SetWindowPos(_windowHandle, IntPtr.Zero,
-                rect.Left, rect.Top,
-                rect.Right - rect.Left, rect.Bottom - rect.Top,
-                WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOZORDER);
-
-            _windowHandle = windowHandle;
+			_windowHandle = windowHandle;
         }
 
         /// <summary>

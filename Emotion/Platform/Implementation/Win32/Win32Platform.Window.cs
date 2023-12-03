@@ -139,8 +139,8 @@ namespace Emotion.Platform.Implementation.Win32
         {
             // Scale the rect, and set it.
             Rect r = GetFullWindowRect((int) value.X, (int) value.Y);
-            int width = r.Right - r.Left;
-            int height = r.Bottom - r.Top;
+            int width = (int) value.X;// r.Right - r.Left;
+            int height = (int) value.Y;// r.Bottom - r.Top;
 
             // Center on the monitor.
             Monitor monitor = GetMonitorOfWindow();
