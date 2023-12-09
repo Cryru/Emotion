@@ -74,7 +74,22 @@ namespace Emotion.Utility
 			return _generator.Next(min, max + 1);
 		}
 
-		private static Dictionary<string, int> _repeatRandomMap = new();
+        /// <summary>
+        /// Returns a random item from the array.
+        /// </summary>
+        public static T GetRandomArrayItem<T>(T[] array)
+        {
+            var num = GenerateRandomNumber(0, array.Length - 1);
+            return array[num];
+        }
+
+        public static T GetRandomArrayItem<T>(List<T> array)
+        {
+            var num = GenerateRandomNumber(0, array.Count - 1);
+            return array[num];
+        }
+
+        private static Dictionary<string, int> _repeatRandomMap = new();
 
 		/// <summary>
 		/// Returns a randomly generated number which will be
