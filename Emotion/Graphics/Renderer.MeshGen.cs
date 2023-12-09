@@ -47,6 +47,8 @@ namespace Emotion.Graphics
                 Vector3 cE = Vector3.Lerp(ctrlP1, end, length);
                 Vector3 curveP = Vector3.Lerp(sC, cE, length);
                 memory[i + 1].Vertex = curveP;
+                memory[i + 1].UV = Vector2.Zero;
+                memory[i + 1].Color = Color.WhiteUint;
             }
 
             return memory;
@@ -79,6 +81,8 @@ namespace Emotion.Graphics
 
                 Vector3 curveP = Vector3.Lerp(sC1C1C2, c1C2C2E, length);
                 memory[i + 1].Vertex = curveP;
+                memory[i + 1].UV = Vector2.Zero;
+                memory[i + 1].Color = Color.WhiteUint;
             }
 
             return memory;
