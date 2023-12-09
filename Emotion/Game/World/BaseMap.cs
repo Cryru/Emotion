@@ -478,8 +478,9 @@ public abstract class BaseMap
         for (var i = 0; i < _objects.Count; i++)
         {
             BaseGameObject obj = _objects[i];
-            if (obj.ObjectState != ObjectState.Alive) continue;
-            if (!includeNonSpawned && obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
+            var objState = obj.ObjectState;
+            bool validState = objState == ObjectState.Alive || (includeNonSpawned && objState == ObjectState.ConditionallyNonSpawned);
+            if (!validState) continue;
             yield return obj;
         }
     }
@@ -489,8 +490,9 @@ public abstract class BaseMap
         for (var i = 0; i < _objects.Count; i++)
         {
             BaseGameObject obj = _objects[i];
-            if (obj.ObjectState != ObjectState.Alive) continue;
-            if (!includeNonSpawned && obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
+            var objState = obj.ObjectState;
+            bool validState = objState == ObjectState.Alive || (includeNonSpawned && objState == ObjectState.ConditionallyNonSpawned);
+            if (!validState) continue;
             yield return obj;
         }
     }
