@@ -7,11 +7,6 @@ using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.UI;
-using Emotion.Utility;
-using Silk.NET.Core;
-using System.Reflection.Emit;
-using System.Threading.Tasks;
-
 
 #endregion
 
@@ -160,7 +155,7 @@ public class MapEditorTilePanel : EditorPanel
         _container.StretchY = true;
         _container.StretchX = true;
         _container.MaxSizeY = Engine.Renderer.CurrentTarget.Size.Y;
-        _container.Margins = new Rectangle(0, 5, 0, 0);
+        _container.Margins = new Rectangle(0, 14, 0, 11);
 
         var innerContainer = new UIBaseWindow();
         innerContainer.StretchX = true;
