@@ -195,12 +195,11 @@ public class PropEditorArrayPanel : EditorPanel
 			OnNonComplexTypeValueChanged = (value) =>
 			{
 				_propEditor.SetItemAtIndex(_selectedObjectIdx, value);
-				_propEditor.ArrayItemModified(_selectedObjectIdx);
 				RegenerateList();
 			},
 			OnPropertyEdited = (_, __) =>
 			{
-				_propEditor.ArrayItemModified(_selectedObjectIdx);
+				_propEditor.ValueModified();
 				RegenerateList();
 			}
 		};

@@ -22,3 +22,18 @@ public class EditorScrollBar : UIScrollbar
 		MaxSize = new Vector2(5, 9999);
 	}
 }
+
+public class EditorScrollBarHorizontal : UIScrollbar
+{
+    public EditorScrollBarHorizontal()
+    {
+        DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
+        SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
+        WindowColor = Color.Black * 0.5f;
+        Anchor = UIAnchor.BottomLeft;
+        ParentAnchor = UIAnchor.BottomLeft;
+        MinSize = new Vector2(0, 5);
+        MaxSize = new Vector2(9999, 5);
+        Horizontal = true;
+    }
+}

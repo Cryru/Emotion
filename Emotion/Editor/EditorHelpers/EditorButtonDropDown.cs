@@ -44,8 +44,8 @@ public class EditorButtonDropDown : UIBaseWindow
 	protected virtual void UpdateCurrentOptionText()
 	{
 		var button = (EditorButton?) GetWindowById("Button");
-		if (button == null || _currentOption == null) return;
-		button.Text = _currentOption.Name;
+		if (button == null) return;
+		button.Text = _currentOption?.Name ?? "null";
 		button.Enabled = _items != null && _items.Length > 1;
 	}
 
@@ -58,11 +58,9 @@ public class EditorButtonDropDown : UIBaseWindow
 		AddChild(label);
 
 		var button = new EditorButton();
-		button.Text = _currentOption?.Name ?? "null";
 		button.MinSize = new Vector2(20, 0);
 		button.IgnoreParentColor = true;
 		button.Id = "Button";
-		button.Enabled = _items != null && _items.Length > 1;
 		button.OnClickedProxy = click =>
 		{
 			var dropDown = new EditorDropDown(true);
@@ -87,5 +85,7 @@ public class EditorButtonDropDown : UIBaseWindow
 		button.AddChild(arrowImage);
 
 		AddChild(button);
-	}
+        UpdateCurrentOptionText();
+
+    }
 }

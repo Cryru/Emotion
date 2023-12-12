@@ -97,7 +97,8 @@ public class PropEditorArray : EditorButton, IPropEditorGeneric
 		{
 			valAsList[index] = value;
 		}
-	}
+        ValueModified();
+    }
 
 	public void CreateItem()
 	{
@@ -134,7 +135,8 @@ public class PropEditorArray : EditorButton, IPropEditorGeneric
 
 			listVal.Add(newItem);
 		}
-	}
+        ValueModified();
+    }
 
 	public void RemoveItemAtIndex(int index)
 	{
@@ -148,23 +150,29 @@ public class PropEditorArray : EditorButton, IPropEditorGeneric
 		{
 			valAsList.RemoveAt(index);
 		}
-	}
+        ValueModified();
+    }
 
 	public void SetValue(object value)
 	{
-		var length = GetLength(value);
-		var itemType = GetElementType();
-		Text = $"{XMLHelpers.GetTypeName(itemType)}[{length}]";
-		if (value == null) Text += " (null)";
-
 		if (Helpers.AreObjectsEqual(Value, value)) return;
 
 		Value = value;
-		_changeCallback?.Invoke(value);
-	}
+        ValueModified();
+    }
 
-	public void ArrayItemModified(int index)
+    private void UpdateText()
+    {
+        var value = Value;
+        var length = GetLength(value);
+        var itemType = GetElementType();
+        Text = $"{XMLHelpers.GetTypeName(itemType)}[{length}]";
+        if (value == null) Text += " (null)";
+    }
+
+	public void ValueModified()
 	{
+        UpdateText();
 		_changeCallback?.Invoke(Value);
 	}
 

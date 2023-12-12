@@ -17,7 +17,7 @@ public class Map2D : BaseMap
 	/// <summary>
 	/// Contains tile information, if the map has a tile map portion.
 	/// </summary>
-	[DontShowInEditor] public Map2DTileMapData? TileData;
+	[DontShowInEditor] public Map2DTileMapData TileData = new();
 
 	public Map2D(Vector2 size, string mapName = "Unnamed Map") : base(size, mapName)
 	{
@@ -36,7 +36,7 @@ public class Map2D : BaseMap
 	protected override async Task InitAsyncInternal()
 	{
 		// Load tile data. During this time object loading is running async.
-		if (TileData != null) await TileData.LoadTileDataAsync();
+		if (TileData != null) await TileData.LoadTilesetTextures();
 	}
 
 	public static Comparison<BaseGameObject> ObjectComparison = ObjectSort; // Prevent delegate allocation

@@ -41,6 +41,11 @@ public class EditorButton : UICallbackButton
 	private bool _activeMode;
 	private UIText _label;
 
+    public EditorButton(string label) : this()
+    {
+        Text = label;
+    }
+
 	public EditorButton()
 	{
 		WindowColor = MapEditorColorPalette.ButtonColor;
