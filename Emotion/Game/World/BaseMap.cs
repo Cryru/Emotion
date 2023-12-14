@@ -19,7 +19,7 @@ using Emotion.Standard.XML;
 
 namespace Emotion.Game.World;
 
-public abstract class BaseMap
+public abstract partial class BaseMap
 {
     /// <summary>
     /// The size of the map in map units.
@@ -473,45 +473,6 @@ public abstract class BaseMap
 
     #region Iteration and Query
 
-    public IEnumerable<BaseGameObject> GetObjects(bool includeNonSpawned = false)
-    {
-        for (var i = 0; i < _objects.Count; i++)
-        {
-            BaseGameObject obj = _objects[i];
-            var objState = obj.ObjectState;
-            bool validState = objState == ObjectState.Alive || (includeNonSpawned && objState == ObjectState.ConditionallyNonSpawned);
-            if (!validState) continue;
-            yield return obj;
-        }
-    }
-
-    public IEnumerator<BaseGameObject> GetAllObjectsCoroutine(bool includeNonSpawned = false)
-    {
-        for (var i = 0; i < _objects.Count; i++)
-        {
-            BaseGameObject obj = _objects[i];
-            var objState = obj.ObjectState;
-            bool validState = objState == ObjectState.Alive || (includeNonSpawned && objState == ObjectState.ConditionallyNonSpawned);
-            if (!validState) continue;
-            yield return obj;
-        }
-    }
-
-    public void GetObjectsByType<T>(List<T> list, int layer, IShape shape, QueryFlags queryFlags = 0) where T : BaseGameObject
-    {
-        var objects = new List<BaseGameObject>();
-        GetObjects(objects, layer, shape, queryFlags);
-
-        foreach (BaseGameObject obj in objects)
-        {
-            if (obj is T objT)
-            {
-                if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;
-                list.Add(objT);
-            }
-        }
-    }
-
     /// <summary>
     /// Get an object from the map by name.
     /// </summary>
@@ -531,59 +492,6 @@ public abstract class BaseMap
         }
 
         return null;
-    }
-
-    public IEnumerator<T> GetObjectsByType<T>(bool includeNonSpawned = false)
-    {
-        var enumerator = GetAllObjectsCoroutine(includeNonSpawned);
-        while (enumerator.MoveNext())
-        {
-            var obj = enumerator.Current;
-            if (obj is T objAsT)
-            {
-                yield return objAsT;
-            }
-        }
-    }
-
-    public List<ObjType> GetObjects<ObjType>(List<ObjType>? list = null) where
-        ObjType : BaseGameObject
-    {
-        list ??= new List<ObjType>();
-
-        var enumerator = GetAllObjectsCoroutine(false);
-        while (enumerator.MoveNext())
-        {
-            var obj = enumerator.Current;
-            if (obj is ObjType objAsT)
-            {
-                list.Add(objAsT);
-            }
-        }
-
-        return list;
-    }
-
-    public void GetObjects(IList list, int layer, IShape shape, QueryFlags queryFlags = 0)
-    {
-        WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-        var enumerator = rootNode?.AddObjectsIntersectingShape(shape);
-        if (enumerator == null) return;
-        while (enumerator.MoveNext())
-        {
-            BaseGameObject currentObject = enumerator.Current;
-            if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(currentObject))
-            {
-                continue;
-            }
-            list.Add(currentObject);
-        }
-    }
-
-    public void GetObjects(IList list, int layer)
-    {
-        WorldTree2DRootNode? rootNode = _worldTree?.GetRootNodeForLayer(layer);
-        rootNode?.AddAllObjects(list);
     }
 
     public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)

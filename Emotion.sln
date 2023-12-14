@@ -25,8 +25,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Web.ExecTest", "Emo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.PostBuildTool", "Emotion.PostBuildTool\Emotion.PostBuildTool.csproj", "{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Benchmark", "Emotion.Benchmark\Emotion.Benchmark.csproj", "{5428A7D9-D416-459E-A0EE-DD915A06A7FB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Droid", "Emotion.Droid\Emotion.Droid.csproj", "{83E2F284-68A0-4D00-899B-1F5E5DB13F61}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Droid.ExecTest", "Emotion.Droid.ExecTest\Emotion.Droid.ExecTest.csproj", "{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}"
