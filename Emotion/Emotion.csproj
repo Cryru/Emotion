@@ -47,7 +47,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|AnyCPU'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD</DefineConstants>
+    <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD;CSHARP_SCRIPTING</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>True</Optimize>
   </PropertyGroup>
@@ -155,6 +155,9 @@
   </ItemGroup> 
   <ItemGroup Condition="!$(DefineConstants.Contains('ASSIMP'))">
     <Compile Remove="IO\MeshAssetTypes\Assimp\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
+    <Compile Remove="Game\Scripting\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.frag">

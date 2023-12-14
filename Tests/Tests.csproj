@@ -35,7 +35,6 @@
     <Compile Remove="Assets\Scripts\CustomMainArgsScript.cs" />
     <Compile Remove="Assets\Scripts\CustomMainScript.cs" />
     <Compile Remove="Assets\Scripts\MainScript.cs" />
-    <Compile Remove="Classes\ScriptingTest.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,7 +59,6 @@
     <None Include="Assets\Scripts\MainScript.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Classes\ScriptingTest.cs" />
   </ItemGroup>
 
   <ItemGroup>

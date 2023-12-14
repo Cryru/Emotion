@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common;
-using Emotion.Plugins.CSharpScripting;
+using Emotion.Game.Scripting;
 using Emotion.Test;
 
 #endregion
@@ -31,12 +31,12 @@ namespace Tests.Classes
         {
             var script = Engine.AssetLoader.Get<CSharpScriptAsset>("Scripts/MainScript.cs");
             int callCount = ScriptingTestApi.CallCount;
-            CSharpScriptEngine.RunScript(script).Wait();
+            script.Execute().Wait();
             Assert.True(ScriptingTestApi.CallCount == callCount + 1);
             Engine.AssetLoader.Destroy("Scripts/MainScript.cs");
 
             script = Engine.AssetLoader.Get<CSharpScriptAsset>("Scripts/CustomMainScript.cs");
-            CSharpScriptEngine.RunScript(script).Wait();
+            script.Execute().Wait();
             Assert.True(ScriptingTestApi.CallCount == callCount);
             Engine.AssetLoader.Destroy("Scripts/CustomMainScript.cs");
         }
@@ -46,7 +46,7 @@ namespace Tests.Classes
         {
             var script = Engine.AssetLoader.Get<CSharpScriptAsset>("Scripts/CustomMainArgsScript.cs");
             const string objectPass = "yo";
-            object result = CSharpScriptEngine.RunScript(script, objectPass).Result;
+            object result = script.Execute(objectPass).Result;
             Assert.True((int) result == objectPass.GetHashCode());
             Engine.AssetLoader.Destroy("Scripts/CustomMainArgsScript.cs");
         }
