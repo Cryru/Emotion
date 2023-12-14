@@ -39,6 +39,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			closeButton.Anchor = UIAnchor.TopRight;
 			closeButton.ParentAnchor = UIAnchor.TopRight;
 			closeButton.RenderNonActiveBackground = false;
+
 			AddChild(closeButton);
 
 			HandleInput = true;
@@ -49,6 +50,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 			Id = "TopBar";
 		}
 
+#if !NEW_UI
 		protected override Vector2 InternalMeasure(Vector2 space)
 		{
 			return MaxSize;
@@ -61,6 +63,7 @@ namespace Emotion.Game.World2D.EditorHelpers
 
 			return base.BeforeLayout(position);
 		}
+#endif
 
 		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
 		{

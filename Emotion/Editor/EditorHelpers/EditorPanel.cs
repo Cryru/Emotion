@@ -19,9 +19,22 @@ public enum PanelMode
 	Embedded
 }
 
+/// <summary>
+/// The basis for all editor UI windows.
+/// </summary>
 public class EditorPanel : UIBaseWindow
 {
-	public string Header;
+	public string Header
+	{
+		get => _header;
+		set
+		{
+			_header = value;
+			ApplySettings();
+		}
+	}
+
+	private string _header = "Untitled";
 
 	public PanelMode PanelMode
 	{
@@ -42,8 +55,12 @@ public class EditorPanel : UIBaseWindow
 	private PanelMode _panelMode = PanelMode.Default;
 
 	protected UIBaseWindow _contentParent = null!;
-	protected UIBaseWindow _container = null!;
+	protected UIBaseWindow _container = null!; // deprecate
 	protected bool _centered;
+
+	public EditorPanel()
+	{
+	}
 
 	public EditorPanel(string header)
 	{
@@ -54,9 +71,11 @@ public class EditorPanel : UIBaseWindow
 	{
 		base.AttachedToController(controller);
 
+		// The panel itself is full screen, and the container is the window that moves,
+		// which is visually the panel itself.
 		var container = new UIBaseWindow
 		{
-			HandleInput = true
+			HandleInput = true,
 		};
 		_container = container;
 		_centered = true;
@@ -65,6 +84,10 @@ public class EditorPanel : UIBaseWindow
 		{
 			container.StretchX = true;
 			container.StretchY = true;
+#if NEW_UI
+			container.FillX = false;
+			container.FillY = false;
+#endif
 
 			container.MinSize = new Vector2(100, 100);
 			container.MaxSize = new Vector2(500, 200);
@@ -75,10 +98,11 @@ public class EditorPanel : UIBaseWindow
 			container.AddChild(topBar);
 
 			var closeButton = (EditorButton) topBar.GetWindowById("CloseButton")!;
-			closeButton.OnClickedProxy = _ => { controller.RemoveChild(this); };
-
-			var panelLabel = (UIText) topBar.GetWindowById("PanelLabel")!;
-			panelLabel.Text = Header;
+			closeButton.OnClickedProxy = _ =>
+			{
+				//this.InvalidateLayout();
+				controller.RemoveChild(this);
+			};
 		}
 		else
 		{
@@ -98,6 +122,13 @@ public class EditorPanel : UIBaseWindow
 		AddChild(container);
 
 		controller.SetInputFocus(container);
+		ApplySettings();
+	}
+
+	protected void ApplySettings()
+	{
+		if (GetWindowById("PanelLabel") is UIText panelLabel)
+			panelLabel.Text = Header;
 	}
 
 	public override void InputFocusChanged(bool haveFocus)

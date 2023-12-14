@@ -62,9 +62,11 @@ public class EditorButton : UICallbackButton
 		_label = txt;
 		AddChild(txt);
 
-#if !NEW_UI
-		StretchX = true;
+#if NEW_UI
+		FillX = false;
+		FillY = false;
 #endif
+		StretchX = true;
 		Paddings = new Rectangle(2, 1, 2, 1);
 	}
 
