@@ -189,7 +189,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		Vector2 size = minWindowSize;
 
 		// Windows with children will accomodate their children.
-		// todo: ChildrenCanExpandX, ChildrenCanExpandY
+		// todo: disable some windows from having children? maybe just editor hint?
+		// todo: ChildrenCanExpandX, ChildrenCanExpandY?
 		if (true)
 		{
 			childrenUsed.X = MathF.Min(childrenUsed.X, space.X); // Dont allow expansion higher than space.
@@ -275,10 +276,23 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 			float childScale = child.GetScale();
 			Rectangle childScaledMargins = child.Margins * childScale;
+
+			float marginsX = childScaledMargins.Width + childScaledMargins.X;
+			float marginsY = childScaledMargins.Height + childScaledMargins.Y;
+
 			thisChildSpaceRect.X += childScaledMargins.X;
 			thisChildSpaceRect.Y += childScaledMargins.Y;
-			thisChildSpaceRect.Width -= childScaledMargins.Width + childScaledMargins.X;
-			thisChildSpaceRect.Height -= childScaledMargins.Height + childScaledMargins.Y;
+			thisChildSpaceRect.Width -= marginsX;
+			thisChildSpaceRect.Height -= marginsY;
+
+			// todo: wtf?
+			// Size is part of the child size during measurement,
+			// so we need to subtract it here.
+			if (insideParent)
+			{
+				childSize.X -= marginsX;
+				childSize.Y -= marginsY;
+			}
 
 			bool childFillX = child.FillX && child.Anchor is not UIAnchor.TopCenter and not UIAnchor.CenterCenter and not UIAnchor.BottomCenter;
 			bool childFillY = child.FillY && child.Anchor is not UIAnchor.CenterLeft and not UIAnchor.CenterCenter and not UIAnchor.CenterRight;
@@ -300,6 +314,12 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 			child.Layout(childPos, childSize);
 		}
+	}
+
+	private bool IsOutsideParentListLayout(int axisMask, UIAnchor childAnchor)
+	{
+		if (axisMask == 0 && childAnchor is UIAnchor.BottomRight or UIAnchor.CenterRight or UIAnchor.TopRight) return true;
+		return false;
 	}
 
 	private Vector2 LayoutMode_ListMeasure(List<UIBaseWindow> children, Vector2 freeSpace, bool wrap, int axisMask)
@@ -334,7 +354,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 			Vector2 childSize = child.Measure(freeSpace - pen);
 
 			// Dont count space taken by windows outside parent.
-			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor) && !IsOutsideParentListLayout(axisMask, child.Anchor);
 			if (insideParent)
 			{
 				pen[axisMask] += childSize[axisMask];
@@ -386,7 +406,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 			Vector2 childSize = child._measuredSize;
 
-			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor) && !IsOutsideParentListLayout(axisMask, child.Anchor);
 
 			// Don't add spacing before 0 size windows.
 			bool addSpacing = insideParent && childSize[axisMask] != 0;
@@ -409,6 +429,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		Vector2 fillWindowsSize = (childSpaceRect.Size - fillingPen) / fillingWindowPerAxis;
 
 		// Layout the children.
+		List<UIBaseWindow> windowsOutsideParent = null;
 		Vector2 prevChildSize = Vector2.Zero;
 		for (var i = 0; i < children.Count; i++)
 		{
@@ -417,7 +438,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 			if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
 			Vector2 childSize = child._measuredSize;
-			if (child.FillXInList || child.FillYInList)
+			if (child.FillXInList || child.FillYInList) // todo: delete?
 			{
 				if (child.FillXInList) childSize.X = fillWindowsSize.X;
 				if (child.FillYInList) childSize.Y = fillWindowsSize.Y;
@@ -428,22 +449,76 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 				childSize = Vector2.Clamp(childSize, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
 			}
 
-			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+			bool insideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor) && !IsOutsideParentListLayout(axisMask, child.Anchor);
 
 			// Don't add spacing before 0 size windows.
 			bool addSpacing = insideParent && childSize[axisMask] != 0 && prevChildSize[axisMask] != 0;
 			if (addSpacing) pen[axisMask] += spacing[axisMask];
 
-			child.Layout(pen + childSpaceRect.Position, childSize);
-
 			// Dont count space taken by windows outside parent.
 			if (insideParent)
 			{
+				Rectangle thisChildSpaceRect = childSpaceRect;
+				float childScale = child.GetScale();
+				Rectangle childScaledMargins = child.Margins * childScale;
+				float marginsX = childScaledMargins.Width + childScaledMargins.X;
+				float marginsY = childScaledMargins.Height + childScaledMargins.Y;
+				thisChildSpaceRect.X += childScaledMargins.X;
+				thisChildSpaceRect.Y += childScaledMargins.Y;
+				thisChildSpaceRect.Width -= marginsX;
+				thisChildSpaceRect.Height -= marginsY;
+
+				// todo: wtf?
+				// Size is part of the child size during measurement,
+				// so we need to subtract it here.
+				if (insideParent)
+				{
+					childSize.X -= marginsX;
+					childSize.Y -= marginsY;
+				}
+
+				child.Layout(pen + thisChildSpaceRect.Position, childSize);
+
 				pen[axisMask] += childSize[axisMask];
 				prevChildSize = childSize;
 
 				highestOtherAxis = MathF.Max(highestOtherAxis, childSize[invertedMask]);
 				usedSpace[axisMask] = MathF.Max(usedSpace[axisMask], pen[axisMask]);
+			}
+			else
+			{
+				windowsOutsideParent ??= new List<UIBaseWindow>();
+				windowsOutsideParent.Add(child);
+			}
+		}
+
+		if (windowsOutsideParent != null)
+		{
+			for (var i = 0; i < windowsOutsideParent.Count; i++)
+			{
+				UIBaseWindow child = windowsOutsideParent[i];
+
+				Vector2 childSize = child._measuredSize;
+				float childScale = child.GetScale();
+
+				Rectangle thisChildSpaceRect = childSpaceRect;
+
+				bool childFillX = child.FillX && child.Anchor is not UIAnchor.TopCenter and not UIAnchor.CenterCenter and not UIAnchor.BottomCenter;
+				bool childFillY = child.FillY && child.Anchor is not UIAnchor.CenterLeft and not UIAnchor.CenterCenter and not UIAnchor.CenterRight;
+
+				Vector2 childSizeFilled = childSize;
+				if (childFillX) childSizeFilled.X = thisChildSpaceRect.Width;
+				if (childFillY) childSizeFilled.Y = thisChildSpaceRect.Height;
+				childSizeFilled = Vector2.Clamp(childSizeFilled, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
+
+				Vector2 childPos = GetChildPositionAnchorWise(child.ParentAnchor, child.Anchor, thisChildSpaceRect, childSizeFilled);
+
+				//// Subtract only right and bottom margins as the childPos is the top left.
+				//if (childFillX) childSize.X = childSpaceRect.Width - childScaledMargins.Width - (childPos.X - childSpaceRect.X);
+				//if (childFillY) childSize.Y = childSpaceRect.Height - childScaledMargins.Height - (childPos.Y - childSpaceRect.Y);
+				//childSize = Vector2.Clamp(childSize, child.MinSize * childScale, child.MaxSize * childScale).Ceiling();
+
+				child.Layout(childPos, childSize);
 			}
 		}
 

@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Threading.Tasks;
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.UI;
@@ -53,7 +54,11 @@ public class NewUITests : TestingScene
 			VerticalListWithText,
 
 			TextWithBackground,
-			EditorDropDownRelativeToAndOutsideParent
+			EditorDropDownRelativeToAndOutsideParent,
+
+			WorldEditorBottomBar,
+
+			EditorPanelEmpty
 		};
 	}
 
@@ -449,7 +454,7 @@ public class NewUITests : TestingScene
 			var win = new UISolidColor();
 			win.MaxSizeY = 15;
 			win.WindowColor = Color.PrettyOrange;
-			win.Id = "test";
+			win.Id = "top-parent";
 
 			var list = new UISolidColor();
 			list.LayoutMode = LayoutMode.HorizontalList;
@@ -535,6 +540,54 @@ public class NewUITests : TestingScene
 
 			list.Margins = new Rectangle(3, 0, 3, 0);
 			list.AlignAnchor = UIAnchor.CenterLeft;
+		}
+
+		yield return WaitUILayout();
+		VerifyScreenshot();
+
+		// Add text on the right
+		{
+			UIBaseWindow parent = UI.GetWindowById("top-parent")!;
+
+			var a = new UIText();
+			a.ParentAnchor = UIAnchor.CenterRight;
+			a.Anchor = UIAnchor.CenterRight;
+			a.WindowColor = Color.Black;
+			a.Text = "Text on the right";
+			a.FontSize = 6;
+			a.Margins = new Rectangle(0, 0, 5, 0);
+
+			parent.AddChild(a);
+		}
+
+		yield return WaitUILayout();
+		VerifyScreenshot();
+	}
+
+	private IEnumerator WorldEditorBottomBar()
+	{
+		// This also tests margins on all sides.
+		UI.ClearChildren();
+
+		{
+			var bottomBar = new UISolidColor();
+			bottomBar.MaxSizeY = 12;
+			bottomBar.FillY = false;
+			bottomBar.WindowColor = Color.PrettyOrange;
+			bottomBar.Id = "BottomBar";
+			bottomBar.Anchor = UIAnchor.BottomLeft;
+			bottomBar.ParentAnchor = UIAnchor.BottomLeft;
+
+			var label = new UIText();
+			label.Text = "No object selected";
+			label.Margins = new Rectangle(3, 3, 3, 3);
+			label.FontSize = 7;
+			label.ParentAnchor = UIAnchor.CenterLeft;
+			label.Anchor = UIAnchor.CenterLeft;
+			label.Id = "Label";
+			bottomBar.AddChild(label);
+
+			UI.AddChild(bottomBar);
 		}
 
 		yield return WaitUILayout();
@@ -743,13 +796,13 @@ public class NewUITests : TestingScene
 			text.Text = "Attach To Me!";
 			text.WindowColor = Color.White;
 			text.ScaleMode = UIScaleMode.FloatScale;
-			
+
 			text.ParentAnchor = UIAnchor.CenterLeft;
 			text.Anchor = UIAnchor.CenterLeft;
 
 			a.AddChild(text);
 		}
-		
+
 		{
 			var dropDown = new UISolidColor
 			{
@@ -798,6 +851,19 @@ public class NewUITests : TestingScene
 			}
 
 			UI.AddChild(dropDown);
+		}
+
+		yield return WaitUILayout();
+		VerifyScreenshot();
+	}
+
+	public IEnumerator EditorPanelEmpty()
+	{
+		UI.ClearChildren();
+
+		{
+			var editorPanel = new EditorPanel("Test");
+			UI.AddChild(editorPanel);
 		}
 
 		yield return WaitUILayout();
