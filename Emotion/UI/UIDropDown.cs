@@ -1,40 +1,35 @@
-﻿#region Using
+﻿#nullable enable
 
-#endregion
+namespace Emotion.UI;
 
-#nullable enable
-
-namespace Emotion.UI
+public class UIDropDown : UIBaseWindow
 {
-	public class UIDropDown : UIBaseWindow
+	public object? OwningObject = null;
+
+	public UIDropDown()
 	{
-		public object? OwningObject = null;
+		CodeGenerated = true;
+		HandleInput = true;
+		ZOffset = 99;
+	}
 
-		public UIDropDown()
-		{
-			CodeGenerated = true;
-			HandleInput = true;
-			ZOffset = 99;
-		}
+	public override void AttachedToController(UIController controller)
+	{
+		base.AttachedToController(controller);
+		controller.SetInputFocus(this);
+		controller.DropDown = this;
+	}
 
-		public override void AttachedToController(UIController controller)
-		{
-			base.AttachedToController(controller);
-			controller.SetInputFocus(this);
-			controller.DropDown = this;
-		}
+	public override void DetachedFromController(UIController controller)
+	{
+		base.DetachedFromController(controller);
+		if (controller.DropDown == this) controller.DropDown = null;
+	}
 
-		public override void DetachedFromController(UIController controller)
-		{
-			base.DetachedFromController(controller);
-			if (controller.DropDown == this) controller.DropDown = null;
-		}
+	public override void InputFocusChanged(bool haveFocus)
+	{
+		base.InputFocusChanged(haveFocus);
 
-		public override void InputFocusChanged(bool haveFocus)
-		{
-			base.InputFocusChanged(haveFocus);
-
-			if (!haveFocus) Parent?.RemoveChild(this);
-		}
+		if (!haveFocus) Parent?.RemoveChild(this);
 	}
 }

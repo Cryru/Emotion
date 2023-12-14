@@ -107,6 +107,14 @@ namespace Emotion.UI
 		protected Vector2 _scaledUnderlineOffset;
 		protected float _scaledUnderlineThickness;
 
+		public UIText()
+		{
+#if NEW_UI
+			FillX = false;
+			FillY = false;
+#endif
+		}
+
 		protected override async Task LoadContent()
 		{
 			// Load font if not loaded.
@@ -138,8 +146,8 @@ namespace Emotion.UI
 			if (_fontFile == null || _layouter == null) return Vector2.Zero;
 
 			// Text measure should depend on the text, and not its children.
-			Debug.Assert(!StretchX);
-			Debug.Assert(!StretchY);
+			Assert(!StretchX);
+			Assert(!StretchY);
 
 			float scale = GetScale();
 			_scaledUnderlineOffset = UnderlineOffset * scale;
