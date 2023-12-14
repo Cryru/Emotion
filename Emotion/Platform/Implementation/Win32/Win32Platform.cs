@@ -589,6 +589,12 @@ namespace Emotion.Platform.Implementation.Win32
 
         public void OpenFolderAndSelectFile(string filePath)
         {
+	        if (Path.EndsInDirectorySeparator(filePath))
+	        {
+		        Process.Start("explorer",$"\"{filePath}\"");
+		        return;
+	        }
+
             SHParseDisplayName(Path.GetDirectoryName(filePath), IntPtr.Zero, out IntPtr nativeFolder, 0, out _);
             SHParseDisplayName(filePath, IntPtr.Zero, out IntPtr nativeFile, 0, out _);
             SHOpenFolderAndSelectItems(nativeFile, 0, nativeFile, 0);

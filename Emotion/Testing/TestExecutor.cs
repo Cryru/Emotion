@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Utility;
 
 #endregion
@@ -81,6 +82,10 @@ public static class TestExecutor
 			{
 				RunTestClasses(testFunctions);
 				await RunTestScenes(testScenes);
+
+#if !AUTOBUILD
+				if (Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
+#endif
 			}
 			catch (Exception)
 			{
