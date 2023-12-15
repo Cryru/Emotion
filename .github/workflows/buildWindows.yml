@@ -28,7 +28,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Tests\bin\Debug\net7.0\TestResults
+        path: Tests\bin\Release\net7.0\TestResults
     - name: Publish Nuget
       if: github.ref == 'refs/heads/master'
       env:
