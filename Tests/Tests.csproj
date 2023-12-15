@@ -372,6 +372,132 @@
     <None Update="Assets\Images\standardTif.tif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\1 Fill%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\12 TextWithBackground%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\13 EditorDropDownRelativeToAndOutsideParent%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\14 WorldEditorBottomBar%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\15 EditorPanelEmpty%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\2 FillXAxisWithChild%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\3 FillXAxisMinHeight%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\4 FillXAxisMinHeightAndWidth%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\5 FillNeitherAxisMinHeightAndWidth%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\6 TwoSquaresInFillY%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\7 FillList%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\7 FillList%28%29_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Shaders\BrokenShader.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

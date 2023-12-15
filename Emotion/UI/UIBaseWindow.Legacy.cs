@@ -94,6 +94,11 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 	{
         if (UseNewLayoutSystem)
         {
+            if (Parent == null) // controller
+            {
+                return NEW_Measure(space);
+            }
+
             // Simulate that this child was layouted by a "new layout" parent.
             _simulateNewLayoutList.Clear();
             _simulateNewLayoutList.Add(this);
@@ -267,6 +272,12 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 	{
         if (UseNewLayoutSystem)
         {
+            if (Parent == null) // controller
+            {
+                Layout(contentPos, _measuredSize);
+                return;
+            }
+
             // Simulate that this child was layouted by a "new layout" parent.
             _simulateNewLayoutList.Clear();
             _simulateNewLayoutList.Add(this);

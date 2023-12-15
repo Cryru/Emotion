@@ -49,15 +49,6 @@ namespace Tests
 
 		private static void Main(string[] args)
 		{
-			//Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
-			if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
-			{
-				TestExecutor.ExecuteTests(args);
-				return;
-			}
-
-			//FontAsset.GlyphRasterizer = GlyphRasterizer.StbTrueType;
-			ResultDb.LoadCache();
 			var config = new Configurator
 			{
 				HostSize = new Vector2(640, 360),
@@ -67,6 +58,16 @@ namespace Tests
 				AudioQuality = AudioResampleQuality.HighHann,
 				ExtraArgs = new[] {"software"} // Enable software renderer to ensure consistent results.
 			};
+
+			//Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
+			if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
+			{
+				TestExecutor.ExecuteTests(args, config);
+				return;
+			}
+
+			//FontAsset.GlyphRasterizer = GlyphRasterizer.StbTrueType;
+			ResultDb.LoadCache();
 			Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
 		}
 	}
