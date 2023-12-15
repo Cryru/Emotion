@@ -48,20 +48,21 @@ void main()
 // todo: array texture
 vec4 sampleShadowMapAtCascade(int cascade, vec2 uv)
 {
+    vec4 col = vec4(0.0);
 	if (cascade == 0)
 	{
-		return getTextureColor(shadowMapTextureC1, uv);
+		col = getTextureColor(shadowMapTextureC1, uv);
 	}
 	else if (cascade == 1)
 	{
-		return getTextureColor(shadowMapTextureC2, uv);
+		col = getTextureColor(shadowMapTextureC2, uv);
 	}
 	else if (cascade == 2)
 	{
-		return getTextureColor(shadowMapTextureC3, uv);
+		col = getTextureColor(shadowMapTextureC3, uv);
 	}
 
-	return vec4(0.0);
+	return col;
 }
 
 vec4 GetCascadeDebugColor(int cascade)
@@ -147,15 +148,32 @@ float GetShadowAmount()
 	// Percentage Closer Filtering
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / vec2(textureSize(shadowMapTextureC1, 0)); // assume all the same size, this is how it will behave as a texture array
-	for(int x = 0; x <= 1; ++x)
-	{
-		for(int y = 0; y <= 1; ++y)
-		{
-			vec2 sampleCoord = vec2(projCoords.xy + vec2(x, y) * texelSize);
-			float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-			shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;        
-		}    
-	}
+
+    // Unrolled PCF loop for ANGLE compat.
+    {
+        vec2 sampleCoord = vec2(projCoords.xy + vec2(0, 0) * texelSize);
+		float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
+		shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;
+    }
+
+    {
+        vec2 sampleCoord = vec2(projCoords.xy + vec2(0, 1) * texelSize);
+		float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
+		shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;
+    }
+
+    {
+        vec2 sampleCoord = vec2(projCoords.xy + vec2(1, 0) * texelSize);
+		float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
+		shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;
+    }
+
+    {
+        vec2 sampleCoord = vec2(projCoords.xy + vec2(1, 1) * texelSize);
+		float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
+		shadow += (currentDepth - bias) > pcfDepth ? 0.25 : 0.0;
+    }
+
 	shadow /= 4.0;
 
 	return shadow;
