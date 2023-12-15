@@ -116,6 +116,16 @@ namespace Emotion.UI
 		{
 			return Engine.Renderer.DrawBuffer.Size;
 		}
+#else
+        protected override Vector2 InternalMeasure(Vector2 space)
+        {
+            return Engine.Renderer.DrawBuffer.Size;
+        }
+
+        protected override Vector2 NEW_InternalMeasure(Vector2 space)
+        {
+            return Engine.Renderer.DrawBuffer.Size;
+        }
 #endif
 
 		protected void UpdateLayout()
@@ -125,28 +135,30 @@ namespace Emotion.UI
 #if NEW_UI
 			BuildRelativeToMapping();
 
-			// 1. Measure the size of all windows.
-			// Children are measured before parents in order for stretching to work.
-			// Children are measured in index order. Layout rules are applied.
+			// 1. Measure the minimum size each window needs, which in turn
+            // determines the minimum size of the parent. Children are measured in index order,
+            // and layout rules and extra metrics (paddings, margins) are calculated too.
 			Measure(Engine.Renderer.DrawBuffer.Size);
 
 			// 2. Layout windows within their parents, starting with the controller taking up the full screen.
-			// Sizes returned during measuring are used. Parents are positioned before children since
-			// positions are absolute and not relative.
+            // Sizes returned during measuring can be used, but larger sizes can be set. Positions are
+            // absolute and not relative.
 			Layout(Vector2.Zero, Size);
 
 #else
+            BuildRelativeToMapping();
+
 			// 1. Measure the size of all windows.
 			// Children are measured before parents in order for stretching to work.
 			// Children are measured in index order. Layout rules are applied.
 			Size = Engine.Renderer.DrawBuffer.Size;
 			Measure(Size);
+
 			// 2. Layout windows within their parents, starting with the controller taking up the full screen.
 			// Sizes returned during measuring are used. Parents are positioned before children since
 			// positions are absolute and not relative.
 			Vector2 pos = CalculateContentPos(Vector2.Zero, Engine.Renderer.DrawBuffer.Size, Rectangle.Empty);
 			Layout(pos);
-
 #endif
 		}
 
@@ -266,8 +278,9 @@ namespace Emotion.UI
 		/// </summary>
 		private class PreloadWindowStorage : UIBaseWindow
 		{
-			public override void AddChild(UIBaseWindow child)
+			public override void AddChild(UIBaseWindow? child)
 			{
+                if (child == null) return;
 				Children ??= new List<UIBaseWindow>();
 				Children.Add(child);
 			}

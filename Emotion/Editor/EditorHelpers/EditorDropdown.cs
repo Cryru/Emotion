@@ -22,24 +22,18 @@ public class EditorDropDown : UIDropDown
 	[DontSerialize] public Action? OnCloseProxy;
 
 	public EditorDropDown(bool closeOnClick = false)
-	{
+    {
+        UseNewLayoutSystem = true;
+
 		CloseOnClick = closeOnClick;
 		WindowColor = MapEditorColorPalette.ActiveButtonColor;
-#if !NEW_UI
-		StretchX = true;
-		StretchY = true;
-#endif
-		Offset = new Vector2(-2, 1);
+        Offset = new Vector2(-2, 1);
 
 		var innerBg = new UISolidColor
 		{
 			IgnoreParentColor = true,
 			WindowColor = MapEditorColorPalette.BarColor.SetAlpha(255),
-#if !NEW_UI
-			StretchX = true,
-			StretchY = true,
-#endif
-			Paddings = new Rectangle(3, 3, 3, 3),
+            Paddings = new Rectangle(3, 3, 3, 3),
 		};
 
 		AddChild(innerBg);
@@ -48,22 +42,17 @@ public class EditorDropDown : UIDropDown
 		{
 			IgnoreParentColor = true,
 			LayoutMode = LayoutMode.VerticalList,
-#if !NEW_UI
-			StretchX = true,
-			ChildrenAllSameWidth = true,
-			Margins = new Rectangle(0, 0, 8, 0),
-#else
-
-#endif
-			ListSpacing = new Vector2(0, 2),
+            ListSpacing = new Vector2(0, 2),
 			
 			MaxSizeY = 100,
 			HideScrollBarWhenNothingToScroll = true,
 		};
 
-		var scrollBar = new EditorScrollBar();
-		scrollBar.MaxSizeY = 90;
-		list.SetScrollbar(scrollBar);
+		var scrollBar = new EditorScrollBar
+        {
+            MaxSizeY = 90
+        };
+        list.SetScrollbar(scrollBar);
 		innerBg.AddChild(scrollBar);
 
 		innerBg.AddChild(list);
@@ -72,7 +61,7 @@ public class EditorDropDown : UIDropDown
 
 	protected override void AfterRenderChildren(RenderComposer c)
 	{
-		base.AfterRenderChildren(c);
+        base.AfterRenderChildren(c);
 		c.RenderOutline(Position, Size, WindowColor);
 	}
 
@@ -104,10 +93,10 @@ public class EditorDropDown : UIDropDown
 					item.Click(item, null);
 
 					AssertNotNull(checkBoxes);
-					for (int c = 0; c < checkBoxes.Count; c++)
+					for (var c = 0; c < checkBoxes.Count; c++)
 					{
-						var checkBox = checkBoxes[c];
-						var thatCheckBoxItem = items[c];
+						PropEditorBool checkBox = checkBoxes[c];
+						EditorDropDownItem thatCheckBoxItem = items[c];
 						var thatCheckBoxItemAsCheckBoxItem = thatCheckBoxItem as EditorDropDownCheckboxItem;
 						checkBox.SetValue(thatCheckBoxItemAsCheckBoxItem?.Checked() ?? false);
 					}
@@ -116,22 +105,18 @@ public class EditorDropDown : UIDropDown
 
 				checkBoxes.Add(checkMark);
 
-				var editor = new FieldEditorWithLabel(itemCheckBox.Name, checkMark);
-				editor.Margins = Rectangle.Empty;
-				List.AddChild(editor);
+				var editor = new FieldEditorWithLabel(itemCheckBox.Name, checkMark)
+                {
+                    Margins = Rectangle.Empty
+                };
+                List.AddChild(editor);
 			}
 			else
 			{
 				var ddButton = new EditorButton
 				{
-#if !NEW_UI
-					StretchX = true,
-					StretchY = true,
+                    FillXInList = true,
 
-					MinSize = new Vector2(50, 0),
-#else
-				FillXInList = true,
-#endif
 					Text = item.NameFunc != null ? item.NameFunc() : item.Name,
 				};
 				ddButton.OnClickedProxy = _ =>
@@ -162,12 +147,7 @@ public class EditorDropDown : UIDropDown
 		for (var i = 0; i < items.Length; i++)
 		{
 			UIBaseWindow item = items[i];
-#if !NEW_UI
-			item.StretchX = true;
-			item.StretchY = true;
-			item.MinSize = new Vector2(50, 0);
-#endif
-			List.AddChild(item);
+            List.AddChild(item);
 		}
 	}
 
@@ -176,4 +156,9 @@ public class EditorDropDown : UIDropDown
 		base.DetachedFromController(controller);
 		OnCloseProxy?.Invoke();
 	}
+
+    protected override Vector2 Measure(Vector2 space)
+    {
+        return base.Measure(space);
+    }
 }

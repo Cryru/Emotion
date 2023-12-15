@@ -33,6 +33,12 @@ namespace Emotion.UI
 		/// </summary>
 		public string? Id { get; set; }
 
+        /// <summary>
+        /// Whether to layout the window using the new layout system.
+        /// Off by default due to legacy compatibility, will be on by default once the new system is stable.
+        /// </summary>
+        public bool UseNewLayoutSystem = false;
+
 		#region Runtime State
 
 		[DontSerialize]

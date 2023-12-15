@@ -115,10 +115,8 @@ namespace Emotion.UI
 
 		public UITexture()
 		{
-#if NEW_UI
-			FillX = false;
-			FillY = false;
-#endif
+            FillX = false;
+            FillY = false;
 		}
 
 		protected override async Task LoadContent()
@@ -154,6 +152,13 @@ namespace Emotion.UI
 			if (ImageScale != null) size *= ImageScale.Value;
 			return size;
 		}
+
+#if !NEW_UI
+        protected override Vector2 NEW_InternalMeasure(Vector2 space)
+        {
+            return InternalMeasure(space);
+        }
+#endif
 
 		protected override bool RenderInternal(RenderComposer c)
 		{

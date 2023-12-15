@@ -12,116 +12,103 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class MapEditorPanelTopBar : UIBaseWindow
-	{
-		public bool CanMove = true;
+    public class MapEditorPanelTopBar : UIBaseWindow
+    {
+        public bool CanMove = true;
 
-		private bool _mouseDown;
-		private Vector2 _mouseDownPos;
+        private bool _mouseDown;
+        private Vector2 _mouseDownPos;
 
-		public MapEditorPanelTopBar()
-		{
-			var txt = new UIText();
-			txt.ScaleMode = UIScaleMode.FloatScale;
-			txt.WindowColor = MapEditorColorPalette.TextColor;
-			txt.Id = "PanelLabel";
-			txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
-			txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-			txt.IgnoreParentColor = true;
-			txt.Anchor = UIAnchor.CenterLeft;
-			txt.ParentAnchor = UIAnchor.CenterLeft;
-			txt.Margins = new Rectangle(5, 0, 5, 0);
-			AddChild(txt);
+        public MapEditorPanelTopBar()
+        {
+            var txt = new UIText();
+            txt.ScaleMode = UIScaleMode.FloatScale;
+            txt.WindowColor = MapEditorColorPalette.TextColor;
+            txt.Id = "PanelLabel";
+            txt.FontFile = "Editor/UbuntuMono-Regular.ttf";
+            txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
+            txt.IgnoreParentColor = true;
+            txt.Anchor = UIAnchor.CenterLeft;
+            txt.ParentAnchor = UIAnchor.CenterLeft;
+            txt.Margins = new Rectangle(5, 0, 5, 0);
+            AddChild(txt);
 
-			var closeButton = new EditorButton();
-			closeButton.Text = "X";
-			closeButton.Id = "CloseButton";
-			closeButton.Anchor = UIAnchor.TopRight;
-			closeButton.ParentAnchor = UIAnchor.TopRight;
-			closeButton.RenderNonActiveBackground = false;
+            var closeButton = new EditorButton();
+            closeButton.Text = "X";
+            closeButton.Id = "CloseButton";
+            closeButton.Anchor = UIAnchor.TopRight;
+            closeButton.ParentAnchor = UIAnchor.TopRight;
+            closeButton.RenderNonActiveBackground = false;
 
-			AddChild(closeButton);
+            AddChild(closeButton);
 
-			HandleInput = true;
-			StretchX = true;
-			StretchY = true;
-			MaxSizeY = 10;
-			LayoutMode = LayoutMode.HorizontalList;
-			Id = "TopBar";
-		}
+            HandleInput = true;
+            StretchX = true;
+            StretchY = true;
+            MaxSizeY = 10;
+            LayoutMode = LayoutMode.HorizontalList;
+            Id = "TopBar";
 
-#if !NEW_UI
-		protected override Vector2 InternalMeasure(Vector2 space)
-		{
-			return MaxSize;
-		}
+            UseNewLayoutSystem = true;
+        }
 
-		protected override Vector2 BeforeLayout(Vector2 position)
-		{
-			_measuredSize.X = Parent!.Width;
-			Width = Parent.Width;
+        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        {
+            if (key == Key.MouseKeyLeft)
+            {
+                _mouseDown = status == KeyStatus.Down;
+                _mouseDownPos = Engine.Host.MousePosition;
+                return false;
+            }
 
-			return base.BeforeLayout(position);
-		}
-#endif
+            return base.OnKey(key, status, mousePos);
+        }
 
-		public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
-		{
-			if (key == Key.MouseKeyLeft)
-			{
-				_mouseDown = status == KeyStatus.Down;
-				_mouseDownPos = Engine.Host.MousePosition;
-				return false;
-			}
+        protected override bool UpdateInternal()
+        {
+            if (_mouseDown && CanMove)
+            {
+                Vector2 mousePosNow = Engine.Host.MousePosition;
+                Vector2 posDiff = mousePosNow - _mouseDownPos;
+                _mouseDownPos = mousePosNow;
 
-			return base.OnKey(key, status, mousePos);
-		}
+                UIBaseWindow panelParent = Parent!;
+                float parentScale = panelParent.GetScale();
 
-		protected override bool UpdateInternal()
-		{
-			if (_mouseDown && CanMove)
-			{
-				Vector2 mousePosNow = Engine.Host.MousePosition;
-				Vector2 posDiff = mousePosNow - _mouseDownPos;
-				_mouseDownPos = mousePosNow;
+                var panelBounds = new Rectangle(panelParent.Offset * parentScale + posDiff, panelParent.Size);
 
-				UIBaseWindow panelParent = Parent!;
-				float parentScale = panelParent.GetScale();
+                Rectangle snapArea = Controller!.Bounds;
+                snapArea.Width += panelBounds.Width / 2f;
+                snapArea.Height += panelBounds.Height / 2f;
 
-				var panelBounds = new Rectangle(panelParent.Offset * parentScale + posDiff, panelParent.Size);
+                UIBaseWindow? topBar = Controller.GetWindowById("EditorTopBar");
+                if (topBar != null)
+                {
+                    float topBarPos = topBar.Bounds.Bottom;
+                    snapArea.Y = topBarPos;
+                    snapArea.Height -= topBarPos;
+                }
 
-				Rectangle snapArea = Controller!.Bounds;
-				snapArea.Width += panelBounds.Width / 2f;
-				snapArea.Height += panelBounds.Height / 2f;
+                panelParent.Offset = snapArea.SnapRectangleInside(panelBounds) / parentScale;
+                panelParent.InvalidateLayout();
+            }
 
-				UIBaseWindow? topBar = Controller.GetWindowById("TopBar");
-				if (topBar != null)
-				{
-					float topBarPos = topBar.Bounds.Bottom;
-					snapArea.Y = topBarPos;
-					snapArea.Height -= topBarPos;
-				}
+            return base.UpdateInternal();
+        }
 
-				panelParent.Offset = snapArea.SnapRectangleInside(panelBounds) / parentScale;
-				panelParent.InvalidateLayout();
-			}
+        protected override bool RenderInternal(RenderComposer c)
+        {
+            UIBaseWindow? focus = Controller!.InputFocus;
+            UIBaseWindow? panelParent = Parent!.Parent;
+            if (focus != null && panelParent != null && focus.IsWithin(panelParent))
+                c.RenderSprite(Bounds, _mouseDown || MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
+            else
+                c.RenderSprite(Bounds, Color.Black * 0.5f);
 
-			return base.UpdateInternal();
-		}
-
-		protected override bool RenderInternal(RenderComposer c)
-		{
-			UIBaseWindow? focus = Controller!.InputFocus;
-			UIBaseWindow? panelParent = Parent!.Parent;
-			if (focus != null && panelParent != null && focus.IsWithin(panelParent))
-				c.RenderSprite(Bounds, _mouseDown || MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
-			else
-				c.RenderSprite(Bounds, Color.Black * 0.5f);
-
-			c.RenderLine(Bounds.TopLeft, Bounds.TopRight, Color.White * 0.5f);
-			c.RenderLine(Bounds.TopLeft, Bounds.BottomLeft, Color.White * 0.5f);
-			c.RenderLine(Bounds.TopRight, Bounds.BottomRight, Color.White * 0.5f);
-			return base.RenderInternal(c);
-		}
-	}
+            c.RenderLine(Bounds.TopLeft, Bounds.TopRight, Color.White * 0.5f);
+            c.RenderLine(Bounds.TopLeft, Bounds.BottomLeft, Color.White * 0.5f);
+            c.RenderLine(Bounds.TopRight, Bounds.BottomRight, Color.White * 0.5f);
+            return base.RenderInternal(c);
+        }
+    }
 }

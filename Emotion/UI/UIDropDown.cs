@@ -11,6 +11,9 @@ public class UIDropDown : UIBaseWindow
 		CodeGenerated = true;
 		HandleInput = true;
 		ZOffset = 99;
+
+        FillX = false;
+        FillY = false;
 	}
 
 	public override void AttachedToController(UIController controller)

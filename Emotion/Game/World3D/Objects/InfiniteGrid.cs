@@ -23,7 +23,7 @@ public class ThreeDeeSquareGrid : Quad3D
 	}
 
 	protected float _tileSize = 100;
-	protected Vector2 _tileSize2;
+	protected Vector2 _tileSize2 = new Vector2(100);
 
 	public Vector2 GridOffset;
 
@@ -33,6 +33,7 @@ public class ThreeDeeSquareGrid : Quad3D
 		ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
 		ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
 	}
+
 	public override async Task LoadAssetsAsync()
 	{
 		await base.LoadAssetsAsync();
@@ -47,6 +48,7 @@ public class ThreeDeeSquareGrid : Quad3D
 
 		base.RenderInternal(c);
 	}
+
 	public override bool IsTransparent()
 	{
 		return true;

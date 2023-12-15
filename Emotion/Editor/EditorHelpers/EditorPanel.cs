@@ -84,10 +84,9 @@ public class EditorPanel : UIBaseWindow
 		{
 			container.StretchX = true;
 			container.StretchY = true;
-#if NEW_UI
-			container.FillX = false;
-			container.FillY = false;
-#endif
+
+            container.FillX = false;
+            container.FillY = false;
 
 			container.MinSize = new Vector2(100, 100);
 			container.MaxSize = new Vector2(500, 200);
@@ -100,8 +99,7 @@ public class EditorPanel : UIBaseWindow
 			var closeButton = (EditorButton) topBar.GetWindowById("CloseButton")!;
 			closeButton.OnClickedProxy = _ =>
 			{
-				//this.InvalidateLayout();
-				controller.RemoveChild(this);
+                controller.RemoveChild(this);
 			};
 		}
 		else

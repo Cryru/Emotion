@@ -32,7 +32,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 	public virtual Vector2 CalculateContentPos(Vector2 parentPos, Vector2 parentSize, Rectangle parentScaledPadding)
 	{
-		float scale = GetScale();
+        float scale = GetScale();
 		var parentSpaceForChild = new Rectangle(0, 0, parentSize);
 		Rectangle childScaledMargins = Margins * scale;
 		if (AnchorsInsideParent(ParentAnchor, Anchor))
@@ -84,12 +84,22 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 		return freeSpace;
 	}
 
+    private List<UIBaseWindow> _simulateNewLayoutList = new List<UIBaseWindow>(1);
+
 	// On Rounding In UI Layout:
 	// Sizes should always be rounded up.
 	// Positions should always be rounded down.
 	// Offsets (spacings) should always be rounded to the closest.
-	protected Vector2 Measure(Vector2 space)
+	protected virtual Vector2 Measure(Vector2 space)
 	{
+        if (UseNewLayoutSystem)
+        {
+            // Simulate that this child was layouted by a "new layout" parent.
+            _simulateNewLayoutList.Clear();
+            _simulateNewLayoutList.Add(this);
+            return Parent!.LayoutMode_FreeMeasure(_simulateNewLayoutList, space);
+        }
+
 		float scale = GetScale();
 		if (AnchorsInsideParent(ParentAnchor, Anchor))
 		{
@@ -130,6 +140,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 					{
 						if (child.RelativeTo != null)
 						{
+                            if (child.UseNewLayoutSystem) continue;
+
 							UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
 							if (win != null)
 							{
@@ -253,6 +265,15 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
 	protected void Layout(Vector2 contentPos)
 	{
+        if (UseNewLayoutSystem)
+        {
+            // Simulate that this child was layouted by a "new layout" parent.
+            _simulateNewLayoutList.Clear();
+            _simulateNewLayoutList.Add(this);
+            Parent!.LayoutMode_FreeLayout(_simulateNewLayoutList, Parent!.Bounds);
+            return;
+        }
+
 		float scale = GetScale();
 		Debug.Assert(Size == _measuredSize);
 		Size = _measuredSize;
@@ -284,7 +305,9 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 					{
 						UIBaseWindow parent = this;
 						if (child.RelativeTo != null)
-						{
+                        {
+                            if (child.UseNewLayoutSystem) continue;
+
 							UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
 							if (win != null)
 							{

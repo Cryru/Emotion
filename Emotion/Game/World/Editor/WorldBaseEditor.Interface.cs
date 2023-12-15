@@ -39,8 +39,8 @@ public abstract partial class WorldBaseEditor
 	// Interface
 	protected Dictionary<BaseGameObject, MapEditorObjectNameplate>? _namePlates;
 
-	private UIBaseWindow _bottomBar;
-	private MapEditorLabel _bottomBarText;
+	private UIBaseWindow? _bottomBar;
+	private MapEditorLabel? _bottomBarText;
 
 	protected void InitializeEditorInterface()
 	{
@@ -91,7 +91,8 @@ public abstract partial class WorldBaseEditor
 		topBar.MaxSizeY = 15;
 		topBar.ScaleMode = UIScaleMode.FloatScale;
 		topBar.WindowColor = MapEditorColorPalette.BarColor;
-		topBar.Id = "TopBar";
+		topBar.Id = "EditorTopBar";
+        topBar.UseNewLayoutSystem = true;
 
 		var mapName = new UIText();
 		mapName.ParentAnchor = UIAnchor.CenterRight;
@@ -108,13 +109,9 @@ public abstract partial class WorldBaseEditor
 		topBarList.ScaleMode = UIScaleMode.FloatScale;
 		topBarList.LayoutMode = LayoutMode.HorizontalList;
 		topBarList.ListSpacing = new Vector2(3, 0);
-#if NEW_UI
-		topBarList.Margins = new Rectangle(3, 0, 3, 0);
-		topBarList.Paddings = new Rectangle(0, 3, 0, 3);
-		topBarList.AlignAnchor = UIAnchor.CenterLeft;
-#else
-        topBarList.Margins = new Rectangle(3, 3, 3, 3);
-#endif
+        topBarList.Margins = new Rectangle(3, 0, 3, 0);
+        topBarList.Paddings = new Rectangle(0, 3, 0, 3);
+        topBarList.AlignAnchor = UIAnchor.CenterLeft;
 		topBarList.Id = "List";
 		topBar.AddChild(topBarList);
 
@@ -133,12 +130,9 @@ public abstract partial class WorldBaseEditor
 	private UIBaseWindow GetEditorBottomBar()
 	{
 		var bottomBar = new UISolidColor();
-#if NEW_UI
-		bottomBar.FillY = false;
-#else
-		bottomBar.MaxSizeY = 12;
-#endif
-		bottomBar.ScaleMode = UIScaleMode.FloatScale;
+        bottomBar.UseNewLayoutSystem = true;
+        bottomBar.FillY = false;
+        bottomBar.ScaleMode = UIScaleMode.FloatScale;
 		bottomBar.WindowColor = MapEditorColorPalette.BarColor;
 		bottomBar.Id = "BottomBar";
 		bottomBar.Anchor = UIAnchor.BottomLeft;

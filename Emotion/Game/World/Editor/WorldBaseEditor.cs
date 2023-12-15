@@ -259,18 +259,31 @@ public abstract partial class WorldBaseEditor
 	{
 		Engine.Log.Trace(txt, "Editor");
 
+        if (_bottomBar == null) return;
+
 		UIBaseWindow? logContainer = _bottomBar.GetWindowById("LogContainer");
 		AssertNotNull(logContainer);
 
-		// todo: do this properly with the new UI background stuff and delete this class
-		var lbl = new MapEditorLabelWithBackground(txt)
-		{
-			DontTakeSpaceWhenHidden = true,
-			Margins = new Rectangle(3, 0, 3, 1),
-			BackgroundColor = MapEditorColorPalette.BarColor * 0.75f
-		};
-		Engine.CoroutineManager.StartCoroutine(LabelTimeout(lbl));
-		logContainer.AddChild(lbl);
+        var container = new UIBaseWindow
+        {
+            DontTakeSpaceWhenHidden = true,
+            UseNewLayoutSystem = true
+        };
+
+        var bg = new UISolidColor
+        {
+            WindowColor = MapEditorColorPalette.BarColor * 0.75f
+        };
+        container.AddChild(bg);
+
+        var lbl = new MapEditorLabel(txt)
+        {
+            Margins = new Rectangle(3, 1, 3, 1)
+        };
+        container.AddChild(lbl);
+
+        Engine.CoroutineManager.StartCoroutine(LabelTimeout(container));
+		logContainer.AddChild(container);
 	}
 
 	private IEnumerator LabelTimeout(UIBaseWindow lbl)
