@@ -1,22 +1,18 @@
-﻿#region Using
-
-#endregion
-
-namespace Emotion.Game.Effects
+﻿namespace Emotion.Game.Effects
 {
-	public class Palette
-	{
-		public string Name { get; set; }
-		public Color[] Colors { get; set; }
+    public class Palette
+    {
+        public string Name { get; set; }
+        public Color[] Colors { get; set; }
 
-		public Palette()
-		{
-		}
+        public Palette()
+        {
+        }
 
-		public Palette(string name, Color[] colors)
-		{
-			Name = name;
-			Colors = colors;
-		}
-	}
+        public Palette(string name, Color[] colors)
+        {
+            Name = name;
+            Colors = colors;
+        }
+    }
 }

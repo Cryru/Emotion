@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
 using Emotion.Standard.OpenType;
 
 #endregion
@@ -11,8 +10,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
 {
     public class GlyphPainter
     {
-        public LinePainter LinePainter = new ();
-        public FillPainter FillPainter = new ();
+        public LinePainter LinePainter = new();
+        public FillPainter FillPainter = new();
 
         public void RasterizeGlyph(FontGlyph glyph, Vector2 pos, float scale, float sdfDist)
         {

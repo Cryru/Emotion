@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Emotion.Standard.TMX.Layer;
 using Emotion.Standard.XML;

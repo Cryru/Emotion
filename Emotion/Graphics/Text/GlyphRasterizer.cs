@@ -13,8 +13,10 @@
         /// First a very high resolution atlas is rendered using the Emotion rasterizer and
         /// a signed distance field generating algorithm is ran over it. This is cached to a file (if an asset store is loaded).
         /// Then the atlas is used for all font sizes and read from using the SDF shader to provide crisp text at any size.
-        /// Good looking, but very slow to render. Writes caches images to reduce subsequent loading but loading the image isn't very fast either.
-        /// Best looking mode at huge font sizes, however might not work on weaker GPUs (without a precached file) as it can generate huge textures.
+        /// Good looking, but very slow to render. Writes caches images to reduce subsequent loading but loading the image isn't
+        /// very fast either.
+        /// Best looking mode at huge font sizes, however might not work on weaker GPUs (without a precached file) as it can
+        /// generate huge textures.
         /// Can reuse atlas images for various font sizes, reducing memory usage overall.
         /// </summary>
         EmotionSDFVer3,

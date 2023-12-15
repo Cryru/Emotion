@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 
 #endregion

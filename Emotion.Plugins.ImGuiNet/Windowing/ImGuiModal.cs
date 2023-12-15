@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Numerics;
-using Emotion.Common;
 using Emotion.Graphics;
 using ImGuiNET;
 
@@ -15,7 +14,6 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 
         protected ImGuiModal(string title = "Untitled") : base(title)
         {
-
         }
 
         public override void Render(Vector2 spawnOffset, RenderComposer composer)
@@ -31,6 +29,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                 _popupOpen = false;
                 return;
             }
+
             Position = ImGui.GetWindowPos();
             Size = ImGui.GetWindowSize();
             RenderContent(composer);

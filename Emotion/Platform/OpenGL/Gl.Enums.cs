@@ -2,7 +2,6 @@
 
 #region Using
 
-using System;
 using Khronos;
 
 #endregion

@@ -830,7 +830,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_blend_equation_separate")]
         public static void BlendEquationSeparate(BlendEquationMode modeRGB, BlendEquationMode modeAlpha)
         {
-            Debug.Assert(Delegates.pglBlendEquationSeparate != null, "pglBlendEquationSeparate not implemented");
+            Assert(Delegates.pglBlendEquationSeparate != null, "pglBlendEquationSeparate not implemented");
             Delegates.pglBlendEquationSeparate((int) modeRGB, (int) modeAlpha);
             DebugCheckErrors(null);
         }
@@ -855,7 +855,7 @@ namespace OpenGL
             {
                 fixed (int* p_bufs = bufs)
                 {
-                    Debug.Assert(Delegates.pglDrawBuffers != null, "pglDrawBuffers not implemented");
+                    Assert(Delegates.pglDrawBuffers != null, "pglDrawBuffers not implemented");
                     Delegates.pglDrawBuffers(bufs.Length, p_bufs);
                 }
             }
@@ -863,9 +863,9 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        public unsafe static void DrawBuffers(int singleBuf)
+        public static unsafe void DrawBuffers(int singleBuf)
         {
-            Debug.Assert(Delegates.pglDrawBuffers != null, "pglDrawBuffers not implemented");
+            Assert(Delegates.pglDrawBuffers != null, "pglDrawBuffers not implemented");
             Delegates.pglDrawBuffers(1, &singleBuf);
             DebugCheckErrors(null);
         }
@@ -899,7 +899,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ATI_separate_stencil")]
         public static void StencilOpSeparate(StencilFaceDirection face, StencilOp sfail, StencilOp dpfail, StencilOp dppass)
         {
-            Debug.Assert(Delegates.pglStencilOpSeparate != null, "pglStencilOpSeparate not implemented");
+            Assert(Delegates.pglStencilOpSeparate != null, "pglStencilOpSeparate not implemented");
             Delegates.pglStencilOpSeparate((int) face, (int) sfail, (int) dpfail, (int) dppass);
             DebugCheckErrors(null);
         }
@@ -932,7 +932,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void StencilFuncSeparate(StencilFaceDirection face, StencilFunction func, int @ref, uint mask)
         {
-            Debug.Assert(Delegates.pglStencilFuncSeparate != null, "pglStencilFuncSeparate not implemented");
+            Assert(Delegates.pglStencilFuncSeparate != null, "pglStencilFuncSeparate not implemented");
             Delegates.pglStencilFuncSeparate((int) face, (int) func, @ref, mask);
             DebugCheckErrors(null);
         }
@@ -955,7 +955,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void StencilMaskSeparate(StencilFaceDirection face, uint mask)
         {
-            Debug.Assert(Delegates.pglStencilMaskSeparate != null, "pglStencilMaskSeparate not implemented");
+            Assert(Delegates.pglStencilMaskSeparate != null, "pglStencilMaskSeparate not implemented");
             Delegates.pglStencilMaskSeparate((int) face, mask);
             DebugCheckErrors(null);
         }
@@ -976,7 +976,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void AttachShader(uint program, uint shader)
         {
-            Debug.Assert(Delegates.pglAttachShader != null, "pglAttachShader not implemented");
+            Assert(Delegates.pglAttachShader != null, "pglAttachShader not implemented");
             Delegates.pglAttachShader(program, shader);
             DebugCheckErrors(null);
         }
@@ -1003,7 +1003,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void BindAttribLocation(uint program, uint index, string name)
         {
-            Debug.Assert(Delegates.pglBindAttribLocation != null, "pglBindAttribLocation not implemented");
+            Assert(Delegates.pglBindAttribLocation != null, "pglBindAttribLocation not implemented");
             Delegates.pglBindAttribLocation(program, index, name);
             DebugCheckErrors(null);
         }
@@ -1021,7 +1021,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void CompileShader(uint shader)
         {
-            Debug.Assert(Delegates.pglCompileShader != null, "pglCompileShader not implemented");
+            Assert(Delegates.pglCompileShader != null, "pglCompileShader not implemented");
             Delegates.pglCompileShader(shader);
             DebugCheckErrors(null);
         }
@@ -1039,7 +1039,7 @@ namespace OpenGL
         {
             uint retValue;
 
-            Debug.Assert(Delegates.pglCreateProgram != null, "pglCreateProgram not implemented");
+            Assert(Delegates.pglCreateProgram != null, "pglCreateProgram not implemented");
             retValue = Delegates.pglCreateProgram();
             DebugCheckErrors(retValue);
 
@@ -1061,7 +1061,7 @@ namespace OpenGL
         {
             uint retValue;
 
-            Debug.Assert(Delegates.pglCreateShader != null, "pglCreateShader not implemented");
+            Assert(Delegates.pglCreateShader != null, "pglCreateShader not implemented");
             retValue = Delegates.pglCreateShader((int) type);
             DebugCheckErrors(retValue);
 
@@ -1080,7 +1080,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void DeleteProgram(uint program)
         {
-            Debug.Assert(Delegates.pglDeleteProgram != null, "pglDeleteProgram not implemented");
+            Assert(Delegates.pglDeleteProgram != null, "pglDeleteProgram not implemented");
             Delegates.pglDeleteProgram(program);
             DebugCheckErrors(null);
         }
@@ -1097,7 +1097,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void DeleteShader(uint shader)
         {
-            Debug.Assert(Delegates.pglDeleteShader != null, "pglDeleteShader not implemented");
+            Assert(Delegates.pglDeleteShader != null, "pglDeleteShader not implemented");
             Delegates.pglDeleteShader(shader);
             DebugCheckErrors(null);
         }
@@ -1118,7 +1118,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void DetachShader(uint program, uint shader)
         {
-            Debug.Assert(Delegates.pglDetachShader != null, "pglDetachShader not implemented");
+            Assert(Delegates.pglDetachShader != null, "pglDetachShader not implemented");
             Delegates.pglDetachShader(program, shader);
             DebugCheckErrors(null);
         }
@@ -1138,7 +1138,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void DisableVertexAttribArray(uint index)
         {
-            Debug.Assert(Delegates.pglDisableVertexAttribArray != null, "pglDisableVertexAttribArray not implemented");
+            Assert(Delegates.pglDisableVertexAttribArray != null, "pglDisableVertexAttribArray not implemented");
             Delegates.pglDisableVertexAttribArray(index);
             DebugCheckErrors(null);
         }
@@ -1158,7 +1158,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void EnableVertexAttribArray(uint index)
         {
-            Debug.Assert(Delegates.pglEnableVertexAttribArray != null, "pglEnableVertexAttribArray not implemented");
+            Assert(Delegates.pglEnableVertexAttribArray != null, "pglEnableVertexAttribArray not implemented");
             Delegates.pglEnableVertexAttribArray(index);
             DebugCheckErrors(null);
         }
@@ -1205,7 +1205,7 @@ namespace OpenGL
                 fixed (int* p_size = &size)
                 fixed (int* p_type = &type)
                 {
-                    Debug.Assert(Delegates.pglGetActiveAttrib != null, "pglGetActiveAttrib not implemented");
+                    Assert(Delegates.pglGetActiveAttrib != null, "pglGetActiveAttrib not implemented");
                     Delegates.pglGetActiveAttrib(program, index, bufSize, p_length, p_size, p_type, name);
                 }
             }
@@ -1255,7 +1255,7 @@ namespace OpenGL
                 fixed (int* p_size = &size)
                 fixed (int* p_type = &type)
                 {
-                    Debug.Assert(Delegates.pglGetActiveUniform != null, "pglGetActiveUniform not implemented");
+                    Assert(Delegates.pglGetActiveUniform != null, "pglGetActiveUniform not implemented");
                     Delegates.pglGetActiveUniform(program, index, bufSize, p_length, p_size, p_type, name);
                 }
             }
@@ -1286,7 +1286,7 @@ namespace OpenGL
                 fixed (int* p_count = &count)
                 fixed (uint* p_shaders = shaders)
                 {
-                    Debug.Assert(Delegates.pglGetAttachedShaders != null, "pglGetAttachedShaders not implemented");
+                    Assert(Delegates.pglGetAttachedShaders != null, "pglGetAttachedShaders not implemented");
                     Delegates.pglGetAttachedShaders(program, shaders.Length, p_count, p_shaders);
                 }
             }
@@ -1313,7 +1313,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetAttribLocation != null, "pglGetAttribLocation not implemented");
+            Assert(Delegates.pglGetAttribLocation != null, "pglGetAttribLocation not implemented");
             retValue = Delegates.pglGetAttribLocation(program, name);
             DebugCheckErrors(retValue);
 
@@ -1348,7 +1348,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramiv != null, "pglGetProgramiv not implemented");
+                    Assert(Delegates.pglGetProgramiv != null, "pglGetProgramiv not implemented");
                     Delegates.pglGetProgramiv(program, (int) pname, p_params);
                 }
             }
@@ -1384,7 +1384,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramiv != null, "pglGetProgramiv not implemented");
+                    Assert(Delegates.pglGetProgramiv != null, "pglGetProgramiv not implemented");
                     Delegates.pglGetProgramiv(program, (int) pname, p_params);
                 }
             }
@@ -1417,7 +1417,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetProgramInfoLog != null, "pglGetProgramInfoLog not implemented");
+                    Assert(Delegates.pglGetProgramInfoLog != null, "pglGetProgramInfoLog not implemented");
                     Delegates.pglGetProgramInfoLog(program, maxLength, p_length, infoLog);
                 }
             }
@@ -1448,7 +1448,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetShaderiv != null, "pglGetShaderiv not implemented");
+                    Assert(Delegates.pglGetShaderiv != null, "pglGetShaderiv not implemented");
                     Delegates.pglGetShaderiv(shader, (int) pname, p_params);
                 }
             }
@@ -1479,7 +1479,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetShaderiv != null, "pglGetShaderiv not implemented");
+                    Assert(Delegates.pglGetShaderiv != null, "pglGetShaderiv not implemented");
                     Delegates.pglGetShaderiv(shader, (int) pname, p_params);
                 }
             }
@@ -1512,7 +1512,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetShaderInfoLog != null, "pglGetShaderInfoLog not implemented");
+                    Assert(Delegates.pglGetShaderInfoLog != null, "pglGetShaderInfoLog not implemented");
                     Delegates.pglGetShaderInfoLog(shader, maxLength, p_length, infoLog);
                 }
             }
@@ -1546,7 +1546,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetShaderSource != null, "pglGetShaderSource not implemented");
+                    Assert(Delegates.pglGetShaderSource != null, "pglGetShaderSource not implemented");
                     Delegates.pglGetShaderSource(shader, bufSize, p_length, source);
                 }
             }
@@ -1573,7 +1573,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetUniformLocation != null, "pglGetUniformLocation not implemented");
+            Assert(Delegates.pglGetUniformLocation != null, "pglGetUniformLocation not implemented");
             retValue = Delegates.pglGetUniformLocation(program, name);
             DebugCheckErrors(retValue);
 
@@ -1603,7 +1603,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
+                    Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
                     Delegates.pglGetUniformfv(program, location, p_params);
                 }
             }
@@ -1630,7 +1630,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void GetUniform(uint program, int location, [Out] float* @params)
         {
-            Debug.Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
+            Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
             Delegates.pglGetUniformfv(program, location, @params);
             DebugCheckErrors(null);
         }
@@ -1654,7 +1654,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void GetUniformf<T>(uint program, int location, out T param) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
+            Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
 
             unsafe
             {
@@ -1689,7 +1689,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
+                    Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
                     Delegates.pglGetUniformiv(program, location, p_params);
                 }
             }
@@ -1716,7 +1716,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void GetUniform(uint program, int location, [Out] int* @params)
         {
-            Debug.Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
+            Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
             Delegates.pglGetUniformiv(program, location, @params);
             DebugCheckErrors(null);
         }
@@ -1740,7 +1740,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void GetUniformi<T>(uint program, int location, out T param) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
+            Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
             unsafe
             {
                 T p = default;
@@ -1772,12 +1772,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void GetVertexAttrib(uint index, int pname, [Out] double[] @params)
         {
-            Debug.Assert(@params.Length >= 4);
+            Assert(@params.Length >= 4);
             unsafe
             {
                 fixed (double* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribdv != null, "pglGetVertexAttribdv not implemented");
+                    Assert(Delegates.pglGetVertexAttribdv != null, "pglGetVertexAttribdv not implemented");
                     Delegates.pglGetVertexAttribdv(index, pname, p_params);
                 }
             }
@@ -1810,12 +1810,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void GetVertexAttrib(uint index, int pname, [Out] float[] @params)
         {
-            Debug.Assert(@params.Length >= 4);
+            Assert(@params.Length >= 4);
             unsafe
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribfv != null, "pglGetVertexAttribfv not implemented");
+                    Assert(Delegates.pglGetVertexAttribfv != null, "pglGetVertexAttribfv not implemented");
                     Delegates.pglGetVertexAttribfv(index, pname, p_params);
                 }
             }
@@ -1852,7 +1852,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribfv != null, "pglGetVertexAttribfv not implemented");
+                    Assert(Delegates.pglGetVertexAttribfv != null, "pglGetVertexAttribfv not implemented");
                     Delegates.pglGetVertexAttribfv(index, pname, p_params);
                 }
             }
@@ -1885,12 +1885,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void GetVertexAttrib(uint index, int pname, [Out] int[] @params)
         {
-            Debug.Assert(@params.Length >= 4);
+            Assert(@params.Length >= 4);
             unsafe
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribiv != null, "pglGetVertexAttribiv not implemented");
+                    Assert(Delegates.pglGetVertexAttribiv != null, "pglGetVertexAttribiv not implemented");
                     Delegates.pglGetVertexAttribiv(index, pname, p_params);
                 }
             }
@@ -1927,7 +1927,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribiv != null, "pglGetVertexAttribiv not implemented");
+                    Assert(Delegates.pglGetVertexAttribiv != null, "pglGetVertexAttribiv not implemented");
                     Delegates.pglGetVertexAttribiv(index, pname, p_params);
                 }
             }
@@ -1962,7 +1962,7 @@ namespace OpenGL
             {
                 fixed (IntPtr* p_pointer = &pointer)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribPointerv != null, "pglGetVertexAttribPointerv not implemented");
+                    Assert(Delegates.pglGetVertexAttribPointerv != null, "pglGetVertexAttribPointerv not implemented");
                     Delegates.pglGetVertexAttribPointerv(index, pname, p_pointer);
                 }
             }
@@ -2018,7 +2018,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsProgram != null, "pglIsProgram not implemented");
+            Assert(Delegates.pglIsProgram != null, "pglIsProgram not implemented");
             retValue = Delegates.pglIsProgram(program);
             DebugCheckErrors(retValue);
 
@@ -2039,7 +2039,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsShader != null, "pglIsShader not implemented");
+            Assert(Delegates.pglIsShader != null, "pglIsShader not implemented");
             retValue = Delegates.pglIsShader(shader);
             DebugCheckErrors(retValue);
 
@@ -2059,7 +2059,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void LinkProgram(uint program)
         {
-            Debug.Assert(Delegates.pglLinkProgram != null, "pglLinkProgram not implemented");
+            Assert(Delegates.pglLinkProgram != null, "pglLinkProgram not implemented");
             Delegates.pglLinkProgram(program);
             DebugCheckErrors(null);
         }
@@ -2087,7 +2087,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = lengths)
                 {
-                    Debug.Assert(Delegates.pglShaderSource != null, "pglShaderSource not implemented");
+                    Assert(Delegates.pglShaderSource != null, "pglShaderSource not implemented");
                     Delegates.pglShaderSource(shader, @string.Length, @string, p_length);
                 }
             }
@@ -2109,7 +2109,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UseProgram(uint program)
         {
-            Debug.Assert(Delegates.pglUseProgram != null, "pglUseProgram not implemented");
+            Assert(Delegates.pglUseProgram != null, "pglUseProgram not implemented");
             Delegates.pglUseProgram(program);
             DebugCheckErrors(null);
         }
@@ -2131,7 +2131,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform1(int location, float v0)
         {
-            Debug.Assert(Delegates.pglUniform1f != null, "pglUniform1f not implemented");
+            Assert(Delegates.pglUniform1f != null, "pglUniform1f not implemented");
             Delegates.pglUniform1f(location, v0);
             DebugCheckErrors(null);
         }
@@ -2156,7 +2156,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform2(int location, float v0, float v1)
         {
-            Debug.Assert(Delegates.pglUniform2f != null, "pglUniform2f not implemented");
+            Assert(Delegates.pglUniform2f != null, "pglUniform2f not implemented");
             Delegates.pglUniform2f(location, v0, v1);
             DebugCheckErrors(null);
         }
@@ -2184,7 +2184,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform3(int location, float v0, float v1, float v2)
         {
-            Debug.Assert(Delegates.pglUniform3f != null, "pglUniform3f not implemented");
+            Assert(Delegates.pglUniform3f != null, "pglUniform3f not implemented");
             Delegates.pglUniform3f(location, v0, v1, v2);
             DebugCheckErrors(null);
         }
@@ -2215,7 +2215,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform4(int location, float v0, float v1, float v2, float v3)
         {
-            Debug.Assert(Delegates.pglUniform4f != null, "pglUniform4f not implemented");
+            Assert(Delegates.pglUniform4f != null, "pglUniform4f not implemented");
             Delegates.pglUniform4f(location, v0, v1, v2, v3);
             DebugCheckErrors(null);
         }
@@ -2237,7 +2237,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform1(int location, int v0)
         {
-            Debug.Assert(Delegates.pglUniform1i != null, "pglUniform1i not implemented");
+            Assert(Delegates.pglUniform1i != null, "pglUniform1i not implemented");
             Delegates.pglUniform1i(location, v0);
             DebugCheckErrors(null);
         }
@@ -2262,7 +2262,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform2(int location, int v0, int v1)
         {
-            Debug.Assert(Delegates.pglUniform2i != null, "pglUniform2i not implemented");
+            Assert(Delegates.pglUniform2i != null, "pglUniform2i not implemented");
             Delegates.pglUniform2i(location, v0, v1);
             DebugCheckErrors(null);
         }
@@ -2290,7 +2290,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform3(int location, int v0, int v1, int v2)
         {
-            Debug.Assert(Delegates.pglUniform3i != null, "pglUniform3i not implemented");
+            Assert(Delegates.pglUniform3i != null, "pglUniform3i not implemented");
             Delegates.pglUniform3i(location, v0, v1, v2);
             DebugCheckErrors(null);
         }
@@ -2321,7 +2321,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform4(int location, int v0, int v1, int v2, int v3)
         {
-            Debug.Assert(Delegates.pglUniform4i != null, "pglUniform4i not implemented");
+            Assert(Delegates.pglUniform4i != null, "pglUniform4i not implemented");
             Delegates.pglUniform4i(location, v0, v1, v2, v3);
             DebugCheckErrors(null);
         }
@@ -2349,7 +2349,7 @@ namespace OpenGL
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
+                    Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
                     Delegates.pglUniform1fv(location, value.Length, p_value);
                 }
             }
@@ -2380,7 +2380,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform1(int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
+            Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
             Delegates.pglUniform1fv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2408,7 +2408,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform1f<T>(int location, int count, T value) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
+            Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
             unsafe
             {
                 Delegates.pglUniform1fv(location, count, (float*) &value);
@@ -2436,12 +2436,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform2(int location, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
+                    Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
                     Delegates.pglUniform2fv(location, value.Length / 2, p_value);
                 }
             }
@@ -2472,7 +2472,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform2(int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
+            Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
             Delegates.pglUniform2fv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2500,7 +2500,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform2f<T>(int location, int count, T value) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
+            Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
             unsafe
             {
                 Delegates.pglUniform2fv(location, count, (float*) &value);
@@ -2526,12 +2526,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform3(int location, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
+                    Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
                     Delegates.pglUniform3fv(location, value.Length / 3, p_value);
                 }
             }
@@ -2562,7 +2562,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform3(int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
+            Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
             Delegates.pglUniform3fv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2590,7 +2590,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform3f<T>(int location, int count, T value) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
+            Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
             unsafe
             {
                 float* vecPtr = (float*) &value;
@@ -2617,12 +2617,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform4(int location, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
+                    Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
                     Delegates.pglUniform4fv(location, value.Length / 4, p_value);
                 }
             }
@@ -2653,7 +2653,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform4(int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
+            Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
             Delegates.pglUniform4fv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2681,7 +2681,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform4f<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
+            Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -2716,7 +2716,7 @@ namespace OpenGL
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform1iv != null, "pglUniform1iv not implemented");
+                    Assert(Delegates.pglUniform1iv != null, "pglUniform1iv not implemented");
                     Delegates.pglUniform1iv(location, value.Length, p_value);
                 }
             }
@@ -2747,7 +2747,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform1(int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglUniform1iv != null, "pglUniform1iv not implemented");
+            Assert(Delegates.pglUniform1iv != null, "pglUniform1iv not implemented");
             Delegates.pglUniform1iv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2775,7 +2775,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform1i<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform1iv != null, "pglUniform1iv not implemented");
+            Assert(Delegates.pglUniform1iv != null, "pglUniform1iv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2816,12 +2816,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform2(int location, int[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform2iv != null, "pglUniform2iv not implemented");
+                    Assert(Delegates.pglUniform2iv != null, "pglUniform2iv not implemented");
                     Delegates.pglUniform2iv(location, value.Length / 2, p_value);
                 }
             }
@@ -2852,7 +2852,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform2(int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglUniform2iv != null, "pglUniform2iv not implemented");
+            Assert(Delegates.pglUniform2iv != null, "pglUniform2iv not implemented");
             Delegates.pglUniform2iv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2880,7 +2880,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform2i<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform2iv != null, "pglUniform2iv not implemented");
+            Assert(Delegates.pglUniform2iv != null, "pglUniform2iv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -2909,12 +2909,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform3(int location, int[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform3iv != null, "pglUniform3iv not implemented");
+                    Assert(Delegates.pglUniform3iv != null, "pglUniform3iv not implemented");
                     Delegates.pglUniform3iv(location, value.Length / 3, p_value);
                 }
             }
@@ -2945,7 +2945,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform3(int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglUniform3iv != null, "pglUniform3iv not implemented");
+            Assert(Delegates.pglUniform3iv != null, "pglUniform3iv not implemented");
             Delegates.pglUniform3iv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -2973,7 +2973,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform3i<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform3iv != null, "pglUniform3iv not implemented");
+            Assert(Delegates.pglUniform3iv != null, "pglUniform3iv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -3002,12 +3002,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform4(int location, int[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform4iv != null, "pglUniform4iv not implemented");
+                    Assert(Delegates.pglUniform4iv != null, "pglUniform4iv not implemented");
                     Delegates.pglUniform4iv(location, value.Length / 4, p_value);
                 }
             }
@@ -3038,7 +3038,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void Uniform4(int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglUniform4iv != null, "pglUniform4iv not implemented");
+            Assert(Delegates.pglUniform4iv != null, "pglUniform4iv not implemented");
             Delegates.pglUniform4iv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -3066,7 +3066,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void Uniform4i<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform4iv != null, "pglUniform4iv not implemented");
+            Assert(Delegates.pglUniform4iv != null, "pglUniform4iv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -3098,12 +3098,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UniformMatrix2(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix2fv != null, "pglUniformMatrix2fv not implemented");
+                    Assert(Delegates.pglUniformMatrix2fv != null, "pglUniformMatrix2fv not implemented");
                     Delegates.pglUniformMatrix2fv(location, value.Length / 4, transpose, p_value);
                 }
             }
@@ -3137,7 +3137,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void UniformMatrix2(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix2fv != null, "pglUniformMatrix2fv not implemented");
+            Assert(Delegates.pglUniformMatrix2fv != null, "pglUniformMatrix2fv not implemented");
             Delegates.pglUniformMatrix2fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3168,7 +3168,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UniformMatrix2f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix2fv != null, "pglUniformMatrix2fv not implemented");
+            Assert(Delegates.pglUniformMatrix2fv != null, "pglUniformMatrix2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3210,12 +3210,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UniformMatrix3(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
+            Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix3fv != null, "pglUniformMatrix3fv not implemented");
+                    Assert(Delegates.pglUniformMatrix3fv != null, "pglUniformMatrix3fv not implemented");
                     Delegates.pglUniformMatrix3fv(location, value.Length / 9, transpose, p_value);
                 }
             }
@@ -3249,7 +3249,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void UniformMatrix3(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix3fv != null, "pglUniformMatrix3fv not implemented");
+            Assert(Delegates.pglUniformMatrix3fv != null, "pglUniformMatrix3fv not implemented");
             Delegates.pglUniformMatrix3fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3280,7 +3280,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UniformMatrix3f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix3fv != null, "pglUniformMatrix3fv not implemented");
+            Assert(Delegates.pglUniformMatrix3fv != null, "pglUniformMatrix3fv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -3312,12 +3312,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UniformMatrix4(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
+            Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix4fv != null, "pglUniformMatrix4fv not implemented");
+                    Assert(Delegates.pglUniformMatrix4fv != null, "pglUniformMatrix4fv not implemented");
                     Delegates.pglUniformMatrix4fv(location, value.Length / 16, transpose, p_value);
                 }
             }
@@ -3351,7 +3351,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static unsafe void UniformMatrix4(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix4fv != null, "pglUniformMatrix4fv not implemented");
+            Assert(Delegates.pglUniformMatrix4fv != null, "pglUniformMatrix4fv not implemented");
             Delegates.pglUniformMatrix4fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3382,7 +3382,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void UniformMatrix4f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix4fv != null, "pglUniformMatrix4fv not implemented");
+            Assert(Delegates.pglUniformMatrix4fv != null, "pglUniformMatrix4fv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -3407,7 +3407,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_objects")]
         public static void ValidateProgram(uint program)
         {
-            Debug.Assert(Delegates.pglValidateProgram != null, "pglValidateProgram not implemented");
+            Assert(Delegates.pglValidateProgram != null, "pglValidateProgram not implemented");
             Delegates.pglValidateProgram(program);
             DebugCheckErrors(null);
         }
@@ -3427,7 +3427,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1(uint index, double x)
         {
-            Debug.Assert(Delegates.pglVertexAttrib1d != null, "pglVertexAttrib1d not implemented");
+            Assert(Delegates.pglVertexAttrib1d != null, "pglVertexAttrib1d not implemented");
             Delegates.pglVertexAttrib1d(index, x);
         }
 
@@ -3448,12 +3448,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib1dv != null, "pglVertexAttrib1dv not implemented");
+                    Assert(Delegates.pglVertexAttrib1dv != null, "pglVertexAttrib1dv not implemented");
                     Delegates.pglVertexAttrib1dv(index, p_v);
                 }
             }
@@ -3478,7 +3478,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib1(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib1dv != null, "pglVertexAttrib1dv not implemented");
+            Assert(Delegates.pglVertexAttrib1dv != null, "pglVertexAttrib1dv not implemented");
             Delegates.pglVertexAttrib1dv(index, v);
             DebugCheckErrors(null);
         }
@@ -3500,7 +3500,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib1dv != null, "pglVertexAttrib1dv not implemented");
+            Assert(Delegates.pglVertexAttrib1dv != null, "pglVertexAttrib1dv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -3531,7 +3531,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1(uint index, float x)
         {
-            Debug.Assert(Delegates.pglVertexAttrib1f != null, "pglVertexAttrib1f not implemented");
+            Assert(Delegates.pglVertexAttrib1f != null, "pglVertexAttrib1f not implemented");
             Delegates.pglVertexAttrib1f(index, x);
         }
 
@@ -3556,12 +3556,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1(uint index, float[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib1fv != null, "pglVertexAttrib1fv not implemented");
+                    Assert(Delegates.pglVertexAttrib1fv != null, "pglVertexAttrib1fv not implemented");
                     Delegates.pglVertexAttrib1fv(index, p_v);
                 }
             }
@@ -3590,7 +3590,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib1(uint index, float* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib1fv != null, "pglVertexAttrib1fv not implemented");
+            Assert(Delegates.pglVertexAttrib1fv != null, "pglVertexAttrib1fv not implemented");
             Delegates.pglVertexAttrib1fv(index, v);
             DebugCheckErrors(null);
         }
@@ -3616,7 +3616,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1f<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib1fv != null, "pglVertexAttrib1fv not implemented");
+            Assert(Delegates.pglVertexAttrib1fv != null, "pglVertexAttrib1fv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -3643,7 +3643,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1(uint index, short x)
         {
-            Debug.Assert(Delegates.pglVertexAttrib1s != null, "pglVertexAttrib1s not implemented");
+            Assert(Delegates.pglVertexAttrib1s != null, "pglVertexAttrib1s not implemented");
             Delegates.pglVertexAttrib1s(index, x);
         }
 
@@ -3664,12 +3664,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1(uint index, short[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib1sv != null, "pglVertexAttrib1sv not implemented");
+                    Assert(Delegates.pglVertexAttrib1sv != null, "pglVertexAttrib1sv not implemented");
                     Delegates.pglVertexAttrib1sv(index, p_v);
                 }
             }
@@ -3694,7 +3694,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib1(uint index, short* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib1sv != null, "pglVertexAttrib1sv not implemented");
+            Assert(Delegates.pglVertexAttrib1sv != null, "pglVertexAttrib1sv not implemented");
             Delegates.pglVertexAttrib1sv(index, v);
             DebugCheckErrors(null);
         }
@@ -3716,7 +3716,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib1s<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib1sv != null, "pglVertexAttrib1sv not implemented");
+            Assert(Delegates.pglVertexAttrib1sv != null, "pglVertexAttrib1sv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -3746,7 +3746,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2(uint index, double x, double y)
         {
-            Debug.Assert(Delegates.pglVertexAttrib2d != null, "pglVertexAttrib2d not implemented");
+            Assert(Delegates.pglVertexAttrib2d != null, "pglVertexAttrib2d not implemented");
             Delegates.pglVertexAttrib2d(index, x, y);
         }
 
@@ -3767,12 +3767,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib2dv != null, "pglVertexAttrib2dv not implemented");
+                    Assert(Delegates.pglVertexAttrib2dv != null, "pglVertexAttrib2dv not implemented");
                     Delegates.pglVertexAttrib2dv(index, p_v);
                 }
             }
@@ -3797,7 +3797,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib2(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib2dv != null, "pglVertexAttrib2dv not implemented");
+            Assert(Delegates.pglVertexAttrib2dv != null, "pglVertexAttrib2dv not implemented");
             Delegates.pglVertexAttrib2dv(index, v);
             DebugCheckErrors(null);
         }
@@ -3819,7 +3819,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib2dv != null, "pglVertexAttrib2dv not implemented");
+            Assert(Delegates.pglVertexAttrib2dv != null, "pglVertexAttrib2dv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -3853,7 +3853,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2(uint index, float x, float y)
         {
-            Debug.Assert(Delegates.pglVertexAttrib2f != null, "pglVertexAttrib2f not implemented");
+            Assert(Delegates.pglVertexAttrib2f != null, "pglVertexAttrib2f not implemented");
             Delegates.pglVertexAttrib2f(index, x, y);
         }
 
@@ -3878,12 +3878,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2(uint index, float[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib2fv != null, "pglVertexAttrib2fv not implemented");
+                    Assert(Delegates.pglVertexAttrib2fv != null, "pglVertexAttrib2fv not implemented");
                     Delegates.pglVertexAttrib2fv(index, p_v);
                 }
             }
@@ -3912,7 +3912,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib2(uint index, float* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib2fv != null, "pglVertexAttrib2fv not implemented");
+            Assert(Delegates.pglVertexAttrib2fv != null, "pglVertexAttrib2fv not implemented");
             Delegates.pglVertexAttrib2fv(index, v);
             DebugCheckErrors(null);
         }
@@ -3938,7 +3938,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2f<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib2fv != null, "pglVertexAttrib2fv not implemented");
+            Assert(Delegates.pglVertexAttrib2fv != null, "pglVertexAttrib2fv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -3968,7 +3968,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2(uint index, short x, short y)
         {
-            Debug.Assert(Delegates.pglVertexAttrib2s != null, "pglVertexAttrib2s not implemented");
+            Assert(Delegates.pglVertexAttrib2s != null, "pglVertexAttrib2s not implemented");
             Delegates.pglVertexAttrib2s(index, x, y);
         }
 
@@ -3989,12 +3989,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2(uint index, short[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib2sv != null, "pglVertexAttrib2sv not implemented");
+                    Assert(Delegates.pglVertexAttrib2sv != null, "pglVertexAttrib2sv not implemented");
                     Delegates.pglVertexAttrib2sv(index, p_v);
                 }
             }
@@ -4019,7 +4019,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib2(uint index, short* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib2sv != null, "pglVertexAttrib2sv not implemented");
+            Assert(Delegates.pglVertexAttrib2sv != null, "pglVertexAttrib2sv not implemented");
             Delegates.pglVertexAttrib2sv(index, v);
             DebugCheckErrors(null);
         }
@@ -4041,7 +4041,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib2s<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib2sv != null, "pglVertexAttrib2sv not implemented");
+            Assert(Delegates.pglVertexAttrib2sv != null, "pglVertexAttrib2sv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4074,7 +4074,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3(uint index, double x, double y, double z)
         {
-            Debug.Assert(Delegates.pglVertexAttrib3d != null, "pglVertexAttrib3d not implemented");
+            Assert(Delegates.pglVertexAttrib3d != null, "pglVertexAttrib3d not implemented");
             Delegates.pglVertexAttrib3d(index, x, y, z);
         }
 
@@ -4095,12 +4095,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib3dv != null, "pglVertexAttrib3dv not implemented");
+                    Assert(Delegates.pglVertexAttrib3dv != null, "pglVertexAttrib3dv not implemented");
                     Delegates.pglVertexAttrib3dv(index, p_v);
                 }
             }
@@ -4125,7 +4125,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib3(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib3dv != null, "pglVertexAttrib3dv not implemented");
+            Assert(Delegates.pglVertexAttrib3dv != null, "pglVertexAttrib3dv not implemented");
             Delegates.pglVertexAttrib3dv(index, v);
             DebugCheckErrors(null);
         }
@@ -4147,7 +4147,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib3dv != null, "pglVertexAttrib3dv not implemented");
+            Assert(Delegates.pglVertexAttrib3dv != null, "pglVertexAttrib3dv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4184,7 +4184,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3(uint index, float x, float y, float z)
         {
-            Debug.Assert(Delegates.pglVertexAttrib3f != null, "pglVertexAttrib3f not implemented");
+            Assert(Delegates.pglVertexAttrib3f != null, "pglVertexAttrib3f not implemented");
             Delegates.pglVertexAttrib3f(index, x, y, z);
         }
 
@@ -4209,12 +4209,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3(uint index, float[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib3fv != null, "pglVertexAttrib3fv not implemented");
+                    Assert(Delegates.pglVertexAttrib3fv != null, "pglVertexAttrib3fv not implemented");
                     Delegates.pglVertexAttrib3fv(index, p_v);
                 }
             }
@@ -4243,7 +4243,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib3(uint index, float* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib3fv != null, "pglVertexAttrib3fv not implemented");
+            Assert(Delegates.pglVertexAttrib3fv != null, "pglVertexAttrib3fv not implemented");
             Delegates.pglVertexAttrib3fv(index, v);
             DebugCheckErrors(null);
         }
@@ -4269,7 +4269,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3f<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib3fv != null, "pglVertexAttrib3fv not implemented");
+            Assert(Delegates.pglVertexAttrib3fv != null, "pglVertexAttrib3fv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4302,7 +4302,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3(uint index, short x, short y, short z)
         {
-            Debug.Assert(Delegates.pglVertexAttrib3s != null, "pglVertexAttrib3s not implemented");
+            Assert(Delegates.pglVertexAttrib3s != null, "pglVertexAttrib3s not implemented");
             Delegates.pglVertexAttrib3s(index, x, y, z);
         }
 
@@ -4323,12 +4323,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3(uint index, short[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib3sv != null, "pglVertexAttrib3sv not implemented");
+                    Assert(Delegates.pglVertexAttrib3sv != null, "pglVertexAttrib3sv not implemented");
                     Delegates.pglVertexAttrib3sv(index, p_v);
                 }
             }
@@ -4353,7 +4353,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib3(uint index, short* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib3sv != null, "pglVertexAttrib3sv not implemented");
+            Assert(Delegates.pglVertexAttrib3sv != null, "pglVertexAttrib3sv not implemented");
             Delegates.pglVertexAttrib3sv(index, v);
             DebugCheckErrors(null);
         }
@@ -4375,7 +4375,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib3s<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib3sv != null, "pglVertexAttrib3sv not implemented");
+            Assert(Delegates.pglVertexAttrib3sv != null, "pglVertexAttrib3sv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4403,12 +4403,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4N(uint index, sbyte[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (sbyte* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4Nbv != null, "pglVertexAttrib4Nbv not implemented");
+                    Assert(Delegates.pglVertexAttrib4Nbv != null, "pglVertexAttrib4Nbv not implemented");
                     Delegates.pglVertexAttrib4Nbv(index, p_v);
                 }
             }
@@ -4432,7 +4432,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4N(uint index, sbyte* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nbv != null, "pglVertexAttrib4Nbv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nbv != null, "pglVertexAttrib4Nbv not implemented");
             Delegates.pglVertexAttrib4Nbv(index, v);
             DebugCheckErrors(null);
         }
@@ -4453,7 +4453,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4Nb<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nbv != null, "pglVertexAttrib4Nbv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nbv != null, "pglVertexAttrib4Nbv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4481,12 +4481,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4N(uint index, int[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4Niv != null, "pglVertexAttrib4Niv not implemented");
+                    Assert(Delegates.pglVertexAttrib4Niv != null, "pglVertexAttrib4Niv not implemented");
                     Delegates.pglVertexAttrib4Niv(index, p_v);
                 }
             }
@@ -4510,7 +4510,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4N(uint index, int* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Niv != null, "pglVertexAttrib4Niv not implemented");
+            Assert(Delegates.pglVertexAttrib4Niv != null, "pglVertexAttrib4Niv not implemented");
             Delegates.pglVertexAttrib4Niv(index, v);
             DebugCheckErrors(null);
         }
@@ -4531,7 +4531,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4Ni<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Niv != null, "pglVertexAttrib4Niv not implemented");
+            Assert(Delegates.pglVertexAttrib4Niv != null, "pglVertexAttrib4Niv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4559,12 +4559,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4N(uint index, short[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4Nsv != null, "pglVertexAttrib4Nsv not implemented");
+                    Assert(Delegates.pglVertexAttrib4Nsv != null, "pglVertexAttrib4Nsv not implemented");
                     Delegates.pglVertexAttrib4Nsv(index, p_v);
                 }
             }
@@ -4588,7 +4588,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4N(uint index, short* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nsv != null, "pglVertexAttrib4Nsv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nsv != null, "pglVertexAttrib4Nsv not implemented");
             Delegates.pglVertexAttrib4Nsv(index, v);
             DebugCheckErrors(null);
         }
@@ -4609,7 +4609,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4Ns<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nsv != null, "pglVertexAttrib4Nsv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nsv != null, "pglVertexAttrib4Nsv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4645,7 +4645,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4N(uint index, byte x, byte y, byte z, byte w)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nub != null, "pglVertexAttrib4Nub not implemented");
+            Assert(Delegates.pglVertexAttrib4Nub != null, "pglVertexAttrib4Nub not implemented");
             Delegates.pglVertexAttrib4Nub(index, x, y, z, w);
         }
 
@@ -4666,12 +4666,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4N(uint index, byte[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (byte* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4Nubv != null, "pglVertexAttrib4Nubv not implemented");
+                    Assert(Delegates.pglVertexAttrib4Nubv != null, "pglVertexAttrib4Nubv not implemented");
                     Delegates.pglVertexAttrib4Nubv(index, p_v);
                 }
             }
@@ -4696,7 +4696,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib4N(uint index, byte* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nubv != null, "pglVertexAttrib4Nubv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nubv != null, "pglVertexAttrib4Nubv not implemented");
             Delegates.pglVertexAttrib4Nubv(index, v);
             DebugCheckErrors(null);
         }
@@ -4718,7 +4718,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4Nub<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nubv != null, "pglVertexAttrib4Nubv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nubv != null, "pglVertexAttrib4Nubv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4746,12 +4746,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4N(uint index, uint[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (uint* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4Nuiv != null, "pglVertexAttrib4Nuiv not implemented");
+                    Assert(Delegates.pglVertexAttrib4Nuiv != null, "pglVertexAttrib4Nuiv not implemented");
                     Delegates.pglVertexAttrib4Nuiv(index, p_v);
                 }
             }
@@ -4775,7 +4775,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4N(uint index, uint* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nuiv != null, "pglVertexAttrib4Nuiv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nuiv != null, "pglVertexAttrib4Nuiv not implemented");
             Delegates.pglVertexAttrib4Nuiv(index, v);
             DebugCheckErrors(null);
         }
@@ -4796,7 +4796,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4Nui<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nuiv != null, "pglVertexAttrib4Nuiv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nuiv != null, "pglVertexAttrib4Nuiv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4824,12 +4824,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4N(uint index, ushort[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (ushort* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4Nusv != null, "pglVertexAttrib4Nusv not implemented");
+                    Assert(Delegates.pglVertexAttrib4Nusv != null, "pglVertexAttrib4Nusv not implemented");
                     Delegates.pglVertexAttrib4Nusv(index, p_v);
                 }
             }
@@ -4853,7 +4853,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4N(uint index, ushort* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nusv != null, "pglVertexAttrib4Nusv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nusv != null, "pglVertexAttrib4Nusv not implemented");
             Delegates.pglVertexAttrib4Nusv(index, v);
             DebugCheckErrors(null);
         }
@@ -4874,7 +4874,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4Nus<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4Nusv != null, "pglVertexAttrib4Nusv not implemented");
+            Assert(Delegates.pglVertexAttrib4Nusv != null, "pglVertexAttrib4Nusv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4902,12 +4902,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4(uint index, sbyte[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (sbyte* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4bv != null, "pglVertexAttrib4bv not implemented");
+                    Assert(Delegates.pglVertexAttrib4bv != null, "pglVertexAttrib4bv not implemented");
                     Delegates.pglVertexAttrib4bv(index, p_v);
                 }
             }
@@ -4931,7 +4931,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4(uint index, sbyte* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4bv != null, "pglVertexAttrib4bv not implemented");
+            Assert(Delegates.pglVertexAttrib4bv != null, "pglVertexAttrib4bv not implemented");
             Delegates.pglVertexAttrib4bv(index, v);
             DebugCheckErrors(null);
         }
@@ -4952,7 +4952,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4b<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4bv != null, "pglVertexAttrib4bv not implemented");
+            Assert(Delegates.pglVertexAttrib4bv != null, "pglVertexAttrib4bv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -4988,7 +4988,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4(uint index, double x, double y, double z, double w)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4d != null, "pglVertexAttrib4d not implemented");
+            Assert(Delegates.pglVertexAttrib4d != null, "pglVertexAttrib4d not implemented");
             Delegates.pglVertexAttrib4d(index, x, y, z, w);
         }
 
@@ -5009,12 +5009,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4dv != null, "pglVertexAttrib4dv not implemented");
+                    Assert(Delegates.pglVertexAttrib4dv != null, "pglVertexAttrib4dv not implemented");
                     Delegates.pglVertexAttrib4dv(index, p_v);
                 }
             }
@@ -5039,7 +5039,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib4(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4dv != null, "pglVertexAttrib4dv not implemented");
+            Assert(Delegates.pglVertexAttrib4dv != null, "pglVertexAttrib4dv not implemented");
             Delegates.pglVertexAttrib4dv(index, v);
             DebugCheckErrors(null);
         }
@@ -5061,7 +5061,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4dv != null, "pglVertexAttrib4dv not implemented");
+            Assert(Delegates.pglVertexAttrib4dv != null, "pglVertexAttrib4dv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5101,7 +5101,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4(uint index, float x, float y, float z, float w)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4f != null, "pglVertexAttrib4f not implemented");
+            Assert(Delegates.pglVertexAttrib4f != null, "pglVertexAttrib4f not implemented");
             Delegates.pglVertexAttrib4f(index, x, y, z, w);
         }
 
@@ -5126,12 +5126,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4(uint index, float[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4fv != null, "pglVertexAttrib4fv not implemented");
+                    Assert(Delegates.pglVertexAttrib4fv != null, "pglVertexAttrib4fv not implemented");
                     Delegates.pglVertexAttrib4fv(index, p_v);
                 }
             }
@@ -5160,7 +5160,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib4(uint index, float* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4fv != null, "pglVertexAttrib4fv not implemented");
+            Assert(Delegates.pglVertexAttrib4fv != null, "pglVertexAttrib4fv not implemented");
             Delegates.pglVertexAttrib4fv(index, v);
             DebugCheckErrors(null);
         }
@@ -5186,7 +5186,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4f<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4fv != null, "pglVertexAttrib4fv not implemented");
+            Assert(Delegates.pglVertexAttrib4fv != null, "pglVertexAttrib4fv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5214,12 +5214,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4(uint index, int[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4iv != null, "pglVertexAttrib4iv not implemented");
+                    Assert(Delegates.pglVertexAttrib4iv != null, "pglVertexAttrib4iv not implemented");
                     Delegates.pglVertexAttrib4iv(index, p_v);
                 }
             }
@@ -5243,7 +5243,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4(uint index, int* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4iv != null, "pglVertexAttrib4iv not implemented");
+            Assert(Delegates.pglVertexAttrib4iv != null, "pglVertexAttrib4iv not implemented");
             Delegates.pglVertexAttrib4iv(index, v);
             DebugCheckErrors(null);
         }
@@ -5264,7 +5264,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4i<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4iv != null, "pglVertexAttrib4iv not implemented");
+            Assert(Delegates.pglVertexAttrib4iv != null, "pglVertexAttrib4iv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5300,7 +5300,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4(uint index, short x, short y, short z, short w)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4s != null, "pglVertexAttrib4s not implemented");
+            Assert(Delegates.pglVertexAttrib4s != null, "pglVertexAttrib4s not implemented");
             Delegates.pglVertexAttrib4s(index, x, y, z, w);
         }
 
@@ -5321,12 +5321,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4(uint index, short[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4sv != null, "pglVertexAttrib4sv not implemented");
+                    Assert(Delegates.pglVertexAttrib4sv != null, "pglVertexAttrib4sv not implemented");
                     Delegates.pglVertexAttrib4sv(index, p_v);
                 }
             }
@@ -5351,7 +5351,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static unsafe void VertexAttrib4(uint index, short* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4sv != null, "pglVertexAttrib4sv not implemented");
+            Assert(Delegates.pglVertexAttrib4sv != null, "pglVertexAttrib4sv not implemented");
             Delegates.pglVertexAttrib4sv(index, v);
             DebugCheckErrors(null);
         }
@@ -5373,7 +5373,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_vertex_program")]
         public static void VertexAttrib4s<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4sv != null, "pglVertexAttrib4sv not implemented");
+            Assert(Delegates.pglVertexAttrib4sv != null, "pglVertexAttrib4sv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5401,12 +5401,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4ub(uint index, byte[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (byte* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4ubv != null, "pglVertexAttrib4ubv not implemented");
+                    Assert(Delegates.pglVertexAttrib4ubv != null, "pglVertexAttrib4ubv not implemented");
                     Delegates.pglVertexAttrib4ubv(index, p_v);
                 }
             }
@@ -5430,7 +5430,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4ub(uint index, byte* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4ubv != null, "pglVertexAttrib4ubv not implemented");
+            Assert(Delegates.pglVertexAttrib4ubv != null, "pglVertexAttrib4ubv not implemented");
             Delegates.pglVertexAttrib4ubv(index, v);
             DebugCheckErrors(null);
         }
@@ -5451,7 +5451,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4ub<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4ubv != null, "pglVertexAttrib4ubv not implemented");
+            Assert(Delegates.pglVertexAttrib4ubv != null, "pglVertexAttrib4ubv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5479,12 +5479,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4(uint index, uint[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (uint* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4uiv != null, "pglVertexAttrib4uiv not implemented");
+                    Assert(Delegates.pglVertexAttrib4uiv != null, "pglVertexAttrib4uiv not implemented");
                     Delegates.pglVertexAttrib4uiv(index, p_v);
                 }
             }
@@ -5508,7 +5508,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4(uint index, uint* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4uiv != null, "pglVertexAttrib4uiv not implemented");
+            Assert(Delegates.pglVertexAttrib4uiv != null, "pglVertexAttrib4uiv not implemented");
             Delegates.pglVertexAttrib4uiv(index, v);
             DebugCheckErrors(null);
         }
@@ -5529,7 +5529,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4ui<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4uiv != null, "pglVertexAttrib4uiv not implemented");
+            Assert(Delegates.pglVertexAttrib4uiv != null, "pglVertexAttrib4uiv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5557,12 +5557,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4(uint index, ushort[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (ushort* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttrib4usv != null, "pglVertexAttrib4usv not implemented");
+                    Assert(Delegates.pglVertexAttrib4usv != null, "pglVertexAttrib4usv not implemented");
                     Delegates.pglVertexAttrib4usv(index, p_v);
                 }
             }
@@ -5586,7 +5586,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static unsafe void VertexAttrib4(uint index, ushort* v)
         {
-            Debug.Assert(Delegates.pglVertexAttrib4usv != null, "pglVertexAttrib4usv not implemented");
+            Assert(Delegates.pglVertexAttrib4usv != null, "pglVertexAttrib4usv not implemented");
             Delegates.pglVertexAttrib4usv(index, v);
             DebugCheckErrors(null);
         }
@@ -5607,7 +5607,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttrib4us<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttrib4usv != null, "pglVertexAttrib4usv not implemented");
+            Assert(Delegates.pglVertexAttrib4usv != null, "pglVertexAttrib4usv not implemented");
             unsafe
             {
                 TypedReference refV = __makeref(v);
@@ -5660,7 +5660,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_shader")]
         public static void VertexAttribPointer(uint index, int size, VertexAttribType type, bool normalized, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglVertexAttribPointer != null, "pglVertexAttribPointer not implemented");
+            Assert(Delegates.pglVertexAttribPointer != null, "pglVertexAttribPointer not implemented");
             Delegates.pglVertexAttribPointer(index, size, (int) type, normalized, stride, pointer);
             DebugCheckErrors(null);
         }

@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
-using System.Numerics;
-
 #endregion
 
 #nullable enable
@@ -129,8 +126,8 @@ namespace Emotion.UI
                 {
                     var boundsCenter = bounds.Center / scale;
                     mat *= Matrix4x4.CreateTranslation(-boundsCenter.X, -boundsCenter.Y, 0) *
-                        matWithId.Matrix *
-                        Matrix4x4.CreateTranslation(boundsCenter.X, boundsCenter.Y, 0);
+                           matWithId.Matrix *
+                           Matrix4x4.CreateTranslation(boundsCenter.X, boundsCenter.Y, 0);
                 }
                 else
                 {

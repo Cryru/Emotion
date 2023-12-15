@@ -9,7 +9,6 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
-using Emotion.Standard.Audio;
 using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Utility;
 using ImGuiNET;
@@ -94,8 +93,8 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.SameLine();
                 if (ImGui.Button("SetVolume"))
                 {
-	                var setVolumeModal = new AudioSetVolumeModModal(layer);
-	                Parent.AddWindow(setVolumeModal);
+                    var setVolumeModal = new AudioSetVolumeModModal(layer);
+                    Parent.AddWindow(setVolumeModal);
                 }
 
                 ImGui.SameLine();

@@ -8,51 +8,51 @@ using Emotion.UI;
 
 namespace Emotion.Editor.PropertyEditors
 {
-	public class PropEditorMatrix : UIBaseWindow, IPropEditorGeneric
-	{
-		public XMLFieldHandler Field { get; set; }
+    public class PropEditorMatrix : UIBaseWindow, IPropEditorGeneric
+    {
+        public XMLFieldHandler Field { get; set; }
 
-		private Matrix4x4 _value;
-		private Action<object> _callback;
+        private Matrix4x4 _value;
+        private Action<object> _callback;
 
-		private MapEditorLabel _label;
+        private MapEditorLabel _label;
 
-		public PropEditorMatrix()
-		{
-			StretchX = true;
-			StretchY = true;
-		}
-
-		public override void AttachedToController(UIController controller)
-		{
-			base.AttachedToController(controller);
-
-			_label = new MapEditorLabel("");
-			AddChild(_label);
-			UpdateValueString();
+        public PropEditorMatrix()
+        {
+            StretchX = true;
+            StretchY = true;
         }
 
-		public void SetValue(object value)
-		{
-			Matrix4x4 valueAsMat = (Matrix4x4) value;
-			_value = valueAsMat;
-			UpdateValueString();
+        public override void AttachedToController(UIController controller)
+        {
+            base.AttachedToController(controller);
+
+            _label = new MapEditorLabel("");
+            AddChild(_label);
+            UpdateValueString();
         }
 
-		private void UpdateValueString()
-		{
-			if (_label == null) return;
-			_label.Text = $"Matrix4x4 {(_value.IsIdentity ? "Identity" : "")}";
+        public void SetValue(object value)
+        {
+            Matrix4x4 valueAsMat = (Matrix4x4) value;
+            _value = valueAsMat;
+            UpdateValueString();
         }
 
-		public object GetValue()
-		{
-			return _value;
-		}
+        private void UpdateValueString()
+        {
+            if (_label == null) return;
+            _label.Text = $"Matrix4x4 {(_value.IsIdentity ? "Identity" : "")}";
+        }
 
-		public void SetCallbackValueChanged(Action<object> callback)
-		{
-			_callback = callback;
-		}
-	}
+        public object GetValue()
+        {
+            return _value;
+        }
+
+        public void SetCallbackValueChanged(Action<object> callback)
+        {
+            _callback = callback;
+        }
+    }
 }

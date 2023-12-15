@@ -1,10 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Khronos;
 
 #endregion

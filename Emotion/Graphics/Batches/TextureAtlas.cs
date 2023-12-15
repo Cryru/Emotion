@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Linq;
-using Emotion.Game;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Utility;
@@ -163,7 +162,7 @@ namespace Emotion.Graphics.Batches
         public unsafe void RemapBatchUVs(IntPtr dataPointer, uint lengthBytes, uint structByteSize, int uvOffsetIntoStruct)
         {
             PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
-            Debug.Assert(_atlasTextureRange.Count > 0);
+            Assert(_atlasTextureRange.Count > 0);
 #if DEBUG
             var totalStructs = 0;
             int count = _atlasTextureRange.Count;
@@ -174,7 +173,7 @@ namespace Emotion.Graphics.Batches
                 if (currentIdx == count) totalStructs = mappingRange.UpToStruct;
             }
 
-            Debug.Assert(totalStructs == lengthBytes / structByteSize);
+            Assert(totalStructs == lengthBytes / structByteSize);
 
 #endif
 
@@ -184,7 +183,7 @@ namespace Emotion.Graphics.Batches
             TextureMapping textureMapping = _atlasTextureRange.Dequeue();
             Rectangle textureMinMax = GetTextureUVMinMax(textureMapping.Texture);
 
-            Debug.Assert(textureMapping.UpToStruct <= lengthBytes / structByteSize);
+            Assert(textureMapping.UpToStruct <= lengthBytes / structByteSize);
 
             while (reader < lengthBytes)
             {
@@ -192,7 +191,7 @@ namespace Emotion.Graphics.Batches
 
                 if (structIdx >= textureMapping.UpToStruct)
                 {
-                    Debug.Assert(_atlasTextureRange.Count > 0);
+                    Assert(_atlasTextureRange.Count > 0);
                     _textureMappingPool.Return(textureMapping);
                     textureMapping = _atlasTextureRange.Dequeue();
                     textureMinMax = GetTextureUVMinMax(textureMapping.Texture);
@@ -332,7 +331,7 @@ namespace Emotion.Graphics.Batches
                     Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
 
                     Texture.EnsureBound(texture.Pointer);
-                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, (IntPtr) (6 * sizeof(ushort)));
+                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, 6 * sizeof(ushort));
                 }
 
                 _textureNeedDraw[texture] = false;
@@ -349,8 +348,8 @@ namespace Emotion.Graphics.Batches
 
         protected Rectangle GetTextureUVMinMax(Texture texture)
         {
-            Debug.Assert(_textureToOffset.ContainsKey(texture));
-            Debug.Assert(!_textureNeedDraw[texture]);
+            Assert(_textureToOffset.ContainsKey(texture));
+            Assert(!_textureNeedDraw[texture]);
 
             _textureActivity[texture]++;
             Vector2 atlasOffset = _textureToOffset[texture] + _texturesMarginVec;

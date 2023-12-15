@@ -1,9 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
-using Emotion.Primitives;
 
 #endregion
 
@@ -356,10 +353,10 @@ namespace Emotion.Utility
             // Internally using doubles not to lose precision
             double amountSquared = amount * amount;
             double amountCubed = amountSquared * amount;
-            return (float)(0.5 * (2.0 * value2 +
-                                  (value3 - value1) * amount +
-                                  (2.0 * value1 - 5.0 * value2 + 4.0 * value3 - value4) * amountSquared +
-                                  (3.0 * value2 - value1 - 3.0 * value3 + value4) * amountCubed));
+            return (float) (0.5 * (2.0 * value2 +
+                                   (value3 - value1) * amount +
+                                   (2.0 * value1 - 5.0 * value2 + 4.0 * value3 - value4) * amountSquared +
+                                   (3.0 * value2 - value1 - 3.0 * value3 + value4) * amountCubed));
         }
 
         /// <summary>

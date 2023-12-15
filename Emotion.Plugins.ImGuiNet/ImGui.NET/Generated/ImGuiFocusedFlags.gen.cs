@@ -1,6 +1,12 @@
+#region Using
+
+using System;
+
+#endregion
+
 namespace ImGuiNET
 {
-    [System.Flags]
+    [Flags]
     public enum ImGuiFocusedFlags
     {
         None = 0,

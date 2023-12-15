@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
+
 <UIBaseWindow type="Emotion.UI.UIText">
-  <ParentAnchor>CenterCenter</ParentAnchor>
-  <Anchor>CenterCenter</Anchor>
-  <Text>Hello World!</Text>
-  <TextShadow>
-    <R>255</R>
-    <A>255</A>
-  </TextShadow>
-  <FontFile>Fonts/Junction-bold.otf</FontFile>
-  <FontSize>25</FontSize>
-  <Underline>True</Underline>
+    <ParentAnchor>CenterCenter</ParentAnchor>
+    <Anchor>CenterCenter</Anchor>
+    <Text>Hello World!</Text>
+    <TextShadow>
+        <R>255</R>
+        <A>255</A>
+    </TextShadow>
+    <FontFile>Fonts/Junction-bold.otf</FontFile>
+    <FontSize>25</FontSize>
+    <Underline>True</Underline>
 </UIBaseWindow>

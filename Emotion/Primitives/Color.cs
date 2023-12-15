@@ -1,9 +1,7 @@
 ﻿#region Using
 
-using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Utility;
 using OpenGL;
@@ -102,10 +100,10 @@ namespace Emotion.Primitives
         /// </summary>
         public Color(Vector3 v)
         {
-	        R = (byte) (v.X * 255);
-	        G = (byte) (v.Y * 255);
-	        B = (byte) (v.Z * 255);
-	        A = 255;
+            R = (byte) (v.X * 255);
+            G = (byte) (v.Y * 255);
+            B = (byte) (v.Z * 255);
+            A = 255;
         }
 
         /// <summary>
@@ -229,7 +227,7 @@ namespace Emotion.Primitives
         /// </summary>
         public static Color Add(Color value, byte amount)
         {
-            return new Color((byte) (value.R + amount), (byte) (value.G + amount), (byte) (value.B + amount), (byte) (value.A));
+            return new Color((byte) (value.R + amount), (byte) (value.G + amount), (byte) (value.B + amount), value.A);
         }
 
         /// <summary>

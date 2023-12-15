@@ -1,14 +1,11 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
+#nullable enable
+
 using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
-using Emotion.Primitives;
 using Emotion.Utility;
-
-#nullable enable
 
 #endregion
 
@@ -82,7 +79,7 @@ namespace Emotion.UI
 
         public UISlider()
         {
-	        HandleInput = true;
+            HandleInput = true;
         }
 
         public override void AttachedToController(UIController controller)
@@ -115,10 +112,7 @@ namespace Emotion.UI
 
             if (ScrollParent != null) return ScrollParent.OnKey(key, status, mousePos);
 
-            if (key == Key.MouseWheel)
-            {
-	            Value += status == KeyStatus.MouseWheelScrollUp ? -1 : 1;
-            }
+            if (key == Key.MouseWheel) Value += status == KeyStatus.MouseWheelScrollUp ? -1 : 1;
 
             return base.OnKey(key, status, mousePos);
         }
@@ -199,7 +193,7 @@ namespace Emotion.UI
         protected override bool RenderInternal(RenderComposer c)
         {
             c.RenderSprite(Position, Size, _calculatedColor);
-           // c.RenderSprite(Parent.Position, Parent.Size, Color.Red);
+            // c.RenderSprite(Parent.Position, Parent.Size, Color.Red);
             return true;
         }
     }

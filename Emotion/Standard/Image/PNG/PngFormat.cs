@@ -1,13 +1,9 @@
 ﻿#region Using
 
-using System;
 using System.IO;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using Emotion.Utility.Zlib;
 using OpenGL;
@@ -310,6 +306,7 @@ namespace Emotion.Standard.Image.PNG
                 Engine.Log.Warning("Invalid bit depth.", MessageSource.ImagePng);
                 return null;
             }
+
             if (fileHeader.BitDepth != 8) Engine.Log.Warning("Loading PNGs with a bit depth different than 8 will be deprecated in future versions.", MessageSource.ImagePng);
             if (fileHeader.BitDepth >= 8) bytesPerPixel = channelsPerColor * fileHeader.BitDepth / 8;
 
@@ -428,7 +425,7 @@ namespace Emotion.Standard.Image.PNG
             }
 
             // Multiple filters or a dependency filter are in affect.
-            if (filterMode == byte.MaxValue || filterMode != 0 && filterMode != 1)
+            if (filterMode == byte.MaxValue || (filterMode != 0 && filterMode != 1))
             {
                 if (scanlineCount >= 1500)
                     Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without filters, it will load faster.", MessageSource.ImagePng);

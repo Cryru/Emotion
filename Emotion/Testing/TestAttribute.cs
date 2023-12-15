@@ -1,8 +1,4 @@
-﻿#region Using
-
-#endregion
-
-namespace Emotion.Testing
+﻿namespace Emotion.Testing
 {
     public class TestAttribute : Attribute
     {

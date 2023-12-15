@@ -3,6 +3,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Emotion.Audio;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Null;
@@ -11,12 +12,10 @@ using Emotion.Platform.Implementation.Win32.Wgl;
 using Emotion.Platform.Input;
 using Emotion.Utility;
 using WinApi;
+using WinApi.Kernel32;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
-using WinApi.Kernel32;
-using static System.Net.Mime.MediaTypeNames;
-using System.Text;
 
 #if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
@@ -179,7 +178,7 @@ namespace Emotion.Platform.Implementation.Win32
                 return;
             }
 
-			_windowHandle = windowHandle;
+            _windowHandle = windowHandle;
         }
 
         /// <summary>
@@ -589,11 +588,11 @@ namespace Emotion.Platform.Implementation.Win32
 
         public void OpenFolderAndSelectFile(string filePath)
         {
-	        if (Path.EndsInDirectorySeparator(filePath))
-	        {
-		        Process.Start("explorer",$"\"{filePath}\"");
-		        return;
-	        }
+            if (Path.EndsInDirectorySeparator(filePath))
+            {
+                Process.Start("explorer", $"\"{filePath}\"");
+                return;
+            }
 
             SHParseDisplayName(Path.GetDirectoryName(filePath), IntPtr.Zero, out IntPtr nativeFolder, 0, out _);
             SHParseDisplayName(filePath, IntPtr.Zero, out IntPtr nativeFile, 0, out _);
@@ -613,18 +612,18 @@ namespace Emotion.Platform.Implementation.Win32
 
         public AssertMessageBoxResponse OpenAssertMessageBox(string message)
         {
-	        MessageBoxResult result = User32.MessageBox(IntPtr.Zero, message, "Assert", (uint) MessageBoxFlags.MB_ABORTRETRYIGNORE);
-	        switch (result)
-	        {
+            MessageBoxResult result = User32.MessageBox(IntPtr.Zero, message, "Assert", (uint) MessageBoxFlags.MB_ABORTRETRYIGNORE);
+            switch (result)
+            {
                 case MessageBoxResult.IDABORT:
-	                return AssertMessageBoxResponse.Break;
+                    return AssertMessageBoxResponse.Break;
                 case MessageBoxResult.IDRETRY:
-	                return AssertMessageBoxResponse.IgnoreCurrent;
+                    return AssertMessageBoxResponse.IgnoreCurrent;
                 case MessageBoxResult.IDIGNORE:
-	                return AssertMessageBoxResponse.IgnoreAll;
-	        }
+                    return AssertMessageBoxResponse.IgnoreAll;
+            }
 
-	        return AssertMessageBoxResponse.Break;
+            return AssertMessageBoxResponse.Break;
         }
 
         #endregion
@@ -637,7 +636,7 @@ namespace Emotion.Platform.Implementation.Win32
             User32.EmptyClipboard();
 
             var dataAsBytes = Encoding.Unicode.GetBytes(data);
-            nint globalMemoryHandle = Kernel32.GlobalAlloc((uint) GlobalMemoryFlags.GMEM_MOVEABLE, (nuint)dataAsBytes.Length + 2);
+            nint globalMemoryHandle = Kernel32.GlobalAlloc((uint) GlobalMemoryFlags.GMEM_MOVEABLE, (nuint) dataAsBytes.Length + 2);
 
             nint ptr = Kernel32.GlobalLock(globalMemoryHandle);
             Marshal.Copy(dataAsBytes, 0, ptr, dataAsBytes.Length);
@@ -656,8 +655,8 @@ namespace Emotion.Platform.Implementation.Win32
         public override string GetClipboard()
         {
             User32.OpenClipboard(_helperWindowHandle);
-            
-            nint globalMemoryHandle = User32.GetClipboardData((uint)ClipboardFormat.CF_UNICODETEXT);
+
+            nint globalMemoryHandle = User32.GetClipboardData((uint) ClipboardFormat.CF_UNICODETEXT);
 
             if (globalMemoryHandle != 0)
             {
@@ -667,7 +666,7 @@ namespace Emotion.Platform.Implementation.Win32
                 User32.CloseClipboard();
                 return str;
             }
-         
+
             User32.CloseClipboard();
             CheckError("ClipboardGet");
 

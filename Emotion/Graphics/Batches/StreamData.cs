@@ -1,9 +1,4 @@
-﻿#region Using
-
-
-#endregion
-
-namespace Emotion.Graphics.Batches;
+﻿namespace Emotion.Graphics.Batches;
 
 public ref struct StreamData<T> // This is the struct returned to API users that request stream memory.
 {

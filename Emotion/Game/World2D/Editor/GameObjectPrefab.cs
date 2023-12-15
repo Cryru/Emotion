@@ -4,20 +4,20 @@ namespace Emotion.Game.World2D.Editor;
 
 public class GameObjectPrefab
 {
-	public string PrefabName;
-	public int PrefabVersion;
+    public string PrefabName;
+    public int PrefabVersion;
 
-	public string ObjectData;
+    public string ObjectData;
 
-	/// <summary>
-	/// Used for comparison to placed objects, and to avoid having to
-	/// initialize the object. Also it keeps tracks of properties in
-	/// previous versions.
-	/// </summary>
-	public List<Dictionary<string, object?>>? DefaultProperties;
+    /// <summary>
+    /// Used for comparison to placed objects, and to avoid having to
+    /// initialize the object. Also it keeps tracks of properties in
+    /// previous versions.
+    /// </summary>
+    public List<Dictionary<string, object?>>? DefaultProperties;
 
-	public override string ToString()
-	{
-		return PrefabName;
-	}
+    public override string ToString()
+    {
+        return PrefabName;
+    }
 }

@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -35,7 +33,7 @@ namespace Emotion.Utility
         /// <returns>A pointer to the native memory requested.</returns>
         public unsafe IntPtr GetMemory(int minSize)
         {
-            Debug.Assert(minSize <= _pageSize);
+            Assert(minSize <= _pageSize);
 
             // Check if there's a current buffer.
             if (_currentBuffer >= _pages.Count) CreatePage();
@@ -60,7 +58,7 @@ namespace Emotion.Utility
         /// <returns>How much memory is left in that page.</returns>
         public int MarkUsed(int amount)
         {
-            Debug.Assert(_memoryUsed + amount <= _pageSize);
+            Assert(_memoryUsed + amount <= _pageSize);
 
             _memoryUsed += amount;
             return _pageSize - _memoryUsed;

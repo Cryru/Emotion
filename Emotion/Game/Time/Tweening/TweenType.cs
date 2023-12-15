@@ -1,10 +1,10 @@
 ﻿namespace Emotion.Game.Time.Timers
 {
-	public enum TweenType
-	{
-		In,
-		Out,
-		InOut,
-		OutIn
-	}
+    public enum TweenType
+    {
+        In,
+        Out,
+        InOut,
+        OutIn
+    }
 }

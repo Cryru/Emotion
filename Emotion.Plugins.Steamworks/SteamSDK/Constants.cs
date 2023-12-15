@@ -1,5 +1,6 @@
 ﻿// ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
+
 namespace Emotion.Plugins.Steamworks.SteamSDK
 {
     public static class Constants

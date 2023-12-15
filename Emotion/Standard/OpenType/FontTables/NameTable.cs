@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Emotion.Utility;
@@ -466,7 +464,7 @@ namespace Emotion.Standard.OpenType.FontTables
                 case 0: // Unicode
                     if (languageId == 0xFFFF)
                         return "und";
-                    else if (ltag != null)
+                    if (ltag != null)
                         return "todo";
                     //return ltag[languageID];
                     break;

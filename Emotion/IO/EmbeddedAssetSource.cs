@@ -1,12 +1,9 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 
 #endregion
 

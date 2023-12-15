@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
+
 <Transform>
-  <Size>
-    <X>400</X>
-    <Y>500</Y>
-  </Size>
-  <Position>
-    <X>100</X>
-    <Y>200</Y>
-    <Z>300</Z>
-  </Position>
+    <Size>
+        <X>400</X>
+        <Y>500</Y>
+    </Size>
+    <Position>
+        <X>100</X>
+        <Y>200</Y>
+        <Z>300</Z>
+    </Position>
 </Transform>

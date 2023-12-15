@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Graphics.Data;
 

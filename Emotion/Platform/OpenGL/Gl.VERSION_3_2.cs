@@ -620,7 +620,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_elements_base_vertex", Api = "gles2")]
         public static void DrawElementsBaseVertex(PrimitiveType mode, int count, DrawElementsType type, IntPtr indices, int basevertex)
         {
-            Debug.Assert(Delegates.pglDrawElementsBaseVertex != null, "pglDrawElementsBaseVertex not implemented");
+            Assert(Delegates.pglDrawElementsBaseVertex != null, "pglDrawElementsBaseVertex not implemented");
             Delegates.pglDrawElementsBaseVertex((int) mode, count, (int) type, indices, basevertex);
             DebugCheckErrors(null);
         }
@@ -702,7 +702,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_elements_base_vertex", Api = "gles2")]
         public static void DrawRangeElementsBaseVertex(PrimitiveType mode, uint start, uint end, int count, DrawElementsType type, IntPtr indices, int basevertex)
         {
-            Debug.Assert(Delegates.pglDrawRangeElementsBaseVertex != null, "pglDrawRangeElementsBaseVertex not implemented");
+            Assert(Delegates.pglDrawRangeElementsBaseVertex != null, "pglDrawRangeElementsBaseVertex not implemented");
             Delegates.pglDrawRangeElementsBaseVertex((int) mode, start, end, count, (int) type, indices, basevertex);
             DebugCheckErrors(null);
         }
@@ -789,7 +789,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_elements_base_vertex", Api = "gles2")]
         public static void DrawElementsInstancedBaseVertex(PrimitiveType mode, int count, DrawElementsType type, IntPtr indices, int primcount, int basevertex)
         {
-            Debug.Assert(Delegates.pglDrawElementsInstancedBaseVertex != null, "pglDrawElementsInstancedBaseVertex not implemented");
+            Assert(Delegates.pglDrawElementsInstancedBaseVertex != null, "pglDrawElementsInstancedBaseVertex not implemented");
             Delegates.pglDrawElementsInstancedBaseVertex((int) mode, count, (int) type, indices, primcount, basevertex);
             DebugCheckErrors(null);
         }
@@ -879,7 +879,7 @@ namespace OpenGL
                 fixed (IntPtr* p_indices = indices)
                 fixed (int* p_basevertex = basevertex)
                 {
-                    Debug.Assert(Delegates.pglMultiDrawElementsBaseVertex != null, "pglMultiDrawElementsBaseVertex not implemented");
+                    Assert(Delegates.pglMultiDrawElementsBaseVertex != null, "pglMultiDrawElementsBaseVertex not implemented");
                     Delegates.pglMultiDrawElementsBaseVertex((int) mode, p_count, (int) type, p_indices, drawcount, p_basevertex);
                 }
             }
@@ -898,7 +898,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_provoking_vertex")]
         public static void ProvokingVertex(VertexProvokingMode provokeMode)
         {
-            Debug.Assert(Delegates.pglProvokingVertex != null, "pglProvokingVertex not implemented");
+            Assert(Delegates.pglProvokingVertex != null, "pglProvokingVertex not implemented");
             Delegates.pglProvokingVertex((int) provokeMode);
             DebugCheckErrors(null);
         }
@@ -926,7 +926,7 @@ namespace OpenGL
         {
             IntPtr retValue;
 
-            Debug.Assert(Delegates.pglFenceSync != null, "pglFenceSync not implemented");
+            Assert(Delegates.pglFenceSync != null, "pglFenceSync not implemented");
             retValue = Delegates.pglFenceSync((int) condition, flags);
             DebugCheckErrors(retValue);
 
@@ -949,7 +949,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsSync != null, "pglIsSync not implemented");
+            Assert(Delegates.pglIsSync != null, "pglIsSync not implemented");
             retValue = Delegates.pglIsSync(sync);
             DebugCheckErrors(retValue);
 
@@ -970,7 +970,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
         public static void DeleteSync(IntPtr sync)
         {
-            Debug.Assert(Delegates.pglDeleteSync != null, "pglDeleteSync not implemented");
+            Assert(Delegates.pglDeleteSync != null, "pglDeleteSync not implemented");
             Delegates.pglDeleteSync(sync);
             DebugCheckErrors(null);
         }
@@ -998,7 +998,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglClientWaitSync != null, "pglClientWaitSync not implemented");
+            Assert(Delegates.pglClientWaitSync != null, "pglClientWaitSync not implemented");
             retValue = Delegates.pglClientWaitSync(sync, (uint) flags, timeout);
             DebugCheckErrors(retValue);
 
@@ -1026,7 +1026,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
         public static void WaitSync(IntPtr sync, uint flags, ulong timeout)
         {
-            Debug.Assert(Delegates.pglWaitSync != null, "pglWaitSync not implemented");
+            Assert(Delegates.pglWaitSync != null, "pglWaitSync not implemented");
             Delegates.pglWaitSync(sync, flags, timeout);
             DebugCheckErrors(null);
         }
@@ -1053,7 +1053,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
+                    Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
                     Delegates.pglGetInteger64v(pname, p_data);
                 }
             }
@@ -1083,7 +1083,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
+                    Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
                     Delegates.pglGetInteger64v((int) pname, p_data);
                 }
             }
@@ -1113,7 +1113,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
+                    Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
                     Delegates.pglGetInteger64v(pname, p_data);
                 }
             }
@@ -1143,7 +1143,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
+                    Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
                     Delegates.pglGetInteger64v((int) pname, p_data);
                 }
             }
@@ -1169,7 +1169,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
         public static unsafe void Get(GetPName pname, [Out] long* data)
         {
-            Debug.Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
+            Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
             Delegates.pglGetInteger64v((int) pname, data);
             DebugCheckErrors(null);
         }
@@ -1192,7 +1192,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
         public static void GetInteger64<T>(GetPName pname, out T data) where T : struct
         {
-            Debug.Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
+            Assert(Delegates.pglGetInteger64v != null, "pglGetInteger64v not implemented");
             data = default;
             unsafe
             {
@@ -1236,7 +1236,7 @@ namespace OpenGL
                 fixed (int* p_length = &length)
                 fixed (int* p_values = values)
                 {
-                    Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
+                    Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
                     Delegates.pglGetSynciv(sync, (int) pname, bufSize, p_length, p_values);
                 }
             }
@@ -1270,7 +1270,7 @@ namespace OpenGL
             fixed (int* p_length = &length)
             fixed (int* p_values = values)
             {
-                Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
+                Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
                 Delegates.pglGetSynciv(sync, (int) pname, values.Length, p_length, p_values);
             }
 
@@ -1280,7 +1280,7 @@ namespace OpenGL
         public static unsafe int GetSync(IntPtr sync, SyncParameterName pname)
         {
             int value = 0;
-            Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
+            Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
             Delegates.pglGetSynciv(sync, (int) pname, sizeof(int), (int*) IntPtr.Zero, &value);
             DebugCheckErrors(null);
             return value;
@@ -1309,7 +1309,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
+                    Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
                     Delegates.pglGetInteger64i_v(target, index, p_data);
                 }
             }
@@ -1340,7 +1340,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
+                    Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
                     Delegates.pglGetInteger64i_v((int) target, index, p_data);
                 }
             }
@@ -1371,7 +1371,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
+                    Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
                     Delegates.pglGetInteger64i_v(target, index, p_data);
                 }
             }
@@ -1402,7 +1402,7 @@ namespace OpenGL
             {
                 fixed (long* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
+                    Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
                     Delegates.pglGetInteger64i_v((int) target, index, p_data);
                 }
             }
@@ -1429,7 +1429,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         public static unsafe void Get(GetPName target, uint index, [Out] long* data)
         {
-            Debug.Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
+            Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
             Delegates.pglGetInteger64i_v((int) target, index, data);
             DebugCheckErrors(null);
         }
@@ -1453,7 +1453,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         public static void GetInteger64<T>(GetPName target, uint index, out T data) where T : struct
         {
-            Debug.Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
+            Assert(Delegates.pglGetInteger64i_v != null, "pglGetInteger64i_v not implemented");
             data = default;
             unsafe
             {
@@ -1490,7 +1490,7 @@ namespace OpenGL
             {
                 fixed (long* p_params = data)
                 {
-                    Debug.Assert(Delegates.pglGetBufferParameteri64v != null, "pglGetBufferParameteri64v not implemented");
+                    Assert(Delegates.pglGetBufferParameteri64v != null, "pglGetBufferParameteri64v not implemented");
                     Delegates.pglGetBufferParameteri64v((int) target, value, p_params);
                 }
             }
@@ -1523,7 +1523,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_geometry_shader", Api = "gles2")]
         public static void FramebufferTexture(FramebufferTarget target, FramebufferAttachment attachment, uint texture, int level)
         {
-            Debug.Assert(Delegates.pglFramebufferTexture != null, "pglFramebufferTexture not implemented");
+            Assert(Delegates.pglFramebufferTexture != null, "pglFramebufferTexture not implemented");
             Delegates.pglFramebufferTexture((int) target, (int) attachment, texture, level);
             DebugCheckErrors(null);
         }
@@ -1558,7 +1558,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_multisample", Api = "gl|glcore")]
         public static void TexImage2DMultisample(TextureTarget target, int samples, InternalFormat internalformat, int width, int height, bool fixedsamplelocations)
         {
-            Debug.Assert(Delegates.pglTexImage2DMultisample != null, "pglTexImage2DMultisample not implemented");
+            Assert(Delegates.pglTexImage2DMultisample != null, "pglTexImage2DMultisample not implemented");
             Delegates.pglTexImage2DMultisample((int) target, samples, (int) internalformat, width, height, fixedsamplelocations);
             DebugCheckErrors(null);
         }
@@ -1596,7 +1596,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_multisample", Api = "gl|glcore")]
         public static void TexImage3DMultisample(TextureTarget target, int samples, InternalFormat internalformat, int width, int height, int depth, bool fixedsamplelocations)
         {
-            Debug.Assert(Delegates.pglTexImage3DMultisample != null, "pglTexImage3DMultisample not implemented");
+            Assert(Delegates.pglTexImage3DMultisample != null, "pglTexImage3DMultisample not implemented");
             Delegates.pglTexImage3DMultisample((int) target, samples, (int) internalformat, width, height, depth, fixedsamplelocations);
             DebugCheckErrors(null);
         }
@@ -1625,7 +1625,7 @@ namespace OpenGL
             {
                 fixed (float* p_val = val)
                 {
-                    Debug.Assert(Delegates.pglGetMultisamplefv != null, "pglGetMultisamplefv not implemented");
+                    Assert(Delegates.pglGetMultisamplefv != null, "pglGetMultisamplefv not implemented");
                     Delegates.pglGetMultisamplefv(pname, index, p_val);
                 }
             }
@@ -1649,7 +1649,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_multisample", Api = "gl|glcore")]
         public static void SampleMask(uint maskNumber, uint mask)
         {
-            Debug.Assert(Delegates.pglSampleMaski != null, "pglSampleMaski not implemented");
+            Assert(Delegates.pglSampleMaski != null, "pglSampleMaski not implemented");
             Delegates.pglSampleMaski(maskNumber, mask);
             DebugCheckErrors(null);
         }

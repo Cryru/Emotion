@@ -1,10 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 
 #endregion
@@ -45,7 +41,7 @@ namespace Emotion.Graphics.Text.StbRenderer
                     if (windings[wOffset + j].Y == windings[wOffset + k].Y)
                         continue;
                     e[n].Invert = false;
-                    if (invertY && windings[wOffset + j].Y > windings[wOffset + k].Y || !invertY && windings[wOffset + j].Y < windings[wOffset + k].Y)
+                    if ((invertY && windings[wOffset + j].Y > windings[wOffset + k].Y) || (!invertY && windings[wOffset + j].Y < windings[wOffset + k].Y))
                     {
                         e[n].Invert = true;
                         a = j;
@@ -179,8 +175,8 @@ namespace Emotion.Graphics.Text.StbRenderer
             if (y0 == y1)
                 return;
 
-            Debug.Assert(y0 < y1);
-            Debug.Assert(e.Sy <= e.Ey);
+            Assert(y0 < y1);
+            Assert(e.Sy <= e.Ey);
 
             if (y0 > e.Ey)
                 return;
@@ -199,15 +195,15 @@ namespace Emotion.Graphics.Text.StbRenderer
             }
 
             if (x0 == x)
-                Debug.Assert(x1 <= x + 1);
+                Assert(x1 <= x + 1);
             else if (x0 == x + 1)
-                Debug.Assert(x1 >= x);
+                Assert(x1 >= x);
             else if (x0 <= x)
-                Debug.Assert(x1 <= x);
+                Assert(x1 <= x);
             else if (x0 >= x + 1)
-                Debug.Assert(x1 >= x + 1);
+                Assert(x1 >= x + 1);
             else
-                Debug.Assert(x1 >= x && x1 <= x + 1);
+                Assert(x1 >= x && x1 <= x + 1);
 
             if (x0 <= x && x1 <= x)
             {
@@ -215,7 +211,7 @@ namespace Emotion.Graphics.Text.StbRenderer
             }
             else if (!(x0 >= x + 1 && x1 >= x + 1))
             {
-                Debug.Assert(x0 >= x && x0 <= x + 1 && x1 >= x && x1 <= x + 1);
+                Assert(x0 >= x && x0 <= x + 1 && x1 >= x && x1 <= x + 1);
                 scanline[x] += e.Direction * (y1 - y0) * (1 - (x0 - x + (x1 - x)) / 2);
             }
         }

@@ -36,6 +36,7 @@ namespace Emotion.Tools.Windows.UIEdit
                 controller.InputTransparent = false;
                 controller.InvalidateInputFocus();
             }
+
             base.Dispose();
         }
 

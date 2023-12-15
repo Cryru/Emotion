@@ -70,7 +70,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
             // A dummy context has to be created for opengl32.dll to load the. OpenGL ICD, from which we can then query WGL extensions.
             // This code will accept the Microsoft GDI ICD;
-            Debug.Assert(nativeDeviceHandle != IntPtr.Zero);
+            Assert(nativeDeviceHandle != IntPtr.Zero);
             var pfd = new PixelFormatDescriptor();
             pfd.NSize = (ushort) Marshal.SizeOf(pfd);
             pfd.NVersion = 1;

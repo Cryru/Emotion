@@ -2,10 +2,7 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Common;
-using Emotion.Game.AStar;
 using Emotion.Graphics;
-using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
 

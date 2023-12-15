@@ -1,11 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Standard.Logging;
 using OpenGL;
 
 #endregion
@@ -55,7 +51,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="dataUsage">The usage for the data. Only matters if a size is specified.</param>
         public DataBuffer(BufferTarget type, uint byteSize = 0, BufferUsage dataUsage = BufferUsage.StreamDraw)
         {
-            Debug.Assert(GLThread.IsGLThread());
+            Assert(GLThread.IsGLThread());
 
             Type = type;
             Pointer = Gl.GenBuffer();
@@ -113,7 +109,7 @@ namespace Emotion.Graphics.Objects
             }
         }
 
-        /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)"/>
+        /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)" />
         public void UploadPartial<T>(T[] data, uint offset = 0) where T : unmanaged
         {
             // Finish mapping - if it was.
@@ -134,10 +130,10 @@ namespace Emotion.Graphics.Objects
 
             unsafe
             {
-	            fixed (void* bPtr = &data[0])
-	            {
-		            Gl.BufferSubData(Type, offsetPtr, partSize, (nint) bPtr);
-	            }
+                fixed (void* bPtr = &data[0])
+                {
+                    Gl.BufferSubData(Type, offsetPtr, partSize, (nint) bPtr);
+                }
             }
         }
 
@@ -188,18 +184,18 @@ namespace Emotion.Graphics.Objects
 
             if (Engine.Renderer.Dsa)
             {
-                _mappingPtr = (byte*) Gl.MapNamedBufferRange(Pointer, (IntPtr) byteOffset, length, mask);
+                _mappingPtr = (byte*) Gl.MapNamedBufferRange(Pointer, byteOffset, length, mask);
             }
             else
             {
                 EnsureBound(Pointer, Type);
-                _mappingPtr = (byte*) Gl.MapBufferRange(Type, (IntPtr) byteOffset, length, mask);
+                _mappingPtr = (byte*) Gl.MapBufferRange(Type, byteOffset, length, mask);
             }
 
             if ((IntPtr) _mappingPtr == IntPtr.Zero)
             {
                 Engine.Log.Warning("Couldn't start mapping buffer. Expect a crash.", MessageSource.GL);
-                Debug.Assert(false);
+                Assert(false);
             }
 
             Mapping = true;
@@ -218,7 +214,7 @@ namespace Emotion.Graphics.Objects
             if (length == -1) length = (int) (Size - offset);
             if (offset + length > Size)
             {
-                Debug.Assert(false);
+                Assert(false);
                 return null;
             }
 
@@ -280,12 +276,12 @@ namespace Emotion.Graphics.Objects
 
             if (Engine.Renderer.Dsa)
             {
-                Gl.FlushMappedNamedBufferRange(Pointer, (IntPtr) offset, length);
+                Gl.FlushMappedNamedBufferRange(Pointer, offset, length);
             }
             else
             {
                 EnsureBound(Pointer, Type);
-                Gl.FlushMappedBufferRange(Type, (IntPtr) offset, length);
+                Gl.FlushMappedBufferRange(Type, offset, length);
             }
         }
 

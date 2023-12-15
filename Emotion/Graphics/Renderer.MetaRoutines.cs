@@ -1,14 +1,10 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
-using Emotion.Common;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
-using Emotion.Primitives;
 
 #endregion
 
@@ -91,7 +87,7 @@ namespace Emotion.Graphics
         {
             var vertsNeeded = (uint) ((detail + 1) * 3);
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertsNeeded, BatchMode.SequentialTriangles);
-            Debug.Assert(vertices != null);
+            Assert(vertices != null);
             var vertexIdx = 0;
 
             Vector3 posOffset = positionIsCenter ? new Vector3(position.X - radius.X, position.Y - radius.Y, position.Z) : position;

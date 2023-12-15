@@ -1,16 +1,12 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Audio;
-using Emotion.Common;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
-using Emotion.Standard.Logging;
 using OpenGL;
 #if GLFW
 using Emotion.Platform.Implementation.GlfwImplementation;
@@ -268,7 +264,7 @@ namespace Emotion.Platform
 
         protected void FocusChanged(bool focused)
         {
-            Debug.Assert(focused != IsFocused);
+            Assert(focused != IsFocused);
             if (focused == IsFocused) return;
 
             IsFocused = focused;
@@ -291,7 +287,7 @@ namespace Emotion.Platform
                 // Pull all buttons up.
                 for (var i = 0; i < _keys.Length; i++)
                 {
-                    UpdateKeyStatus((Key)i, false);
+                    UpdateKeyStatus((Key) i, false);
                 }
             }
 

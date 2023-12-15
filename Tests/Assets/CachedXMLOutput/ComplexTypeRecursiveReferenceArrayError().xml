@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
+
 <TransformRecursiveRefArray>
-  <Others>
-    <TransformRecursiveRefArray></TransformRecursiveRefArray>
-  </Others>
-  <Position>
-    <X>100</X>
-  </Position>
+    <Others>
+        <TransformRecursiveRefArray></TransformRecursiveRefArray>
+    </Others>
+    <Position>
+        <X>100</X>
+    </Position>
 </TransformRecursiveRefArray>

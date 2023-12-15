@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Runtime.InteropServices;
 using Emotion.Audio;
 using WinApi.ComBaseApi.COM;

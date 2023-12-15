@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
-using Emotion.Common;
 using Emotion.Platform.Input;
 using Emotion.Utility;
 

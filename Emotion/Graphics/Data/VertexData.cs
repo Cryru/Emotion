@@ -1,11 +1,8 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Graphics.Objects;
-using Emotion.Primitives;
 using Emotion.Utility;
 
 #endregion
@@ -82,7 +79,7 @@ namespace Emotion.Graphics.Data
             }
 
             // Convert input from texture coordinates to UV coordinates.
-            TransformUVs(vertices, texture, (Rectangle)textureArea);
+            TransformUVs(vertices, texture, (Rectangle) textureArea);
 
             if (texture.FlipY != flipY) FlipHorizontallySpriteUVs(vertices);
 

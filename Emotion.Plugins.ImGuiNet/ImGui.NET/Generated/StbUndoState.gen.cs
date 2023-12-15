@@ -1,11 +1,13 @@
+#region Using
+
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
+
+#endregion
 
 namespace ImGuiNET
 {
-    public unsafe partial struct StbUndoState
+    public unsafe struct StbUndoState
     {
         public StbUndoRecord undo_rec_0;
         public StbUndoRecord undo_rec_1;
@@ -112,19 +114,64 @@ namespace ImGuiNET
         public int undo_char_point;
         public int redo_char_point;
     }
-    public unsafe partial struct StbUndoStatePtr
+
+    public unsafe struct StbUndoStatePtr
     {
         public StbUndoState* NativePtr { get; }
-        public StbUndoStatePtr(StbUndoState* nativePtr) => NativePtr = nativePtr;
-        public StbUndoStatePtr(IntPtr nativePtr) => NativePtr = (StbUndoState*)nativePtr;
-        public static implicit operator StbUndoStatePtr(StbUndoState* nativePtr) => new StbUndoStatePtr(nativePtr);
-        public static implicit operator StbUndoState* (StbUndoStatePtr wrappedPtr) => wrappedPtr.NativePtr;
-        public static implicit operator StbUndoStatePtr(IntPtr nativePtr) => new StbUndoStatePtr(nativePtr);
-        public RangeAccessor<StbUndoRecord> undo_rec => new RangeAccessor<StbUndoRecord>(&NativePtr->undo_rec_0, 99);
-        public RangeAccessor<ushort> undo_char => new RangeAccessor<ushort>(NativePtr->undo_char, 999);
-        public ref short undo_point => ref Unsafe.AsRef<short>(&NativePtr->undo_point);
-        public ref short redo_point => ref Unsafe.AsRef<short>(&NativePtr->redo_point);
-        public ref int undo_char_point => ref Unsafe.AsRef<int>(&NativePtr->undo_char_point);
-        public ref int redo_char_point => ref Unsafe.AsRef<int>(&NativePtr->redo_char_point);
+
+        public StbUndoStatePtr(StbUndoState* nativePtr)
+        {
+            NativePtr = nativePtr;
+        }
+
+        public StbUndoStatePtr(IntPtr nativePtr)
+        {
+            NativePtr = (StbUndoState*) nativePtr;
+        }
+
+        public static implicit operator StbUndoStatePtr(StbUndoState* nativePtr)
+        {
+            return new StbUndoStatePtr(nativePtr);
+        }
+
+        public static implicit operator StbUndoState*(StbUndoStatePtr wrappedPtr)
+        {
+            return wrappedPtr.NativePtr;
+        }
+
+        public static implicit operator StbUndoStatePtr(IntPtr nativePtr)
+        {
+            return new StbUndoStatePtr(nativePtr);
+        }
+
+        public RangeAccessor<StbUndoRecord> undo_rec
+        {
+            get => new RangeAccessor<StbUndoRecord>(&NativePtr->undo_rec_0, 99);
+        }
+
+        public RangeAccessor<ushort> undo_char
+        {
+            get => new RangeAccessor<ushort>(NativePtr->undo_char, 999);
+        }
+
+        public ref short undo_point
+        {
+            get => ref Unsafe.AsRef<short>(&NativePtr->undo_point);
+        }
+
+        public ref short redo_point
+        {
+            get => ref Unsafe.AsRef<short>(&NativePtr->redo_point);
+        }
+
+        public ref int undo_char_point
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->undo_char_point);
+        }
+
+        public ref int redo_char_point
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->redo_char_point);
+        }
     }
 }

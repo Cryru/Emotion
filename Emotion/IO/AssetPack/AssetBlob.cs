@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
-
 #endregion
 
 namespace Emotion.IO.AssetPack

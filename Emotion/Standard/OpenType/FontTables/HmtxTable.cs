@@ -38,7 +38,7 @@ namespace Emotion.Standard.OpenType.FontTables
             // These contain only the LSB.
             if (_reader.Position <= _reader.Data.Length)
             {
-	            int extraMetricCount = (_reader.Data.Length - _reader.Position) / 2;
+                int extraMetricCount = (_reader.Data.Length - _reader.Position) / 2;
                 if (extraMetricCount < 0) extraMetricCount = 0;
 
                 for (int i = numberOfHMetrics; i < extraMetricCount; i++)

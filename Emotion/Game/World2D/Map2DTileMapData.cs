@@ -251,7 +251,7 @@ namespace Emotion.Game.World2D
                 Map2DTileset? tileSet = Tilesets[i];
                 if (tileSet == null)
                 {
-                    assets[i] = Task.FromResult((TextureAsset?)null);
+                    assets[i] = Task.FromResult((TextureAsset?) null);
                     continue;
                 }
 
@@ -279,8 +279,8 @@ namespace Emotion.Game.World2D
             _cachedTileTextures = null;
             if (Layers.Count == 0) return;
 
-            var tileColumns = (int)SizeInTiles.X;
-            var tileRows = (int)SizeInTiles.Y;
+            var tileColumns = (int) SizeInTiles.X;
+            var tileRows = (int) SizeInTiles.Y;
             int totalTileSize = tileRows * tileColumns;
 
             _cachedTileRenderData = new VertexData[Layers.Count][];
@@ -361,14 +361,14 @@ namespace Emotion.Game.World2D
             Texture[]? textureCache = _cachedTileTextures?[layerIdx];
             if (renderCache == null || textureCache == null) return;
 
-            var yStart = (int)Maths.Clamp(MathF.Floor(clipVal.Y / TileSize.Y), 0, SizeInTiles.Y);
-            var yEnd = (int)Maths.Clamp(MathF.Ceiling(clipVal.Bottom / TileSize.Y), 0, SizeInTiles.Y);
-            var xStart = (int)Maths.Clamp(MathF.Floor(clipVal.X / TileSize.X), 0, SizeInTiles.X);
-            var xEnd = (int)Maths.Clamp(MathF.Ceiling(clipVal.Right / TileSize.X), 0, SizeInTiles.X);
+            var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TileSize.Y), 0, SizeInTiles.Y);
+            var yEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Bottom / TileSize.Y), 0, SizeInTiles.Y);
+            var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TileSize.X), 0, SizeInTiles.X);
+            var xEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Right / TileSize.X), 0, SizeInTiles.X);
 
             for (int y = yStart; y < yEnd; y++)
             {
-                var yIdx = (int)(y * SizeInTiles.X);
+                var yIdx = (int) (y * SizeInTiles.X);
                 for (int x = xStart; x < xEnd; x++)
                 {
                     int tileIdx = yIdx + x;
@@ -439,10 +439,10 @@ namespace Emotion.Game.World2D
         /// </summary>
         public int GetTile1DFromTile2D(Vector2 coordinate)
         {
-            var top = (int)coordinate.Y;
-            var left = (int)coordinate.X;
+            var top = (int) coordinate.Y;
+            var left = (int) coordinate.X;
 
-            return (int)(left + SizeInTiles.X * top);
+            return (int) (left + SizeInTiles.X * top);
         }
 
         /// <summary>
@@ -450,8 +450,8 @@ namespace Emotion.Game.World2D
         /// </summary>
         public Vector2 GetTile2DFromTile1D(int coordinate)
         {
-            var x = (int)(coordinate % SizeInTiles.X);
-            var y = (int)(coordinate / SizeInTiles.X);
+            var x = (int) (coordinate % SizeInTiles.X);
+            var y = (int) (coordinate / SizeInTiles.X);
             return coordinate >= SizeInTiles.X * SizeInTiles.Y ? Vector2.Zero : new Vector2(x, y);
         }
 
@@ -462,8 +462,8 @@ namespace Emotion.Game.World2D
         /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
         public Vector2 GetTilePosOfWorldPos(Vector2 location)
         {
-            var left = (int)Math.Max(0, location.X / TileSize.X);
-            var top = (int)Math.Max(0, location.Y / TileSize.Y);
+            var left = (int) Math.Max(0, location.X / TileSize.X);
+            var top = (int) Math.Max(0, location.Y / TileSize.Y);
 
             return new Vector2(left, top);
         }
@@ -498,7 +498,7 @@ namespace Emotion.Game.World2D
         public int GetTilesetIdFromTid(uint tId, out int tsOffset)
         {
             var tsId = 0;
-            tsOffset = (int)tId;
+            tsOffset = (int) tId;
 
             for (var i = 0; i < Tilesets.Count; i++)
             {
@@ -548,7 +548,7 @@ namespace Emotion.Game.World2D
 
             // Get tile image properties.
             int tiColumn = tId % widthInTiles;
-            var tiRow = (int)(tId / (float)widthInTiles);
+            var tiRow = (int) (tId / (float) widthInTiles);
             var tiRect = new Rectangle(TileSize.X * tiColumn, TileSize.Y * tiRow, TileSize);
 
             // Add margins and spacing.

@@ -16,6 +16,7 @@ namespace Emotion.Plugins.ImGuiNet
     {
         [VertexAttribute(2, false)] public Vector2 Pos;
         [VertexAttribute(2, false)] public Vector2 UV;
+
         [VertexAttribute(4, true, typeof(byte))]
         public uint Col;
     }

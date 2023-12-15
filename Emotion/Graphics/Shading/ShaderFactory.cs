@@ -1,12 +1,8 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using Emotion.Common;
 using Emotion.IO;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using OpenGL;
 

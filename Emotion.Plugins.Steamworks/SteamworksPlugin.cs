@@ -2,14 +2,10 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Common;
 using Emotion.Game.Time;
-using Emotion.Plugins.Steamworks.Helpers;
 using Emotion.Plugins.Steamworks.SteamSDK;
 
 #endregion

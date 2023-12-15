@@ -1,11 +1,8 @@
 ﻿#region Using
 
-using System;
 using Emotion.Audio;
-using Emotion.Common;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Audio.WAV;
-using Emotion.Standard.Logging;
 
 #endregion
 

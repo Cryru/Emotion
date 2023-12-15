@@ -12,8 +12,8 @@ namespace Emotion.Game.World2D.SceneControl;
 
 public abstract class World2DBaseScene<T> : WorldBaseScene<T>, IWorld2DAwareScene<T> where T : Map2D
 {
-	protected override WorldBaseEditor CreateEditor()
-	{
-		return new World2DEditor(this, typeof(T));
-	}
+    protected override WorldBaseEditor CreateEditor()
+    {
+        return new World2DEditor(this, typeof(T));
+    }
 }

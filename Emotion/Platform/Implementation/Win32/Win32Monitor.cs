@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using WinApi;
 using WinApi.Gdi32;
@@ -25,7 +23,7 @@ namespace Emotion.Platform.Implementation.Win32
             Name = display != null ? display.Value.DeviceString : adapter.DeviceString;
             AdapterName = adapter.DeviceName;
             DeviceName = display == null ? "<<Unknown Device>>" : display.Value.DeviceName;
-            Debug.Assert(Name != null);
+            Assert(Name != null);
 
             var dm = new DeviceMode();
             dm.dmSize = (short) Marshal.SizeOf(dm);
@@ -36,7 +34,7 @@ namespace Emotion.Platform.Implementation.Win32
             Height = dm.dmPelsHeight;
 
             IntPtr dc = Gdi32.CreateDCW("DISPLAY", adapter.DeviceName, null, IntPtr.Zero);
-            Debug.Assert(dc != IntPtr.Zero);
+            Assert(dc != IntPtr.Zero);
 
             if (Win32Platform.IsWindows81OrGreater)
             {

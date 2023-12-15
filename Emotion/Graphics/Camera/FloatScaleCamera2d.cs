@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
-using Emotion.Common;
-
 #endregion
 
 namespace Emotion.Graphics.Camera

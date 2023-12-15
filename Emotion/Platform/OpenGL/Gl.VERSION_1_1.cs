@@ -720,7 +720,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_array")]
         public static void DrawArrays(PrimitiveType mode, int first, int count)
         {
-            Debug.Assert(Delegates.pglDrawArrays != null, "pglDrawArrays not implemented");
+            Assert(Delegates.pglDrawArrays != null, "pglDrawArrays not implemented");
             Delegates.pglDrawArrays((int) mode, first, count);
             DebugCheckErrors(null);
         }
@@ -750,7 +750,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void DrawElements(PrimitiveType mode, int count, DrawElementsType type, IntPtr indices)
         {
-            Debug.Assert(Delegates.pglDrawElements != null, "pglDrawElements not implemented");
+            Assert(Delegates.pglDrawElements != null, "pglDrawElements not implemented");
             Delegates.pglDrawElements((int) mode, count, (int) type, indices);
             DebugCheckErrors(null);
         }
@@ -816,7 +816,7 @@ namespace OpenGL
             {
                 fixed (IntPtr* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetPointerv != null, "pglGetPointerv not implemented");
+                    Assert(Delegates.pglGetPointerv != null, "pglGetPointerv not implemented");
                     Delegates.pglGetPointerv((int) pname, p_params);
                 }
             }
@@ -873,7 +873,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void PolygonOffset(float factor, float units)
         {
-            Debug.Assert(Delegates.pglPolygonOffset != null, "pglPolygonOffset not implemented");
+            Assert(Delegates.pglPolygonOffset != null, "pglPolygonOffset not implemented");
             Delegates.pglPolygonOffset(factor, units);
             DebugCheckErrors(null);
         }
@@ -915,7 +915,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_copy_texture")]
         public static void CopyTexImage1D(TextureTarget target, int level, InternalFormat internalformat, int x, int y, int width, int border)
         {
-            Debug.Assert(Delegates.pglCopyTexImage1D != null, "pglCopyTexImage1D not implemented");
+            Assert(Delegates.pglCopyTexImage1D != null, "pglCopyTexImage1D not implemented");
             Delegates.pglCopyTexImage1D((int) target, level, (int) internalformat, x, y, width, border);
             DebugCheckErrors(null);
         }
@@ -968,7 +968,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_copy_texture")]
         public static void CopyTexImage2D(TextureTarget target, int level, InternalFormat internalformat, int x, int y, int width, int height, int border)
         {
-            Debug.Assert(Delegates.pglCopyTexImage2D != null, "pglCopyTexImage2D not implemented");
+            Assert(Delegates.pglCopyTexImage2D != null, "pglCopyTexImage2D not implemented");
             Delegates.pglCopyTexImage2D((int) target, level, (int) internalformat, x, y, width, height, border);
             DebugCheckErrors(null);
         }
@@ -998,7 +998,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_copy_texture")]
         public static void CopyTexSubImage1D(TextureTarget target, int level, int xoffset, int x, int y, int width)
         {
-            Debug.Assert(Delegates.pglCopyTexSubImage1D != null, "pglCopyTexSubImage1D not implemented");
+            Assert(Delegates.pglCopyTexSubImage1D != null, "pglCopyTexSubImage1D not implemented");
             Delegates.pglCopyTexSubImage1D((int) target, level, xoffset, x, y, width);
             DebugCheckErrors(null);
         }
@@ -1043,7 +1043,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_copy_texture")]
         public static void CopyTexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int x, int y, int width, int height)
         {
-            Debug.Assert(Delegates.pglCopyTexSubImage2D != null, "pglCopyTexSubImage2D not implemented");
+            Assert(Delegates.pglCopyTexSubImage2D != null, "pglCopyTexSubImage2D not implemented");
             Delegates.pglCopyTexSubImage2D((int) target, level, xoffset, yoffset, x, y, width, height);
             DebugCheckErrors(null);
         }
@@ -1081,7 +1081,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_subtexture")]
         public static void TexSubImage1D(TextureTarget target, int level, int xoffset, int width, PixelFormat format, PixelType type, IntPtr pixels)
         {
-            Debug.Assert(Delegates.pglTexSubImage1D != null, "pglTexSubImage1D not implemented");
+            Assert(Delegates.pglTexSubImage1D != null, "pglTexSubImage1D not implemented");
             Delegates.pglTexSubImage1D((int) target, level, xoffset, width, (int) format, (int) type, pixels);
             DebugCheckErrors(null);
         }
@@ -1176,7 +1176,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_subtexture")]
         public static void TexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int width, int height, PixelFormat format, PixelType type, IntPtr pixels)
         {
-            Debug.Assert(Delegates.pglTexSubImage2D != null, "pglTexSubImage2D not implemented");
+            Assert(Delegates.pglTexSubImage2D != null, "pglTexSubImage2D not implemented");
             Delegates.pglTexSubImage2D((int) target, level, xoffset, yoffset, width, height, (int) format, (int) type, pixels);
             DebugCheckErrors(null);
         }
@@ -1258,7 +1258,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture_object")]
         public static void BindTexture(TextureTarget target, uint texture)
         {
-            Debug.Assert(Delegates.pglBindTexture != null, "pglBindTexture not implemented");
+            Assert(Delegates.pglBindTexture != null, "pglBindTexture not implemented");
             Delegates.pglBindTexture((int) target, texture);
             DebugCheckErrors(null);
         }
@@ -1280,7 +1280,7 @@ namespace OpenGL
             {
                 fixed (uint* p_textures = textures)
                 {
-                    Debug.Assert(Delegates.pglDeleteTextures != null, "pglDeleteTextures not implemented");
+                    Assert(Delegates.pglDeleteTextures != null, "pglDeleteTextures not implemented");
                     Delegates.pglDeleteTextures(textures.Length, p_textures);
                 }
             }
@@ -1306,7 +1306,7 @@ namespace OpenGL
             {
                 fixed (uint* p_textures = textures)
                 {
-                    Debug.Assert(Delegates.pglGenTextures != null, "pglGenTextures not implemented");
+                    Assert(Delegates.pglGenTextures != null, "pglGenTextures not implemented");
                     Delegates.pglGenTextures(textures.Length, p_textures);
                 }
             }
@@ -1350,7 +1350,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsTexture != null, "pglIsTexture not implemented");
+            Assert(Delegates.pglIsTexture != null, "pglIsTexture not implemented");
             retValue = Delegates.pglIsTexture(texture);
             DebugCheckErrors(retValue);
 
@@ -1368,7 +1368,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void ArrayElement(int i)
         {
-            Debug.Assert(Delegates.pglArrayElement != null, "pglArrayElement not implemented");
+            Assert(Delegates.pglArrayElement != null, "pglArrayElement not implemented");
             Delegates.pglArrayElement(i);
         }
 
@@ -1397,7 +1397,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void ColorPointer(int size, ColorPointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglColorPointer != null, "pglColorPointer not implemented");
+            Assert(Delegates.pglColorPointer != null, "pglColorPointer not implemented");
             Delegates.pglColorPointer(size, (int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1451,7 +1451,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void DisableClientState(EnableCap array)
         {
-            Debug.Assert(Delegates.pglDisableClientState != null, "pglDisableClientState not implemented");
+            Assert(Delegates.pglDisableClientState != null, "pglDisableClientState not implemented");
             Delegates.pglDisableClientState((int) array);
             DebugCheckErrors(null);
         }
@@ -1470,7 +1470,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void EdgeFlagPointer(int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglEdgeFlagPointer != null, "pglEdgeFlagPointer not implemented");
+            Assert(Delegates.pglEdgeFlagPointer != null, "pglEdgeFlagPointer not implemented");
             Delegates.pglEdgeFlagPointer(stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1513,7 +1513,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void EnableClientState(EnableCap array)
         {
-            Debug.Assert(Delegates.pglEnableClientState != null, "pglEnableClientState not implemented");
+            Assert(Delegates.pglEnableClientState != null, "pglEnableClientState not implemented");
             Delegates.pglEnableClientState((int) array);
             DebugCheckErrors(null);
         }
@@ -1536,7 +1536,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void IndexPointer(IndexPointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglIndexPointer != null, "pglIndexPointer not implemented");
+            Assert(Delegates.pglIndexPointer != null, "pglIndexPointer not implemented");
             Delegates.pglIndexPointer((int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1592,7 +1592,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void NormalPointer(NormalPointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglNormalPointer != null, "pglNormalPointer not implemented");
+            Assert(Delegates.pglNormalPointer != null, "pglNormalPointer not implemented");
             Delegates.pglNormalPointer((int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1654,7 +1654,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void TexCoordPointer(int size, TexCoordPointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglTexCoordPointer != null, "pglTexCoordPointer not implemented");
+            Assert(Delegates.pglTexCoordPointer != null, "pglTexCoordPointer not implemented");
             Delegates.pglTexCoordPointer(size, (int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1722,7 +1722,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void VertexPointer(int size, VertexPointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglVertexPointer != null, "pglVertexPointer not implemented");
+            Assert(Delegates.pglVertexPointer != null, "pglVertexPointer not implemented");
             Delegates.pglVertexPointer(size, (int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1787,7 +1787,7 @@ namespace OpenGL
                 fixed (uint* p_textures = textures)
                 fixed (byte* p_residences = residences)
                 {
-                    Debug.Assert(Delegates.pglAreTexturesResident != null, "pglAreTexturesResident not implemented");
+                    Assert(Delegates.pglAreTexturesResident != null, "pglAreTexturesResident not implemented");
                     retValue = Delegates.pglAreTexturesResident(textures.Length, p_textures, p_residences);
                 }
             }
@@ -1817,7 +1817,7 @@ namespace OpenGL
                 fixed (uint* p_textures = textures)
                 fixed (float* p_priorities = priorities)
                 {
-                    Debug.Assert(Delegates.pglPrioritizeTextures != null, "pglPrioritizeTextures not implemented");
+                    Assert(Delegates.pglPrioritizeTextures != null, "pglPrioritizeTextures not implemented");
                     Delegates.pglPrioritizeTextures(textures.Length, p_textures, p_priorities);
                 }
             }
@@ -1835,7 +1835,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void Index(byte c)
         {
-            Debug.Assert(Delegates.pglIndexub != null, "pglIndexub not implemented");
+            Assert(Delegates.pglIndexub != null, "pglIndexub not implemented");
             Delegates.pglIndexub(c);
         }
 
@@ -1849,12 +1849,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void Index(byte[] c)
         {
-            Debug.Assert(c.Length >= 1);
+            Assert(c.Length >= 1);
             unsafe
             {
                 fixed (byte* p_c = c)
                 {
-                    Debug.Assert(Delegates.pglIndexubv != null, "pglIndexubv not implemented");
+                    Assert(Delegates.pglIndexubv != null, "pglIndexubv not implemented");
                     Delegates.pglIndexubv(p_c);
                 }
             }
@@ -1869,7 +1869,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void PopClientAttrib()
         {
-            Debug.Assert(Delegates.pglPopClientAttrib != null, "pglPopClientAttrib not implemented");
+            Assert(Delegates.pglPopClientAttrib != null, "pglPopClientAttrib not implemented");
             Delegates.pglPopClientAttrib();
             DebugCheckErrors(null);
         }

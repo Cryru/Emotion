@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-
 #endregion
 
 #pragma warning disable 1591 // Documentation for this file is found at msdn
@@ -555,7 +553,7 @@ namespace WinApi.Kernel32
     }
 
     [Flags]
-    enum GlobalMemoryFlags : uint
+    internal enum GlobalMemoryFlags : uint
     {
         GMEM_FIXED = 0x0000,
         GMEM_MOVEABLE = 0x0002,
@@ -563,8 +561,9 @@ namespace WinApi.Kernel32
         GMEM_MODIFY = 0x0080,
         GMEM_VALID_FLAGS = 0x7F72,
         GMEM_INVALID_HANDLE = 0x8000,
-        GHND = (GMEM_MOVEABLE | GMEM_ZEROINIT),
-        GPTR = (GMEM_FIXED | GMEM_ZEROINIT),
+        GHND = GMEM_MOVEABLE | GMEM_ZEROINIT,
+        GPTR = GMEM_FIXED | GMEM_ZEROINIT,
+
         /*The following values are obsolete, but are provided for compatibility with 16-bit Windows. They are ignored.*/
         GMEM_DDESHARE = 0x2000,
         GMEM_DISCARDABLE = 0x0100,

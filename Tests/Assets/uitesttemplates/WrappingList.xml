@@ -1,275 +1,276 @@
 <?xml version="1.0"?>
+
 <UIBaseWindow>
-  <Children>
-    <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Id>Wrapped and Centered</Id>
-      <Children>
+    <Children>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <Children>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-          </Children>
-          <ParentAnchor>TopCenter</ParentAnchor>
-          <Anchor>TopCenter</Anchor>
-          <LayoutMode>HorizontalListWrap</LayoutMode>
-          <ListSpacing>
-            <X>10</X>
-            <Y>10</Y>
-          </ListSpacing>
-          <Margins>
-            <X>5</X>
-            <Y>5</Y>
-            <Width>5</Width>
-            <Height>5</Height>
-          </Margins>
-          <Paddings>
-            <X>5</X>
-            <Y>5</Y>
-            <Width>5</Width>
-            <Height>5</Height>
-          </Paddings>
-          <StretchX>True</StretchX>
-          <StretchY>True</StretchY>
-          <WindowColor>
-            <R>56</R>
-            <G>70</G>
-            <B>116</B>
-            <A>255</A>
-          </WindowColor>
-        </UIBaseWindow>
-      </Children>
-      <ParentAnchor>CenterCenter</ParentAnchor>
-      <Anchor>CenterCenter</Anchor>
-      <Visible></Visible>
-      <MaxSize>
-        <X>200</X>
-        <Y>9999</Y>
-      </MaxSize>
-      <WindowColor>
-        <G>105</G>
-        <B>255</B>
-        <A>255</A>
-      </WindowColor>
-    </UIBaseWindow>
-    <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Id>Stretch+Padding+Wrap</Id>
-      <Children>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
+            <Id>Wrapped and Centered</Id>
+            <Children>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <Children>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                    </Children>
+                    <ParentAnchor>TopCenter</ParentAnchor>
+                    <Anchor>TopCenter</Anchor>
+                    <LayoutMode>HorizontalListWrap</LayoutMode>
+                    <ListSpacing>
+                        <X>10</X>
+                        <Y>10</Y>
+                    </ListSpacing>
+                    <Margins>
+                        <X>5</X>
+                        <Y>5</Y>
+                        <Width>5</Width>
+                        <Height>5</Height>
+                    </Margins>
+                    <Paddings>
+                        <X>5</X>
+                        <Y>5</Y>
+                        <Width>5</Width>
+                        <Height>5</Height>
+                    </Paddings>
+                    <StretchX>True</StretchX>
+                    <StretchY>True</StretchY>
+                    <WindowColor>
+                        <R>56</R>
+                        <G>70</G>
+                        <B>116</B>
+                        <A>255</A>
+                    </WindowColor>
+                </UIBaseWindow>
+            </Children>
+            <ParentAnchor>CenterCenter</ParentAnchor>
+            <Anchor>CenterCenter</Anchor>
+            <Visible></Visible>
+            <MaxSize>
+                <X>200</X>
+                <Y>9999</Y>
+            </MaxSize>
+            <WindowColor>
+                <G>105</G>
+                <B>255</B>
+                <A>255</A>
+            </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
+            <Id>Stretch+Padding+Wrap</Id>
+            <Children>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+            </Children>
+            <ParentAnchor>TopCenter</ParentAnchor>
+            <Anchor>TopCenter</Anchor>
+            <LayoutMode>HorizontalListWrap</LayoutMode>
+            <ListSpacing>
+                <X>10</X>
+                <Y>10</Y>
+            </ListSpacing>
+            <Visible></Visible>
+            <Paddings>
+                <X>5</X>
+                <Y>5</Y>
+                <Width>5</Width>
+                <Height>5</Height>
+            </Paddings>
+            <StretchX>True</StretchX>
+            <StretchY>True</StretchY>
+            <WindowColor>
+                <R>56</R>
+                <G>70</G>
+                <B>116</B>
+                <A>255</A>
+            </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
+            <Id>Vert Stretch+Padding+Wrap</Id>
+            <Children>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>50</X>
+                        <Y>50</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+            </Children>
+            <ParentAnchor>CenterCenter</ParentAnchor>
+            <Anchor>CenterCenter</Anchor>
+            <LayoutMode>VerticalListWrap</LayoutMode>
+            <ListSpacing>
+                <X>10</X>
+                <Y>10</Y>
+            </ListSpacing>
+            <Visible></Visible>
+            <Paddings>
+                <X>5</X>
+                <Y>5</Y>
+                <Width>5</Width>
+                <Height>5</Height>
+            </Paddings>
+            <StretchX>True</StretchX>
+            <StretchY>True</StretchY>
+            <WindowColor>
+                <R>56</R>
+                <G>70</G>
+                <B>116</B>
+                <A>255</A>
+            </WindowColor>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
+            <Id>Vert Wrapped and Centered</Id>
+            <Children>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <Children>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                        <UIBaseWindow type="Emotion.UI.UISolidColor">
+                            <MaxSize>
+                                <X>50</X>
+                                <Y>50</Y>
+                            </MaxSize>
+                        </UIBaseWindow>
+                    </Children>
+                    <ParentAnchor>TopCenter</ParentAnchor>
+                    <Anchor>TopCenter</Anchor>
+                    <LayoutMode>VerticalListWrap</LayoutMode>
+                    <ListSpacing>
+                        <X>10</X>
+                        <Y>10</Y>
+                    </ListSpacing>
+                    <Margins>
+                        <X>5</X>
+                        <Y>5</Y>
+                        <Width>5</Width>
+                        <Height>5</Height>
+                    </Margins>
+                    <Paddings>
+                        <X>5</X>
+                        <Y>5</Y>
+                        <Width>5</Width>
+                        <Height>5</Height>
+                    </Paddings>
+                    <StretchX>True</StretchX>
+                    <StretchY>True</StretchY>
+                    <WindowColor>
+                        <R>56</R>
+                        <G>70</G>
+                        <B>116</B>
+                        <A>255</A>
+                    </WindowColor>
+                </UIBaseWindow>
+            </Children>
+            <ParentAnchor>CenterCenter</ParentAnchor>
+            <Anchor>CenterCenter</Anchor>
+            <Visible></Visible>
+            <MaxSize>
+                <X>9999</X>
+                <Y>200</Y>
+            </MaxSize>
+            <WindowColor>
+                <G>105</G>
+                <B>255</B>
+                <A>255</A>
+            </WindowColor>
         </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
-        </UIBaseWindow>
-      </Children>
-      <ParentAnchor>TopCenter</ParentAnchor>
-      <Anchor>TopCenter</Anchor>
-      <LayoutMode>HorizontalListWrap</LayoutMode>
-      <ListSpacing>
-        <X>10</X>
-        <Y>10</Y>
-      </ListSpacing>
-      <Visible></Visible>
-      <Paddings>
-        <X>5</X>
-        <Y>5</Y>
-        <Width>5</Width>
-        <Height>5</Height>
-      </Paddings>
-      <StretchX>True</StretchX>
-      <StretchY>True</StretchY>
-      <WindowColor>
-        <R>56</R>
-        <G>70</G>
-        <B>116</B>
-        <A>255</A>
-      </WindowColor>
-    </UIBaseWindow>
-    <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Id>Vert Stretch+Padding+Wrap</Id>
-      <Children>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>50</X>
-            <Y>50</Y>
-          </MaxSize>
-        </UIBaseWindow>
-      </Children>
-      <ParentAnchor>CenterCenter</ParentAnchor>
-      <Anchor>CenterCenter</Anchor>
-      <LayoutMode>VerticalListWrap</LayoutMode>
-      <ListSpacing>
-        <X>10</X>
-        <Y>10</Y>
-      </ListSpacing>
-      <Visible></Visible>
-      <Paddings>
-        <X>5</X>
-        <Y>5</Y>
-        <Width>5</Width>
-        <Height>5</Height>
-      </Paddings>
-      <StretchX>True</StretchX>
-      <StretchY>True</StretchY>
-      <WindowColor>
-        <R>56</R>
-        <G>70</G>
-        <B>116</B>
-        <A>255</A>
-      </WindowColor>
-    </UIBaseWindow>
-    <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <Id>Vert Wrapped and Centered</Id>
-      <Children>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <Children>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-            <UIBaseWindow type="Emotion.UI.UISolidColor">
-              <MaxSize>
-                <X>50</X>
-                <Y>50</Y>
-              </MaxSize>
-            </UIBaseWindow>
-          </Children>
-          <ParentAnchor>TopCenter</ParentAnchor>
-          <Anchor>TopCenter</Anchor>
-          <LayoutMode>VerticalListWrap</LayoutMode>
-          <ListSpacing>
-            <X>10</X>
-            <Y>10</Y>
-          </ListSpacing>
-          <Margins>
-            <X>5</X>
-            <Y>5</Y>
-            <Width>5</Width>
-            <Height>5</Height>
-          </Margins>
-          <Paddings>
-            <X>5</X>
-            <Y>5</Y>
-            <Width>5</Width>
-            <Height>5</Height>
-          </Paddings>
-          <StretchX>True</StretchX>
-          <StretchY>True</StretchY>
-          <WindowColor>
-            <R>56</R>
-            <G>70</G>
-            <B>116</B>
-            <A>255</A>
-          </WindowColor>
-        </UIBaseWindow>
-      </Children>
-      <ParentAnchor>CenterCenter</ParentAnchor>
-      <Anchor>CenterCenter</Anchor>
-      <Visible></Visible>
-      <MaxSize>
-        <X>9999</X>
-        <Y>200</Y>
-      </MaxSize>
-      <WindowColor>
-        <G>105</G>
-        <B>255</B>
-        <A>255</A>
-      </WindowColor>
-    </UIBaseWindow>
-  </Children>
+    </Children>
 </UIBaseWindow>

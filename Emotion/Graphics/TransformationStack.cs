@@ -1,10 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
-using System.Numerics;
-using Emotion.Common;
-using Emotion.Standard.Logging;
-
 #endregion
 
 namespace Emotion.Graphics

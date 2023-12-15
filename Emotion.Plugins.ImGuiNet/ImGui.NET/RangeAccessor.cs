@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+
+#endregion
 
 namespace ImGuiNET
 {
@@ -11,7 +15,10 @@ namespace ImGuiNET
         public readonly void* Data;
         public readonly int Count;
 
-        public RangeAccessor(IntPtr data, int count) : this(data.ToPointer(), count) { }
+        public RangeAccessor(IntPtr data, int count) : this(data.ToPointer(), count)
+        {
+        }
+
         public RangeAccessor(void* data, int count)
         {
             Data = data;
@@ -22,12 +29,9 @@ namespace ImGuiNET
         {
             get
             {
-                if (index < 0 || index >= Count)
-                {
-                    throw new IndexOutOfRangeException();
-                }
+                if (index < 0 || index >= Count) throw new IndexOutOfRangeException();
 
-                return ref Unsafe.AsRef<T>((byte*)Data + s_sizeOfT * index);
+                return ref Unsafe.AsRef<T>((byte*) Data + s_sizeOfT * index);
             }
         }
     }
@@ -37,7 +41,10 @@ namespace ImGuiNET
         public readonly void* Data;
         public readonly int Count;
 
-        public RangePtrAccessor(IntPtr data, int count) : this(data.ToPointer(), count) { }
+        public RangePtrAccessor(IntPtr data, int count) : this(data.ToPointer(), count)
+        {
+        }
+
         public RangePtrAccessor(void* data, int count)
         {
             Data = data;
@@ -48,12 +55,9 @@ namespace ImGuiNET
         {
             get
             {
-                if (index < 0 || index >= Count)
-                {
-                    throw new IndexOutOfRangeException();
-                }
+                if (index < 0 || index >= Count) throw new IndexOutOfRangeException();
 
-                return Unsafe.Read<T>((byte*)Data + sizeof(void*) * index);
+                return Unsafe.Read<T>((byte*) Data + sizeof(void*) * index);
             }
         }
     }
@@ -62,7 +66,7 @@ namespace ImGuiNET
     {
         public static unsafe string GetStringASCII(this RangeAccessor<byte> stringAccessor)
         {
-            return Encoding.ASCII.GetString((byte*)stringAccessor.Data, stringAccessor.Count);
+            return Encoding.ASCII.GetString((byte*) stringAccessor.Data, stringAccessor.Count);
         }
     }
 }

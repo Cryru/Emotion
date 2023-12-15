@@ -1,9 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Utility;
 
@@ -65,7 +62,7 @@ namespace Emotion.Primitives
         /// <param name="minDist">The minimum distance between points before they are considered duplicate.</param>
         public void CleanupPolygon(float minDist = 0.0f)
         {
-            Debug.Assert(Vertices.Length >= 3);
+            Assert(Vertices.Length >= 3);
             if (IsClean) return;
 
             float sqrtDist = minDist * minDist;
@@ -104,7 +101,7 @@ namespace Emotion.Primitives
             for (var i = 1; i < uniqueCount; ++i)
             {
                 float x = ps[i].X;
-                if (x > x0 || x == x0 && ps[i].Y < ps[i0].Y)
+                if (x > x0 || (x == x0 && ps[i].Y < ps[i0].Y))
                 {
                     i0 = i;
                     x0 = x;
@@ -165,7 +162,7 @@ namespace Emotion.Primitives
             {
                 Vector2 vert = Vertices[i];
                 Vector2 vertJ = Vertices[j];
-                if (vert.Y < point.Y && vertJ.Y >= point.Y || vertJ.Y < point.Y && vert.Y >= point.Y)
+                if ((vert.Y < point.Y && vertJ.Y >= point.Y) || (vertJ.Y < point.Y && vert.Y >= point.Y))
                     if (vert.X + (point.Y - vert.Y) / (vertJ.Y - vert.Y) * (vertJ.X - vert.X) < point.X)
                         result = !result;
                 j = i;
@@ -188,7 +185,7 @@ namespace Emotion.Primitives
 
             return a * 0.5f;
         }
-        
+
         /// <summary>
         /// Get the normal vectors of the polygon's vertices.
         /// </summary>
@@ -200,7 +197,7 @@ namespace Emotion.Primitives
             {
                 int next = i + 1 < verticesCount ? i + 1 : 0;
                 Vector2 edge = Vertices[next] - Vertices[i];
-                Debug.Assert(edge.LengthSquared() > Maths.EPSILON * Maths.EPSILON);
+                Assert(edge.LengthSquared() > Maths.EPSILON * Maths.EPSILON);
                 Vector2 temp = Maths.Cross2D(edge, 1.0f);
                 normals[i] = Vector2.Normalize(temp);
             }

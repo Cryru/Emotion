@@ -1,7 +1,5 @@
 #region Using
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -34,7 +32,7 @@ namespace Khronos
 
         public static void BindAPIFunction(FieldInfo function, KhronosVersion version, ExtensionsCollection extensions, GraphicsContext context)
         {
-            Debug.Assert(function != null);
+            Assert(function != null);
 
             RequiredByFeatureAttribute requiredByFeature = null;
             var requiredByExtensions = new List<RequiredByFeatureAttribute>();
@@ -94,8 +92,8 @@ namespace Khronos
                     // Check for resurrection
                     if (removed)
                     {
-                        Debug.Assert(requiredByFeature != null);
-                        Debug.Assert(maxRemovedVersion != null);
+                        Assert(requiredByFeature != null);
+                        Assert(maxRemovedVersion != null);
 
                         if (requiredByFeature.FeatureVersion > maxRemovedVersion)
                             removed = false;
@@ -168,12 +166,12 @@ namespace Khronos
 
         private static void BindNativeAPIFunction(FieldInfo function, IntPtr importAddress)
         {
-            Debug.Assert(function != null);
-            Debug.Assert(importAddress != IntPtr.Zero);
+            Assert(function != null);
+            Assert(importAddress != IntPtr.Zero);
 
             Delegate delegatePtr = Marshal.GetDelegateForFunctionPointer(importAddress, function.FieldType);
 
-            Debug.Assert(delegatePtr != null);
+            Assert(delegatePtr != null);
             function.SetValue(null, delegatePtr);
         }
 
@@ -196,8 +194,8 @@ namespace Khronos
         /// </returns>
         internal static bool IsCompatibleField(FieldInfo function, KhronosVersion version, ExtensionsCollection extensions)
         {
-            Debug.Assert(function != null);
-            Debug.Assert(version != null);
+            Assert(function != null);
+            Assert(version != null);
 
             IEnumerable<Attribute> attrRequired = Attribute.GetCustomAttributes(function, typeof(RequiredByFeatureAttribute));
 
@@ -240,8 +238,8 @@ namespace Khronos
                 // Check for resurrection
                 if (removed)
                 {
-                    Debug.Assert(maxRequiredVersion != null);
-                    Debug.Assert(maxRemovedVersion != null);
+                    Assert(maxRequiredVersion != null);
+                    Assert(maxRemovedVersion != null);
 
                     if (maxRequiredVersion > maxRemovedVersion)
                         removed = false;

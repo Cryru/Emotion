@@ -16,6 +16,6 @@ namespace Emotion.Game.World.SceneControl;
 /// </summary>
 public interface IWorldAwareScene
 {
-	public BaseMap? GetCurrentMap();
-	public Task ChangeMapAsync(BaseMap map);
+    public BaseMap? GetCurrentMap();
+    public Task ChangeMapAsync(BaseMap map);
 }

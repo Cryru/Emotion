@@ -5,7 +5,6 @@ using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using ImGuiNET;
 
 #endregion
 
@@ -30,7 +29,7 @@ namespace Emotion.Plugins.ImGuiNet
                 (reqUv.Y + reqUv.Size.Y) / t.Size.Y
             );
 
-            if(t.FlipY) (uvTwo.Y, uvOne.Y) = (uvOne.Y, uvTwo.Y);
+            if (t.FlipY) (uvTwo.Y, uvOne.Y) = (uvOne.Y, uvTwo.Y);
 
             return new Tuple<Vector2, Vector2>(uvOne, uvTwo);
         }

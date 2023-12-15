@@ -1,12 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using Emotion.Common;
 using Emotion.Platform.Input;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion
@@ -170,13 +165,13 @@ namespace Emotion.Platform
 
         protected void UpdateScroll(float amount)
         {
-	        if (amount != 0)
-	        {
-		        _mouseScrollAccum += amount;
-		        OnKey.Invoke(Key.MouseWheel, amount < 0 ? KeyStatus.MouseWheelScrollDown : KeyStatus.MouseWheelScrollUp);
-		        //UpdateKeyStatus(Key.MouseKeyWheel, amount < 0);
-	        }
-           
+            if (amount != 0)
+            {
+                _mouseScrollAccum += amount;
+                OnKey.Invoke(Key.MouseWheel, amount < 0 ? KeyStatus.MouseWheelScrollDown : KeyStatus.MouseWheelScrollUp);
+                //UpdateKeyStatus(Key.MouseKeyWheel, amount < 0);
+            }
+
             OnMouseScroll?.Invoke(amount);
         }
 

@@ -7,7 +7,6 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
-using Emotion.Game.World;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
@@ -21,6 +20,7 @@ using Emotion.IO.MeshAssetTypes;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
+using Extensions = Emotion.Utility.Extensions;
 
 #endregion
 
@@ -159,7 +159,7 @@ public class ModelViewer : EditorPanel
 
         var gridSizeEdit = new PropEditorNumber<float>();
         gridSizeEdit.SetValue(_grid.TileSize);
-        gridSizeEdit.SetCallbackValueChanged(newVal => { _grid.TileSize = (float)newVal; });
+        gridSizeEdit.SetCallbackValueChanged(newVal => { _grid.TileSize = (float) newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Grid Size: ", gridSizeEdit));
 
         var label = new MapEditorLabel("No model loaded");
@@ -184,25 +184,25 @@ public class ModelViewer : EditorPanel
 
         var posEditor = new PropEditorFloat3(false);
         posEditor.SetValue(_obj.Position);
-        posEditor.SetCallbackValueChanged(newVal => { _obj.Position = (Vector3)newVal; });
+        posEditor.SetCallbackValueChanged(newVal => { _obj.Position = (Vector3) newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Position: ", posEditor, LayoutMode.VerticalList));
 
         var rotEditor = new PropEditorFloat3(false);
         rotEditor.SetValue(_obj.RotationDeg);
-        rotEditor.SetCallbackValueChanged(newVal => { _obj.RotationDeg = (Vector3)newVal; });
+        rotEditor.SetCallbackValueChanged(newVal => { _obj.RotationDeg = (Vector3) newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Rotation: ", rotEditor, LayoutMode.VerticalList));
 
         var scaleEditor = new PropEditorFloat3(false);
         scaleEditor.SetValue(_obj.Size3D);
-        scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3)newVal; });
+        scaleEditor.SetCallbackValueChanged(newVal => { _obj.Size3D = (Vector3) newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Scale: ", scaleEditor, LayoutMode.VerticalList));
 
-        var meshListProp = new EditorButtonDropDown()
+        var meshListProp = new EditorButtonDropDown
         {
-			Text = "Meshes: ",
+            Text = "Meshes: ",
             Id = "MeshList",
-			LayoutMode = LayoutMode.VerticalList
-		};
+            LayoutMode = LayoutMode.VerticalList
+        };
         editorButtons.AddChild(meshListProp);
 
         var animationsList = new EditorButtonDropDown
@@ -231,7 +231,8 @@ public class ModelViewer : EditorPanel
             Enabled = false,
             OnClickedProxy = _ =>
             {
-                Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => {
+                Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset =>
+                {
                     var currentEntity = _obj.Entity;
                     if (currentEntity == null || currentEntity.Animations == null) return;
 
@@ -251,7 +252,7 @@ public class ModelViewer : EditorPanel
                         anim.Name = Helpers.EnsureNoStringCollision(takenNames, anim.Name);
                     }
 
-                    currentEntity.Animations = Utility.Extensions.JoinArrays(currentEntity.Animations, assetEntity.Animations);
+                    currentEntity.Animations = Extensions.JoinArrays(currentEntity.Animations, assetEntity.Animations);
                     UpdateAnimationList();
                 }));
             }
@@ -260,7 +261,7 @@ public class ModelViewer : EditorPanel
 
         var viewSkeleton = new PropEditorBool();
         viewSkeleton.SetValue(false);
-        viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool)newVal; });
+        viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool) newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton));
 
         contentSplit.AddChild(editorButtons);
@@ -296,49 +297,40 @@ public class ModelViewer : EditorPanel
     {
         _obj.Entity = entity;
 
-        var meshList = (EditorButtonDropDown?)GetWindowById("MeshList");
+        var meshList = (EditorButtonDropDown?) GetWindowById("MeshList");
         if (meshList != null)
         {
-			Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();
+            Mesh[] meshes = entity?.Meshes ?? Array.Empty<Mesh>();
 
-			var checkboxItemList = new EditorDropDownCheckboxItem[meshes.Length];
-			for (var i = 0; i < meshes.Length; i++)
-			{
-				Mesh mesh = meshes[i];
-				int idx = i;
-				checkboxItemList[i] = new EditorDropDownCheckboxItem()
-				{
-					Name = mesh.Name,
-					Checked = () =>
-					{
-						return _obj.EntityMetaState!.RenderMesh[idx];
-					},
-					Click = (_, __) =>
-					{
-						_obj.EntityMetaState!.RenderMesh[idx] = !_obj.EntityMetaState!.RenderMesh[idx];
-					}
-				};
-			}
+            var checkboxItemList = new EditorDropDownCheckboxItem[meshes.Length];
+            for (var i = 0; i < meshes.Length; i++)
+            {
+                Mesh mesh = meshes[i];
+                int idx = i;
+                checkboxItemList[i] = new EditorDropDownCheckboxItem
+                {
+                    Name = mesh.Name,
+                    Checked = () => { return _obj.EntityMetaState!.RenderMesh[idx]; },
+                    Click = (_, __) => { _obj.EntityMetaState!.RenderMesh[idx] = !_obj.EntityMetaState!.RenderMesh[idx]; }
+                };
+            }
 
-			meshList.SetItems(checkboxItemList, 0);
+            meshList.SetItems(checkboxItemList, 0);
             meshList.Text = entity == null ? "Meshes" : $"Meshes [{entity.Meshes.Length}]";
         }
 
         UpdateAnimationList();
 
-        var label = (MapEditorLabel?)GetWindowById("ModelLabel");
-        if (label != null)
-        {
-            label.Text = $"Entity: {entity.Name}\nRadius: {_obj.BoundingSphere.Radius}";
-        }
+        var label = (MapEditorLabel?) GetWindowById("ModelLabel");
+        if (label != null) label.Text = $"Entity: {entity.Name}\nRadius: {_obj.BoundingSphere.Radius}";
 
-        var exportButton = (EditorButton?)GetWindowById("ButtonExportEm3");
+        var exportButton = (EditorButton?) GetWindowById("ButtonExportEm3");
         if (exportButton != null) exportButton.Enabled = true;
-        
-        var editPropsButton = (EditorButton?)GetWindowById("buttonEditProps");
+
+        var editPropsButton = (EditorButton?) GetWindowById("buttonEditProps");
         if (editPropsButton != null) editPropsButton.Enabled = true;
-        
-        var importAnimButton = (EditorButton?)GetWindowById("buttonImportAnim");
+
+        var importAnimButton = (EditorButton?) GetWindowById("buttonImportAnim");
         if (importAnimButton != null) importAnimButton.Enabled = entity?.Animations != null;
     }
 
@@ -346,7 +338,7 @@ public class ModelViewer : EditorPanel
     {
         MeshEntity? entity = _obj.Entity;
 
-        var animationList = (EditorButtonDropDown?)GetWindowById("Animations");
+        var animationList = (EditorButtonDropDown?) GetWindowById("Animations");
         if (animationList != null)
         {
             SkeletalAnimation[]? animations = entity?.Animations;
@@ -436,7 +428,7 @@ public class ModelViewer : EditorPanel
         c.ClearDepth();
 
         if (_gridLoadingTask.IsCompletedSuccessfully)
-			_grid.Render(c);
+            _grid.Render(c);
 
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);

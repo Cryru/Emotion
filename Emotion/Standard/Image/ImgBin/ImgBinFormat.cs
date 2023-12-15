@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using System;
 using System.IO;
-using System.Numerics;
 using Emotion.Utility;
 using OpenGL;
 
@@ -22,7 +20,7 @@ namespace Emotion.Standard.Image.ImgBin
         {
             if (data.Length < 3) return false;
             ReadOnlySpan<byte> span = data.Span;
-            return span[0] == (byte)'E' && span[1] == (byte)'I' && span[2] == (byte)'B';
+            return span[0] == (byte) 'E' && span[1] == (byte) 'I' && span[2] == (byte) 'B';
         }
 
         public static byte[] Encode(byte[] pixels, Vector2 size, PixelFormat format)
@@ -35,7 +33,7 @@ namespace Emotion.Standard.Image.ImgBin
             writer.Write((byte) 'B');
             writer.Write(size.X);
             writer.Write(size.Y);
-            writer.Write((int)format);
+            writer.Write((int) format);
             writer.Write(pixels);
 
             return fileOutput;
@@ -51,7 +49,7 @@ namespace Emotion.Standard.Image.ImgBin
             float width = r.ReadSingle();
             float height = r.ReadSingle();
             fileHeader.Size = new Vector2(width, height);
-            fileHeader.Format = (PixelFormat)r.ReadInt32();
+            fileHeader.Format = (PixelFormat) r.ReadInt32();
             return fileData.Span.Slice((int) stream.Position).ToArray();
         }
     }

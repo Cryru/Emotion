@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Primitives;
 using Emotion.Standard.TMX.Object;
 using Emotion.Standard.XML;
 

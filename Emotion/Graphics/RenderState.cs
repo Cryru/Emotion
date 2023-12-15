@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Graphics.Shading;
-using Emotion.Primitives;
 using OpenGL;
 
 #endregion

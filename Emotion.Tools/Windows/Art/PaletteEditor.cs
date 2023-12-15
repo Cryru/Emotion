@@ -17,7 +17,6 @@ using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Tools.Windows.HelpWindows;
-using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;
 
@@ -245,6 +244,7 @@ namespace Emotion.Tools.Windows.Art
                 Color c = palette.Colors[index];
                 pixelsAsColor[i] = c;
             }
+
             texture.Upload(_baseTexture.Texture.Size, pixels);
         }
 

@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Text.RegularExpressions;
 
 #endregion

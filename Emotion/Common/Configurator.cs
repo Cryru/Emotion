@@ -1,12 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Emotion.Audio;
 using Emotion.Platform;
-using Emotion.Primitives;
-using Emotion.Standard.Logging;
 
 #endregion
 

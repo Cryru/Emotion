@@ -2,8 +2,6 @@
 
 using System.IO;
 using System.IO.Compression;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 
 #endregion
 

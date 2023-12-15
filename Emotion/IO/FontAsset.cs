@@ -1,9 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Emotion.Common;
 using Emotion.Graphics.Text;
 using Emotion.Graphics.Text.EmotionRenderer;
 using Emotion.Graphics.Text.EmotionSDF;

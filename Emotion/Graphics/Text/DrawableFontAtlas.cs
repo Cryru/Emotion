@@ -1,13 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Game;
 using Emotion.Graphics.Objects;
-using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
@@ -25,7 +19,10 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The texture atlas.
         /// </summary>
-        public virtual Texture Texture { get => Texture.NoTexture; }
+        public virtual Texture Texture
+        {
+            get => Texture.NoTexture;
+        }
 
         /// <summary>
         /// The px size of the font.

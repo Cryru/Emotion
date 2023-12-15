@@ -1,12 +1,8 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 

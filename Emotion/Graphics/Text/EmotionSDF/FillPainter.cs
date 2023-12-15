@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
-using System.Numerics;
 using Emotion.Utility;
 
 #endregion
@@ -14,7 +12,7 @@ namespace Emotion.Graphics.Text.EmotionSDF
     {
         private Vector2 _fanPos;
         private Vector2 _prevPos;
-        public List<SdfVertex> Vertices = new ();
+        public List<SdfVertex> Vertices = new();
 
         public void MoveTo(Vector2 p0)
         {

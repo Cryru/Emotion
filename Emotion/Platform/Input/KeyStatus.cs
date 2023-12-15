@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Emotion.Platform.Input
+﻿namespace Emotion.Platform.Input
 {
     public enum KeyStatus
     {

@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
-using System.Numerics;
-using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 

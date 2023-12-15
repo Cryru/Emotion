@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
-using Emotion.Common;
 using Emotion.Platform.Input;
 using Emotion.Utility;
 using WinApi;
@@ -103,7 +100,7 @@ namespace Emotion.Platform.Implementation.Win32
                         // WM_UNICHAR is not sent by Windows, but is sent by some
                         // third-party input method engine
                         // Returning TRUE here announces support for this message
-                        return (IntPtr) 1;
+                        return 1;
 
                     UpdateTextInput((char) wParam);
                     break;

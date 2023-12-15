@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.IO;
 using Emotion.Utility;
 

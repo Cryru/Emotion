@@ -89,7 +89,7 @@ public class TilesetTileSelector : UIBaseWindow
         if (tileSize == Vector2.Zero) tileSize = new Vector2(1);
         var tileSizeDisplay = tileSize / 2f;
 
-        int tilesPerRow = (int)(MaxSizeX / tileSizeDisplay.X);
+        int tilesPerRow = (int) (MaxSizeX / tileSizeDisplay.X);
         var tilesetTexture = Engine.AssetLoader.Get<TextureAsset>(_tileset.AssetFile);
         if (tilesetTexture == null) return;
 
@@ -97,14 +97,14 @@ public class TilesetTileSelector : UIBaseWindow
         if (tilesetId == -1) return;
 
         Vector2 tileCount = tilesetTexture.Texture.Size / (tileSize + new Vector2(_tileset.Spacing));
-        int totalTiles = (int)(tileCount.X * tileCount.Y);
+        int totalTiles = (int) (tileCount.X * tileCount.Y);
 
-        int rows = (int)MathF.Ceiling((float)totalTiles / tilesPerRow);
+        int rows = (int) MathF.Ceiling((float) totalTiles / tilesPerRow);
         int tileIdx = 0;
         for (int i = 0; i < rows; i++)
         {
             UIBaseWindow tileRow = new UIBaseWindow();
-            tileRow.MaxSize = (new Vector2(tilesPerRow, 1) * tileSizeDisplay) + new Vector2(tilesPerRow, 0);
+            tileRow.MaxSize = new Vector2(tilesPerRow, 1) * tileSizeDisplay + new Vector2(tilesPerRow, 0);
             tileRow.MinSize = tileRow.MaxSize;
             tileRow.ListSpacing = new Vector2(1);
             tileRow.LayoutMode = LayoutMode.HorizontalList;
@@ -165,7 +165,7 @@ public class MapEditorTilePanel : EditorPanel
 
         var editTileData = new EditorButton("Edit Meta");
         editTileData.StretchY = true;
-        editTileData.OnClickedProxy = (_) =>
+        editTileData.OnClickedProxy = _ =>
         {
             var propPanel = new GenericPropertiesEditorPanel(_map.TileData);
             propPanel.OnPropertyEdited = (propName, propValue) =>
@@ -262,7 +262,7 @@ public class ItemListWithActions<T> : UIBaseWindow
     private List<T>? _items;
     private int _selectedItemIdx;
 
-    private bool _dropDownMode = false;
+    private bool _dropDownMode;
 
     public ItemListWithActions(bool dropDownMode = false)
     {
@@ -382,22 +382,17 @@ public class ItemListWithActions<T> : UIBaseWindow
 
             EditorDropDownItem[] dropDownItems = _items == null ? _dropDownNoItems : new EditorDropDownItem[_items.Count];
             if (items != null)
-            {
                 for (int i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    var itemDescr = new EditorDropDownItem()
+                    var itemDescr = new EditorDropDownItem
                     {
                         Name = item?.ToString() ?? "<null>",
                         UserData = i,
-                        Click = (dropDownItem, __) =>
-                        {
-                            SetSelectedItem((int)dropDownItem.UserData);
-                        }
+                        Click = (dropDownItem, __) => { SetSelectedItem((int) dropDownItem.UserData); }
                     };
                     dropDownItems[i] = itemDescr;
                 }
-            }
 
             dropDownButton.SetItems(dropDownItems, 0);
         }
@@ -408,7 +403,6 @@ public class ItemListWithActions<T> : UIBaseWindow
 
             list.ClearChildren();
             if (_items != null)
-            {
                 for (int i = 0; i < _items.Count; i++)
                 {
                     T item = _items[i];
@@ -421,15 +415,11 @@ public class ItemListWithActions<T> : UIBaseWindow
                         OnClickedProxy = button =>
                         {
                             EditorButton? asEditorButton = button as EditorButton;
-                            if (asEditorButton != null)
-                            {
-                                SetSelectedItem((int)asEditorButton.UserData);
-                            }
+                            if (asEditorButton != null) SetSelectedItem((int) asEditorButton.UserData);
                         }
                     };
                     list.AddChild(button);
                 }
-            }
         }
 
         SetSelectedItem(0);

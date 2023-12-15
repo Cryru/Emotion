@@ -882,7 +882,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_multitexture")]
         public static void ActiveTexture(TextureUnit texture)
         {
-            Debug.Assert(Delegates.pglActiveTexture != null, "pglActiveTexture not implemented");
+            Assert(Delegates.pglActiveTexture != null, "pglActiveTexture not implemented");
             Delegates.pglActiveTexture((int) texture);
             DebugCheckErrors(null);
         }
@@ -907,7 +907,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_multisample")]
         public static void SampleCoverage(float value, bool invert)
         {
-            Debug.Assert(Delegates.pglSampleCoverage != null, "pglSampleCoverage not implemented");
+            Assert(Delegates.pglSampleCoverage != null, "pglSampleCoverage not implemented");
             Delegates.pglSampleCoverage(value, invert);
             DebugCheckErrors(null);
         }
@@ -958,7 +958,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_compression")]
         public static void CompressedTexImage3D(TextureTarget target, int level, InternalFormat internalformat, int width, int height, int depth, int border, int imageSize, IntPtr data)
         {
-            Debug.Assert(Delegates.pglCompressedTexImage3D != null, "pglCompressedTexImage3D not implemented");
+            Assert(Delegates.pglCompressedTexImage3D != null, "pglCompressedTexImage3D not implemented");
             Delegates.pglCompressedTexImage3D((int) target, level, (int) internalformat, width, height, depth, border, imageSize, data);
             DebugCheckErrors(null);
         }
@@ -1062,7 +1062,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_compression")]
         public static void CompressedTexImage2D(TextureTarget target, int level, InternalFormat internalformat, int width, int height, int border, int imageSize, IntPtr data)
         {
-            Debug.Assert(Delegates.pglCompressedTexImage2D != null, "pglCompressedTexImage2D not implemented");
+            Assert(Delegates.pglCompressedTexImage2D != null, "pglCompressedTexImage2D not implemented");
             Delegates.pglCompressedTexImage2D((int) target, level, (int) internalformat, width, height, border, imageSize, data);
             DebugCheckErrors(null);
         }
@@ -1150,7 +1150,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_compression")]
         public static void CompressedTexImage1D(TextureTarget target, int level, InternalFormat internalformat, int width, int border, int imageSize, IntPtr data)
         {
-            Debug.Assert(Delegates.pglCompressedTexImage1D != null, "pglCompressedTexImage1D not implemented");
+            Assert(Delegates.pglCompressedTexImage1D != null, "pglCompressedTexImage1D not implemented");
             Delegates.pglCompressedTexImage1D((int) target, level, (int) internalformat, width, border, imageSize, data);
             DebugCheckErrors(null);
         }
@@ -1242,7 +1242,7 @@ namespace OpenGL
         public static void CompressedTexSubImage3D(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, PixelFormat format, int imageSize,
             IntPtr data)
         {
-            Debug.Assert(Delegates.pglCompressedTexSubImage3D != null, "pglCompressedTexSubImage3D not implemented");
+            Assert(Delegates.pglCompressedTexSubImage3D != null, "pglCompressedTexSubImage3D not implemented");
             Delegates.pglCompressedTexSubImage3D((int) target, level, xoffset, yoffset, zoffset, width, height, depth, (int) format, imageSize, data);
             DebugCheckErrors(null);
         }
@@ -1346,7 +1346,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_compression")]
         public static void CompressedTexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int width, int height, PixelFormat format, int imageSize, IntPtr data)
         {
-            Debug.Assert(Delegates.pglCompressedTexSubImage2D != null, "pglCompressedTexSubImage2D not implemented");
+            Assert(Delegates.pglCompressedTexSubImage2D != null, "pglCompressedTexSubImage2D not implemented");
             Delegates.pglCompressedTexSubImage2D((int) target, level, xoffset, yoffset, width, height, (int) format, imageSize, data);
             DebugCheckErrors(null);
         }
@@ -1432,7 +1432,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_compression")]
         public static void CompressedTexSubImage1D(TextureTarget target, int level, int xoffset, int width, PixelFormat format, int imageSize, IntPtr data)
         {
-            Debug.Assert(Delegates.pglCompressedTexSubImage1D != null, "pglCompressedTexSubImage1D not implemented");
+            Assert(Delegates.pglCompressedTexSubImage1D != null, "pglCompressedTexSubImage1D not implemented");
             Delegates.pglCompressedTexSubImage1D((int) target, level, xoffset, width, (int) format, imageSize, data);
             DebugCheckErrors(null);
         }
@@ -1499,7 +1499,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_compression")]
         public static void GetCompressedTexImage(TextureTarget target, int level, IntPtr img)
         {
-            Debug.Assert(Delegates.pglGetCompressedTexImage != null, "pglGetCompressedTexImage not implemented");
+            Assert(Delegates.pglGetCompressedTexImage != null, "pglGetCompressedTexImage not implemented");
             Delegates.pglGetCompressedTexImage((int) target, level, img);
             DebugCheckErrors(null);
         }
@@ -1557,7 +1557,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void ClientActiveTexture(TextureUnit texture)
         {
-            Debug.Assert(Delegates.pglClientActiveTexture != null, "pglClientActiveTexture not implemented");
+            Assert(Delegates.pglClientActiveTexture != null, "pglClientActiveTexture not implemented");
             Delegates.pglClientActiveTexture((int) texture);
             DebugCheckErrors(null);
         }
@@ -1580,7 +1580,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, double s)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord1d != null, "pglMultiTexCoord1d not implemented");
+            Assert(Delegates.pglMultiTexCoord1d != null, "pglMultiTexCoord1d not implemented");
             Delegates.pglMultiTexCoord1d((int) target, s);
         }
 
@@ -1600,12 +1600,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, double[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord1dv != null, "pglMultiTexCoord1dv not implemented");
+                    Assert(Delegates.pglMultiTexCoord1dv != null, "pglMultiTexCoord1dv not implemented");
                     Delegates.pglMultiTexCoord1dv((int) target, p_v);
                 }
             }
@@ -1631,7 +1631,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, float s)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord1f != null, "pglMultiTexCoord1f not implemented");
+            Assert(Delegates.pglMultiTexCoord1f != null, "pglMultiTexCoord1f not implemented");
             Delegates.pglMultiTexCoord1f((int) target, s);
         }
 
@@ -1651,12 +1651,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, float[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord1fv != null, "pglMultiTexCoord1fv not implemented");
+                    Assert(Delegates.pglMultiTexCoord1fv != null, "pglMultiTexCoord1fv not implemented");
                     Delegates.pglMultiTexCoord1fv((int) target, p_v);
                 }
             }
@@ -1682,7 +1682,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, int s)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord1i != null, "pglMultiTexCoord1i not implemented");
+            Assert(Delegates.pglMultiTexCoord1i != null, "pglMultiTexCoord1i not implemented");
             Delegates.pglMultiTexCoord1i((int) target, s);
         }
 
@@ -1702,12 +1702,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, int[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord1iv != null, "pglMultiTexCoord1iv not implemented");
+                    Assert(Delegates.pglMultiTexCoord1iv != null, "pglMultiTexCoord1iv not implemented");
                     Delegates.pglMultiTexCoord1iv((int) target, p_v);
                 }
             }
@@ -1733,7 +1733,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, short s)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord1s != null, "pglMultiTexCoord1s not implemented");
+            Assert(Delegates.pglMultiTexCoord1s != null, "pglMultiTexCoord1s not implemented");
             Delegates.pglMultiTexCoord1s((int) target, s);
         }
 
@@ -1753,12 +1753,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord1(TextureUnit target, short[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord1sv != null, "pglMultiTexCoord1sv not implemented");
+                    Assert(Delegates.pglMultiTexCoord1sv != null, "pglMultiTexCoord1sv not implemented");
                     Delegates.pglMultiTexCoord1sv((int) target, p_v);
                 }
             }
@@ -1789,7 +1789,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, double s, double t)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord2d != null, "pglMultiTexCoord2d not implemented");
+            Assert(Delegates.pglMultiTexCoord2d != null, "pglMultiTexCoord2d not implemented");
             Delegates.pglMultiTexCoord2d((int) target, s, t);
         }
 
@@ -1809,12 +1809,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, double[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord2dv != null, "pglMultiTexCoord2dv not implemented");
+                    Assert(Delegates.pglMultiTexCoord2dv != null, "pglMultiTexCoord2dv not implemented");
                     Delegates.pglMultiTexCoord2dv((int) target, p_v);
                 }
             }
@@ -1845,7 +1845,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, float s, float t)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord2f != null, "pglMultiTexCoord2f not implemented");
+            Assert(Delegates.pglMultiTexCoord2f != null, "pglMultiTexCoord2f not implemented");
             Delegates.pglMultiTexCoord2f((int) target, s, t);
         }
 
@@ -1865,12 +1865,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, float[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord2fv != null, "pglMultiTexCoord2fv not implemented");
+                    Assert(Delegates.pglMultiTexCoord2fv != null, "pglMultiTexCoord2fv not implemented");
                     Delegates.pglMultiTexCoord2fv((int) target, p_v);
                 }
             }
@@ -1901,7 +1901,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, int s, int t)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord2i != null, "pglMultiTexCoord2i not implemented");
+            Assert(Delegates.pglMultiTexCoord2i != null, "pglMultiTexCoord2i not implemented");
             Delegates.pglMultiTexCoord2i((int) target, s, t);
         }
 
@@ -1921,12 +1921,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, int[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord2iv != null, "pglMultiTexCoord2iv not implemented");
+                    Assert(Delegates.pglMultiTexCoord2iv != null, "pglMultiTexCoord2iv not implemented");
                     Delegates.pglMultiTexCoord2iv((int) target, p_v);
                 }
             }
@@ -1957,7 +1957,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, short s, short t)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord2s != null, "pglMultiTexCoord2s not implemented");
+            Assert(Delegates.pglMultiTexCoord2s != null, "pglMultiTexCoord2s not implemented");
             Delegates.pglMultiTexCoord2s((int) target, s, t);
         }
 
@@ -1977,12 +1977,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord2(TextureUnit target, short[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord2sv != null, "pglMultiTexCoord2sv not implemented");
+                    Assert(Delegates.pglMultiTexCoord2sv != null, "pglMultiTexCoord2sv not implemented");
                     Delegates.pglMultiTexCoord2sv((int) target, p_v);
                 }
             }
@@ -2018,7 +2018,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, double s, double t, double r)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord3d != null, "pglMultiTexCoord3d not implemented");
+            Assert(Delegates.pglMultiTexCoord3d != null, "pglMultiTexCoord3d not implemented");
             Delegates.pglMultiTexCoord3d((int) target, s, t, r);
         }
 
@@ -2038,12 +2038,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, double[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord3dv != null, "pglMultiTexCoord3dv not implemented");
+                    Assert(Delegates.pglMultiTexCoord3dv != null, "pglMultiTexCoord3dv not implemented");
                     Delegates.pglMultiTexCoord3dv((int) target, p_v);
                 }
             }
@@ -2079,7 +2079,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, float s, float t, float r)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord3f != null, "pglMultiTexCoord3f not implemented");
+            Assert(Delegates.pglMultiTexCoord3f != null, "pglMultiTexCoord3f not implemented");
             Delegates.pglMultiTexCoord3f((int) target, s, t, r);
         }
 
@@ -2099,12 +2099,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, float[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord3fv != null, "pglMultiTexCoord3fv not implemented");
+                    Assert(Delegates.pglMultiTexCoord3fv != null, "pglMultiTexCoord3fv not implemented");
                     Delegates.pglMultiTexCoord3fv((int) target, p_v);
                 }
             }
@@ -2140,7 +2140,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, int s, int t, int r)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord3i != null, "pglMultiTexCoord3i not implemented");
+            Assert(Delegates.pglMultiTexCoord3i != null, "pglMultiTexCoord3i not implemented");
             Delegates.pglMultiTexCoord3i((int) target, s, t, r);
         }
 
@@ -2160,12 +2160,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, int[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord3iv != null, "pglMultiTexCoord3iv not implemented");
+                    Assert(Delegates.pglMultiTexCoord3iv != null, "pglMultiTexCoord3iv not implemented");
                     Delegates.pglMultiTexCoord3iv((int) target, p_v);
                 }
             }
@@ -2201,7 +2201,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, short s, short t, short r)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord3s != null, "pglMultiTexCoord3s not implemented");
+            Assert(Delegates.pglMultiTexCoord3s != null, "pglMultiTexCoord3s not implemented");
             Delegates.pglMultiTexCoord3s((int) target, s, t, r);
         }
 
@@ -2221,12 +2221,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord3(TextureUnit target, short[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord3sv != null, "pglMultiTexCoord3sv not implemented");
+                    Assert(Delegates.pglMultiTexCoord3sv != null, "pglMultiTexCoord3sv not implemented");
                     Delegates.pglMultiTexCoord3sv((int) target, p_v);
                 }
             }
@@ -2267,7 +2267,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, double s, double t, double r, double q)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord4d != null, "pglMultiTexCoord4d not implemented");
+            Assert(Delegates.pglMultiTexCoord4d != null, "pglMultiTexCoord4d not implemented");
             Delegates.pglMultiTexCoord4d((int) target, s, t, r, q);
         }
 
@@ -2287,12 +2287,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, double[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord4dv != null, "pglMultiTexCoord4dv not implemented");
+                    Assert(Delegates.pglMultiTexCoord4dv != null, "pglMultiTexCoord4dv not implemented");
                     Delegates.pglMultiTexCoord4dv((int) target, p_v);
                 }
             }
@@ -2336,7 +2336,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, float s, float t, float r, float q)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord4f != null, "pglMultiTexCoord4f not implemented");
+            Assert(Delegates.pglMultiTexCoord4f != null, "pglMultiTexCoord4f not implemented");
             Delegates.pglMultiTexCoord4f((int) target, s, t, r, q);
         }
 
@@ -2356,12 +2356,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, float[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord4fv != null, "pglMultiTexCoord4fv not implemented");
+                    Assert(Delegates.pglMultiTexCoord4fv != null, "pglMultiTexCoord4fv not implemented");
                     Delegates.pglMultiTexCoord4fv((int) target, p_v);
                 }
             }
@@ -2402,7 +2402,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, int s, int t, int r, int q)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord4i != null, "pglMultiTexCoord4i not implemented");
+            Assert(Delegates.pglMultiTexCoord4i != null, "pglMultiTexCoord4i not implemented");
             Delegates.pglMultiTexCoord4i((int) target, s, t, r, q);
         }
 
@@ -2422,12 +2422,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, int[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord4iv != null, "pglMultiTexCoord4iv not implemented");
+                    Assert(Delegates.pglMultiTexCoord4iv != null, "pglMultiTexCoord4iv not implemented");
                     Delegates.pglMultiTexCoord4iv((int) target, p_v);
                 }
             }
@@ -2468,7 +2468,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, short s, short t, short r, short q)
         {
-            Debug.Assert(Delegates.pglMultiTexCoord4s != null, "pglMultiTexCoord4s not implemented");
+            Assert(Delegates.pglMultiTexCoord4s != null, "pglMultiTexCoord4s not implemented");
             Delegates.pglMultiTexCoord4s((int) target, s, t, r, q);
         }
 
@@ -2488,12 +2488,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultiTexCoord4(TextureUnit target, short[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoord4sv != null, "pglMultiTexCoord4sv not implemented");
+                    Assert(Delegates.pglMultiTexCoord4sv != null, "pglMultiTexCoord4sv not implemented");
                     Delegates.pglMultiTexCoord4sv((int) target, p_v);
                 }
             }
@@ -2512,12 +2512,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void LoadTransposeMatrix(float[] m)
         {
-            Debug.Assert(m.Length >= 16);
+            Assert(m.Length >= 16);
             unsafe
             {
                 fixed (float* p_m = m)
                 {
-                    Debug.Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
+                    Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
                     Delegates.pglLoadTransposeMatrixf(p_m);
                 }
             }
@@ -2536,7 +2536,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static unsafe void LoadTransposeMatrix(float* m)
         {
-            Debug.Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
+            Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
             Delegates.pglLoadTransposeMatrixf(m);
             DebugCheckErrors(null);
         }
@@ -2552,7 +2552,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void LoadTransposeMatrixf<T>(T m) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
+            Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
             unsafe
             {
                 Delegates.pglLoadTransposeMatrixf((float*) &m);
@@ -2572,12 +2572,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void LoadTransposeMatrix(double[] m)
         {
-            Debug.Assert(m.Length >= 16);
+            Assert(m.Length >= 16);
             unsafe
             {
                 fixed (double* p_m = m)
                 {
-                    Debug.Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
+                    Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
                     Delegates.pglLoadTransposeMatrixd(p_m);
                 }
             }
@@ -2596,7 +2596,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static unsafe void LoadTransposeMatrix(double* m)
         {
-            Debug.Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
+            Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
             Delegates.pglLoadTransposeMatrixd(m);
             DebugCheckErrors(null);
         }
@@ -2612,7 +2612,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void LoadTransposeMatrixd<T>(T m) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
+            Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
             unsafe
             {
                 Delegates.pglLoadTransposeMatrixd((double*) &m);
@@ -2632,12 +2632,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultTransposeMatrix(float[] m)
         {
-            Debug.Assert(m.Length >= 16);
+            Assert(m.Length >= 16);
             unsafe
             {
                 fixed (float* p_m = m)
                 {
-                    Debug.Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
+                    Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
                     Delegates.pglMultTransposeMatrixf(p_m);
                 }
             }
@@ -2656,7 +2656,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static unsafe void MultTransposeMatrix(float* m)
         {
-            Debug.Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
+            Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
             Delegates.pglMultTransposeMatrixf(m);
             DebugCheckErrors(null);
         }
@@ -2672,7 +2672,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultTransposeMatrixf<T>(T m) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
+            Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
             unsafe
             {
                 Delegates.pglMultTransposeMatrixf((float*) &m);
@@ -2692,12 +2692,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultTransposeMatrix(double[] m)
         {
-            Debug.Assert(m.Length >= 16);
+            Assert(m.Length >= 16);
             unsafe
             {
                 fixed (double* p_m = m)
                 {
-                    Debug.Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
+                    Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
                     Delegates.pglMultTransposeMatrixd(p_m);
                 }
             }
@@ -2716,7 +2716,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static unsafe void MultTransposeMatrix(double* m)
         {
-            Debug.Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
+            Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
             Delegates.pglMultTransposeMatrixd(m);
             DebugCheckErrors(null);
         }
@@ -2732,7 +2732,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void MultTransposeMatrixd<T>(T m) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
+            Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
             unsafe
             {
                 Delegates.pglMultTransposeMatrixd((double*) &m);

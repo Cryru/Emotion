@@ -8,10 +8,10 @@ namespace Emotion.Editor.PropertyEditors;
 
 public interface IPropEditorGeneric
 {
-	public XMLFieldHandler Field { get; set; }
+    public XMLFieldHandler Field { get; set; }
 
-	public void SetValue(object value);
-	public object GetValue();
+    public void SetValue(object value);
+    public object GetValue();
 
-	public void SetCallbackValueChanged(Action<object> callback);
+    public void SetCallbackValueChanged(Action<object> callback);
 }

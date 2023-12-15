@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
-
 #endregion
 
 namespace Emotion.Graphics.Text.EmotionSDF

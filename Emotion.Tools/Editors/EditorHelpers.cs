@@ -34,10 +34,7 @@ namespace Emotion.Tools.Editors
             var colorMultiplier = (byte) (_mouseDragging ? 100 : 50);
 
             c.RenderOutline(Rect, Color);
-            if (_anchor == 5)
-            {
-                c.RenderSprite(Rect, Color.Add(Color, colorMultiplier).SetAlpha(colorMultiplier));
-            }
+            if (_anchor == 5) c.RenderSprite(Rect, Color.Add(Color, colorMultiplier).SetAlpha(colorMultiplier));
 
             c.RenderCircle(Rect.Position.ToVec3(), 2, _anchor == 1 ? Color.Add(Color, colorMultiplier) : Color, true);
             c.RenderCircle(Rect.TopRight.ToVec3(), 2, _anchor == 2 ? Color.Add(Color, colorMultiplier) : Color, true);
@@ -73,14 +70,14 @@ namespace Emotion.Tools.Editors
                         min = mouseWorld - _boxDragStart;
                         max = min + Rect.Size;
                         break;
-
                 }
 
                 Rect = Rectangle.FromMinMaxPointsChecked(min, max);
 
                 return true;
             }
-            else if(_mouseDragging)
+
+            if (_mouseDragging)
             {
                 _mouseDragging = false;
                 return true;
@@ -89,28 +86,16 @@ namespace Emotion.Tools.Editors
             _anchor = 0;
 
             var circ = new Circle(Rect.Position, 3);
-            if (circ.ContainsInclusive(ref mouseWorld))
-            {
-                _anchor = 1;
-            }
+            if (circ.ContainsInclusive(ref mouseWorld)) _anchor = 1;
 
             circ.Center = Rect.TopRight;
-            if (circ.ContainsInclusive(ref mouseWorld))
-            {
-                _anchor = 2;
-            }
+            if (circ.ContainsInclusive(ref mouseWorld)) _anchor = 2;
 
             circ.Center = Rect.BottomRight;
-            if (circ.ContainsInclusive(ref mouseWorld))
-            {
-                _anchor = 3;
-            }
+            if (circ.ContainsInclusive(ref mouseWorld)) _anchor = 3;
 
             circ.Center = Rect.BottomLeft;
-            if (circ.ContainsInclusive(ref mouseWorld))
-            {
-                _anchor = 4;
-            }
+            if (circ.ContainsInclusive(ref mouseWorld)) _anchor = 4;
 
             if (_anchor == 0 && Rect.ContainsInclusive(ref mouseWorld))
             {
@@ -122,7 +107,8 @@ namespace Emotion.Tools.Editors
             {
                 return true;
             }
-            else if (Engine.Host.IsKeyDown(Key.MouseKeyLeft) && _anchor != 0)
+
+            if (Engine.Host.IsKeyDown(Key.MouseKeyLeft) && _anchor != 0)
             {
                 _mouseDragging = true;
                 return true;

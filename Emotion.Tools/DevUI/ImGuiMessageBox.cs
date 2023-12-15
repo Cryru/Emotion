@@ -1,4 +1,8 @@
-﻿using Emotion.Tools.Editors;
+﻿#region Using
+
+using Emotion.Tools.Editors;
+
+#endregion
 
 namespace Emotion.Tools.DevUI
 {

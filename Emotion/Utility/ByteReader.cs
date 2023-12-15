@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Buffers.Binary;
 using System.IO;
 
@@ -82,7 +81,7 @@ namespace Emotion.Utility
             var b = new ByteReader {_branchPosition = (fromStart ? _branchPosition : TotalPosition) + offset};
             long startPos = fromStart ? offset : Position + offset;
 
-            Debug.Assert(startPos <= Data.Length);
+            Assert(startPos <= Data.Length);
 
             if (length == -1)
             {
@@ -90,7 +89,7 @@ namespace Emotion.Utility
             }
             else
             {
-                Debug.Assert(startPos + length <= Data.Length);
+                Assert(startPos + length <= Data.Length);
                 b.Data = Data.Slice((int) startPos, length);
             }
 

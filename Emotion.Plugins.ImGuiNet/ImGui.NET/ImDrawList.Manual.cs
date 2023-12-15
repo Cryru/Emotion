@@ -1,5 +1,9 @@
-﻿using System.Numerics;
+﻿#region Using
+
+using System.Numerics;
 using System.Text;
+
+#endregion
 
 namespace ImGuiNET
 {
@@ -14,6 +18,7 @@ namespace ImGuiNET
                 int native_text_begin_offset = Encoding.UTF8.GetBytes(text_begin_ptr, text_begin.Length, native_text_begin, text_begin_byteCount);
                 native_text_begin[native_text_begin_offset] = 0;
             }
+
             byte* native_text_end = null;
             ImGuiNative.ImDrawList_AddText_Vec2(NativePtr, pos, col, native_text_begin, native_text_end);
         }
@@ -28,6 +33,7 @@ namespace ImGuiNET
                 int native_text_begin_offset = Encoding.UTF8.GetBytes(text_begin_ptr, text_begin.Length, native_text_begin, text_begin_byteCount);
                 native_text_begin[native_text_begin_offset] = 0;
             }
+
             byte* native_text_end = null;
             float wrap_width = 0.0f;
             Vector4* cpu_fine_clip_rect = null;

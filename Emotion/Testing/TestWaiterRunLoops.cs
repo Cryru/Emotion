@@ -16,38 +16,38 @@ namespace Emotion.Testing;
 /// </summary>
 public class TestWaiterRunLoops : IRoutineWaiter
 {
-	/// <summary>
-	/// Whether the number of loops requested have ran.
-	/// </summary>
-	public bool Finished
-	{
-		get => _loopsCount >= LoopsToRun && LoopsToRun != -1;
-	}
+    /// <summary>
+    /// Whether the number of loops requested have ran.
+    /// </summary>
+    public bool Finished
+    {
+        get => _loopsCount >= LoopsToRun && LoopsToRun != -1;
+    }
 
-	/// <summary>
-	/// How many loops to run.
-	/// </summary>
-	public int LoopsToRun { get; init; }
+    /// <summary>
+    /// How many loops to run.
+    /// </summary>
+    public int LoopsToRun { get; init; }
 
-	private int _loopsCount;
+    private int _loopsCount;
 
-	public TestWaiterRunLoops(int loopsToRun)
-	{
-		if (loopsToRun == -1 && !TestExecutor.AllowInfiniteLoops)
-		{
-			Engine.Log.Error("Tried to run infinite loops in CI.", "Test");
-			loopsToRun = 1;
-		}
+    public TestWaiterRunLoops(int loopsToRun)
+    {
+        if (loopsToRun == -1 && !TestExecutor.AllowInfiniteLoops)
+        {
+            Engine.Log.Error("Tried to run infinite loops in CI.", "Test");
+            loopsToRun = 1;
+        }
 
-		LoopsToRun = loopsToRun;
-	}
+        LoopsToRun = loopsToRun;
+    }
 
-	public void Update()
-	{
-	}
+    public void Update()
+    {
+    }
 
-	public void AddLoopRan()
-	{
-		_loopsCount++;
-	}
+    public void AddLoopRan()
+    {
+        _loopsCount++;
+    }
 }

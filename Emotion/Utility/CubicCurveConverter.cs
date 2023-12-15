@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-
 #endregion
 
 namespace Emotion.Utility
@@ -22,7 +18,7 @@ namespace Emotion.Utility
             float[] inflections = SolveInflections(p1, cp1, cp2, p2);
             if (inflections.Length == 0) return CubicToQuadInternal(p1, cp1, cp2, p2);
 
-            Vector2[] curve = { p1, cp1, cp2, p2 };
+            Vector2[] curve = {p1, cp1, cp2, p2};
             var result = new List<Vector2>();
             float prevPoint = 0;
             for (var inflectionIdx = 0; inflectionIdx < inflections.Length; inflectionIdx++)
@@ -82,17 +78,17 @@ namespace Emotion.Utility
         // a*x^2 + b*x + c = 0
         private static float[] QuadSolve(float a, float b, float c)
         {
-            if (a == 0) return b == 0 ? Array.Empty<float>() : new[] { -c / b };
+            if (a == 0) return b == 0 ? Array.Empty<float>() : new[] {-c / b};
 
             float d = b * b - 4 * a * c;
-            if (MathF.Abs(d) < Maths.EPSILON) return new[] { -b / (2 * a) };
+            if (MathF.Abs(d) < Maths.EPSILON) return new[] {-b / (2 * a)};
 
             if (d < 0) return Array.Empty<float>();
 
             float dSqrt = MathF.Sqrt(d);
             float first = (-b - dSqrt) / (2 * a);
             float second = (-b + dSqrt) / (2 * a);
-            return new[] { first, second };
+            return new[] {first, second};
         }
 
         /// <summary>
@@ -200,11 +196,11 @@ namespace Emotion.Utility
 
             // straight line segment
             if (MathF.Abs(der) < Maths.EPSILON)
-                return new[] { f1, (f1 + f2) / 2f, f2 };
+                return new[] {f1, (f1 + f2) / 2f, f2};
 
             float cx = (f1D.X * (f2.Y * f2D.X - f2.X * f2D.Y) + f2D.X * (f1.X * f1D.Y - f1.Y * f1D.X)) / der;
             float cy = (f1D.Y * (f2.Y * f2D.X - f2.X * f2D.Y) + f2D.Y * (f1.X * f1D.Y - f1.Y * f1D.X)) / der;
-            return new[] { f1, new Vector2(cx, cy), f2 };
+            return new[] {f1, new Vector2(cx, cy), f2};
         }
 
         // a*t^3 + b*t^2 + c*t + d = ((a*t + b)*t + c)*t + d
@@ -400,57 +396,57 @@ namespace Emotion.Utility
             // cubic curve have to be converted to two or more quads for large precision
             Precision = 100f;
             List<Vector2> converted = CubicToQuad(new Vector2(0, 0), new Vector2(-5, 10), new Vector2(35, 10), new Vector2(30, 0));
-            Debug.Assert(converted.Count > 3);
+            Assert(converted.Count > 3);
 
             // should split curve at inflection point
             Precision = 1000f;
             converted = CubicToQuad(new Vector2(0, 100), new Vector2(70, 0), new Vector2(30, 0), new Vector2(100, 100));
 
             // 1st inflection point
-            Debug.Assert(MathF.Round(converted[2].X, 2) == 34.33f);
-            Debug.Assert(MathF.Round(converted[2].Y, 2) == 45.45f);
+            Assert(MathF.Round(converted[2].X, 2) == 34.33f);
+            Assert(MathF.Round(converted[2].Y, 2) == 45.45f);
             // 2nd inflection point
-            Debug.Assert(MathF.Round(converted[4].X, 2) == 65.67f);
-            Debug.Assert(MathF.Round(converted[4].Y, 2) == 45.45f);
+            Assert(MathF.Round(converted[4].X, 2) == 65.67f);
+            Assert(MathF.Round(converted[4].Y, 2) == 45.45f);
 
             Precision = 0.5f;
             converted = CubicToQuad(new Vector2(858, -113), new Vector2(739, -68), new Vector2(624, -31), new Vector2(533, 0));
             // All points should be in the bounding box of the source curve
             for (var j = 0; j < converted.Count; j++)
             {
-                Debug.Assert(converted[j].X <= 858);
-                Debug.Assert(converted[j].X >= 533);
-                Debug.Assert(converted[j].Y >= -113);
-                Debug.Assert(converted[j].Y <= 0);
+                Assert(converted[j].X <= 858);
+                Assert(converted[j].X >= 533);
+                Assert(converted[j].Y >= -113);
+                Assert(converted[j].Y <= 0);
             }
 
             // cubic curve should be split due to small error margin
             Precision = 0.01f;
             converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 9), new Vector2(20, 11), new Vector2(30, 0));
-            Debug.Assert(converted.Count == 7);
+            Assert(converted.Count == 7);
 
             // real error is 0.1, but our approximation increases error to 0.15
             Precision = 0.15f;
             converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 9), new Vector2(20, 11), new Vector2(30, 0));
-            Debug.Assert(converted.Count == 3);
+            Assert(converted.Count == 3);
 
             // quadratic curve to the same quadratic curve (error ~ 1e-8)
             Precision = 1e-8f;
             converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 10), new Vector2(20, 10), new Vector2(30, 0));
-            Debug.Assert(converted.Count == 3);
-            Debug.Assert(converted[0].X == 0 && converted[0].Y == 0 && converted[1].X == 15 && converted[1].Y == 15 && converted[2].X == 30 && converted[2].Y == 0);
+            Assert(converted.Count == 3);
+            Assert(converted[0].X == 0 && converted[0].Y == 0 && converted[1].X == 15 && converted[1].Y == 15 && converted[2].X == 30 && converted[2].Y == 0);
 
             // convert cubic Bezier curve to a number of quadratic ones
             Precision = 1e-8f;
             converted = CubicToQuad(new Vector2(0, 0), new Vector2(10, 10), new Vector2(20, 20), new Vector2(30, 30));
-            Debug.Assert(converted.Count == 6 / 2);
+            Assert(converted.Count == 6 / 2);
 
-            Debug.Assert(converted[0].X == 0);
-            Debug.Assert(converted[0].Y == 0);
-            Debug.Assert(converted[1].X == 15);
-            Debug.Assert(converted[1].Y == 15);
-            Debug.Assert(converted[2].Y == 30);
-            Debug.Assert(converted[2].Y == 30);
+            Assert(converted[0].X == 0);
+            Assert(converted[0].Y == 0);
+            Assert(converted[1].X == 15);
+            Assert(converted[1].Y == 15);
+            Assert(converted[2].Y == 30);
+            Assert(converted[2].Y == 30);
 
             Precision = 0.1f;
         }

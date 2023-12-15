@@ -1,9 +1,6 @@
 ﻿#region Using
 
-using System;
 using System.IO;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using Emotion.Utility.Zlib;
 

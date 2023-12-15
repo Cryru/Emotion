@@ -86,10 +86,7 @@ namespace Emotion.Test
         {
             get
             {
-                if (string.IsNullOrEmpty(TestTag))
-                {
-                    return CustomConfig != null ? $"({CustomConfig})" : "(master)";
-                }
+                if (string.IsNullOrEmpty(TestTag)) return CustomConfig != null ? $"({CustomConfig})" : "(master)";
 
                 return $"({TestTag})";
             }

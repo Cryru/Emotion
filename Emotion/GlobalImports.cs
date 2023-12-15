@@ -1,5 +1,4 @@
-﻿// This exposes some common namespaces to be always imported.
-// You might want to copy this file in your project.
+﻿#region Using
 
 global using System;
 global using System.Diagnostics;
@@ -12,3 +11,5 @@ global using Emotion.Testing;
 global using Emotion.Game;
 global using Debug = Emotion.Testing.AssertWrapper; // System.Diagnostics interface for Debug.Assert
 global using static Emotion.Testing.AssertWrapper;
+
+#endregion

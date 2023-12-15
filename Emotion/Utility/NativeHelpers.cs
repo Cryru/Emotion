@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -182,7 +180,7 @@ namespace Emotion.Utility
             // todo: Check Marshal.StringToHGlobalUni
             // note: that AllocHGlobal allocates mem as fixed which means it cannot be used
             // for clipboards.
-            
+
             int len = Encoding.UTF8.GetByteCount(text);
             var buffer = new byte[len + 1];
             Encoding.UTF8.GetBytes(text, 0, text.Length, buffer, 0);
@@ -201,11 +199,11 @@ namespace Emotion.Utility
 
         public static unsafe void ZeroOutMemory(IntPtr ptr, int size)
         {
-	        var b = new Span<byte>((void*) ptr, size);
-	        for (var i = 0; i < b.Length; i++)
-	        {
-		        b[i] = 0;
-	        }
+            var b = new Span<byte>((void*) ptr, size);
+            for (var i = 0; i < b.Length; i++)
+            {
+                b[i] = 0;
+            }
         }
     }
 }

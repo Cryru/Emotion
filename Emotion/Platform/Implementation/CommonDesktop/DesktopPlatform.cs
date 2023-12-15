@@ -1,15 +1,10 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Common;
 using Emotion.IO;
-using Emotion.Primitives;
-using Emotion.Standard.Logging;
 using WinApi.User32;
 
 #endregion

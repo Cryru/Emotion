@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion

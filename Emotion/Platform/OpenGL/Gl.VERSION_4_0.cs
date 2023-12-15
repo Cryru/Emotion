@@ -756,7 +756,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_sample_shading", Api = "gles2")]
         public static void MinSampleShading(float value)
         {
-            Debug.Assert(Delegates.pglMinSampleShading != null, "pglMinSampleShading not implemented");
+            Assert(Delegates.pglMinSampleShading != null, "pglMinSampleShading not implemented");
             Delegates.pglMinSampleShading(value);
             DebugCheckErrors(null);
         }
@@ -778,7 +778,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
         public static void BlendEquation(uint buf, BlendEquationMode mode)
         {
-            Debug.Assert(Delegates.pglBlendEquationi != null, "pglBlendEquationi not implemented");
+            Assert(Delegates.pglBlendEquationi != null, "pglBlendEquationi not implemented");
             Delegates.pglBlendEquationi(buf, (int) mode);
             DebugCheckErrors(null);
         }
@@ -803,7 +803,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
         public static void BlendEquationSeparate(uint buf, BlendEquationMode modeRGB, BlendEquationMode modeAlpha)
         {
-            Debug.Assert(Delegates.pglBlendEquationSeparatei != null, "pglBlendEquationSeparatei not implemented");
+            Assert(Delegates.pglBlendEquationSeparatei != null, "pglBlendEquationSeparatei not implemented");
             Delegates.pglBlendEquationSeparatei(buf, (int) modeRGB, (int) modeAlpha);
             DebugCheckErrors(null);
         }
@@ -828,7 +828,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
         public static void BlendFunc(uint buf, BlendingFactor src, BlendingFactor dst)
         {
-            Debug.Assert(Delegates.pglBlendFunci != null, "pglBlendFunci not implemented");
+            Assert(Delegates.pglBlendFunci != null, "pglBlendFunci not implemented");
             Delegates.pglBlendFunci(buf, (int) src, (int) dst);
             DebugCheckErrors(null);
         }
@@ -859,7 +859,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
         public static void BlendFuncSeparate(uint buf, BlendingFactor srcRGB, BlendingFactor dstRGB, BlendingFactor srcAlpha, BlendingFactor dstAlpha)
         {
-            Debug.Assert(Delegates.pglBlendFuncSeparatei != null, "pglBlendFuncSeparatei not implemented");
+            Assert(Delegates.pglBlendFuncSeparatei != null, "pglBlendFuncSeparatei not implemented");
             Delegates.pglBlendFuncSeparatei(buf, (int) srcRGB, (int) dstRGB, (int) srcAlpha, (int) dstAlpha);
             DebugCheckErrors(null);
         }
@@ -882,7 +882,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_draw_indirect", Api = "gl|glcore")]
         public static void DrawArraysIndirect(PrimitiveType mode, IntPtr indirect)
         {
-            Debug.Assert(Delegates.pglDrawArraysIndirect != null, "pglDrawArraysIndirect not implemented");
+            Assert(Delegates.pglDrawArraysIndirect != null, "pglDrawArraysIndirect not implemented");
             Delegates.pglDrawArraysIndirect((int) mode, indirect);
             DebugCheckErrors(null);
         }
@@ -937,7 +937,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_draw_indirect", Api = "gl|glcore")]
         public static void DrawElementsIndirect(PrimitiveType mode, DrawElementsType type, IntPtr indirect)
         {
-            Debug.Assert(Delegates.pglDrawElementsIndirect != null, "pglDrawElementsIndirect not implemented");
+            Assert(Delegates.pglDrawElementsIndirect != null, "pglDrawElementsIndirect not implemented");
             Delegates.pglDrawElementsIndirect((int) mode, (int) type, indirect);
             DebugCheckErrors(null);
         }
@@ -987,7 +987,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform1(int location, double x)
         {
-            Debug.Assert(Delegates.pglUniform1d != null, "pglUniform1d not implemented");
+            Assert(Delegates.pglUniform1d != null, "pglUniform1d not implemented");
             Delegates.pglUniform1d(location, x);
             DebugCheckErrors(null);
         }
@@ -1008,7 +1008,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform2(int location, double x, double y)
         {
-            Debug.Assert(Delegates.pglUniform2d != null, "pglUniform2d not implemented");
+            Assert(Delegates.pglUniform2d != null, "pglUniform2d not implemented");
             Delegates.pglUniform2d(location, x, y);
             DebugCheckErrors(null);
         }
@@ -1032,7 +1032,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform3(int location, double x, double y, double z)
         {
-            Debug.Assert(Delegates.pglUniform3d != null, "pglUniform3d not implemented");
+            Assert(Delegates.pglUniform3d != null, "pglUniform3d not implemented");
             Delegates.pglUniform3d(location, x, y, z);
             DebugCheckErrors(null);
         }
@@ -1059,7 +1059,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform4(int location, double x, double y, double z, double w)
         {
-            Debug.Assert(Delegates.pglUniform4d != null, "pglUniform4d not implemented");
+            Assert(Delegates.pglUniform4d != null, "pglUniform4d not implemented");
             Delegates.pglUniform4d(location, x, y, z, w);
             DebugCheckErrors(null);
         }
@@ -1081,7 +1081,7 @@ namespace OpenGL
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform1dv != null, "pglUniform1dv not implemented");
+                    Assert(Delegates.pglUniform1dv != null, "pglUniform1dv not implemented");
                     Delegates.pglUniform1dv(location, value.Length, p_value);
                 }
             }
@@ -1105,7 +1105,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void Uniform1(int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglUniform1dv != null, "pglUniform1dv not implemented");
+            Assert(Delegates.pglUniform1dv != null, "pglUniform1dv not implemented");
             Delegates.pglUniform1dv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -1126,7 +1126,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform1d<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform1dv != null, "pglUniform1dv not implemented");
+            Assert(Delegates.pglUniform1dv != null, "pglUniform1dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1151,12 +1151,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform2(int location, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform2dv != null, "pglUniform2dv not implemented");
+                    Assert(Delegates.pglUniform2dv != null, "pglUniform2dv not implemented");
                     Delegates.pglUniform2dv(location, value.Length / 2, p_value);
                 }
             }
@@ -1180,7 +1180,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void Uniform2(int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglUniform2dv != null, "pglUniform2dv not implemented");
+            Assert(Delegates.pglUniform2dv != null, "pglUniform2dv not implemented");
             Delegates.pglUniform2dv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -1201,7 +1201,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform2d<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform2dv != null, "pglUniform2dv not implemented");
+            Assert(Delegates.pglUniform2dv != null, "pglUniform2dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1226,12 +1226,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform3(int location, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform3dv != null, "pglUniform3dv not implemented");
+                    Assert(Delegates.pglUniform3dv != null, "pglUniform3dv not implemented");
                     Delegates.pglUniform3dv(location, value.Length / 3, p_value);
                 }
             }
@@ -1255,7 +1255,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void Uniform3(int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglUniform3dv != null, "pglUniform3dv not implemented");
+            Assert(Delegates.pglUniform3dv != null, "pglUniform3dv not implemented");
             Delegates.pglUniform3dv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -1276,7 +1276,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform3d<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform3dv != null, "pglUniform3dv not implemented");
+            Assert(Delegates.pglUniform3dv != null, "pglUniform3dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1301,12 +1301,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform4(int location, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniform4dv != null, "pglUniform4dv not implemented");
+                    Assert(Delegates.pglUniform4dv != null, "pglUniform4dv not implemented");
                     Delegates.pglUniform4dv(location, value.Length / 4, p_value);
                 }
             }
@@ -1330,7 +1330,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void Uniform4(int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglUniform4dv != null, "pglUniform4dv not implemented");
+            Assert(Delegates.pglUniform4dv != null, "pglUniform4dv not implemented");
             Delegates.pglUniform4dv(location, count, value);
             DebugCheckErrors(null);
         }
@@ -1351,7 +1351,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void Uniform4d<T>(int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniform4dv != null, "pglUniform4dv not implemented");
+            Assert(Delegates.pglUniform4dv != null, "pglUniform4dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1379,12 +1379,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix2(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix2dv != null, "pglUniformMatrix2dv not implemented");
+                    Assert(Delegates.pglUniformMatrix2dv != null, "pglUniformMatrix2dv not implemented");
                     Delegates.pglUniformMatrix2dv(location, value.Length / 4, transpose, p_value);
                 }
             }
@@ -1411,7 +1411,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix2(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix2dv != null, "pglUniformMatrix2dv not implemented");
+            Assert(Delegates.pglUniformMatrix2dv != null, "pglUniformMatrix2dv not implemented");
             Delegates.pglUniformMatrix2dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1435,7 +1435,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix2d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix2dv != null, "pglUniformMatrix2dv not implemented");
+            Assert(Delegates.pglUniformMatrix2dv != null, "pglUniformMatrix2dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1463,12 +1463,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix3(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
+            Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix3dv != null, "pglUniformMatrix3dv not implemented");
+                    Assert(Delegates.pglUniformMatrix3dv != null, "pglUniformMatrix3dv not implemented");
                     Delegates.pglUniformMatrix3dv(location, value.Length / 9, transpose, p_value);
                 }
             }
@@ -1495,7 +1495,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix3(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix3dv != null, "pglUniformMatrix3dv not implemented");
+            Assert(Delegates.pglUniformMatrix3dv != null, "pglUniformMatrix3dv not implemented");
             Delegates.pglUniformMatrix3dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1519,7 +1519,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix3d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix3dv != null, "pglUniformMatrix3dv not implemented");
+            Assert(Delegates.pglUniformMatrix3dv != null, "pglUniformMatrix3dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1547,12 +1547,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix4(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
+            Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix4dv != null, "pglUniformMatrix4dv not implemented");
+                    Assert(Delegates.pglUniformMatrix4dv != null, "pglUniformMatrix4dv not implemented");
                     Delegates.pglUniformMatrix4dv(location, value.Length / 16, transpose, p_value);
                 }
             }
@@ -1579,7 +1579,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix4(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix4dv != null, "pglUniformMatrix4dv not implemented");
+            Assert(Delegates.pglUniformMatrix4dv != null, "pglUniformMatrix4dv not implemented");
             Delegates.pglUniformMatrix4dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1603,7 +1603,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix4d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix4dv != null, "pglUniformMatrix4dv not implemented");
+            Assert(Delegates.pglUniformMatrix4dv != null, "pglUniformMatrix4dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1631,12 +1631,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix2x3(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix2x3dv != null, "pglUniformMatrix2x3dv not implemented");
+                    Assert(Delegates.pglUniformMatrix2x3dv != null, "pglUniformMatrix2x3dv not implemented");
                     Delegates.pglUniformMatrix2x3dv(location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -1663,7 +1663,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix2x3(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x3dv != null, "pglUniformMatrix2x3dv not implemented");
+            Assert(Delegates.pglUniformMatrix2x3dv != null, "pglUniformMatrix2x3dv not implemented");
             Delegates.pglUniformMatrix2x3dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1687,7 +1687,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix2x3d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x3dv != null, "pglUniformMatrix2x3dv not implemented");
+            Assert(Delegates.pglUniformMatrix2x3dv != null, "pglUniformMatrix2x3dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1715,12 +1715,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix2x4(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix2x4dv != null, "pglUniformMatrix2x4dv not implemented");
+                    Assert(Delegates.pglUniformMatrix2x4dv != null, "pglUniformMatrix2x4dv not implemented");
                     Delegates.pglUniformMatrix2x4dv(location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -1747,7 +1747,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix2x4(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x4dv != null, "pglUniformMatrix2x4dv not implemented");
+            Assert(Delegates.pglUniformMatrix2x4dv != null, "pglUniformMatrix2x4dv not implemented");
             Delegates.pglUniformMatrix2x4dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1771,7 +1771,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix2x4d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x4dv != null, "pglUniformMatrix2x4dv not implemented");
+            Assert(Delegates.pglUniformMatrix2x4dv != null, "pglUniformMatrix2x4dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1799,12 +1799,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix3x2(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix3x2dv != null, "pglUniformMatrix3x2dv not implemented");
+                    Assert(Delegates.pglUniformMatrix3x2dv != null, "pglUniformMatrix3x2dv not implemented");
                     Delegates.pglUniformMatrix3x2dv(location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -1831,7 +1831,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix3x2(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x2dv != null, "pglUniformMatrix3x2dv not implemented");
+            Assert(Delegates.pglUniformMatrix3x2dv != null, "pglUniformMatrix3x2dv not implemented");
             Delegates.pglUniformMatrix3x2dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1855,7 +1855,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix3x2d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x2dv != null, "pglUniformMatrix3x2dv not implemented");
+            Assert(Delegates.pglUniformMatrix3x2dv != null, "pglUniformMatrix3x2dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1883,12 +1883,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix3x4(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix3x4dv != null, "pglUniformMatrix3x4dv not implemented");
+                    Assert(Delegates.pglUniformMatrix3x4dv != null, "pglUniformMatrix3x4dv not implemented");
                     Delegates.pglUniformMatrix3x4dv(location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -1915,7 +1915,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix3x4(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x4dv != null, "pglUniformMatrix3x4dv not implemented");
+            Assert(Delegates.pglUniformMatrix3x4dv != null, "pglUniformMatrix3x4dv not implemented");
             Delegates.pglUniformMatrix3x4dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -1939,7 +1939,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix3x4d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x4dv != null, "pglUniformMatrix3x4dv not implemented");
+            Assert(Delegates.pglUniformMatrix3x4dv != null, "pglUniformMatrix3x4dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -1967,12 +1967,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix4x2(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix4x2dv != null, "pglUniformMatrix4x2dv not implemented");
+                    Assert(Delegates.pglUniformMatrix4x2dv != null, "pglUniformMatrix4x2dv not implemented");
                     Delegates.pglUniformMatrix4x2dv(location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -1999,7 +1999,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix4x2(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x2dv != null, "pglUniformMatrix4x2dv not implemented");
+            Assert(Delegates.pglUniformMatrix4x2dv != null, "pglUniformMatrix4x2dv not implemented");
             Delegates.pglUniformMatrix4x2dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -2023,7 +2023,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix4x2d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x2dv != null, "pglUniformMatrix4x2dv not implemented");
+            Assert(Delegates.pglUniformMatrix4x2dv != null, "pglUniformMatrix4x2dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -2051,12 +2051,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix4x3(int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix4x3dv != null, "pglUniformMatrix4x3dv not implemented");
+                    Assert(Delegates.pglUniformMatrix4x3dv != null, "pglUniformMatrix4x3dv not implemented");
                     Delegates.pglUniformMatrix4x3dv(location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -2083,7 +2083,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void UniformMatrix4x3(int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x3dv != null, "pglUniformMatrix4x3dv not implemented");
+            Assert(Delegates.pglUniformMatrix4x3dv != null, "pglUniformMatrix4x3dv not implemented");
             Delegates.pglUniformMatrix4x3dv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -2107,7 +2107,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void UniformMatrix4x3d<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x3dv != null, "pglUniformMatrix4x3dv not implemented");
+            Assert(Delegates.pglUniformMatrix4x3dv != null, "pglUniformMatrix4x3dv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);
@@ -2139,7 +2139,7 @@ namespace OpenGL
             {
                 fixed (double* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetUniformdv != null, "pglGetUniformdv not implemented");
+                    Assert(Delegates.pglGetUniformdv != null, "pglGetUniformdv not implemented");
                     Delegates.pglGetUniformdv(program, location, p_params);
                 }
             }
@@ -2163,7 +2163,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static unsafe void GetUniform(uint program, int location, [Out] double* @params)
         {
-            Debug.Assert(Delegates.pglGetUniformdv != null, "pglGetUniformdv not implemented");
+            Assert(Delegates.pglGetUniformdv != null, "pglGetUniformdv not implemented");
             Delegates.pglGetUniformdv(program, location, @params);
             DebugCheckErrors(null);
         }
@@ -2184,7 +2184,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
         public static void GetUniformd<T>(uint program, int location, out T @params) where T : struct
         {
-            Debug.Assert(Delegates.pglGetUniformdv != null, "pglGetUniformdv not implemented");
+            Assert(Delegates.pglGetUniformdv != null, "pglGetUniformdv not implemented");
             @params = default;
             unsafe
             {
@@ -2217,7 +2217,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetSubroutineUniformLocation != null, "pglGetSubroutineUniformLocation not implemented");
+            Assert(Delegates.pglGetSubroutineUniformLocation != null, "pglGetSubroutineUniformLocation not implemented");
             retValue = Delegates.pglGetSubroutineUniformLocation(program, (int) shadertype, name);
             DebugCheckErrors(retValue);
 
@@ -2243,7 +2243,7 @@ namespace OpenGL
         {
             uint retValue;
 
-            Debug.Assert(Delegates.pglGetSubroutineIndex != null, "pglGetSubroutineIndex not implemented");
+            Assert(Delegates.pglGetSubroutineIndex != null, "pglGetSubroutineIndex not implemented");
             retValue = Delegates.pglGetSubroutineIndex(program, (int) shadertype, name);
             DebugCheckErrors(retValue);
 
@@ -2278,7 +2278,7 @@ namespace OpenGL
             {
                 fixed (int* p_values = values)
                 {
-                    Debug.Assert(Delegates.pglGetActiveSubroutineUniformiv != null, "pglGetActiveSubroutineUniformiv not implemented");
+                    Assert(Delegates.pglGetActiveSubroutineUniformiv != null, "pglGetActiveSubroutineUniformiv not implemented");
                     Delegates.pglGetActiveSubroutineUniformiv(program, (int) shadertype, index, (int) pname, p_values);
                 }
             }
@@ -2314,7 +2314,7 @@ namespace OpenGL
             {
                 fixed (int* p_values = &values)
                 {
-                    Debug.Assert(Delegates.pglGetActiveSubroutineUniformiv != null, "pglGetActiveSubroutineUniformiv not implemented");
+                    Assert(Delegates.pglGetActiveSubroutineUniformiv != null, "pglGetActiveSubroutineUniformiv not implemented");
                     Delegates.pglGetActiveSubroutineUniformiv(program, (int) shadertype, index, (int) pname, p_values);
                 }
             }
@@ -2353,7 +2353,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetActiveSubroutineUniformName != null, "pglGetActiveSubroutineUniformName not implemented");
+                    Assert(Delegates.pglGetActiveSubroutineUniformName != null, "pglGetActiveSubroutineUniformName not implemented");
                     Delegates.pglGetActiveSubroutineUniformName(program, (int) shadertype, index, bufsize, p_length, name);
                 }
             }
@@ -2390,7 +2390,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetActiveSubroutineName != null, "pglGetActiveSubroutineName not implemented");
+                    Assert(Delegates.pglGetActiveSubroutineName != null, "pglGetActiveSubroutineName not implemented");
                     Delegates.pglGetActiveSubroutineName(program, (int) shadertype, index, bufsize, p_length, name);
                 }
             }
@@ -2419,7 +2419,7 @@ namespace OpenGL
             {
                 fixed (uint* p_indices = indices)
                 {
-                    Debug.Assert(Delegates.pglUniformSubroutinesuiv != null, "pglUniformSubroutinesuiv not implemented");
+                    Assert(Delegates.pglUniformSubroutinesuiv != null, "pglUniformSubroutinesuiv not implemented");
                     Delegates.pglUniformSubroutinesuiv((int) shadertype, count, p_indices);
                 }
             }
@@ -2445,7 +2445,7 @@ namespace OpenGL
             {
                 fixed (uint* p_indices = indices)
                 {
-                    Debug.Assert(Delegates.pglUniformSubroutinesuiv != null, "pglUniformSubroutinesuiv not implemented");
+                    Assert(Delegates.pglUniformSubroutinesuiv != null, "pglUniformSubroutinesuiv not implemented");
                     Delegates.pglUniformSubroutinesuiv((int) shadertype, indices.Length, p_indices);
                 }
             }
@@ -2475,7 +2475,7 @@ namespace OpenGL
             {
                 fixed (uint* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetUniformSubroutineuiv != null, "pglGetUniformSubroutineuiv not implemented");
+                    Assert(Delegates.pglGetUniformSubroutineuiv != null, "pglGetUniformSubroutineuiv not implemented");
                     Delegates.pglGetUniformSubroutineuiv((int) shadertype, location, p_params);
                 }
             }
@@ -2509,7 +2509,7 @@ namespace OpenGL
             {
                 fixed (int* p_values = &values)
                 {
-                    Debug.Assert(Delegates.pglGetProgramStageiv != null, "pglGetProgramStageiv not implemented");
+                    Assert(Delegates.pglGetProgramStageiv != null, "pglGetProgramStageiv not implemented");
                     Delegates.pglGetProgramStageiv(program, (int) shadertype, (int) pname, p_values);
                 }
             }
@@ -2536,7 +2536,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_tessellation_shader", Api = "gles2")]
         public static void PatchParameter(PatchParameterName pname, int value)
         {
-            Debug.Assert(Delegates.pglPatchParameteri != null, "pglPatchParameteri not implemented");
+            Assert(Delegates.pglPatchParameteri != null, "pglPatchParameteri not implemented");
             Delegates.pglPatchParameteri((int) pname, value);
             DebugCheckErrors(null);
         }
@@ -2559,7 +2559,7 @@ namespace OpenGL
             {
                 fixed (float* p_values = values)
                 {
-                    Debug.Assert(Delegates.pglPatchParameterfv != null, "pglPatchParameterfv not implemented");
+                    Assert(Delegates.pglPatchParameterfv != null, "pglPatchParameterfv not implemented");
                     Delegates.pglPatchParameterfv((int) pname, p_values);
                 }
             }
@@ -2584,7 +2584,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
         public static void BindTransformFeedback(TransformFeedbackTarget target, uint id)
         {
-            Debug.Assert(Delegates.pglBindTransformFeedback != null, "pglBindTransformFeedback not implemented");
+            Assert(Delegates.pglBindTransformFeedback != null, "pglBindTransformFeedback not implemented");
             Delegates.pglBindTransformFeedback((int) target, id);
             DebugCheckErrors(null);
         }
@@ -2607,7 +2607,7 @@ namespace OpenGL
             {
                 fixed (uint* p_ids = ids)
                 {
-                    Debug.Assert(Delegates.pglDeleteTransformFeedbacks != null, "pglDeleteTransformFeedbacks not implemented");
+                    Assert(Delegates.pglDeleteTransformFeedbacks != null, "pglDeleteTransformFeedbacks not implemented");
                     Delegates.pglDeleteTransformFeedbacks(ids.Length, p_ids);
                 }
             }
@@ -2633,7 +2633,7 @@ namespace OpenGL
             {
                 fixed (uint* p_ids = ids)
                 {
-                    Debug.Assert(Delegates.pglGenTransformFeedbacks != null, "pglGenTransformFeedbacks not implemented");
+                    Assert(Delegates.pglGenTransformFeedbacks != null, "pglGenTransformFeedbacks not implemented");
                     Delegates.pglGenTransformFeedbacks(ids.Length, p_ids);
                 }
             }
@@ -2678,7 +2678,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsTransformFeedback != null, "pglIsTransformFeedback not implemented");
+            Assert(Delegates.pglIsTransformFeedback != null, "pglIsTransformFeedback not implemented");
             retValue = Delegates.pglIsTransformFeedback(id);
             DebugCheckErrors(retValue);
 
@@ -2696,7 +2696,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_transform_feedback2")]
         public static void PauseTransformFeedback()
         {
-            Debug.Assert(Delegates.pglPauseTransformFeedback != null, "pglPauseTransformFeedback not implemented");
+            Assert(Delegates.pglPauseTransformFeedback != null, "pglPauseTransformFeedback not implemented");
             Delegates.pglPauseTransformFeedback();
             DebugCheckErrors(null);
         }
@@ -2712,7 +2712,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_transform_feedback2")]
         public static void ResumeTransformFeedback()
         {
-            Debug.Assert(Delegates.pglResumeTransformFeedback != null, "pglResumeTransformFeedback not implemented");
+            Assert(Delegates.pglResumeTransformFeedback != null, "pglResumeTransformFeedback not implemented");
             Delegates.pglResumeTransformFeedback();
             DebugCheckErrors(null);
         }
@@ -2734,7 +2734,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_transform_feedback2")]
         public static void DrawTransformFeedback(PrimitiveType mode, uint id)
         {
-            Debug.Assert(Delegates.pglDrawTransformFeedback != null, "pglDrawTransformFeedback not implemented");
+            Assert(Delegates.pglDrawTransformFeedback != null, "pglDrawTransformFeedback not implemented");
             Delegates.pglDrawTransformFeedback((int) mode, id);
             DebugCheckErrors(null);
         }
@@ -2758,7 +2758,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
         public static void DrawTransformFeedbackStream(PrimitiveType mode, uint id, uint stream)
         {
-            Debug.Assert(Delegates.pglDrawTransformFeedbackStream != null, "pglDrawTransformFeedbackStream not implemented");
+            Assert(Delegates.pglDrawTransformFeedbackStream != null, "pglDrawTransformFeedbackStream not implemented");
             Delegates.pglDrawTransformFeedbackStream((int) mode, id, stream);
             DebugCheckErrors(null);
         }
@@ -2781,7 +2781,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
         public static void BeginQueryIndexed(QueryTarget target, uint index, uint id)
         {
-            Debug.Assert(Delegates.pglBeginQueryIndexed != null, "pglBeginQueryIndexed not implemented");
+            Assert(Delegates.pglBeginQueryIndexed != null, "pglBeginQueryIndexed not implemented");
             Delegates.pglBeginQueryIndexed((int) target, index, id);
             DebugCheckErrors(null);
         }
@@ -2801,7 +2801,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
         public static void EndQueryIndexed(QueryTarget target, uint index)
         {
-            Debug.Assert(Delegates.pglEndQueryIndexed != null, "pglEndQueryIndexed not implemented");
+            Assert(Delegates.pglEndQueryIndexed != null, "pglEndQueryIndexed not implemented");
             Delegates.pglEndQueryIndexed((int) target, index);
             DebugCheckErrors(null);
         }
@@ -2833,7 +2833,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryIndexediv != null, "pglGetQueryIndexediv not implemented");
+                    Assert(Delegates.pglGetQueryIndexediv != null, "pglGetQueryIndexediv not implemented");
                     Delegates.pglGetQueryIndexediv((int) target, index, (int) pname, p_params);
                 }
             }

@@ -1,11 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Common;
 using Emotion.Platform.Debugger;
 using Emotion.Platform.Implementation.EglAngle.Native;
-using Emotion.Standard.Logging;
 
 #endregion
 

@@ -381,7 +381,7 @@ namespace OpenGL
             {
                 fixed (uint* p_ids = ids)
                 {
-                    Debug.Assert(Delegates.pglGenQueries != null, "pglGenQueries not implemented");
+                    Assert(Delegates.pglGenQueries != null, "pglGenQueries not implemented");
                     Delegates.pglGenQueries(ids.Length, p_ids);
                 }
             }
@@ -426,7 +426,7 @@ namespace OpenGL
             {
                 fixed (uint* p_ids = ids)
                 {
-                    Debug.Assert(Delegates.pglDeleteQueries != null, "pglDeleteQueries not implemented");
+                    Assert(Delegates.pglDeleteQueries != null, "pglDeleteQueries not implemented");
                     Delegates.pglDeleteQueries(ids.Length, p_ids);
                 }
             }
@@ -449,7 +449,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsQuery != null, "pglIsQuery not implemented");
+            Assert(Delegates.pglIsQuery != null, "pglIsQuery not implemented");
             retValue = Delegates.pglIsQuery(id);
             DebugCheckErrors(retValue);
 
@@ -475,7 +475,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_occlusion_query")]
         public static void BeginQuery(QueryTarget target, uint id)
         {
-            Debug.Assert(Delegates.pglBeginQuery != null, "pglBeginQuery not implemented");
+            Assert(Delegates.pglBeginQuery != null, "pglBeginQuery not implemented");
             Delegates.pglBeginQuery((int) target, id);
             DebugCheckErrors(null);
         }
@@ -496,7 +496,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_occlusion_query")]
         public static void EndQuery(QueryTarget target)
         {
-            Debug.Assert(Delegates.pglEndQuery != null, "pglEndQuery not implemented");
+            Assert(Delegates.pglEndQuery != null, "pglEndQuery not implemented");
             Delegates.pglEndQuery((int) target);
             DebugCheckErrors(null);
         }
@@ -528,7 +528,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryiv != null, "pglGetQueryiv not implemented");
+                    Assert(Delegates.pglGetQueryiv != null, "pglGetQueryiv not implemented");
                     Delegates.pglGetQueryiv((int) target, (int) pname, p_params);
                 }
             }
@@ -563,7 +563,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryiv != null, "pglGetQueryiv not implemented");
+                    Assert(Delegates.pglGetQueryiv != null, "pglGetQueryiv not implemented");
                     Delegates.pglGetQueryiv((int) target, (int) pname, p_params);
                 }
             }
@@ -596,7 +596,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjectiv != null, "pglGetQueryObjectiv not implemented");
+                    Assert(Delegates.pglGetQueryObjectiv != null, "pglGetQueryObjectiv not implemented");
                     Delegates.pglGetQueryObjectiv(id, (int) pname, p_params);
                 }
             }
@@ -629,7 +629,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjectiv != null, "pglGetQueryObjectiv not implemented");
+                    Assert(Delegates.pglGetQueryObjectiv != null, "pglGetQueryObjectiv not implemented");
                     Delegates.pglGetQueryObjectiv(id, (int) pname, p_params);
                 }
             }
@@ -664,7 +664,7 @@ namespace OpenGL
             {
                 fixed (uint* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjectuiv != null, "pglGetQueryObjectuiv not implemented");
+                    Assert(Delegates.pglGetQueryObjectuiv != null, "pglGetQueryObjectuiv not implemented");
                     Delegates.pglGetQueryObjectuiv(id, (int) pname, p_params);
                 }
             }
@@ -699,7 +699,7 @@ namespace OpenGL
             {
                 fixed (uint* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjectuiv != null, "pglGetQueryObjectuiv not implemented");
+                    Assert(Delegates.pglGetQueryObjectuiv != null, "pglGetQueryObjectuiv not implemented");
                     Delegates.pglGetQueryObjectuiv(id, (int) pname, p_params);
                 }
             }
@@ -726,7 +726,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         public static void BindBuffer(BufferTarget target, uint buffer)
         {
-            Debug.Assert(Delegates.pglBindBuffer != null, "pglBindBuffer not implemented");
+            Assert(Delegates.pglBindBuffer != null, "pglBindBuffer not implemented");
             Delegates.pglBindBuffer((int) target, buffer);
             DebugCheckErrors(null);
         }
@@ -749,7 +749,7 @@ namespace OpenGL
             {
                 fixed (uint* p_buffers = buffers)
                 {
-                    Debug.Assert(Delegates.pglDeleteBuffers != null, "pglDeleteBuffers not implemented");
+                    Assert(Delegates.pglDeleteBuffers != null, "pglDeleteBuffers not implemented");
                     Delegates.pglDeleteBuffers(buffers.Length, p_buffers);
                 }
             }
@@ -776,7 +776,7 @@ namespace OpenGL
             {
                 fixed (uint* p_buffers = buffers)
                 {
-                    Debug.Assert(Delegates.pglGenBuffers != null, "pglGenBuffers not implemented");
+                    Assert(Delegates.pglGenBuffers != null, "pglGenBuffers not implemented");
                     Delegates.pglGenBuffers(buffers.Length, p_buffers);
                 }
             }
@@ -822,7 +822,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsBuffer != null, "pglIsBuffer not implemented");
+            Assert(Delegates.pglIsBuffer != null, "pglIsBuffer not implemented");
             retValue = Delegates.pglIsBuffer(buffer);
             DebugCheckErrors(retValue);
 
@@ -856,7 +856,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         public static void BufferData(BufferTarget target, uint size, IntPtr data, BufferUsage usage)
         {
-            Debug.Assert(Delegates.pglBufferData != null, "pglBufferData not implemented");
+            Assert(Delegates.pglBufferData != null, "pglBufferData not implemented");
             Delegates.pglBufferData((int) target, size, data, (int) usage);
         }
 
@@ -923,7 +923,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         public static void BufferSubData(BufferTarget target, IntPtr offset, uint size, IntPtr data)
         {
-            Debug.Assert(Delegates.pglBufferSubData != null, "pglBufferSubData not implemented");
+            Assert(Delegates.pglBufferSubData != null, "pglBufferSubData not implemented");
             Delegates.pglBufferSubData((int) target, offset, size, data);
             DebugCheckErrors(null);
         }
@@ -984,7 +984,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         public static void GetBufferSubData(BufferTarget target, IntPtr offset, uint size, IntPtr data)
         {
-            Debug.Assert(Delegates.pglGetBufferSubData != null, "pglGetBufferSubData not implemented");
+            Assert(Delegates.pglGetBufferSubData != null, "pglGetBufferSubData not implemented");
             Delegates.pglGetBufferSubData((int) target, offset, size, data);
             DebugCheckErrors(null);
         }
@@ -1040,7 +1040,7 @@ namespace OpenGL
         {
             IntPtr retValue;
 
-            Debug.Assert(Delegates.pglMapBuffer != null, "pglMapBuffer not implemented");
+            Assert(Delegates.pglMapBuffer != null, "pglMapBuffer not implemented");
             retValue = Delegates.pglMapBuffer((int) target, (int) access);
             DebugCheckErrors(retValue);
 
@@ -1067,7 +1067,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglUnmapBuffer != null, "pglUnmapBuffer not implemented");
+            Assert(Delegates.pglUnmapBuffer != null, "pglUnmapBuffer not implemented");
             retValue = Delegates.pglUnmapBuffer((int) target);
             DebugCheckErrors(retValue);
 
@@ -1101,7 +1101,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = data)
                 {
-                    Debug.Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
+                    Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
                     Delegates.pglGetBufferParameteriv((int) target, value, p_params);
                 }
             }
@@ -1136,7 +1136,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &data)
                 {
-                    Debug.Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
+                    Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
                     Delegates.pglGetBufferParameteriv((int) target, value, p_params);
                 }
             }
@@ -1167,7 +1167,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         public static unsafe void GetBufferParameter(BufferTarget target, int value, [Out] int* data)
         {
-            Debug.Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
+            Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
             Delegates.pglGetBufferParameteriv((int) target, value, data);
             DebugCheckErrors(null);
         }
@@ -1195,7 +1195,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         public static void GetBufferParameteri<T>(BufferTarget target, int value, out T data) where T : unmanaged
         {
-            Debug.Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
+            Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
 
             unsafe
             {
@@ -1232,7 +1232,7 @@ namespace OpenGL
             {
                 fixed (IntPtr* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetBufferPointerv != null, "pglGetBufferPointerv not implemented");
+                    Assert(Delegates.pglGetBufferPointerv != null, "pglGetBufferPointerv not implemented");
                     Delegates.pglGetBufferPointerv((int) target, pname, p_params);
                 }
             }

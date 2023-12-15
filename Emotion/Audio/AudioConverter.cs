@@ -1,11 +1,8 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using Emotion.Common;
 using Emotion.Standard.Audio;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion

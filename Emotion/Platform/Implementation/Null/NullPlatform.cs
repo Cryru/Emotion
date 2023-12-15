@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
-using Emotion.Common;
-
 #endregion
 
 namespace Emotion.Platform.Implementation.Null

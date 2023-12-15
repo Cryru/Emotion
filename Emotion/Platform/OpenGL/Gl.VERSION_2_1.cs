@@ -170,12 +170,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix2x3(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix2x3fv != null, "pglUniformMatrix2x3fv not implemented");
+                    Assert(Delegates.pglUniformMatrix2x3fv != null, "pglUniformMatrix2x3fv not implemented");
                     Delegates.pglUniformMatrix2x3fv(location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -208,7 +208,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static unsafe void UniformMatrix2x3(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x3fv != null, "pglUniformMatrix2x3fv not implemented");
+            Assert(Delegates.pglUniformMatrix2x3fv != null, "pglUniformMatrix2x3fv not implemented");
             Delegates.pglUniformMatrix2x3fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -238,7 +238,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix2x3f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x3fv != null, "pglUniformMatrix2x3fv not implemented");
+            Assert(Delegates.pglUniformMatrix2x3fv != null, "pglUniformMatrix2x3fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -279,12 +279,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix3x2(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix3x2fv != null, "pglUniformMatrix3x2fv not implemented");
+                    Assert(Delegates.pglUniformMatrix3x2fv != null, "pglUniformMatrix3x2fv not implemented");
                     Delegates.pglUniformMatrix3x2fv(location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -317,7 +317,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static unsafe void UniformMatrix3x2(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x2fv != null, "pglUniformMatrix3x2fv not implemented");
+            Assert(Delegates.pglUniformMatrix3x2fv != null, "pglUniformMatrix3x2fv not implemented");
             Delegates.pglUniformMatrix3x2fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -347,7 +347,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix3x2f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x2fv != null, "pglUniformMatrix3x2fv not implemented");
+            Assert(Delegates.pglUniformMatrix3x2fv != null, "pglUniformMatrix3x2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -388,12 +388,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix2x4(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix2x4fv != null, "pglUniformMatrix2x4fv not implemented");
+                    Assert(Delegates.pglUniformMatrix2x4fv != null, "pglUniformMatrix2x4fv not implemented");
                     Delegates.pglUniformMatrix2x4fv(location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -426,7 +426,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static unsafe void UniformMatrix2x4(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x4fv != null, "pglUniformMatrix2x4fv not implemented");
+            Assert(Delegates.pglUniformMatrix2x4fv != null, "pglUniformMatrix2x4fv not implemented");
             Delegates.pglUniformMatrix2x4fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -456,7 +456,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix2x4f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix2x4fv != null, "pglUniformMatrix2x4fv not implemented");
+            Assert(Delegates.pglUniformMatrix2x4fv != null, "pglUniformMatrix2x4fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -497,12 +497,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix4x2(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix4x2fv != null, "pglUniformMatrix4x2fv not implemented");
+                    Assert(Delegates.pglUniformMatrix4x2fv != null, "pglUniformMatrix4x2fv not implemented");
                     Delegates.pglUniformMatrix4x2fv(location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -535,7 +535,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static unsafe void UniformMatrix4x2(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x2fv != null, "pglUniformMatrix4x2fv not implemented");
+            Assert(Delegates.pglUniformMatrix4x2fv != null, "pglUniformMatrix4x2fv not implemented");
             Delegates.pglUniformMatrix4x2fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -565,7 +565,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix4x2f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x2fv != null, "pglUniformMatrix4x2fv not implemented");
+            Assert(Delegates.pglUniformMatrix4x2fv != null, "pglUniformMatrix4x2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -606,12 +606,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix3x4(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix3x4fv != null, "pglUniformMatrix3x4fv not implemented");
+                    Assert(Delegates.pglUniformMatrix3x4fv != null, "pglUniformMatrix3x4fv not implemented");
                     Delegates.pglUniformMatrix3x4fv(location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -644,7 +644,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static unsafe void UniformMatrix3x4(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x4fv != null, "pglUniformMatrix3x4fv not implemented");
+            Assert(Delegates.pglUniformMatrix3x4fv != null, "pglUniformMatrix3x4fv not implemented");
             Delegates.pglUniformMatrix3x4fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -674,7 +674,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix3x4f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix3x4fv != null, "pglUniformMatrix3x4fv not implemented");
+            Assert(Delegates.pglUniformMatrix3x4fv != null, "pglUniformMatrix3x4fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -715,12 +715,12 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix4x3(int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglUniformMatrix4x3fv != null, "pglUniformMatrix4x3fv not implemented");
+                    Assert(Delegates.pglUniformMatrix4x3fv != null, "pglUniformMatrix4x3fv not implemented");
                     Delegates.pglUniformMatrix4x3fv(location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -753,7 +753,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static unsafe void UniformMatrix4x3(int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x3fv != null, "pglUniformMatrix4x3fv not implemented");
+            Assert(Delegates.pglUniformMatrix4x3fv != null, "pglUniformMatrix4x3fv not implemented");
             Delegates.pglUniformMatrix4x3fv(location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -783,7 +783,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
         public static void UniformMatrix4x3f<T>(int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglUniformMatrix4x3fv != null, "pglUniformMatrix4x3fv not implemented");
+            Assert(Delegates.pglUniformMatrix4x3fv != null, "pglUniformMatrix4x3fv not implemented");
             unsafe
             {
                 TypedReference refValue = __makeref(value);

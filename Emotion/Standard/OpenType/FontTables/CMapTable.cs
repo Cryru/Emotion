@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion
@@ -40,8 +37,8 @@ namespace Emotion.Standard.OpenType.FontTables
                 ushort platformId = reader.ReadUShortBE();
                 ushort encodingId = reader.ReadUShortBE();
                 var offset = (int) reader.ReadULongBE();
-                if ((platformId != 3 || encodingId != 0 && encodingId != 1 && encodingId != 10) &&
-                    (platformId != 0 || encodingId != 0 && encodingId != 1 && encodingId != 2 && encodingId != 3 && encodingId != 4)) continue;
+                if ((platformId != 3 || (encodingId != 0 && encodingId != 1 && encodingId != 10)) &&
+                    (platformId != 0 || (encodingId != 0 && encodingId != 1 && encodingId != 2 && encodingId != 3 && encodingId != 4))) continue;
                 tableOffset = offset;
                 break;
             }

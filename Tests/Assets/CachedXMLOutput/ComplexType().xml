@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
+
 <Positional>
-  <Position>
-    <X>100</X>
-    <Y>200</Y>
-    <Z>300</Z>
-  </Position>
+    <Position>
+        <X>100</X>
+        <Y>200</Y>
+        <Z>300</Z>
+    </Position>
 </Positional>

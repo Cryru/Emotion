@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Reflection;
 using DelegateList = System.Collections.Generic.List<System.Reflection.FieldInfo>;
 
@@ -29,7 +28,7 @@ namespace Emotion.Platform.OpenGL.Khronos
         public ReflectionFunctionContext(Type type)
         {
             Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.Public);
-            Debug.Assert(delegatesClass != null);
+            Assert(delegatesClass != null);
             _delegateType = delegatesClass;
             Delegates = GetDelegateList(type);
         }
@@ -43,7 +42,7 @@ namespace Emotion.Platform.OpenGL.Khronos
                 throw new ArgumentNullException(nameof(functionName));
 
             FieldInfo functionField = _delegateType.GetField("p" + functionName, BindingFlags.Static | BindingFlags.Public);
-            Debug.Assert(functionField != null);
+            Assert(functionField != null);
 
             return functionField;
         }
@@ -54,7 +53,7 @@ namespace Emotion.Platform.OpenGL.Khronos
         public static DelegateList GetDelegateList(Type type)
         {
             Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.Public);
-            Debug.Assert(delegatesClass != null);
+            Assert(delegatesClass != null);
 
             return new DelegateList(delegatesClass.GetFields(BindingFlags.Static | BindingFlags.Public));
         }

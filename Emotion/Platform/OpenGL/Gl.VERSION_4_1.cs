@@ -480,7 +480,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_ES2_compatibility", Api = "gl|glcore")]
         public static void ReleaseShaderCompiler()
         {
-            Debug.Assert(Delegates.pglReleaseShaderCompiler != null, "pglReleaseShaderCompiler not implemented");
+            Assert(Delegates.pglReleaseShaderCompiler != null, "pglReleaseShaderCompiler not implemented");
             Delegates.pglReleaseShaderCompiler();
             DebugCheckErrors(null);
         }
@@ -547,7 +547,7 @@ namespace OpenGL
             {
                 fixed (uint* p_shaders = shaders)
                 {
-                    Debug.Assert(Delegates.pglShaderBinary != null, "pglShaderBinary not implemented");
+                    Assert(Delegates.pglShaderBinary != null, "pglShaderBinary not implemented");
                     Delegates.pglShaderBinary(shaders.Length, p_shaders, binaryformat, binary, length);
                 }
             }
@@ -579,13 +579,13 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_ES2_compatibility", Api = "gl|glcore")]
         public static void GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, [Out] int[] range, out int precision)
         {
-            Debug.Assert(range.Length >= 2);
+            Assert(range.Length >= 2);
             unsafe
             {
                 fixed (int* p_range = range)
                 fixed (int* p_precision = &precision)
                 {
-                    Debug.Assert(Delegates.pglGetShaderPrecisionFormat != null, "pglGetShaderPrecisionFormat not implemented");
+                    Assert(Delegates.pglGetShaderPrecisionFormat != null, "pglGetShaderPrecisionFormat not implemented");
                     Delegates.pglGetShaderPrecisionFormat((int) shadertype, (int) precisiontype, p_range, p_precision);
                 }
             }
@@ -622,7 +622,7 @@ namespace OpenGL
                 fixed (int* p_range = &range)
                 fixed (int* p_precision = &precision)
                 {
-                    Debug.Assert(Delegates.pglGetShaderPrecisionFormat != null, "pglGetShaderPrecisionFormat not implemented");
+                    Assert(Delegates.pglGetShaderPrecisionFormat != null, "pglGetShaderPrecisionFormat not implemented");
                     Delegates.pglGetShaderPrecisionFormat((int) shadertype, (int) precisiontype, p_range, p_precision);
                 }
             }
@@ -650,7 +650,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_single_precision", Api = "gl|gles1")]
         public static void DepthRange(float n, float f)
         {
-            Debug.Assert(Delegates.pglDepthRangef != null, "pglDepthRangef not implemented");
+            Assert(Delegates.pglDepthRangef != null, "pglDepthRangef not implemented");
             Delegates.pglDepthRangef(n, f);
             DebugCheckErrors(null);
         }
@@ -671,7 +671,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_single_precision", Api = "gl|gles1")]
         public static void ClearDepth(float d)
         {
-            Debug.Assert(Delegates.pglClearDepthf != null, "pglClearDepthf not implemented");
+            Assert(Delegates.pglClearDepthf != null, "pglClearDepthf not implemented");
             Delegates.pglClearDepthf(d);
             DebugCheckErrors(null);
         }
@@ -709,7 +709,7 @@ namespace OpenGL
                 fixed (int* p_length = &length)
                 fixed (int* p_binaryFormat = &binaryFormat)
                 {
-                    Debug.Assert(Delegates.pglGetProgramBinary != null, "pglGetProgramBinary not implemented");
+                    Assert(Delegates.pglGetProgramBinary != null, "pglGetProgramBinary not implemented");
                     Delegates.pglGetProgramBinary(program, bufSize, p_length, p_binaryFormat, binary);
                 }
             }
@@ -780,7 +780,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_get_program_binary", Api = "gles2")]
         public static void ProgramBinary(uint program, int binaryFormat, IntPtr binary, int length)
         {
-            Debug.Assert(Delegates.pglProgramBinary != null, "pglProgramBinary not implemented");
+            Assert(Delegates.pglProgramBinary != null, "pglProgramBinary not implemented");
             Delegates.pglProgramBinary(program, binaryFormat, binary, length);
             DebugCheckErrors(null);
         }
@@ -844,7 +844,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramParameter(uint program, ProgramParameterPName pname, int value)
         {
-            Debug.Assert(Delegates.pglProgramParameteri != null, "pglProgramParameteri not implemented");
+            Assert(Delegates.pglProgramParameteri != null, "pglProgramParameteri not implemented");
             Delegates.pglProgramParameteri(program, (int) pname, value);
             DebugCheckErrors(null);
         }
@@ -868,7 +868,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void UseProgramStage(uint pipeline, UseProgramStageMask stages, uint program)
         {
-            Debug.Assert(Delegates.pglUseProgramStages != null, "pglUseProgramStages not implemented");
+            Assert(Delegates.pglUseProgramStages != null, "pglUseProgramStages not implemented");
             Delegates.pglUseProgramStages(pipeline, (uint) stages, program);
             DebugCheckErrors(null);
         }
@@ -889,7 +889,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ActiveShaderProgram(uint pipeline, uint program)
         {
-            Debug.Assert(Delegates.pglActiveShaderProgram != null, "pglActiveShaderProgram not implemented");
+            Assert(Delegates.pglActiveShaderProgram != null, "pglActiveShaderProgram not implemented");
             Delegates.pglActiveShaderProgram(pipeline, program);
             DebugCheckErrors(null);
         }
@@ -916,7 +916,7 @@ namespace OpenGL
         {
             uint retValue;
 
-            Debug.Assert(Delegates.pglCreateShaderProgramv != null, "pglCreateShaderProgramv not implemented");
+            Assert(Delegates.pglCreateShaderProgramv != null, "pglCreateShaderProgramv not implemented");
             retValue = Delegates.pglCreateShaderProgramv((int) type, count, strings);
             DebugCheckErrors(retValue);
 
@@ -942,7 +942,7 @@ namespace OpenGL
         {
             uint retValue;
 
-            Debug.Assert(Delegates.pglCreateShaderProgramv != null, "pglCreateShaderProgramv not implemented");
+            Assert(Delegates.pglCreateShaderProgramv != null, "pglCreateShaderProgramv not implemented");
             retValue = Delegates.pglCreateShaderProgramv((int) type, strings.Length, strings);
             DebugCheckErrors(retValue);
 
@@ -962,7 +962,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void BindProgramPipeline(uint pipeline)
         {
-            Debug.Assert(Delegates.pglBindProgramPipeline != null, "pglBindProgramPipeline not implemented");
+            Assert(Delegates.pglBindProgramPipeline != null, "pglBindProgramPipeline not implemented");
             Delegates.pglBindProgramPipeline(pipeline);
             DebugCheckErrors(null);
         }
@@ -984,7 +984,7 @@ namespace OpenGL
             {
                 fixed (uint* p_pipelines = pipelines)
                 {
-                    Debug.Assert(Delegates.pglDeleteProgramPipelines != null, "pglDeleteProgramPipelines not implemented");
+                    Assert(Delegates.pglDeleteProgramPipelines != null, "pglDeleteProgramPipelines not implemented");
                     Delegates.pglDeleteProgramPipelines(pipelines.Length, p_pipelines);
                 }
             }
@@ -1009,7 +1009,7 @@ namespace OpenGL
             {
                 fixed (uint* p_pipelines = pipelines)
                 {
-                    Debug.Assert(Delegates.pglGenProgramPipelines != null, "pglGenProgramPipelines not implemented");
+                    Assert(Delegates.pglGenProgramPipelines != null, "pglGenProgramPipelines not implemented");
                     Delegates.pglGenProgramPipelines(pipelines.Length, p_pipelines);
                 }
             }
@@ -1052,7 +1052,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsProgramPipeline != null, "pglIsProgramPipeline not implemented");
+            Assert(Delegates.pglIsProgramPipeline != null, "pglIsProgramPipeline not implemented");
             retValue = Delegates.pglIsProgramPipeline(pipeline);
             DebugCheckErrors(retValue);
 
@@ -1083,7 +1083,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramPipelineiv != null, "pglGetProgramPipelineiv not implemented");
+                    Assert(Delegates.pglGetProgramPipelineiv != null, "pglGetProgramPipelineiv not implemented");
                     Delegates.pglGetProgramPipelineiv(pipeline, (int) pname, p_params);
                 }
             }
@@ -1115,7 +1115,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramPipelineiv != null, "pglGetProgramPipelineiv not implemented");
+                    Assert(Delegates.pglGetProgramPipelineiv != null, "pglGetProgramPipelineiv not implemented");
                     Delegates.pglGetProgramPipelineiv(pipeline, (int) pname, p_params);
                 }
             }
@@ -1144,7 +1144,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform1(uint program, int location, int v0)
         {
-            Debug.Assert(Delegates.pglProgramUniform1i != null, "pglProgramUniform1i not implemented");
+            Assert(Delegates.pglProgramUniform1i != null, "pglProgramUniform1i not implemented");
             Delegates.pglProgramUniform1i(program, location, v0);
             DebugCheckErrors(null);
         }
@@ -1176,7 +1176,7 @@ namespace OpenGL
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform1iv != null, "pglProgramUniform1iv not implemented");
+                    Assert(Delegates.pglProgramUniform1iv != null, "pglProgramUniform1iv not implemented");
                     Delegates.pglProgramUniform1iv(program, location, value.Length, p_value);
                 }
             }
@@ -1211,7 +1211,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform1(uint program, int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform1iv != null, "pglProgramUniform1iv not implemented");
+            Assert(Delegates.pglProgramUniform1iv != null, "pglProgramUniform1iv not implemented");
             Delegates.pglProgramUniform1iv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -1243,7 +1243,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform1i<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform1iv != null, "pglProgramUniform1iv not implemented");
+            Assert(Delegates.pglProgramUniform1iv != null, "pglProgramUniform1iv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -1286,7 +1286,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform1(uint program, int location, float v0)
         {
-            Debug.Assert(Delegates.pglProgramUniform1f != null, "pglProgramUniform1f not implemented");
+            Assert(Delegates.pglProgramUniform1f != null, "pglProgramUniform1f not implemented");
             Delegates.pglProgramUniform1f(program, location, v0);
             DebugCheckErrors(null);
         }
@@ -1318,7 +1318,7 @@ namespace OpenGL
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform1fv != null, "pglProgramUniform1fv not implemented");
+                    Assert(Delegates.pglProgramUniform1fv != null, "pglProgramUniform1fv not implemented");
                     Delegates.pglProgramUniform1fv(program, location, value.Length, p_value);
                 }
             }
@@ -1353,7 +1353,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform1(uint program, int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform1fv != null, "pglProgramUniform1fv not implemented");
+            Assert(Delegates.pglProgramUniform1fv != null, "pglProgramUniform1fv not implemented");
             Delegates.pglProgramUniform1fv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -1385,7 +1385,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform1f<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform1fv != null, "pglProgramUniform1fv not implemented");
+            Assert(Delegates.pglProgramUniform1fv != null, "pglProgramUniform1fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -1423,7 +1423,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform1(uint program, int location, double v0)
         {
-            Debug.Assert(Delegates.pglProgramUniform1d != null, "pglProgramUniform1d not implemented");
+            Assert(Delegates.pglProgramUniform1d != null, "pglProgramUniform1d not implemented");
             Delegates.pglProgramUniform1d(program, location, v0);
             DebugCheckErrors(null);
         }
@@ -1448,7 +1448,7 @@ namespace OpenGL
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform1dv != null, "pglProgramUniform1dv not implemented");
+                    Assert(Delegates.pglProgramUniform1dv != null, "pglProgramUniform1dv not implemented");
                     Delegates.pglProgramUniform1dv(program, location, value.Length, p_value);
                 }
             }
@@ -1475,7 +1475,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniform1(uint program, int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform1dv != null, "pglProgramUniform1dv not implemented");
+            Assert(Delegates.pglProgramUniform1dv != null, "pglProgramUniform1dv not implemented");
             Delegates.pglProgramUniform1dv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -1499,7 +1499,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform1d<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform1dv != null, "pglProgramUniform1dv not implemented");
+            Assert(Delegates.pglProgramUniform1dv != null, "pglProgramUniform1dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -1542,7 +1542,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform1(uint program, int location, uint v0)
         {
-            Debug.Assert(Delegates.pglProgramUniform1ui != null, "pglProgramUniform1ui not implemented");
+            Assert(Delegates.pglProgramUniform1ui != null, "pglProgramUniform1ui not implemented");
             Delegates.pglProgramUniform1ui(program, location, v0);
             DebugCheckErrors(null);
         }
@@ -1574,7 +1574,7 @@ namespace OpenGL
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform1uiv != null, "pglProgramUniform1uiv not implemented");
+                    Assert(Delegates.pglProgramUniform1uiv != null, "pglProgramUniform1uiv not implemented");
                     Delegates.pglProgramUniform1uiv(program, location, value.Length, p_value);
                 }
             }
@@ -1609,7 +1609,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform1(uint program, int location, int count, uint* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform1uiv != null, "pglProgramUniform1uiv not implemented");
+            Assert(Delegates.pglProgramUniform1uiv != null, "pglProgramUniform1uiv not implemented");
             Delegates.pglProgramUniform1uiv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -1641,7 +1641,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform1ui<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform1uiv != null, "pglProgramUniform1uiv not implemented");
+            Assert(Delegates.pglProgramUniform1uiv != null, "pglProgramUniform1uiv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -1687,7 +1687,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2(uint program, int location, int v0, int v1)
         {
-            Debug.Assert(Delegates.pglProgramUniform2i != null, "pglProgramUniform2i not implemented");
+            Assert(Delegates.pglProgramUniform2i != null, "pglProgramUniform2i not implemented");
             Delegates.pglProgramUniform2i(program, location, v0, v1);
             DebugCheckErrors(null);
         }
@@ -1715,12 +1715,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2(uint program, int location, int[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform2iv != null, "pglProgramUniform2iv not implemented");
+                    Assert(Delegates.pglProgramUniform2iv != null, "pglProgramUniform2iv not implemented");
                     Delegates.pglProgramUniform2iv(program, location, value.Length / 2, p_value);
                 }
             }
@@ -1755,7 +1755,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform2(uint program, int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform2iv != null, "pglProgramUniform2iv not implemented");
+            Assert(Delegates.pglProgramUniform2iv != null, "pglProgramUniform2iv not implemented");
             Delegates.pglProgramUniform2iv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -1787,7 +1787,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2i<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform2iv != null, "pglProgramUniform2iv not implemented");
+            Assert(Delegates.pglProgramUniform2iv != null, "pglProgramUniform2iv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -1833,7 +1833,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2(uint program, int location, float v0, float v1)
         {
-            Debug.Assert(Delegates.pglProgramUniform2f != null, "pglProgramUniform2f not implemented");
+            Assert(Delegates.pglProgramUniform2f != null, "pglProgramUniform2f not implemented");
             Delegates.pglProgramUniform2f(program, location, v0, v1);
             DebugCheckErrors(null);
         }
@@ -1861,12 +1861,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2(uint program, int location, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform2fv != null, "pglProgramUniform2fv not implemented");
+                    Assert(Delegates.pglProgramUniform2fv != null, "pglProgramUniform2fv not implemented");
                     Delegates.pglProgramUniform2fv(program, location, value.Length / 2, p_value);
                 }
             }
@@ -1901,7 +1901,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform2(uint program, int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform2fv != null, "pglProgramUniform2fv not implemented");
+            Assert(Delegates.pglProgramUniform2fv != null, "pglProgramUniform2fv not implemented");
             Delegates.pglProgramUniform2fv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -1933,7 +1933,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2f<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform2fv != null, "pglProgramUniform2fv not implemented");
+            Assert(Delegates.pglProgramUniform2fv != null, "pglProgramUniform2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -1974,7 +1974,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform2(uint program, int location, double v0, double v1)
         {
-            Debug.Assert(Delegates.pglProgramUniform2d != null, "pglProgramUniform2d not implemented");
+            Assert(Delegates.pglProgramUniform2d != null, "pglProgramUniform2d not implemented");
             Delegates.pglProgramUniform2d(program, location, v0, v1);
             DebugCheckErrors(null);
         }
@@ -1995,12 +1995,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform2(uint program, int location, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform2dv != null, "pglProgramUniform2dv not implemented");
+                    Assert(Delegates.pglProgramUniform2dv != null, "pglProgramUniform2dv not implemented");
                     Delegates.pglProgramUniform2dv(program, location, value.Length / 2, p_value);
                 }
             }
@@ -2027,7 +2027,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniform2(uint program, int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform2dv != null, "pglProgramUniform2dv not implemented");
+            Assert(Delegates.pglProgramUniform2dv != null, "pglProgramUniform2dv not implemented");
             Delegates.pglProgramUniform2dv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2051,7 +2051,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform2d<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform2dv != null, "pglProgramUniform2dv not implemented");
+            Assert(Delegates.pglProgramUniform2dv != null, "pglProgramUniform2dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2097,7 +2097,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2(uint program, int location, uint v0, uint v1)
         {
-            Debug.Assert(Delegates.pglProgramUniform2ui != null, "pglProgramUniform2ui not implemented");
+            Assert(Delegates.pglProgramUniform2ui != null, "pglProgramUniform2ui not implemented");
             Delegates.pglProgramUniform2ui(program, location, v0, v1);
             DebugCheckErrors(null);
         }
@@ -2125,12 +2125,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2(uint program, int location, uint[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
+            Assert(value.Length > 0 && value.Length % 2 == 0, "empty or not multiple of 2");
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform2uiv != null, "pglProgramUniform2uiv not implemented");
+                    Assert(Delegates.pglProgramUniform2uiv != null, "pglProgramUniform2uiv not implemented");
                     Delegates.pglProgramUniform2uiv(program, location, value.Length / 2, p_value);
                 }
             }
@@ -2165,7 +2165,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform2(uint program, int location, int count, uint* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform2uiv != null, "pglProgramUniform2uiv not implemented");
+            Assert(Delegates.pglProgramUniform2uiv != null, "pglProgramUniform2uiv not implemented");
             Delegates.pglProgramUniform2uiv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2197,7 +2197,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform2ui<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform2uiv != null, "pglProgramUniform2uiv not implemented");
+            Assert(Delegates.pglProgramUniform2uiv != null, "pglProgramUniform2uiv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2246,7 +2246,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3(uint program, int location, int v0, int v1, int v2)
         {
-            Debug.Assert(Delegates.pglProgramUniform3i != null, "pglProgramUniform3i not implemented");
+            Assert(Delegates.pglProgramUniform3i != null, "pglProgramUniform3i not implemented");
             Delegates.pglProgramUniform3i(program, location, v0, v1, v2);
             DebugCheckErrors(null);
         }
@@ -2274,12 +2274,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3(uint program, int location, int[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform3iv != null, "pglProgramUniform3iv not implemented");
+                    Assert(Delegates.pglProgramUniform3iv != null, "pglProgramUniform3iv not implemented");
                     Delegates.pglProgramUniform3iv(program, location, value.Length / 3, p_value);
                 }
             }
@@ -2314,7 +2314,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform3(uint program, int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform3iv != null, "pglProgramUniform3iv not implemented");
+            Assert(Delegates.pglProgramUniform3iv != null, "pglProgramUniform3iv not implemented");
             Delegates.pglProgramUniform3iv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2346,7 +2346,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3i<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform3iv != null, "pglProgramUniform3iv not implemented");
+            Assert(Delegates.pglProgramUniform3iv != null, "pglProgramUniform3iv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2395,7 +2395,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3(uint program, int location, float v0, float v1, float v2)
         {
-            Debug.Assert(Delegates.pglProgramUniform3f != null, "pglProgramUniform3f not implemented");
+            Assert(Delegates.pglProgramUniform3f != null, "pglProgramUniform3f not implemented");
             Delegates.pglProgramUniform3f(program, location, v0, v1, v2);
             DebugCheckErrors(null);
         }
@@ -2423,12 +2423,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3(uint program, int location, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform3fv != null, "pglProgramUniform3fv not implemented");
+                    Assert(Delegates.pglProgramUniform3fv != null, "pglProgramUniform3fv not implemented");
                     Delegates.pglProgramUniform3fv(program, location, value.Length / 3, p_value);
                 }
             }
@@ -2463,7 +2463,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform3(uint program, int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform3fv != null, "pglProgramUniform3fv not implemented");
+            Assert(Delegates.pglProgramUniform3fv != null, "pglProgramUniform3fv not implemented");
             Delegates.pglProgramUniform3fv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2495,7 +2495,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3f<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform3fv != null, "pglProgramUniform3fv not implemented");
+            Assert(Delegates.pglProgramUniform3fv != null, "pglProgramUniform3fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2539,7 +2539,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform3(uint program, int location, double v0, double v1, double v2)
         {
-            Debug.Assert(Delegates.pglProgramUniform3d != null, "pglProgramUniform3d not implemented");
+            Assert(Delegates.pglProgramUniform3d != null, "pglProgramUniform3d not implemented");
             Delegates.pglProgramUniform3d(program, location, v0, v1, v2);
             DebugCheckErrors(null);
         }
@@ -2560,12 +2560,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform3(uint program, int location, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform3dv != null, "pglProgramUniform3dv not implemented");
+                    Assert(Delegates.pglProgramUniform3dv != null, "pglProgramUniform3dv not implemented");
                     Delegates.pglProgramUniform3dv(program, location, value.Length / 3, p_value);
                 }
             }
@@ -2592,7 +2592,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniform3(uint program, int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform3dv != null, "pglProgramUniform3dv not implemented");
+            Assert(Delegates.pglProgramUniform3dv != null, "pglProgramUniform3dv not implemented");
             Delegates.pglProgramUniform3dv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2616,7 +2616,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform3d<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform3dv != null, "pglProgramUniform3dv not implemented");
+            Assert(Delegates.pglProgramUniform3dv != null, "pglProgramUniform3dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2665,7 +2665,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3(uint program, int location, uint v0, uint v1, uint v2)
         {
-            Debug.Assert(Delegates.pglProgramUniform3ui != null, "pglProgramUniform3ui not implemented");
+            Assert(Delegates.pglProgramUniform3ui != null, "pglProgramUniform3ui not implemented");
             Delegates.pglProgramUniform3ui(program, location, v0, v1, v2);
             DebugCheckErrors(null);
         }
@@ -2693,12 +2693,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3(uint program, int location, uint[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
+            Assert(value.Length > 0 && value.Length % 3 == 0, "empty or not multiple of 3");
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform3uiv != null, "pglProgramUniform3uiv not implemented");
+                    Assert(Delegates.pglProgramUniform3uiv != null, "pglProgramUniform3uiv not implemented");
                     Delegates.pglProgramUniform3uiv(program, location, value.Length / 3, p_value);
                 }
             }
@@ -2733,7 +2733,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform3(uint program, int location, int count, uint* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform3uiv != null, "pglProgramUniform3uiv not implemented");
+            Assert(Delegates.pglProgramUniform3uiv != null, "pglProgramUniform3uiv not implemented");
             Delegates.pglProgramUniform3uiv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2765,7 +2765,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform3ui<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform3uiv != null, "pglProgramUniform3uiv not implemented");
+            Assert(Delegates.pglProgramUniform3uiv != null, "pglProgramUniform3uiv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2817,7 +2817,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4(uint program, int location, int v0, int v1, int v2, int v3)
         {
-            Debug.Assert(Delegates.pglProgramUniform4i != null, "pglProgramUniform4i not implemented");
+            Assert(Delegates.pglProgramUniform4i != null, "pglProgramUniform4i not implemented");
             Delegates.pglProgramUniform4i(program, location, v0, v1, v2, v3);
             DebugCheckErrors(null);
         }
@@ -2845,12 +2845,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4(uint program, int location, int[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (int* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform4iv != null, "pglProgramUniform4iv not implemented");
+                    Assert(Delegates.pglProgramUniform4iv != null, "pglProgramUniform4iv not implemented");
                     Delegates.pglProgramUniform4iv(program, location, value.Length / 4, p_value);
                 }
             }
@@ -2885,7 +2885,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform4(uint program, int location, int count, int* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform4iv != null, "pglProgramUniform4iv not implemented");
+            Assert(Delegates.pglProgramUniform4iv != null, "pglProgramUniform4iv not implemented");
             Delegates.pglProgramUniform4iv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -2917,7 +2917,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4i<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform4iv != null, "pglProgramUniform4iv not implemented");
+            Assert(Delegates.pglProgramUniform4iv != null, "pglProgramUniform4iv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -2969,7 +2969,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4(uint program, int location, float v0, float v1, float v2, float v3)
         {
-            Debug.Assert(Delegates.pglProgramUniform4f != null, "pglProgramUniform4f not implemented");
+            Assert(Delegates.pglProgramUniform4f != null, "pglProgramUniform4f not implemented");
             Delegates.pglProgramUniform4f(program, location, v0, v1, v2, v3);
             DebugCheckErrors(null);
         }
@@ -2997,12 +2997,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4(uint program, int location, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform4fv != null, "pglProgramUniform4fv not implemented");
+                    Assert(Delegates.pglProgramUniform4fv != null, "pglProgramUniform4fv not implemented");
                     Delegates.pglProgramUniform4fv(program, location, value.Length / 4, p_value);
                 }
             }
@@ -3037,7 +3037,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform4(uint program, int location, int count, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform4fv != null, "pglProgramUniform4fv not implemented");
+            Assert(Delegates.pglProgramUniform4fv != null, "pglProgramUniform4fv not implemented");
             Delegates.pglProgramUniform4fv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -3069,7 +3069,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4f<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform4fv != null, "pglProgramUniform4fv not implemented");
+            Assert(Delegates.pglProgramUniform4fv != null, "pglProgramUniform4fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3116,7 +3116,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform4(uint program, int location, double v0, double v1, double v2, double v3)
         {
-            Debug.Assert(Delegates.pglProgramUniform4d != null, "pglProgramUniform4d not implemented");
+            Assert(Delegates.pglProgramUniform4d != null, "pglProgramUniform4d not implemented");
             Delegates.pglProgramUniform4d(program, location, v0, v1, v2, v3);
             DebugCheckErrors(null);
         }
@@ -3137,12 +3137,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform4(uint program, int location, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform4dv != null, "pglProgramUniform4dv not implemented");
+                    Assert(Delegates.pglProgramUniform4dv != null, "pglProgramUniform4dv not implemented");
                     Delegates.pglProgramUniform4dv(program, location, value.Length / 4, p_value);
                 }
             }
@@ -3169,7 +3169,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniform4(uint program, int location, int count, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform4dv != null, "pglProgramUniform4dv not implemented");
+            Assert(Delegates.pglProgramUniform4dv != null, "pglProgramUniform4dv not implemented");
             Delegates.pglProgramUniform4dv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -3193,7 +3193,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniform4d<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform4dv != null, "pglProgramUniform4dv not implemented");
+            Assert(Delegates.pglProgramUniform4dv != null, "pglProgramUniform4dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3245,7 +3245,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4(uint program, int location, uint v0, uint v1, uint v2, uint v3)
         {
-            Debug.Assert(Delegates.pglProgramUniform4ui != null, "pglProgramUniform4ui not implemented");
+            Assert(Delegates.pglProgramUniform4ui != null, "pglProgramUniform4ui not implemented");
             Delegates.pglProgramUniform4ui(program, location, v0, v1, v2, v3);
             DebugCheckErrors(null);
         }
@@ -3273,12 +3273,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4(uint program, int location, uint[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniform4uiv != null, "pglProgramUniform4uiv not implemented");
+                    Assert(Delegates.pglProgramUniform4uiv != null, "pglProgramUniform4uiv not implemented");
                     Delegates.pglProgramUniform4uiv(program, location, value.Length / 4, p_value);
                 }
             }
@@ -3313,7 +3313,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniform4(uint program, int location, int count, uint* value)
         {
-            Debug.Assert(Delegates.pglProgramUniform4uiv != null, "pglProgramUniform4uiv not implemented");
+            Assert(Delegates.pglProgramUniform4uiv != null, "pglProgramUniform4uiv not implemented");
             Delegates.pglProgramUniform4uiv(program, location, count, value);
             DebugCheckErrors(null);
         }
@@ -3345,7 +3345,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniform4ui<T>(uint program, int location, int count, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniform4uiv != null, "pglProgramUniform4uiv not implemented");
+            Assert(Delegates.pglProgramUniform4uiv != null, "pglProgramUniform4uiv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3393,12 +3393,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix2(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix2fv != null, "pglProgramUniformMatrix2fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix2fv != null, "pglProgramUniformMatrix2fv not implemented");
                     Delegates.pglProgramUniformMatrix2fv(program, location, value.Length / 4, transpose, p_value);
                 }
             }
@@ -3436,7 +3436,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix2(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2fv != null, "pglProgramUniformMatrix2fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2fv != null, "pglProgramUniformMatrix2fv not implemented");
             Delegates.pglProgramUniformMatrix2fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3471,7 +3471,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix2f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2fv != null, "pglProgramUniformMatrix2fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2fv != null, "pglProgramUniformMatrix2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3519,12 +3519,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix3(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
+            Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix3fv != null, "pglProgramUniformMatrix3fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix3fv != null, "pglProgramUniformMatrix3fv not implemented");
                     Delegates.pglProgramUniformMatrix3fv(program, location, value.Length / 9, transpose, p_value);
                 }
             }
@@ -3562,7 +3562,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix3(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3fv != null, "pglProgramUniformMatrix3fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3fv != null, "pglProgramUniformMatrix3fv not implemented");
             Delegates.pglProgramUniformMatrix3fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3597,7 +3597,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix3f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3fv != null, "pglProgramUniformMatrix3fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3fv != null, "pglProgramUniformMatrix3fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3646,12 +3646,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix4(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
+            Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix4fv != null, "pglProgramUniformMatrix4fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix4fv != null, "pglProgramUniformMatrix4fv not implemented");
                     Delegates.pglProgramUniformMatrix4fv(program, location, value.Length / 16, transpose, p_value);
                 }
             }
@@ -3690,7 +3690,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix4(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4fv != null, "pglProgramUniformMatrix4fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4fv != null, "pglProgramUniformMatrix4fv not implemented");
             Delegates.pglProgramUniformMatrix4fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3726,7 +3726,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix4f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4fv != null, "pglProgramUniformMatrix4fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4fv != null, "pglProgramUniformMatrix4fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3767,12 +3767,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix2(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
+            Assert(value.Length > 0 && value.Length % 4 == 0, "empty or not multiple of 4");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix2dv != null, "pglProgramUniformMatrix2dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix2dv != null, "pglProgramUniformMatrix2dv not implemented");
                     Delegates.pglProgramUniformMatrix2dv(program, location, value.Length / 4, transpose, p_value);
                 }
             }
@@ -3802,7 +3802,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix2(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2dv != null, "pglProgramUniformMatrix2dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2dv != null, "pglProgramUniformMatrix2dv not implemented");
             Delegates.pglProgramUniformMatrix2dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3829,7 +3829,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix2d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2dv != null, "pglProgramUniformMatrix2dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2dv != null, "pglProgramUniformMatrix2dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3870,12 +3870,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix3(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
+            Assert(value.Length > 0 && value.Length % 9 == 0, "empty or not multiple of 9");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix3dv != null, "pglProgramUniformMatrix3dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix3dv != null, "pglProgramUniformMatrix3dv not implemented");
                     Delegates.pglProgramUniformMatrix3dv(program, location, value.Length / 9, transpose, p_value);
                 }
             }
@@ -3905,7 +3905,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix3(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3dv != null, "pglProgramUniformMatrix3dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3dv != null, "pglProgramUniformMatrix3dv not implemented");
             Delegates.pglProgramUniformMatrix3dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -3932,7 +3932,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix3d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3dv != null, "pglProgramUniformMatrix3dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3dv != null, "pglProgramUniformMatrix3dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -3973,12 +3973,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix4(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
+            Assert(value.Length > 0 && value.Length % 16 == 0, "empty or not multiple of 16");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix4dv != null, "pglProgramUniformMatrix4dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix4dv != null, "pglProgramUniformMatrix4dv not implemented");
                     Delegates.pglProgramUniformMatrix4dv(program, location, value.Length / 16, transpose, p_value);
                 }
             }
@@ -4008,7 +4008,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix4(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4dv != null, "pglProgramUniformMatrix4dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4dv != null, "pglProgramUniformMatrix4dv not implemented");
             Delegates.pglProgramUniformMatrix4dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4035,7 +4035,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix4d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4dv != null, "pglProgramUniformMatrix4dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4dv != null, "pglProgramUniformMatrix4dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4083,12 +4083,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix2x3(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix2x3fv != null, "pglProgramUniformMatrix2x3fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix2x3fv != null, "pglProgramUniformMatrix2x3fv not implemented");
                     Delegates.pglProgramUniformMatrix2x3fv(program, location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -4126,7 +4126,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix2x3(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x3fv != null, "pglProgramUniformMatrix2x3fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x3fv != null, "pglProgramUniformMatrix2x3fv not implemented");
             Delegates.pglProgramUniformMatrix2x3fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4161,7 +4161,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix2x3f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x3fv != null, "pglProgramUniformMatrix2x3fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x3fv != null, "pglProgramUniformMatrix2x3fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4209,12 +4209,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix3x2(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix3x2fv != null, "pglProgramUniformMatrix3x2fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix3x2fv != null, "pglProgramUniformMatrix3x2fv not implemented");
                     Delegates.pglProgramUniformMatrix3x2fv(program, location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -4252,7 +4252,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix3x2(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x2fv != null, "pglProgramUniformMatrix3x2fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x2fv != null, "pglProgramUniformMatrix3x2fv not implemented");
             Delegates.pglProgramUniformMatrix3x2fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4287,7 +4287,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix3x2f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x2fv != null, "pglProgramUniformMatrix3x2fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x2fv != null, "pglProgramUniformMatrix3x2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4335,12 +4335,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix2x4(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix2x4fv != null, "pglProgramUniformMatrix2x4fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix2x4fv != null, "pglProgramUniformMatrix2x4fv not implemented");
                     Delegates.pglProgramUniformMatrix2x4fv(program, location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -4378,7 +4378,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix2x4(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x4fv != null, "pglProgramUniformMatrix2x4fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x4fv != null, "pglProgramUniformMatrix2x4fv not implemented");
             Delegates.pglProgramUniformMatrix2x4fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4413,7 +4413,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix2x4f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x4fv != null, "pglProgramUniformMatrix2x4fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x4fv != null, "pglProgramUniformMatrix2x4fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4461,12 +4461,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix4x2(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix4x2fv != null, "pglProgramUniformMatrix4x2fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix4x2fv != null, "pglProgramUniformMatrix4x2fv not implemented");
                     Delegates.pglProgramUniformMatrix4x2fv(program, location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -4504,7 +4504,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix4x2(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x2fv != null, "pglProgramUniformMatrix4x2fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x2fv != null, "pglProgramUniformMatrix4x2fv not implemented");
             Delegates.pglProgramUniformMatrix4x2fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4539,7 +4539,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix4x2f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x2fv != null, "pglProgramUniformMatrix4x2fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x2fv != null, "pglProgramUniformMatrix4x2fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4587,12 +4587,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix3x4(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix3x4fv != null, "pglProgramUniformMatrix3x4fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix3x4fv != null, "pglProgramUniformMatrix3x4fv not implemented");
                     Delegates.pglProgramUniformMatrix3x4fv(program, location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -4630,7 +4630,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix3x4(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x4fv != null, "pglProgramUniformMatrix3x4fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x4fv != null, "pglProgramUniformMatrix3x4fv not implemented");
             Delegates.pglProgramUniformMatrix3x4fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4665,7 +4665,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix3x4f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x4fv != null, "pglProgramUniformMatrix3x4fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x4fv != null, "pglProgramUniformMatrix3x4fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4713,12 +4713,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix4x3(uint program, int location, bool transpose, float[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (float* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix4x3fv != null, "pglProgramUniformMatrix4x3fv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix4x3fv != null, "pglProgramUniformMatrix4x3fv not implemented");
                     Delegates.pglProgramUniformMatrix4x3fv(program, location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -4756,7 +4756,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static unsafe void ProgramUniformMatrix4x3(uint program, int location, int count, bool transpose, float* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x3fv != null, "pglProgramUniformMatrix4x3fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x3fv != null, "pglProgramUniformMatrix4x3fv not implemented");
             Delegates.pglProgramUniformMatrix4x3fv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4791,7 +4791,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_separate_shader_objects", Api = "gles2")]
         public static void ProgramUniformMatrix4x3f<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x3fv != null, "pglProgramUniformMatrix4x3fv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x3fv != null, "pglProgramUniformMatrix4x3fv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4832,12 +4832,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix2x3(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix2x3dv != null, "pglProgramUniformMatrix2x3dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix2x3dv != null, "pglProgramUniformMatrix2x3dv not implemented");
                     Delegates.pglProgramUniformMatrix2x3dv(program, location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -4867,7 +4867,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix2x3(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x3dv != null, "pglProgramUniformMatrix2x3dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x3dv != null, "pglProgramUniformMatrix2x3dv not implemented");
             Delegates.pglProgramUniformMatrix2x3dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4894,7 +4894,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix2x3d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x3dv != null, "pglProgramUniformMatrix2x3dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x3dv != null, "pglProgramUniformMatrix2x3dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -4935,12 +4935,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix3x2(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
+            Assert(value.Length > 0 && value.Length % 6 == 0, "empty or not multiple of 6");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix3x2dv != null, "pglProgramUniformMatrix3x2dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix3x2dv != null, "pglProgramUniformMatrix3x2dv not implemented");
                     Delegates.pglProgramUniformMatrix3x2dv(program, location, value.Length / 6, transpose, p_value);
                 }
             }
@@ -4970,7 +4970,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix3x2(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x2dv != null, "pglProgramUniformMatrix3x2dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x2dv != null, "pglProgramUniformMatrix3x2dv not implemented");
             Delegates.pglProgramUniformMatrix3x2dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -4997,7 +4997,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix3x2d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x2dv != null, "pglProgramUniformMatrix3x2dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x2dv != null, "pglProgramUniformMatrix3x2dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -5038,12 +5038,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix2x4(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix2x4dv != null, "pglProgramUniformMatrix2x4dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix2x4dv != null, "pglProgramUniformMatrix2x4dv not implemented");
                     Delegates.pglProgramUniformMatrix2x4dv(program, location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -5073,7 +5073,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix2x4(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x4dv != null, "pglProgramUniformMatrix2x4dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x4dv != null, "pglProgramUniformMatrix2x4dv not implemented");
             Delegates.pglProgramUniformMatrix2x4dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -5100,7 +5100,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix2x4d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix2x4dv != null, "pglProgramUniformMatrix2x4dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix2x4dv != null, "pglProgramUniformMatrix2x4dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -5141,12 +5141,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix4x2(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
+            Assert(value.Length > 0 && value.Length % 8 == 0, "empty or not multiple of 8");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix4x2dv != null, "pglProgramUniformMatrix4x2dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix4x2dv != null, "pglProgramUniformMatrix4x2dv not implemented");
                     Delegates.pglProgramUniformMatrix4x2dv(program, location, value.Length / 8, transpose, p_value);
                 }
             }
@@ -5176,7 +5176,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix4x2(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x2dv != null, "pglProgramUniformMatrix4x2dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x2dv != null, "pglProgramUniformMatrix4x2dv not implemented");
             Delegates.pglProgramUniformMatrix4x2dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -5203,7 +5203,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix4x2d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x2dv != null, "pglProgramUniformMatrix4x2dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x2dv != null, "pglProgramUniformMatrix4x2dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -5244,12 +5244,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix3x4(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix3x4dv != null, "pglProgramUniformMatrix3x4dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix3x4dv != null, "pglProgramUniformMatrix3x4dv not implemented");
                     Delegates.pglProgramUniformMatrix3x4dv(program, location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -5279,7 +5279,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix3x4(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x4dv != null, "pglProgramUniformMatrix3x4dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x4dv != null, "pglProgramUniformMatrix3x4dv not implemented");
             Delegates.pglProgramUniformMatrix3x4dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -5306,7 +5306,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix3x4d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix3x4dv != null, "pglProgramUniformMatrix3x4dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix3x4dv != null, "pglProgramUniformMatrix3x4dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -5347,12 +5347,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix4x3(uint program, int location, bool transpose, double[] value)
         {
-            Debug.Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
+            Assert(value.Length > 0 && value.Length % 12 == 0, "empty or not multiple of 12");
             unsafe
             {
                 fixed (double* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglProgramUniformMatrix4x3dv != null, "pglProgramUniformMatrix4x3dv not implemented");
+                    Assert(Delegates.pglProgramUniformMatrix4x3dv != null, "pglProgramUniformMatrix4x3dv not implemented");
                     Delegates.pglProgramUniformMatrix4x3dv(program, location, value.Length / 12, transpose, p_value);
                 }
             }
@@ -5382,7 +5382,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static unsafe void ProgramUniformMatrix4x3(uint program, int location, int count, bool transpose, double* value)
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x3dv != null, "pglProgramUniformMatrix4x3dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x3dv != null, "pglProgramUniformMatrix4x3dv not implemented");
             Delegates.pglProgramUniformMatrix4x3dv(program, location, count, transpose, value);
             DebugCheckErrors(null);
         }
@@ -5409,7 +5409,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ProgramUniformMatrix4x3d<T>(uint program, int location, int count, bool transpose, T value) where T : struct
         {
-            Debug.Assert(Delegates.pglProgramUniformMatrix4x3dv != null, "pglProgramUniformMatrix4x3dv not implemented");
+            Assert(Delegates.pglProgramUniformMatrix4x3dv != null, "pglProgramUniformMatrix4x3dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(value);
 			try {
@@ -5444,7 +5444,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_separate_shader_objects", Api = "gl|glcore")]
         public static void ValidateProgramPipeline(uint pipeline)
         {
-            Debug.Assert(Delegates.pglValidateProgramPipeline != null, "pglValidateProgramPipeline not implemented");
+            Assert(Delegates.pglValidateProgramPipeline != null, "pglValidateProgramPipeline not implemented");
             Delegates.pglValidateProgramPipeline(pipeline);
             DebugCheckErrors(null);
         }
@@ -5482,7 +5482,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetProgramPipelineInfoLog != null, "pglGetProgramPipelineInfoLog not implemented");
+                    Assert(Delegates.pglGetProgramPipelineInfoLog != null, "pglGetProgramPipelineInfoLog not implemented");
                     Delegates.pglGetProgramPipelineInfoLog(pipeline, bufSize, p_length, infoLog);
                 }
             }
@@ -5504,7 +5504,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL1(uint index, double x)
         {
-            Debug.Assert(Delegates.pglVertexAttribL1d != null, "pglVertexAttribL1d not implemented");
+            Assert(Delegates.pglVertexAttribL1d != null, "pglVertexAttribL1d not implemented");
             Delegates.pglVertexAttribL1d(index, x);
             DebugCheckErrors(null);
         }
@@ -5526,7 +5526,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL2(uint index, double x, double y)
         {
-            Debug.Assert(Delegates.pglVertexAttribL2d != null, "pglVertexAttribL2d not implemented");
+            Assert(Delegates.pglVertexAttribL2d != null, "pglVertexAttribL2d not implemented");
             Delegates.pglVertexAttribL2d(index, x, y);
             DebugCheckErrors(null);
         }
@@ -5551,7 +5551,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL3(uint index, double x, double y, double z)
         {
-            Debug.Assert(Delegates.pglVertexAttribL3d != null, "pglVertexAttribL3d not implemented");
+            Assert(Delegates.pglVertexAttribL3d != null, "pglVertexAttribL3d not implemented");
             Delegates.pglVertexAttribL3d(index, x, y, z);
             DebugCheckErrors(null);
         }
@@ -5579,7 +5579,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL4(uint index, double x, double y, double z, double w)
         {
-            Debug.Assert(Delegates.pglVertexAttribL4d != null, "pglVertexAttribL4d not implemented");
+            Assert(Delegates.pglVertexAttribL4d != null, "pglVertexAttribL4d not implemented");
             Delegates.pglVertexAttribL4d(index, x, y, z, w);
             DebugCheckErrors(null);
         }
@@ -5600,12 +5600,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL1(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 1);
+            Assert(v.Length >= 1);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribL1dv != null, "pglVertexAttribL1dv not implemented");
+                    Assert(Delegates.pglVertexAttribL1dv != null, "pglVertexAttribL1dv not implemented");
                     Delegates.pglVertexAttribL1dv(index, p_v);
                 }
             }
@@ -5629,7 +5629,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static unsafe void VertexAttribL1(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttribL1dv != null, "pglVertexAttribL1dv not implemented");
+            Assert(Delegates.pglVertexAttribL1dv != null, "pglVertexAttribL1dv not implemented");
             Delegates.pglVertexAttribL1dv(index, v);
             DebugCheckErrors(null);
         }
@@ -5650,7 +5650,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL1d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttribL1dv != null, "pglVertexAttribL1dv not implemented");
+            Assert(Delegates.pglVertexAttribL1dv != null, "pglVertexAttribL1dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(v);
 			try {
@@ -5688,12 +5688,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL2(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribL2dv != null, "pglVertexAttribL2dv not implemented");
+                    Assert(Delegates.pglVertexAttribL2dv != null, "pglVertexAttribL2dv not implemented");
                     Delegates.pglVertexAttribL2dv(index, p_v);
                 }
             }
@@ -5717,7 +5717,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static unsafe void VertexAttribL2(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttribL2dv != null, "pglVertexAttribL2dv not implemented");
+            Assert(Delegates.pglVertexAttribL2dv != null, "pglVertexAttribL2dv not implemented");
             Delegates.pglVertexAttribL2dv(index, v);
             DebugCheckErrors(null);
         }
@@ -5738,7 +5738,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL2d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttribL2dv != null, "pglVertexAttribL2dv not implemented");
+            Assert(Delegates.pglVertexAttribL2dv != null, "pglVertexAttribL2dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(v);
 			try {
@@ -5776,12 +5776,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL3(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribL3dv != null, "pglVertexAttribL3dv not implemented");
+                    Assert(Delegates.pglVertexAttribL3dv != null, "pglVertexAttribL3dv not implemented");
                     Delegates.pglVertexAttribL3dv(index, p_v);
                 }
             }
@@ -5805,7 +5805,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static unsafe void VertexAttribL3(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttribL3dv != null, "pglVertexAttribL3dv not implemented");
+            Assert(Delegates.pglVertexAttribL3dv != null, "pglVertexAttribL3dv not implemented");
             Delegates.pglVertexAttribL3dv(index, v);
             DebugCheckErrors(null);
         }
@@ -5826,7 +5826,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL3d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttribL3dv != null, "pglVertexAttribL3dv not implemented");
+            Assert(Delegates.pglVertexAttribL3dv != null, "pglVertexAttribL3dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(v);
 			try {
@@ -5864,12 +5864,12 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL4(uint index, double[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribL4dv != null, "pglVertexAttribL4dv not implemented");
+                    Assert(Delegates.pglVertexAttribL4dv != null, "pglVertexAttribL4dv not implemented");
                     Delegates.pglVertexAttribL4dv(index, p_v);
                 }
             }
@@ -5893,7 +5893,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static unsafe void VertexAttribL4(uint index, double* v)
         {
-            Debug.Assert(Delegates.pglVertexAttribL4dv != null, "pglVertexAttribL4dv not implemented");
+            Assert(Delegates.pglVertexAttribL4dv != null, "pglVertexAttribL4dv not implemented");
             Delegates.pglVertexAttribL4dv(index, v);
             DebugCheckErrors(null);
         }
@@ -5914,7 +5914,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribL4d<T>(uint index, T v) where T : struct
         {
-            Debug.Assert(Delegates.pglVertexAttribL4dv != null, "pglVertexAttribL4dv not implemented");
+            Assert(Delegates.pglVertexAttribL4dv != null, "pglVertexAttribL4dv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(v);
 			try {
@@ -5969,7 +5969,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
         public static void VertexAttribLPointer(uint index, int size, VertexAttribType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglVertexAttribLPointer != null, "pglVertexAttribLPointer not implemented");
+            Assert(Delegates.pglVertexAttribLPointer != null, "pglVertexAttribLPointer not implemented");
             Delegates.pglVertexAttribLPointer(index, size, (int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -6042,7 +6042,7 @@ namespace OpenGL
             {
                 fixed (double* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetVertexAttribLdv != null, "pglGetVertexAttribLdv not implemented");
+                    Assert(Delegates.pglGetVertexAttribLdv != null, "pglGetVertexAttribLdv not implemented");
                     Delegates.pglGetVertexAttribLdv(index, (int) pname, p_params);
                 }
             }
@@ -6072,7 +6072,7 @@ namespace OpenGL
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglViewportArrayv != null, "pglViewportArrayv not implemented");
+                    Assert(Delegates.pglViewportArrayv != null, "pglViewportArrayv not implemented");
                     Delegates.pglViewportArrayv(first, count, p_v);
                 }
             }
@@ -6104,7 +6104,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         public static void ViewportIndexed(uint index, float x, float y, float w, float h)
         {
-            Debug.Assert(Delegates.pglViewportIndexedf != null, "pglViewportIndexedf not implemented");
+            Assert(Delegates.pglViewportIndexedf != null, "pglViewportIndexedf not implemented");
             Delegates.pglViewportIndexedf(index, x, y, w, h);
             DebugCheckErrors(null);
         }
@@ -6124,12 +6124,12 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         public static void ViewportIndexed(uint index, float[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglViewportIndexedfv != null, "pglViewportIndexedfv not implemented");
+                    Assert(Delegates.pglViewportIndexedfv != null, "pglViewportIndexedfv not implemented");
                     Delegates.pglViewportIndexedfv(index, p_v);
                 }
             }
@@ -6159,7 +6159,7 @@ namespace OpenGL
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglScissorArrayv != null, "pglScissorArrayv not implemented");
+                    Assert(Delegates.pglScissorArrayv != null, "pglScissorArrayv not implemented");
                     Delegates.pglScissorArrayv(first, count, p_v);
                 }
             }
@@ -6191,7 +6191,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         public static void ScissorIndexed(uint index, int left, int bottom, int width, int height)
         {
-            Debug.Assert(Delegates.pglScissorIndexed != null, "pglScissorIndexed not implemented");
+            Assert(Delegates.pglScissorIndexed != null, "pglScissorIndexed not implemented");
             Delegates.pglScissorIndexed(index, left, bottom, width, height);
             DebugCheckErrors(null);
         }
@@ -6212,12 +6212,12 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         public static void ScissorIndexed(uint index, int[] v)
         {
-            Debug.Assert(v.Length >= 4);
+            Assert(v.Length >= 4);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglScissorIndexedv != null, "pglScissorIndexedv not implemented");
+                    Assert(Delegates.pglScissorIndexedv != null, "pglScissorIndexedv not implemented");
                     Delegates.pglScissorIndexedv(index, p_v);
                 }
             }
@@ -6247,7 +6247,7 @@ namespace OpenGL
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglDepthRangeArrayv != null, "pglDepthRangeArrayv not implemented");
+                    Assert(Delegates.pglDepthRangeArrayv != null, "pglDepthRangeArrayv not implemented");
                     Delegates.pglDepthRangeArrayv(first, count, p_v);
                 }
             }
@@ -6272,7 +6272,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_viewport_array", Api = "gl|glcore")]
         public static void DepthRangeIndexed(uint index, double n, double f)
         {
-            Debug.Assert(Delegates.pglDepthRangeIndexed != null, "pglDepthRangeIndexed not implemented");
+            Assert(Delegates.pglDepthRangeIndexed != null, "pglDepthRangeIndexed not implemented");
             Delegates.pglDepthRangeIndexed(index, n, f);
             DebugCheckErrors(null);
         }
@@ -6302,7 +6302,7 @@ namespace OpenGL
             {
                 fixed (float* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
+                    Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
                     Delegates.pglGetFloati_v(target, index, p_data);
                 }
             }
@@ -6335,7 +6335,7 @@ namespace OpenGL
             {
                 fixed (float* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
+                    Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
                     Delegates.pglGetFloati_v((int) target, index, p_data);
                 }
             }
@@ -6368,7 +6368,7 @@ namespace OpenGL
             {
                 fixed (float* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
+                    Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
                     Delegates.pglGetFloati_v(target, index, p_data);
                 }
             }
@@ -6401,7 +6401,7 @@ namespace OpenGL
             {
                 fixed (float* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
+                    Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
                     Delegates.pglGetFloati_v((int) target, index, p_data);
                 }
             }
@@ -6430,7 +6430,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         public static unsafe void Get(GetPName target, uint index, [Out] float* data)
         {
-            Debug.Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
+            Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
             Delegates.pglGetFloati_v((int) target, index, data);
             DebugCheckErrors(null);
         }
@@ -6456,7 +6456,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         public static void GetFloat<T>(GetPName target, uint index, out T data) where T : struct
         {
-            Debug.Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
+            Assert(Delegates.pglGetFloati_v != null, "pglGetFloati_v not implemented");
             data = default;
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(data);
@@ -6502,7 +6502,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
+                    Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
                     Delegates.pglGetDoublei_v(target, index, p_data);
                 }
             }
@@ -6533,7 +6533,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
+                    Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
                     Delegates.pglGetDoublei_v((int) target, index, p_data);
                 }
             }
@@ -6564,7 +6564,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
+                    Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
                     Delegates.pglGetDoublei_v(target, index, p_data);
                 }
             }
@@ -6595,7 +6595,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
+                    Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
                     Delegates.pglGetDoublei_v((int) target, index, p_data);
                 }
             }
@@ -6622,7 +6622,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_direct_state_access", Api = "gl|glcore")]
         public static unsafe void Get(GetPName target, uint index, [Out] double* data)
         {
-            Debug.Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
+            Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
             Delegates.pglGetDoublei_v((int) target, index, data);
             DebugCheckErrors(null);
         }
@@ -6646,7 +6646,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_direct_state_access", Api = "gl|glcore")]
         public static void GetDouble<T>(GetPName target, uint index, out T data) where T : struct
         {
-            Debug.Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
+            Assert(Delegates.pglGetDoublei_v != null, "pglGetDoublei_v not implemented");
             data = default;
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(data);

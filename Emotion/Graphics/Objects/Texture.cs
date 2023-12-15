@@ -1,12 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using OpenGL;
 
@@ -210,13 +205,13 @@ namespace Emotion.Graphics.Objects
             Size = size;
 
             pixelFormat ??= PixelFormat;
-            PixelFormat = (PixelFormat)pixelFormat;
+            PixelFormat = (PixelFormat) pixelFormat;
 
             internalFormat ??= InternalFormat;
-            InternalFormat = (InternalFormat)internalFormat;
+            InternalFormat = (InternalFormat) internalFormat;
 
             pixelType ??= PixelType;
-            PixelType = (PixelType)pixelType;
+            PixelType = (PixelType) pixelType;
 
             if (Gl.CurrentVersion.GLES)
             {
@@ -244,11 +239,11 @@ namespace Emotion.Graphics.Objects
 
             EnsureBound(Pointer);
             if (data == null)
-                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)internalFormat, (int)Size.X, (int)Size.Y, 0, (PixelFormat)pixelFormat,
-                    (PixelType)pixelType, IntPtr.Zero);
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
+                    (PixelType) pixelType, IntPtr.Zero);
             else
-                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)internalFormat, (int)Size.X, (int)Size.Y, 0, (PixelFormat)pixelFormat,
-                    (PixelType)pixelType, data);
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
+                    (PixelType) pixelType, data);
 
             Smooth = _smooth;
             Tile = _tile;
@@ -279,13 +274,13 @@ namespace Emotion.Graphics.Objects
                 // If in debug mode, verify this with OpenGL.
                 if (!Engine.Configuration.GlDebugMode) return;
 
-                Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
+                Gl.ActiveTexture(TextureUnit.Texture0 + (int) slot);
                 Gl.Get(GetPName.TextureBinding2d, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed texture bound to slot {slot} was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }
 
-            Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
+            Gl.ActiveTexture(TextureUnit.Texture0 + (int) slot);
             Gl.BindTexture(TextureTarget.Texture2d, pointer);
             Bound[slot] = pointer;
         }
@@ -321,7 +316,7 @@ namespace Emotion.Graphics.Objects
 
         public static void InitializeEmptyTexture()
         {
-            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] { 255, 255, 255, 255 }, PixelFormat.Rgba);
+            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] {255, 255, 255, 255}, PixelFormat.Rgba);
         }
     }
 }

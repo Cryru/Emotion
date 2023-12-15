@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -485,10 +484,7 @@ public abstract partial class BaseMap
         while (enumerator.MoveNext())
         {
             var obj = enumerator.Current;
-            if (obj.ObjectName == name)
-            {
-                return obj;
-            }
+            if (obj.ObjectName == name) return obj;
         }
 
         return null;
@@ -497,10 +493,7 @@ public abstract partial class BaseMap
     public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)
     {
         IEnumerator<T> enumerator = GetObjectsByType<T>(includeNonSpawned);
-        if (enumerator.MoveNext())
-        {
-            return enumerator.Current;
-        }
+        if (enumerator.MoveNext()) return enumerator.Current;
         return default;
     }
 

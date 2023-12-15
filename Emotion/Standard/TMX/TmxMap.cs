@@ -1,10 +1,7 @@
 #region Using
 
 using System.Linq;
-using Emotion.Common;
 using Emotion.IO;
-using Emotion.Primitives;
-using Emotion.Standard.Logging;
 using Emotion.Standard.TMX.Enum;
 using Emotion.Standard.TMX.Layer;
 using Emotion.Standard.XML;
@@ -75,6 +72,7 @@ namespace Emotion.Standard.TMX
                         string directory = AssetLoader.GetDirectoryName(filePath);
                         fileSource = AssetLoader.GetNonRelativePath(directory, fileSource);
                     }
+
                     var textAsset = Engine.AssetLoader.Get<TextAsset>(fileSource);
                     if (textAsset?.Content == null)
                     {

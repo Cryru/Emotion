@@ -10,8 +10,12 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove=".editorconfig" />
     <None Remove="Assets\Guide.txt" />
     <None Remove="Resources\logoAlpha.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EditorConfigFiles Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Emotion.Droid\Emotion.Droid.csproj" />

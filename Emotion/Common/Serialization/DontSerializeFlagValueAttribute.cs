@@ -5,20 +5,20 @@
 /// </summary>
 public class DontSerializeFlagValueAttribute : Attribute
 {
-	public uint FlagsSkip;
+    public uint FlagsSkip;
 
-	public DontSerializeFlagValueAttribute(uint flags)
-	{
-		FlagsSkip = flags;
-	}
+    public DontSerializeFlagValueAttribute(uint flags)
+    {
+        FlagsSkip = flags;
+    }
 
-	public uint ClearDontSerialize(uint val)
-	{
-		return val & ~FlagsSkip;
-	}
+    public uint ClearDontSerialize(uint val)
+    {
+        return val & ~FlagsSkip;
+    }
 
-	public bool SkipThisOne(uint val)
-	{
-		return (FlagsSkip & val) != 0;
-	}
+    public bool SkipThisOne(uint val)
+    {
+        return (FlagsSkip & val) != 0;
+    }
 }

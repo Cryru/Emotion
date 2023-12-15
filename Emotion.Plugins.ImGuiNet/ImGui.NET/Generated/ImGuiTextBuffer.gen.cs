@@ -1,23 +1,51 @@
+#region Using
+
 using System;
-using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Text;
+
+#endregion
 
 namespace ImGuiNET
 {
-    public unsafe partial struct ImGuiTextBuffer
+    public struct ImGuiTextBuffer
     {
         public ImVector Buf;
     }
-    public unsafe partial struct ImGuiTextBufferPtr
+
+    public unsafe struct ImGuiTextBufferPtr
     {
         public ImGuiTextBuffer* NativePtr { get; }
-        public ImGuiTextBufferPtr(ImGuiTextBuffer* nativePtr) => NativePtr = nativePtr;
-        public ImGuiTextBufferPtr(IntPtr nativePtr) => NativePtr = (ImGuiTextBuffer*)nativePtr;
-        public static implicit operator ImGuiTextBufferPtr(ImGuiTextBuffer* nativePtr) => new ImGuiTextBufferPtr(nativePtr);
-        public static implicit operator ImGuiTextBuffer* (ImGuiTextBufferPtr wrappedPtr) => wrappedPtr.NativePtr;
-        public static implicit operator ImGuiTextBufferPtr(IntPtr nativePtr) => new ImGuiTextBufferPtr(nativePtr);
-        public ImVector<byte> Buf => new ImVector<byte>(NativePtr->Buf);
+
+        public ImGuiTextBufferPtr(ImGuiTextBuffer* nativePtr)
+        {
+            NativePtr = nativePtr;
+        }
+
+        public ImGuiTextBufferPtr(IntPtr nativePtr)
+        {
+            NativePtr = (ImGuiTextBuffer*) nativePtr;
+        }
+
+        public static implicit operator ImGuiTextBufferPtr(ImGuiTextBuffer* nativePtr)
+        {
+            return new ImGuiTextBufferPtr(nativePtr);
+        }
+
+        public static implicit operator ImGuiTextBuffer*(ImGuiTextBufferPtr wrappedPtr)
+        {
+            return wrappedPtr.NativePtr;
+        }
+
+        public static implicit operator ImGuiTextBufferPtr(IntPtr nativePtr)
+        {
+            return new ImGuiTextBufferPtr(nativePtr);
+        }
+
+        public ImVector<byte> Buf
+        {
+            get => new ImVector<byte>(NativePtr->Buf);
+        }
+
         public void append(string str)
         {
             byte* native_str;
@@ -34,17 +62,20 @@ namespace ImGuiNET
                     byte* native_str_stackBytes = stackalloc byte[str_byteCount + 1];
                     native_str = native_str_stackBytes;
                 }
+
                 int native_str_offset = Util.GetUtf8(str, native_str, str_byteCount);
                 native_str[native_str_offset] = 0;
             }
-            else { native_str = null; }
-            byte* native_str_end = null;
-            ImGuiNative.ImGuiTextBuffer_append((ImGuiTextBuffer*)(NativePtr), native_str, native_str_end);
-            if (str_byteCount > Util.StackAllocationSizeLimit)
+            else
             {
-                Util.Free(native_str);
+                native_str = null;
             }
+
+            byte* native_str_end = null;
+            ImGuiNative.ImGuiTextBuffer_append(NativePtr, native_str, native_str_end);
+            if (str_byteCount > Util.StackAllocationSizeLimit) Util.Free(native_str);
         }
+
         public void appendf(string fmt)
         {
             byte* native_fmt;
@@ -61,51 +92,61 @@ namespace ImGuiNET
                     byte* native_fmt_stackBytes = stackalloc byte[fmt_byteCount + 1];
                     native_fmt = native_fmt_stackBytes;
                 }
+
                 int native_fmt_offset = Util.GetUtf8(fmt, native_fmt, fmt_byteCount);
                 native_fmt[native_fmt_offset] = 0;
             }
-            else { native_fmt = null; }
-            ImGuiNative.ImGuiTextBuffer_appendf((ImGuiTextBuffer*)(NativePtr), native_fmt);
-            if (fmt_byteCount > Util.StackAllocationSizeLimit)
+            else
             {
-                Util.Free(native_fmt);
+                native_fmt = null;
             }
+
+            ImGuiNative.ImGuiTextBuffer_appendf(NativePtr, native_fmt);
+            if (fmt_byteCount > Util.StackAllocationSizeLimit) Util.Free(native_fmt);
         }
+
         public string begin()
         {
-            byte* ret = ImGuiNative.ImGuiTextBuffer_begin((ImGuiTextBuffer*)(NativePtr));
+            byte* ret = ImGuiNative.ImGuiTextBuffer_begin(NativePtr);
             return Util.StringFromPtr(ret);
         }
+
         public string c_str()
         {
-            byte* ret = ImGuiNative.ImGuiTextBuffer_c_str((ImGuiTextBuffer*)(NativePtr));
+            byte* ret = ImGuiNative.ImGuiTextBuffer_c_str(NativePtr);
             return Util.StringFromPtr(ret);
         }
+
         public void clear()
         {
-            ImGuiNative.ImGuiTextBuffer_clear((ImGuiTextBuffer*)(NativePtr));
+            ImGuiNative.ImGuiTextBuffer_clear(NativePtr);
         }
+
         public void Destroy()
         {
-            ImGuiNative.ImGuiTextBuffer_destroy((ImGuiTextBuffer*)(NativePtr));
+            ImGuiNative.ImGuiTextBuffer_destroy(NativePtr);
         }
+
         public bool empty()
         {
-            byte ret = ImGuiNative.ImGuiTextBuffer_empty((ImGuiTextBuffer*)(NativePtr));
+            byte ret = ImGuiNative.ImGuiTextBuffer_empty(NativePtr);
             return ret != 0;
         }
+
         public string end()
         {
-            byte* ret = ImGuiNative.ImGuiTextBuffer_end((ImGuiTextBuffer*)(NativePtr));
+            byte* ret = ImGuiNative.ImGuiTextBuffer_end(NativePtr);
             return Util.StringFromPtr(ret);
         }
+
         public void reserve(int capacity)
         {
-            ImGuiNative.ImGuiTextBuffer_reserve((ImGuiTextBuffer*)(NativePtr), capacity);
+            ImGuiNative.ImGuiTextBuffer_reserve(NativePtr, capacity);
         }
+
         public int size()
         {
-            int ret = ImGuiNative.ImGuiTextBuffer_size((ImGuiTextBuffer*)(NativePtr));
+            int ret = ImGuiNative.ImGuiTextBuffer_size(NativePtr);
             return ret;
         }
     }

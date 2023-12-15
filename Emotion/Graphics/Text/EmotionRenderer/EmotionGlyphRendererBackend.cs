@@ -1,11 +1,7 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 
 #endregion

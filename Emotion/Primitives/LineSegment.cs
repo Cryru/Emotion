@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Utility;
 
@@ -53,10 +51,10 @@ namespace Emotion.Primitives
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PointIsOnLine(Vector2 point)
         {
-            return point.X >= Start.X && point.X <= End.X &&
-                   point.Y >= Start.Y && point.Y <= End.Y ||
-                   point.X >= End.X && point.X <= Start.X &&
-                   point.Y >= End.Y && point.Y <= Start.Y;
+            return (point.X >= Start.X && point.X <= End.X &&
+                    point.Y >= Start.Y && point.Y <= End.Y) ||
+                   (point.X >= End.X && point.X <= Start.X &&
+                    point.Y >= End.Y && point.Y <= Start.Y);
         }
 
         /// <summary>
@@ -340,7 +338,7 @@ namespace Emotion.Primitives
 
         public override int GetHashCode()
         {
-            return Maths.GetCantorPair(Maths.GetCantorPair((int)Start.X, (int)Start.Y), Maths.GetCantorPair((int)End.X, (int)End.Y));
+            return Maths.GetCantorPair(Maths.GetCantorPair((int) Start.X, (int) Start.Y), Maths.GetCantorPair((int) End.X, (int) End.Y));
         }
     }
 }

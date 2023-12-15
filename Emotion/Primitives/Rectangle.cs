@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Utility;
@@ -345,7 +343,7 @@ namespace Emotion.Primitives
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void GetLineSegments(Span<LineSegment> array)
         {
-	        Assert(array.Length >= 4);
+            Assert(array.Length >= 4);
             array[0] = new LineSegment(TopLeft, TopRight);
             array[1] = new LineSegment(TopRight, BottomRight);
             array[2] = new LineSegment(BottomRight, BottomLeft);
@@ -490,24 +488,24 @@ namespace Emotion.Primitives
 
         public void SnapToAspectRatio(float aspectRatio)
         {
-	        float currentAspectRatio = Width / Height;
-    
+            float currentAspectRatio = Width / Height;
+
             // Already at this aspect ratio
-	        if (currentAspectRatio == aspectRatio) return;
+            if (currentAspectRatio == aspectRatio) return;
 
-	        if (currentAspectRatio < aspectRatio)
-	        {
-		        float newWidth = (int)Math.Round(Height * aspectRatio);
-		        float widthDifference = newWidth - Width;
-		        float newX = X - (widthDifference / 2);
+            if (currentAspectRatio < aspectRatio)
+            {
+                float newWidth = (int) Math.Round(Height * aspectRatio);
+                float widthDifference = newWidth - Width;
+                float newX = X - widthDifference / 2;
 
-		        Width = newWidth;
-	        }
-	        else
-	        {
-		        int newHeight = (int)Math.Round(Width / aspectRatio);
-		        Height = newHeight;
-	        }
+                Width = newWidth;
+            }
+            else
+            {
+                int newHeight = (int) Math.Round(Width / aspectRatio);
+                Height = newHeight;
+            }
         }
 
         /// <summary>
@@ -516,12 +514,12 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 SnapRectangleInside(Rectangle otherRect)
         {
-	        Vector2 posToBeAt = otherRect.Position;
-	        if (otherRect.X < X) posToBeAt.X = X;
-	        if (otherRect.Y < Y) posToBeAt.Y = Y;
-	        if (otherRect.Right > Right) posToBeAt.X = Width - otherRect.Width;
-	        if (otherRect.Bottom > Bottom) posToBeAt.Y = Bottom - otherRect.Height;
-	        return posToBeAt;
+            Vector2 posToBeAt = otherRect.Position;
+            if (otherRect.X < X) posToBeAt.X = X;
+            if (otherRect.Y < Y) posToBeAt.Y = Y;
+            if (otherRect.Right > Right) posToBeAt.X = Width - otherRect.Width;
+            if (otherRect.Bottom > Bottom) posToBeAt.Y = Bottom - otherRect.Height;
+            return posToBeAt;
         }
 
         /// <summary>

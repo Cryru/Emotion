@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 
@@ -35,7 +33,7 @@ namespace Emotion.Graphics
             }
 #endif
 
-            Span<VertexData> memory = RenderStream.GetStreamMemory((uint)(resolution + 1), BatchMode.TriangleFan);
+            Span<VertexData> memory = RenderStream.GetStreamMemory((uint) (resolution + 1), BatchMode.TriangleFan);
             memory[0].Vertex = Vector3.Lerp(start, end, 0.5f);
 
             for (var i = 0; i < resolution; i++)
@@ -65,7 +63,7 @@ namespace Emotion.Graphics
         /// <returns>RenderStream memory with a generated triangle fan cubic curve mesh.</returns>
         public Span<VertexData> GetStreamedCubicCurveMesh(Vector3 start, Vector3 end, Vector3 ctrlP1, Vector3 ctrlP2, int resolution = 12)
         {
-            Span<VertexData> memory = RenderStream.GetStreamMemory((uint)(resolution + 1), BatchMode.TriangleFan);
+            Span<VertexData> memory = RenderStream.GetStreamMemory((uint) (resolution + 1), BatchMode.TriangleFan);
             memory[0].Vertex = Vector3.Lerp(start, end, 0.5f);
 
             float incr = 1.0f / (resolution - 1);

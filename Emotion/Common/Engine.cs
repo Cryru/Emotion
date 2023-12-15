@@ -1,17 +1,14 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Reflection;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
-using Emotion.Editor.EditorWindows;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -19,7 +16,6 @@ using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Scenography;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 
 #endregion
@@ -274,7 +270,7 @@ namespace Emotion.Common
         {
             DetectVSync();
 
-            System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
             while (Status == EngineStatus.Running)
             {

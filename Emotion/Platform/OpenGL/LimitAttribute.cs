@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-
 #endregion
 
 // ReSharper disable InheritdocConsiderUsage

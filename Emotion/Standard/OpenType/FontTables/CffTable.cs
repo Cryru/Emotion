@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.Helpers;
 using Emotion.Utility;
 
@@ -15,7 +11,6 @@ namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/cff
-    ///
     /// This format is objectively horrible to parse, use, and yeah.
     /// IT'S AN ENTIRE LANGUAGE RUNTIME
     /// Sorry, I needed to vent

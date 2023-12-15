@@ -1,10 +1,8 @@
 ﻿#region Using
 
-using System;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Primitives;
 
 #endregion
 

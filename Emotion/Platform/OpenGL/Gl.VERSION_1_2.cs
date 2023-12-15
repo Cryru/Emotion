@@ -486,7 +486,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_draw_range_elements")]
         public static void DrawRangeElements(PrimitiveType mode, uint start, uint end, int count, DrawElementsType type, IntPtr indices)
         {
-            Debug.Assert(Delegates.pglDrawRangeElements != null, "pglDrawRangeElements not implemented");
+            Assert(Delegates.pglDrawRangeElements != null, "pglDrawRangeElements not implemented");
             Delegates.pglDrawRangeElements((int) mode, start, end, count, (int) type, indices);
             DebugCheckErrors(null);
         }
@@ -594,7 +594,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture3D")]
         public static void TexImage3D(TextureTarget target, int level, InternalFormat internalFormat, int width, int height, int depth, int border, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglTexImage3D != null, "pglTexImage3D not implemented");
+            Assert(Delegates.pglTexImage3D != null, "pglTexImage3D not implemented");
             Delegates.pglTexImage3D((int) target, level, (int) internalFormat, width, height, depth, border, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -718,7 +718,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture3D")]
         public static void TexSubImage3D(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, PixelFormat format, PixelType type, IntPtr pixels)
         {
-            Debug.Assert(Delegates.pglTexSubImage3D != null, "pglTexSubImage3D not implemented");
+            Assert(Delegates.pglTexSubImage3D != null, "pglTexSubImage3D not implemented");
             Delegates.pglTexSubImage3D((int) target, level, xoffset, yoffset, zoffset, width, height, depth, (int) format, (int) type, pixels);
             DebugCheckErrors(null);
         }
@@ -817,7 +817,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_copy_texture")]
         public static void CopyTexSubImage3D(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, int x, int y, int width, int height)
         {
-            Debug.Assert(Delegates.pglCopyTexSubImage3D != null, "pglCopyTexSubImage3D not implemented");
+            Assert(Delegates.pglCopyTexSubImage3D != null, "pglCopyTexSubImage3D not implemented");
             Delegates.pglCopyTexSubImage3D((int) target, level, xoffset, yoffset, zoffset, x, y, width, height);
             DebugCheckErrors(null);
         }

@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-
 #endregion
 
 #pragma warning disable 1591 // Documentation for this file is found at msdn

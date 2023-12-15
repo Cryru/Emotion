@@ -13,56 +13,56 @@ namespace Emotion.Game.World2D.Editor;
 
 public partial class World2DEditor : WorldBaseEditor
 {
-	public new Map2D? CurrentMap
-	{
-		get => (Map2D?) base.CurrentMap;
-	}
+    public new Map2D? CurrentMap
+    {
+        get => (Map2D?) base.CurrentMap;
+    }
 
-	public World2DEditor(IWorldAwareScene scene, Type mapType) : base(scene, mapType)
-	{
-	}
+    public World2DEditor(IWorldAwareScene scene, Type mapType) : base(scene, mapType)
+    {
+    }
 
-	protected override CameraBase GetEditorCamera()
-	{
-		return new WASDMoveCamera2D(Vector3.Zero);
-	}
+    protected override CameraBase GetEditorCamera()
+    {
+        return new WASDMoveCamera2D(Vector3.Zero);
+    }
 
-	protected override void EnterEditorInternal()
-	{
-		InitializeTileEditor();
-	}
+    protected override void EnterEditorInternal()
+    {
+        InitializeTileEditor();
+    }
 
-	protected override void ExitEditorInternal()
-	{
-	}
+    protected override void ExitEditorInternal()
+    {
+    }
 
-	protected override void UpdateInternal(float dt)
-	{
-		UpdateTileEditor();
-	}
+    protected override void UpdateInternal(float dt)
+    {
+        UpdateTileEditor();
+    }
 
-	protected override void RenderInternal(RenderComposer c)
-	{
-		c.SetUseViewMatrix(true);
-		c.SetDepthTest(true);
-		c.SetAlphaBlend(true);
+    protected override void RenderInternal(RenderComposer c)
+    {
+        c.SetUseViewMatrix(true);
+        c.SetDepthTest(true);
+        c.SetAlphaBlend(true);
 
-		Map2D? map = CurrentMap;
+        Map2D? map = CurrentMap;
 
-		// Render invisible tile layers
-		// todo: move to tile editor
-		if (map?.TileData != null)
-		{
-			Rectangle clipRect = c.Camera.GetCameraFrustum();
-			for (var i = 0; i < map.TileData.Layers.Count; i++)
-			{
-				Map2DTileMapLayer layer = map.TileData.Layers[i];
-				if (!layer.Visible) map.TileData.RenderLayer(c, i, clipRect);
-			}
+        // Render invisible tile layers
+        // todo: move to tile editor
+        if (map?.TileData != null)
+        {
+            Rectangle clipRect = c.Camera.GetCameraFrustum();
+            for (var i = 0; i < map.TileData.Layers.Count; i++)
+            {
+                Map2DTileMapLayer layer = map.TileData.Layers[i];
+                if (!layer.Visible) map.TileData.RenderLayer(c, i, clipRect);
+            }
 
-			c.ClearDepth();
-		}
+            c.ClearDepth();
+        }
 
-		RenderTileEditor(c);
-	}
+        RenderTileEditor(c);
+    }
 }

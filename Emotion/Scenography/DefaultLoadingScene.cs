@@ -20,12 +20,10 @@ namespace Emotion.Scenography
 
         public override void Update()
         {
-
         }
 
         public override void Draw(RenderComposer composer)
         {
-
         }
     }
 }

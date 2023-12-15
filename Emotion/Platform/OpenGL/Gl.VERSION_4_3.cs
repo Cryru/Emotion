@@ -2207,7 +2207,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_clear_buffer_object", Api = "gl|glcore")]
         public static void ClearBufferData(BufferTarget target, InternalFormat internalformat, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglClearBufferData != null, "pglClearBufferData not implemented");
+            Assert(Delegates.pglClearBufferData != null, "pglClearBufferData not implemented");
             Delegates.pglClearBufferData((int) target, (int) internalformat, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -2275,7 +2275,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_clear_buffer_object", Api = "gl|glcore")]
         public static void ClearBufferSubData(int target, InternalFormat internalformat, IntPtr offset, uint size, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglClearBufferSubData != null, "pglClearBufferSubData not implemented");
+            Assert(Delegates.pglClearBufferSubData != null, "pglClearBufferSubData not implemented");
             Delegates.pglClearBufferSubData(target, (int) internalformat, offset, size, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -2339,7 +2339,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_compute_shader", Api = "gl|glcore")]
         public static void DispatchCompute(uint num_groups_x, uint num_groups_y, uint num_groups_z)
         {
-            Debug.Assert(Delegates.pglDispatchCompute != null, "pglDispatchCompute not implemented");
+            Assert(Delegates.pglDispatchCompute != null, "pglDispatchCompute not implemented");
             Delegates.pglDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
             DebugCheckErrors(null);
         }
@@ -2359,7 +2359,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_compute_shader", Api = "gl|glcore")]
         public static void DispatchComputeIndirect(IntPtr indirect)
         {
-            Debug.Assert(Delegates.pglDispatchComputeIndirect != null, "pglDispatchComputeIndirect not implemented");
+            Assert(Delegates.pglDispatchComputeIndirect != null, "pglDispatchComputeIndirect not implemented");
             Delegates.pglDispatchComputeIndirect(indirect);
             DebugCheckErrors(null);
         }
@@ -2422,7 +2422,7 @@ namespace OpenGL
         public static void CopyImageSubData(uint srcName, BufferTarget srcTarget, int srcLevel, int srcX, int srcY, int srcZ, uint dstName, BufferTarget dstTarget, int dstLevel, int dstX, int dstY,
             int dstZ, int srcWidth, int srcHeight, int srcDepth)
         {
-            Debug.Assert(Delegates.pglCopyImageSubData != null, "pglCopyImageSubData not implemented");
+            Assert(Delegates.pglCopyImageSubData != null, "pglCopyImageSubData not implemented");
             Delegates.pglCopyImageSubData(srcName, (int) srcTarget, srcLevel, srcX, srcY, srcZ, dstName, (int) dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
             DebugCheckErrors(null);
         }
@@ -2449,7 +2449,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_framebuffer_no_attachments", Api = "gl|glcore")]
         public static void FramebufferParameter(FramebufferTarget target, FramebufferParameterName pname, int param)
         {
-            Debug.Assert(Delegates.pglFramebufferParameteri != null, "pglFramebufferParameteri not implemented");
+            Assert(Delegates.pglFramebufferParameteri != null, "pglFramebufferParameteri not implemented");
             Delegates.pglFramebufferParameteri((int) target, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -2480,7 +2480,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
+                    Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
                     Delegates.pglGetFramebufferParameteriv((int) target, (int) pname, p_params);
                 }
             }
@@ -2514,7 +2514,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
+                    Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
                     Delegates.pglGetFramebufferParameteriv((int) target, (int) pname, p_params);
                 }
             }
@@ -2544,7 +2544,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_framebuffer_no_attachments", Api = "gl|glcore")]
         public static unsafe void GetFramebufferParameter(FramebufferTarget target, FramebufferAttachmentParameterName pname, [Out] int* @params)
         {
-            Debug.Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
+            Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
             Delegates.pglGetFramebufferParameteriv((int) target, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -2571,7 +2571,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_framebuffer_no_attachments", Api = "gl|glcore")]
         public static void GetFramebufferParameteri<T>(FramebufferTarget target, FramebufferAttachmentParameterName pname, out T @params) where T : struct
         {
-            Debug.Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
+            Assert(Delegates.pglGetFramebufferParameteriv != null, "pglGetFramebufferParameteriv not implemented");
             @params = default;
             unsafe
             {
@@ -2615,7 +2615,7 @@ namespace OpenGL
             {
                 fixed (long* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetInternalformati64v != null, "pglGetInternalformati64v not implemented");
+                    Assert(Delegates.pglGetInternalformati64v != null, "pglGetInternalformati64v not implemented");
                     Delegates.pglGetInternalformati64v((int) target, (int) internalformat, (int) pname, bufSize, p_params);
                 }
             }
@@ -2649,7 +2649,7 @@ namespace OpenGL
             {
                 fixed (long* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetInternalformati64v != null, "pglGetInternalformati64v not implemented");
+                    Assert(Delegates.pglGetInternalformati64v != null, "pglGetInternalformati64v not implemented");
                     Delegates.pglGetInternalformati64v((int) target, (int) internalformat, (int) pname, @params.Length, p_params);
                 }
             }
@@ -2688,7 +2688,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_invalidate_subdata", Api = "gl|glcore")]
         public static void InvalidateTexSubImage(uint texture, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth)
         {
-            Debug.Assert(Delegates.pglInvalidateTexSubImage != null, "pglInvalidateTexSubImage not implemented");
+            Assert(Delegates.pglInvalidateTexSubImage != null, "pglInvalidateTexSubImage not implemented");
             Delegates.pglInvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);
             DebugCheckErrors(null);
         }
@@ -2706,7 +2706,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_invalidate_subdata", Api = "gl|glcore")]
         public static void InvalidateTexImage(uint texture, int level)
         {
-            Debug.Assert(Delegates.pglInvalidateTexImage != null, "pglInvalidateTexImage not implemented");
+            Assert(Delegates.pglInvalidateTexImage != null, "pglInvalidateTexImage not implemented");
             Delegates.pglInvalidateTexImage(texture, level);
             DebugCheckErrors(null);
         }
@@ -2727,7 +2727,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_invalidate_subdata", Api = "gl|glcore")]
         public static void InvalidateBufferSubData(uint buffer, IntPtr offset, uint length)
         {
-            Debug.Assert(Delegates.pglInvalidateBufferSubData != null, "pglInvalidateBufferSubData not implemented");
+            Assert(Delegates.pglInvalidateBufferSubData != null, "pglInvalidateBufferSubData not implemented");
             Delegates.pglInvalidateBufferSubData(buffer, offset, length);
             DebugCheckErrors(null);
         }
@@ -2742,7 +2742,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_invalidate_subdata", Api = "gl|glcore")]
         public static void InvalidateBufferData(uint buffer)
         {
-            Debug.Assert(Delegates.pglInvalidateBufferData != null, "pglInvalidateBufferData not implemented");
+            Assert(Delegates.pglInvalidateBufferData != null, "pglInvalidateBufferData not implemented");
             Delegates.pglInvalidateBufferData(buffer);
             DebugCheckErrors(null);
         }
@@ -2773,7 +2773,7 @@ namespace OpenGL
             {
                 fixed (int* p_attachments = attachments)
                 {
-                    Debug.Assert(Delegates.pglInvalidateFramebuffer != null, "pglInvalidateFramebuffer not implemented");
+                    Assert(Delegates.pglInvalidateFramebuffer != null, "pglInvalidateFramebuffer not implemented");
                     Delegates.pglInvalidateFramebuffer((int) target, numAttachments, p_attachments);
                 }
             }
@@ -2804,7 +2804,7 @@ namespace OpenGL
             {
                 fixed (int* p_attachments = attachments)
                 {
-                    Debug.Assert(Delegates.pglInvalidateFramebuffer != null, "pglInvalidateFramebuffer not implemented");
+                    Assert(Delegates.pglInvalidateFramebuffer != null, "pglInvalidateFramebuffer not implemented");
                     Delegates.pglInvalidateFramebuffer((int) target, attachments.Length, p_attachments);
                 }
             }
@@ -2847,7 +2847,7 @@ namespace OpenGL
             {
                 fixed (int* p_attachments = attachments)
                 {
-                    Debug.Assert(Delegates.pglInvalidateSubFramebuffer != null, "pglInvalidateSubFramebuffer not implemented");
+                    Assert(Delegates.pglInvalidateSubFramebuffer != null, "pglInvalidateSubFramebuffer not implemented");
                     Delegates.pglInvalidateSubFramebuffer(target, attachments.Length, p_attachments, x, y, width, height);
                 }
             }
@@ -2878,7 +2878,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_multi_draw_indirect", Api = "gles2")]
         public static void MultiDrawArraysIndirect(PrimitiveType mode, IntPtr indirect, int drawcount, int stride)
         {
-            Debug.Assert(Delegates.pglMultiDrawArraysIndirect != null, "pglMultiDrawArraysIndirect not implemented");
+            Assert(Delegates.pglMultiDrawArraysIndirect != null, "pglMultiDrawArraysIndirect not implemented");
             Delegates.pglMultiDrawArraysIndirect((int) mode, indirect, drawcount, stride);
             DebugCheckErrors(null);
         }
@@ -2943,7 +2943,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_multi_draw_indirect", Api = "gles2")]
         public static void MultiDrawElementsIndirect(PrimitiveType mode, DrawElementsType type, IntPtr indirect, int drawcount, int stride)
         {
-            Debug.Assert(Delegates.pglMultiDrawElementsIndirect != null, "pglMultiDrawElementsIndirect not implemented");
+            Assert(Delegates.pglMultiDrawElementsIndirect != null, "pglMultiDrawElementsIndirect not implemented");
             Delegates.pglMultiDrawElementsIndirect((int) mode, (int) type, indirect, drawcount, stride);
             DebugCheckErrors(null);
         }
@@ -3011,7 +3011,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramInterfaceiv != null, "pglGetProgramInterfaceiv not implemented");
+                    Assert(Delegates.pglGetProgramInterfaceiv != null, "pglGetProgramInterfaceiv not implemented");
                     Delegates.pglGetProgramInterfaceiv(program, (int) programInterface, (int) pname, p_params);
                 }
             }
@@ -3045,7 +3045,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramInterfaceiv != null, "pglGetProgramInterfaceiv not implemented");
+                    Assert(Delegates.pglGetProgramInterfaceiv != null, "pglGetProgramInterfaceiv not implemented");
                     Delegates.pglGetProgramInterfaceiv(program, (int) programInterface, (int) pname, p_params);
                 }
             }
@@ -3077,7 +3077,7 @@ namespace OpenGL
         {
             uint retValue;
 
-            Debug.Assert(Delegates.pglGetProgramResourceIndex != null, "pglGetProgramResourceIndex not implemented");
+            Assert(Delegates.pglGetProgramResourceIndex != null, "pglGetProgramResourceIndex not implemented");
             retValue = Delegates.pglGetProgramResourceIndex(program, (int) programInterface, name);
             DebugCheckErrors(retValue);
 
@@ -3116,7 +3116,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetProgramResourceName != null, "pglGetProgramResourceName not implemented");
+                    Assert(Delegates.pglGetProgramResourceName != null, "pglGetProgramResourceName not implemented");
                     Delegates.pglGetProgramResourceName(program, (int) programInterface, index, bufSize, p_length, name);
                 }
             }
@@ -3168,7 +3168,7 @@ namespace OpenGL
                 fixed (int* p_length = &length)
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramResourceiv != null, "pglGetProgramResourceiv not implemented");
+                    Assert(Delegates.pglGetProgramResourceiv != null, "pglGetProgramResourceiv not implemented");
                     Delegates.pglGetProgramResourceiv(program, (int) programInterface, index, propCount, p_props, bufSize, p_length, p_params);
                 }
             }
@@ -3214,7 +3214,7 @@ namespace OpenGL
                 fixed (int* p_length = &length)
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetProgramResourceiv != null, "pglGetProgramResourceiv not implemented");
+                    Assert(Delegates.pglGetProgramResourceiv != null, "pglGetProgramResourceiv not implemented");
                     Delegates.pglGetProgramResourceiv(program, (int) programInterface, index, props.Length, p_props, @params.Length, p_length, p_params);
                 }
             }
@@ -3246,7 +3246,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetProgramResourceLocation != null, "pglGetProgramResourceLocation not implemented");
+            Assert(Delegates.pglGetProgramResourceLocation != null, "pglGetProgramResourceLocation not implemented");
             retValue = Delegates.pglGetProgramResourceLocation(program, (int) programInterface, name);
             DebugCheckErrors(retValue);
 
@@ -3274,7 +3274,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetProgramResourceLocationIndex != null, "pglGetProgramResourceLocationIndex not implemented");
+            Assert(Delegates.pglGetProgramResourceLocationIndex != null, "pglGetProgramResourceLocationIndex not implemented");
             retValue = Delegates.pglGetProgramResourceLocationIndex(program, (int) programInterface, name);
             DebugCheckErrors(retValue);
 
@@ -3297,7 +3297,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_storage_buffer_object", Api = "gl|glcore")]
         public static void ShaderStorageBlockBinding(uint program, uint storageBlockIndex, uint storageBlockBinding)
         {
-            Debug.Assert(Delegates.pglShaderStorageBlockBinding != null, "pglShaderStorageBlockBinding not implemented");
+            Assert(Delegates.pglShaderStorageBlockBinding != null, "pglShaderStorageBlockBinding not implemented");
             Delegates.pglShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
             DebugCheckErrors(null);
         }
@@ -3329,7 +3329,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_buffer", Api = "gles2")]
         public static void TexBufferRange(TextureTarget target, InternalFormat internalformat, uint buffer, IntPtr offset, uint size)
         {
-            Debug.Assert(Delegates.pglTexBufferRange != null, "pglTexBufferRange not implemented");
+            Assert(Delegates.pglTexBufferRange != null, "pglTexBufferRange not implemented");
             Delegates.pglTexBufferRange((int) target, (int) internalformat, buffer, offset, size);
             DebugCheckErrors(null);
         }
@@ -3364,7 +3364,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_texture_storage_multisample", Api = "gl|glcore")]
         public static void TexStorage2DMultisample(TextureTarget target, int samples, InternalFormat internalformat, int width, int height, bool fixedsamplelocations)
         {
-            Debug.Assert(Delegates.pglTexStorage2DMultisample != null, "pglTexStorage2DMultisample not implemented");
+            Assert(Delegates.pglTexStorage2DMultisample != null, "pglTexStorage2DMultisample not implemented");
             Delegates.pglTexStorage2DMultisample((int) target, samples, (int) internalformat, width, height, fixedsamplelocations);
             DebugCheckErrors(null);
         }
@@ -3403,7 +3403,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_storage_multisample_2d_array", Api = "gles2")]
         public static void TexStorage3DMultisample(TextureTarget target, int samples, InternalFormat internalformat, int width, int height, int depth, bool fixedsamplelocations)
         {
-            Debug.Assert(Delegates.pglTexStorage3DMultisample != null, "pglTexStorage3DMultisample not implemented");
+            Assert(Delegates.pglTexStorage3DMultisample != null, "pglTexStorage3DMultisample not implemented");
             Delegates.pglTexStorage3DMultisample((int) target, samples, (int) internalformat, width, height, depth, fixedsamplelocations);
             DebugCheckErrors(null);
         }
@@ -3441,7 +3441,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_view", Api = "gles2")]
         public static void TextureView(uint texture, TextureTarget target, uint origtexture, InternalFormat internalformat, uint minlevel, uint numlevels, uint minlayer, uint numlayers)
         {
-            Debug.Assert(Delegates.pglTextureView != null, "pglTextureView not implemented");
+            Assert(Delegates.pglTextureView != null, "pglTextureView not implemented");
             Delegates.pglTextureView(texture, (int) target, origtexture, (int) internalformat, minlevel, numlevels, minlayer, numlayers);
             DebugCheckErrors(null);
         }
@@ -3468,7 +3468,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_attrib_binding", Api = "gl|glcore")]
         public static void BindVertexBuffer(uint bindingindex, uint buffer, IntPtr offset, int stride)
         {
-            Debug.Assert(Delegates.pglBindVertexBuffer != null, "pglBindVertexBuffer not implemented");
+            Assert(Delegates.pglBindVertexBuffer != null, "pglBindVertexBuffer not implemented");
             Delegates.pglBindVertexBuffer(bindingindex, buffer, offset, stride);
             DebugCheckErrors(null);
         }
@@ -3499,7 +3499,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_attrib_binding", Api = "gl|glcore")]
         public static void VertexAttribFormat(uint attribindex, int size, int type, bool normalized, uint relativeoffset)
         {
-            Debug.Assert(Delegates.pglVertexAttribFormat != null, "pglVertexAttribFormat not implemented");
+            Assert(Delegates.pglVertexAttribFormat != null, "pglVertexAttribFormat not implemented");
             Delegates.pglVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
             DebugCheckErrors(null);
         }
@@ -3526,7 +3526,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_attrib_binding", Api = "gl|glcore")]
         public static void VertexAttribIFormat(uint attribindex, int size, int type, uint relativeoffset)
         {
-            Debug.Assert(Delegates.pglVertexAttribIFormat != null, "pglVertexAttribIFormat not implemented");
+            Assert(Delegates.pglVertexAttribIFormat != null, "pglVertexAttribIFormat not implemented");
             Delegates.pglVertexAttribIFormat(attribindex, size, type, relativeoffset);
             DebugCheckErrors(null);
         }
@@ -3550,7 +3550,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_attrib_binding", Api = "gl|glcore")]
         public static void VertexAttribLFormat(uint attribindex, int size, VertexAttribType type, uint relativeoffset)
         {
-            Debug.Assert(Delegates.pglVertexAttribLFormat != null, "pglVertexAttribLFormat not implemented");
+            Assert(Delegates.pglVertexAttribLFormat != null, "pglVertexAttribLFormat not implemented");
             Delegates.pglVertexAttribLFormat(attribindex, size, (int) type, relativeoffset);
             DebugCheckErrors(null);
         }
@@ -3574,7 +3574,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_attrib_binding", Api = "gl|glcore")]
         public static void VertexAttribBinding(uint attribindex, uint bindingindex)
         {
-            Debug.Assert(Delegates.pglVertexAttribBinding != null, "pglVertexAttribBinding not implemented");
+            Assert(Delegates.pglVertexAttribBinding != null, "pglVertexAttribBinding not implemented");
             Delegates.pglVertexAttribBinding(attribindex, bindingindex);
             DebugCheckErrors(null);
         }
@@ -3595,7 +3595,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_attrib_binding", Api = "gl|glcore")]
         public static void VertexBindingDivisor(uint bindingindex, uint divisor)
         {
-            Debug.Assert(Delegates.pglVertexBindingDivisor != null, "pglVertexBindingDivisor not implemented");
+            Assert(Delegates.pglVertexBindingDivisor != null, "pglVertexBindingDivisor not implemented");
             Delegates.pglVertexBindingDivisor(bindingindex, divisor);
             DebugCheckErrors(null);
         }
@@ -3634,7 +3634,7 @@ namespace OpenGL
             {
                 fixed (uint* p_ids = ids)
                 {
-                    Debug.Assert(Delegates.pglDebugMessageControl != null, "pglDebugMessageControl not implemented");
+                    Assert(Delegates.pglDebugMessageControl != null, "pglDebugMessageControl not implemented");
                     Delegates.pglDebugMessageControl((int) source, (int) type, (int) severity, count, p_ids, enabled);
                 }
             }
@@ -3673,7 +3673,7 @@ namespace OpenGL
             {
                 fixed (uint* p_ids = ids)
                 {
-                    Debug.Assert(Delegates.pglDebugMessageControl != null, "pglDebugMessageControl not implemented");
+                    Assert(Delegates.pglDebugMessageControl != null, "pglDebugMessageControl not implemented");
                     Delegates.pglDebugMessageControl((int) source, (int) type, (int) severity, ids.Length, p_ids, enabled);
                 }
             }
@@ -3711,7 +3711,7 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
         public static void DebugMessageInsert(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, string buf)
         {
-            Debug.Assert(Delegates.pglDebugMessageInsert != null, "pglDebugMessageInsert not implemented");
+            Assert(Delegates.pglDebugMessageInsert != null, "pglDebugMessageInsert not implemented");
             Delegates.pglDebugMessageInsert((int) source, (int) type, id, (int) severity, length, buf);
             DebugCheckErrors(null);
         }
@@ -3734,7 +3734,7 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
         public static void DebugMessageCallback(DebugProc callback, IntPtr userParam)
         {
-            Debug.Assert(Delegates.pglDebugMessageCallback != null, "pglDebugMessageCallback not implemented");
+            Assert(Delegates.pglDebugMessageCallback != null, "pglDebugMessageCallback not implemented");
             Delegates.pglDebugMessageCallback(callback, userParam);
             DebugCheckErrors(null);
         }
@@ -3811,7 +3811,7 @@ namespace OpenGL
                 fixed (int* p_severities = severities)
                 fixed (int* p_lengths = lengths)
                 {
-                    Debug.Assert(Delegates.pglGetDebugMessageLog != null, "pglGetDebugMessageLog not implemented");
+                    Assert(Delegates.pglGetDebugMessageLog != null, "pglGetDebugMessageLog not implemented");
                     retValue = Delegates.pglGetDebugMessageLog((uint) sources.Length, bufSize, p_sources, p_types, p_ids, p_severities, p_lengths, messageLog);
                 }
             }
@@ -3844,7 +3844,7 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
         public static void PushDebugGroup(DebugSource source, uint id, int length, string message)
         {
-            Debug.Assert(Delegates.pglPushDebugGroup != null, "pglPushDebugGroup not implemented");
+            Assert(Delegates.pglPushDebugGroup != null, "pglPushDebugGroup not implemented");
             Delegates.pglPushDebugGroup((int) source, id, length, message);
             DebugCheckErrors(null);
         }
@@ -3860,7 +3860,7 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
         public static void PopDebugGroup()
         {
-            Debug.Assert(Delegates.pglPopDebugGroup != null, "pglPopDebugGroup not implemented");
+            Assert(Delegates.pglPopDebugGroup != null, "pglPopDebugGroup not implemented");
             Delegates.pglPopDebugGroup();
             DebugCheckErrors(null);
         }
@@ -3888,7 +3888,7 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
         public static void ObjectLabel(ObjectIdentifier identifier, uint name, int length, string label)
         {
-            Debug.Assert(Delegates.pglObjectLabel != null, "pglObjectLabel not implemented");
+            Assert(Delegates.pglObjectLabel != null, "pglObjectLabel not implemented");
             Delegates.pglObjectLabel((int) identifier, name, length, label);
             DebugCheckErrors(null);
         }
@@ -3923,7 +3923,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetObjectLabel != null, "pglGetObjectLabel not implemented");
+                    Assert(Delegates.pglGetObjectLabel != null, "pglGetObjectLabel not implemented");
                     Delegates.pglGetObjectLabel(identifier, name, bufSize, p_length, label);
                 }
             }
@@ -3951,7 +3951,7 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
         public static void ObjectPtrLabel(IntPtr ptr, int length, string label)
         {
-            Debug.Assert(Delegates.pglObjectPtrLabel != null, "pglObjectPtrLabel not implemented");
+            Assert(Delegates.pglObjectPtrLabel != null, "pglObjectPtrLabel not implemented");
             Delegates.pglObjectPtrLabel(ptr, length, label);
             DebugCheckErrors(null);
         }
@@ -4014,7 +4014,7 @@ namespace OpenGL
             {
                 fixed (int* p_length = &length)
                 {
-                    Debug.Assert(Delegates.pglGetObjectPtrLabel != null, "pglGetObjectPtrLabel not implemented");
+                    Assert(Delegates.pglGetObjectPtrLabel != null, "pglGetObjectPtrLabel not implemented");
                     Delegates.pglGetObjectPtrLabel(ptr, bufSize, p_length, label);
                 }
             }

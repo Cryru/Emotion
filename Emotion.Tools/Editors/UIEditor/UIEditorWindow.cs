@@ -389,7 +389,7 @@ namespace Emotion.Tools.Editors.UIEditor
             {
                 int idxX = _currentWindowHandlers.IndexOf(x);
                 int idxY = _currentWindowHandlers.IndexOf(y);
-                return indices[idxY] -  indices[idxX];
+                return indices[idxY] - indices[idxX];
             });
         }
 

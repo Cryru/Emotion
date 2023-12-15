@@ -1,4 +1,4 @@
 ﻿<ShaderDescription>
-  <Vert>Shaders/TestVert.glsl</Vert>
-  <Frag>Shaders/TestFrag.glsl</Frag>
+    <Vert>Shaders/TestVert.glsl</Vert>
+    <Frag>Shaders/TestFrag.glsl</Frag>
 </ShaderDescription>

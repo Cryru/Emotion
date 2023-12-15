@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
+
 <Rectangle>
-  <X>100</X>
-  <Y>100</Y>
-  <Width>200</Width>
-  <Height>200</Height>
+    <X>100</X>
+    <Y>100</Y>
+    <Width>200</Width>
+    <Height>200</Height>
 </Rectangle>

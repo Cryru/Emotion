@@ -361,7 +361,7 @@ namespace Emotion.Tools.Windows
                 }
 
                 bool enableShortcuts = !ImGui.IsAnyItemActive();
-                if (ImGui.Button("(C)reate") || enableShortcuts && Engine.Host.IsKeyDown(Key.C) && AnimController.Animations.All(x => x.Key != "NewAnim"))
+                if (ImGui.Button("(C)reate") || (enableShortcuts && Engine.Host.IsKeyDown(Key.C) && AnimController.Animations.All(x => x.Key != "NewAnim")))
                 {
                     var newNode = new AnimationNode("NewAnim");
                     AnimController.AddAnimation(newNode);
@@ -377,7 +377,7 @@ namespace Emotion.Tools.Windows
 
                 if (ImGui.Button("Remove")) AnimController.RemoveAnimation(AnimController.CurrentAnimation.Name);
                 ImGui.SameLine();
-                if (ImGui.Button("(R)ename") || enableShortcuts && Engine.Host.IsKeyDown(Key.R))
+                if (ImGui.Button("(R)ename") || (enableShortcuts && Engine.Host.IsKeyDown(Key.R)))
                 {
                     var newName = new StringInputModal(s =>
                         {

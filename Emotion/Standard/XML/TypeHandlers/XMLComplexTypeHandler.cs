@@ -9,171 +9,171 @@ using System.Text;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-	public class XMLComplexTypeHandler : XMLComplexBaseTypeHandler
-	{
-		public XMLComplexTypeHandler(Type type) : base(type)
-		{
-			// Check if inheriting anything. If so copy its excluded members as well.
-			if (Type.BaseType != null && Type.BaseType != typeof(object))
-			{
-				var baseClass = (XMLComplexTypeHandler?) XMLHelpers.GetTypeHandler(Type.BaseType);
-				HashSet<string>? baseTypeExcludedMembers = baseClass?._excludedMembers;
-				if (baseTypeExcludedMembers != null)
-				{
-					if (_excludedMembers == null)
-					{
-						_excludedMembers = baseTypeExcludedMembers;
-					}
-					else
-					{
-						// Copy hashset as not to modify reference of attribute.
-						var newHashSet = new HashSet<string>();
-						foreach (string excludedMember in _excludedMembers)
-						{
-							newHashSet.Add(excludedMember);
-						}
+    public class XMLComplexTypeHandler : XMLComplexBaseTypeHandler
+    {
+        public XMLComplexTypeHandler(Type type) : base(type)
+        {
+            // Check if inheriting anything. If so copy its excluded members as well.
+            if (Type.BaseType != null && Type.BaseType != typeof(object))
+            {
+                var baseClass = (XMLComplexTypeHandler?) XMLHelpers.GetTypeHandler(Type.BaseType);
+                HashSet<string>? baseTypeExcludedMembers = baseClass?._excludedMembers;
+                if (baseTypeExcludedMembers != null)
+                {
+                    if (_excludedMembers == null)
+                    {
+                        _excludedMembers = baseTypeExcludedMembers;
+                    }
+                    else
+                    {
+                        // Copy hashset as not to modify reference of attribute.
+                        var newHashSet = new HashSet<string>();
+                        foreach (string excludedMember in _excludedMembers)
+                        {
+                            newHashSet.Add(excludedMember);
+                        }
 
-						// Add values from base type.
-						foreach (string excludedMember in baseTypeExcludedMembers)
-						{
-							newHashSet.Add(excludedMember);
-						}
+                        // Add values from base type.
+                        foreach (string excludedMember in baseTypeExcludedMembers)
+                        {
+                            newHashSet.Add(excludedMember);
+                        }
 
-						_excludedMembers = newHashSet;
-					}
-				}
-			}
+                        _excludedMembers = newHashSet;
+                    }
+                }
+            }
 
-			// Create default value reference.
-			_defaultValue = type.IsInterface || type.IsAbstract ? null : Activator.CreateInstance(type, true);
-		}
+            // Create default value reference.
+            _defaultValue = type.IsInterface || type.IsAbstract ? null : Activator.CreateInstance(type, true);
+        }
 
-		public override void Serialize(object? obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null, string? fieldName = null)
-		{
-			if (obj == null) return;
+        public override void Serialize(object? obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null, string? fieldName = null)
+        {
+            if (obj == null) return;
 
-			fieldName ??= TypeName;
+            fieldName ??= TypeName;
 
-			// Handle field value being of inherited type.
-			XMLTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string? inheritedType) ?? this;
-			output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-			output.Append(inheritedType == null ? $"<{fieldName}>" : $"<{fieldName} type=\"{inheritedType}\">");
-			typeHandler.SerializeValue(obj, output, indentation, recursionChecker);
-			output.Append($"</{fieldName}>\n");
-		}
+            // Handle field value being of inherited type.
+            XMLTypeHandler typeHandler = GetInheritedTypeHandler(obj, out string? inheritedType) ?? this;
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append(inheritedType == null ? $"<{fieldName}>" : $"<{fieldName} type=\"{inheritedType}\">");
+            typeHandler.SerializeValue(obj, output, indentation, recursionChecker);
+            output.Append($"</{fieldName}>\n");
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null)
-		{
-			output.Append("\n");
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void SerializeValue(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker? recursionChecker = null)
+        {
+            output.Append("\n");
 
-			Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
-			foreach ((string _, XMLFieldHandler field) in fieldHandlers)
-			{
-				if (field.Skip) continue;
+            Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
+            foreach ((string _, XMLFieldHandler field) in fieldHandlers)
+            {
+                if (field.Skip) continue;
 
-				object? propertyVal = field.ReflectionInfo.GetValue(obj);
-				string fieldName = field.Name;
-				object defaultValue = field.DefaultValue;
+                object? propertyVal = field.ReflectionInfo.GetValue(obj);
+                string fieldName = field.Name;
+                object defaultValue = field.DefaultValue;
 
-				// Serialize null as self closing tag.
-				if (propertyVal == null)
-				{
-					if (defaultValue == null) continue;
-					output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
-					output.Append($"<{fieldName}/>\n");
-					continue;
-				}
+                // Serialize null as self closing tag.
+                if (propertyVal == null)
+                {
+                    if (defaultValue == null) continue;
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
+                    output.Append($"<{fieldName}/>\n");
+                    continue;
+                }
 
-				// If the property value is the same as the default value don't serialize it.
-				if (propertyVal.Equals(defaultValue)) continue;
+                // If the property value is the same as the default value don't serialize it.
+                if (propertyVal.Equals(defaultValue)) continue;
 
-				// Check for recursive reference.
-				recursionChecker ??= new XMLRecursionChecker();
-				if (recursionChecker.PushReference(propertyVal, fieldName)) continue;
+                // Check for recursive reference.
+                recursionChecker ??= new XMLRecursionChecker();
+                if (recursionChecker.PushReference(propertyVal, fieldName)) continue;
 
-				bool isDefaultOfType = field.TypeHandler.IsTypeDefault(propertyVal);
-				if (isDefaultOfType)
-				{
-					// Default one of the type but not default of the field.
-					// By creating a field tag without contents, the result during deserialization is a default for the field-type value.
-					output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
-					output.Append($"<{fieldName}></{fieldName}>\n");
-				}
-				else
-				{
-					field.TypeHandler.Serialize(propertyVal, output, indentation + 1, recursionChecker, fieldName);
-				}
+                bool isDefaultOfType = field.TypeHandler.IsTypeDefault(propertyVal);
+                if (isDefaultOfType)
+                {
+                    // Default one of the type but not default of the field.
+                    // By creating a field tag without contents, the result during deserialization is a default for the field-type value.
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
+                    output.Append($"<{fieldName}></{fieldName}>\n");
+                }
+                else
+                {
+                    field.TypeHandler.Serialize(propertyVal, output, indentation + 1, recursionChecker, fieldName);
+                }
 
-				recursionChecker.PopReference(propertyVal);
-			}
+                recursionChecker.PopReference(propertyVal);
+            }
 
-			output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-		}
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+        }
 
-		public override object? Deserialize(XMLReader input)
-		{
-			int depth = input.Depth;
-			object? newObj = Activator.CreateInstance(Type, true);
+        public override object? Deserialize(XMLReader input)
+        {
+            int depth = input.Depth;
+            object? newObj = Activator.CreateInstance(Type, true);
 
-			input.GoToNextTag();
-			while (input.Depth >= depth && !input.Finished)
-			{
-				XMLTypeHandler? inheritedHandler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string currentTag);
-				var nullValue = false;
-				if (currentTag[^1] == '/')
-				{
-					currentTag = currentTag[..^1];
-					nullValue = true;
-				}
+            input.GoToNextTag();
+            while (input.Depth >= depth && !input.Finished)
+            {
+                XMLTypeHandler? inheritedHandler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string currentTag);
+                var nullValue = false;
+                if (currentTag[^1] == '/')
+                {
+                    currentTag = currentTag[..^1];
+                    nullValue = true;
+                }
 
-				if (!_fieldHandlers.Value.TryGetValue(currentTag, out XMLFieldHandler? field))
-				{
-					Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
-					return newObj;
-				}
+                if (!_fieldHandlers.Value.TryGetValue(currentTag, out XMLFieldHandler? field))
+                {
+                    Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
+                    return newObj;
+                }
 
-				XMLTypeHandler typeHandler = inheritedHandler ?? field.TypeHandler;
-				if (typeHandler != null)
-				{
-					Assert(newObj != null);
-					object? val = nullValue ? null : typeHandler.Deserialize(input);
-					if (!field.Skip) field.ReflectionInfo.SetValue(newObj!, val);
-				}
-				else
-				{
-					// Find closing tag of current tag.
-					var c = "";
-					while (c != $"/{currentTag}")
-					{
-						c = input.ReadTagWithoutAttribute();
-						if (input.Finished) break;
-					}
-				}
+                XMLTypeHandler typeHandler = inheritedHandler ?? field.TypeHandler;
+                if (typeHandler != null)
+                {
+                    Assert(newObj != null);
+                    object? val = nullValue ? null : typeHandler.Deserialize(input);
+                    if (!field.Skip) field.ReflectionInfo.SetValue(newObj!, val);
+                }
+                else
+                {
+                    // Find closing tag of current tag.
+                    var c = "";
+                    while (c != $"/{currentTag}")
+                    {
+                        c = input.ReadTagWithoutAttribute();
+                        if (input.Finished) break;
+                    }
+                }
 
-				input.GoToNextTag();
-			}
+                input.GoToNextTag();
+            }
 
-			return newObj;
-		}
+            return newObj;
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		protected XMLTypeHandler? GetInheritedTypeHandler(object obj, out string? inheritedType)
-		{
-			inheritedType = null;
-			Type objType = obj.GetType();
-			if (objType == Type) return null;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected XMLTypeHandler? GetInheritedTypeHandler(object obj, out string? inheritedType)
+        {
+            inheritedType = null;
+            Type objType = obj.GetType();
+            if (objType == Type) return null;
 
-			// Encountering a type which inherits from this type.
-			if (Type.IsAssignableFrom(objType))
-			{
-				inheritedType = XMLHelpers.GetTypeName(objType, true);
-				return XMLHelpers.GetTypeHandler(objType);
-			}
+            // Encountering a type which inherits from this type.
+            if (Type.IsAssignableFrom(objType))
+            {
+                inheritedType = XMLHelpers.GetTypeName(objType, true);
+                return XMLHelpers.GetTypeHandler(objType);
+            }
 
-			// wtf?
-			Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {TypeName}", MessageSource.XML);
-			return null;
-		}
-	}
+            // wtf?
+            Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {TypeName}", MessageSource.XML);
+            return null;
+        }
+    }
 }

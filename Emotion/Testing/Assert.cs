@@ -11,135 +11,135 @@ namespace Emotion.Testing;
 
 public static class Assert
 {
-	public class TestAssertException : Exception
-	{
-		public TestAssertException(string txt) : base(txt)
-		{
-		}
-	}
+    public class TestAssertException : Exception
+    {
+        public TestAssertException(string txt) : base(txt)
+        {
+        }
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void Equal(object a, object b)
-	{
-		if (!a.Equals(b)) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void Equal(object a, object b)
+    {
+        if (!a.Equals(b)) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void Equal(float a, float b)
-	{
-		if (a != b) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void Equal(float a, float b)
+    {
+        if (a != b) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void Equal(int a, int b)
-	{
-		if (a != b) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void Equal(int a, int b)
+    {
+        if (a != b) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void True(bool condition, string? text = null)
-	{
-		if (!condition) AssertFailed($"Assert failed {text}");
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void True(bool condition, string? text = null)
+    {
+        if (!condition) AssertFailed($"Assert failed {text}");
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void False(bool condition, string? text = null)
-	{
-		if (condition) AssertFailed($"Assert failed {text}");
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void False(bool condition, string? text = null)
+    {
+        if (condition) AssertFailed($"Assert failed {text}");
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void NotNull([NotNull] object? obj, string? text = null)
-	{
-		if (obj == null) AssertFailed($"{text ?? "object"} was null");
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void NotNull([NotNull] object? obj, string? text = null)
+    {
+        if (obj == null) AssertFailed($"{text ?? "object"} was null");
+    }
 
-	private static HashSet<string>? _ignoredAsserts;
+    private static HashSet<string>? _ignoredAsserts;
 
-	private static void AssertFailed(string msg)
-	{
+    private static void AssertFailed(string msg)
+    {
 #if AUTOBUILD
 		throw new TestAssertException(msg);
 #elif DEBUG
-		_ignoredAsserts ??= new HashSet<string>();
+        _ignoredAsserts ??= new HashSet<string>();
 
-		string stack = Environment.StackTrace;
-		string assertText = msg + "\n" + stack;
+        string stack = Environment.StackTrace;
+        string assertText = msg + "\n" + stack;
 
-		// Get assert id to be msg + function in which it occured in
-		string assertId = msg;
-		int idx = stack.IndexOf("at Emotion.Testing.Assert", StringComparison.OrdinalIgnoreCase);
-		while (idx != -1)
-		{
-			int newIdx = stack.IndexOf("at Emotion.Testing.Assert", idx + 1, StringComparison.OrdinalIgnoreCase);
-			if (newIdx == -1)
-			{
-				int nextNewLine = stack.IndexOf("\n", idx, StringComparison.OrdinalIgnoreCase);
-				int oneAfterThat = nextNewLine != -1 ? stack.IndexOf("\n", nextNewLine + 1, StringComparison.OrdinalIgnoreCase) : -1;
-				if (oneAfterThat != -1)
-					assertId += stack.Substring(nextNewLine, oneAfterThat - nextNewLine).Trim();
-				else
-					assertId += stack;
-				break;
-			}
+        // Get assert id to be msg + function in which it occured in
+        string assertId = msg;
+        int idx = stack.IndexOf("at Emotion.Testing.Assert", StringComparison.OrdinalIgnoreCase);
+        while (idx != -1)
+        {
+            int newIdx = stack.IndexOf("at Emotion.Testing.Assert", idx + 1, StringComparison.OrdinalIgnoreCase);
+            if (newIdx == -1)
+            {
+                int nextNewLine = stack.IndexOf("\n", idx, StringComparison.OrdinalIgnoreCase);
+                int oneAfterThat = nextNewLine != -1 ? stack.IndexOf("\n", nextNewLine + 1, StringComparison.OrdinalIgnoreCase) : -1;
+                if (oneAfterThat != -1)
+                    assertId += stack.Substring(nextNewLine, oneAfterThat - nextNewLine).Trim();
+                else
+                    assertId += stack;
+                break;
+            }
 
-			idx = newIdx;
-		}
+            idx = newIdx;
+        }
 
-		if (_ignoredAsserts.Contains(assertId)) return;
+        if (_ignoredAsserts.Contains(assertId)) return;
 
-		var assertResponse = AssertMessageBoxResponse.Break;
-		if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(assertText);
+        var assertResponse = AssertMessageBoxResponse.Break;
+        if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(assertText);
 
-		switch (assertResponse)
-		{
-			case AssertMessageBoxResponse.IgnoreCurrent:
-				return;
-			case AssertMessageBoxResponse.IgnoreAll:
-				_ignoredAsserts.Add(assertId);
-				return;
-			case AssertMessageBoxResponse.Break:
-				Debugger.Break();
-				return;
-		}
+        switch (assertResponse)
+        {
+            case AssertMessageBoxResponse.IgnoreCurrent:
+                return;
+            case AssertMessageBoxResponse.IgnoreAll:
+                _ignoredAsserts.Add(assertId);
+                return;
+            case AssertMessageBoxResponse.Break:
+                Debugger.Break();
+                return;
+        }
 #else
 		Engine.Log.Warning(msg, "ASSERT_FAILED");
 #endif
-	}
+    }
 
-	public static void ClearIgnoredAsserts()
-	{
-		_ignoredAsserts?.Clear();
-	}
+    public static void ClearIgnoredAsserts()
+    {
+        _ignoredAsserts?.Clear();
+    }
 }
 
 // Used by GlobalImports to provide the same api as System.Diagnostics in Debug.Assert
 public static class AssertWrapper
 {
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void Assert(bool condition, string? text = null)
-	{
-		Testing.Assert.True(condition, text);
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void Assert(bool condition, string? text = null)
+    {
+        Testing.Assert.True(condition, text);
+    }
 
-	[Conditional("DEBUG")]
-	[Conditional("AUTOBUILD")]
-	public static void AssertNotNull([NotNull] object? obj)
-	{
-		Testing.Assert.True(obj != null);
-	}
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    public static void AssertNotNull([NotNull] object? obj)
+    {
+        Testing.Assert.True(obj != null);
+    }
 }
 
 public enum AssertMessageBoxResponse
 {
-	Break,
-	IgnoreCurrent,
-	IgnoreAll
+    Break,
+    IgnoreCurrent,
+    IgnoreAll
 }

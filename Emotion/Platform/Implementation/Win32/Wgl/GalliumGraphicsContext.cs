@@ -1,10 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Utility;
 using WinApi.Core;
 using WinApi.Gdi32;

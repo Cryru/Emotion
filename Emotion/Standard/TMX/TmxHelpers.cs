@@ -1,9 +1,6 @@
 ﻿#region Using
 
-using System.Collections.Generic;
 using System.Globalization;
-using System.Numerics;
-using Emotion.Primitives;
 using Emotion.Standard.XML;
 
 #endregion

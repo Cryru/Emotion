@@ -597,7 +597,7 @@ namespace OpenGL
         [RequiredByFeature("GL_INGR_blend_func_separate")]
         public static void BlendFuncSeparate(BlendingFactor sfactorRGB, BlendingFactor dfactorRGB, BlendingFactor sfactorAlpha, BlendingFactor dfactorAlpha)
         {
-            Debug.Assert(Delegates.pglBlendFuncSeparate != null, "pglBlendFuncSeparate not implemented");
+            Assert(Delegates.pglBlendFuncSeparate != null, "pglBlendFuncSeparate not implemented");
             Delegates.pglBlendFuncSeparate((int) sfactorRGB, (int) dfactorRGB, (int) sfactorAlpha, (int) dfactorAlpha);
             DebugCheckErrors(null);
         }
@@ -628,7 +628,7 @@ namespace OpenGL
                 fixed (int* p_first = first)
                 fixed (int* p_count = count)
                 {
-                    Debug.Assert(Delegates.pglMultiDrawArrays != null, "pglMultiDrawArrays not implemented");
+                    Assert(Delegates.pglMultiDrawArrays != null, "pglMultiDrawArrays not implemented");
                     Delegates.pglMultiDrawArrays((int) mode, p_first, p_count, drawcount);
                 }
             }
@@ -666,7 +666,7 @@ namespace OpenGL
                 fixed (int* p_count = count)
                 fixed (IntPtr* p_indices = indices)
                 {
-                    Debug.Assert(Delegates.pglMultiDrawElements != null, "pglMultiDrawElements not implemented");
+                    Assert(Delegates.pglMultiDrawElements != null, "pglMultiDrawElements not implemented");
                     Delegates.pglMultiDrawElements((int) mode, p_count, (int) type, p_indices, drawcount);
                 }
             }
@@ -695,7 +695,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SGIS_point_parameters")]
         public static void PointParameter(int pname, float param)
         {
-            Debug.Assert(Delegates.pglPointParameterf != null, "pglPointParameterf not implemented");
+            Assert(Delegates.pglPointParameterf != null, "pglPointParameterf not implemented");
             Delegates.pglPointParameterf(pname, param);
             DebugCheckErrors(null);
         }
@@ -726,7 +726,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglPointParameterfv != null, "pglPointParameterfv not implemented");
+                    Assert(Delegates.pglPointParameterfv != null, "pglPointParameterfv not implemented");
                     Delegates.pglPointParameterfv(pname, p_params);
                 }
             }
@@ -747,7 +747,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_point_sprite")]
         public static void PointParameter(int pname, int param)
         {
-            Debug.Assert(Delegates.pglPointParameteri != null, "pglPointParameteri not implemented");
+            Assert(Delegates.pglPointParameteri != null, "pglPointParameteri not implemented");
             Delegates.pglPointParameteri(pname, param);
             DebugCheckErrors(null);
         }
@@ -770,7 +770,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglPointParameteriv != null, "pglPointParameteriv not implemented");
+                    Assert(Delegates.pglPointParameteriv != null, "pglPointParameteriv not implemented");
                     Delegates.pglPointParameteriv(pname, p_params);
                 }
             }
@@ -789,7 +789,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void FogCoord(float coord)
         {
-            Debug.Assert(Delegates.pglFogCoordf != null, "pglFogCoordf not implemented");
+            Assert(Delegates.pglFogCoordf != null, "pglFogCoordf not implemented");
             Delegates.pglFogCoordf(coord);
         }
 
@@ -804,12 +804,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void FogCoord(float[] coord)
         {
-            Debug.Assert(coord.Length >= 1);
+            Assert(coord.Length >= 1);
             unsafe
             {
                 fixed (float* p_coord = coord)
                 {
-                    Debug.Assert(Delegates.pglFogCoordfv != null, "pglFogCoordfv not implemented");
+                    Assert(Delegates.pglFogCoordfv != null, "pglFogCoordfv not implemented");
                     Delegates.pglFogCoordfv(p_coord);
                 }
             }
@@ -828,7 +828,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void FogCoord(double coord)
         {
-            Debug.Assert(Delegates.pglFogCoordd != null, "pglFogCoordd not implemented");
+            Assert(Delegates.pglFogCoordd != null, "pglFogCoordd not implemented");
             Delegates.pglFogCoordd(coord);
         }
 
@@ -843,12 +843,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void FogCoord(double[] coord)
         {
-            Debug.Assert(coord.Length >= 1);
+            Assert(coord.Length >= 1);
             unsafe
             {
                 fixed (double* p_coord = coord)
                 {
-                    Debug.Assert(Delegates.pglFogCoorddv != null, "pglFogCoorddv not implemented");
+                    Assert(Delegates.pglFogCoorddv != null, "pglFogCoorddv not implemented");
                     Delegates.pglFogCoorddv(p_coord);
                 }
             }
@@ -876,7 +876,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void FogCoordPointer(FogCoordinatePointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglFogCoordPointer != null, "pglFogCoordPointer not implemented");
+            Assert(Delegates.pglFogCoordPointer != null, "pglFogCoordPointer not implemented");
             Delegates.pglFogCoordPointer((int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -929,7 +929,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(sbyte red, sbyte green, sbyte blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3b != null, "pglSecondaryColor3b not implemented");
+            Assert(Delegates.pglSecondaryColor3b != null, "pglSecondaryColor3b not implemented");
             Delegates.pglSecondaryColor3b(red, green, blue);
         }
 
@@ -944,12 +944,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(sbyte[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (sbyte* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3bv != null, "pglSecondaryColor3bv not implemented");
+                    Assert(Delegates.pglSecondaryColor3bv != null, "pglSecondaryColor3bv not implemented");
                     Delegates.pglSecondaryColor3bv(p_v);
                 }
             }
@@ -974,7 +974,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(double red, double green, double blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3d != null, "pglSecondaryColor3d not implemented");
+            Assert(Delegates.pglSecondaryColor3d != null, "pglSecondaryColor3d not implemented");
             Delegates.pglSecondaryColor3d(red, green, blue);
         }
 
@@ -989,12 +989,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(double[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3dv != null, "pglSecondaryColor3dv not implemented");
+                    Assert(Delegates.pglSecondaryColor3dv != null, "pglSecondaryColor3dv not implemented");
                     Delegates.pglSecondaryColor3dv(p_v);
                 }
             }
@@ -1019,7 +1019,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(float red, float green, float blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3f != null, "pglSecondaryColor3f not implemented");
+            Assert(Delegates.pglSecondaryColor3f != null, "pglSecondaryColor3f not implemented");
             Delegates.pglSecondaryColor3f(red, green, blue);
         }
 
@@ -1034,12 +1034,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(float[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3fv != null, "pglSecondaryColor3fv not implemented");
+                    Assert(Delegates.pglSecondaryColor3fv != null, "pglSecondaryColor3fv not implemented");
                     Delegates.pglSecondaryColor3fv(p_v);
                 }
             }
@@ -1064,7 +1064,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(int red, int green, int blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3i != null, "pglSecondaryColor3i not implemented");
+            Assert(Delegates.pglSecondaryColor3i != null, "pglSecondaryColor3i not implemented");
             Delegates.pglSecondaryColor3i(red, green, blue);
         }
 
@@ -1079,12 +1079,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(int[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3iv != null, "pglSecondaryColor3iv not implemented");
+                    Assert(Delegates.pglSecondaryColor3iv != null, "pglSecondaryColor3iv not implemented");
                     Delegates.pglSecondaryColor3iv(p_v);
                 }
             }
@@ -1109,7 +1109,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(short red, short green, short blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3s != null, "pglSecondaryColor3s not implemented");
+            Assert(Delegates.pglSecondaryColor3s != null, "pglSecondaryColor3s not implemented");
             Delegates.pglSecondaryColor3s(red, green, blue);
         }
 
@@ -1124,12 +1124,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(short[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3sv != null, "pglSecondaryColor3sv not implemented");
+                    Assert(Delegates.pglSecondaryColor3sv != null, "pglSecondaryColor3sv not implemented");
                     Delegates.pglSecondaryColor3sv(p_v);
                 }
             }
@@ -1154,7 +1154,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(byte red, byte green, byte blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3ub != null, "pglSecondaryColor3ub not implemented");
+            Assert(Delegates.pglSecondaryColor3ub != null, "pglSecondaryColor3ub not implemented");
             Delegates.pglSecondaryColor3ub(red, green, blue);
         }
 
@@ -1169,12 +1169,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(byte[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (byte* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3ubv != null, "pglSecondaryColor3ubv not implemented");
+                    Assert(Delegates.pglSecondaryColor3ubv != null, "pglSecondaryColor3ubv not implemented");
                     Delegates.pglSecondaryColor3ubv(p_v);
                 }
             }
@@ -1199,7 +1199,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(uint red, uint green, uint blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3ui != null, "pglSecondaryColor3ui not implemented");
+            Assert(Delegates.pglSecondaryColor3ui != null, "pglSecondaryColor3ui not implemented");
             Delegates.pglSecondaryColor3ui(red, green, blue);
         }
 
@@ -1214,12 +1214,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(uint[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (uint* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3uiv != null, "pglSecondaryColor3uiv not implemented");
+                    Assert(Delegates.pglSecondaryColor3uiv != null, "pglSecondaryColor3uiv not implemented");
                     Delegates.pglSecondaryColor3uiv(p_v);
                 }
             }
@@ -1244,7 +1244,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(ushort red, ushort green, ushort blue)
         {
-            Debug.Assert(Delegates.pglSecondaryColor3us != null, "pglSecondaryColor3us not implemented");
+            Assert(Delegates.pglSecondaryColor3us != null, "pglSecondaryColor3us not implemented");
             Delegates.pglSecondaryColor3us(red, green, blue);
         }
 
@@ -1259,12 +1259,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColor3(ushort[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (ushort* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColor3usv != null, "pglSecondaryColor3usv not implemented");
+                    Assert(Delegates.pglSecondaryColor3usv != null, "pglSecondaryColor3usv not implemented");
                     Delegates.pglSecondaryColor3usv(p_v);
                 }
             }
@@ -1295,7 +1295,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void SecondaryColorPointer(int size, ColorPointerType type, int stride, IntPtr pointer)
         {
-            Debug.Assert(Delegates.pglSecondaryColorPointer != null, "pglSecondaryColorPointer not implemented");
+            Assert(Delegates.pglSecondaryColorPointer != null, "pglSecondaryColorPointer not implemented");
             Delegates.pglSecondaryColorPointer(size, (int) type, stride, pointer);
             DebugCheckErrors(null);
         }
@@ -1349,7 +1349,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(double x, double y)
         {
-            Debug.Assert(Delegates.pglWindowPos2d != null, "pglWindowPos2d not implemented");
+            Assert(Delegates.pglWindowPos2d != null, "pglWindowPos2d not implemented");
             Delegates.pglWindowPos2d(x, y);
             DebugCheckErrors(null);
         }
@@ -1366,12 +1366,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(double[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos2dv != null, "pglWindowPos2dv not implemented");
+                    Assert(Delegates.pglWindowPos2dv != null, "pglWindowPos2dv not implemented");
                     Delegates.pglWindowPos2dv(p_v);
                 }
             }
@@ -1394,7 +1394,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(float x, float y)
         {
-            Debug.Assert(Delegates.pglWindowPos2f != null, "pglWindowPos2f not implemented");
+            Assert(Delegates.pglWindowPos2f != null, "pglWindowPos2f not implemented");
             Delegates.pglWindowPos2f(x, y);
             DebugCheckErrors(null);
         }
@@ -1411,12 +1411,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(float[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos2fv != null, "pglWindowPos2fv not implemented");
+                    Assert(Delegates.pglWindowPos2fv != null, "pglWindowPos2fv not implemented");
                     Delegates.pglWindowPos2fv(p_v);
                 }
             }
@@ -1439,7 +1439,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(int x, int y)
         {
-            Debug.Assert(Delegates.pglWindowPos2i != null, "pglWindowPos2i not implemented");
+            Assert(Delegates.pglWindowPos2i != null, "pglWindowPos2i not implemented");
             Delegates.pglWindowPos2i(x, y);
             DebugCheckErrors(null);
         }
@@ -1456,12 +1456,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(int[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos2iv != null, "pglWindowPos2iv not implemented");
+                    Assert(Delegates.pglWindowPos2iv != null, "pglWindowPos2iv not implemented");
                     Delegates.pglWindowPos2iv(p_v);
                 }
             }
@@ -1484,7 +1484,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(short x, short y)
         {
-            Debug.Assert(Delegates.pglWindowPos2s != null, "pglWindowPos2s not implemented");
+            Assert(Delegates.pglWindowPos2s != null, "pglWindowPos2s not implemented");
             Delegates.pglWindowPos2s(x, y);
             DebugCheckErrors(null);
         }
@@ -1501,12 +1501,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos2(short[] v)
         {
-            Debug.Assert(v.Length >= 2);
+            Assert(v.Length >= 2);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos2sv != null, "pglWindowPos2sv not implemented");
+                    Assert(Delegates.pglWindowPos2sv != null, "pglWindowPos2sv not implemented");
                     Delegates.pglWindowPos2sv(p_v);
                 }
             }
@@ -1532,7 +1532,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(double x, double y, double z)
         {
-            Debug.Assert(Delegates.pglWindowPos3d != null, "pglWindowPos3d not implemented");
+            Assert(Delegates.pglWindowPos3d != null, "pglWindowPos3d not implemented");
             Delegates.pglWindowPos3d(x, y, z);
             DebugCheckErrors(null);
         }
@@ -1549,12 +1549,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(double[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (double* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos3dv != null, "pglWindowPos3dv not implemented");
+                    Assert(Delegates.pglWindowPos3dv != null, "pglWindowPos3dv not implemented");
                     Delegates.pglWindowPos3dv(p_v);
                 }
             }
@@ -1580,7 +1580,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(float x, float y, float z)
         {
-            Debug.Assert(Delegates.pglWindowPos3f != null, "pglWindowPos3f not implemented");
+            Assert(Delegates.pglWindowPos3f != null, "pglWindowPos3f not implemented");
             Delegates.pglWindowPos3f(x, y, z);
             DebugCheckErrors(null);
         }
@@ -1597,12 +1597,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(float[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (float* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos3fv != null, "pglWindowPos3fv not implemented");
+                    Assert(Delegates.pglWindowPos3fv != null, "pglWindowPos3fv not implemented");
                     Delegates.pglWindowPos3fv(p_v);
                 }
             }
@@ -1628,7 +1628,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(int x, int y, int z)
         {
-            Debug.Assert(Delegates.pglWindowPos3i != null, "pglWindowPos3i not implemented");
+            Assert(Delegates.pglWindowPos3i != null, "pglWindowPos3i not implemented");
             Delegates.pglWindowPos3i(x, y, z);
             DebugCheckErrors(null);
         }
@@ -1645,12 +1645,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(int[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (int* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos3iv != null, "pglWindowPos3iv not implemented");
+                    Assert(Delegates.pglWindowPos3iv != null, "pglWindowPos3iv not implemented");
                     Delegates.pglWindowPos3iv(p_v);
                 }
             }
@@ -1676,7 +1676,7 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(short x, short y, short z)
         {
-            Debug.Assert(Delegates.pglWindowPos3s != null, "pglWindowPos3s not implemented");
+            Assert(Delegates.pglWindowPos3s != null, "pglWindowPos3s not implemented");
             Delegates.pglWindowPos3s(x, y, z);
             DebugCheckErrors(null);
         }
@@ -1693,12 +1693,12 @@ namespace OpenGL
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
         public static void WindowPos3(short[] v)
         {
-            Debug.Assert(v.Length >= 3);
+            Assert(v.Length >= 3);
             unsafe
             {
                 fixed (short* p_v = v)
                 {
-                    Debug.Assert(Delegates.pglWindowPos3sv != null, "pglWindowPos3sv not implemented");
+                    Assert(Delegates.pglWindowPos3sv != null, "pglWindowPos3sv not implemented");
                     Delegates.pglWindowPos3sv(p_v);
                 }
             }
@@ -1730,7 +1730,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_blend_color")]
         public static void BlendColor(float red, float green, float blue, float alpha)
         {
-            Debug.Assert(Delegates.pglBlendColor != null, "pglBlendColor not implemented");
+            Assert(Delegates.pglBlendColor != null, "pglBlendColor not implemented");
             Delegates.pglBlendColor(red, green, blue, alpha);
             DebugCheckErrors(null);
         }
@@ -1749,7 +1749,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_blend_minmax")]
         public static void BlendEquation(BlendEquationMode mode)
         {
-            Debug.Assert(Delegates.pglBlendEquation != null, "pglBlendEquation not implemented");
+            Assert(Delegates.pglBlendEquation != null, "pglBlendEquation not implemented");
             Delegates.pglBlendEquation((int) mode);
             DebugCheckErrors(null);
         }

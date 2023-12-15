@@ -1,27 +1,28 @@
 <?xml version="1.0"?>
+
 <ListOfDictionaryOfStringObject>
-  <DictionaryOfStringObject>
-    <KeyValuePairOfStringObject>
-      <Key>enumType</Key>
-      <Value type="Tests.EngineTests.XMLTests+TestEnum">Test</Value>
-    </KeyValuePairOfStringObject>
-    <KeyValuePairOfStringObject>
-      <Key>numberType</Key>
-      <Value type="System.Int32">1</Value>
-    </KeyValuePairOfStringObject>
-    <KeyValuePairOfStringObject>
-      <Key>booleanType</Key>
-      <Value type="System.Boolean">True</Value>
-    </KeyValuePairOfStringObject>
-    <KeyValuePairOfStringObject>
-      <Key>complexType</Key>
-      <Value type="Tests.EngineTests.XMLTests+StringContainer">
-        <Test>Member!</Test>
-      </Value>
-    </KeyValuePairOfStringObject>
-    <KeyValuePairOfStringObject>
-      <Key>stringType</Key>
-      <Value type="System.String">this is text</Value>
-    </KeyValuePairOfStringObject>
-  </DictionaryOfStringObject>
+    <DictionaryOfStringObject>
+        <KeyValuePairOfStringObject>
+            <Key>enumType</Key>
+            <Value type="Tests.EngineTests.XMLTests+TestEnum">Test</Value>
+        </KeyValuePairOfStringObject>
+        <KeyValuePairOfStringObject>
+            <Key>numberType</Key>
+            <Value type="System.Int32">1</Value>
+        </KeyValuePairOfStringObject>
+        <KeyValuePairOfStringObject>
+            <Key>booleanType</Key>
+            <Value type="System.Boolean">True</Value>
+        </KeyValuePairOfStringObject>
+        <KeyValuePairOfStringObject>
+            <Key>complexType</Key>
+            <Value type="Tests.EngineTests.XMLTests+StringContainer">
+                <Test>Member!</Test>
+            </Value>
+        </KeyValuePairOfStringObject>
+        <KeyValuePairOfStringObject>
+            <Key>stringType</Key>
+            <Value type="System.String">this is text</Value>
+        </KeyValuePairOfStringObject>
+    </DictionaryOfStringObject>
 </ListOfDictionaryOfStringObject>

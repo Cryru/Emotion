@@ -164,7 +164,7 @@ namespace OpenGL
                 fixed (uint* p_pConstantIndex = pConstantIndex)
                 fixed (uint* p_pConstantValue = pConstantValue)
                 {
-                    Debug.Assert(Delegates.pglSpecializeShader != null, "pglSpecializeShader not implemented");
+                    Assert(Delegates.pglSpecializeShader != null, "pglSpecializeShader not implemented");
                     Delegates.pglSpecializeShader(shader, pEntryPoint, numSpecializationConstants, p_pConstantIndex, p_pConstantValue);
                 }
             }
@@ -194,7 +194,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_indirect_parameters", Api = "gl|glcore")]
         public static void MultiDrawArraysIndirect(PrimitiveType mode, IntPtr indirect, IntPtr drawcount, int maxdrawcount, int stride)
         {
-            Debug.Assert(Delegates.pglMultiDrawArraysIndirectCount != null, "pglMultiDrawArraysIndirectCount not implemented");
+            Assert(Delegates.pglMultiDrawArraysIndirectCount != null, "pglMultiDrawArraysIndirectCount not implemented");
             Delegates.pglMultiDrawArraysIndirectCount((int) mode, indirect, drawcount, maxdrawcount, stride);
             DebugCheckErrors(null);
         }
@@ -257,7 +257,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_indirect_parameters", Api = "gl|glcore")]
         public static void MultiDrawElementsIndirect(PrimitiveType mode, int type, IntPtr indirect, IntPtr drawcount, int maxdrawcount, int stride)
         {
-            Debug.Assert(Delegates.pglMultiDrawElementsIndirectCount != null, "pglMultiDrawElementsIndirectCount not implemented");
+            Assert(Delegates.pglMultiDrawElementsIndirectCount != null, "pglMultiDrawElementsIndirectCount not implemented");
             Delegates.pglMultiDrawElementsIndirectCount((int) mode, type, indirect, drawcount, maxdrawcount, stride);
             DebugCheckErrors(null);
         }
@@ -315,7 +315,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_polygon_offset_clamp", Api = "gl|glcore|gles2")]
         public static void PolygonOffsetClamp(float factor, float units, float clamp)
         {
-            Debug.Assert(Delegates.pglPolygonOffsetClamp != null, "pglPolygonOffsetClamp not implemented");
+            Assert(Delegates.pglPolygonOffsetClamp != null, "pglPolygonOffsetClamp not implemented");
             Delegates.pglPolygonOffsetClamp(factor, units, clamp);
             DebugCheckErrors(null);
         }

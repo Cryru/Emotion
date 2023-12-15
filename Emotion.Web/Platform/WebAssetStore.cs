@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Text;
 using Emotion.IO;
 
 #endregion
@@ -20,7 +21,7 @@ namespace Emotion.Web.Platform
 
         public void SaveAsset(byte[] data, string name, bool backup)
         {
-            string str = System.Text.Encoding.UTF8.GetString(data);
+            string str = Encoding.UTF8.GetString(data);
             _host.JsRuntime.InvokeUnmarshalled<string, string, bool>("downloadTextFile", name, str);
         }
 

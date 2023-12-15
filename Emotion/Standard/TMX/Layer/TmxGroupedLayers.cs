@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using System.Linq;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Standard.XML;
 
 #endregion

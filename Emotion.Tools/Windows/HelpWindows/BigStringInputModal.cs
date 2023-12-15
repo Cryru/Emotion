@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using ImGuiNET;
@@ -22,10 +23,7 @@ namespace Emotion.Tools.Windows.HelpWindows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            if (ImGui.InputTextMultiline("Code", ref _text, 10000, new System.Numerics.Vector2(700, 500), ImGuiInputTextFlags.AllowTabInput))
-            {
-                _callback(_text);
-            }
+            if (ImGui.InputTextMultiline("Code", ref _text, 10000, new Vector2(700, 500), ImGuiInputTextFlags.AllowTabInput)) _callback(_text);
             if (!ImGui.Button("Close")) return;
             Open = false;
         }

@@ -1,11 +1,7 @@
 ﻿#region Using
 
-using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Emotion.Audio;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
 
 #endregion

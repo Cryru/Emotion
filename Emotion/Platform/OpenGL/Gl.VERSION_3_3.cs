@@ -165,7 +165,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_blend_func_extended", Api = "gles2")]
         public static void BindFragDataLocationIndexed(uint program, uint colorNumber, uint index, string name)
         {
-            Debug.Assert(Delegates.pglBindFragDataLocationIndexed != null, "pglBindFragDataLocationIndexed not implemented");
+            Assert(Delegates.pglBindFragDataLocationIndexed != null, "pglBindFragDataLocationIndexed not implemented");
             Delegates.pglBindFragDataLocationIndexed(program, colorNumber, index, name);
             DebugCheckErrors(null);
         }
@@ -186,7 +186,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetFragDataIndex != null, "pglGetFragDataIndex not implemented");
+            Assert(Delegates.pglGetFragDataIndex != null, "pglGetFragDataIndex not implemented");
             retValue = Delegates.pglGetFragDataIndex(program, name);
             DebugCheckErrors(retValue);
 
@@ -210,7 +210,7 @@ namespace OpenGL
             {
                 fixed (uint* p_samplers = samplers)
                 {
-                    Debug.Assert(Delegates.pglGenSamplers != null, "pglGenSamplers not implemented");
+                    Assert(Delegates.pglGenSamplers != null, "pglGenSamplers not implemented");
                     Delegates.pglGenSamplers(samplers.Length, p_samplers);
                 }
             }
@@ -255,7 +255,7 @@ namespace OpenGL
             {
                 fixed (uint* p_samplers = samplers)
                 {
-                    Debug.Assert(Delegates.pglDeleteSamplers != null, "pglDeleteSamplers not implemented");
+                    Assert(Delegates.pglDeleteSamplers != null, "pglDeleteSamplers not implemented");
                     Delegates.pglDeleteSamplers(samplers.Length, p_samplers);
                 }
             }
@@ -278,7 +278,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsSampler != null, "pglIsSampler not implemented");
+            Assert(Delegates.pglIsSampler != null, "pglIsSampler not implemented");
             retValue = Delegates.pglIsSampler(sampler);
             DebugCheckErrors(retValue);
 
@@ -301,7 +301,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void BindSampler(uint unit, uint sampler)
         {
-            Debug.Assert(Delegates.pglBindSampler != null, "pglBindSampler not implemented");
+            Assert(Delegates.pglBindSampler != null, "pglBindSampler not implemented");
             Delegates.pglBindSampler(unit, sampler);
             DebugCheckErrors(null);
         }
@@ -323,7 +323,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void SamplerParameter(uint sampler, SamplerParameterName pname, int param)
         {
-            Debug.Assert(Delegates.pglSamplerParameteri != null, "pglSamplerParameteri not implemented");
+            Assert(Delegates.pglSamplerParameteri != null, "pglSamplerParameteri not implemented");
             Delegates.pglSamplerParameteri(sampler, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -349,7 +349,7 @@ namespace OpenGL
             {
                 fixed (int* p_param = param)
                 {
-                    Debug.Assert(Delegates.pglSamplerParameteriv != null, "pglSamplerParameteriv not implemented");
+                    Assert(Delegates.pglSamplerParameteriv != null, "pglSamplerParameteriv not implemented");
                     Delegates.pglSamplerParameteriv(sampler, (int) pname, p_param);
                 }
             }
@@ -374,7 +374,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static unsafe void SamplerParameter(uint sampler, SamplerParameterName pname, int* param)
         {
-            Debug.Assert(Delegates.pglSamplerParameteriv != null, "pglSamplerParameteriv not implemented");
+            Assert(Delegates.pglSamplerParameteriv != null, "pglSamplerParameteriv not implemented");
             Delegates.pglSamplerParameteriv(sampler, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -396,7 +396,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void SamplerParameteri<T>(uint sampler, SamplerParameterName pname, T param) where T : struct
         {
-            Debug.Assert(Delegates.pglSamplerParameteriv != null, "pglSamplerParameteriv not implemented");
+            Assert(Delegates.pglSamplerParameteriv != null, "pglSamplerParameteriv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(param);
 			try {
@@ -435,7 +435,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void SamplerParameter(uint sampler, SamplerParameterName pname, float param)
         {
-            Debug.Assert(Delegates.pglSamplerParameterf != null, "pglSamplerParameterf not implemented");
+            Assert(Delegates.pglSamplerParameterf != null, "pglSamplerParameterf not implemented");
             Delegates.pglSamplerParameterf(sampler, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -461,7 +461,7 @@ namespace OpenGL
             {
                 fixed (float* p_param = param)
                 {
-                    Debug.Assert(Delegates.pglSamplerParameterfv != null, "pglSamplerParameterfv not implemented");
+                    Assert(Delegates.pglSamplerParameterfv != null, "pglSamplerParameterfv not implemented");
                     Delegates.pglSamplerParameterfv(sampler, (int) pname, p_param);
                 }
             }
@@ -486,7 +486,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static unsafe void SamplerParameter(uint sampler, SamplerParameterName pname, float* param)
         {
-            Debug.Assert(Delegates.pglSamplerParameterfv != null, "pglSamplerParameterfv not implemented");
+            Assert(Delegates.pglSamplerParameterfv != null, "pglSamplerParameterfv not implemented");
             Delegates.pglSamplerParameterfv(sampler, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -508,7 +508,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void SamplerParameterf<T>(uint sampler, SamplerParameterName pname, T param) where T : struct
         {
-            Debug.Assert(Delegates.pglSamplerParameterfv != null, "pglSamplerParameterfv not implemented");
+            Assert(Delegates.pglSamplerParameterfv != null, "pglSamplerParameterfv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(param);
 			try {
@@ -553,7 +553,7 @@ namespace OpenGL
             {
                 fixed (int* p_param = param)
                 {
-                    Debug.Assert(Delegates.pglSamplerParameterIiv != null, "pglSamplerParameterIiv not implemented");
+                    Assert(Delegates.pglSamplerParameterIiv != null, "pglSamplerParameterIiv not implemented");
                     Delegates.pglSamplerParameterIiv(sampler, (int) pname, p_param);
                 }
             }
@@ -580,7 +580,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static unsafe void SamplerParameterI(uint sampler, SamplerParameterName pname, int* param)
         {
-            Debug.Assert(Delegates.pglSamplerParameterIiv != null, "pglSamplerParameterIiv not implemented");
+            Assert(Delegates.pglSamplerParameterIiv != null, "pglSamplerParameterIiv not implemented");
             Delegates.pglSamplerParameterIiv(sampler, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -604,7 +604,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static void SamplerParameterIi<T>(uint sampler, SamplerParameterName pname, T param) where T : struct
         {
-            Debug.Assert(Delegates.pglSamplerParameterIiv != null, "pglSamplerParameterIiv not implemented");
+            Assert(Delegates.pglSamplerParameterIiv != null, "pglSamplerParameterIiv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(param);
 			try {
@@ -649,7 +649,7 @@ namespace OpenGL
             {
                 fixed (uint* p_param = param)
                 {
-                    Debug.Assert(Delegates.pglSamplerParameterIuiv != null, "pglSamplerParameterIuiv not implemented");
+                    Assert(Delegates.pglSamplerParameterIuiv != null, "pglSamplerParameterIuiv not implemented");
                     Delegates.pglSamplerParameterIuiv(sampler, (int) pname, p_param);
                 }
             }
@@ -676,7 +676,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static unsafe void SamplerParameterI(uint sampler, SamplerParameterName pname, uint* param)
         {
-            Debug.Assert(Delegates.pglSamplerParameterIuiv != null, "pglSamplerParameterIuiv not implemented");
+            Assert(Delegates.pglSamplerParameterIuiv != null, "pglSamplerParameterIuiv not implemented");
             Delegates.pglSamplerParameterIuiv(sampler, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -700,7 +700,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static void SamplerParameterIui<T>(uint sampler, SamplerParameterName pname, T param) where T : struct
         {
-            Debug.Assert(Delegates.pglSamplerParameterIuiv != null, "pglSamplerParameterIuiv not implemented");
+            Assert(Delegates.pglSamplerParameterIuiv != null, "pglSamplerParameterIuiv not implemented");
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(param);
 			try {
@@ -747,7 +747,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
+                    Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
                     Delegates.pglGetSamplerParameteriv(sampler, (int) pname, p_params);
                 }
             }
@@ -780,7 +780,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
+                    Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
                     Delegates.pglGetSamplerParameteriv(sampler, (int) pname, p_params);
                 }
             }
@@ -809,7 +809,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static unsafe void GetSamplerParameter(uint sampler, SamplerParameterName pname, [Out] int* @params)
         {
-            Debug.Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
+            Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
             Delegates.pglGetSamplerParameteriv(sampler, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -835,7 +835,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void GetSamplerParameteri<T>(uint sampler, SamplerParameterName pname, out T @params) where T : struct
         {
-            Debug.Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
+            Assert(Delegates.pglGetSamplerParameteriv != null, "pglGetSamplerParameteriv not implemented");
             @params = default;
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(@params);
@@ -885,7 +885,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
+                    Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
                     Delegates.pglGetSamplerParameterIiv(sampler, (int) pname, p_params);
                 }
             }
@@ -920,7 +920,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
+                    Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
                     Delegates.pglGetSamplerParameterIiv(sampler, (int) pname, p_params);
                 }
             }
@@ -951,7 +951,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static unsafe void GetSamplerParameterI(uint sampler, SamplerParameterName pname, [Out] int* @params)
         {
-            Debug.Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
+            Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
             Delegates.pglGetSamplerParameterIiv(sampler, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -979,7 +979,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static void GetSamplerParameterIi<T>(uint sampler, SamplerParameterName pname, out T @params) where T : struct
         {
-            Debug.Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
+            Assert(Delegates.pglGetSamplerParameterIiv != null, "pglGetSamplerParameterIiv not implemented");
             @params = default;
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(@params);
@@ -1027,7 +1027,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
+                    Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
                     Delegates.pglGetSamplerParameterfv(sampler, (int) pname, p_params);
                 }
             }
@@ -1060,7 +1060,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
+                    Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
                     Delegates.pglGetSamplerParameterfv(sampler, (int) pname, p_params);
                 }
             }
@@ -1089,7 +1089,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static unsafe void GetSamplerParameter(uint sampler, SamplerParameterName pname, [Out] float* @params)
         {
-            Debug.Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
+            Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
             Delegates.pglGetSamplerParameterfv(sampler, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -1115,7 +1115,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_sampler_objects", Api = "gl|glcore")]
         public static void GetSamplerParameterf<T>(uint sampler, SamplerParameterName pname, out T @params) where T : struct
         {
-            Debug.Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
+            Assert(Delegates.pglGetSamplerParameterfv != null, "pglGetSamplerParameterfv not implemented");
             @params = default;
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(@params);
@@ -1165,7 +1165,7 @@ namespace OpenGL
             {
                 fixed (uint* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
+                    Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
                     Delegates.pglGetSamplerParameterIuiv(sampler, (int) pname, p_params);
                 }
             }
@@ -1200,7 +1200,7 @@ namespace OpenGL
             {
                 fixed (uint* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
+                    Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
                     Delegates.pglGetSamplerParameterIuiv(sampler, (int) pname, p_params);
                 }
             }
@@ -1231,7 +1231,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static unsafe void GetSamplerParameterI(uint sampler, SamplerParameterName pname, [Out] uint* @params)
         {
-            Debug.Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
+            Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
             Delegates.pglGetSamplerParameterIuiv(sampler, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -1259,7 +1259,7 @@ namespace OpenGL
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         public static void GetSamplerParameterIui<T>(uint sampler, SamplerParameterName pname, out T @params) where T : struct
         {
-            Debug.Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
+            Assert(Delegates.pglGetSamplerParameterIuiv != null, "pglGetSamplerParameterIuiv not implemented");
             @params = default;
 #if NETCOREAPP1_1
 			GCHandle valueHandle = GCHandle.Alloc(@params);
@@ -1297,7 +1297,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_disjoint_timer_query", Api = "gles2")]
         public static void QueryCounter(uint id, QueryTarget target)
         {
-            Debug.Assert(Delegates.pglQueryCounter != null, "pglQueryCounter not implemented");
+            Assert(Delegates.pglQueryCounter != null, "pglQueryCounter not implemented");
             Delegates.pglQueryCounter(id, (int) target);
             DebugCheckErrors(null);
         }
@@ -1328,7 +1328,7 @@ namespace OpenGL
             {
                 fixed (long* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjecti64v != null, "pglGetQueryObjecti64v not implemented");
+                    Assert(Delegates.pglGetQueryObjecti64v != null, "pglGetQueryObjecti64v not implemented");
                     Delegates.pglGetQueryObjecti64v(id, (int) pname, p_params);
                 }
             }
@@ -1362,7 +1362,7 @@ namespace OpenGL
             {
                 fixed (long* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjecti64v != null, "pglGetQueryObjecti64v not implemented");
+                    Assert(Delegates.pglGetQueryObjecti64v != null, "pglGetQueryObjecti64v not implemented");
                     Delegates.pglGetQueryObjecti64v(id, (int) pname, p_params);
                 }
             }
@@ -1396,7 +1396,7 @@ namespace OpenGL
             {
                 fixed (ulong* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjectui64v != null, "pglGetQueryObjectui64v not implemented");
+                    Assert(Delegates.pglGetQueryObjectui64v != null, "pglGetQueryObjectui64v not implemented");
                     Delegates.pglGetQueryObjectui64v(id, (int) pname, p_params);
                 }
             }
@@ -1430,7 +1430,7 @@ namespace OpenGL
             {
                 fixed (ulong* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetQueryObjectui64v != null, "pglGetQueryObjectui64v not implemented");
+                    Assert(Delegates.pglGetQueryObjectui64v != null, "pglGetQueryObjectui64v not implemented");
                     Delegates.pglGetQueryObjectui64v(id, (int) pname, p_params);
                 }
             }
@@ -1461,7 +1461,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_instanced_arrays", Api = "gles2")]
         public static void VertexAttribDivisor(uint index, uint divisor)
         {
-            Debug.Assert(Delegates.pglVertexAttribDivisor != null, "pglVertexAttribDivisor not implemented");
+            Assert(Delegates.pglVertexAttribDivisor != null, "pglVertexAttribDivisor not implemented");
             Delegates.pglVertexAttribDivisor(index, divisor);
             DebugCheckErrors(null);
         }
@@ -1489,7 +1489,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP1(uint index, VertexAttribType type, bool normalized, uint value)
         {
-            Debug.Assert(Delegates.pglVertexAttribP1ui != null, "pglVertexAttribP1ui not implemented");
+            Assert(Delegates.pglVertexAttribP1ui != null, "pglVertexAttribP1ui not implemented");
             Delegates.pglVertexAttribP1ui(index, (int) type, normalized, value);
             DebugCheckErrors(null);
         }
@@ -1513,12 +1513,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP1(uint index, VertexAttribType type, bool normalized, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribP1uiv != null, "pglVertexAttribP1uiv not implemented");
+                    Assert(Delegates.pglVertexAttribP1uiv != null, "pglVertexAttribP1uiv not implemented");
                     Delegates.pglVertexAttribP1uiv(index, (int) type, normalized, p_value);
                 }
             }
@@ -1549,7 +1549,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP2(uint index, VertexAttribType type, bool normalized, uint value)
         {
-            Debug.Assert(Delegates.pglVertexAttribP2ui != null, "pglVertexAttribP2ui not implemented");
+            Assert(Delegates.pglVertexAttribP2ui != null, "pglVertexAttribP2ui not implemented");
             Delegates.pglVertexAttribP2ui(index, (int) type, normalized, value);
             DebugCheckErrors(null);
         }
@@ -1573,12 +1573,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP2(uint index, VertexAttribType type, bool normalized, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribP2uiv != null, "pglVertexAttribP2uiv not implemented");
+                    Assert(Delegates.pglVertexAttribP2uiv != null, "pglVertexAttribP2uiv not implemented");
                     Delegates.pglVertexAttribP2uiv(index, (int) type, normalized, p_value);
                 }
             }
@@ -1609,7 +1609,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP3(uint index, VertexAttribType type, bool normalized, uint value)
         {
-            Debug.Assert(Delegates.pglVertexAttribP3ui != null, "pglVertexAttribP3ui not implemented");
+            Assert(Delegates.pglVertexAttribP3ui != null, "pglVertexAttribP3ui not implemented");
             Delegates.pglVertexAttribP3ui(index, (int) type, normalized, value);
             DebugCheckErrors(null);
         }
@@ -1633,12 +1633,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP3(uint index, VertexAttribType type, bool normalized, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribP3uiv != null, "pglVertexAttribP3uiv not implemented");
+                    Assert(Delegates.pglVertexAttribP3uiv != null, "pglVertexAttribP3uiv not implemented");
                     Delegates.pglVertexAttribP3uiv(index, (int) type, normalized, p_value);
                 }
             }
@@ -1669,7 +1669,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP4(uint index, VertexAttribType type, bool normalized, uint value)
         {
-            Debug.Assert(Delegates.pglVertexAttribP4ui != null, "pglVertexAttribP4ui not implemented");
+            Assert(Delegates.pglVertexAttribP4ui != null, "pglVertexAttribP4ui not implemented");
             Delegates.pglVertexAttribP4ui(index, (int) type, normalized, value);
             DebugCheckErrors(null);
         }
@@ -1693,12 +1693,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         public static void VertexAttribP4(uint index, VertexAttribType type, bool normalized, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexAttribP4uiv != null, "pglVertexAttribP4uiv not implemented");
+                    Assert(Delegates.pglVertexAttribP4uiv != null, "pglVertexAttribP4uiv not implemented");
                     Delegates.pglVertexAttribP4uiv(index, (int) type, normalized, p_value);
                 }
             }
@@ -1719,7 +1719,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void VertexP2(VertexPointerType type, uint value)
         {
-            Debug.Assert(Delegates.pglVertexP2ui != null, "pglVertexP2ui not implemented");
+            Assert(Delegates.pglVertexP2ui != null, "pglVertexP2ui not implemented");
             Delegates.pglVertexP2ui((int) type, value);
             DebugCheckErrors(null);
         }
@@ -1737,12 +1737,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void VertexP2(VertexPointerType type, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexP2uiv != null, "pglVertexP2uiv not implemented");
+                    Assert(Delegates.pglVertexP2uiv != null, "pglVertexP2uiv not implemented");
                     Delegates.pglVertexP2uiv((int) type, p_value);
                 }
             }
@@ -1763,7 +1763,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void VertexP3(VertexPointerType type, uint value)
         {
-            Debug.Assert(Delegates.pglVertexP3ui != null, "pglVertexP3ui not implemented");
+            Assert(Delegates.pglVertexP3ui != null, "pglVertexP3ui not implemented");
             Delegates.pglVertexP3ui((int) type, value);
             DebugCheckErrors(null);
         }
@@ -1781,12 +1781,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void VertexP3(VertexPointerType type, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexP3uiv != null, "pglVertexP3uiv not implemented");
+                    Assert(Delegates.pglVertexP3uiv != null, "pglVertexP3uiv not implemented");
                     Delegates.pglVertexP3uiv((int) type, p_value);
                 }
             }
@@ -1807,7 +1807,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void VertexP4(VertexPointerType type, uint value)
         {
-            Debug.Assert(Delegates.pglVertexP4ui != null, "pglVertexP4ui not implemented");
+            Assert(Delegates.pglVertexP4ui != null, "pglVertexP4ui not implemented");
             Delegates.pglVertexP4ui((int) type, value);
             DebugCheckErrors(null);
         }
@@ -1825,12 +1825,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void VertexP4(VertexPointerType type, uint[] value)
         {
-            Debug.Assert(value.Length >= 1);
+            Assert(value.Length >= 1);
             unsafe
             {
                 fixed (uint* p_value = value)
                 {
-                    Debug.Assert(Delegates.pglVertexP4uiv != null, "pglVertexP4uiv not implemented");
+                    Assert(Delegates.pglVertexP4uiv != null, "pglVertexP4uiv not implemented");
                     Delegates.pglVertexP4uiv((int) type, p_value);
                 }
             }
@@ -1851,7 +1851,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP1(TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglTexCoordP1ui != null, "pglTexCoordP1ui not implemented");
+            Assert(Delegates.pglTexCoordP1ui != null, "pglTexCoordP1ui not implemented");
             Delegates.pglTexCoordP1ui((int) type, coords);
             DebugCheckErrors(null);
         }
@@ -1869,12 +1869,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP1(TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglTexCoordP1uiv != null, "pglTexCoordP1uiv not implemented");
+                    Assert(Delegates.pglTexCoordP1uiv != null, "pglTexCoordP1uiv not implemented");
                     Delegates.pglTexCoordP1uiv((int) type, p_coords);
                 }
             }
@@ -1895,7 +1895,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP2(TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglTexCoordP2ui != null, "pglTexCoordP2ui not implemented");
+            Assert(Delegates.pglTexCoordP2ui != null, "pglTexCoordP2ui not implemented");
             Delegates.pglTexCoordP2ui((int) type, coords);
             DebugCheckErrors(null);
         }
@@ -1913,12 +1913,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP2(TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglTexCoordP2uiv != null, "pglTexCoordP2uiv not implemented");
+                    Assert(Delegates.pglTexCoordP2uiv != null, "pglTexCoordP2uiv not implemented");
                     Delegates.pglTexCoordP2uiv((int) type, p_coords);
                 }
             }
@@ -1939,7 +1939,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP3(TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglTexCoordP3ui != null, "pglTexCoordP3ui not implemented");
+            Assert(Delegates.pglTexCoordP3ui != null, "pglTexCoordP3ui not implemented");
             Delegates.pglTexCoordP3ui((int) type, coords);
             DebugCheckErrors(null);
         }
@@ -1957,12 +1957,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP3(TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglTexCoordP3uiv != null, "pglTexCoordP3uiv not implemented");
+                    Assert(Delegates.pglTexCoordP3uiv != null, "pglTexCoordP3uiv not implemented");
                     Delegates.pglTexCoordP3uiv((int) type, p_coords);
                 }
             }
@@ -1983,7 +1983,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP4(TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglTexCoordP4ui != null, "pglTexCoordP4ui not implemented");
+            Assert(Delegates.pglTexCoordP4ui != null, "pglTexCoordP4ui not implemented");
             Delegates.pglTexCoordP4ui((int) type, coords);
             DebugCheckErrors(null);
         }
@@ -2001,12 +2001,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void TexCoordP4(TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglTexCoordP4uiv != null, "pglTexCoordP4uiv not implemented");
+                    Assert(Delegates.pglTexCoordP4uiv != null, "pglTexCoordP4uiv not implemented");
                     Delegates.pglTexCoordP4uiv((int) type, p_coords);
                 }
             }
@@ -2030,7 +2030,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP1(TextureUnit texture, TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglMultiTexCoordP1ui != null, "pglMultiTexCoordP1ui not implemented");
+            Assert(Delegates.pglMultiTexCoordP1ui != null, "pglMultiTexCoordP1ui not implemented");
             Delegates.pglMultiTexCoordP1ui((int) texture, (int) type, coords);
             DebugCheckErrors(null);
         }
@@ -2051,12 +2051,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP1(TextureUnit texture, TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoordP1uiv != null, "pglMultiTexCoordP1uiv not implemented");
+                    Assert(Delegates.pglMultiTexCoordP1uiv != null, "pglMultiTexCoordP1uiv not implemented");
                     Delegates.pglMultiTexCoordP1uiv((int) texture, (int) type, p_coords);
                 }
             }
@@ -2080,7 +2080,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP2(TextureUnit texture, TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglMultiTexCoordP2ui != null, "pglMultiTexCoordP2ui not implemented");
+            Assert(Delegates.pglMultiTexCoordP2ui != null, "pglMultiTexCoordP2ui not implemented");
             Delegates.pglMultiTexCoordP2ui((int) texture, (int) type, coords);
             DebugCheckErrors(null);
         }
@@ -2101,12 +2101,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP2(TextureUnit texture, TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoordP2uiv != null, "pglMultiTexCoordP2uiv not implemented");
+                    Assert(Delegates.pglMultiTexCoordP2uiv != null, "pglMultiTexCoordP2uiv not implemented");
                     Delegates.pglMultiTexCoordP2uiv((int) texture, (int) type, p_coords);
                 }
             }
@@ -2130,7 +2130,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP3(TextureUnit texture, TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglMultiTexCoordP3ui != null, "pglMultiTexCoordP3ui not implemented");
+            Assert(Delegates.pglMultiTexCoordP3ui != null, "pglMultiTexCoordP3ui not implemented");
             Delegates.pglMultiTexCoordP3ui((int) texture, (int) type, coords);
             DebugCheckErrors(null);
         }
@@ -2151,12 +2151,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP3(TextureUnit texture, TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoordP3uiv != null, "pglMultiTexCoordP3uiv not implemented");
+                    Assert(Delegates.pglMultiTexCoordP3uiv != null, "pglMultiTexCoordP3uiv not implemented");
                     Delegates.pglMultiTexCoordP3uiv((int) texture, (int) type, p_coords);
                 }
             }
@@ -2180,7 +2180,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP4(TextureUnit texture, TexCoordPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglMultiTexCoordP4ui != null, "pglMultiTexCoordP4ui not implemented");
+            Assert(Delegates.pglMultiTexCoordP4ui != null, "pglMultiTexCoordP4ui not implemented");
             Delegates.pglMultiTexCoordP4ui((int) texture, (int) type, coords);
             DebugCheckErrors(null);
         }
@@ -2201,12 +2201,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void MultiTexCoordP4(TextureUnit texture, TexCoordPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglMultiTexCoordP4uiv != null, "pglMultiTexCoordP4uiv not implemented");
+                    Assert(Delegates.pglMultiTexCoordP4uiv != null, "pglMultiTexCoordP4uiv not implemented");
                     Delegates.pglMultiTexCoordP4uiv((int) texture, (int) type, p_coords);
                 }
             }
@@ -2227,7 +2227,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void NormalP3(NormalPointerType type, uint coords)
         {
-            Debug.Assert(Delegates.pglNormalP3ui != null, "pglNormalP3ui not implemented");
+            Assert(Delegates.pglNormalP3ui != null, "pglNormalP3ui not implemented");
             Delegates.pglNormalP3ui((int) type, coords);
             DebugCheckErrors(null);
         }
@@ -2245,12 +2245,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void NormalP3(NormalPointerType type, uint[] coords)
         {
-            Debug.Assert(coords.Length >= 1);
+            Assert(coords.Length >= 1);
             unsafe
             {
                 fixed (uint* p_coords = coords)
                 {
-                    Debug.Assert(Delegates.pglNormalP3uiv != null, "pglNormalP3uiv not implemented");
+                    Assert(Delegates.pglNormalP3uiv != null, "pglNormalP3uiv not implemented");
                     Delegates.pglNormalP3uiv((int) type, p_coords);
                 }
             }
@@ -2271,7 +2271,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void ColorP3(ColorPointerType type, uint color)
         {
-            Debug.Assert(Delegates.pglColorP3ui != null, "pglColorP3ui not implemented");
+            Assert(Delegates.pglColorP3ui != null, "pglColorP3ui not implemented");
             Delegates.pglColorP3ui((int) type, color);
             DebugCheckErrors(null);
         }
@@ -2289,12 +2289,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void ColorP3(ColorPointerType type, uint[] color)
         {
-            Debug.Assert(color.Length >= 1);
+            Assert(color.Length >= 1);
             unsafe
             {
                 fixed (uint* p_color = color)
                 {
-                    Debug.Assert(Delegates.pglColorP3uiv != null, "pglColorP3uiv not implemented");
+                    Assert(Delegates.pglColorP3uiv != null, "pglColorP3uiv not implemented");
                     Delegates.pglColorP3uiv((int) type, p_color);
                 }
             }
@@ -2315,7 +2315,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void ColorP4(ColorPointerType type, uint color)
         {
-            Debug.Assert(Delegates.pglColorP4ui != null, "pglColorP4ui not implemented");
+            Assert(Delegates.pglColorP4ui != null, "pglColorP4ui not implemented");
             Delegates.pglColorP4ui((int) type, color);
             DebugCheckErrors(null);
         }
@@ -2333,12 +2333,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void ColorP4(ColorPointerType type, uint[] color)
         {
-            Debug.Assert(color.Length >= 1);
+            Assert(color.Length >= 1);
             unsafe
             {
                 fixed (uint* p_color = color)
                 {
-                    Debug.Assert(Delegates.pglColorP4uiv != null, "pglColorP4uiv not implemented");
+                    Assert(Delegates.pglColorP4uiv != null, "pglColorP4uiv not implemented");
                     Delegates.pglColorP4uiv((int) type, p_color);
                 }
             }
@@ -2359,7 +2359,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void SecondaryColorP3(ColorPointerType type, uint color)
         {
-            Debug.Assert(Delegates.pglSecondaryColorP3ui != null, "pglSecondaryColorP3ui not implemented");
+            Assert(Delegates.pglSecondaryColorP3ui != null, "pglSecondaryColorP3ui not implemented");
             Delegates.pglSecondaryColorP3ui((int) type, color);
             DebugCheckErrors(null);
         }
@@ -2377,12 +2377,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Profile = "compatibility")]
         public static void SecondaryColorP3(ColorPointerType type, uint[] color)
         {
-            Debug.Assert(color.Length >= 1);
+            Assert(color.Length >= 1);
             unsafe
             {
                 fixed (uint* p_color = color)
                 {
-                    Debug.Assert(Delegates.pglSecondaryColorP3uiv != null, "pglSecondaryColorP3uiv not implemented");
+                    Assert(Delegates.pglSecondaryColorP3uiv != null, "pglSecondaryColorP3uiv not implemented");
                     Delegates.pglSecondaryColorP3uiv((int) type, p_color);
                 }
             }

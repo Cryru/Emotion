@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Emotion.Game.Time.Routines;

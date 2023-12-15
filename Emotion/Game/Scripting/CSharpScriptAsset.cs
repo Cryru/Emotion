@@ -57,6 +57,7 @@ namespace Emotion.Game.Scripting
                         options = options.AddImports(type.Namespace);
                     }
                 }
+
                 _scriptingEnvironment = options;
             }
 

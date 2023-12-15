@@ -1,11 +1,9 @@
-﻿using Emotion.Editor.EditorHelpers;
+﻿#region Using
+
+using Emotion.Editor.EditorHelpers;
 using Emotion.Standard.XML;
-using Emotion.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+#endregion
 
 namespace Emotion.Editor.PropertyEditors
 {
@@ -18,14 +16,11 @@ namespace Emotion.Editor.PropertyEditors
 
         public PropEditorNestedObject()
         {
-            OnClickedProxy = (_) =>
+            OnClickedProxy = _ =>
             {
                 if (_value == null) return;
                 var panel = new GenericPropertiesEditorPanel(_value);
-                panel.OnPropertyEdited = (_, __) =>
-                {
-	                _changeCallback?.Invoke(_value);
-                };
+                panel.OnPropertyEdited = (_, __) => { _changeCallback?.Invoke(_value); };
                 Controller?.AddChild(panel);
             };
             StretchY = true;

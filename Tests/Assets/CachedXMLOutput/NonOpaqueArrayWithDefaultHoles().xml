@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
+
 <ArrayOfNullableOfRectangle>
-  <Rectangle>
-    <X>1</X>
-    <Y>2</Y>
-    <Width>3</Width>
-    <Height>4</Height>
-  </Rectangle>
-  <Rectangle>
-  </Rectangle>
-  <Rectangle xsi:nil="true" />
-  <Rectangle>
-    <X>5</X>
-    <Y>6</Y>
-    <Width>7</Width>
-    <Height>8</Height>
-  </Rectangle>
-  <Rectangle xsi:nil="true" />
+    <Rectangle>
+        <X>1</X>
+        <Y>2</Y>
+        <Width>3</Width>
+        <Height>4</Height>
+    </Rectangle>
+    <Rectangle>
+    </Rectangle>
+    <Rectangle xsi:nil="true" />
+    <Rectangle>
+        <X>5</X>
+        <Y>6</Y>
+        <Width>7</Width>
+        <Height>8</Height>
+    </Rectangle>
+    <Rectangle xsi:nil="true" />
 </ArrayOfNullableOfRectangle>

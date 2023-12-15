@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using System;
 using System.IO;
-using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 
 #endregion
@@ -11,8 +9,8 @@ namespace Emotion.IO
 {
     public class DebugAssetStore : FileAssetStore
     {
-		public static string ProjectDevPath = Path.Join("..", "..", "..");
-		public static string AssetDevPath = Path.Join(ProjectDevPath, "Assets");
+        public static string ProjectDevPath = Path.Join("..", "..", "..");
+        public static string AssetDevPath = Path.Join(ProjectDevPath, "Assets");
 
         public DebugAssetStore() : base(AssetDevPath)
         {
@@ -30,8 +28,8 @@ namespace Emotion.IO
             // in the current (not very good) system.
             if (!Engine.AssetLoader.Exists(name))
             {
-	            Engine.AssetLoader.AddSource(new FileAssetSource("Assets"), false);
-	            Assert(Engine.AssetLoader.Exists(name));
+                Engine.AssetLoader.AddSource(new FileAssetSource("Assets"), false);
+                Assert(Engine.AssetLoader.Exists(name));
             }
         }
 

@@ -1,104 +1,105 @@
 <?xml version="1.0"?>
+
 <UIBaseWindow>
-  <Children>
-    <UIBaseWindow>
-      <Id>ListHorizontal</Id>
-      <Children>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
+    <Children>
+        <UIBaseWindow>
+            <Id>ListHorizontal</Id>
+            <Children>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+            </Children>
+            <LayoutMode>HorizontalList</LayoutMode>
+            <ListSpacing>
+                <X>5</X>
+            </ListSpacing>
+            <StretchX>True</StretchX>
+            <StretchY>True</StretchY>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
+            <ParentAnchor>TopRight</ParentAnchor>
+            <Anchor>TopRight</Anchor>
+            <MaxSize>
+                <X>9999</X>
+                <Y>5</Y>
+            </MaxSize>
+            <RelativeTo>ListHorizontal</RelativeTo>
+            <WindowColor>
+                <R>255</R>
+                <A>125</A>
+            </WindowColor>
+        </UIBaseWindow>
+        <UIBaseWindow>
+            <Id>ListVertical</Id>
+            <Children>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+                <UIBaseWindow type="Emotion.UI.UISolidColor">
+                    <MaxSize>
+                        <X>20</X>
+                        <Y>20</Y>
+                    </MaxSize>
+                </UIBaseWindow>
+            </Children>
+            <LayoutMode>VerticalList</LayoutMode>
+            <ListSpacing>
+                <Y>5</Y>
+            </ListSpacing>
+            <Margins>
+                <Y>50</Y>
+            </Margins>
+            <StretchX>True</StretchX>
+            <StretchY>True</StretchY>
         </UIBaseWindow>
         <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
+            <ParentAnchor>TopRight</ParentAnchor>
+            <Anchor>TopRight</Anchor>
+            <MaxSize>
+                <X>5</X>
+                <Y>9999</Y>
+            </MaxSize>
+            <RelativeTo>ListVertical</RelativeTo>
+            <WindowColor>
+                <R>255</R>
+                <A>125</A>
+            </WindowColor>
         </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
-        </UIBaseWindow>
-      </Children>
-      <LayoutMode>HorizontalList</LayoutMode>
-      <ListSpacing>
-        <X>5</X>
-      </ListSpacing>
-      <StretchX>True</StretchX>
-      <StretchY>True</StretchY>
-    </UIBaseWindow>
-    <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <ParentAnchor>TopRight</ParentAnchor>
-      <Anchor>TopRight</Anchor>
-      <MaxSize>
-        <X>9999</X>
-        <Y>5</Y>
-      </MaxSize>
-      <RelativeTo>ListHorizontal</RelativeTo>
-      <WindowColor>
-        <R>255</R>
-        <A>125</A>
-      </WindowColor>
-    </UIBaseWindow>
-    <UIBaseWindow>
-      <Id>ListVertical</Id>
-      <Children>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
-        </UIBaseWindow>
-        <UIBaseWindow type="Emotion.UI.UISolidColor">
-          <MaxSize>
-            <X>20</X>
-            <Y>20</Y>
-          </MaxSize>
-        </UIBaseWindow>
-      </Children>
-      <LayoutMode>VerticalList</LayoutMode>
-      <ListSpacing>
-        <Y>5</Y>
-      </ListSpacing>
-      <Margins>
-        <Y>50</Y>
-      </Margins>
-      <StretchX>True</StretchX>
-      <StretchY>True</StretchY>
-    </UIBaseWindow>
-    <UIBaseWindow type="Emotion.UI.UISolidColor">
-      <ParentAnchor>TopRight</ParentAnchor>
-      <Anchor>TopRight</Anchor>
-      <MaxSize>
-        <X>5</X>
-        <Y>9999</Y>
-      </MaxSize>
-      <RelativeTo>ListVertical</RelativeTo>
-      <WindowColor>
-        <R>255</R>
-        <A>125</A>
-      </WindowColor>
-    </UIBaseWindow>
-  </Children>
+    </Children>
 </UIBaseWindow>

@@ -1,10 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using Emotion.Audio;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
 
 #endregion

@@ -1,12 +1,12 @@
-﻿using Emotion.Game.World2D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable enable
 
-#nullable enable
+#region Using
+
+using System.Collections;
+using System.Linq;
+using Emotion.Game.World2D;
+
+#endregion
 
 namespace Emotion.Game.World
 {
@@ -63,10 +63,7 @@ namespace Emotion.Game.World
                 if (obj.ObjectState != ObjectState.Alive) continue;
                 if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(obj)) continue;
 
-                if (obj is T objT)
-                {
-                    list.Add(objT);
-                }
+                if (obj is T objT) list.Add(objT);
             }
         }
 
@@ -77,10 +74,7 @@ namespace Emotion.Game.World
             while (enumerator.MoveNext())
             {
                 var obj = enumerator.Current;
-                if (obj is T objAsT)
-                {
-                    yield return objAsT;
-                }
+                if (obj is T objAsT) yield return objAsT;
             }
         }
 
@@ -93,10 +87,7 @@ namespace Emotion.Game.World
             while (enumerator.MoveNext())
             {
                 BaseGameObject currentObject = enumerator.Current;
-                if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(currentObject))
-                {
-                    continue;
-                }
+                if (queryFlags.HasFlag(QueryFlags.Unique) && list.Contains(currentObject)) continue;
                 list.Add(currentObject);
             }
         }
@@ -113,14 +104,11 @@ namespace Emotion.Game.World
         {
             list ??= new List<ObjType>();
 
-            var enumerator = GetAllObjectsCoroutine(false);
+            var enumerator = GetAllObjectsCoroutine();
             while (enumerator.MoveNext())
             {
                 var obj = enumerator.Current;
-                if (obj is ObjType objAsT)
-                {
-                    list.Add(objAsT);
-                }
+                if (obj is ObjType objAsT) list.Add(objAsT);
             }
 
             return list;

@@ -73,17 +73,14 @@ namespace Emotion.Tools.DevUI
 
             var fullScreenEditorOpen = false;
             if (Children != null)
-            {
                 for (var i = 0; i < Children.Count; i++)
                 {
                     UIBaseWindow child = Children[i];
                     if (child.Size == c.CurrentTarget.Size)
-                    {
                         // todo: maybe something more explicit, like a bool in ImGuiWindow?
                         fullScreenEditorOpen = true;
-                    }
                 }
-            }
+
             InputTransparent = !_captureMouse && !_captureKeyboard && !fullScreenEditorOpen;
 
             if (ImGui.BeginMenu("Audio"))
@@ -106,7 +103,7 @@ namespace Emotion.Tools.DevUI
 
             if (ImGui.BeginMenu("Gameplay"))
             {
-	            if (ImGui.MenuItem("Tmx Viewer")) AddChild(new TmxViewer());
+                if (ImGui.MenuItem("Tmx Viewer")) AddChild(new TmxViewer());
 #if DEBUG
                 if (ImGui.MenuItem("Collision Viewer")) AddLegacyWindow(new CollisionViewer());
 #else

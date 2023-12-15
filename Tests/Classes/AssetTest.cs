@@ -3,7 +3,6 @@
 using System.IO;
 using System.Linq;
 using Emotion.Common;
-using Emotion.Game;
 using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Test;

@@ -38,9 +38,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove=".editorconfig" />
     <None Remove="Assets\Embedded\EmbedText.txt" />
     <None Remove="Assets\Shaders\DepthTest.frag" />
     <None Remove="Assets\Shaders\DepthTest.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Include=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Emotion.Platform.Debugger;
 
@@ -147,7 +145,7 @@ namespace Emotion.Platform
                     closest = current;
                 else if (missing == leastMissing)
                     if (colorDiff < leastColorDiff ||
-                        colorDiff == leastColorDiff && extraDiff < leastExtraDiff)
+                        (colorDiff == leastColorDiff && extraDiff < leastExtraDiff))
                         closest = current;
 
                 if (current != closest) continue;

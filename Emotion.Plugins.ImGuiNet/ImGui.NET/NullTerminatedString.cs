@@ -1,4 +1,8 @@
-﻿using System.Text;
+﻿#region Using
+
+using System.Text;
+
+#endregion
 
 namespace ImGuiNET
 {
@@ -24,6 +28,9 @@ namespace ImGuiNET
             return Encoding.ASCII.GetString(Data, length);
         }
 
-        public static implicit operator string(NullTerminatedString nts) => nts.ToString();
+        public static implicit operator string(NullTerminatedString nts)
+        {
+            return nts.ToString();
+        }
     }
 }

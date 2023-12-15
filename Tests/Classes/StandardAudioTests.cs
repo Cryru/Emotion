@@ -94,7 +94,7 @@ namespace Tests.Classes
                     var playHead = 0;
                     while (DateTime.Now.Subtract(start).TotalMinutes < minutesTimeout) // timeout
                     {
-	                    var spanData = new Span<byte>(new byte[framesGet * format.FrameSize]);
+                        var spanData = new Span<byte>(new byte[framesGet * format.FrameSize]);
                         int samplesAmount = streamer.GetSamplesAtByte(format, playHead, framesGet, spanData);
                         if (samplesAmount == 0) break;
                         playHead += samplesAmount;

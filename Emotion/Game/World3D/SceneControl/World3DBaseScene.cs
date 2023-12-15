@@ -12,8 +12,8 @@ namespace Emotion.Game.World3D.SceneControl;
 
 public abstract class World3DBaseScene<T> : WorldBaseScene<T>, IWorld3DAwareScene<T> where T : Map3D
 {
-	protected override WorldBaseEditor CreateEditor()
-	{
-		return new World3DEditor(this, typeof(T));
-	}
+    protected override WorldBaseEditor CreateEditor()
+    {
+        return new World3DEditor(this, typeof(T));
+    }
 }

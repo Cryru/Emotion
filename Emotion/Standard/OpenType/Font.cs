@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Utility;
 
@@ -316,11 +312,8 @@ namespace Emotion.Standard.OpenType
             }
 
             FontTable? kernTable = GetTable("kern");
-            if (kernTable != null)
-            {
-	            KernTable.ParseKern(r.Branch(kernTable.Offset, true, kernTable.Length));
-            }
-            
+            if (kernTable != null) KernTable.ParseKern(r.Branch(kernTable.Offset, true, kernTable.Length));
+
 
             // os/2 parsed, but unused
             // cvt parsed, but unused

@@ -2381,7 +2381,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void CullFace(CullFaceMode mode)
         {
-            Debug.Assert(Delegates.pglCullFace != null, "pglCullFace not implemented");
+            Assert(Delegates.pglCullFace != null, "pglCullFace not implemented");
             Delegates.pglCullFace((int) mode);
             DebugCheckErrors(null);
         }
@@ -2400,7 +2400,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void FrontFace(FrontFaceDirection mode)
         {
-            Debug.Assert(Delegates.pglFrontFace != null, "pglFrontFace not implemented");
+            Assert(Delegates.pglFrontFace != null, "pglFrontFace not implemented");
             Delegates.pglFrontFace((int) mode);
             DebugCheckErrors(null);
         }
@@ -2423,7 +2423,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Hint(HintTarget target, HintMode mode)
         {
-            Debug.Assert(Delegates.pglHint != null, "pglHint not implemented");
+            Assert(Delegates.pglHint != null, "pglHint not implemented");
             Delegates.pglHint((int) target, (int) mode);
             DebugCheckErrors(null);
         }
@@ -2442,7 +2442,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void LineWidth(float width)
         {
-            Debug.Assert(Delegates.pglLineWidth != null, "pglLineWidth not implemented");
+            Assert(Delegates.pglLineWidth != null, "pglLineWidth not implemented");
             Delegates.pglLineWidth(width);
             DebugCheckErrors(null);
         }
@@ -2459,7 +2459,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
         public static void PointSize(float size)
         {
-            Debug.Assert(Delegates.pglPointSize != null, "pglPointSize not implemented");
+            Assert(Delegates.pglPointSize != null, "pglPointSize not implemented");
             Delegates.pglPointSize(size);
             DebugCheckErrors(null);
         }
@@ -2479,7 +2479,7 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
         public static void PolygonMode(MaterialFace face, PolygonMode mode)
         {
-            Debug.Assert(Delegates.pglPolygonMode != null, "pglPolygonMode not implemented");
+            Assert(Delegates.pglPolygonMode != null, "pglPolygonMode not implemented");
             Delegates.pglPolygonMode((int) face, (int) mode);
             DebugCheckErrors(null);
         }
@@ -2513,7 +2513,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Scissor(int x, int y, int width, int height)
         {
-            Debug.Assert(Delegates.pglScissor != null, "pglScissor not implemented");
+            Assert(Delegates.pglScissor != null, "pglScissor not implemented");
             Delegates.pglScissor(x, y, width, height);
             DebugCheckErrors(null);
         }
@@ -2542,7 +2542,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void TexParameter(TextureTarget target, TextureParameterName pname, float param)
         {
-            Debug.Assert(Delegates.pglTexParameterf != null, "pglTexParameterf not implemented");
+            Assert(Delegates.pglTexParameterf != null, "pglTexParameterf not implemented");
             Delegates.pglTexParameterf((int) target, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -2575,7 +2575,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglTexParameterfv != null, "pglTexParameterfv not implemented");
+                    Assert(Delegates.pglTexParameterfv != null, "pglTexParameterfv not implemented");
                     Delegates.pglTexParameterfv((int) target, (int) pname, p_params);
                 }
             }
@@ -2607,7 +2607,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static unsafe void TexParameter(TextureTarget target, TextureParameterName pname, float* @params)
         {
-            Debug.Assert(Delegates.pglTexParameterfv != null, "pglTexParameterfv not implemented");
+            Assert(Delegates.pglTexParameterfv != null, "pglTexParameterfv not implemented");
             Delegates.pglTexParameterfv((int) target, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -2636,7 +2636,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void TexParameter(TextureTarget target, TextureParameterName pname, int param)
         {
-            Debug.Assert(Delegates.pglTexParameteri != null, "pglTexParameteri not implemented");
+            Assert(Delegates.pglTexParameteri != null, "pglTexParameteri not implemented");
             Delegates.pglTexParameteri((int) target, (int) pname, param);
             DebugCheckErrors(null);
         }
@@ -2669,7 +2669,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglTexParameteriv != null, "pglTexParameteriv not implemented");
+                    Assert(Delegates.pglTexParameteriv != null, "pglTexParameteriv not implemented");
                     Delegates.pglTexParameteriv((int) target, (int) pname, p_params);
                 }
             }
@@ -2701,7 +2701,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static unsafe void TexParameter(TextureTarget target, TextureParameterName pname, int* @params)
         {
-            Debug.Assert(Delegates.pglTexParameteriv != null, "pglTexParameteriv not implemented");
+            Assert(Delegates.pglTexParameteriv != null, "pglTexParameteriv not implemented");
             Delegates.pglTexParameteriv((int) target, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -2751,7 +2751,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static void TexImage1D(TextureTarget target, int level, InternalFormat internalFormat, int width, int border, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglTexImage1D != null, "pglTexImage1D not implemented");
+            Assert(Delegates.pglTexImage1D != null, "pglTexImage1D not implemented");
             Delegates.pglTexImage1D((int) target, level, (int) internalFormat, width, border, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -2868,7 +2868,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void TexImage2D(TextureTarget target, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglTexImage2D != null, "pglTexImage2D not implemented");
+            Assert(Delegates.pglTexImage2D != null, "pglTexImage2D not implemented");
             Delegates.pglTexImage2D((int) target, level, (int) internalFormat, width, height, border, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -2955,7 +2955,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Clear(ClearBufferMask mask)
         {
-            Debug.Assert(Delegates.pglClear != null, "pglClear not implemented");
+            Assert(Delegates.pglClear != null, "pglClear not implemented");
             Delegates.pglClear((uint) mask);
             DebugCheckErrors(null);
         }
@@ -2983,7 +2983,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void ClearColor(float red, float green, float blue, float alpha)
         {
-            Debug.Assert(Delegates.pglClearColor != null, "pglClearColor not implemented");
+            Assert(Delegates.pglClearColor != null, "pglClearColor not implemented");
             Delegates.pglClearColor(red, green, blue, alpha);
             DebugCheckErrors(null);
         }
@@ -3002,7 +3002,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void ClearStencil(int s)
         {
-            Debug.Assert(Delegates.pglClearStencil != null, "pglClearStencil not implemented");
+            Assert(Delegates.pglClearStencil != null, "pglClearStencil not implemented");
             Delegates.pglClearStencil(s);
             DebugCheckErrors(null);
         }
@@ -3016,7 +3016,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static void ClearDepth(double depth)
         {
-            Debug.Assert(Delegates.pglClearDepth != null, "pglClearDepth not implemented");
+            Assert(Delegates.pglClearDepth != null, "pglClearDepth not implemented");
             Delegates.pglClearDepth(depth);
             DebugCheckErrors(null);
         }
@@ -3036,7 +3036,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void StencilMask(uint mask)
         {
-            Debug.Assert(Delegates.pglStencilMask != null, "pglStencilMask not implemented");
+            Assert(Delegates.pglStencilMask != null, "pglStencilMask not implemented");
             Delegates.pglStencilMask(mask);
             DebugCheckErrors(null);
         }
@@ -3072,7 +3072,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void ColorMask(bool red, bool green, bool blue, bool alpha)
         {
-            Debug.Assert(Delegates.pglColorMask != null, "pglColorMask not implemented");
+            Assert(Delegates.pglColorMask != null, "pglColorMask not implemented");
             Delegates.pglColorMask(red, green, blue, alpha);
             DebugCheckErrors(null);
         }
@@ -3093,7 +3093,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void DepthMask(bool flag)
         {
-            Debug.Assert(Delegates.pglDepthMask != null, "pglDepthMask not implemented");
+            Assert(Delegates.pglDepthMask != null, "pglDepthMask not implemented");
             Delegates.pglDepthMask(flag);
             DebugCheckErrors(null);
         }
@@ -3112,7 +3112,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Disable(EnableCap cap)
         {
-            Debug.Assert(Delegates.pglDisable != null, "pglDisable not implemented");
+            Assert(Delegates.pglDisable != null, "pglDisable not implemented");
             Delegates.pglDisable((int) cap);
             DebugCheckErrors(null);
         }
@@ -3131,7 +3131,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Enable(EnableCap cap)
         {
-            Debug.Assert(Delegates.pglEnable != null, "pglEnable not implemented");
+            Assert(Delegates.pglEnable != null, "pglEnable not implemented");
             Delegates.pglEnable((int) cap);
             DebugCheckErrors(null);
         }
@@ -3147,7 +3147,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Finish()
         {
-            Debug.Assert(Delegates.pglFinish != null, "pglFinish not implemented");
+            Assert(Delegates.pglFinish != null, "pglFinish not implemented");
             Delegates.pglFinish();
             DebugCheckErrors(null);
         }
@@ -3163,7 +3163,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Flush()
         {
-            Debug.Assert(Delegates.pglFlush != null, "pglFlush not implemented");
+            Assert(Delegates.pglFlush != null, "pglFlush not implemented");
             Delegates.pglFlush();
             DebugCheckErrors(null);
         }
@@ -3192,7 +3192,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void BlendFunc(BlendingFactor sfactor, BlendingFactor dfactor)
         {
-            Debug.Assert(Delegates.pglBlendFunc != null, "pglBlendFunc not implemented");
+            Assert(Delegates.pglBlendFunc != null, "pglBlendFunc not implemented");
             Delegates.pglBlendFunc((int) sfactor, (int) dfactor);
             DebugCheckErrors(null);
         }
@@ -3214,7 +3214,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         public static void LogicOp(LogicOp opcode)
         {
-            Debug.Assert(Delegates.pglLogicOp != null, "pglLogicOp not implemented");
+            Assert(Delegates.pglLogicOp != null, "pglLogicOp not implemented");
             Delegates.pglLogicOp((int) opcode);
             DebugCheckErrors(null);
         }
@@ -3243,7 +3243,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void StencilFunc(StencilFunction func, int @ref, uint mask)
         {
-            Debug.Assert(Delegates.pglStencilFunc != null, "pglStencilFunc not implemented");
+            Assert(Delegates.pglStencilFunc != null, "pglStencilFunc not implemented");
             Delegates.pglStencilFunc((int) func, @ref, mask);
             DebugCheckErrors(null);
         }
@@ -3272,7 +3272,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void StencilOp(StencilOp sfail, StencilOp dpfail, StencilOp dppass)
         {
-            Debug.Assert(Delegates.pglStencilOp != null, "pglStencilOp not implemented");
+            Assert(Delegates.pglStencilOp != null, "pglStencilOp not implemented");
             Delegates.pglStencilOp((int) sfail, (int) dpfail, (int) dppass);
             DebugCheckErrors(null);
         }
@@ -3292,7 +3292,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void DepthFunc(DepthFunction func)
         {
-            Debug.Assert(Delegates.pglDepthFunc != null, "pglDepthFunc not implemented");
+            Assert(Delegates.pglDepthFunc != null, "pglDepthFunc not implemented");
             Delegates.pglDepthFunc((int) func);
             DebugCheckErrors(null);
         }
@@ -3314,7 +3314,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static void PixelStore(PixelStoreParameter pname, float param)
         {
-            Debug.Assert(Delegates.pglPixelStoref != null, "pglPixelStoref not implemented");
+            Assert(Delegates.pglPixelStoref != null, "pglPixelStoref not implemented");
             Delegates.pglPixelStoref((int) pname, param);
             DebugCheckErrors(null);
         }
@@ -3341,7 +3341,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void PixelStore(PixelStoreParameter pname, int param)
         {
-            Debug.Assert(Delegates.pglPixelStorei != null, "pglPixelStorei not implemented");
+            Assert(Delegates.pglPixelStorei != null, "pglPixelStorei not implemented");
             Delegates.pglPixelStorei((int) pname, param);
             DebugCheckErrors(null);
         }
@@ -3359,7 +3359,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         public static void ReadBuffer(ReadBufferMode mode)
         {
-            Debug.Assert(Delegates.pglReadBuffer != null, "pglReadBuffer not implemented");
+            Assert(Delegates.pglReadBuffer != null, "pglReadBuffer not implemented");
             Delegates.pglReadBuffer((int) mode);
             DebugCheckErrors(null);
         }
@@ -3410,7 +3410,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void ReadPixels(int x, int y, int width, int height, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglReadPixels != null, "pglReadPixels not implemented");
+            Assert(Delegates.pglReadPixels != null, "pglReadPixels not implemented");
             Delegates.pglReadPixels(x, y, width, height, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -3437,7 +3437,7 @@ namespace OpenGL
             {
                 fixed (byte* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
+                    Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
                     Delegates.pglGetBooleanv(pname, p_data);
                 }
             }
@@ -3467,7 +3467,7 @@ namespace OpenGL
             {
                 fixed (byte* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
+                    Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
                     Delegates.pglGetBooleanv((int) pname, p_data);
                 }
             }
@@ -3497,7 +3497,7 @@ namespace OpenGL
             {
                 fixed (byte* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
+                    Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
                     Delegates.pglGetBooleanv(pname, p_data);
                 }
             }
@@ -3527,7 +3527,7 @@ namespace OpenGL
             {
                 fixed (byte* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
+                    Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
                     Delegates.pglGetBooleanv((int) pname, p_data);
                 }
             }
@@ -3553,7 +3553,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static unsafe void Get(GetPName pname, [Out] byte* data)
         {
-            Debug.Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
+            Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
             Delegates.pglGetBooleanv((int) pname, data);
             DebugCheckErrors(null);
         }
@@ -3576,7 +3576,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void GetBoolean(GetPName pname, out bool[] data)
         {
-            Debug.Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
+            Assert(Delegates.pglGetBooleanv != null, "pglGetBooleanv not implemented");
             data = default;
             unsafe
             {
@@ -3606,7 +3606,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
+                    Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
                     Delegates.pglGetDoublev(pname, p_data);
                 }
             }
@@ -3631,7 +3631,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
+                    Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
                     Delegates.pglGetDoublev((int) pname, p_data);
                 }
             }
@@ -3656,7 +3656,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
+                    Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
                     Delegates.pglGetDoublev(pname, p_data);
                 }
             }
@@ -3681,7 +3681,7 @@ namespace OpenGL
             {
                 fixed (double* p_data = &data)
                 {
-                    Debug.Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
+                    Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
                     Delegates.pglGetDoublev((int) pname, p_data);
                 }
             }
@@ -3702,7 +3702,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static unsafe void Get(GetPName pname, [Out] double* data)
         {
-            Debug.Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
+            Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
             Delegates.pglGetDoublev((int) pname, data);
             DebugCheckErrors(null);
         }
@@ -3720,7 +3720,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static void GetDouble(GetPName pname, out double[] data)
         {
-            Debug.Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
+            Assert(Delegates.pglGetDoublev != null, "pglGetDoublev not implemented");
             data = default;
             unsafe
             {
@@ -3746,7 +3746,7 @@ namespace OpenGL
         {
             int retValue;
 
-            Debug.Assert(Delegates.pglGetError != null, "pglGetError not implemented");
+            Assert(Delegates.pglGetError != null, "pglGetError not implemented");
             retValue = Delegates.pglGetError();
 
             return (ErrorCode) retValue;
@@ -3769,32 +3769,32 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void Get(GetPName pname, [Out] float[] data)
         {
-	        Debug.Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
-	        Delegates.pglGetFloatv((int) pname, data);
-	        DebugCheckErrors(null);
+            Assert(Delegates.pglGetFloatv != null, "pglGetFloatv not implemented");
+            Delegates.pglGetFloatv((int) pname, data);
+            DebugCheckErrors(null);
         }
 
         /// <inheritdoc cref="Get(GetPName, float[])" />
         public static void Get(GetPName pname, out float data)
         {
-	        var dataArr = new float[1];
-	        Get(pname, dataArr);
-	        data = dataArr[0];
+            var dataArr = new float[1];
+            Get(pname, dataArr);
+            data = dataArr[0];
         }
 
         /// <inheritdoc cref="Get(GetPName, float[])" />
-        public unsafe static void Get(GetPName pname, float* data)
+        public static unsafe void Get(GetPName pname, float* data)
         {
-	        var dataArr = new float[1];
-	        Get(pname, dataArr);
-	        *data = dataArr[0];
+            var dataArr = new float[1];
+            Get(pname, dataArr);
+            *data = dataArr[0];
         }
 
         /// <inheritdoc cref="Get(GetPName, float[])" />
-        public unsafe static void Get(GetPName pname, out float[] data)
+        public static void Get(GetPName pname, out float[] data)
         {
             data = default;
-	        Get(pname, data);
+            Get(pname, data);
         }
 
         /// <summary>
@@ -3814,32 +3814,32 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void Get(GetPName pname, [Out] int[] data)
         {
-	        Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-	        Delegates.pglGetIntegerv((int) pname, data);
+            Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
+            Delegates.pglGetIntegerv((int) pname, data);
             DebugCheckErrors(null);
         }
 
         /// <inheritdoc cref="Get(GetPName, int[])" />
         public static void Get(GetPName pname, out int data)
         {
-	        var dataArr = new int[1];
-	        Get(pname, dataArr);
-	        data = dataArr[0];
+            var dataArr = new int[1];
+            Get(pname, dataArr);
+            data = dataArr[0];
         }
 
         /// <inheritdoc cref="Get(GetPName, int[])" />
-        public unsafe static void Get(GetPName pname, int* data)
+        public static unsafe void Get(GetPName pname, int* data)
         {
-	        var dataArr = new int[1];
-	        Get(pname, dataArr);
-	        *data = dataArr[0];
+            var dataArr = new int[1];
+            Get(pname, dataArr);
+            *data = dataArr[0];
         }
 
         /// <inheritdoc cref="Get(GetPName, int[])" />
-        public unsafe static void Get(GetPName pname, out int[] data)
+        public static void Get(GetPName pname, out int[] data)
         {
-	        data = default;
-	        Get(pname, data);
+            data = default;
+            Get(pname, data);
         }
 
         /// <summary>
@@ -3859,7 +3859,7 @@ namespace OpenGL
         {
             IntPtr retValue;
 
-            Debug.Assert(Delegates.pglGetString != null, "pglGetString not implemented");
+            Assert(Delegates.pglGetString != null, "pglGetString not implemented");
             retValue = Delegates.pglGetString((int) name);
             DebugCheckErrors(retValue);
 
@@ -3895,7 +3895,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static void GetTexImage(TextureTarget target, int level, PixelFormat format, PixelType type, IntPtr pixels)
         {
-            Debug.Assert(Delegates.pglGetTexImage != null, "pglGetTexImage not implemented");
+            Assert(Delegates.pglGetTexImage != null, "pglGetTexImage not implemented");
             Delegates.pglGetTexImage((int) target, level, (int) format, (int) type, pixels);
             DebugCheckErrors(null);
         }
@@ -3973,7 +3973,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetTexParameterfv != null, "pglGetTexParameterfv not implemented");
+                    Assert(Delegates.pglGetTexParameterfv != null, "pglGetTexParameterfv not implemented");
                     Delegates.pglGetTexParameterfv((int) target, (int) pname, p_params);
                 }
             }
@@ -4014,7 +4014,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetTexParameterfv != null, "pglGetTexParameterfv not implemented");
+                    Assert(Delegates.pglGetTexParameterfv != null, "pglGetTexParameterfv not implemented");
                     Delegates.pglGetTexParameterfv((int) target, (int) pname, p_params);
                 }
             }
@@ -4051,7 +4051,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static unsafe void GetTexParameter(TextureTarget target, GetTextureParameter pname, [Out] float* @params)
         {
-            Debug.Assert(Delegates.pglGetTexParameterfv != null, "pglGetTexParameterfv not implemented");
+            Assert(Delegates.pglGetTexParameterfv != null, "pglGetTexParameterfv not implemented");
             Delegates.pglGetTexParameterfv((int) target, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -4089,7 +4089,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetTexParameteriv != null, "pglGetTexParameteriv not implemented");
+                    Assert(Delegates.pglGetTexParameteriv != null, "pglGetTexParameteriv not implemented");
                     Delegates.pglGetTexParameteriv((int) target, (int) pname, p_params);
                 }
             }
@@ -4130,7 +4130,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetTexParameteriv != null, "pglGetTexParameteriv not implemented");
+                    Assert(Delegates.pglGetTexParameteriv != null, "pglGetTexParameteriv not implemented");
                     Delegates.pglGetTexParameteriv((int) target, (int) pname, p_params);
                 }
             }
@@ -4167,7 +4167,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static unsafe void GetTexParameter(TextureTarget target, GetTextureParameter pname, [Out] int* @params)
         {
-            Debug.Assert(Delegates.pglGetTexParameteriv != null, "pglGetTexParameteriv not implemented");
+            Assert(Delegates.pglGetTexParameteriv != null, "pglGetTexParameteriv not implemented");
             Delegates.pglGetTexParameteriv((int) target, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -4208,7 +4208,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetTexLevelParameterfv != null, "pglGetTexLevelParameterfv not implemented");
+                    Assert(Delegates.pglGetTexLevelParameterfv != null, "pglGetTexLevelParameterfv not implemented");
                     Delegates.pglGetTexLevelParameterfv((int) target, level, (int) pname, p_params);
                 }
             }
@@ -4252,7 +4252,7 @@ namespace OpenGL
             {
                 fixed (float* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetTexLevelParameterfv != null, "pglGetTexLevelParameterfv not implemented");
+                    Assert(Delegates.pglGetTexLevelParameterfv != null, "pglGetTexLevelParameterfv not implemented");
                     Delegates.pglGetTexLevelParameterfv((int) target, level, (int) pname, p_params);
                 }
             }
@@ -4292,7 +4292,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
         public static unsafe void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, [Out] float* @params)
         {
-            Debug.Assert(Delegates.pglGetTexLevelParameterfv != null, "pglGetTexLevelParameterfv not implemented");
+            Assert(Delegates.pglGetTexLevelParameterfv != null, "pglGetTexLevelParameterfv not implemented");
             Delegates.pglGetTexLevelParameterfv((int) target, level, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -4333,7 +4333,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetTexLevelParameteriv != null, "pglGetTexLevelParameteriv not implemented");
+                    Assert(Delegates.pglGetTexLevelParameteriv != null, "pglGetTexLevelParameteriv not implemented");
                     Delegates.pglGetTexLevelParameteriv((int) target, level, (int) pname, p_params);
                 }
             }
@@ -4377,7 +4377,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = &@params)
                 {
-                    Debug.Assert(Delegates.pglGetTexLevelParameteriv != null, "pglGetTexLevelParameteriv not implemented");
+                    Assert(Delegates.pglGetTexLevelParameteriv != null, "pglGetTexLevelParameteriv not implemented");
                     Delegates.pglGetTexLevelParameteriv((int) target, level, (int) pname, p_params);
                 }
             }
@@ -4417,7 +4417,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
         public static unsafe void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, [Out] int* @params)
         {
-            Debug.Assert(Delegates.pglGetTexLevelParameteriv != null, "pglGetTexLevelParameteriv not implemented");
+            Assert(Delegates.pglGetTexLevelParameteriv != null, "pglGetTexLevelParameteriv not implemented");
             Delegates.pglGetTexLevelParameteriv((int) target, level, (int) pname, @params);
             DebugCheckErrors(null);
         }
@@ -4438,7 +4438,7 @@ namespace OpenGL
         {
             bool retValue;
 
-            Debug.Assert(Delegates.pglIsEnabled != null, "pglIsEnabled not implemented");
+            Assert(Delegates.pglIsEnabled != null, "pglIsEnabled not implemented");
             retValue = Delegates.pglIsEnabled((int) cap);
             DebugCheckErrors(retValue);
 
@@ -4457,7 +4457,7 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")]
         public static void DepthRange(double nearVal, double farVal)
         {
-            Debug.Assert(Delegates.pglDepthRange != null, "pglDepthRange not implemented");
+            Assert(Delegates.pglDepthRange != null, "pglDepthRange not implemented");
             Delegates.pglDepthRange(nearVal, farVal);
             DebugCheckErrors(null);
         }
@@ -4489,7 +4489,7 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         public static void Viewport(int x, int y, int width, int height)
         {
-            Debug.Assert(Delegates.pglViewport != null, "pglViewport not implemented");
+            Assert(Delegates.pglViewport != null, "pglViewport not implemented");
             Delegates.pglViewport(x, y, width, height);
             DebugCheckErrors(null);
         }

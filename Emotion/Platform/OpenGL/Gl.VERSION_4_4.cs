@@ -181,7 +181,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_buffer_storage", Api = "gles2")]
         public static void BufferStorage(BufferTarget target, uint size, IntPtr data, MapBufferUsageMask flags)
         {
-            Debug.Assert(Delegates.pglBufferStorage != null, "pglBufferStorage not implemented");
+            Assert(Delegates.pglBufferStorage != null, "pglBufferStorage not implemented");
             Delegates.pglBufferStorage((int) target, size, data, (uint) flags);
             DebugCheckErrors(null);
         }
@@ -244,7 +244,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_clear_texture", Api = "gles2")]
         public static void ClearTexImage(uint texture, int level, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglClearTexImage != null, "pglClearTexImage not implemented");
+            Assert(Delegates.pglClearTexImage != null, "pglClearTexImage not implemented");
             Delegates.pglClearTexImage(texture, level, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -324,7 +324,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_clear_texture", Api = "gles2")]
         public static void ClearTexSubImage(uint texture, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, PixelFormat format, PixelType type, IntPtr data)
         {
-            Debug.Assert(Delegates.pglClearTexSubImage != null, "pglClearTexSubImage not implemented");
+            Assert(Delegates.pglClearTexSubImage != null, "pglClearTexSubImage not implemented");
             Delegates.pglClearTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, (int) format, (int) type, data);
             DebugCheckErrors(null);
         }
@@ -405,7 +405,7 @@ namespace OpenGL
             {
                 fixed (uint* p_buffers = buffers)
                 {
-                    Debug.Assert(Delegates.pglBindBuffersBase != null, "pglBindBuffersBase not implemented");
+                    Assert(Delegates.pglBindBuffersBase != null, "pglBindBuffersBase not implemented");
                     Delegates.pglBindBuffersBase((int) target, first, count, p_buffers);
                 }
             }
@@ -434,7 +434,7 @@ namespace OpenGL
             {
                 fixed (uint* p_buffers = buffers)
                 {
-                    Debug.Assert(Delegates.pglBindBuffersBase != null, "pglBindBuffersBase not implemented");
+                    Assert(Delegates.pglBindBuffersBase != null, "pglBindBuffersBase not implemented");
                     Delegates.pglBindBuffersBase((int) target, first, buffers.Length, p_buffers);
                 }
             }
@@ -478,7 +478,7 @@ namespace OpenGL
                 fixed (IntPtr* p_offsets = offsets)
                 fixed (uint* p_sizes = sizes)
                 {
-                    Debug.Assert(Delegates.pglBindBuffersRange != null, "pglBindBuffersRange not implemented");
+                    Assert(Delegates.pglBindBuffersRange != null, "pglBindBuffersRange not implemented");
                     Delegates.pglBindBuffersRange((int) target, first, count, p_buffers, p_offsets, p_sizes);
                 }
             }
@@ -519,7 +519,7 @@ namespace OpenGL
                 fixed (IntPtr* p_offsets = offsets)
                 fixed (uint* p_sizes = sizes)
                 {
-                    Debug.Assert(Delegates.pglBindBuffersRange != null, "pglBindBuffersRange not implemented");
+                    Assert(Delegates.pglBindBuffersRange != null, "pglBindBuffersRange not implemented");
                     Delegates.pglBindBuffersRange((int) target, first, buffers.Length, p_buffers, p_offsets, p_sizes);
                 }
             }
@@ -544,7 +544,7 @@ namespace OpenGL
             {
                 fixed (uint* p_textures = textures)
                 {
-                    Debug.Assert(Delegates.pglBindTextures != null, "pglBindTextures not implemented");
+                    Assert(Delegates.pglBindTextures != null, "pglBindTextures not implemented");
                     Delegates.pglBindTextures(first, textures.Length, p_textures);
                 }
             }
@@ -569,7 +569,7 @@ namespace OpenGL
             {
                 fixed (uint* p_samplers = samplers)
                 {
-                    Debug.Assert(Delegates.pglBindSamplers != null, "pglBindSamplers not implemented");
+                    Assert(Delegates.pglBindSamplers != null, "pglBindSamplers not implemented");
                     Delegates.pglBindSamplers(first, samplers.Length, p_samplers);
                 }
             }
@@ -594,7 +594,7 @@ namespace OpenGL
             {
                 fixed (uint* p_textures = textures)
                 {
-                    Debug.Assert(Delegates.pglBindImageTextures != null, "pglBindImageTextures not implemented");
+                    Assert(Delegates.pglBindImageTextures != null, "pglBindImageTextures not implemented");
                     Delegates.pglBindImageTextures(first, textures.Length, p_textures);
                 }
             }
@@ -627,7 +627,7 @@ namespace OpenGL
                 fixed (IntPtr* p_offsets = offsets)
                 fixed (int* p_strides = strides)
                 {
-                    Debug.Assert(Delegates.pglBindVertexBuffers != null, "pglBindVertexBuffers not implemented");
+                    Assert(Delegates.pglBindVertexBuffers != null, "pglBindVertexBuffers not implemented");
                     Delegates.pglBindVertexBuffers(first, buffers.Length, p_buffers, p_offsets, p_strides);
                 }
             }

@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
 using Emotion.Graphics;
 
 #endregion

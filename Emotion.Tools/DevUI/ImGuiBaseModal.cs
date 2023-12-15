@@ -13,7 +13,6 @@ namespace Emotion.Tools.DevUI
 
         protected ImGuiBaseModal(string title) : base(title)
         {
-
         }
 
         protected override bool RenderInternal(RenderComposer c)

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
@@ -15,7 +14,6 @@ using Emotion.Primitives;
 using Emotion.Standard.OpenType;
 using Emotion.Test;
 using Emotion.Test.Helpers;
-using StbTrueTypeSharp;
 using Tests.Results;
 
 #endregion
@@ -125,7 +123,7 @@ namespace Tests.Classes
 
                 // Get atlases.
                 int fontSize = fontSizes[i];
-                var emotionAtlas = new StbDrawableFontAtlas(f, fontSize, false);
+                var emotionAtlas = new StbDrawableFontAtlas(f, fontSize);
                 Runner.ExecuteAsLoop(_ =>
                 {
                     var str = "";
@@ -136,7 +134,8 @@ namespace Tests.Classes
 
                     emotionAtlas.CacheGlyphs(str);
                 }).WaitOne();
-                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data.ToArray(), fontSize, emotionAtlas.Texture.Size * 3, (int) f.LastCharIndex + 1, f, out StbTrueType.StbTrueType.stbtt_fontinfo stbFont);
+                DrawableFontAtlas packedStbAtlas = RenderFontStbPacked(data.ToArray(), fontSize, emotionAtlas.Texture.Size * 3, (int) f.LastCharIndex + 1, f,
+                    out StbTrueType.StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
                 CompareMetricsWithStb(f, emotionAtlas, stbFont);

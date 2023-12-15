@@ -8,33 +8,34 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.EditorHelpers
 {
-	public class MapEditorLabel : UIText
-	{
-		public MapEditorLabel(string label)
-		{
-			ScaleMode = UIScaleMode.FloatScale;
-			WindowColor = MapEditorColorPalette.TextColor;
-			FontFile = "Editor/UbuntuMono-Regular.ttf";
-			FontSize = MapEditorColorPalette.EditorButtonTextSize;
-			IgnoreParentColor = true;
-			Text = label;
-			Anchor = UIAnchor.CenterLeft;
-			ParentAnchor = UIAnchor.CenterLeft;
-		}
-	}
+    public class MapEditorLabel : UIText
+    {
+        public MapEditorLabel(string label)
+        {
+            ScaleMode = UIScaleMode.FloatScale;
+            WindowColor = MapEditorColorPalette.TextColor;
+            FontFile = "Editor/UbuntuMono-Regular.ttf";
+            FontSize = MapEditorColorPalette.EditorButtonTextSize;
+            IgnoreParentColor = true;
+            Text = label;
+            Anchor = UIAnchor.CenterLeft;
+            ParentAnchor = UIAnchor.CenterLeft;
+        }
+    }
 
-	public class MapEditorLabelWithBackground : MapEditorLabel
-	{
-		public Color BackgroundColor;
+    public class MapEditorLabelWithBackground : MapEditorLabel
+    {
+        public Color BackgroundColor;
 
-		public MapEditorLabelWithBackground(string label) : base(label)
-		{
-		}
+        public MapEditorLabelWithBackground(string label) : base(label)
+        {
+        }
 
-		protected override bool RenderInternal(RenderComposer c)
-		{
-			c.RenderSprite(Bounds, BackgroundColor * _calculatedColor.A);
-			return base.RenderInternal(c);;
-		}
-	}
+        protected override bool RenderInternal(RenderComposer c)
+        {
+            c.RenderSprite(Bounds, BackgroundColor * _calculatedColor.A);
+            return base.RenderInternal(c);
+            ;
+        }
+    }
 }

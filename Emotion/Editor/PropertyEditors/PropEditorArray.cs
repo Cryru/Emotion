@@ -2,13 +2,10 @@
 
 #region Using
 
+using System.Collections;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Standard.XML;
-using Emotion.UI;
 using Emotion.Utility;
-using System;
-using System.Collections;
-
 
 #endregion
 
@@ -16,148 +13,130 @@ namespace Emotion.Editor.PropertyEditors;
 
 public class PropEditorArray : EditorButton, IPropEditorGeneric
 {
-	public XMLFieldHandler? Field { get; set; }
+    public XMLFieldHandler? Field { get; set; }
 
-	public object? Value;
-	private Action<object>? _changeCallback;
+    public object? Value;
+    private Action<object>? _changeCallback;
 
-	public PropEditorArray()
-	{
-		OnClickedProxy = (_) =>
-		{
-			OpenPanel();
-		};
-		StretchY = true;
-	}
+    public PropEditorArray()
+    {
+        OnClickedProxy = _ => { OpenPanel(); };
+        StretchY = true;
+    }
 
-	protected void OpenPanel()
-	{
-		var panel = new PropEditorArrayPanel(this);
-		Controller?.AddChild(panel);
-	}
+    protected void OpenPanel()
+    {
+        var panel = new PropEditorArrayPanel(this);
+        Controller?.AddChild(panel);
+    }
 
-	public int GetLength()
-	{
-		return GetLength(Value);
-	}
+    public int GetLength()
+    {
+        return GetLength(Value);
+    }
 
-	public static int GetLength(object? value)
-	{
-		if (value is Array valAsArray)
-		{
-			return valAsArray.Length;
-		}
-		else if (value is IList valAsList)
-		{
-			return valAsList.Count;
-		}
+    public static int GetLength(object? value)
+    {
+        if (value is Array valAsArray)
+            return valAsArray.Length;
+        if (value is IList valAsList) return valAsList.Count;
 
-		return 0;
-	}
+        return 0;
+    }
 
-	public Type GetElementType()
-	{
-		var declType = Field!.TypeHandler.Type;
-		if (declType.IsAssignableTo(typeof(Array)))
-		{
-			return declType.GetElementType() ?? typeof(object);
-		}
-		else if (declType.IsAssignableTo(typeof(IList)))
-		{
-			var genericArg = declType.GetGenericArguments();
-			return genericArg.Length > 0 ? genericArg[0] : typeof(object);
-		}
+    public Type GetElementType()
+    {
+        var declType = Field!.TypeHandler.Type;
+        if (declType.IsAssignableTo(typeof(Array))) return declType.GetElementType() ?? typeof(object);
 
-		return typeof(object);
-	}
+        if (declType.IsAssignableTo(typeof(IList)))
+        {
+            var genericArg = declType.GetGenericArguments();
+            return genericArg.Length > 0 ? genericArg[0] : typeof(object);
+        }
 
-	public object? GetItemAtIndex(int index)
-	{
-		var declType = Field!.TypeHandler.Type;
-		if (declType.IsAssignableTo(typeof(Array)) && Value is Array valAsArray)
-		{
-			return valAsArray.GetValue(index);
-		}
-		else if (declType.IsAssignableTo(typeof(IList)) && Value is IList valAsList)
-		{
-			return valAsList[index];
-		}
+        return typeof(object);
+    }
 
-		return null;
-	}
+    public object? GetItemAtIndex(int index)
+    {
+        var declType = Field!.TypeHandler.Type;
+        if (declType.IsAssignableTo(typeof(Array)) && Value is Array valAsArray)
+            return valAsArray.GetValue(index);
+        if (declType.IsAssignableTo(typeof(IList)) && Value is IList valAsList) return valAsList[index];
 
-	public void SetItemAtIndex(int index, object value)
-	{
-		var declType = Field!.TypeHandler.Type;
-		if (declType.IsAssignableTo(typeof(Array)) && Value is Array valAsArray)
-		{
-			valAsArray.SetValue(value, index);
-		}
-		else if (declType.IsAssignableTo(typeof(IList)) && Value is IList valAsList)
-		{
-			valAsList[index] = value;
-		}
+        return null;
+    }
+
+    public void SetItemAtIndex(int index, object value)
+    {
+        var declType = Field!.TypeHandler.Type;
+        if (declType.IsAssignableTo(typeof(Array)) && Value is Array valAsArray)
+            valAsArray.SetValue(value, index);
+        else if (declType.IsAssignableTo(typeof(IList)) && Value is IList valAsList) valAsList[index] = value;
         ValueModified();
     }
 
-	public void CreateItem()
-	{
-		var elementType = GetElementType();
-		var newItem = elementType == typeof(string) ? new string("New String") : Activator.CreateInstance(elementType, true);
+    public void CreateItem()
+    {
+        var elementType = GetElementType();
+        var newItem = elementType == typeof(string) ? new string("New String") : Activator.CreateInstance(elementType, true);
 
-		var declType = Field!.TypeHandler.Type;
-		if (declType.IsAssignableTo(typeof(Array)))
-		{
-			Array? arrayVal = Value as Array;
-			if (arrayVal == null)
-			{
-				arrayVal = Array.CreateInstance(elementType, 1);
-			}
-			else
-			{
-				var biggerArray = Array.CreateInstance(elementType, arrayVal.Length + 1);
-				arrayVal.CopyTo(biggerArray, 0);
-				arrayVal = biggerArray;
-			}
+        var declType = Field!.TypeHandler.Type;
+        if (declType.IsAssignableTo(typeof(Array)))
+        {
+            Array? arrayVal = Value as Array;
+            if (arrayVal == null)
+            {
+                arrayVal = Array.CreateInstance(elementType, 1);
+            }
+            else
+            {
+                var biggerArray = Array.CreateInstance(elementType, arrayVal.Length + 1);
+                arrayVal.CopyTo(biggerArray, 0);
+                arrayVal = biggerArray;
+            }
 
-			arrayVal.SetValue(newItem, arrayVal.Length - 1);
-			SetValue(arrayVal);
-		}
-		else if (declType.IsAssignableTo(typeof(IList)))
-		{
-			IList? listVal = Value as IList;
-			if (listVal == null)
-			{
-				listVal = Activator.CreateInstance(declType, true) as IList;
-				AssertNotNull(listVal);
-				SetValue(listVal);
-			}
+            arrayVal.SetValue(newItem, arrayVal.Length - 1);
+            SetValue(arrayVal);
+        }
+        else if (declType.IsAssignableTo(typeof(IList)))
+        {
+            IList? listVal = Value as IList;
+            if (listVal == null)
+            {
+                listVal = Activator.CreateInstance(declType, true) as IList;
+                AssertNotNull(listVal);
+                SetValue(listVal);
+            }
 
-			listVal.Add(newItem);
-		}
+            listVal.Add(newItem);
+        }
+
         ValueModified();
     }
 
-	public void RemoveItemAtIndex(int index)
-	{
-		var declType = Field!.TypeHandler.Type;
-		if (declType.IsAssignableTo(typeof(Array)) && Value is Array valAsArray)
-		{
-			valAsArray = valAsArray.RemoveFromArray(index);
-			SetValue(valAsArray);
-		}
-		else if (declType.IsAssignableTo(typeof(IList)) && Value is IList valAsList)
-		{
-			valAsList.RemoveAt(index);
-		}
+    public void RemoveItemAtIndex(int index)
+    {
+        var declType = Field!.TypeHandler.Type;
+        if (declType.IsAssignableTo(typeof(Array)) && Value is Array valAsArray)
+        {
+            valAsArray = valAsArray.RemoveFromArray(index);
+            SetValue(valAsArray);
+        }
+        else if (declType.IsAssignableTo(typeof(IList)) && Value is IList valAsList)
+        {
+            valAsList.RemoveAt(index);
+        }
+
         ValueModified();
     }
 
-	public void SetValue(object value)
-	{
-		if (Helpers.AreObjectsEqual(Value, value)) return;
+    public void SetValue(object value)
+    {
+        if (Helpers.AreObjectsEqual(Value, value)) return;
 
-		Value = value;
+        Value = value;
         ValueModified();
     }
 
@@ -170,19 +149,19 @@ public class PropEditorArray : EditorButton, IPropEditorGeneric
         if (value == null) Text += " (null)";
     }
 
-	public void ValueModified()
-	{
+    public void ValueModified()
+    {
         UpdateText();
-		_changeCallback?.Invoke(Value);
-	}
+        _changeCallback?.Invoke(Value);
+    }
 
-	public object GetValue()
-	{
-		return Value;
-	}
+    public object GetValue()
+    {
+        return Value;
+    }
 
-	public void SetCallbackValueChanged(Action<object> callback)
-	{
-		_changeCallback = callback;
-	}
+    public void SetCallbackValueChanged(Action<object> callback)
+    {
+        _changeCallback = callback;
+    }
 }

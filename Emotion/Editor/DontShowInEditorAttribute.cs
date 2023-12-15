@@ -1,6 +1,6 @@
 ﻿namespace Emotion.Editor
 {
-	public class DontShowInEditorAttribute : Attribute
-	{
-	}
+    public class DontShowInEditorAttribute : Attribute
+    {
+    }
 }

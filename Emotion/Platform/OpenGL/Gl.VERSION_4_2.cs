@@ -911,7 +911,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_base_instance", Api = "gles2")]
         public static void DrawArraysInstancedBaseInstance(PrimitiveType mode, int first, int count, int primcount, uint baseinstance)
         {
-            Debug.Assert(Delegates.pglDrawArraysInstancedBaseInstance != null, "pglDrawArraysInstancedBaseInstance not implemented");
+            Assert(Delegates.pglDrawArraysInstancedBaseInstance != null, "pglDrawArraysInstancedBaseInstance not implemented");
             Delegates.pglDrawArraysInstancedBaseInstance((int) mode, first, count, primcount, baseinstance);
             DebugCheckErrors(null);
         }
@@ -942,7 +942,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_base_instance", Api = "gles2")]
         public static void DrawElementsInstancedBaseInstance(PrimitiveType mode, int count, PrimitiveType type, IntPtr indices, int primcount, uint baseinstance)
         {
-            Debug.Assert(Delegates.pglDrawElementsInstancedBaseInstance != null, "pglDrawElementsInstancedBaseInstance not implemented");
+            Assert(Delegates.pglDrawElementsInstancedBaseInstance != null, "pglDrawElementsInstancedBaseInstance not implemented");
             Delegates.pglDrawElementsInstancedBaseInstance((int) mode, count, (int) type, indices, primcount, baseinstance);
             DebugCheckErrors(null);
         }
@@ -1013,7 +1013,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_base_instance", Api = "gles2")]
         public static void DrawElementsInstancedBaseVertexBaseInstance(PrimitiveType mode, int count, PrimitiveType type, IntPtr indices, int primcount, int basevertex, uint baseinstance)
         {
-            Debug.Assert(Delegates.pglDrawElementsInstancedBaseVertexBaseInstance != null, "pglDrawElementsInstancedBaseVertexBaseInstance not implemented");
+            Assert(Delegates.pglDrawElementsInstancedBaseVertexBaseInstance != null, "pglDrawElementsInstancedBaseVertexBaseInstance not implemented");
             Delegates.pglDrawElementsInstancedBaseVertexBaseInstance((int) mode, count, (int) type, indices, primcount, basevertex, baseinstance);
             DebugCheckErrors(null);
         }
@@ -1093,7 +1093,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetInternalformativ != null, "pglGetInternalformativ not implemented");
+                    Assert(Delegates.pglGetInternalformativ != null, "pglGetInternalformativ not implemented");
                     Delegates.pglGetInternalformativ((int) target, (int) internalformat, (int) pname, bufSize, p_params);
                 }
             }
@@ -1131,7 +1131,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetInternalformativ != null, "pglGetInternalformativ not implemented");
+                    Assert(Delegates.pglGetInternalformativ != null, "pglGetInternalformativ not implemented");
                     Delegates.pglGetInternalformativ((int) target, (int) internalformat, (int) pname, @params.Length, p_params);
                 }
             }
@@ -1163,7 +1163,7 @@ namespace OpenGL
             {
                 fixed (int* p_params = @params)
                 {
-                    Debug.Assert(Delegates.pglGetActiveAtomicCounterBufferiv != null, "pglGetActiveAtomicCounterBufferiv not implemented");
+                    Assert(Delegates.pglGetActiveAtomicCounterBufferiv != null, "pglGetActiveAtomicCounterBufferiv not implemented");
                     Delegates.pglGetActiveAtomicCounterBufferiv(program, bufferIndex, (int) pname, p_params);
                 }
             }
@@ -1203,7 +1203,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_shader_image_load_store", Api = "gl|glcore")]
         public static void BindImageTexture(uint unit, uint texture, int level, bool layered, int layer, BufferAccess access, InternalFormat format)
         {
-            Debug.Assert(Delegates.pglBindImageTexture != null, "pglBindImageTexture not implemented");
+            Assert(Delegates.pglBindImageTexture != null, "pglBindImageTexture not implemented");
             Delegates.pglBindImageTexture(unit, texture, level, layered, layer, (int) access, (int) format);
             DebugCheckErrors(null);
         }
@@ -1222,7 +1222,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_shader_image_load_store")]
         public static void MemoryBarrier(MemoryBarrierMask barriers)
         {
-            Debug.Assert(Delegates.pglMemoryBarrier != null, "pglMemoryBarrier not implemented");
+            Assert(Delegates.pglMemoryBarrier != null, "pglMemoryBarrier not implemented");
             Delegates.pglMemoryBarrier((uint) barriers);
             DebugCheckErrors(null);
         }
@@ -1247,7 +1247,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture_storage", Api = "gles1|gles2")]
         public static void TexStorage1D(TextureTarget target, int levels, InternalFormat internalformat, int width)
         {
-            Debug.Assert(Delegates.pglTexStorage1D != null, "pglTexStorage1D not implemented");
+            Assert(Delegates.pglTexStorage1D != null, "pglTexStorage1D not implemented");
             Delegates.pglTexStorage1D((int) target, levels, (int) internalformat, width);
             DebugCheckErrors(null);
         }
@@ -1277,7 +1277,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture_storage", Api = "gles1|gles2")]
         public static void TexStorage2D(TextureTarget target, int levels, InternalFormat internalformat, int width, int height)
         {
-            Debug.Assert(Delegates.pglTexStorage2D != null, "pglTexStorage2D not implemented");
+            Assert(Delegates.pglTexStorage2D != null, "pglTexStorage2D not implemented");
             Delegates.pglTexStorage2D((int) target, levels, (int) internalformat, width, height);
             DebugCheckErrors(null);
         }
@@ -1309,7 +1309,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture_storage", Api = "gles1|gles2")]
         public static void TexStorage3D(TextureTarget target, int levels, InternalFormat internalformat, int width, int height, int depth)
         {
-            Debug.Assert(Delegates.pglTexStorage3D != null, "pglTexStorage3D not implemented");
+            Assert(Delegates.pglTexStorage3D != null, "pglTexStorage3D not implemented");
             Delegates.pglTexStorage3D((int) target, levels, (int) internalformat, width, height, depth);
             DebugCheckErrors(null);
         }
@@ -1334,7 +1334,7 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_draw_transform_feedback", Api = "gles2")]
         public static void DrawTransformFeedbackInstanced(PrimitiveType mode, uint id, int primcount)
         {
-            Debug.Assert(Delegates.pglDrawTransformFeedbackInstanced != null, "pglDrawTransformFeedbackInstanced not implemented");
+            Assert(Delegates.pglDrawTransformFeedbackInstanced != null, "pglDrawTransformFeedbackInstanced not implemented");
             Delegates.pglDrawTransformFeedbackInstanced((int) mode, id, primcount);
             DebugCheckErrors(null);
         }
@@ -1361,7 +1361,7 @@ namespace OpenGL
         [RequiredByFeature("GL_ARB_transform_feedback_instanced", Api = "gl|glcore")]
         public static void DrawTransformFeedbackStreamInstanced(PrimitiveType mode, uint id, uint stream, int primcount)
         {
-            Debug.Assert(Delegates.pglDrawTransformFeedbackStreamInstanced != null, "pglDrawTransformFeedbackStreamInstanced not implemented");
+            Assert(Delegates.pglDrawTransformFeedbackStreamInstanced != null, "pglDrawTransformFeedbackStreamInstanced not implemented");
             Delegates.pglDrawTransformFeedbackStreamInstanced((int) mode, id, stream, primcount);
             DebugCheckErrors(null);
         }

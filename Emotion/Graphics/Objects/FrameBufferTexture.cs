@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
 using Emotion.Common.Threading;
 using OpenGL;
 
@@ -48,7 +47,7 @@ namespace Emotion.Graphics.Objects
             if (RenderBufferPtr != 0)
             {
                 Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RenderBufferPtr);
-                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat, (int)size.X, (int)size.Y);
+                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat, (int) size.X, (int) size.Y);
             }
 
             if (Pointer == 0) return;

@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-
 #endregion
 
 namespace Emotion.Standard.Logging
@@ -57,13 +54,11 @@ namespace Emotion.Standard.Logging
         public void Warning(string message, string source, bool once = false)
         {
             if (once)
-            {
-	            lock (_oncePrint)
-	            {
-		            if (_oncePrint.Contains(message)) return;
-		            _oncePrint.Add(message);
-	            }
-            }
+                lock (_oncePrint)
+                {
+                    if (_oncePrint.Contains(message)) return;
+                    _oncePrint.Add(message);
+                }
 
             Log(MessageType.Warning, source, message);
         }

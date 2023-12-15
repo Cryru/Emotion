@@ -1,6 +1,12 @@
+#region Using
+
+using System;
+
+#endregion
+
 namespace ImGuiNET
 {
-    [System.Flags]
+    [Flags]
     public enum ImGuiTabItemFlags
     {
         None = 0,

@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
+
 <UIBaseWindow type="Emotion.UI.UISolidColor">
-  <WindowColor>
-    <R>255</R>
-    <A>255</A>
-  </WindowColor>
-  <MaxSize>
-    <X>50</X>
-    <Y>50</Y>
-  </MaxSize>
+    <WindowColor>
+        <R>255</R>
+        <A>255</A>
+    </WindowColor>
+    <MaxSize>
+        <X>50</X>
+        <Y>50</Y>
+    </MaxSize>
 </UIBaseWindow>

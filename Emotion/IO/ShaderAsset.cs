@@ -1,12 +1,8 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -164,7 +160,7 @@ namespace Emotion.IO
             if (Shader != null)
             {
                 // This shader must have been disposed first, otherwise we'll leak memory.
-                Debug.Assert(Shader.Pointer == 0 || IsFallback);
+                Assert(Shader.Pointer == 0 || IsFallback);
                 Shader.CopyFrom(compiledProgram);
             }
             else

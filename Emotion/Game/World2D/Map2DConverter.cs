@@ -21,7 +21,7 @@ namespace Emotion.Game.World2D
             if (!typeof(Map2D).IsAssignableFrom(mapType)) return null;
             if (map.TiledMap == null) return null;
 
-            var newMap = (Map2D?)Activator.CreateInstance(mapType, true);
+            var newMap = (Map2D?) Activator.CreateInstance(mapType, true);
             if (newMap == null) return null;
             newMap.MapSize = map.WorldSize;
             newMap.MapName = map.FileName ?? "Converted TMX";
@@ -66,7 +66,7 @@ namespace Emotion.Game.World2D
                 for (var j = 0; j < layer.Tiles.Count; j++)
                 {
                     TmxLayerTile? tile = layer.Tiles[j];
-                    var uintRepresentation = (uint)tile.Gid;
+                    var uintRepresentation = (uint) tile.Gid;
 
                     if (tile.HorizontalFlip)
                         uintRepresentation |= Map2DTileMapLayer.FLIPPED_HORIZONTALLY_FLAG;
@@ -112,7 +112,7 @@ namespace Emotion.Game.World2D
                             if (tsId >= 0 && tsId < tileData.Tilesets.Count) tilesetAsset = tileData.Tilesets[tsId];
                         }
 
-                        var obj = (GameObject2D?)constructionMethod.Invoke(newMap, new object[]
+                        var obj = (GameObject2D?) constructionMethod.Invoke(newMap, new object[]
                         {
                             objDef.Type, objDef.Name, new Vector2(objDef.X, objDef.Y).Ceiling(), tilesetAsset!, uv!, objDef.Properties, objDef, objectLayer
                         });
@@ -126,8 +126,8 @@ namespace Emotion.Game.World2D
                 }
 
             // Remove unused tilesets
-            var tileColumns = (int)tileData.SizeInTiles.X;
-            var tileRows = (int)tileData.SizeInTiles.Y;
+            var tileColumns = (int) tileData.SizeInTiles.X;
+            var tileRows = (int) tileData.SizeInTiles.Y;
             //int lastUsedIdx = 0; // We can only unused at the end as others will modify the tid.
             for (var i = tileData.Tilesets.Count - 1; i >= 0; i--)
             {

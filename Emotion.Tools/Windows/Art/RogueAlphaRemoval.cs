@@ -86,7 +86,7 @@ namespace Emotion.Tools.Windows.Art
             if (ImGui.Button("Apply Changes"))
             {
                 UpdatePreview("export");
-                byte[] pngData = PngFormat.Encode(_removedPixelData,  _previewTexture.Size, _file.Texture.PixelFormat);
+                byte[] pngData = PngFormat.Encode(_removedPixelData, _previewTexture.Size, _file.Texture.PixelFormat);
                 Engine.AssetLoader.Save(pngData, _file.Name);
             }
         }

@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
-  <metadata>
-    <id>Emotion</id>
-    <version>1.0.0</version>
-    <title>Emotion</title>
-    <authors>Vlad Abadzhiev</authors>
-    <owners>Vlad Abadzhiev</owners>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <license type="expression">MIT</license>
-    <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
-    <repository type="git" url="https://github.com/cryru/emotion" />
-    <icon>images/EmotionLogo.png</icon>
-    <description>
-      Emotion is a cross-platform game engine written in C# using .NetCore, with the intent of abstracting the lower levels of game programming, without taking away control from the developer. The core principle is that making games as a programmer should be about coding, and not about drag and drop interfaces, or wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
+    <metadata>
+        <id>Emotion</id>
+        <version>1.0.0</version>
+        <title>Emotion</title>
+        <authors>Vlad Abadzhiev</authors>
+        <owners>Vlad Abadzhiev</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <license type="expression">MIT</license>
+        <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
+        <repository type="git" url="https://github.com/cryru/emotion" />
+        <icon>images/EmotionLogo.png</icon>
+        <description>
+            Emotion is a cross-platform game engine written in C# using .NetCore, with the intent of abstracting the lower levels of game programming, without taking away control from the developer. The core principle is that making games as a programmer should be about coding, and not about drag and drop interfaces, or wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
 
-      This package is a debug build. For a release version clone and build yourself.
-    </description>
-    <summary>A 2D oriented game engine. Check repository for more info.</summary>
-    <copyright>Copyright 2019</copyright>
-    <language>en-US</language>
-    <tags>game-engine game engine emotion opengl gles cross-platform game-development linux macos adfectus</tags>
-    <dependencies>
-      <group targetFramework="net5.0">
-      </group>
-    </dependencies>
-  </metadata>
-  <files>
-    <file src="bin\Debug\net5.0\Emotion.dll" target="lib\net5.0\Emotion.dll" />
-    <file src="bin\Debug\net5.0\Emotion.pdb" target="lib\net5.0\Emotion.pdb" />
-    <file src="bin\Debug\net5.0\Emotion.xml" target="lib\net5.0\Emotion.xml" />
-    <file src="..\EmotionLogo.png" target="images\" />
-  </files>
+            This package is a debug build. For a release version clone and build yourself.
+        </description>
+        <summary>A 2D oriented game engine. Check repository for more info.</summary>
+        <copyright>Copyright 2019</copyright>
+        <language>en-US</language>
+        <tags>game-engine game engine emotion opengl gles cross-platform game-development linux macos adfectus</tags>
+        <dependencies>
+            <group targetFramework="net5.0">
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="bin\Debug\net5.0\Emotion.dll" target="lib\net5.0\Emotion.dll" />
+        <file src="bin\Debug\net5.0\Emotion.pdb" target="lib\net5.0\Emotion.pdb" />
+        <file src="bin\Debug\net5.0\Emotion.xml" target="lib\net5.0\Emotion.xml" />
+        <file src="..\EmotionLogo.png" target="images\" />
+    </files>
 </package>

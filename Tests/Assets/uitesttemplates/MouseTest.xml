@@ -1,32 +1,33 @@
 <?xml version="1.0"?>
+
 <UIBaseWindow>
-  <Children>
-    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
-      <Id>WinOne</Id>
-    </UIBaseWindow>
-    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
-      <Id>WinTwo</Id>
-    </UIBaseWindow>
-    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
-      <Id>WinThree</Id>
-    </UIBaseWindow>
-    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
-      <Id>WinFour</Id>
-    </UIBaseWindow>
-    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
-      <Id>WinFive</Id>
-    </UIBaseWindow>
-    <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
-      <Id>WinSix</Id>
-    </UIBaseWindow>
-  </Children>
-  <ParentAnchor>CenterCenter</ParentAnchor>
-  <Anchor>CenterCenter</Anchor>
-  <LayoutMode>HorizontalList</LayoutMode>
-  <ListSpacing>
-    <X>10</X>
-  </ListSpacing>
-  <StretchX>True</StretchX>
-  <StretchY>True</StretchY>
-  <InputTransparent></InputTransparent>
+    <Children>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+            <Id>WinOne</Id>
+        </UIBaseWindow>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+            <Id>WinTwo</Id>
+        </UIBaseWindow>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+            <Id>WinThree</Id>
+        </UIBaseWindow>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+            <Id>WinFour</Id>
+        </UIBaseWindow>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+            <Id>WinFive</Id>
+        </UIBaseWindow>
+        <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">
+            <Id>WinSix</Id>
+        </UIBaseWindow>
+    </Children>
+    <ParentAnchor>CenterCenter</ParentAnchor>
+    <Anchor>CenterCenter</Anchor>
+    <LayoutMode>HorizontalList</LayoutMode>
+    <ListSpacing>
+        <X>10</X>
+    </ListSpacing>
+    <StretchX>True</StretchX>
+    <StretchY>True</StretchY>
+    <InputTransparent></InputTransparent>
 </UIBaseWindow>

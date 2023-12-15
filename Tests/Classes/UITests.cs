@@ -17,17 +17,17 @@ using UIDescriptionAsset = Emotion.IO.XMLAsset<(string, Emotion.Primitives.Recta
 
 namespace Tests.Classes
 {
-	public static class UITestsExtension
-	{
-		public static void TestUpdate(this UIController controller)
-		{
+    public static class UITestsExtension
+    {
+        public static void TestUpdate(this UIController controller)
+        {
             // Increments the current tick to force updating of mouse input.
-			Engine.TickCount++;
-			controller.Update();
-		}
-	}
+            Engine.TickCount++;
+            controller.Update();
+        }
+    }
 
-	[Test("UITests", true)]
+    [Test("UITests", true)]
     public class UITests
     {
         [Test]
@@ -133,7 +133,7 @@ namespace Tests.Classes
                 Vector2 center = Center / scale;
 
                 TransformationStack.AddOrUpdate("displacement name here",
-                    Matrix4x4.CreateScale(Scale.X , Scale.Y, 1, new Vector3(center, 0)) *
+                    Matrix4x4.CreateScale(Scale.X, Scale.Y, 1, new Vector3(center, 0)) *
                     Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(Rotation), new Vector3(center, 0)) *
                     Matrix4x4.CreateTranslation(Translation)
                 );
@@ -145,7 +145,7 @@ namespace Tests.Classes
         [Test]
         public static void DisplacementTest()
         {
-            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/DisplacementTest.xml");
+            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>("UITestTemplates/DisplacementTest.xml");
             Assert.True(template != null);
             var ui = new UIController();
             ui.AddChild(template.Content);
@@ -181,7 +181,7 @@ namespace Tests.Classes
         [Test]
         public static void NineSliceTest()
         {
-            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/NineSlice.xml");
+            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>("UITestTemplates/NineSlice.xml");
             Assert.True(template != null);
             var ui = new UIController();
             ui.AddChild(template.Content);
@@ -212,10 +212,7 @@ namespace Tests.Classes
 
             public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
             {
-                if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd && status == KeyStatus.Down)
-                {
-                    ClickedCount++;
-                }
+                if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd && status == KeyStatus.Down) ClickedCount++;
 
                 return base.OnKey(key, status, mousePos);
             }
@@ -249,7 +246,7 @@ namespace Tests.Classes
         [Test]
         public static void MouseTestTest()
         {
-            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/MouseTest.xml");
+            var template = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>("UITestTemplates/MouseTest.xml");
             Assert.True(template != null);
             var ui = new UIController();
             ui.AddChild(template.Content);
@@ -286,7 +283,7 @@ namespace Tests.Classes
             Assert.Equal(winOne.ClickedCount, 1);
             Assert.Equal(winThree.ClickedCount, 2);
 
-            var templateOutOfParent = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>($"UITestTemplates/OutOfParentMouseTest.xml");
+            var templateOutOfParent = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>("UITestTemplates/OutOfParentMouseTest.xml");
             Assert.True(templateOutOfParent != null);
             ui.ClearChildren();
             ui.AddChild(templateOutOfParent.Content);

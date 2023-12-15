@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Emotion.Utility;
 
 #endregion
@@ -327,13 +324,13 @@ namespace Emotion.Standard.OpenType.FontTables
             if (commands != null && commands.Length != 0) combinedCommands.AddRange(commands);
 
             FontGlyphComponent[]? components = g.Components;
-            Debug.Assert(components != null);
+            Assert(components != null);
             for (var i = 0; i < components.Length; i++)
             {
                 FontGlyphComponent component = components[i];
                 int gIdx = component.GlyphIdx;
 
-                Debug.Assert(gIdx < glyphs.Length, "Composite glyph is trying to fetch a non-existent component glyph.");
+                Assert(gIdx < glyphs.Length, "Composite glyph is trying to fetch a non-existent component glyph.");
                 FontGlyph comp = glyphs[gIdx];
                 if (comp.Commands == null || comp.Commands.Length <= 0) continue;
 

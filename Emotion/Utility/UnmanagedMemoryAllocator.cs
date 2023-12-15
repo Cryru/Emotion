@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -100,7 +98,7 @@ namespace Emotion.Utility
 
             // Reallocate.
             AllocatedSize = AllocatedSize - memory.Size + size;
-            IntPtr newPtr = Marshal.ReAllocHGlobal(memory.Address, (IntPtr) size);
+            IntPtr newPtr = Marshal.ReAllocHGlobal(memory.Address, size);
             memory.Size = size;
             _ptrToHandle[memory.Address] = null;
             _ptrToHandle[newPtr] = memory;
@@ -153,6 +151,7 @@ namespace Emotion.Utility
                 dbg.AppendLine($" {handle.Address} [{handle.Label}]: {Helpers.FormatByteAmountAsString(handle.Size)}");
                 first = false;
             }
+
             return dbg.ToString();
         }
     }

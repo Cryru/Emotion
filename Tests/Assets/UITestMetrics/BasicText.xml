@@ -1,17 +1,18 @@
 ﻿<?xml version="1.0"?>
+
 <ArrayOfValueTupleOfStringRectangle>
-  <ValueTupleOfStringRectangle>
-    <Item2>
-      <Width>640</Width>
-      <Height>360</Height>
-    </Item2>
-  </ValueTupleOfStringRectangle>
-  <ValueTupleOfStringRectangle>
-    <Item2>
-      <X>245</X>
-      <Y>168</Y>
-      <Width>150</Width>
-      <Height>25</Height>
-    </Item2>
-  </ValueTupleOfStringRectangle>
+    <ValueTupleOfStringRectangle>
+        <Item2>
+            <Width>640</Width>
+            <Height>360</Height>
+        </Item2>
+    </ValueTupleOfStringRectangle>
+    <ValueTupleOfStringRectangle>
+        <Item2>
+            <X>245</X>
+            <Y>168</Y>
+            <Width>150</Width>
+            <Height>25</Height>
+        </Item2>
+    </ValueTupleOfStringRectangle>
 </ArrayOfValueTupleOfStringRectangle>

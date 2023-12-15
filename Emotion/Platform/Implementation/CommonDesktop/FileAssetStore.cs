@@ -22,15 +22,11 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             filePath = filePath.Replace(_folderFs.ToLower(), _folderFs);
 
             if (!File.Exists(filePath))
-            {
                 // If new - add to the internal manifest.
                 InternalManifest.TryAdd(FilePathToEnginePath(filePath, FolderInPath), filePath);
-            }
             else if (backup)
-            {
                 // Backup old - if any.
                 File.Copy(filePath, filePath + ".backup", true);
-            }
 
             // Create missing directories.
             string directoryName = Path.GetDirectoryName(filePath);

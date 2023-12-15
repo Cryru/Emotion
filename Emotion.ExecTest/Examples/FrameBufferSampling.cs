@@ -8,6 +8,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
+using OpenGL;
 
 #endregion
 
@@ -51,12 +52,12 @@ namespace Emotion.ExecTest.Examples
                 if (_sampleReq == null || _sampleReq.Finished)
                 {
                     if (_sampleReq != null && _sampleReq.Finished) _lastColorResult = new Color(_sampleReq.Data[0], _sampleReq.Data[1], _sampleReq.Data[2], _sampleReq.Data[3]);
-                    _sampleReq = _fbo.SampleAsync(new Rectangle(0, 0, 1, 1), OpenGL.PixelFormat.Rgba);
+                    _sampleReq = _fbo.SampleAsync(new Rectangle(0, 0, 1, 1), PixelFormat.Rgba);
                 }
             }
             else
             {
-                byte[] sampleReq = _fbo.Sample(new Rectangle(0, 0, 1, 1), OpenGL.PixelFormat.Rgba);
+                byte[] sampleReq = _fbo.Sample(new Rectangle(0, 0, 1, 1), PixelFormat.Rgba);
                 _lastColorResult = new Color(sampleReq[0], sampleReq[1], sampleReq[2], sampleReq[3]);
             }
 

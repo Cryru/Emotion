@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System.Numerics;
-
 #endregion
 
 namespace Emotion.Primitives

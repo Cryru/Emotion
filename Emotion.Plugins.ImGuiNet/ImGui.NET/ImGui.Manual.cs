@@ -1,8 +1,11 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
+
+#endregion
 
 namespace ImGuiNET
 {
@@ -54,6 +57,7 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8LabelByteCount + 1];
                 utf8LabelBytes = stackPtr;
             }
+
             Util.GetUtf8(label, utf8LabelBytes, utf8LabelByteCount);
 
             bool ret;
@@ -62,10 +66,7 @@ namespace ImGuiNET
                 ret = ImGuiNative.igInputText(utf8LabelBytes, bufPtr, buf_size, flags, callback, user_data.ToPointer()) != 0;
             }
 
-            if (utf8LabelByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8LabelBytes);
-            }
+            if (utf8LabelByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8LabelBytes);
 
             return ret;
         }
@@ -73,20 +74,29 @@ namespace ImGuiNET
         public static bool InputText(
             string label,
             ref string input,
-            uint maxLength) => InputText(label, ref input, maxLength, 0, null, IntPtr.Zero);
+            uint maxLength)
+        {
+            return InputText(label, ref input, maxLength, 0, null, IntPtr.Zero);
+        }
 
         public static bool InputText(
             string label,
             ref string input,
             uint maxLength,
-            ImGuiInputTextFlags flags) => InputText(label, ref input, maxLength, flags, null, IntPtr.Zero);
+            ImGuiInputTextFlags flags)
+        {
+            return InputText(label, ref input, maxLength, flags, null, IntPtr.Zero);
+        }
 
         public static bool InputText(
             string label,
             ref string input,
             uint maxLength,
             ImGuiInputTextFlags flags,
-            ImGuiInputTextCallback callback) => InputText(label, ref input, maxLength, flags, callback, IntPtr.Zero);
+            ImGuiInputTextCallback callback)
+        {
+            return InputText(label, ref input, maxLength, flags, callback, IntPtr.Zero);
+        }
 
         public static bool InputText(
             string label,
@@ -107,10 +117,11 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8LabelByteCount + 1];
                 utf8LabelBytes = stackPtr;
             }
+
             Util.GetUtf8(label, utf8LabelBytes, utf8LabelByteCount);
 
             int utf8InputByteCount = Encoding.UTF8.GetByteCount(input);
-            int inputBufSize = Math.Max((int)maxLength + 1, utf8InputByteCount + 1);
+            int inputBufSize = Math.Max((int) maxLength + 1, utf8InputByteCount + 1);
 
             byte* utf8InputBytes;
             byte* originalUtf8InputBytes;
@@ -126,27 +137,22 @@ namespace ImGuiNET
                 byte* originalInputStackBytes = stackalloc byte[inputBufSize];
                 originalUtf8InputBytes = originalInputStackBytes;
             }
+
             Util.GetUtf8(input, utf8InputBytes, inputBufSize);
-            uint clearBytesCount = (uint)(inputBufSize - utf8InputByteCount);
+            uint clearBytesCount = (uint) (inputBufSize - utf8InputByteCount);
             Unsafe.InitBlockUnaligned(utf8InputBytes + utf8InputByteCount, 0, clearBytesCount);
-            Unsafe.CopyBlock(originalUtf8InputBytes, utf8InputBytes, (uint)inputBufSize);
+            Unsafe.CopyBlock(originalUtf8InputBytes, utf8InputBytes, (uint) inputBufSize);
 
             byte result = ImGuiNative.igInputText(
                 utf8LabelBytes,
                 utf8InputBytes,
-                (uint)inputBufSize,
+                (uint) inputBufSize,
                 flags,
                 callback,
                 user_data.ToPointer());
-            if (!Util.AreStringsEqual(originalUtf8InputBytes, inputBufSize, utf8InputBytes))
-            {
-                input = Util.StringFromPtr(utf8InputBytes);
-            }
+            if (!Util.AreStringsEqual(originalUtf8InputBytes, inputBufSize, utf8InputBytes)) input = Util.StringFromPtr(utf8InputBytes);
 
-            if (utf8LabelByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8LabelBytes);
-            }
+            if (utf8LabelByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8LabelBytes);
             if (inputBufSize > Util.StackAllocationSizeLimit)
             {
                 Util.Free(utf8InputBytes);
@@ -160,14 +166,20 @@ namespace ImGuiNET
             string label,
             ref string input,
             uint maxLength,
-            Vector2 size) => InputTextMultiline(label, ref input, maxLength, size, 0, null, IntPtr.Zero);
+            Vector2 size)
+        {
+            return InputTextMultiline(label, ref input, maxLength, size, 0, null, IntPtr.Zero);
+        }
 
         public static bool InputTextMultiline(
             string label,
             ref string input,
             uint maxLength,
             Vector2 size,
-            ImGuiInputTextFlags flags) => InputTextMultiline(label, ref input, maxLength, size, flags, null, IntPtr.Zero);
+            ImGuiInputTextFlags flags)
+        {
+            return InputTextMultiline(label, ref input, maxLength, size, flags, null, IntPtr.Zero);
+        }
 
         public static bool InputTextMultiline(
             string label,
@@ -175,7 +187,10 @@ namespace ImGuiNET
             uint maxLength,
             Vector2 size,
             ImGuiInputTextFlags flags,
-            ImGuiInputTextCallback callback) => InputTextMultiline(label, ref input, maxLength, size, flags, callback, IntPtr.Zero);
+            ImGuiInputTextCallback callback)
+        {
+            return InputTextMultiline(label, ref input, maxLength, size, flags, callback, IntPtr.Zero);
+        }
 
         public static bool InputTextMultiline(
             string label,
@@ -197,10 +212,11 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8LabelByteCount + 1];
                 utf8LabelBytes = stackPtr;
             }
+
             Util.GetUtf8(label, utf8LabelBytes, utf8LabelByteCount);
 
             int utf8InputByteCount = Encoding.UTF8.GetByteCount(input);
-            int inputBufSize = Math.Max((int)maxLength + 1, utf8InputByteCount + 1);
+            int inputBufSize = Math.Max((int) maxLength + 1, utf8InputByteCount + 1);
 
             byte* utf8InputBytes;
             byte* originalUtf8InputBytes;
@@ -216,28 +232,23 @@ namespace ImGuiNET
                 byte* originalInputStackBytes = stackalloc byte[inputBufSize];
                 originalUtf8InputBytes = originalInputStackBytes;
             }
+
             Util.GetUtf8(input, utf8InputBytes, inputBufSize);
-            uint clearBytesCount = (uint)(inputBufSize - utf8InputByteCount);
+            uint clearBytesCount = (uint) (inputBufSize - utf8InputByteCount);
             Unsafe.InitBlockUnaligned(utf8InputBytes + utf8InputByteCount, 0, clearBytesCount);
-            Unsafe.CopyBlock(originalUtf8InputBytes, utf8InputBytes, (uint)inputBufSize);
+            Unsafe.CopyBlock(originalUtf8InputBytes, utf8InputBytes, (uint) inputBufSize);
 
             byte result = ImGuiNative.igInputTextMultiline(
                 utf8LabelBytes,
                 utf8InputBytes,
-                (uint)inputBufSize,
+                (uint) inputBufSize,
                 size,
                 flags,
                 callback,
                 user_data.ToPointer());
-            if (!Util.AreStringsEqual(originalUtf8InputBytes, inputBufSize, utf8InputBytes))
-            {
-                input = Util.StringFromPtr(utf8InputBytes);
-            }
+            if (!Util.AreStringsEqual(originalUtf8InputBytes, inputBufSize, utf8InputBytes)) input = Util.StringFromPtr(utf8InputBytes);
 
-            if (utf8LabelByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8LabelBytes);
-            }
+            if (utf8LabelByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8LabelBytes);
             if (inputBufSize > Util.StackAllocationSizeLimit)
             {
                 Util.Free(utf8InputBytes);
@@ -251,14 +262,20 @@ namespace ImGuiNET
             string label,
             string hint,
             ref string input,
-            uint maxLength) => InputTextWithHint(label, hint, ref input, maxLength, 0, null, IntPtr.Zero);
+            uint maxLength)
+        {
+            return InputTextWithHint(label, hint, ref input, maxLength, 0, null, IntPtr.Zero);
+        }
 
         public static bool InputTextWithHint(
             string label,
             string hint,
             ref string input,
             uint maxLength,
-            ImGuiInputTextFlags flags) => InputTextWithHint(label, hint, ref input, maxLength, flags, null, IntPtr.Zero);
+            ImGuiInputTextFlags flags)
+        {
+            return InputTextWithHint(label, hint, ref input, maxLength, flags, null, IntPtr.Zero);
+        }
 
         public static bool InputTextWithHint(
             string label,
@@ -266,7 +283,10 @@ namespace ImGuiNET
             ref string input,
             uint maxLength,
             ImGuiInputTextFlags flags,
-            ImGuiInputTextCallback callback) => InputTextWithHint(label, hint, ref input, maxLength, flags, callback, IntPtr.Zero);
+            ImGuiInputTextCallback callback)
+        {
+            return InputTextWithHint(label, hint, ref input, maxLength, flags, callback, IntPtr.Zero);
+        }
 
         public static bool InputTextWithHint(
             string label,
@@ -288,6 +308,7 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8LabelByteCount + 1];
                 utf8LabelBytes = stackPtr;
             }
+
             Util.GetUtf8(label, utf8LabelBytes, utf8LabelByteCount);
 
             int utf8HintByteCount = Encoding.UTF8.GetByteCount(hint);
@@ -301,10 +322,11 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8HintByteCount + 1];
                 utf8HintBytes = stackPtr;
             }
+
             Util.GetUtf8(hint, utf8HintBytes, utf8HintByteCount);
 
             int utf8InputByteCount = Encoding.UTF8.GetByteCount(input);
-            int inputBufSize = Math.Max((int)maxLength + 1, utf8InputByteCount + 1);
+            int inputBufSize = Math.Max((int) maxLength + 1, utf8InputByteCount + 1);
 
             byte* utf8InputBytes;
             byte* originalUtf8InputBytes;
@@ -320,32 +342,24 @@ namespace ImGuiNET
                 byte* originalInputStackBytes = stackalloc byte[inputBufSize];
                 originalUtf8InputBytes = originalInputStackBytes;
             }
+
             Util.GetUtf8(input, utf8InputBytes, inputBufSize);
-            uint clearBytesCount = (uint)(inputBufSize - utf8InputByteCount);
+            uint clearBytesCount = (uint) (inputBufSize - utf8InputByteCount);
             Unsafe.InitBlockUnaligned(utf8InputBytes + utf8InputByteCount, 0, clearBytesCount);
-            Unsafe.CopyBlock(originalUtf8InputBytes, utf8InputBytes, (uint)inputBufSize);
+            Unsafe.CopyBlock(originalUtf8InputBytes, utf8InputBytes, (uint) inputBufSize);
 
             byte result = ImGuiNative.igInputTextWithHint(
                 utf8LabelBytes,
                 utf8HintBytes,
                 utf8InputBytes,
-                (uint)inputBufSize,
+                (uint) inputBufSize,
                 flags,
                 callback,
                 user_data.ToPointer());
-            if (!Util.AreStringsEqual(originalUtf8InputBytes, inputBufSize, utf8InputBytes))
-            {
-                input = Util.StringFromPtr(utf8InputBytes);
-            }
+            if (!Util.AreStringsEqual(originalUtf8InputBytes, inputBufSize, utf8InputBytes)) input = Util.StringFromPtr(utf8InputBytes);
 
-            if (utf8LabelByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8LabelBytes);
-            }
-            if (utf8HintByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8HintBytes);
-            }
+            if (utf8LabelByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8LabelBytes);
+            if (utf8HintByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8HintBytes);
             if (inputBufSize > Util.StackAllocationSizeLimit)
             {
                 Util.Free(utf8InputBytes);
@@ -356,37 +370,59 @@ namespace ImGuiNET
         }
 
         public static Vector2 CalcTextSize(string text)
-            => CalcTextSizeImpl(text);
+        {
+            return CalcTextSizeImpl(text);
+        }
 
         public static Vector2 CalcTextSize(string text, int start)
-            => CalcTextSizeImpl(text, start);
+        {
+            return CalcTextSizeImpl(text, start);
+        }
 
         public static Vector2 CalcTextSize(string text, float wrapWidth)
-            => CalcTextSizeImpl(text, wrapWidth: wrapWidth);
+        {
+            return CalcTextSizeImpl(text, wrapWidth: wrapWidth);
+        }
 
         public static Vector2 CalcTextSize(string text, bool hideTextAfterDoubleHash)
-            => CalcTextSizeImpl(text, hideTextAfterDoubleHash: hideTextAfterDoubleHash);
+        {
+            return CalcTextSizeImpl(text, hideTextAfterDoubleHash: hideTextAfterDoubleHash);
+        }
 
         public static Vector2 CalcTextSize(string text, int start, int length)
-            => CalcTextSizeImpl(text, start, length);
+        {
+            return CalcTextSizeImpl(text, start, length);
+        }
 
         public static Vector2 CalcTextSize(string text, int start, bool hideTextAfterDoubleHash)
-            => CalcTextSizeImpl(text, start, hideTextAfterDoubleHash: hideTextAfterDoubleHash);
+        {
+            return CalcTextSizeImpl(text, start, hideTextAfterDoubleHash: hideTextAfterDoubleHash);
+        }
 
         public static Vector2 CalcTextSize(string text, int start, float wrapWidth)
-            => CalcTextSizeImpl(text, start, wrapWidth: wrapWidth);
+        {
+            return CalcTextSizeImpl(text, start, wrapWidth: wrapWidth);
+        }
 
         public static Vector2 CalcTextSize(string text, bool hideTextAfterDoubleHash, float wrapWidth)
-            => CalcTextSizeImpl(text, hideTextAfterDoubleHash: hideTextAfterDoubleHash, wrapWidth: wrapWidth);
+        {
+            return CalcTextSizeImpl(text, hideTextAfterDoubleHash: hideTextAfterDoubleHash, wrapWidth: wrapWidth);
+        }
 
         public static Vector2 CalcTextSize(string text, int start, int length, bool hideTextAfterDoubleHash)
-            => CalcTextSizeImpl(text, start, length, hideTextAfterDoubleHash);
+        {
+            return CalcTextSizeImpl(text, start, length, hideTextAfterDoubleHash);
+        }
 
         public static Vector2 CalcTextSize(string text, int start, int length, float wrapWidth)
-            => CalcTextSizeImpl(text, start, length, wrapWidth: wrapWidth);
+        {
+            return CalcTextSizeImpl(text, start, length, wrapWidth: wrapWidth);
+        }
 
         public static Vector2 CalcTextSize(string text, int start, int length, bool hideTextAfterDoubleHash, float wrapWidth)
-            => CalcTextSizeImpl(text, start, length, hideTextAfterDoubleHash, wrapWidth);
+        {
+            return CalcTextSizeImpl(text, start, length, hideTextAfterDoubleHash, wrapWidth);
+        }
 
         private static Vector2 CalcTextSizeImpl(
             string text,
@@ -401,7 +437,6 @@ namespace ImGuiNET
             int textByteCount = 0;
             if (text != null)
             {
-
                 int textToCopyLen = length.HasValue ? length.Value : text.Length;
                 textByteCount = Util.CalcSizeInUtf8(text, start, textToCopyLen);
                 if (textByteCount > Util.StackAllocationSizeLimit)
@@ -419,11 +454,8 @@ namespace ImGuiNET
                 nativeTextEnd = nativeTextStart + nativeTextOffset;
             }
 
-            ImGuiNative.igCalcTextSize(&ret, nativeTextStart, nativeTextEnd, *((byte*)(&hideTextAfterDoubleHash)), wrapWidth);
-            if (textByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(nativeTextStart);
-            }
+            ImGuiNative.igCalcTextSize(&ret, nativeTextStart, nativeTextEnd, *(byte*) &hideTextAfterDoubleHash, wrapWidth);
+            if (textByteCount > Util.StackAllocationSizeLimit) Util.Free(nativeTextStart);
 
             return ret;
         }
@@ -474,14 +506,12 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8LabelByteCount + 1];
                 utf8LabelBytes = stackPtr;
             }
+
             Util.GetUtf8(label, utf8LabelBytes, utf8LabelByteCount);
 
-            bool ret = ImGuiNative.igInputText(utf8LabelBytes, (byte*)buf.ToPointer(), buf_size, flags, callback, user_data.ToPointer()) != 0;
+            bool ret = ImGuiNative.igInputText(utf8LabelBytes, (byte*) buf.ToPointer(), buf_size, flags, callback, user_data.ToPointer()) != 0;
 
-            if (utf8LabelByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8LabelBytes);
-            }
+            if (utf8LabelByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8LabelBytes);
 
             return ret;
         }
@@ -499,15 +529,13 @@ namespace ImGuiNET
                 byte* stackPtr = stackalloc byte[utf8NameByteCount + 1];
                 utf8NameBytes = stackPtr;
             }
+
             Util.GetUtf8(name, utf8NameBytes, utf8NameByteCount);
 
             byte* p_open = null;
             byte ret = ImGuiNative.igBegin(utf8NameBytes, p_open, flags);
 
-            if (utf8NameByteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(utf8NameBytes);
-            }
+            if (utf8NameByteCount > Util.StackAllocationSizeLimit) Util.Free(utf8NameBytes);
 
             return ret != 0;
         }

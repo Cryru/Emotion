@@ -1,8 +1,12 @@
-﻿using Emotion.Game.World2D;
-using Emotion.Utility;
-using System.Runtime.CompilerServices;
+﻿#nullable enable
 
-#nullable enable
+#region Using
+
+using System.Runtime.CompilerServices;
+using Emotion.Game.World2D;
+using Emotion.Utility;
+
+#endregion
 
 namespace Emotion.Game.World
 {
@@ -167,14 +171,12 @@ namespace Emotion.Game.World
                     _currentIndex = 0;
 
                     if (_currentNode.ChildNodes != null)
-                    {
                         for (int i = 0; i < _currentNode.ChildNodes.Length; i++)
                         {
                             WorldTree2DNode? childNode = _currentNode.ChildNodes[i];
                             if (InShape.Intersects(ref childNode.Bounds))
                                 stack.Push(childNode);
                         }
-                    }
 
                     return MoveNext();
                 }
@@ -196,7 +198,7 @@ namespace Emotion.Game.World
         {
             return new MapQueryEnumerator(_objects)
             {
-                Filter = new MapQueryFilterArgs()
+                Filter = new MapQueryFilterArgs
                 {
                     InState = inState
                 }
@@ -211,7 +213,7 @@ namespace Emotion.Game.World
         {
             return new MapQueryEnumerator<ObjTypeFilter>(_objects)
             {
-                Filter = new MapQueryFilterArgs()
+                Filter = new MapQueryFilterArgs
                 {
                     InState = inState
                 }
@@ -228,7 +230,7 @@ namespace Emotion.Game.World
             return new MapQueryEnumerator<ObjTypeFilter, ShapeFilterType>(_worldTree.GetRootNodeForLayer(layer))
             {
                 InShape = inShape,
-                Filter = new MapQueryFilterArgs()
+                Filter = new MapQueryFilterArgs
                 {
                     InState = inState
                 }
@@ -317,14 +319,14 @@ namespace Emotion.Game.World
         /// GetObjects - Type and Shape Constraint
         /// </summary>
         public List<ObjTypeFilter> ObjectsGet<ObjTypeFilter, ShapeFilterType>(List<ObjTypeFilter>? list, ShapeFilterType inShape, int layer = 0,
-                                                                                    ObjectState? inState = ObjectState.Alive)
+            ObjectState? inState = ObjectState.Alive)
             where ObjTypeFilter : BaseGameObject
             where ShapeFilterType : struct, IShape
         {
             list ??= new List<ObjTypeFilter>();
             list.Clear();
 
-            MapQueryFilterArgs filter = new MapQueryFilterArgs()
+            MapQueryFilterArgs filter = new MapQueryFilterArgs
             {
                 InState = inState
             };
@@ -340,7 +342,7 @@ namespace Emotion.Game.World
         /// GetObjects - Type Constraint, No Shape Constraint
         /// </summary>
         public List<ObjTypeFilter> ObjectsGet<ObjTypeFilter>(List<ObjTypeFilter>? list,
-                                                                    ObjectState? inState = ObjectState.Alive)
+            ObjectState? inState = ObjectState.Alive)
             where ObjTypeFilter : BaseGameObject
         {
             list ??= new List<ObjTypeFilter>();
@@ -354,6 +356,7 @@ namespace Emotion.Game.World
 
                 list.Add(objOfType);
             }
+
             return list;
         }
 
@@ -361,7 +364,7 @@ namespace Emotion.Game.World
         /// GetObjects - No Type Constraint, No Shape Constraint
         /// </summary>
         public List<BaseGameObject> ObjectsGet(List<BaseGameObject>? list,
-                                                    ObjectState? inState = ObjectState.Alive)
+            ObjectState? inState = ObjectState.Alive)
         {
             list ??= new List<BaseGameObject>();
             list.Clear();
@@ -383,8 +386,8 @@ namespace Emotion.Game.World
         #region WorldTree Walkers
 
         private void ForEachObjectInShape<MapQueryObj, ShapeFilterType>(WorldTree2DNode node, ref MapQueryObj callback, ref ShapeFilterType shape)
-           where MapQueryObj : struct, IMapForEachQuery
-           where ShapeFilterType : struct, IShape
+            where MapQueryObj : struct, IMapForEachQuery
+            where ShapeFilterType : struct, IShape
         {
             var objects = node.Objects;
             if (objects == null) return;
@@ -410,8 +413,8 @@ namespace Emotion.Game.World
         }
 
         private void GetObjectsInShape<ObjTypeFilter, ShapeFilterType>(WorldTree2DNode node, List<ObjTypeFilter> list, ref ShapeFilterType shape, ref MapQueryFilterArgs filter)
-           where ObjTypeFilter : BaseGameObject
-           where ShapeFilterType : struct, IShape
+            where ObjTypeFilter : BaseGameObject
+            where ShapeFilterType : struct, IShape
         {
             var objects = node.Objects;
             if (objects == null) return;
@@ -442,13 +445,7 @@ namespace Emotion.Game.World
 
         // A pool of reusable stack objects used to iterate the tree.
         private static ObjectPool<Stack<WorldTree2DNode>> _iterationStackPool = new ObjectPool<Stack<WorldTree2DNode>>(
-        () =>
-        {
-            return new Stack<WorldTree2DNode>(32);
-        }, (s) =>
-        {
-            s.Clear();
-        }, 1);
+            () => { return new Stack<WorldTree2DNode>(32); }, s => { s.Clear(); }, 1);
 
         #endregion
     }

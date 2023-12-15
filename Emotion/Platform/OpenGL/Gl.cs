@@ -1,11 +1,9 @@
 #region Using
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
-using Emotion.Common;
 using Emotion.Platform;
 using Emotion.Utility;
 using Khronos;
@@ -60,7 +58,10 @@ namespace OpenGL
         /// <summary>
         /// Whether the current renderer's vendor is Intel(tm).
         /// </summary>
-        public static bool IsIntel { get => CurrentVendor == "intel" || CurrentVendor == "Intel"; }
+        public static bool IsIntel
+        {
+            get => CurrentVendor == "intel" || CurrentVendor == "Intel";
+        }
 
         /// <summary>
         /// OpenGL extension support.
@@ -297,7 +298,7 @@ namespace OpenGL
             {
                 fixed (IntPtr* p_varyings = varyings)
                 {
-                    Debug.Assert(Delegates.pglTransformFeedbackVaryings_Unmanaged != null, "pglTransformFeedbackVaryings not implemented");
+                    Assert(Delegates.pglTransformFeedbackVaryings_Unmanaged != null, "pglTransformFeedbackVaryings not implemented");
                     Delegates.pglTransformFeedbackVaryings_Unmanaged(program, varyings.Length, p_varyings, bufferMode);
                 }
             }

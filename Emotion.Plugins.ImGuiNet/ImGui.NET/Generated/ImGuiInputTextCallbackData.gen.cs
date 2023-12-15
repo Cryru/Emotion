@@ -1,11 +1,14 @@
+#region Using
+
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+#endregion
+
 namespace ImGuiNET
 {
-    public unsafe partial struct ImGuiInputTextCallbackData
+    public unsafe struct ImGuiInputTextCallbackData
     {
         public ImGuiInputTextFlags EventFlag;
         public ImGuiInputTextFlags Flags;
@@ -20,43 +23,119 @@ namespace ImGuiNET
         public int SelectionStart;
         public int SelectionEnd;
     }
-    public unsafe partial struct ImGuiInputTextCallbackDataPtr
+
+    public unsafe struct ImGuiInputTextCallbackDataPtr
     {
         public ImGuiInputTextCallbackData* NativePtr { get; }
-        public ImGuiInputTextCallbackDataPtr(ImGuiInputTextCallbackData* nativePtr) => NativePtr = nativePtr;
-        public ImGuiInputTextCallbackDataPtr(IntPtr nativePtr) => NativePtr = (ImGuiInputTextCallbackData*)nativePtr;
-        public static implicit operator ImGuiInputTextCallbackDataPtr(ImGuiInputTextCallbackData* nativePtr) => new ImGuiInputTextCallbackDataPtr(nativePtr);
-        public static implicit operator ImGuiInputTextCallbackData* (ImGuiInputTextCallbackDataPtr wrappedPtr) => wrappedPtr.NativePtr;
-        public static implicit operator ImGuiInputTextCallbackDataPtr(IntPtr nativePtr) => new ImGuiInputTextCallbackDataPtr(nativePtr);
-        public ref ImGuiInputTextFlags EventFlag => ref Unsafe.AsRef<ImGuiInputTextFlags>(&NativePtr->EventFlag);
-        public ref ImGuiInputTextFlags Flags => ref Unsafe.AsRef<ImGuiInputTextFlags>(&NativePtr->Flags);
-        public IntPtr UserData { get => (IntPtr)NativePtr->UserData; set => NativePtr->UserData = (void*)value; }
-        public ref ushort EventChar => ref Unsafe.AsRef<ushort>(&NativePtr->EventChar);
-        public ref ImGuiKey EventKey => ref Unsafe.AsRef<ImGuiKey>(&NativePtr->EventKey);
-        public IntPtr Buf { get => (IntPtr)NativePtr->Buf; set => NativePtr->Buf = (byte*)value; }
-        public ref int BufTextLen => ref Unsafe.AsRef<int>(&NativePtr->BufTextLen);
-        public ref int BufSize => ref Unsafe.AsRef<int>(&NativePtr->BufSize);
-        public ref bool BufDirty => ref Unsafe.AsRef<bool>(&NativePtr->BufDirty);
-        public ref int CursorPos => ref Unsafe.AsRef<int>(&NativePtr->CursorPos);
-        public ref int SelectionStart => ref Unsafe.AsRef<int>(&NativePtr->SelectionStart);
-        public ref int SelectionEnd => ref Unsafe.AsRef<int>(&NativePtr->SelectionEnd);
+
+        public ImGuiInputTextCallbackDataPtr(ImGuiInputTextCallbackData* nativePtr)
+        {
+            NativePtr = nativePtr;
+        }
+
+        public ImGuiInputTextCallbackDataPtr(IntPtr nativePtr)
+        {
+            NativePtr = (ImGuiInputTextCallbackData*) nativePtr;
+        }
+
+        public static implicit operator ImGuiInputTextCallbackDataPtr(ImGuiInputTextCallbackData* nativePtr)
+        {
+            return new ImGuiInputTextCallbackDataPtr(nativePtr);
+        }
+
+        public static implicit operator ImGuiInputTextCallbackData*(ImGuiInputTextCallbackDataPtr wrappedPtr)
+        {
+            return wrappedPtr.NativePtr;
+        }
+
+        public static implicit operator ImGuiInputTextCallbackDataPtr(IntPtr nativePtr)
+        {
+            return new ImGuiInputTextCallbackDataPtr(nativePtr);
+        }
+
+        public ref ImGuiInputTextFlags EventFlag
+        {
+            get => ref Unsafe.AsRef<ImGuiInputTextFlags>(&NativePtr->EventFlag);
+        }
+
+        public ref ImGuiInputTextFlags Flags
+        {
+            get => ref Unsafe.AsRef<ImGuiInputTextFlags>(&NativePtr->Flags);
+        }
+
+        public IntPtr UserData
+        {
+            get => (IntPtr) NativePtr->UserData;
+            set => NativePtr->UserData = (void*) value;
+        }
+
+        public ref ushort EventChar
+        {
+            get => ref Unsafe.AsRef<ushort>(&NativePtr->EventChar);
+        }
+
+        public ref ImGuiKey EventKey
+        {
+            get => ref Unsafe.AsRef<ImGuiKey>(&NativePtr->EventKey);
+        }
+
+        public IntPtr Buf
+        {
+            get => (IntPtr) NativePtr->Buf;
+            set => NativePtr->Buf = (byte*) value;
+        }
+
+        public ref int BufTextLen
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->BufTextLen);
+        }
+
+        public ref int BufSize
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->BufSize);
+        }
+
+        public ref bool BufDirty
+        {
+            get => ref Unsafe.AsRef<bool>(&NativePtr->BufDirty);
+        }
+
+        public ref int CursorPos
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->CursorPos);
+        }
+
+        public ref int SelectionStart
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->SelectionStart);
+        }
+
+        public ref int SelectionEnd
+        {
+            get => ref Unsafe.AsRef<int>(&NativePtr->SelectionEnd);
+        }
+
         public void ClearSelection()
         {
-            ImGuiNative.ImGuiInputTextCallbackData_ClearSelection((ImGuiInputTextCallbackData*)(NativePtr));
+            ImGuiNative.ImGuiInputTextCallbackData_ClearSelection(NativePtr);
         }
+
         public void DeleteChars(int pos, int bytes_count)
         {
-            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars((ImGuiInputTextCallbackData*)(NativePtr), pos, bytes_count);
+            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(NativePtr, pos, bytes_count);
         }
+
         public void Destroy()
         {
-            ImGuiNative.ImGuiInputTextCallbackData_destroy((ImGuiInputTextCallbackData*)(NativePtr));
+            ImGuiNative.ImGuiInputTextCallbackData_destroy(NativePtr);
         }
+
         public bool HasSelection()
         {
-            byte ret = ImGuiNative.ImGuiInputTextCallbackData_HasSelection((ImGuiInputTextCallbackData*)(NativePtr));
+            byte ret = ImGuiNative.ImGuiInputTextCallbackData_HasSelection(NativePtr);
             return ret != 0;
         }
+
         public void InsertChars(int pos, string text)
         {
             byte* native_text;
@@ -73,20 +152,23 @@ namespace ImGuiNET
                     byte* native_text_stackBytes = stackalloc byte[text_byteCount + 1];
                     native_text = native_text_stackBytes;
                 }
+
                 int native_text_offset = Util.GetUtf8(text, native_text, text_byteCount);
                 native_text[native_text_offset] = 0;
             }
-            else { native_text = null; }
-            byte* native_text_end = null;
-            ImGuiNative.ImGuiInputTextCallbackData_InsertChars((ImGuiInputTextCallbackData*)(NativePtr), pos, native_text, native_text_end);
-            if (text_byteCount > Util.StackAllocationSizeLimit)
+            else
             {
-                Util.Free(native_text);
+                native_text = null;
             }
+
+            byte* native_text_end = null;
+            ImGuiNative.ImGuiInputTextCallbackData_InsertChars(NativePtr, pos, native_text, native_text_end);
+            if (text_byteCount > Util.StackAllocationSizeLimit) Util.Free(native_text);
         }
+
         public void SelectAll()
         {
-            ImGuiNative.ImGuiInputTextCallbackData_SelectAll((ImGuiInputTextCallbackData*)(NativePtr));
+            ImGuiNative.ImGuiInputTextCallbackData_SelectAll(NativePtr);
         }
     }
 }

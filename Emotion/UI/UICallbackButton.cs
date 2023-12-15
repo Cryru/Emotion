@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
 using Emotion.Common.Serialization;
 using Emotion.Platform.Input;
 
@@ -35,21 +33,22 @@ namespace Emotion.UI
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
-	        if (key == Key.MouseKeyLeft)
-	        {
-		        if (status == KeyStatus.Down)
-		        {
-			        OnClickedProxy?.Invoke(this);
-			        return false;
-		        }
-                if (status == KeyStatus.Up)
-		        {
-			        OnClickedUpProxy?.Invoke(this);
-			        return false;
-		        }
-	        }
+            if (key == Key.MouseKeyLeft)
+            {
+                if (status == KeyStatus.Down)
+                {
+                    OnClickedProxy?.Invoke(this);
+                    return false;
+                }
 
-	        return base.OnKey(key, status, mousePos);
+                if (status == KeyStatus.Up)
+                {
+                    OnClickedUpProxy?.Invoke(this);
+                    return false;
+                }
+            }
+
+            return base.OnKey(key, status, mousePos);
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using System;
-
 #endregion
 
 #pragma warning disable 1591 // No need to document enum members here

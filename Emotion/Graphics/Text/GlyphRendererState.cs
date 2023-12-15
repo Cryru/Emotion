@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Game;
 using Emotion.Graphics.Objects;
 
 #endregion

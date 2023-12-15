@@ -1,4 +1,4 @@
 <ShaderDescription>
-  <Frag>Shaders/DefaultFrag.frag</Frag>
-  <Vert>Shaders/DefaultVert.vert</Vert>
+    <Frag>Shaders/DefaultFrag.frag</Frag>
+    <Vert>Shaders/DefaultVert.vert</Vert>
 </ShaderDescription>

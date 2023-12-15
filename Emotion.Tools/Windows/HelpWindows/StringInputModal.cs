@@ -1,9 +1,7 @@
 ﻿#region Using
 
 using System;
-using Emotion.Common;
 using Emotion.Graphics;
-using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using ImGuiNET;
 

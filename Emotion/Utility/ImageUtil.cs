@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Linq;
 
 #endregion
@@ -190,7 +189,7 @@ namespace Emotion.Utility
         {
             const int components = 4;
 
-            Debug.Assert(imageData.Length % 4 == 0);
+            Assert(imageData.Length % 4 == 0);
 
             fixed (byte* dataPtr = &imageData[0])
             {
