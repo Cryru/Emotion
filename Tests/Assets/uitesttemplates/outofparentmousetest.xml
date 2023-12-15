@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <UIBaseWindow>
     <Children>
         <UIBaseWindow type="Tests.Classes.UITests+MouseTestWindow">

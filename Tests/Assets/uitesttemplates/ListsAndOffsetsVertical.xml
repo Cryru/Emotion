@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <UIBaseWindow type="Emotion.UI.UISolidColor">
     <ParentAnchor>CenterCenter</ParentAnchor>
     <Anchor>CenterCenter</Anchor>

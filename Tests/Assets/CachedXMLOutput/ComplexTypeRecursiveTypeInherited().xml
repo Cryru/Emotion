@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <TransformLink>
     <Left type="Tests.EngineTests.XMLTests+TransformInherited">
         <CoolStuff>True</CoolStuff>
