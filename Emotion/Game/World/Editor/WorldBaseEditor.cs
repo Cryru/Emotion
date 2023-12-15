@@ -259,7 +259,7 @@ public abstract partial class WorldBaseEditor
 	{
 		Engine.Log.Trace(txt, "Editor");
 
-        if (_bottomBar == null) return;
+        if (_bottomBar == null) return; // todo: editor msgs outside the editor
 
 		UIBaseWindow? logContainer = _bottomBar.GetWindowById("LogContainer");
 		AssertNotNull(logContainer);

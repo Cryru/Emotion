@@ -151,8 +151,7 @@ public abstract partial class WorldBaseEditor
 		bottomBarLogTextContainer.ParentAnchor = UIAnchor.TopLeft;
 		bottomBarLogTextContainer.LayoutMode = LayoutMode.VerticalList;
 		bottomBarLogTextContainer.Id = "LogContainer";
-		bottomBarLogTextContainer.StretchX = true;
-		bottomBarLogTextContainer.StretchY = true;
+        bottomBarLogTextContainer.FillY = false;
 		bottomBar.AddChild(bottomBarLogTextContainer);
 
 		return bottomBar;
