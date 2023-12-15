@@ -1,31 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove=".editorconfig" />
-  </ItemGroup>
+    <ItemGroup>
+        <_WebToolingArtifacts Remove="Properties\PublishProfiles\FolderProfile.pubxml" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <_WebToolingArtifacts Remove="Properties\PublishProfiles\FolderProfile.pubxml" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0"
+                          PrivateAssets="all" />
+        <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <EditorConfigFiles Include=".editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
-    <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Emotion.ExecTest\Emotion.ExecTest.csproj" />
-    <ProjectReference Include="..\Emotion.Web\Emotion.Web.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion.ExecTest\Emotion.ExecTest.csproj" />
+        <ProjectReference Include="..\Emotion.Web\Emotion.Web.csproj" />
+    </ItemGroup>
 
 </Project>

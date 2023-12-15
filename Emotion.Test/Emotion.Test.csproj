@@ -1,24 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
-    <Configurations>Debug;Release</Configurations>
-    <ApplicationIcon></ApplicationIcon>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StartupObject />
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <Configurations>Debug;Release</Configurations>
+        <ApplicationIcon></ApplicationIcon>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <StartupObject />
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove=".editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EditorConfigFiles Include=".editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Emotion\Emotion.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion\Emotion.csproj" />
+    </ItemGroup>
 
 </Project>
