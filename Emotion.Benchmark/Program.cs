@@ -1,7 +1,7 @@
 ﻿#region Using
 
+using System.Numerics;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Common.Threading;
@@ -40,7 +40,7 @@ namespace Emotion.Benchmark
 
             _asset = Engine.AssetLoader.Get<AudioAsset>("Audio/pepsi.wav");
             var testAudio = new AudioTests.TestAudioContext(null);
-            _layer = (AudioTests.TestAudioContext.TestAudioLayer)testAudio.CreateLayer("Benchmark");
+            _layer = (AudioTests.TestAudioContext.TestAudioLayer) testAudio.CreateLayer("Benchmark");
             _layer.PlayNext(new AudioTrack(_asset)
             {
                 SetLoopingCurrent = true
@@ -79,7 +79,7 @@ namespace Emotion.Benchmark
                 _atlas.RecordTextureMapping(_textureTwo?.Texture, toStruct);
             }
 
-            _atlas.RemapBatchUVs(_atlasMemory, (uint)_atlasMemorySize, (uint)VertexData.SizeInBytes, 12);
+            _atlas.RemapBatchUVs(_atlasMemory, (uint) _atlasMemorySize, (uint) VertexData.SizeInBytes, 12);
         }
 
         private int DoWork(string a, string b, string c)
@@ -92,10 +92,7 @@ namespace Emotion.Benchmark
         public void ThreadInvocationScheduleOld()
         {
             var resp = 0;
-            GLThread.ExecuteGLThread(() =>
-            {
-                resp = DoWork("adsad", "gegwe", "hhrhr");
-            });
+            GLThread.ExecuteGLThread(() => { resp = DoWork("adsad", "gegwe", "hhrhr"); });
             if (resp != 15) throw new Exception("whaa");
         }
 
@@ -117,7 +114,6 @@ namespace Emotion.Benchmark
 
         public class TestInheritedObject : GameObject2D
         {
-
         }
 
         [GlobalSetup]
@@ -127,27 +123,28 @@ namespace Emotion.Benchmark
             config.HiddenWindow = true;
             Engine.Setup(config);
 
-            _map = new Map2D(new System.Numerics.Vector2(1000, 1000));
+            _map = new Map2D(new Vector2(1000, 1000));
             _map.InitAsync().Wait();
 
             for (int x = 0; x < 100; x++)
             {
                 for (int y = 0; y < 100; y++)
                 {
-                    if ((x * y) % 2 == 0)
+                    if (x * y % 2 == 0)
                     {
                         _map.AddObject(new GameObject2D("")
                         {
-                            Position = new System.Numerics.Vector3(x, y, 0),
-                            Size = new System.Numerics.Vector2(1, 1)
-                        }); ;
+                            Position = new Vector3(x, y, 0),
+                            Size = new Vector2(1, 1)
+                        });
+                        ;
                     }
                     else
                     {
-                        _map.AddObject(new TestInheritedObject()
+                        _map.AddObject(new TestInheritedObject
                         {
-                            Position = new System.Numerics.Vector3(x, y, 0),
-                            Size = new System.Numerics.Vector2(1, 1)
+                            Position = new Vector3(x, y, 0),
+                            Size = new Vector2(1, 1)
                         });
                     }
                 }
@@ -173,6 +170,7 @@ namespace Emotion.Benchmark
             {
                 counter++;
             }
+
             Assert.Equal(counter, 100 * 100);
         }
 
@@ -181,10 +179,11 @@ namespace Emotion.Benchmark
         public void OldQueryObjectsAllLivingAsEnum()
         {
             int counter = 0;
-            foreach (var obj in _map.GetObjects(false))
+            foreach (var obj in _map.GetObjects())
             {
                 counter++;
             }
+
             Assert.Equal(counter, 100 * 100);
         }
 
@@ -205,6 +204,7 @@ namespace Emotion.Benchmark
             {
                 counter++;
             }
+
             Assert.Equal(counter, 2500);
         }
 
@@ -212,10 +212,11 @@ namespace Emotion.Benchmark
         public void NewQueryObjectsAllOfTypeInShapeAsEnum()
         {
             int counter = 0;
-            foreach (var obj in _map.ObjectsEnum<TestInheritedObject, Circle>(new Circle(new System.Numerics.Vector2(50, 50), 10)))
+            foreach (var obj in _map.ObjectsEnum<TestInheritedObject, Circle>(new Circle(new Vector2(50, 50), 10)))
             {
                 counter++;
             }
+
             Assert.Equal(counter, 86);
         }
 
@@ -232,7 +233,7 @@ namespace Emotion.Benchmark
         [Benchmark]
         public void NewQueryObjectsInShape()
         {
-            _map.ObjectsGet(_listBase, new Circle(new System.Numerics.Vector2(50, 50), 10));
+            _map.ObjectsGet(_listBase, new Circle(new Vector2(50, 50), 10));
             Assert.Equal(_listBase.Count, 344);
         }
 
@@ -241,7 +242,7 @@ namespace Emotion.Benchmark
         public void OldQueryObjectsInShape()
         {
             _listBase.Clear();
-            _map.GetObjects(_listBase, 0, new Circle(new System.Numerics.Vector2(50, 50), 10));
+            _map.GetObjects(_listBase, 0, new Circle(new Vector2(50, 50), 10));
             Assert.Equal(_listBase.Count, 344);
         }
     }
