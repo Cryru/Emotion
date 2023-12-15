@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<ClassWithNonPublicField>
-    <Field>Helloo</Field>
-</ClassWithNonPublicField>

@@ -22,8 +22,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FluentValidationExcludedCultures
-            Include="cs;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;zh-CN;zh-Hans;zh-Hant;pt-BR;ja">
+        <FluentValidationExcludedCultures Include="cs;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;zh-CN;zh-Hans;zh-Hant;pt-BR;ja">
             <InProject>false</InProject>
         </FluentValidationExcludedCultures>
     </ItemGroup>
@@ -205,121 +204,121 @@
         <None Update="Assets\CachedResults\UIControllerNineSlice.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ArrayWithDefaultHoles%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ArrayWithDefaultHoles().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\BasicString%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\BasicString().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\BasicStringNull%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\BasicStringNull().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\BasicValueType%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\BasicValueType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ClassWithNonPublicGetSet%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ClassWithNonPublicGetSet().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexDictionary%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexDictionary().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexInheritedType%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexInheritedType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexType%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeExcluded%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeExcluded().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeExcluded%28%29_1.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeExcluded()_1.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeExcludedProperties%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeExcludedProperties().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveListWitInherited%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveListWitInherited().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveReferenceArrayError%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveReferenceArrayError().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveReferenceArrayError%28%29_1.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveReferenceArrayError()_1.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveReferenceError%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveReferenceError().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveType%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveTypeArrayWithInherited%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveTypeArrayWithInherited().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeRecursiveTypeInherited%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveTypeInherited().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexTypeWithCustomDefaults%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexTypeWithCustomDefaults().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\ComplexValueType%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\ComplexValueType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\DictionaryWithObjectKeysThatArePrimitiveTypes%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\DictionaryWithObjectKeysThatArePrimitiveTypes().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\EnumSerialize%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\EnumSerialize().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\Exclusions%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\Exclusions().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\GenericArraySerialize%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\GenericArraySerialize().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\GenericSerialize%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\GenericSerialize().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\GenericsSerialize%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\GenericsSerialize().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\InheritedFields%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\InheritedFields().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\InheritedFields%28%29_1.xml">
+        <None Update="Assets\ReferenceXMLOutput\InheritedFields()_1.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NonOpaqueArrayWithDefaultHoles%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\NonOpaqueArrayWithDefaultHoles().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableComplex%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableComplex().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableComplex%28%29_1.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableComplex()_1.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableComplex%28%29_2.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableComplex()_2.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableComplex%28%29_3.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableComplex()_3.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableTrivial%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableTrivial().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableTrivial%28%29_1.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableTrivial()_1.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\NullableTrivialNull%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\NullableTrivialNull().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\PrimitiveDictionary%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\PrimitiveDictionary().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\RecursiveArrayType%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\RecursiveArrayType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedXMLOutput\StringSanitizeSerialize%28%29.xml">
+        <None Update="Assets\ReferenceXMLOutput\StringSanitizeSerialize().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\Fonts\1980XX.ttf">

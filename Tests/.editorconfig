@@ -2,3 +2,8 @@
 indent_style = space
 indent_size = 4
 csharp_indent_labels = flush_left
+
+[*.xml]
+indent_style = space
+indent_size = 2
+csharp_indent_labels = flush_left
