@@ -59,7 +59,8 @@ namespace Emotion.Standard.XML.TypeHandlers
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append(inheritedType == null ? $"<{fieldName}>" : $"<{fieldName} type=\"{inheritedType}\">");
             typeHandler.SerializeValue(obj, output, indentation, recursionChecker);
-            output.Append($"</{fieldName}>\n");
+            output.Append($"</{fieldName}>");
+            if (indentation != 1) output.Append("\n");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

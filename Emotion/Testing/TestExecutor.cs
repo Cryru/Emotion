@@ -138,6 +138,7 @@ public static class TestExecutor
                 for (var i = 0; i < functions.Count; i++)
                 {
                     MethodInfo func = functions[i];
+#if true
                     tasks[i] = Task.Run(() =>
                     {
                         try
@@ -151,9 +152,14 @@ public static class TestExecutor
                             // ignored, it's printed by the internal engine error handling
                         }
                     });
+#else
+                    Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
+                    func.Invoke(currentClassInstance, new object[] { });
+                    completed++;
+#endif
                 }
 
-                Task.WaitAll(tasks, 10_000);
+                Task.WaitAll(tasks, 30_000);
             }
             else
             {

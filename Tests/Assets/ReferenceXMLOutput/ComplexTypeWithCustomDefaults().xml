@@ -5,8 +5,8 @@
   <Bool></Bool>
   <Str></Str>
   <Rect></Rect>
-  <Transform />
-  <Array />
-  <Inherited />
-  <Nullable />
+  <Transform/>
+  <Array/>
+  <Inherited/>
+  <Nullable/>
 </CustomDefaultsComplex>

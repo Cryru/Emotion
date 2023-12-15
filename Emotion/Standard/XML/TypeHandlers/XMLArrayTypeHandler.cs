@@ -31,7 +31,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (item == null)
                 {
                     output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
-                    output.Append($"<{_elementTypeHandler.TypeName} xsi:nil=\"true\" />\n");
+                    output.Append($"<{_elementTypeHandler.TypeName} xsi:nil=\"true\"/>\n");
                     continue;
                 }
 

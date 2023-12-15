@@ -8,12 +8,12 @@
   </Rectangle>
   <Rectangle>
   </Rectangle>
-  <Rectangle xsi:nil="true" />
+  <Rectangle xsi:nil="true"/>
   <Rectangle>
     <X>5</X>
     <Y>6</Y>
     <Width>7</Width>
     <Height>8</Height>
   </Rectangle>
-  <Rectangle xsi:nil="true" />
+  <Rectangle xsi:nil="true"/>
 </ArrayOfNullableOfRectangle>

@@ -61,7 +61,8 @@ namespace Emotion.Standard.XML.TypeHandlers
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append($"<{fieldName}>");
             SerializeValue(obj, output, indentation, recursionChecker);
-            output.Append($"</{fieldName}>\n");
+            output.Append($"</{fieldName}>");
+            if (indentation != 1) output.Append("\n");
         }
 
         /// <summary>
