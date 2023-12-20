@@ -3,6 +3,7 @@
 using System.Reflection;
 using Emotion.Game.Tiled;
 using Emotion.Game.World;
+using Emotion.Game.World2D.Tile;
 using Emotion.IO;
 using Emotion.Standard.TMX;
 using Emotion.Standard.TMX.Layer;

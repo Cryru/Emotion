@@ -1,9 +1,7 @@
 ﻿#region Using
 
-using System.Text;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
-using Emotion.Editor;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
@@ -15,7 +13,7 @@ using Emotion.Utility;
 
 #nullable enable
 
-namespace Emotion.Game.World2D
+namespace Emotion.Game.World2D.Tile
 {
     // Terminology
     //
@@ -30,192 +28,11 @@ namespace Emotion.Game.World2D
     //      tiUv - The rectangle where the [ti] is located within the [ts] texture.
 
     /// <summary>
-    /// Represents a single tile layer.
-    /// </summary>
-    public class Map2DTileMapLayer
-    {
-        public const uint FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
-        public const uint FLIPPED_VERTICALLY_FLAG = 0x40000000;
-        public const uint FLIPPED_DIAGONALLY_FLAG = 0x20000000;
-
-        [SerializeNonPublicGetSet]
-        public string Name { get; protected set; }
-
-        [DontShowInEditor]
-        [SerializeNonPublicGetSet]
-        public string StringData { get; protected set; }
-
-        public bool Visible { get; set; } = true;
-
-        protected uint[]? _readDataCached;
-
-        public Map2DTileMapLayer(string name, ReadOnlySpan<uint> data)
-        {
-            Name = name;
-
-            var b = new StringBuilder(data.Length * 2 + data.Length - 1);
-
-            uint lastNumber = data[0];
-            uint lastNumberCount = 1;
-            var firstAppended = false;
-            for (var i = 1; i <= data.Length; i++)
-            {
-                // There is an extra loop to dump last number.
-                uint num = 0;
-                if (i != data.Length)
-                {
-                    num = data[i];
-                    // Same number as before, increment counter.
-                    if (num == lastNumber)
-                    {
-                        lastNumberCount++;
-                        continue;
-                    }
-                }
-
-                if (firstAppended) b.Append(",");
-                if (lastNumberCount == 1)
-                {
-                    // "0"
-                    b.Append(lastNumber);
-                }
-                else
-                {
-                    // "2x0" = "0, 0"
-                    b.Append(lastNumberCount);
-                    b.Append('x');
-                    b.Append(lastNumber);
-                }
-
-                lastNumber = num;
-                lastNumberCount = 1;
-                firstAppended = true;
-            }
-
-            StringData = b.ToString();
-        }
-
-        // Serialization constructor
-        protected Map2DTileMapLayer()
-        {
-            Name = "";
-            StringData = "";
-        }
-
-        private uint[] UnpackData()
-        {
-            // First pass - Count characters, including packed.
-            var chars = 0;
-            var lastSepIdx = 0;
-            var charCount = 1;
-            for (var i = 0; i < StringData.Length; i++)
-            {
-                char c = StringData[i];
-                if (c == 'x')
-                {
-                    ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
-                    if (int.TryParse(sinceLast, out int countPacked)) charCount = countPacked;
-                }
-                else if (c == ',')
-                {
-                    chars += charCount;
-                    charCount = 1;
-                    lastSepIdx = i + 1;
-                }
-            }
-
-            chars += charCount;
-
-            // Second pass, unpack.
-            var unpackedData = new uint[chars];
-            var arrayPtr = 0;
-            lastSepIdx = 0;
-            charCount = 1;
-            for (var i = 0; i < StringData.Length; i++)
-            {
-                char c = StringData[i];
-                if (c == 'x')
-                {
-                    ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
-                    if (int.TryParse(sinceLast, out int countPacked))
-                    {
-                        charCount = countPacked;
-                        lastSepIdx = i + 1;
-                    }
-                }
-                else if (c == ',' || i == StringData.Length - 1)
-                {
-                    // Dumping last character, pretend the index is after the string so we
-                    // read the final char below.
-                    if (i == StringData.Length - 1) i++;
-
-                    // Get tile value.
-                    ReadOnlySpan<char> sinceLast = StringData.AsSpan(lastSepIdx, i - lastSepIdx);
-                    uint.TryParse(sinceLast, out uint value);
-
-                    for (var j = 0; j < charCount; j++)
-                    {
-                        unpackedData[arrayPtr] = value;
-                        arrayPtr++;
-                    }
-
-                    charCount = 1;
-                    lastSepIdx = i + 1;
-                }
-            }
-
-            return unpackedData;
-        }
-
-        public void GetTileData(int tileIdx, out uint tid, out bool flipX, out bool flipY, out bool flipD)
-        {
-            _readDataCached ??= UnpackData();
-
-            if (tileIdx < 0 || tileIdx >= _readDataCached.Length)
-            {
-                tid = 0;
-                flipX = false;
-                flipY = false;
-                flipD = false;
-                return;
-            }
-
-            uint data = _readDataCached[tileIdx];
-            flipX = (data & FLIPPED_HORIZONTALLY_FLAG) != 0;
-            flipY = (data & FLIPPED_VERTICALLY_FLAG) != 0;
-            flipD = (data & FLIPPED_DIAGONALLY_FLAG) != 0;
-            tid = data & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
-        }
-
-        public override string ToString()
-        {
-            return Name;
-        }
-    }
-
-    /// <summary>
-    /// Represents a tileset image that contains all the tiles used by a tile layer.
-    /// </summary>
-    public class Map2DTileset
-    {
-        public string AssetFile;
-        public int FirstTileId;
-
-        public float Spacing = 0f;
-        public float Margin = 0f;
-
-        public override string ToString()
-        {
-            return AssetFile ?? "No Tileset Texture";
-        }
-    }
-
-    /// <summary>
     /// Handles tilemap data representation and management for Map2D
     /// </summary>
     public class Map2DTileMapData
     {
-        public Vector2 TileSize;
+        public Vector2 TileSize = new Vector2(16);
         public Vector2 SizeInTiles;
         public List<Map2DTileMapLayer> Layers = new();
         public List<Map2DTileset> Tilesets = new();
@@ -251,7 +68,7 @@ namespace Emotion.Game.World2D
                 Map2DTileset? tileSet = Tilesets[i];
                 if (tileSet == null)
                 {
-                    assets[i] = Task.FromResult((TextureAsset?) null);
+                    assets[i] = Task.FromResult((TextureAsset?)null);
                     continue;
                 }
 
@@ -279,8 +96,8 @@ namespace Emotion.Game.World2D
             _cachedTileTextures = null;
             if (Layers.Count == 0) return;
 
-            var tileColumns = (int) SizeInTiles.X;
-            var tileRows = (int) SizeInTiles.Y;
+            var tileColumns = (int)SizeInTiles.X;
+            var tileRows = (int)SizeInTiles.Y;
             int totalTileSize = tileRows * tileColumns;
 
             _cachedTileRenderData = new VertexData[Layers.Count][];
@@ -288,6 +105,7 @@ namespace Emotion.Game.World2D
             for (var layerIdx = 0; layerIdx < Layers.Count; layerIdx++)
             {
                 Map2DTileMapLayer layer = Layers[layerIdx];
+                layer.EnsureSize(tileColumns, tileRows);
 
                 var currentCache = new VertexData[totalTileSize * 4];
                 var currentTextureCache = new Texture[totalTileSize];
@@ -320,7 +138,7 @@ namespace Emotion.Game.World2D
                         // Calculate dimensions of the tile.
                         Vector2 position = new Vector2(x, y) * TileSize;
                         var v3 = new Vector3(position, layerIdx);
-                        var c = new Color(255, 255, 255); //layer.Opacity * 255);
+                        var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
                         TextureAsset? tileSetAsset = TilesetsLoaded[tsId];
                         if (tileSetAsset != null) currentTextureCache[tileIdx] = tileSetAsset.Texture;
 
@@ -361,14 +179,14 @@ namespace Emotion.Game.World2D
             Texture[]? textureCache = _cachedTileTextures?[layerIdx];
             if (renderCache == null || textureCache == null) return;
 
-            var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TileSize.Y), 0, SizeInTiles.Y);
-            var yEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Bottom / TileSize.Y), 0, SizeInTiles.Y);
-            var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TileSize.X), 0, SizeInTiles.X);
-            var xEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Right / TileSize.X), 0, SizeInTiles.X);
+            var yStart = (int)Maths.Clamp(MathF.Floor(clipVal.Y / TileSize.Y), 0, SizeInTiles.Y);
+            var yEnd = (int)Maths.Clamp(MathF.Ceiling(clipVal.Bottom / TileSize.Y), 0, SizeInTiles.Y);
+            var xStart = (int)Maths.Clamp(MathF.Floor(clipVal.X / TileSize.X), 0, SizeInTiles.X);
+            var xEnd = (int)Maths.Clamp(MathF.Ceiling(clipVal.Right / TileSize.X), 0, SizeInTiles.X);
 
             for (int y = yStart; y < yEnd; y++)
             {
-                var yIdx = (int) (y * SizeInTiles.X);
+                var yIdx = (int)(y * SizeInTiles.X);
                 for (int x = xStart; x < xEnd; x++)
                 {
                     int tileIdx = yIdx + x;
@@ -400,7 +218,7 @@ namespace Emotion.Game.World2D
         /// <summary>
         /// Get the map layer index by name.
         /// </summary>
-        public int GetMapLayerByName(string layerName)
+        public int GetMapLayerIdxByName(string layerName)
         {
             for (var i = 0; i < Layers.Count; i++)
             {
@@ -411,6 +229,20 @@ namespace Emotion.Game.World2D
         }
 
         /// <summary>
+        /// Get a reference to a tile map layer by its name.
+        /// </summary>
+        public Map2DTileMapLayer? GetMapLayerByName(string layerName)
+        {
+            for (var i = 0; i < Layers.Count; i++)
+            {
+                var layer = Layers[i];
+                if (layer.Name == layerName) return layer;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Get the render cache of the specified map layer. Allows you to
         /// modify the way tiles in the layer are rendered.
         /// </summary>
@@ -418,7 +250,7 @@ namespace Emotion.Game.World2D
         {
             if (_cachedTileRenderData == null) return null;
 
-            int mapLayerIdx = GetMapLayerByName(layerName);
+            int mapLayerIdx = GetMapLayerIdxByName(layerName);
             return mapLayerIdx == -1 ? null : _cachedTileRenderData[mapLayerIdx];
         }
 
@@ -430,7 +262,7 @@ namespace Emotion.Game.World2D
         {
             if (_cachedTileTextures == null) return null;
 
-            int mapLayerIdx = GetMapLayerByName(layerName);
+            int mapLayerIdx = GetMapLayerIdxByName(layerName);
             return mapLayerIdx == -1 ? null : _cachedTileTextures[mapLayerIdx];
         }
 
@@ -439,10 +271,10 @@ namespace Emotion.Game.World2D
         /// </summary>
         public int GetTile1DFromTile2D(Vector2 coordinate)
         {
-            var top = (int) coordinate.Y;
-            var left = (int) coordinate.X;
+            var top = (int)coordinate.Y;
+            var left = (int)coordinate.X;
 
-            return (int) (left + SizeInTiles.X * top);
+            return (int)(left + SizeInTiles.X * top);
         }
 
         /// <summary>
@@ -450,8 +282,8 @@ namespace Emotion.Game.World2D
         /// </summary>
         public Vector2 GetTile2DFromTile1D(int coordinate)
         {
-            var x = (int) (coordinate % SizeInTiles.X);
-            var y = (int) (coordinate / SizeInTiles.X);
+            var x = (int)(coordinate % SizeInTiles.X);
+            var y = (int)(coordinate / SizeInTiles.X);
             return coordinate >= SizeInTiles.X * SizeInTiles.Y ? Vector2.Zero : new Vector2(x, y);
         }
 
@@ -462,8 +294,8 @@ namespace Emotion.Game.World2D
         /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
         public Vector2 GetTilePosOfWorldPos(Vector2 location)
         {
-            var left = (int) Math.Max(0, location.X / TileSize.X);
-            var top = (int) Math.Max(0, location.Y / TileSize.Y);
+            var left = (int)Math.Max(0, location.X / TileSize.X);
+            var top = (int)Math.Max(0, location.Y / TileSize.Y);
 
             return new Vector2(left, top);
         }
@@ -498,7 +330,7 @@ namespace Emotion.Game.World2D
         public int GetTilesetIdFromTid(uint tId, out int tsOffset)
         {
             var tsId = 0;
-            tsOffset = (int) tId;
+            tsOffset = (int)tId;
 
             for (var i = 0; i < Tilesets.Count; i++)
             {
@@ -543,12 +375,13 @@ namespace Emotion.Game.World2D
             var texture = tileSetAsset?.Texture;
             if (texture == null) return Rectangle.Empty;
 
-            int width = (int) texture.Size.X;
-            int widthInTiles = width / (int) TileSize.X;
+            int width = (int)(texture.Size.X - ts.Margin);
+            int widthInTiles = width / (int) (TileSize.X + ts.Spacing);
+
 
             // Get tile image properties.
             int tiColumn = tId % widthInTiles;
-            var tiRow = (int) (tId / (float) widthInTiles);
+            var tiRow = (int)(tId / (float)widthInTiles);
             var tiRect = new Rectangle(TileSize.X * tiColumn, TileSize.Y * tiRow, TileSize);
 
             // Add margins and spacing.

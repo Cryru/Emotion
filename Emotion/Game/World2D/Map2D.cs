@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Emotion.Editor;
 using Emotion.Game.World;
 using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Game.World2D.Tile;
 using Emotion.Graphics;
 
 #endregion
@@ -35,8 +36,20 @@ public class Map2D : BaseMap
 
     protected override async Task InitAsyncInternal()
     {
-        // Load tile data. During this time object loading is running async.
-        if (TileData != null) await TileData.LoadTilesetTextures();
+        // During this time object loading is running async.
+
+        // todo: setup runtime info, which includes:
+        // (maybe hold that info in the tile data class, so it only holds data that is serialized and then
+        // calculates runtime data that can be queried from it?)
+        // load tileset textures, cache tileset sizes
+        // tileset firsttid
+        // layer unpack data and setup size if not full
+        if (TileData.SizeInTiles == Vector2.Zero)
+        {
+            TileData.SizeInTiles = (MapSize / TileData.TileSize).Floor();
+        }
+
+        await TileData.LoadTilesetTextures();
     }
 
     public static Comparison<BaseGameObject> ObjectComparison = ObjectSort; // Prevent delegate allocation
