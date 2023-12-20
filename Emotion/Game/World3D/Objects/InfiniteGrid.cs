@@ -10,7 +10,7 @@ using Emotion.Graphics;
 
 namespace Emotion.Game.World3D.Objects;
 
-public class ThreeDeeSquareGrid : Quad3D
+public class SquareGrid3D : Quad3D
 {
     public float TileSize
     {
@@ -27,7 +27,14 @@ public class ThreeDeeSquareGrid : Quad3D
 
     public Vector2 GridOffset;
 
-    public ThreeDeeSquareGrid()
+    /// <summary>
+    /// Whether to correct the grid to always keep tile positions in the top left.
+    /// Otherwise the grid will just keep its origin position (center of the whole grid)
+    /// in the center of a tile and tiles along the border might be cut off.
+    /// </summary>
+    public bool ApplyTopLeftOriginCorrection = false;
+
+    public SquareGrid3D()
     {
         ObjectFlags |= ObjectFlags.Map3DDontReceiveShadow;
         ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
@@ -42,9 +49,26 @@ public class ThreeDeeSquareGrid : Quad3D
 
     protected override void RenderInternal(RenderComposer c)
     {
-        EntityMetaState!.SetShaderParam("squareSize", _tileSize2);
-        EntityMetaState.SetShaderParam("cameraPos", GridOffset);
-        EntityMetaState.SetShaderParam("totalSize", Size3D.ToVec2());
+        Vector2 size2D = Size3D.ToVec2();
+        Vector2 gridOffset = GridOffset;
+
+        // If the tile size is odd/even but the total size isn't the same,
+        // then we need to offset by half a tile in order to maintain the center at a tile center.
+        if (ApplyTopLeftOriginCorrection)
+        {
+            bool tileSizeIsEvenX = _tileSize2.X % 2 == 0;
+            bool tileSizeIsEvenY = _tileSize2.Y % 2 == 0;
+            bool gridSizeIsEvenX = (size2D.X / _tileSize2.X) % 2 == 0;
+            bool gridSizeIsEvenY = (size2D.Y / _tileSize2.Y) % 2 == 0;
+
+            if (tileSizeIsEvenX && gridSizeIsEvenX) gridOffset.X += _tileSize2.X / 2f;
+            if (tileSizeIsEvenY && gridSizeIsEvenY) gridOffset.Y += _tileSize2.Y / 2f;
+        }
+
+        AssertNotNull(EntityMetaState);
+        EntityMetaState.SetShaderParam("squareSize", _tileSize2);
+        EntityMetaState.SetShaderParam("cameraPos", gridOffset / size2D);
+        EntityMetaState.SetShaderParam("totalSize", size2D);
 
         base.RenderInternal(c);
     }
@@ -55,7 +79,7 @@ public class ThreeDeeSquareGrid : Quad3D
     }
 }
 
-public sealed class InfiniteGrid : ThreeDeeSquareGrid
+public sealed class InfiniteGrid : SquareGrid3D
 {
     public Vector2 Offset;
 
@@ -71,7 +95,7 @@ public sealed class InfiniteGrid : ThreeDeeSquareGrid
         Vector2 cameraPos = c.Camera.Position.ToVec2();
         Position = cameraPos.ToVec3(Z); // Set position to camera position without the Z
 
-        GridOffset = (Position2 + Offset) / _infiniteGridSize;
+        GridOffset = Position2 + Offset;
 
         base.RenderInternal(c);
     }
