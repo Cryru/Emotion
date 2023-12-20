@@ -69,6 +69,7 @@ namespace Emotion.UI
             Engine.Host.OnResize -= Host_OnResize;
             if (InputFocus != null) Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
             if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+            ClearChildren();
         }
 
         private void Host_OnResize(Vector2 obj)

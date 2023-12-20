@@ -123,9 +123,11 @@ namespace Emotion.UI
         {
             var loadedNew = false;
             if (TextureFile == null) return;
-            if (TextureAsset == null || TextureAsset.Name != TextureFile || TextureAsset.Disposed)
+
+            var fileEngineName = AssetLoader.NameToEngineName(TextureFile);
+            if (TextureAsset == null || TextureAsset.Name != fileEngineName || TextureAsset.Disposed)
             {
-                TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(TextureFile);
+                TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(fileEngineName);
                 loadedNew = true;
             }
 

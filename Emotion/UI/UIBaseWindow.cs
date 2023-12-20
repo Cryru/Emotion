@@ -420,6 +420,8 @@ namespace Emotion.UI
                 if (value == _visible) return;
                 _visible = value;
                 Controller?.InvalidateInputFocus();
+                if (DontTakeSpaceWhenHidden)
+                    Controller?.InvalidateLayout();
             }
         }
 

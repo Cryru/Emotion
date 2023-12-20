@@ -82,7 +82,7 @@ namespace Emotion.UI
         }
 
 #if NEW_UI
-		protected override Vector2 Measure(Vector2 space)
+        protected override Vector2 Measure(Vector2 space)
         {
             Vector2 measuredSize = base.Measure(space);
 #else
