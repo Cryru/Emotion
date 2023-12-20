@@ -21,10 +21,14 @@ namespace Emotion.UI
         public Color DefaultSelectorColor = new Color(125, 0, 0);
         public Color SelectorMouseInColor = new Color(200, 0, 0);
 
-        [DontSerialize] public UIBaseWindow? ScrollParent = null;
+        [DontSerialize]
+        public UIBaseWindow? ScrollParent = null;
+
+        [DontSerialize]
+        public Action<float>? OnScroll;
 
         private Color _selectorColor;
-        private Rectangle _selectorRect;
+        protected Rectangle _selectorRect;
         private Vector2 _dragging;
 
         public float TotalArea;
@@ -33,8 +37,6 @@ namespace Emotion.UI
 
         public Color? OutlineColor;
         public float OutlineSize;
-
-        private Vector2 _scaledOutline;
 
         public UIScrollbar()
         {
@@ -80,11 +82,23 @@ namespace Emotion.UI
 
             if (_dragging == Vector2.Zero) return;
 
+            float progress;
+            if (Horizontal)
+            {
+                progress = Maths.Map(mousePos.X - _dragging.X, X, X + Width, 0, TotalArea);
+                progress = MathF.Round(progress);
+                var list = (UICallbackListNavigator?)ScrollParent;
+                list?.ScrollByAbsolutePos(progress);
+            }
+            else
+            {
+                progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
+                progress = MathF.Round(progress);
+                var list = (UICallbackListNavigator?)ScrollParent;
+                list?.ScrollByAbsolutePos(progress);
+            }
 
-            float progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
-            progress = MathF.Round(progress);
-            var list = (UICallbackListNavigator?) ScrollParent;
-            list?.ScrollByAbsolutePos(progress);
+            OnScroll?.Invoke(progress);
 
             base.OnMouseMove(mousePos);
         }
@@ -100,6 +114,7 @@ namespace Emotion.UI
         {
             if (ScrollParent != null)
             {
+                // todo: what is this tomfoolery
                 float spaceTaken = TotalArea > PageArea ? PageArea : TotalArea;
                 _measuredSize.Y = spaceTaken;
                 Height = spaceTaken;
@@ -123,12 +138,6 @@ namespace Emotion.UI
             }
         }
 
-        protected override void AfterMeasure(Vector2 contentSize)
-        {
-            _scaledOutline = new Vector2(OutlineSize * GetScale());
-            base.AfterMeasure(contentSize);
-        }
-
         protected override void AfterLayout()
         {
             base.AfterLayout();
@@ -137,10 +146,7 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            if (OutlineColor != null)
-                c.RenderSprite(Position - _scaledOutline.ToVec3(), Size + _scaledOutline * 2, OutlineColor.Value);
             c.RenderSprite(Bounds, _calculatedColor);
-
             c.RenderSprite(_selectorRect, _selectorColor);
 
             return true;
