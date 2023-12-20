@@ -128,14 +128,15 @@ namespace Emotion.Standard.XML.TypeHandlers
                     nullValue = true;
                 }
 
+                // Field can be null when a type field has been deleted from the definition
+                // but the serialized document contains it
                 if (!_fieldHandlers.Value.TryGetValue(currentTag, out XMLFieldHandler? field))
                 {
                     Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
-                    return newObj;
                 }
 
-                XMLTypeHandler typeHandler = inheritedHandler ?? field.TypeHandler;
-                if (typeHandler != null)
+                XMLTypeHandler? typeHandler = inheritedHandler ?? field?.TypeHandler;
+                if (field != null && typeHandler != null)
                 {
                     Assert(newObj != null);
                     object? val = nullValue ? null : typeHandler.Deserialize(input);
