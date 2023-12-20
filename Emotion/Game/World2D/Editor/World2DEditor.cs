@@ -4,8 +4,10 @@
 
 using Emotion.Game.World.Editor;
 using Emotion.Game.World.SceneControl;
+using Emotion.Game.World2D.Tile;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
+using Emotion.Platform.Input;
 
 #endregion
 
@@ -25,6 +27,13 @@ public partial class World2DEditor : WorldBaseEditor
     protected override CameraBase GetEditorCamera()
     {
         return new WASDMoveCamera2D(Vector3.Zero);
+    }
+
+    protected override bool InternalEditorInputHandler(Key key, KeyStatus status)
+    {
+        bool propagate = TileEditorInputHandler(key, status);
+        if (!propagate) return false;
+        return true;
     }
 
     protected override void EnterEditorInternal()

@@ -3,130 +3,17 @@
 #region Using
 
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
-using Emotion.Graphics;
-using Emotion.IO;
+using Emotion.Game.World2D.Tile;
 using Emotion.UI;
+using Emotion.Utility;
+using Microsoft.CodeAnalysis;
+using Silk.NET.Assimp;
 
 #endregion
 
 namespace Emotion.Game.World2D.Editor;
-
-public class UIScrollArea : UIBaseWindow
-{
-    protected Matrix4x4 _scrollDisplacement = Matrix4x4.Identity;
-
-    protected override bool RenderInternal(RenderComposer c)
-    {
-        c.RenderSprite(Position, Size, Color.Red);
-        return base.RenderInternal(c);
-    }
-
-    protected override void RenderChildren(RenderComposer c)
-    {
-        Rectangle renderRect = _renderBounds;
-        // c.RenderOutline(renderRect, Color.Red);
-
-        c.PushModelMatrix(_scrollDisplacement);
-        Rectangle? clip = c.CurrentState.ClipRect;
-        c.SetClipRect(renderRect);
-
-        // c.RenderOutline(Bounds, Color.Red);
-        for (var i = 0; i < Children!.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.EnsureRenderBoundsCached(c);
-
-            if (!child.Visible) continue;
-
-            child.Render(c);
-        }
-
-        c.SetClipRect(clip);
-        c.PopModelMatrix();
-    }
-}
-
-public class TilesetTileSelector : UIBaseWindow
-{
-    private Map2DTileMapData _mapData;
-    private Map2DTileset? _tileset;
-
-    public TilesetTileSelector(Map2DTileMapData mapData)
-    {
-        _mapData = mapData;
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
-
-        //LayoutMode = LayoutMode.HorizontalList;
-
-        var scrollArea = new UIScrollArea();
-        AddChild(scrollArea);
-
-        var scrollVert = new EditorScrollBar();
-        scrollArea.AddChild(scrollVert);
-
-        var scrollHorz = new EditorScrollBarHorizontal();
-        scrollArea.AddChild(scrollHorz);
-
-        if (_tileset != null) SetTileset(_tileset);
-    }
-
-    public void SetTileset(Map2DTileset? tileset)
-    {
-        _tileset = tileset;
-
-        UIList? list = GetWindowById("TileList") as UIList;
-        if (list == null) return;
-
-        list.ClearChildren();
-        if (_tileset == null) return;
-
-        var tileSize = _mapData.TileSize;
-        if (tileSize == Vector2.Zero) tileSize = new Vector2(1);
-        var tileSizeDisplay = tileSize / 2f;
-
-        int tilesPerRow = (int) (MaxSizeX / tileSizeDisplay.X);
-        var tilesetTexture = Engine.AssetLoader.Get<TextureAsset>(_tileset.AssetFile);
-        if (tilesetTexture == null) return;
-
-        int tilesetId = _mapData.Tilesets.IndexOf(_tileset);
-        if (tilesetId == -1) return;
-
-        Vector2 tileCount = tilesetTexture.Texture.Size / (tileSize + new Vector2(_tileset.Spacing));
-        int totalTiles = (int) (tileCount.X * tileCount.Y);
-
-        int rows = (int) MathF.Ceiling((float) totalTiles / tilesPerRow);
-        int tileIdx = 0;
-        for (int i = 0; i < rows; i++)
-        {
-            UIBaseWindow tileRow = new UIBaseWindow();
-            tileRow.MaxSize = new Vector2(tilesPerRow, 1) * tileSizeDisplay + new Vector2(tilesPerRow, 0);
-            tileRow.MinSize = tileRow.MaxSize;
-            tileRow.ListSpacing = new Vector2(1);
-            tileRow.LayoutMode = LayoutMode.HorizontalList;
-
-            for (int t = 0; t < tilesPerRow; t++)
-            {
-                UITexture tileWindow = new UITexture();
-                tileWindow.MaxSize = tileSizeDisplay;
-                tileWindow.MinSize = tileSizeDisplay;
-                tileWindow.TextureFile = _tileset.AssetFile;
-                tileWindow.UV = _mapData.GetUVFromTileImageIdAndTileset(tileIdx, tilesetId);
-
-                tileRow.AddChild(tileWindow);
-
-                tileIdx++;
-                if (tileIdx > totalTiles) break;
-            }
-
-            list.AddChild(tileRow);
-        }
-    }
-}
 
 public class MapEditorTilePanel : EditorPanel
 {
@@ -135,17 +22,19 @@ public class MapEditorTilePanel : EditorPanel
     private ItemListWithActions<Map2DTileset> _tileSetList = null!;
     private Map2DTileMapLayer? _currentLayer;
     private Map2DTileset? _currentTileset;
+    private TilesetTileSelector? _tileSelector;
 
     public MapEditorTilePanel(Map2D map) : base("Tile Editor")
     {
         _map = map;
+        UseNewLayoutSystem = false;
     }
 
     public override void AttachedToController(UIController controller)
     {
         base.AttachedToController(controller);
 
-        var topBar = GetWindowById("TopBar") as MapEditorPanelTopBar;
+        MapEditorPanelTopBar? topBar = GetWindowById("TopBar") as MapEditorPanelTopBar;
         if (topBar != null) topBar.CanMove = false;
 
         // todo: with new ui this can go between top bar and bottom bar snuggly.
@@ -170,7 +59,6 @@ public class MapEditorTilePanel : EditorPanel
             var propPanel = new GenericPropertiesEditorPanel(_map.TileData);
             propPanel.OnPropertyEdited = (propName, propValue) =>
             {
-                Engine.Log.Warning(propName, "TEST");
                 _map.TileData.LoadTilesetTextures().Wait();
                 _layerList.RefreshListUI();
                 _tileSetList.RefreshListUI();
@@ -197,6 +85,7 @@ public class MapEditorTilePanel : EditorPanel
         var layerLabel = new MapEditorLabel("Layers:");
         layerListContainer.AddChild(layerLabel);
 
+        // todo: reverse order.
         var layerList = new ItemListWithActions<Map2DTileMapLayer>();
         layerList.OnSelectionChanged = LayerSelectionChanged;
         layerList.SetItems(_map.TileData.Layers);
@@ -231,11 +120,16 @@ public class MapEditorTilePanel : EditorPanel
         _tileSetList = tileSetList;
         tileSetListContainer.AddChild(tileSetList);
 
+        var tempNewLayoutHolder = new UIBaseWindow();
+        // tempNewLayoutHolder.UseNewLayoutSystem <- to find during cleanup
+        tempNewLayoutHolder.MaxSizeX = 190f;
+        tileSetListContainer.AddChild(tempNewLayoutHolder);
+
         var tileSelector = new TilesetTileSelector(_map.TileData);
         tileSelector.Id = "TileSelector";
-        tileSelector.MaxSizeX = 190f;
         tileSelector.SetTileset(_currentTileset);
-        tileSetListContainer.AddChild(tileSelector);
+        _tileSelector = tileSelector;
+        tempNewLayoutHolder.AddChild(tileSelector);
     }
 
     private void LayerSelectionChanged(Map2DTileMapLayer selected)
@@ -250,8 +144,20 @@ public class MapEditorTilePanel : EditorPanel
         var tileSelector = GetWindowById("TileSelector") as TilesetTileSelector;
         tileSelector?.SetTileset(_currentTileset);
     }
+
+    public Map2DTileMapLayer? GetLayer()
+    {
+        return _currentLayer;
+    }
+
+    public uint GetTidToPlace()
+    {
+        if (_tileSelector == null || _tileSelector.SelectedTiles.Count == 0) return 0;
+        return _tileSelector.SelectedTiles[0];
+    }
 }
 
+// todo: replace with dropdown and selectable(multi) editors.
 public class ItemListWithActions<T> : UIBaseWindow
 {
     public Action<T>? OnSelectionChanged;
@@ -389,7 +295,7 @@ public class ItemListWithActions<T> : UIBaseWindow
                     {
                         Name = item?.ToString() ?? "<null>",
                         UserData = i,
-                        Click = (dropDownItem, __) => { SetSelectedItem((int) dropDownItem.UserData); }
+                        Click = (dropDownItem, __) => { SetSelectedItem((int)dropDownItem.UserData); }
                     };
                     dropDownItems[i] = itemDescr;
                 }
@@ -415,7 +321,7 @@ public class ItemListWithActions<T> : UIBaseWindow
                         OnClickedProxy = button =>
                         {
                             EditorButton? asEditorButton = button as EditorButton;
-                            if (asEditorButton != null) SetSelectedItem((int) asEditorButton.UserData);
+                            if (asEditorButton != null) SetSelectedItem((int)asEditorButton.UserData);
                         }
                     };
                     list.AddChild(button);
