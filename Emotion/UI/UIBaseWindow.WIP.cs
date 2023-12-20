@@ -98,6 +98,22 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
             Anchor = value;
         }
     }
+    
+    /// <summary>
+    /// If enabled this window will reduce the available space to other children
+    /// in a parent that has its layout mode set to "Free".
+    /// </summary>
+    public bool ReducesParentSpaceInFreeLayout
+    {
+        get => _reducesParentSpaceInFreeLayout;
+        set
+        {
+            _reducesParentSpaceInFreeLayout = value;
+            InvalidateLayout();
+        }
+    }
+
+    private bool _reducesParentSpaceInFreeLayout;
 
     // ReSharper disable once InconsistentNaming
     protected static List<UIBaseWindow> EMPTY_CHILDREN_LIST = new(0);
@@ -127,6 +143,13 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
     {
         UseNewLayoutSystem = true;
         // ==========
+
+        if (!Visible && DontTakeSpaceWhenHidden)
+        {
+            _measuredSize = Vector2.Zero;
+            Size = Vector2.Zero;
+            return _measuredSize;
+        }
 
         float scale = GetScale();
         bool amInsideParent = AnchorsInsideParent(ParentAnchor, Anchor);
@@ -205,6 +228,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
         Vector2 size = minWindowSize;
 
+        _measureChildrenUsedSpace = childrenUsed;
+
         // Windows with children will accomodate their children.
         // todo: disable some windows from having children? maybe just editor hint?
         // todo: ChildrenCanExpandX, ChildrenCanExpandY?
@@ -231,7 +256,6 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
         }
 
         _measuredSize = size;
-        _measureChildrenUsedSpace = childrenUsed;
         Size = size;
 
         return size;
@@ -241,6 +265,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
     {
         List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
 
+        Vector2 consumedSpace = Vector2.Zero;
         Vector2 usedSpace = Vector2.Zero;
         for (var i = 0; i < children.Count + relativeToMe.Count; i++)
         {
@@ -262,13 +287,22 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 #else
             Vector2 childSize = child.NEW_Measure(spaceForChildren);
 #endif
-            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-            if (!insideParent) continue;
 
-            usedSpace = Vector2.Max(usedSpace, childSize);
+            if (insideParent)
+            {
+                // The biggest window decides how big the free layout parent should be.
+                usedSpace = Vector2.Max(usedSpace, childSize);
+
+                // Children that reduce parent size need to be added additionally.
+                if (child.ReducesParentSpaceInFreeLayout)
+                    consumedSpace += childSize;
+            }
         }
 
-        return usedSpace;
+        // Special case when there is only one child and its the consuming one.
+        if (usedSpace == consumedSpace) consumedSpace = Vector2.Zero;
+
+        return usedSpace + consumedSpace;
     }
 
     private void LayoutMode_FreeLayout(List<UIBaseWindow> children, Rectangle childSpaceRect)
@@ -334,6 +368,52 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
             }
 
             child.Layout(childPos, childSize);
+
+            if (insideParent && child.ReducesParentSpaceInFreeLayout)
+            {
+                var childRect = child.Bounds;
+
+                // Add margins manually pepega wtf
+                // todo: maybe windows should hold a bounds and bounds with margins rect?
+                childRect.X -= childScaledMargins.X;
+                childRect.Y -= childScaledMargins.Y;
+                childRect.Width += childScaledMargins.X + childScaledMargins.Width;
+                childRect.Height += childScaledMargins.Y + childScaledMargins.Height;
+
+                childRect.GetMinMaxPoints(out Vector2 childMin, out Vector2 childMax);
+                Vector2 childTopRight = new Vector2(childMax.X, childMin.Y);
+                Vector2 childBottomLeft = new Vector2(childMin.X, childMax.Y);
+
+                childSpaceRect.GetMinMaxPoints(out Vector2 parentMin, out Vector2 parentMax);
+                Vector2 parentTopRight = new Vector2(parentMax.X, parentMin.Y);
+                Vector2 parentBottomLeft = new Vector2(parentMin.X, parentMax.Y);
+
+                // Find which points match on the parent and child to know which way
+                // to subtract from the parent rect.
+                bool topLeft = childMin == parentMin;
+                bool topRight = childTopRight == parentTopRight;
+                bool bottomLeft = childBottomLeft == parentBottomLeft;
+                bool bottomRight = childMax == parentMax;
+
+                if (topRight && (bottomRight || !bottomLeft || !topLeft))
+                {
+                    childSpaceRect.Width -= childRect.Width;
+                }
+                else if(bottomLeft && (bottomRight || !bottomLeft || !topLeft))
+                {
+                    childSpaceRect.Height -= childRect.Height;
+                }
+                else if(topLeft && bottomLeft)
+                {
+                    childSpaceRect.X += childRect.X;
+                    childSpaceRect.Width -= childRect.Width;
+                }
+                else if(topLeft && topRight)
+                {
+                    childSpaceRect.Y += childRect.Height;
+                    childSpaceRect.Height -= childRect.Height;
+                }
+            }
         }
     }
 
@@ -370,12 +450,10 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
                 child = relativeToMe[i - children.Count];
             }
 
-            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-
 #if NEW_UI
             Vector2 childSize = child.Measure(freeSpace - pen);
 #else
-            Vector2 childSize = child.NEW_Measure(freeSpace - pen);
+            Vector2 childSize = child.NEW_Measure(freeSpace);
 #endif
 
             // Dont count space taken by windows outside parent.
@@ -427,6 +505,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
                 child = relativeToMe[i - children.Count];
             }
 
+            // Need to check to prevent spacing from being added.
+            // todo: however there is a check for size 0 already, so is this needed?
             if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
             Vector2 childSize = child._measuredSize;
@@ -480,7 +560,7 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
             bool addSpacing = insideParent && childSize[axisMask] != 0 && prevChildSize[axisMask] != 0;
             if (addSpacing) pen[axisMask] += spacing[axisMask];
 
-            // Dont count space taken by windows outside parent.
+            // Don't count space taken by windows outside parent.
             if (insideParent)
             {
                 Rectangle thisChildSpaceRect = childSpaceRect;
