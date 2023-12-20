@@ -26,43 +26,48 @@ public class EditorDropDown : UIDropDown
         UseNewLayoutSystem = true;
 
         CloseOnClick = closeOnClick;
-        WindowColor = MapEditorColorPalette.ActiveButtonColor;
         Offset = new Vector2(-2, 1);
 
-        var innerBg = new UISolidColor
+        var inner = new UIBaseWindow()
         {
-            IgnoreParentColor = true,
-            WindowColor = MapEditorColorPalette.BarColor.SetAlpha(255),
             Paddings = new Rectangle(3, 3, 3, 3),
+            MaxSizeY = 100,
         };
-
-        AddChild(innerBg);
+        AddChild(inner);
 
         var list = new UICallbackListNavigator
         {
-            IgnoreParentColor = true,
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 2),
-
-            MaxSizeY = 100,
             HideScrollBarWhenNothingToScroll = true,
         };
 
         var scrollBar = new EditorScrollBar
         {
-            MaxSizeY = 90
+            MaxSizeY = 90,
+            ReducesParentSpaceInFreeLayout = true,
+            DontTakeSpaceWhenHidden = true,
+            Margins = new Rectangle(2, 0, 0, 0)
         };
         list.SetScrollbar(scrollBar);
-        innerBg.AddChild(scrollBar);
 
-        innerBg.AddChild(list);
+        inner.AddChild(scrollBar);
+        inner.AddChild(list);
+
         List = list;
+    }
+
+    protected override bool RenderInternal(RenderComposer c)
+    {
+        c.RenderSprite(Position, Size, MapEditorColorPalette.BarColor.SetAlpha(255));
+        c.RenderOutline(Position, Size, MapEditorColorPalette.ActiveButtonColor);
+        return base.RenderInternal(c);
     }
 
     protected override void AfterRenderChildren(RenderComposer c)
     {
         base.AfterRenderChildren(c);
-        c.RenderOutline(Position, Size, WindowColor);
+
     }
 
     public void SetItems(EditorDropDownItem[]? items, Action<EditorDropDownItem>? selectedCallback = null)
