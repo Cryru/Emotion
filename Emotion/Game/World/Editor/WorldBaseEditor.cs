@@ -61,7 +61,7 @@ public abstract partial class WorldBaseEditor
     public void InitializeEditor()
     {
         if (!Engine.Configuration.DebugMode) return;
-        Engine.Host.OnKey.AddListener(DebugInputHandler, KeyListenerType.Editor);
+        Engine.Host.OnKey.AddListener(EditorInputHandler, KeyListenerType.Editor);
         _editorUIAlways = new UIController(KeyListenerType.EditorUI)
         {
             Id = "WorldEditor_AlwaysOnTop"
@@ -70,7 +70,7 @@ public abstract partial class WorldBaseEditor
 
     public void UnloadEditor()
     {
-        Engine.Host.OnKey.RemoveListener(DebugInputHandler);
+        Engine.Host.OnKey.RemoveListener(EditorInputHandler);
     }
 
     public void EnterEditor()
@@ -94,6 +94,8 @@ public abstract partial class WorldBaseEditor
             CurrentMap.OnMapReset += OnMapReset;
             CurrentMap.EditorMode = true;
         }
+
+        _lastOpenEditor = this;
     }
 
     public void ExitEditor()
@@ -203,7 +205,7 @@ public abstract partial class WorldBaseEditor
         _editUI?.Update();
     }
 
-    private bool DebugInputHandler(Key key, KeyStatus status)
+    private bool EditorInputHandler(Key key, KeyStatus status)
     {
         if (key == Key.F3 && status == KeyStatus.Down)
         {
@@ -226,7 +228,15 @@ public abstract partial class WorldBaseEditor
         }
 
         bool propagate = ObjectEditorInputHandler(key, status);
+        if (!propagate) return false;
+
+        propagate = InternalEditorInputHandler(key, status);
         return propagate;
+    }
+
+    protected virtual bool InternalEditorInputHandler(Key key, KeyStatus status)
+    {
+        return true;
     }
 
     private bool EditorBarrierInputHandler(Key key, KeyStatus status)
@@ -284,6 +294,13 @@ public abstract partial class WorldBaseEditor
 
         Engine.CoroutineManager.StartCoroutine(LabelTimeout(container));
         logContainer.AddChild(container);
+    }
+
+    private static WorldBaseEditor? _lastOpenEditor;
+
+    public static void GlobalEditorMsg(string txt)
+    {
+        _lastOpenEditor?.EditorMsg(txt);
     }
 
     private IEnumerator LabelTimeout(UIBaseWindow lbl)
