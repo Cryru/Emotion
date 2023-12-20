@@ -709,7 +709,7 @@ namespace Emotion.UI
 
         public virtual bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
-            return Parent == null || Parent.OnKey(key, status, mousePos);
+            return true;
         }
 
         /// <summary>

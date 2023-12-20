@@ -334,7 +334,16 @@ namespace Emotion.UI
             if (!Visible) return true;
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) return true;
             if (InputFocus != null && InputFocus.VisibleAlongTree())
-                return InputFocus.OnKey(key, status, Engine.Host.MousePosition);
+            {
+                Vector2 mousePos = Engine.Host.MousePosition;
+                var current = InputFocus;
+                while(current != null)
+                {
+                    bool propagate = current.OnKey(key, status, mousePos);
+                    if (!propagate) return false;
+                    current = current.Parent;
+                }
+            }
 
             return true;
         }
@@ -371,7 +380,14 @@ namespace Emotion.UI
                         SetInputFocus(_myMouseFocus);
                 }
 
-                return _myMouseFocus.OnKey(key, status, Engine.Host.MousePosition);
+                Vector2 mousePos = Engine.Host.MousePosition;
+                var current = _myMouseFocus;
+                while (current != null)
+                {
+                    bool propagate = current.OnKey(key, status, mousePos);
+                    if (!propagate) return false;
+                    current = current.Parent;
+                }
             }
 
             return true;
