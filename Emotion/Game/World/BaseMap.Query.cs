@@ -77,7 +77,7 @@ namespace Emotion.Game.World
             }
         }
 
-        public ref struct MapQueryEnumerator<ObjTypeFilter>
+        public ref struct MapQueryEnumeratorObjTypeOnly<ObjTypeFilter>
             where ObjTypeFilter : BaseGameObject
         {
             public MapQueryFilterArgs Filter;
@@ -86,7 +86,7 @@ namespace Emotion.Game.World
             public ObjTypeFilter Current { get; private set; } = null!;
             private int _currentIndex;
 
-            public MapQueryEnumerator(List<BaseGameObject> objects)
+            public MapQueryEnumeratorObjTypeOnly(List<BaseGameObject> objects)
             {
                 _objects = objects;
             }
@@ -109,7 +109,81 @@ namespace Emotion.Game.World
                 return false;
             }
 
-            public MapQueryEnumerator<ObjTypeFilter> GetEnumerator()
+            public MapQueryEnumeratorObjTypeOnly<ObjTypeFilter> GetEnumerator()
+            {
+                return this;
+            }
+        }
+
+        public ref struct MapQueryEnumeratorShapeOnly<ShapeFilterType>
+            where ShapeFilterType : struct, IShape
+        {
+            public MapQueryFilterArgs Filter;
+            public ShapeFilterType InShape;
+
+            private WorldTree2DNode _currentNode;
+            private Stack<WorldTree2DNode> _iterationStack;
+
+            public BaseGameObject Current { get; private set; } = null!;
+            private int _currentIndex;
+
+            public MapQueryEnumeratorShapeOnly(WorldTree2DNode worldTreeRoot)
+            {
+                _iterationStack = _iterationStackPool.Get();
+                _iterationStack.Clear();
+                _iterationStack.Push(worldTreeRoot);
+            }
+
+            public void Dispose()
+            {
+                if (_iterationStack != null)
+                {
+                    _iterationStackPool.Return(_iterationStack);
+                    _iterationStack = null;
+                }
+            }
+
+            public bool MoveNext()
+            {
+                var stack = _iterationStack;
+                var currentNode = _currentNode;
+
+                var objects = currentNode?.Objects;
+                while (objects != null && _currentIndex < objects.Count)
+                {
+                    var obj = objects[_currentIndex];
+                    _currentIndex++;
+
+                    if (!MapQueryFilterArgs.Passes(Filter, obj)) continue;
+
+                    Rectangle bounds = obj.GetBoundsForQuadTree();
+                    if (!InShape.Intersects(ref bounds)) continue;
+
+                    Current = obj;
+                    return true;
+                }
+
+                if (stack.Count > 0)
+                {
+                    _currentNode = stack.Pop();
+                    _currentIndex = 0;
+
+                    if (_currentNode.ChildNodes != null)
+                        for (int i = 0; i < _currentNode.ChildNodes.Length; i++)
+                        {
+                            WorldTree2DNode? childNode = _currentNode.ChildNodes[i];
+                            if (InShape.Intersects(ref childNode.Bounds))
+                                stack.Push(childNode);
+                        }
+
+                    return MoveNext();
+                }
+
+                Current = null!;
+                return false;
+            }
+
+            public MapQueryEnumeratorShapeOnly<ShapeFilterType> GetEnumerator()
             {
                 return this;
             }
@@ -208,11 +282,27 @@ namespace Emotion.Game.World
         /// <summary>
         /// Enum - Type Constraint
         /// </summary>
-        public MapQueryEnumerator<ObjTypeFilter> ObjectsEnum<ObjTypeFilter>(ObjectState? inState = ObjectState.Alive)
+        public MapQueryEnumeratorObjTypeOnly<ObjTypeFilter> ObjectsEnum<ObjTypeFilter>(ObjectState? inState = ObjectState.Alive)
             where ObjTypeFilter : BaseGameObject
         {
-            return new MapQueryEnumerator<ObjTypeFilter>(_objects)
+            return new MapQueryEnumeratorObjTypeOnly<ObjTypeFilter>(_objects)
             {
+                Filter = new MapQueryFilterArgs
+                {
+                    InState = inState
+                }
+            };
+        }
+
+        /// <summary>
+        /// Enum - No Type Constraint, Shape Constraint
+        /// </summary>
+        public MapQueryEnumeratorShapeOnly<ShapeFilterType> ObjectsEnum<ShapeFilterType>(ShapeFilterType inShape, int layer = 0, ObjectState? inState = ObjectState.Alive)
+            where ShapeFilterType : struct, IShape
+        {
+            return new MapQueryEnumeratorShapeOnly<ShapeFilterType>(_worldTree.GetRootNodeForLayer(layer))
+            {
+                InShape = inShape,
                 Filter = new MapQueryFilterArgs
                 {
                     InState = inState
