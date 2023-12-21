@@ -1,11 +1,5 @@
 ﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Graphics;
 using Emotion.Platform.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Emotion.UI
 {
@@ -32,6 +26,8 @@ namespace Emotion.UI
             protected override void AfterLayout()
             {
                 base.AfterLayout();
+                MaxScroll = Vector2.Max(Size, _measureChildrenUsedSpace);
+                CurrentScroll = Vector2.Clamp(CurrentScroll, Vector2.Zero, MaxScroll - Size);
             }
 
             public bool ScrollToPos(Vector2 posToScrollTo)
@@ -44,19 +40,6 @@ namespace Emotion.UI
                 _renderBounds = Rectangle.Empty;
 
                 return true;
-            }
-
-#if NEW_UI
-		    protected override Vector2 Measure(Vector2 space)
-            {
-                Vector2 measuredSize = base.Measure(space);
-#else
-            protected override Vector2 NEW_Measure(Vector2 space)
-            {
-                Vector2 measuredSize = base.NEW_Measure(space);
-#endif
-                MaxScroll = _measureChildrenUsedSpace;
-                return measuredSize;
             }
 
             protected override void RenderChildren(RenderComposer c)
