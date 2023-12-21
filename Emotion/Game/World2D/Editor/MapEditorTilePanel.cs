@@ -52,10 +52,10 @@ public class MapEditorTilePanel : EditorPanel
         editTileData.StretchY = true;
         editTileData.OnClickedProxy = _ =>
         {
-            var propPanel = new GenericPropertiesEditorPanel(_map.TileData);
+            var propPanel = new GenericPropertiesEditorPanel(_map.Tiles);
             propPanel.OnPropertyEdited = (propName, propValue) =>
             {
-                _map.TileData.LoadTilesetTextures().Wait();
+                _map.Tiles.InitRuntimeState(_map).Wait();
                 _layerList.RefreshListUI();
                 _tileSetList.RefreshListUI();
             };
@@ -84,7 +84,7 @@ public class MapEditorTilePanel : EditorPanel
         // todo: reverse order.
         var layerList = new ItemListWithActions<Map2DTileMapLayer>();
         layerList.OnSelectionChanged = LayerSelectionChanged;
-        layerList.SetItems(_map.TileData.Layers);
+        layerList.SetItems(_map.Tiles.Layers);
         _layerList = layerList;
         layerListContainer.AddChild(layerList);
 
@@ -109,10 +109,9 @@ public class MapEditorTilePanel : EditorPanel
         tileSetList.OnSelectionChanged = TilesetSelectionChanged;
         tileSetList.NewItemCreated = item =>
         {
-            Map2DTileMapData tileData = _map.TileData;
-            _ = tileData.LoadTilesetTextures();
+            _map.Tiles.InitRuntimeState(_map).Wait();
         };
-        tileSetList.SetItems(_map.TileData.Tilesets);
+        tileSetList.SetItems(_map.Tiles.Tilesets);
         _tileSetList = tileSetList;
         tileSetListContainer.AddChild(tileSetList);
 
@@ -121,7 +120,7 @@ public class MapEditorTilePanel : EditorPanel
         tempNewLayoutHolder.MaxSizeX = 190f;
         tileSetListContainer.AddChild(tempNewLayoutHolder);
 
-        var tileSelector = new TilesetTileSelector(_map.TileData);
+        var tileSelector = new TilesetTileSelector(_map.Tiles);
         tileSelector.Id = "TileSelector";
         tileSelector.SetTileset(_currentTileset);
         _tileSelector = tileSelector;

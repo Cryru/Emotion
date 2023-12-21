@@ -5,8 +5,6 @@
 using System.Threading.Tasks;
 using Emotion.Game.World2D.Tile;
 using Emotion.Game.World3D.Objects;
-using Emotion.Graphics;
-using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
 
@@ -70,10 +68,7 @@ public partial class World2DEditor
             if (layerToPlaceIn != null && _tileBrush != null)
             {
                 var tileBrush1D = mapTileData.GetTile1DFromTile2D(_tileBrush.Value);
-                layerToPlaceIn.SetTileData(tileBrush1D, tileToPlace);
-
-                // Recache render data
-                mapTileData.LoadTilesetTextures().Wait();
+                mapTileData.SetTileData(layerToPlaceIn, tileBrush1D, tileToPlace);
             }
         }
 
@@ -91,8 +86,20 @@ public partial class World2DEditor
 
         var tileData = GetMapTileData();
         if (tileData == null) return;
+
         Vector2 tilePos = tileData.GetTilePosOfWorldPos(worldSpaceMousePos.ToVec2());
         _tileBrush = tilePos;
+
+        MapEditorTilePanel? editor = _tileEditor as MapEditorTilePanel;
+        AssertNotNull(editor);
+        Map2DTileMapLayer? selectedLayer = editor.GetLayer();
+        var tileBrush1D = tileData.GetTile1DFromTile2D(tilePos);
+        uint tId = tileData.GetTileData(selectedLayer, tileBrush1D);
+
+        if (_bottomBarText != null)
+        {
+            _bottomBarText.Text = $"Rollover ({tilePos}) TId - {(tId == 0 ? "0 (Empty)" : tId.ToString())}";
+        }
     }
 
     protected void RenderTileEditor(RenderComposer c)
@@ -114,10 +121,11 @@ public partial class World2DEditor
             uint tileToPlace = editor.GetTidToPlace();
             Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
 
-            TextureAsset? tileSetTexture = mapTileData.TilesetsLoaded != null ? mapTileData.TilesetsLoaded[tsId] : null;
+            Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
 
             var pos = _tileBrush.Value;
-            c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture?.Texture, tileUv);
+            if (tileToPlace != 0)
+                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
             c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Blue * 0.2f);
         }
     }
@@ -126,7 +134,7 @@ public partial class World2DEditor
     {
         var map = CurrentMap;
         if (map == null) return null;
-        return map.TileData;
+        return map.Tiles;
     }
 
     protected bool IsTileEditorOpen()

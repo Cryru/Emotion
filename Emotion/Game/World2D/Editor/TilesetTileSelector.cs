@@ -74,30 +74,19 @@ public sealed class TilesetTileSelector : UIScrollArea
     {
         if (_tileset == null) return 0;
 
-        var tilesetTexture = Engine.AssetLoader.Get<TextureAsset>(_tileset.AssetFile);
-        if (tilesetTexture == null) return 0;
-
-        Vector2 tileSize = _mapData.TileSize;
-        Vector2 textureSize = tilesetTexture.Texture.Size;
-        Vector2 sizeInTiles = (textureSize - new Vector2(_tileset.Margin)) / (tileSize + new Vector2(_tileset.Spacing));
-
-        int tilesetStart = _tileset.FirstTileId;
-        return (uint) (tilesetStart + MathF.Floor((sizeInTiles.X * coord.Y) + coord.X));
+        Vector2 sizeInTiles = _mapData.GetTilesetSizeInTiles(_tileset);
+        int tilesetStart = _mapData.GetTilesetTidOffset(_tileset);
+        return (uint)(tilesetStart + MathF.Floor((sizeInTiles.X * coord.Y) + coord.X));
     }
 
     private Vector2 TidToTilesetCoord(uint tid)
     {
         if (_tileset == null) return Vector2.Zero;
 
-        int tilesetStart = _tileset.FirstTileId;
-        uint inThisTileSet = (uint) (tid - tilesetStart);
+        Vector2 sizeInTiles = _mapData.GetTilesetSizeInTiles(_tileset);
+        int tilesetStart = _mapData.GetTilesetTidOffset(_tileset);
 
-        var tilesetTexture = Engine.AssetLoader.Get<TextureAsset>(_tileset.AssetFile);
-        if (tilesetTexture == null) return Vector2.Zero;
-
-        Vector2 tileSize = _mapData.TileSize;
-        Vector2 textureSize = tilesetTexture.Texture.Size;
-        Vector2 sizeInTiles = (textureSize - new Vector2(_tileset.Margin)) / (tileSize + new Vector2(_tileset.Spacing));
+        uint inThisTileSet = (uint)(tid - tilesetStart);
 
         var x = (int)(inThisTileSet % sizeInTiles.X);
         var y = (int)(inThisTileSet / sizeInTiles.X);
@@ -109,7 +98,7 @@ public sealed class TilesetTileSelector : UIScrollArea
         tileSize = Vector2.Zero;
         if (_tileset == null) return Vector2.Zero;
 
-        var displayScale = GetScale() * _displayScale;
+        var displayScale = Vector2.One;// GetScale() * _displayScale;
         tileSize = _mapData.TileSize * displayScale;
         var margin = new Vector2(_tileset.Margin) * displayScale;
         var spacing = new Vector2(_tileset.Spacing) * displayScale;
@@ -121,7 +110,7 @@ public sealed class TilesetTileSelector : UIScrollArea
     {
         if (_tileset == null) return Vector2.Zero;
 
-        Vector2 displayScale = GetScale() * _displayScale;
+        Vector2 displayScale = Vector2.One;// GetScale() * _displayScale;
         var tileSize = _mapData.TileSize * displayScale;
         var margin = new Vector2(_tileset.Margin) * displayScale;
         var spacing = new Vector2(_tileset.Spacing) * displayScale;
@@ -184,8 +173,10 @@ public sealed class TilesetTileSelector : UIScrollArea
         var textureUI = new UITexture();
         textureUI.Id = "texture";
         textureUI.TextureFile = _tileset.AssetFile;
-        textureUI.ImageScale = _displayScale;
+        //textureUI.ImageScale = _displayScale;
+        textureUI.ScaleMode = UIScaleMode.NoScale;
         AddChildInside(textureUI);
+        _content.ScrollToPos(Vector2.Zero);
     }
 
     public uint? GetSelectedTidToPlaceAbsolute()
@@ -194,7 +185,7 @@ public sealed class TilesetTileSelector : UIScrollArea
         if (SelectedTiles.Count == 0) return null;
 
         uint firstSel = SelectedTiles[0];
-        uint tilesetStart = (uint) _tileset.FirstTileId;
-        return tilesetStart + firstSel;
+        int tIdStart = _mapData.GetTilesetTidOffset(_tileset);
+        return (uint)tIdStart + firstSel;
     }
 }

@@ -40,7 +40,7 @@ public abstract partial class WorldBaseEditor
     protected Dictionary<BaseGameObject, MapEditorObjectNameplate>? _namePlates;
 
     private UIBaseWindow? _bottomBar;
-    private MapEditorLabel? _bottomBarText;
+    protected MapEditorLabel? _bottomBarText;
 
     protected void InitializeEditorInterface()
     {
@@ -138,7 +138,7 @@ public abstract partial class WorldBaseEditor
         bottomBar.Anchor = UIAnchor.BottomLeft;
         bottomBar.ParentAnchor = UIAnchor.BottomLeft;
 
-        var label = new MapEditorLabel("No object selected");
+        var label = new MapEditorLabel("");
         label.Margins = new Rectangle(3, 3, 3, 3);
         label.FontSize = MapEditorColorPalette.EditorButtonTextSize - 2;
         label.ParentAnchor = UIAnchor.CenterLeft;
@@ -262,6 +262,14 @@ public abstract partial class WorldBaseEditor
                 {
                     AssertNotNull(map);
                     var panel = new GenericPropertiesEditorPanel(map);
+                    panel.OnPropertyEdited = (propName, propVal) =>
+                    {
+                        // todo: special case for reload, move somehow to world2d files
+                        if (map is Map2D map2D && propName == "MapSize")
+                        {
+                            map2D.Tiles.InitRuntimeState(map2D).Wait();
+                        }
+                    };
                     _editUI!.AddChild(panel);
                 },
                 Enabled = () => map != null

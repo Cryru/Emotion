@@ -16,14 +16,9 @@ namespace Emotion.Game.World2D.Tile
     /// </summary>
     public class Map2DTileMapLayer
     {
-        public const uint FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
-        public const uint FLIPPED_VERTICALLY_FLAG = 0x40000000;
-        public const uint FLIPPED_DIAGONALLY_FLAG = 0x20000000;
-
         /// <summary>
         /// The layer's name.
         /// </summary>
-        [SerializeNonPublicGetSet]
         public string Name { get; set; }
 
         /// <summary>
@@ -59,11 +54,24 @@ namespace Emotion.Game.World2D.Tile
             Name = "";
         }
 
-        public void EnsureSize(float x, float y)
+        /// <summary>
+        /// Gets the tile data for this layer.
+        /// For use only by Map2DTileMapData.
+        /// Users should use its GetTileData method.
+        /// </summary>
+        public uint[] GetUnpackedTileData()
         {
-            int totalTiles = (int) (x * y);
-            if (_unpackedData.Length >= totalTiles) return;
-            Array.Resize(ref _unpackedData, totalTiles);
+            return _unpackedData;
+        }
+
+        /// <summary>
+        /// Sets the tile data for this layer.
+        /// For use only by Map2DTileMapData.
+        /// Users should use its SetTileData method.
+        /// </summary>
+        public void SetUnpackedTileData(uint[] data)
+        {
+            _unpackedData = data;
         }
 
         #region Data Packing
@@ -181,34 +189,6 @@ namespace Emotion.Game.World2D.Tile
         }
 
         #endregion
-
-        public void GetTileData(int tileIdx, out uint tid, out bool flipX, out bool flipY, out bool flipD)
-        {
-            if (tileIdx < 0 || tileIdx >= _unpackedData.Length)
-            {
-                tid = 0;
-                flipX = false;
-                flipY = false;
-                flipD = false;
-                return;
-            }
-
-            uint data = _unpackedData[tileIdx];
-            flipX = (data & FLIPPED_HORIZONTALLY_FLAG) != 0;
-            flipY = (data & FLIPPED_VERTICALLY_FLAG) != 0;
-            flipD = (data & FLIPPED_DIAGONALLY_FLAG) != 0;
-            tid = data & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
-        }
-
-        public void SetTileData(int tileIdx, uint tid)
-        {
-            if (tileIdx < 0 || tileIdx >= _unpackedData.Length)
-            {
-                return;
-            }
-
-            _unpackedData[tileIdx] = tid;
-        }
 
         public override string ToString()
         {

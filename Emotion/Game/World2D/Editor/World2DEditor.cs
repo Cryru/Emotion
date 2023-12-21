@@ -60,13 +60,13 @@ public partial class World2DEditor : WorldBaseEditor
 
         // Render invisible tile layers
         // todo: move to tile editor
-        if (map?.TileData != null)
+        if (map?.Tiles != null)
         {
             Rectangle clipRect = c.Camera.GetCameraFrustum();
-            for (var i = 0; i < map.TileData.Layers.Count; i++)
+            for (var i = 0; i < map.Tiles.Layers.Count; i++)
             {
-                Map2DTileMapLayer layer = map.TileData.Layers[i];
-                if (!layer.Visible) map.TileData.RenderLayer(c, i, clipRect);
+                Map2DTileMapLayer layer = map.Tiles.Layers[i];
+                if (!layer.Visible) map.Tiles.RenderLayer(c, i, clipRect);
             }
 
             c.ClearDepth();

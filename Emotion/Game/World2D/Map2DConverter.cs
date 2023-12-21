@@ -53,7 +53,6 @@ namespace Emotion.Game.World2D
                 tileData.Tilesets.Add(new Map2DTileset
                 {
                     AssetFile = assetPath,
-                    FirstTileId = tileset.FirstGid,
                     Spacing = tileset.Spacing,
                     Margin = tileset.Margin,
                 });
@@ -70,13 +69,13 @@ namespace Emotion.Game.World2D
                     var uintRepresentation = (uint) tile.Gid;
 
                     if (tile.HorizontalFlip)
-                        uintRepresentation |= Map2DTileMapLayer.FLIPPED_HORIZONTALLY_FLAG;
+                        uintRepresentation |= Map2DTileMapData.FLIPPED_HORIZONTALLY_FLAG;
 
                     if (tile.VerticalFlip)
-                        uintRepresentation |= Map2DTileMapLayer.FLIPPED_VERTICALLY_FLAG;
+                        uintRepresentation |= Map2DTileMapData.FLIPPED_VERTICALLY_FLAG;
 
                     if (tile.HorizontalFlip)
-                        uintRepresentation |= Map2DTileMapLayer.FLIPPED_DIAGONALLY_FLAG;
+                        uintRepresentation |= Map2DTileMapData.FLIPPED_DIAGONALLY_FLAG;
 
                     layerTiles[j] = uintRepresentation;
                 }
@@ -86,7 +85,8 @@ namespace Emotion.Game.World2D
                 tileData.Layers.Add(tileMapLayer);
             }
 
-            newMap.TileData = tileData;
+            newMap.Tiles = tileData;
+            tileData.InitRuntimeState(newMap).Wait();
 
             // Construct all objects.
             // Expected conversion signature in Map2D instance is
@@ -139,7 +139,7 @@ namespace Emotion.Game.World2D
 
                     for (var c = 0; c < tileRows * tileColumns; c++)
                     {
-                        layer.GetTileData(c, out uint tId, out bool _, out bool _, out bool _);
+                        tileData.GetTileData(layer, c, out uint tId, out bool _, out bool _, out bool _);
                         int tsId = tileData.GetTilesetIdFromTid(tId, out int _);
 
                         if (tsId != i) continue;

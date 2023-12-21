@@ -188,9 +188,9 @@ public abstract partial class WorldBaseEditor
 
             // todo: move to editor generic grid
             if (map is Map2D map2d)
-                if (Engine.Host.IsCtrlModifierHeld() && map2d.TileData != null)
+                if (Engine.Host.IsCtrlModifierHeld() && map2d.Tiles != null)
                 {
-                    Vector2 tileSize = map2d.TileData.TileSize;
+                    Vector2 tileSize = map2d.Tiles.TileSize;
                     newPos /= tileSize;
                     newPos = newPos.Floor();
                     newPos *= tileSize;

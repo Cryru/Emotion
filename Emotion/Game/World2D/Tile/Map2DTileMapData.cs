@@ -1,5 +1,8 @@
 ﻿#region Using
 
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Graphics;
@@ -28,12 +31,17 @@ namespace Emotion.Game.World2D.Tile
     //      tiUv - The rectangle where the [ti] is located within the [ts] texture.
 
     /// <summary>
-    /// Handles tilemap data representation and management for Map2D
+    /// Handles tilemap data representation and management for Map2D.
+    /// This class also handles all calculated runtime data for layers and tilesets, while those classes
+    /// themselves hold only data that is considered immutable.
     /// </summary>
-    public class Map2DTileMapData
+    public sealed class Map2DTileMapData
     {
+        public const uint FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
+        public const uint FLIPPED_VERTICALLY_FLAG = 0x40000000;
+        public const uint FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+
         public Vector2 TileSize = new Vector2(16);
-        public Vector2 SizeInTiles;
         public List<Map2DTileMapLayer> Layers = new();
         public List<Map2DTileset> Tilesets = new();
 
@@ -41,116 +49,28 @@ namespace Emotion.Game.World2D.Tile
 
         #region Runtime State
 
-        [DontSerialize] public TextureAsset?[]? TilesetsLoaded;
+        /// <summary>
+        /// How big the entire map is, in tiles.
+        /// </summary>
+        [DontSerialize]
+        public Vector2 SizeInTiles;
+
+        /// <summary>
+        /// Runtime data for each tileset.
+        /// </summary>
+        private TilesetRuntimeData[]? _tilesetRuntime;
 
         /// <summary>
         /// Cached render data for tiles per layer.
         /// </summary>
-        protected VertexData[]?[]? _cachedTileRenderData;
+        private VertexData[]?[]? _cachedTileRenderData;
 
         /// <summary>
         /// Cached render data for tiles per layer.
         /// </summary>
-        protected Texture[]?[]? _cachedTileTextures;
+        private Texture[]?[]? _cachedTileTextures;
 
         #endregion
-
-        /// <summary>
-        /// Load tileset assets frm the AssetManager. Called by Map2D during Init.
-        /// </summary>
-        public async Task LoadTilesetTextures()
-        {
-            if (Tilesets.Count == 0) return;
-
-            var assets = new Task<TextureAsset?>[Tilesets.Count];
-            for (var i = 0; i < assets.Length; i++)
-            {
-                Map2DTileset? tileSet = Tilesets[i];
-                if (tileSet == null)
-                {
-                    assets[i] = Task.FromResult((TextureAsset?)null);
-                    continue;
-                }
-
-                string tilesetFile = tileSet.AssetFile;
-                assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(tilesetFile);
-            }
-
-            // ReSharper disable once CoVariantArrayConversion
-            await Task.WhenAll(assets);
-
-            TilesetsLoaded = new TextureAsset[assets.Length];
-            for (var i = 0; i < assets.Length; i++)
-            {
-                TilesetsLoaded[i] = assets[i].IsCompletedSuccessfully ? assets[i].Result : null;
-            }
-
-            CreateRenderCache();
-        }
-
-        private void CreateRenderCache()
-        {
-            Assert(TilesetsLoaded != null);
-
-            _cachedTileRenderData = null;
-            _cachedTileTextures = null;
-            if (Layers.Count == 0) return;
-
-            var tileColumns = (int)SizeInTiles.X;
-            var tileRows = (int)SizeInTiles.Y;
-            int totalTileSize = tileRows * tileColumns;
-
-            _cachedTileRenderData = new VertexData[Layers.Count][];
-            _cachedTileTextures = new Texture[Layers.Count][];
-            for (var layerIdx = 0; layerIdx < Layers.Count; layerIdx++)
-            {
-                Map2DTileMapLayer layer = Layers[layerIdx];
-                layer.EnsureSize(tileColumns, tileRows);
-
-                var currentCache = new VertexData[totalTileSize * 4];
-                var currentTextureCache = new Texture[totalTileSize];
-                var dataSpan = new Span<VertexData>(currentCache);
-
-                for (var y = 0; y < tileRows; y++)
-                {
-                    int yIdx = y * tileColumns;
-                    for (var x = 0; x < tileColumns; x++)
-                    {
-                        int tileIdx = yIdx + x;
-                        Span<VertexData> tileData = dataSpan.Slice(tileIdx * 4, 4);
-
-                        layer.GetTileData(tileIdx, out uint tId, out bool flipX, out bool flipY, out bool _);
-
-                        // Get the id of the tile, and if empty skip it
-                        if (tId == 0)
-                        {
-                            for (var i = 0; i < tileData.Length; i++)
-                            {
-                                tileData[i].Color = 0;
-                            }
-
-                            continue;
-                        }
-
-                        // Find which tileset the tId belongs in.
-                        Rectangle tiUv = GetUvFromTileImageId(tId, out int tsId);
-
-                        // Calculate dimensions of the tile.
-                        Vector2 position = new Vector2(x, y) * TileSize;
-                        var v3 = new Vector3(position, layerIdx);
-                        var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
-                        TextureAsset? tileSetAsset = TilesetsLoaded[tsId];
-                        if (tileSetAsset != null) currentTextureCache[tileIdx] = tileSetAsset.Texture;
-
-                        // Write to tilemap mesh.
-                        VertexData.SpriteToVertexData(tileData, v3, TileSize, c, tileSetAsset?.Texture, tiUv, flipX, flipY);
-                    }
-                }
-
-                _cachedTileRenderData[layerIdx] = currentCache;
-                _cachedTileTextures[layerIdx] = currentTextureCache;
-            }
-        }
 
         /// <summary>
         /// Render all tile layers in the specified index range.
@@ -173,7 +93,7 @@ namespace Emotion.Game.World2D.Tile
         /// <summary>
         /// Render a particular tile layer.
         /// </summary>
-        public virtual void RenderLayer(RenderComposer composer, int layerIdx, Rectangle clipVal)
+        public void RenderLayer(RenderComposer composer, int layerIdx, Rectangle clipVal)
         {
             VertexData[]? renderCache = _cachedTileRenderData?[layerIdx];
             Texture[]? textureCache = _cachedTileTextures?[layerIdx];
@@ -205,7 +125,7 @@ namespace Emotion.Game.World2D.Tile
         /// <summary>
         /// Render the entire tilemap.
         /// </summary>
-        /// <param name="c"></param>
+        /// <param name="c">The renderer</param>
         /// <param name="clipRect">A rectangle bound containing the part of space to render.</param>
         public void RenderTileMap(RenderComposer c, Rectangle clipRect)
         {
@@ -332,18 +252,25 @@ namespace Emotion.Game.World2D.Tile
             var tsId = 0;
             tsOffset = (int)tId;
 
+            if (_tilesetRuntime == null) return 0;
+
             for (var i = 0; i < Tilesets.Count; i++)
             {
                 Map2DTileset? tileSet = Tilesets[i];
                 if (tileSet == null) continue;
 
-                // Check if the id we need is beyond the current tileset.
-                if (tId < tileSet.FirstTileId) break;
-                tsId = i;
-            }
+                var runtimeData = _tilesetRuntime[i];
+                int firstTile = runtimeData.FirstTid;
 
-            if (tsId > 0) tsOffset -= Tilesets[tsId]!.FirstTileId - 1;
-            tsOffset -= 1;
+                // Check if the id we need is beyond the current tileset.
+                if (tId < firstTile) break;
+                tsId = i;
+
+                if (tsId > 0)
+                    tsOffset = (int)tId - firstTile;
+                else
+                    tsOffset = (int) tId - 1;
+            }
 
             return tsId;
         }
@@ -369,15 +296,10 @@ namespace Emotion.Game.World2D.Tile
         public Rectangle GetUVFromTileImageIdAndTileset(int tId, int tsId)
         {
             Map2DTileset? ts = Tilesets[tsId];
-            if (ts == null || TilesetsLoaded == null) return Rectangle.Empty;
+            if (ts == null || _tilesetRuntime == null) return Rectangle.Empty;
 
-            var tileSetAsset = TilesetsLoaded[tsId];
-            var texture = tileSetAsset?.Texture;
-            if (texture == null) return Rectangle.Empty;
-
-            int width = (int)(texture.Size.X - ts.Margin);
-            int widthInTiles = width / (int) (TileSize.X + ts.Spacing);
-
+            var runtimeData = _tilesetRuntime[tsId];
+            int widthInTiles = (int)runtimeData.SizeInTiles.X;
 
             // Get tile image properties.
             int tiColumn = tId % widthInTiles;
@@ -390,6 +312,256 @@ namespace Emotion.Game.World2D.Tile
             tiRect.X += ts.Spacing * tiColumn;
             tiRect.Y += ts.Spacing * tiRow;
             return tiRect;
+        }
+
+        #endregion
+
+        #region Runtime State
+
+        private class TilesetRuntimeData
+        {
+            public TextureAsset? Texture;
+            public Vector2 SizeInTiles;
+            public int FirstTid;
+        }
+
+        public async Task InitRuntimeState(Map2D map)
+        {
+            var mapSize = map.MapSize;
+            SizeInTiles = Vector2.Max(Vector2.One, (mapSize / TileSize).Floor());
+
+            await LoadTilesetRuntimeData();
+            LoadTileLayerRuntimeData();
+            LoadRuntimeRenderCache();
+        }
+
+        private async Task LoadTilesetRuntimeData()
+        {
+            if (Tilesets.Count == 0) return;
+
+            _tilesetRuntime = new TilesetRuntimeData[Tilesets.Count];
+
+            // Start loading of all of them at the same time.
+            var assets = new Task<TextureAsset?>[Tilesets.Count];
+            for (var i = 0; i < assets.Length; i++)
+            {
+                Map2DTileset? tileSet = Tilesets[i];
+                string? tilesetFile = tileSet?.AssetFile;
+                if (tileSet == null || tilesetFile == null)
+                {
+                    assets[i] = Task.FromResult((TextureAsset?)null);
+                    continue;
+                }
+
+                assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(tilesetFile);
+            }
+
+            // ReSharper disable once CoVariantArrayConversion
+            await Task.WhenAll(assets);
+
+            // Calculate all runtime data and populate the runtime data array.
+            int tIdOffset = 1;
+            for (var i = 0; i < assets.Length; i++)
+            {
+                TextureAsset? textureAsset = assets[i].IsCompletedSuccessfully ? assets[i].Result : null;
+                Vector2 textureAssetSize = textureAsset?.Texture.Size ?? Vector2.One;
+
+                var tileset = Tilesets[i];
+                TilesetRuntimeData data = new TilesetRuntimeData();
+                data.Texture = textureAsset;
+                data.SizeInTiles = Vector2.Max(Vector2.One,
+                    (
+                        (textureAssetSize - new Vector2(tileset.Margin))
+                        /
+                        (TileSize + new Vector2(tileset.Spacing))
+                    ).Round()); // Round to coincide behavior with Tiled
+                data.FirstTid = tIdOffset;
+                _tilesetRuntime[i] = data;
+
+                tIdOffset += (int)(data.SizeInTiles.X * data.SizeInTiles.Y);
+            }
+        }
+
+        private void LoadTileLayerRuntimeData()
+        {
+            int totalTilesInMap = (int)(SizeInTiles.X * SizeInTiles.Y);
+
+            // Ensure all layers have a tile reference for each tile in the map.
+            // If the map was shrunk and the layer has more tiles,
+            // we don't really care.
+            for (int i = 0; i < Layers.Count; i++)
+            {
+                var layer = Layers[i];
+                uint[] unpackedData = layer.GetUnpackedTileData();
+                if (unpackedData.Length < totalTilesInMap)
+                {
+                    Array.Resize(ref unpackedData, totalTilesInMap);
+                    layer.SetUnpackedTileData(unpackedData);
+                }
+            }
+        }
+
+        // Render information is cached as to prevent having to
+        // do lookups each frame.
+        private void LoadRuntimeRenderCache()
+        {
+            if (Tilesets.Count == 0) return;
+            Assert(_tilesetRuntime != null);
+
+            _cachedTileRenderData = null;
+            _cachedTileTextures = null;
+            if (Layers.Count == 0) return;
+
+            var tileColumns = (int)SizeInTiles.X;
+            var tileRows = (int)SizeInTiles.Y;
+            int totalTileSize = tileRows * tileColumns;
+
+            _cachedTileRenderData = new VertexData[Layers.Count][];
+            _cachedTileTextures = new Texture[Layers.Count][];
+            for (var layerIdx = 0; layerIdx < Layers.Count; layerIdx++)
+            {
+                var currentCache = new VertexData[totalTileSize * 4];
+                var currentTextureCache = new Texture[totalTileSize];
+
+                int totalTiles = tileRows * tileColumns;
+                for (int tileIdx = 0; tileIdx < totalTiles; tileIdx++)
+                {
+                    CalculateRenderCacheForTile(layerIdx, tileIdx, currentCache, currentTextureCache);
+                }
+
+                _cachedTileRenderData[layerIdx] = currentCache;
+                _cachedTileTextures[layerIdx] = currentTextureCache;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CalculateRenderCacheForTile(int layerIdx, int tileIdx, Span<VertexData> layerCache, Texture[] textureCache)
+        {
+            Map2DTileMapLayer layer = Layers[layerIdx];
+            GetTileData(layer, tileIdx, out uint tId, out bool flipX, out bool flipY, out bool _);
+
+            Span<VertexData> tileData = layerCache.Slice(tileIdx * 4, 4);
+
+            // Get the id of the tile, and if empty skip it
+            if (tId == 0)
+            {
+                for (var i = 0; i < tileData.Length; i++)
+                {
+                    tileData[i].Color = 0;
+                }
+
+                return;
+            }
+
+            // Find which tileset the tId belongs in.
+            Rectangle tiUv = GetUvFromTileImageId(tId, out int tsId);
+
+            // Calculate dimensions of the tile.
+            Vector2 tileIdx2D = GetTile2DFromTile1D(tileIdx);
+            Vector2 position = tileIdx2D * TileSize;
+            var v3 = new Vector3(position, layerIdx);
+            var c = new Color(255, 255, 255, (int)(layer.Opacity * 255));
+
+            var tilesetTexture = GetTilesetTexture(tsId);
+            if (tilesetTexture != null) textureCache[tileIdx] = tilesetTexture;
+
+            // Write to tilemap mesh.
+            VertexData.SpriteToVertexData(tileData, v3, TileSize, c, tilesetTexture, tiUv, flipX, flipY);
+        }
+
+        /// <summary>
+        /// Get the tile id of a specific tile index in a specific tile layer.
+        /// </summary>
+        public uint GetTileData(Map2DTileMapLayer? layer, int tileIdx)
+        {
+            GetTileData(layer, tileIdx, out uint tId, out bool _, out bool _, out bool _);
+            return tId;
+        }
+
+        public void GetTileData(Map2DTileMapLayer? layer, int tileIdx, out uint tid, out bool flipX, out bool flipY, out bool flipD)
+        {
+            tid = 0;
+            flipX = false;
+            flipY = false;
+            flipD = false;
+
+            if (layer == null) return;
+            var unpackedData = layer.GetUnpackedTileData();
+
+            if (tileIdx < 0 || tileIdx >= unpackedData.Length) return;
+
+            uint data = unpackedData[tileIdx];
+            flipX = (data & FLIPPED_HORIZONTALLY_FLAG) != 0;
+            flipY = (data & FLIPPED_VERTICALLY_FLAG) != 0;
+            flipD = (data & FLIPPED_DIAGONALLY_FLAG) != 0;
+            tid = data & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
+        }
+
+        public void SetTileData(Map2DTileMapLayer? layer, int tileIdx, uint tId)
+        {
+            if (layer == null) return;
+            var unpackedData = layer.GetUnpackedTileData();
+
+            if (tileIdx < 0 || tileIdx >= unpackedData.Length) return;
+            unpackedData[tileIdx] = tId;
+
+            // Recalculate the render cache for this tile.
+            if (_cachedTileRenderData == null) return;
+            AssertNotNull(_cachedTileTextures);
+
+            var layerIdx = Layers.IndexOf(layer);
+            if (layerIdx == -1) return;
+
+            VertexData[]? cacheForThisLayer = _cachedTileRenderData[layerIdx];
+            Texture[]? textureCacheForThisLayer = _cachedTileTextures[layerIdx];
+
+            if (cacheForThisLayer == null || textureCacheForThisLayer == null) return;
+            CalculateRenderCacheForTile(layerIdx, tileIdx, cacheForThisLayer, textureCacheForThisLayer);
+        }
+
+        public Vector2 GetTilesetSizeInTiles(Map2DTileset? ts)
+        {
+            if (ts == null) return Vector2.Zero;
+            if (_tilesetRuntime == null) return Vector2.Zero;
+
+            var tsId = GetTsIdFromTileset(ts);
+            TilesetRuntimeData data = _tilesetRuntime[tsId];
+            return data.SizeInTiles;
+        }
+
+        public Texture? GetTilesetTexture(Map2DTileset? ts)
+        {
+            if (ts == null) return null;
+            if (_tilesetRuntime == null) return null;
+
+            int tsId = GetTsIdFromTileset(ts);
+            TilesetRuntimeData data = _tilesetRuntime[tsId];
+            return data.Texture?.Texture;
+        }
+
+        public Texture? GetTilesetTexture(int tsId)
+        {
+            if (tsId > Tilesets.Count - 1) return null;
+            if (_tilesetRuntime == null) return null;
+
+            TilesetRuntimeData data = _tilesetRuntime[tsId];
+            return data.Texture?.Texture;
+        }
+
+        public int GetTilesetTidOffset(Map2DTileset? ts)
+        {
+            if (ts == null) return 0;
+            if (_tilesetRuntime == null) return 0;
+
+            int tsId = GetTsIdFromTileset(ts);
+            TilesetRuntimeData data = _tilesetRuntime[tsId];
+            return data.FirstTid;
+        }
+
+        public int GetTsIdFromTileset(Map2DTileset? ts)
+        {
+            if (ts == null) return 0;
+            return Tilesets.IndexOf(ts);
         }
 
         #endregion
