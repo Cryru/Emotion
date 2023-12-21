@@ -12,4 +12,7 @@ global using Emotion.Game;
 global using Debug = Emotion.Testing.AssertWrapper; // System.Diagnostics interface for Debug.Assert
 global using static Emotion.Testing.AssertWrapper;
 
+global using Emotion.Graphics;
+global using Emotion.Graphics.Objects;
+
 #endregion
