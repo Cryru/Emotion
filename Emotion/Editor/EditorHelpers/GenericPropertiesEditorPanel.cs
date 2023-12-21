@@ -38,7 +38,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
         // Types without parameterless constructors will explode since they cannot be created.
         // todo: look into at least displaying their values.
-        if (!objType.IsValueType && !EditorUtility.HasParameterlessConstructor(obj))
+        if (!objType.IsValueType && objType != typeof(string) && !EditorUtility.HasParameterlessConstructor(obj))
             return;
 
         // Non complex types (string, int, etc.) can also be editted via this
