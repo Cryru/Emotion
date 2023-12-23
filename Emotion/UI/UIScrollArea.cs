@@ -146,14 +146,14 @@ namespace Emotion.UI
             AddChild(_content);
 
             var scrollVert = new EditorScrollBar();
-            scrollVert.ReducesParentSpaceInFreeLayout = true;
+            scrollVert.Dock = UIDockDirection.Right;
             scrollVert.OnScroll = ScrollBarCallbackVertical;
             scrollVert.Margins = new Rectangle(0, 0, 0, 5);
             AddChild(scrollVert);
             _verticalScroll = scrollVert;
 
             var scrollHorz = new EditorScrollBarHorizontal();
-            scrollHorz.ReducesParentSpaceInFreeLayout = true;
+            scrollHorz.Dock = UIDockDirection.Bottom;
             scrollHorz.OnScroll = ScrollBarCallbackHorizontal;
             AddChild(scrollHorz);
             _horizontalScroll = scrollHorz;

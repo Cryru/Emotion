@@ -99,21 +99,46 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
         }
     }
     
-    /// <summary>
-    /// If enabled this window will reduce the available space to other children
-    /// in a parent that has its layout mode set to "Free".
-    /// </summary>
-    public bool ReducesParentSpaceInFreeLayout
+    public enum UIDockDirection
     {
-        get => _reducesParentSpaceInFreeLayout;
+        None, Left, Top, Bottom, Right
+    }
+
+    /// <summary>
+    /// If set to a 
+    /// Works with the "Free" layout only.
+    /// </summary>
+    public UIDockDirection Dock
+    {
+        get => _dock;
         set
         {
-            _reducesParentSpaceInFreeLayout = value;
+            if(value != UIDockDirection.None)
+            {
+                bool a = true;
+            }
+
+            if (value == _dock) return;
+            _dock = value;
             InvalidateLayout();
         }
     }
+    private UIDockDirection _dock = UIDockDirection.None;
 
-    private bool _reducesParentSpaceInFreeLayout;
+    private Vector2 GetDockMask()
+    {
+        switch(_dock)
+        {
+            case UIDockDirection.Top:
+            case UIDockDirection.Bottom:
+                return new Vector2(0, 1);
+            case UIDockDirection.Left:
+            case UIDockDirection.Right:
+                return new Vector2(1, 0);
+            default:
+                return Vector2.Zero;
+        }
+    }
 
     // ReSharper disable once InconsistentNaming
     protected static List<UIBaseWindow> EMPTY_CHILDREN_LIST = new(0);
@@ -293,9 +318,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
                 // The biggest window decides how big the free layout parent should be.
                 usedSpace = Vector2.Max(usedSpace, childSize);
 
-                // Children that reduce parent size need to be added additionally.
-                if (child.ReducesParentSpaceInFreeLayout)
-                    consumedSpace += childSize;
+                // Children that reduce parent size (docked) need to be added additionally.
+                consumedSpace += childSize * child.GetDockMask();
             }
         }
 
@@ -369,7 +393,8 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
 
             child.Layout(childPos, childSize);
 
-            if (insideParent && child.ReducesParentSpaceInFreeLayout)
+            var childDock = child._dock;
+            if (insideParent && childDock != UIDockDirection.None)
             {
                 var childRect = child.Bounds;
 
@@ -380,35 +405,20 @@ public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWi
                 childRect.Width += childScaledMargins.X + childScaledMargins.Width;
                 childRect.Height += childScaledMargins.Y + childScaledMargins.Height;
 
-                childRect.GetMinMaxPoints(out Vector2 childMin, out Vector2 childMax);
-                Vector2 childTopRight = new Vector2(childMax.X, childMin.Y);
-                Vector2 childBottomLeft = new Vector2(childMin.X, childMax.Y);
-
-                childSpaceRect.GetMinMaxPoints(out Vector2 parentMin, out Vector2 parentMax);
-                Vector2 parentTopRight = new Vector2(parentMax.X, parentMin.Y);
-                Vector2 parentBottomLeft = new Vector2(parentMin.X, parentMax.Y);
-
-                // Find which points match on the parent and child to know which way
-                // to subtract from the parent rect.
-                bool topLeft = childMin == parentMin;
-                bool topRight = childTopRight == parentTopRight;
-                bool bottomLeft = childBottomLeft == parentBottomLeft;
-                bool bottomRight = childMax == parentMax;
-
-                if (topRight && (bottomRight || !bottomLeft || !topLeft))
+                if (childDock == UIDockDirection.Right)
                 {
                     childSpaceRect.Width -= childRect.Width;
                 }
-                else if(bottomLeft && (bottomRight || !bottomLeft || !topLeft))
+                else if(childDock == UIDockDirection.Bottom)
                 {
                     childSpaceRect.Height -= childRect.Height;
                 }
-                else if(topLeft && bottomLeft)
+                else if(childDock == UIDockDirection.Left)
                 {
                     childSpaceRect.X += childRect.X;
                     childSpaceRect.Width -= childRect.Width;
                 }
-                else if(topLeft && topRight)
+                else if(childDock == UIDockDirection.Top)
                 {
                     childSpaceRect.Y += childRect.Height;
                     childSpaceRect.Height -= childRect.Height;
