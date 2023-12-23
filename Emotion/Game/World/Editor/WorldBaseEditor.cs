@@ -113,6 +113,7 @@ public abstract partial class WorldBaseEditor
 
         DisposeEditorInterface();
         DisposeObjectEditor();
+        EditorInvalidateUndoHistory();
         ExitEditorInternal();
         Engine.Host.OnKey.RemoveListener(EditorBarrierInputHandler);
 
@@ -224,7 +225,7 @@ public abstract partial class WorldBaseEditor
 
         if (key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
         {
-            EditorUndoLastAction();
+            EditorUndoLastAction(this);
             return false;
         }
 

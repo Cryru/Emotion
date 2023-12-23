@@ -3,6 +3,7 @@
 #region Using
 
 using System.Threading.Tasks;
+using Emotion.Game.World.Editor.Actions;
 using Emotion.Game.World2D.Tile;
 using Emotion.Game.World3D.Objects;
 using Emotion.Platform.Input;
@@ -14,11 +15,11 @@ namespace Emotion.Game.World2D.Editor;
 
 public partial class World2DEditor
 {
-    // Tile selection
-    private Vector2? _tileBrush = null;
+    protected Vector2? _tileBrush = null;
+    protected bool _mouseDown = false;
+    protected WorldEditor2DActionTileChange? _lastAction;
 
     protected SquareGrid3D? _grid;
-
     protected UIBaseWindow? _tileEditor;
 
     protected void InitializeTileEditor()
@@ -57,19 +58,12 @@ public partial class World2DEditor
         var mapTileData = GetMapTileData();
         if (mapTileData == null) return true;
 
-        if (key == Key.MouseKeyLeft && status == KeyStatus.Up)
+        if (key == Key.MouseKeyLeft)
         {
-            MapEditorTilePanel? editor = _tileEditor as MapEditorTilePanel;
-            AssertNotNull(editor);
+            _mouseDown = status == KeyStatus.Down;
 
-            Map2DTileMapLayer? layerToPlaceIn = editor.GetLayer();
-            uint tileToPlace = editor.GetTidToPlace();
-
-            if (layerToPlaceIn != null && _tileBrush != null)
-            {
-                var tileBrush1D = mapTileData.GetTile1DFromTile2D(_tileBrush.Value);
-                mapTileData.SetTileData(layerToPlaceIn, tileBrush1D, tileToPlace);
-            }
+            // Clear last action to group undos by mouse clicks.
+            if (!_mouseDown) _lastAction = null;
         }
 
         return true;
@@ -79,6 +73,7 @@ public partial class World2DEditor
     {
         _tileBrush = null;
         if (!IsTileEditorOpen()) return;
+
         bool mouseInUI = UIController.MouseFocus != null && UIController.MouseFocus != _editUI;
         if (mouseInUI) return;
 
@@ -97,9 +92,10 @@ public partial class World2DEditor
         uint tId = tileData.GetTileData(selectedLayer, tileBrush1D);
 
         if (_bottomBarText != null)
-        {
             _bottomBarText.Text = $"Rollover ({tilePos}) TId - {(tId == 0 ? "0 (Empty)" : tId.ToString())}";
-        }
+
+        if (_mouseDown)
+            PaintCurrentTile();
     }
 
     protected void RenderTileEditor(RenderComposer c)
@@ -115,20 +111,29 @@ public partial class World2DEditor
             var mapTileData = GetMapTileData();
             if (mapTileData == null) return;
 
+            var currentTool = editor.CurrentTool;
             var tileSize = mapTileData.TileSize;
 
             Map2DTileMapLayer? layerToPlaceIn = editor.GetLayer();
             uint tileToPlace = editor.GetTidToPlace();
-            Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
 
-            Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
-
-            c.ClearDepth();
             var pos = _tileBrush.Value;
-            if (tileToPlace != 0)
-                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
-            c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Blue * 0.2f);
-            c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyBlue, 1f);
+            if (currentTool == TileEditorTool.Brush)
+            {
+                Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
+                Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
+                c.ClearDepth();
+                if (tileToPlace != 0)
+                    c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
+                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Blue * 0.2f);
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyBlue, 1f);
+            }
+            else if (currentTool == TileEditorTool.Eraser)
+            {
+                c.ClearDepth();
+                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.PrettyPink * 0.2f);
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyPink, 1f);
+            }
         }
     }
 
@@ -142,5 +147,45 @@ public partial class World2DEditor
     protected bool IsTileEditorOpen()
     {
         return _tileEditor != null && _tileEditor.Controller != null;
+    }
+
+    private void PaintCurrentTile()
+    {
+        MapEditorTilePanel? editor = _tileEditor as MapEditorTilePanel;
+        AssertNotNull(editor);
+
+        Map2DTileMapLayer? layerToPlaceIn = editor.GetLayer();
+        if (layerToPlaceIn == null || _tileBrush == null) return;
+
+        var mapTileData = GetMapTileData();
+        if (mapTileData == null) return;
+
+        var tileBrush1D = mapTileData.GetTile1DFromTile2D(_tileBrush.Value);
+        uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, tileBrush1D);
+
+        WorldEditor2DActionTileChange? undoAction = _lastAction;
+        if (undoAction == null)
+        {
+            undoAction = new WorldEditor2DActionTileChange(this, layerToPlaceIn);
+        }
+
+        switch (editor.CurrentTool)
+        {
+            case TileEditorTool.Eraser:
+                mapTileData.SetTileData(layerToPlaceIn, tileBrush1D, 0);
+                break;
+            case TileEditorTool.Brush:
+                uint tileToPlace = editor.GetTidToPlace();
+                if (tileToPlace == 0) return;
+                mapTileData.SetTileData(layerToPlaceIn, tileBrush1D, tileToPlace);
+                break;
+        }
+
+        undoAction.AddToEditHistory(tileBrush1D, previousTileID);
+        if (_lastAction == null)
+        {
+            _lastAction = undoAction;
+            EditorRegisterAction(_lastAction);
+        }
     }
 }

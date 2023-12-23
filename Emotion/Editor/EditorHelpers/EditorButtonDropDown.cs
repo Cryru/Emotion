@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Common.Serialization;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
@@ -40,6 +41,7 @@ public class EditorButtonDropDown : UIBaseWindow
     protected int _currentOption;
     protected EditorDropDownItem[] _items;
 
+    [DontSerialize]
     public Action<int, EditorDropDownItem>? OnSelectionChanged;
 
     public EditorButtonDropDown()
@@ -130,7 +132,6 @@ public class EditorButtonDropDown : UIBaseWindow
         {
             var dropDown = new EditorDropDown(true);
             dropDown.Offset = button.RenderBounds.BottomLeft / button.GetScale();
-
             dropDown.SetItems(_items, (i, selected) => SetSelectedItem(i));
             Controller!.AddChild(dropDown);
         };

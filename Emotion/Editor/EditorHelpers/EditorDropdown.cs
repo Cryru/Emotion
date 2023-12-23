@@ -17,9 +17,11 @@ public class EditorDropDown : UIDropDown
 {
     public bool CloseOnClick;
 
+    [DontSerialize]
     public UICallbackListNavigator List;
 
-    [DontSerialize] public Action? OnCloseProxy;
+    [DontSerialize]
+    public Action? OnCloseProxy;
 
     public EditorDropDown(bool closeOnClick = false)
     {
@@ -67,7 +69,6 @@ public class EditorDropDown : UIDropDown
     protected override void AfterRenderChildren(RenderComposer c)
     {
         base.AfterRenderChildren(c);
-
     }
 
     public void SetItems(EditorDropDownItem[]? items, Action<int, EditorDropDownItem>? selectedCallback = null)

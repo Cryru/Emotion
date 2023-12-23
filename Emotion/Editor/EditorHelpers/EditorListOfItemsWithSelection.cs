@@ -39,7 +39,6 @@ public class EditorListOfItemsWithSelection<T> : UIBaseWindow
             ListSpacing = new Vector2(0, 0),
             HideScrollBarWhenNothingToScroll = true,
         };
-        AddChild(list);
 
         var scrollBar = new EditorScrollBar
         {
@@ -49,6 +48,7 @@ public class EditorListOfItemsWithSelection<T> : UIBaseWindow
         };
         list.SetScrollbar(scrollBar);
         AddChild(scrollBar);
+        AddChild(list);
 
         for (int i = 0; i < _items.Count; i++)
         {
@@ -96,7 +96,7 @@ public class EditorListOfItemsWithSelection<T> : UIBaseWindow
 
         if (isShiftHeld)
         {
-
+            // todo: select all between current and last selected
         }
         else if (isCtrlHeld)
         {

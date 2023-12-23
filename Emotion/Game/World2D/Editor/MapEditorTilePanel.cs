@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World2D.Tile;
 using Emotion.UI;
@@ -11,8 +12,19 @@ using Emotion.UI;
 
 namespace Emotion.Game.World2D.Editor;
 
+public enum TileEditorTool
+{
+    Brush,
+    Eraser,
+
+    // Pointer = todo: allows copy paste of sections
+    // ColorPicker = todo: tile picker from the selected layer :)
+}
+
 public class MapEditorTilePanel : EditorPanel
 {
+    public TileEditorTool CurrentTool = TileEditorTool.Brush;
+
     private Map2D _map;
     private EditorListOfItemsWithSelection<Map2DTileMapLayer> _layerList = null!;
     private EditorButtonDropDown _tileSetList = null!;
@@ -85,14 +97,14 @@ public class MapEditorTilePanel : EditorPanel
 
         // todo: reverse order.
         var layerList = new EditorListOfItemsWithSelection<Map2DTileMapLayer>();
-        layerList.SetItems(_map.Tiles.Layers);
         layerList.OnSelectionChanged = (i, item, selected) =>
         {
             if (selected) _currentLayer = item;
         };
+        layerList.SetItems(_map.Tiles.Layers);
         layerList.AllowMultiSelect = true;
-        layerList.MinSizeY = 120;
-        layerList.MaxSizeY = 120;
+        layerList.MinSizeY = 99;
+        layerList.MaxSizeY = 99;
         _layerList = layerList;
         layerListContainer.AddChild(layerList);
 
@@ -116,9 +128,11 @@ public class MapEditorTilePanel : EditorPanel
         var tileSelector = new TilesetTileSelector(_map.Tiles);
         tileSelector.Id = "TileSelector";
         tileSelector.SetTileset(_currentTileset);
-        tileSelector.MaxSizeY = 140; // temp;
+        tileSelector.MaxSizeY = 160; // temp;
         _tileSelector = tileSelector;
         innerContainer.AddChild(tileSelector);
+
+        GenerateToolWindow();
     }
 
     public Map2DTileMapLayer? GetLayer()
@@ -130,5 +144,75 @@ public class MapEditorTilePanel : EditorPanel
     {
         if (_tileSelector == null || _tileSelector.SelectedTiles.Count == 0) return 0;
         return _tileSelector.SelectedTiles[0];
+    }
+
+    private void GenerateToolWindow()
+    {
+        var toolWindow = new UIBaseWindow();
+        toolWindow.UseNewLayoutSystem = true;
+        toolWindow.ParentAnchor = UIAnchor.TopLeft;
+        toolWindow.Anchor = UIAnchor.TopRight;
+        toolWindow.FillX = false;
+        toolWindow.FillY = false;
+        _container.AddChild(toolWindow);
+
+        var toolWindowBG = new UISolidColor();
+        toolWindowBG.WindowColor = MapEditorColorPalette.BarColor;
+        toolWindow.AddChild(toolWindowBG);
+
+        var toolWindowList = new UIBaseWindow();
+        toolWindowList.LayoutMode = LayoutMode.VerticalList;
+        toolWindowList.ListSpacing = new Vector2(0, 1);
+        toolWindow.AddChild(toolWindowList);
+
+        var selectedColor = new Color(210, 210, 210);
+        var normalColor = new Color(140, 140, 140);
+        var rolloverColor = new Color(170, 170, 170);
+
+        UISolidColor? previousSelectedTool = null;
+
+        var tools = Enum.GetNames(typeof(TileEditorTool));
+        var toolsEnumVal = Enum.GetValues<TileEditorTool>();
+        for (int i = 0; i < tools.Length; i++)
+        {
+            var myIdx = i;
+            var myTool = toolsEnumVal[i];
+
+            var window = new UICallbackButton();
+
+            bool isSelected = CurrentTool == myTool;
+            var windowBackground = new UISolidColor();
+            windowBackground.WindowColor = isSelected ? selectedColor : normalColor;
+            window.AddChild(windowBackground);
+            if (isSelected) previousSelectedTool = windowBackground;
+
+            window.OnClickedProxy = (_) =>
+            {
+                CurrentTool = myTool;
+
+                if (previousSelectedTool != null) previousSelectedTool.WindowColor = normalColor;
+                previousSelectedTool = windowBackground;
+
+                windowBackground.WindowColor = selectedColor;
+            };
+            window.OnMouseEnterProxy = (_) =>
+            {
+                bool isSelected = CurrentTool == myTool;
+                windowBackground.WindowColor = isSelected ? selectedColor : rolloverColor;
+            };
+            window.OnMouseLeaveProxy = (_) =>
+            {
+                bool isSelected = CurrentTool == myTool;
+                windowBackground.WindowColor = isSelected ? selectedColor : normalColor;
+            };
+            window.Paddings = new Rectangle(1, 1, 1, 1);
+
+            var iconUI = new UITexture();
+            iconUI.TextureFile = $"Editor/{tools[i]}.png";
+            iconUI.ImageScale = new Vector2(0.5f);
+            window.AddChild(iconUI);
+
+            toolWindowList.AddChild(window);
+        }
     }
 }

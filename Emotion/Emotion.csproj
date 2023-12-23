@@ -128,7 +128,13 @@
     <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll" Condition="$(DefineConstants.Contains('Superluminal'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\Editor\Brush.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Editor\Checkmark.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Editor\Eraser.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Editor\LittleArrow.png">

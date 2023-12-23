@@ -197,7 +197,7 @@ public abstract partial class WorldBaseEditor
                 }
 
             _objectDragging.Position = newPos.ToVec3(_objectDragging.Z);
-            EditorRegisterMoveAction(_objectDragging, _objectDragStartPos.ToVec3(), _objectDragging.Position);
+            EditorRegisterObjectMoveAction(_objectDragging, _objectDragStartPos.ToVec3(), _objectDragging.Position);
         }
     }
 
@@ -216,7 +216,7 @@ public abstract partial class WorldBaseEditor
         if (recordUndo)
         {
             object? oldValue = field.ReflectionInfo!.GetValue(obj);
-            EditorRegisterObjectMutateAction(obj, field, oldValue);
+            EditorRegisterObjectMutateAction(this, obj, field, oldValue);
         }
 
         // Clean the object of unserialized properties.
@@ -739,6 +739,7 @@ public abstract partial class WorldBaseEditor
         _objectDragOffset = newObj.Size / 2f;
     }
 
+    // todo: unpublic this
     public bool IsPropertyDifferentFromPrefab(BaseGameObject obj, XMLFieldHandler field)
     {
         if (obj.PrefabOrigin == null) return false;

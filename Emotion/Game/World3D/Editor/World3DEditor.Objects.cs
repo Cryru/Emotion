@@ -25,7 +25,7 @@ public partial class World3DEditor
                 var gizmo = new TranslationGizmo();
                 await gizmo.LoadAssetsAsync();
                 MoveGizmo = gizmo;
-                gizmo.TargetMoved = (obj, start, movedTo) => { EditorRegisterMoveAction((BaseGameObject) obj, start, movedTo); };
+                gizmo.TargetMoved = (obj, start, movedTo) => { EditorRegisterObjectMoveAction((BaseGameObject) obj, start, movedTo); };
             });
 
         // Cache collision vertices for all objects on editor enter.

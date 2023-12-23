@@ -18,11 +18,6 @@ public partial class World2DEditor
         Map2D? map = CurrentMap;
         EditorButton tilesMenu = EditorDropDownButton("Tiles", new[]
         {
-            // false by default, mouseover shows props, alt switch layers
-            //new EditorDropDownButtonDescription
-            //{
-            //	Name = $"Selection: {(_tileSelect ? "Enabled" : "Disabled")}"
-            //},
             // Shows layers, tilesets and other special editors for this mode, disables object selection while open
             new EditorDropDownItem
             {

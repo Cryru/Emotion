@@ -26,4 +26,10 @@ public class EditorActionMove : IWorldEditorAction
     {
         return $"Moved {ObjTarget} From {StartPos} to {NewPos}";
     }
+
+    public bool IsStillValid(WorldBaseEditor editor)
+    {
+        if (ObjTarget.ObjectState == ObjectState.Destroyed) return false;
+        return true;
+    }
 }

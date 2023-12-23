@@ -7,11 +7,18 @@ using Emotion.Standard.XML;
 
 namespace Emotion.Game.World.Editor;
 
+#nullable enable
+
 public abstract partial class WorldBaseEditor
 {
-    protected List<IWorldEditorAction> _actions = new();
+    protected static List<IWorldEditorAction> _actions = new();
 
-    protected void EditorRegisterMoveAction(BaseGameObject obj, Vector3 from, Vector3 to)
+    public static void EditorInvalidateUndoHistory()
+    {
+        _actions.Clear();
+    }
+
+    public static void EditorRegisterObjectMoveAction(BaseGameObject obj, Vector3 from, Vector3 to)
     {
         if (from == to) return;
 
@@ -35,18 +42,36 @@ public abstract partial class WorldBaseEditor
         _actions.Add(newMove);
     }
 
-    protected void EditorRegisterObjectMutateAction(BaseGameObject obj, XMLFieldHandler fieldHandler, object? oldValue)
+    public static void EditorRegisterObjectMutateAction(
+        WorldBaseEditor editor,
+        BaseGameObject obj,
+        XMLFieldHandler fieldHandler,
+        object? oldValue
+    )
     {
-        var newMutate = new WorldEditorActionMutate(this, obj, fieldHandler, oldValue);
+        var newMutate = new WorldEditorActionMutate(editor, obj, fieldHandler, oldValue);
         _actions.Add(newMutate);
     }
 
-    protected void EditorUndoLastAction()
+    public static void EditorRegisterAction(IWorldEditorAction action)
+    {
+        _actions.Add(action);
+    }
+
+    public static void EditorUndoLastAction(WorldBaseEditor editor)
     {
         if (_actions.Count <= 0) return;
 
-        IWorldEditorAction lastAction = _actions[^1];
-        lastAction.Undo();
-        _actions.RemoveAt(_actions.Count - 1);
+        for (int i = _actions.Count - 1; i >= 0; i--)
+        {
+            IWorldEditorAction lastAction = _actions[i];
+            _actions.RemoveAt(i);
+
+            if (lastAction.IsStillValid(editor))
+            {
+                lastAction.Undo();
+                break;
+            }
+        }
     }
 }

@@ -32,4 +32,10 @@ public class WorldEditorActionMutate : IWorldEditorAction
     {
         return $"Changed {ObjTarget} property {Field.Name}";
     }
+
+    public bool IsStillValid(WorldBaseEditor editor)
+    {
+        // todo
+        return true;
+    }
 }
