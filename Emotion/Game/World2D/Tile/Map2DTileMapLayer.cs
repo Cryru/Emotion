@@ -192,6 +192,7 @@ namespace Emotion.Game.World2D.Tile
 
         public override string ToString()
         {
+            if (Name == "") return "Unnamed Tile Layer";
             return Name;
         }
     }

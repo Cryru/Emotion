@@ -44,7 +44,7 @@ public partial class World2DEditor
 
         _grid.TileSize = tileData.TileSize.X;
         _grid.GridOffset = Vector2.Zero;
-        _grid.Tint = Color.Black.Clone().SetAlpha(125);
+        _grid.Tint = Color.Black.Clone().SetAlpha(90);
         _grid.Size3D = (tileData.TileSize * tileData.SizeInTiles).ToVec3();
         _grid.Position = Vector3.Zero + _grid.Size3D / 2f;
         _grid.ApplyTopLeftOriginCorrection = true;
@@ -123,10 +123,12 @@ public partial class World2DEditor
 
             Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
 
+            c.ClearDepth();
             var pos = _tileBrush.Value;
             if (tileToPlace != 0)
                 c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
             c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Blue * 0.2f);
+            c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyBlue, 1f);
         }
     }
 
