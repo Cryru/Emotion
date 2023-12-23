@@ -8,7 +8,7 @@ using Emotion.Common.Serialization;
 
 namespace Emotion.UI;
 
-public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
+public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
 {
     // Legacy attributes
 #if NEW_UI

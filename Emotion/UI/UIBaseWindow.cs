@@ -17,7 +17,7 @@ using Emotion.Utility;
 namespace Emotion.UI
 {
     [DontSerializeMembers("Position", "Size")]
-    public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
+    public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
     {
         public static float DefaultMaxSizeF = 9999;
 

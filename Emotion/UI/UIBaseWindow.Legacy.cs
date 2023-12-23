@@ -4,7 +4,7 @@ namespace Emotion.UI;
 
 #if !NEW_UI
 
-public partial class UIBaseWindow : Transform, IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
+public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
 {
     [Obsolete("Deprecated for HandleInput/ChildrenHandleInput")]
     public bool InputTransparent

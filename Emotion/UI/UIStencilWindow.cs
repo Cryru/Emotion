@@ -18,7 +18,7 @@ namespace Emotion.UI
             c.SetStencilTest(true);
             c.ToggleRenderColor(false);
             c.StencilStartDraw();
-            c.RenderSprite(this, Color.White);
+            c.RenderSprite(Position, Size, Color.White);
             c.ToggleRenderColor(true);
             c.StencilFillIn();
 
