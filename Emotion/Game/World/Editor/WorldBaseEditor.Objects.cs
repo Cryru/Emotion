@@ -319,7 +319,7 @@ public abstract partial class WorldBaseEditor
 
         Vector3 worldPos = GetMouseWorldPosition();
         ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes)!;
-        var newObj = (BaseGameObject) constructor.Invoke(null);
+        var newObj = (BaseGameObject)constructor.Invoke(null);
         newObj.ObjectFlags |= ObjectFlags.Persistent;
         newObj.Position = worldPos;
 
@@ -348,34 +348,51 @@ public abstract partial class WorldBaseEditor
         bool noMouseFocus = UIController.MouseFocus == _editUI || UIController.MouseFocus == null || UIController.MouseFocus is MapEditorObjectNameplate;
         bool controlHeld = Engine.Host.IsCtrlModifierHeld();
 
-        if ((leftClick || rightClick) && status == KeyStatus.Down)
+        if (leftClick)
         {
-            if (_rolloverObject != null)
+            if (status == KeyStatus.Down)
             {
-                SelectObject(_rolloverObject);
-                if (rightClick)
+                if (_rolloverObject != null)
                 {
-                    if (noMouseFocus)
-                        EditorOpenContextMenuForObject(_rolloverObject);
+                    SelectObject(_rolloverObject);
+
+                    if (this is World2DEditor) // temp
+                    {
+                        _objectDragging = _rolloverObject;
+                        Vector2 mouseScreen = Engine.Host.MousePosition;
+                        Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
+                        _objectDragOffset = _objectDragging.Position2 - mouseWorld;
+                        _objectDragStartPos = _objectDragging.Position2;
+                    }
                 }
-                else if (this is World2DEditor) // temp
+                else
                 {
-                    _objectDragging = _rolloverObject;
-                    Vector2 mouseScreen = Engine.Host.MousePosition;
-                    Vector2 mouseWorld = Engine.Renderer.Camera.ScreenToWorld(mouseScreen).ToVec2();
-                    _objectDragOffset = _objectDragging.Position2 - mouseWorld;
-                    _objectDragStartPos = _objectDragging.Position2;
+                    SelectObject(null);
                 }
             }
-            else if (rightClick)
+            else if (status == KeyStatus.Up)
             {
-                if (noMouseFocus)
-                    EditorOpenContextMenuObjectModeNoSelection();
+                _objectDragging = null;
             }
         }
-        else if (leftClick && status == KeyStatus.Up)
+
+        if (rightClick && noMouseFocus)
         {
-            _objectDragging = null;
+            if (status == KeyStatus.Down)
+            {
+                if (_rolloverObject != null)
+                {
+                    EditorOpenContextMenuForObject(_rolloverObject);
+                }
+                else
+                {
+                    EditorOpenContextMenuObjectModeNoSelection();
+                }
+            }
+            else if (status == KeyStatus.Up)
+            {
+
+            }
         }
 
         if (noMouseFocus && controlHeld && status == KeyStatus.Down)
@@ -559,7 +576,7 @@ public abstract partial class WorldBaseEditor
             worldAttachUI.Visible = true;
 
             BaseGameObject? obj = _rolloverObject;
-            var text = (UIText?) worldAttachUI.GetWindowById("text")!;
+            var text = (UIText?)worldAttachUI.GetWindowById("text")!;
             var txt = new StringBuilder();
             txt.AppendLine($"Name: [{obj.UniqueId}] {obj.ObjectName ?? "null"}");
             txt.AppendLine($"Class: {obj.GetType().Name}");
@@ -677,7 +694,7 @@ public abstract partial class WorldBaseEditor
             prefabData.DefaultProperties.Add(new Dictionary<string, object?>());
         Dictionary<string, object?> thisVersionPropertyList = prefabData.DefaultProperties[prefabData.PrefabVersion - 1];
 
-        var typeHandler = (XMLComplexBaseTypeHandler) XMLHelpers.GetTypeHandler(obj.GetType())!;
+        var typeHandler = (XMLComplexBaseTypeHandler)XMLHelpers.GetTypeHandler(obj.GetType())!;
         IEnumerator<XMLFieldHandler> fields = typeHandler.EnumFields();
         while (fields.MoveNext())
         {

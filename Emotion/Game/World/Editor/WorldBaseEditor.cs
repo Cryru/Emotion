@@ -180,6 +180,7 @@ public abstract partial class WorldBaseEditor
 
         RenderState prevState = c.CurrentState.Clone();
 
+        c.ClearDepth();
         RenderInternal(c);
         RenderObjectSelection(c);
 
