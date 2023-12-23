@@ -16,7 +16,7 @@ public class PropEditorArrayPanel : EditorPanel
     protected PropEditorArray _propEditor;
     protected bool _canCreateItems;
 
-    protected UICallbackListNavigator _list = null!;
+    protected EditorListOfItemsWithSelection<object?> _list = null!;
     protected UIBaseWindow _rightSide = null!;
     protected int _selectedObjectIdx = -1;
 
@@ -45,7 +45,7 @@ public class PropEditorArrayPanel : EditorPanel
                 StretchX = true,
                 StretchY = true,
                 LayoutMode = LayoutMode.HorizontalList,
-                Margins = new Rectangle(0, 0, 0, 5),
+                Margins = new Rectangle(0, 0, 0, 3),
                 ListSpacing = new Vector2(5, 0)
             };
             leftPart.AddChild(buttonList);
@@ -75,38 +75,28 @@ public class PropEditorArrayPanel : EditorPanel
                 leftPart.AddChild(editorLabel);
             }
 
-            var listContainer = new UIBaseWindow
-            {
-                StretchX = true,
-                StretchY = true,
-                LayoutMode = LayoutMode.HorizontalList,
-                ZOffset = 10
-            };
-            leftPart.AddChild(listContainer);
+            // UseNewLayoutSystem V
+            var newUILayoutContainer = new UIBaseWindow();
+            newUILayoutContainer.StretchX = true;
+            newUILayoutContainer.StretchY = true;
+            leftPart.AddChild(newUILayoutContainer);
 
-            var listNav = new UICallbackListNavigator
+            var list = new EditorListOfItemsWithSelection<object?>();
+            list.OnSelectionChanged = (i, item, selected) =>
             {
-                LayoutMode = LayoutMode.VerticalList,
-                StretchX = true,
-                ListSpacing = new Vector2(0, 1),
-                Margins = new Rectangle(0, 0, 5, 0),
-                ChildrenAllSameWidth = true,
-                MinSizeX = 100
-            };
-            listNav.OnChoiceConfirmed += (wnd, idx) =>
-            {
-                if (wnd is not EditorButton nuSelButton) return;
-                int? userData = nuSelButton.UserData as int?;
-                _selectedObjectIdx = userData ?? -1;
+                if (selected) _selectedObjectIdx = i;
                 RegenerateSelection();
             };
-            listContainer.AddChild(listNav);
+            list.ResolveLabelCallback = (i, item) =>
+            {
+                var itemType = item?.GetType();
+                string itemString = item?.ToString() ?? "<null>";
 
-            var scrollBar = new EditorScrollBar();
-            listNav.SetScrollbar(scrollBar);
-            listContainer.AddChild(scrollBar);
+                return $"[{i}] {(itemString == itemType?.ToString() ? XMLHelpers.GetTypeName(itemType) : itemString)}";
+            };
+            newUILayoutContainer.AddChild(list);
 
-            _list = listNav;
+            _list = list;
         }
 
         var rightPart = new UIBaseWindow
@@ -141,26 +131,14 @@ public class PropEditorArrayPanel : EditorPanel
 
     private void RegenerateList()
     {
-        _list.ClearChildren();
-
+        List<object?> objects = new List<object?>();
         var length = _propEditor.GetLength();
         for (int i = 0; i < length; i++)
         {
             var item = _propEditor.GetItemAtIndex(i);
-            var itemType = item?.GetType();
-            string itemString = item?.ToString() ?? "<null>";
-
-            var uiForItem = new EditorButton
-            {
-                StretchY = true,
-                Text = $"[{i}] {(itemString == itemType?.ToString() ? XMLHelpers.GetTypeName(itemType) : itemString)}",
-                UserData = i,
-            };
-            uiForItem.MaxSizeX = 200;
-            _list.AddChild(uiForItem);
+            objects.Add(item);
         }
-
-        _list.SetupMouseSelection();
+        _list.SetItems(objects);
     }
 
     private void RegenerateSelection()
