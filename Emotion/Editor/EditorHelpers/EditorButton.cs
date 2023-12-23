@@ -66,6 +66,7 @@ public class EditorButton : UICallbackButton
         FillY = false;
 
         StretchX = true;
+        StretchY = true;
         Paddings = new Rectangle(2, 1, 2, 1);
     }
 

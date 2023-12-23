@@ -45,7 +45,7 @@ public class EditorDropDown : UIDropDown
         var scrollBar = new EditorScrollBar
         {
             MaxSizeY = 90,
-            ReducesParentSpaceInFreeLayout = true,
+            Dock = UIDockDirection.Right,
             DontTakeSpaceWhenHidden = true,
             Margins = new Rectangle(2, 0, 0, 0)
         };
@@ -70,7 +70,7 @@ public class EditorDropDown : UIDropDown
 
     }
 
-    public void SetItems(EditorDropDownItem[]? items, Action<EditorDropDownItem>? selectedCallback = null)
+    public void SetItems(EditorDropDownItem[]? items, Action<int, EditorDropDownItem>? selectedCallback = null)
     {
         List.ClearChildren();
 
@@ -79,6 +79,8 @@ public class EditorDropDown : UIDropDown
         List<PropEditorBool>? checkBoxes = null;
         for (var i = 0; i < items.Length; i++)
         {
+            var myIdx = i;
+
             EditorDropDownItem item = items[i];
             if (item is EditorDropDownCheckboxItem itemCheckBox)
             {
@@ -88,15 +90,14 @@ public class EditorDropDown : UIDropDown
                 checkMark.SetValue(itemCheckBox.Checked());
                 checkMark.SetCallbackValueChanged(newVal =>
                 {
-                    if (item.Click == null) return;
                     if (item.Enabled != null)
                     {
                         bool enabled = item.Enabled();
                         if (!enabled) return;
                     }
 
-                    selectedCallback?.Invoke(itemCheckBox);
-                    item.Click(item, null);
+                    selectedCallback?.Invoke(i, itemCheckBox);
+                    item.Click?.Invoke(item, null);
 
                     AssertNotNull(checkBoxes);
                     for (var c = 0; c < checkBoxes.Count; c++)
@@ -127,15 +128,14 @@ public class EditorDropDown : UIDropDown
                 };
                 ddButton.OnClickedProxy = _ =>
                 {
-                    if (item.Click == null) return;
                     if (item.Enabled != null)
                     {
                         bool enabled = item.Enabled();
                         if (!enabled) return;
                     }
 
-                    selectedCallback?.Invoke(item);
-                    item.Click(item, ddButton);
+                    selectedCallback?.Invoke(myIdx, item);
+                    item.Click?.Invoke(item, ddButton);
 
                     if (CloseOnClick) Controller?.RemoveChild(this);
                 };
