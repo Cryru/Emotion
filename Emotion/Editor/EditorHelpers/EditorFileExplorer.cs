@@ -2,7 +2,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.IO;
 using Emotion.UI;
@@ -12,7 +11,7 @@ using Emotion.Utility;
 
 #nullable enable
 
-namespace Emotion.Editor.EditorComponents;
+namespace Emotion.Editor.EditorHelpers;
 
 // todo: add asset -> open host dialog that allows filesystem access then copy to debug store and load in.
 // todo: Check if folders contain valid files?

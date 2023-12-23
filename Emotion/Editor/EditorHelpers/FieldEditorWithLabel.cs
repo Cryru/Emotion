@@ -1,11 +1,13 @@
 ﻿#region Using
 
 using Emotion.Editor.PropertyEditors;
+using Emotion.Game.World.Editor;
+using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.EditorHelpers
 {
     public class FieldEditorWithLabel : UIBaseWindow
     {
@@ -21,7 +23,7 @@ namespace Emotion.Game.World2D.EditorHelpers
             AddChild(label);
 
             if (editor == null) return;
-            var editorAsWnd = (UIBaseWindow) editor;
+            var editorAsWnd = (UIBaseWindow)editor;
             AddChild(editorAsWnd);
         }
     }

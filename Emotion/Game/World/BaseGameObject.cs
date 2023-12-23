@@ -4,7 +4,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
-using Emotion.Game.World2D.Editor;
+using Emotion.Game.World.Prefab;
 using Emotion.Graphics;
 
 #endregion

@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
-namespace Emotion.Game.World2D.Editor;
+using Emotion;
+
+namespace Emotion.Game.World.Prefab;
 
 public class GameObjectPrefab
 {

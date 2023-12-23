@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Editor;
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.Game.World2D;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Standard.XML;
 

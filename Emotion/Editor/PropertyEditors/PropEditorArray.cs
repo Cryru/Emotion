@@ -80,7 +80,7 @@ public class PropEditorArray : EditorButton, IPropEditorGeneric
     public void CreateItem()
     {
         var elementType = GetElementType();
-        var newItem = elementType == typeof(string) ? new string("New String") : Activator.CreateInstance(elementType, true);
+        var newItem = EditorUtility.CreateNewObjectOfType(elementType);
 
         var declType = Field!.TypeHandler.Type;
         if (declType.IsAssignableTo(typeof(Array)))

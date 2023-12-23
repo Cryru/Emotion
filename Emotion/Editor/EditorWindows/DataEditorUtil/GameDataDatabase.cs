@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Emotion.Game.World2D.EditorHelpers;
+using Emotion.Editor.EditorHelpers;
 using Emotion.IO;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
 

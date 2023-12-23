@@ -3,8 +3,8 @@
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Editor;
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World2D.Tile;
 using Emotion.Graphics;
 

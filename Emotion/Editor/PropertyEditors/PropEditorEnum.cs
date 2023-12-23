@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.UI;
 using Emotion.Utility;

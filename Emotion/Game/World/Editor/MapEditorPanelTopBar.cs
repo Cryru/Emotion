@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;
@@ -10,7 +9,7 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Game.World.Editor
 {
     public class MapEditorPanelTopBar : UIBaseWindow
     {

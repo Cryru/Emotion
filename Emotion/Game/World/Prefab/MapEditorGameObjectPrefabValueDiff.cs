@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.UI;
@@ -8,7 +9,7 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.Editor;
+namespace Emotion.Game.World.Prefab;
 
 public class MapEditorGameObjectPrefabValueDiff : UIBaseWindow
 {

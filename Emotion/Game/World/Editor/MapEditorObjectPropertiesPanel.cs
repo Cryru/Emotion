@@ -9,7 +9,6 @@ using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.World2D.Editor;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;

@@ -6,7 +6,7 @@ using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Game.World2D.EditorHelpers
+namespace Emotion.Editor.EditorHelpers
 {
     public class MapEditorLabel : UIText
     {
