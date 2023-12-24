@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
 using Emotion.UI;
 
@@ -8,7 +7,7 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.Game.World2D.Editor;
+namespace Emotion.Editor.EditorHelpers;
 
 public class EditorListOfItemsPanel<T> : EditorPanel where T : class
 {
@@ -20,7 +19,7 @@ public class EditorListOfItemsPanel<T> : EditorPanel where T : class
         {
             _text = value;
 
-            var introText = (UIText?) GetWindowById("IntroText");
+            var introText = (UIText?)GetWindowById("IntroText");
             if (introText != null)
             {
                 introText.Text = value;

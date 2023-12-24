@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using Emotion.Common.Serialization;
-using Emotion.Game.World.Editor;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.UI;
 using System.Linq;
 

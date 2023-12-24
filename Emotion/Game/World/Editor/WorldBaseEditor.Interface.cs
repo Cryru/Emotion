@@ -2,30 +2,26 @@
 
 #region Using
 
+#if CSHARP_SCRIPTING
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+#endif
 using System.Reflection;
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
-using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
 using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Text;
 using Emotion.Game.World.Editor.Actions;
+using Emotion.Game.World.Prefab;
 using Emotion.Game.World2D;
-using Emotion.Game.World2D.Editor;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
-#if CSHARP_SCRIPTING
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
-
-
-#endif
 
 #endregion
 
@@ -54,7 +50,7 @@ public abstract partial class WorldBaseEditor
 
         UIBaseWindow bottomBar = GetEditorBottomBar();
         _bottomBar = bottomBar;
-        _bottomBarText = (MapEditorLabel) bottomBar.GetWindowById("Label")!;
+        _bottomBarText = (MapEditorLabel)bottomBar.GetWindowById("Label")!;
         _editUI.AddChild(bottomBar);
 
         UIBaseWindow worldInspect = GetWorldAttachInspectWindow();

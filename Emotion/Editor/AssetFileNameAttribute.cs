@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Common.Threading;
-using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
 using Emotion.IO;

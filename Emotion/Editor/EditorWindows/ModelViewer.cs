@@ -2,19 +2,15 @@
 
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
-using Emotion.Editor.EditorComponents;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World.Editor;
-using Emotion.Game.World.Editor.EditorHelpers;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.Game.World3D.Objects;
-using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.IO.MeshAssetTypes;
