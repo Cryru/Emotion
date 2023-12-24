@@ -6,9 +6,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.World.Prefab;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
-using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Game.World3D;
 using Emotion.Game.World3D.Editor;
 using Emotion.Graphics;
@@ -196,7 +196,7 @@ public abstract partial class WorldBaseEditor
                     newPos *= tileSize;
                 }
 
-            _objectDragging.Position = newPos.ToVec3(_objectDragging.Z);
+            _objectDragging.Position = newPos.ToVec3(_objectDragging.Position.Z);
             EditorRegisterObjectMoveAction(_objectDragging, _objectDragStartPos.ToVec3(), _objectDragging.Position);
         }
     }
@@ -327,10 +327,10 @@ public abstract partial class WorldBaseEditor
         SelectObject(newObj);
 
         // Stick to mouse to be placed.
-        if (newObj is GameObject2D)
+        if (newObj is GameObject2D obj2D)
         {
             _objectDragging = newObj;
-            _objectDragOffset = newObj.Size / 2f;
+            _objectDragOffset = obj2D.Size / 2f;
         }
     }
 
@@ -591,7 +591,7 @@ public abstract partial class WorldBaseEditor
             }
             else
             {
-                Rectangle bounds = obj.Bounds;
+                Rectangle bounds = obj.Bounds2D;
                 Vector2 attachPoint = bounds.TopRight;
                 attachRolloverTo = attachPoint.ToVec3() + new Vector3(5, 0, 0);
             }
@@ -735,8 +735,11 @@ public abstract partial class WorldBaseEditor
         SelectObject(newObj);
 
         // Stick to mouse to be placed.
-        _objectDragging = newObj;
-        _objectDragOffset = newObj.Size / 2f;
+        if (newObj is GameObject2D obj2D)
+        {
+            _objectDragging = newObj;
+            _objectDragOffset = obj2D.Size / 2f;
+        }
     }
 
     // todo: unpublic this

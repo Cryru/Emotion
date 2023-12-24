@@ -8,6 +8,8 @@ using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
+using Emotion.Game.World.Prefab;
+using Emotion.Game.World2D;
 using Emotion.Game.World2D.Editor;
 using Emotion.Game.World3D;
 using Emotion.Standard.XML;
@@ -34,23 +36,21 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
         ObjectMap = Object.Map;
 
         if (_fields == null) return;
+
+        // todo: this should be a ShowInEditor attribute
         if (obj is GameObject3D)
         {
-            InjectDontSerializeProperty<Transform>("RotationDeg");
+            InjectDontSerializeProperty<GameObject3D>("RotationDeg");
             InjectDontSerializeProperty<GameObject3D>("CurrentAnimation");
 
             // Remove Size to show Size3D so axes are intuitive to the 3D world.
-            InjectDontSerializeProperty<Transform>("Size3D");
-            RemoveSerializedProperty<Transform>("Size");
-
-            RemoveSerializedProperty<Transform>("Depth");
+            InjectDontSerializeProperty<GameObject3D>("Size3D");
         }
         else
         {
             // Inject the "Center" property of Transform.
             // Since it isn't serialized it wont be returned, but its handy to have for objects.
-            InjectDontSerializeProperty<Transform>("Center");
-            RemoveSerializedProperty<Transform>("Depth");
+            InjectDontSerializeProperty<GameObject2D>("Center");
         }
     }
 

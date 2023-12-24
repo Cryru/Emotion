@@ -26,25 +26,25 @@ public partial class World2DEditor
         // Show selection of object, if any.
         if (_editUI?.DropDown?.OwningObject is BaseGameObject objectWithContextMenu)
         {
-            Rectangle bound = objectWithContextMenu.Bounds;
+            Rectangle bound = objectWithContextMenu.Bounds2D;
             c.RenderSprite(bound, Color.White * 0.3f);
         }
 
         if (_selectedObject != null && _selectedObject.ObjectState != ObjectState.Destroyed)
         {
-            Rectangle bound = _selectedObject.Bounds;
+            Rectangle bound = _selectedObject.Bounds2D;
             c.RenderSprite(bound, Color.White * 0.3f);
         }
 
         if (_rolloverObject != null)
         {
-            Rectangle bound = _rolloverObject.Bounds;
+            Rectangle bound = _rolloverObject.Bounds2D;
             c.RenderSprite(bound, Color.White * 0.3f);
         }
 
-        foreach (BaseGameObject obj in map.GetObjects(true))
+        foreach (BaseGameObject obj in map.ObjectsEnum(null))
         {
-            Rectangle bounds = obj.Bounds;
+            Rectangle bounds = obj.Bounds2D;
 
             if (!obj.ObjectFlags.HasFlag(ObjectFlags.Persistent))
             {

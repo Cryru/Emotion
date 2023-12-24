@@ -27,13 +27,13 @@ namespace Emotion.Game.ThreeDee.Editor
         /// <summary>
         /// The object the gizmo is currently affecting.
         /// </summary>
-        public Positional? Target { get; protected set; }
+        public BaseGameObject? Target { get; protected set; }
 
         public Mesh XAxis { get; protected set; }
         public Mesh YAxis { get; protected set; }
         public Mesh ZAxis { get; protected set; }
 
-        public Action<Positional, Vector3, Vector3>? TargetMoved;
+        public Action<BaseGameObject, Vector3, Vector3>? TargetMoved;
 
         protected Mesh? _meshMouseover;
         protected Vector3 _dragPointStart;
@@ -154,7 +154,7 @@ namespace Emotion.Game.ThreeDee.Editor
             return true;
         }
 
-        public void SetTarget(Transform? target)
+        public void SetTarget(BaseGameObject? target)
         {
             Target = target;
             if (target != null)

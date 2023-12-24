@@ -15,7 +15,7 @@ using Emotion.Graphics.ThreeDee;
 
 namespace Emotion.Game.World3D;
 
-public class GameObject3D : BaseGameObject
+public partial class GameObject3D : BaseGameObject
 {
     /// <summary>
     /// The current visual of this object.
@@ -96,9 +96,9 @@ public class GameObject3D : BaseGameObject
         Entity = Cube.GetEntity();
         EntityMetaState!.Scale = 10f;
 
-        _width = 1;
-        _depth = 1;
-        _height = 1;
+        _sizeX = 1;
+        _sizeY = 1;
+        _sizeZ = 1;
         Resized();
         Moved();
         Rotated();
@@ -110,9 +110,9 @@ public class GameObject3D : BaseGameObject
         Entity = Cube.GetEntity();
         EntityMetaState!.Scale = 10f;
 
-        _width = 1;
-        _depth = 1;
-        _height = 1;
+        _sizeX = 1;
+        _sizeY = 1;
+        _sizeZ = 1;
         Resized();
         Moved();
         Rotated();
@@ -143,51 +143,6 @@ public class GameObject3D : BaseGameObject
         c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null, ObjectFlags);
         c.PopModelMatrix();
     }
-
-    #region Transform 3D
-
-    protected Matrix4x4 _rotationMatrix;
-    protected Matrix4x4 _scaleMatrix;
-    protected Matrix4x4 _translationMatrix;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void Resized()
-    {
-        base.Resized();
-
-        float entityScale = Entity?.Scale ?? 1f;
-        entityScale = entityScale * EntityMetaState.Scale;
-
-        Assert(!float.IsNaN(_width));
-        Assert(!float.IsNaN(_depth));
-        Assert(!float.IsNaN(_height));
-        _scaleMatrix = Matrix4x4.CreateScale(_width * entityScale, _depth * entityScale, _height * entityScale);
-    }
-
-    protected override void Moved()
-    {
-        base.Moved();
-
-        _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
-    }
-
-    protected override void Rotated()
-    {
-        base.Rotated();
-
-        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
-
-        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-        Map?.InvalidateObjectBounds(this);
-    }
-
-    public Matrix4x4 GetModelMatrix()
-    {
-        if (_entity != null) return _entity.LocalTransform * _scaleMatrix * _rotationMatrix * _translationMatrix;
-        return _scaleMatrix * _rotationMatrix * _translationMatrix;
-    }
-
-    #endregion
 
     protected virtual void OnSetEntity()
     {
@@ -390,7 +345,7 @@ public class GameObject3D : BaseGameObject
             if (parentPos != Vector3.Zero)
             {
                 float height = Vector3.Distance(parentPos, bonePos);
-                coneMeshGenerator.Height = height * Height;
+                coneMeshGenerator.Height = height * _sizeZ;
 
                 // Look at params
                 Vector3 conePos = parentPos;

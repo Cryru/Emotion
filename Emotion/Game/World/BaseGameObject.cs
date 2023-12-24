@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
+using Emotion.Game.QuadTree;
 using Emotion.Game.World.Prefab;
 using Emotion.Graphics;
 
@@ -11,8 +12,18 @@ using Emotion.Graphics;
 
 namespace Emotion.Game.World;
 
-public abstract class BaseGameObject : Transform
+public abstract class BaseGameObject : IQuadTreeObject
 {
+    #region Transform API
+
+    public abstract Vector3 Position { get; set; }
+
+    public abstract Vector2 Position2 { get; set; }
+
+    public abstract Rectangle Bounds2D { get; set; }
+
+    #endregion
+
     /// <summary>
     /// The unique id of the object. Is assigned when added to the map.
     /// </summary>
@@ -121,16 +132,18 @@ public abstract class BaseGameObject : Transform
         Map = null!;
     }
 
-    protected override void Moved()
+    protected virtual void Moved()
     {
-        base.Moved();
+        OnMove?.Invoke(this, EventArgs.Empty);
+
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         Map?.InvalidateObjectBounds(this);
     }
 
-    protected override void Resized()
+    protected virtual void Resized()
     {
-        base.Resized();
+        OnResize?.Invoke(this, EventArgs.Empty);
+
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         Map?.InvalidateObjectBounds(this);
     }
@@ -180,4 +193,23 @@ public abstract class BaseGameObject : Transform
     {
         return $"Object [{UniqueId}] {ObjectName ?? $"{GetType().Name}"}";
     }
+
+    #region IQuadTreeObject
+
+    /// <summary>
+    /// Is invoked when the object moves.
+    /// </summary>
+    public event EventHandler? OnMove;
+
+    /// <summary>
+    /// Is invoked when the object's scale changes.
+    /// </summary>
+    public event EventHandler? OnResize;
+
+    public Rectangle GetBoundsForQuadTree()
+    {
+        return Bounds2D;
+    }
+
+    #endregion
 }

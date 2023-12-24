@@ -13,7 +13,8 @@ namespace Emotion.Game.World3D.Objects;
 
 public class GenericObject3D : GameObject3D
 {
-    [AssetFileName<MeshAsset>] public string? EntityPath;
+    [AssetFileName<MeshAsset>]
+    public string? EntityPath;
 
     private string? _setAnimationToOnLoad;
 

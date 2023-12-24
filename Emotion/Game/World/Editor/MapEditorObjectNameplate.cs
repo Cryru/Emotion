@@ -75,9 +75,9 @@ public class MapEditorObjectNameplate : UIWorldAttachedWindow
 
     protected override bool UpdateInternal()
     {
-        if (Object is GameObject2D)
+        if (Object is GameObject2D obj2D)
         {
-            AttachToPosition(new Vector3(Object.Bounds.X + Object.Bounds.Width / 2f, Object.Bounds.Y, 0));
+            AttachToPosition(new Vector3(obj2D.Bounds.X + obj2D.Bounds.Width / 2f, obj2D.Bounds.Y, 0));
         }
         else if (Object is GameObject3D obj3d)
         {

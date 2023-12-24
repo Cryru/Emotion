@@ -72,6 +72,6 @@ public class Quad3D : GameObject3D
     protected override void Resized()
     {
         base.Resized();
-        _height = 1;
+        _sizeZ = 1;
     }
 }
