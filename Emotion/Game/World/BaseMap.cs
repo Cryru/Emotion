@@ -295,7 +295,7 @@ public abstract partial class BaseMap
         for (var i = 0; i < objCount; i++)
         {
             BaseGameObject obj = GetObjectByIndex(i);
-            if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) continue;
+            if (obj.ObjectState != ObjectState.Alive) continue;
             obj.Update(dt);
         }
     }
