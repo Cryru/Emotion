@@ -38,6 +38,7 @@ namespace Emotion.Game
         /// <summary>
         /// Super simple rectangle collision resolver.
         /// </summary>
+        [Obsolete("Deprecated")]
         public static Vector2 GenericRectangleCollision(Vector2 movementVector, Rectangle mapBounds, Rectangle c, List<Rectangle> collisions)
         {
             // Check if going out of the map. This should rarely happen.
@@ -85,57 +86,6 @@ namespace Emotion.Game
         }
 
         /// <summary>
-        /// Runs GenericSegmentCollision in increments of one unit.
-        /// Produces most accurate collision results.
-        /// </summary>
-        public static CollisionResult<T> IncrementalGenericSegmentCollision<T>(Vector2 movementVector, IShape colBound, IEnumerable<CollisionNode<T>> collisionProvider)
-        {
-            var colResult = new CollisionResult<T>
-            {
-                UnobstructedMovement = movementVector
-            };
-
-            float moveX = movementVector.X;
-            float moveY = movementVector.Y;
-            Vector2 totalMoved = Vector2.Zero;
-            while (moveX != 0 || moveY != 0)
-            {
-                float moveAmountX;
-                if (MathF.Abs(moveX) >= 1.0f)
-                {
-                    moveAmountX = 1.0f * MathF.Sign(moveX);
-                    moveX = Maths.AbsSubtract(moveX);
-                }
-                else
-                {
-                    moveAmountX = moveX;
-                    moveX = 0;
-                }
-
-                float moveAmountY;
-                if (MathF.Abs(moveY) > 1.0f)
-                {
-                    moveAmountY = 1.0f * MathF.Sign(moveY);
-                    moveY = Maths.AbsSubtract(moveY);
-                }
-                else
-                {
-                    moveAmountY = moveY;
-                    moveY = 0.0f;
-                }
-
-                // ReSharper disable once PossibleMultipleEnumeration
-                colResult = GenericSegmentCollision(new Vector2(moveAmountX + totalMoved.X, moveAmountY + totalMoved.Y), colBound, collisionProvider);
-                Vector2 move = colResult.UnobstructedMovement;
-                if (move == Vector2.Zero) break;
-                totalMoved = move;
-            }
-
-            colResult.UnobstructedMovement = totalMoved;
-            return colResult;
-        }
-
-        /// <summary>
         /// A generic segment and rectangle/circle collision with vector projection.
         /// Circle is better for sliding off corners, but your collision will be as tall as it is wide.
         /// Would be best if could work with an ellipse.
@@ -143,6 +93,7 @@ namespace Emotion.Game
         /// <returns></returns>
         public static CollisionResult<T> GenericSegmentCollision<T>(Vector2 movementVector, IShape originalBound, IEnumerable<CollisionNode<T>> collisionProvider)
         {
+            movementVector = GetMostCanMoveInDirection(collisionProvider, originalBound, movementVector);
             var r = new CollisionResult<T>
             {
                 UnobstructedMovement = movementVector
@@ -293,6 +244,39 @@ namespace Emotion.Game
             }
 
             return closestNode;
+        }
+
+        /// <summary>
+        /// This function reduces the movement vector to the maximum possible before it hits a wall.
+        /// This ensures that no matter how fast the object is moving it wont tunnel.
+        /// </summary>
+        private static Vector2 GetMostCanMoveInDirection<T>(IEnumerable<CollisionNode<T>> collisionProvider, IShape originalBound, Vector2 movement)
+        {
+            Vector2 direction = Vector2.Normalize(movement);
+            float amount = movement.Length();
+            Vector2 start = originalBound.Center;
+            var ray2D = new Ray2D(start, direction);
+
+            foreach (CollisionNode<T> current in collisionProvider)
+            {
+                ref LineSegment surface = ref current.Surface;
+                Vector2 intersection = surface.GetIntersectionPoint(ref ray2D);
+                if (intersection != Vector2.Zero)
+                {
+                    var segmentBetweenBoundAndIntersection = new LineSegment(start, intersection);
+                    Vector2 intersectionWithShape = originalBound.GetIntersectionPoint(ref segmentBetweenBoundAndIntersection);
+                    float distBetweenShapeIntersectionAndCollisionIntersection = Vector2.Distance(intersection, intersectionWithShape);
+                    // We have the distance at the exact intersection point, which will result in no movement, so we need to move it back by
+                    // an epsilon in order to return the "most that can be moved".
+                    distBetweenShapeIntersectionAndCollisionIntersection -= Maths.EPSILON_BIGGER;
+                    amount = MathF.Min(amount, distBetweenShapeIntersectionAndCollisionIntersection);
+                }
+            }
+
+            if (amount < Maths.EPSILON_BIGGER) return Vector2.Zero;
+
+            // Reconstruct movement vector
+            return direction * amount;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
