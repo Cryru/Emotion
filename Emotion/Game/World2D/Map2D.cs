@@ -40,7 +40,7 @@ public class Map2D : BaseMap
         base.EditorCreateInitialize();
 
         // Initialize at least one layer.
-        TileData.Layers.Add(new Map2DTileMapLayer("First Layer", Array.Empty<uint>()));
+        Tiles.Layers.Add(new Map2DTileMapLayer("First Layer", Array.Empty<uint>()));
     }
 
     public override List<Type> GetValidObjectTypes()
