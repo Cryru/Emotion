@@ -295,7 +295,7 @@ namespace Emotion.Game.World2D.Tile
         /// <returns>The UV of the tid within the tsId.</returns>
         public Rectangle GetUVFromTileImageIdAndTileset(int tId, int tsId)
         {
-            Map2DTileset? ts = Tilesets[tsId];
+            Map2DTileset? ts = tsId < Tilesets.Count ? Tilesets[tsId] : null;
             if (ts == null || _tilesetRuntime == null) return Rectangle.Empty;
 
             var runtimeData = _tilesetRuntime[tsId];

@@ -125,7 +125,7 @@ public abstract partial class BaseMap
     [DontSerialize] public bool EditorMode;
 
     // We need to do some manual init as the serialization constructor will expect these to be present.
-    public void EditorCreateInitialize()
+    public virtual void EditorCreateInitialize()
     {
         MapSize = new Vector2(1, 1);
         PersistentObjects = new List<BaseGameObject>();

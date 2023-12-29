@@ -23,6 +23,7 @@ public class Map2D : BaseMap
 
     // legacy property name for tiles, dont use
     [SerializeNonPublicGetSet]
+    [DontShowInEditor]
     public Map2DTileMapData TileData { protected get => null; set => Tiles = value; }
 
     public Map2D(Vector2 size, string mapName = "Unnamed Map") : base(size, mapName)
@@ -32,6 +33,14 @@ public class Map2D : BaseMap
     // Serialization constructor
     protected Map2D()
     {
+    }
+
+    public override void EditorCreateInitialize()
+    {
+        base.EditorCreateInitialize();
+
+        // Initialize at least one layer.
+        TileData.Layers.Add(new Map2DTileMapLayer("First Layer", Array.Empty<uint>()));
     }
 
     public override List<Type> GetValidObjectTypes()

@@ -139,7 +139,7 @@ public class EditorListOfItemsWithSelection<T> : UIBaseWindow
         for (int i = 0; i < selection.Count; i++)
         {
             var newSel = selection[i];
-            if (!_selectedItems.Contains(newSel))
+            if (!_selectedItems.Contains(newSel) && newSel < _items.Count)
             {
                 var item = _items[newSel];
                 OnSelectionChanged?.Invoke(newSel, item, true);
