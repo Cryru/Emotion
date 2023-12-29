@@ -267,12 +267,8 @@ public static class GameDataDatabase
         Engine.AssetLoader.Save(fileData, $"{DATA_OBJECTS_PATH}/Intellisense.cs");
     }
 
-    // Patch the csproj file to copy to output the data xml files.
-    private static void UpdateCsProjFile()
+    private static string? GetCsProjFilePath()
     {
-        // Don't code gen in release mode lol
-        if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
-
         string fileFolder = DebugAssetStore.ProjectDevPath;
         string[] allFilesHere = Directory.GetFiles(fileFolder);
         string? csProjFile = null;
@@ -286,6 +282,16 @@ public static class GameDataDatabase
             }
         }
 
+        return csProjFile;
+    }
+
+    // Patch the csproj file to copy to output the data xml files.
+    private static void UpdateCsProjFile()
+    {
+        // Don't code gen in release mode lol
+        if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
+
+        var csProjFile = GetCsProjFilePath();
         if (csProjFile == null) return; // No file
 
         string csProjFileContents = File.ReadAllText(csProjFile);
@@ -342,5 +348,54 @@ public static class GameDataDatabase
         csProjFileContents = csProjFileContents.Insert(itemGroupStart, builder.ToString());
         csProjFileContents = csProjFileContents.Replace("\r\n", "\n");
         File.WriteAllText(csProjFile, csProjFileContents);
+    }
+
+    public static void RegisterAssetAsCopyNewerInProjectFile(string path)
+    {
+        // Don't code gen in release mode lol
+        if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
+
+        var csProjFile = GetCsProjFilePath();
+        if (csProjFile == null) return; // No file
+
+        string csProjFileContents = File.ReadAllText(csProjFile);
+        ReadOnlySpan<char> contentAsSpan = csProjFileContents.AsSpan();
+        StringBuilder builder = new StringBuilder();
+
+        int lastCopyNewestUse = contentAsSpan.LastIndexOf("PreserveNewest");
+        bool createNewGroup = lastCopyNewestUse == -1;
+        int flushedUpTo = -1;
+        if (createNewGroup)
+        {
+            // Create new item group
+            int finalTag = contentAsSpan.IndexOf("</Project>");
+            builder.Append(contentAsSpan.Slice(0, finalTag).ToString());
+            builder.AppendLine("\n  <ItemGroup>");
+        }
+        else
+        {
+            int lastItemInThatGroup = csProjFileContents.IndexOf("</None>", lastCopyNewestUse);
+            flushedUpTo = lastItemInThatGroup + "</None>".Length;
+            builder.AppendLine(csProjFileContents.Substring(0, flushedUpTo).ToString());
+            
+            if (flushedUpTo == -1) return;
+        }
+
+        builder.AppendLine($"    <None Update=\"{path}\">");
+        builder.AppendLine("      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>");
+        builder.Append("    </None>");
+
+        if (createNewGroup)
+        {
+            builder.Append("\n  </ItemGroup>");
+            builder.Append("\n</Project>");
+        }
+        else
+        {
+            builder.Append(contentAsSpan.Slice(flushedUpTo).ToString());
+        }
+
+        string contentModified = builder.ToString().Replace("\r\n", "\n");
+        File.WriteAllText(csProjFile, contentModified);
     }
 }
