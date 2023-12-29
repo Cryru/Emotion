@@ -291,7 +291,8 @@ public abstract partial class WorldBaseEditor
 
         var lbl = new MapEditorLabel(txt)
         {
-            Margins = new Rectangle(3, 1, 3, 1)
+            Margins = new Rectangle(3, 1, 3, 1),
+            IgnoreParentColor = false
         };
         container.AddChild(lbl);
 
