@@ -94,6 +94,7 @@ public partial class GameObject3D
     /// <summary>
     /// The scale of the object in the z axis. (height)
     /// </summary>
+    [DontSerialize]
     public float SizeZ
     {
         get => _sizeZ;
