@@ -60,6 +60,54 @@ public partial class GameObject3D
     }
 
     /// <summary>
+    /// /// The scale of the object in the x axis.
+    /// </summary>
+    [DontSerialize]
+    public float SizeX
+    {
+        get => _sizeX;
+        set
+        {
+            if (_sizeX == value) return;
+
+            _sizeX = value;
+            Resized();
+        }
+    }
+
+    /// <summary>
+    /// The scale of the object in the y axis.
+    /// </summary>
+    [DontSerialize]
+    public float SizeY
+    {
+        get => _sizeY;
+        set
+        {
+            if (_sizeY == value) return;
+
+            _sizeY = value;
+            Resized();
+        }
+    }
+
+    /// <summary>
+    /// The scale of the object in the z axis. (height)
+    /// </summary>
+    public float SizeZ
+    {
+        get => _sizeZ;
+        set
+        {
+            if (_sizeZ == value) return;
+
+            _sizeZ = value;
+            Resized();
+        }
+    }
+
+
+    /// <summary>
     /// The rotation of the object in radians.
     /// We serialize radians, but show degrees in the editor.
     /// </summary>
