@@ -22,6 +22,7 @@ using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
+using System.IO;
 
 #endregion
 
@@ -156,7 +157,6 @@ public abstract partial class WorldBaseEditor
     private class CreateNewMapEnvelope
     {
         public string? Name;
-        public string? FilePath;
     }
 
     protected virtual void EditorAttachTopBarButtons(UIBaseWindow parentList)
@@ -173,10 +173,13 @@ public abstract partial class WorldBaseEditor
                 {
                     var createMapModal = new PropertyInputModal<CreateNewMapEnvelope>(data =>
                     {
-                        if (string.IsNullOrEmpty(data.FilePath) || string.IsNullOrEmpty(data.Name)) return false;
+                        if (string.IsNullOrEmpty(data.Name)) return false;
 
-                        string fileName = data.FilePath;
+                        string fileName = AssetLoader.MakeStringPathSafe(data.Name);
                         if (!fileName.EndsWith(".xml")) fileName += ".xml";
+
+                        string name = data.Name;
+                        if (name.EndsWith(".xml")) name = name.Replace(".xml", "");
 
                         var newMap = (BaseMap) Activator.CreateInstance(_mapType, true)!;
                         newMap.MapName = data.Name;
