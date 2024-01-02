@@ -181,17 +181,29 @@ namespace Emotion.UI
 
         public bool IsWindowPresentInHierarchy(UIBaseWindow win)
         {
-            return _doubleAddChecker.Contains(win);
+            bool present = false;
+            lock (_doubleAddChecker)
+            {
+                present = _doubleAddChecker.Contains(win);
+            }
+
+            return present;
         }
 
         public void RegisterWindowInController(UIBaseWindow win)
         {
-            _doubleAddChecker.Add(win);
+            lock (_doubleAddChecker)
+            {
+                _doubleAddChecker.Add(win);
+            }
         }
 
         public void RemoveWindowFromController(UIBaseWindow win)
         {
-            _doubleAddChecker.Remove(win);
+            lock (_doubleAddChecker)
+            {
+                _doubleAddChecker.Remove(win);
+            }
         }
 
         #endregion
