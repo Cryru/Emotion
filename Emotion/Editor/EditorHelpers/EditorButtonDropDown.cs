@@ -99,7 +99,7 @@ public class EditorButtonDropDown : UIBaseWindow
         var button = (EditorButton?)GetWindowById("Button");
         if (button == null) return;
 
-        var currentOptionItem = _items[_currentOption];
+        var currentOptionItem = _currentOption < _items.Length ? _items[_currentOption] : null;
         button.Text = currentOptionItem?.Name ?? "<null>";
         button.Enabled = _items != null && _items.Length > 1;
     }
