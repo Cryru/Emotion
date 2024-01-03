@@ -1,11 +1,9 @@
 ﻿#region Using
 
 using System.Reflection;
-using Emotion.Editor;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #endregion
 
