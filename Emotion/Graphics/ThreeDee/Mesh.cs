@@ -58,6 +58,11 @@ public class Mesh
         Material = MeshMaterial.DefaultMaterial;
     }
 
+    public override string ToString()
+    {
+        return $"Mesh {Name}";
+    }
+
     #region Transformations
 
     public Mesh TransformMeshVertices(Matrix4x4 mat)
@@ -149,7 +154,8 @@ public class Mesh
 
     #region Cache
 
-    [DontSerialize] public Dictionary<string, MeshBone>? BoneNameCache;
+    [DontSerialize]
+    public Dictionary<string, MeshBone>? BoneNameCache;
 
     public void BuildRuntimeBoneCache()
     {

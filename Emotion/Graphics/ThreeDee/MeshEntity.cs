@@ -263,12 +263,12 @@ public class MeshEntity
 
         if (animationRig == null || meshes == null) return;
 
-        // Initialize identity for all meshes matrices.
-        for (var i = 0; i < matrices.Length; i++)
-        {
-            Matrix4x4[] matricesForMesh = matrices[i];
-            matricesForMesh[0] = Matrix4x4.Identity;
-        }
+        // Initialize identity for all meshes matrices. (Done in GameObject3D)
+        //for (var i = 0; i < matrices.Length; i++)
+        //{
+        //    Matrix4x4[] matricesForMesh = matrices[i];
+        //    matricesForMesh[0] = Matrix4x4.Identity;
+        //}
 
         CalculateBoneMatricesWalkTree(meshes, matrices, animation, timeStamp, animationRig, Matrix4x4.Identity);
     }

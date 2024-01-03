@@ -132,6 +132,12 @@ public partial class GameObject3D : BaseGameObject
     /// <inheritdoc />
     protected override void RenderInternal(RenderComposer c)
     {
+        if (c.MeshEntityRenderer.IsGatheringObjectsForScene())
+        {
+            c.MeshEntityRenderer.SubmitObjectForRendering(this);
+            return;
+        }
+
         // todo: larger entities should create their own data buffers.
         // todo: culling state.
         MeshEntity? entity = _entity;
@@ -141,7 +147,18 @@ public partial class GameObject3D : BaseGameObject
 
         c.PushModelMatrix(GetModelMatrix());
         c.RenderStream.MeshRenderer.RenderMeshEntity(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null, ObjectFlags);
+        c.MeshEntityRenderer.SubmitObjectForRendering(this);
         c.PopModelMatrix();
+    }
+
+    public Matrix4x4[]? GetBoneMatricesForMesh(int meshIdx)
+    {
+        if (_entity == null) return null;
+        if (_entity.Meshes == null || _entity.Meshes.Length == 0) return null;
+        if (_boneMatricesPerMesh == null) return null;
+        if (meshIdx >= _boneMatricesPerMesh.Length) return null;
+
+        return _boneMatricesPerMesh[meshIdx];
     }
 
     protected virtual void OnSetEntity()
@@ -165,7 +182,9 @@ public partial class GameObject3D : BaseGameObject
                 }
             }
 
-            _boneMatricesPerMesh[i] = new Matrix4x4[boneCount];
+            var boneMats = new Matrix4x4[boneCount];
+            boneMats[0] = Matrix4x4.Identity;
+            _boneMatricesPerMesh[i] = boneMats;
             mesh.BuildRuntimeBoneCache();
         }
 
