@@ -4,6 +4,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Utility;

@@ -3,6 +3,7 @@
 using System.Runtime.CompilerServices;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Batches;
+using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
@@ -80,9 +81,15 @@ namespace Emotion.Graphics
         #region Objects
 
         /// <summary>
-        /// The vertex data batch currently active.
+        /// An object that handles batched rendering through streaming vertices every frame.
         /// </summary>
         public RenderStreamBatch RenderStream { get; private set; }
+
+        /// <summary>
+        /// A specialized renderer for mesh entities.
+        /// The backbone of the 3D renderer.
+        /// </summary>
+        public MeshEntityBatchRenderer MeshEntityRenderer { get; private set; }
 
         /// <summary>
         /// A representation of the screen's frame buffer.
@@ -274,6 +281,7 @@ namespace Emotion.Graphics
 
             // Create render stream. This is used for IM-like rendering.
             RenderStream = new RenderStreamBatch();
+            MeshEntityRenderer = new MeshEntityBatchRenderer();
 
             // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();

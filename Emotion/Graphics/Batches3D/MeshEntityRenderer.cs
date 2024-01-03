@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World;
 using Emotion.Game.World3D;
@@ -13,11 +14,311 @@ using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Utility;
 using OpenGL;
+using System.Security.Cryptography;
+using static Emotion.Game.World3D.Map3D;
+using static Emotion.Graphics.Batches3D.MeshEntityStreamRenderer;
 
 #endregion
 
-namespace Emotion.Graphics
+namespace Emotion.Graphics.Batches3D
 {
+    public sealed class MeshEntityBatchRenderer
+    {
+        private bool _assetsLoaded = false;
+        private ShaderProgram _meshShader = null!;
+        private ShaderProgram _skinnedMeshShader = null!;
+        private ShaderProgram _meshShaderShadowMap = null!;
+        private ShaderProgram _meshShaderShadowMapSkinned = null!;
+
+        #region Scene State
+
+        private bool _inScene;
+
+        private StructPool<MeshRenderBatch> _batchPool = new(16);
+        private StructPool<RenderInstanceObjectData> _objectDataPool = new(32);
+        private StructPool<RenderInstanceMeshData> _meshDataPool = new(64);
+
+        private static HashSet<ShaderProgram> _shadersUsedLookup = new HashSet<ShaderProgram>();
+        private static List<ShaderProgram> _shadersUsedList = new List<ShaderProgram>();
+
+        private static MeshRenderBatch _dummyMesh = new MeshRenderBatch();
+
+        private static Dictionary<int, int> _batchLookup = new(); // This will be used to index
+
+        #endregion
+
+        public void EnsureAssetsLoaded()
+        {
+            if (_assetsLoaded) return;
+
+            var meshShaderAsset = Engine.AssetLoader.Get<ShaderAsset>("Shaders/MeshShader.xml");
+            if (meshShaderAsset != null)
+            {
+                _meshShader = meshShaderAsset.Shader;
+                _skinnedMeshShader = meshShaderAsset.GetShaderVariation("SKINNED").Shader;
+                _meshShaderShadowMap = meshShaderAsset.GetShaderVariation("SHADOW_MAP").Shader;
+                _meshShaderShadowMapSkinned = meshShaderAsset.GetShaderVariation("SKINNED_SHADOW_MAP").Shader;
+            }
+            else
+            {
+                _meshShader = ShaderFactory.DefaultProgram;
+                _skinnedMeshShader = ShaderFactory.DefaultProgram;
+                _meshShaderShadowMap = ShaderFactory.DefaultProgram;
+                _meshShaderShadowMapSkinned = ShaderFactory.DefaultProgram;
+            }
+
+            _assetsLoaded = true;
+        }
+
+        public void StartScene(RenderComposer c)
+        {
+            c.FlushRenderStream();
+
+            EnsureAssetsLoaded();
+
+            _inScene = true;
+
+            _batchLookup.Clear();
+            _batchPool.Reset();
+            _objectDataPool.Reset();
+            _meshDataPool.Reset();
+
+            _shadersUsedLookup.Clear();
+            _shadersUsedList.Clear();
+        }
+
+        public bool IsGatheringObjectsForScene()
+        {
+            return _inScene;
+        }
+
+        // flatten the hierarchy
+        public void SubmitObjectForRendering(GameObject3D obj)
+        {
+            if (!_inScene) return;
+
+            // No visual representation
+            var entity = obj.Entity;
+            if (entity == null) return;
+
+            // Invalid
+            var metaState = obj.EntityMetaState;
+            if (metaState == null) return;
+
+            // No meshes to render
+            var meshes = entity.Meshes;
+            if (meshes == null) return;
+
+            var objModelMatrix = obj.GetModelMatrix();
+
+            // Objects can contain multiple meshes and they will refer to this.
+            ref RenderInstanceObjectData objectInstance = ref _objectDataPool.Get(out int indexOfThisObjectData);
+            objectInstance.BackfaceCulling = entity.BackFaceCulling;
+            objectInstance.ModelMatrix = objModelMatrix;
+            objectInstance.MetaState = metaState;
+
+            var objIsTransparent = obj.IsTransparent();
+            RenderPass passMeantFor = objIsTransparent ? RenderPass.Transparent : RenderPass.Main;
+
+            // Register all meshes in this entity.
+            for (int m = 0; m < meshes.Length; m++)
+            {
+                // Don't render mesh!
+                if (!metaState.RenderMesh[m]) continue;
+
+                var mesh = meshes[m];
+
+                // Decide on shader, this determines batch.
+                bool renderingShadowMap = false;
+                bool skinnedMesh = mesh.Bones != null;
+                ShaderProgram currentShader;
+                bool overwrittenShader = false;
+                if (metaState.ShaderAsset != null)
+                {
+                    currentShader = metaState.ShaderAsset.Shader;
+                    overwrittenShader = true;
+                }
+                else if (skinnedMesh)
+                {
+                    if (renderingShadowMap)
+                        currentShader = _meshShaderShadowMapSkinned;
+                    else
+                        currentShader = _skinnedMeshShader;
+                }
+                else
+                {
+                    if (renderingShadowMap)
+                        currentShader = _meshShaderShadowMap;
+                    else
+                        currentShader = _meshShader;
+                }
+
+                ref RenderInstanceMeshData meshRegistration = ref _meshDataPool.Get(out int indexOfThisMeshData);
+                meshRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
+                meshRegistration.ObjectRegistrationId = indexOfThisObjectData;
+                meshRegistration.NextMesh = -1;
+
+                // Try to batch this mesh draw data.
+                int renderPairHash = HashCode.Combine(mesh, currentShader, passMeantFor);
+
+                // Try to match this render config to an existing batch.
+                ref MeshRenderBatch batch = ref _dummyMesh;
+                if (_batchLookup.ContainsKey(renderPairHash))
+                {
+                    int key = _batchLookup[renderPairHash];
+                    batch = ref _batchPool[key];
+
+                    // Change the index the last instance points to to this one.
+                    ref RenderInstanceMeshData lastInstance = ref _meshDataPool[batch.MeshDataLL_End];
+                    lastInstance.NextMesh = indexOfThisMeshData;
+                    batch.MeshDataLL_End = indexOfThisMeshData;
+                }
+                else // Create new batch!
+                {
+                    batch = ref _batchPool.Get(out int thisBatchIndex);
+                    _batchLookup.Add(renderPairHash, thisBatchIndex);
+
+                    batch.RenderPass = passMeantFor;
+                    batch.Mesh = mesh;
+                    batch.Shader = currentShader;
+                    batch.MeshDataLL_Start = indexOfThisMeshData;
+                    batch.MeshDataLL_End = indexOfThisMeshData;
+
+                    // Assuming that the overwritten shader will require all meshes using it to upload state.
+                    // AKA that a custom shader is custom for everyone that uses it, which is true unless the
+                    // custom shader is a base mesh shader, but that's stupid.
+                    batch.UploadMetaStateToShader = overwrittenShader;
+                    if (!_shadersUsedLookup.Contains(currentShader))
+                    {
+                        _shadersUsedLookup.Add(currentShader);
+                        _shadersUsedList.Add(currentShader);
+                    }
+                }
+            }
+        }
+
+        public void EndScene(RenderComposer c, Map3D map)
+        {
+            _inScene = false;
+
+            bool backfaceCulling = false; // todo: Move to render state.
+
+            // Upload base state to all shaders that will be in use.
+            var light = map.LightModel;
+            bool receiveAmbient = true; // todo
+            for (int i = 0; i < _shadersUsedList.Count; i++)
+            {
+                var shader = _shadersUsedList[i];
+                c.SetShader(shader);
+
+                shader.SetUniformInt("diffuseTexture", 0);
+                shader.SetUniformInt("shadowMapTextureC1", 1);
+                shader.SetUniformInt("shadowMapTextureC2", 2);
+                shader.SetUniformInt("shadowMapTextureC3", 3);
+
+                shader.SetUniformVector3("cameraPosition", c.Camera.Position);
+
+                shader.SetUniformVector3("sunDirection", light.SunDirection);
+                shader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
+                shader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
+                shader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
+                shader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
+            }
+
+            // Render main pass batches.
+            for (int i = 0; i < _batchPool.Length; i++)
+            {
+                ref MeshRenderBatch batch = ref _batchPool[i];
+                if (!batch.RenderPass.EnumHasFlag(RenderPass.Main)) continue;
+
+                var mesh = batch.Mesh;
+
+                ShaderProgram currentShader = batch.Shader;
+                Engine.Renderer.SetShader(currentShader);
+                currentShader.SetUniformColor("diffuseColor", mesh.Material.DiffuseColor);
+
+                Texture? diffuseTexture = mesh.Material.DiffuseTexture;
+                Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
+
+                bool skinnedMesh = mesh.Bones != null;
+                GLRenderObjects? renderObj = c.RenderStream.MeshRenderer.GetFirstFreeRenderObject(mesh, skinnedMesh, out bool alreadyUploaded);
+                if (renderObj == null) // Impossible!
+                {
+                    Assert(false, "No render object?");
+                    continue;
+                }
+
+                if (!alreadyUploaded)
+                {
+                    renderObj.VBO.UploadPartial(mesh.Vertices);
+                    renderObj.VBOExtended.UploadPartial(mesh.ExtraVertexData);
+
+                    if (skinnedMesh)
+                    {
+                        AssertNotNull(renderObj.VBOBones);
+                        renderObj.VBOBones.UploadPartial(mesh.BoneData);
+                    }
+
+                    renderObj.IBO.UploadPartial(mesh.Indices);
+                }
+
+                int instanceIdx = batch.MeshDataLL_Start;
+                while (instanceIdx != -1)
+                {
+                    ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
+                    ref RenderInstanceObjectData objectData = ref _objectDataPool[instance.ObjectRegistrationId];
+
+                    c.PushModelMatrix(objectData.ModelMatrix);
+                    currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
+
+                    if (batch.UploadMetaStateToShader)
+                        objectData.MetaState.ApplyShaderUniforms(currentShader);
+
+                    if (skinnedMesh && instance.BoneData != null)
+                        currentShader.SetUniformMatrix4("boneMatrices", instance.BoneData, instance.BoneData.Length);
+
+                    // todo: render stream state
+                    bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
+                    if (changeBackcull)
+                    {
+                        if (objectData.BackfaceCulling)
+                        {
+                            Gl.Enable(EnableCap.CullFace);
+                            Gl.CullFace(CullFaceMode.Back);
+                            Gl.FrontFace(FrontFaceDirection.Ccw);
+                            backfaceCulling = true;
+                        }
+                        else
+                        {
+                            Gl.Disable(EnableCap.CullFace);
+                            backfaceCulling = false;
+                        }
+                    }
+
+                    // Render geometry
+                    VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
+                    VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
+                    VertexArrayObject.EnsureBound(renderObj.VAO);
+                    IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
+                    Gl.DrawElements(PrimitiveType.Triangles, mesh.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
+
+                    c.PopModelMatrix();
+
+                    instanceIdx = instance.NextMesh;
+                }
+            }
+
+            // Restore render state.
+            Engine.Renderer.SetShader(null);
+            if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        }
+
+        public void RenderEntityStandalone(MeshEntity entity)
+        {
+
+        }
+    }
+
     public sealed class MeshEntityStreamRenderer
     {
         public bool Initialized { get; private set; }
@@ -31,7 +332,7 @@ namespace Emotion.Graphics
 
         // todo: these could be shared by multiple mesh entity stream renderers
         // implying that there would be more than one
-        private class GLRenderObjects
+        public class GLRenderObjects
         {
             public VertexBuffer VBO;
             public VertexBuffer VBOExtended;
@@ -62,19 +363,19 @@ namespace Emotion.Graphics
 
         public void LoadAssets()
         {
-            var meshShaderAsset = Engine.AssetLoader.Get<ShaderAsset>("Shaders/MeshShader.xml");
-            ShaderAsset? skinnedMeshShader = meshShaderAsset?.GetShaderVariation("SKINNED");
-            ShaderAsset? shadowMapShader = meshShaderAsset?.GetShaderVariation("SHADOW_MAP");
-            ShaderAsset? skinnedShadowMapShader = meshShaderAsset?.GetShaderVariation("SKINNED_SHADOW_MAP");
+            //var meshShaderAsset = Engine.AssetLoader.Get<ShaderAsset>("Shaders/MeshShader.xml");
+            //ShaderAsset? skinnedMeshShader = meshShaderAsset?.GetShaderVariation("SKINNED");
+            //ShaderAsset? shadowMapShader = meshShaderAsset?.GetShaderVariation("SHADOW_MAP");
+            //ShaderAsset? skinnedShadowMapShader = meshShaderAsset?.GetShaderVariation("SKINNED_SHADOW_MAP");
 
-            if (meshShaderAsset?.Shader == null || skinnedMeshShader?.Shader == null ||
-                shadowMapShader == null || skinnedShadowMapShader == null) return;
+            //if (meshShaderAsset?.Shader == null || skinnedMeshShader?.Shader == null ||
+            //    shadowMapShader == null || skinnedShadowMapShader == null) return;
 
-            _meshShader = meshShaderAsset.Shader;
-            _skinnedMeshShader = skinnedMeshShader.Shader;
-            _meshShaderShadowMap = shadowMapShader.Shader;
-            _meshShaderShadowMapSkinned = skinnedShadowMapShader.Shader;
-            Initialized = true;
+            //_meshShader = meshShaderAsset.Shader;
+            //_skinnedMeshShader = skinnedMeshShader.Shader;
+            //_meshShaderShadowMap = shadowMapShader.Shader;
+            //_meshShaderShadowMapSkinned = skinnedShadowMapShader.Shader;
+            //Initialized = true;
         }
 
         public void RenderMeshEntity(
@@ -201,7 +502,7 @@ namespace Emotion.Graphics
                 {
                     for (var j = 0; j < _shadowCascadeCount; j++)
                     {
-                        Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint) (j + 1));
+                        Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)(j + 1));
                     }
                 }
                 else if (_initializedShadowMapObjects)
@@ -214,7 +515,7 @@ namespace Emotion.Graphics
                     {
                         ShadowCascade cascade = _shadowCascades[j];
                         uint bufferPointer = cascade.Buffer.DepthStencilAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer;
-                        Texture.EnsureBound(bufferPointer, (uint) (j + 1));
+                        Texture.EnsureBound(bufferPointer, (uint)(j + 1));
 
                         currentShader.SetUniformFloat(cascadePlaneFarZUniformNames[j], cascade.FarZ);
                         currentShader.SetUniformMatrix4(cascadeLightProjUniformNames[j], cascade.LightViewProj);
@@ -248,7 +549,7 @@ namespace Emotion.Graphics
                 VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
                 VertexArrayObject.EnsureBound(renderObj.VAO);
                 IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
-                Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
+                Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
             }
 
             if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
@@ -266,10 +567,10 @@ namespace Emotion.Graphics
 
         private GLRenderObjects CreateRenderObject(bool withBones)
         {
-            var vbo = new VertexBuffer((uint) (ushort.MaxValue * VertexData.SizeInBytes), BufferUsage.StreamDraw);
-            var vboExt = new VertexBuffer((uint) (ushort.MaxValue * VertexDataMesh3DExtra.SizeInBytes), BufferUsage.StreamDraw);
+            var vbo = new VertexBuffer((uint)(ushort.MaxValue * VertexData.SizeInBytes), BufferUsage.StreamDraw);
+            var vboExt = new VertexBuffer((uint)(ushort.MaxValue * VertexDataMesh3DExtra.SizeInBytes), BufferUsage.StreamDraw);
             VertexBuffer? vboBones = null;
-            if (withBones) vboBones = new VertexBuffer((uint) (ushort.MaxValue * Mesh3DVertexDataBones.SizeInBytes), BufferUsage.StreamDraw);
+            if (withBones) vboBones = new VertexBuffer((uint)(ushort.MaxValue * Mesh3DVertexDataBones.SizeInBytes), BufferUsage.StreamDraw);
 
             var ibo = new IndexBuffer(ushort.MaxValue * sizeof(ushort) * 3, BufferUsage.StreamDraw);
 
@@ -286,7 +587,7 @@ namespace Emotion.Graphics
             return objectsPair;
         }
 
-        private GLRenderObjects? GetFirstFreeRenderObject(Mesh mesh, bool withBones, out bool alreadyUploaded)
+        public GLRenderObjects? GetFirstFreeRenderObject(Mesh mesh, bool withBones, out bool alreadyUploaded)
         {
             alreadyUploaded = false;
 
@@ -338,7 +639,7 @@ namespace Emotion.Graphics
                 Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
                 Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
 
-                float[] borderColor = {1.0f, 1.0f, 1.0f, 1.0f};
+                float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
                 Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
             }
         }
