@@ -470,6 +470,7 @@ namespace Emotion.Graphics
             }
 
             RenderStream.DoTasks(this);
+            MeshEntityRenderer.DoTasks();
             InFrame = false;
         }
 
