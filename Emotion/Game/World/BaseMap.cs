@@ -13,6 +13,7 @@ using Emotion.Game.Time.Routines;
 using Emotion.Game.World2D;
 using Emotion.Graphics;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 
 #endregion
 
@@ -234,6 +235,8 @@ public abstract partial class BaseMap
         // initialize something (such as animations) on first update.
         Update(0);
 
+        // Force garbage collection now as the init prob generated a lot of garbage.
+        GC.Collect();
         Initialized = true;
 
         Engine.Log.Info($"Map {MapName} loaded in {profiler.ElapsedMilliseconds}ms", "World");
@@ -430,7 +433,7 @@ public abstract partial class BaseMap
     public void InvalidateObjectBounds(BaseGameObject obj)
     {
         if (obj.ObjectState == ObjectState.ConditionallyNonSpawned) return;
-        if (obj.MapFlags.HasFlag(MapFlags.UpdateWorldTree)) return;
+        if (obj.MapFlags.EnumHasFlag(MapFlags.UpdateWorldTree)) return;
         _objectsToUpdate.Enqueue(obj);
         obj.MapFlags |= MapFlags.UpdateWorldTree;
     }
@@ -480,21 +483,24 @@ public abstract partial class BaseMap
         if (name == null) return null;
 
         // todo: cache per name?
-        var enumerator = GetAllObjectsCoroutine(includeNonSpawned);
-        while (enumerator.MoveNext())
+        foreach (var obj in ObjectsEnum(includeNonSpawned ? null : ObjectState.Alive))
         {
-            var obj = enumerator.Current;
-            if (obj.ObjectName == name) return obj;
+            if (obj.ObjectName == name)
+                return obj;
         }
 
         return null;
     }
 
-    public T? GetFirstObjectOfType<T>(bool includeNonSpawned = false)
+    public ObjTypeFilter? GetFirstObjectOfType<ObjTypeFilter>(bool includeNonSpawned = false)
+        where ObjTypeFilter : BaseGameObject
     {
-        IEnumerator<T> enumerator = GetObjectsByType<T>(includeNonSpawned);
-        if (enumerator.MoveNext()) return enumerator.Current;
-        return default;
+        foreach (var obj in ObjectsEnum<ObjTypeFilter>(includeNonSpawned ? null : ObjectState.Alive))
+        {
+            return obj;
+        }
+
+        return null;
     }
 
     public WorldTree2D? GetWorldTree()
