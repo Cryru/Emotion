@@ -8,12 +8,13 @@
 namespace Emotion.Graphics.Batches3D
 {
     [Flags]
-    public enum RenderPass
+    public enum RenderPass : byte
     {
         None = 0,
-        Shadow = 2 << 0,
-        Main = 2 << 1,
-        Transparent = 2 << 2,
-        All = Shadow | Main | Transparent
+
+        Main = 2 << 0,
+        Transparent = 2 << 1,
+
+        Count = 2
     }
 }
