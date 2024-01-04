@@ -65,8 +65,8 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 IntCastRound(this Vector2 v)
         {
-            v.X = (int) v.X;
-            v.Y = (int) v.Y;
+            v.X = (int)v.X;
+            v.Y = (int)v.Y;
             return v;
         }
 
@@ -78,7 +78,7 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static (int x, int y) AsInt(this Vector2 v)
         {
-            return ((int) v.X, (int) v.Y);
+            return ((int)v.X, (int)v.Y);
         }
 
         /// <summary>
@@ -221,9 +221,9 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 IntCastRound(this Vector3 v)
         {
-            v.X = (int) v.X;
-            v.Y = (int) v.Y;
-            v.Z = (int) v.Z;
+            v.X = (int)v.X;
+            v.Y = (int)v.Y;
+            v.Z = (int)v.Z;
             return v;
         }
 
@@ -235,8 +235,8 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 IntCastRoundXY(this Vector3 v)
         {
-            v.X = (int) v.X;
-            v.Y = (int) v.Y;
+            v.X = (int)v.X;
+            v.Y = (int)v.Y;
             return v;
         }
 
@@ -503,34 +503,28 @@ namespace Emotion.Utility
         /// <summary>
         /// Get all enum flags.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="flags"></param>
-        /// <returns></returns>
         public static IEnumerable<T> GetEnumFlags<T>(this Enum flags) where T : Enum
         {
             foreach (Enum value in Enum.GetValues(flags.GetType()))
             {
-                if (flags.HasFlag(value)) yield return (T) value;
+                if (flags.HasFlag(value)) yield return (T)value;
             }
         }
 
-        public static bool EnumHasFlag<TEnum>(this TEnum lhs, TEnum rhs) where TEnum : unmanaged, Enum
+        public unsafe static bool EnumHasFlag<TEnum>(this TEnum lhs, TEnum rhs) where TEnum : unmanaged, Enum
         {
-            unsafe
+            switch (sizeof(TEnum))
             {
-                switch (sizeof(TEnum))
-                {
-                    case 1:
-                        return (*(byte*) &lhs & *(byte*) &rhs) > 0;
-                    case 2:
-                        return (*(ushort*) &lhs & *(ushort*) &rhs) > 0;
-                    case 4:
-                        return (*(uint*) &lhs & *(uint*) &rhs) > 0;
-                    case 8:
-                        return (*(ulong*) &lhs & *(ulong*) &rhs) > 0;
-                    default:
-                        throw new Exception("Size does not match a known Enum backing type.");
-                }
+                case 1:
+                    return (*(byte*)&lhs & *(byte*)&rhs) > 0;
+                case 2:
+                    return (*(ushort*)&lhs & *(ushort*)&rhs) > 0;
+                case 4:
+                    return (*(uint*)&lhs & *(uint*)&rhs) > 0;
+                case 8:
+                    return (*(ulong*)&lhs & *(ulong*)&rhs) > 0;
+                default:
+                    return false;
             }
         }
 
