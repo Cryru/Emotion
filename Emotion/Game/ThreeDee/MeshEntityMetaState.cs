@@ -36,22 +36,9 @@ public class MeshEntityMetaState
     /// </summary>
     public Color Tint = Color.White;
 
-    public class MeshMaterialShaderParameter
-    {
-        public string ParamName;
-        public object Value;
-
-        public MeshMaterialShaderParameter(string paramName, object val)
-        {
-            ParamName = paramName;
-            Value = val;
-        }
-    }
-
     public string? ShaderName;
     public ShaderAsset? ShaderAsset;
-    private Dictionary<string, object>? _shaderParameters;
-    private Dictionary<string, Action<ShaderProgram, string, object>>? _shaderParameterApplyFuncs;
+    private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
 
     public MeshEntityMetaState(MeshEntity? entity)
     {
@@ -67,61 +54,127 @@ public class MeshEntityMetaState
     public async Task SetShader(string path)
     {
         _shaderParameters = new();
-        _shaderParameterApplyFuncs = new();
         ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(path);
     }
 
-    public void SetShaderParam(string name, object value)
+    public void SetShaderParam<T>(string name, T value) where T : struct
     {
-        if (_shaderParameters == null || _shaderParameterApplyFuncs == null) return;
-        _shaderParameters[name] = value;
+        if (_shaderParameters == null) return;
 
-        // Parameters can't change types.
-        if (_shaderParameterApplyFuncs.ContainsKey(name)) return;
-        _shaderParameterApplyFuncs[name] = value switch
+
+        if (_shaderParameters.ContainsKey(name))
         {
-            float => ApplyUniformFloat,
-            Vector2 => ApplyUniformVec2,
-            Vector3 => ApplyUniformVec3,
-            Vector4 => ApplyUniformVec4,
-            Color => ApplyUniformColor,
-            _ => _shaderParameterApplyFuncs[name]
-        };
+            MeshMaterialShaderParameter<T>? param = _shaderParameters[name] as MeshMaterialShaderParameter<T>;
+            if (param == null) return; // Parameters can't change types.
+            param.Value = value;
+        }
+        else
+        {
+            IMeshMaterialShaderParameter? newParam = null;
+            if (value is float floatVal)
+                newParam = new MeshMaterialShaderParameterFloat(name, floatVal);
+            else if (value is Vector2 vec2Val)
+                newParam = new MeshMaterialShaderParameterVec2(name, vec2Val);
+            else if (value is Vector3 vec3Val)
+                newParam = new MeshMaterialShaderParameterVec3(name, vec3Val);
+            else if (value is Vector4 vec4Val)
+                newParam = new MeshMaterialShaderParameterVec4(name, vec4Val);
+            else if (value is Color colorVal)
+                newParam = new MeshMaterialShaderParameterColor(name, colorVal);
+            if (newParam == null) return;
+            _shaderParameters.Add(name, newParam);
+        }
     }
 
     public void ApplyShaderUniforms(ShaderProgram program)
     {
-        if (_shaderParameters == null || _shaderParameterApplyFuncs == null) return;
-        foreach ((string? paramName, object? val) in _shaderParameters)
+        if (_shaderParameters == null) return;
+        foreach ((string paramName, IMeshMaterialShaderParameter param) in _shaderParameters)
         {
-            _shaderParameterApplyFuncs[paramName](program, paramName, val);
+            param.Apply(program, paramName);
         }
     }
+}
 
-    // todo: do this better
+#region Shader Uniform Types
 
-    private void ApplyUniformFloat(ShaderProgram program, string name, object val)
+public interface IMeshMaterialShaderParameter
+{
+    public void Apply(ShaderProgram program, string name);
+}
+
+public abstract class MeshMaterialShaderParameter<T> : IMeshMaterialShaderParameter where T : struct
+{
+    public string ParamName;
+    public T Value;
+
+    public MeshMaterialShaderParameter(string paramName, T val)
     {
-        program.SetUniformFloat(name, (float) val);
+        ParamName = paramName;
+        Value = val;
     }
 
-    private void ApplyUniformVec2(ShaderProgram program, string name, object val)
+    public abstract void Apply(ShaderProgram program, string name);
+}
+
+public sealed class MeshMaterialShaderParameterFloat : MeshMaterialShaderParameter<float>
+{
+    public MeshMaterialShaderParameterFloat(string paramName, float val) : base(paramName, val)
     {
-        program.SetUniformVector2(name, (Vector2) val);
     }
 
-    private void ApplyUniformVec3(ShaderProgram program, string name, object val)
+    public override void Apply(ShaderProgram program, string name)
     {
-        program.SetUniformVector3(name, (Vector3) val);
-    }
-
-    private void ApplyUniformVec4(ShaderProgram program, string name, object val)
-    {
-        program.SetUniformVector4(name, (Vector4) val);
-    }
-
-    private void ApplyUniformColor(ShaderProgram program, string name, object val)
-    {
-        program.SetUniformColor(name, (Color) val);
+        program.SetUniformFloat(name, Value);
     }
 }
+
+public sealed class MeshMaterialShaderParameterVec2 : MeshMaterialShaderParameter<Vector2>
+{
+    public MeshMaterialShaderParameterVec2(string paramName, Vector2 val) : base(paramName, val)
+    {
+    }
+
+    public override void Apply(ShaderProgram program, string name)
+    {
+        program.SetUniformVector2(name, Value);
+    }
+}
+
+public sealed class MeshMaterialShaderParameterVec3 : MeshMaterialShaderParameter<Vector3>
+{
+    public MeshMaterialShaderParameterVec3(string paramName, Vector3 val) : base(paramName, val)
+    {
+    }
+
+    public override void Apply(ShaderProgram program, string name)
+    {
+        program.SetUniformVector3(name, Value);
+    }
+}
+
+public sealed class MeshMaterialShaderParameterVec4 : MeshMaterialShaderParameter<Vector4>
+{
+    public MeshMaterialShaderParameterVec4(string paramName, Vector4 val) : base(paramName, val)
+    {
+    }
+
+    public override void Apply(ShaderProgram program, string name)
+    {
+        program.SetUniformVector4(name, Value);
+    }
+}
+
+public sealed class MeshMaterialShaderParameterColor : MeshMaterialShaderParameter<Color>
+{
+    public MeshMaterialShaderParameterColor(string paramName, Color val) : base(paramName, val)
+    {
+    }
+
+    public override void Apply(ShaderProgram program, string name)
+    {
+        program.SetUniformColor(name, Value);
+    }
+}
+
+#endregion
