@@ -45,5 +45,10 @@ namespace Emotion.Utility
         {
             get => ref _pool[index];
         }
+
+        public Span<T> GetActiveSlice()
+        {
+            return new Span<T>(_pool, 0, _pointer);
+        }
     }
 }
