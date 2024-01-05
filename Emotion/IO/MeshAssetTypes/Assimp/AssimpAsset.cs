@@ -454,7 +454,6 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
             for (var i = 0; i < m->MNumVertices; i++)
             {
-                // todo: check if uvs exist, vert colors, normals
                 ref Vector3 assVertex = ref m->MVertices[i];
 
                 var uv = new Vector2(0, 0);
@@ -640,6 +639,24 @@ namespace Emotion.IO.MeshAssetTypes.Assimp
 
         protected override void DisposeInternal()
         {
+        }
+
+        public unsafe void ExportEntity(MeshEntity entity, string formatId, string name)
+        {
+            Scene sc = new Scene();
+            Node rootNode = new Node();
+
+            sc.MRootNode = &rootNode;
+            rootNode.MNumMeshes = (uint)entity.Meshes.Length;
+
+            AssMesh[] meshes = new AssMesh[entity.Meshes.Length];
+            for (int i = 0; i < meshes.Length; i++)
+            {
+
+            }
+
+
+            ExportAs(&sc, formatId, name);
         }
 
         public unsafe void ExportAs(Scene* scene, string formatId, string name)
