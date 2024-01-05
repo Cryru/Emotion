@@ -14,5 +14,6 @@ namespace Emotion.Graphics.Batches3D
         public bool BackfaceCulling;
         public MeshEntityMetaState MetaState;
         public Matrix4x4 ModelMatrix;
+        public float DistanceToCamera;
     }
 }

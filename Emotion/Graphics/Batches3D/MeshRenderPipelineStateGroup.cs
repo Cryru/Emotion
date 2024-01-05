@@ -9,7 +9,7 @@ using Emotion.Graphics.Shading;
 namespace Emotion.Graphics.Batches3D
 {
     /// <summary>
-    /// Contains all instances batches in a specific pass that use the same pipeline state
+    /// Contains all instances batches that use the same pipeline state
     /// </summary>
     public struct MeshRenderPipelineStateGroup
     {
