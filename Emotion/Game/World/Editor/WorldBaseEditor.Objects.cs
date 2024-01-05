@@ -120,10 +120,8 @@ public abstract partial class WorldBaseEditor
                 {
                     List<(GameObject3D, Vector3)> collisionPoints = new();
                     Ray3D mouseRay = Engine.Renderer.Camera.GetCameraMouseRay();
-                    IEnumerator<GameObject3D> objects3D = map.GetObjectsByType<GameObject3D>();
-                    while (objects3D.MoveNext())
+                    foreach (var obj in map.ObjectsEnum<GameObject3D>())
                     {
-                        GameObject3D obj = objects3D.Current;
                         if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 collisionPoint, out Vector3 _, out int _))
                             collisionPoints.Add((obj, collisionPoint));
                     }
