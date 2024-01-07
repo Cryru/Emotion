@@ -167,7 +167,6 @@ namespace Emotion.IO
             else
             {
                 Shader = compiledProgram;
-                Shader.DebugName = Name;
             }
 
             // Check if compilation was successful.
