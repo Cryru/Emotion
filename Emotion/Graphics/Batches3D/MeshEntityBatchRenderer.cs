@@ -3,9 +3,11 @@
 #region Using
 
 using Emotion;
+using Emotion.Common.Threading;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World;
 using Emotion.Game.World3D;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -64,9 +66,16 @@ public sealed class MeshEntityBatchRenderer
     private static Dictionary<int, int> _pipelineBatchLookup = new();
     private static Dictionary<int, int> _meshShaderGroupBatchLookup = new(); // This will be used to index
 
+    private float _furthestObjectDist;
+    private float _closestObjectDist;
+    private BaseGameObject? _furthestObject;
+    private BaseGameObject? _closestObject;
+
+    private int _renderingShadowmap;
+
     #endregion
 
-    #region GL Objects
+    #region GL Data Buffers
 
     public class GLRenderObjects
     {
@@ -99,6 +108,49 @@ public sealed class MeshEntityBatchRenderer
 
     #endregion
 
+    #region Shadows
+
+    public class ShadowCascadeData
+    {
+        public Vector2 FramebufferResolution = new Vector2(2048);
+
+        public int CascadeId;
+        public FrameBuffer? Buffer;
+        public Matrix4x4 DEBUG_View;
+        public Matrix4x4 LightViewProj;
+
+        public float FarClip;
+        public float NearClip;
+
+        public string ViewProjUniformName;
+        public string FarZUnifornName;
+
+        public ShadowCascadeData(int cascadeId)
+        {
+            CascadeId = cascadeId;
+            GLThread.ExecuteGLThreadAsync(InitFrameBuffer);
+            LightViewProj = Matrix4x4.Identity;
+            ViewProjUniformName = $"cascadeLightProj[{cascadeId}]";
+            FarZUnifornName = $"cascadePlaneFarZ[{cascadeId}]";
+        }
+
+        private void InitFrameBuffer()
+        {
+            Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
+            Texture.EnsureBound(Buffer.DepthStencilAttachment.Pointer);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
+
+            float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
+        }
+    }
+
+    private ShadowCascadeData[] _shadowCascades = null!;
+    private Matrix4x4 _currentCascadeRenderingViewProj = Matrix4x4.Identity;
+
+    #endregion
+
     private int ObjectSort(RenderInstanceMeshDataTransparent a, RenderInstanceMeshDataTransparent b)
     {
         var objectA = _objectDataPool[a.ObjectRegistrationId];
@@ -128,6 +180,14 @@ public sealed class MeshEntityBatchRenderer
             _meshShaderShadowMapSkinned = ShaderFactory.DefaultProgram;
         }
 
+        _shadowCascades = new ShadowCascadeData[4]
+        {
+            new ShadowCascadeData(0),
+            new ShadowCascadeData(1),
+            new ShadowCascadeData(2),
+            new ShadowCascadeData(3),
+        };
+
         _assetsLoaded = true;
     }
 
@@ -153,6 +213,10 @@ public sealed class MeshEntityBatchRenderer
         _objectDataPool.Reset();
         _meshDataPool.Reset();
         _meshDataPoolTransparent.Reset();
+
+        _furthestObjectDist = 0;
+        _closestObjectDist = int.MaxValue;
+        _renderingShadowmap = -1;
     }
 
     public bool IsGatheringObjectsForScene()
@@ -177,10 +241,25 @@ public sealed class MeshEntityBatchRenderer
         var meshes = entity.Meshes;
         if (meshes == null) return;
 
-        var objModelMatrix = obj.GetModelMatrix();
+        Matrix4x4 objModelMatrix = obj.GetModelMatrix();
 
-        var camera = Engine.Renderer.Camera;
-        float distanceToCamera = Vector3.Distance(camera.Position, obj.Position);
+        CameraBase camera = Engine.Renderer.Camera;
+        Sphere objBSphere = obj.BoundingSphere;
+        float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
+
+        // Record the furthest and closest object distances.
+        float distanceToCameraMax = distanceToCamera + objBSphere.Radius;
+        float distanceToCameraMin = distanceToCamera - objBSphere.Radius;
+        if (distanceToCameraMax > _furthestObjectDist)
+        {
+            _furthestObjectDist = distanceToCameraMax;
+            _furthestObject = obj;
+        }
+        if (distanceToCameraMin < _closestObjectDist)
+        {
+            _closestObjectDist = distanceToCameraMin;
+            _closestObject = obj;
+        }
 
         // Objects can contain multiple meshes and they will refer to this.
         ref RenderInstanceObjectData objectInstance = ref _objectDataPool.Allocate(out int indexOfThisObjectData);
@@ -188,6 +267,7 @@ public sealed class MeshEntityBatchRenderer
         objectInstance.ModelMatrix = objModelMatrix;
         objectInstance.MetaState = metaState;
         objectInstance.DistanceToCamera = distanceToCamera;
+        objectInstance.Flags = obj.ObjectFlags;
 
         var objIsTransparent = obj.IsTransparent();
 
@@ -329,26 +409,60 @@ public sealed class MeshEntityBatchRenderer
     {
         _inScene = false;
 
-        // Upload base state to all shaders that will be in use.
         var light = map.LightModel;
+
+        // Split the scene using "practical/weighted splits" - a combination of
+        // a logarithmic and uniform distribution.
+        if (c.Camera is Camera3D cam3D)
+        {
+            if (_closestObjectDist == int.MaxValue || _closestObjectDist < cam3D.NearZ) _closestObjectDist = cam3D.NearZ;
+            if (_furthestObjectDist == 0 || _furthestObjectDist > cam3D.FarZ) _furthestObjectDist = cam3D.FarZ;
+        }
+
+        float nearPlane = _closestObjectDist;
+        float farPlane = _furthestObjectDist;
+        float prevCascadeEnd = nearPlane;
+        for (int i = 0; i < _shadowCascades.Length; i++)
+        {
+            float p = (i + 1) / (float)_shadowCascades.Length;
+            float logSplit = nearPlane * MathF.Pow(farPlane / nearPlane, p);
+            float uniformSplit = nearPlane + (farPlane - nearPlane) * p;
+
+            var cascade = _shadowCascades[i];
+            float max = Maths.Lerp(uniformSplit, logSplit, 0.5f); // Weighted average
+            cascade.NearClip = prevCascadeEnd;
+            cascade.FarClip = max;
+            prevCascadeEnd = max;
+
+            CalculateShadowMapCascadeMatrix(c, cascade, light);
+        }
+
+        // Upload base state to all shaders that will be in use.
         bool receiveAmbient = true; // todo
         for (int i = 0; i < _shadersUsedList.Count; i++)
         {
-            var shader = _shadersUsedList[i];
+            ShaderProgram shader = _shadersUsedList[i];
             c.SetShader(shader);
 
             shader.SetUniformInt("diffuseTexture", 0);
             shader.SetUniformInt("shadowMapTextureC1", 1);
             shader.SetUniformInt("shadowMapTextureC2", 2);
             shader.SetUniformInt("shadowMapTextureC3", 3);
+            shader.SetUniformInt("shadowMapTextureC4", 4);
+
+            for (int cId = 0; cId < _shadowCascades.Length; cId++)
+            {
+                var cascade = _shadowCascades[cId];
+                shader.SetUniformMatrix4(cascade.ViewProjUniformName, cascade.LightViewProj);
+                shader.SetUniformFloat(cascade.FarZUnifornName, cascade.FarClip);
+            }
 
             shader.SetUniformVector3("cameraPosition", c.Camera.Position);
-
             shader.SetUniformVector3("sunDirection", light.SunDirection);
             shader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
             shader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
             shader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
-            shader.SetUniformFloat("shadowOpacity", 0f);
+            shader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
         }
 
         // Upload all meshes.
@@ -378,6 +492,44 @@ public sealed class MeshEntityBatchRenderer
             }
         }
 
+        // Bind cascade textures as none while rendering shadow maps.
+        // 0 is diffuse texture
+        const int reservedTextureSlots = 1;
+        for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
+        {
+            Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint) j);
+        }
+
+        if (light.Shadows)
+        {
+            for (int i = 0; i < _shadowCascades.Length; i++)
+            {
+                var cascade = _shadowCascades[i];
+                if (cascade.Buffer == null) continue;
+
+                _renderingShadowmap = i;
+                c.RenderToAndClear(cascade.Buffer);
+                Gl.DrawBuffers(Gl.NONE);
+                Gl.ReadBuffer(Gl.NONE);
+                RenderSceneFull(c);
+                c.RenderTo(null);
+                _renderingShadowmap = -1;
+            }
+
+            // Bind cascade textures.
+            for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
+            {
+                var cascade = _shadowCascades[j - reservedTextureSlots];
+                Texture.EnsureBound(cascade.Buffer?.DepthStencilAttachment.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
+            }
+        }
+
+        // todo: different frustums for shadows would mean different pipeline groups etc.
+        RenderSceneFull(c);
+    }
+
+    private void RenderSceneFull(RenderComposer c)
+    {
         RenderMainPass(c, _mainPassShaderGroups);
 
         // Transparent objects are first sorted by distance from the camera, so they
@@ -396,6 +548,7 @@ public sealed class MeshEntityBatchRenderer
         c.ToggleRenderColor(true);
         RenderTransparentObjects(c);
     }
+
     private void RenderTransparentObjects(RenderComposer c)
     {
         if (_meshDataPoolTransparent.Length == 0) return;
@@ -408,6 +561,10 @@ public sealed class MeshEntityBatchRenderer
 
             var mesh = meshInstance.Mesh;
             var objectData = _objectDataPool[meshInstance.ObjectRegistrationId];
+
+            ObjectFlags flags = objectData.Flags;
+            if (_renderingShadowmap != -1 && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
+
             var currentShader = meshInstance.Shader;
 
             Engine.Renderer.SetShader(currentShader);
@@ -474,6 +631,8 @@ public sealed class MeshEntityBatchRenderer
             var currentShader = pipelineState.Shader;
             Engine.Renderer.SetShader(currentShader);
 
+            currentShader.SetUniformInt("renderingShadowMap", _renderingShadowmap);
+
             // each mesh batch in this pipeline
             // these are parameters shared by all instances of that mesh in the scene
             int meshBatchIdx = pipelineState.MeshRenderBatchLL_Start;
@@ -497,6 +656,9 @@ public sealed class MeshEntityBatchRenderer
                 {
                     ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
                     ref RenderInstanceObjectData objectData = ref _objectDataPool[instance.ObjectRegistrationId];
+
+                    ObjectFlags flags = objectData.Flags;
+                    if (_renderingShadowmap != -1 && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
 
                     c.PushModelMatrix(objectData.ModelMatrix);
                     currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
@@ -653,7 +815,7 @@ public sealed class MeshEntityBatchRenderer
 
             // Bind textures.
             // 0 - Diffuse
-            // 1-2-3 - ShadowMap (based on cascades)
+            // 1-2-3-4 - ShadowMap (based on cascades)
             // todo: convert cascades into array texture
             currentShader.SetUniformInt("diffuseTexture", 0);
 
@@ -663,35 +825,13 @@ public sealed class MeshEntityBatchRenderer
             currentShader.SetUniformInt("shadowMapTextureC1", 1);
             currentShader.SetUniformInt("shadowMapTextureC2", 2);
             currentShader.SetUniformInt("shadowMapTextureC3", 3);
+            currentShader.SetUniformInt("shadowMapTextureC4", 4);
 
-            for (var j = 0; j < 3; j++)
+            // Cascade textures
+            for (var j = 0; j < 4; j++)
             {
                 Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)(j + 1));
             }
-
-            //if (_renderingShadowMap || !receiveShadow)
-            //{
-            //    for (var j = 0; j < _shadowCascadeCount; j++)
-            //    {
-            //        Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)(j + 1));
-            //    }
-            //}
-            //else if (_initializedShadowMapObjects)
-            //{
-            //    AssertNotNull(_shadowCascades);
-            //    AssertNotNull(cascadePlaneFarZUniformNames);
-            //    AssertNotNull(cascadeLightProjUniformNames);
-
-            //    for (var j = 0; j < _shadowCascades.Length; j++)
-            //    {
-            //        ShadowCascade cascade = _shadowCascades[j];
-            //        uint bufferPointer = cascade.Buffer.DepthStencilAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer;
-            //        Texture.EnsureBound(bufferPointer, (uint)(j + 1));
-
-            //        currentShader.SetUniformFloat(cascadePlaneFarZUniformNames[j], cascade.FarZ);
-            //        currentShader.SetUniformMatrix4(cascadeLightProjUniformNames[j], cascade.LightViewProj);
-            //    }
-            //}
 
             // Upload geometry
             GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(obj, skinnedMesh, out bool alreadyUploaded);
@@ -789,6 +929,99 @@ public sealed class MeshEntityBatchRenderer
     }
 
     #endregion
+
+    #region Shadow Helpers
+
+    private void CalculateShadowMapCascadeMatrix(RenderComposer c, ShadowCascadeData cascade, LightModel model)
+    {
+        float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
+
+        // Get camera frustum for the current cascade clip.
+        var cam3D = c.Camera as Camera3D;
+        float fov = cam3D.FieldOfView;
+        var cameraProjection = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, cascade.NearClip, cascade.FarClip);
+        Matrix4x4 cameraView = c.Camera.ViewMatrix;
+        Span<Vector4> corners = stackalloc Vector4[8];
+        GetFrustumCornersWorldSpace(corners, cameraView * cameraProjection, out Vector3 center);
+
+        // The light view matrix looks at the center of the frustum.
+        Vector3 eye = center + model.SunDirection;
+        var lightView = Matrix4x4.CreateLookAt(eye, center, Vector3.UnitZ);
+
+        float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
+        float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
+
+        for (var i = 0; i < corners.Length; i++)
+        {
+            Vector4 v = corners[i];
+            Vector4 trf = Vector4.Transform(v, lightView);
+
+            minX = Math.Min(minX, trf.X);
+            maxX = Math.Max(maxX, trf.X);
+
+            minY = Math.Min(minY, trf.Y);
+            maxY = Math.Max(maxY, trf.Y);
+
+            minZ = Math.Min(minZ, trf.Z);
+            maxZ = Math.Max(maxZ, trf.Z);
+        }
+
+        // The projection of the light encompasses the frustum in a square.
+        var lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
+        cascade.LightViewProj = lightView * lightProjection;
+        cascade.DEBUG_View = lightView;
+
+        // Apply the scale/offset matrix, which transforms from [-1,1]
+        // post-projection space to [0,1] UV space
+        Matrix4x4 texScaleBias = new Matrix4x4(
+            0.5f, 0.0f, 0.0f, 0.0f,
+            0.0f, -0.5f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.0f, 1.0f
+        );
+        Matrix4x4 texScaleBiasInv = texScaleBias.Inverted();
+
+        //// Calculate the position of the lower corner of the cascade partition, in the UV space
+        //// of the first cascade partition
+        //Matrix4x4 invCascadeMat = Matrix4x4.Multiply(Matrix4x4.Multiply(texScaleBiasInv, invProj), invView);
+        //Vector3 cascadeCorner = Vector3.Transform(new Vector4(0.0f, 0.0f, 0.0f, 1.0f), invCascadeMat).XYZ();
+        //cascadeCorner = Vector3.Transform(new Vector4(cascadeCorner, 1.0f), GlobalShadowMatrix).XYZ();
+
+        //// Do the same for the upper corner
+        //Vector3 otherCorner = Vector3.Transform(new Vector4(1.0f, 1.0f, 1.0f, 1.0f), invCascadeMat).XYZ();
+        //otherCorner = Vector3.Transform(new Vector4(otherCorner, 1.0f), GlobalShadowMatrix).XYZ();
+
+        //// Calculate the scale and offset
+        //Vector3 cascadeScale = new Vector3(1.0f) / (otherCorner - cascadeCorner);
+        //CascadeOffsets[cascadeIdx] = new Vector4(-cascadeCorner, 0.0f);
+        //CascadeScales[cascadeIdx] = new Vector4(cascadeScale, 1.0f);
+    }
+
+    private static void GetFrustumCornersWorldSpace(Span<Vector4> frustumCorners, Matrix4x4 cameraViewProj, out Vector3 frustumCenter)
+    {
+        Matrix4x4 inv = cameraViewProj.Inverted();
+
+        Vector4 center = Vector4.Zero;
+        var idx = 0;
+        for (var x = 0; x < 2; ++x)
+        {
+            for (var y = 0; y < 2; ++y)
+            {
+                for (var z = 0; z < 2; ++z)
+                {
+                    var ndcPos = new Vector4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+                    Vector4 pt = Vector4.Transform(ndcPos, inv);
+                    Vector4 cartPt = pt / pt.W;
+                    frustumCorners[idx++] = cartPt;
+                    center += cartPt;
+                }
+            }
+        }
+
+        frustumCenter = (center / 8).ToVec3();
+    }
+
+    #endregion
 }
 
 //public sealed class MeshEntityStreamRenderer
@@ -797,185 +1030,163 @@ public sealed class MeshEntityBatchRenderer
 
 //    public void LoadAssets()
 //    {
-        //var meshShaderAsset = Engine.AssetLoader.Get<ShaderAsset>("Shaders/MeshShader.xml");
-        //ShaderAsset? skinnedMeshShader = meshShaderAsset?.GetShaderVariation("SKINNED");
-        //ShaderAsset? shadowMapShader = meshShaderAsset?.GetShaderVariation("SHADOW_MAP");
-        //ShaderAsset? skinnedShadowMapShader = meshShaderAsset?.GetShaderVariation("SKINNED_SHADOW_MAP");
+//var meshShaderAsset = Engine.AssetLoader.Get<ShaderAsset>("Shaders/MeshShader.xml");
+//ShaderAsset? skinnedMeshShader = meshShaderAsset?.GetShaderVariation("SKINNED");
+//ShaderAsset? shadowMapShader = meshShaderAsset?.GetShaderVariation("SHADOW_MAP");
+//ShaderAsset? skinnedShadowMapShader = meshShaderAsset?.GetShaderVariation("SKINNED_SHADOW_MAP");
 
-        //if (meshShaderAsset?.Shader == null || skinnedMeshShader?.Shader == null ||
-        //    shadowMapShader == null || skinnedShadowMapShader == null) return;
+//if (meshShaderAsset?.Shader == null || skinnedMeshShader?.Shader == null ||
+//    shadowMapShader == null || skinnedShadowMapShader == null) return;
 
-        //_meshShader = meshShaderAsset.Shader;
-        //_skinnedMeshShader = skinnedMeshShader.Shader;
-        //_meshShaderShadowMap = shadowMapShader.Shader;
-        //_meshShaderShadowMapSkinned = skinnedShadowMapShader.Shader;
-        //Initialized = true;
-    //}
+//_meshShader = meshShaderAsset.Shader;
+//_skinnedMeshShader = skinnedMeshShader.Shader;
+//_meshShaderShadowMap = shadowMapShader.Shader;
+//_meshShaderShadowMapSkinned = skinnedShadowMapShader.Shader;
+//Initialized = true;
+//}
 
-    //private bool _initializedShadowMapObjects;
-    //private bool _renderingShadowMap;
-    //private Matrix4x4 _renderingShadowMapCurrentLightViewProj;
-    //private string[]? cascadePlaneFarZUniformNames;
-    //private string[]? cascadeLightProjUniformNames;
+//private bool _initializedShadowMapObjects;
+//private bool _renderingShadowMap;
+//private Matrix4x4 _renderingShadowMapCurrentLightViewProj;
+//private string[]? cascadePlaneFarZUniformNames;
+//private string[]? cascadeLightProjUniformNames;
 
-    //private class ShadowCascade
-    //{
-    //    public FrameBuffer Buffer;
-    //    public float NearZ;
-    //    public float FarZ;
-    //    public Matrix4x4 LightViewProj;
+//private class ShadowCascade
+//{
+//    public FrameBuffer Buffer;
+//    public float NearZ;
+//    public float FarZ;
+//    public Matrix4x4 LightViewProj;
 
-    //    public ShadowCascade(float nearZ, float farZ)
-    //    {
-    //        var resolution = new Vector2(2048);
-    //        NearZ = nearZ;
-    //        FarZ = farZ;
+//    public ShadowCascade(float nearZ, float farZ)
+//    {
+//        var resolution = new Vector2(2048);
+//        NearZ = nearZ;
+//        FarZ = farZ;
 
-    //        Buffer = new FrameBuffer(resolution).WithDepth(true);
-    //        Texture.EnsureBound(Buffer.DepthStencilAttachment.Pointer);
-    //        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
-    //        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
+//        Buffer = new FrameBuffer(resolution).WithDepth(true);
+//        Texture.EnsureBound(Buffer.DepthStencilAttachment.Pointer);
+//        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
+//        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
 
-    //        float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-    //        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
-    //    }
-    //}
+//        float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+//        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
+//    }
+//}
 
-    //private int _shadowCascadeCount = 3;
-    //private ShadowCascade[]? _shadowCascades;
+//private int _shadowCascadeCount = 3;
+//private ShadowCascade[]? _shadowCascades;
 
-    //private void InitializeShadowMapObjects()
-    //{
-    //    _shadowCascades = new ShadowCascade[3]
-    //    {
-    //        new ShadowCascade(10f, 300f),
-    //        new ShadowCascade(300f, 500f),
-    //        new ShadowCascade(500f, 1000f)
-    //    };
-    //    Assert(_shadowCascades.Length == _shadowCascadeCount);
+//private void InitializeShadowMapObjects()
+//{
+//    _shadowCascades = new ShadowCascade[3]
+//    {
+//        new ShadowCascade(10f, 300f),
+//        new ShadowCascade(300f, 500f),
+//        new ShadowCascade(500f, 1000f)
+//    };
+//    Assert(_shadowCascades.Length == _shadowCascadeCount);
 
-    //    cascadePlaneFarZUniformNames = new string[_shadowCascadeCount];
-    //    cascadeLightProjUniformNames = new string[_shadowCascadeCount];
+//    cascadePlaneFarZUniformNames = new string[_shadowCascadeCount];
+//    cascadeLightProjUniformNames = new string[_shadowCascadeCount];
 
-    //    for (var i = 0; i < _shadowCascadeCount; i++)
-    //    {
-    //        cascadePlaneFarZUniformNames[i] = $"cascadePlaneFarZ[{i}]";
-    //        cascadeLightProjUniformNames[i] = $"cascadeLightProj[{i}]";
-    //    }
+//    for (var i = 0; i < _shadowCascadeCount; i++)
+//    {
+//        cascadePlaneFarZUniformNames[i] = $"cascadePlaneFarZ[{i}]";
+//        cascadeLightProjUniformNames[i] = $"cascadeLightProj[{i}]";
+//    }
 
-    //    _initializedShadowMapObjects = true;
-    //}
+//    _initializedShadowMapObjects = true;
+//}
 
-    //public int GetShadowMapCascadeCount()
-    //{
-    //    if (!Initialized) return 0;
-    //    if (!_initializedShadowMapObjects) InitializeShadowMapObjects();
-    //    AssertNotNull(_shadowCascades);
-    //    return _shadowCascades.Length;
-    //}
+//public int GetShadowMapCascadeCount()
+//{
+//    if (!Initialized) return 0;
+//    if (!_initializedShadowMapObjects) InitializeShadowMapObjects();
+//    AssertNotNull(_shadowCascades);
+//    return _shadowCascades.Length;
+//}
 
-    //public void StartRenderShadowMap(int cascIdx, RenderComposer c, LightModel model)
-    //{
-    //    if (!Initialized) return;
-    //    AssertNotNull(_meshShaderShadowMap);
-    //    AssertNotNull(_meshShaderShadowMapSkinned);
+//public void StartRenderShadowMap(int cascIdx, RenderComposer c, LightModel model)
+//{
+//    if (!Initialized) return;
+//    AssertNotNull(_meshShaderShadowMap);
+//    AssertNotNull(_meshShaderShadowMapSkinned);
 
-    //    c.FlushRenderStream();
+//    c.FlushRenderStream();
 
-    //    if (!_initializedShadowMapObjects) InitializeShadowMapObjects();
-    //    AssertNotNull(_shadowCascades);
+//    if (!_initializedShadowMapObjects) InitializeShadowMapObjects();
+//    AssertNotNull(_shadowCascades);
 
-    //    float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
+//    float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
 
-    //    ShadowCascade cascade = _shadowCascades[cascIdx];
-    //    c.RenderToAndClear(cascade.Buffer);
-    //    Gl.DrawBuffers(Gl.NONE);
-    //    Gl.ReadBuffer(Gl.NONE);
+//    ShadowCascade cascade = _shadowCascades[cascIdx];
+//    c.RenderToAndClear(cascade.Buffer);
+//    Gl.DrawBuffers(Gl.NONE);
+//    Gl.ReadBuffer(Gl.NONE);
 
-    //    float nearClip = cascade.NearZ;
-    //    float farClip = cascade.FarZ;
+//    float nearClip = cascade.NearZ;
+//    float farClip = cascade.FarZ;
 
-    //    // Get camera frustum for the current cascade clip.
-    //    var cam3D = c.Camera as Camera3D;
-    //    float fov = cam3D.FieldOfView;
-    //    var cameraProjection = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, nearClip, farClip);
-    //    Matrix4x4 cameraView = c.Camera.ViewMatrix;
-    //    Span<Vector4> corners = stackalloc Vector4[8];
-    //    GetFrustumCornersWorldSpace(corners, cameraView * cameraProjection, out Vector3 center);
+//    // Get camera frustum for the current cascade clip.
+//    var cam3D = c.Camera as Camera3D;
+//    float fov = cam3D.FieldOfView;
+//    var cameraProjection = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, nearClip, farClip);
+//    Matrix4x4 cameraView = c.Camera.ViewMatrix;
+//    Span<Vector4> corners = stackalloc Vector4[8];
+//    GetFrustumCornersWorldSpace(corners, cameraView * cameraProjection, out Vector3 center);
 
-    //    // The light view matrix looks at the center of the frustum.
-    //    Vector3 eye = center + model.SunDirection;
-    //    var lightView = Matrix4x4.CreateLookAt(eye, center, Vector3.UnitZ);
+//    // The light view matrix looks at the center of the frustum.
+//    Vector3 eye = center + model.SunDirection;
+//    var lightView = Matrix4x4.CreateLookAt(eye, center, Vector3.UnitZ);
 
-    //    float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
-    //    float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
+//    float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
+//    float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
 
-    //    for (var i = 0; i < corners.Length; i++)
-    //    {
-    //        Vector4 v = corners[i];
-    //        Vector4 trf = Vector4.Transform(v, lightView);
+//    for (var i = 0; i < corners.Length; i++)
+//    {
+//        Vector4 v = corners[i];
+//        Vector4 trf = Vector4.Transform(v, lightView);
 
-    //        minX = Math.Min(minX, trf.X);
-    //        maxX = Math.Max(maxX, trf.X);
+//        minX = Math.Min(minX, trf.X);
+//        maxX = Math.Max(maxX, trf.X);
 
-    //        minY = Math.Min(minY, trf.Y);
-    //        maxY = Math.Max(maxY, trf.Y);
+//        minY = Math.Min(minY, trf.Y);
+//        maxY = Math.Max(maxY, trf.Y);
 
-    //        minZ = Math.Min(minZ, trf.Z);
-    //        maxZ = Math.Max(maxZ, trf.Z);
-    //    }
+//        minZ = Math.Min(minZ, trf.Z);
+//        maxZ = Math.Max(maxZ, trf.Z);
+//    }
 
-    //    // Fudge the depth range of the shadow map.
-    //    var zMult = 10f;
-    //    if (minZ < 0)
-    //        minZ *= zMult;
-    //    else
-    //        minZ /= zMult;
+//    // Fudge the depth range of the shadow map.
+//    var zMult = 10f;
+//    if (minZ < 0)
+//        minZ *= zMult;
+//    else
+//        minZ /= zMult;
 
-    //    if (maxZ < 0)
-    //        maxZ /= zMult;
-    //    else
-    //        maxZ *= zMult;
+//    if (maxZ < 0)
+//        maxZ /= zMult;
+//    else
+//        maxZ *= zMult;
 
-    //    // The projection of the light encompasses the frustum in a square.
-    //    var lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
+//    // The projection of the light encompasses the frustum in a square.
+//    var lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
 
-    //    cascade.LightViewProj = lightView * lightProjection;
-    //    _renderingShadowMapCurrentLightViewProj = cascade.LightViewProj;
-    //    _renderingShadowMap = true;
-    //}
+//    cascade.LightViewProj = lightView * lightProjection;
+//    _renderingShadowMapCurrentLightViewProj = cascade.LightViewProj;
+//    _renderingShadowMap = true;
+//}
 
-    //private static void GetFrustumCornersWorldSpace(Span<Vector4> frustumCorners, Matrix4x4 cameraViewProj, out Vector3 frustumCenter)
-    //{
-    //    Matrix4x4 inv = cameraViewProj.Inverted();
 
-    //    Vector4 center = Vector4.Zero;
-    //    var idx = 0;
-    //    for (var x = 0; x < 2; ++x)
-    //    {
-    //        for (var y = 0; y < 2; ++y)
-    //        {
-    //            for (var z = 0; z < 2; ++z)
-    //            {
-    //                var ndcPos = new Vector4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
-    //                Vector4 pt = Vector4.Transform(ndcPos, inv);
-    //                Vector4 cartPt = pt / pt.W;
-    //                frustumCorners[idx++] = cartPt;
-    //                center += cartPt;
-    //            }
-    //        }
-    //    }
 
-    //    frustumCenter = (center / 8).ToVec3();
-    //}
+//public void EndRenderShadowMap(RenderComposer c)
+//{
+//    if (!_renderingShadowMap) return;
+//    AssertNotNull(_shadowCascades);
 
-    //public void EndRenderShadowMap(RenderComposer c)
-    //{
-    //    if (!_renderingShadowMap) return;
-    //    AssertNotNull(_shadowCascades);
-
-    //    c.RenderTo(null);
-    //    c.FlushRenderStream();
-    //    _renderingShadowMap = false;
-    //}
+//    c.RenderTo(null);
+//    c.FlushRenderStream();
+//    _renderingShadowMap = false;
+//}
 //}

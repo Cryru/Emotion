@@ -2,6 +2,8 @@
 {
     public class LightModel
     {
+        public bool Shadows = true;
+
         public float AmbientLightStrength = 1f;
         public Color AmbientLightColor = new Color(255, 255, 255);
 

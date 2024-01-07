@@ -15,7 +15,6 @@ namespace Emotion.Game.World3D;
 public class Map3D : BaseMap
 {
     public LightModel LightModel = new();
-    public bool RenderShadowMap = false;
 
     public override List<Type> GetValidObjectTypes()
     {

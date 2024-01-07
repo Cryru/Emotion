@@ -1,13 +1,8 @@
 #version v 
 
-#ifdef SKINNED_SHADOW_MAP
-#define SHADOW_MAP 1
-#define SKINNED 1
-#endif
-
 uniform mat4 projectionMatrix; 
 uniform mat4 viewMatrix; 
-uniform mat4 modelMatrix; 
+uniform mat4 modelMatrix;
  
 // Shader toy API uniforms. 
 uniform float iTime; // shader playback time (in seconds) 
@@ -27,7 +22,9 @@ layout(location = 5)in vec4 boneWeights;
 uniform vec4 sunColor;
 uniform vec3 sunDirection;
 
-uniform mat4 lightViewProj;
+#define CASCADE_COUNT 4
+uniform mat4 cascadeLightProj[CASCADE_COUNT];
+uniform int renderingShadowMap;
 
 #ifdef SKINNED
 const int MAX_BONES = 126;
@@ -61,17 +58,16 @@ void main() {
         totalTransform += boneMatrices[int(boneIds[i])] * boneWeights[i];
     }
     totalPosition = totalTransform * totalPosition;
-	fragNormal = normalize(mat3(transpose(inverse(modelMatrix * totalTransform))) * normal);
+    fragNormal = normalize(mat3(transpose(inverse(modelMatrix * totalTransform))) * normal);
 #else
-	fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
+    fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
 #endif
 
-	fragPosition = vec3(modelMatrix * totalPosition);
+    fragPosition = vec3(modelMatrix * totalPosition);
 
     // Multiply by projection.
-    #ifdef SHADOW_MAP
-        gl_Position = lightViewProj * modelMatrix * totalPosition;
-    #else
+    if (renderingShadowMap == -1)
         gl_Position = projectionMatrix * viewMatrix * modelMatrix * totalPosition;
-    #endif
+    else
+        gl_Position = cascadeLightProj[renderingShadowMap] * modelMatrix * totalPosition;
 }
