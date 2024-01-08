@@ -15,6 +15,7 @@ public enum TileEditorTool
 {
     Brush,
     Eraser,
+    Bucket,
 
     // Pointer = todo: allows copy paste of sections
     // ColorPicker = todo: tile picker from the selected layer :)

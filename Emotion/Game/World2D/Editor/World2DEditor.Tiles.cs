@@ -15,7 +15,7 @@ namespace Emotion.Game.World2D.Editor;
 
 public partial class World2DEditor
 {
-    protected Vector2? _tileBrush = null;
+    protected Vector2? _cursorPos = null;
     protected bool _mouseDown = false;
     protected WorldEditor2DActionTileChange? _lastAction;
 
@@ -71,7 +71,7 @@ public partial class World2DEditor
 
     protected void UpdateTileEditor()
     {
-        _tileBrush = null;
+        _cursorPos = null;
         if (!IsTileEditorOpen()) return;
 
         bool mouseInUI = UIController.MouseFocus != null && UIController.MouseFocus != _editUI;
@@ -83,7 +83,7 @@ public partial class World2DEditor
         if (tileData == null) return;
 
         Vector2 tilePos = tileData.GetTilePosOfWorldPos(worldSpaceMousePos.ToVec2());
-        _tileBrush = tilePos;
+        _cursorPos = tilePos;
 
         MapEditorTilePanel? editor = _tileEditor as MapEditorTilePanel;
         AssertNotNull(editor);
@@ -106,7 +106,7 @@ public partial class World2DEditor
         MapEditorTilePanel? editor = _tileEditor as MapEditorTilePanel;
         AssertNotNull(editor);
 
-        if (_tileBrush != null)
+        if (_cursorPos != null)
         {
             var mapTileData = GetMapTileData();
             if (mapTileData == null) return;
@@ -117,7 +117,7 @@ public partial class World2DEditor
             Map2DTileMapLayer? layerToPlaceIn = editor.GetLayer();
             uint tileToPlace = editor.GetTidToPlace();
 
-            var pos = _tileBrush.Value;
+            var pos = _cursorPos.Value;
             if (currentTool == TileEditorTool.Brush)
             {
                 Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
@@ -149,19 +149,69 @@ public partial class World2DEditor
         return _tileEditor != null && _tileEditor.Controller != null;
     }
 
+    #region Bucket Tool
+
+    private void SpanFill(int x, int y, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn, uint currentTileData, uint tileToFill)
+    {
+        var stack = new Stack<Tuple<int, int, uint>>();
+        stack.Push(Tuple.Create(x, y, currentTileData));
+        while (stack.Count > 0)
+        {
+            var (currentX, currentY, currentTile) = stack.Pop();
+            int lx = currentX;
+
+            while (SpanFill_IsValid(lx, currentY, mapTileData, layerToPlaceIn, currentTile))
+            {
+                mapTileData.SetTileData(layerToPlaceIn, (int)mapTileData.GetTile1DFromTile2D(new Vector2(lx, currentY)), tileToFill);
+                lx = lx - 1;
+            }
+
+            int rx = currentX + 1;
+            while (SpanFill_IsValid(rx, currentY, mapTileData, layerToPlaceIn, currentTile))
+            {
+                mapTileData.SetTileData(layerToPlaceIn, (int)mapTileData.GetTile1DFromTile2D(new Vector2(rx, currentY)), tileToFill);
+                rx = rx + 1;
+            }
+
+            SpanFill_Scan(lx, rx - 1, currentY + 1, currentTileData, stack, mapTileData, layerToPlaceIn);
+            SpanFill_Scan(lx, rx - 1, currentY - 1, currentTileData, stack, mapTileData, layerToPlaceIn);
+        }
+    }
+
+    private bool SpanFill_IsValid(int x, int y, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn, uint tileToFill)
+    {
+        var tile = mapTileData.GetTile1DFromTile2D(new Vector2(x, y));
+        uint TileID = mapTileData.GetTileData(layerToPlaceIn, tile);
+
+        return x >= 0 && x < mapTileData.SizeInTiles.X && y >= 0 && y < mapTileData.SizeInTiles.Y && tileToFill == TileID;
+    }
+
+    private void SpanFill_Scan(int lx, int rx, int y, uint currentTileData, Stack<Tuple<int, int, uint>> stack, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn)
+    {
+        for (int i = lx; i < rx; i++)
+        {
+            if (SpanFill_IsValid(i, y, mapTileData, layerToPlaceIn, currentTileData))
+            {
+                stack.Push(Tuple.Create(i, y, currentTileData));
+            }
+        }
+    }
+
+    #endregion
+
     private void PaintCurrentTile()
     {
         MapEditorTilePanel? editor = _tileEditor as MapEditorTilePanel;
         AssertNotNull(editor);
 
         Map2DTileMapLayer? layerToPlaceIn = editor.GetLayer();
-        if (layerToPlaceIn == null || _tileBrush == null) return;
+        if (layerToPlaceIn == null || _cursorPos == null) return;
 
         var mapTileData = GetMapTileData();
         if (mapTileData == null) return;
 
-        var tileBrush1D = mapTileData.GetTile1DFromTile2D(_tileBrush.Value);
-        uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, tileBrush1D);
+        var cursorPos1D = mapTileData.GetTile1DFromTile2D(_cursorPos.Value);
+        uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, cursorPos1D);
 
         WorldEditor2DActionTileChange? undoAction = _lastAction;
         if (undoAction == null)
@@ -172,16 +222,22 @@ public partial class World2DEditor
         switch (editor.CurrentTool)
         {
             case TileEditorTool.Eraser:
-                mapTileData.SetTileData(layerToPlaceIn, tileBrush1D, 0);
+                mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, 0);
                 break;
             case TileEditorTool.Brush:
                 uint tileToPlace = editor.GetTidToPlace();
                 if (tileToPlace == 0) return;
-                mapTileData.SetTileData(layerToPlaceIn, tileBrush1D, tileToPlace);
+                mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, tileToPlace);
+                break;
+            case TileEditorTool.Bucket:
+                uint tileToFill = editor.GetTidToPlace();
+                if (tileToFill == 0 || tileToFill == previousTileID) return;
+                if (_lastAction != null) return;
+                SpanFill((int)_cursorPos.Value.X, (int)_cursorPos.Value.Y, mapTileData, layerToPlaceIn, previousTileID, tileToFill);
                 break;
         }
 
-        undoAction.AddToEditHistory(tileBrush1D, previousTileID);
+        undoAction.AddToEditHistory(cursorPos1D, previousTileID);
         if (_lastAction == null)
         {
             _lastAction = undoAction;
