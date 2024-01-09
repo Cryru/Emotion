@@ -27,8 +27,6 @@ public sealed class MeshEntityBatchRenderer
     private Comparison<RenderInstanceMeshDataTransparent> _objectComparison = null!;
     private ShaderProgram _meshShader = null!;
     private ShaderProgram _skinnedMeshShader = null!;
-    private ShaderProgram _meshShaderShadowMap = null!;
-    private ShaderProgram _meshShaderShadowMapSkinned = null!;
 
     #region Scene State
 
@@ -169,15 +167,11 @@ public sealed class MeshEntityBatchRenderer
         {
             _meshShader = meshShaderAsset.Shader;
             _skinnedMeshShader = meshShaderAsset.GetShaderVariation("SKINNED").Shader;
-            _meshShaderShadowMap = meshShaderAsset.GetShaderVariation("SHADOW_MAP").Shader;
-            _meshShaderShadowMapSkinned = meshShaderAsset.GetShaderVariation("SKINNED_SHADOW_MAP").Shader;
         }
         else
         {
             _meshShader = ShaderFactory.DefaultProgram;
             _skinnedMeshShader = ShaderFactory.DefaultProgram;
-            _meshShaderShadowMap = ShaderFactory.DefaultProgram;
-            _meshShaderShadowMapSkinned = ShaderFactory.DefaultProgram;
         }
 
         _shadowCascades = new ShadowCascadeData[4]
@@ -286,7 +280,6 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Decide on the pipeline state for this mesh.
-            bool renderingShadowMap = false;
             bool skinnedMesh = mesh.Bones != null;
             ShaderProgram currentShader;
             bool overwrittenShader = false;
@@ -297,17 +290,11 @@ public sealed class MeshEntityBatchRenderer
             }
             else if (skinnedMesh)
             {
-                if (renderingShadowMap)
-                    currentShader = _meshShaderShadowMapSkinned;
-                else
-                    currentShader = _skinnedMeshShader;
+                currentShader = _skinnedMeshShader;
             }
             else
             {
-                if (renderingShadowMap)
-                    currentShader = _meshShaderShadowMap;
-                else
-                    currentShader = _meshShader;
+                currentShader = _meshShader;
             }
 
             if (!_shadersUsedLookup.Contains(currentShader))
@@ -497,7 +484,7 @@ public sealed class MeshEntityBatchRenderer
         const int reservedTextureSlots = 1;
         for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
         {
-            Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint) j);
+            Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)j);
         }
 
         if (light.Shadows)
@@ -580,6 +567,14 @@ public sealed class MeshEntityBatchRenderer
             c.PushModelMatrix(objectData.ModelMatrix);
             currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
 
+            bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+            bool receiveShadow = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+            int lightMode = 0;
+            if (!receiveAmbient) lightMode = 1;
+            if (!receiveShadow) lightMode = 2;
+            if (!receiveAmbient && !receiveShadow) lightMode = 3;
+            currentShader.SetUniformInt("lightMode", lightMode);
+
             if (skinnedMesh && meshInstance.BoneData != null)
                 currentShader.SetUniformMatrix4("boneMatrices", meshInstance.BoneData, meshInstance.BoneData.Length);
 
@@ -660,6 +655,14 @@ public sealed class MeshEntityBatchRenderer
                     ObjectFlags flags = objectData.Flags;
                     if (_renderingShadowmap != -1 && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
 
+                    bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+                    bool receiveShadow = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+                    int lightMode = 0;
+                    if (!receiveAmbient) lightMode = 1;
+                    if (!receiveShadow) lightMode = 2;
+                    if (!receiveAmbient && !receiveShadow) lightMode = 3;
+                    currentShader.SetUniformInt("lightMode", lightMode);
+
                     c.PushModelMatrix(objectData.ModelMatrix);
                     currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
 
@@ -725,8 +728,6 @@ public sealed class MeshEntityBatchRenderer
         EnsureAssetsLoaded();
         AssertNotNull(_meshShader);
         AssertNotNull(_skinnedMeshShader);
-        AssertNotNull(_meshShaderShadowMap);
-        AssertNotNull(_meshShaderShadowMapSkinned);
 
         Mesh[]? meshes = entity.Meshes;
         if (meshes == null) return;
@@ -761,8 +762,8 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Decide which shader to use.
-            bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
-            bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+            //bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+            //bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
             bool skinnedMesh = obj.Bones != null;
             ShaderProgram currentShader;
             if (shaderOverride != null)
@@ -788,18 +789,27 @@ public sealed class MeshEntityBatchRenderer
             if (light != null)
             {
                 currentShader.SetUniformVector3("sunDirection", light.SunDirection);
-                currentShader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
-                currentShader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
-                currentShader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
-                currentShader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
+                currentShader.SetUniformColor("ambientColor", light.AmbientLightColor);
+                currentShader.SetUniformFloat("ambientLightStrength", light.AmbientLightStrength);
+                currentShader.SetUniformFloat("diffuseStrength", light.DiffuseStrength);
+                currentShader.SetUniformFloat("shadowOpacity", 0f); // No shadows outside of scene
             }
             else
             {
-                currentShader.SetUniformVector3("sunDirection", Vector3.Zero);
+                currentShader.SetUniformVector3("sunDirection", LightModel.DefaultLightModel.SunDirection);
                 currentShader.SetUniformColor("ambientColor", Color.White);
                 currentShader.SetUniformFloat("ambientLightStrength", 1f);
                 currentShader.SetUniformFloat("diffuseStrength", 0f);
+                currentShader.SetUniformFloat("shadowOpacity", 0f);
             }
+
+            bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+            bool receiveShadow = false;// !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+            int lightMode = 0;
+            if (!receiveAmbient) lightMode = 1;
+            if (!receiveShadow) lightMode = 2;
+            if (!receiveAmbient && !receiveShadow) lightMode = 3;
+            currentShader.SetUniformInt("lightMode", lightMode);
 
             //if (_renderingShadowMap)
             //    currentShader.SetUniformMatrix4("lightViewProj", _renderingShadowMapCurrentLightViewProj);

@@ -23,6 +23,12 @@ uniform float diffuseStrength;
 uniform float shadowOpacity;
 uniform vec4 ambientColor;
 
+// 0 - default
+// 1 - no ambient+diffuse
+// 2 - no receive shadow
+// 3 - 2 and 3
+uniform int lightMode;
+
 // Material
 uniform sampler2D diffuseTexture;
 uniform vec4 diffuseColor;
@@ -227,27 +233,38 @@ void main()
     vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
     objectColor = ApplyColorTint(objectColor, objectTint);
 
+    // Cascade/tinting debug
+    //fragColor = objectColor;
+    //return;
+
     // Cascade debug
     //int cascade = GetCurrentShadowCascade();
     //objectColor = GetCascadeDebugColor(cascade);
 
-    // Normal diffuse factor
-    //float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
+    vec3 finalColor = objectColor.rgb;
 
-    // Valve Half Lambert diffuse factor
-    // https://developer.valvesoftware.com/wiki/Half_Lambert
-    float diffuseFactor = dot(fragNormal, fragLightDir) * 0.5 + 0.5;
+    // Diffuse+Ambient Light
+    if (lightMode != 1 && lightMode != 3) // Flat shading flags
+    {
+        // Normal diffuse factor
+        //float diffuseFactor = max(dot(fragNormal, fragLightDir), 0.0);
 
-    diffuseFactor = max(diffuseFactor, 1.0 - diffuseStrength);
-    vec3 diffuse = objectColor.rgb * diffuseFactor;
+        // Valve Half Lambert diffuse factor
+        // https://developer.valvesoftware.com/wiki/Half_Lambert
+        float diffuseFactor = dot(fragNormal, fragLightDir) * 0.5 + 0.5;
 
-    // Combine ambient and diffuse
-    vec3 ambient = ambientLightStrength * ambientColor.rgb;
-    vec3 finalColor = diffuse * ambient;
+        // Combine ambient and diffuse
+        vec3 ambient = ambientColor.rgb * ambientLightStrength;
+        vec3 diffuse = mix(objectColor.rgb, objectColor.rgb * diffuseFactor, diffuseStrength);
+        finalColor = diffuse * ambient;
+    }
 
     // Shadow
-    float shadow = GetShadowAmount() * shadowOpacity;
-    finalColor *= 1.0 - shadow;
+    if (lightMode != 2 && lightMode != 3) // Dont receive shadow flags
+    {
+        float shadow = GetShadowAmount() * shadowOpacity;
+        finalColor *= 1.0 - shadow;
+    }
 
     fragColor = vec4(finalColor.rgb, objectColor.a);
     if (fragColor.a < 0.01)discard;
