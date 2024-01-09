@@ -11,8 +11,6 @@ using AssContext = Silk.NET.Assimp.Assimp;
 using AssTexture = Silk.NET.Assimp.Texture;
 using AssMesh = Silk.NET.Assimp.Mesh;
 using File = Silk.NET.Assimp.File;
-using Mesh = Emotion.Graphics.ThreeDee.Mesh;
-using Texture = Emotion.Graphics.Objects.Texture;
 
 #endregion
 
