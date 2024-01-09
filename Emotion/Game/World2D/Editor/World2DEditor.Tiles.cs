@@ -134,6 +134,18 @@ public partial class World2DEditor
                 c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.PrettyPink * 0.2f);
                 c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyPink, 1f);
             }
+            else if (currentTool == TileEditorTool.Bucket)
+            {
+                Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
+                Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
+                c.ClearDepth();
+                if (tileToPlace != 0)
+                {
+
+                }
+                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Green * 0.2f);
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.Green, 0.7f);
+            }
         }
     }
 
@@ -151,7 +163,7 @@ public partial class World2DEditor
 
     #region Bucket Tool
 
-    private void SpanFill(int x, int y, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn, uint currentTileData, uint tileToFill)
+    private void SpanFill(int x, int y, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn, uint currentTileData, uint tileToFillWith)
     {
         var stack = new Stack<Tuple<int, int, uint>>();
         stack.Push(Tuple.Create(x, y, currentTileData));
@@ -160,17 +172,17 @@ public partial class World2DEditor
             var (currentX, currentY, currentTile) = stack.Pop();
             int lx = currentX;
 
-            while (SpanFill_IsValid(lx, currentY, mapTileData, layerToPlaceIn, currentTile))
+            while (SpanFill_IsValid(lx - 1, currentY, mapTileData, layerToPlaceIn, currentTile))
             {
-                mapTileData.SetTileData(layerToPlaceIn, (int)mapTileData.GetTile1DFromTile2D(new Vector2(lx, currentY)), tileToFill);
+                mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(new Vector2(lx - 1, currentY)), tileToFillWith);
                 lx = lx - 1;
             }
 
-            int rx = currentX + 1;
+            int rx = currentX;
             while (SpanFill_IsValid(rx, currentY, mapTileData, layerToPlaceIn, currentTile))
             {
-                mapTileData.SetTileData(layerToPlaceIn, (int)mapTileData.GetTile1DFromTile2D(new Vector2(rx, currentY)), tileToFill);
-                rx = rx + 1;
+                mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(new Vector2(rx, currentY)), tileToFillWith);
+                rx++;
             }
 
             SpanFill_Scan(lx, rx - 1, currentY + 1, currentTileData, stack, mapTileData, layerToPlaceIn);
@@ -188,7 +200,7 @@ public partial class World2DEditor
 
     private void SpanFill_Scan(int lx, int rx, int y, uint currentTileData, Stack<Tuple<int, int, uint>> stack, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn)
     {
-        for (int i = lx; i < rx; i++)
+        for (int i = lx; i <= rx; i++)
         {
             if (SpanFill_IsValid(i, y, mapTileData, layerToPlaceIn, currentTileData))
             {
