@@ -176,11 +176,71 @@ public struct Ray3D
         if (discriminant < 0) return false;
 
         // Calculate the two possible values for t (intersection points)
-        float t1 = (-b + (float) Math.Sqrt(discriminant)) / (2 * a);
-        float t2 = (-b - (float) Math.Sqrt(discriminant)) / (2 * a);
+        float t1 = (-b + (float)Math.Sqrt(discriminant)) / (2 * a);
+        float t2 = (-b - (float)Math.Sqrt(discriminant)) / (2 * a);
 
         intersectionPoint1 = Start + t1 * Direction;
         intersectionPoint2 = Start + t2 * Direction;
+
+        return true;
+    }
+
+    public bool IntersectWithCube(Cube cube, out Vector3 intersectionPoint)
+    {
+        intersectionPoint = Vector3.Zero;
+
+        Vector3 minBounds = cube.Origin - cube.HalfExtents;
+        Vector3 maxBounds = cube.Origin + cube.HalfExtents;
+
+        // Calculate the inverse direction to simplify calculations
+        Vector3 invDirection = new Vector3(1.0f / Direction.X, 1.0f / Direction.Y, 1.0f / Direction.Z);
+
+        // Calculate the intersection with each slab along the x-axis
+        float minX = (minBounds.X - Start.X) * invDirection.X;
+        float maxX = (maxBounds.X - Start.X) * invDirection.X;
+
+        // Swap if needed
+        if (minX > maxX)
+            (minX, maxX) = (maxX, minX);
+
+        // Calculate the intersection with each slab along the y-axis
+        float minY = (minBounds.Y - Start.Y) * invDirection.Y;
+        float maxY = (maxBounds.Y - Start.Y) * invDirection.Y;
+
+        // Swap if needed
+        if (minY > maxY)
+            (minY, maxY) = (maxY, minY);
+
+        // Check for no intersection along the x or y axis
+        if (minX > maxY || minY > maxX)
+            return false;
+
+        // Update tMin and tMax to consider the intersection along the y-axis
+        minX = Math.Max(minX, minY);
+        maxX = Math.Min(maxX, maxY);
+
+        // Calculate the intersection with each slab along the z-axis
+        float minZ = (minBounds.Z - Start.Z) * invDirection.Z;
+        float maxZ = (maxBounds.Z - Start.Z) * invDirection.Z;
+
+        // Swap if needed
+        if (minZ > maxZ)
+            (minZ, maxZ) = (maxZ, minZ);
+
+        // Check for no intersection along the z-axis
+        if (minX > maxZ || minZ > maxX)
+            return false;
+
+        // Update tMin and tMax to consider the intersection along the z-axis
+        minX = Math.Max(minX, minZ);
+        maxX = Math.Min(maxX, maxZ);
+
+        // Check if the intersection is behind the ray starting point
+        if (maxX < 0)
+            return false;
+
+        // Calculate the intersection point
+        intersectionPoint = Start + minX * Direction;
 
         return true;
     }
