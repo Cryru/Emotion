@@ -235,7 +235,7 @@ public abstract partial class WorldBaseEditor
             },
             new EditorDropDownItem
             {
-                Name = "Save",
+                Name = "Save (Ctrl+S)",
                 Click = (_, __) => { Task.Run(() => EditorSaveMap()); },
                 Enabled = () => map?.FileName != null
             },
