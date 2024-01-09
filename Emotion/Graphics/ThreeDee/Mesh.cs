@@ -104,6 +104,36 @@ public class Mesh
         return this;
     }
 
+    public static Mesh ShallowCopyMesh(Mesh m1)
+    {
+        return new Mesh()
+        {
+            Vertices = m1.Vertices,
+            ExtraVertexData = m1.ExtraVertexData,
+            Indices = m1.Indices,
+            BoneData = m1.BoneData,
+            BoneNameCache = m1.BoneNameCache,
+            Bones = m1.Bones,
+            Material = m1.Material,
+            Name = m1.Name + "_Copy"
+        };
+    }
+
+    public static Mesh ShallowCopyMesh_DeepCopyVertexData(Mesh m1)
+    {
+        return new Mesh()
+        {
+            Vertices = (VertexData[]) m1.Vertices.Clone(),
+            ExtraVertexData = (VertexDataMesh3DExtra[]) m1.ExtraVertexData.Clone(),
+            Indices = m1.Indices,
+            BoneData = m1.BoneData,
+            BoneNameCache = m1.BoneNameCache,
+            Bones = m1.Bones,
+            Material = m1.Material,
+            Name = m1.Name + "_Copy"
+        };
+    }
+
     public static Mesh CombineMeshes(Mesh m1, Mesh m2, string name)
     {
         var m = new Mesh(
