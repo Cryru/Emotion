@@ -35,6 +35,15 @@ public partial class World3DEditor : WorldBaseEditor
         };
     }
 
+    protected override bool InternalEditorInputHandler(Key key, KeyStatus status)
+    {
+        bool propagate = true;
+        if (MoveGizmo != null) propagate = MoveGizmo.KeyHandler(key, status);
+        if (!propagate) return false;
+
+        return propagate;
+    }
+
     protected override void EnterEditorInternal()
     {
         CreateEditorGrid();

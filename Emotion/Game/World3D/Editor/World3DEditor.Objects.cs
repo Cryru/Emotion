@@ -25,13 +25,21 @@ public partial class World3DEditor
                 var gizmo = new TranslationGizmo();
                 await gizmo.LoadAssetsAsync();
                 MoveGizmo = gizmo;
-                gizmo.TargetMoved = (obj, start, movedTo) => { EditorRegisterObjectMoveAction((BaseGameObject) obj, start, movedTo); };
+                gizmo.TargetMoved = EditorRegisterObjectMoveAction;
+                gizmo.TargetStartMoving = (obj) =>
+                {
+                    if (Engine.Host.IsCtrlModifierHeld())
+                    {
+                        var newObject = DuplicateObject(obj);
+                        SelectObject(newObject);
+                    }
+                };
             });
 
         // Cache collision vertices for all objects on editor enter.
         // Since animations are frozen this will allow for skinned meshes to be mouse picked.
         if (CurrentMap != null)
-            foreach (BaseGameObject obj in CurrentMap.GetObjects())
+            foreach (BaseGameObject obj in CurrentMap.ObjectsEnum())
             {
                 if (obj is GameObject3D obj3D) obj3D.CacheVerticesForCollision();
             }
