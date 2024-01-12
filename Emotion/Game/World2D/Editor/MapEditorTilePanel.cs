@@ -60,7 +60,7 @@ public class MapEditorTilePanel : EditorPanel
         innerContainer.MaxSizeX = 190f;
         _contentParent.AddChild(innerContainer);
 
-        var editTileData = new EditorButton("Edit TileMap Definition");
+        var editTileData = new EditorButton("Edit TileMap Properties");
         editTileData.StretchY = true;
         editTileData.OnClickedProxy = _ =>
         {
@@ -121,8 +121,39 @@ public class MapEditorTilePanel : EditorPanel
         _tileSetList = tileSetList;
         innerContainer.AddChild(tileSetList);
 
-        var tilesetPropertiesButton = new EditorButton("Properties (todo)");
-        innerContainer.AddChild(tilesetPropertiesButton);
+        var tileSetControls = new UIBaseWindow();
+        tileSetControls.LayoutMode = LayoutMode.HorizontalList;
+        tileSetControls.ListSpacing = new Vector2(2, 0);
+        innerContainer.AddChild(tileSetControls);
+
+        var tilesetPropertiesButton = new EditorButton("Tileset Metadata");
+        tileSetControls.AddChild(tilesetPropertiesButton);
+
+        var tilesetScaleLabel = new MapEditorLabel("Scale: 100%");
+        tilesetScaleLabel.Margins = new Rectangle(1, 0, 0, 0);
+        tileSetControls.AddChild(tilesetScaleLabel);
+
+        void UpdateTilesetScaleLabel()
+        {
+            if (_tileSelector == null) return;
+            tilesetScaleLabel.Text = $"Scale: {_tileSelector.Scale * 100f}%";
+        }
+
+        var scalePlus = new EditorButton("+");
+        scalePlus.OnClickedProxy = (_) =>
+        {
+            if (_tileSelector != null) _tileSelector.Scale += 0.5f;
+            UpdateTilesetScaleLabel();
+        };
+        tileSetControls.AddChild(scalePlus);
+
+        var scaleMinus = new EditorButton("-");
+        scaleMinus.OnClickedProxy = (_) =>
+        {
+            if (_tileSelector != null && _tileSelector.Scale > 0.5f) _tileSelector.Scale -= 0.5f;
+            UpdateTilesetScaleLabel();
+        };
+        tileSetControls.AddChild(scaleMinus);
 
         var tileSelector = new TilesetTileSelector(_map.Tiles);
         tileSelector.Id = "TileSelector";
@@ -132,6 +163,7 @@ public class MapEditorTilePanel : EditorPanel
         innerContainer.AddChild(tileSelector);
 
         GenerateToolWindow();
+        UpdateTilesetScaleLabel();
     }
 
     public Map2DTileMapLayer? GetLayer()
