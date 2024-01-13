@@ -15,10 +15,25 @@ namespace Emotion.Game.World2D.Editor;
 
 public sealed class TilesetTileSelector : UIScrollArea
 {
+    public float Scale
+    {
+        get => _scale;
+        set
+        {
+            _scale = value;
+            UITexture? texture = GetWindowById("TilesetTexture") as UITexture;
+            if (texture != null)
+            {
+                texture.ImageScale = new Vector2(_scale);
+                texture.InvalidateLayout();
+            }
+        }
+    }
+
+    private float _scale = 2f;
+
     private Map2DTileMapData _mapData;
     private Map2DTileset? _tileset;
-
-    private Vector2 _displayScale = new Vector2(0.5f);
 
     private uint? _rolloverTile = null;
     public List<uint> SelectedTiles = new List<uint>();
@@ -98,7 +113,7 @@ public sealed class TilesetTileSelector : UIScrollArea
         tileSize = Vector2.Zero;
         if (_tileset == null) return Vector2.Zero;
 
-        var displayScale = Vector2.One;// GetScale() * _displayScale;
+        var displayScale = new Vector2(_scale);
         tileSize = _mapData.TileSize * displayScale;
         var margin = new Vector2(_tileset.Margin) * displayScale;
         var spacing = new Vector2(_tileset.Spacing) * displayScale;
@@ -110,7 +125,7 @@ public sealed class TilesetTileSelector : UIScrollArea
     {
         if (_tileset == null) return Vector2.Zero;
 
-        Vector2 displayScale = Vector2.One;// GetScale() * _displayScale;
+        Vector2 displayScale = new Vector2(_scale);
         var tileSize = _mapData.TileSize * displayScale;
         var margin = new Vector2(_tileset.Margin) * displayScale;
         var spacing = new Vector2(_tileset.Spacing) * displayScale;
@@ -171,9 +186,9 @@ public sealed class TilesetTileSelector : UIScrollArea
         if (_tileset == null) return;
 
         var textureUI = new UITexture();
-        textureUI.Id = "texture";
+        textureUI.Id = "TilesetTexture";
         textureUI.TextureFile = _tileset.AssetFile;
-        //textureUI.ImageScale = _displayScale;
+        textureUI.ImageScale = new Vector2(Scale);
         textureUI.ScaleMode = UIScaleMode.NoScale;
         AddChildInside(textureUI);
         _content.ScrollToPos(Vector2.Zero);
