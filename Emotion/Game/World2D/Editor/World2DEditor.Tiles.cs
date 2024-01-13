@@ -139,12 +139,30 @@ public partial class World2DEditor
                 Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
                 Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
                 c.ClearDepth();
-                if (tileToPlace != 0)
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.Green, 1f);
+                uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(_cursorPos.Value));
+                if (tileToPlace == 0 || tileToPlace == previousTileID) return;
+                if (tileToPlace != 0 && layerToPlaceIn != null)
                 {
+                    _bucketTilesToSet.Clear();
+                    SpanFill(pos, previousTileID, layerToPlaceIn);
 
+                    var cam = c.Camera;
+                    var camBound = cam.GetCameraFrustum();
+                    int tilesShown = 0;
+                    foreach (var tile in _bucketTilesToSet)
+                    {
+                        Rectangle drawRect = new Rectangle(tile * tileSize, tileSize);
+                        if (!camBound.Intersects(drawRect)) continue; // Clip visible
+
+                        c.RenderSprite((tile * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
+
+                        if (tilesShown < 1500)
+                            c.RenderSprite((tile * tileSize).ToVec3(), tileSize, Color.Blue * 0.2f);
+                        tilesShown++;
+                    }
                 }
-                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Green * 0.2f);
-                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.Green, 0.7f);
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.Green, 1f);
             }
         }
     }
@@ -163,48 +181,61 @@ public partial class World2DEditor
 
     #region Bucket Tool
 
-    private void SpanFill(int x, int y, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn, uint currentTileData, uint tileToFillWith)
-    {
-        var stack = new Stack<Tuple<int, int, uint>>();
-        stack.Push(Tuple.Create(x, y, currentTileData));
-        while (stack.Count > 0)
-        {
-            var (currentX, currentY, currentTile) = stack.Pop();
-            int lx = currentX;
+    private Stack<(Vector2, uint)> _spanFillStack = new Stack<(Vector2, uint)>();
+    protected HashSet<Vector2> _bucketTilesToSet = new();
 
-            while (SpanFill_IsValid(lx - 1, currentY, mapTileData, layerToPlaceIn, currentTile))
+    private HashSet<Vector2> SpanFill(Vector2 cursorPosition, uint previousTileData, Map2DTileMapLayer layerToPlaceIn)
+    {
+        var mapTileData = GetMapTileData();
+        if (mapTileData == null) return _bucketTilesToSet;
+
+        _bucketTilesToSet.Clear();
+        _spanFillStack.Clear();
+        _spanFillStack.Push((cursorPosition, previousTileData));
+
+        while (_spanFillStack.Count > 0)
+        {
+            var (cursorpos, currentTile) = _spanFillStack.Pop();
+            int lx = (int)cursorpos.X;
+            while (SpanFill_IsValid(new Vector2(lx - 1, (int)cursorpos.Y), currentTile, layerToPlaceIn, mapTileData))
             {
-                mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(new Vector2(lx - 1, currentY)), tileToFillWith);
-                lx = lx - 1;
+                _bucketTilesToSet.Add(new Vector2(lx - 1, (int)cursorpos.Y));
+                lx--;
             }
 
-            int rx = currentX;
-            while (SpanFill_IsValid(rx, currentY, mapTileData, layerToPlaceIn, currentTile))
+            int rx = (int)cursorpos.X;
+            while (SpanFill_IsValid(new Vector2(rx, (int)cursorpos.Y), currentTile, layerToPlaceIn, mapTileData))
             {
-                mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(new Vector2(rx, currentY)), tileToFillWith);
+                _bucketTilesToSet.Add(new Vector2(rx, (int)cursorpos.Y));
                 rx++;
             }
 
-            SpanFill_Scan(lx, rx - 1, currentY + 1, currentTileData, stack, mapTileData, layerToPlaceIn);
-            SpanFill_Scan(lx, rx - 1, currentY - 1, currentTileData, stack, mapTileData, layerToPlaceIn);
+            SpanFill_Scan(lx, rx - 1, (int)cursorpos.Y + 1, currentTile, mapTileData, layerToPlaceIn);
+            SpanFill_Scan(lx, rx - 1, (int)cursorpos.Y - 1, currentTile, mapTileData, layerToPlaceIn);
         }
+
+        return _bucketTilesToSet;
     }
 
-    private bool SpanFill_IsValid(int x, int y, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn, uint tileToFill)
+    private bool SpanFill_IsValid(Vector2 tilePosToCheck, uint currentTile, Map2DTileMapLayer layerToPlaceIn, Map2DTileMapData mapTileData)
     {
-        var tile = mapTileData.GetTile1DFromTile2D(new Vector2(x, y));
+        var tile = mapTileData.GetTile1DFromTile2D(tilePosToCheck);
         uint TileID = mapTileData.GetTileData(layerToPlaceIn, tile);
 
-        return x >= 0 && x < mapTileData.SizeInTiles.X && y >= 0 && y < mapTileData.SizeInTiles.Y && tileToFill == TileID;
+        if (_bucketTilesToSet.Contains(new Vector2(tilePosToCheck.X, tilePosToCheck.Y))) return false;
+        else return tilePosToCheck.X >= 0 && tilePosToCheck.X < mapTileData.SizeInTiles.X && tilePosToCheck.Y >= 0 && tilePosToCheck.Y < mapTileData.SizeInTiles.Y && currentTile == TileID;
     }
 
-    private void SpanFill_Scan(int lx, int rx, int y, uint currentTileData, Stack<Tuple<int, int, uint>> stack, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn)
+    private void SpanFill_Scan(int lx, int rx, int y, uint currentTile, Map2DTileMapData mapTileData, Map2DTileMapLayer layerToPlaceIn)
     {
+        bool spanAdded = false;
         for (int i = lx; i <= rx; i++)
         {
-            if (SpanFill_IsValid(i, y, mapTileData, layerToPlaceIn, currentTileData))
+            if (!SpanFill_IsValid(new Vector2(i, y), currentTile, layerToPlaceIn, mapTileData)) spanAdded = false;
+            else if (!spanAdded)
             {
-                stack.Push(Tuple.Create(i, y, currentTileData));
+                _spanFillStack.Push((new Vector2(i, y), currentTile));
+                spanAdded = true;
             }
         }
     }
@@ -235,21 +266,28 @@ public partial class World2DEditor
         {
             case TileEditorTool.Eraser:
                 mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, 0);
+                undoAction.AddToEditHistory(cursorPos1D, previousTileID);
                 break;
             case TileEditorTool.Brush:
                 uint tileToPlace = editor.GetTidToPlace();
                 if (tileToPlace == 0) return;
                 mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, tileToPlace);
+                undoAction.AddToEditHistory(cursorPos1D, previousTileID);
                 break;
             case TileEditorTool.Bucket:
                 uint tileToFill = editor.GetTidToPlace();
                 if (tileToFill == 0 || tileToFill == previousTileID) return;
                 if (_lastAction != null) return;
-                SpanFill((int)_cursorPos.Value.X, (int)_cursorPos.Value.Y, mapTileData, layerToPlaceIn, previousTileID, tileToFill);
+                _bucketTilesToSet.Clear();
+                SpanFill(_cursorPos.Value, previousTileID, layerToPlaceIn);
+                foreach (var tile in _bucketTilesToSet)
+                {
+                    mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(tile), tileToFill);
+                    undoAction.AddToEditHistory(mapTileData.GetTile1DFromTile2D(tile), previousTileID);
+                }
                 break;
         }
 
-        undoAction.AddToEditHistory(cursorPos1D, previousTileID);
         if (_lastAction == null)
         {
             _lastAction = undoAction;
