@@ -63,6 +63,7 @@ public abstract partial class WorldBaseEditor
     {
         if (!Engine.Configuration.DebugMode) return;
         Engine.Host.OnKey.AddListener(EditorInputHandler, KeyListenerType.Editor);
+        Engine.Host.OnKey.AddListener(TempEditorCamera2DInputHandler, KeyListenerType.EditorCamera);
         _editorUIAlways = new UIController(KeyListenerType.EditorUI)
         {
             Id = "WorldEditor_AlwaysOnTop"
@@ -72,6 +73,7 @@ public abstract partial class WorldBaseEditor
     public void UnloadEditor()
     {
         Engine.Host.OnKey.RemoveListener(EditorInputHandler);
+        Engine.Host.OnKey.RemoveListener(TempEditorCamera2DInputHandler);
     }
 
     public void EnterEditor()
@@ -208,6 +210,15 @@ public abstract partial class WorldBaseEditor
         _editUI?.Update();
     }
 
+    private bool TempEditorCamera2DInputHandler(Key key, KeyStatus status)
+    {
+        // todo: remove, add priority to camera attach, add camera attach to wasd camera
+        if (_editorCamera is WASDMoveCamera2D camera2D)
+            return camera2D.CameraKeyHandler(key, status);
+
+        return true;
+    }
+
     private bool EditorInputHandler(Key key, KeyStatus status)
     {
         if (key == Key.F3 && status == KeyStatus.Down)
@@ -220,19 +231,15 @@ public abstract partial class WorldBaseEditor
 
         if (!EditorOpen) return true;
 
-        // todo: remove, add priority to camera attach, add camera attach to wasd camera
-        if (_editorCamera is WASDMoveCamera2D camera2D)
-            camera2D.CameraKeyHandler(key, status);
-
-        if (CurrentMap != null &&
-            key == Key.S && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
+        if (CurrentMap != null && status == KeyStatus.Up &&
+            key == Key.S && Engine.Host.IsCtrlModifierHeld())
         {
             EditorSaveMap();
             return false;
         }
 
-        if (CurrentMap != null &&
-            key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
+        if (CurrentMap != null && status == KeyStatus.Up &&
+            key == Key.Z && Engine.Host.IsCtrlModifierHeld())
         {
             EditorUndoLastAction(this);
             return false;
