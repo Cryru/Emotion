@@ -162,6 +162,7 @@ namespace Emotion.IO
                 // This shader must have been disposed first, otherwise we'll leak memory.
                 Assert(Shader.Pointer == 0 || IsFallback);
                 Shader.CopyFrom(compiledProgram);
+                Shader.DebugName = Name;
             }
             else
             {

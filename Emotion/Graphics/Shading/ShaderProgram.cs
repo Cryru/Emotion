@@ -41,6 +41,11 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         public string DebugFragSource;
 
+        /// <summary>
+        /// Name used for identifying the shader while debugging.
+        /// </summary>
+        public string DebugName;
+
         #endregion
 
         #region Default Shader Parameter Constants
@@ -319,6 +324,7 @@ namespace Emotion.Graphics.Shading
             Valid = otherProgram.Valid;
             DebugFragSource = otherProgram.DebugFragSource;
             DebugVertSource = otherProgram.DebugVertSource;
+            DebugName = otherProgram.DebugName;
             _uniformLocationsMap.Clear();
         }
 

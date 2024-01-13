@@ -20,15 +20,18 @@ namespace Emotion.Game.World2D.Tile
 {
     // Terminology
     //
-    // layer - The map layer currently drawing.
-    // t - The tile currently drawing from [layer]. 
-    //      tId - The id of the tile within all tilesets combined.
-    //      tRect - The location [t] should be drawn to.
-    // ts - The tileset of [t]. 
-    //      tsId - The id of [ts] within the collection.
-    //      tsOffset - The [tId] within the scope of the current tileset. An id and image within the map containing the ti.
+    // layer - Each layer contains a set of tiles.
+    // t - A single tile in a layer
+    //      tId - The absolute id of the tile within all tilesets combined.
+    //      tRect - The location the [t] should be drawn to.
+    // ts - A tileset object. Each one contains a set of [t].
+    //      tsId - The index of the tileset in the Tilesets array.
+    //      tsOffset - The [tId] within the scope of the current tileset.
+    //          Example: If you have two tilesets with 100 tiles each, the first tile in the second tileset
+    //          will have a tId of 101, and a tsOffset of 1, while the first tile in the first tileset will have
+    //          a tId of 1 and a tsOffset of 1.
     // ti - The tile image, within the [ts] which represents the image of [tsOffset].
-    //      tiUv - The rectangle where the [ti] is located within the [ts] texture.
+    //      tiUV - The rectangle where the [ti] is located within the [ts] texture.
 
     /// <summary>
     /// Handles tilemap data representation and management for Map2D.

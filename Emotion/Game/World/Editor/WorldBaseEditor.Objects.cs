@@ -120,10 +120,16 @@ public abstract partial class WorldBaseEditor
                 {
                     List<(GameObject3D, Vector3)> collisionPoints = new();
                     Ray3D mouseRay = Engine.Renderer.Camera.GetCameraMouseRay();
-                    IEnumerator<GameObject3D> objects3D = map.GetObjectsByType<GameObject3D>();
-                    while (objects3D.MoveNext())
+
+                    if (_selectedObject is GameObject3D selected3D)
                     {
-                        GameObject3D obj = objects3D.Current;
+                        Cube cube = selected3D.Bounds3D;
+                        if (mouseRay.IntersectWithCube(cube, out Vector3 _))
+                            results.Add(_selectedObject);
+                    }
+
+                    foreach (var obj in map.ObjectsEnum<GameObject3D>())
+                    {
                         if (mouseRay.IntersectWithObject(obj, out Mesh? _, out Vector3 collisionPoint, out Vector3 _, out int _))
                             collisionPoints.Add((obj, collisionPoint));
                     }
@@ -188,7 +194,7 @@ public abstract partial class WorldBaseEditor
 
             // todo: move to editor generic grid
             if (map is Map2D map2d)
-                if (Engine.Host.IsCtrlModifierHeld() && map2d.Tiles != null)
+                if (Engine.Host.IsShiftModifierHeld() && map2d.Tiles != null)
                 {
                     Vector2 tileSize = map2d.Tiles.TileSize;
                     newPos /= tileSize;
@@ -406,12 +412,6 @@ public abstract partial class WorldBaseEditor
             if (key == Key.V)
             {
                 PasteObject();
-                return false;
-            }
-
-            if (key == Key.D)
-            {
-                DuplicateSelectedObject();
                 return false;
             }
         }
@@ -815,22 +815,22 @@ public abstract partial class WorldBaseEditor
         SelectObject(newObj);
     }
 
-    public void DuplicateSelectedObject()
+    public BaseGameObject DuplicateObject(BaseGameObject obj)
     {
-        if (_selectedObject == null) return;
-
-        string objectData = GetObjectSerialized(_selectedObject);
+        string objectData = GetObjectSerialized(obj);
         var newObj = XMLFormat.From<BaseGameObject>(objectData);
         if (newObj == null)
         {
-            EditorMsg("Couldn't paste object.");
-            return;
+            EditorMsg("Couldn't duplicate object.");
+            return obj;
         }
 
         newObj.ObjectFlags |= ObjectFlags.Persistent;
         CurrentMap!.AddObject(newObj);
         SelectObject(newObj);
-        EditorMsg($"Duplicated object {_selectedObject}");
+        EditorMsg($"Duplicated object {obj}");
+
+        return obj;
     }
 
     #endregion

@@ -182,8 +182,8 @@ public abstract partial class WorldBaseEditor
 
         RenderState prevState = c.CurrentState.Clone();
 
-        c.ClearDepth();
         RenderInternal(c);
+        c.ClearDepth();
         RenderObjectSelection(c);
 
         c.SetUseViewMatrix(false);
@@ -224,16 +224,25 @@ public abstract partial class WorldBaseEditor
         if (_editorCamera is WASDMoveCamera2D camera2D)
             camera2D.CameraKeyHandler(key, status);
 
-        if (key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
+        if (CurrentMap != null &&
+            key == Key.S && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
+        {
+            EditorSaveMap();
+            return false;
+        }
+
+        if (CurrentMap != null &&
+            key == Key.Z && status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
         {
             EditorUndoLastAction(this);
             return false;
         }
 
-        bool propagate = ObjectEditorInputHandler(key, status);
+        bool propagate = InternalEditorInputHandler(key, status);
         if (!propagate) return false;
 
-        propagate = InternalEditorInputHandler(key, status);
+        propagate = ObjectEditorInputHandler(key, status);
+
         return propagate;
     }
 

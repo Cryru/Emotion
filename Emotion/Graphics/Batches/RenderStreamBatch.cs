@@ -4,6 +4,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Utility;
@@ -101,12 +102,6 @@ namespace Emotion.Graphics.Batches
 
         #endregion
 
-        #region SubSystems
-
-        public MeshEntityStreamRenderer MeshRenderer { get; init; }
-
-        #endregion
-
         public RenderStreamBatch(bool useAtlas = true)
         {
             _indexByteSize = sizeof(ushort);
@@ -141,9 +136,6 @@ namespace Emotion.Graphics.Batches
                 _smoothAtlas = new TextureAtlas(true);
                 _currentTexture = _atlas.AtlasPointer;
             }
-
-            MeshRenderer = new MeshEntityStreamRenderer();
-            MeshRenderer.LoadAssets();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -354,8 +346,6 @@ namespace Emotion.Graphics.Batches
                 Stack<GLRenderObjects> usedStack = usedStackPair.Value;
                 while (usedStack.Count > 0) usableStack.Push(usedStack.Pop());
             }
-
-            MeshRenderer.DoTasks();
         }
 
         #region GL Render Objects

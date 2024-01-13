@@ -287,7 +287,7 @@ namespace Emotion.Common
                 frame();
 
                 // Tell the GC that now is a good time to collect (between frames).
-                GC.Collect(2, GCCollectionMode.Optimized);
+                //GC.Collect(2, GCCollectionMode.Optimized);
             }
 
             Quit();

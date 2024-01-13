@@ -2,6 +2,7 @@
 
 using Emotion.Game.World;
 using Emotion.Game.World3D;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
@@ -17,7 +18,7 @@ namespace Emotion.Game.ThreeDee.Editor
     public class TranslationGizmo : GameObject3D
     {
         public int Alpha = 200;
-        public int SnapSize = 50;
+        //public int SnapSize = 50;
 
         public bool MouseInside
         {
@@ -30,10 +31,17 @@ namespace Emotion.Game.ThreeDee.Editor
         public BaseGameObject? Target { get; protected set; }
 
         public Mesh XAxis { get; protected set; }
+
         public Mesh YAxis { get; protected set; }
+
         public Mesh ZAxis { get; protected set; }
 
+        public Mesh ZPlane { get; protected set; }
+
         public Action<BaseGameObject, Vector3, Vector3>? TargetMoved;
+        public Action<BaseGameObject>? TargetStartMoving;
+
+        protected bool _startMovingEventFired;
 
         protected Mesh? _meshMouseover;
         protected Vector3 _dragPointStart;
@@ -111,13 +119,24 @@ namespace Emotion.Game.ThreeDee.Editor
             ZAxis.Material = materialZ;
             ZAxis.SetVerticesAlpha((byte) Alpha);
 
+            ZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
+            ZPlane.TransformMeshVertices(
+                Matrix4x4.CreateScale(30, 30, 30) *
+                Matrix4x4.CreateTranslation(arrowCylinderGen.Height / 2, arrowCylinderGen.Height / 2, 0)
+            );
+            ZPlane.Material = materialZ;
+            ZPlane.Name = "Z-Plane";
+            ZPlane.SetVerticesAlpha((byte)Alpha);
+
             Entity = new MeshEntity
             {
                 Meshes = new[]
                 {
                     XAxis,
                     YAxis,
-                    ZAxis
+                    ZAxis,
+
+                    ZPlane
                 },
                 Name = "Translation Gizmo",
             };
@@ -125,11 +144,9 @@ namespace Emotion.Game.ThreeDee.Editor
             ObjectFlags |= ObjectFlags.Map3DDontReceiveShadow;
             ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
             ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
-
-            Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Editor);
         }
 
-        private bool KeyHandler(Key key, KeyStatus status)
+        public bool KeyHandler(Key key, KeyStatus status)
         {
             if (key == Key.MouseKeyLeft)
             {
@@ -145,11 +162,10 @@ namespace Emotion.Game.ThreeDee.Editor
                 if (status == KeyStatus.Up)
                 {
                     _dragPointStart = Vector3.Zero;
+                    _startMovingEventFired = false;
                     return false;
                 }
             }
-
-            if (key is Key.LeftControl or Key.RightControl && status == KeyStatus.Up && Target != null) Position = Target.Position;
 
             return true;
         }
@@ -201,49 +217,60 @@ namespace Emotion.Game.ThreeDee.Editor
                 Vector3 newPoint = GetPointAlongPlane();
                 Vector3 change = newPoint - _dragPointStart;
 
-                bool snap = Engine.Host.IsCtrlModifierHeld();
-
                 _virtualPos += change;
                 _dragPointStart = newPoint;
 
-                Vector3 p = _virtualPos;
-                if (snap) p = (p / SnapSize).RoundClosest() * SnapSize;
-
+                Vector3 targetPos = _virtualPos;
                 Position = _virtualPos;
                 if (Target != null)
                 {
-                    Target.Position = p;
-                    TargetMoved?.Invoke(Target, _dragPointStartAbsolute, p);
+                    Target.Position = targetPos;
+                    TargetMoved?.Invoke(Target, _dragPointStartAbsolute, targetPos);
+
+                    if (!_startMovingEventFired && change != Vector3.Zero)
+                    {
+                        TargetStartMoving?.Invoke(Target);
+                        _startMovingEventFired = true;
+                    }
                 }
             }
 
-            if (Target != null && _dragPointStart == Vector3.Zero) Position = Target.Position;
+            if (Target != null && _dragPointStart == Vector3.Zero)
+                Position = Target.Position;
         }
 
         private Vector3 GetPointAlongPlane()
         {
             if (_meshMouseover == null) return Vector3.Zero;
 
-            Vector3 axis;
-            if (_meshMouseover.Name == "X")
-                axis = RenderComposer.XAxis;
-            else if (_meshMouseover.Name == "Y")
-                axis = RenderComposer.YAxis;
-            else // Z
-                axis = RenderComposer.ZAxis;
-
             CameraBase? camera = Engine.Renderer.Camera;
             Ray3D ray = camera.GetCameraMouseRay();
 
-            // Find plane that contains the axis and faces the camera.
-            Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
-            Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
-            planeNormal = planeNormal.Normalize();
+            Vector3 intersection;
+            if (_meshMouseover.Name == "Z-Plane")
+            {
+                intersection = ray.IntersectWithPlane(new Vector3(0, 0, 1), Position);
+            }
+            else
+            {
+                Vector3 axis = Vector3.Zero;
+                if (_meshMouseover.Name == "X")
+                    axis = RenderComposer.XAxis;
+                else if (_meshMouseover.Name == "Y")
+                    axis = RenderComposer.YAxis;
+                else if (_meshMouseover.Name == "Z")
+                    axis = RenderComposer.ZAxis;
 
-            Vector3 intersection = ray.IntersectWithPlane(planeNormal, Position);
+                // Find plane that contains the axis and faces the camera.
+                Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
+                Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
+                planeNormal = planeNormal.Normalize();
 
-            // Limit movement along axis
-            intersection = Position + axis * Vector3.Dot(intersection - Position, axis);
+                intersection = ray.IntersectWithPlane(planeNormal, Position);
+
+                // Limit movement along axis
+                intersection = Position + axis * Vector3.Dot(intersection - Position, axis);
+            }
 
             return intersection;
         }
