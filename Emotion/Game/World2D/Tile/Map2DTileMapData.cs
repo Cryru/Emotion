@@ -287,7 +287,7 @@ namespace Emotion.Game.World2D.Tile
         public Rectangle GetUvFromTileImageId(uint tId, out int tsId)
         {
             tsId = GetTilesetIdFromTid(tId, out int tsOffset);
-            return GetUVFromTileImageIdAndTileset(tsOffset, tsId);
+            return GetUVFromTileImageIdAndTileset((uint) tsOffset, tsId);
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace Emotion.Game.World2D.Tile
         /// <param name="tId">The texture id to parse.</param>
         /// <param name="tsId">The tileset id containing the texture id.</param>
         /// <returns>The UV of the tid within the tsId.</returns>
-        public Rectangle GetUVFromTileImageIdAndTileset(int tId, int tsId)
+        public Rectangle GetUVFromTileImageIdAndTileset(uint tId, int tsId)
         {
             Map2DTileset? ts = tsId < Tilesets.Count ? Tilesets[tsId] : null;
             if (ts == null || _tilesetRuntime == null) return Rectangle.Empty;
@@ -305,8 +305,9 @@ namespace Emotion.Game.World2D.Tile
             int widthInTiles = (int)runtimeData.SizeInTiles.X;
 
             // Get tile image properties.
-            int tiColumn = tId % widthInTiles;
-            var tiRow = (int)(tId / (float)widthInTiles);
+            int tIdInt = (int)tId;
+            int tiColumn = tIdInt % widthInTiles;
+            var tiRow = (int)(tIdInt / (float)widthInTiles);
             var tiRect = new Rectangle(TileSize.X * tiColumn, TileSize.Y * tiRow, TileSize);
 
             // Add margins and spacing.
@@ -315,6 +316,18 @@ namespace Emotion.Game.World2D.Tile
             tiRect.X += ts.Spacing * tiColumn;
             tiRect.Y += ts.Spacing * tiRow;
             return tiRect;
+        }
+
+        public int GetTsIdFromTilesetRef(Map2DTileset? ts)
+        {
+            if (ts == null) return -1;
+
+            for (int i = 0; i < Tilesets.Count; i++)
+            {
+                if (Tilesets[i] == ts) return i;
+            }
+
+            return -1;
         }
 
         #endregion

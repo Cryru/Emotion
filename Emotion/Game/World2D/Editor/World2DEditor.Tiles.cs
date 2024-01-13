@@ -115,18 +115,43 @@ public partial class World2DEditor
             var tileSize = mapTileData.TileSize;
 
             Map2DTileMapLayer? layerToPlaceIn = editor.GetLayer();
-            uint tileToPlace = editor.GetTidToPlace();
 
             var pos = _cursorPos.Value;
             if (currentTool == TileEditorTool.Brush)
             {
-                Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
-                Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
-                c.ClearDepth();
-                if (tileToPlace != 0)
-                    c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
-                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.Blue * 0.2f);
-                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyBlue, 1f);
+                (uint, Vector2)[]? placementPattern;
+                Vector2 center = Vector2.Zero;
+                if (editor.AreMultipleTilesSelected())
+                {
+                    placementPattern = editor.GetTidToPlaceMultiPattern(out center);
+                }
+                else
+                {
+                    uint tileToPlace = editor.GetTidToPlace();
+                    placementPattern = new (uint, Vector2)[]
+                    {
+                        (tileToPlace, Vector2.Zero)
+                    };
+                }
+
+                if (placementPattern == null) return;
+
+                center = (center / tileSize).Floor() * tileSize;
+                Vector2 cursorPosAbsolute = pos * tileSize;
+                for (int i = 0; i < placementPattern.Length; i++)
+                {
+                    var data = placementPattern[i];
+                    var tileToPlace = data.Item1;
+                    var tileToPlaceOffset = data.Item2 - center;
+
+                    Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
+                    Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
+                    c.ClearDepth();
+                    if (tileToPlace != 0)
+                        c.RenderSprite((cursorPosAbsolute + tileToPlaceOffset).ToVec3(), tileSize, Color.White, tileSetTexture, tileUv);
+                    c.RenderSprite((cursorPosAbsolute + tileToPlaceOffset).ToVec3(), tileSize, Color.Blue * 0.2f);
+                    c.RenderOutline((cursorPosAbsolute + tileToPlaceOffset).ToVec3(), tileSize, Color.PrettyBlue, 1f);
+                }
             }
             else if (currentTool == TileEditorTool.Eraser)
             {
@@ -136,6 +161,7 @@ public partial class World2DEditor
             }
             else if (currentTool == TileEditorTool.Bucket)
             {
+                uint tileToPlace = editor.GetTidToPlace();
                 Rectangle tileUv = mapTileData.GetUvFromTileImageId(tileToPlace, out int tsId);
                 Texture? tileSetTexture = mapTileData.GetTilesetTexture(tsId);
                 c.ClearDepth();
@@ -253,39 +279,77 @@ public partial class World2DEditor
         var mapTileData = GetMapTileData();
         if (mapTileData == null) return;
 
-        var cursorPos1D = mapTileData.GetTile1DFromTile2D(_cursorPos.Value);
-        uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, cursorPos1D);
-
         WorldEditor2DActionTileChange? undoAction = _lastAction;
         if (undoAction == null)
-        {
             undoAction = new WorldEditor2DActionTileChange(this, layerToPlaceIn);
-        }
 
         switch (editor.CurrentTool)
         {
             case TileEditorTool.Eraser:
-                mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, 0);
-                undoAction.AddToEditHistory(cursorPos1D, previousTileID);
-                break;
-            case TileEditorTool.Brush:
-                uint tileToPlace = editor.GetTidToPlace();
-                if (tileToPlace == 0) return;
-                mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, tileToPlace);
-                undoAction.AddToEditHistory(cursorPos1D, previousTileID);
-                break;
-            case TileEditorTool.Bucket:
-                uint tileToFill = editor.GetTidToPlace();
-                if (tileToFill == 0 || tileToFill == previousTileID) return;
-                if (_lastAction != null) return;
-                _bucketTilesToSet.Clear();
-                SpanFill(_cursorPos.Value, previousTileID, layerToPlaceIn);
-                foreach (var tile in _bucketTilesToSet)
                 {
-                    mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(tile), tileToFill);
-                    undoAction.AddToEditHistory(mapTileData.GetTile1DFromTile2D(tile), previousTileID);
+                    var cursorPos1D = mapTileData.GetTile1DFromTile2D(_cursorPos.Value);
+                    uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, cursorPos1D);
+
+                    mapTileData.SetTileData(layerToPlaceIn, cursorPos1D, 0);
+                    undoAction.AddToEditHistory(cursorPos1D, previousTileID);
+                    break;
                 }
-                break;
+            case TileEditorTool.Brush:
+                {
+                    (uint, Vector2)[]? placementPattern;
+                    Vector2 center = Vector2.Zero;
+                    if (editor.AreMultipleTilesSelected())
+                    {
+                        placementPattern = editor.GetTidToPlaceMultiPattern(out center);
+                    }
+                    else
+                    {
+                        uint tileToPlace = editor.GetTidToPlace();
+                        if (tileToPlace == 0) return;
+
+                        placementPattern = new (uint, Vector2)[]
+                        {
+                            (tileToPlace, Vector2.Zero)
+                        };
+                    }
+                    if (placementPattern == null) return;
+
+                    var tileSize = mapTileData.TileSize;
+                    center = (center / tileSize).Floor() * tileSize;
+
+                    for (int i = 0; i < placementPattern.Length; i++)
+                    {
+                        var data = placementPattern[i];
+                        var tileToPlace = data.Item1;
+                        var tileToPlaceOffset = data.Item2 - center;
+
+                        Vector2 thisTilePos = _cursorPos.Value + (tileToPlaceOffset / tileSize);
+                        int thisTilePos1D = mapTileData.GetTile1DFromTile2D(thisTilePos);
+                        uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, thisTilePos1D);
+                        mapTileData.SetTileData(layerToPlaceIn, thisTilePos1D, tileToPlace);
+
+
+                        undoAction.AddToEditHistory(thisTilePos1D, previousTileID);
+                    }
+                    break;
+                }
+            case TileEditorTool.Bucket:
+                {
+                    var cursorPos1D = mapTileData.GetTile1DFromTile2D(_cursorPos.Value);
+                    uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, cursorPos1D);
+
+                    uint tileToFill = editor.GetTidToPlace();
+                    if (tileToFill == 0 || tileToFill == previousTileID) return;
+                    if (_lastAction != null) return;
+                    _bucketTilesToSet.Clear();
+                    SpanFill(_cursorPos.Value, previousTileID, layerToPlaceIn);
+                    foreach (var tile in _bucketTilesToSet)
+                    {
+                        mapTileData.SetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(tile), tileToFill);
+                        undoAction.AddToEditHistory(mapTileData.GetTile1DFromTile2D(tile), previousTileID);
+                    }
+                    break;
+                }
         }
 
         if (_lastAction == null)

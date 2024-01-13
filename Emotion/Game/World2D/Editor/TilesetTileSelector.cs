@@ -8,6 +8,8 @@ using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
+using System.Linq;
+using System.Security.Cryptography;
 
 #endregion
 
@@ -30,12 +32,14 @@ public sealed class TilesetTileSelector : UIScrollArea
         }
     }
 
-    private float _scale = 2f;
+    private float _scale = 1f;
 
     private Map2DTileMapData _mapData;
     private Map2DTileset? _tileset;
 
-    private uint? _rolloverTile = null;
+    private HashSet<uint> _rolloverTile = new HashSet<uint>();
+    private Vector2? _mouseDragStartPos;
+
     public List<uint> SelectedTiles = new List<uint>();
 
     public TilesetTileSelector(Map2DTileMapData mapData)
@@ -49,16 +53,38 @@ public sealed class TilesetTileSelector : UIScrollArea
         var propagate = base.OnKey(key, status, mousePos);
         if (!propagate) return false;
 
-        if (_rolloverTile != null && key == Key.MouseKeyLeft && status == KeyStatus.Down)
+        if (key == Key.MouseKeyLeft)
         {
-            uint val = _rolloverTile.Value;
-            if (!Engine.Host.IsCtrlModifierHeld())
-                SelectedTiles.Clear();
-            if (SelectedTiles.Contains(val))
-                SelectedTiles.Remove(val);
-            else
-                SelectedTiles.Add(val);
-            WorldBaseEditor.GlobalEditorMsg($"Selected tile {_rolloverTile}");
+            if (status == KeyStatus.Down)
+            {
+                if (!Engine.Host.IsCtrlModifierHeld())
+                    SelectedTiles.Clear();
+                _mouseDragStartPos = mousePos;
+                OnMouseMove(mousePos);
+            }
+            else if (status == KeyStatus.Up)
+            {
+                _mouseDragStartPos = null;
+
+                if (_rolloverTile.Count == 1 && Engine.Host.IsCtrlModifierHeld())
+                {
+                    uint val = _rolloverTile.First();
+                    if (SelectedTiles.Contains(val))
+                        SelectedTiles.Remove(val);
+                    else
+                        SelectedTiles.Add(val);
+                }
+                else
+                {
+                    foreach (var tId in _rolloverTile)
+                    {
+                        if (!SelectedTiles.Contains(tId))
+                            SelectedTiles.Add(tId);
+                    }
+                }
+
+                _rolloverTile.Clear();
+            }
         }
 
         return true;
@@ -71,16 +97,43 @@ public sealed class TilesetTileSelector : UIScrollArea
 
         Vector3 tileSetImageOrigin = new Vector3(0);
         tileSetImageOrigin = Vector3.Transform(tileSetImageOrigin, _content.Displacement);
-        Vector2 mousePosInsideMe = mousePos - (_content.Position2 + tileSetImageOrigin.ToVec2());
+        tileSetImageOrigin += _content.Position;
 
-        Vector2 rolloverCoord = TilesetCoordFromUISpace(mousePosInsideMe);
-        _rolloverTile = TilesetCoordToTid(rolloverCoord);
+        Vector2 tileSetImageOrigin2 = tileSetImageOrigin.ToVec2();
+
+        if (_mouseDragStartPos != null)
+        {
+            _rolloverTile.Clear();
+
+            Vector2 startPos = _mouseDragStartPos.Value - tileSetImageOrigin2;
+            Vector2 endPos = mousePos - tileSetImageOrigin2;
+
+            Vector2 min = Vector2.Min(startPos, endPos);
+            Vector2 max = Vector2.Max(startPos, endPos);
+            for (float x = min.X; x <= max.X; x++)
+            {
+                for (float y = min.Y; y <= max.Y; y++)
+                {
+                    Vector2 samplePoint = new Vector2(x, y);
+                    Vector2 rolloverCoord = TilesetCoordFromUISpace(samplePoint);
+                    uint tid = TilesetCoordToTid(rolloverCoord);
+                    _rolloverTile.Add(tid);
+                }
+            }
+        }
+        else
+        {
+            _rolloverTile.Clear();
+
+            Vector2 rolloverCoord = TilesetCoordFromUISpace(mousePos - tileSetImageOrigin2);
+            _rolloverTile.Add(TilesetCoordToTid(rolloverCoord));
+        }
     }
 
     public override void OnMouseLeft(Vector2 mousePos)
     {
         base.OnMouseLeft(mousePos);
-        _rolloverTile = null;
+        _rolloverTile.Clear();
     }
 
     // Assuming coords can never be out of range.
@@ -150,9 +203,9 @@ public sealed class TilesetTileSelector : UIScrollArea
 
         if (_tileset != null)
         {
-            if (_rolloverTile != null)
+            foreach (var tId in _rolloverTile)
             {
-                Vector2 rolloverCoord = TidToTilesetCoord(_rolloverTile.Value);
+                Vector2 rolloverCoord = TidToTilesetCoord(tId);
                 Vector2 uiSpace = TilesetCoordToUISpace(rolloverCoord, out Vector2 tileSize);
 
                 c.RenderSprite(Position + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
@@ -178,7 +231,7 @@ public sealed class TilesetTileSelector : UIScrollArea
 
     public void SetTileset(Map2DTileset? tileset)
     {
-        _rolloverTile = null;
+        _rolloverTile.Clear();
         SelectedTiles.Clear();
         _tileset = tileset;
 

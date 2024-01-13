@@ -52,13 +52,15 @@ public class MapEditorTilePanel : EditorPanel
         _container.StretchY = true;
         _container.StretchX = true;
         _container.MaxSizeY = Engine.Renderer.CurrentTarget.Size.Y;
-        _container.Margins = new Rectangle(0, 15, 0, 11);
+        _container.Margins = new Rectangle(0, 15, 0, 10);
 
         var innerContainer = new UIBaseWindow();
         innerContainer.ListSpacing = new Vector2(0, 1);
         innerContainer.LayoutMode = LayoutMode.VerticalList;
         innerContainer.UseNewLayoutSystem = true;
+        innerContainer.MinSizeX = 190f;
         innerContainer.MaxSizeX = 190f;
+        _contentParent.StretchY = false;
         _contentParent.AddChild(innerContainer);
 
         var editTileData = new EditorButton("Edit TileMap Properties");
@@ -130,7 +132,7 @@ public class MapEditorTilePanel : EditorPanel
         var tilesetPropertiesButton = new EditorButton("Tileset Metadata");
         tileSetControls.AddChild(tilesetPropertiesButton);
 
-        var tilesetScaleLabel = new MapEditorLabel("Scale: 100%");
+        var tilesetScaleLabel = new MapEditorLabel("");
         tilesetScaleLabel.Margins = new Rectangle(1, 0, 0, 0);
         tileSetControls.AddChild(tilesetScaleLabel);
 
@@ -159,7 +161,9 @@ public class MapEditorTilePanel : EditorPanel
         var tileSelector = new TilesetTileSelector(_map.Tiles);
         tileSelector.Id = "TileSelector";
         tileSelector.SetTileset(_currentTileset);
-        tileSelector.MaxSizeY = 160; // temp;
+        tileSelector.FillXInList = true;
+        tileSelector.MinSizeY = 170; // temp;
+        tileSelector.MaxSizeY = 170; // temp;
         _tileSelector = tileSelector;
         innerContainer.AddChild(tileSelector);
 
@@ -172,10 +176,47 @@ public class MapEditorTilePanel : EditorPanel
         return _currentLayer;
     }
 
+    public bool AreMultipleTilesSelected()
+    {
+        if (_tileSelector == null) return false;
+        return _tileSelector.SelectedTiles.Count > 1;
+    }
+
     public uint GetTidToPlace()
     {
         if (_tileSelector == null || _tileSelector.SelectedTiles.Count == 0) return 0;
         return _tileSelector.SelectedTiles[0];
+    }
+
+    public (uint, Vector2)[]? GetTidToPlaceMultiPattern(out Vector2 center)
+    {
+        center = Vector2.Zero;
+        if (_tileSelector == null || _tileSelector.SelectedTiles.Count == 0) return null;
+
+        Map2DTileMapData tileData = _map.Tiles;
+        var tsId = tileData.GetTsIdFromTilesetRef(_currentTileset);
+        if (tsId == -1) return null;
+
+        (uint, Vector2)[] pattern = new (uint, Vector2)[_tileSelector.SelectedTiles.Count];
+        Vector2 originPos = Vector2.Zero;
+        for (int i = 0; i < _tileSelector.SelectedTiles.Count; i++)
+        {
+            var tId = _tileSelector.SelectedTiles[i];
+            var tileCoord = tileData.GetUVFromTileImageIdAndTileset(tId, tsId);
+
+            if (i == 0)
+            {
+                originPos = tileCoord.Position;
+                pattern[i] = (tId, Vector2.Zero);
+                continue;
+            }
+            Vector2 offsetFromOriginInTiles = tileCoord.Position - originPos;
+            center += offsetFromOriginInTiles;
+            pattern[i] = (tId, offsetFromOriginInTiles);
+        }
+        center /= _tileSelector.SelectedTiles.Count;
+
+        return pattern;
     }
 
     private void GenerateToolWindow()
