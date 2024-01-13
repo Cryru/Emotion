@@ -231,17 +231,19 @@ public abstract partial class WorldBaseEditor
 
         if (!EditorOpen) return true;
 
-        if (CurrentMap != null && status == KeyStatus.Up &&
+        if (CurrentMap != null &&
             key == Key.S && Engine.Host.IsCtrlModifierHeld())
         {
-            EditorSaveMap();
+            if (status == KeyStatus.Up)
+                EditorSaveMap();
             return false;
         }
 
-        if (CurrentMap != null && status == KeyStatus.Up &&
+        if (CurrentMap != null &&
             key == Key.Z && Engine.Host.IsCtrlModifierHeld())
         {
-            EditorUndoLastAction(this);
+            if (status == KeyStatus.Up)
+                EditorUndoLastAction(this);
             return false;
         }
 
