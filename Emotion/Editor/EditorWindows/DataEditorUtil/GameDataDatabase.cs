@@ -134,7 +134,7 @@ public static class GameDataDatabase
             arr[idx] = (T) item.Value;
             idx++;
         }
-
+        Array.Sort(arr);
         return arr;
     }
 
@@ -162,6 +162,7 @@ public static class GameDataDatabase
 
         string path = GetAssetPath(obj);
         obj.AssetPath = path;
+        obj.Index = objectsOfThisType.Count;
         GameDataObjectAsset asAsset = GameDataObjectAsset.CreateFromContent(obj, path);
         return asAsset.Save();
     }
@@ -182,7 +183,7 @@ public static class GameDataDatabase
         Dictionary<string, GameDataObject>? data = GetObjectsOfType(type);
         if (data == null) return;
 
-        // Readd objects that no longer match their key.
+        // Read objects that no longer match their key.
         // Objects with null AssetPaths are deleted.
         List<string>? toReAdd = null;
         List<string>? toRemove = null;
