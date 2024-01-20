@@ -22,6 +22,9 @@ namespace Emotion.Game.World2D.Tile
         public float Spacing = 0f;
         public float Margin = 0f;
 
+        [DontShowInEditor]
+        public int TilesetFirstTidExpected = -1; // Used to detect tileset changes
+
         public override string ToString()
         {
             return AssetFile ?? "No Tileset Texture";

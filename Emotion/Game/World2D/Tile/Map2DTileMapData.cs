@@ -272,7 +272,7 @@ namespace Emotion.Game.World2D.Tile
                 if (tsId > 0)
                     tsOffset = (int)tId - firstTile;
                 else
-                    tsOffset = (int) tId - 1;
+                    tsOffset = (int)tId - 1;
             }
 
             return tsId;
@@ -287,7 +287,7 @@ namespace Emotion.Game.World2D.Tile
         public Rectangle GetUvFromTileImageId(uint tId, out int tsId)
         {
             tsId = GetTilesetIdFromTid(tId, out int tsOffset);
-            return GetUVFromTileImageIdAndTileset((uint) tsOffset, tsId);
+            return GetUVFromTileImageIdAndTileset((uint)tsOffset, tsId);
         }
 
         /// <summary>
@@ -334,6 +334,14 @@ namespace Emotion.Game.World2D.Tile
 
         #region Runtime State
 
+        private struct TilesetPatchData
+        {
+            public int MoveAfterTid; // Move all tiles that use tid's after this number
+            public int OffsetAmount;
+        }
+
+        private List<TilesetPatchData>? _patchesNeeded;
+
         private class TilesetRuntimeData
         {
             public TextureAsset? Texture;
@@ -377,6 +385,7 @@ namespace Emotion.Game.World2D.Tile
 
             // Calculate all runtime data and populate the runtime data array.
             int tIdOffset = 1;
+            int patchCheckOffset = 0;
             for (var i = 0; i < assets.Length; i++)
             {
                 TextureAsset? textureAsset = assets[i].IsCompletedSuccessfully ? assets[i].Result : null;
@@ -394,13 +403,34 @@ namespace Emotion.Game.World2D.Tile
                 data.FirstTid = tIdOffset;
                 _tilesetRuntime[i] = data;
 
-                tIdOffset += (int)(data.SizeInTiles.X * data.SizeInTiles.Y);
+                int tilesInTileset = (int)(data.SizeInTiles.X * data.SizeInTiles.Y);
+                if (tileset.TilesetFirstTidExpected == -1) // Tiles in tileset not recorded.
+                {
+                    tileset.TilesetFirstTidExpected = tIdOffset;
+                }
+                else if (tileset.TilesetFirstTidExpected + patchCheckOffset != tIdOffset) // Tileset size changed or a tileset was removed, fix tiles.
+                {
+                    _patchesNeeded ??= new List<TilesetPatchData>();
+
+                    int change = tIdOffset - tileset.TilesetFirstTidExpected;
+                    patchCheckOffset += change;
+
+                    _patchesNeeded.Add(new TilesetPatchData()
+                    {
+                        MoveAfterTid = tileset.TilesetFirstTidExpected,
+                        OffsetAmount = change
+                    });
+                    tileset.TilesetFirstTidExpected = tIdOffset;
+                }
+
+                tIdOffset += tilesInTileset;
             }
         }
 
         private void LoadTileLayerRuntimeData()
         {
             int totalTilesInMap = (int)(SizeInTiles.X * SizeInTiles.Y);
+            int newStride = (int)SizeInTiles.X;
 
             // Ensure all layers have a tile reference for each tile in the map.
             // If the map was shrunk and the layer has more tiles,
@@ -409,11 +439,76 @@ namespace Emotion.Game.World2D.Tile
             {
                 var layer = Layers[i];
                 uint[] unpackedData = layer.GetUnpackedTileData();
-                if (unpackedData.Length < totalTilesInMap)
+
+                if (unpackedData.Length < totalTilesInMap) // map size doesn't match layer size
                 {
-                    Array.Resize(ref unpackedData, totalTilesInMap);
-                    layer.SetUnpackedTileData(unpackedData);
+                    if (layer.DataStride == -1) // No stride recorded, we can't really guess :P
+                    {
+                        Array.Resize(ref unpackedData, totalTilesInMap);
+                        layer.SetUnpackedTileData(unpackedData);
+                    }
+                    else // Resize the map intelligently.
+                    {
+                        uint[] newData = new uint[totalTilesInMap];
+
+                        // Copy old data and retain map size.
+                        int layerStride = layer.DataStride;
+                        for (int t = 0; t < unpackedData.Length; t++)
+                        {
+                            int column = t / layerStride;
+                            int row = t - (column * layerStride);
+
+                            newData[column * newStride + row] = unpackedData[t];
+                        }
+
+                        layer.SetUnpackedTileData(newData);
+                    }
+
+                    Engine.Log.Warning($"Resized layer {layer.Name} due to changes in the map size.", "TileMap");
                 }
+
+                layer.DataStride = newStride;
+            }
+
+            // Check if we should apply any data patches to the layers in order to
+            // correct tid from moved tilesets.
+            if (_patchesNeeded != null)
+            {
+                for (int l = 0; l < Layers.Count; l++)
+                {
+                    var layer = Layers[l];
+
+                    // Gather changes from all patches
+                    int[] changesMatrix = new int[totalTilesInMap];
+                    for (int p = 0; p < _patchesNeeded.Count; p++)
+                    {
+                        var patch = _patchesNeeded[p];
+
+                        for (int i = 0; i < totalTilesInMap; i++)
+                        {
+                            var tId = GetTileData(layer, i);
+                            if (tId > patch.MoveAfterTid)
+                            {
+                                changesMatrix[i] += patch.OffsetAmount;
+                            }
+                        }
+                    }
+
+                    // Apply them at once.
+                    for (int i = 0; i < totalTilesInMap; i++)
+                    {
+                        var tId = GetTileData(layer, i);
+                        SetTileData(layer, i, (uint) (tId + changesMatrix[i]));
+                    }
+                }
+
+                // Log applied patches
+                for (int p = 0; p < _patchesNeeded.Count; p++)
+                {
+                    var patch = _patchesNeeded[p];
+                    Engine.Log.Warning($"Offset tiles with tId after {patch.MoveAfterTid} by {patch.OffsetAmount} due to tileset changes.", "TileMap");
+                }
+                _patchesNeeded = null;
             }
         }
 

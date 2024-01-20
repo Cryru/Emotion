@@ -42,6 +42,12 @@ namespace Emotion.Game.World2D.Tile
 
         protected uint[] _unpackedData = Array.Empty<uint>();
 
+        /// <summary>
+        /// The stride of the data, AKA the map's width. Used for tracking map resizes
+        /// </summary>
+        [DontShowInEditor]
+        public int DataStride { get; set; } = -1;
+
         public Map2DTileMapLayer(string name, uint[] data)
         {
             Name = name;
