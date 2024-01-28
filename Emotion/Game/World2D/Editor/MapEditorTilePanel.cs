@@ -16,9 +16,9 @@ public enum TileEditorTool
     Brush,
     Eraser,
     Bucket,
+    TilePicker,
 
     // Pointer = todo: allows copy paste of sections
-    // ColorPicker = todo: tile picker from the selected layer :)
 }
 
 public class MapEditorTilePanel : EditorPanel
@@ -186,6 +186,14 @@ public class MapEditorTilePanel : EditorPanel
     {
         if (_tileSelector == null || _tileSelector.SelectedTiles.Count == 0) return 0;
         return _tileSelector.SelectedTiles[0];
+    }
+
+    public void SetTidToPlace(uint tId)
+    {
+        if (_tileSelector == null) return;
+        _tileSelector.SelectedTiles.Clear();
+        if (tId == 0) return;
+        _tileSelector.SelectedTiles.Add(tId);
     }
 
     public (uint, Vector2)[]? GetTidToPlaceMultiPattern(out Vector2 center)
