@@ -25,6 +25,8 @@ public class MapEditorTilePanel : EditorPanel
 {
     public TileEditorTool CurrentTool { get; private set; } = TileEditorTool.Brush;
 
+    public TileEditorTool _previousPlacingTool = TileEditorTool.Brush;
+
     private Map2D _map;
     private EditorListOfItemsWithSelection<Map2DTileMapLayer> _layerList = null!;
     private EditorButtonDropDown _tileSetList = null!;
@@ -292,6 +294,8 @@ public class MapEditorTilePanel : EditorPanel
 
     public void SetCurrentTool(TileEditorTool tool)
     {
+        if (tool == TileEditorTool.Brush) _previousPlacingTool = tool;
+        else if (tool == TileEditorTool.Bucket) _previousPlacingTool = tool;
         CurrentTool = tool;
 
         var toolList = GetWindowById("ToolList");
