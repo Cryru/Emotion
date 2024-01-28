@@ -22,6 +22,8 @@ public partial class World2DEditor
     protected SquareGrid3D? _grid;
     protected UIBaseWindow? _tileEditor;
 
+    private TileEditorTool _previousPlacingTool;
+
     protected void InitializeTileEditor()
     {
         InitializeTileGrid();
@@ -303,6 +305,7 @@ public partial class World2DEditor
                 }
             case TileEditorTool.Brush:
                 {
+                    _previousPlacingTool = TileEditorTool.Brush;
                     (uint, Vector2)[]? placementPattern;
                     Vector2 center = Vector2.Zero;
                     if (editor.AreMultipleTilesSelected())
@@ -342,6 +345,7 @@ public partial class World2DEditor
                 }
             case TileEditorTool.Bucket:
                 {
+                    _previousPlacingTool = TileEditorTool.Bucket;
                     var cursorPos1D = mapTileData.GetTile1DFromTile2D(_cursorPos.Value);
                     uint previousTileID = mapTileData.GetTileData(layerToPlaceIn, cursorPos1D);
 
@@ -366,8 +370,9 @@ public partial class World2DEditor
 
                     editor.SetTidToPlace(tileToPick);
                     GlobalEditorMsg($"Picked tId {tileToPick}");
-                    // return tool to brush 
-                    // or to the previous tool ???
+
+                    editor.SetCurrentTool(_previousPlacingTool);
+
                     return;
                 }
         }
