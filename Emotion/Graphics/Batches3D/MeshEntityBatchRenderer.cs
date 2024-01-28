@@ -135,12 +135,17 @@ public sealed class MeshEntityBatchRenderer
         private void InitFrameBuffer()
         {
             Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
+            Buffer.DepthStencilAttachment.Smooth = true;
+
             Texture.EnsureBound(Buffer.DepthStencilAttachment.Pointer);
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
 
             float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
+
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureCompareMode, Gl.COMPARE_R_TO_TEXTURE);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureCompareFunc, Gl.GEQUAL);
         }
     }
 

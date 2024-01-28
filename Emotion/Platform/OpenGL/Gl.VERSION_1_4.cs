@@ -150,7 +150,9 @@ namespace OpenGL
         /// value
         /// must be at least 2.0.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_texture_lod_bias", Api = "gl|gles1")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
+        [RequiredByFeature("GL_EXT_texture_lod_bias", Api = "gl|gles1")]
         public const int MAX_TEXTURE_LOD_BIAS = 0x84FD;
 
         /// <summary>
@@ -158,7 +160,8 @@ namespace OpenGL
         /// initial
         /// value is 0.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_texture_lod_bias", Api = "gl|gles1")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_EXT_texture_lod_bias", Api = "gl|gles1")]
         public const int TEXTURE_LOD_BIAS = 0x8501;
 
         /// <summary>
@@ -201,7 +204,9 @@ namespace OpenGL
         /// the GL will be a close match for the resolution requested by the user with the component argument of Gl.TexImage1D,
         /// Gl.TexImage2D, Gl.TexImage3D, Gl.CopyTexImage1D, and Gl.CopyTexImage2D. The initial value is 0.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_ARB_depth_texture")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
+        [RequiredByFeature("GL_ARB_depth_texture")]
         public const int TEXTURE_DEPTH_SIZE = 0x884A;
 
         /// <summary>
@@ -215,7 +220,10 @@ namespace OpenGL
         ///     value is Gl.NONE. See Gl.TexParameter.
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_ARB_shadow")] [RequiredByFeature("GL_EXT_shadow_samplers", Api = "gles2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
+        [RequiredByFeature("GL_ARB_shadow")]
+        [RequiredByFeature("GL_EXT_shadow_samplers", Api = "gles2")]
         public const int TEXTURE_COMPARE_MODE = 0x884C;
 
         /// <summary>
@@ -229,7 +237,10 @@ namespace OpenGL
         ///     value is Gl.LEQUAL. See Gl.TexParameter.
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_ARB_shadow")] [RequiredByFeature("GL_EXT_shadow_samplers", Api = "gles2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
+        [RequiredByFeature("GL_ARB_shadow")]
+        [RequiredByFeature("GL_EXT_shadow_samplers", Api = "gles2")]
         public const int TEXTURE_COMPARE_FUNC = 0x884D;
 
         /// <summary>
@@ -308,7 +319,10 @@ namespace OpenGL
         ///     [GLES1.1] Gl.PointParameter: params points to the distance attenuation function coefficients Gl., Gl., and Gl..
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ARB_point_parameters")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RequiredByFeature("GL_ARB_point_parameters")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int POINT_DISTANCE_ATTENUATION = 0x8129;
 
         /// <summary>
@@ -338,7 +352,10 @@ namespace OpenGL
         ///     initial value of Gl.GENERATE_MIPMAP is Gl.FALSE.
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_SGIS_generate_mipmap")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RequiredByFeature("GL_SGIS_generate_mipmap")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int GENERATE_MIPMAP = 0x8191;
 
         /// <summary>
@@ -379,7 +396,10 @@ namespace OpenGL
         ///     Gl.SecondaryColor.
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ARB_vertex_program")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ARB_vertex_program")]
+        [RequiredByFeature("GL_EXT_secondary_color")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int COLOR_SUM = 0x8458;
 
         /// <summary>
@@ -388,28 +408,36 @@ namespace OpenGL
         /// the most positive representable integer value, and -1.0 returns the most negative representable integer value. The
         /// initial value is (0, 0, 0, 0). See Gl.SecondaryColor.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_EXT_secondary_color")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int CURRENT_SECONDARY_COLOR = 0x8459;
 
         /// <summary>
         /// [GL2.1] Gl.Get: params returns one value, the number of components per color in the secondary color array. The initial
         /// value is 3. See Gl.SecondaryColorPointer.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_EXT_secondary_color")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int SECONDARY_COLOR_ARRAY_SIZE = 0x845A;
 
         /// <summary>
         /// [GL2.1] Gl.Get: params returns one value, the data type of each component in the secondary color array. The initial
         /// value is Gl.FLOAT. See Gl.SecondaryColorPointer.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_EXT_secondary_color")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int SECONDARY_COLOR_ARRAY_TYPE = 0x845B;
 
         /// <summary>
         /// [GL2.1] Gl.Get: params returns one value, the byte offset between consecutive colors in the secondary color array. The
         /// initial value is 0. See Gl.SecondaryColorPointer.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_EXT_secondary_color")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int SECONDARY_COLOR_ARRAY_STRIDE = 0x845C;
 
         /// <summary>
@@ -425,7 +453,9 @@ namespace OpenGL
         ///     initial value is Gl.FALSE. See Gl.SecondaryColorPointer.
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_EXT_secondary_color")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int SECONDARY_COLOR_ARRAY = 0x845E;
 
         /// <summary>
@@ -441,8 +471,18 @@ namespace OpenGL
         ///     Gl.LUMINANCE.
         ///     </para>
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ARB_depth_texture")] [RemovedByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ARB_depth_texture")]
+        [RemovedByFeature("GL_VERSION_3_2")]
         public const int DEPTH_TEXTURE_MODE = 0x884B;
+
+        /// <summary>
+        /// [GL] Value of GL_COMPARE_R_TO_TEXTURE symbol (DEPRECATED).
+        /// </summary>
+        [RequiredByFeature("GL_VERSION_1_4")]
+        [RequiredByFeature("GL_ARB_shadow")]
+        [RemovedByFeature("GL_VERSION_3_2")]
+        public const int COMPARE_R_TO_TEXTURE = 0x884E;
 
         /// <summary>
         /// [GL4|GLES3.2] Gl.Get: data returns four values, the red, green, blue, and alpha values which are the components of the
@@ -598,7 +638,7 @@ namespace OpenGL
         public static void BlendFuncSeparate(BlendingFactor sfactorRGB, BlendingFactor dfactorRGB, BlendingFactor sfactorAlpha, BlendingFactor dfactorAlpha)
         {
             Assert(Delegates.pglBlendFuncSeparate != null, "pglBlendFuncSeparate not implemented");
-            Delegates.pglBlendFuncSeparate((int) sfactorRGB, (int) dfactorRGB, (int) sfactorAlpha, (int) dfactorAlpha);
+            Delegates.pglBlendFuncSeparate((int)sfactorRGB, (int)dfactorRGB, (int)sfactorAlpha, (int)dfactorAlpha);
             DebugCheckErrors(null);
         }
 
@@ -629,7 +669,7 @@ namespace OpenGL
                 fixed (int* p_count = count)
                 {
                     Assert(Delegates.pglMultiDrawArrays != null, "pglMultiDrawArrays not implemented");
-                    Delegates.pglMultiDrawArrays((int) mode, p_first, p_count, drawcount);
+                    Delegates.pglMultiDrawArrays((int)mode, p_first, p_count, drawcount);
                 }
             }
 
@@ -667,7 +707,7 @@ namespace OpenGL
                 fixed (IntPtr* p_indices = indices)
                 {
                     Assert(Delegates.pglMultiDrawElements != null, "pglMultiDrawElements not implemented");
-                    Delegates.pglMultiDrawElements((int) mode, p_count, (int) type, p_indices, drawcount);
+                    Delegates.pglMultiDrawElements((int)mode, p_count, (int)type, p_indices, drawcount);
                 }
             }
 
@@ -877,7 +917,7 @@ namespace OpenGL
         public static void FogCoordPointer(FogCoordinatePointerType type, int stride, IntPtr pointer)
         {
             Assert(Delegates.pglFogCoordPointer != null, "pglFogCoordPointer not implemented");
-            Delegates.pglFogCoordPointer((int) type, stride, pointer);
+            Delegates.pglFogCoordPointer((int)type, stride, pointer);
             DebugCheckErrors(null);
         }
 
@@ -1296,7 +1336,7 @@ namespace OpenGL
         public static void SecondaryColorPointer(int size, ColorPointerType type, int stride, IntPtr pointer)
         {
             Assert(Delegates.pglSecondaryColorPointer != null, "pglSecondaryColorPointer not implemented");
-            Delegates.pglSecondaryColorPointer(size, (int) type, stride, pointer);
+            Delegates.pglSecondaryColorPointer(size, (int)type, stride, pointer);
             DebugCheckErrors(null);
         }
 
@@ -1750,7 +1790,7 @@ namespace OpenGL
         public static void BlendEquation(BlendEquationMode mode)
         {
             Assert(Delegates.pglBlendEquation != null, "pglBlendEquation not implemented");
-            Delegates.pglBlendEquation((int) mode);
+            Delegates.pglBlendEquation((int)mode);
             DebugCheckErrors(null);
         }
 
@@ -1777,7 +1817,9 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glMultiDrawArrays(int mode, int* first, int* count, int drawcount);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2", EntryPoint = "glMultiDrawArraysEXT")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2", EntryPoint = "glMultiDrawArraysEXT")]
+            [ThreadStatic]
             public static glMultiDrawArrays pglMultiDrawArrays;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1785,7 +1827,9 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glMultiDrawElements(int mode, int* count, int type, IntPtr* indices, int drawcount);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2", EntryPoint = "glMultiDrawElementsEXT")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2", EntryPoint = "glMultiDrawElementsEXT")]
+            [ThreadStatic]
             public static glMultiDrawElements pglMultiDrawElements;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1825,7 +1869,9 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glPointParameteri(int pname, int param);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_NV_point_sprite", EntryPoint = "glPointParameteriNV")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_NV_point_sprite", EntryPoint = "glPointParameteriNV")]
+            [ThreadStatic]
             public static glPointParameteri pglPointParameteri;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1833,7 +1879,9 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glPointParameteriv(int pname, int* @params);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_NV_point_sprite", EntryPoint = "glPointParameterivNV")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_NV_point_sprite", EntryPoint = "glPointParameterivNV")]
+            [ThreadStatic]
             public static glPointParameteriv pglPointParameteriv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1842,7 +1890,10 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glFogCoordf(float coord);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordfEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordfEXT")]
+            [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+            [ThreadStatic]
             public static glFogCoordf pglFogCoordf;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1851,7 +1902,10 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glFogCoordfv(float* coord);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordfvEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordfvEXT")]
+            [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+            [ThreadStatic]
             public static glFogCoordfv pglFogCoordfv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1860,7 +1914,10 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glFogCoordd(double coord);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoorddEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoorddEXT")]
+            [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+            [ThreadStatic]
             public static glFogCoordd pglFogCoordd;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1869,7 +1926,10 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glFogCoorddv(double* coord);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoorddvEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoorddvEXT")]
+            [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+            [ThreadStatic]
             public static glFogCoorddv pglFogCoorddv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
@@ -1878,7 +1938,10 @@ namespace OpenGL
             [SuppressUnmanagedCodeSecurity]
             public delegate void glFogCoordPointer(int type, int stride, IntPtr pointer);
 
-            [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordPointerEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+            [RequiredByFeature("GL_VERSION_1_4")]
+            [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordPointerEXT")]
+            [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+            [ThreadStatic]
             public static glFogCoordPointer pglFogCoordPointer;
 
             [RequiredByFeature("GL_VERSION_1_4")]

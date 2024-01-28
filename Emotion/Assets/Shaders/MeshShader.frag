@@ -6,11 +6,14 @@ uniform vec3 cameraPosition; // world pos
 uniform mat4 viewMatrix;
 
 // Shadow
+#define CASCADE_RESOLUTION vec2(2048.0)
 #define CASCADE_COUNT 4
-uniform sampler2D shadowMapTextureC1;
-uniform sampler2D shadowMapTextureC2;
-uniform sampler2D shadowMapTextureC3;
-uniform sampler2D shadowMapTextureC4;
+
+// todo: array texture
+uniform sampler2DShadow shadowMapTextureC1;
+uniform sampler2DShadow shadowMapTextureC2;
+uniform sampler2DShadow shadowMapTextureC3;
+uniform sampler2DShadow shadowMapTextureC4;
 
 uniform int renderingShadowMap;
 uniform float cascadePlaneFarZ[CASCADE_COUNT];
@@ -48,30 +51,6 @@ out vec4 fragColor;
 #using "Shaders/getTextureColor.c"
 #using "Shaders/ColorHelpers.c"
 
-// todo: array texture
-vec4 sampleShadowMapAtCascade(int cascade, vec2 uv)
-{
-    vec4 col = vec4(0.0);
-    if (cascade == 0)
-    {
-        col = getTextureColor(shadowMapTextureC1, uv);
-    }
-    else if (cascade == 1)
-    {
-        col = getTextureColor(shadowMapTextureC2, uv);
-    }
-    else if (cascade == 2)
-    {
-        col = getTextureColor(shadowMapTextureC3, uv);
-    }
-    else if (cascade == 3)
-    {
-        col = getTextureColor(shadowMapTextureC4, uv);
-    }
-
-    return col;
-}
-
 vec4 GetCascadeDebugColor(int cascade)
 {
     if (cascade == 0)
@@ -105,24 +84,84 @@ int GetCurrentShadowCascade()
     return cascade;
 }
 
-vec4 pepega() {
+vec3 GetShadowPosOffset(float nDotL, vec3 normal)
+{
+    float OffsetScale = 0.0f;
+    vec2 shadowMapSize = CASCADE_RESOLUTION;
+    float numSlices = CASCADE_COUNT;
 
- // Determine which cascade this fragment is in
-    int cascade = GetCurrentShadowCascade();
+    float normalOffsetScale = 0.2000f;
+    float texelSize = 2.0f / shadowMapSize.x;
+    float nmlOffsetScale = clamp(1.0f - nDotL, 0.0, 1.0);
+    return texelSize * normalOffsetScale * nmlOffsetScale * normal;
+}
 
-    // Get the fragment position in light space.
-    vec4 fragPosLightSpace = cascadeLightProj[cascade] * vec4(fragPosition, 1.0);
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
+float SampleShadowMap(vec2 baseUv, float u, float v, vec2 shadowMapSizeInv, int cascade, float depth)
+{
+    vec2 uv = baseUv + vec2(u, v) * shadowMapSizeInv;
+    vec3 uvAndDepth = vec3(uv, depth);
 
-    float currentDepth = projCoords.z;
-    if (currentDepth > 1.0)
-        return vec4(1.0, 0.0, 0.0, 1.0);
+    float textureVal = 0.0;
+    if (cascade == 0)
+    {
+        return texture(shadowMapTextureC1, uvAndDepth);
+    }
+    else if (cascade == 1)
+    {
+        return texture(shadowMapTextureC2, uvAndDepth);
+    }
+    else if (cascade == 2)
+    {
+        return texture(shadowMapTextureC3, uvAndDepth);
+    }
+    else if (cascade == 3)
+    {
+        return texture(shadowMapTextureC4, uvAndDepth);
+    }
+}
 
-        vec2 sampleCoord = vec2(projCoords.xy + vec2(0, 0));
-        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-        return (currentDepth) > pcfDepth ? vec4(0.0, 1.0, 0.0, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
 
+float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
+{
+    vec2 shadowMapSize = CASCADE_RESOLUTION;
+    float numSlices = CASCADE_COUNT;
+
+    vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
+    vec2 shadowMapSizeInv = 1.0 / shadowMapSize;
+
+    vec2 base_uv;
+    base_uv.x = floor(uv.x + 0.5);
+    base_uv.y = floor(uv.y + 0.5);
+
+    float s = (uv.x + 0.5 - base_uv.x);
+    float t = (uv.y + 0.5 - base_uv.y);
+
+    base_uv -= vec2(0.5, 0.5);
+    base_uv *= shadowMapSizeInv;
+
+    float sum = 0;
+
+    float uw0 = (3 - 2 * s);
+    float uw1 = (1 + 2 * s);
+
+    float u0 = (2 - s) / uw0 - 1;
+    float u1 = s / uw1 + 1;
+
+    float vw0 = (3 - 2 * t);
+    float vw1 = (1 + 2 * t);
+
+    float v0 = (2 - t) / vw0 - 1;
+    float v1 = t / vw1 + 1;
+
+    float bias = 0.00050f;
+    float lightDepth = shadowPos.z - bias;
+
+    sum += uw0 * vw0 * SampleShadowMap(base_uv, u0, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw1 * vw0 * SampleShadowMap(base_uv, u1, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw0 * vw1 * SampleShadowMap(base_uv, u0, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw1 * vw1 * SampleShadowMap(base_uv, u1, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
+
+    return sum * 1.0f / 16.0;
 }
 
 float GetShadowAmount()
@@ -146,79 +185,9 @@ float GetShadowAmount()
         projCoords = projCoords * 0.5 + 0.5;
         currentDepth = projCoords.z;
     }
-    
-    float minDepth = cascade == 0 ? 10.0f : cascadePlaneFarZ[cascade - 1];
-	float maxDepth = cascadePlaneFarZ[cascade];
 
-    float slopeBias = 0.02 * 4.0;
-    float minBias = 0.002 * 4.0;
-
-    float bias = max(slopeBias * (1.0 - dot(fragNormal, fragLightDir)), minBias);
-    bias *= 1.0 / ((maxDepth - minDepth) * 0.5);
-    
-
-    // Percentage Closer Filtering
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / vec2(textureSize(shadowMapTextureC1, 0));
-
-    // Unrolled PCF loop for ANGLE compat.
-    {
-        vec2 sampleCoord = vec2(projCoords.xy + vec2(0, 0) * texelSize);
-        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-    }
-
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(1, 0) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(2, 0) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(0, 1) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(1, 1) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(2, 1) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(0, 2) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(1, 2) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    {
-//        vec2 sampleCoord = vec2(projCoords.xy + vec2(2, 2) * texelSize);
-//        float pcfDepth = sampleShadowMapAtCascade(cascade, sampleCoord).r; 
-//        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-//    }
-//
-//    shadow /= 9.0;
-
-    return shadow;
+    float nDotL = clamp(dot(fragNormal, fragLightDir), 0.0, 1.0);
+    return TheWitness_GetShadowAmount(cascade, projCoords + GetShadowPosOffset(nDotL, fragNormal));
 }
 
 void main()
