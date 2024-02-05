@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion", "..\Emotion\Emotion.csproj", "{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Droid", "..\Emotion.Droid\Emotion.Droid.csproj", "{83E2F284-68A0-4D00-899B-1F5E5DB13F61}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Droid.ExecTest", "..\Emotion.Droid.ExecTest\Emotion.Droid.ExecTest.csproj", "{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Autobuild|Any CPU = Autobuild|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		DebugUnix64|Any CPU = DebugUnix64|Any CPU
+		DebugWeb|Any CPU = DebugWeb|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.Autobuild|Any CPU.ActiveCfg = Autobuild|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.Autobuild|Any CPU.Build.0 = Autobuild|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.DebugUnix64|Any CPU.ActiveCfg = DebugUnix64|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.DebugUnix64|Any CPU.Build.0 = DebugUnix64|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.DebugWeb|Any CPU.ActiveCfg = DebugWeb|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.DebugWeb|Any CPU.Build.0 = DebugWeb|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7092D13-DD5A-4654-B8FE-8943FBD32BBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Autobuild|Any CPU.ActiveCfg = Release|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.DebugUnix64|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.DebugUnix64|Any CPU.Build.0 = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E2F284-68A0-4D00-899B-1F5E5DB13F61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Autobuild|Any CPU.ActiveCfg = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugUnix64|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugUnix64|Any CPU.Build.0 = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugUnix64|Any CPU.Deploy.0 = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.DebugWeb|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A416F0-19E2-4D35-AF4D-0AA18FCCEEA3}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1702377B-82E8-4385-9DCC-378BDFF5BC62}
+	EndGlobalSection
+EndGlobal
