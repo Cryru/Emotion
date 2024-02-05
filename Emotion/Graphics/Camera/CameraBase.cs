@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common.Threading;
+using Emotion.Utility;
 
 #endregion
 
@@ -203,6 +204,29 @@ namespace Emotion.Graphics.Camera
                 start,
                 ScreenToWorld(Engine.Renderer.DrawBuffer.Size).ToVec2() - start
             );
+        }
+
+        public static void GetCameraFrustum3D(Span<Vector3> frustumCorners, Matrix4x4 invCameraViewProj)
+        {
+            frustumCorners[0] = new Vector3(-1.0f, 0.0f, 1.0f);
+            frustumCorners[1] = new Vector3(1.0f, 0.0f, 1.0f);
+            frustumCorners[2] = new Vector3(1.0f, 0.0f, -1.0f);
+            frustumCorners[3] = new Vector3(-1.0f, 0.0f, -1.0f);
+
+            frustumCorners[4] = new Vector3(-1.0f, 1.0f, 1.0f);
+            frustumCorners[5] = new Vector3(1.0f, 1.0f, 1.0f);
+            frustumCorners[6] = new Vector3(1.0f, 1.0f, -1.0f);
+            frustumCorners[7] = new Vector3(-1.0f, 1.0f, -1.0f);
+
+            for (int i = 0; i < frustumCorners.Length; i++)
+            {
+                frustumCorners[i] = Maths.TransformCartesian(frustumCorners[i], invCameraViewProj);
+            }
+        }
+
+        public void GetCameraFrustum3D(Span<Vector3> frustumCorners)
+        {
+            GetCameraFrustum3D(frustumCorners, (ViewMatrix * ProjectionMatrix).Inverted());
         }
 
         /// <summary>

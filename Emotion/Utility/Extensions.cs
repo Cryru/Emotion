@@ -34,6 +34,12 @@ namespace System.Numerics
             return new Vector2(v.X, v.Y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector4 ToVec4(this Vector3 v)
+        {
+            return new Vector4(v.X, v.Y, v.Z, 1.0f);
+        }
+
         /// <summary>
         /// Converts a vector2 to a vector3.
         /// </summary>
@@ -546,6 +552,16 @@ namespace Emotion.Utility
 
             int genericStart = type.Name.IndexOf("`", StringComparison.Ordinal);
             return $"{type.Name[..genericStart]}<{genericArgumentsTogether}>";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector4 Round(this Vector4 v)
+        {
+            v.X = MathF.Round(v.X);
+            v.Y = MathF.Round(v.Y);
+            v.Z = MathF.Round(v.Z);
+            v.W = MathF.Round(v.W);
+            return v;
         }
     }
 }

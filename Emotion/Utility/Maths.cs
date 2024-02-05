@@ -868,5 +868,16 @@ namespace Emotion.Utility
         {
             return new Vector2(-s * a.Y, s * a.X);
         }
+
+        /// <summary>
+        /// Transform the vec3 by the matrix and then perform homogeneous coordinate normalization.
+        /// This is the equivalent of XMVector3TransformCoord in DirectX Math
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 TransformCartesian(Vector3 vec3, Matrix4x4 m)
+        {
+            Vector4 v = Vector4.Transform(vec3, m);
+            return (v / v.W).ToVec3();
+        }
     }
 }
