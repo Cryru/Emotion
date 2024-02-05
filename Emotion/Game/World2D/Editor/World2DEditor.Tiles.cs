@@ -190,6 +190,13 @@ public partial class World2DEditor
                 }
                 c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.Green, 1f);
             }
+            else if (currentTool == TileEditorTool.TilePicker)
+            {
+                c.ClearDepth();
+                c.RenderSprite((pos * tileSize).ToVec3(), tileSize, Color.PrettyPurple * 0.2f);
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.White, 1.5f);
+                c.RenderOutline((pos * tileSize).ToVec3(), tileSize, Color.PrettyPurple, 1f);
+            }
         }
     }
 
@@ -349,6 +356,20 @@ public partial class World2DEditor
                         undoAction.AddToEditHistory(mapTileData.GetTile1DFromTile2D(tile), previousTileID);
                     }
                     break;
+                }
+            case TileEditorTool.TilePicker:
+                {
+                    uint tileToPick = mapTileData.GetTileData(layerToPlaceIn, mapTileData.GetTile1DFromTile2D(_cursorPos.Value));
+
+                    uint tileToFill = editor.GetTidToPlace();
+                    if (tileToPick == 0 || tileToPick == tileToFill) return;
+
+                    editor.SetTidToPlace(tileToPick);
+                    GlobalEditorMsg($"Picked tId {tileToPick}");
+
+                    editor.SetCurrentTool(editor._previousPlacingTool);
+
+                    return;
                 }
         }
 

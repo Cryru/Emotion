@@ -16,14 +16,16 @@ public enum TileEditorTool
     Brush,
     Eraser,
     Bucket,
+    TilePicker,
 
     // Pointer = todo: allows copy paste of sections
-    // ColorPicker = todo: tile picker from the selected layer :)
 }
 
 public class MapEditorTilePanel : EditorPanel
 {
-    public TileEditorTool CurrentTool = TileEditorTool.Brush;
+    public TileEditorTool CurrentTool { get; private set; } = TileEditorTool.Brush;
+
+    public TileEditorTool _previousPlacingTool = TileEditorTool.Brush;
 
     private Map2D _map;
     private EditorListOfItemsWithSelection<Map2DTileMapLayer> _layerList = null!;
@@ -31,6 +33,10 @@ public class MapEditorTilePanel : EditorPanel
     private Map2DTileMapLayer? _currentLayer;
     private Map2DTileset? _currentTileset;
     private TilesetTileSelector? _tileSelector;
+
+    private static Color toolSelectedColor = new Color(210, 210, 210);
+    private static Color toolNormalColor = new Color(140, 140, 140);
+    private static Color toolRolloverColor = new Color(170, 170, 170);
 
     public MapEditorTilePanel(Map2D map) : base("Tile Editor")
     {
@@ -188,6 +194,14 @@ public class MapEditorTilePanel : EditorPanel
         return _tileSelector.SelectedTiles[0];
     }
 
+    public void SetTidToPlace(uint tId)
+    {
+        if (_tileSelector == null) return;
+        _tileSelector.SelectedTiles.Clear();
+        if (tId == 0) return;
+        _tileSelector.SelectedTiles.Add(tId);
+    }
+
     public (uint, Vector2)[]? GetTidToPlaceMultiPattern(out Vector2 center)
     {
         center = Vector2.Zero;
@@ -236,56 +250,69 @@ public class MapEditorTilePanel : EditorPanel
         var toolWindowList = new UIBaseWindow();
         toolWindowList.LayoutMode = LayoutMode.VerticalList;
         toolWindowList.ListSpacing = new Vector2(0, 1);
+        toolWindowList.Id = "ToolList";
         toolWindow.AddChild(toolWindowList);
 
-        var selectedColor = new Color(210, 210, 210);
-        var normalColor = new Color(140, 140, 140);
-        var rolloverColor = new Color(170, 170, 170);
-
-        UISolidColor? previousSelectedTool = null;
-
-        var tools = Enum.GetNames(typeof(TileEditorTool));
+        var toolsEnumName = Enum.GetNames(typeof(TileEditorTool));
         var toolsEnumVal = Enum.GetValues<TileEditorTool>();
-        for (int i = 0; i < tools.Length; i++)
+        for (int i = 0; i < toolsEnumName.Length; i++)
         {
             var myIdx = i;
             var myTool = toolsEnumVal[i];
 
-            var window = new UICallbackButton();
+            var button = new UICallbackButton();
 
-            bool isSelected = CurrentTool == myTool;
             var windowBackground = new UISolidColor();
-            windowBackground.WindowColor = isSelected ? selectedColor : normalColor;
-            window.AddChild(windowBackground);
-            if (isSelected) previousSelectedTool = windowBackground;
+            windowBackground.WindowColor = CurrentTool == myTool ? toolSelectedColor : toolNormalColor;
+            windowBackground.Id = "Background";
+            button.AddChild(windowBackground);
 
-            window.OnClickedProxy = (_) =>
+            button.OnClickedProxy = (_) =>
             {
-                CurrentTool = myTool;
-
-                if (previousSelectedTool != null) previousSelectedTool.WindowColor = normalColor;
-                previousSelectedTool = windowBackground;
-
-                windowBackground.WindowColor = selectedColor;
+                SetCurrentTool(myTool);
             };
-            window.OnMouseEnterProxy = (_) =>
+            button.OnMouseEnterProxy = (_) =>
             {
                 bool isSelected = CurrentTool == myTool;
-                windowBackground.WindowColor = isSelected ? selectedColor : rolloverColor;
+                windowBackground.WindowColor = isSelected ? toolSelectedColor : toolRolloverColor;
             };
-            window.OnMouseLeaveProxy = (_) =>
+            button.OnMouseLeaveProxy = (_) =>
             {
                 bool isSelected = CurrentTool == myTool;
-                windowBackground.WindowColor = isSelected ? selectedColor : normalColor;
+                windowBackground.WindowColor = isSelected ? toolSelectedColor : toolNormalColor;
             };
-            window.Paddings = new Rectangle(1, 1, 1, 1);
+            button.Paddings = new Rectangle(1, 1, 1, 1);
 
             var iconUI = new UITexture();
-            iconUI.TextureFile = $"Editor/{tools[i]}.png";
+            iconUI.TextureFile = $"Editor/{toolsEnumName[i]}.png";
             iconUI.ImageScale = new Vector2(0.5f);
-            window.AddChild(iconUI);
+            button.AddChild(iconUI);
 
-            toolWindowList.AddChild(window);
+            toolWindowList.AddChild(button);
+        }
+    }
+
+    public void SetCurrentTool(TileEditorTool tool)
+    {
+        if (tool == TileEditorTool.Brush) _previousPlacingTool = tool;
+        else if (tool == TileEditorTool.Bucket) _previousPlacingTool = tool;
+        CurrentTool = tool;
+
+        var toolList = GetWindowById("ToolList");
+        if (toolList == null || toolList.Children == null) return;
+
+        TileEditorTool[] toolsEnumVal = Enum.GetValues<TileEditorTool>();
+        for (int i = 0; i < toolsEnumVal.Length; i++)
+        {
+            TileEditorTool item = toolsEnumVal[i];
+            var button = toolList.Children[i];
+            var bg = button.GetWindowById("Background");
+            if (bg == null) continue;
+
+            if (item == tool)
+                bg.WindowColor = toolSelectedColor;
+            else
+                bg.WindowColor = toolNormalColor;
         }
     }
 }
