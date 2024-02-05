@@ -91,7 +91,6 @@ namespace Emotion.IO
         private void ReloadShader()
         {
             Engine.Log.Warning($"Reloading shader {Name}...", MessageSource.Debug);
-            DisposeInternal();
             Compile(CompilationConstant);
         }
 
@@ -159,8 +158,10 @@ namespace Emotion.IO
             // Reloading shader. Keep reference of current object, substitute OpenGL pointer only.
             if (Shader != null)
             {
-                // This shader must have been disposed first, otherwise we'll leak memory.
-                Assert(Shader.Pointer == 0 || IsFallback);
+                if (compiledProgram == null) return;
+                if (!compiledProgram.Valid) return;
+
+                DisposeInternal();
                 Shader.CopyFrom(compiledProgram);
                 Shader.DebugName = Name;
             }
