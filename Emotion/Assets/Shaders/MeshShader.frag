@@ -16,7 +16,7 @@ uniform sampler2DShadow shadowMapTextureC3;
 uniform sampler2DShadow shadowMapTextureC4;
 
 uniform int renderingShadowMap;
-uniform float cascadePlaneFarZ[CASCADE_COUNT];
+uniform float cascadeUnitToTexel[CASCADE_COUNT];
 uniform mat4 cascadeLightProj[CASCADE_COUNT];
 
 // LightModel
@@ -68,13 +68,12 @@ vec4 GetCascadeDebugColor(int cascade)
 int GetCurrentShadowCascade()
 {
     // Determine which cascade this fragment is in
-    int cascade = CASCADE_COUNT;
-    vec4 fragPosViewSpace = viewMatrix * vec4(fragPosition, 1.0);
-    float depthValue = abs(fragPosViewSpace.z);
+    int cascade = CASCADE_COUNT - 1;
     
     for (int i = 0; i < CASCADE_COUNT; i++)
     {
-        if (depthValue < cascadePlaneFarZ[i])
+        vec4 fragPosLightSpace = cascadeLightProj[i] * vec4(fragPosition, 1.0);
+        if (abs(fragPosLightSpace.x) <= 1.0 && abs(fragPosLightSpace.y) <= 1.0 && abs(fragPosLightSpace.z) <= 1.0)
         {
             cascade = i;
             break;
@@ -86,14 +85,11 @@ int GetCurrentShadowCascade()
 
 vec3 GetShadowPosOffset(float nDotL, vec3 normal)
 {
-    float OffsetScale = 0.0f;
     vec2 shadowMapSize = CASCADE_RESOLUTION;
     float numSlices = CASCADE_COUNT;
-
-    float normalOffsetScale = 0.2000f;
     float texelSize = 2.0f / shadowMapSize.x;
     float nmlOffsetScale = clamp(1.0f - nDotL, 0.0, 1.0);
-    return texelSize * normalOffsetScale * nmlOffsetScale * normal;
+    return texelSize * 1.0 * nmlOffsetScale * normal;
 }
 
 float SampleShadowMap(vec2 baseUv, float u, float v, vec2 shadowMapSizeInv, int cascade, float depth)
@@ -101,33 +97,48 @@ float SampleShadowMap(vec2 baseUv, float u, float v, vec2 shadowMapSizeInv, int 
     vec2 uv = baseUv + vec2(u, v) * shadowMapSizeInv;
     vec3 uvAndDepth = vec3(uv, depth);
 
-    float textureVal = 0.0;
     if (cascade == 0)
-    {
         return texture(shadowMapTextureC1, uvAndDepth);
-    }
     else if (cascade == 1)
-    {
         return texture(shadowMapTextureC2, uvAndDepth);
-    }
     else if (cascade == 2)
-    {
         return texture(shadowMapTextureC3, uvAndDepth);
-    }
     else if (cascade == 3)
-    {
         return texture(shadowMapTextureC4, uvAndDepth);
-    }
 }
 
+float NaiveSampleShadowMap(vec3 uvAndDepth, int cascade)
+{
+    if (cascade == 0)
+        return texture(shadowMapTextureC1, uvAndDepth);
+    else if (cascade == 1)
+        return texture(shadowMapTextureC2, uvAndDepth);
+    else if (cascade == 2)
+        return texture(shadowMapTextureC3, uvAndDepth);
+    else if (cascade == 3)
+        return texture(shadowMapTextureC4, uvAndDepth);
+}
+
+vec2 ComputeReceiverPlaneDepthBias(vec3 texCoordDX, vec3 texCoordDY)
+{
+    vec2 biasUV;
+    biasUV.x = texCoordDY.y * texCoordDX.z - texCoordDX.y * texCoordDY.z;
+    biasUV.y = texCoordDX.x * texCoordDY.z - texCoordDY.x * texCoordDX.z;
+    biasUV *= 1.0f / ((texCoordDX.x * texCoordDY.y) - (texCoordDX.y * texCoordDY.x));
+    return biasUV;
+}
 
 float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
 {
     vec2 shadowMapSize = CASCADE_RESOLUTION;
     float numSlices = CASCADE_COUNT;
 
+    // Calculate normal bias and modify shadow position
+    float nDotL = dot(fragNormal, fragLightDir);
+    shadowPos = shadowPos;// - GetShadowPosOffset(nDotL, fragNormal) * 0.3;
+
     vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
-    vec2 shadowMapSizeInv = 1.0 / shadowMapSize;
+    vec2 shadowMapSizeInv = 1.0 / shadowMapSize; // texel size
 
     vec2 base_uv;
     base_uv.x = floor(uv.x + 0.5);
@@ -153,8 +164,19 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     float v0 = (2 - t) / vw0 - 1;
     float v1 = t / vw1 + 1;
 
-    float bias = 0.00050f;
-    float lightDepth = shadowPos.z - bias;
+    //float diffuseFactor = dot(fragNormal, fragLightDir) * 0.5 + 0.5;
+    float lightDepth = shadowPos.z;// - 0.0007;// - (0.0002 * diffuseFactor);
+
+    {
+        vec3 shadowPosDX = dFdx(shadowPos);
+        vec3 shadowPosDY = dFdy(shadowPos);
+        vec2 receiverPlaneDepthBias = ComputeReceiverPlaneDepthBias(shadowPosDX, shadowPosDY);
+
+        // Static depth biasing to make up for incorrect fractional sampling on the shadow map grid
+        vec2 texelSize = 1.0f / shadowMapSize;
+        float fractionalSamplingError = 2 * dot(vec2(1.0f, 1.0f) * texelSize, abs(receiverPlaneDepthBias));
+        lightDepth -= min(fractionalSamplingError, 0.01f);
+    }
 
     sum += uw0 * vw0 * SampleShadowMap(base_uv, u0, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
     sum += uw1 * vw0 * SampleShadowMap(base_uv, u1, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
@@ -167,27 +189,15 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
 float GetShadowAmount()
 {
     // Determine which cascade this fragment is in
-    int cascade = GetCurrentShadowCascade();
+    int cascadeIdx = GetCurrentShadowCascade();
 
     // Get the fragment position in light space.
-    vec4 fragPosLightSpace = cascadeLightProj[cascade] * vec4(fragPosition, 1.0);
+    vec4 fragPosLightSpace = cascadeLightProj[cascadeIdx] * vec4(fragPosition, 1.0);
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
-    float currentDepth = projCoords.z;
-    if (currentDepth > 1.0)
-    {
-        if (cascade == CASCADE_COUNT) return 0.0;
-        cascade = cascade + 1;
-
-        fragPosLightSpace = cascadeLightProj[cascade] * vec4(fragPosition, 1.0);
-        projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-        projCoords = projCoords * 0.5 + 0.5;
-        currentDepth = projCoords.z;
-    }
-
-    float nDotL = clamp(dot(fragNormal, fragLightDir), 0.0, 1.0);
-    return TheWitness_GetShadowAmount(cascade, projCoords + GetShadowPosOffset(nDotL, fragNormal));
+    // return NaiveSampleShadowMap(vec3(projCoords.xy, projCoords.z - 0.0005), cascadeIdx);
+    return TheWitness_GetShadowAmount(cascadeIdx, projCoords);
 }
 
 void main()
@@ -209,6 +219,8 @@ void main()
     // Cascade debug
     //int cascade = GetCurrentShadowCascade();
     //objectColor = GetCascadeDebugColor(cascade);
+
+    //objectColor = vec4(fragNormal.x, fragNormal.y, fragNormal.z, 1.0);
 
     vec3 finalColor = objectColor.rgb;
 
