@@ -115,7 +115,7 @@ public sealed class MeshEntityBatchRenderer
 
     public class ShadowCascadeData
     {
-        public static Vector2 FramebufferResolution = new Vector2(1024);
+        public static Vector2 FramebufferResolution = new Vector2(2048);
 
         public int CascadeId;
         public FrameBuffer? Buffer;
