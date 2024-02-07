@@ -9,11 +9,19 @@ uniform mat4 viewMatrix;
 #define CASCADE_RESOLUTION vec2(2048.0)
 #define CASCADE_COUNT 4
 
+#define VSM 1
+
+#ifdef VSM
+#define CascadeSamplerType sampler2D
+#else
+#define CascadeSamplerType sampler2DShadow
+#endif
+
 // todo: array texture
-uniform sampler2D shadowMapTextureC1;
-uniform sampler2D shadowMapTextureC2;
-uniform sampler2D shadowMapTextureC3;
-uniform sampler2D shadowMapTextureC4;
+uniform CascadeSamplerType shadowMapTextureC1;
+uniform CascadeSamplerType shadowMapTextureC2;
+uniform CascadeSamplerType shadowMapTextureC3;
+uniform CascadeSamplerType shadowMapTextureC4;
 
 uniform int renderingShadowMap;
 uniform float cascadeUnitToTexel[CASCADE_COUNT];
@@ -73,7 +81,9 @@ int GetCurrentShadowCascade()
     for (int i = 0; i < CASCADE_COUNT; i++)
     {
         vec4 fragPosLightSpace = cascadeLightProj[i] * vec4(fragPosition, 1.0);
-        if (abs(fragPosLightSpace.x) <= 1.0 && abs(fragPosLightSpace.y) <= 1.0 && abs(fragPosLightSpace.z) <= 1.0)
+        if (abs(fragPosLightSpace.x) <= 0.99 &&
+            abs(fragPosLightSpace.y) <= 0.99 &&
+            abs(fragPosLightSpace.z) <= 0.99)
         {
             cascade = i;
             break;
@@ -83,21 +93,13 @@ int GetCurrentShadowCascade()
     return cascade;
 }
 
-vec3 GetShadowPosOffset(float nDotL, vec3 normal)
-{
-    vec2 shadowMapSize = CASCADE_RESOLUTION;
-    float numSlices = CASCADE_COUNT;
-    float texelSize = 2.0f / shadowMapSize.x;
-    float nmlOffsetScale = clamp(1.0f - nDotL, 0.0, 1.0);
-    return texelSize * 1.0 * nmlOffsetScale * normal;
-}
-
 float linstep(float low, float high, float v)
 {
     return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 
-float SampleVarianceShadowMap(vec3 uvAndDepth, int cascade)
+#ifdef VSM
+float SampleShadowMap(vec3 uvAndDepth, int cascade)
 {
     vec4 outCol = vec4(1.0);
     if (cascade == 0)
@@ -123,23 +125,33 @@ float SampleVarianceShadowMap(vec3 uvAndDepth, int cascade)
 
     return 1.0 - min(max(p, pMax), 1.0);
 }
-
-float SampleShadowMap_Witness(vec2 baseUv, float u, float v, vec2 shadowMapSizeInv, int cascade, float depth)
+#else
+float SampleShadowMap(vec3 uvAndDepth, int cascade)
 {
-    vec2 uv = baseUv + vec2(u, v) * shadowMapSizeInv;
-    vec3 uvAndDepth = vec3(uv, depth);
+    vec4 outCol = vec4(1.0);
+    if (cascade == 0)
+        outCol = texture(shadowMapTextureC1, uvAndDepth);
+    else if (cascade == 1)
+        outCol = texture(shadowMapTextureC2, uvAndDepth);
+    else if (cascade == 2)
+        outCol = texture(shadowMapTextureC3, uvAndDepth);
+    else if (cascade == 3)
+        outCol = texture(shadowMapTextureC4, uvAndDepth);
+    return outCol.r;
+}
+#endif
 
-    return SampleVarianceShadowMap(uvAndDepth, cascade);
+float SampleShadowMap_Witness(vec2 baseUv, vec2 uvOffset, vec2 shadowMapSizeInv, int cascade, float depth)
+{
+    vec2 uv = baseUv + uvOffset * shadowMapSizeInv;
+    vec3 uvAndDepth = vec3(uv, depth);
+    return SampleShadowMap(uvAndDepth, cascade);
 }
 
 float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
 {
     vec2 shadowMapSize = CASCADE_RESOLUTION;
     float numSlices = CASCADE_COUNT;
-
-    // Calculate normal bias and modify shadow position
-    float nDotL = dot(fragNormal, fragLightDir);
-    shadowPos = shadowPos;// - GetShadowPosOffset(nDotL, fragNormal) * 0.3;
 
     vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
     vec2 shadowMapSizeInv = 1.0 / shadowMapSize; // texel size
@@ -169,10 +181,10 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     float v1 = t / vw1 + 1;
 
     float lightDepth = shadowPos.z;
-    sum += uw0 * vw0 * SampleShadowMap_Witness(base_uv, u0, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw1 * vw0 * SampleShadowMap_Witness(base_uv, u1, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw0 * vw1 * SampleShadowMap_Witness(base_uv, u0, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw1 * vw1 * SampleShadowMap_Witness(base_uv, u1, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw0 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u0, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw1 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u1, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw0 * vw1 * SampleShadowMap_Witness(base_uv, vec2(u0, v1), shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw1 * vw1 * SampleShadowMap_Witness(base_uv, vec2(u1, v1), shadowMapSizeInv, cascadeIdx, lightDepth);
 
     return sum * 1.0f / 16.0;
 }
@@ -187,7 +199,7 @@ float GetShadowAmount()
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
-    //return SampleVarianceShadowMap(projCoords, cascadeIdx);
+    //return SampleShadowMap(projCoords, cascadeIdx);
     return TheWitness_GetShadowAmount(cascadeIdx, projCoords);
 }
 
@@ -195,13 +207,15 @@ void main()
 {
     if (renderingShadowMap != -1)
     {
+#ifdef VSM
         float depth = gl_FragCoord.z;
-
         float dx = dFdx(depth);
         float dy = dFdy(depth);
         float moment2 = depth * depth + 0.25 * (dx * dx + dy * dy);
-
         fragColor = vec4(depth, moment2, 0.0, 1.0);
+#else
+        fragColor = vec4(1.0);
+#endif
         return;
     }
 

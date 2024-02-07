@@ -113,12 +113,16 @@ public sealed class MeshEntityBatchRenderer
 
     #region Shadows
 
+    public const bool UseVSMShadows = true;
+    public const bool ShadowsCullFrontFace = false;
+
     public class ShadowCascadeData
     {
         public static Vector2 FramebufferResolution = new Vector2(2048);
 
         public int CascadeId;
         public FrameBuffer? Buffer;
+        public FrameBufferTexture? BufferAttachment;
 
         public float FarClip;
         public float NearClip;
@@ -143,15 +147,31 @@ public sealed class MeshEntityBatchRenderer
         {
             // Create a cascade framebuffer to hold the VSM data.
             // A depth component is needed as some drivers will not output gl_FragCoord.z
-            Buffer = new FrameBuffer(FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
-            Buffer.ColorAttachment.Smooth = true;
+            if (UseVSMShadows)
+            {
+                Buffer = new FrameBuffer(FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
+                BufferAttachment = Buffer.ColorAttachment;
+            }
+            else
+            {
+                Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
+                BufferAttachment = Buffer.DepthStencilAttachment;
+            }
+            
+            BufferAttachment.Smooth = true;
 
-            Texture.EnsureBound(Buffer.ColorAttachment.Pointer);
+            Texture.EnsureBound(BufferAttachment.Pointer);
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
 
             float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
+
+            if (!UseVSMShadows)
+            {
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureCompareMode, Gl.COMPARE_R_TO_TEXTURE);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureCompareFunc, Gl.GEQUAL);
+            }
         }
     }
 
@@ -485,8 +505,11 @@ public sealed class MeshEntityBatchRenderer
 
                 _renderingShadowmap = i;
                 c.RenderToAndClear(cascade.Buffer);
-                //Gl.DrawBuffers(Gl.NONE);
-                //Gl.ReadBuffer(Gl.NONE);
+                if (!UseVSMShadows)
+                {
+                    Gl.DrawBuffers(Gl.NONE);
+                    Gl.ReadBuffer(Gl.NONE);
+                }
                 RenderSceneFull(c);
                 c.RenderTo(null);
                 _renderingShadowmap = -1;
@@ -496,7 +519,7 @@ public sealed class MeshEntityBatchRenderer
             for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
             {
                 ShadowCascadeData cascade = _shadowCascades[j - reservedTextureSlots];
-                Texture.EnsureBound(cascade.Buffer?.ColorAttachment.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
+                Texture.EnsureBound(cascade.BufferAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
             }
         }
 
@@ -577,7 +600,10 @@ public sealed class MeshEntityBatchRenderer
                 if (objectData.BackfaceCulling)
                 {
                     Gl.Enable(EnableCap.CullFace);
-                    Gl.CullFace(CullFaceMode.Back);
+                    if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
+                        Gl.CullFace(CullFaceMode.Back);
+                    else
+                        Gl.CullFace(CullFaceMode.Front);
                     Gl.FrontFace(FrontFaceDirection.Ccw);
                     backfaceCulling = true;
                 }
@@ -668,7 +694,10 @@ public sealed class MeshEntityBatchRenderer
                         if (objectData.BackfaceCulling)
                         {
                             Gl.Enable(EnableCap.CullFace);
-                            Gl.CullFace(CullFaceMode.Back);
+                            if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
+                                Gl.CullFace(CullFaceMode.Back);
+                            else
+                                Gl.CullFace(CullFaceMode.Front);
                             Gl.FrontFace(FrontFaceDirection.Ccw);
                             backfaceCulling = true;
                         }
