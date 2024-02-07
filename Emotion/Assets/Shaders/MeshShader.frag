@@ -128,7 +128,7 @@ float SampleShadowMap(vec3 uvAndDepth, int cascade)
 #else
 float SampleShadowMap(vec3 uvAndDepth, int cascade)
 {
-    vec4 outCol = vec4(1.0);
+    float outCol = 0.0;
     if (cascade == 0)
         outCol = texture(shadowMapTextureC1, uvAndDepth);
     else if (cascade == 1)
@@ -137,7 +137,7 @@ float SampleShadowMap(vec3 uvAndDepth, int cascade)
         outCol = texture(shadowMapTextureC3, uvAndDepth);
     else if (cascade == 3)
         outCol = texture(shadowMapTextureC4, uvAndDepth);
-    return outCol.r;
+    return outCol;
 }
 #endif
 
