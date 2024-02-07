@@ -115,7 +115,7 @@ public sealed class MeshEntityBatchRenderer
 
     public class ShadowCascadeData
     {
-        public static Vector2 FramebufferResolution = new Vector2(2048);
+        public static Vector2 FramebufferResolution = new Vector2(1024);
 
         public int CascadeId;
         public FrameBuffer? Buffer;
@@ -137,27 +137,21 @@ public sealed class MeshEntityBatchRenderer
 
             ViewProjUniformName = $"cascadeLightProj[{cascadeId}]";
             UnitToTexelScaleUniformName = $"cascadeUnitToTexel[{cascadeId}]";
-
-            //SplitUniformName = $"cascadeSplit[{cascadeId}]";
-            //OffsetUniformName = $"cascadeOffset[{cascadeId}]";
-            //ScaleUniformName = $"cascadeScale[{cascadeId}]";
-            //FarZUnifornName = $"cascadePlaneFarZ[{cascadeId}]";
         }
 
         private void InitFrameBuffer()
         {
-            Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
-            Buffer.DepthStencilAttachment.Smooth = true;
+            // Create a cascade framebuffer to hold the VSM data.
+            // A depth component is needed as some drivers will not output gl_FragCoord.z
+            Buffer = new FrameBuffer(FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
+            Buffer.ColorAttachment.Smooth = true;
 
-            Texture.EnsureBound(Buffer.DepthStencilAttachment.Pointer);
+            Texture.EnsureBound(Buffer.ColorAttachment.Pointer);
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, Gl.CLAMP_TO_BORDER);
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, Gl.CLAMP_TO_BORDER);
 
             float[] borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor, borderColor);
-
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureCompareMode, Gl.COMPARE_R_TO_TEXTURE);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureCompareFunc, Gl.GEQUAL);
         }
     }
 
@@ -491,8 +485,8 @@ public sealed class MeshEntityBatchRenderer
 
                 _renderingShadowmap = i;
                 c.RenderToAndClear(cascade.Buffer);
-                Gl.DrawBuffers(Gl.NONE);
-                Gl.ReadBuffer(Gl.NONE);
+                //Gl.DrawBuffers(Gl.NONE);
+                //Gl.ReadBuffer(Gl.NONE);
                 RenderSceneFull(c);
                 c.RenderTo(null);
                 _renderingShadowmap = -1;
@@ -501,8 +495,8 @@ public sealed class MeshEntityBatchRenderer
             // Bind cascade textures.
             for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
             {
-                var cascade = _shadowCascades[j - reservedTextureSlots];
-                Texture.EnsureBound(cascade.Buffer?.DepthStencilAttachment.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
+                ShadowCascadeData cascade = _shadowCascades[j - reservedTextureSlots];
+                Texture.EnsureBound(cascade.Buffer?.ColorAttachment.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
             }
         }
 

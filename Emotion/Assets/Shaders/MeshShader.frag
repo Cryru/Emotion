@@ -10,10 +10,10 @@ uniform mat4 viewMatrix;
 #define CASCADE_COUNT 4
 
 // todo: array texture
-uniform sampler2DShadow shadowMapTextureC1;
-uniform sampler2DShadow shadowMapTextureC2;
-uniform sampler2DShadow shadowMapTextureC3;
-uniform sampler2DShadow shadowMapTextureC4;
+uniform sampler2D shadowMapTextureC1;
+uniform sampler2D shadowMapTextureC2;
+uniform sampler2D shadowMapTextureC3;
+uniform sampler2D shadowMapTextureC4;
 
 uniform int renderingShadowMap;
 uniform float cascadeUnitToTexel[CASCADE_COUNT];
@@ -92,40 +92,44 @@ vec3 GetShadowPosOffset(float nDotL, vec3 normal)
     return texelSize * 1.0 * nmlOffsetScale * normal;
 }
 
-float SampleShadowMap(vec2 baseUv, float u, float v, vec2 shadowMapSizeInv, int cascade, float depth)
+float linstep(float low, float high, float v)
+{
+    return clamp((v-low)/(high-low), 0.0, 1.0);
+}
+
+float SampleVarianceShadowMap(vec3 uvAndDepth, int cascade)
+{
+    vec4 outCol = vec4(1.0);
+    if (cascade == 0)
+        outCol = texture(shadowMapTextureC1, uvAndDepth.xy);
+    else if (cascade == 1)
+        outCol = texture(shadowMapTextureC2, uvAndDepth.xy);
+    else if (cascade == 2)
+        outCol = texture(shadowMapTextureC3, uvAndDepth.xy);
+    else if (cascade == 3)
+        outCol = texture(shadowMapTextureC4, uvAndDepth.xy);
+
+    // Basic shadow mapping V
+    // return 1.0 - step(uvAndDepth.z - 0.0005, outCol.r);
+
+    // VSM
+    vec2 moments = outCol.rg;
+    float p = step(uvAndDepth.z, moments.r);
+    float variance = max(moments.g - moments.r * moments.r, 0.00002);
+
+    float d = uvAndDepth.z - moments.r;
+    float pMax = variance / (variance + d*d);
+    pMax = linstep(0.4, 1.0, pMax);
+
+    return 1.0 - min(max(p, pMax), 1.0);
+}
+
+float SampleShadowMap_Witness(vec2 baseUv, float u, float v, vec2 shadowMapSizeInv, int cascade, float depth)
 {
     vec2 uv = baseUv + vec2(u, v) * shadowMapSizeInv;
     vec3 uvAndDepth = vec3(uv, depth);
 
-    if (cascade == 0)
-        return texture(shadowMapTextureC1, uvAndDepth);
-    else if (cascade == 1)
-        return texture(shadowMapTextureC2, uvAndDepth);
-    else if (cascade == 2)
-        return texture(shadowMapTextureC3, uvAndDepth);
-    else if (cascade == 3)
-        return texture(shadowMapTextureC4, uvAndDepth);
-}
-
-float NaiveSampleShadowMap(vec3 uvAndDepth, int cascade)
-{
-    if (cascade == 0)
-        return texture(shadowMapTextureC1, uvAndDepth);
-    else if (cascade == 1)
-        return texture(shadowMapTextureC2, uvAndDepth);
-    else if (cascade == 2)
-        return texture(shadowMapTextureC3, uvAndDepth);
-    else if (cascade == 3)
-        return texture(shadowMapTextureC4, uvAndDepth);
-}
-
-vec2 ComputeReceiverPlaneDepthBias(vec3 texCoordDX, vec3 texCoordDY)
-{
-    vec2 biasUV;
-    biasUV.x = texCoordDY.y * texCoordDX.z - texCoordDX.y * texCoordDY.z;
-    biasUV.y = texCoordDX.x * texCoordDY.z - texCoordDY.x * texCoordDX.z;
-    biasUV *= 1.0f / ((texCoordDX.x * texCoordDY.y) - (texCoordDX.y * texCoordDY.x));
-    return biasUV;
+    return SampleVarianceShadowMap(uvAndDepth, cascade);
 }
 
 float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
@@ -164,24 +168,11 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     float v0 = (2 - t) / vw0 - 1;
     float v1 = t / vw1 + 1;
 
-    //float diffuseFactor = dot(fragNormal, fragLightDir) * 0.5 + 0.5;
-    float lightDepth = shadowPos.z;// - 0.0007;// - (0.0002 * diffuseFactor);
-
-    {
-        vec3 shadowPosDX = dFdx(shadowPos);
-        vec3 shadowPosDY = dFdy(shadowPos);
-        vec2 receiverPlaneDepthBias = ComputeReceiverPlaneDepthBias(shadowPosDX, shadowPosDY);
-
-        // Static depth biasing to make up for incorrect fractional sampling on the shadow map grid
-        vec2 texelSize = 1.0f / shadowMapSize;
-        float fractionalSamplingError = 2 * dot(vec2(1.0f, 1.0f) * texelSize, abs(receiverPlaneDepthBias));
-        lightDepth -= min(fractionalSamplingError, 0.01f);
-    }
-
-    sum += uw0 * vw0 * SampleShadowMap(base_uv, u0, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw1 * vw0 * SampleShadowMap(base_uv, u1, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw0 * vw1 * SampleShadowMap(base_uv, u0, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw1 * vw1 * SampleShadowMap(base_uv, u1, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
+    float lightDepth = shadowPos.z;
+    sum += uw0 * vw0 * SampleShadowMap_Witness(base_uv, u0, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw1 * vw0 * SampleShadowMap_Witness(base_uv, u1, v0, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw0 * vw1 * SampleShadowMap_Witness(base_uv, u0, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw1 * vw1 * SampleShadowMap_Witness(base_uv, u1, v1, shadowMapSizeInv, cascadeIdx, lightDepth);
 
     return sum * 1.0f / 16.0;
 }
@@ -196,7 +187,7 @@ float GetShadowAmount()
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
-    // return NaiveSampleShadowMap(vec3(projCoords.xy, projCoords.z - 0.0005), cascadeIdx);
+    //return SampleVarianceShadowMap(projCoords, cascadeIdx);
     return TheWitness_GetShadowAmount(cascadeIdx, projCoords);
 }
 
@@ -204,7 +195,13 @@ void main()
 {
     if (renderingShadowMap != -1)
     {
-        fragColor = vec4(1.0);
+        float depth = gl_FragCoord.z;
+
+        float dx = dFdx(depth);
+        float dy = dFdy(depth);
+        float moment2 = depth * depth + 0.25 * (dx * dx + dy * dy);
+
+        fragColor = vec4(depth, moment2, 0.0, 1.0);
         return;
     }
 
@@ -212,15 +209,12 @@ void main()
     vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
     objectColor = ApplyColorTint(objectColor, objectTint);
 
-    // Cascade/tinting debug
-    //fragColor = objectColor;
-    //return;
-
     // Cascade debug
     //int cascade = GetCurrentShadowCascade();
     //objectColor = GetCascadeDebugColor(cascade);
 
-    //objectColor = vec4(fragNormal.x, fragNormal.y, fragNormal.z, 1.0);
+    // Normal debug
+    // objectColor = vec4(fragNormal.x, fragNormal.y, fragNormal.z, 1.0);
 
     vec3 finalColor = objectColor.rgb;
 
