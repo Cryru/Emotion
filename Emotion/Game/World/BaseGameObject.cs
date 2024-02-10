@@ -208,6 +208,13 @@ public abstract class BaseGameObject : IQuadTreeObject
 
     public Rectangle GetBoundsForQuadTree()
     {
+        if (Map != null && Map.EditorMode)
+        {
+            Rectangle bounds = Bounds2D;
+            bounds.Size = Vector2.Max(bounds.Size, new Vector2(10));
+            return bounds;
+        }
+
         return Bounds2D;
     }
 

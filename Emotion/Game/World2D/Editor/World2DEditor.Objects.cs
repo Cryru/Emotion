@@ -26,37 +26,37 @@ public partial class World2DEditor
         // Show selection of object, if any.
         if (_editUI?.DropDown?.OwningObject is BaseGameObject objectWithContextMenu)
         {
-            Rectangle bound = objectWithContextMenu.Bounds2D;
+            Rectangle bound = objectWithContextMenu.GetBoundsForQuadTree();
             c.RenderSprite(bound, Color.White * 0.3f);
         }
 
         if (_selectedObject != null && _selectedObject.ObjectState != ObjectState.Destroyed)
         {
-            Rectangle bound = _selectedObject.Bounds2D;
+            Rectangle bound = _selectedObject.GetBoundsForQuadTree();
             c.RenderSprite(bound, Color.White * 0.3f);
         }
 
         if (_rolloverObject != null)
         {
-            Rectangle bound = _rolloverObject.Bounds2D;
+            Rectangle bound = _rolloverObject.GetBoundsForQuadTree();
             c.RenderSprite(bound, Color.White * 0.3f);
         }
 
         foreach (BaseGameObject obj in map.ObjectsEnum(null))
         {
-            Rectangle bounds = obj.Bounds2D;
+            Rectangle bound = obj.GetBoundsForQuadTree();
 
             if (!obj.ObjectFlags.HasFlag(ObjectFlags.Persistent))
             {
-                c.RenderLine(bounds.TopLeft, bounds.BottomRight, Color.Black * 0.5f);
-                c.RenderLine(bounds.TopRight, bounds.BottomLeft, Color.Black * 0.5f);
+                c.RenderLine(bound.TopLeft, bound.BottomRight, Color.Black * 0.5f);
+                c.RenderLine(bound.TopRight, bound.BottomLeft, Color.Black * 0.5f);
             }
             else if (obj.ObjectState == ObjectState.ConditionallyNonSpawned)
             {
-                c.RenderSprite(bounds, Color.Magenta * 0.2f);
+                c.RenderSprite(bound, Color.Magenta * 0.2f);
             }
 
-            c.RenderOutline(bounds, Color.White * 0.4f);
+            c.RenderOutline(bound, Color.White * 0.4f);
         }
     }
 }
