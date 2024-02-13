@@ -6,7 +6,7 @@ namespace Emotion.Editor.EditorWindows.DataEditorUtil;
 
 public class GameDataReference
 {
-    public string Id;
+    public string? Id;
 }
 
 public class GameDataReference<T> : GameDataReference where T : GameDataObject

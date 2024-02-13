@@ -138,7 +138,7 @@ public class PropEditorArrayPanel : EditorPanel
             var item = _propEditor.GetItemAtIndex(i);
             objects.Add(item);
         }
-        _list.SetItems(objects);
+        _list.SetItems(objects, _selectedObjectIdx != -1 ? new List<int>() { _selectedObjectIdx } : null);
     }
 
     private void RegenerateSelection()
