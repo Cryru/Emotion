@@ -72,7 +72,7 @@ public class DataEditorGeneric : EditorPanel
                 OnClickedProxy = _ =>
                 {
                     AssertNotNull(_selectedObject);
-                    GameDataDatabase.EditorDeleteObject(_type, _selectedObject);
+                    GameDataDatabase.EditorAdapter.EditorDeleteObject(_type, _selectedObject);
                     _selectedObject = null;
                     RegenerateList();
                     RegenerateSelection();
@@ -139,20 +139,28 @@ public class DataEditorGeneric : EditorPanel
         var newObj = (GameDataObject) constructor.Invoke(null);
         newObj.Id = "Untitled";
 
-        GameDataDatabase.EditorAddObject(_type, newObj);
+        GameDataDatabase.EditorAdapter.EditorAddObject(_type, newObj);
         RegenerateList();
     }
 
     private void SaveToFile(bool force = false)
     {
-        Dictionary<string, GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
+        GameDataDatabase.GameDataArray<GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
         if (data == null) return;
-        foreach (KeyValuePair<string, GameDataObject> item in data)
+        foreach (var item in data)
         {
-            if (!force && !_unsaved.Contains(item.Value)) continue;
+            if (!force && !_unsaved.Contains(item)) continue;
 
-            XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item.Value);
-            asset.SaveAs(item.Value.AssetPath ?? GameDataDatabase.GetAssetPath(item.Value));
+            string loadedFromFile = item.LoadedFromFile;
+            string newAssetPath = GameDataDatabase.EditorAdapter.GetAssetPath(item);
+
+            // Remove the old file. (the object is resaved with the new id)
+            if (!string.IsNullOrEmpty(loadedFromFile) && loadedFromFile != newAssetPath)
+                DebugAssetStore.DeleteFile(loadedFromFile);
+
+            item.LoadedFromFile = newAssetPath;
+            XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item);
+            asset.SaveAs(newAssetPath);
         }
 
         _unsaved.Clear();
@@ -163,25 +171,14 @@ public class DataEditorGeneric : EditorPanel
     {
         _list.ClearChildren();
 
-        Dictionary<string, GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
+        var data = GameDataDatabase.GetObjectsOfType(_type);
         if (data == null) return;
 
-        // Sort the items
-        string[] names = new string[data.Count];
-        int nameIdx = 0;
-        foreach (KeyValuePair<string, GameDataObject> item in data)
-        {
-            names[nameIdx] = item.Key;
-            nameIdx++;
-        }
-
-        Array.Sort(names);
-
         // Create buttons for each of them.
-        for (int i = 0; i < names.Length; i++)
+        for (int i = 0; i < data.Length; i++)
         {
-            var key = names[i];
-            var item = data[key];
+            var item = data[i];
+            var key = item.Id;
 
             string label = key;
             if (_unsaved.Contains(item)) label += "(*)";
@@ -216,29 +213,39 @@ public class DataEditorGeneric : EditorPanel
             {
                 if (_unsaved.Add(_selectedObject)) RegenerateList();
 
-                // If id is changed we need to change the save file as well.
-                // todo: think about assigning generated non-user displayed ids to files
                 if (propertyName == "Id")
                 {
-                    string newId = GameDataDatabase.EnsureNonDuplicatedId(_selectedObject.Id, _type);
+                    string newId = GameDataDatabase.EditorAdapter.EnsureNonDuplicatedId(_selectedObject.Id, _type);
                     _selectedObject.Id = newId;
-
-                    string newPath = GameDataDatabase.GetAssetPath(_selectedObject);
-                    string? oldAssetPath = _selectedObject.AssetPath;
-                    _selectedObject.AssetPath = newPath;
-                    SaveToFile();
-
-                    // Remove the old file. (the object is resaved with the new id)
-                    // Keep in mind that if it was already loaded (by the game or such)
-                    // as an asset it will stay loaded.
-                    DebugAssetStore.DeleteFile(oldAssetPath);
-
-                    GameDataDatabase.EditorReIndex(_type);
-                    RegenerateList();
+                    GameDataDatabase.EditorAdapter.EditorReIndex(_type);
                 }
-            }
+            },
         };
 
         _rightSide.AddChild(properties);
     }
+
+    #region Custom Editor Logic
+
+    private static Dictionary<Type, Type> _gameDataTypeToEditorType = new();
+
+    public static void RegisterCustomGameDataEditor<TEditor, TGameData>()
+        where TEditor : DataEditorGeneric
+        where TGameData : GameDataObject
+    {
+        _gameDataTypeToEditorType.Add(typeof(TGameData), typeof(TEditor));
+    }
+
+    public static DataEditorGeneric CreateEditorInstanceForType(Type type)
+    {
+        if (_gameDataTypeToEditorType.TryGetValue(type, out Type? editorType))
+        {
+            DataEditorGeneric? customEditor = Activator.CreateInstance(editorType) as DataEditorGeneric;
+            if (customEditor != null) return customEditor;
+        }
+
+        return new DataEditorGeneric(type);
+    }
+
+    #endregion
 }

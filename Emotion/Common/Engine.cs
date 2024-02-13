@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
+using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -218,6 +219,9 @@ namespace Emotion.Common
 
             // Now "game-mode" modules can be created.
             SceneManager = new SceneManager();
+
+            // Load game data.
+            GameDataDatabase.Initialize();
 
             // Setup plugins.
             PerfProfiler.ProfilerEventStart("Plugin Setup", "Loading");

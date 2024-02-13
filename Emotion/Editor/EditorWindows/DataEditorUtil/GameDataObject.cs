@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Common.Serialization;
 using Emotion.IO;
 
 #endregion
@@ -12,8 +13,10 @@ public abstract class GameDataObject : IComparable<GameDataObject>
 {
     public string Id = "Untitled";
 
-    [DontShowInEditor]
-    public string? AssetPath;
+    public string? Category;
+
+    [DontSerialize]
+    public string LoadedFromFile;
 
     [DontShowInEditor]
     public int Index;
@@ -26,7 +29,7 @@ public abstract class GameDataObject : IComparable<GameDataObject>
 
     public bool Save()
     {
-        if (string.IsNullOrEmpty(AssetPath)) AssetPath = GameDataDatabase.GetAssetPath(this);
-        return XMLAsset<GameDataObject>.CreateFromContent(this, AssetPath).Save();
+        string assetPath = GameDataDatabase.EditorAdapter.GetAssetPath(this);
+        return XMLAsset<GameDataObject>.CreateFromContent(this, assetPath).Save();
     }
 }

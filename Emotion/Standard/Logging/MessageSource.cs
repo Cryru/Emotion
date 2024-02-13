@@ -15,6 +15,8 @@
         public static string Audio = "Audio"; // AudioManager, AudioLayers and everything audio related, excluding platform audio code.
         public static string Input = "Input"; // InputManager, usually logs input - is spammy.
 
+        public static string GameData = "GameData";
+
         public static string Debug = "Debug"; // Functionality used for debugging, spread all over the code.
         public static string Other = "Other"; // When I was lazy and didn't know what to put.
 

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Editor.EditorHelpers;
+using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Standard.XML;
 using Emotion.UI;
 
@@ -36,12 +37,12 @@ public class MetaPropEditorCombo<T> : EditorButtonDropDown, IPropEditorGeneric
         var button = (EditorButton?) GetWindowById("Button");
         if (button == null) return;
 
-        string currentPicked = _value?.ToString() ?? "<Empty Reference (null)>";
+        string currentPicked = _value?.ToString() ?? "<null>";
         button.Text = currentPicked;
         button.Enabled = true;
     }
 
-    public void SetValue(object? value)
+    public virtual void SetValue(object? value)
     {
         _value = value;
         UpdateCurrentOptionText();
@@ -74,7 +75,7 @@ public class MetaPropEditorCombo<T> : EditorButtonDropDown, IPropEditorGeneric
                 Click = (_, __) =>
                 {
                     SetValue(val);
-                    _callback?.Invoke(val);
+                    _callback?.Invoke(_value);
                 },
                 Enabled = () => !ReferenceEquals(val, _value)
             };

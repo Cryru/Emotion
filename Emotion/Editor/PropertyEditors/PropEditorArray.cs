@@ -13,7 +13,17 @@ namespace Emotion.Editor.PropertyEditors;
 
 public class PropEditorArray : EditorButton, IPropEditorGeneric
 {
-    public XMLFieldHandler? Field { get; set; }
+    public XMLFieldHandler? Field
+    {
+        get => _field;
+        set
+        {
+            _field = value;
+            UpdateText();
+        }
+    }
+
+    private XMLFieldHandler? _field;
 
     public object? Value;
     private Action<object>? _changeCallback;

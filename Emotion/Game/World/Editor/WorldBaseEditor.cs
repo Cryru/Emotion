@@ -56,7 +56,6 @@ public abstract partial class WorldBaseEditor
         _scene = scene;
         _mapType = mapType;
         Engine.AssetLoader.GetAsync<FontAsset>(FontAsset.DefaultBuiltInFontName);
-        GameDataDatabase.Load().Wait();
     }
 
     public void InitializeEditor()

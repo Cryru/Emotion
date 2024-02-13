@@ -1,27 +1,52 @@
-﻿namespace Emotion.Editor.EditorWindows.DataEditorUtil
+﻿#nullable enable
+
+using Emotion.Editor.PropertyEditors;
+
+namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+
+public class GameDataReference
 {
-    public interface IGameDataReferenceEditorMarker
+    public string Id;
+}
+
+public class GameDataReference<T> : GameDataReference where T : GameDataObject
+{
+    public bool IsValid()
     {
+        return GameDataDatabase.GetDataObject<T>(Id) != null;
     }
 
-    public class GameDataReference<T> : IGameDataReferenceEditorMarker where T : GameDataObject
+    public T? GetDataObjectReferenced()
     {
-        public string Id;
+        return GameDataDatabase.GetDataObject<T>(Id);
+    }
 
-        public bool IsValid()
+    public override string ToString()
+    {
+        if (string.IsNullOrEmpty(Id)) return "Empty Reference";
+        return IsValid() ? $"Ref: {Id}" : $"Invalid Ref: {Id}";
+    }
+}
+
+public class GameDataReferenceChoiceCombo : MetaPropEditorCombo<string>
+{
+    private Type _fieldType; // GameDataReference<>
+
+    public GameDataReferenceChoiceCombo(Type fieldType, string[] options) : base(options)
+    {
+        _fieldType = fieldType;
+    }
+
+    public override void SetValue(object? value)
+    {
+        if (value is string str)
         {
-            return GameDataDatabase.GetDataObject<T>(Id) != null;
+            value = Activator.CreateInstance(_fieldType);
+            var valAsGameDataRef = value as GameDataReference;
+            AssertNotNull(valAsGameDataRef);
+            valAsGameDataRef.Id = str;
         }
 
-        public static T[] GetOptions()
-        {
-            return GameDataDatabase.GetObjectsOfType<T>();
-        }
-
-        public override string ToString()
-        {
-            if (string.IsNullOrEmpty(Id)) return "Empty Reference";
-            return IsValid() ? $"Ref: {Id}" : $"Invalid Ref: {Id}";
-        }
+        base.SetValue(value);
     }
 }

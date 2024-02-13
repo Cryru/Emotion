@@ -190,7 +190,7 @@ public abstract partial class WorldBaseEditor
 
                         EditorSaveMap(newMap);
                         ChangeSceneMap(newMap);
-                        GameDataDatabase.RegisterAssetAsCopyNewerInProjectFile($"Assets\\{fileName.Replace("/", "\\")}");
+                        EditorUtility.RegisterAssetAsCopyNewerInProjectFile($"Assets\\{fileName.Replace("/", "\\")}");
 
                         return true;
                     }, "", "New Map", "Create");
@@ -289,7 +289,7 @@ public abstract partial class WorldBaseEditor
                 Name = $"{type.Name} Editor",
                 Click = (_, __) =>
                 {
-                    var editor = new DataEditorGeneric(type);
+                    var editor = DataEditorGeneric.CreateEditorInstanceForType(type);
                     _editorUIAlways!.AddChild(editor);
                 }
             };
