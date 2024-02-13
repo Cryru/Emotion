@@ -1,6 +1,10 @@
 ﻿#region Using
 
+using System.Data;
+using System.IO;
 using System.Reflection;
+using System.Text;
+using Emotion.IO;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
@@ -100,13 +104,30 @@ public static class EditorUtility
     /// <summary>
     /// Get all serializable fields of a type, ordered by declaring type.
     /// </summary>
-    public static List<TypeAndFieldHandlers> GetTypeFields<T>(T obj)
+    public static List<TypeAndFieldHandlers> GetTypeFields(object obj, out bool nonComplexType)
     {
-        var typeHandler = (XMLComplexBaseTypeHandler)XMLHelpers.GetTypeHandler(obj.GetType());
-        List<TypeAndFieldHandlers> currentWindowHandlers = new();
-        currentWindowHandlers.Clear();
+        nonComplexType = false;
+        var objType = obj.GetType();
+        var typeHandlerBase = XMLHelpers.GetTypeHandler(objType);
+        if (typeHandlerBase == null) return new List<TypeAndFieldHandlers>();
 
-        if (typeHandler == null) return currentWindowHandlers;
+        XMLComplexBaseTypeHandler? typeHandler = typeHandlerBase as XMLComplexBaseTypeHandler;
+        nonComplexType = typeHandler == null;
+        if (nonComplexType)
+        {
+            return new List<TypeAndFieldHandlers>
+            {
+                new TypeAndFieldHandlers(objType)
+                {
+                    Fields = new List<XMLFieldHandler>
+                    {
+                        new XMLFieldHandler(null, typeHandlerBase)
+                    }
+                }
+            };
+        }
+        
+        List<TypeAndFieldHandlers> currentTypeHandlers = new();
 
         // Collect type handlers sorted by declared type.
         IEnumerator<XMLFieldHandler> fields = typeHandler.EnumFields();
@@ -116,10 +137,11 @@ public static class EditorUtility
             if (field == null) continue;
             if (field.ReflectionInfo.GetAttribute<DontShowInEditorAttribute>() != null) continue;
 
+            // Try to find a declarting type match for this field.
             TypeAndFieldHandlers handlerMatch = null;
-            for (var i = 0; i < currentWindowHandlers.Count; i++)
+            for (var i = 0; i < currentTypeHandlers.Count; i++)
             {
-                TypeAndFieldHandlers handler = currentWindowHandlers[i];
+                TypeAndFieldHandlers handler = currentTypeHandlers[i];
                 if (handler.DeclaringType == field.ReflectionInfo.DeclaredIn)
                 {
                     handlerMatch = handler;
@@ -130,21 +152,21 @@ public static class EditorUtility
             if (handlerMatch == null)
             {
                 handlerMatch = new TypeAndFieldHandlers(field.ReflectionInfo.DeclaredIn);
-                currentWindowHandlers.Add(handlerMatch);
+                currentTypeHandlers.Add(handlerMatch);
             }
 
             handlerMatch.Fields.Add(field);
         }
 
-        // Sort by inheritance.
-        var indices = new int[currentWindowHandlers.Count];
+        // Sort the type groups by inheritance.
+        var indices = new int[currentTypeHandlers.Count];
         var idx = 0;
         Type t = typeHandler.Type;
         while (t != typeof(object))
         {
-            for (var i = 0; i < currentWindowHandlers.Count; i++)
+            for (var i = 0; i < currentTypeHandlers.Count; i++)
             {
-                TypeAndFieldHandlers handler = currentWindowHandlers[i];
+                TypeAndFieldHandlers handler = currentTypeHandlers[i];
                 if (handler.DeclaringType != t) continue;
                 indices[i] = idx;
                 idx++;
@@ -155,16 +177,27 @@ public static class EditorUtility
         }
 
         List<TypeAndFieldHandlers> originalIndices = new();
-        originalIndices.AddRange(currentWindowHandlers);
+        originalIndices.AddRange(currentTypeHandlers);
 
-        currentWindowHandlers.Sort((x, y) =>
+        currentTypeHandlers.Sort((x, y) =>
         {
             int idxX = originalIndices.IndexOf(x);
             int idxY = originalIndices.IndexOf(y);
             return indices[idxY] - indices[idxX];
         });
 
-        return currentWindowHandlers;
+        // Now sort all fields in all type lists by metadata token.
+        // This should present them in declaration order.
+        for (int i = 0; i < currentTypeHandlers.Count; i++)
+        {
+            var byTypeHandlers = currentTypeHandlers[i];
+            byTypeHandlers.Fields.Sort((x, y) =>
+            {
+                return x.ReflectionInfo.GetMetadataToken() - y.ReflectionInfo.GetMetadataToken();
+            });
+        }
+
+        return currentTypeHandlers;
     }
 
     public static Enum EnumSetFlag(Enum value, Enum flag, bool set)
@@ -231,5 +264,72 @@ public static class EditorUtility
     {
         if (t == typeof(string)) return new string("New String");
         return Activator.CreateInstance(t, true);
+    }
+
+    public static string? GetCsProjFilePath()
+    {
+        string fileFolder = DebugAssetStore.ProjectDevPath;
+        string[] allFilesHere = Directory.GetFiles(fileFolder);
+        string? csProjFile = null;
+        for (int i = 0; i < allFilesHere.Length; i++)
+        {
+            var file = allFilesHere[i];
+            if (file.EndsWith(".csproj"))
+            {
+                csProjFile = file;
+                break;
+            }
+        }
+
+        return csProjFile;
+    }
+
+    public static void RegisterAssetAsCopyNewerInProjectFile(string path)
+    {
+        // Don't code gen in release mode lol
+        if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
+
+        var csProjFile = GetCsProjFilePath();
+        if (csProjFile == null) return; // No file
+
+        string csProjFileContents = File.ReadAllText(csProjFile);
+        ReadOnlySpan<char> contentAsSpan = csProjFileContents.AsSpan();
+        StringBuilder builder = new StringBuilder();
+
+        int lastCopyNewestUse = contentAsSpan.LastIndexOf("PreserveNewest");
+        bool createNewGroup = lastCopyNewestUse == -1;
+        int flushedUpTo = -1;
+        if (createNewGroup)
+        {
+            // Create new item group
+            int finalTag = contentAsSpan.IndexOf("</Project>");
+            builder.Append(contentAsSpan.Slice(0, finalTag).ToString());
+            builder.AppendLine("\n  <ItemGroup>");
+        }
+        else
+        {
+            int lastItemInThatGroup = csProjFileContents.IndexOf("</None>", lastCopyNewestUse);
+            flushedUpTo = lastItemInThatGroup + "</None>".Length;
+            builder.AppendLine(csProjFileContents.Substring(0, flushedUpTo).ToString());
+
+            if (flushedUpTo == -1) return;
+        }
+
+        builder.AppendLine($"    <None Update=\"{path}\">");
+        builder.AppendLine("      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>");
+        builder.Append("    </None>");
+
+        if (createNewGroup)
+        {
+            builder.Append("\n  </ItemGroup>");
+            builder.Append("\n</Project>");
+        }
+        else
+        {
+            builder.Append(contentAsSpan.Slice(flushedUpTo).ToString());
+        }
+
+        string contentModified = builder.ToString().Replace("\r\n", "\n");
+        File.WriteAllText(csProjFile, contentModified);
     }
 }

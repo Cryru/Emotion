@@ -87,4 +87,10 @@ public class ReflectedMemberHandler
     {
         return _prop?.GetCustomAttribute<T>() ?? _field?.GetCustomAttribute<T>();
     }
+
+    public int GetMetadataToken()
+    {
+        if (_prop != null) return _prop.MetadataToken;
+        return _field!.MetadataToken;
+    }
 }

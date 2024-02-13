@@ -41,31 +41,16 @@ public class GenericPropertiesEditorPanel : EditorPanel
         if (!objType.IsValueType && objType != typeof(string) && !EditorUtility.HasParameterlessConstructor(obj))
             return;
 
-        // Non complex types (string, int, etc.) can also be editted via this
+        _obj = obj;
+        _fields = EditorUtility.GetTypeFields(obj, out _nonComplexType);
+
+        // Non complex types (string, int, etc.) can also be edited via this
         // panel but since there is no reference back to the object field that contains
         // them they need to be updated via a OnNonComplexTypeValueChanged callback.
-        var fieldHandler = XMLHelpers.GetTypeHandler(objType);
-        bool nonComplexType = fieldHandler != null && fieldHandler is not XMLComplexBaseTypeHandler;
-        if (nonComplexType)
+        if (_nonComplexType)
         {
-            _obj = obj;
-            _fields = new List<EditorUtility.TypeAndFieldHandlers>
-            {
-                new EditorUtility.TypeAndFieldHandlers(objType)
-                {
-                    Fields = new List<XMLFieldHandler>
-                    {
-                        new XMLFieldHandler(null, fieldHandler)
-                    }
-                }
-            };
-            _nonComplexType = true;
             _spawnFieldGroupHeaders = false;
-            return;
         }
-
-        _obj = obj;
-        _fields = EditorUtility.GetTypeFields(obj);
     }
 
     public override void AttachedToController(UIController controller)
@@ -161,6 +146,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
         }
 
         //UpdatePropertyValues();
+        UpdateFieldVisibility();
     }
 
     protected virtual void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
@@ -173,20 +159,29 @@ public class GenericPropertiesEditorPanel : EditorPanel
 
     protected virtual IPropEditorGeneric? AddEditorForField(XMLFieldHandler field)
     {
-        if (_objType.IsAssignableTo(typeof(IGameDataReferenceEditorMarker)) && field.Name == "Id")
+        if (_obj is IEditorGetDynamicFieldChoice objWithDynChoiceFields)
         {
-            var gameDataRefInherit = _objType;
-            Type[] genericArgs = gameDataRefInherit.GetGenericArguments();
+            object[]? dynamicChoices = objWithDynChoiceFields.Editor_GetDynamicFieldChoice(field.Name);
+            if (dynamicChoices != null)
+            {
+                return new MetaPropEditorCombo<object>(dynamicChoices);
+            }
+        }
+
+        var fieldType = field.TypeHandler.Type;
+        if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(GameDataReference<>))
+        {
+            Type[] genericArgs = fieldType.GetGenericArguments();
             while (genericArgs == null || genericArgs.Length == 0)
             {
-                gameDataRefInherit = gameDataRefInherit.BaseType;
-                if (gameDataRefInherit == null) return null;
+                fieldType = fieldType.BaseType;
+                if (fieldType == null) return null;
 
-                genericArgs = gameDataRefInherit.GetGenericArguments();
+                genericArgs = fieldType.GetGenericArguments();
             }
 
-            string[] ids = GameDataDatabase.GetObjectIdsOfType(genericArgs[0]) ?? Array.Empty<string>();
-            return new MetaPropEditorCombo<string>(ids);
+            string[] ids = GameDataDatabase.EditorAdapter.GetObjectIdsOfType(genericArgs[0]) ?? Array.Empty<string>();
+            return new GameDataReferenceChoiceCombo(fieldType, ids);
         }
 
         // Primitives
@@ -221,12 +216,13 @@ public class GenericPropertiesEditorPanel : EditorPanel
     protected virtual void ApplyObjectChange(IPropEditorGeneric editor, XMLFieldHandler field, object value)
     {
         var editorWindow = editor as UIBaseWindow;
+        AssertNotNull(editorWindow);
 
         if (_nonComplexType)
         {
             if (!Helpers.AreObjectsEqual(_obj, value)) OnNonComplexTypeValueChanged?.Invoke(value);
             _obj = value;
-            OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+            OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow.Parent!);
             return;
         }
 
@@ -238,7 +234,8 @@ public class GenericPropertiesEditorPanel : EditorPanel
         if (field.TypeHandler is XMLArrayTypeHandler || !Helpers.AreObjectsEqual(oldValue, value))
             OnPropertyEdited?.Invoke(field.Name, oldValue);
 
-        OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+        OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow.Parent!);
+        UpdateFieldVisibility();
     }
 
     protected override bool UpdateInternal()
@@ -265,4 +262,31 @@ public class GenericPropertiesEditorPanel : EditorPanel
             }
         }
     }
+
+    protected void UpdateFieldVisibility()
+    {
+        IEditorGetFieldVisibility? objWithDynFieldVisibility = _obj as IEditorGetFieldVisibility;
+        if (objWithDynFieldVisibility == null) return;
+
+        for (var i = 0; i < _editorUIs.Count; i++)
+        {
+            IPropEditorGeneric editor = _editorUIs[i];
+            var editorWindow = editor as UIBaseWindow;
+            AssertNotNull(editorWindow);
+
+            bool? shouldBeVisible = objWithDynFieldVisibility.Editor_GetFieldVisibility(editor.Field.Name);
+            if (shouldBeVisible != null)
+                editorWindow.SetVisible(shouldBeVisible.Value);
+        }
+    }
+}
+
+public interface IEditorGetFieldVisibility
+{
+    bool? Editor_GetFieldVisibility(string id);
+}
+
+public interface IEditorGetDynamicFieldChoice
+{
+    object[]? Editor_GetDynamicFieldChoice(string id);
 }
