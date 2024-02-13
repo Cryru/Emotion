@@ -6,6 +6,7 @@ using Emotion.Common.Serialization;
 using Emotion.Game.Time;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
+using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.Utility;
@@ -1136,6 +1137,21 @@ namespace Emotion.UI
         public override string ToString()
         {
             return $"{GetType().ToString().Replace("Emotion.UI.", "")} {Id}";
+        }
+
+        public static T? CreateFromAsset<T>(string assetPath) where T : UIBaseWindow
+        {
+            var asset = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>(assetPath);
+            if (asset == null) return null;
+            var content = asset.Content;
+            if (content == null) return null;
+            if (content is not T) return null;
+
+            // Clone as to prevent modifying the cached asset data.
+            // We could alternatively load the asset as non-cached but that
+            // will mean it is read from the disk every time this window is
+            // initialized.
+            return (T) content.Clone();
         }
 
         #endregion
