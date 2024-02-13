@@ -289,8 +289,9 @@ namespace Emotion.IO
         /// </summary>
         /// <typeparam name="T">The type of asset.</typeparam>
         /// <param name="name">The name of the asset within any loaded source.</param>
+        /// <param name="cache">Whether to cache this asset in memory for faster subsequent retrieval.</param>
         /// <returns>The loaded or cached asset.</returns>
-        public Task<T?> GetAsync<T>(string? name) where T : Asset, new()
+        public Task<T?> GetAsync<T>(string? name, bool cache = true) where T : Asset, new()
         {
             if (name == null) return Task.FromResult((T?) null);
             name = NameToEngineName(name);
@@ -298,10 +299,10 @@ namespace Emotion.IO
             Task? task;
             lock (_asyncLoadingTasks)
             {
-                if (_asyncLoadingTasks.TryGetValue(name, out task))
+                if (_asyncLoadingTasks.TryGetValue(name, out task)) // Check if already async loading this asset.
                     return (Task<T?>) task;
 
-                task = Task.Run(() => Get<T>(name));
+                task = Task.Run(() => Get<T>(name, cache));
                 _asyncLoadingTasks.Add(name, task);
             }
 
