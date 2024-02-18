@@ -54,6 +54,12 @@ public class MeshEntity
             for (var i = 0; i < Animations.Length; i++)
             {
                 SkeletalAnimation anim = Animations[i];
+                if (_cachedBounds.ContainsKey(anim.Name))
+                {
+                    Engine.Log.Warning($"Duplicate animation '{anim.Name}' in entity {Name}", "3D", true);
+                    continue;
+                }
+
                 CalculateBounds(anim.Name, out Sphere sphereAnim, out Cube cubeAnim);
                 _cachedBounds.Add(anim.Name, (sphereAnim, cubeAnim));
             }
