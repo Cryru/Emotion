@@ -119,12 +119,17 @@ namespace Emotion.Game.ThreeDee.Editor
             ZAxis.Material = materialZ;
             ZAxis.SetVerticesAlpha((byte) Alpha);
 
+            var materialPlaneZ = new MeshMaterial
+            {
+                Name = "Plane-Z",
+                DiffuseColor = Color.PrettyBlue
+            };
             ZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
             ZPlane.TransformMeshVertices(
                 Matrix4x4.CreateScale(30, 30, 30) *
                 Matrix4x4.CreateTranslation(arrowCylinderGen.Height / 2, arrowCylinderGen.Height / 2, 0)
             );
-            ZPlane.Material = materialZ;
+            ZPlane.Material = materialPlaneZ;
             ZPlane.Name = "Z-Plane";
             ZPlane.SetVerticesAlpha((byte)Alpha);
 
