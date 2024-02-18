@@ -879,5 +879,10 @@ namespace Emotion.Utility
             Vector4 v = Vector4.Transform(vec3, m);
             return (v / v.W).ToVec3();
         }
+
+        public static Vector2 VectorFromAngle(float radians)
+        {
+            return new Vector2(MathF.Cos(radians), MathF.Sin(radians));
+        }
     }
 }
