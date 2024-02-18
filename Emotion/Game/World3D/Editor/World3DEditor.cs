@@ -31,7 +31,8 @@ public partial class World3DEditor : WorldBaseEditor
     {
         return new Camera3D(Vector3.Zero, 1f, KeyListenerType.EditorCamera)
         {
-            DragKey = Key.MouseKeyMiddle
+            DragKey = Key.MouseKeyMiddle,
+            MovementSpeed = 10
         };
     }
 
