@@ -992,7 +992,7 @@ public sealed class MeshEntityBatchRenderer
         var renderer = Engine.Renderer;
         var camera = renderer.Camera;
 
-        if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ) _closestObjectDist = camera.NearZ;
+        if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ / 2f) _closestObjectDist = camera.NearZ;
         if (_furthestObjectDist == 0 || _furthestObjectDist > camera.FarZ) _furthestObjectDist = camera.FarZ;
 
         //Matrix4x4 cameraViewProjection = renderer.Camera.ViewMatrix * renderer.Camera.ProjectionMatrix;
