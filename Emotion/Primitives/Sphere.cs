@@ -31,6 +31,24 @@ public struct Sphere
         float transformedRadius = Radius * maxScale;
         return new Sphere(transformedOrigin, transformedRadius);
     }
+    public bool Intersects(Sphere other)
+    {
+        float distanceSquared = (other.Origin - Origin).LengthSquared();
+        float sumOfRadii = Radius + other.Radius;
+        return distanceSquared <= sumOfRadii * sumOfRadii;
+    }
+
+    public bool Intersects(Cube cube)
+    {
+        // Find the closest point on the cube to the sphere center
+        Vector3 closestPoint = Vector3.Clamp(Origin, cube.Origin - cube.HalfExtents, cube.Origin + cube.HalfExtents);
+
+        // Calculate the distance between the closest point and the sphere center
+        float distanceSquared = Vector3.DistanceSquared(Origin, closestPoint);
+
+        // Check if the distance is less than the squared radius of the sphere
+        return distanceSquared <= Radius * Radius;
+    }
 
     public static MeshEntity GetEntity()
     {
