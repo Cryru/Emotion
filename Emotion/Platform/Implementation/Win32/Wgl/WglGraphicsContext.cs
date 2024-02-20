@@ -20,6 +20,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
     /// <inheritdoc />
     public sealed unsafe class WglGraphicsContext : GraphicsContext
     {
+        public int PixelFormatId;
+
         private IntPtr _openGlLibrary;
         private const int FLAG_NUMBER_PIXEL_FORMATS_ARB = 0x2000;
 
@@ -141,6 +143,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 return;
             }
 
+            PixelFormatId = pixelFormatIdx;
             if (!Gdi32.SetPixelFormat(_dc, pixelFormatIdx, ref pfd))
             {
                 Win32Platform.CheckError("WGL: Could not set pixel format.", true);
@@ -506,6 +509,11 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         public override void MakeCurrent()
         {
             if (!_makeCurrent(_dc, _contextHandle)) Win32Platform.CheckError("WGL: Couldn't make context current.", true);
+        }
+
+        public void MakeSubWindowCurrent(IntPtr windowHandle)
+        {
+            if (!_makeCurrent(windowHandle, _contextHandle)) Win32Platform.CheckError("WGL: Couldn't make context current.", true);
         }
 
         /// <inheritdoc />

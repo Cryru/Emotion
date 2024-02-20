@@ -44,9 +44,14 @@ namespace Emotion.Platform.Implementation.Win32
 
         public void FocusWindow()
         {
-            User32.BringWindowToTop(_windowHandle);
-            User32.SetForegroundWindow(_windowHandle);
-            User32.SetFocus(_windowHandle);
+            InternalFocusWindow(_windowHandle);
+        }
+
+        private void InternalFocusWindow(IntPtr windowHandle)
+        {
+            User32.BringWindowToTop(windowHandle);
+            User32.SetForegroundWindow(windowHandle);
+            User32.SetFocus(windowHandle);
         }
 
         #region Window Native Helpers
@@ -133,10 +138,15 @@ namespace Emotion.Platform.Implementation.Win32
 
         protected override void SetSize(Vector2 value)
         {
+            InternalSetSize(_windowHandle, value);
+        }
+
+        private void InternalSetSize(IntPtr windowHandle, Vector2 value)
+        {
             // Scale the rect, and set it.
-            Rect r = GetFullWindowRect((int) value.X, (int) value.Y);
-            int width = (int) value.X; // r.Right - r.Left;
-            int height = (int) value.Y; // r.Bottom - r.Top;
+            Rect r = GetFullWindowRect((int)value.X, (int)value.Y);
+            int width = (int)value.X; // r.Right - r.Left;
+            int height = (int)value.Y; // r.Bottom - r.Top;
 
             // Center on the monitor.
             Monitor monitor = GetMonitorOfWindow();
@@ -148,9 +158,9 @@ namespace Emotion.Platform.Implementation.Win32
 
             Vector2 center = monitor.Position + new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
 
-            User32.SetWindowPos(_windowHandle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
-                (int) center.X + r.Left,
-                (int) center.Y + r.Top,
+            User32.SetWindowPos(windowHandle, (IntPtr)HwndZOrder.HWND_NOTOPMOST,
+                (int)center.X + r.Left,
+                (int)center.Y + r.Top,
                 r.Right - r.Left,
                 r.Bottom - r.Top,
                 WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_SHOWWINDOW

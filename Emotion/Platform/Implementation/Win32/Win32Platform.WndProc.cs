@@ -122,13 +122,6 @@ namespace Emotion.Platform.Implementation.Win32
                     UpdateKeyStatus(key, !up);
                     break;
 
-                case WM.MOUSEMOVE:
-
-                    int x = NativeHelpers.LoWordS((uint) lParam);
-                    int y = NativeHelpers.HiWordS((uint) lParam);
-                    MousePosition = new Vector2(x, y);
-                    return IntPtr.Zero;
-
                 case WM.LBUTTONDOWN:
                 case WM.RBUTTONDOWN:
                 case WM.MBUTTONDOWN:
@@ -169,7 +162,7 @@ namespace Emotion.Platform.Implementation.Win32
                         break;
                     }
 
-                    if (nonePressed) User32.SetCapture(_windowHandle);
+                    if (nonePressed) User32.SetCapture(hWnd);
 
                     UpdateKeyStatus(mouseKey, buttonDown);
 
@@ -190,6 +183,13 @@ namespace Emotion.Platform.Implementation.Win32
                     var scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
                     UpdateScroll(scrollAmount / 120f);
 
+                    return IntPtr.Zero;
+
+                case WM.MOUSEMOVE:
+
+                    int x = NativeHelpers.LoWordS((uint)lParam);
+                    int y = NativeHelpers.HiWordS((uint)lParam);
+                    MousePosition = new Vector2(x, y);
                     return IntPtr.Zero;
             }
 

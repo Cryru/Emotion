@@ -350,6 +350,31 @@ namespace Emotion.Platform
 
         #endregion
 
+        #region SubWindowAPI
+
+        public abstract class PlatformSubWindow
+        {
+            public Vector2 Size;
+            public bool IsFocused;
+            public bool IsOpen;
+
+            public abstract void SwapBuffers();
+
+            public abstract void MakeCurrent();
+        }
+
+        public virtual bool SupportsSubWindows()
+        {
+            return false;
+        }
+
+        public virtual PlatformSubWindow CreateSubWindow(string title, Vector2 size)
+        {
+            return null;
+        }
+
+        #endregion
+
         /// <summary>
         /// Close the platform.
         /// This call is meant to notify the platform of a shut-down.
