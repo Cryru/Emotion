@@ -16,6 +16,15 @@ public class Map3D : BaseMap
 {
     public LightModel LightModel = new();
 
+    public Map3D(Vector2 size, string mapName = "Unnamed Map") : base(size, mapName)
+    {
+    }
+
+    // Serialization constructor
+    protected Map3D()
+    {
+    }
+
     public override List<Type> GetValidObjectTypes()
     {
         List<Type>? types = EditorUtility.GetTypesWhichInherit<GameObject3D>();

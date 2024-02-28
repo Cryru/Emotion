@@ -37,11 +37,13 @@ namespace Emotion.Common
 
         /// <summary>
         /// Logs runtime information.
+        /// [LightSetup] Module
         /// </summary>
         public static LoggingProvider Log { get; private set; } = new PreSetupLogger();
 
         /// <summary>
         /// Handles loading assets and storing assets.
+        /// [LightSetup] Module
         /// </summary>
         public static AssetLoader AssetLoader { get; private set; }
 
@@ -51,7 +53,8 @@ namespace Emotion.Common
         public static PlatformBase Host { get; private set; }
 
         /// <summary>
-        /// Handles rendering.
+        /// Handles graphics and graphics context state, provides rendering APIs,
+        /// and holds objects related to rendering.
         /// </summary>
         public static RenderComposer Renderer { get; private set; }
 
@@ -67,6 +70,7 @@ namespace Emotion.Common
 
         /// <summary>
         /// The global coroutine manager.
+        /// [Default Module]
         /// </summary>
         public static CoroutineManager CoroutineManager { get; private set; } = new CoroutineManager();
 
