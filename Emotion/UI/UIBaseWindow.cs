@@ -151,6 +151,9 @@ namespace Emotion.UI
             {
                 c.PopModelMatrix();
             }
+
+            if (UIController.Debug_RenderLayoutEngine == this)
+                _layoutEngine.RenderDebug(this, c);
         }
 
         protected virtual bool RenderInternal(RenderComposer c)
@@ -1119,8 +1122,9 @@ namespace Emotion.UI
         /// <returns></returns>
         public UIBaseWindow Clone()
         {
-            string xml = XMLFormat.To(this);
-            return XMLFormat.From<UIBaseWindow>(xml);
+            string? xml = XMLFormat.To(this);
+            AssertNotNull(xml); // Serialization fail?
+            return XMLFormat.From<UIBaseWindow>(xml)!;
         }
 
         /// <summary>
@@ -1151,7 +1155,10 @@ namespace Emotion.UI
             // We could alternatively load the asset as non-cached but that
             // will mean it is read from the disk every time this window is
             // initialized.
-            return (T) content.Clone();
+
+            string? xml = XMLFormat.To(content);
+            AssertNotNull(xml); // Serialization failed, how did it deserialize then?
+            return XMLFormat.From<T>(xml)!;
         }
 
         #endregion

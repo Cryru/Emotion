@@ -37,7 +37,6 @@ namespace Emotion.Game.World.Editor
             closeButton.Id = "CloseButton";
             closeButton.Anchor = UIAnchor.TopRight;
             closeButton.ParentAnchor = UIAnchor.TopRight;
-            closeButton.RenderNonActiveBackground = false;
 
             AddChild(closeButton);
 

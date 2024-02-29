@@ -17,6 +17,7 @@ using Emotion.IO.MeshAssetTypes;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
+using static OpenGL.Gl.Delegates;
 using Extensions = Emotion.Utility.Extensions;
 
 #endregion
@@ -25,7 +26,29 @@ using Extensions = Emotion.Utility.Extensions;
 
 namespace Emotion.Editor.EditorWindows;
 
-public class ModelViewer : EditorPanel
+public class UIAspectRatioWindow : UIBaseWindow
+{
+    public Vector2 AspectRatio = Vector2.One;
+
+    protected override void Layout(Vector2 pos, Vector2 size)
+    {
+        float targetAspectRatio = AspectRatio.X / AspectRatio.Y;
+        float width = size.X;
+        float height = (int)(width / targetAspectRatio);
+
+        if (height > size.Y)
+        {
+            height = size.Y;
+            width = (int)(height * targetAspectRatio + 0.5f);
+        }
+
+        size = new Vector2(width, height);
+
+        base.Layout(pos, size);
+    }
+}
+
+public class ModelViewer : EditorPanelv2
 {
     private Camera3D _camera;
     private InfiniteGrid _grid;
@@ -59,6 +82,8 @@ public class ModelViewer : EditorPanel
         _grid = new InfiniteGrid();
         _gridLoadingTask = Task.Run(_grid.LoadAssetsAsync);
         _obj = new GameObject3D("ModelViewerDummy");
+
+        _initialPanelSize = new Vector2(500, 220);
     }
 
     public override void AttachedToController(UIController controller)
@@ -71,40 +96,33 @@ public class ModelViewer : EditorPanel
 
         base.AttachedToController(controller);
 
-        var contentSplit = new UIBaseWindow
-        {
-            LayoutMode = LayoutMode.HorizontalList,
-            StretchX = true,
-            StretchY = true
-        };
-
-        var surface3D = new UIBaseWindow
+        var surface3D = new UIAspectRatioWindow
         {
             Id = "Surface3D",
-            MinSize = new Vector2(960, 540) / 2f,
-            StretchX = true,
-            StretchY = true,
-            HandleInput = true
+            MinSize = new Vector2(120, 0),
+            HandleInput = true,
+            AspectRatio = new Vector2(16, 9)
         };
-        contentSplit.AddChild(surface3D);
+        _contentParent.AddChild(surface3D);
         _surface3D = surface3D;
 
         var editorButtons = new UIBaseWindow
         {
-            StretchX = true,
-            StretchY = true,
             MinSize = new Vector2(130, 0),
             MaxSize = new Vector2(130, DefaultMaxSizeF),
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 2),
-            Paddings = new Rectangle(2, 0, 2, 0)
+            Margins = new Rectangle(5, 0, 0, 0),
+            Dock = UIDockDirection.Right,
+            AnchorAndParentAnchor = UIAnchor.TopRight,
+            FillX = false,
         };
+        _contentParent.AddChild(UIScrollArea.WrapInScrollArea(editorButtons));
 
         var butObj = new EditorButton
         {
             Text = "Open MeshAsset",
-            StretchY = true,
-            StretchX = false,
+            FillX = true,
             OnClickedProxy = _ => { Controller!.AddChild(new EditorFileExplorer<MeshAsset>(asset => { SetEntity(asset.Entity); })); }
         };
         editorButtons.AddChild(butObj);
@@ -261,33 +279,31 @@ public class ModelViewer : EditorPanel
         viewSkeleton.SetCallbackValueChanged(newVal => { _renderSkeleton = (bool) newVal; });
         editorButtons.AddChild(new FieldEditorWithLabel("Render Skeleton: ", viewSkeleton));
 
-        contentSplit.AddChild(editorButtons);
-        _contentParent.AddChild(contentSplit);
-
+        _contentParent.MinSize = new Vector2(surface3D.MinSizeX + 135, 100);
         // Dragging
         // todo: move to panel property
-        var dragArea = new UITexture
-        {
-            TextureFile = "Editor/PanelDragArea.png",
-            RenderSize = new Vector2(8, 8),
-            Smooth = true,
-            WindowColor = MapEditorColorPalette.ButtonColor
-        };
+        //var dragArea = new UITexture
+        //{
+        //    TextureFile = "Editor/PanelDragArea.png",
+        //    RenderSize = new Vector2(8, 8),
+        //    Smooth = true,
+        //    WindowColor = MapEditorColorPalette.ButtonColor
+        //};
 
-        var dragButton = new UICallbackButton
-        {
-            StretchX = true,
-            StretchY = true,
-            OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; },
-            OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
-            OnClickedProxy = _ => { _panelDragResize = true; },
-            OnClickedUpProxy = _ => { _panelDragResize = false; }
-        };
-        dragButton.AddChild(dragArea);
-        dragButton.Anchor = UIAnchor.BottomRight;
-        dragButton.ParentAnchor = UIAnchor.BottomRight;
+        //var dragButton = new UICallbackButton
+        //{
+        //    StretchX = true,
+        //    StretchY = true,
+        //    OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; },
+        //    OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
+        //    OnClickedProxy = _ => { _panelDragResize = true; },
+        //    OnClickedUpProxy = _ => { _panelDragResize = false; }
+        //};
+        //dragButton.AddChild(dragArea);
+        //dragButton.Anchor = UIAnchor.BottomRight;
+        //dragButton.ParentAnchor = UIAnchor.BottomRight;
 
-        _container.AddChild(dragButton);
+        //_container.AddChild(dragButton);
     }
 
     protected void SetEntity(MeshEntity? entity)

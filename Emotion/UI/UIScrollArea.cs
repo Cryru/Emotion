@@ -12,14 +12,18 @@ namespace Emotion.UI
             public Vector2 CurrentScroll;
             public Vector2 MaxScroll;
 
-            public UIScrollAreaScrollableArea()
+            private UIScrollArea _areaParent;
+
+            public UIScrollAreaScrollableArea(UIScrollArea areaParent)
             {
                 CodeGenerated = true;
+                ChildrenCanExpandParent = false;
+                _areaParent = areaParent;
             }
 
             protected override bool RenderInternal(RenderComposer c)
             {
-                c.RenderSprite(Position, Size, Color.White * 0.1f);
+                c.RenderSprite(Position, Size, Color.White * 0.05f);
                 return base.RenderInternal(c);
             }
 
@@ -73,7 +77,7 @@ namespace Emotion.UI
             UseNewLayoutSystem = true;
             HandleInput = true;
 
-            var areaInside = new UIScrollAreaScrollableArea();
+            var areaInside = new UIScrollAreaScrollableArea(this);
             areaInside.ZOffset = 5;
             _content = areaInside;
         }
@@ -99,6 +103,11 @@ namespace Emotion.UI
             _verticalScroll.TotalArea = _content.MaxScroll.Y;
             _verticalScroll.PageArea = MathF.Min(_verticalScroll.TotalArea, _content.Height);
             _verticalScroll.UpdateScrollbar();
+
+            _horizontalScroll.DontTakeSpaceWhenHidden = true;
+            _verticalScroll.DontTakeSpaceWhenHidden = true;
+            _horizontalScroll.SetVisible(_horizontalScroll.TotalArea > _content.Width);
+            _verticalScroll.SetVisible(true);// _verticalScroll.TotalArea > _content.Height);
         }
 
         protected void ScrollBarCallbackVertical(float amount)
@@ -157,6 +166,26 @@ namespace Emotion.UI
             scrollHorz.OnScroll = ScrollBarCallbackHorizontal;
             AddChild(scrollHorz);
             _horizontalScroll = scrollHorz;
+        }
+
+        public static UIScrollArea WrapInScrollArea(UIBaseWindow win)
+        {
+            UIScrollArea area = new UIScrollArea();
+            area.AddChildInside(win);
+
+            area.FillX = win.FillX;
+            area.FillY = win.FillY;
+            area.Dock = win.Dock;
+            area.Margins = win.Margins;
+            area.AnchorAndParentAnchor = win.AnchorAndParentAnchor;
+            area.MinSize = win.MinSize;
+
+            win.Dock = UIDockDirection.None;
+            win.AnchorAndParentAnchor = UIAnchor.TopLeft;
+            win.Margins = Rectangle.Empty;
+            win.Paddings = new Rectangle(3, 2, 3, 2);
+
+            return area;
         }
     }
 }

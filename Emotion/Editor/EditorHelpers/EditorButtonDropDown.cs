@@ -123,7 +123,7 @@ public class EditorButtonDropDown : UIBaseWindow
         tempContainer.AddChild(label);
 
         var button = new EditorButton();
-        button.AlignAnchor = UIAnchor.CenterLeft;
+        button.AnchorAndParentAnchor = UIAnchor.CenterLeft;
         button.MinSize = new Vector2(20, 0);
         button.Id = "Button";
         button.OnClickedProxy = click =>
@@ -139,7 +139,7 @@ public class EditorButtonDropDown : UIBaseWindow
         arrowImage.TextureFile = "Editor/LittleArrow.png";
         arrowImage.ImageScale = new Vector2(0.2f);
         arrowImage.Margins = new Rectangle(3, 0, 0, 0);
-        arrowImage.AlignAnchor = UIAnchor.CenterRight;
+        arrowImage.AnchorAndParentAnchor = UIAnchor.CenterRight;
         arrowImage.Dock = UIDockDirection.Right;
         arrowImage.ZOffset = -1;
         button.AddChild(arrowImage);
