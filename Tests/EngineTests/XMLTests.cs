@@ -38,7 +38,7 @@ public class XMLTests
 
     public class StringContainer
     {
-        public string Test;
+        public string? Test;
     }
 
     [Test]
@@ -46,6 +46,7 @@ public class XMLTests
     {
         string str = ToXMLForTest(new StringContainer {Test = "Hello"});
         var restored = XMLFormat.From<StringContainer>(str);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Test, "Hello");
     }
 
@@ -54,6 +55,7 @@ public class XMLTests
     {
         string str = ToXMLForTest(new StringContainer {Test = null});
         var restored = XMLFormat.From<StringContainer>(str);
+        Assert.NotNull(restored);
         Assert.True(restored.Test == null);
     }
 
@@ -73,6 +75,7 @@ public class XMLTests
     {
         string p = ToXMLForTest(new Positional(100, 200, 300));
         var restored = XMLFormat.From<Positional>(p);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
         Assert.Equal(restored.Y, 200);
         Assert.Equal(restored.Z, 300);
@@ -83,6 +86,7 @@ public class XMLTests
     {
         string t = ToXMLForTest(new Transform(100, 200, 300, 400, 500));
         var restored = XMLFormat.From<Transform>(t);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
         Assert.Equal(restored.Y, 200);
         Assert.Equal(restored.Z, 300);
@@ -92,8 +96,8 @@ public class XMLTests
 
     public class TransformLink : Transform
     {
-        public Transform Left { get; set; }
-        public Transform Right { get; set; }
+        public Transform? Left { get; set; }
+        public Transform? Right { get; set; }
 
         public TransformLink()
         {
@@ -112,12 +116,14 @@ public class XMLTests
             Left = new Transform(600, 700, 800, 900, 1000)
         });
         var restored = XMLFormat.From<TransformLink>(tl);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
         Assert.Equal(restored.Y, 200);
         Assert.Equal(restored.Z, 300);
         Assert.Equal(restored.Width, 400);
         Assert.Equal(restored.Height, 500);
 
+        Assert.NotNull(restored.Left);
         Assert.Equal(restored.Left.X, 600);
         Assert.Equal(restored.Left.Y, 700);
         Assert.Equal(restored.Left.Z, 800);
@@ -137,19 +143,21 @@ public class XMLTests
     {
         string tld = ToXMLForTest(new TransformLink(100, 200, 300, 400, 500) {Left = new TransformInherited {CoolStuff = true, Height = 1100}});
         var restored = XMLFormat.From<TransformLink>(tld);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
         Assert.Equal(restored.Y, 200);
         Assert.Equal(restored.Z, 300);
         Assert.Equal(restored.Width, 400);
         Assert.Equal(restored.Height, 500);
 
+        Assert.NotNull(restored.Left);
         Assert.Equal(restored.Left.Height, 1100);
         Assert.True(((TransformInherited) restored.Left).CoolStuff);
     }
 
     public class TransformArrayHolder : Transform
     {
-        public Transform[] Children { get; set; }
+        public Transform[]? Children { get; set; }
     }
 
     [Test]
@@ -171,13 +179,14 @@ public class XMLTests
         });
 
         var restored = XMLFormat.From<TransformArrayHolder>(tlda);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
-        Assert.True(restored.Children != null);
+        Assert.NotNull(restored.Children);
         Assert.Equal(restored.Children.Length, 2);
 
         {
             Transform child = restored.Children[0];
-            Assert.True(child != null);
+            Assert.NotNull(child);
             Assert.Equal(child.X, 1);
             Assert.Equal(child.Y, 2);
             Assert.Equal(child.Z, 3);
@@ -187,7 +196,7 @@ public class XMLTests
 
         {
             Transform child = restored.Children[1];
-            Assert.True(child != null);
+            Assert.NotNull(child);
             Assert.Equal(child.Width, 6);
             Assert.True(((TransformInherited) child).CoolStuff);
         }
@@ -195,7 +204,7 @@ public class XMLTests
 
     public class TransformListHolder : Transform
     {
-        public List<Transform> Children { get; set; }
+        public List<Transform>? Children { get; set; }
     }
 
     [Test]
@@ -217,13 +226,14 @@ public class XMLTests
         });
 
         var restored = XMLFormat.From<TransformListHolder>(tldl);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
-        Assert.True(restored.Children != null);
+        Assert.NotNull(restored.Children);
         Assert.Equal(restored.Children.Count, 2);
 
         {
             Transform child = restored.Children[0];
-            Assert.True(child != null);
+            Assert.NotNull(child);
             Assert.Equal(child.X, 1);
             Assert.Equal(child.Y, 2);
             Assert.Equal(child.Z, 3);
@@ -233,7 +243,7 @@ public class XMLTests
 
         {
             Transform child = restored.Children[1];
-            Assert.True(child != null);
+            Assert.NotNull(child);
             Assert.Equal(child.Width, 6);
             Assert.True(((TransformInherited) child).CoolStuff);
         }
@@ -241,7 +251,7 @@ public class XMLTests
 
     public class TransformRecursiveRef : Transform
     {
-        public TransformRecursiveRef Other { get; set; }
+        public TransformRecursiveRef? Other { get; set; }
     }
 
     /// <summary>
@@ -255,13 +265,14 @@ public class XMLTests
         string re = ToXMLForTest(transformLink);
 
         var restored = XMLFormat.From<TransformRecursiveRef>(re);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
         Assert.True(restored.Other == null);
     }
 
     public class TransformRecursiveRefArray : Transform
     {
-        public TransformRecursiveRefArray[] Others { get; set; }
+        public TransformRecursiveRefArray[]? Others { get; set; }
     }
 
     /// <summary>
@@ -276,13 +287,15 @@ public class XMLTests
         string re = ToXMLForTest(transformLink);
 
         var restored = XMLFormat.From<TransformRecursiveRefArray>(re);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
-        Assert.True(restored.Others != null);
+        Assert.NotNull(restored.Others);
         Assert.True(restored.Others.Length == 1);
 
         var transformLinkNull = new TransformRecursiveRefArray {X = 100};
         string reTwo = ToXMLForTest(transformLinkNull);
         restored = XMLFormat.From<TransformRecursiveRefArray>(reTwo);
+        Assert.NotNull(restored);
         Assert.Equal(restored.X, 100);
         Assert.True(restored.Others == null);
     }
@@ -301,6 +314,7 @@ public class XMLTests
         string ex = ToXMLForTest(classWithExcluded);
 
         var restored = XMLFormat.From<ClassWithExcluded>(ex);
+        Assert.NotNull(restored);
         Assert.True(restored.Me);
         Assert.False(restored.NotMe);
     }
@@ -313,7 +327,7 @@ public class XMLTests
 
     public class ContainingExcludedClass
     {
-        public ExcludedClass NotMe;
+        public ExcludedClass? NotMe;
         public bool JustMe;
     }
 
@@ -328,6 +342,7 @@ public class XMLTests
 
         string ex = ToXMLForTest(excludedContainer);
         var restored = XMLFormat.From<ContainingExcludedClass>(ex);
+        Assert.NotNull(restored);
         Assert.True(restored.JustMe);
         Assert.True(restored.NotMe == null);
 
@@ -359,6 +374,7 @@ public class XMLTests
 
         string enm = ToXMLForTest(enumContainer);
         var restored = XMLFormat.From<EnumContainer>(enm);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Hello, TestEnum.Test);
     }
 
@@ -372,7 +388,7 @@ public class XMLTests
 
     public class GenericTypeContainer<T>
     {
-        public T Stuff;
+        public T? Stuff;
     }
 
     [Test]
@@ -385,6 +401,8 @@ public class XMLTests
 
         string gen = ToXMLForTest(genericContainer);
         var restored = XMLFormat.From<GenericTypeContainer<Transform>>(gen);
+        Assert.NotNull(restored);
+        Assert.NotNull(restored.Stuff);
         Assert.Equal(restored.Stuff.X, 100);
         Assert.Equal(restored.Stuff.Y, 200);
         Assert.Equal(restored.Stuff.Z, 300);
@@ -404,20 +422,25 @@ public class XMLTests
         };
 
         string gen = ToXMLForTest(genericContainers);
-        GenericTypeContainer<Transform>[] restored = XMLFormat.From<GenericTypeContainer<Transform>[]>(gen);
+        GenericTypeContainer<Transform>[]? restored = XMLFormat.From<GenericTypeContainer<Transform>[]>(gen);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Length, 1);
-        Assert.Equal(restored[0].Stuff.X, 100);
-        Assert.Equal(restored[0].Stuff.Y, 200);
-        Assert.Equal(restored[0].Stuff.Z, 300);
-        Assert.Equal(restored[0].Stuff.Width, 400);
-        Assert.Equal(restored[0].Stuff.Height, 500);
+
+        var firstTime = restored[0];
+        Assert.NotNull(firstTime);
+        Assert.NotNull(firstTime.Stuff);
+        Assert.Equal(firstTime.Stuff.X, 100);
+        Assert.Equal(firstTime.Stuff.Y, 200);
+        Assert.Equal(firstTime.Stuff.Z, 300);
+        Assert.Equal(firstTime.Stuff.Width, 400);
+        Assert.Equal(firstTime.Stuff.Height, 500);
     }
 
     public class GenericTypesContainer<T, T2, T3>
     {
-        public T Stuff;
-        public T2 StuffTwo;
-        public T3 StuffThree;
+        public T? Stuff;
+        public T2? StuffTwo;
+        public T3? StuffThree;
     }
 
     [Test]
@@ -432,6 +455,11 @@ public class XMLTests
 
         string gen = ToXMLForTest(generics);
         var restored = XMLFormat.From<GenericTypesContainer<Transform, Rectangle, string>>(gen);
+        Assert.NotNull(restored);
+        Assert.NotNull(restored.Stuff);
+        Assert.NotNull(restored.StuffTwo);
+        Assert.NotNull(restored.StuffThree);
+
         Assert.Equal(restored.Stuff.X, 100);
         Assert.Equal(restored.Stuff.Y, 200);
         Assert.Equal(restored.Stuff.Z, 300);
@@ -469,8 +497,8 @@ public class XMLTests
 
         string nul = ToXMLForTest(nullableComplex);
         var restored = XMLFormat.From<NullableComplexContainer>(nul);
-        Assert.True(restored.Stuff != null);
-        // ReSharper disable once PossibleInvalidOperationException
+        Assert.NotNull(restored);
+        Assert.NotNull(restored.Stuff);
         Assert.Equal(restored.Stuff.Value.Number, 1);
 
         nullableComplex = new NullableComplexContainer
@@ -483,8 +511,8 @@ public class XMLTests
 
         nul = ToXMLForTest(nullableComplex);
         restored = XMLFormat.From<NullableComplexContainer>(nul);
-        Assert.True(restored.Stuff != null);
-        // ReSharper disable once PossibleInvalidOperationException
+        Assert.NotNull(restored);
+        Assert.NotNull(restored.Stuff);
         Assert.Equal(restored.Stuff.Value.Number, 0);
 
         nullableComplex = new NullableComplexContainer
@@ -494,8 +522,8 @@ public class XMLTests
 
         nul = ToXMLForTest(nullableComplex);
         restored = XMLFormat.From<NullableComplexContainer>(nul);
-        Assert.True(restored.Stuff != null);
-        // ReSharper disable once PossibleInvalidOperationException
+        Assert.NotNull(restored);
+        Assert.NotNull(restored.Stuff);
         Assert.Equal(restored.Stuff.Value.Number, 0);
 
         nullableComplex = new NullableComplexContainer
@@ -505,6 +533,7 @@ public class XMLTests
 
         nul = ToXMLForTest(nullableComplex);
         restored = XMLFormat.From<NullableComplexContainer>(nul);
+        Assert.NotNull(restored);
         Assert.True(restored.Stuff == null);
     }
 
@@ -523,6 +552,7 @@ public class XMLTests
 
         string nul = ToXMLForTest(nullableTrivial);
         var restored = XMLFormat.From<NullableTrivialContainer>(nul);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Number, 0);
 
         nullableTrivial = new NullableTrivialContainer
@@ -532,6 +562,7 @@ public class XMLTests
 
         nul = ToXMLForTest(nullableTrivial);
         restored = XMLFormat.From<NullableTrivialContainer>(nul);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Number, 11);
     }
 
@@ -545,6 +576,7 @@ public class XMLTests
 
         string nul = ToXMLForTest(nullableTrivial);
         var restored = XMLFormat.From<NullableTrivialContainer>(nul);
+        Assert.NotNull(restored);
         Assert.True(restored.Number == null);
     }
 
@@ -555,8 +587,7 @@ public class XMLTests
 
         string xml = ToXMLForTest(primitiveDict);
         var restored = XMLFormat.From<Dictionary<string, int>>(xml);
-        Assert.True(restored != null);
-        // ReSharper disable once PossibleNullReferenceException
+        Assert.NotNull(restored);
         Assert.Equal(restored.Count, 4);
         Assert.Equal(restored["testOne"], 1);
         Assert.Equal(restored["testTwo"], 2);
@@ -567,12 +598,11 @@ public class XMLTests
     [Test]
     public void ComplexDictionary()
     {
-        var complexDict = new Dictionary<TestEnum, Transform> {{TestEnum.Test, new Transform(1, 2, 3, 4)}, {TestEnum.This, null}};
+        var complexDict = new Dictionary<TestEnum, Transform?> {{TestEnum.Test, new Transform(1, 2, 3, 4)}, {TestEnum.This, null}};
 
         string xml = ToXMLForTest(complexDict);
         var restored = XMLFormat.From<Dictionary<TestEnum, Transform>>(xml);
-        Assert.True(restored != null);
-        // ReSharper disable once PossibleNullReferenceException
+        Assert.NotNull(restored);
         Assert.Equal(restored.Count, 2);
         Assert.Equal(restored[TestEnum.Test].X, 1);
         Assert.Equal(restored[TestEnum.Test].Y, 2);
@@ -592,7 +622,8 @@ public class XMLTests
         };
 
         string xml = ToXMLForTest(array);
-        Rectangle[] restored = XMLFormat.From<Rectangle[]>(xml);
+        Rectangle[]? restored = XMLFormat.From<Rectangle[]>(xml);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Length, 3);
         Assert.Equal(restored[0].Width, 3);
         Assert.Equal(restored[1].Width, 0);
@@ -613,12 +644,24 @@ public class XMLTests
         };
 
         string xml = ToXMLForTest(array);
-        Rectangle?[] restored = XMLFormat.From<Rectangle?[]>(xml);
+        Rectangle?[]? restored = XMLFormat.From<Rectangle?[]>(xml);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Length, 5);
-        Assert.Equal(restored[0].Value.Width, 3);
-        Assert.Equal(restored[1].Value.Width, 0);
+
+        var firstItem = restored[0];
+        Assert.NotNull(firstItem);
+        Assert.Equal(firstItem.Value.Width, 3);
+
+        var secondItem = restored[1];
+        Assert.NotNull(secondItem);
+        Assert.Equal(secondItem.Value.Width, 0);
+
         Assert.True(restored[2] == null);
-        Assert.Equal(restored[3].Value.Width, 7);
+
+        var fourthItem = restored[3];
+        Assert.NotNull(fourthItem);
+        Assert.Equal(fourthItem.Value.Width, 7);
+
         Assert.True(restored[4] == null);
     }
 
@@ -629,9 +672,9 @@ public class XMLTests
         public bool Bool = true;
         public string Str = "Test";
         public Rectangle Rect = new Rectangle(1, 2, 3, 4);
-        public Transform Transform = new Transform(5, 6, 7, 8, 9);
-        public float[] Array = {10, 20.5f, 30};
-        public Positional Inherited = new Transform(10, 11, 12, 13);
+        public Transform? Transform = new Transform(5, 6, 7, 8, 9);
+        public float[]? Array = {10, 20.5f, 30};
+        public Positional? Inherited = new Transform(10, 11, 12, 13);
         public double? Nullable = 10;
     }
 
@@ -651,6 +694,7 @@ public class XMLTests
             Nullable = null
         });
         var restored = XMLFormat.From<CustomDefaultsComplex>(xml);
+        Assert.NotNull(restored);
         Assert.Equal(restored.Test, TestEnum.A);
         Assert.Equal(restored.Number, 0);
         Assert.Equal(restored.Bool, false);
@@ -673,7 +717,7 @@ public class XMLTests
     public class TypeWithExcludedMembersGrandparent
     {
         public int GrandparentNum;
-        public string ExcludedDeepField;
+        public string? ExcludedDeepField;
         public bool GrandparentBool;
     }
 
@@ -681,17 +725,17 @@ public class XMLTests
     public class TypeWithExcludedMembersDirectParent : TypeWithExcludedMembersGrandparent
     {
         public int ParentNum;
-        public string ExcludedInheritedField;
+        public string? ExcludedInheritedField;
     }
 
     [DontSerializeMembers("ExcludedDirectField", "ExcludedInheritedField", "ExcludedDeepField")]
     public class TypeWithExcludedMembers : TypeWithExcludedMembersDirectParent
     {
         public int Num;
-        public string ExcludedDirectField;
+        public string? ExcludedDirectField;
 
         [DontSerializeMembers("GrandparentNum")]
-        public TypeWithExcludedMembersDirectParent NestedClassExclusion;
+        public TypeWithExcludedMembersDirectParent? NestedClassExclusion;
 
         [DontSerializeMembers("StructBool")] public StructMemberWithExclusion StructMember;
     }
@@ -722,6 +766,8 @@ public class XMLTests
             GrandparentBool = true
         });
         var restored = XMLFormat.From<TypeWithExcludedMembers>(xml);
+        Assert.NotNull(restored);
+
         // Non-excluded
         Assert.Equal(restored.Num, 1);
         Assert.Equal(restored.ParentNum, 2);
@@ -737,6 +783,7 @@ public class XMLTests
         // Excluded by DirectParent
         Assert.False(restored.GrandparentBool);
         // Excluded by NestedClassExclusion field
+        Assert.NotNull(restored.NestedClassExclusion);
         Assert.Equal(restored.NestedClassExclusion.GrandparentNum, 0);
         Assert.Equal(restored.NestedClassExclusion.ExcludedDeepField, "This one isn't excluded in this case");
         // Excluded by DirectParent class
@@ -746,9 +793,9 @@ public class XMLTests
     public class ClassWithExcludedComplexType
     {
         [DontSerialize]
-        public ClassWithExcluded A { get; set; }
+        public ClassWithExcluded? A { get; set; }
 
-        public ClassWithExcluded B { get; set; }
+        public ClassWithExcluded? B { get; set; }
     }
 
     [Test]
@@ -760,11 +807,13 @@ public class XMLTests
                           "<ExcludedInheritedField>Hi</ExcludedInheritedField>\n" +
                           "</TypeWithExcludedMembersDirectParent>";
         var memberExcluded = XMLFormat.From<TypeWithExcludedMembersDirectParent>(document);
+        Assert.NotNull(memberExcluded);
         Assert.False(memberExcluded.GrandparentBool); // Excluded member is not deserialized.
         Assert.Equal(memberExcluded.ExcludedInheritedField, "Hi"); // Following fields should be deserialized though.
 
         document = "<ClassWithExcluded>\n<NotMe>true</NotMe>\n<Me>true</Me>\n</ClassWithExcluded>";
         var memberDontSerialize = XMLFormat.From<ClassWithExcluded>(document);
+        Assert.NotNull(memberDontSerialize);
         Assert.False(memberDontSerialize.NotMe); // DontSerialize is not deserialized.
         Assert.True(memberDontSerialize.Me);
 
@@ -779,8 +828,9 @@ public class XMLTests
                    "    </B>\n" +
                    "</ClassWithExcludedComplexType>";
         var complexExcludedDeserialize = XMLFormat.From<ClassWithExcludedComplexType>(document);
+        Assert.NotNull(complexExcludedDeserialize);
         Assert.True(complexExcludedDeserialize.A == null); // Shouldn't have been deserialized.
-        Assert.True(complexExcludedDeserialize.B != null);
+        Assert.NotNull(complexExcludedDeserialize.B);
         Assert.True(complexExcludedDeserialize.B.Me);
         Assert.False(complexExcludedDeserialize.B.NotMe);
 
@@ -794,31 +844,29 @@ public class XMLTests
                    "    </B>\n" +
                    "</ClassWithExcludedComplexType>";
         var brokenDocument = XMLFormat.From<ClassWithExcludedComplexType>(document);
+        Assert.NotNull(brokenDocument);
         Assert.True(brokenDocument.A == null);
         Assert.True(brokenDocument.B == null);
     }
 
     public class BaseClassWithVirtualProperty
     {
-        // ReSharper disable once ConvertToAutoProperty
-        public virtual string Field
+        public virtual string? Field
         {
-            get => _backingField;
-            set => _backingField = value;
+            get { return null; }
+            set { }
         }
-
-        private string _backingField;
     }
 
     public class OverrideClass : BaseClassWithVirtualProperty
     {
-        public override string Field { get; set; }
+        public override string? Field { get; set; }
     }
 
     public class OverrideClassWithDontSerialize : BaseClassWithVirtualProperty
     {
         [DontSerialize]
-        public override string Field
+        public override string? Field
         {
             get => base.Field;
             set => base.Field = value;
@@ -847,7 +895,7 @@ public class XMLTests
     public class ClassWithNonPublicField
     {
         [SerializeNonPublicGetSet]
-        public string Field { get; protected set; }
+        public string? Field { get; protected set; }
 
         public void SetFieldSecretFunction(string s)
         {
@@ -862,22 +910,23 @@ public class XMLTests
         obj.SetFieldSecretFunction("Helloo");
         string document = ToXMLForTest(obj);
         var deserialized = XMLFormat.From<ClassWithNonPublicField>(document);
+        Assert.NotNull(deserialized);
         Assert.Equal(deserialized.Field, "Helloo");
     }
 
     public class OverflowClass
     {
-        public ClassContainingOverflow[] FirstArr;
+        public ClassContainingOverflow[]? FirstArr;
     }
 
     public class ClassContainingOverflow
     {
-        public OverflowClass[] SecondArr;
+        public OverflowClass[]? SecondArr;
     }
 
     public class OverflowRootClass
     {
-        public ClassContainingOverflow A;
+        public ClassContainingOverflow? A;
     }
 
     [Test]
@@ -907,8 +956,9 @@ public class XMLTests
 
         string xml = ToXMLForTest(test);
         var deserialized = XMLFormat.From<List<Dictionary<string, object>>>(xml);
-        Dictionary<string, object> deserializedFirstDist = deserialized[0];
+        Assert.NotNull(deserialized);
 
+        Dictionary<string, object> deserializedFirstDist = deserialized[0];
         Assert.True((TestEnum) deserializedFirstDist["enumType"] == TestEnum.Test);
         Assert.True((int) deserializedFirstDist["numberType"] == 1);
         Assert.True((bool) deserializedFirstDist["booleanType"]);

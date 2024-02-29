@@ -111,7 +111,7 @@ public static class EditorUtility
         var typeHandlerBase = XMLHelpers.GetTypeHandler(objType);
         if (typeHandlerBase == null) return new List<TypeAndFieldHandlers>();
 
-        XMLComplexBaseTypeHandler? typeHandler = typeHandlerBase as XMLComplexBaseTypeHandler;
+        XMLComplexBaseTypeHandler typeHandler = typeHandlerBase as XMLComplexBaseTypeHandler;
         nonComplexType = typeHandler == null;
         if (nonComplexType)
         {

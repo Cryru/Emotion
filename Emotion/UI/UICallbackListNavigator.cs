@@ -539,7 +539,7 @@ namespace Emotion.UI
         {
             if (b.FindInputFocusable() == null) return;
             SetSelection(b);
-            Assert(SelectedWnd != null);
+            AssertNotNull(SelectedWnd);
             OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
         }
 

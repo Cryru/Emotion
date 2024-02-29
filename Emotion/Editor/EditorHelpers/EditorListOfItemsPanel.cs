@@ -30,13 +30,13 @@ public class EditorListOfItemsPanel<T> : EditorPanel where T : class
 
     private string? _text;
 
-    private IEnumerable<T>? _items;
+    private IEnumerable<T> _items;
     private Action<T>? _onClick;
-    private Action<T>? _onRollover;
+    private Action<T?>? _onRollover;
 
     private T? _rollover;
 
-    public EditorListOfItemsPanel(string header, IEnumerable<T> items, Action<T> onClick, Action<T>? onRollover = null) : base(header)
+    public EditorListOfItemsPanel(string header, IEnumerable<T> items, Action<T> onClick, Action<T?>? onRollover = null) : base(header)
     {
         _items = items;
         _onClick = onClick;

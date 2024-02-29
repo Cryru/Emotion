@@ -12,6 +12,7 @@ using Tests.Results;
 
 #endregion
 
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace Tests.Classes
 {
     [Test("AnimatedTexture", true)]
@@ -413,3 +414,4 @@ namespace Tests.Classes
         }
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete

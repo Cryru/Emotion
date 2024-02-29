@@ -26,7 +26,6 @@ namespace Emotion.UI
 
         private bool _cursorOn;
         private Every _blinkingTimer;
-        private float _scaledCursorDistance;
 
         private int _selectionStart = -1;
         private int _selectionEnd = -1;
@@ -55,7 +54,7 @@ namespace Emotion.UI
         {
             if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down)
             {
-                OnSubmit?.Invoke(Text);
+                OnSubmit?.Invoke(_text);
                 return false;
             }
 
@@ -153,7 +152,7 @@ namespace Emotion.UI
                 if (key == Key.A) // Select All
                 {
                     _selectionStart = 0;
-                    _selectionEnd = Text.Length;
+                    _selectionEnd = _text.Length;
                     EnsureSelectionRight();
 
                     return false;
@@ -205,11 +204,11 @@ namespace Emotion.UI
             _blinkingTimer.Restart();
             _cursorOn = true;
 
-            if (!haveFocus && SubmitOnFocusLoss) OnSubmit?.Invoke(Text);
+            if (!haveFocus && SubmitOnFocusLoss) OnSubmit?.Invoke(_text);
 
-            if (haveFocus && Text != null)
+            if (haveFocus && _text != null)
             {
-                _selectionStart = Text.Length;
+                _selectionStart = _text.Length;
                 _selectionEnd = _selectionStart;
             }
 
@@ -227,9 +226,9 @@ namespace Emotion.UI
             int smallerSelIdx = Math.Min(_selectionStart, _selectionEnd);
             int largerSelIdx = Math.Max(_selectionStart, _selectionEnd);
 
-            ReadOnlySpan<char> leftOfSelection = Text.AsSpan(0, smallerSelIdx);
-            ReadOnlySpan<char> selection = Text.AsSpan(smallerSelIdx, largerSelIdx - smallerSelIdx);
-            ReadOnlySpan<char> rightOfSelection = Text.AsSpan(largerSelIdx, Text.Length - largerSelIdx);
+            ReadOnlySpan<char> leftOfSelection = _text.AsSpan(0, smallerSelIdx);
+            ReadOnlySpan<char> selection = _text.AsSpan(smallerSelIdx, largerSelIdx - smallerSelIdx);
+            ReadOnlySpan<char> rightOfSelection = _text.AsSpan(largerSelIdx, _text.Length - largerSelIdx);
 
             switch (c)
             {
@@ -281,8 +280,8 @@ namespace Emotion.UI
             int smallerSelIdx = Math.Min(_selectionStart, _selectionEnd);
             int largerSelIdx = Math.Max(_selectionStart, _selectionEnd);
 
-            ReadOnlySpan<char> leftOfSelection = Text.AsSpan(0, smallerSelIdx);
-            ReadOnlySpan<char> rightOfSelection = Text.AsSpan(largerSelIdx, Text.Length - largerSelIdx);
+            ReadOnlySpan<char> leftOfSelection = _text.AsSpan(0, smallerSelIdx);
+            ReadOnlySpan<char> rightOfSelection = _text.AsSpan(largerSelIdx, _text.Length - largerSelIdx);
 
             var b = new StringBuilder();
             b.Append(leftOfSelection);
@@ -294,7 +293,7 @@ namespace Emotion.UI
             }
 
             b.Append(rightOfSelection);
-            Text = b.ToString();
+            _text = b.ToString();
 
             _selectionEnd = leftOfSelection.Length + 1;
             _selectionStart = _selectionEnd;
@@ -331,13 +330,13 @@ namespace Emotion.UI
                 var selectionRects = new List<Rectangle>(1); // maybe cache this per text+selection change?
 
                 var idx = 0;
-                for (var i = 0; i < Text.Length + 1; i++)
+                for (var i = 0; i < _text.Length + 1; i++)
                 {
                     Vector2 gPos;
                     Vector2 gPosPreWrap = Vector2.Zero;
-                    if (i < Text.Length)
+                    if (i < _text.Length)
                     {
-                        char ch = Text[i];
+                        char ch = _text[i];
 
                         bool willWrapNext = _layouter.IsNextCharacterGoingToWrap();
                         if (willWrapNext) gPosPreWrap = _layouter.GetPenLocation();
@@ -405,7 +404,7 @@ namespace Emotion.UI
 
         protected virtual bool CanAddCharacter(char c)
         {
-            if (MaxCharacters != -1 && Text.Length >= MaxCharacters) return false;
+            if (MaxCharacters != -1 && _text.Length >= MaxCharacters) return false;
             if (c == '\n' && !MultiLine) return false;
 
             return true;
@@ -441,13 +440,13 @@ namespace Emotion.UI
             _layouter.RestartPen();
 
             var idx = 0;
-            for (var i = 0; i < Text.Length + 1; i++)
+            for (var i = 0; i < _text.Length + 1; i++)
             {
                 Vector2 gPos;
                 Vector2 gPosPreWrap = Vector2.Zero;
-                if (i < Text.Length)
+                if (i < _text.Length)
                 {
-                    char ch = Text[i];
+                    char ch = _text[i];
 
                     bool willWrapNext = _layouter.IsNextCharacterGoingToWrap();
                     if (willWrapNext) gPosPreWrap = _layouter.GetPenLocation();
@@ -492,12 +491,12 @@ namespace Emotion.UI
             _layouter.RestartPen();
 
             var idx = 0;
-            for (var i = 0; i < Text.Length + 1; i++)
+            for (var i = 0; i < _text.Length + 1; i++)
             {
                 Vector2 gPos;
-                if (i < Text.Length)
+                if (i < _text.Length)
                 {
-                    char ch = Text[i];
+                    char ch = _text[i];
                     gPos = _layouter.AddLetter(ch, out DrawableGlyph _);
                 }
                 else

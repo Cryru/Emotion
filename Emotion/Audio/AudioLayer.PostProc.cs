@@ -64,7 +64,7 @@ namespace Emotion.Audio
             }
             else if (_fadeInCrossFadeVol != null) // Cross fade in progress
             {
-                Assert(_fadeInCrossFadeVol.Track != null);
+                AssertNotNull(_fadeInCrossFadeVol.Track);
 
                 bool end = _fadeInCrossFadeVol.EndSample < endSample;
                 var framesGotten = 0;
@@ -154,8 +154,6 @@ namespace Emotion.Audio
             }
             else if (_fadeOutTriggered != null) // Performing a triggered fade out. Could be an actual tfo or cross fade with no next track.
             {
-                Assert(_fadeOutTriggered != null);
-
                 // We ended out in a fade
                 if (endSample >= _fadeOutTriggered.EndSample)
                 {
@@ -170,7 +168,7 @@ namespace Emotion.Audio
                     {
                         // Clear the playlist of the tracks that were in there when
                         // stop with fade was called. More tracks could've been added.
-                        Assert(_triggeredFadeOutStopPlaylist != null);
+                        AssertNotNull(_triggeredFadeOutStopPlaylist);
                         lock (_playlist)
                         {
                             for (var i = 0; i < _triggeredFadeOutStopPlaylist.Count; i++)
@@ -192,8 +190,8 @@ namespace Emotion.Audio
                 else if (_triggeredCrossFadeFadingOut && _nextTrack != null && _playlist.Count > 1)
                 {
                     var fadeOutTriggerAsCrossFade = _fadeOutTriggered as CrossFadeVolModEffect;
+                    AssertNotNull(fadeOutTriggerAsCrossFade);
                     _fadeOutTriggered = null;
-                    Assert(fadeOutTriggerAsCrossFade != null);
 
                     float curVol = fadeOutTriggerAsCrossFade.GetVolumeAt(endSample);
                     fadeOutTriggerAsCrossFade.SetCrossFadeProps(track, endSample, LoopingCurrent);

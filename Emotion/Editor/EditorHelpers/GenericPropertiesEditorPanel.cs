@@ -24,7 +24,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
     protected List<IPropEditorGeneric> _editorUIs;
 
     protected Type _objType;
-    protected object? _obj;
+    protected object _obj;
     protected bool _nonComplexType;
 
     protected bool _spawnFieldGroupHeaders = true;
@@ -39,7 +39,10 @@ public class GenericPropertiesEditorPanel : EditorPanel
         // Types without parameterless constructors will explode since they cannot be created.
         // todo: look into at least displaying their values.
         if (!objType.IsValueType && objType != typeof(string) && !EditorUtility.HasParameterlessConstructor(obj))
+        {
+            _obj = null!;
             return;
+        }
 
         _obj = obj;
         _fields = EditorUtility.GetTypeFields(obj, out _nonComplexType);

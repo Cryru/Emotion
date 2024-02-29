@@ -188,7 +188,7 @@ namespace Emotion.Utility
         /// The check is a bit tricky as the equals operator will not
         /// invoke the right virtual method.
         /// </summary>
-        public static bool AreObjectsEqual(object a, object b)
+        public static bool AreObjectsEqual(object? a, object? b)
         {
             if (a != null) return a.Equals(b);
             if (b != null) return b.Equals(a);

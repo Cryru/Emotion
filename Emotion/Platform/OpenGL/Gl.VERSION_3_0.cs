@@ -20,6 +20,9 @@ using Khronos;
 // ReSharper disable JoinDeclarationAndInitializer
 // ReSharper disable InvalidXmlDocComment
 // ReSharper disable CommentTypo
+
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+
 namespace OpenGL
 {
     public partial class Gl
@@ -3160,7 +3163,6 @@ namespace OpenGL
             {
                 TypedReference refV = __makeref(v);
                 IntPtr refVPtr = *(IntPtr*) (&refV);
-
                 Delegates.pglVertexAttribI1iv(index, (int*) refVPtr.ToPointer());
             }
 #endif
@@ -7580,3 +7582,4 @@ namespace OpenGL
         }
     }
 }
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type

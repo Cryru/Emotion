@@ -363,7 +363,7 @@ public class ModelViewer : EditorPanel
         }
     }
 
-    protected void SetAnimationDropDownCallback(EditorDropDownItem item, EditorButton _)
+    protected void SetAnimationDropDownCallback(EditorDropDownItem item, EditorButton? _)
     {
         _obj.SetAnimation(item.Name);
     }

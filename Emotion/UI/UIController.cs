@@ -551,9 +551,9 @@ namespace Emotion.UI
         /// <summary>
         /// Get a list if window id and bounds. Used for debugging.
         /// </summary>
-        public (string, Rectangle)[] GetLayoutDescription()
+        public (string?, Rectangle)[] GetLayoutDescription()
         {
-            var layout = new List<(string, Rectangle)>
+            var layout = new List<(string?, Rectangle)>
             {
                 (Id, new Rectangle(Position, Size))
             };

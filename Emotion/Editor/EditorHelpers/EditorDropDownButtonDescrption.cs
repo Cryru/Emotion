@@ -14,6 +14,6 @@ namespace Emotion.Editor.EditorHelpers
 
     public class EditorDropDownCheckboxItem : EditorDropDownItem
     {
-        public Func<bool> Checked { get; set; }
+        public Func<bool> Checked { get; set; } = null!;
     }
 }

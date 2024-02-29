@@ -14,7 +14,7 @@ namespace Emotion.Editor.EditorHelpers;
 // Used in EditorListOfItemsWithSelection
 public class EditorListItemButton : UICallbackButton
 {
-    public string Text
+    public string? Text
     {
         get => _label.Text;
         set => _label.Text = value;

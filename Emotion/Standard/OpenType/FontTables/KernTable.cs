@@ -4,7 +4,7 @@ using Emotion.Utility;
 
 #endregion
 
-#nullable enable
+//#nullable enable
 
 namespace Emotion.Standard.OpenType.FontTables
 {

@@ -324,7 +324,7 @@ namespace Emotion.Standard.OpenType.FontTables
             if (commands != null && commands.Length != 0) combinedCommands.AddRange(commands);
 
             FontGlyphComponent[]? components = g.Components;
-            Assert(components != null);
+            AssertNotNull(components);
             for (var i = 0; i < components.Length; i++)
             {
                 FontGlyphComponent component = components[i];

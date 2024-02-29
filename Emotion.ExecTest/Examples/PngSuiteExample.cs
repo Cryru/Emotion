@@ -4,6 +4,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
+using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
 using Emotion.Utility;
@@ -20,7 +21,23 @@ namespace Emotion.ExecTest.Examples
 
         public void Update()
         {
-            Helpers.CameraWASDUpdate();
+            float speed = 0.35f;
+
+            Vector2 dir = Vector2.Zero;
+            if (Engine.Host.IsKeyHeld(Key.W)) dir.Y -= 1;
+            if (Engine.Host.IsKeyHeld(Key.A)) dir.X -= 1;
+            if (Engine.Host.IsKeyHeld(Key.S)) dir.Y += 1;
+            if (Engine.Host.IsKeyHeld(Key.D)) dir.X += 1;
+
+            if (Engine.Host.IsKeyHeld(Key.LeftShift)) speed *= 2;
+
+            dir *= new Vector2(speed, speed) * Engine.DeltaTime;
+            Engine.Renderer.Camera.Position += new Vector3(dir, 0);
+
+            float zoomDir = -Engine.Host.GetMouseScrollRelative() * 0.5f;
+            float zoom = Engine.Renderer.Camera.Zoom;
+            zoom += speed * zoomDir;
+            Engine.Renderer.Camera.Zoom = Maths.Clamp(zoom, 0.1f, 4f);
         }
 
         public void Draw(RenderComposer composer)

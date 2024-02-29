@@ -123,8 +123,10 @@ namespace Tests.Classes
 
         public class DisplacementTestWindow : UISolidColor
         {
-            public int Rotation { get; set; } = 45;
+            public new int Rotation { get; set; } = 45; // This test is older than base.Rotation
+
             public Vector3 Translation { get; set; }
+
             public Vector2 Scale { get; set; } = Vector2.One;
 
             protected override void AfterLayout()

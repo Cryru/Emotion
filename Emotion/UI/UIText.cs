@@ -55,7 +55,7 @@ namespace Emotion.UI
         /// <summary>
         /// The text to display.
         /// </summary>
-        public virtual string Text
+        public virtual string? Text
         {
             get => _text;
             set

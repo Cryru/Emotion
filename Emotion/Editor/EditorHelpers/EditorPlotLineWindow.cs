@@ -162,8 +162,8 @@ public class EditorPlotLineWindow : UIBaseWindow
         // todo: LineStrip render mode in RenderStream
         if (_plotData != null && _plotData.Ready && _data != null)
         {
-            Assert(_plotData.LinesVao != null);
-            Assert(_plotData.LinesVertexBuffer != null);
+            AssertNotNull(_plotData.LinesVao);
+            AssertNotNull(_plotData.LinesVertexBuffer);
 
             Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer);
             VertexArrayObject.EnsureBound(_plotData.LinesVao);

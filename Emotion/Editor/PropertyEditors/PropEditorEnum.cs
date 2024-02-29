@@ -25,10 +25,9 @@ namespace Emotion.Editor.PropertyEditors
         private string[] _enumValueNames;
 
         private Action<object?>? _callback;
-        private EditorButton? _button;
 
         private bool _isFlags;
-        private Enum _flagZeroValue;
+        private Enum? _flagZeroValue;
 
         public PropEditorEnum(Type enumType, bool nullable)
         {

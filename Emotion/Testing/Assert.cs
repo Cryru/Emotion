@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Emotion.Platform.Implementation.Win32;
+using Emotion.Utility;
 
 #endregion
 
@@ -20,9 +21,9 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
-    public static void Equal(object a, object b)
+    public static void Equal(object? a, object? b)
     {
-        if (!a.Equals(b)) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
+        if (!Helpers.AreObjectsEqual(a, b)) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
     }
 
     [Conditional("DEBUG")]
@@ -58,6 +59,9 @@ public static class Assert
     public static void NotNull([NotNull] object? obj, string? text = null)
     {
         if (obj == null) AssertFailed($"{text ?? "object"} was null");
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+        obj = null!;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
     }
 
     private static HashSet<string>? _ignoredAsserts;
@@ -134,6 +138,9 @@ public static class AssertWrapper
     public static void AssertNotNull([NotNull] object? obj)
     {
         Testing.Assert.True(obj != null);
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+        obj = null!;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
     }
 }
 

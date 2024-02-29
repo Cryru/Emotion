@@ -121,7 +121,7 @@ namespace Emotion.Game.World
             public MapQueryFilterArgs Filter;
             public ShapeFilterType InShape;
 
-            private WorldTree2DNode _currentNode;
+            private WorldTree2DNode? _currentNode;
             private Stack<WorldTree2DNode> _iterationStack;
 
             public BaseGameObject Current { get; private set; } = null!;
@@ -136,11 +136,10 @@ namespace Emotion.Game.World
 
             public void Dispose()
             {
-                if (_iterationStack != null)
-                {
-                    _iterationStackPool.Return(_iterationStack);
-                    _iterationStack = null;
-                }
+                AssertNotNull(_iterationStack); // Double dispose
+
+                _iterationStackPool.Return(_iterationStack);
+                _iterationStack = null!;
             }
 
             public bool MoveNext()
@@ -196,7 +195,7 @@ namespace Emotion.Game.World
             public MapQueryFilterArgs Filter;
             public ShapeFilterType InShape;
 
-            private WorldTree2DNode _currentNode;
+            private WorldTree2DNode? _currentNode;
             private Stack<WorldTree2DNode> _iterationStack;
 
             public ObjTypeFilter Current { get; private set; } = null!;
@@ -214,7 +213,7 @@ namespace Emotion.Game.World
                 if (_iterationStack != null)
                 {
                     _iterationStackPool.Return(_iterationStack);
-                    _iterationStack = null;
+                    _iterationStack = null!;
                 }
             }
 
@@ -300,7 +299,10 @@ namespace Emotion.Game.World
         public MapQueryEnumeratorShapeOnly<ShapeFilterType> ObjectsEnum<ShapeFilterType>(ShapeFilterType inShape, int layer = 0, ObjectState? inState = ObjectState.Alive)
             where ShapeFilterType : struct, IShape
         {
-            return new MapQueryEnumeratorShapeOnly<ShapeFilterType>(_worldTree.GetRootNodeForLayer(layer))
+            var rootNode = _worldTree?.GetRootNodeForLayer(layer);
+            AssertNotNull(rootNode); // WorldTree is not setup but already querying objects - map is not initialized.
+
+            return new MapQueryEnumeratorShapeOnly<ShapeFilterType>(rootNode)
             {
                 InShape = inShape,
                 Filter = new MapQueryFilterArgs
@@ -317,7 +319,10 @@ namespace Emotion.Game.World
             where ObjTypeFilter : BaseGameObject
             where ShapeFilterType : struct, IShape
         {
-            return new MapQueryEnumerator<ObjTypeFilter, ShapeFilterType>(_worldTree.GetRootNodeForLayer(layer))
+            var rootNode = _worldTree?.GetRootNodeForLayer(layer);
+            AssertNotNull(rootNode); // WorldTree is not setup but already querying objects - map is not initialized.
+
+            return new MapQueryEnumerator<ObjTypeFilter, ShapeFilterType>(rootNode)
             {
                 InShape = inShape,
                 Filter = new MapQueryFilterArgs
@@ -342,7 +347,7 @@ namespace Emotion.Game.World
         public struct MapQueryEnvelope<T1> : IMapForEachQuery
         {
             public MapQueryFilterArgs Filter;
-            public Action<BaseGameObject, T1>? Func;
+            public Action<BaseGameObject, T1?>? Func;
             public T1? Arg;
 
             public void Invoke(BaseGameObject obj)
@@ -358,7 +363,7 @@ namespace Emotion.Game.World
         public struct MapQueryEnvelope<ObjTypeFilter, T1> : IMapForEachQuery where ObjTypeFilter : BaseGameObject
         {
             public MapQueryFilterArgs Filter;
-            public Action<ObjTypeFilter, T1>? Func;
+            public Action<ObjTypeFilter, T1?>? Func;
             public T1? Arg;
 
             public void Invoke(BaseGameObject obj)
