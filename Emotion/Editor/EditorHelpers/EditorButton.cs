@@ -13,17 +13,11 @@ namespace Emotion.Editor.EditorHelpers;
 
 public class EditorButton : UICallbackButton
 {
-    public string? Text
+    public string Text
     {
-        get => _text;
-        set
-        {
-            _text = value;
-            if (_label != null) _label.Text = _text;
-        }
+        get => _label.Text;
+        set => _label.Text = value;
     }
-
-    private string? _text;
 
     public bool Enabled
     {
@@ -31,26 +25,21 @@ public class EditorButton : UICallbackButton
         set
         {
             _enabled = value;
-
-            if (Controller == null) return;
             RecalculateButtonColor();
         }
     }
 
     private bool _enabled = true;
 
-    #region Theme
-
-    public Color NormalColor = MapEditorColorPalette.ButtonColor;
-    public Color RolloverColor = MapEditorColorPalette.ActiveButtonColor;
-    public Color DisabledColor = MapEditorColorPalette.ButtonColorDisabled.SetAlpha(150);
-
-    #endregion
+    /// <summary>
+    /// Whether the button should have a background when it isn't active.
+    /// </summary>
+    public bool RenderNonActiveBackground = true;
 
     public object? UserData;
 
     private bool _activeMode;
-    private UIText _label = null!;
+    private UIText _label;
 
     public EditorButton(string label) : this()
     {
@@ -59,20 +48,8 @@ public class EditorButton : UICallbackButton
 
     public EditorButton()
     {
+        WindowColor = MapEditorColorPalette.ButtonColor;
         ScaleMode = UIScaleMode.FloatScale;
-        FillX = false;
-        FillY = false;
-
-        StretchX = true;
-        StretchY = true;
-        Paddings = new Rectangle(2, 1, 2, 1);
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
-
-        WindowColor = NormalColor;
 
         var txt = new UIText();
         txt.ParentAnchor = UIAnchor.CenterLeft;
@@ -82,16 +59,20 @@ public class EditorButton : UICallbackButton
         txt.Id = "buttonText";
         txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
         txt.IgnoreParentColor = true;
-        txt.Text = _text;
         _label = txt;
         AddChild(txt);
 
-        RecalculateButtonColor();
+        FillX = false;
+        FillY = false;
+
+        StretchX = true;
+        StretchY = true;
+        Paddings = new Rectangle(2, 1, 2, 1);
     }
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        c.RenderSprite(Bounds, _calculatedColor);
+        if (RenderNonActiveBackground || MouseInside) c.RenderSprite(Bounds, _calculatedColor);
         return base.RenderInternal(c);
     }
 
@@ -123,19 +104,21 @@ public class EditorButton : UICallbackButton
 
     private void RecalculateButtonColor()
     {
-        _label.IgnoreParentColor = Enabled;
         if (!Enabled)
         {
-            WindowColor = DisabledColor;
+            WindowColor = MapEditorColorPalette.ButtonColorDisabled.SetAlpha(150);
+            _label.IgnoreParentColor = false;
             return;
         }
 
         if (_activeMode)
         {
-            WindowColor = RolloverColor;
+            WindowColor = MapEditorColorPalette.ActiveButtonColor;
+            _label.IgnoreParentColor = true;
             return;
         }
 
-        WindowColor = MouseInside ? RolloverColor : NormalColor;
+        WindowColor = MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor;
+        _label.IgnoreParentColor = true;
     }
 }

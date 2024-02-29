@@ -979,11 +979,13 @@ public class XMLTests
     [Test]
     public void LoadingDocumentSerializedAsOneTypeAsItsBaseType() // BaseEditor uses this to load maps
     {
-        //var obj = new TypeInherit
-        //{
-        //	Val = 100,
-        //	Val2 = 120
-        //};
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+        var obj = new TypeInherit
+        {
+            Val = 100,
+            Val2 = 120
+        };
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
         // We don't serialize this obj here in order to prevent it from being cached by
         // the XML type handlers.
