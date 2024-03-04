@@ -90,6 +90,7 @@ public abstract partial class WorldBaseEditor
         topBar.WindowColor = MapEditorColorPalette.BarColor;
         topBar.Id = "EditorTopBar";
         topBar.UseNewLayoutSystem = true;
+        topBar.HandleInput = true;
 
         var mapName = new UIText();
         mapName.ParentAnchor = UIAnchor.CenterRight;
@@ -211,11 +212,11 @@ public abstract partial class WorldBaseEditor
                             if (!assetName.Contains(".xml")) return false;
 
                             string xmlTag;
-                            if (_mapType == typeof(Map2D))
+                            if (_mapType != typeof(Map2D) && _mapType.IsAssignableTo(typeof(Map2D)))
                             {
                                 xmlTag = "<Map2D";
                             }
-                            else if (_mapType == typeof(Map3D))
+                            else if (_mapType != typeof(Map3D) && _mapType.IsAssignableTo(typeof(Map3D)))
                             {
                                 xmlTag = "<Map3D";
                             }
