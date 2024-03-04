@@ -188,6 +188,7 @@ namespace Emotion.Game.ThreeDee.Editor
                 {
                     targetHeight = g3D.BoundingSphere.Radius / 2f;
                     targetHeight = Math.Max(targetHeight, 5f);
+                    targetHeight = Math.Min(targetHeight, 1000f);
                 }
 
                 float scale = targetHeight / height;
