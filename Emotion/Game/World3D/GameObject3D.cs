@@ -184,11 +184,9 @@ public partial class GameObject3D : BaseGameObject
             var boneMats = new Matrix4x4[boneCount];
             boneMats[0] = Matrix4x4.Identity;
             _boneMatricesPerMesh[i] = boneMats;
-            mesh.BuildRuntimeBoneCache();
         }
 
         _verticesCacheCollision = null;
-        _entity.CacheBounds(); // Ensure entity bounds are cached.
 
         // Update unit scale.
         Resized();

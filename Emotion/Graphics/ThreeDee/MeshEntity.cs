@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Linq;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
 
@@ -31,38 +30,23 @@ public class MeshEntity
     public bool BackFaceCulling { get; set; } = true;
 
     // Caches
-    private Dictionary<string, (Sphere, Cube)>? _cachedBounds;
+    private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
 
-    /// <summary>
-    /// Cached the bounding cubes and spheres for the object and all its animations.
-    /// </summary>
-    public void CacheBounds(bool force = false)
+    public void EnsureCachedBounds(string? anim, bool forceRecalc = false)
     {
-        if (force) _cachedBounds = null;
-        if (_cachedBounds != null) return;
+        if (anim == null) anim = "<null>";
+
+        if (!forceRecalc && _cachedBounds.ContainsKey(anim))
+            return;
 
         lock (this)
         {
-            if (_cachedBounds != null) return;
+            // Recheck after obtaining lock.
+            if (!forceRecalc && _cachedBounds.ContainsKey(anim))
+                return;
 
-            _cachedBounds = new();
-
-            CalculateBounds("<null>", out Sphere sphere, out Cube cube);
-            _cachedBounds.Add("<null>", (sphere, cube));
-
-            if (Animations == null) return;
-            for (var i = 0; i < Animations.Length; i++)
-            {
-                SkeletalAnimation anim = Animations[i];
-                if (_cachedBounds.ContainsKey(anim.Name))
-                {
-                    Engine.Log.Warning($"Duplicate animation '{anim.Name}' in entity {Name}", "3D", true);
-                    continue;
-                }
-
-                CalculateBounds(anim.Name, out Sphere sphereAnim, out Cube cubeAnim);
-                _cachedBounds.Add(anim.Name, (sphereAnim, cubeAnim));
-            }
+            CalculateBounds(anim, out Sphere sphere, out Cube cube);
+            _cachedBounds.Add(anim, (sphere, cube));
         }
     }
 
@@ -71,17 +55,8 @@ public class MeshEntity
     /// </summary>
     public void SetCachedBounds(string? anim, Sphere sphere, Cube cube)
     {
-        _cachedBounds ??= new();
         anim ??= "<null>";
         _cachedBounds.Add(anim, (sphere, cube));
-    }
-
-    /// <summary>
-    /// Get a list of all cached bounds.
-    /// </summary>
-    public string[]? GetCachedBoundKeys()
-    {
-        return _cachedBounds?.Keys.ToArray();
     }
 
     /// <summary>
@@ -92,8 +67,7 @@ public class MeshEntity
         sphere = new Sphere();
         cube = new Cube();
 
-        CacheBounds();
-        if (_cachedBounds == null) return;
+        EnsureCachedBounds(anim);
 
         lock (this)
         {
@@ -150,7 +124,13 @@ public class MeshEntity
             Mesh mesh = meshes[i];
             var boneCount = 1; // idx 0 is identity
             if (mesh.Bones != null) boneCount += mesh.Bones.Length;
-            boneMatricesPerMesh[i] = new Matrix4x4[boneCount];
+
+            var mats = new Matrix4x4[boneCount];
+            for (int m = 0; m < boneCount; m++)
+            {
+               mats[m] = Matrix4x4.Identity;
+            }
+            boneMatricesPerMesh[i] = mats;
         }
 
         for (var i = 0; i < meshes.Length; i++)
@@ -298,6 +278,7 @@ public class MeshEntity
             }
             else
             {
+                // note: not every bone is moved by the animation
                 SkeletonAnimChannel? channel = currentAnimation.GetMeshAnimBone(nodeName);
                 if (channel != null)
                     currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
@@ -308,12 +289,11 @@ public class MeshEntity
         for (var i = 0; i < meshes.Length; i++)
         {
             Mesh mesh = meshes[i];
-            if (mesh.Bones == null) continue;
+            MeshBone? meshBone = mesh.GetMeshBoneByName(nodeName);
+            if (meshBone == null) continue;
 
             Matrix4x4[] myMatrices = matrices[i];
-
-            AssertNotNull(mesh.BoneNameCache);
-            if (mesh.BoneNameCache.TryGetValue(nodeName, out MeshBone? meshBone)) myMatrices[meshBone.BoneIndex] = meshBone.OffsetMatrix * myMatrix;
+            myMatrices[meshBone.BoneIndex] = meshBone.OffsetMatrix * myMatrix;
         }
 
         if (node.Children == null) return;

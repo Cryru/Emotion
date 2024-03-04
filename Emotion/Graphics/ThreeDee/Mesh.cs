@@ -185,18 +185,31 @@ public class Mesh
     #region Cache
 
     [DontSerialize]
-    public Dictionary<string, MeshBone>? BoneNameCache;
+    protected Dictionary<string, MeshBone>? BoneNameCache;
 
-    public void BuildRuntimeBoneCache()
+    public MeshBone? GetMeshBoneByName(string name)
+    {
+        BuildRuntimeBoneCache();
+        if (BoneNameCache == null) return null;
+        BoneNameCache.TryGetValue(name, out MeshBone? meshBone);
+        return meshBone;
+    }
+
+    protected void BuildRuntimeBoneCache()
     {
         if (BoneNameCache != null) return;
         if (Bones == null) return;
 
-        BoneNameCache = new Dictionary<string, MeshBone>();
-        for (var i = 0; i < Bones.Length; i++)
+        lock(this)
         {
-            MeshBone bone = Bones[i];
-            BoneNameCache.Add(bone.Name, bone);
+            if (BoneNameCache != null) return;
+
+            BoneNameCache = new Dictionary<string, MeshBone>();
+            for (var i = 0; i < Bones.Length; i++)
+            {
+                MeshBone bone = Bones[i];
+                BoneNameCache.Add(bone.Name, bone);
+            }
         }
     }
 
