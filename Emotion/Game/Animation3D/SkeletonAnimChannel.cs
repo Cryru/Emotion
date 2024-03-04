@@ -39,7 +39,7 @@ namespace Emotion.Game.Animation3D
             return scale * rotate * translate;
         }
 
-        private int GetPositionAt(float timestamp)
+        private int GetPositionAt(ref float timestamp)
         {
             for (var i = 0; i < Positions.Length; i++)
             {
@@ -47,10 +47,12 @@ namespace Emotion.Game.Animation3D
                 if (key.Timestamp >= timestamp) return i == 0 ? 0 : i - 1;
             }
 
-            return 0;
+            ref MeshAnimBoneTranslation lastKey = ref Positions[^1];
+            timestamp = lastKey.Timestamp;
+            return Positions.Length - 2;
         }
 
-        private int GetRotationAt(float timestamp)
+        private int GetRotationAt(ref float timestamp)
         {
             for (var i = 0; i < Rotations.Length; i++)
             {
@@ -58,10 +60,12 @@ namespace Emotion.Game.Animation3D
                 if (key.Timestamp >= timestamp) return i == 0 ? 0 : i - 1;
             }
 
-            return 0;
+            ref MeshAnimBoneRotation lastKey = ref Rotations[^1];
+            timestamp = lastKey.Timestamp;
+            return Rotations.Length - 2;
         }
 
-        private int GetScaleAt(float timestamp)
+        private int GetScaleAt(ref float timestamp)
         {
             for (var i = 0; i < Scales.Length; i++)
             {
@@ -69,7 +73,9 @@ namespace Emotion.Game.Animation3D
                 if (key.Timestamp >= timestamp) return i == 0 ? 0 : i - 1;
             }
 
-            return 0;
+            ref MeshAnimBoneScale lastKey = ref Scales[^1];
+            timestamp = lastKey.Timestamp;
+            return Rotations.Length - 2;
         }
 
         private Matrix4x4 GetInterpolatedPosition(float timestamp)
@@ -77,7 +83,7 @@ namespace Emotion.Game.Animation3D
             if (Positions.Length == 0) return Matrix4x4.Identity;
             if (Positions.Length == 1) return Matrix4x4.CreateTranslation(Positions[0].Position);
 
-            int currentIndex = GetPositionAt(timestamp);
+            int currentIndex = GetPositionAt(ref timestamp);
             int nextIndex = currentIndex + 1;
             float t = Maths.FastInverseLerp(Positions[currentIndex].Timestamp, Positions[nextIndex].Timestamp, timestamp);
             Assert(t is >= 0.0f and <= 1.0f);
@@ -90,7 +96,7 @@ namespace Emotion.Game.Animation3D
             if (Rotations.Length == 0) return Matrix4x4.Identity;
             if (Rotations.Length == 1) return Matrix4x4.CreateFromQuaternion(Quaternion.Normalize(Rotations[0].Rotation));
 
-            int currentIndex = GetRotationAt(timestamp);
+            int currentIndex = GetRotationAt(ref timestamp);
             int nextIndex = currentIndex + 1;
             float t = Maths.FastInverseLerp(Rotations[currentIndex].Timestamp, Rotations[nextIndex].Timestamp, timestamp);
             Assert(t is >= 0.0f and <= 1.0f);
@@ -104,7 +110,7 @@ namespace Emotion.Game.Animation3D
             if (Scales.Length == 0) return Matrix4x4.Identity;
             if (Scales.Length == 1) return Matrix4x4.CreateScale(Scales[0].Scale);
 
-            int currentIndex = GetScaleAt(timestamp);
+            int currentIndex = GetScaleAt(ref timestamp);
             int nextIndex = currentIndex + 1;
             float t = Maths.FastInverseLerp(Scales[currentIndex].Timestamp, Scales[nextIndex].Timestamp, timestamp);
             Assert(t is >= 0.0f and <= 1.0f);
