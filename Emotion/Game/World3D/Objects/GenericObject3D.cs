@@ -16,7 +16,12 @@ public class GenericObject3D : GameObject3D
     [AssetFileName<MeshAsset>]
     public string? EntityPath;
 
-    private string? _setAnimationToOnLoad;
+    // Used for serializing the current animation,
+    // and for when the animation is set before the object is init
+    // (in which case the entity isn't loaded and we don't know what
+    // animations they have at all)
+    [DontShowInEditor]
+    public string? SetAnimationOnInit { get; set; }
 
     public override async Task LoadAssetsAsync()
     {
@@ -31,20 +36,15 @@ public class GenericObject3D : GameObject3D
     {
         base.Init();
 
-        if (_setAnimationToOnLoad != null)
-        {
-            SetAnimation(_setAnimationToOnLoad);
-            _setAnimationToOnLoad = null;
-        }
+        if (SetAnimationOnInit != CurrentAnimation)
+            SetAnimation(SetAnimationOnInit);
     }
 
-    public override void SetAnimation(string? name)
+    public new void SetAnimation(string? name)
     {
-        if (ObjectState == ObjectState.None && name != null)
-        {
-            _setAnimationToOnLoad = name;
+        SetAnimationOnInit = name;
+        if (ObjectState == ObjectState.None)
             return;
-        }
 
         base.SetAnimation(name);
     }
