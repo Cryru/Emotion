@@ -160,14 +160,6 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
     protected override void OnFieldEditorCreated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
     {
-        // bruh
-        if (field.ReflectionInfo.Name == "Entity")
-            for (var i = 0; i < _editorUIs.Count; i++)
-            {
-                IPropEditorGeneric editorUI = _editorUIs[i];
-                if (editorUI is PropEditorObject3DAnimationList animList) animList.EntityChanged();
-            }
-
         if (Object.PrefabOrigin == null) return;
 
         var valueDiffAlert = new MapEditorGameObjectPrefabValueDiff();
@@ -181,6 +173,14 @@ public sealed class MapEditorObjectPropertiesPanel : GenericPropertiesEditorPane
 
     protected override void OnFieldEditorUpdated(XMLFieldHandler field, IPropEditorGeneric? editor, FieldEditorWithLabel editorWithLabel)
     {
+        // bruh
+        if (field.ReflectionInfo.Name == "EntityPath")
+            for (var i = 0; i < _editorUIs.Count; i++)
+            {
+                IPropEditorGeneric editorUI = _editorUIs[i];
+                if (editorUI is PropEditorObject3DAnimationList animList) animList.EntityChanged();
+            }
+
         UIBaseWindow? diffAlert = editorWithLabel.GetWindowById("DiffAlert");
         if (diffAlert == null) return;
         diffAlert.Visible = Editor.IsPropertyDifferentFromPrefab(Object, field);
