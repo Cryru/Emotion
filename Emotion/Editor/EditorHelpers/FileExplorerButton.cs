@@ -131,6 +131,7 @@ public class FileExplorerButton : UICallbackButton
         {
             var obj3DPreview = new UIMeshEntityWindow();
             obj3DPreview.AssetPath = _fileName;
+            obj3DPreview.Async = true;
             obj3DPreview.ParentAnchor = UIAnchor.CenterCenter;
             obj3DPreview.Anchor = UIAnchor.CenterCenter;
 
