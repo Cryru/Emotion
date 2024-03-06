@@ -1103,6 +1103,8 @@ namespace Emotion.UI
 
         public bool VisibleAlongTree()
         {
+            if (Controller == null) return false;
+
             UIBaseWindow? parent = Parent;
             while (parent != null)
             {
