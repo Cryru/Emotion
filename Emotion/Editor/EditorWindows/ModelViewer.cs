@@ -319,7 +319,7 @@ public class ModelViewer : EditorPanel
         UpdateAnimationList();
 
         var label = (MapEditorLabel?) GetWindowById("ModelLabel");
-        if (label != null) label.Text = $"Entity: {entity.Name}\nRadius: {_obj.BoundingSphere.Radius}";
+        if (label != null) label.Text = $"Entity: {entity?.Name}\nRadius: {_obj.BoundingSphere.Radius}";
 
         var exportButton = (EditorButton?) GetWindowById("ButtonExportEm3");
         if (exportButton != null) exportButton.Enabled = true;
