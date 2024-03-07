@@ -20,6 +20,7 @@ using Emotion.IO;
 using Emotion.UI;
 using Emotion.Utility;
 using OpenGL;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -113,7 +114,7 @@ public sealed class MeshEntityBatchRenderer
 
     #region Shadows
 
-    public const bool UseVSMShadows = true;
+    public const bool UseVSMShadows = false;
     public const bool ShadowsCullFrontFace = false;
 
     public class ShadowCascadeData
@@ -132,6 +133,8 @@ public sealed class MeshEntityBatchRenderer
 
         public string ViewProjUniformName;
         public string UnitToTexelScaleUniformName;
+
+        public Vector3[] Frustum = new Vector3[8];
 
         public ShadowCascadeData(int cascadeId)
         {
@@ -502,6 +505,13 @@ public sealed class MeshEntityBatchRenderer
             {
                 var cascade = _shadowCascades[i];
                 if (cascade.Buffer == null) continue;
+
+                if (i > 0)
+                {
+                    c.RenderToAndClear(cascade.Buffer);
+                    c.RenderTo(null);
+                    continue;
+                }
 
                 _renderingShadowmap = i;
                 c.RenderToAndClear(cascade.Buffer);
@@ -1058,7 +1068,7 @@ public sealed class MeshEntityBatchRenderer
         Matrix4x4 cameraView = c.Camera.ViewMatrix;
         var cameraViewProjInv = (cameraView * cameraProjection).Inverted();
 
-        Span<Vector3> corners = new Vector3[8];
+        Span<Vector3> corners = stackalloc Vector3[8];
         CameraBase.GetCameraFrustum3D(corners, cameraViewProjInv);
 
         // Calculate the centroid of the view frustum slice
@@ -1107,7 +1117,7 @@ public sealed class MeshEntityBatchRenderer
         //}
 
         // The projection of the light encompasses the frustum in a square.
-        var lightProjection = Matrix4x4.CreateOrthographicOffCenter(-radius, radius, -radius, radius, -radius * 6, radius * 6);
+        var lightProjection = Matrix4x4.CreateOrthographicOffCenter(-radius, radius, -radius, radius, radius * 3, radius * 6);
         cascade.LightViewProj = lightView * lightProjection;
 
         if (ShadowDebugInfo.CascadeInfo == cascade.CascadeId)
@@ -1123,6 +1133,29 @@ public sealed class MeshEntityBatchRenderer
 
             ShadowDebugInfo.CascadeTexture = cascade.Buffer;
         }
+
+        {
+            Vector3[] cornersForDebug = cascade.Frustum;
+            CameraBase.GetCameraFrustum3D(cornersForDebug, (lightView * lightProjection).Inverted());
+        }
+    }
+
+    public void DebugRenderShadowCascadeFrustums(RenderComposer c)
+    {
+        for (int i = 0; i < _shadowCascades.Length; i++)
+        {
+            var cascade = _shadowCascades[i];
+            Color color = Color.White;
+            if (i == 0)
+                color = Color.PrettyRed;
+            else if (i == 1)
+                color = Color.PrettyGreen;
+            else if (i == 2)
+                color = Color.PrettyBlue;
+            else if (i == 3)
+                color = Color.PrettyYellow;
+            c.RenderFrustum(cascade.Frustum, color);
+        }
     }
 
     #endregion
@@ -1131,9 +1164,17 @@ public sealed class MeshEntityBatchRenderer
 public class ShadowDebugPanel : EditorPanel
 {
     private UISolidColor _drawArea;
-    
+    private ShaderAsset? _depthShader;
+
     public ShadowDebugPanel() : base("Shadow Debug")
     {
+    }
+
+    protected override async Task LoadContent()
+    {
+        var depthShader = await Engine.AssetLoader.GetAsync<ShaderAsset>("Shaders/RenderDepth.xml");
+        _depthShader = depthShader;
+        await base.LoadContent();
     }
 
     public override void AttachedToController(UIController controller)
@@ -1154,17 +1195,18 @@ public class ShadowDebugPanel : EditorPanel
 
     protected override void AfterRenderChildren(RenderComposer c)
     {
+        if (_depthShader == null) return;
+
         var shadowDebug = Engine.Renderer.MeshEntityRenderer.ShadowDebugInfo;
 
-        Vector3[] corners = new Vector3[8];
-        CameraBase.GetCameraFrustum3D(corners, shadowDebug.GlobalShadowMatrix.Inverted());
-
-        RenderFrustum(c, corners, Color.White);
-
-        var shadowCascadeCorners = shadowDebug.CascadeFrustumCorners;
-        RenderFrustum(c, shadowCascadeCorners, Color.Red);
+        var shader = _depthShader.Shader;
+        //c.SetShader(shader);
+        //shader.SetUniformFloat("zNear", shadowDebug.ShadowMapNear);
+        //shader.SetUniformFloat("zFar", shadowDebug.ShadowMapFar);
 
         c.RenderSprite(Vector2.Zero, new Vector2(256), Color.White, shadowDebug.CascadeTexture.DepthStencilAttachment);
+
+        //c.SetShader(null);
     }
 
     private void RenderFrustum(RenderComposer c, Vector3[] corners, Color col)

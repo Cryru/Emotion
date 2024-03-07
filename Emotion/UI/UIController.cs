@@ -399,7 +399,7 @@ namespace Emotion.UI
                 // However I don't believe Emotion will send out both click events?
                 // Not sure how the platform code handles this, in any case we don't want to
                 // call event handlers of destroyed windows, so lets return out.
-                Assert(_myMouseFocus.Controller != null);
+                //Assert(_myMouseFocus.Controller != null);
                 if (_myMouseFocus.Controller == null) return true;
 
                 Vector2 mousePos = Engine.Host.MousePosition;

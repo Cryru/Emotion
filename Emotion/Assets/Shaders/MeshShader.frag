@@ -9,8 +9,6 @@ uniform mat4 viewMatrix;
 #define CASCADE_RESOLUTION vec2(2048.0)
 #define CASCADE_COUNT 4
 
-#define VSM 1
-
 #ifdef VSM
 #define CascadeSamplerType sampler2D
 #else
@@ -224,8 +222,8 @@ void main()
     objectColor = ApplyColorTint(objectColor, objectTint);
 
     // Cascade debug
-    //int cascade = GetCurrentShadowCascade();
-    //objectColor = GetCascadeDebugColor(cascade);
+    int cascade = GetCurrentShadowCascade();
+    objectColor = GetCascadeDebugColor(cascade);
 
     // Normal debug
     // objectColor = vec4(fragNormal.x, fragNormal.y, fragNormal.z, 1.0);

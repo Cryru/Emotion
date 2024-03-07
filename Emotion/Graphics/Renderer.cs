@@ -118,12 +118,10 @@ namespace Emotion.Graphics
 
         private CameraBase _camera;
 
-#if DEBUG
         /// <summary>
         /// Camera used to debug the current camera.
         /// </summary>
         public DebugCamera DebugCamera;
-#endif
 
         /// <summary>
         /// The stack of frame buffers.
@@ -287,9 +285,8 @@ namespace Emotion.Graphics
             ApplySettings();
             UpdateCamera();
 
-#if DEBUG
-            Engine.Host.OnKey.AddListener(DebugFunctionalityKeyInput);
-#endif
+            if (Engine.Configuration.DebugMode)
+                Engine.Host.OnKey.AddListener(DebugFunctionalityKeyInput);
         }
 
         #region Event Handles and Sizing
@@ -438,20 +435,14 @@ namespace Emotion.Graphics
             // Check if running on the GL Thread.
             Assert(GLThread.IsGLThread());
 
-#if DEBUG
             if (DebugCamera != null)
             {
                 SetUseViewMatrix(true);
-                Rectangle actualCameraBounds = Camera.GetCameraFrustum();
-                RenderOutline(actualCameraBounds, Color.Red);
-                RenderCircle(Camera.Position, 5, Color.Red, true);
-                RenderLine(Camera.Position, actualCameraBounds.TopLeft.ToVec3(), Color.Red);
-                RenderLine(Camera.Position, actualCameraBounds.TopRight.ToVec3(), Color.Red);
-                RenderLine(Camera.Position, actualCameraBounds.BottomLeft.ToVec3(), Color.Red);
-                RenderLine(Camera.Position, actualCameraBounds.BottomRight.ToVec3(), Color.Red);
+                Span<Vector3> frustumCorners = stackalloc Vector3[8];
+                Camera.GetCameraFrustum3D(frustumCorners);
+                RenderFrustum(frustumCorners, Color.Magenta);
+                MeshEntityRenderer.DebugRenderShadowCascadeFrustums(this);
             }
-
-#endif
 
             RenderDebugObjects();
 
@@ -477,9 +468,7 @@ namespace Emotion.Graphics
         public void UpdateCamera()
         {
             Camera.Update();
-#if DEBUG
             DebugCamera?.Update();
-#endif
         }
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
@@ -520,10 +509,8 @@ namespace Emotion.Graphics
             bool viewMatrixEnabled = Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault();
 
             CameraBase cameraToGetProjectionFrom = Camera;
-#if DEBUG
-            // todo: Debug camera 3d
+
             if (DebugCamera != null) cameraToGetProjectionFrom = DebugCamera;
-#endif
 
             Matrix4x4 projectionMatrix;
             switch (Engine.Renderer.CurrentState.ProjectionBehavior.GetValueOrDefault())
@@ -548,13 +535,12 @@ namespace Emotion.Graphics
                 return;
             }
 
-#if DEBUG
+            // All the debug camera does is replace the view matrix in the shader.
             if (DebugCamera != null)
             {
                 CurrentState.Shader.SetUniformMatrix4("viewMatrix", DebugCamera.ViewMatrix);
                 return;
             }
-#endif
 
             CurrentState.Shader.SetUniformMatrix4("viewMatrix", Camera.ViewMatrix);
         }
@@ -633,7 +619,6 @@ namespace Emotion.Graphics
             }
         }
 
-#if DEBUG
         private bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
         {
             if (state != KeyStatus.Down) return true;
@@ -648,16 +633,16 @@ namespace Emotion.Graphics
             if (DebugCamera != null)
             {
                 Engine.Log.Info("Debug camera turned off.", MessageSource.Debug);
+                DebugCamera.Detach();
                 DebugCamera.Dispose();
                 DebugCamera = null;
                 return;
             }
 
-            DebugCamera = new DebugCamera(Camera.Position, Camera.Zoom);
-            Engine.Log.Info("Debug camera turned on. Use the numpad keys 8462 to move and mouse scroll to zoom.", MessageSource.Debug);
+            DebugCamera = new DebugCamera(Camera.Position, Camera.LookAt, Camera.Zoom);
+            DebugCamera.Attach();
+            Engine.Log.Info("Debug camera turned on. Use WASD and the mouse to move around. Debug camera input is disabled while holding [Alt].", MessageSource.Debug);
         }
-
-#endif
 
         #endregion
     }

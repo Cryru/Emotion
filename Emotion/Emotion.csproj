@@ -83,6 +83,8 @@
     <None Remove="Assets\Shaders\MeshShader.xml" />
     <None Remove="Assets\Shaders\OutlineShader.frag" />
     <None Remove="Assets\Shaders\OutlineShader.xml" />
+    <None Remove="Assets\Shaders\RenderDepth.frag" />
+    <None Remove="Assets\Shaders\RenderDepth.xml" />
     <None Remove="Assets\Shaders\RoundedRectangle.frag" />
     <None Remove="Assets\Shaders\RoundedRectangle.xml" />
     <None Remove="Assets\Shaders\TextureColorMask.frag" />
@@ -226,6 +228,8 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\ColorHelpers.c" />
+    <EmbeddedResource Include="Assets\Shaders\RenderDepth.frag" />
+    <EmbeddedResource Include="Assets\Shaders\RenderDepth.xml" />
     <EmbeddedResource Include="Assets\Shaders\MeshShader.frag" />
     <EmbeddedResource Include="Assets\Shaders\MeshShader.vert" />
     <EmbeddedResource Include="Assets\Shaders\MeshShader.xml" />

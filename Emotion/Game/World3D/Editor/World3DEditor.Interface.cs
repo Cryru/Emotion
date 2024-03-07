@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Editor.EditorHelpers;
+using Emotion.Graphics.Batches3D;
 using Emotion.UI;
 
 #endregion
@@ -29,6 +30,16 @@ public partial class World3DEditor
                     _editUI!.AddChild(panel);
                 },
                 Enabled = () => map != null
+            },
+            new EditorDropDownItem
+            {
+                Name = "Shadow Debug",
+                Click = (_, __) =>
+                {
+                    AssertNotNull(map);
+                    var panel = new ShadowDebugPanel();
+                    _editUI!.AddChild(panel);
+                }
             },
         });
 

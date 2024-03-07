@@ -7,36 +7,23 @@ using Emotion.Utility;
 
 namespace Emotion.Graphics.Camera
 {
-    public class DebugCamera : PixelArtCamera
+    public class DebugCamera : Camera3D
     {
-        public float Speed = 0.35f;
-
-        public DebugCamera(Vector3 position, float zoom = 1) : base(position, zoom)
+        public DebugCamera(Vector3 position, Vector3 lookAt, float zoom = 1) : base(position, zoom, KeyListenerType.EditorCamera)
         {
-            Engine.Host.OnMouseScroll += OnMouseScroll;
+            LookAt = lookAt;
         }
 
-        private void OnMouseScroll(float val)
+        public override bool CameraKeyHandler(Key key, KeyStatus status)
         {
-            Zoom = Maths.Clamp(Zoom + 0.25f * val, 0.25f, 4);
-        }
-
-        public override void Dispose()
-        {
-            Engine.Host.OnMouseScroll -= OnMouseScroll;
-            base.Dispose();
+            bool propagateInput = base.CameraKeyHandler(key, status);
+            if (Engine.Host.IsAltModifierHeld()) return true;
+            return propagateInput;
         }
 
         public override void Update()
         {
-            Vector2 dir = Vector2.Zero;
-            if (Engine.Host.IsKeyHeld(Key.Kp8)) dir.Y -= 1;
-            if (Engine.Host.IsKeyHeld(Key.Kp4)) dir.X -= 1;
-            if (Engine.Host.IsKeyHeld(Key.Kp2)) dir.Y += 1;
-            if (Engine.Host.IsKeyHeld(Key.Kp6)) dir.X += 1;
-
-            dir *= new Vector2(Speed) * Engine.DeltaTime;
-            Position += new Vector3(dir, 0);
+            if (Engine.Host.IsAltModifierHeld()) return;
             base.Update();
         }
     }
