@@ -105,6 +105,8 @@ namespace Emotion.IO
             Compile();
         }
 
+        private Dictionary<string, ShaderAsset> _variations = new();
+
         /// <summary>
         /// Create a shader variation by compiling it with a specified compile constant
         /// constant. The asset created by this function isn't managed by the AssetLoader.
@@ -112,14 +114,21 @@ namespace Emotion.IO
         /// <returns></returns>
         public ShaderAsset GetShaderVariation(string compileConstant)
         {
-            var newAsset = new ShaderAsset
+            lock (_variations)
             {
-                Content = Content,
-                Name = $"{Name} #{compileConstant}"
-            };
-            newAsset.Compile(compileConstant);
-            newAsset.CompilationConstant = compileConstant;
-            return newAsset;
+                if (_variations.TryGetValue(compileConstant, out ShaderAsset shaderAsset)) return shaderAsset;
+
+                var newAsset = new ShaderAsset
+                {
+                    Content = Content,
+                    Name = $"{Name} #{compileConstant}"
+                };
+                newAsset.Compile(compileConstant);
+                newAsset.CompilationConstant = compileConstant;
+                _variations.Add(compileConstant, newAsset);
+
+                return newAsset;
+            }
         }
 
         private void Compile(string compileConstant = null)
