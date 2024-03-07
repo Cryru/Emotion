@@ -249,7 +249,7 @@ public sealed class MeshEntityBatchRenderer
     }
 
     // flatten the hierarchy
-    public void SubmitObjectForRendering(GameObject3D obj)
+    public void SubmitObjectForRendering(GameObject3D obj, MeshEntityMetaState metaState)
     {
         if (!_inScene) return;
 
@@ -258,7 +258,6 @@ public sealed class MeshEntityBatchRenderer
         if (entity == null) return;
 
         // Invalid
-        var metaState = obj.EntityMetaState;
         if (metaState == null) return;
 
         // No meshes to render
@@ -335,37 +334,47 @@ public sealed class MeshEntityBatchRenderer
                 _shadersUsedList.Add(currentShader);
             }
 
-            // Add to render pass
-            if (!objIsTransparent) // Opaque objects are grouped by pipeline state and then mesh usage
+            if (objIsTransparent)
             {
+                // Transparent objects are just inserted into a flat list to be sorted later. No batching.
+                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
+                instanceRegistration.Mesh = mesh;
+                instanceRegistration.Shader = currentShader;
+                instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
+                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
+                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+            }
+            else
+            {
+                // Opaque objects are grouped by pipeline state and then mesh usage
                 StructArenaAllocator<MeshRenderPipelineStateGroup> shaderGroupPool = _mainPassShaderGroups;
 
                 // Get the pipeline group this mesh will use. (same pass, same pipe state)
                 ref MeshRenderPipelineStateGroup pipelineGroup = ref shaderGroupPool[0];
-                var shaderHash = currentShader.GetHashCode();
-                if (_pipelineBatchLookup.ContainsKey(shaderHash))
+                int shaderHash = currentShader.GetHashCode();
+                int pipelineGroupHash = HashCode.Combine(shaderHash);
+                if (_pipelineBatchLookup.ContainsKey(pipelineGroupHash))
                 {
-                    int key = _pipelineBatchLookup[shaderHash];
+                    int key = _pipelineBatchLookup[pipelineGroupHash];
                     pipelineGroup = ref shaderGroupPool[key];
                 }
                 else  // create new
                 {
                     pipelineGroup = ref shaderGroupPool.Allocate(out int thisShaderGroupIndex);
                     pipelineGroup.Shader = currentShader;
-                    pipelineGroup.MeshRenderBatchLL_Start = -1;
-                    pipelineGroup.MeshRenderBatchLL_End = -1;
+                    pipelineGroup.MeshRenderBatchList.Reset();
 
                     // Assuming that the overwritten shader will require all meshes using it to upload state.
                     // AKA that a custom shader is custom for everyone that uses it, which is true unless the
                     // custom shader is a base mesh shader, but that's stupid.
                     pipelineGroup.UploadMetaStateToShader = overwrittenShader;
 
-                    _pipelineBatchLookup.Add(shaderHash, thisShaderGroupIndex);
+                    _pipelineBatchLookup.Add(pipelineGroupHash, thisShaderGroupIndex);
                 }
 
                 // Get the mesh batch for this pipeline state. (same mesh and same pipe state)
                 ref MeshRenderMeshBatch meshBatch = ref _renderBatchPool[0];
-                int meshShaderGroupHash = HashCode.Combine(mesh, shaderHash);
+                int meshShaderGroupHash = HashCode.Combine(mesh, pipelineGroupHash);
                 if (_meshShaderGroupBatchLookup.ContainsKey(meshShaderGroupHash))
                 {
                     int key = _meshShaderGroupBatchLookup[meshShaderGroupHash];
@@ -375,51 +384,17 @@ public sealed class MeshEntityBatchRenderer
                 {
                     meshBatch = ref _renderBatchPool.Allocate(out int thisMeshGroupIndex);
                     meshBatch.Mesh = mesh;
-                    meshBatch.NextRenderBatch = -1;
-                    meshBatch.MeshInstanceLL_Start = -1;
-                    meshBatch.MeshInstanceLL_End = -1;
+                    meshBatch.MeshInstanceList.Reset();
+                    pipelineGroup.MeshRenderBatchList.AddToList(thisMeshGroupIndex, _renderBatchPool);
 
                     _meshShaderGroupBatchLookup.Add(meshShaderGroupHash, thisMeshGroupIndex);
-
-                    // Attach to the pipeline linked list
-                    if (pipelineGroup.MeshRenderBatchLL_Start == -1) pipelineGroup.MeshRenderBatchLL_Start = thisMeshGroupIndex;
-                    if (pipelineGroup.MeshRenderBatchLL_End == -1)
-                    {
-                        pipelineGroup.MeshRenderBatchLL_End = thisMeshGroupIndex;
-                    }
-                    else
-                    {
-                        ref var lastBatch = ref _renderBatchPool[pipelineGroup.MeshRenderBatchLL_End];
-                        lastBatch.NextRenderBatch = thisMeshGroupIndex;
-                        pipelineGroup.MeshRenderBatchLL_End = thisMeshGroupIndex;
-                    }
                 }
 
                 // Create a instance of the mesh data. (unique props for this instance of the mesh)
                 ref RenderInstanceMeshData instanceRegistration = ref _meshDataPool.Allocate(out int indexOfThisMeshData);
                 instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
                 instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
-                instanceRegistration.NextMesh = -1;
-                if (meshBatch.MeshInstanceLL_Start == -1) meshBatch.MeshInstanceLL_Start = indexOfThisMeshData;
-                if (meshBatch.MeshInstanceLL_End == -1)
-                {
-                    meshBatch.MeshInstanceLL_End = indexOfThisMeshData;
-                }
-                else
-                {
-                    ref var lastBatch = ref _meshDataPool[meshBatch.MeshInstanceLL_End];
-                    lastBatch.NextMesh = indexOfThisMeshData;
-                    meshBatch.MeshInstanceLL_End = indexOfThisMeshData;
-                }
-            }
-            else // Transparent objects are just inserted into a flat list to be sorted later. No batching.
-            {
-                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
-                instanceRegistration.Mesh = mesh;
-                instanceRegistration.Shader = currentShader;
-                instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
-                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
-                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+                meshBatch.MeshInstanceList.AddToList(indexOfThisMeshData, _meshDataPool);
             }
         }
     }
@@ -645,7 +620,7 @@ public sealed class MeshEntityBatchRenderer
 
             // each mesh batch in this pipeline
             // these are parameters shared by all instances of that mesh in the scene
-            int meshBatchIdx = pipelineState.MeshRenderBatchLL_Start;
+            int meshBatchIdx = pipelineState.MeshRenderBatchList.StartIndex;
             while (meshBatchIdx != -1)
             {
                 ref MeshRenderMeshBatch batch = ref _renderBatchPool[meshBatchIdx];
@@ -661,7 +636,7 @@ public sealed class MeshEntityBatchRenderer
 
                 // render each instance of the mesh
                 // todo: instanced rendering
-                int instanceIdx = batch.MeshInstanceLL_Start;
+                int instanceIdx = batch.MeshInstanceList.StartIndex;
                 while (instanceIdx != -1)
                 {
                     ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
@@ -717,10 +692,10 @@ public sealed class MeshEntityBatchRenderer
 
                     c.PopModelMatrix();
 
-                    instanceIdx = instance.NextMesh;
+                    instanceIdx = instance.NextItem;
                 }
 
-                meshBatchIdx = batch.NextRenderBatch;
+                meshBatchIdx = batch.NextItem;
             }
         }
 
@@ -1058,7 +1033,7 @@ public sealed class MeshEntityBatchRenderer
         Matrix4x4 cameraView = c.Camera.ViewMatrix;
         var cameraViewProjInv = (cameraView * cameraProjection).Inverted();
 
-        Span<Vector3> corners = new Vector3[8];
+        Span<Vector3> corners = stackalloc Vector3[8];
         CameraBase.GetCameraFrustum3D(corners, cameraViewProjInv);
 
         // Calculate the centroid of the view frustum slice
@@ -1131,7 +1106,7 @@ public sealed class MeshEntityBatchRenderer
 public class ShadowDebugPanel : EditorPanel
 {
     private UISolidColor _drawArea;
-    
+
     public ShadowDebugPanel() : base("Shadow Debug")
     {
     }
@@ -1156,7 +1131,7 @@ public class ShadowDebugPanel : EditorPanel
     {
         var shadowDebug = Engine.Renderer.MeshEntityRenderer.ShadowDebugInfo;
 
-        Vector3[] corners = new Vector3[8];
+        Span<Vector3> corners = stackalloc Vector3[8];
         CameraBase.GetCameraFrustum3D(corners, shadowDebug.GlobalShadowMatrix.Inverted());
 
         RenderFrustum(c, corners, Color.White);
@@ -1167,7 +1142,7 @@ public class ShadowDebugPanel : EditorPanel
         c.RenderSprite(Vector2.Zero, new Vector2(256), Color.White, shadowDebug.CascadeTexture.DepthStencilAttachment);
     }
 
-    private void RenderFrustum(RenderComposer c, Vector3[] corners, Color col)
+    private void RenderFrustum(RenderComposer c, Span<Vector3> corners, Color col)
     {
         Vector2 worldMin = new Vector2(-1_000);
         Vector2 worldMax = new Vector2(1_000);
@@ -1185,12 +1160,12 @@ public class ShadowDebugPanel : EditorPanel
         c.RenderLine(corners[1], corners[2], col);
         c.RenderLine(corners[2], corners[3], col);
         c.RenderLine(corners[3], corners[0], col);
-                                             
+
         c.RenderLine(corners[4], corners[5], col);
         c.RenderLine(corners[5], corners[6], col);
         c.RenderLine(corners[6], corners[7], col);
         c.RenderLine(corners[7], corners[4], col);
-                                             
+
         c.RenderLine(corners[0], corners[4], col);
         c.RenderLine(corners[1], corners[5], col);
         c.RenderLine(corners[2], corners[6], col);

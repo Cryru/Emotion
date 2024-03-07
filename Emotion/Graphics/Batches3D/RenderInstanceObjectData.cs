@@ -7,15 +7,14 @@ using Emotion.Game.World;
 
 #endregion
 
-namespace Emotion.Graphics.Batches3D
+namespace Emotion.Graphics.Batches3D;
+
+// Per GameObject3D
+public struct RenderInstanceObjectData
 {
-    // Per entity
-    public struct RenderInstanceObjectData
-    {
-        public bool BackfaceCulling;
-        public MeshEntityMetaState MetaState;
-        public Matrix4x4 ModelMatrix;
-        public float DistanceToCamera;
-        public ObjectFlags Flags;
-    }
+    public bool BackfaceCulling;
+    public MeshEntityMetaState MetaState;
+    public Matrix4x4 ModelMatrix;
+    public float DistanceToCamera;
+    public ObjectFlags Flags;
 }
