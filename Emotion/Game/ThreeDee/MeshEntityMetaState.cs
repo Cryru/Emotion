@@ -57,6 +57,12 @@ public class MeshEntityMetaState
         ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(path);
     }
 
+    public void SetShader(ShaderAsset asset)
+    {
+        _shaderParameters = new();
+        ShaderAsset = asset;
+    }
+
     public void SetShaderParam<T>(string name, T value) where T : struct
     {
         if (_shaderParameters == null) return;

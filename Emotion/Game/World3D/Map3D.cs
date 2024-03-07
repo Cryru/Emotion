@@ -59,6 +59,8 @@ public class Map3D : BaseMap
         c.MeshEntityRenderer.StartScene(c);
         // todo: frustum culling
         // todo: in the future the shadow frustums will require separate ones
+        // todo: maybe a better solution would be to pass the map into the renderer and have it extract
+        // the objects and frustum call (this would also prob mean that .Render() is useless)
         foreach (var obj in ObjectsEnum())
         {
             obj.Render(c);
