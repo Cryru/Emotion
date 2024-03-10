@@ -80,6 +80,16 @@ public partial class GameObject3D : BaseGameObject
         get => _bCubeBase.Transform(GetModelMatrix());
     }
 
+    /// <summary>
+    /// Axis aligned cube that encompasses the whole object.
+    /// </summary>
+    public Cube GetBounds3DForAnimation(string? animationName, bool ignoreRotation = false)
+    {
+        if (Entity == null) return new Cube();
+        Entity.GetBounds(animationName, out Sphere _, out Cube c);
+        return c.Transform(GetModelMatrix(ignoreRotation));
+    }
+
     protected Sphere _bSphereBase;
     protected Cube _bCubeBase;
 
