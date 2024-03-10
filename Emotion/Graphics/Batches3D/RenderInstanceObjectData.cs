@@ -13,6 +13,7 @@ namespace Emotion.Graphics.Batches3D;
 public struct RenderInstanceObjectData
 {
     public bool BackfaceCulling;
+    public bool BackfaceCullingFrontFace;
     public MeshEntityMetaState MetaState;
     public Matrix4x4 ModelMatrix;
     public float DistanceToCamera;

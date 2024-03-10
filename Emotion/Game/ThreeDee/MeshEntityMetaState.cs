@@ -36,9 +36,10 @@ public class MeshEntityMetaState
     /// </summary>
     public Color Tint = Color.White;
 
-    public string? ShaderName;
-    public ShaderAsset? ShaderAsset;
+    public ShaderAsset? ShaderAsset { get; private set; }
     private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
+
+    public RenderState? CustomRenderState;
 
     public MeshEntityMetaState(MeshEntity? entity)
     {
