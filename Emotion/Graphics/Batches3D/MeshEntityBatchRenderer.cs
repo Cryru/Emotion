@@ -527,8 +527,6 @@ public sealed class MeshEntityBatchRenderer
     {
         if (_meshDataPoolTransparent.Length == 0) return;
 
-        bool backfaceCulling = false; // todo: Move to render state.
-
         for (int i = 0; i < _meshDataPoolTransparent.Length; i++)
         {
             ref RenderInstanceMeshDataTransparent meshInstance = ref _meshDataPoolTransparent[i];
@@ -568,26 +566,7 @@ public sealed class MeshEntityBatchRenderer
             if (meshInstance.UploadMetaStateToShader)
                 objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-            // todo: render stream state
-            bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
-            if (changeBackcull)
-            {
-                if (objectData.BackfaceCulling)
-                {
-                    Gl.Enable(EnableCap.CullFace);
-                    if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
-                        Gl.CullFace(CullFaceMode.Back);
-                    else
-                        Gl.CullFace(CullFaceMode.Front);
-                    Gl.FrontFace(FrontFaceDirection.Ccw);
-                    backfaceCulling = true;
-                }
-                else
-                {
-                    Gl.Disable(EnableCap.CullFace);
-                    backfaceCulling = false;
-                }
-            }
+            c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
 
             // Render geometry
             VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
@@ -599,15 +578,14 @@ public sealed class MeshEntityBatchRenderer
             c.PopModelMatrix();
         }
 
-        Engine.Renderer.SetShader(null);
-        if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        c.SetShader(null);
+        c.SetFaceCulling(false, false);
     }
 
     private void RenderMainPass(RenderComposer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
     {
         if (groupsInPass.Length == 0) return;
 
-        bool backfaceCulling = false; // todo: Move to render state.
         for (int i = 0; i < groupsInPass.Length; i++) // for each pipeline
         {
             ref MeshRenderPipelineStateGroup pipelineState = ref groupsInPass[i];
@@ -662,26 +640,10 @@ public sealed class MeshEntityBatchRenderer
                     if (pipelineState.UploadMetaStateToShader)
                         objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-                    // todo: render stream state
-                    bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
-                    if (changeBackcull)
-                    {
-                        if (objectData.BackfaceCulling)
-                        {
-                            Gl.Enable(EnableCap.CullFace);
-                            if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
-                                Gl.CullFace(CullFaceMode.Back);
-                            else
-                                Gl.CullFace(CullFaceMode.Front);
-                            Gl.FrontFace(FrontFaceDirection.Ccw);
-                            backfaceCulling = true;
-                        }
-                        else
-                        {
-                            Gl.Disable(EnableCap.CullFace);
-                            backfaceCulling = false;
-                        }
-                    }
+                    c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
+
+                    if (objectData.MetaState.CustomRenderState != null)
+                        c.SetState(objectData.MetaState.CustomRenderState);
 
                     // Render geometry
                     VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
@@ -701,7 +663,7 @@ public sealed class MeshEntityBatchRenderer
 
         // Restore render state.
         Engine.Renderer.SetShader(null);
-        if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        c.SetFaceCulling(false, false);
     }
 
     /// <summary>
@@ -728,12 +690,7 @@ public sealed class MeshEntityBatchRenderer
         // Shadow map pass - object doesn't throw shadow.
         //if (_renderingShadowMap && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
 
-        if (entity.BackFaceCulling)
-        {
-            Gl.Enable(EnableCap.CullFace); // todo: render stream state
-            Gl.CullFace(CullFaceMode.Back);
-            Gl.FrontFace(FrontFaceDirection.Ccw);
-        }
+        Engine.Renderer.SetFaceCulling(entity.BackFaceCulling, true);
 
         ShaderProgram? shaderOverride = null;
         if (metaState.ShaderAsset != null)
@@ -866,7 +823,7 @@ public sealed class MeshEntityBatchRenderer
             Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
         }
 
-        if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
+        Engine.Renderer.SetFaceCulling(false, false);
         Engine.Renderer.SetShader();
     }
 

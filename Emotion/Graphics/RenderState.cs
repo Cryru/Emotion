@@ -40,6 +40,8 @@ namespace Emotion.Graphics
         public bool? DepthTest;
         public bool? StencilTest;
         public Rectangle? ClipRect;
+        public bool? FaceCulling;
+        public bool? FaceCullingBackFace;
         public bool? ViewMatrix;
         public ProjectionBehavior? ProjectionBehavior;
 
