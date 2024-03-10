@@ -203,16 +203,17 @@ public partial class GameObject3D
     [DontSerialize]
     public override Rectangle Bounds2D
     {
-        get => new Rectangle(_x, _y, _sizeX, _sizeY);
+        get
+        {
+            var bounds = Bounds3D;
+            Rectangle r = new Rectangle();
+            r.Size = bounds.HalfExtents.ToVec2() * 2f;
+            r.Center = bounds.Origin.ToVec2();
+            return r;
+        }
         set
         {
-            _x = value.X;
-            _y = value.Y;
-            _sizeX = value.Width;
-            _sizeY = value.Height;
-
-            Moved();
-            Resized();
+            Position2 = value.Center;
         }
     }
 
@@ -277,9 +278,11 @@ public partial class GameObject3D
         _scaleMatrix = Matrix4x4.CreateScale(_sizeX * entityScale, _sizeY * entityScale, _sizeZ * entityScale);
     }
 
-    public Matrix4x4 GetModelMatrix() // todo: cache this? needs to be updated only when one of the matrices or the entity changes.
+    public Matrix4x4 GetModelMatrix(bool ignoreRotation = false) // todo: cache this? needs to be updated only when one of the matrices or the entity changes.
     {
-        if (_entity != null) return _entity.LocalTransform * _scaleMatrix * _rotationMatrix * _translationMatrix;
-        return _scaleMatrix * _rotationMatrix * _translationMatrix;
+        Matrix4x4 rotMatrix = ignoreRotation ? Matrix4x4.Identity : _rotationMatrix;
+
+        if (_entity != null) return _entity.LocalTransform * _scaleMatrix * rotMatrix * _translationMatrix;
+        return _scaleMatrix * rotMatrix * _translationMatrix;
     }
 }
