@@ -399,7 +399,7 @@ namespace Emotion.UI
                 // However I don't believe Emotion will send out both click events?
                 // Not sure how the platform code handles this, in any case we don't want to
                 // call event handlers of destroyed windows, so lets return out.
-                if (status == KeyStatus.Down)
+                if (status == KeyStatus.Down && _myMouseFocus is not UIController)
                 {
                     Assert(_myMouseFocus.Controller != null);
                     if (_myMouseFocus.Controller == null) return true;
