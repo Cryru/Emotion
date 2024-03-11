@@ -6,7 +6,7 @@ uniform vec3 cameraPosition; // world pos
 uniform mat4 viewMatrix;
 
 // Shadow
-#define CASCADE_RESOLUTION vec2(512.0)
+#define CASCADE_RESOLUTION vec2(1024.0)
 #define CASCADE_COUNT 4
 
 #define VSM 1
@@ -150,7 +150,8 @@ float SampleShadowMap_Witness(vec2 baseUv, vec2 uvOffset, vec2 shadowMapSizeInv,
 
 float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
 {
-    vec2 shadowMapSize = CASCADE_RESOLUTION;
+    float cascadeSizes[CASCADE_COUNT] = float[CASCADE_COUNT](2048.0, 1024.0, 512.0, 256.0);
+    vec2 shadowMapSize = vec2(cascadeSizes[cascadeIdx]);
     float numSlices = CASCADE_COUNT;
 
     vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
@@ -180,7 +181,7 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     float v0 = (2 - t) / vw0 - 1;
     float v1 = t / vw1 + 1;
 
-    float lightDepth = shadowPos.z;
+    float lightDepth = shadowPos.z - 0.0005;
     sum += uw0 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u0, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
     sum += uw1 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u1, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
     sum += uw0 * vw1 * SampleShadowMap_Witness(base_uv, vec2(u0, v1), shadowMapSizeInv, cascadeIdx, lightDepth);

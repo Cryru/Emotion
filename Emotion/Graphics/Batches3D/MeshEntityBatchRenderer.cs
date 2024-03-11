@@ -51,6 +51,8 @@ public sealed class MeshEntityBatchRenderer
     // 
 
     public const int CASCADE_COUNT = 4;
+    public const int CASCADE_MAX_RES = 2048;
+
     private bool _inScene;
 
     private StructArenaAllocator<MeshRenderPipelineStateGroup> _mainPassShaderGroups = new StructArenaAllocator<MeshRenderPipelineStateGroup>(4); // Main
@@ -118,9 +120,9 @@ public sealed class MeshEntityBatchRenderer
 
     public class ShadowCascadeData
     {
-        public static Vector2 FramebufferResolution = new Vector2(512);
-
         public int CascadeId;
+        public Vector2 FramebufferResolution;
+
         public FrameBuffer? Buffer;
         public FrameBufferTexture? BufferAttachment;
 
@@ -138,6 +140,11 @@ public sealed class MeshEntityBatchRenderer
         public ShadowCascadeData(int cascadeId)
         {
             CascadeId = cascadeId;
+
+            float resolution = CASCADE_MAX_RES;
+            if (cascadeId != 0) resolution = resolution / (2 * cascadeId);
+            FramebufferResolution = new Vector2(resolution);
+
             GLThread.ExecuteGLThreadAsync(InitFrameBuffer);
             LightViewProj = Matrix4x4.Identity;
 
@@ -268,36 +275,40 @@ public sealed class MeshEntityBatchRenderer
 
         Matrix4x4 objModelMatrix = obj.GetModelMatrix();
 
-        CameraBase camera = Engine.Renderer.Camera;
-        Sphere objBSphere = obj.BoundingSphere;
-        float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
-        
-        // Record the furthest and closest object distances.
-        float distanceToCameraMax = distanceToCamera + objBSphere.Radius;
-        float distanceToCameraMin = distanceToCamera - objBSphere.Radius;
-        if (distanceToCameraMin < objBSphere.Radius) distanceToCameraMin = 10f;
-
-        if (distanceToCameraMax > _furthestObjectDist)
-        {
-            _furthestObjectDist = distanceToCameraMax;
-            _furthestObject = obj;
-        }
-        if (distanceToCameraMin < _closestObjectDist)
-        {
-            _closestObjectDist = distanceToCameraMin;
-            _closestObject = obj;
-        }
-
         // Objects can contain multiple meshes and they will refer to this.
         ref RenderInstanceObjectData objectInstance = ref _objectDataPool.Allocate(out int indexOfThisObjectData);
         objectInstance.BackfaceCulling = entity.BackFaceCulling;
         objectInstance.ModelMatrix = objModelMatrix;
         objectInstance.MetaState = metaState;
-        objectInstance.DistanceToCamera = distanceToCamera;
         objectInstance.Flags = obj.ObjectFlags;
         objectInstance.FrustumCullingSphere = obj.BoundingSphere;
 
         if (metaState.CustomObjectFlags != null) objectInstance.Flags = metaState.CustomObjectFlags.Value;
+
+        // Calculate distance to camera for transparent object sorting.
+        CameraBase camera = Engine.Renderer.Camera;
+        Sphere objBSphere = objectInstance.FrustumCullingSphere;
+        float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
+        objectInstance.DistanceToCamera = distanceToCamera;
+
+        // Record the furthest and closest object distances.
+        if (obj is not Quad3D)
+        {
+            float distanceToCameraMax = distanceToCamera + objBSphere.Radius;
+            float distanceToCameraMin = distanceToCamera - objBSphere.Radius;
+            if (distanceToCameraMin < objBSphere.Radius) distanceToCameraMin = 10f;
+
+            if (distanceToCameraMax > _furthestObjectDist)
+            {
+                _furthestObjectDist = distanceToCameraMax;
+                _furthestObject = obj;
+            }
+            if (distanceToCameraMin < _closestObjectDist)
+            {
+                _closestObjectDist = distanceToCameraMin;
+                _closestObject = obj;
+            }
+        }
 
         var objIsTransparent = obj.IsTransparent();
 
@@ -945,7 +956,7 @@ public sealed class MeshEntityBatchRenderer
         var renderer = Engine.Renderer;
         var camera = renderer.Camera;
 
-        if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ / 2f) _closestObjectDist = camera.NearZ;
+        if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ) _closestObjectDist = camera.NearZ;
         if (_furthestObjectDist == 0 || _furthestObjectDist > camera.FarZ) _furthestObjectDist = camera.FarZ;
 
         float nearPlane = _closestObjectDist;
@@ -994,7 +1005,7 @@ public sealed class MeshEntityBatchRenderer
         float radius = (corners[0] - corners[6]).Length() / 2f;
         radius = MathF.Ceiling(radius / 16.0f) * 16.0f;
 
-        float texelPerUnit = ShadowCascadeData.FramebufferResolution.X / (radius * 2f);
+        float texelPerUnit = cascade.FramebufferResolution.X / (radius * 2f);
         Matrix4x4 texelScalar = Matrix4x4.CreateScale(texelPerUnit, texelPerUnit, texelPerUnit);
         cascade.UnitToTexelScale = (1.0f / texelPerUnit);
 
