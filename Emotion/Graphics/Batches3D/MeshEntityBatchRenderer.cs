@@ -114,7 +114,7 @@ public sealed class MeshEntityBatchRenderer
 
     #region Shadows
 
-    public const bool UseVSMShadows = false;
+    public const bool UseVSMShadows = true;
     public const bool ShadowsCullFrontFace = false;
 
     private FrameBuffer _currentShadowCascadeTarget;
@@ -221,8 +221,20 @@ public sealed class MeshEntityBatchRenderer
 
         GLThread.ExecuteGLThreadAsync(() =>
         {
-            _currentShadowCascadeTarget = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithDepth(true);
-            _blurPingPong = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithDepth(true);
+            if(UseVSMShadows)
+            {
+                _currentShadowCascadeTarget = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
+                _currentShadowCascadeTarget.ColorAttachment.Smooth = true;
+                _blurPingPong = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
+                _blurPingPong.ColorAttachment.Smooth = true;
+            }
+            else
+            {
+                _currentShadowCascadeTarget = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithDepth(true);
+                _currentShadowCascadeTarget.DepthStencilAttachment.Smooth = true;
+                _blurPingPong = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithDepth(true);
+                _blurPingPong.DepthStencilAttachment.Smooth = true;
+            }
         });
         _shaderBlur = Engine.AssetLoader.Get<ShaderAsset>("Shaders/ShadowBlur.xml");
 
@@ -510,10 +522,9 @@ public sealed class MeshEntityBatchRenderer
                 {
                     c.RenderToAndClear(_blurPingPong);
                     c.SetShader(_shaderBlur.Shader);
-                    _shaderBlur.Shader.SetUniformVector2("blurDirection", new Vector2(1f, 0f));
-                    _shaderBlur.Shader.SetUniformFloat("textureSizeInDirection", ShadowCascadeData.FramebufferResolution.X);
+                    _shaderBlur.Shader.SetUniformVector2("blurDirection", new Vector2(0f, 1f));
 
-                    c.RenderSprite(Vector3.Zero, _currentShadowCascadeTarget.Size, _currentShadowCascadeTarget.DepthStencilAttachment);
+                    c.RenderSprite(Vector3.Zero, _currentShadowCascadeTarget.Size, _currentShadowCascadeTarget.ColorAttachment);
 
                     c.SetShader(null);
                     c.RenderTo(null);
@@ -523,10 +534,9 @@ public sealed class MeshEntityBatchRenderer
                 {
                     c.RenderToAndClear(cascade.Buffer);
                     c.SetShader(_shaderBlur.Shader);
-                    _shaderBlur.Shader.SetUniformVector2("blurDirection", new Vector2(0f, 1f));
-                    _shaderBlur.Shader.SetUniformFloat("textureSizeInDirection", ShadowCascadeData.FramebufferResolution.Y);
+                    _shaderBlur.Shader.SetUniformVector2("blurDirection", new Vector2(1f, 0f));
 
-                    c.RenderSprite(Vector3.Zero, cascade.Buffer.Size, _blurPingPong.DepthStencilAttachment);
+                    c.RenderSprite(Vector3.Zero, cascade.Buffer.Size, _blurPingPong.ColorAttachment);
 
                     c.SetShader(null);
                     c.RenderTo(null);

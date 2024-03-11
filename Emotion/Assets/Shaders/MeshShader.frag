@@ -5,6 +5,8 @@ uniform vec3 iResolution; // viewport resolution (in pixels)
 uniform vec3 cameraPosition; // world pos
 uniform mat4 viewMatrix;
 
+#define VSM 1
+
 // Shadow
 #define CASCADE_RESOLUTION vec2(2048.0)
 #define CASCADE_COUNT 4
@@ -178,7 +180,7 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     float v0 = (2 - t) / vw0 - 1;
     float v1 = t / vw1 + 1;
 
-    float lightDepth = shadowPos.z - 0.0005;
+    float lightDepth = shadowPos.z;// - 0.005;
     sum += uw0 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u0, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
     sum += uw1 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u1, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
     sum += uw0 * vw1 * SampleShadowMap_Witness(base_uv, vec2(u0, v1), shadowMapSizeInv, cascadeIdx, lightDepth);
