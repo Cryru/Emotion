@@ -117,6 +117,10 @@ public sealed class MeshEntityBatchRenderer
     public const bool UseVSMShadows = false;
     public const bool ShadowsCullFrontFace = false;
 
+    private FrameBuffer _currentShadowCascadeTarget;
+    private FrameBuffer _blurPingPong;
+    private ShaderAsset _shaderBlur;
+
     public class ShadowCascadeData
     {
         public static Vector2 FramebufferResolution = new Vector2(2048);
@@ -214,6 +218,13 @@ public sealed class MeshEntityBatchRenderer
             new ShadowCascadeData(2),
             new ShadowCascadeData(3),
         };
+
+        GLThread.ExecuteGLThreadAsync(() =>
+        {
+            _currentShadowCascadeTarget = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithDepth(true);
+            _blurPingPong = new FrameBuffer(ShadowCascadeData.FramebufferResolution).WithDepth(true);
+        });
+        _shaderBlur = Engine.AssetLoader.Get<ShaderAsset>("Shaders/ShadowBlur.xml");
 
         _assetsLoaded = true;
     }
@@ -501,20 +512,14 @@ public sealed class MeshEntityBatchRenderer
 
         if (light.Shadows)
         {
+            Gl.Enable((EnableCap)Gl.DEPTH_CLAMP);
             for (int i = 0; i < _shadowCascades.Length; i++)
             {
                 var cascade = _shadowCascades[i];
                 if (cascade.Buffer == null) continue;
 
-                if (i > 0)
-                {
-                    c.RenderToAndClear(cascade.Buffer);
-                    c.RenderTo(null);
-                    continue;
-                }
-
                 _renderingShadowmap = i;
-                c.RenderToAndClear(cascade.Buffer);
+                c.RenderToAndClear(_currentShadowCascadeTarget);
                 if (!UseVSMShadows)
                 {
                     Gl.DrawBuffers(Gl.NONE);
@@ -523,7 +528,38 @@ public sealed class MeshEntityBatchRenderer
                 RenderSceneFull(c);
                 c.RenderTo(null);
                 _renderingShadowmap = -1;
+
+                c.SetUseViewMatrix(false);
+
+                // Blur horizontal
+                {
+                    c.RenderToAndClear(_blurPingPong);
+                    c.SetShader(_shaderBlur.Shader);
+                    _shaderBlur.Shader.SetUniformVector2("blurDirection", new Vector2(1f, 0f));
+                    _shaderBlur.Shader.SetUniformFloat("textureSizeInDirection", ShadowCascadeData.FramebufferResolution.X);
+
+                    c.RenderSprite(Vector3.Zero, _currentShadowCascadeTarget.Size, _currentShadowCascadeTarget.DepthStencilAttachment);
+
+                    c.SetShader(null);
+                    c.RenderTo(null);
+                }
+
+                // Blur vertical
+                {
+                    c.RenderToAndClear(cascade.Buffer);
+                    c.SetShader(_shaderBlur.Shader);
+                    _shaderBlur.Shader.SetUniformVector2("blurDirection", new Vector2(0f, 1f));
+                    _shaderBlur.Shader.SetUniformFloat("textureSizeInDirection", ShadowCascadeData.FramebufferResolution.Y);
+
+                    c.RenderSprite(Vector3.Zero, cascade.Buffer.Size, _blurPingPong.DepthStencilAttachment);
+
+                    c.SetShader(null);
+                    c.RenderTo(null);
+                }
+
+                c.SetUseViewMatrix(true);
             }
+            Gl.Disable((EnableCap)Gl.DEPTH_CLAMP);
 
             // Bind cascade textures.
             for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
@@ -1005,14 +1041,8 @@ public sealed class MeshEntityBatchRenderer
         if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ / 2f) _closestObjectDist = camera.NearZ;
         if (_furthestObjectDist == 0 || _furthestObjectDist > camera.FarZ) _furthestObjectDist = camera.FarZ;
 
-        //Matrix4x4 cameraViewProjection = renderer.Camera.ViewMatrix * renderer.Camera.ProjectionMatrix;
-        //Matrix4x4 cameraViewProjectionInv = cameraViewProjection.Inverted();
-
-        //float cascadeResolution = ShadowCascadeData.FramebufferResolution.X;
-
         float nearPlane = _closestObjectDist;
         float farPlane = _furthestObjectDist;
-        //float clipDist = farPlane - nearPlane;
 
         {
             ShadowDebugInfo.ShadowMapNear = nearPlane;
@@ -1027,7 +1057,6 @@ public sealed class MeshEntityBatchRenderer
             ShadowDebugInfo.GlobalShadowMatrix = (c.Camera.ViewMatrix * cameraDebugProj);
         }
 
-        //float prevCascadeSplit = nearPlane;
         float prevCascadeEnd = nearPlane;
         for (int i = 0; i < _shadowCascades.Length; i++)
         {
@@ -1041,18 +1070,8 @@ public sealed class MeshEntityBatchRenderer
             cascade.NearClip = prevCascadeEnd;
             cascade.FarClip = max;
 
-            //float cascadeSplit = cascade.NearClip + (cascade.FarClip - cascade.NearClip) * (i + 1) / _shadowCascades.Length;
-            //cascade.Split = cascadeSplit;
-
             CalculateShadowMapCascadeMatrix(c, cascade, light);
-
-            //float cascadeWidth = cascadeSplit - prevCascadeSplit;
-            //Vector4 scale = new Vector4(cascadeWidth / 2.0f, cascadeWidth / 2.0f, cascadeSplit - prevCascadeSplit, 1.0f);
-            //cascade.Scale = Vector4.One;
-            //cascade.Offset = (Maths.TransformCartesian(Vector3.Zero, cascade.LightViewProj) - Maths.TransformCartesian(Vector3.One, cascade.LightViewProj)).ToVec4();
-
             prevCascadeEnd = max;
-            //prevCascadeSplit = cascadeSplit;
         }
     }
 
@@ -1122,10 +1141,6 @@ public sealed class MeshEntityBatchRenderer
 
         if (ShadowDebugInfo.CascadeInfo == cascade.CascadeId)
         {
-            //ShadowDebugInfo.CascadeX = new Vector2(minX, maxX);
-            //ShadowDebugInfo.CascadeY = new Vector2(minY, maxY);
-            //ShadowDebugInfo.CascadeZ = new Vector2(minZ, maxZ);
-
             for (int i = 0; i < corners.Length; i++)
             {
                 ShadowDebugInfo.CascadeFrustumCorners[i] = corners[i];
@@ -1159,83 +1174,4 @@ public sealed class MeshEntityBatchRenderer
     }
 
     #endregion
-}
-
-public class ShadowDebugPanel : EditorPanel
-{
-    private UISolidColor _drawArea;
-    private ShaderAsset? _depthShader;
-
-    public ShadowDebugPanel() : base("Shadow Debug")
-    {
-    }
-
-    protected override async Task LoadContent()
-    {
-        var depthShader = await Engine.AssetLoader.GetAsync<ShaderAsset>("Shaders/RenderDepth.xml");
-        _depthShader = depthShader;
-        await base.LoadContent();
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
-
-        _contentParent.LayoutMode = LayoutMode.HorizontalList;
-
-        var propsPanel = new GenericPropertiesEditorPanel(Engine.Renderer.MeshEntityRenderer.ShadowDebugInfo);
-        propsPanel.PanelMode = PanelMode.Embedded;
-        _contentParent.AddChild(propsPanel);
-
-        _drawArea = new UISolidColor();
-        _drawArea.WindowColor = new Color(32, 32, 32);
-        _drawArea.MaxSize = new Vector2(200, 999);
-        _contentParent.AddChild(_drawArea);
-    }
-
-    protected override void AfterRenderChildren(RenderComposer c)
-    {
-        if (_depthShader == null) return;
-
-        var shadowDebug = Engine.Renderer.MeshEntityRenderer.ShadowDebugInfo;
-
-        var shader = _depthShader.Shader;
-        //c.SetShader(shader);
-        //shader.SetUniformFloat("zNear", shadowDebug.ShadowMapNear);
-        //shader.SetUniformFloat("zFar", shadowDebug.ShadowMapFar);
-
-        c.RenderSprite(Vector2.Zero, new Vector2(256), Color.White, shadowDebug.CascadeTexture.DepthStencilAttachment);
-
-        //c.SetShader(null);
-    }
-
-    private void RenderFrustum(RenderComposer c, Vector3[] corners, Color col)
-    {
-        Vector2 worldMin = new Vector2(-1_000);
-        Vector2 worldMax = new Vector2(1_000);
-
-        for (int i = 0; i < corners.Length; i++)
-        {
-            var corner = corners[i];
-            corner.X = Maths.Map(corner.X, worldMin.X, worldMax.X, _drawArea.X, _drawArea.Bounds.Right);
-            corner.Y = Maths.Map(corner.Y, worldMin.Y, worldMax.Y, _drawArea.Y, _drawArea.Bounds.Bottom);
-            corner.Z = Z;
-            corners[i] = corner;
-        }
-
-        c.RenderLine(corners[0], corners[1], col);
-        c.RenderLine(corners[1], corners[2], col);
-        c.RenderLine(corners[2], corners[3], col);
-        c.RenderLine(corners[3], corners[0], col);
-                                             
-        c.RenderLine(corners[4], corners[5], col);
-        c.RenderLine(corners[5], corners[6], col);
-        c.RenderLine(corners[6], corners[7], col);
-        c.RenderLine(corners[7], corners[4], col);
-                                             
-        c.RenderLine(corners[0], corners[4], col);
-        c.RenderLine(corners[1], corners[5], col);
-        c.RenderLine(corners[2], corners[6], col);
-        c.RenderLine(corners[3], corners[7], col);
-    }
 }

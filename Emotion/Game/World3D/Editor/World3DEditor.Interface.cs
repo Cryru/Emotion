@@ -31,16 +31,6 @@ public partial class World3DEditor
                 },
                 Enabled = () => map != null
             },
-            new EditorDropDownItem
-            {
-                Name = "Shadow Debug",
-                Click = (_, __) =>
-                {
-                    AssertNotNull(map);
-                    var panel = new ShadowDebugPanel();
-                    _editUI!.AddChild(panel);
-                }
-            },
         });
 
         parentList.AddChild(menu3D);

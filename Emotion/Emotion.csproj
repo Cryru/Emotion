@@ -87,6 +87,10 @@
     <None Remove="Assets\Shaders\RenderDepth.xml" />
     <None Remove="Assets\Shaders\RoundedRectangle.frag" />
     <None Remove="Assets\Shaders\RoundedRectangle.xml" />
+    <None Remove="Assets\Shaders\ShadowBlur.frag" />
+    <None Remove="Assets\Shaders\ShadowBlur.xml" />
+    <None Remove="Assets\Shaders\ShadowBlur_Vertical.frag" />
+    <None Remove="Assets\Shaders\ShadowBlur_Vertical.xml" />
     <None Remove="Assets\Shaders\TextureColorMask.frag" />
     <None Remove="Assets\Shaders\TextureColorMask.xml" />
   </ItemGroup>
@@ -221,6 +225,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blit.frag" />
     <EmbeddedResource Include="Assets\Shaders\Blit.xml" />
+    <EmbeddedResource Include="Assets\Shaders\ShadowBlur.frag">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\ShadowBlur.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blur.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
