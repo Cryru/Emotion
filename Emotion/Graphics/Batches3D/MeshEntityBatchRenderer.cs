@@ -263,7 +263,7 @@ public sealed class MeshEntityBatchRenderer
     }
 
     // flatten the hierarchy
-    public void SubmitObjectForRendering(GameObject3D obj)
+    public void SubmitObjectForRendering(GameObject3D obj, MeshEntityMetaState metaState)
     {
         if (!_inScene) return;
 
@@ -272,7 +272,6 @@ public sealed class MeshEntityBatchRenderer
         if (entity == null) return;
 
         // Invalid
-        var metaState = obj.EntityMetaState;
         if (metaState == null) return;
 
         // No meshes to render
@@ -349,37 +348,47 @@ public sealed class MeshEntityBatchRenderer
                 _shadersUsedList.Add(currentShader);
             }
 
-            // Add to render pass
-            if (!objIsTransparent) // Opaque objects are grouped by pipeline state and then mesh usage
+            if (objIsTransparent)
             {
+                // Transparent objects are just inserted into a flat list to be sorted later. No batching.
+                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
+                instanceRegistration.Mesh = mesh;
+                instanceRegistration.Shader = currentShader;
+                instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
+                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
+                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+            }
+            else
+            {
+                // Opaque objects are grouped by pipeline state and then mesh usage
                 StructArenaAllocator<MeshRenderPipelineStateGroup> shaderGroupPool = _mainPassShaderGroups;
 
                 // Get the pipeline group this mesh will use. (same pass, same pipe state)
                 ref MeshRenderPipelineStateGroup pipelineGroup = ref shaderGroupPool[0];
-                var shaderHash = currentShader.GetHashCode();
-                if (_pipelineBatchLookup.ContainsKey(shaderHash))
+                int shaderHash = currentShader.GetHashCode();
+                int pipelineGroupHash = HashCode.Combine(shaderHash);
+                if (_pipelineBatchLookup.ContainsKey(pipelineGroupHash))
                 {
-                    int key = _pipelineBatchLookup[shaderHash];
+                    int key = _pipelineBatchLookup[pipelineGroupHash];
                     pipelineGroup = ref shaderGroupPool[key];
                 }
                 else  // create new
                 {
                     pipelineGroup = ref shaderGroupPool.Allocate(out int thisShaderGroupIndex);
                     pipelineGroup.Shader = currentShader;
-                    pipelineGroup.MeshRenderBatchLL_Start = -1;
-                    pipelineGroup.MeshRenderBatchLL_End = -1;
+                    pipelineGroup.MeshRenderBatchList.Reset();
 
                     // Assuming that the overwritten shader will require all meshes using it to upload state.
                     // AKA that a custom shader is custom for everyone that uses it, which is true unless the
                     // custom shader is a base mesh shader, but that's stupid.
                     pipelineGroup.UploadMetaStateToShader = overwrittenShader;
 
-                    _pipelineBatchLookup.Add(shaderHash, thisShaderGroupIndex);
+                    _pipelineBatchLookup.Add(pipelineGroupHash, thisShaderGroupIndex);
                 }
 
                 // Get the mesh batch for this pipeline state. (same mesh and same pipe state)
                 ref MeshRenderMeshBatch meshBatch = ref _renderBatchPool[0];
-                int meshShaderGroupHash = HashCode.Combine(mesh, shaderHash);
+                int meshShaderGroupHash = HashCode.Combine(mesh, pipelineGroupHash);
                 if (_meshShaderGroupBatchLookup.ContainsKey(meshShaderGroupHash))
                 {
                     int key = _meshShaderGroupBatchLookup[meshShaderGroupHash];
@@ -389,51 +398,17 @@ public sealed class MeshEntityBatchRenderer
                 {
                     meshBatch = ref _renderBatchPool.Allocate(out int thisMeshGroupIndex);
                     meshBatch.Mesh = mesh;
-                    meshBatch.NextRenderBatch = -1;
-                    meshBatch.MeshInstanceLL_Start = -1;
-                    meshBatch.MeshInstanceLL_End = -1;
+                    meshBatch.MeshInstanceList.Reset();
+                    pipelineGroup.MeshRenderBatchList.AddToList(thisMeshGroupIndex, _renderBatchPool);
 
                     _meshShaderGroupBatchLookup.Add(meshShaderGroupHash, thisMeshGroupIndex);
-
-                    // Attach to the pipeline linked list
-                    if (pipelineGroup.MeshRenderBatchLL_Start == -1) pipelineGroup.MeshRenderBatchLL_Start = thisMeshGroupIndex;
-                    if (pipelineGroup.MeshRenderBatchLL_End == -1)
-                    {
-                        pipelineGroup.MeshRenderBatchLL_End = thisMeshGroupIndex;
-                    }
-                    else
-                    {
-                        ref var lastBatch = ref _renderBatchPool[pipelineGroup.MeshRenderBatchLL_End];
-                        lastBatch.NextRenderBatch = thisMeshGroupIndex;
-                        pipelineGroup.MeshRenderBatchLL_End = thisMeshGroupIndex;
-                    }
                 }
 
                 // Create a instance of the mesh data. (unique props for this instance of the mesh)
                 ref RenderInstanceMeshData instanceRegistration = ref _meshDataPool.Allocate(out int indexOfThisMeshData);
                 instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
                 instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
-                instanceRegistration.NextMesh = -1;
-                if (meshBatch.MeshInstanceLL_Start == -1) meshBatch.MeshInstanceLL_Start = indexOfThisMeshData;
-                if (meshBatch.MeshInstanceLL_End == -1)
-                {
-                    meshBatch.MeshInstanceLL_End = indexOfThisMeshData;
-                }
-                else
-                {
-                    ref var lastBatch = ref _meshDataPool[meshBatch.MeshInstanceLL_End];
-                    lastBatch.NextMesh = indexOfThisMeshData;
-                    meshBatch.MeshInstanceLL_End = indexOfThisMeshData;
-                }
-            }
-            else // Transparent objects are just inserted into a flat list to be sorted later. No batching.
-            {
-                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
-                instanceRegistration.Mesh = mesh;
-                instanceRegistration.Shader = currentShader;
-                instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
-                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
-                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+                meshBatch.MeshInstanceList.AddToList(indexOfThisMeshData, _meshDataPool);
             }
         }
     }
@@ -598,8 +573,6 @@ public sealed class MeshEntityBatchRenderer
     {
         if (_meshDataPoolTransparent.Length == 0) return;
 
-        bool backfaceCulling = false; // todo: Move to render state.
-
         for (int i = 0; i < _meshDataPoolTransparent.Length; i++)
         {
             ref RenderInstanceMeshDataTransparent meshInstance = ref _meshDataPoolTransparent[i];
@@ -639,26 +612,7 @@ public sealed class MeshEntityBatchRenderer
             if (meshInstance.UploadMetaStateToShader)
                 objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-            // todo: render stream state
-            bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
-            if (changeBackcull)
-            {
-                if (objectData.BackfaceCulling)
-                {
-                    Gl.Enable(EnableCap.CullFace);
-                    if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
-                        Gl.CullFace(CullFaceMode.Back);
-                    else
-                        Gl.CullFace(CullFaceMode.Front);
-                    Gl.FrontFace(FrontFaceDirection.Ccw);
-                    backfaceCulling = true;
-                }
-                else
-                {
-                    Gl.Disable(EnableCap.CullFace);
-                    backfaceCulling = false;
-                }
-            }
+            c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
 
             // Render geometry
             VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
@@ -670,15 +624,14 @@ public sealed class MeshEntityBatchRenderer
             c.PopModelMatrix();
         }
 
-        Engine.Renderer.SetShader(null);
-        if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        c.SetShader(null);
+        c.SetFaceCulling(false, false);
     }
 
     private void RenderMainPass(RenderComposer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
     {
         if (groupsInPass.Length == 0) return;
 
-        bool backfaceCulling = false; // todo: Move to render state.
         for (int i = 0; i < groupsInPass.Length; i++) // for each pipeline
         {
             ref MeshRenderPipelineStateGroup pipelineState = ref groupsInPass[i];
@@ -691,7 +644,7 @@ public sealed class MeshEntityBatchRenderer
 
             // each mesh batch in this pipeline
             // these are parameters shared by all instances of that mesh in the scene
-            int meshBatchIdx = pipelineState.MeshRenderBatchLL_Start;
+            int meshBatchIdx = pipelineState.MeshRenderBatchList.StartIndex;
             while (meshBatchIdx != -1)
             {
                 ref MeshRenderMeshBatch batch = ref _renderBatchPool[meshBatchIdx];
@@ -707,7 +660,7 @@ public sealed class MeshEntityBatchRenderer
 
                 // render each instance of the mesh
                 // todo: instanced rendering
-                int instanceIdx = batch.MeshInstanceLL_Start;
+                int instanceIdx = batch.MeshInstanceList.StartIndex;
                 while (instanceIdx != -1)
                 {
                     ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
@@ -733,26 +686,10 @@ public sealed class MeshEntityBatchRenderer
                     if (pipelineState.UploadMetaStateToShader)
                         objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-                    // todo: render stream state
-                    bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
-                    if (changeBackcull)
-                    {
-                        if (objectData.BackfaceCulling)
-                        {
-                            Gl.Enable(EnableCap.CullFace);
-                            if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
-                                Gl.CullFace(CullFaceMode.Back);
-                            else
-                                Gl.CullFace(CullFaceMode.Front);
-                            Gl.FrontFace(FrontFaceDirection.Ccw);
-                            backfaceCulling = true;
-                        }
-                        else
-                        {
-                            Gl.Disable(EnableCap.CullFace);
-                            backfaceCulling = false;
-                        }
-                    }
+                    c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
+
+                    if (objectData.MetaState.CustomRenderState != null)
+                        c.SetState(objectData.MetaState.CustomRenderState);
 
                     // Render geometry
                     VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
@@ -763,16 +700,16 @@ public sealed class MeshEntityBatchRenderer
 
                     c.PopModelMatrix();
 
-                    instanceIdx = instance.NextMesh;
+                    instanceIdx = instance.NextItem;
                 }
 
-                meshBatchIdx = batch.NextRenderBatch;
+                meshBatchIdx = batch.NextItem;
             }
         }
 
         // Restore render state.
         Engine.Renderer.SetShader(null);
-        if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        c.SetFaceCulling(false, false);
     }
 
     /// <summary>
@@ -799,12 +736,7 @@ public sealed class MeshEntityBatchRenderer
         // Shadow map pass - object doesn't throw shadow.
         //if (_renderingShadowMap && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
 
-        if (entity.BackFaceCulling)
-        {
-            Gl.Enable(EnableCap.CullFace); // todo: render stream state
-            Gl.CullFace(CullFaceMode.Back);
-            Gl.FrontFace(FrontFaceDirection.Ccw);
-        }
+        Engine.Renderer.SetFaceCulling(entity.BackFaceCulling, true);
 
         ShaderProgram? shaderOverride = null;
         if (metaState.ShaderAsset != null)
@@ -937,7 +869,7 @@ public sealed class MeshEntityBatchRenderer
             Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
         }
 
-        if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
+        Engine.Renderer.SetFaceCulling(false, false);
         Engine.Renderer.SetShader();
     }
 

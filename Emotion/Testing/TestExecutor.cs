@@ -6,6 +6,7 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Platform.Implementation.Win32;
@@ -38,7 +39,7 @@ public static class TestExecutor
     /// </summary>
     public static float PixelDerivationTolerance = 10;
 
-    public static void ExecuteTests(string[] args, Configurator? config = null)
+    public static void ExecuteTests(string[] args, Configurator? config = null, Type? filterTestsOnlyFromClass = null)
     {
         // todo: read args and start running split processes, different configs etc.
 
@@ -60,6 +61,8 @@ public static class TestExecutor
             IEnumerable<Type> classTypes = ass.GetTypes().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
             foreach (Type classType in classTypes)
             {
+                if (filterTestsOnlyFromClass != null && classType != filterTestsOnlyFromClass) continue;
+
                 // Find all test functions in this class.
                 testFunctions.AddRange(classType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0));
             }
@@ -72,6 +75,8 @@ public static class TestExecutor
             IEnumerable<Type> sceneTypes = ass.GetTypes().Where(x => x.IsSubclassOf(typeof(TestingScene)));
             foreach (Type sceneType in sceneTypes)
             {
+                if (filterTestsOnlyFromClass != null && sceneType != filterTestsOnlyFromClass) continue;
+
                 testScenes.Add(sceneType);
             }
         }
@@ -80,8 +85,13 @@ public static class TestExecutor
         {
             try
             {
-                RunTestClasses(testFunctions);
-                await RunTestScenes(testScenes);
+                (int completed, int total) resultClasses = RunTestClasses(testFunctions);
+                (int completed, int total) resultScenes = await RunTestScenes(testScenes);
+
+                // The format of this message must match the old system's regex!
+                var completed = resultClasses.completed + resultScenes.completed;
+                var total = resultClasses.total + resultScenes.total;
+                Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
 
 #if !AUTOBUILD
                 if (Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
@@ -98,8 +108,11 @@ public static class TestExecutor
         Engine.Run();
     }
 
-    private static void RunTestClasses(List<MethodInfo> testFunctions)
+    private static (int completed, int total) RunTestClasses(List<MethodInfo> testFunctions)
     {
+        int completed = 0;
+        int total = 0;
+
         Dictionary<Type, List<MethodInfo>> testsByClass = new();
         List<MethodInfo>? currentClassList = null;
         Type? currentClass = null;
@@ -118,16 +131,16 @@ public static class TestExecutor
 
         if (currentClassList != null && currentClass != null) testsByClass.Add(currentClass, currentClassList);
 
-        var completed = 0;
-        var total = 0;
-
         foreach (KeyValuePair<Type, List<MethodInfo>> testClass in testsByClass)
         {
             List<MethodInfo> functions = testClass.Value;
             total += functions.Count;
 
+            var completedThisClass = 0;
+            var totalThisClass = functions.Count;
+
             Type declaringType = testClass.Key;
-            Engine.Log.Info($"Running test class {declaringType}...", MessageSource.Test);
+            Engine.Log.Info($"\nRunning test class {declaringType}...", MessageSource.Test);
             object? currentClassInstance = Activator.CreateInstance(declaringType);
 
             if (declaringType.GetCustomAttribute<TestClassRunParallel>() != null)
@@ -145,7 +158,8 @@ public static class TestExecutor
                         {
                             Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
                             func.Invoke(currentClassInstance, new object[] { });
-                            completed++;
+                            Interlocked.Add(ref completed, 1);
+                            Interlocked.Add(ref completedThisClass, 1);
                         }
                         catch (Exception)
                         {
@@ -155,7 +169,8 @@ public static class TestExecutor
 #else
                     Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
                     func.Invoke(currentClassInstance, new object[] { });
-                    completed++;
+                    completedInTestClasses++;
+                    completedThisClass++;
 #endif
                 }
 
@@ -172,6 +187,7 @@ public static class TestExecutor
                         Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
                         func.Invoke(currentClassInstance, new object[] { });
                         completed++;
+                        completedThisClass++;
                     }
                     catch (Exception)
                     {
@@ -180,13 +196,17 @@ public static class TestExecutor
                 }
             }
 
-            // The format of this message must match the old system's regex!
-            Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
+            Engine.Log.Info($"Completed {declaringType}: {completedThisClass}/{totalThisClass}!\n", MessageSource.Test);
         }
+
+        return (completed, total);
     }
 
-    private static async Task RunTestScenes(List<Type> testScenes)
+    private static async Task<(int, int)> RunTestScenes(List<Type> testScenes)
     {
+        int completed = 0;
+        int total = 0;
+
         for (var i = 0; i < testScenes.Count; i++)
         {
             Type sceneType = testScenes[i];
@@ -197,10 +217,10 @@ public static class TestExecutor
                 continue;
             }
 
-            var completed = 0;
-            var total = 0;
+            var completedThisScene = 0;
+            var totalThisScene = 0;
 
-            Engine.Log.Info($"Running test scene {sceneType}...", MessageSource.Test);
+            Engine.Log.Info($"\nRunning test scene {sceneType}...", MessageSource.Test);
             await Engine.SceneManager.SetScene(sc);
             Func<IEnumerator>[] testRoutines = sc.GetTestCoroutines();
             foreach (Func<IEnumerator> testRoutine in testRoutines)
@@ -231,11 +251,19 @@ public static class TestExecutor
                     }
                 }
 
+                totalThisScene++;
                 total++;
-                if (coroutine.Finished) completed++;
+
+                if (coroutine.Finished)
+                {
+                    completedThisScene++;
+                    completed++;
+                } 
             }
 
-            Engine.Log.Info($"Completed {sceneType}: {completed}/{total}!", MessageSource.Test);
+            Engine.Log.Info($"Completed {sceneType}: {completedThisScene}/{totalThisScene}!\n", MessageSource.Test);
         }
+
+        return (completed, total);
     }
 }

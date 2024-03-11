@@ -36,9 +36,10 @@ public class MeshEntityMetaState
     /// </summary>
     public Color Tint = Color.White;
 
-    public string? ShaderName;
-    public ShaderAsset? ShaderAsset;
+    public ShaderAsset? ShaderAsset { get; private set; }
     private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
+
+    public RenderState? CustomRenderState;
 
     public MeshEntityMetaState(MeshEntity? entity)
     {
@@ -55,6 +56,12 @@ public class MeshEntityMetaState
     {
         _shaderParameters = new();
         ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(path);
+    }
+
+    public void SetShader(ShaderAsset asset)
+    {
+        _shaderParameters = new();
+        ShaderAsset = asset;
     }
 
     public void SetShaderParam<T>(string name, T value) where T : struct

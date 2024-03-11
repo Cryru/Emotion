@@ -339,6 +339,33 @@ namespace Emotion.Graphics
             PerfProfiler.FrameEventEnd("StateChange: Clip");
         }
 
+        public void SetFaceCulling(bool enabled, bool backFace)
+        {
+            if (CurrentState.FaceCulling == enabled)
+            {
+                if (!enabled) return;
+                if (CurrentState.FaceCullingBackFace == backFace) return;
+            }
+
+            FlushRenderStream();
+
+            if (enabled)
+            {
+                Gl.Enable(EnableCap.CullFace);
+                Gl.FrontFace(FrontFaceDirection.Ccw);
+                Gl.CullFace(backFace ? CullFaceMode.Back : CullFaceMode.Front);
+            }
+            else
+            {
+                Gl.Disable(EnableCap.CullFace);
+            }
+
+            RenderState currentState = CurrentState;
+            currentState.FaceCulling = enabled;
+            currentState.FaceCullingBackFace = backFace;
+            CurrentState = currentState;
+        }
+
         /// <summary>
         /// Set a new state.
         /// </summary>
@@ -379,7 +406,15 @@ namespace Emotion.Graphics
             if (force || (newState.ProjectionBehavior != null && newState.ProjectionBehavior != currentState.ProjectionBehavior))
                 SetProjectionBehavior((ProjectionBehavior) newState.ProjectionBehavior);
             if (force || newState.ClipRect != currentState.ClipRect) SetClipRect(newState.ClipRect);
-            PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
+            if (
+                    (newState.FaceCulling != null || newState.FaceCullingBackFace != null) &&
+                    (force || newState.FaceCulling != currentState.FaceCulling || newState.FaceCullingBackFace != currentState.FaceCullingBackFace)
+                )
+                SetFaceCulling(
+                    newState.FaceCulling ?? currentState.FaceCulling.Value, 
+                    newState.FaceCullingBackFace ?? currentState.FaceCullingBackFace.Value
+                );
+            PerfProfiler.FrameEventEnd("View/Clip Set");
         }
 
         /// <summary>
