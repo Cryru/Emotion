@@ -6,7 +6,7 @@ uniform vec3 cameraPosition; // world pos
 uniform mat4 viewMatrix;
 
 // Shadow
-#define CASCADE_RESOLUTION vec2(2048.0)
+#define CASCADE_RESOLUTION vec2(512.0)
 #define CASCADE_COUNT 4
 
 #define VSM 1

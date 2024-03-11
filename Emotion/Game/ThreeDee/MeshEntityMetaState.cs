@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
+using Emotion.Game.World;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
@@ -40,6 +41,7 @@ public class MeshEntityMetaState
     private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
 
     public RenderState? CustomRenderState;
+    public ObjectFlags? CustomObjectFlags; // used for the render flags, maybe split them?
 
     public MeshEntityMetaState(MeshEntity? entity)
     {

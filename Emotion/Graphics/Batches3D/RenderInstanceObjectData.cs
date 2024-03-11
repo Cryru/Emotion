@@ -10,7 +10,7 @@ using Emotion.Game.World;
 namespace Emotion.Graphics.Batches3D;
 
 // Per GameObject3D
-public struct RenderInstanceObjectData
+public unsafe struct RenderInstanceObjectData
 {
     public bool BackfaceCulling;
     public bool BackfaceCullingFrontFace;
@@ -18,4 +18,7 @@ public struct RenderInstanceObjectData
     public Matrix4x4 ModelMatrix;
     public float DistanceToCamera;
     public ObjectFlags Flags;
+
+    public fixed bool FrustumCulling[MeshEntityBatchRenderer.CASCADE_COUNT + 1];
+    public Sphere FrustumCullingSphere;
 }
