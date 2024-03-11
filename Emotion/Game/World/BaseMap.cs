@@ -290,17 +290,16 @@ public abstract partial class BaseMap
     {
         if (!Initialized) return;
 
+        if (!EditorMode)
+            CoroutineManager.Update(dt);
+
         ProcessObjectChanges();
 
-        // todo: obj update, clipped?
+        // todo: should we update objects at all in editor mode?
+        // todo: should we update all objects or just clip visible ones?
         dt = EditorMode ? 0 : dt;
-        int objCount = GetObjectCount();
-        for (var i = 0; i < objCount; i++)
-        {
-            BaseGameObject obj = GetObjectByIndex(i);
-            if (obj.ObjectState != ObjectState.Alive) continue;
+        foreach (var obj in ObjectsEnum())
             obj.Update(dt);
-        }
     }
 
     public abstract void Render(RenderComposer c);
@@ -531,7 +530,7 @@ public abstract partial class BaseMap
         ProcessObjectChanges();
 
         _worldTree = null;
-        CoroutineManager = null;
+        CoroutineManager = null!;
         _nextObjectUid = 1;
 
         // Clear existing objects.

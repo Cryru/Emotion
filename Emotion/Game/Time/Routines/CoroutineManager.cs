@@ -40,6 +40,12 @@ namespace Emotion.Game.Time.Routines
         private List<Coroutine> _runningRoutines = new();
 
         /// <summary>
+        /// List of routines waiting on a specific time to pass, sorted by time left.
+        /// This list is rebuilt on execution, the list here is just a cache to prevent reallocation.
+        /// </summary>
+        private List<Coroutine> _timeWaitingRoutines = new();
+
+        /// <summary>
         /// Start a new coroutine.
         /// </summary>
         /// <param name="enumerator">The enumerator of the coroutine.</param>
@@ -86,10 +92,12 @@ namespace Emotion.Game.Time.Routines
         /// Update all running coroutines. Performs cleanup as well.
         /// </summary>
         /// <returns>Whether any routines were ran.</returns>
-        public virtual bool Update()
+        public virtual bool Update(float timePassed = 0)
         {
             lock (this)
             {
+                _timeWaitingRoutines.Clear();
+
                 // If no routines are running, do nothing.
                 if (_runningRoutines.Count == 0) return false;
 
@@ -97,14 +105,38 @@ namespace Emotion.Game.Time.Routines
                 for (var i = 0; i < _runningRoutines.Count; i++)
                 {
                     Coroutine current = _runningRoutines[i];
+
+                    // Don't run the routine waiter - it's waiting for precise time.
+                    if (current.WaitingForTime != 0)
+                    {
+                        _timeWaitingRoutines.Add(current);
+                        continue;
+                    }
+
                     Current = current;
                     current.Run();
+
+                    // Check if it just yielded a time wait.
+                    // Usually we don't run the same routine twice in a tick (such as like when yielding subroutines)
+                    // but that is considered a side effect that must be corrected. New features like the time precision wait
+                    // go around this to prevent precision issues.
+                    if (current.WaitingForTime != 0)
+                    {
+                        _timeWaitingRoutines.Add(current);
+                        continue;
+                    }
                 }
 
+                // Advance routines waiting for time.
+                if (_timeWaitingRoutines.Count > 0)
+                    RunCoroutinesWaitingForTime(_timeWaitingRoutines, timePassed);
+
+                // Cleanup finished routines.
                 for (int i = _runningRoutines.Count - 1; i >= 0; i--)
                 {
                     Coroutine current = _runningRoutines[i];
-                    if (current.Finished) _runningRoutines.RemoveAt(i);
+                    if (current.Finished)
+                        _runningRoutines.RemoveAt(i);
                 }
 
                 Current = null;
@@ -121,5 +153,56 @@ namespace Emotion.Game.Time.Routines
             }
         }
 #endif
+
+        private int CoroutineTimeSort(Coroutine x, Coroutine y)
+        {
+            return MathF.Sign(x.WaitingForTime - y.WaitingForTime);
+        }
+
+        private void RunCoroutinesWaitingForTime(List<Coroutine> timeWaitingRoutines, float timePassed)
+        {
+            if (timePassed == 0) return;
+
+            float timeAdvanced = 0;
+            timeWaitingRoutines.Sort(CoroutineTimeSort);
+
+            while (timeAdvanced < timePassed)
+            {
+                // The smallest wait determines the timestamp to ensure time order.
+                float timeStep = timePassed - timeAdvanced;
+                for (int i = 0; i < timeWaitingRoutines.Count; i++)
+                {
+                    var routine = timeWaitingRoutines[i];
+                    if (routine.WaitingForTime != 0)
+                    {
+                        // Step needs to be smaller.
+                        if (routine.WaitingForTime < timeStep)
+                            timeStep = routine.WaitingForTime;
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < timeWaitingRoutines.Count; i++)
+                {
+                    var routine = timeWaitingRoutines[i];
+                    if (routine.WaitingForTime == 0) continue;
+                    routine.WaitingForTime_AdvanceTime(timeStep);
+                }
+
+                for (int i = timeWaitingRoutines.Count - 1; i >= 0; i--)
+                {
+                    var routine = timeWaitingRoutines[i];
+                    if (routine.WaitingForTime == 0)
+                    {
+                        // Time passed, continue the routine.
+                        Current = routine;
+                        routine.Run();
+                    }
+                }
+
+                timeAdvanced += timeStep;
+            }
+            Assert(timeAdvanced == timePassed);
+        }
     }
 }
