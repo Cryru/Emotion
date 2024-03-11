@@ -441,7 +441,6 @@ namespace Emotion.Graphics
                 Span<Vector3> frustumCorners = stackalloc Vector3[8];
                 Camera.GetCameraFrustum3D(frustumCorners);
                 RenderFrustum(frustumCorners, Color.Magenta);
-                MeshEntityRenderer.DebugRenderShadowCascadeFrustums(this);
             }
 
             RenderDebugObjects();
