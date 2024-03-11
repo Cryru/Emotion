@@ -2,7 +2,6 @@
 
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
-using Silk.NET.Maths;
 
 #endregion
 
