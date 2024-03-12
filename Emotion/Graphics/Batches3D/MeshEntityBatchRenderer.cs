@@ -77,6 +77,7 @@ public sealed class MeshEntityBatchRenderer
     private BaseGameObject? _closestObject;
 
     private int _renderingShadowmap;
+    private int _renderCounter;
 
     #endregion
 
@@ -291,25 +292,6 @@ public sealed class MeshEntityBatchRenderer
         float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
         objectInstance.DistanceToCamera = distanceToCamera;
 
-        // Record the furthest and closest object distances.
-        if (obj is not Quad3D)
-        {
-            float distanceToCameraMax = distanceToCamera + objBSphere.Radius;
-            float distanceToCameraMin = distanceToCamera - objBSphere.Radius;
-            if (distanceToCameraMin < objBSphere.Radius) distanceToCameraMin = 10f;
-
-            if (distanceToCameraMax > _furthestObjectDist)
-            {
-                _furthestObjectDist = distanceToCameraMax;
-                _furthestObject = obj;
-            }
-            if (distanceToCameraMin < _closestObjectDist)
-            {
-                _closestObjectDist = distanceToCameraMin;
-                _closestObject = obj;
-            }
-        }
-
         var objIsTransparent = obj.IsTransparent();
 
         // Register all meshes in this entity.
@@ -415,33 +397,56 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    public void EndScene(RenderComposer c, Map3D map)
+    public unsafe void EndScene(RenderComposer c, Map3D map)
     {
         _inScene = false;
+        _renderCounter++;
+
+        // todo: better frustum culling, these objects shouldn't have been pushed in the first place
+        // and it would be reasonable to assume that the map should be able to return them faster if queried with
+        // a frustum in the first place.
+        Frustum primaryFrustum = new Frustum(c.Camera.ViewMatrix * c.Camera.ProjectionMatrix);
+        for (int i = 0; i < _objectDataPool.Length; i++)
+        {
+            ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
+            ref Sphere objBound = ref objInstance.FrustumCullingSphere;
+            bool isVisible = primaryFrustum.IntersectsOrContainsSphere(objBound);
+            objInstance.FrustumCulling[0] = isVisible;
+
+            // Record the furthest and closest object distances in order to fit the shadow near/far.
+            if (isVisible && !objInstance.Flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow) && objBound.Radius < 5000f)
+            {
+                float distanceToCamera = objInstance.DistanceToCamera;
+                float distanceToCameraMax = distanceToCamera + objBound.Radius;
+                float distanceToCameraMin = distanceToCamera - objBound.Radius;
+                if (distanceToCameraMin < objBound.Radius) distanceToCameraMin = 10f;
+
+                if (distanceToCameraMax > _furthestObjectDist)
+                {
+                    _furthestObjectDist = distanceToCameraMax;
+                    //_furthestObject = obj;
+                }
+                if (distanceToCameraMin < _closestObjectDist)
+                {
+                    _closestObjectDist = distanceToCameraMin;
+                    //_closestObject = obj;
+                }
+            }
+        }
 
         var light = map.LightModel;
         CalculateShadowMapCascadeData(light);
 
         // Apply object culling.
-        unsafe
+        for (int cIdx = 0; cIdx < _shadowCascades.Length; cIdx++)
         {
-            // todo: better frustum culling, these objects shouldn't have been pushed in the first place
-            // and it would be reasonable to assume that the map should be able to return them faster if queried with
-            // a frustum in the first place.
-            Frustum primaryFrustum = new Frustum(c.Camera.ViewMatrix * c.Camera.ProjectionMatrix);
-
+            var cascade = _shadowCascades[cIdx];
+            var cascadeFrustum = cascade.Frustum;
             for (int i = 0; i < _objectDataPool.Length; i++)
             {
                 ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
                 ref Sphere objBound = ref objInstance.FrustumCullingSphere;
-
-                objInstance.FrustumCulling[0] = primaryFrustum.IntersectsOrContainsSphere(objBound);
-
-                for (int cIdx = 0; cIdx < _shadowCascades.Length; cIdx++)
-                {
-                    var cascade = _shadowCascades[cIdx];
-                    objInstance.FrustumCulling[cIdx + 1] = cascade.Frustum.IntersectsOrContainsSphere(objBound);
-                }
+                objInstance.FrustumCulling[cIdx + 1] = cascadeFrustum.IntersectsOrContainsSphere(objBound);
             }
         }
 
