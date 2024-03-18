@@ -208,7 +208,7 @@ namespace Emotion.Game.ThreeDee.Editor
             if (_dragPointStart == Vector3.Zero)
             {
                 Ray3D ray = camera.GetCameraMouseRay();
-                ray.IntersectWithObject(this, out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _);
+                ray.IntersectWithObject(this, out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _, true);
 
                 if (_meshMouseover != collidedMesh)
                 {
