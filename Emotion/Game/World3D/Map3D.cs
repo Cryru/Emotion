@@ -5,6 +5,7 @@
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World;
+using Emotion.Game.World.Grid;
 using Emotion.Game.World3D.Objects;
 using System.Threading.Tasks;
 
@@ -33,6 +34,9 @@ public class Map3D : BaseMap
         types.Remove(typeof(TranslationGizmo));
         types.Remove(typeof(InfiniteGrid));
 
+        // System
+        types.Remove(typeof(TerrainChunkObject));
+
         return types;
     }
 
@@ -55,6 +59,8 @@ public class Map3D : BaseMap
     public override void Render(RenderComposer c)
     {
         if (!Initialized) return;
+
+        base.Render(c);
 
         c.MeshEntityRenderer.StartScene(c);
         // todo: frustum culling
