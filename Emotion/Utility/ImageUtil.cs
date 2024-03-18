@@ -31,15 +31,23 @@ namespace Emotion.Utility
             return output;
         }
 
-        public static byte[] RgbaToA(byte[] pixels)
+        public static byte[] RgbaToA(byte[] pixels, bool useColor = false)
         {
             if (pixels == null) return null;
 
             var output = new byte[pixels.Length / 4];
             for (var p = 0; p < pixels.Length; p += 4)
             {
-                byte alpha = pixels[p + 3];
-                output[p / 4] = alpha;
+                if (useColor)
+                {
+                    byte r = pixels[p];
+                    output[p / 4] = r;
+                }
+                else
+                {
+                    byte alpha = pixels[p + 3];
+                    output[p / 4] = alpha;
+                }
             }
 
             return output;
