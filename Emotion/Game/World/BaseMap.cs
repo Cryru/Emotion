@@ -65,6 +65,11 @@ public abstract partial class BaseMap
     [DontShowInEditor]
     public List<BaseGameObject> PersistentObjects { get; set; }
 
+    /// <summary>
+    /// List of all grids that pertain to the map.
+    /// </summary>
+    public List<MapGrid> Grids { get; set; }
+
     #region Events
 
     public event Action? OnMapReset;
@@ -90,7 +95,7 @@ public abstract partial class BaseMap
     /// Coroutines running on the map.
     /// </summary>
     [DontSerialize]
-    public CoroutineManager CoroutineManager { get; private set; }
+    public CoroutineManager CoroutineManager { get; private set; } = new();
 
     #endregion
 
@@ -107,6 +112,7 @@ public abstract partial class BaseMap
         MapName = mapName;
         PersistentObjects = new List<BaseGameObject>();
         _objects = new List<BaseGameObject>();
+        Grids = new List<MapGrid>();
     }
 
     // Serialization constructor
@@ -115,6 +121,7 @@ public abstract partial class BaseMap
         MapName = null!;
         _objects = new();
         PersistentObjects = new();
+        Grids = new();
     }
 
     #region Editor Support
@@ -179,10 +186,26 @@ public abstract partial class BaseMap
 
         var profiler = Stopwatch.StartNew();
 
-        _worldTree = new WorldTree2D(MapSize);
-        CoroutineManager = new CoroutineManager();
+        CoroutineManager.StopAll(); // Clear
         _mapInitStarted = true;
 
+        // Load grids
+        {
+            Task[] gridLoading = new Task[Grids.Count];
+            for (int i = 0; i < Grids.Count; i++)
+            {
+                var grid = Grids[i];
+                gridLoading[i] = grid.LoadAsync(this);
+            }
+            await Task.WhenAll(gridLoading);
+            for (int i = 0; i < Grids.Count; i++)
+            {
+                var grid = Grids[i];
+                grid.FillToMapSize(MapSize);
+            }
+        }
+
+        _worldTree = new WorldTree2D(MapSize);
         SetupWorldTreeLayers(_worldTree);
 
         // It is possible for non-persisted objects to have been added before the world tree is initialized.
@@ -302,7 +325,14 @@ public abstract partial class BaseMap
             obj.Update(dt);
     }
 
-    public abstract void Render(RenderComposer c);
+    public virtual void Render(RenderComposer c)
+    {
+        for (int i = 0; i < Grids.Count; i++)
+        {
+            var grid = Grids[i];
+            grid.Render(c);
+        }
+    }
 
     #endregion
 
@@ -530,7 +560,7 @@ public abstract partial class BaseMap
         ProcessObjectChanges();
 
         _worldTree = null;
-        CoroutineManager = null!;
+        CoroutineManager.StopAll();
         _nextObjectUid = 1;
 
         // Clear existing objects.
