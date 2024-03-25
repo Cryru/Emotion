@@ -6,9 +6,10 @@
         public Vector2 FrameSize;
         public Vector2 Spacing;
 
-        public SpriteGridFrameSource(Vector2 textureSize)
+        public SpriteGridFrameSource(Vector2 textureSize, Vector2 frameSize)
         {
             TextureSize = textureSize;
+            FrameSize = frameSize;
         }
 
         // serialization constructor
