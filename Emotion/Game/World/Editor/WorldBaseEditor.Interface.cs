@@ -471,6 +471,12 @@ public abstract partial class WorldBaseEditor
         parentList.AddChild(objectsMenu);
         parentList.AddChild(editorMenu);
         parentList.AddChild(otherTools);
+
+        foreach (var gameSpecificTool in _gameSpecificTopBarItems)
+        {
+            var button = EditorDropDownButton(gameSpecificTool.Key, gameSpecificTool.Value(this));
+            parentList.AddChild(button);
+        }
     }
 
     protected EditorButton EditorDropDownButton(string label, EditorDropDownItem[] menuButtons)
@@ -564,4 +570,15 @@ public abstract partial class WorldBaseEditor
 
         return worldAttachUI;
     }
+
+    #region Game Specific Items API
+
+    private static Dictionary<string, Func<WorldBaseEditor, EditorDropDownItem[]>> _gameSpecificTopBarItems = new();
+
+    public static void GameAddTopBarCategory(string title, Func<WorldBaseEditor, EditorDropDownItem[]> itemsGenFunc)
+    {
+        _gameSpecificTopBarItems.Add(title, itemsGenFunc);
+    }
+
+    #endregion
 }
