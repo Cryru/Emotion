@@ -242,7 +242,7 @@ namespace Emotion.Tools.Editors.Animation2D
 
                 SpriteAnimationFrameSource source;
                 if (gridMode)
-                    source = new SpriteGridFrameSource(f.Texture.Size);
+                    source = new SpriteGridFrameSource(f.Texture.Size, Vector2.One);
                 else
                     source = new SpriteArrayFrameSource(f.Texture);
 
