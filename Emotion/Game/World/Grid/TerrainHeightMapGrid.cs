@@ -13,7 +13,7 @@ public class TerrainHeightMapGrid : TextureSourceGrid
         await base.LoadAsync(map);
 
         int chunkSize = TerrainChunkObject.CHUNK_SIZE;
-        Vector2 meshChunks = (GridSizeInTiles / new Vector2(chunkSize)).Ceiling();
+        Vector2 meshChunks = (SizeInTiles / new Vector2(chunkSize)).Ceiling();
         TerrainChunkObject[] chunks = new TerrainChunkObject[(int)(meshChunks.X * meshChunks.Y)];
 
         int chunkId = 0;
@@ -21,7 +21,7 @@ public class TerrainHeightMapGrid : TextureSourceGrid
         {
             for (int x = 0; x < meshChunks.X; x++)
             {
-                chunks[chunkId] = new TerrainChunkObject(new Vector2(x, y), GridSizeInTiles, _data);
+                chunks[chunkId] = new TerrainChunkObject(new Vector2(x, y), SizeInTiles, _data);
                 chunkId++;
             }
         }

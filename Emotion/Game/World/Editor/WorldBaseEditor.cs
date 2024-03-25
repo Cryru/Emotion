@@ -34,7 +34,7 @@ public abstract partial class WorldBaseEditor
 
     /// <summary>
     /// A UI controller to use for debug ui.
-    /// This controller this active even when the editor isn't open.
+    /// This controller is active even when the editor isn't open.
     /// </summary>
     public UIController? UIController
     {

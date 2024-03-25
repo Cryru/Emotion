@@ -10,8 +10,8 @@ using Emotion.Common.Threading;
 using Emotion.Editor;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
+using Emotion.Game.World.Grid;
 using Emotion.Game.World2D;
-using Emotion.Graphics;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 
@@ -68,7 +68,7 @@ public abstract partial class BaseMap
     /// <summary>
     /// List of all grids that pertain to the map.
     /// </summary>
-    public List<MapGrid> Grids { get; set; }
+    public List<IMapGrid> Grids { get; set; }
 
     #region Events
 
@@ -112,7 +112,7 @@ public abstract partial class BaseMap
         MapName = mapName;
         PersistentObjects = new List<BaseGameObject>();
         _objects = new List<BaseGameObject>();
-        Grids = new List<MapGrid>();
+        Grids = new List<IMapGrid>();
     }
 
     // Serialization constructor

@@ -5,6 +5,6 @@
 namespace Emotion.Game.World.Grid;
 
 [DontSerialize]
-public class DynamicNavigationGrid : NumericMapGrid<byte>
+public class DynamicNavigationGrid : PackedNumericMapGrid<byte>
 {
 }
