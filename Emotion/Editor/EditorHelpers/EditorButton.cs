@@ -72,7 +72,7 @@ public class EditorButton : UICallbackButton
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        if (RenderNonActiveBackground || MouseInside) c.RenderSprite(Bounds, _calculatedColor);
+        if (RenderNonActiveBackground || MouseInside) c.RenderSprite(Position, Size, _calculatedColor);
         return base.RenderInternal(c);
     }
 
