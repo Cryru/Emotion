@@ -53,6 +53,7 @@ namespace Emotion.UI
 
         private Task _loadingTask = Task.CompletedTask;
         private bool _needsLoad = true;
+        private bool _updatedOnce = false;
 
         public bool IsLoading()
         {
@@ -103,6 +104,7 @@ namespace Emotion.UI
                 _updateColor = false;
             }
 
+            _updatedOnce = true;
             bool updateChildren = UpdateInternal();
             if (!updateChildren || Children == null) return;
 
@@ -122,6 +124,7 @@ namespace Emotion.UI
         public void Render(RenderComposer c)
         {
             if (!Visible) return;
+            if (!_updatedOnce) return;
 
             // Push displacements if any.
             var matrixPushed = false;
