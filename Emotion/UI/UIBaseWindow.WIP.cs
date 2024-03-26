@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common.Serialization;
+using static Emotion.UI.UIBaseWindow;
 
 #endregion
 
@@ -191,8 +192,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 #else
         Vector2 minWindowSize = NEW_InternalMeasure(space);
 #endif
-        minWindowSize = Vector2.Clamp(minWindowSize, MinSize * scale, MaxSize * scale);
-        minWindowSize = minWindowSize.Ceiling();
+        minWindowSize = Vector2.Clamp(minWindowSize, MinSize * scale, MaxSize * scale).Ceiling();
 
         // Now that we know how big this window wants to be at minimum,
         // and the minimum of all children, we can determine the actual minimum of this window.
@@ -224,6 +224,148 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 
         return size;
     }
+
+    private bool IsOutsideParentListLayout(int axisMask, UIAnchor childAnchor)
+    {
+        if (axisMask == 0 && childAnchor is UIAnchor.BottomRight or UIAnchor.CenterRight or UIAnchor.TopRight) return true;
+        return false;
+    }
+
+    protected virtual void Layout(Vector2 pos, Vector2 size)
+    {
+        UIController.DebugShouldBreakpointLayout(this);
+
+        if (size.X < 0 || size.Y < 0)
+        {
+            Assert(false, $"UIWindow of id {Id} layouted with a size smaller than 0.");
+            size.X = MathF.Max(size.X, 0);
+            size.Y = MathF.Max(size.Y, 0);
+        }
+
+        float scale = GetScale();
+        pos += (Offset * scale).RoundClosest();
+        pos = pos.Floor();
+        Position = pos.ToVec3(Z);
+        Size = size.Ceiling();
+
+        _layoutEngine.Reset();
+        _layoutEngine.SetDimensions(Bounds);
+        _layoutEngine.SetLayoutMode(LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
+        _layoutEngine.AddPadding(Paddings * scale);
+
+        // Append children to the layout.
+        List<UIBaseWindow> children = Children ?? EMPTY_CHILDREN_LIST;
+        List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
+        for (var i = 0; i < children.Count + relativeToMe.Count; i++)
+        {
+            UIBaseWindow child;
+            if (i < children.Count)
+            {
+                child = children[i];
+                if (child.RelativeTo != null) continue;
+            }
+            else
+            {
+                child = relativeToMe[i - children.Count];
+            }
+
+            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+
+            Vector2 childSize = child._measuredSize;
+            float childScale = child.GetScale();
+            _layoutEngine.AppendChild(child, childSize, child.Margins * childScale);
+        }
+
+        _layoutEngine.ApplyLayout();
+
+        // Invalidate transformations.
+        if (_transformationStackBacking != null) _transformationStackBacking.MatrixDirty = true;
+
+        // Construct input detecting boundary that includes this window's children.
+        _inputBoundsWithChildren = Bounds;
+        for (var i = 0; i < children.Count; i++)
+        {
+            UIBaseWindow child = children[i];
+            _inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
+        }
+
+        AfterLayout();
+    }
+
+    protected static Vector2 GetChildPositionAnchorWise(UIAnchor parentAnchor, UIAnchor anchor, Rectangle parentContentRect, Vector2 contentSize)
+    {
+        Vector2 offset = Vector2.Zero;
+
+        switch (parentAnchor)
+        {
+            case UIAnchor.TopLeft:
+            case UIAnchor.CenterLeft:
+            case UIAnchor.BottomLeft:
+                offset.X += parentContentRect.X;
+                break;
+            case UIAnchor.TopCenter:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.BottomCenter:
+                offset.X += parentContentRect.Center.X;
+                break;
+            case UIAnchor.TopRight:
+            case UIAnchor.CenterRight:
+            case UIAnchor.BottomRight:
+                offset.X += parentContentRect.Right;
+                break;
+        }
+
+        switch (parentAnchor)
+        {
+            case UIAnchor.TopLeft:
+            case UIAnchor.TopCenter:
+            case UIAnchor.TopRight:
+                offset.Y += parentContentRect.Y;
+                break;
+            case UIAnchor.CenterLeft:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.CenterRight:
+                offset.Y += parentContentRect.Center.Y;
+                break;
+            case UIAnchor.BottomLeft:
+            case UIAnchor.BottomCenter:
+            case UIAnchor.BottomRight:
+                offset.Y += parentContentRect.Bottom;
+                break;
+        }
+
+        switch (anchor)
+        {
+            case UIAnchor.TopCenter:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.BottomCenter:
+                offset.X -= contentSize.X / 2;
+                break;
+            case UIAnchor.TopRight:
+            case UIAnchor.CenterRight:
+            case UIAnchor.BottomRight:
+                offset.X -= contentSize.X;
+                break;
+        }
+
+        switch (anchor)
+        {
+            case UIAnchor.CenterLeft:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.CenterRight:
+                offset.Y -= contentSize.Y / 2;
+                break;
+            case UIAnchor.BottomLeft:
+            case UIAnchor.BottomCenter:
+            case UIAnchor.BottomRight:
+                offset.Y -= contentSize.Y;
+                break;
+        }
+
+        return offset;
+    }
+
+    #region Trash
 
     private Vector2 LayoutMode_FreeMeasure(List<UIBaseWindow> children, Vector2 spaceForChildren)
     {
@@ -397,12 +539,6 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         }
     }
 
-    private bool IsOutsideParentListLayout(int axisMask, UIAnchor childAnchor)
-    {
-        if (axisMask == 0 && childAnchor is UIAnchor.BottomRight or UIAnchor.CenterRight or UIAnchor.TopRight) return true;
-        return false;
-    }
-
     private Vector2 LayoutMode_ListMeasure(List<UIBaseWindow> children, Vector2 freeSpace, bool wrap, int axisMask)
     {
         List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
@@ -485,12 +621,12 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
             Vector2 childSize = child._measuredSize;
             Rectangle thisChildSpaceRect = childSpaceRect;
 
-                // Don't add spacing before 0 size windows.
-                bool addSpacing = insideParent && childSize[axisMask] != 0 && prevChildSize[axisMask] != 0;
-                if (addSpacing) pen[axisMask] += spacing[axisMask];
+            // Don't add spacing before 0 size windows.
+            bool addSpacing = insideParent && childSize[axisMask] != 0 && prevChildSize[axisMask] != 0;
+            if (addSpacing) pen[axisMask] += spacing[axisMask];
 
-                thisChildSpaceRect.Position += pen;
-                thisChildSpaceRect.Size -= pen;
+            thisChildSpaceRect.Position += pen;
+            thisChildSpaceRect.Size -= pen;
 
             float childScale = child.GetScale();
             Rectangle childScaledMargins = child.Margins * childScale;
@@ -520,8 +656,8 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
                 bool a = true;
             }
 
-                if (axisMask == 0 && i != children.Count - 1) childFillX = false;
-                if (axisMask == 1 && i != children.Count - 1) childFillY = false;
+            if (axisMask == 0 && i != children.Count - 1) childFillX = false;
+            if (axisMask == 1 && i != children.Count - 1) childFillY = false;
 
             Vector2 childSizeFilled = childSize;
             if (childFillX) childSizeFilled.X = thisChildSpaceRect.Width;
@@ -540,14 +676,14 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 
             child.Layout(childPos, childSize);
 
-                pen[axisMask] += childSize[axisMask];
-                prevChildSize = childSize;
+            pen[axisMask] += childSize[axisMask];
+            prevChildSize = childSize;
         }
     }
 
     private Vector2 LayoutMode_ListLayoutAAA(List<UIBaseWindow> children, Rectangle childSpaceRect, bool wrap, int axisMask)
     {
-        if(Id == "PanelItself")
+        if (Id == "PanelItself")
         {
             bool a = true;
         }
@@ -726,137 +862,5 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         return usedSpace;
     }
 
-    protected virtual void Layout(Vector2 pos, Vector2 size)
-    {
-        UIController.DebugShouldBreakpointLayout(this);
-
-        if (size.X < 0 || size.Y < 0)
-        {
-            Assert(false, $"UIWindow of id {Id} layouted with a size smaller than 0.");
-            size.X = MathF.Max(size.X, 0);
-            size.Y = MathF.Max(size.Y, 0);
-        }
-
-        float scale = GetScale();
-        pos += (Offset * scale).RoundClosest();
-        pos = pos.Floor();
-        Position = pos.ToVec3(Z);
-        Size = size.Ceiling();
-
-        _layoutEngine.Reset();
-        _layoutEngine.SetDimensions(Bounds);
-        _layoutEngine.SetLayoutMode(LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
-        _layoutEngine.AddPadding(Paddings * scale);
-
-        // Append children to the layout.
-        List<UIBaseWindow> children = Children ?? EMPTY_CHILDREN_LIST;
-        List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
-        for (var i = 0; i < children.Count + relativeToMe.Count; i++)
-        {
-            UIBaseWindow child;
-            if (i < children.Count)
-            {
-                child = children[i];
-                if (child.RelativeTo != null) continue;
-            }
-            else
-            {
-                child = relativeToMe[i - children.Count];
-            }
-
-            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-
-            Vector2 childSize = child._measuredSize;
-            float childScale = child.GetScale();
-            _layoutEngine.AppendChild(child, childSize, child.Margins * childScale);
-        }
-
-        _layoutEngine.ApplyLayout();
-
-        // Invalidate transformations.
-        if (_transformationStackBacking != null) _transformationStackBacking.MatrixDirty = true;
-
-        // Construct input detecting boundary that includes this window's children.
-        _inputBoundsWithChildren = Bounds;
-        for (var i = 0; i < children.Count; i++)
-        {
-            UIBaseWindow child = children[i];
-            _inputBoundsWithChildren = Rectangle.Union(child._inputBoundsWithChildren, _inputBoundsWithChildren);
-        }
-
-        AfterLayout();
-    }
-
-    protected static Vector2 GetChildPositionAnchorWise(UIAnchor parentAnchor, UIAnchor anchor, Rectangle parentContentRect, Vector2 contentSize)
-    {
-        Vector2 offset = Vector2.Zero;
-
-        switch (parentAnchor)
-        {
-            case UIAnchor.TopLeft:
-            case UIAnchor.CenterLeft:
-            case UIAnchor.BottomLeft:
-                offset.X += parentContentRect.X;
-                break;
-            case UIAnchor.TopCenter:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.BottomCenter:
-                offset.X += parentContentRect.Center.X;
-                break;
-            case UIAnchor.TopRight:
-            case UIAnchor.CenterRight:
-            case UIAnchor.BottomRight:
-                offset.X += parentContentRect.Right;
-                break;
-        }
-
-        switch (parentAnchor)
-        {
-            case UIAnchor.TopLeft:
-            case UIAnchor.TopCenter:
-            case UIAnchor.TopRight:
-                offset.Y += parentContentRect.Y;
-                break;
-            case UIAnchor.CenterLeft:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.CenterRight:
-                offset.Y += parentContentRect.Center.Y;
-                break;
-            case UIAnchor.BottomLeft:
-            case UIAnchor.BottomCenter:
-            case UIAnchor.BottomRight:
-                offset.Y += parentContentRect.Bottom;
-                break;
-        }
-
-        switch (anchor)
-        {
-            case UIAnchor.TopCenter:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.BottomCenter:
-                offset.X -= contentSize.X / 2;
-                break;
-            case UIAnchor.TopRight:
-            case UIAnchor.CenterRight:
-            case UIAnchor.BottomRight:
-                offset.X -= contentSize.X;
-                break;
-        }
-
-        switch (anchor)
-        {
-            case UIAnchor.CenterLeft:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.CenterRight:
-                offset.Y -= contentSize.Y / 2;
-                break;
-            case UIAnchor.BottomLeft:
-            case UIAnchor.BottomCenter:
-            case UIAnchor.BottomRight:
-                offset.Y -= contentSize.Y;
-                break;
-        }
-
-        return offset;
-    }
+    #endregion
 }
