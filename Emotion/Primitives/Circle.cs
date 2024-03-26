@@ -92,6 +92,11 @@ namespace Emotion.Primitives
             return l.Intersects(ref this);
         }
 
+        public bool Intersects(Circle c)
+        {
+            return Vector2.Distance(c.Center, Center) < Radius + c.Radius;
+        }
+
         /// <inheritdoc />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 GetIntersectionPoint(ref LineSegment l)
@@ -166,6 +171,28 @@ namespace Emotion.Primitives
         public override string ToString()
         {
             return $"Circle [X:{X}, Y:{Y}, Radius:{Radius}]";
+        }
+
+        public void GetLineSegments(Span<LineSegment> array, int detail)
+        {
+            Assert(detail > 3);
+            for (int i = 0; i < detail; i++)
+            {
+                float angle1 = MathF.PI * 2 * i / detail;
+                float angle2 = MathF.PI * 2 * (i + 1) / detail;
+
+                Vector2 start = new Vector2(
+                    Center.X + Radius * MathF.Cos(angle1),
+                    Center.Y + Radius * MathF.Sin(angle1)
+                );
+
+                Vector2 end = new Vector2(
+                    Center.X + Radius * MathF.Cos(angle2),
+                    Center.Y + Radius * MathF.Sin(angle2)
+                );
+
+                array[i] = new LineSegment(start, end);
+            }
         }
     }
 }

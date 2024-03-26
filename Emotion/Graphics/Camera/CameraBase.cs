@@ -52,8 +52,9 @@ namespace Emotion.Graphics.Camera
             get => _lookAt;
             set
             {
-                LookAtChanged(_lookAt, value);
+                var oldLookAt = _lookAt;
                 _lookAt = value;
+                LookAtChanged(oldLookAt, value);
                 RecreateViewMatrix();
             }
         }

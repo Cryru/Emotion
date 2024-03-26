@@ -4,17 +4,19 @@
 
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
+using Emotion.Utility;
 
 #endregion
 
 namespace Emotion.Graphics.Batches3D;
 
 // Per mesh
-public struct RenderInstanceMeshData
+public struct RenderInstanceMeshData : IStructArenaLinkedListItem
 {
+    public int NextItem { get; set; }
+
     public int ObjectRegistrationId; // -> RenderInstanceObjectData
     public Matrix4x4[]? BoneData;
-    public int NextMesh;
 }
 
 // Per mesh (transparent mode)

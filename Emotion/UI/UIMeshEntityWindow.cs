@@ -2,6 +2,7 @@
 
 #region Using
 
+using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Game.World;
@@ -10,6 +11,7 @@ using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
+using OpenGL;
 
 #endregion
 
@@ -18,23 +20,46 @@ namespace Emotion.UI;
 public class UIMeshEntityWindow : UIBaseWindow
 {
     public string? AssetPath;
+    public bool Async;
     public Vector2 PreviewSize = new Vector2(64, 64);
 
     protected FrameBuffer? _previewImage;
     protected GameObject3D? _previewObject;
     protected Camera3D? previewCamera;
 
-    protected bool _previewImageValid;
     protected MeshAsset? _meshAsset;
+    protected string? _meshAssetLoaded;
+
+    protected Task? _asyncLoading;
+    protected CancellationTokenSource? _asyncLoadingTokenSource;
 
     protected override async Task LoadContent()
     {
         var loadedNew = false;
         if (AssetPath == null) return;
-        if (_meshAsset == null || _meshAsset.Name != AssetPath || _meshAsset.Disposed)
+        if (_meshAssetLoaded == null || _meshAssetLoaded != AssetPath || (_meshAsset != null && _meshAsset.Disposed))
         {
-            _meshAsset = await Engine.AssetLoader.GetAsync<MeshAsset>(AssetPath);
-            loadedNew = true;
+            _meshAssetLoaded = AssetPath;
+
+            if (_asyncLoading != null && !_asyncLoading.IsCompleted) _asyncLoadingTokenSource!.Cancel();
+            if (Async)
+            {
+                _asyncLoadingTokenSource ??= new();
+                var token = _asyncLoadingTokenSource.Token;
+                _asyncLoading = Task.Run(async () =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    var asset = await Engine.AssetLoader.GetAsync<MeshAsset>(AssetPath);
+                    token.ThrowIfCancellationRequested();
+                    _meshAsset = asset;
+                    InvalidateLayout();
+                }, token);
+            }
+            else
+            {
+                _meshAsset = await Engine.AssetLoader.GetAsync<MeshAsset>(_meshAssetLoaded);
+                loadedNew = true;
+            }
         }
 
         if (_meshAsset == null) return;
@@ -59,13 +84,17 @@ public class UIMeshEntityWindow : UIBaseWindow
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        if (_previewObject == null && _meshAsset != null)
+        if (
+            (_previewObject == null && _meshAsset != null) || // Not created
+            (_meshAsset != null && _previewObject != null && _meshAsset.Entity != _previewObject.Entity) // Entity changed
+        )
         {
-            _previewObject = new GameObject3D("UI_Object");
+            _previewObject ??= new GameObject3D("UI_Object");
             _previewObject.Entity = _meshAsset.Entity;
         }
 
-        if (!_previewImageValid && _previewObject != null)
+        // Update preview
+        if (_previewObject != null)
         {
             _previewObject.ObjectState = ObjectState.Alive;
             _previewObject.Init();

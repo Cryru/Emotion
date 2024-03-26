@@ -21,8 +21,6 @@ public class FileExplorerButton : UICallbackButton
     private string _extension = "";
     private string _fileName = "";
 
-    private Task? _previewTask;
-
     public FileExplorerButton()
     {
         ScaleMode = UIScaleMode.FloatScale;
@@ -102,21 +100,13 @@ public class FileExplorerButton : UICallbackButton
 
     private void GeneratePreviewUI()
     {
-        Task? currentTask = null;
-        currentTask = Task.Run(() =>
-        {
-            var previewWindow = GeneratePreviewUIInternal(_extension);
-            if (currentTask == _previewTask)
-            {
-                var filePreview = GetWindowById("FilePreview");
-                if (filePreview != null) filePreview.Parent.RemoveChild(filePreview);
+        var previewWindow = GeneratePreviewUIInternal(_extension);
+        var filePreview = GetWindowById("FilePreview");
+        if (filePreview != null) filePreview.Parent.RemoveChild(filePreview);
 
-                previewWindow.Id = "FilePreview";
-                var bg = GetWindowById("buttonBackground");
-                bg.AddChild(previewWindow);
-            }
-        });
-        _previewTask = currentTask;
+        previewWindow.Id = "FilePreview";
+        var bg = GetWindowById("buttonBackground");
+        bg.AddChild(previewWindow);
     }
 
     private UIBaseWindow GeneratePreviewUIInternal(string extension)
@@ -131,6 +121,7 @@ public class FileExplorerButton : UICallbackButton
         {
             var obj3DPreview = new UIMeshEntityWindow();
             obj3DPreview.AssetPath = _fileName;
+            obj3DPreview.Async = true;
             obj3DPreview.ParentAnchor = UIAnchor.CenterCenter;
             obj3DPreview.Anchor = UIAnchor.CenterCenter;
 

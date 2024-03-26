@@ -131,7 +131,7 @@ namespace Emotion.Graphics.Camera
                 _lookAt = direction;
                 _lastMousePos = mousePos;
 
-                Engine.Renderer.Camera.RecreateViewMatrix();
+                RecreateViewMatrix();
             }
 
             if (_inputDirection != Vector2.Zero || _inputDirectionZ != 0)
@@ -148,7 +148,7 @@ namespace Emotion.Graphics.Camera
                 if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
                 // todo: interpolate.
 
-                Engine.Renderer.Camera.RecreateViewMatrix();
+                RecreateViewMatrix();
             }
         }
 
@@ -162,6 +162,12 @@ namespace Emotion.Graphics.Camera
                 yaw = MathF.Atan2(newVal.Y, newVal.X);
 
             _yawPitchRoll = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
+
+            // Prevent look at facing towards or out of RenderComposer.Up
+            _yawPitchRoll.Z = Maths.Clamp(_yawPitchRoll.Z, -89, 89);
+            _lookAt.X = MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Z));
+            _lookAt.Z = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.Z));
+
             base.LookAtChanged(oldVal, newVal);
         }
 

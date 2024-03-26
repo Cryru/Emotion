@@ -6,7 +6,7 @@ uniform vec3 cameraPosition; // world pos
 uniform mat4 viewMatrix;
 
 // Shadow
-#define CASCADE_RESOLUTION vec2(2048.0)
+#define CASCADE_RESOLUTION vec2(1024.0)
 #define CASCADE_COUNT 4
 
 #define VSM 1
@@ -99,16 +99,16 @@ float linstep(float low, float high, float v)
 }
 
 #ifdef VSM
-float SampleShadowMap(vec3 uvAndDepth, int cascade)
+float SampleShadowMap(vec3 uvAndDepth, int cascadeIdx)
 {
-    vec4 outCol = vec4(1.0);
-    if (cascade == 0)
+    vec4 outCol = vec4(0.0);
+    if (cascadeIdx == 0)
         outCol = texture(shadowMapTextureC1, uvAndDepth.xy);
-    else if (cascade == 1)
+    else if (cascadeIdx == 1)
         outCol = texture(shadowMapTextureC2, uvAndDepth.xy);
-    else if (cascade == 2)
+    else if (cascadeIdx == 2)
         outCol = texture(shadowMapTextureC3, uvAndDepth.xy);
-    else if (cascade == 3)
+    else if (cascadeIdx == 3)
         outCol = texture(shadowMapTextureC4, uvAndDepth.xy);
 
     // Basic shadow mapping V
@@ -121,36 +121,31 @@ float SampleShadowMap(vec3 uvAndDepth, int cascade)
 
     float d = uvAndDepth.z - moments.r;
     float pMax = variance / (variance + d*d);
-    pMax = linstep(0.4, 1.0, pMax);
+    //pMax = linstep(0.4, 1.0, pMax);
 
     return 1.0 - min(max(p, pMax), 1.0);
 }
 #else
-float SampleShadowMap(vec3 uvAndDepth, int cascade)
+float SampleShadowMap(vec3 uvAndDepth, int cascadeIdx)
 {
     float outCol = 0.0;
-    if (cascade == 0)
+    if (cascadeIdx == 0)
         outCol = texture(shadowMapTextureC1, uvAndDepth);
-    else if (cascade == 1)
+    else if (cascadeIdx == 1)
         outCol = texture(shadowMapTextureC2, uvAndDepth);
-    else if (cascade == 2)
+    else if (cascadeIdx == 2)
         outCol = texture(shadowMapTextureC3, uvAndDepth);
-    else if (cascade == 3)
+    else if (cascadeIdx == 3)
         outCol = texture(shadowMapTextureC4, uvAndDepth);
+
     return outCol;
 }
 #endif
 
-float SampleShadowMap_Witness(vec2 baseUv, vec2 uvOffset, vec2 shadowMapSizeInv, int cascade, float depth)
-{
-    vec2 uv = baseUv + uvOffset * shadowMapSizeInv;
-    vec3 uvAndDepth = vec3(uv, depth);
-    return SampleShadowMap(uvAndDepth, cascade);
-}
-
 float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
 {
-    vec2 shadowMapSize = CASCADE_RESOLUTION;
+    float cascadeSizes[CASCADE_COUNT] = float[CASCADE_COUNT](2048.0, 1024.0, 512.0, 256.0);
+    vec2 shadowMapSize = vec2(cascadeSizes[cascadeIdx]);
     float numSlices = CASCADE_COUNT;
 
     vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
@@ -181,12 +176,17 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     float v1 = t / vw1 + 1;
 
     float lightDepth = shadowPos.z;
-    sum += uw0 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u0, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw1 * vw0 * SampleShadowMap_Witness(base_uv, vec2(u1, v0), shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw0 * vw1 * SampleShadowMap_Witness(base_uv, vec2(u0, v1), shadowMapSizeInv, cascadeIdx, lightDepth);
-    sum += uw1 * vw1 * SampleShadowMap_Witness(base_uv, vec2(u1, v1), shadowMapSizeInv, cascadeIdx, lightDepth);
+    sum += uw0 * vw0 * SampleShadowMap(vec3(base_uv + vec2(u0, v0) * shadowMapSizeInv, lightDepth), cascadeIdx);
+    sum += uw1 * vw0 * SampleShadowMap(vec3(base_uv + vec2(u1, v0) * shadowMapSizeInv, lightDepth), cascadeIdx);
+    sum += uw0 * vw1 * SampleShadowMap(vec3(base_uv + vec2(u0, v1) * shadowMapSizeInv, lightDepth), cascadeIdx);
+    sum += uw1 * vw1 * SampleShadowMap(vec3(base_uv + vec2(u1, v1) * shadowMapSizeInv, lightDepth), cascadeIdx);
 
     return sum * 1.0f / 16.0;
+}
+
+float Simple_GetShadowAmount(int cascadeIdx, vec3 projCoords)
+{
+    return SampleShadowMap(projCoords, cascadeIdx);
 }
 
 float GetShadowAmount()
@@ -199,7 +199,7 @@ float GetShadowAmount()
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
-    //return SampleShadowMap(projCoords, cascadeIdx);
+    //return Simple_GetShadowAmount(cascadeIdx, projCoords);
     return TheWitness_GetShadowAmount(cascadeIdx, projCoords);
 }
 

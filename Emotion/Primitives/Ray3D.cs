@@ -43,7 +43,7 @@ public struct Ray3D
     /// Animated objects will be intersected according to the state of their vertices at their last
     /// CacheVerticesForCollision call. Keep in mind that applying the animation is slow.
     /// </summary>
-    public bool IntersectWithObject(GameObject3D obj, out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+    public bool IntersectWithObject(GameObject3D obj, out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
     {
         collidedMesh = null;
         collisionPoint = Vector3.Zero;
@@ -56,14 +56,45 @@ public struct Ray3D
         Sphere boundSphere = obj.BoundingSphere;
         if (!IntersectWithSphere(boundSphere, out Vector3 _, out Vector3 _)) return false;
 
+        // Used when closest == true
+        float closestDist = float.MaxValue;
+        Vector3 closestNormal = Vector3.Zero;
+        Vector3 closestCollisionPoint = Vector3.Zero;
+        int closestTriangleIndex = 0;
+
         for (var i = 0; i < meshes.Length; i++)
         {
             Mesh mesh = meshes[i];
             if (IntersectWithObjectMesh(obj, i, out collisionPoint, out normal, out triangleIndex))
             {
-                collidedMesh = mesh;
-                return true;
+                if (closest)
+                {
+                    float distance = Vector3.Distance(Start, collisionPoint);
+                    if (closestDist == float.MaxValue || distance < closestDist)
+                    {
+                        closestDist = distance;
+                        collidedMesh = mesh;
+
+                        closestCollisionPoint = collisionPoint;
+                        closestNormal = normal;
+                        closestTriangleIndex = triangleIndex;
+                    }
+                }
+                else
+                {
+                    collidedMesh = mesh;
+                    return true;
+                }
             }
+        }
+
+        if (closest && collidedMesh != null)
+        {
+            collisionPoint = closestCollisionPoint;
+            normal = closestNormal;
+            triangleIndex = closestTriangleIndex;
+
+            return true;
         }
 
         return false;

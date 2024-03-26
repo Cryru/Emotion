@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.IO;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
@@ -405,9 +406,18 @@ public class EmotionMeshAsset : Asset
         if (entity.AnimationRig != null) WriteSkeletonRig(writer, entity.AnimationRig);
 
         // Write cached bounds to save having to calculate them!
-        entity.CacheBounds();
-        string[]? bounds = entity.GetCachedBoundKeys();
-        writer.Write(bounds?.Length ?? 0);
+
+        var animations = entity.Animations;
+        string[] bounds = new string[1 + animationCount];
+        bounds[0] = "<null>";
+        for (int i = 1; i < bounds.Length; i++)
+        {
+            AssertNotNull(animations);
+
+            string animName = animations[i - 1].Name;
+            bounds[i] = animName;
+        }
+        writer.Write(bounds.Length);
         if (bounds != null)
             for (var i = 0; i < bounds.Length; i++)
             {

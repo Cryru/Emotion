@@ -5,6 +5,7 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
+using Emotion.Utility;
 
 #endregion
 
@@ -97,11 +98,7 @@ namespace Emotion.Graphics
             Matrix4x4 viewMatrix;
             if (cameraWasOn)
             {
-#if DEBUG
                 viewMatrix = DebugCamera?.ViewMatrix ?? Camera.ViewMatrix;
-#else
-				viewMatrix = Camera.ViewMatrix;
-#endif
             }
             else
             {
@@ -261,6 +258,24 @@ namespace Emotion.Graphics
             }
 
             atlas.FinishDrawing(this);
+        }
+
+        public void RenderFrustum(Span<Vector3> corners, Color col)
+        {
+            RenderLine(corners[0], corners[1], col, 25);
+            RenderLine(corners[1], corners[2], col, 25);
+            RenderLine(corners[2], corners[3], col, 25);
+            RenderLine(corners[3], corners[0], col, 25);
+
+            RenderLine(corners[4], corners[5], col, 15);
+            RenderLine(corners[5], corners[6], col, 15);
+            RenderLine(corners[6], corners[7], col, 15);
+            RenderLine(corners[7], corners[4], col, 15);
+
+            RenderLine(corners[0], corners[4], col, 5);
+            RenderLine(corners[1], corners[5], col, 5);
+            RenderLine(corners[2], corners[6], col, 5);
+            RenderLine(corners[3], corners[7], col, 5);
         }
     }
 }

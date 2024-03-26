@@ -2,12 +2,10 @@
 
 #region Using
 
-using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World;
-using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 
@@ -82,6 +80,16 @@ public partial class GameObject3D : BaseGameObject
         get => _bCubeBase.Transform(GetModelMatrix());
     }
 
+    /// <summary>
+    /// Axis aligned cube that encompasses the whole object.
+    /// </summary>
+    public Cube GetBounds3DForAnimation(string? animationName, bool ignoreRotation = false)
+    {
+        if (Entity == null) return new Cube();
+        Entity.GetBounds(animationName, out Sphere _, out Cube c);
+        return c.Transform(GetModelMatrix(ignoreRotation));
+    }
+
     protected Sphere _bSphereBase;
     protected Cube _bCubeBase;
 
@@ -132,18 +140,20 @@ public partial class GameObject3D : BaseGameObject
     /// <inheritdoc />
     protected override void RenderInternal(RenderComposer c)
     {
+        MeshEntityMetaState? metaState = EntityMetaState;
+        if (metaState == null) return;
+
         // Rendered by the map as part of the scene.
         if (c.MeshEntityRenderer.IsGatheringObjectsForScene())
         {
-            c.MeshEntityRenderer.SubmitObjectForRendering(this);
+            c.MeshEntityRenderer.SubmitObjectForRendering(this, metaState);
             return;
         }
 
         // Rendered by something else, such as UI
         MeshEntity? entity = _entity;
         Mesh[]? meshes = entity?.Meshes;
-        MeshEntityMetaState? metaState = EntityMetaState;
-        if (entity == null || meshes == null || metaState == null) return;
+        if (entity == null || meshes == null) return;
 
         c.PushModelMatrix(GetModelMatrix());
         c.MeshEntityRenderer.RenderMeshEntityStandalone(entity, metaState, _boneMatricesPerMesh, Map is Map3D map3d ? map3d.LightModel : null, ObjectFlags);
@@ -184,18 +194,16 @@ public partial class GameObject3D : BaseGameObject
             var boneMats = new Matrix4x4[boneCount];
             boneMats[0] = Matrix4x4.Identity;
             _boneMatricesPerMesh[i] = boneMats;
-            mesh.BuildRuntimeBoneCache();
         }
 
         _verticesCacheCollision = null;
-        _entity.CacheBounds(); // Ensure entity bounds are cached.
 
         // Update unit scale.
         Resized();
 
         // Reset the animation.
         // This will also set the default bone matrices.
-        // This will also calculate bounds.
+        // This will also calculate bounds (if missing - applicable for non em3 entities).
         // This will also calculate the vertices collisions.
         SetAnimation(null);
     }

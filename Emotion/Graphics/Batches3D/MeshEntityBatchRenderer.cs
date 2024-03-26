@@ -50,6 +50,9 @@ public sealed class MeshEntityBatchRenderer
     //      > Entries in _shadersUsedList (per shader used in the scene) checked via _shadersUsedLookup
     // 
 
+    public const int CASCADE_COUNT = 4;
+    public const int CASCADE_MAX_RES = 2048;
+
     private bool _inScene;
 
     private StructArenaAllocator<MeshRenderPipelineStateGroup> _mainPassShaderGroups = new StructArenaAllocator<MeshRenderPipelineStateGroup>(4); // Main
@@ -74,7 +77,7 @@ public sealed class MeshEntityBatchRenderer
     private BaseGameObject? _closestObject;
 
     private int _renderingShadowmap;
-    private Matrix4x4 _globalShadowMatrix;
+    private int _renderCounter;
 
     #endregion
 
@@ -118,9 +121,9 @@ public sealed class MeshEntityBatchRenderer
 
     public class ShadowCascadeData
     {
-        public static Vector2 FramebufferResolution = new Vector2(2048);
-
         public int CascadeId;
+        public Vector2 FramebufferResolution;
+
         public FrameBuffer? Buffer;
         public FrameBufferTexture? BufferAttachment;
 
@@ -133,9 +136,16 @@ public sealed class MeshEntityBatchRenderer
         public string ViewProjUniformName;
         public string UnitToTexelScaleUniformName;
 
+        public Frustum Frustum;
+
         public ShadowCascadeData(int cascadeId)
         {
             CascadeId = cascadeId;
+
+            float resolution = CASCADE_MAX_RES;
+            if (cascadeId != 0) resolution = resolution / (2 * cascadeId);
+            FramebufferResolution = new Vector2(resolution);
+
             GLThread.ExecuteGLThreadAsync(InitFrameBuffer);
             LightViewProj = Matrix4x4.Identity;
 
@@ -249,7 +259,7 @@ public sealed class MeshEntityBatchRenderer
     }
 
     // flatten the hierarchy
-    public void SubmitObjectForRendering(GameObject3D obj)
+    public void SubmitObjectForRendering(GameObject3D obj, MeshEntityMetaState metaState)
     {
         if (!_inScene) return;
 
@@ -258,7 +268,6 @@ public sealed class MeshEntityBatchRenderer
         if (entity == null) return;
 
         // Invalid
-        var metaState = obj.EntityMetaState;
         if (metaState == null) return;
 
         // No meshes to render
@@ -267,33 +276,21 @@ public sealed class MeshEntityBatchRenderer
 
         Matrix4x4 objModelMatrix = obj.GetModelMatrix();
 
-        CameraBase camera = Engine.Renderer.Camera;
-        Sphere objBSphere = obj.BoundingSphere;
-        float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
-        
-        // Record the furthest and closest object distances.
-        float distanceToCameraMax = distanceToCamera + objBSphere.Radius;
-        float distanceToCameraMin = distanceToCamera - objBSphere.Radius;
-        if (distanceToCameraMin < objBSphere.Radius) distanceToCameraMin = 10f;
-
-        if (distanceToCameraMax > _furthestObjectDist)
-        {
-            _furthestObjectDist = distanceToCameraMax;
-            _furthestObject = obj;
-        }
-        if (distanceToCameraMin < _closestObjectDist)
-        {
-            _closestObjectDist = distanceToCameraMin;
-            _closestObject = obj;
-        }
-
         // Objects can contain multiple meshes and they will refer to this.
         ref RenderInstanceObjectData objectInstance = ref _objectDataPool.Allocate(out int indexOfThisObjectData);
         objectInstance.BackfaceCulling = entity.BackFaceCulling;
         objectInstance.ModelMatrix = objModelMatrix;
         objectInstance.MetaState = metaState;
-        objectInstance.DistanceToCamera = distanceToCamera;
         objectInstance.Flags = obj.ObjectFlags;
+        objectInstance.FrustumCullingSphere = obj.BoundingSphere;
+
+        if (metaState.CustomObjectFlags != null) objectInstance.Flags = metaState.CustomObjectFlags.Value;
+
+        // Calculate distance to camera for transparent object sorting.
+        CameraBase camera = Engine.Renderer.Camera;
+        Sphere objBSphere = objectInstance.FrustumCullingSphere;
+        float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
+        objectInstance.DistanceToCamera = distanceToCamera;
 
         var objIsTransparent = obj.IsTransparent();
 
@@ -335,37 +332,47 @@ public sealed class MeshEntityBatchRenderer
                 _shadersUsedList.Add(currentShader);
             }
 
-            // Add to render pass
-            if (!objIsTransparent) // Opaque objects are grouped by pipeline state and then mesh usage
+            if (objIsTransparent)
             {
+                // Transparent objects are just inserted into a flat list to be sorted later. No batching.
+                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
+                instanceRegistration.Mesh = mesh;
+                instanceRegistration.Shader = currentShader;
+                instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
+                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
+                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+            }
+            else
+            {
+                // Opaque objects are grouped by pipeline state and then mesh usage
                 StructArenaAllocator<MeshRenderPipelineStateGroup> shaderGroupPool = _mainPassShaderGroups;
 
                 // Get the pipeline group this mesh will use. (same pass, same pipe state)
                 ref MeshRenderPipelineStateGroup pipelineGroup = ref shaderGroupPool[0];
-                var shaderHash = currentShader.GetHashCode();
-                if (_pipelineBatchLookup.ContainsKey(shaderHash))
+                int shaderHash = currentShader.GetHashCode();
+                int pipelineGroupHash = HashCode.Combine(shaderHash);
+                if (_pipelineBatchLookup.ContainsKey(pipelineGroupHash))
                 {
-                    int key = _pipelineBatchLookup[shaderHash];
+                    int key = _pipelineBatchLookup[pipelineGroupHash];
                     pipelineGroup = ref shaderGroupPool[key];
                 }
                 else  // create new
                 {
                     pipelineGroup = ref shaderGroupPool.Allocate(out int thisShaderGroupIndex);
                     pipelineGroup.Shader = currentShader;
-                    pipelineGroup.MeshRenderBatchLL_Start = -1;
-                    pipelineGroup.MeshRenderBatchLL_End = -1;
+                    pipelineGroup.MeshRenderBatchList.Reset();
 
                     // Assuming that the overwritten shader will require all meshes using it to upload state.
                     // AKA that a custom shader is custom for everyone that uses it, which is true unless the
                     // custom shader is a base mesh shader, but that's stupid.
                     pipelineGroup.UploadMetaStateToShader = overwrittenShader;
 
-                    _pipelineBatchLookup.Add(shaderHash, thisShaderGroupIndex);
+                    _pipelineBatchLookup.Add(pipelineGroupHash, thisShaderGroupIndex);
                 }
 
                 // Get the mesh batch for this pipeline state. (same mesh and same pipe state)
                 ref MeshRenderMeshBatch meshBatch = ref _renderBatchPool[0];
-                int meshShaderGroupHash = HashCode.Combine(mesh, shaderHash);
+                int meshShaderGroupHash = HashCode.Combine(mesh, pipelineGroupHash);
                 if (_meshShaderGroupBatchLookup.ContainsKey(meshShaderGroupHash))
                 {
                     int key = _meshShaderGroupBatchLookup[meshShaderGroupHash];
@@ -375,62 +382,73 @@ public sealed class MeshEntityBatchRenderer
                 {
                     meshBatch = ref _renderBatchPool.Allocate(out int thisMeshGroupIndex);
                     meshBatch.Mesh = mesh;
-                    meshBatch.NextRenderBatch = -1;
-                    meshBatch.MeshInstanceLL_Start = -1;
-                    meshBatch.MeshInstanceLL_End = -1;
+                    meshBatch.MeshInstanceList.Reset();
+                    pipelineGroup.MeshRenderBatchList.AddToList(thisMeshGroupIndex, _renderBatchPool);
 
                     _meshShaderGroupBatchLookup.Add(meshShaderGroupHash, thisMeshGroupIndex);
-
-                    // Attach to the pipeline linked list
-                    if (pipelineGroup.MeshRenderBatchLL_Start == -1) pipelineGroup.MeshRenderBatchLL_Start = thisMeshGroupIndex;
-                    if (pipelineGroup.MeshRenderBatchLL_End == -1)
-                    {
-                        pipelineGroup.MeshRenderBatchLL_End = thisMeshGroupIndex;
-                    }
-                    else
-                    {
-                        ref var lastBatch = ref _renderBatchPool[pipelineGroup.MeshRenderBatchLL_End];
-                        lastBatch.NextRenderBatch = thisMeshGroupIndex;
-                        pipelineGroup.MeshRenderBatchLL_End = thisMeshGroupIndex;
-                    }
                 }
 
                 // Create a instance of the mesh data. (unique props for this instance of the mesh)
                 ref RenderInstanceMeshData instanceRegistration = ref _meshDataPool.Allocate(out int indexOfThisMeshData);
                 instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
                 instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
-                instanceRegistration.NextMesh = -1;
-                if (meshBatch.MeshInstanceLL_Start == -1) meshBatch.MeshInstanceLL_Start = indexOfThisMeshData;
-                if (meshBatch.MeshInstanceLL_End == -1)
-                {
-                    meshBatch.MeshInstanceLL_End = indexOfThisMeshData;
-                }
-                else
-                {
-                    ref var lastBatch = ref _meshDataPool[meshBatch.MeshInstanceLL_End];
-                    lastBatch.NextMesh = indexOfThisMeshData;
-                    meshBatch.MeshInstanceLL_End = indexOfThisMeshData;
-                }
-            }
-            else // Transparent objects are just inserted into a flat list to be sorted later. No batching.
-            {
-                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
-                instanceRegistration.Mesh = mesh;
-                instanceRegistration.Shader = currentShader;
-                instanceRegistration.BoneData = obj.GetBoneMatricesForMesh(m);
-                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
-                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+                meshBatch.MeshInstanceList.AddToList(indexOfThisMeshData, _meshDataPool);
             }
         }
     }
 
-    public void EndScene(RenderComposer c, Map3D map)
+    public unsafe void EndScene(RenderComposer c, Map3D map)
     {
         _inScene = false;
+        _renderCounter++;
+
+        // todo: better frustum culling, these objects shouldn't have been pushed in the first place
+        // and it would be reasonable to assume that the map should be able to return them faster if queried with
+        // a frustum in the first place.
+        Frustum primaryFrustum = new Frustum(c.Camera.ViewMatrix * c.Camera.ProjectionMatrix);
+        for (int i = 0; i < _objectDataPool.Length; i++)
+        {
+            ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
+            ref Sphere objBound = ref objInstance.FrustumCullingSphere;
+            bool isVisible = primaryFrustum.IntersectsOrContainsSphere(objBound);
+            objInstance.FrustumCulling[0] = isVisible;
+
+            // Record the furthest and closest object distances in order to fit the shadow near/far.
+            if (isVisible && !objInstance.Flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow) && objBound.Radius < 5000f)
+            {
+                float distanceToCamera = objInstance.DistanceToCamera;
+                float distanceToCameraMax = distanceToCamera + objBound.Radius;
+                float distanceToCameraMin = distanceToCamera - objBound.Radius;
+                if (distanceToCameraMin < objBound.Radius) distanceToCameraMin = 10f;
+
+                if (distanceToCameraMax > _furthestObjectDist)
+                {
+                    _furthestObjectDist = distanceToCameraMax;
+                    //_furthestObject = obj;
+                }
+                if (distanceToCameraMin < _closestObjectDist)
+                {
+                    _closestObjectDist = distanceToCameraMin;
+                    //_closestObject = obj;
+                }
+            }
+        }
 
         var light = map.LightModel;
-
         CalculateShadowMapCascadeData(light);
+
+        // Apply object culling.
+        for (int cIdx = 0; cIdx < _shadowCascades.Length; cIdx++)
+        {
+            var cascade = _shadowCascades[cIdx];
+            var cascadeFrustum = cascade.Frustum;
+            for (int i = 0; i < _objectDataPool.Length; i++)
+            {
+                ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
+                ref Sphere objBound = ref objInstance.FrustumCullingSphere;
+                objInstance.FrustumCulling[cIdx + 1] = cascadeFrustum.IntersectsOrContainsSphere(objBound);
+            }
+        }
 
         // Upload base state to all shaders that will be in use.
         bool receiveAmbient = true; // todo
@@ -453,12 +471,11 @@ public sealed class MeshEntityBatchRenderer
             }
 
             shader.SetUniformVector3("cameraPosition", c.Camera.Position);
-            shader.SetUniformVector3("sunDirection", light.SunDirection);
+            shader.SetUniformVector3("sunDirection", Vector3.Normalize(light.SunDirection));
             shader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
             shader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
             shader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
             shader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
-            shader.SetUniformMatrix4("globalShadowMatrix", _globalShadowMatrix);
         }
 
         // Upload all meshes.
@@ -498,6 +515,7 @@ public sealed class MeshEntityBatchRenderer
 
         if (light.Shadows)
         {
+            Gl.Enable((EnableCap)Gl.DEPTH_CLAMP);
             for (int i = 0; i < _shadowCascades.Length; i++)
             {
                 var cascade = _shadowCascades[i];
@@ -514,6 +532,7 @@ public sealed class MeshEntityBatchRenderer
                 c.RenderTo(null);
                 _renderingShadowmap = -1;
             }
+            Gl.Disable((EnableCap)Gl.DEPTH_CLAMP);
 
             // Bind cascade textures.
             for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
@@ -551,8 +570,6 @@ public sealed class MeshEntityBatchRenderer
     private void RenderTransparentObjects(RenderComposer c)
     {
         if (_meshDataPoolTransparent.Length == 0) return;
-
-        bool backfaceCulling = false; // todo: Move to render state.
 
         for (int i = 0; i < _meshDataPoolTransparent.Length; i++)
         {
@@ -593,26 +610,7 @@ public sealed class MeshEntityBatchRenderer
             if (meshInstance.UploadMetaStateToShader)
                 objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-            // todo: render stream state
-            bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
-            if (changeBackcull)
-            {
-                if (objectData.BackfaceCulling)
-                {
-                    Gl.Enable(EnableCap.CullFace);
-                    if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
-                        Gl.CullFace(CullFaceMode.Back);
-                    else
-                        Gl.CullFace(CullFaceMode.Front);
-                    Gl.FrontFace(FrontFaceDirection.Ccw);
-                    backfaceCulling = true;
-                }
-                else
-                {
-                    Gl.Disable(EnableCap.CullFace);
-                    backfaceCulling = false;
-                }
-            }
+            c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
 
             // Render geometry
             VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
@@ -624,15 +622,14 @@ public sealed class MeshEntityBatchRenderer
             c.PopModelMatrix();
         }
 
-        Engine.Renderer.SetShader(null);
-        if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        c.SetShader(null);
+        c.SetFaceCulling(false, false);
     }
 
     private void RenderMainPass(RenderComposer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
     {
         if (groupsInPass.Length == 0) return;
 
-        bool backfaceCulling = false; // todo: Move to render state.
         for (int i = 0; i < groupsInPass.Length; i++) // for each pipeline
         {
             ref MeshRenderPipelineStateGroup pipelineState = ref groupsInPass[i];
@@ -645,7 +642,7 @@ public sealed class MeshEntityBatchRenderer
 
             // each mesh batch in this pipeline
             // these are parameters shared by all instances of that mesh in the scene
-            int meshBatchIdx = pipelineState.MeshRenderBatchLL_Start;
+            int meshBatchIdx = pipelineState.MeshRenderBatchList.StartIndex;
             while (meshBatchIdx != -1)
             {
                 ref MeshRenderMeshBatch batch = ref _renderBatchPool[meshBatchIdx];
@@ -661,14 +658,30 @@ public sealed class MeshEntityBatchRenderer
 
                 // render each instance of the mesh
                 // todo: instanced rendering
-                int instanceIdx = batch.MeshInstanceLL_Start;
+                int instanceIdx = batch.MeshInstanceList.StartIndex;
                 while (instanceIdx != -1)
                 {
                     ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
                     ref RenderInstanceObjectData objectData = ref _objectDataPool[instance.ObjectRegistrationId];
 
+                    bool dontRender = false;
+
                     ObjectFlags flags = objectData.Flags;
-                    if (_renderingShadowmap != -1 && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
+                    dontRender = _renderingShadowmap != -1 && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow);
+
+                    if (!dontRender)
+                    {
+                        unsafe
+                        {
+                            dontRender = !objectData.FrustumCulling[_renderingShadowmap + 1];
+                        }
+                    }
+
+                    if (dontRender)
+                    {
+                        instanceIdx = instance.NextItem;
+                        continue;
+                    }
 
                     bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
                     bool receiveShadow = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
@@ -687,26 +700,10 @@ public sealed class MeshEntityBatchRenderer
                     if (pipelineState.UploadMetaStateToShader)
                         objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-                    // todo: render stream state
-                    bool changeBackcull = objectData.BackfaceCulling != backfaceCulling;
-                    if (changeBackcull)
-                    {
-                        if (objectData.BackfaceCulling)
-                        {
-                            Gl.Enable(EnableCap.CullFace);
-                            if (_renderingShadowmap == -1 || !ShadowsCullFrontFace)
-                                Gl.CullFace(CullFaceMode.Back);
-                            else
-                                Gl.CullFace(CullFaceMode.Front);
-                            Gl.FrontFace(FrontFaceDirection.Ccw);
-                            backfaceCulling = true;
-                        }
-                        else
-                        {
-                            Gl.Disable(EnableCap.CullFace);
-                            backfaceCulling = false;
-                        }
-                    }
+                    c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
+
+                    if (objectData.MetaState.CustomRenderState != null)
+                        c.SetState(objectData.MetaState.CustomRenderState);
 
                     // Render geometry
                     VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
@@ -717,16 +714,16 @@ public sealed class MeshEntityBatchRenderer
 
                     c.PopModelMatrix();
 
-                    instanceIdx = instance.NextMesh;
+                    instanceIdx = instance.NextItem;
                 }
 
-                meshBatchIdx = batch.NextRenderBatch;
+                meshBatchIdx = batch.NextItem;
             }
         }
 
         // Restore render state.
         Engine.Renderer.SetShader(null);
-        if (backfaceCulling) Gl.Disable(EnableCap.CullFace);
+        c.SetFaceCulling(false, false);
     }
 
     /// <summary>
@@ -753,12 +750,7 @@ public sealed class MeshEntityBatchRenderer
         // Shadow map pass - object doesn't throw shadow.
         //if (_renderingShadowMap && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow)) return;
 
-        if (entity.BackFaceCulling)
-        {
-            Gl.Enable(EnableCap.CullFace); // todo: render stream state
-            Gl.CullFace(CullFaceMode.Back);
-            Gl.FrontFace(FrontFaceDirection.Ccw);
-        }
+        Engine.Renderer.SetFaceCulling(entity.BackFaceCulling, true);
 
         ShaderProgram? shaderOverride = null;
         if (metaState.ShaderAsset != null)
@@ -806,7 +798,7 @@ public sealed class MeshEntityBatchRenderer
             // Lighting
             if (light != null)
             {
-                currentShader.SetUniformVector3("sunDirection", light.SunDirection);
+                currentShader.SetUniformVector3("sunDirection", Vector3.Normalize(light.SunDirection));
                 currentShader.SetUniformColor("ambientColor", light.AmbientLightColor);
                 currentShader.SetUniformFloat("ambientLightStrength", light.AmbientLightStrength);
                 currentShader.SetUniformFloat("diffuseStrength", light.DiffuseStrength);
@@ -891,7 +883,7 @@ public sealed class MeshEntityBatchRenderer
             Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
         }
 
-        if (entity.BackFaceCulling) Gl.Disable(EnableCap.CullFace);
+        Engine.Renderer.SetFaceCulling(false, false);
         Engine.Renderer.SetShader();
     }
 
@@ -960,64 +952,22 @@ public sealed class MeshEntityBatchRenderer
 
     #region Shadow Helpers
 
-    public class ShadowRenderingDebugInformation
-    {
-        public bool FreezeCamera;
-
-        public float ShadowMapNear;
-        public float ShadowMapFar;
-        public Matrix4x4 GlobalShadowMatrix;
-
-        public int CascadeInfo;
-
-        [DontSerialize]
-        [DontShowInEditor]
-        public FrameBuffer CascadeTexture;
-
-        public Vector2 CascadeX;
-        public Vector2 CascadeY;
-        public Vector2 CascadeZ;
-
-        public Vector3[] CascadeFrustumCorners = new Vector3[8];
-    }
-
-    public ShadowRenderingDebugInformation ShadowDebugInfo = new();
-
     private void CalculateShadowMapCascadeData(LightModel light)
     {
         var c = Engine.Renderer;
 
-        // Split the scene using "practical/weighted splits" - a combination of
-        // a logarithmic and uniform distribution.
+        // Split the scene using "practical/weighted splits"
+        // a combination of logarithmic and uniform distribution.
         var renderer = Engine.Renderer;
         var camera = renderer.Camera;
 
-        if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ / 2f) _closestObjectDist = camera.NearZ;
+        if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ) _closestObjectDist = camera.NearZ;
         if (_furthestObjectDist == 0 || _furthestObjectDist > camera.FarZ) _furthestObjectDist = camera.FarZ;
-
-        //Matrix4x4 cameraViewProjection = renderer.Camera.ViewMatrix * renderer.Camera.ProjectionMatrix;
-        //Matrix4x4 cameraViewProjectionInv = cameraViewProjection.Inverted();
-
-        //float cascadeResolution = ShadowCascadeData.FramebufferResolution.X;
 
         float nearPlane = _closestObjectDist;
         float farPlane = _furthestObjectDist;
         //float clipDist = farPlane - nearPlane;
 
-        {
-            ShadowDebugInfo.ShadowMapNear = nearPlane;
-            ShadowDebugInfo.ShadowMapFar = farPlane;
-
-            float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
-            var cam3D = c.Camera as Camera3D;
-            float fov = cam3D.FieldOfView;
-            var cameraDebugProj = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, nearPlane, farPlane);
-            _globalShadowMatrix = cameraDebugProj;
-
-            ShadowDebugInfo.GlobalShadowMatrix = (c.Camera.ViewMatrix * cameraDebugProj);
-        }
-
-        //float prevCascadeSplit = nearPlane;
         float prevCascadeEnd = nearPlane;
         for (int i = 0; i < _shadowCascades.Length; i++)
         {
@@ -1031,18 +981,8 @@ public sealed class MeshEntityBatchRenderer
             cascade.NearClip = prevCascadeEnd;
             cascade.FarClip = max;
 
-            //float cascadeSplit = cascade.NearClip + (cascade.FarClip - cascade.NearClip) * (i + 1) / _shadowCascades.Length;
-            //cascade.Split = cascadeSplit;
-
             CalculateShadowMapCascadeMatrix(c, cascade, light);
-
-            //float cascadeWidth = cascadeSplit - prevCascadeSplit;
-            //Vector4 scale = new Vector4(cascadeWidth / 2.0f, cascadeWidth / 2.0f, cascadeSplit - prevCascadeSplit, 1.0f);
-            //cascade.Scale = Vector4.One;
-            //cascade.Offset = (Maths.TransformCartesian(Vector3.Zero, cascade.LightViewProj) - Maths.TransformCartesian(Vector3.One, cascade.LightViewProj)).ToVec4();
-
             prevCascadeEnd = max;
-            //prevCascadeSplit = cascadeSplit;
         }
     }
 
@@ -1058,7 +998,7 @@ public sealed class MeshEntityBatchRenderer
         Matrix4x4 cameraView = c.Camera.ViewMatrix;
         var cameraViewProjInv = (cameraView * cameraProjection).Inverted();
 
-        Span<Vector3> corners = new Vector3[8];
+        Span<Vector3> corners = stackalloc Vector3[8];
         CameraBase.GetCameraFrustum3D(corners, cameraViewProjInv);
 
         // Calculate the centroid of the view frustum slice
@@ -1070,12 +1010,13 @@ public sealed class MeshEntityBatchRenderer
         float radius = (corners[0] - corners[6]).Length() / 2f;
         radius = MathF.Ceiling(radius / 16.0f) * 16.0f;
 
-        float texelPerUnit = ShadowCascadeData.FramebufferResolution.X / (radius * 2f);
+        float texelPerUnit = cascade.FramebufferResolution.X / (radius * 2f);
         Matrix4x4 texelScalar = Matrix4x4.CreateScale(texelPerUnit, texelPerUnit, texelPerUnit);
         cascade.UnitToTexelScale = (1.0f / texelPerUnit);
 
-        Vector3 baseLookAt = light.SunDirection;
-        Matrix4x4 lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, baseLookAt, RenderComposer.Up);
+        Vector3 sunDirection = Vector3.Normalize(light.SunDirection);
+
+        Matrix4x4 lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, sunDirection, RenderComposer.Up);
         lookAt = texelScalar * lookAt;
         Matrix4x4 lookAtInv = lookAt.Inverted();
 
@@ -1085,115 +1026,14 @@ public sealed class MeshEntityBatchRenderer
         frustumCenter = Vector3.Transform(frustumCenter, lookAtInv);
 
         // The light view matrix looks at the center of the frustum.
-        Vector3 eye = frustumCenter + (light.SunDirection * radius * 2f);
+        Vector3 eye = frustumCenter + (sunDirection * radius * 2f);
         var lightView = Matrix4x4.CreateLookAt(eye, frustumCenter, Vector3.UnitZ);
 
-        //float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
-        //float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
-
-        //for (var i = 0; i < corners.Length; i++)
-        //{
-        //    Vector3 v = corners[i];
-        //    Vector3 trf = Maths.TransformCartesian(v, lightView);
-
-        //    minX = Math.Min(minX, trf.X);
-        //    maxX = Math.Max(maxX, trf.X);
-
-        //    minY = Math.Min(minY, trf.Y);
-        //    maxY = Math.Max(maxY, trf.Y);
-
-        //    minZ = Math.Min(minZ, trf.Z);
-        //    maxZ = Math.Max(maxZ, trf.Z);
-        //}
-
         // The projection of the light encompasses the frustum in a square.
-        var lightProjection = Matrix4x4.CreateOrthographicOffCenter(-radius, radius, -radius, radius, -radius * 6, radius * 6);
+        var lightProjection = Matrix4x4.CreateOrthographicOffCenter(-radius, radius, -radius, radius, radius, radius * 6);
         cascade.LightViewProj = lightView * lightProjection;
-
-        if (ShadowDebugInfo.CascadeInfo == cascade.CascadeId)
-        {
-            //ShadowDebugInfo.CascadeX = new Vector2(minX, maxX);
-            //ShadowDebugInfo.CascadeY = new Vector2(minY, maxY);
-            //ShadowDebugInfo.CascadeZ = new Vector2(minZ, maxZ);
-
-            for (int i = 0; i < corners.Length; i++)
-            {
-                ShadowDebugInfo.CascadeFrustumCorners[i] = corners[i];
-            }
-
-            ShadowDebugInfo.CascadeTexture = cascade.Buffer;
-        }
+        cascade.Frustum = new Frustum(cascade.LightViewProj);
     }
 
     #endregion
-}
-
-public class ShadowDebugPanel : EditorPanel
-{
-    private UISolidColor _drawArea;
-    
-    public ShadowDebugPanel() : base("Shadow Debug")
-    {
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
-
-        _contentParent.LayoutMode = LayoutMode.HorizontalList;
-
-        var propsPanel = new GenericPropertiesEditorPanel(Engine.Renderer.MeshEntityRenderer.ShadowDebugInfo);
-        propsPanel.PanelMode = PanelMode.Embedded;
-        _contentParent.AddChild(propsPanel);
-
-        _drawArea = new UISolidColor();
-        _drawArea.WindowColor = new Color(32, 32, 32);
-        _drawArea.MaxSize = new Vector2(200, 999);
-        _contentParent.AddChild(_drawArea);
-    }
-
-    protected override void AfterRenderChildren(RenderComposer c)
-    {
-        var shadowDebug = Engine.Renderer.MeshEntityRenderer.ShadowDebugInfo;
-
-        Vector3[] corners = new Vector3[8];
-        CameraBase.GetCameraFrustum3D(corners, shadowDebug.GlobalShadowMatrix.Inverted());
-
-        RenderFrustum(c, corners, Color.White);
-
-        var shadowCascadeCorners = shadowDebug.CascadeFrustumCorners;
-        RenderFrustum(c, shadowCascadeCorners, Color.Red);
-
-        c.RenderSprite(Vector2.Zero, new Vector2(256), Color.White, shadowDebug.CascadeTexture.DepthStencilAttachment);
-    }
-
-    private void RenderFrustum(RenderComposer c, Vector3[] corners, Color col)
-    {
-        Vector2 worldMin = new Vector2(-1_000);
-        Vector2 worldMax = new Vector2(1_000);
-
-        for (int i = 0; i < corners.Length; i++)
-        {
-            var corner = corners[i];
-            corner.X = Maths.Map(corner.X, worldMin.X, worldMax.X, _drawArea.X, _drawArea.Bounds.Right);
-            corner.Y = Maths.Map(corner.Y, worldMin.Y, worldMax.Y, _drawArea.Y, _drawArea.Bounds.Bottom);
-            corner.Z = Z;
-            corners[i] = corner;
-        }
-
-        c.RenderLine(corners[0], corners[1], col);
-        c.RenderLine(corners[1], corners[2], col);
-        c.RenderLine(corners[2], corners[3], col);
-        c.RenderLine(corners[3], corners[0], col);
-                                             
-        c.RenderLine(corners[4], corners[5], col);
-        c.RenderLine(corners[5], corners[6], col);
-        c.RenderLine(corners[6], corners[7], col);
-        c.RenderLine(corners[7], corners[4], col);
-                                             
-        c.RenderLine(corners[0], corners[4], col);
-        c.RenderLine(corners[1], corners[5], col);
-        c.RenderLine(corners[2], corners[6], col);
-        c.RenderLine(corners[3], corners[7], col);
-    }
 }

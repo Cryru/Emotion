@@ -1,6 +1,8 @@
 ﻿#region Using
 
+using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Utility;
 
@@ -534,6 +536,43 @@ namespace Emotion.Utility
             }
         }
 
+        public unsafe static TEnum EnumRemoveFlag<TEnum>(this TEnum lhs, TEnum rhs) where TEnum : unmanaged, Enum
+        {
+            switch (sizeof(TEnum))
+            {
+                case 1:
+                    {
+                        TEnum retVal = lhs;
+                        byte* retValPtr = (byte*)&retVal;
+                        *retValPtr = (byte)(*(byte*)&lhs & ~*(byte*)&rhs);
+                        return retVal;
+                    }
+                case 2:
+                    {
+                        TEnum retVal = lhs;
+                        ushort* retValPtr = (ushort*)&retVal;
+                        *retValPtr = (ushort)(*(ushort*)&lhs & ~*(ushort*)&rhs);
+                        return retVal;
+                    }
+                case 4:
+                    {
+                        TEnum retVal = lhs;
+                        uint* retValPtr = (uint*)&retVal;
+                        *retValPtr = (uint)(*(uint*)&lhs & ~*(uint*)&rhs);
+                        return retVal;
+                    }
+                case 8:
+                    {
+                        TEnum retVal = lhs;
+                        ulong* retValPtr = (ulong*)&retVal;
+                        *retValPtr = (ulong)(*(ulong*)&lhs & ~*(ulong*)&rhs);
+                        return retVal;
+                    }
+            }
+
+            return lhs;
+        }
+
         /// <summary>
         /// Returns a friendly display name for the type.
         /// Handles generic arguments.
@@ -562,6 +601,17 @@ namespace Emotion.Utility
             v.Z = MathF.Round(v.Z);
             v.W = MathF.Round(v.W);
             return v;
+        }
+    }
+}
+
+namespace System
+{
+    public static class RandomExtensions
+    {
+        public static int NextInclusive(this Random rng, int min, int max)
+        {
+            return rng.Next(min, max + 1);
         }
     }
 }

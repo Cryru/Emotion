@@ -83,6 +83,7 @@ public static class EditorUtility
             foreach (Type assemblyType in types)
             {
                 if (!type.IsAssignableFrom(assemblyType)) continue;
+                if (type.IsAbstract) continue;
 
                 bool invalid = assemblyType.GetConstructor(Type.EmptyTypes) == null;
                 if (invalid) continue;

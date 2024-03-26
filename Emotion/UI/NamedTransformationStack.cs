@@ -9,7 +9,8 @@ namespace Emotion.UI
     public enum MatrixSpecialFlag
     {
         None,
-        RotateBoundsCenter
+        RotateBoundsCenter,
+        TranslationPositionReplace
     }
 
     /// <summary>
@@ -128,6 +129,11 @@ namespace Emotion.UI
                     mat *= Matrix4x4.CreateTranslation(-boundsCenter.X, -boundsCenter.Y, 0) *
                            matWithId.Matrix *
                            Matrix4x4.CreateTranslation(boundsCenter.X, boundsCenter.Y, 0);
+                }
+                else if (matWithId.Flag == MatrixSpecialFlag.TranslationPositionReplace)
+                {
+                    mat *= Matrix4x4.CreateTranslation(-bounds.X / scale, -bounds.Y / scale, 0) *
+                           matWithId.Matrix;
                 }
                 else
                 {

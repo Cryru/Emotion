@@ -4,6 +4,7 @@ using Emotion.Graphics.ThreeDee;
 using Emotion.IO.MeshAssetTypes;
 #if ASSIMP
 using Emotion.IO.MeshAssetTypes.Assimp;
+using System.Threading.Tasks;
 #endif
 
 #endregion
@@ -57,6 +58,13 @@ namespace Emotion.IO
                 _underlyingAsset = asset;
 #endif
             }
+
+            // Cache bounds for null animation at least to
+            // prevent loading on SetEntity.
+            // Note that em3 loaded entity's will have all their bounds pre-calculated and loaded
+            // while others will calculate their animations bounds in runtime when the animation is set.
+            // Check GameObject3D.SetAnimation and its bounds retrieval.
+            Entity?.EnsureCachedBounds(null);
         }
 
         protected override void DisposeInternal()

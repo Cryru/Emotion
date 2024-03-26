@@ -117,7 +117,8 @@ public static partial class GameDataDatabase
                     if (items != null)
                         foreach (GameDataObject item in items)
                         {
-                            builder.AppendLine($"		public static readonly string {item.Id} = \"{item.Id}\";");
+                            string itemIdSafe = item.Id.Replace("-", "_");
+                            builder.AppendLine($"		public static readonly string {itemIdSafe} = \"{item.Id}\";");
                         }
 
                     builder.AppendLine("	}");

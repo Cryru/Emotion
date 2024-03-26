@@ -43,6 +43,13 @@ namespace Emotion.Game.Time.Routines
         public IRoutineWaiter CurrentWaiter { get; protected set; }
 
         /// <summary>
+        /// The amount of time the coroutine is waiting to pass.
+        /// This is more precise than the "current waiter" yielding a timer as it ensures
+        /// that the coroutines will be called in succession.
+        /// </summary>
+        public float WaitingForTime { get; protected set; }
+
+        /// <summary>
         /// The manager the routine is running on. Subroutines do not run on a manager but are considered an
         /// extension of the routine.
         /// </summary>
@@ -78,6 +85,12 @@ namespace Emotion.Game.Time.Routines
             if (CurrentWaiter != null) // No waiter, or routine finished
             {
                 CurrentWaiter.Update();
+
+                // If the current waiter is a subroutine, assign its waiting time to the parent routine so that the
+                // coroutine manager doesn't have to walk down each coroutine.
+                if (CurrentWaiter is Coroutine subRtn && subRtn.WaitingForTime != 0)
+                    WaitingForTime = subRtn.WaitingForTime;
+
                 if (!CurrentWaiter.Finished) return; // Current waiter is not ready. Continue waiting
             }
 
@@ -100,6 +113,16 @@ namespace Emotion.Game.Time.Routines
 #if DEBUG
                         subRtn.DebugCoroutineCreationStack = $"Unknown subroutine stack. Yield a Coroutine object for full stack. Yield statement index {GetCoroutineStack()}";
 #endif
+                        break;
+
+                    // Time waiting.
+                    case int timeWaiting:
+                        CurrentWaiter = null;
+                        WaitingForTime = timeWaiting;
+                        break;
+                    case float timeWaitingF:
+                        CurrentWaiter = null;
+                        WaitingForTime = timeWaitingF;
                         break;
                 }
 
@@ -127,6 +150,12 @@ namespace Emotion.Game.Time.Routines
             CurrentWaiter = null;
             _routine = null;
             Stopped = true;
+        }
+
+        public void WaitingForTime_AdvanceTime(float time)
+        {
+            WaitingForTime -= time;
+            Assert(WaitingForTime >= 0);
         }
 
 #if DEBUG

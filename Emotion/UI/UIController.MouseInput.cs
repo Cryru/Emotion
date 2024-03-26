@@ -23,7 +23,6 @@ public partial class UIController
         _calledUpdateLastTick = true;
 
         // It was already updated this tick.
-        Vector2 mousePos = Engine.Host.MousePosition;
         if (_thisTick == Engine.TickCount) return;
         _thisTick = Engine.TickCount;
 
@@ -42,7 +41,7 @@ public partial class UIController
             if (!controller._calledUpdateLastTick) continue; // Controller inactive via update.
             if (!controller.ChildrenHandleInput) continue;
 
-            UIBaseWindow? hasPriority = controller.HasPriorityMouseFocus();
+            UIBaseWindow? hasPriority = controller.HasButtonHeldMouseFocus();
             if (hasPriority == null) continue;
 
             controller.SetControllerMouseFocus(hasPriority);
@@ -57,6 +56,7 @@ public partial class UIController
         }
 
         // Check if any controller has a window under the cursor.
+        Vector2 mousePos = Engine.Host.MousePosition;
         for (var i = 0; i < _allControllers.Count; i++)
         {
             UIController controller = _allControllers[i];
@@ -98,9 +98,11 @@ public partial class UIController
         MouseFocus = except?._myMouseFocus;
     }
 
-    private UIBaseWindow? HasPriorityMouseFocus()
+    /// <summary>
+    /// If currently holding down a mouse button don't change the mouse focus if it is still valid.
+    /// </summary>
+    private UIBaseWindow? HasButtonHeldMouseFocus()
     {
-        // If currently holding down a mouse button don't change the mouse focus if it is still valid.
         if (_myMouseFocus == null || !_myMouseFocus.VisibleAlongTree() || !_myMouseFocus.HandleInput) return null;
 
         for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)

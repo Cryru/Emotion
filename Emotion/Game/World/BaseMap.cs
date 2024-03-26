@@ -10,8 +10,8 @@ using Emotion.Common.Threading;
 using Emotion.Editor;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
+using Emotion.Game.World.Grid;
 using Emotion.Game.World2D;
-using Emotion.Graphics;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 
@@ -65,6 +65,11 @@ public abstract partial class BaseMap
     [DontShowInEditor]
     public List<BaseGameObject> PersistentObjects { get; set; }
 
+    /// <summary>
+    /// List of all grids that pertain to the map.
+    /// </summary>
+    public List<IMapGrid> Grids { get; set; }
+
     #region Events
 
     public event Action? OnMapReset;
@@ -90,7 +95,7 @@ public abstract partial class BaseMap
     /// Coroutines running on the map.
     /// </summary>
     [DontSerialize]
-    public CoroutineManager CoroutineManager { get; private set; }
+    public CoroutineManager CoroutineManager { get; private set; } = new();
 
     #endregion
 
@@ -107,6 +112,7 @@ public abstract partial class BaseMap
         MapName = mapName;
         PersistentObjects = new List<BaseGameObject>();
         _objects = new List<BaseGameObject>();
+        Grids = new List<IMapGrid>();
     }
 
     // Serialization constructor
@@ -115,6 +121,7 @@ public abstract partial class BaseMap
         MapName = null!;
         _objects = new();
         PersistentObjects = new();
+        Grids = new();
     }
 
     #region Editor Support
@@ -179,10 +186,26 @@ public abstract partial class BaseMap
 
         var profiler = Stopwatch.StartNew();
 
-        _worldTree = new WorldTree2D(MapSize);
-        CoroutineManager = new CoroutineManager();
+        CoroutineManager.StopAll(); // Clear
         _mapInitStarted = true;
 
+        // Load grids
+        {
+            Task[] gridLoading = new Task[Grids.Count];
+            for (int i = 0; i < Grids.Count; i++)
+            {
+                var grid = Grids[i];
+                gridLoading[i] = grid.LoadAsync(this);
+            }
+            await Task.WhenAll(gridLoading);
+            for (int i = 0; i < Grids.Count; i++)
+            {
+                var grid = Grids[i];
+                grid.FillToMapSize(MapSize);
+            }
+        }
+
+        _worldTree = new WorldTree2D(MapSize);
         SetupWorldTreeLayers(_worldTree);
 
         // It is possible for non-persisted objects to have been added before the world tree is initialized.
@@ -290,20 +313,26 @@ public abstract partial class BaseMap
     {
         if (!Initialized) return;
 
+        if (!EditorMode)
+            CoroutineManager.Update(dt);
+
         ProcessObjectChanges();
 
-        // todo: obj update, clipped?
+        // todo: should we update objects at all in editor mode?
+        // todo: should we update all objects or just clip visible ones?
         dt = EditorMode ? 0 : dt;
-        int objCount = GetObjectCount();
-        for (var i = 0; i < objCount; i++)
-        {
-            BaseGameObject obj = GetObjectByIndex(i);
-            if (obj.ObjectState != ObjectState.Alive) continue;
+        foreach (var obj in ObjectsEnum())
             obj.Update(dt);
-        }
     }
 
-    public abstract void Render(RenderComposer c);
+    public virtual void Render(RenderComposer c)
+    {
+        for (int i = 0; i < Grids.Count; i++)
+        {
+            var grid = Grids[i];
+            grid.Render(c);
+        }
+    }
 
     #endregion
 
@@ -531,7 +560,7 @@ public abstract partial class BaseMap
         ProcessObjectChanges();
 
         _worldTree = null;
-        CoroutineManager = null;
+        CoroutineManager.StopAll();
         _nextObjectUid = 1;
 
         // Clear existing objects.

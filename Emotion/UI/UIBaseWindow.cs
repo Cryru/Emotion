@@ -881,6 +881,21 @@ namespace Emotion.UI
             }
         }
 
+        public IEnumerator PositionDisplacement(Vector3 position, ITimer tween, string id = "translation")
+        {
+            while (true)
+            {
+                tween.Update(Engine.DeltaTime);
+                Vector3 current = Vector3.Lerp(Position / GetScale(), position, tween.Progress);
+                TransformationStack.AddOrUpdate(id, Matrix4x4.CreateTranslation(current.X, current.Y, 0), true, MatrixSpecialFlag.TranslationPositionReplace);
+                if (tween.Finished) break;
+
+                yield return null;
+            }
+
+            TransformationStack.Remove(id);
+        }
+
         /// <summary>
         /// The window's rotation around its center, in degrees.
         /// </summary>
@@ -908,19 +923,23 @@ namespace Emotion.UI
         /// <summary>
         /// Rotate a UI window around its center. Optionally over time.
         /// </summary>
-        /// >
         public IEnumerator RotationDisplacement(float degrees, ITimer? tween = null, string id = "rotation")
+        {
+            return RotationDisplacement(0, degrees, tween, id);
+        }
+
+        public IEnumerator RotationDisplacement(float fromDegrees, float toDegrees, ITimer? tween = null, string id = "rotation")
         {
             if (tween == null)
             {
-                TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(degrees)), true, MatrixSpecialFlag.RotateBoundsCenter);
+                TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(toDegrees)), true, MatrixSpecialFlag.RotateBoundsCenter);
                 yield break;
             }
 
             while (true)
             {
                 tween.Update(Engine.DeltaTime);
-                float current = Maths.LerpAngle(0, degrees, tween.Progress);
+                float current = Maths.LerpAngle(fromDegrees, toDegrees, tween.Progress);
                 TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(current)), true, MatrixSpecialFlag.RotateBoundsCenter);
                 if (tween.Finished) yield break;
 
@@ -1106,6 +1125,8 @@ namespace Emotion.UI
 
         public bool VisibleAlongTree()
         {
+            if (Controller == null) return false;
+
             UIBaseWindow? parent = Parent;
             while (parent != null)
             {
@@ -1187,6 +1208,15 @@ namespace Emotion.UI
                         yield return child;
                     }
                 }
+            }
+        }
+
+        public IEnumerable<UIBaseWindow> WindowChildren()
+        {
+            for (var i = 0; i < Children?.Count; i++)
+            {
+                UIBaseWindow cur = Children[i];
+                yield return cur;
             }
         }
 
