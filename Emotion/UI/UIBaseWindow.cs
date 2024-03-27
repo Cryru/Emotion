@@ -53,11 +53,11 @@ namespace Emotion.UI
 
         private Task _loadingTask = Task.CompletedTask;
         private bool _needsLoad = true;
-        private bool _updatedOnce = false;
+        private bool _loadAsked = false;
 
         public bool IsLoading()
         {
-            return !_loadingTask.IsCompleted || _needsLoad;
+            return !_loadAsked || !_loadingTask.IsCompleted || _needsLoad;
         }
 
         public void CheckLoadContent(UILoadingContext ctx)
@@ -71,6 +71,7 @@ namespace Emotion.UI
                     // if (!_loadingTask.IsCompleted) Engine.Log.Trace(ToString(), "UI Loading");
                     ctx.AddLoadingTask(_loadingTask);
                     _needsLoad = false;
+                    _loadAsked = true;
                 }
             }
 
@@ -104,7 +105,6 @@ namespace Emotion.UI
                 _updateColor = false;
             }
 
-            _updatedOnce = true;
             bool updateChildren = UpdateInternal();
             if (!updateChildren || Children == null) return;
 
@@ -124,7 +124,7 @@ namespace Emotion.UI
         public void Render(RenderComposer c)
         {
             if (!Visible) return;
-            if (!_updatedOnce) return;
+            if (IsLoading()) return;
 
             // Push displacements if any.
             var matrixPushed = false;
