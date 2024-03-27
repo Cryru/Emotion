@@ -53,11 +53,10 @@ namespace Emotion.UI
 
         private Task _loadingTask = Task.CompletedTask;
         private bool _needsLoad = true;
-        private bool _loadAsked = false;
 
         public bool IsLoading()
         {
-            return !_loadAsked || !_loadingTask.IsCompleted || _needsLoad;
+            return !_loadingTask.IsCompleted || _needsLoad;
         }
 
         public void CheckLoadContent(UILoadingContext ctx)
@@ -71,7 +70,6 @@ namespace Emotion.UI
                     // if (!_loadingTask.IsCompleted) Engine.Log.Trace(ToString(), "UI Loading");
                     ctx.AddLoadingTask(_loadingTask);
                     _needsLoad = false;
-                    _loadAsked = true;
                 }
             }
 
