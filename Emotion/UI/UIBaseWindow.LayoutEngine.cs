@@ -258,9 +258,13 @@ public partial class UIBaseWindow
 
         private Rectangle ApplyAnchors(ref ChildData childData, Rectangle childBound)
         {
-            Vector2 positionOffset = GetAnchorOffset(childData.Child, childBound.Size, _bound);
+            if (_layoutMode == LayoutMode.VerticalList || _layoutMode == LayoutMode.HorizontalList) return childBound;
 
-            return new Rectangle(childBound.Position + positionOffset, childBound.Size);
+            Vector2 positionFromLayout = childBound.Position;
+            Vector2 positionOffset = GetAnchorOffset(childData.Child, childBound.Size, _bound);
+            Vector2 diff = positionOffset - _bound.Position;
+
+            return new Rectangle(positionFromLayout + diff, childBound.Size);
         }
 
         private Vector2 GetAnchorOffset(UIBaseWindow win, Vector2 contentSize, Rectangle parentContentRect)
