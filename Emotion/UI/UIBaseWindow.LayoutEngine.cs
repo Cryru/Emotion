@@ -1,4 +1,6 @@
-﻿namespace Emotion.UI;
+﻿using System.ComponentModel;
+
+namespace Emotion.UI;
 
 public partial class UIBaseWindow
 {
@@ -15,6 +17,11 @@ public partial class UIBaseWindow
             public Rectangle Bound;
             public Rectangle Margins;
             public bool EndOfList;
+
+            public override string ToString()
+            {
+                return $"{Child} - {Bound}";
+            }
         }
 
         private List<ChildData> _children = new(); // todo: optimize
@@ -68,7 +75,7 @@ public partial class UIBaseWindow
             bound.X += amount.X;
             bound.Y += amount.Y;
             bound.Width -= amount.X + amount.Width;
-            bound.Height -= amount.Y + amount.Width;
+            bound.Height -= amount.Y + amount.Height;
             return bound;
         }
 
@@ -99,24 +106,26 @@ public partial class UIBaseWindow
 
         public Vector2 ApplyLayout(bool dryRun = false)
         {
-            Rectangle rectUnion = Rectangle.Empty;
+            Rectangle spaceUsedByChildren = Rectangle.Empty;
             for (int i = 0; i < _children.Count; i++)
             {
                 var childData = _children[i];
                 childData.EndOfList = i == _children.Count - 1;
 
                 var childBound = childData.Bound;
-
-                // Subtract the margins from the child size,
-                // since the child should be layouted inside.
-                childBound = DeflateRect(childBound, childData.Margins);
-                rectUnion = i == 0 ? childBound : Rectangle.Union(rectUnion, childBound);
+                spaceUsedByChildren = i == 0 ? childBound : Rectangle.Union(spaceUsedByChildren, childBound);
 
                 if (!dryRun)
                 {
-                    childBound = ApplyFill(ref childData, childBound);
-                    childBound = ApplyLimits(ref childData, childBound);
+                    // 1. Anchor must be before margin in order for w and h margins to work.
+                    // 2. Limit must be after margin as not to fold the margin size into the window size.
+                    // 3. Fill has been decided to be after anchors in order for anchors to matter to filling children.
+
                     childBound = ApplyAnchors(ref childData, childBound);
+                    childBound = ApplyFill(ref childData, childBound);
+                    childBound = DeflateRect(childBound, childData.Margins); // Subtract the margins from the child size, since the child should be layouted inside.
+                    childBound = ApplyLimits(ref childData, childBound);
+                    
                     childData.Child.Layout(childBound.Position, childBound.Size);
                 }
             }
@@ -124,7 +133,7 @@ public partial class UIBaseWindow
             // Technically padding is also space used by the children.
             Vector2 paddingSize = new Vector2(_padding.X + _padding.Width, _padding.Y + _padding.Height);
 
-            return rectUnion.Size + paddingSize;
+            return spaceUsedByChildren.Size + paddingSize;
         }
 
         private Rectangle ApplyFill(ref ChildData childData, Rectangle childBound)
@@ -258,20 +267,30 @@ public partial class UIBaseWindow
 
         private Rectangle ApplyAnchors(ref ChildData childData, Rectangle childBound)
         {
-            if (_layoutMode == LayoutMode.VerticalList || _layoutMode == LayoutMode.HorizontalList) return childBound;
+            Rectangle myItemSpace = _bound;
+            switch (_layoutMode)
+            {
+                case LayoutMode.HorizontalList:
+                    myItemSpace = _bound;
+                    myItemSpace.Width = childBound.Width;
+                    break;
+                case LayoutMode.VerticalList:
+                    myItemSpace = _bound;
+                    myItemSpace.Height = childBound.Height;
+                    break;
+            }
 
+            UIBaseWindow childWin = childData.Child;
             Vector2 positionFromLayout = childBound.Position;
-            Vector2 positionOffset = GetAnchorOffset(childData.Child, childBound.Size, _bound);
+            Vector2 positionOffset = GetAnchorOffset(childWin.Anchor, childWin.ParentAnchor, childBound.Size, myItemSpace);
             Vector2 diff = positionOffset - _bound.Position;
 
             return new Rectangle(positionFromLayout + diff, childBound.Size);
         }
 
-        private Vector2 GetAnchorOffset(UIBaseWindow win, Vector2 contentSize, Rectangle parentContentRect)
+        private Vector2 GetAnchorOffset(UIAnchor anchor, UIAnchor parentAnchor, Vector2 contentSize, Rectangle parentContentRect)
         {
             Vector2 offset = Vector2.Zero;
-            UIAnchor anchor = win.Anchor;
-            UIAnchor parentAnchor = win.ParentAnchor;
 
             switch (parentAnchor)
             {

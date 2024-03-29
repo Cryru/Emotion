@@ -138,6 +138,14 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         UseNewLayoutSystem = true;
         // ==========
 
+        // Translate old properties, there might be cases in which these arent a straight translation.
+#if !NEW_UI
+        if (StretchX)
+            FillX = false;
+        if (StretchY)
+            FillY = false;
+#endif
+
         if (!Visible && DontTakeSpaceWhenHidden)
         {
             _measuredSize = Vector2.Zero;
