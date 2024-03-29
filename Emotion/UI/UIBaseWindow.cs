@@ -696,7 +696,18 @@ namespace Emotion.UI
 
         #region Input
 
-        public bool ChildrenHandleInput { get; set; } = true;
+        public bool ChildrenHandleInput
+        {
+            get => _childrenHandleInput;
+            set
+            {
+                if (value == _childrenHandleInput) return;
+                _childrenHandleInput = value;
+                Controller?.InvalidateInputFocus();
+            }
+        }
+
+        private bool _childrenHandleInput = true;
 
         public bool HandleInput
         {
