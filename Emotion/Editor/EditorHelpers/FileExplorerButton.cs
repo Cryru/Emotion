@@ -127,6 +127,18 @@ public class FileExplorerButton : UICallbackButton
 
             return obj3DPreview;
         }
+
+        if (_extension == ".png" || _extension  == ".bmp" || _extension == ".eib")
+        {
+            var texturePreview = new UITexture();
+            texturePreview.TextureFile = _fileName;
+            texturePreview.RenderSize = new Vector2(-200, -100);
+            texturePreview.ParentAnchor = UIAnchor.CenterCenter;
+            texturePreview.Anchor = UIAnchor.CenterCenter;
+
+            return texturePreview;
+        }
+
         // If unknown file type then display the
         // preview as a label of the file extension.
 
