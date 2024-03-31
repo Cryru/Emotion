@@ -13,6 +13,8 @@ public partial class UIController
     /// </summary>
     public static UIBaseWindow? MouseFocus { get; private set; }
 
+    public static UIRollover? CurrentRollover { get; private set; }
+
     private UIBaseWindow? _myMouseFocus; // The mouse focus of this controller in particular.
     private static uint _thisTick; // The index of the current tick. Used to dedupe calls to update since every controller will call it.
     private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
@@ -121,6 +123,20 @@ public partial class UIController
             _myMouseFocus = newMouseFocus;
             if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
             _myMouseFocus?.OnMouseEnter(mousePos);
+
+            if (CurrentRollover != null)
+            {
+                UIController? rolloverController = CurrentRollover.Controller;
+                rolloverController?.RemoveChild(CurrentRollover);
+                CurrentRollover = null;
+            }
+
+            if (newMouseFocus != null && newMouseFocus is not UIController)
+            {
+                UIRollover? newRollover = newMouseFocus.GetRollover();
+                CurrentRollover = newRollover;
+                newMouseFocus.Controller!.AddChild(newRollover);
+            }
 
             // This is very spammy.
             //Engine.Log.Info($"New mouse input focus {newMouseFocus}", "UI");
