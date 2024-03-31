@@ -32,7 +32,7 @@ public static partial class GameDataDatabase
 
         _database = new Dictionary<Type, GameDataCache>();
 
-        List<Task<GameDataObjectAsset?>> loadingTasks = new();
+        List<Task> loadingTasks = new();
         List<Type>? types = EditorUtility.GetTypesWhichInherit<GameDataObject>();
         for (var i = 0; i < types.Count; i++)
         {
@@ -47,10 +47,8 @@ public static partial class GameDataDatabase
             for (var j = 0; j < files.Length; j++)
             {
                 string file = files[j];
-                var task = Engine.AssetLoader.GetAsync<GameDataObjectAsset>(file, false);
+                Task task = GameDataCache.LoadGameDataAssetTask(file, cache);
                 loadingTasks.Add(task);
-
-                task.ContinueWith(GameDataCache.AssetLoadTaskCallback, cache);
             }
         }
         Task.WaitAll(loadingTasks.ToArray());
