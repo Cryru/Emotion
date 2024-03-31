@@ -1,8 +1,12 @@
 ﻿#region Using
 
 using System.Buffers;
+using System.IO;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using Emotion.Utility;
 
@@ -612,6 +616,23 @@ namespace System
         public static int NextInclusive(this Random rng, int min, int max)
         {
             return rng.Next(min, max + 1);
+        }
+    }
+
+    public static class StringExtensions
+    {
+        private static MD5 _md5Hasher = MD5.Create();
+
+        public static int GetStableHashCode(this string str)
+        {
+            ReadOnlySpan<byte> stringAsBytes = MemoryMarshal.Cast<char, byte>(str);
+            Span<byte> stringHash = stackalloc byte[32];
+            
+            if (MD5.TryHashData(stringAsBytes, stringHash, out int bytesWritten))
+                return BitConverter.ToInt32(stringHash.Slice(0, bytesWritten));
+
+            Assert(false, "Couldn't produce MD5 for a string in 32 bytes!");
+            return BitConverter.ToInt32(stringHash);
         }
     }
 }
