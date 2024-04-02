@@ -2,6 +2,7 @@
 
 #region Using
 
+using Silk.NET.Assimp;
 using System.Collections;
 using System.Threading.Tasks;
 using static Emotion.Editor.EditorWindows.DataEditorUtil.GameDataDatabase;
@@ -88,6 +89,7 @@ public static partial class GameDataDatabase
         {
             IdMap.Clear();
 
+            Assert(Objects.Count != 0);
             Objects.Sort();
             for (int i = 0; i < Objects.Count; i++)
             {
@@ -116,15 +118,14 @@ public static partial class GameDataDatabase
             return Objects[idx];
         }
 
-        public static void AssetLoadTaskCallback(Task<GameDataObjectAsset?> task, object? cache)
+        public static async Task LoadGameDataAssetTask(string fileName, GameDataCache thisAssetCache)
         {
-            var asset = task.Result;
+            GameDataObjectAsset? asset = await Engine.AssetLoader.GetAsync<GameDataObjectAsset>(fileName, false);
             if (asset == null || asset.Content == null) return;
 
-            var gameDataObjContent = asset.Content;
+            GameDataObject gameDataObjContent = asset.Content;
             gameDataObjContent.LoadedFromFile = asset.Name;
 
-            GameDataCache? thisAssetCache = cache as GameDataCache;
             if (thisAssetCache == null) return;
 
             lock (thisAssetCache)

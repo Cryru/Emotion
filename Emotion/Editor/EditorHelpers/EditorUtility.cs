@@ -73,7 +73,7 @@ public static class EditorUtility
     /// <summary>
     /// Get list of types with a parameterless constructor that inherit a specific type.
     /// </summary>
-    public static List<Type> GetTypesWhichInherit<T>()
+    public static List<Type> GetTypesWhichInherit<T>(bool requireSerializable = true)
     {
         List<Type> inheritors = new();
         Type type = typeof(T);
@@ -83,11 +83,9 @@ public static class EditorUtility
             foreach (Type assemblyType in types)
             {
                 if (!type.IsAssignableFrom(assemblyType)) continue;
-                if (type.IsAbstract) continue;
+                if (assemblyType.IsAbstract) continue;
 
-                bool invalid = assemblyType.GetConstructor(Type.EmptyTypes) == null;
-                if (invalid) continue;
-
+                if (requireSerializable && !TypeHasParameterlessConstructor(assemblyType)) continue;
                 inheritors.Add(assemblyType);
             }
         }
@@ -97,7 +95,11 @@ public static class EditorUtility
 
     public static bool HasParameterlessConstructor(object obj)
     {
-        Type t = obj.GetType();
+        return TypeHasParameterlessConstructor(obj.GetType());
+    }
+
+    public static bool TypeHasParameterlessConstructor(Type t)
+    {
         return t.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, Type.EmptyTypes) != null ||
                t.GetConstructor(BindingFlags.Public | BindingFlags.Instance, Type.EmptyTypes) != null;
     }
@@ -127,7 +129,7 @@ public static class EditorUtility
                 }
             };
         }
-        
+
         List<TypeAndFieldHandlers> currentTypeHandlers = new();
 
         // Collect type handlers sorted by declared type.

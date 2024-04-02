@@ -122,6 +122,7 @@ namespace Emotion.UI
         public void Render(RenderComposer c)
         {
             if (!Visible) return;
+            if (IsLoading()) return;
 
             // Push displacements if any.
             var matrixPushed = false;
@@ -698,7 +699,18 @@ namespace Emotion.UI
 
         #region Input
 
-        public bool ChildrenHandleInput { get; set; } = true;
+        public bool ChildrenHandleInput
+        {
+            get => _childrenHandleInput;
+            set
+            {
+                if (value == _childrenHandleInput) return;
+                _childrenHandleInput = value;
+                Controller?.InvalidateInputFocus();
+            }
+        }
+
+        private bool _childrenHandleInput = true;
 
         public bool HandleInput
         {
@@ -1088,6 +1100,10 @@ namespace Emotion.UI
 
         #region Helpers
 
+        public const string SPECIAL_WIN_ID_MOUSE_FOCUS = "MouseFocus";
+        public const string SPECIAL_WIN_ID_CONTROLLER = "Controller";
+
+
         /// <summary>
         /// Get a window with the specified id which is either a child of this window,
         /// or below it on the tree.
@@ -1096,15 +1112,11 @@ namespace Emotion.UI
         /// <returns>The instance of the window.</returns>
         public virtual UIBaseWindow? GetWindowById(string id)
         {
-            if (id == "Controller")
-            {
-                UIBaseWindow cur = this;
-                while (cur.Parent != null)
-                {
-                    if (cur is UIController) return cur;
-                    cur = cur.Parent;
-                }
-            }
+            if (id == SPECIAL_WIN_ID_MOUSE_FOCUS)
+                return UIController.MouseFocus;
+
+            if (id == SPECIAL_WIN_ID_CONTROLLER)
+                return Controller;
 
             if (id == Id) return this;
             if (Children == null) return null;
@@ -1223,6 +1235,15 @@ namespace Emotion.UI
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        #endregion
+
+        #region Rollover Functionality
+
+        public virtual UIRollover? GetRollover()
+        {
+            return null;
         }
 
         #endregion

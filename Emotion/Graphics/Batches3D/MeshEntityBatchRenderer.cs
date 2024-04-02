@@ -626,7 +626,7 @@ public sealed class MeshEntityBatchRenderer
         c.SetFaceCulling(false, false);
     }
 
-    private void RenderMainPass(RenderComposer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
+    private unsafe void RenderMainPass(RenderComposer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
     {
         if (groupsInPass.Length == 0) return;
 
@@ -669,13 +669,8 @@ public sealed class MeshEntityBatchRenderer
                     ObjectFlags flags = objectData.Flags;
                     dontRender = _renderingShadowmap != -1 && flags.EnumHasFlag(ObjectFlags.Map3DDontThrowShadow);
 
-                    if (!dontRender)
-                    {
-                        unsafe
-                        {
-                            dontRender = !objectData.FrustumCulling[_renderingShadowmap + 1];
-                        }
-                    }
+                    dontRender = dontRender || (_renderingShadowmap != -1 && ShadowsCullFrontFace && !objectData.BackfaceCulling);
+                    dontRender = dontRender || !objectData.FrustumCulling[_renderingShadowmap + 1];
 
                     if (dontRender)
                     {
@@ -962,7 +957,7 @@ public sealed class MeshEntityBatchRenderer
         var camera = renderer.Camera;
 
         if (_closestObjectDist == int.MaxValue || _closestObjectDist < camera.NearZ || _closestObjectDist > camera.FarZ) _closestObjectDist = camera.NearZ;
-        if (_furthestObjectDist == 0 || _furthestObjectDist > camera.FarZ) _furthestObjectDist = camera.FarZ;
+        if (_furthestObjectDist == 0 || _furthestObjectDist > camera.FarZ || _furthestObjectDist < _closestObjectDist) _furthestObjectDist = camera.FarZ;
 
         float nearPlane = _closestObjectDist;
         float farPlane = _furthestObjectDist;

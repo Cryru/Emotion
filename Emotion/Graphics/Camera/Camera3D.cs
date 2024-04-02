@@ -43,7 +43,8 @@ namespace Emotion.Graphics.Camera
         public override void Attach()
         {
             base.Attach();
-            Engine.Host.OnKey.AddListener(CameraKeyHandler, _inputPriority);
+            if (_inputPriority != KeyListenerType.None)
+                Engine.Host.OnKey.AddListener(CameraKeyHandler, _inputPriority);
         }
 
         public override void Detach()
