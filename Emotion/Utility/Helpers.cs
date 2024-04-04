@@ -1,11 +1,9 @@
 ﻿#region Using
 
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emotion.Platform.Input;
-using Silk.NET.Assimp;
 
 #endregion
 

@@ -2,10 +2,8 @@
 
 #region Using
 
-using Silk.NET.Assimp;
 using System.Collections;
 using System.Threading.Tasks;
-using static Emotion.Editor.EditorWindows.DataEditorUtil.GameDataDatabase;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
 
 #endregion
