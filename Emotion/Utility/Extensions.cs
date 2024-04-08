@@ -634,5 +634,18 @@ namespace System
             Assert(false, "Couldn't produce MD5 for a string in 32 bytes!");
             return BitConverter.ToInt32(stringHash);
         }
+
+        public static unsafe string AsString(this System.ReadOnlySpan<char> source)
+        {
+            string result = new string(' ', source.Length);
+            fixed (char* dest = result, src = &MemoryMarshal.GetReference(source))
+            {
+                for (int i = 0; i < source.Length; i++)
+                {
+                    *(dest + i) = *(src + i);
+                }
+            }
+            return result;
+        }
     }
 }
