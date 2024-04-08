@@ -70,7 +70,7 @@ namespace Emotion.Editor.PropertyEditors
             inputBg.Paddings = new Rectangle(2, 1, 2, 1);
             inputBg.Anchor = UIAnchor.CenterLeft;
             inputBg.ParentAnchor = UIAnchor.CenterLeft;
-
+            
             var textEditor = new UITextInput();
             textEditor.FontFile = "Editor/UbuntuMono-Regular.ttf";
             textEditor.FontSize = MapEditorColorPalette.EditorButtonTextSize;
@@ -83,6 +83,8 @@ namespace Emotion.Editor.PropertyEditors
             textEditor.SubmitOnEnter = true;
             textEditor.SubmitOnFocusLoss = true;
             textEditor.Text = _value;
+            if (Field.ReflectionInfo.GetAttribute<EditorMultilineStringAttribute>() != null)
+                textEditor.MultiLine = true;
             inputBg.AddChild(textEditor);
             _textInput = textEditor;
             SetValue(_value); // To force setting it in the UI

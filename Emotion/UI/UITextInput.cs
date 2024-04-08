@@ -52,7 +52,7 @@ namespace Emotion.UI
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
         {
-            if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down)
+            if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down && !MultiLine)
             {
                 OnSubmit?.Invoke(_text);
                 return false;
