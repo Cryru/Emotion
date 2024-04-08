@@ -154,7 +154,18 @@ namespace Emotion.Game.Time.Routines
 
         public void WaitingForTime_AdvanceTime(float time)
         {
-            WaitingForTime -= time;
+            // Check if waiting on a subroutine which is waiting for time
+            if (CurrentWaiter is Coroutine subRtn && subRtn.WaitingForTime != 0)
+            {
+                subRtn.WaitingForTime_AdvanceTime(time);
+                WaitingForTime = subRtn.WaitingForTime;
+            }
+            // I am myself waiting for time
+            else
+            {
+                WaitingForTime -= time;
+            }
+
             Assert(WaitingForTime >= 0);
         }
 
