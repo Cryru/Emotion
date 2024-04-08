@@ -517,7 +517,7 @@ namespace Emotion.Primitives
             Vector2 posToBeAt = otherRect.Position;
             if (otherRect.X < X) posToBeAt.X = X;
             if (otherRect.Y < Y) posToBeAt.Y = Y;
-            if (otherRect.Right > Right) posToBeAt.X = Width - otherRect.Width;
+            if (otherRect.Right > Right) posToBeAt.X = Right - otherRect.Width;
             if (otherRect.Bottom > Bottom) posToBeAt.Y = Bottom - otherRect.Height;
             return posToBeAt;
         }
