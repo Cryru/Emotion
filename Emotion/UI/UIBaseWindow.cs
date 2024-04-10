@@ -540,7 +540,18 @@ namespace Emotion.UI
         /// <summary>
         /// Position relative to another window in the same controller.
         /// </summary>
-        public string? RelativeTo { get; set; }
+        public string? RelativeTo
+        {
+            get => _relativeTo;
+            set
+            {
+                if (value == _relativeTo) return;
+                _relativeTo = value;
+                InvalidateLayout();
+            }
+        }
+
+        private string? _relativeTo;
 
         public virtual void InvalidateLayout()
         {
@@ -907,6 +918,21 @@ namespace Emotion.UI
 
             TransformationStack.Remove(id);
         }
+
+        public IEnumerator ScaleDisplacement(float scaleStart, float scaleTarget, ITimer tween, string id = "scale")
+        {
+            while (true)
+            {
+                tween.Update(Engine.DeltaTime);
+                float current = Maths.Lerp(scaleStart, scaleTarget, tween.Progress);
+                TransformationStack.AddOrUpdate(id,
+                    Matrix4x4.CreateScale(current, current, 1f), true, MatrixSpecialFlag.ScaleBoundsCenter);
+                if (tween.Finished) break;
+
+                yield return null;
+            }
+        }
+
 
         /// <summary>
         /// The window's rotation around its center, in degrees.

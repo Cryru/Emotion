@@ -8,6 +8,17 @@ namespace Emotion.Game.World.Grid;
 public class TerrainHeightMapGrid : TextureSourceGrid
 {
     private TerrainChunkObject[]? _chunks;
+    
+    public TerrainHeightMapGrid(string texturePath) : base(texturePath)
+    {
+    }
+
+    // serialization constructor
+    protected TerrainHeightMapGrid()
+    {
+
+    }
+
     public override async Task LoadAsync(BaseMap map)
     {
         await base.LoadAsync(map);

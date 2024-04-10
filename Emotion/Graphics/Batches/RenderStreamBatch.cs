@@ -281,6 +281,15 @@ namespace Emotion.Graphics.Batches
             else if (_currentTexture == _smoothAtlas?.AtlasPointer)
                 _smoothAtlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
 
+            if (_vertexPostProcFunc != null && CurrentVertexType == typeof(VertexData))
+            {
+                Span<VertexData> data = new Span<VertexData>((void*)_backingBuffer, (int) (mappedBytes / structByteSize));
+                for (int i = 0; i < data.Length; i++)
+                {
+                    _vertexPostProcFunc(ref data[i], i);
+                }
+            }
+
             // Avoid allocations
             if (renderObj.VBO.Size < mappedBytes)
                 renderObj.VBO.Upload(_backingBuffer, mappedBytes);
@@ -454,5 +463,18 @@ namespace Emotion.Graphics.Batches
         }
 
         #endregion
+
+        public delegate void VertexPostProcessingFunc(ref VertexData vertex, int vIdx);
+
+        private VertexPostProcessingFunc? _vertexPostProcFunc = null;
+
+        /// <summary>
+        /// Sets a function to be called for flushed vertices.
+        /// </summary>
+        public void SetVerticesPostProcessing(VertexPostProcessingFunc? func)
+        {
+            if (AnythingMapped) FlushRender();
+            _vertexPostProcFunc = func;
+        }
     }
 }

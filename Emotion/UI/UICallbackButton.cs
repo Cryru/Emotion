@@ -11,8 +11,10 @@ namespace Emotion.UI
     {
         [DontSerialize] public Action<UICallbackButton> OnMouseEnterProxy;
         [DontSerialize] public Action<UICallbackButton> OnMouseLeaveProxy;
+        [DontSerialize] public Action<UICallbackButton, Vector2> OnMouseMoveProxy;
         [DontSerialize] public Action<UICallbackButton> OnClickedProxy;
         [DontSerialize] public Action<UICallbackButton> OnClickedUpProxy;
+        [DontSerialize] public Func<UIRollover> OnRolloverSpawn;
 
         public UICallbackButton()
         {
@@ -29,6 +31,17 @@ namespace Emotion.UI
         {
             base.OnMouseLeft(mousePos);
             OnMouseLeaveProxy?.Invoke(this);
+        }
+
+        public override void OnMouseMove(Vector2 mousePos)
+        {
+            base.OnMouseMove(mousePos);
+            OnMouseMoveProxy?.Invoke(this, mousePos);
+        }
+
+        public override UIRollover? GetRollover()
+        {
+            return OnRolloverSpawn?.Invoke();
         }
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)

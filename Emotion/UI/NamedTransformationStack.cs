@@ -10,6 +10,7 @@ namespace Emotion.UI
     {
         None,
         RotateBoundsCenter,
+        ScaleBoundsCenter,
         TranslationPositionReplace
     }
 
@@ -123,7 +124,8 @@ namespace Emotion.UI
                 MatrixWithId matWithId = _stack[i];
                 if (matWithId.ResetToIdentity) mat = Matrix4x4.Identity;
 
-                if (matWithId.Flag == MatrixSpecialFlag.RotateBoundsCenter)
+                if (matWithId.Flag == MatrixSpecialFlag.RotateBoundsCenter ||
+                    matWithId.Flag == MatrixSpecialFlag.ScaleBoundsCenter)
                 {
                     var boundsCenter = bounds.Center / scale;
                     mat *= Matrix4x4.CreateTranslation(-boundsCenter.X, -boundsCenter.Y, 0) *

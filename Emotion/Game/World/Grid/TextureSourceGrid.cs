@@ -17,6 +17,17 @@ public class TextureSourceGrid : MapGrid<byte>
     protected TextureSourceGridAsset? _texture;
     protected Vector2 _textureSize;
 
+    public TextureSourceGrid(string texturePath)
+    {
+        DataTexturePath = texturePath;
+    }
+
+    // serialization constructor
+    protected TextureSourceGrid()
+    {
+
+    }
+
     [DontSerialize]
     protected class TextureSourceGridAsset : TextureAsset
     {
