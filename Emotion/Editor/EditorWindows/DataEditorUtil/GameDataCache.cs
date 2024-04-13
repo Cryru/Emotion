@@ -87,7 +87,6 @@ public static partial class GameDataDatabase
         {
             IdMap.Clear();
 
-            Assert(Objects.Count != 0);
             Objects.Sort();
             for (int i = 0; i < Objects.Count; i++)
             {
