@@ -3,6 +3,7 @@
 using System.Collections;
 #if DEBUG
 using System.Reflection;
+using Emotion.Utility;
 
 #endif
 
@@ -166,7 +167,14 @@ namespace Emotion.Game.Time.Routines
                 WaitingForTime -= time;
             }
 
+            // Handle EPSILON floats
+            if (Maths.Approximately(WaitingForTime, 0.0f))
+                WaitingForTime = 0;
+
             Assert(WaitingForTime >= 0);
+
+            // error handling just in case, cuz otherwise this will loop forever
+            if (WaitingForTime < 0) WaitingForTime = 0;
         }
 
 #if DEBUG
