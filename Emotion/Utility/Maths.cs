@@ -217,6 +217,15 @@ namespace Emotion.Utility
             return from + (to - from) * Clamp01(t);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Lerp(double from, double to, double t)
+        {
+            if (t < 0.0) t = 0.0;
+            if (t > 1.0) t = 1.0;
+
+            return from + (to - from) * t;
+        }
+
         /// <summary>
         /// Produces the inverse result of Lerp.
         /// </summary>
