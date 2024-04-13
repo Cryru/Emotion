@@ -912,8 +912,6 @@ namespace Emotion.UI
 
                 yield return null;
             }
-
-            TransformationStack.Remove(id);
         }
 
         public IEnumerator ScaleDisplacement(float scaleStart, float scaleTarget, ITimer tween, string id = "scale")
