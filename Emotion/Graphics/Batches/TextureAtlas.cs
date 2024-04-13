@@ -3,6 +3,7 @@
 using System.Linq;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.Utility;
 using OpenGL;
 
@@ -20,6 +21,7 @@ namespace Emotion.Graphics.Batches
         public class TextureMapping
         {
             public int UpToStruct;
+
             public Texture Texture;
         }
 
@@ -28,9 +30,18 @@ namespace Emotion.Graphics.Batches
             get => _fbo.ColorAttachment.Pointer;
         }
 
-        private Dictionary<Texture, Vector2> _textureToOffset = new Dictionary<Texture, Vector2>();
-        private Dictionary<Texture, bool> _textureNeedDraw = new Dictionary<Texture, bool>();
-        private Dictionary<Texture, int> _textureActivity = new Dictionary<Texture, int>();
+        private class TextureAtlasMetaData
+        {
+            public int Activity;
+
+            public Vector2 Offset;
+
+            public bool Batched = false;
+
+            public int Version = -1;
+        }
+
+        private Dictionary<Texture, TextureAtlasMetaData> _textureToMeta = new();
 
         private readonly FrameBuffer _fbo;
         private readonly VertexBuffer _vbo;
@@ -69,7 +80,7 @@ namespace Emotion.Graphics.Batches
 
             _usagesToPack = usagePackThreshold;
 
-            _vbo = new VertexBuffer((uint) (VertexData.SizeInBytes * 8), BufferUsage.StaticDraw);
+            _vbo = new VertexBuffer((uint)(VertexData.SizeInBytes * 8), BufferUsage.StaticDraw);
             _vboLocal = new VertexData[8];
             var ibo = new IndexBuffer(12 * sizeof(ushort));
             var quadIndices = new ushort[12];
@@ -108,21 +119,30 @@ namespace Emotion.Graphics.Batches
             // Don't batch tiled or smoothed textures (unless the atlas is smooth).
             if (texture.Tile || texture.Smooth != _fbo.Texture.Smooth) return false;
 
-            // If the texture is in the batch, return it as such only if it was drawn to the internal texture (which means it's usable).
-            if (_textureToOffset.ContainsKey(texture)) return !_textureNeedDraw[texture];
+            // Don't cache if not default shader, because getTextureSize will not work correctly.
+            if (Engine.Renderer.CurrentState.Shader != ShaderFactory.DefaultProgram) return false;
 
-            // The texture is eligible for this atlas. Start tracking its usage, if it is used enough it will be packed.
-            if (_textureActivity.ContainsKey(texture))
-                _textureActivity[texture]++;
-            else
-                _textureActivity.Add(texture, 1);
-            if (_textureActivity[texture] < _usagesToPack) return false;
+            // If the texture is in the batch, return it as such only if it was drawn to the internal texture (which means it's usable).
+            TextureAtlasMetaData? meta;
+            if (_textureToMeta.TryGetValue(texture, out meta) && meta.Batched)
+                return meta.Version == texture.Version;
+
+            // The texture is eligible for this atlas!
+            // Add meta so we can track usages, if it is used enough it will be packed.
+            if (meta == null)
+            {
+                meta = new TextureAtlasMetaData();
+                _textureToMeta.Add(texture, meta);
+            }
+
+            meta.Activity++;
+            if (meta.Activity < _usagesToPack) return false;
 
             // Check if there is space in the internal texture.
             Vector2? offset = Packing.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
             if (offset == null) return false;
-            _textureToOffset.Add(texture, offset.Value);
-            _textureNeedDraw.Add(texture, true);
+            meta.Offset = offset.Value;
+            meta.Batched = true;
             _haveDirtyTextures = true;
 
             return false;
@@ -174,10 +194,9 @@ namespace Emotion.Graphics.Batches
             }
 
             Assert(totalStructs == lengthBytes / structByteSize);
-
 #endif
 
-            var dataPtr = (byte*) dataPointer;
+            var dataPtr = (byte*)dataPointer;
             var reader = 0;
             var structIdx = 0;
             TextureMapping textureMapping = _atlasTextureRange.Dequeue();
@@ -187,7 +206,7 @@ namespace Emotion.Graphics.Batches
 
             while (reader < lengthBytes)
             {
-                var targetPtr = (Vector2*) (dataPtr + reader + uvOffsetIntoStruct);
+                var targetPtr = (Vector2*)(dataPtr + reader + uvOffsetIntoStruct);
 
                 if (structIdx >= textureMapping.UpToStruct)
                 {
@@ -200,7 +219,7 @@ namespace Emotion.Graphics.Batches
                 targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
                 targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y); // Since the atlas is flipped, we need to flip the Y UV.
 
-                reader += (int) structByteSize;
+                reader += (int)structByteSize;
                 structIdx++;
             }
 
@@ -230,65 +249,84 @@ namespace Emotion.Graphics.Batches
 
         #region Update Methods
 
+        private List<Texture> _deleteFromDictionary = new();
+
+        private List<Texture> _packedTextures = new();
+
+        protected virtual int TextureSortHeight(Texture x, Texture y)
+        {
+            return MathF.Sign(x.Size.Y - y.Size.Y);
+        }
+
         protected void UpdateTextureUsage()
         {
             _textureActivityFrames++;
             if (_textureActivityFrames <= _repackRate) return;
             _textureActivityFrames = 0;
 
-            List<Texture> deleteFromDictionary = null;
+            List<Texture> deleteFromDictionary = _deleteFromDictionary;
+            deleteFromDictionary.Clear();
+
             var repack = false;
-            foreach ((Texture texture, int timesUsed) in _textureActivity)
+            foreach ((Texture texture, TextureAtlasMetaData meta) in _textureToMeta)
             {
                 bool deletedTexture = texture.Pointer == 0;
-                bool existsInThePack = _textureNeedDraw.ContainsKey(texture);
+                bool existsInThePack = meta.Batched;
+                int timesUsed = meta.Activity;
 
-                // Wasn't used since the last repack tick.
-                if (existsInThePack && timesUsed == 0) deletedTexture = !_textureNeedDraw[texture];
+                // Wasn't used since the last repack tick, delete from the pack only if
+                // the version currently in the pack is the latest one.
+                if (existsInThePack && timesUsed == 0)
+                    deletedTexture = texture.Version == meta.Version;
 
                 // If the texture wasn't used in the last X frames, or it was disposed,
                 // eject it from the atlas.
                 if (deletedTexture)
                 {
                     repack = true;
-                    _textureToOffset.Remove(texture);
-                    _textureNeedDraw.Remove(texture);
-
-                    deleteFromDictionary ??= new List<Texture>();
                     deleteFromDictionary.Add(texture);
                     continue;
                 }
 
-                _textureActivity[texture] = 0;
+                meta.Activity = 0;
             }
 
             // Cleanup activity. Cannot do that in the foreach as the enumerator will complain.
-            if (deleteFromDictionary != null)
-                for (var i = 0; i < deleteFromDictionary.Count; i++)
-                {
-                    _textureActivity.Remove(deleteFromDictionary[i]);
-                }
+            for (var i = 0; i < deleteFromDictionary.Count; i++)
+            {
+                _textureToMeta.Remove(deleteFromDictionary[i]);
+            }
 
             if (!repack) return;
 
             CanvasPos = Vector2.Zero;
             PackingSpaces.Clear();
-            IOrderedEnumerable<Texture> allTextures = _textureToOffset.Keys.ToArray().OrderBy(x => x.Size.Y);
-            foreach (Texture texture in allTextures)
+
+            _packedTextures.Clear();
+            foreach ((Texture texture, TextureAtlasMetaData meta) in _textureToMeta)
             {
+                if (!meta.Batched) continue;
+                _packedTextures.Add(texture);
+            }
+            _packedTextures.Sort(TextureSortHeight);
+
+            for (int i = 0; i < _packedTextures.Count; i++)
+            {
+                Texture texture = _packedTextures[i];
+                TextureAtlasMetaData meta = _textureToMeta[texture];
+
                 Vector2? offset = Packing.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
                 if (offset.HasValue)
                 {
-                    _textureToOffset[texture] = offset.Value;
-                    _textureNeedDraw[texture] = true;
+                    meta.Offset = offset.Value;
+                    meta.Version = -1; // Force redraw
                     _haveDirtyTextures = true;
                 }
                 else
                 {
                     Engine.Log.Trace($"Texture {texture.Pointer} previously fit in the atlas, but no longer does.", MessageSource.Renderer);
-                    _textureToOffset.Remove(texture);
-                    _textureNeedDraw.Remove(texture);
-                    _textureActivity[texture] = 0;
+                    meta.Batched = false;
+                    meta.Activity = 0;
                 }
             }
         }
@@ -304,11 +342,13 @@ namespace Emotion.Graphics.Batches
             VertexArrayObject.EnsureBound(_vao);
 
             Span<VertexData> vboLocalSpan = _vboLocal;
-            foreach ((Texture texture, bool needDraw) in _textureNeedDraw)
+            foreach ((Texture texture, TextureAtlasMetaData meta) in _textureToMeta)
             {
-                if (!needDraw || texture.Pointer == 0) continue;
+                if (meta.Version == texture.Version) continue;
+                if (!meta.Batched) continue;
+                if (texture.Pointer == 0) continue;
 
-                Vector2 offset = _textureToOffset[texture];
+                Vector2 offset = meta.Offset;
                 if (_texturesMarginVec == Vector2.Zero)
                 {
                     offset += _texturesMarginVec;
@@ -334,7 +374,7 @@ namespace Emotion.Graphics.Batches
                     Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, 6 * sizeof(ushort));
                 }
 
-                _textureNeedDraw[texture] = false;
+                meta.Version = texture.Version;
             }
 
             c.RenderTo(null);
@@ -348,11 +388,12 @@ namespace Emotion.Graphics.Batches
 
         protected Rectangle GetTextureUVMinMax(Texture texture)
         {
-            Assert(_textureToOffset.ContainsKey(texture));
-            Assert(!_textureNeedDraw[texture]);
+            _textureToMeta.TryGetValue(texture, out TextureAtlasMetaData? meta);
+            AssertNotNull(meta);
+            Assert(meta.Version == texture.Version);
 
-            _textureActivity[texture]++;
-            Vector2 atlasOffset = _textureToOffset[texture] + _texturesMarginVec;
+            meta.Activity++;
+            Vector2 atlasOffset = meta.Offset + _texturesMarginVec;
             var minMaxUV = new Rectangle(atlasOffset, atlasOffset + texture.Size);
             return new Rectangle(minMaxUV.Position / Size, minMaxUV.Size / Size);
         }

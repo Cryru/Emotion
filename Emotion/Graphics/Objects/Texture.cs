@@ -18,9 +18,16 @@ namespace Emotion.Graphics.Objects
         #region DEBUG
 
         public static List<Texture> AllTextures = new List<Texture>();
+
         public string CreationStack;
 
         #endregion
+
+        /// <summary>
+        /// The texture's version is incremented every time new data is uploaded to it.
+        /// It's used to keep track of changes.
+        /// </summary>
+        public int Version = 0;
 
         /// <summary>
         /// The bound textures.
@@ -205,13 +212,13 @@ namespace Emotion.Graphics.Objects
             Size = size;
 
             pixelFormat ??= PixelFormat;
-            PixelFormat = (PixelFormat) pixelFormat;
+            PixelFormat = (PixelFormat)pixelFormat;
 
             internalFormat ??= InternalFormat;
-            InternalFormat = (InternalFormat) internalFormat;
+            InternalFormat = (InternalFormat)internalFormat;
 
             pixelType ??= PixelType;
-            PixelType = (PixelType) pixelType;
+            PixelType = (PixelType)pixelType;
 
             if (Gl.CurrentVersion.GLES)
             {
@@ -239,14 +246,15 @@ namespace Emotion.Graphics.Objects
 
             EnsureBound(Pointer);
             if (data == null)
-                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    (PixelType) pixelType, IntPtr.Zero);
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)internalFormat, (int)Size.X, (int)Size.Y, 0, (PixelFormat)pixelFormat,
+                    (PixelType)pixelType, IntPtr.Zero);
             else
-                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    (PixelType) pixelType, data);
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)internalFormat, (int)Size.X, (int)Size.Y, 0, (PixelFormat)pixelFormat,
+                    (PixelType)pixelType, data);
 
             Smooth = _smooth;
             Tile = _tile;
+            Version++;
         }
 
         /// <summary>
@@ -255,7 +263,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public byte[] Download()
         {
-            var data = new byte[(int) (Size.X * Size.Y * Gl.PixelTypeToByteCount(PixelType) * Gl.PixelFormatToComponentCount(PixelFormat))];
+            var data = new byte[(int)(Size.X * Size.Y * Gl.PixelTypeToByteCount(PixelType) * Gl.PixelFormatToComponentCount(PixelFormat))];
             EnsureBound(Pointer);
             Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat, PixelType, data);
             return data;
@@ -274,13 +282,13 @@ namespace Emotion.Graphics.Objects
                 // If in debug mode, verify this with OpenGL.
                 if (!Engine.Configuration.GlDebugMode) return;
 
-                Gl.ActiveTexture(TextureUnit.Texture0 + (int) slot);
+                Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
                 Gl.Get(GetPName.TextureBinding2d, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed texture bound to slot {slot} was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }
 
-            Gl.ActiveTexture(TextureUnit.Texture0 + (int) slot);
+            Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
             Gl.BindTexture(TextureTarget.Texture2d, pointer);
             Bound[slot] = pointer;
         }
@@ -316,7 +324,7 @@ namespace Emotion.Graphics.Objects
 
         public static void InitializeEmptyTexture()
         {
-            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] {255, 255, 255, 255}, PixelFormat.Rgba);
+            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] { 255, 255, 255, 255 }, PixelFormat.Rgba);
         }
     }
 }
