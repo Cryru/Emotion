@@ -48,6 +48,8 @@ namespace Emotion.Graphics.Shading
             return DefaultProgram;
         }
 
+        private static string[] _compilationConstantReuse = new string[2];
+
         /// <summary>
         /// Create a shader.
         /// </summary>
@@ -60,10 +62,13 @@ namespace Emotion.Graphics.Shading
             List<ShaderUniform> uniformDefaults = null;
             if (Gl.CurrentShadingVersion.GLES) uniformDefaults = new List<ShaderUniform>();
 
+            _compilationConstantReuse[1] = compileConstant;
+
             // Normalize new lines, and split into line array.
             string[] preprocessedVert = Helpers.NormalizeNewLines(vertShaderSource).Split("\n");
             // Preprocess the shader, adding version and other supporting code.
-            preprocessedVert = Preprocess(preprocessedVert, uniformDefaults, compileConstant);
+            _compilationConstantReuse[0] = "VERTEX_SHADER";
+            preprocessedVert = Preprocess(preprocessedVert, uniformDefaults, _compilationConstantReuse);
             if (Engine.Configuration.DebugMode) WarningsCheck(preprocessedVert);
 
             uint vertShader = Gl.CreateShader(ShaderType.VertexShader);
@@ -72,7 +77,8 @@ namespace Emotion.Graphics.Shading
 
             // Repeat for fragment shader.
             string[] preprocessedFrag = Helpers.NormalizeNewLines(fragShaderSource).Split("\n");
-            preprocessedFrag = Preprocess(preprocessedFrag, uniformDefaults, compileConstant);
+            _compilationConstantReuse[0] = "FRAGMENT_SHADER";
+            preprocessedFrag = Preprocess(preprocessedFrag, uniformDefaults, _compilationConstantReuse);
             if (Engine.Configuration.DebugMode) WarningsCheck(preprocessedFrag);
 
             uint fragShader = Gl.CreateShader(ShaderType.FragmentShader);
@@ -193,9 +199,9 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="source">The shader source code.</param>
         /// <param name="uniformDefaults">The list to fill with found shader defaults when running under GLES</param>
-        /// <param name="compileConstant">Compilation constant to add.</param>
+        /// <param name="compilationConstants">Compilation constants to add.</param>
         /// <returns>The preprocessed shader code.</returns>
-        private static string[] Preprocess(string[] source, List<ShaderUniform> uniformDefaults = null, string compileConstant = null)
+        private static string[] Preprocess(string[] source, List<ShaderUniform> uniformDefaults = null, string[]? compilationConstants = null)
         {
             bool es = Gl.CurrentShadingVersion.GLES;
             var code = new List<string>(source);
@@ -209,11 +215,19 @@ namespace Emotion.Graphics.Shading
             code.Insert(2, "precision highp float;\n");
             code.Insert(3, "#endif\n");
 
-            // Add user defined compilation constant.
-            if (compileConstant != null) code.Insert(4, $"#define {compileConstant} 1\n");
+            // Add user defined compilation constants.
+            if (compilationConstants != null)
+            {
+                for (int i = 0; i < compilationConstants.Length; i++)
+                {
+                    var constant = compilationConstants[i];
+                    if (constant == null) continue;
+                    code.Insert(4, $"#define {constant} 1\n");
+                }
+            }
 
             // Reset line counter to get errors on the right lines relative to the file.
-            code.Insert(5, $"#line {(compileConstant == null ? 3 : 2)}\n");
+            code.Insert(5, $"#line 2\n");
 
             var dependencyIdx = 1;
             for (var i = 6; i < code.Count; i++)
@@ -265,7 +279,7 @@ namespace Emotion.Graphics.Shading
                 }
 
                 // Ensure shader errors are reported for the correct lines.
-                if (codeAdded) code[i] += $"\n#line {i - 4} 0";
+                if (codeAdded) code[i] += $"\n#line {i - 3} 0";
 
                 code[i] = code[i].Trim() + "\n";
             }
