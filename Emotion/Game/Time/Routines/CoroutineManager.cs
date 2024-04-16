@@ -73,6 +73,7 @@ namespace Emotion.Game.Time.Routines
             if (routine == null) return;
             lock (this)
             {
+                routine.Stop();
                 _runningRoutines.Remove(routine);
             }
         }

@@ -24,6 +24,12 @@ namespace Emotion.Game.Time.Routines
         public static Coroutine CompletedRoutine = new Coroutine(null);
 
         /// <summary>
+        /// True if the routine is neither finished nor stopped.
+        /// Note that this doesn't guarantee it's ever been ran (or added to a coroutine manager at all)
+        /// </summary>
+        public bool Active { get => !Finished && !Stopped; }
+
+        /// <summary>
         /// Whether the routine has finished running.
         /// If the routine was stopped, it will also be considered finished as to
         /// continue the calling routine.
