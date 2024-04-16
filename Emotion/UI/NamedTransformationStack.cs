@@ -68,7 +68,7 @@ namespace Emotion.UI
             }
             else
             {
-                matWithId = new MatrixWithId(matrix, id, multiply);
+                matWithId = new MatrixWithId(matrix, id, !multiply);
                 matWithId.Flag = flag;
                 _stack.Add(matWithId);
             }
@@ -109,7 +109,7 @@ namespace Emotion.UI
         /// Recalculate the current matrix. This should be done before getting CurrentMatrix when
         /// DirtyMatrix is true.
         /// </summary>
-        public void RecalculateMatrix(float scale, Rectangle bounds)
+        public void RecalculateMatrix(float scale, Rectangle bounds, float z)
         {
             if (_stack == null)
             {
@@ -128,9 +128,9 @@ namespace Emotion.UI
                     matWithId.Flag == MatrixSpecialFlag.ScaleBoundsCenter)
                 {
                     var boundsCenter = bounds.Center / scale;
-                    mat *= Matrix4x4.CreateTranslation(-boundsCenter.X, -boundsCenter.Y, 0) *
+                    mat *= Matrix4x4.CreateTranslation(-boundsCenter.X, -boundsCenter.Y, -z) *
                            matWithId.Matrix *
-                           Matrix4x4.CreateTranslation(boundsCenter.X, boundsCenter.Y, 0);
+                           Matrix4x4.CreateTranslation(boundsCenter.X, boundsCenter.Y, z);
                 }
                 else if (matWithId.Flag == MatrixSpecialFlag.TranslationPositionReplace)
                 {
