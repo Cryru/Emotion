@@ -1,10 +1,9 @@
 ﻿#region Using
 
 using System.Collections;
+using Emotion.Utility;
 #if DEBUG
 using System.Reflection;
-using Emotion.Utility;
-
 #endif
 
 #endregion
