@@ -97,6 +97,7 @@ namespace Emotion.Plugins.Steamworks
             {
                 Engine.Log.Error($"Error while initializing Steam - {ex}.", LOG_SOURCE);
                 Engine.Quit();
+                return;
             }
 
             // Initialize Steam modules.
