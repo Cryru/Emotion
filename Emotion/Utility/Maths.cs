@@ -893,5 +893,10 @@ namespace Emotion.Utility
         {
             return new Vector2(MathF.Cos(radians), MathF.Sin(radians));
         }
+
+        public static Vector2 LerpPerComponent(Vector2 a, Vector2 b, Vector2 t)
+        {
+            return a + (b - a) * t;
+        }
     }
 }
