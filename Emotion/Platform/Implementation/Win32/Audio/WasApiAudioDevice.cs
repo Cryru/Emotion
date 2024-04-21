@@ -36,8 +36,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             var context = new WasApiLayerContext(this);
 
             // Activate the device.
-            int error = ComHandle.Activate(ref IdAudioClient, ClsCtx.ALL, IntPtr.Zero, out object audioDevice);
-            var audioClient = (IAudioClient) audioDevice;
+            int error = ComHandle.Activate(ref IdAudioClient, ClsCtx.ALL, IntPtr.Zero, out IAudioClient audioClient);
             if (error != 0) Win32Platform.CheckError($"Couldn't activate audio device of name {Name}.", true);
 
             context.AudioClient = audioClient;
@@ -45,9 +44,16 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             // Get device format.
             error = audioClient.GetMixFormat(out IntPtr deviceFormat);
             if (error != 0) Win32Platform.CheckError($"Couldn't detect the mix format of the audio client of {Name}.", true);
-            var audioClientFormat = Marshal.PtrToStructure<WaveFormat>(deviceFormat);
-            if (audioClientFormat!.ExtraSize >= 22) audioClientFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
-            context.AudioClientFormat = audioClientFormat!.ToEmotionFormat();
+            WaveFormat audioClientFormat = Marshal.PtrToStructure<WaveFormat>(deviceFormat);
+            if (audioClientFormat!.ExtraSize >= 22)
+            {
+                WaveFormatExtensible extendedFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
+                context.AudioClientFormat = extendedFormat.Inner_WaveFormat!.ToEmotionFormat();
+            }
+            else
+            {
+                context.AudioClientFormat = audioClientFormat!.ToEmotionFormat();
+            }
 
             long ticks = TimeSpan.FromMilliseconds(AudioContext.BackendBufferExpectedAhead).Ticks;
             error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, ticks, 0, deviceFormat, Guid.Empty);
@@ -56,9 +62,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             error = audioClient.GetBufferSize(out bufferSize);
             if (error != 0) Win32Platform.CheckError($"Couldn't get device {Name} buffer size.", true);
 
-            error = audioClient.GetService(IdAudioRenderClient, out object audioRenderClient);
+            error = audioClient.GetService(IdAudioRenderClient, out IAudioRenderClient audioRenderClient);
             if (error != 0) Win32Platform.CheckError($"Couldn't get the audio render client for device {Name}.", true);
-            context.RenderClient = (IAudioRenderClient) audioRenderClient;
+            context.RenderClient = audioRenderClient;
 
             return context;
         }

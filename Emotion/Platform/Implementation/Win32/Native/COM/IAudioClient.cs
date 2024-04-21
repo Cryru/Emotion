@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using Emotion.Standard.Audio;
 
 #endregion
@@ -87,7 +88,7 @@ namespace WinApi.ComBaseApi.COM
     /// Represents a Wave file format
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 2)]
-    public class WaveFormat
+    public struct WaveFormat
     {
         /// <summary>format type</summary>
         public WaveFormatEncoding Tag;
@@ -110,15 +111,20 @@ namespace WinApi.ComBaseApi.COM
         /// <summary>number of following bytes</summary>
         public short ExtraSize;
 
-        public virtual bool IsFloat()
+        public bool IsFloat()
         {
             return Tag == WaveFormatEncoding.IeeeFloat;
         }
 
         public bool Equals(WaveFormat obj)
         {
-            if (obj == null) return false;
             return obj.Channels == Channels && SampleRate == obj.SampleRate && BitsPerSample == obj.BitsPerSample && IsFloat() == obj.IsFloat();
+        }
+
+        public bool Equals(WaveFormatExtensible obj)
+        {
+            WaveFormat inner = obj.Inner_WaveFormat;
+            return Equals(this, inner);
         }
 
         public AudioFormat ToEmotionFormat()
@@ -139,8 +145,10 @@ namespace WinApi.ComBaseApi.COM
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 2)]
-    public class WaveFormatExtensible : WaveFormat
+    public struct WaveFormatExtensible
     {
+        public WaveFormat Inner_WaveFormat;
+
         public short ValidBitsPerSample; // bits of precision, or is wSamplesPerBlock if wBitsPerSample==0
         public ChannelMask ChannelMask; // which channels are present in stream
         public Guid SubFormat;
@@ -151,13 +159,17 @@ namespace WinApi.ComBaseApi.COM
         {
             var nuFormat = new WaveFormatExtensible
             {
-                BitsPerSample = (short) emFormat.BitsPerSample,
+                Inner_WaveFormat = new WaveFormat()
+                {
+                    BitsPerSample = (short)emFormat.BitsPerSample,
+                    ExtraSize = 22,
+                    Channels = (short)emFormat.Channels,
+                    Tag = WaveFormatEncoding.Extensible,
+                    SampleRate = emFormat.SampleRate
+                },
                 ValidBitsPerSample = (short) emFormat.BitsPerSample,
-                ExtraSize = 22,
-                Channels = (short) emFormat.Channels,
-                Tag = WaveFormatEncoding.Extensible,
-                SampleRate = emFormat.SampleRate
             };
+
             if (emFormat.IsFloat) nuFormat.SubFormat = SubFormatIEEEFloat;
             nuFormat.ChannelMask = emFormat.Channels switch
             {
@@ -171,11 +183,11 @@ namespace WinApi.ComBaseApi.COM
 
         public void CalculateAlignAndAverage()
         {
-            BlockAlign = (short) (Channels * BitsPerSample / 8);
-            AverageBytesPerSecond = SampleRate * BlockAlign;
+            Inner_WaveFormat.BlockAlign = (short) (Inner_WaveFormat.Channels * Inner_WaveFormat.BitsPerSample / 8);
+            Inner_WaveFormat.AverageBytesPerSecond = Inner_WaveFormat.SampleRate * Inner_WaveFormat.BlockAlign;
         }
 
-        public override bool IsFloat()
+        public bool IsFloat()
         {
             return SubFormat.Equals(SubFormatIEEEFloat);
         }
@@ -185,10 +197,10 @@ namespace WinApi.ComBaseApi.COM
     /// Windows CoreAudio IAudioClient interface
     /// Defined in AudioClient.h
     /// </summary>
+    [GeneratedComInterface]
     [Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [ComImport]
-    internal interface IAudioClient
+    internal partial interface IAudioClient
     {
         [PreserveSig]
         int Initialize(AudioClientShareMode shareMode,
@@ -196,7 +208,7 @@ namespace WinApi.ComBaseApi.COM
             long hnsBufferDuration, // REFERENCE_TIME
             long hnsPeriodicity, // REFERENCE_TIME
             IntPtr pFormat,
-            [In] ref Guid audioSessionGuid);
+            Guid audioSessionGuid);
 
         /// <summary>
         /// The GetBufferSize method retrieves the size (maximum capacity) of the endpoint buffer.
@@ -209,7 +221,7 @@ namespace WinApi.ComBaseApi.COM
         int GetCurrentPadding(out int currentPadding);
 
         [PreserveSig]
-        int IsFormatSupported(AudioClientShareMode shareMode, [In] WaveFormat pFormat, IntPtr closestMatchFormat);
+        int IsFormatSupported(AudioClientShareMode shareMode, WaveFormat pFormat, IntPtr closestMatchFormat);
 
         int GetMixFormat(out IntPtr deviceFormatPointer);
 
@@ -233,6 +245,6 @@ namespace WinApi.ComBaseApi.COM
         /// the requested interface.
         /// </param>
         [PreserveSig]
-        int GetService([In] [MarshalAs(UnmanagedType.LPStruct)] Guid interfaceId, [Out] [MarshalAs(UnmanagedType.IUnknown)] out object interfacePointer);
+        int GetService(Guid interfaceId, out IAudioRenderClient interfacePointer);
     }
 }

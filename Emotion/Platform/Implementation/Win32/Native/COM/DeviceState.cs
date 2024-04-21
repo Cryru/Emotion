@@ -12,7 +12,7 @@ namespace WinApi.ComBaseApi.COM
     /// Device State
     /// </summary>
     [Flags]
-    public enum DeviceState
+    public enum DeviceState : int
     {
         /// <summary>
         /// DEVICE_STATE_ACTIVE
