@@ -17,10 +17,8 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
     {
         try
         {
-            var enumeratorBase = new MMDeviceEnumeratorComObject();
-            IMMDeviceEnumerator? enumAsInterface = enumeratorBase as IMMDeviceEnumerator;
-            if (enumAsInterface == null) throw new ArgumentNullException(nameof(enumAsInterface));
-            return new WasApiAudioContext(platform, enumAsInterface);
+            IMMDeviceEnumerator enumerator = MMDeviceEnumeratorComObject.Create();
+            return new WasApiAudioContext(platform, enumerator);
         }
         catch (Exception ex)
         {
