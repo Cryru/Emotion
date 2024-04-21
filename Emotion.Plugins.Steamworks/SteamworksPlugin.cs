@@ -38,7 +38,8 @@ namespace Emotion.Plugins.Steamworks
 
         private IntPtr _steamClient;
         private IntPtr _steamPipe;
-        private IntPtr _steamUser;
+        private IntPtr _hSteamUser;
+        private IntPtr _iSteamUser;
         private IntPtr _steamUtils;
         private IntPtr _steamUserStats;
 
@@ -103,15 +104,19 @@ namespace Emotion.Plugins.Steamworks
             // Initialize Steam modules.
             _steamClient = SteamNative.GetSteamClient();
             _steamPipe = SteamNative.GetSteamPipe();
-            _steamUser = SteamNative.GetSteamUser();
+            _hSteamUser = SteamNative.GetHSteamUser();
+            _iSteamUser = SteamNative.GetISteamUser(_steamClient, _hSteamUser, _steamPipe, Constants.STEAMUSER_INTERFACE_VERSION);
             _steamUtils = SteamNative.GetSteamUtils(_steamClient, _steamPipe, Constants.STEAMUTILS_INTERFACE_VERSION);
-            _steamUserStats = SteamNative.GetSteamUserStats(_steamClient, _steamUser, _steamPipe, Constants.STEAMUSERSTATS_INTERFACE_VERSION);
+            _steamUserStats = SteamNative.GetSteamUserStats(_steamClient, _hSteamUser, _steamPipe, Constants.STEAMUSERSTATS_INTERFACE_VERSION);
 
             // Attach warning callback.
             SteamNative.SetWarningMessageHook(_steamUtils, _warningHook);
 
             bool statsReceived = SteamNative.RequestStats(_steamUserStats);
             if (!statsReceived) Engine.Log.Warning("User is not logged in to Steam.", LOG_SOURCE);
+
+            ulong userId = SteamNative.GetSteamID(_iSteamUser);
+            Engine.Log.Info($"User ID: {userId}", LOG_SOURCE);
 
             SteamNative.RunCallbacks();
             Engine.CoroutineManager.StartCoroutine(UpdateRoutine());
