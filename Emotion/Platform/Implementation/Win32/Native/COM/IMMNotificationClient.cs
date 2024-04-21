@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 #endregion
 
@@ -13,14 +14,15 @@ namespace WinApi.ComBaseApi.COM
     /// <summary>
     /// IMMNotificationClient
     /// </summary>
+    [GeneratedComInterface]
     [Guid("7991EEC9-7E89-4D85-8390-6C703CEC60C0")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IMMNotificationClient
+    public partial interface IMMNotificationClient
     {
         /// <summary>
         /// Device State Changed
         /// </summary>
-        void OnDeviceStateChanged([MarshalAs(UnmanagedType.LPWStr)] string deviceId, [MarshalAs(UnmanagedType.I4)] DeviceState newState);
+        void OnDeviceStateChanged([MarshalAs(UnmanagedType.LPWStr)] string deviceId, DeviceState newState);
 
         /// <summary>
         /// Device Added
