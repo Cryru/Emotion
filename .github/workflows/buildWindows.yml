@@ -15,12 +15,13 @@ jobs:
         dotnet-version: | 
           5.x.x
           7.x.x
+          8.x.x
     - name: Build Everything
       run: |
         dotnet build -c Autobuild
     - name: Run Tests
       run: |
-        cd .\Tests\bin\Release\net7.0
+        cd .\Tests\bin\Release\net8.0
         ls .
         .\Tests.exe
     - name: Upload Test Artifact
@@ -28,7 +29,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Tests\bin\Release\net7.0\TestResults
+        path: Tests\bin\Release\net8.0\TestResults
     - name: Publish Nuget
       if: github.ref == 'refs/heads/master'
       env:
