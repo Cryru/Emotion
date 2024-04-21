@@ -62,11 +62,18 @@ namespace Emotion.Standard.Logging
                 return false;
 
             var dateTime = DateTime.UtcNow.ToString("s");
-            string hostName = _userId;
-            message = $"<{16 * 8 + (int) logLevel}>{dateTime} {hostName} {sender} {message}";
+            message = $"<{16 * 8 + (int) logLevel}>{dateTime} {_userId} {logLevel} {sender} {message}";
             byte[] bytes = Encoding.UTF8.GetBytes(message);
-            _udpClient.SendAsync(bytes, bytes.Length, _hostName, _port);
-
+            
+            try
+            {
+                _udpClient.SendAsync(bytes, bytes.Length, _hostName, _port);
+            }
+            catch (Exception)
+            {
+                // nop
+            }
+            
             return true;
         }
 
