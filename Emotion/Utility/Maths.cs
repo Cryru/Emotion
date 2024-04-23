@@ -217,6 +217,15 @@ namespace Emotion.Utility
             return from + (to - from) * Clamp01(t);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Lerp(double from, double to, double t)
+        {
+            if (t < 0.0) t = 0.0;
+            if (t > 1.0) t = 1.0;
+
+            return from + (to - from) * t;
+        }
+
         /// <summary>
         /// Produces the inverse result of Lerp.
         /// </summary>
@@ -883,6 +892,11 @@ namespace Emotion.Utility
         public static Vector2 VectorFromAngle(float radians)
         {
             return new Vector2(MathF.Cos(radians), MathF.Sin(radians));
+        }
+
+        public static Vector2 LerpPerComponent(Vector2 a, Vector2 b, Vector2 t)
+        {
+            return a + (b - a) * t;
         }
     }
 }

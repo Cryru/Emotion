@@ -299,6 +299,7 @@ namespace Emotion.UI
             _selectionStart = _selectionEnd;
             EnsureSelectionRight();
 
+            InvalidateLayout();
             TextChanged();
         }
 

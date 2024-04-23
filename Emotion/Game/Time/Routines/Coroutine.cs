@@ -1,9 +1,9 @@
 ﻿#region Using
 
 using System.Collections;
+using Emotion.Utility;
 #if DEBUG
 using System.Reflection;
-
 #endif
 
 #endregion
@@ -21,6 +21,12 @@ namespace Emotion.Game.Time.Routines
         /// A routine considered completed.
         /// </summary>
         public static Coroutine CompletedRoutine = new Coroutine(null);
+
+        /// <summary>
+        /// True if the routine is neither finished nor stopped.
+        /// Note that this doesn't guarantee it's ever been ran (or added to a coroutine manager at all)
+        /// </summary>
+        public bool Active { get => !Finished && !Stopped; }
 
         /// <summary>
         /// Whether the routine has finished running.
@@ -166,7 +172,14 @@ namespace Emotion.Game.Time.Routines
                 WaitingForTime -= time;
             }
 
+            // Handle EPSILON floats
+            if (Maths.Approximately(WaitingForTime, 0.0f))
+                WaitingForTime = 0;
+
             Assert(WaitingForTime >= 0);
+
+            // error handling just in case, cuz otherwise this will loop forever
+            if (WaitingForTime < 0) WaitingForTime = 0;
         }
 
 #if DEBUG

@@ -73,6 +73,7 @@ namespace Emotion.Game.Time.Routines
             if (routine == null) return;
             lock (this)
             {
+                routine.Stop();
                 _runningRoutines.Remove(routine);
             }
         }
@@ -189,6 +190,7 @@ namespace Emotion.Game.Time.Routines
                     routine.WaitingForTime_AdvanceTime(timeStep);
                 }
 
+                bool resort = false;
                 for (int i = timeWaitingRoutines.Count - 1; i >= 0; i--)
                 {
                     var routine = timeWaitingRoutines[i];
@@ -197,8 +199,14 @@ namespace Emotion.Game.Time.Routines
                         // Time passed, continue the routine.
                         Current = routine;
                         routine.Run();
+
+                        // Waiting on time again!
+                        if (routine.WaitingForTime != 0)
+                            resort = true;
                     }
                 }
+
+                if (resort) timeWaitingRoutines.Sort(CoroutineTimeSort);
 
                 timeAdvanced += timeStep;
             }

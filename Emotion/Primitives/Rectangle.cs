@@ -219,6 +219,15 @@ namespace Emotion.Primitives
             return !(a == b);
         }
 
+        public static Rectangle operator /(Rectangle a, float f)
+        {
+            a.X /= f;
+            a.Y /= f;
+            a.Width /= f;
+            a.Height /= f;
+            return a;
+        }
+
         /// <summary>
         /// Multiply both the size and location of the rectangle by the given float.
         /// </summary>

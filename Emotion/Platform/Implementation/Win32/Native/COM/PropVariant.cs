@@ -1,5 +1,7 @@
 ﻿#region Using
 
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
@@ -11,6 +13,13 @@ using System.Runtime.InteropServices.ComTypes;
 // ReSharper disable CommentTypo
 namespace WinApi.ComBaseApi.COM
 {
+    public struct PropVariantFILETIME
+    {
+        public int dwHighDateTime;
+
+        public int dwLowDateTime;
+    }
+
     /// <summary>
     /// from Propidl.h.
     /// http://msdn.microsoft.com/en-us/library/aa380072(VS.85).aspx
@@ -112,25 +121,28 @@ namespace WinApi.ComBaseApi.COM
 
         //CY cyVal;
         //[FieldOffset(8)] private DateTime date; - can cause issues with invalid value
+
         /// <summary>
         /// Date time.
         /// </summary>
-        [FieldOffset(8)] public FILETIME filetime;
+        [FieldOffset(8)] public PropVariantFILETIME filetime;
 
         //CLSID* puuid;
         //CLIPDATA* pclipdata;
         //BSTR bstrVal;
         //BSTRBLOB bstrblobVal;
+
         /// <summary>
         /// Binary large object.
         /// </summary>
         [FieldOffset(8)] public IntPtr blobVal;
 
-        //LPSTR pszVal;
-        /// <summary>
-        /// Pointer value.
-        /// </summary>
+        ////LPSTR pszVal;
+        ///// <summary>
+        ///// Pointer value.
+        ///// </summary>
         [FieldOffset(8)] public IntPtr pointerValue; //LPWSTR 
+
         //IUnknown* punkVal;
         /*IDispatch* pdispVal;
         IStream* pStream;
@@ -182,59 +194,56 @@ namespace WinApi.ComBaseApi.COM
         */
 
         /// <summary>
-        /// Property value
+        /// Get the value of the PropVariant as a C# object
         /// </summary>
-        public object Value
+        public object GetValue()
         {
-            get
+            short ve = vt;
+            switch (ve)
             {
-                short ve = DataType;
-                switch (ve)
-                {
-                    case 16: // VarEnum.VT_I1 8bit integer
-                        return bVal;
-                    case 22:
-                    case 2: // VarEnum.VT_I2 16bit integer
-                        return iVal;
-                    case 3: // VarEnum.VT_I4 32bit integer
-                        return lVal;
-                    case 20: // VarEnum.VT_I8 64bit integer
-                        return hVal;
-                    case 19: // VarEnum.VT_UI4 32bit unsigned integer
-                        return ulVal;
-                    case 21: // VarEnum.VT_UI8 64bit unsigned integer
-                        return uhVal;
-                    case 31: // VarEnum.VT_LPWSTR Wide null terminated string
-                        return Marshal.PtrToStringUni(pointerValue);
-                    case 65: // VarEnum.VT_BLOB Length prefixed byte array
-                    case 4096 | 17: // VarEnum.VT_VECTOR | VarEnum.VT_UI1 Array of unsigned bytes
-                        return blobVal;
-                    case 72: // VarEnum.VT_CLSID COM class
-                        return Marshal.PtrToStructure<Guid>(pointerValue);
-                    case 11: // VarEnum.VT_BOOL boolean
-                        switch (boolVal)
-                        {
-                            case -1:
-                                return true;
-                            case 0:
-                                return false;
-                            default:
-                                throw new NotSupportedException("PropVariant VT_BOOL must be either -1 or 0");
-                        }
-                    case 64: // VarEnum.VT_FILETIME WIN32 Filetime
-                        return DateTime.FromFileTime(((long) filetime.dwHighDateTime << 32) + filetime.dwLowDateTime);
-                }
-
-                throw new NotImplementedException("PropVariant " + ve);
+                case 16: // VarEnum.VT_I1 8bit integer
+                    return bVal;
+                case 22:
+                case 2: // VarEnum.VT_I2 16bit integer
+                    return iVal;
+                case 3: // VarEnum.VT_I4 32bit integer
+                    return lVal;
+                case 20: // VarEnum.VT_I8 64bit integer
+                    return hVal;
+                case 19: // VarEnum.VT_UI4 32bit unsigned integer
+                    return ulVal;
+                case 21: // VarEnum.VT_UI8 64bit unsigned integer
+                    return uhVal;
+                case 31: // VarEnum.VT_LPWSTR Wide null terminated string
+                    return Marshal.PtrToStringUni(pointerValue);
+                case 65: // VarEnum.VT_BLOB Length prefixed byte array
+                case 4096 | 17: // VarEnum.VT_VECTOR | VarEnum.VT_UI1 Array of unsigned bytes
+                    return blobVal;
+                case 72: // VarEnum.VT_CLSID COM class
+                    return Marshal.PtrToStructure<Guid>(pointerValue);
+                case 11: // VarEnum.VT_BOOL boolean
+                    switch (boolVal)
+                    {
+                        case -1:
+                            return true;
+                        case 0:
+                            return false;
+                        default:
+                            throw new NotSupportedException("PropVariant VT_BOOL must be either -1 or 0");
+                    }
+                case 64: // VarEnum.VT_FILETIME WIN32 Filetime
+                    return DateTime.FromFileTime(((long)filetime.dwHighDateTime << 32) + filetime.dwLowDateTime);
             }
+
+            throw new NotImplementedException("PropVariant " + ve);
         }
 
         /// <summary>
         /// Gets the type of data in this PropVariant
         /// </summary>
-        public short DataType
+        public short GetDataType()
         {
-            get => vt;
+            return vt;
         }
     }
 }

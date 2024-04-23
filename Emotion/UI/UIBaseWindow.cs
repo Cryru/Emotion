@@ -128,7 +128,34 @@ namespace Emotion.UI
             var matrixPushed = false;
             if (_transformationStackBacking != null)
             {
-                if (_transformationStackBacking.MatrixDirty) _transformationStackBacking.RecalculateMatrix(GetScale(), Bounds);
+                if (_transformationStackBacking.MatrixDirty)
+                {
+                    // Mark children matrices as dirty.
+                    if (Children != null)
+                    {
+                        for (int i = 0; i < Children.Count; i++)
+                        {
+                            UIBaseWindow child = Children[i];
+                            if (child.IgnoreParentDisplacement) continue;
+                            if (child._transformationStackBacking != null)
+                                child._transformationStackBacking.MatrixDirty = true;
+                        }
+                    }
+
+                    Rectangle intermediateBounds;
+                    if (IgnoreParentDisplacement)
+                    {
+                        intermediateBounds = Bounds;
+                    }
+                    else
+                    {
+                        intermediateBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
+                        intermediateBounds.Position = intermediateBounds.Position.Floor();
+                        intermediateBounds.Size = intermediateBounds.Size.Ceiling();
+                    }
+                    _transformationStackBacking.RecalculateMatrix(GetScale(), intermediateBounds, Z);
+                }
+
                 c.PushModelMatrix(_transformationStackBacking.CurrentMatrix, !IgnoreParentDisplacement);
                 matrixPushed = true;
             }
@@ -447,9 +474,10 @@ namespace Emotion.UI
             get => _zOffset;
             set
             {
+                if (_zOffset == value) return;
                 _zOffset = value;
                 RecalculateZValue();
-                Parent?.SortChildren();
+                InvalidateLayout();
             }
         }
 
@@ -530,7 +558,18 @@ namespace Emotion.UI
         /// Always added to the position after all other checks.
         /// Mostly used to offset from an anchor position.
         /// </summary>
-        public Vector2 Offset { get; set; }
+        public Vector2 Offset
+        {
+            get => _offsetBacking;
+            set
+            {
+                if (value == _offsetBacking) return;
+                _offsetBacking = value;
+                InvalidateLayout();
+            }
+        }
+
+        private Vector2 _offsetBacking;
 
         /// <summary>
         /// Position and size is multiplied by Renderer.Scale, Renderer.IntScale or neither.
@@ -560,6 +599,7 @@ namespace Emotion.UI
 
         protected virtual Vector2 BeforeLayout(Vector2 position)
         {
+            SortChildren();
             return position;
         }
 
@@ -614,7 +654,7 @@ namespace Emotion.UI
         protected Coroutine? _alphaTweenRoutine;
         private ITimer? _alphaTweenTimer;
 
-        public IEnumerator AlphaTweenRoutine(ITimer alphaTween, byte startingAlpha, byte targetAlpha, bool? setVisible)
+        private IEnumerator AlphaTweenRoutine(ITimer alphaTween, byte startingAlpha, byte targetAlpha, bool? setVisible)
         {
             while (true)
             {
@@ -885,7 +925,7 @@ namespace Emotion.UI
             get => _transformationStackBacking ??= new NamedTransformationStack();
         }
 
-        private NamedTransformationStack? _transformationStackBacking;
+        protected NamedTransformationStack? _transformationStackBacking;
 
         /// <summary>
         /// Displace the position of a UI window over time.
@@ -915,8 +955,6 @@ namespace Emotion.UI
 
                 yield return null;
             }
-
-            TransformationStack.Remove(id);
         }
 
         public IEnumerator ScaleDisplacement(float scaleStart, float scaleTarget, ITimer tween, string id = "scale")
@@ -949,27 +987,27 @@ namespace Emotion.UI
 
         private float _rotation;
 
+        private Coroutine? _rotationRoutineCurrent;
+        private ITimer? _rotationTweenCurrent;
+
         /// <summary>
         /// Set a rotation (in degrees) for this window around its center.
         /// </summary>
         public void SetRotation(float degrees, ITimer? tween = null)
         {
-            _rotation = degrees;
-            Engine.CoroutineManager.StartCoroutine(RotationDisplacement(degrees, tween));
+            if (_rotationRoutineCurrent != null && _rotationRoutineCurrent.Active)
+                Engine.CoroutineManager.StopCoroutine(_rotationRoutineCurrent);
+            _rotationRoutineCurrent = Engine.CoroutineManager.StartCoroutine(RotationDisplacement(_rotation, degrees, tween));
         }
 
         /// <summary>
         /// Rotate a UI window around its center. Optionally over time.
         /// </summary>
-        public IEnumerator RotationDisplacement(float degrees, ITimer? tween = null, string id = "rotation")
-        {
-            return RotationDisplacement(0, degrees, tween, id);
-        }
-
-        public IEnumerator RotationDisplacement(float fromDegrees, float toDegrees, ITimer? tween = null, string id = "rotation")
+        private IEnumerator RotationDisplacement(float fromDegrees, float toDegrees, ITimer? tween = null, string id = "rotation")
         {
             if (tween == null)
             {
+                _rotation = toDegrees;
                 TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(toDegrees)), true, MatrixSpecialFlag.RotateBoundsCenter);
                 yield break;
             }
@@ -978,6 +1016,7 @@ namespace Emotion.UI
             {
                 tween.Update(Engine.DeltaTime);
                 float current = Maths.LerpAngle(fromDegrees, toDegrees, tween.Progress);
+                _rotation = current;
                 TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(current)), true, MatrixSpecialFlag.RotateBoundsCenter);
                 if (tween.Finished) yield break;
 
