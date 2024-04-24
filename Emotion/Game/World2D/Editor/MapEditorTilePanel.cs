@@ -93,7 +93,6 @@ public class MapEditorTilePanel : EditorPanel
         innerContainer.AddChild(layerLabel);
 
         var layerListContainer = new UIBaseWindow();
-        layerListContainer.FillXInList = true;
         layerListContainer.StretchX = true;
         layerListContainer.StretchY = true;
         layerListContainer.ListSpacing = new Vector2(0, 1);
@@ -167,7 +166,6 @@ public class MapEditorTilePanel : EditorPanel
         var tileSelector = new TilesetTileSelector(_map.Tiles);
         tileSelector.Id = "TileSelector";
         tileSelector.SetTileset(_currentTileset);
-        tileSelector.FillXInList = true;
         tileSelector.MinSizeY = 170; // temp;
         tileSelector.MaxSizeY = 170; // temp;
         _tileSelector = tileSelector;

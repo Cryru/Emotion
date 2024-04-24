@@ -123,7 +123,7 @@ public class EditorDropDown : UIDropDown
             {
                 var ddButton = new EditorButton
                 {
-                    FillXInList = true,
+                    FillX = true,
 
                     Text = item.NameFunc != null ? item.NameFunc() : item.Name,
                 };

@@ -18,6 +18,7 @@ public partial class UIController
     private UIBaseWindow? _myMouseFocus; // The mouse focus of this controller in particular.
     private static uint _thisTick; // The index of the current tick. Used to dedupe calls to update since every controller will call it.
     private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
+    private bool _calledUpdateTickBeforeLast;
 
     private void UpdateMouseFocus()
     {
@@ -92,6 +93,7 @@ public partial class UIController
         for (var i = 0; i < _allControllers.Count; i++)
         {
             UIController controller = _allControllers[i];
+            controller._calledUpdateTickBeforeLast = controller._calledUpdateLastTick;
             controller._calledUpdateLastTick = false;
         }
 

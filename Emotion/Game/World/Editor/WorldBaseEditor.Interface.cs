@@ -109,7 +109,7 @@ public abstract partial class WorldBaseEditor
         topBarList.ListSpacing = new Vector2(3, 0);
         topBarList.Margins = new Rectangle(3, 0, 3, 0);
         topBarList.Paddings = new Rectangle(0, 3, 0, 3);
-        topBarList.AlignAnchor = UIAnchor.CenterLeft;
+        topBarList.AnchorAndParentAnchor = UIAnchor.CenterLeft;
         topBarList.Id = "List";
         topBar.AddChild(topBarList);
 
@@ -328,7 +328,7 @@ public abstract partial class WorldBaseEditor
 
                     var panel = new EditorListOfItemsPanel<BaseGameObject>(
                         "All Objects",
-                        map.GetObjects(),
+                        map.ObjectsGet(null),
                         EditorOpenPropertiesPanelForObject,
                         obj => { RolloverObjects(new List<BaseGameObject> {obj}); }
                     )
@@ -391,6 +391,15 @@ public abstract partial class WorldBaseEditor
                 {
                     var panel = new ModelViewer();
                     _editUI!.AddChild(panel);
+                },
+            },
+            new EditorDropDownItem
+            {
+                Name = "UI Studio",
+                Click = (_, __) =>
+                {
+                    var panel = new InterfaceEditor();
+                    _editorUIAlways!.AddChild(panel);
                 },
             },
         });

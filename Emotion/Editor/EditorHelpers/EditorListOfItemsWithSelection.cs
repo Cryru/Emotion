@@ -61,7 +61,7 @@ public class EditorListOfItemsWithSelection<T> : UIBaseWindow
             var button = new EditorListItemButton
             {
                 Text = label,
-                FillXInList = true,
+                FillX = true,
                 UserData = i,
                 OnClickedProxy = ButtonClicked,
                 Selected = _selectedItems.Contains(i),
