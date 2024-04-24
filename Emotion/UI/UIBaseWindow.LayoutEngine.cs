@@ -113,7 +113,11 @@ public partial class UIBaseWindow
                 childData.EndOfList = i == _children.Count - 1;
 
                 var childBound = childData.Bound;
-                spaceUsedByChildren = i == 0 ? childBound : Rectangle.Union(spaceUsedByChildren, childBound);
+
+                var childWin = childData.Child;
+                var childInsideParent = AnchorsInsideParent(childWin.ParentAnchor, childWin.Anchor);
+                if (childInsideParent)
+                    spaceUsedByChildren = spaceUsedByChildren == Rectangle.Empty ? childBound : Rectangle.Union(spaceUsedByChildren, childBound);
 
                 if (!dryRun)
                 {
