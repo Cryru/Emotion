@@ -141,7 +141,7 @@ namespace Emotion.Platform.Implementation.Win32
 
                             int width = NativeHelpers.LoWord((uint)lParam);
                             int height = NativeHelpers.HiWord((uint)lParam);
-                            Size = new Vector2(width, height);
+                            windowFound.Size = new Vector2(width, height);
 
                             return IntPtr.Zero;
                         case WM.SETFOCUS:
