@@ -45,14 +45,14 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             error = audioClient.GetMixFormat(out IntPtr deviceFormat);
             if (error != 0) Win32Platform.CheckError($"Couldn't detect the mix format of the audio client of {Name}.", true);
             WaveFormat audioClientFormat = Marshal.PtrToStructure<WaveFormat>(deviceFormat);
-            if (audioClientFormat!.ExtraSize >= 22)
+            if (audioClientFormat.ExtraSize >= 22)
             {
                 WaveFormatExtensible extendedFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
-                context.AudioClientFormat = extendedFormat.Inner_WaveFormat!.ToEmotionFormat();
+                context.AudioClientFormat = extendedFormat.ToEmotionFormat();
             }
             else
             {
-                context.AudioClientFormat = audioClientFormat!.ToEmotionFormat();
+                context.AudioClientFormat = audioClientFormat.ToEmotionFormat();
             }
 
             long ticks = TimeSpan.FromMilliseconds(AudioContext.BackendBufferExpectedAhead).Ticks;
