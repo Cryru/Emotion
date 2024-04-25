@@ -191,6 +191,13 @@ namespace WinApi.ComBaseApi.COM
         {
             return SubFormat.Equals(SubFormatIEEEFloat);
         }
+
+        public AudioFormat ToEmotionFormat()
+        {
+            AudioFormat emotionFormat = Inner_WaveFormat.ToEmotionFormat();
+            emotionFormat.IsFloat = IsFloat();
+            return emotionFormat;
+        }
     }
 
     /// <summary>

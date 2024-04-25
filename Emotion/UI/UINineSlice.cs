@@ -55,7 +55,8 @@ namespace Emotion.UI
             base.AfterLayout();
             if (TextureAsset == null) return;
 
-            Vector2 imageScale = ImageScale ?? Vector2.One;
+            //Vector2 imageScale = ImageScale ?? Vector2.One;
+            Vector2 imageScale = Vector2.One;
             Vector2 textureSize = TextureAsset.Texture.Size;
             _topLeftUV = new Rectangle(Vector2.Zero, Frame.Position);
             _topLeftDrawSize = _topLeftUV.Size * imageScale;
@@ -134,6 +135,13 @@ namespace Emotion.UI
         {
             return space;
         }
+
+#if !NEW_UI
+        protected override Vector2 NEW_InternalMeasure(Vector2 space)
+        {
+            return base.InternalMeasure(space);
+        }
+#endif
 
         protected override bool RenderInternal(RenderComposer composer)
         {

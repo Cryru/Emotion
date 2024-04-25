@@ -83,7 +83,7 @@ namespace Emotion.Editor.PropertyEditors
             textEditor.SubmitOnEnter = true;
             textEditor.SubmitOnFocusLoss = true;
             textEditor.Text = _value;
-            if (Field.ReflectionInfo.GetAttribute<EditorMultilineStringAttribute>() != null)
+            if (Field?.ReflectionInfo.GetAttribute<EditorMultilineStringAttribute>() != null)
                 textEditor.MultiLine = true;
             inputBg.AddChild(textEditor);
             _textInput = textEditor;
