@@ -111,7 +111,7 @@ public class EditorPanelv2 : UIBaseWindow
     protected void ApplySettings()
     {
         if (GetWindowById("PanelLabel") is UIText panelLabel)
-            panelLabel.Text = Header;
+            panelLabel.Text = "AAAA";// Header;
     }
 
     public override void InputFocusChanged(bool haveFocus)
@@ -294,6 +294,7 @@ public class EditorPanelv2 : UIBaseWindow
         {
             _topBarMouseDown = false;
         };
+        topBar.LayoutMode = LayoutMode.HorizontalList;
         _topBar = topBar;
         parent.AddChild(topBar);
 
@@ -311,8 +312,8 @@ public class EditorPanelv2 : UIBaseWindow
 
         var topBarButtonList = new UIBaseWindow();
         topBarButtonList.LayoutMode = LayoutMode.HorizontalList;
-        topBarButtonList.Anchor = UIAnchor.TopRight;
-        topBarButtonList.ParentAnchor = UIAnchor.TopRight;
+        topBarButtonList.Anchor = UIAnchor.CenterRight;
+        topBarButtonList.ParentAnchor = UIAnchor.CenterRight;
         topBar.AddChild(topBarButtonList);
 
         if (Engine.Host.SupportsSubWindows())

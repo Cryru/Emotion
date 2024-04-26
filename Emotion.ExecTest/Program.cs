@@ -44,7 +44,8 @@ public class Program
         //else
         //    Engine.SceneManager.SetScene(new TestScene2D());
 
-        Engine.SceneManager.SetScene(new LayoutEngineTestScene());
+        //Engine.SceneManager.SetScene(new LayoutEngineTestScene());
+        Engine.SceneManager.SetScene(new TestScene2D());
 
         Engine.Run();
     }

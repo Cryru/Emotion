@@ -387,3 +387,41 @@ public partial class UIBaseWindow
         }
     }
 }
+
+public class UILayoutMode
+{
+
+}
+
+public enum UILayoutModeFreeDock
+{
+    None,
+    Left,
+    Right,
+    Top,
+    Bottom
+}
+
+public class UILayoutModeFree : UILayoutMode
+{
+    public UILayoutModeFree(UILayoutModeFreeDock dock = UILayoutModeFreeDock.None)
+    {
+
+    }
+}
+
+public class UILayoutModeHorizontalList : UILayoutMode
+{
+    public UILayoutModeHorizontalList(float spacing)
+    {
+
+    }
+}
+
+public class UILayoutModeVerticalList : UILayoutMode
+{
+    public UILayoutModeVerticalList(float spacing)
+    {
+
+    }
+}
