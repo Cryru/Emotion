@@ -635,7 +635,7 @@ namespace System
             return BitConverter.ToInt32(stringHash);
         }
 
-        public static unsafe string AsString(this System.ReadOnlySpan<char> source)
+        public static unsafe string AsString(this ReadOnlySpan<char> source)
         {
             string result = new string(' ', source.Length);
             fixed (char* dest = result, src = &MemoryMarshal.GetReference(source))

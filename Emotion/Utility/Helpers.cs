@@ -95,7 +95,7 @@ public static class Helpers
         return array[num];
     }
 
-    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null)
+    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false)
     {
         if (weights.Count == 0) return default;
         if (weights.Count == 1) return weights[0].obj;
@@ -119,7 +119,10 @@ public static class Helpers
 
             sum += weight;
             if (rand < sum)
+            {
+                if (eject) weights.RemoveAt(i);
                 return obj;
+            }
         }
 
         Assert(false, "No weighted random?");
