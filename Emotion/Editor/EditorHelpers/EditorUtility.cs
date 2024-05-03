@@ -59,6 +59,42 @@ public static class EditorUtility
         }
     }
 
+    public static void CopyObjectProperties(object fromObject, object toObj)
+    {
+        // Get all field (incl backing fields), inherited too
+        Type type = fromObject.GetType();
+        var fields = new List<FieldInfo>();
+        var fieldsAdded = new HashSet<string>();
+        while (type != null && type != typeof(object))
+        {
+            FieldInfo[] fieldsInType = type.GetFields(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance
+            );
+
+            for (var i = 0; i < fieldsInType.Length; i++)
+            {
+                FieldInfo field = fieldsInType[i];
+                string name = field.Name;
+                if (fieldsAdded.Contains(name)) continue;
+
+                fields.Add(field);
+                fieldsAdded.Add(name);
+            }
+
+            type = type.BaseType;
+        }
+
+        // Copy properties from the serialization copy to the obj.
+        for (var i = 0; i < fields.Count; i++)
+        {
+            FieldInfo field = fields[i];
+            object value = field.GetValue(fromObject);
+            field.SetValue(toObj, value);
+        }
+    }
+
     public class TypeAndFieldHandlers
     {
         public Type DeclaringType;
@@ -73,10 +109,14 @@ public static class EditorUtility
     /// <summary>
     /// Get list of types with a parameterless constructor that inherit a specific type.
     /// </summary>
-    public static List<Type> GetTypesWhichInherit<T>(bool requireSerializable = true)
+    public static List<Type> GetTypesWhichInherit<T>(bool requireSerializable = true, bool directDescendantOnly = false)
+    {
+        return GetTypesWhichInherit(typeof(T), requireSerializable, directDescendantOnly);
+    }
+
+    public static List<Type> GetTypesWhichInherit(Type type, bool requireSerializable = true, bool directDescendantOnly = false)
     {
         List<Type> inheritors = new();
-        Type type = typeof(T);
         foreach (Assembly assembly in Helpers.AssociatedAssemblies)
         {
             Type[] types = assembly.GetTypes();
@@ -84,6 +124,7 @@ public static class EditorUtility
             {
                 if (!type.IsAssignableFrom(assemblyType)) continue;
                 if (assemblyType.IsAbstract) continue;
+                if (directDescendantOnly && assemblyType.BaseType != type) continue;
 
                 if (requireSerializable && !TypeHasParameterlessConstructor(assemblyType)) continue;
                 inheritors.Add(assemblyType);
