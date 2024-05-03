@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Editor.EditorHelpers;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Standard.XML;
 using Emotion.UI;
 

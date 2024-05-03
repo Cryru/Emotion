@@ -4,11 +4,13 @@
 
 using System.Collections;
 using System.Threading.Tasks;
-using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
+using Emotion.Editor.EditorHelpers;
+using Emotion.Game.Data;
+using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
 #endregion
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public static partial class GameDataDatabase
 {
@@ -75,7 +77,9 @@ public static partial class GameDataDatabase
     private sealed class GameDataCache
     {
         public Type Type { get; init; }
+
         public List<GameDataObject> Objects = new();
+
         public Dictionary<string, int> IdMap = new(StringComparer.OrdinalIgnoreCase);
 
         public GameDataCache(Type type)
@@ -115,6 +119,11 @@ public static partial class GameDataDatabase
             return Objects[idx];
         }
 
+        public GameDataArray<T> GetDataEnum<T>() where T : GameDataObject
+        {
+            return new GameDataArray<T>(Objects);
+        }
+
         public static async Task LoadGameDataAssetTask(string fileName, GameDataCache thisAssetCache)
         {
             GameDataObjectAsset? asset = await Engine.AssetLoader.GetAsync<GameDataObjectAsset>(fileName, false);
@@ -129,11 +138,6 @@ public static partial class GameDataDatabase
             {
                 thisAssetCache.Objects.Add(gameDataObjContent);
             }
-        }
-
-        public GameDataArray<T> GetDataEnum<T>() where T : GameDataObject
-        {
-            return new GameDataArray<T>(Objects);
         }
     }
 }

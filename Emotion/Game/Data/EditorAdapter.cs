@@ -7,12 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.Data;
 using Emotion.IO;
-using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
+using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
 #endregion
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public static partial class GameDataDatabase
 {
@@ -40,7 +41,7 @@ public static partial class GameDataDatabase
 
             string path = GetAssetPath(obj);
             obj.LoadedFromFile = path;
-            
+
             // todo: maybe leave file saving to the editor :P
             GameDataObjectAsset asAsset = GameDataObjectAsset.CreateFromContent(obj, path);
             return asAsset.Save();
@@ -89,6 +90,19 @@ public static partial class GameDataDatabase
         public static string GetAssetPath(GameDataObject obj)
         {
             Type type = obj.GetType();
+            while (type.BaseType != typeof(GameDataObject))
+            {
+                if (type.BaseType == null) // Doesn't inherit GameDataObject?!?
+                {
+                    Assert(false);
+                    type = obj.GetType();
+                    break;
+                }
+                else
+                {
+                    type = type.BaseType;
+                }
+            }
 
             return $"{DATA_OBJECTS_PATH}/{type.Name}/{obj.Id}.xml";
         }
@@ -107,7 +121,7 @@ public static partial class GameDataDatabase
             if (types != null)
                 for (var i = 0; i < types.Length; i++)
                 {
-                    var type = types[i];
+                    Type type = types[i];
 
                     if (i != 0) builder.AppendLine("");
 

@@ -4,7 +4,7 @@
 
 using System.Reflection;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
+using Emotion.Game.Data;
 using Emotion.IO;
 using Emotion.UI;
 

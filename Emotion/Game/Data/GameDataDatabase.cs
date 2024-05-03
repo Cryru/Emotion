@@ -2,21 +2,14 @@
 
 #region Using
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Emotion.Editor.EditorHelpers;
-using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
+using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
 #endregion
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public static partial class GameDataDatabase
 {
@@ -32,8 +25,10 @@ public static partial class GameDataDatabase
 
         _database = new Dictionary<Type, GameDataCache>();
 
+        // Load all game data assets.
+        // Direct descendants of the GameDataObject class are considered valid.
         List<Task> loadingTasks = new();
-        List<Type>? types = EditorUtility.GetTypesWhichInherit<GameDataObject>();
+        List<Type>? types = EditorUtility.GetTypesWhichInherit<GameDataObject>(true, true);
         for (var i = 0; i < types.Count; i++)
         {
             Type type = types[i];
@@ -53,6 +48,54 @@ public static partial class GameDataDatabase
         }
         Task.WaitAll(loadingTasks.ToArray());
 
+        // Create id map for refencing class-data merges.
+        foreach (KeyValuePair<Type, GameDataCache> cache in _database)
+        {
+            cache.Value.RecreateIdMap();
+        }
+
+        // Create data entries for class defined items.
+        // Class defined items are classes which inherit a class which inherits GameDataObject.
+        // That way data definitions can contain code.
+        for (var t = 0; t < types.Count; t++)
+        {
+            Type gameDataType = types[t];
+            GameDataCache cache = _database[gameDataType];
+
+            List<Type>? items = EditorUtility.GetTypesWhichInherit(gameDataType, true, true);
+            for (int i = 0; i < items.Count; i++)
+            {
+                Type itemType = items[i];
+                string classDefId = itemType.Name;
+
+                if (cache.IdMap.TryGetValue(classDefId, out int idx))
+                {
+                    GameDataObject existingItem = cache.Objects[idx];
+                    if (existingItem.GetType().IsAssignableTo(itemType))
+                    {
+                        // Data type is saved as this class type - no merge needed.
+                        continue;
+                    }
+
+                    // Data type existing but is not of class type, create new instance and copy properties.
+                    GameDataObject? newItemAsType = EditorUtility.CreateNewObjectOfType(itemType) as GameDataObject;
+                    AssertNotNull(newItemAsType);
+
+                    EditorUtility.CopyObjectProperties(existingItem, newItemAsType);
+                    newItemAsType.LoadedFromClass = true;
+                    cache.Objects[idx] = newItemAsType;
+                    continue;
+                }
+
+                GameDataObject? newItem = EditorUtility.CreateNewObjectOfType(itemType) as GameDataObject;
+                AssertNotNull(newItem);
+                newItem.Id = itemType.Name;
+                newItem.LoadedFromClass = true;
+                cache.Objects.Add(newItem);
+            }
+        }
+
+        // Rebuild the index map after class defs have been added.
         foreach (KeyValuePair<Type, GameDataCache> cache in _database)
         {
             cache.Value.RecreateIdMap();

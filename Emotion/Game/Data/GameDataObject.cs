@@ -2,12 +2,14 @@
 
 #region Using
 
+using Emotion;
 using Emotion.Common.Serialization;
+using Emotion.Editor;
 using Emotion.IO;
 
 #endregion
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public abstract class GameDataObject : IComparable<GameDataObject>
 {
@@ -17,6 +19,9 @@ public abstract class GameDataObject : IComparable<GameDataObject>
 
     [DontSerialize]
     public string LoadedFromFile;
+
+    [DontSerialize]
+    public bool LoadedFromClass;
 
     [DontShowInEditor]
     public int Index;

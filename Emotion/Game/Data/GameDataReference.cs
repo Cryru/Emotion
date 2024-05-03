@@ -1,8 +1,9 @@
 ﻿#nullable enable
 
+using Emotion;
 using Emotion.Editor.PropertyEditors;
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public class GameDataReference
 {
