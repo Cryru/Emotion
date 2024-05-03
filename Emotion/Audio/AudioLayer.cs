@@ -525,7 +525,6 @@ namespace Emotion.Audio
                 AudioConverter converter = currentTrack.File.AudioConverter;
                 _totalSamplesConv = converter.GetSampleCountInFormat(CurrentStreamingFormat);
                 if (currentTrack.SetLoopingCurrent) LoopingCurrent = true;
-                _playHead = (int) (_totalSamplesConv * (currentTrack.StartingAt / currentTrack.File.Duration));
                 if (Status == PlaybackStatus.NotPlaying) Status = PlaybackStatus.Playing;
             }
 
