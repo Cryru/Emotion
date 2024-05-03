@@ -135,19 +135,18 @@ namespace Emotion.Audio
                 {
                     GoNextTrack(true);
                     effect.SetCrossFadeProps(track, curTrackPlayHead, LoopingCurrent);
+                    effect.Pos = EffectPosition.TrackRelative;
                     _fadeInVol = null; // Remove fade in as it is going to be part of the crossfade.
                     _fadeInCrossFadeVol = effect;
-                    effect.Pos = EffectPosition.TrackRelative;
                 }
                 else
                 {
                     _triggeredCrossFadeFadingOut = true;
+                    effect.Pos = EffectPosition.Absolute;
                     _fadeOutTriggered = effect;
 
                     // Remove track crossfade as it could interfere.
                     _fadeOutCrossFadeVol = null;
-
-                    effect.Pos = EffectPosition.Absolute;
                 }
 
                 _triggerCrossFadeToNext = false;
