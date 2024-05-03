@@ -14,65 +14,6 @@ namespace Emotion.Game.Data;
 
 public static partial class GameDataDatabase
 {
-    public struct GameDataArrayEnum<T> : IEnumerator<T> where T : GameDataObject
-    {
-        private int _currentIndex = -1;
-        private List<GameDataObject> _objects;
-
-        public T Current => (T)_objects[_currentIndex];
-
-        object IEnumerator.Current => Current;
-
-        public GameDataArrayEnum(List<GameDataObject> objects)
-        {
-            _objects = objects;
-        }
-
-        public void Dispose()
-        {
-            _objects = null!;
-        }
-
-        public bool MoveNext()
-        {
-            _currentIndex++;
-            return _currentIndex < _objects.Count;
-        }
-
-        public void Reset()
-        {
-            _currentIndex = 0;
-        }
-    }
-
-    // Protects the game data list and allows enumeration and indexing.
-    public class GameDataArray<T> : IEnumerable<T> where T : GameDataObject
-    {
-        private List<GameDataObject> _objects;
-
-        public int Length { get => _objects.Count; }
-
-        public GameDataArray(List<GameDataObject> objects)
-        {
-            _objects = objects;
-        }
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return new GameDataArrayEnum<T>(_objects);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return new GameDataArrayEnum<T>(_objects);
-        }
-
-        public T this[int key]
-        {
-            get => (T)_objects[key];
-        }
-    }
-
     // Database internal class for handling storage of game data objects of a particular type.
     private sealed class GameDataCache
     {

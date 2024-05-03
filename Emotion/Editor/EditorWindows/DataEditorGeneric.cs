@@ -145,8 +145,7 @@ public class DataEditorGeneric : EditorPanel
 
     private void SaveToFile(bool force = false)
     {
-        GameDataDatabase.GameDataArray<GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
-        if (data == null) return;
+        GameDataArray<GameDataObject> data = GameDataDatabase.GetObjectsOfType(_type);
         foreach (var item in data)
         {
             if (!force && !_unsaved.Contains(item)) continue;

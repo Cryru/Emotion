@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
+using static Emotion.Game.Data.GameDataDatabase;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
 #endregion
@@ -106,27 +107,27 @@ public static partial class GameDataDatabase
 
     #region Public API
 
-    public static GameDataArray<T>? GetObjectsOfType<T>() where T : GameDataObject
+    public static GameDataArray<T> GetObjectsOfType<T>() where T : GameDataObject
     {
-        if (!Initialized) return null;
+        if (!Initialized) return GameDataArray<T>.Empty;
         AssertNotNull(_database);
 
         if (_database.TryGetValue(typeof(T), out GameDataCache? cache))
             return cache.GetDataEnum<T>();
 
-        return null;
+        return GameDataArray<T>.Empty;
     }
 
-    public static GameDataArray<GameDataObject>? GetObjectsOfType(Type? type)
+    public static GameDataArray<GameDataObject> GetObjectsOfType(Type? type)
     {
-        if (!Initialized) return null;
-        if (type == null) return null;
+        if (!Initialized) return GameDataArray<GameDataObject>.Empty;
+        if (type == null) return GameDataArray<GameDataObject>.Empty;
         AssertNotNull(_database);
 
         if (_database.TryGetValue(type, out GameDataCache? cache))
             return cache.GetDataEnum<GameDataObject>();
 
-        return null;
+        return GameDataArray<GameDataObject>.Empty;
     }
 
     public static T? GetDataObject<T>(string? name) where T : GameDataObject
