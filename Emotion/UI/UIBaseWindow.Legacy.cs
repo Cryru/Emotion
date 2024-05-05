@@ -313,18 +313,31 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
                     case LayoutMode.Free:
                     {
                         UIBaseWindow parent = this;
+                        Vector2 parentPos = parent.Position2;
+                        Vector2 parentSize = parent.Size;
                         if (child.RelativeTo != null)
                         {
                             if (child.UseNewLayoutSystem) continue;
 
                             UIBaseWindow? win = GetWindowById(child.RelativeTo) ?? Controller?.GetWindowById(child.RelativeTo);
                             if (win != null)
+                            {
                                 parent = win;
+
+                                // Bandaid fix for rollovers on animated windows.
+                                if (child.RelativeTo == SPECIAL_WIN_ID_MOUSE_FOCUS)
+                                {
+                                    parentPos = win._renderBoundsWithChildren.Position;
+                                    parentSize = win._renderBoundsWithChildren.Size;
+                                }
+                            }
                             else
+                            {
                                 Engine.Log.Warning($"{this} tried to layout relative to {child.RelativeTo} but it couldn't find it.", "UI");
+                            }
                         }
 
-                        Vector2 childPos = child.CalculateContentPos(parent.Position2, parent.Size, parent.Paddings * parent.GetScale());
+                        Vector2 childPos = child.CalculateContentPos(parentPos, parentSize, parent.Paddings * parent.GetScale());
                         child.Layout(childPos);
                         break;
                     }

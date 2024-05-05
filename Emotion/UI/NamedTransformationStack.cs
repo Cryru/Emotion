@@ -105,6 +105,13 @@ namespace Emotion.UI
             MatrixDirty = true;
         }
 
+        public void Clear()
+        {
+            if (_stack == null) return;
+            _stack.Clear();
+            MatrixDirty = true;
+        }
+
         /// <summary>
         /// Recalculate the current matrix. This should be done before getting CurrentMatrix when
         /// DirtyMatrix is true.
