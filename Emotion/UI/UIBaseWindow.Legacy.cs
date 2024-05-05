@@ -325,10 +325,15 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
                                 parent = win;
 
                                 // Bandaid fix for rollovers on animated windows.
-                                if (child.RelativeTo == SPECIAL_WIN_ID_MOUSE_FOCUS)
+                                if (child.RelativeTo == SPECIAL_WIN_ID_MOUSE_FOCUS && _renderBoundsWithChildren != Rectangle.Empty)
                                 {
                                     parentPos = win._renderBoundsWithChildren.Position;
                                     parentSize = win._renderBoundsWithChildren.Size;
+                                }
+                                else
+                                {
+                                    parentPos = win.Position2;
+                                    parentSize = win.Size;
                                 }
                             }
                             else
