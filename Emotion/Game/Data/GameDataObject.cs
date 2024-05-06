@@ -37,4 +37,9 @@ public abstract class GameDataObject : IComparable<GameDataObject>
         string assetPath = GameDataDatabase.EditorAdapter.GetAssetPath(this);
         return XMLAsset<GameDataObject>.CreateFromContent(this, assetPath).Save();
     }
+
+    public override string ToString()
+    {
+        return Id;
+    }
 }

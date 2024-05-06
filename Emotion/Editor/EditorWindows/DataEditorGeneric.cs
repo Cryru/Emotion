@@ -179,8 +179,8 @@ public class DataEditorGeneric : EditorPanel
             var item = data[i];
             var key = item.Id;
 
-            string label = key;
-            if (_unsaved.Contains(item)) label += "(*)";
+            string label = item.ToString() ?? key;
+            if (_unsaved.Contains(item)) label += " (*)";
 
             var uiForItem = new EditorButton
             {
