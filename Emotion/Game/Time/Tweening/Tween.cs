@@ -37,8 +37,8 @@
             return s =>
             {
                 if (s < 0.5f)
-                    return methodFuncIn(2 * s) * 0.5f;
-                return 1 + methodFuncOut(2 * s - 1) * 0.5f;
+                    return methodFuncIn(2 * s);
+                return methodFuncOut(2 * s - 1);
             };
         }
 
