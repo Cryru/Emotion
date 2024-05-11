@@ -63,7 +63,7 @@ public static partial class GameDataDatabase
             Type gameDataType = types[t];
             GameDataCache cache = _database[gameDataType];
 
-            List<Type>? items = EditorUtility.GetTypesWhichInherit(gameDataType, true, true);
+            List<Type>? items = EditorUtility.GetTypesWhichInherit(gameDataType, true);
             for (int i = 0; i < items.Count; i++)
             {
                 Type itemType = items[i];
