@@ -124,6 +124,7 @@ public static class EditorUtility
             {
                 if (!type.IsAssignableFrom(assemblyType)) continue;
                 if (assemblyType.IsAbstract) continue;
+                if (type == assemblyType) continue;
                 if (directDescendantOnly && assemblyType.BaseType != type) continue;
 
                 if (requireSerializable && !TypeHasParameterlessConstructor(assemblyType)) continue;
