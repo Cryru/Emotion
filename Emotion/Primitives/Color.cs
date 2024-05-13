@@ -62,13 +62,35 @@ namespace Emotion.Primitives
         /// <summary>
         /// Create a new instance of <see cref="Color" /> struct from an HTML hex string.
         /// </summary>
-        /// <param name="htmlFormat">An HTML hex string containing the color.</param>
-        public Color(string htmlFormat)
+        public Color(string htmlFormat) : this(htmlFormat.AsSpan())
         {
-            htmlFormat = htmlFormat.Replace("#", "");
-            R = byte.Parse(htmlFormat.Substring(0, 2), NumberStyles.HexNumber);
-            G = byte.Parse(htmlFormat.Substring(2, 2), NumberStyles.HexNumber);
-            B = byte.Parse(htmlFormat.Substring(4, 2), NumberStyles.HexNumber);
+        }
+
+        public Color(ReadOnlySpan<char> htmlFormat)
+        {
+            if (htmlFormat.Length < 6)
+            {
+                R = 255;
+                G = 255;
+                B = 255;
+                A = 255;
+                return;
+            }
+
+            bool hasHashtag = htmlFormat[0] == '#';
+            if (hasHashtag && htmlFormat.Length < 7)
+            {
+                R = 255;
+                G = 255;
+                B = 255;
+                A = 255;
+                return;
+            }
+
+            int offset = hasHashtag ? 1 : 0;
+            byte.TryParse(htmlFormat.Slice(0 + offset, 2), NumberStyles.HexNumber, null, out R);
+            byte.TryParse(htmlFormat.Slice(2 + offset, 2), NumberStyles.HexNumber, null, out G);
+            byte.TryParse(htmlFormat.Slice(4 + offset, 2), NumberStyles.HexNumber, null, out B);
             A = 255;
         }
 
