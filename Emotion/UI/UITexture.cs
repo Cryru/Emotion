@@ -192,7 +192,7 @@ namespace Emotion.UI
             _uv = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, RowAndColumnSpacing, rowIdx, columnIdx);
         }
 
-        private Vector2 GetRenderSizeProcessed(Vector2 space)
+        protected Vector2 GetRenderSizeProcessed(Vector2 space)
         {
             float scale = GetScale();
             float xVal = RenderSize!.Value.X;

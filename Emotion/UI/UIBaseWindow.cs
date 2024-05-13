@@ -731,7 +731,7 @@ namespace Emotion.UI
             return new PassiveRoutineObserver(_alphaTweenRoutine);
         }
 
-        protected void CalculateColor()
+        protected virtual void CalculateColor()
         {
             if (Parent == null || IgnoreParentColor)
                 _calculatedColor = WindowColor;
