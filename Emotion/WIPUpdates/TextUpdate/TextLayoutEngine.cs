@@ -4,6 +4,9 @@ using System.Runtime.InteropServices;
 using Emotion.Game.Text;
 using Emotion.Graphics.Text;
 using Emotion.Utility;
+using Emotion.WIPUpdates.TextUpdate;
+using static Emotion.UI.TextLayoutEngine;
+using static Emotion.UI.UIBaseWindow;
 
 #endregion
 
@@ -16,7 +19,8 @@ public class TextLayoutEngine
     public Vector2 TextSize { get; protected set; }
 
     public bool ResolveTags = true;
-    public bool WrapText = true;
+
+    private bool _wrapText = false;
 
     private string _text = string.Empty;
     private float _wrapWidth;
@@ -41,16 +45,16 @@ public class TextLayoutEngine
     {
         if (wrapWidth == null)
         {
-            if (!WrapText) return;
+            if (!_wrapText) return;
 
-            WrapText = false;
+            _wrapText = false;
         }
         else
         {
-            if (WrapText && _wrapWidth == wrapWidth.Value) return;
+            if (_wrapText && _wrapWidth == wrapWidth.Value) return;
 
             _wrapWidth = wrapWidth.Value;
-            WrapText = true;
+            _wrapText = true;
         }
 
         _dirty = true;
@@ -142,7 +146,7 @@ public class TextLayoutEngine
         }
 
         // 3. Wrap text blocks, this will break them up in more block.
-        if (WrapText)
+        if (_wrapText)
         {
             Span<char> wordBreakCharacters = [' ', '\n', '-'];
 
@@ -269,6 +273,9 @@ public class TextLayoutEngine
         {
             TextBlock currentBlock = _textBlocks[i];
             if (currentBlock.Skip) continue;
+
+            TextRenderEngine.CacheEntries(_text, currentBlock);
+            TextRenderEngine.RenderBlock(_text, currentBlock, _defaultAtlas.Font);
 
             Color color = currentBlock.UseDefaultColor ? baseColor : currentBlock.Color;
 
@@ -556,7 +563,7 @@ public class TextLayoutEngine
     {
         static (ForEachResult, int) Functor((TextBlock block, int indexInBlock) blockData, (int charIdx, int lineIdx, int charIdxOnLine) selData, int _)
         {
-            return (ForEachResult.SetResultAndContinue, selData.charIdx);
+            return (ForEachResult.StoreResultAndContinue, selData.charIdx);
         }
         return ForEachTextBlock(Functor, 0);
     }
@@ -592,13 +599,75 @@ public class TextLayoutEngine
 
         static (ForEachResult, int) Functor((TextBlock block, int indexInBlock) blockData, (int charIdx, int lineIdx, int charIdxOnLine) selData, (int selectionIdx, int otherLineIndex) args)
         {
-            if (selData.charIdxOnLine == args.selectionIdx && selData.lineIdx == args.otherLineIndex) return (ForEachResult.Break, selData.charIdx);
-            if (selData.lineIdx == args.otherLineIndex && selData.charIdxOnLine < args.selectionIdx) return (ForEachResult.SetResultAndContinue, selData.charIdx);
+            if (selData.lineIdx == args.otherLineIndex)
+            {
+                // Exact character on other line.
+                if (selData.charIdxOnLine == args.selectionIdx) return (ForEachResult.Break, selData.charIdx);
+
+                // Store fallback position if otherline is shorter.
+                if (selData.charIdxOnLine < args.selectionIdx) return (ForEachResult.StoreResultAndContinue, selData.charIdx);
+            }
+
             return (ForEachResult.Continue, -1);
         }
         int selIndexOtherLine = ForEachTextBlock(Functor, (charIdxOnLine, otherLineIndex));
         if (selIndexOtherLine == -1) selIndexOtherLine = selectionIdx;
         return selIndexOtherLine;
+    }
+
+    public delegate void ForEachLineBetweenSelectionIndicesDelegateFunc<A1>(Rectangle lineRect, A1 arg1);
+
+    private int GetFirstSelectionIndexOnLine(int lineIndex)
+    {
+        static (ForEachResult, int) Functor((TextBlock block, int indexInBlock) blockData, (int charIdx, int lineIdx, int charIdxOnLine) selData, int arglineIndex)
+        {
+            if (selData.lineIdx == arglineIndex) return (ForEachResult.Break, selData.charIdx);
+            return (ForEachResult.Continue, -1);
+        }
+        return ForEachTextBlock(Functor, lineIndex);
+    }
+
+    private int GetLastSelectionIndexOnLine(int lineIndex)
+    {
+        static (ForEachResult, int) Functor((TextBlock block, int indexInBlock) blockData, (int charIdx, int lineIdx, int charIdxOnLine) selData, int arglineIndex)
+        {
+            if (selData.lineIdx == arglineIndex) return (ForEachResult.StoreResultAndContinue, selData.charIdx);
+            if (selData.lineIdx > arglineIndex) return (ForEachResult.BreakAndReturnStoredResult, -1);
+            return (ForEachResult.Continue, -1);
+        }
+        return ForEachTextBlock(Functor, lineIndex);
+    }
+
+    public void ForEachLineBetweenSelectionIndices<A1>(int selectionIdxOne, int selectionIdxTwo, ForEachLineBetweenSelectionIndicesDelegateFunc<A1> functor, A1 arg1)
+    {
+        int startIdx = Math.Min(selectionIdxOne, selectionIdxTwo);
+        int endIdx = Math.Max(selectionIdxOne, selectionIdxTwo);
+
+        (int lineStart, int _) = GetLineOfSelectedIndex(startIdx);
+        (int lineEnd, int _) = GetLineOfSelectedIndex(endIdx);
+        
+        if (lineStart == lineEnd)
+        {
+            Rectangle lineBoundStart = GetBoundOfSelectionIndex(startIdx);
+            Rectangle lineBoundEnd = GetBoundOfSelectionIndex(endIdx);
+            Rectangle totalLineBound = Rectangle.FromMinMaxPointsChecked(lineBoundStart.Position, lineBoundEnd.BottomRight);
+            functor(totalLineBound, arg1);
+            return;
+        }
+
+        for (int lineIdx = lineStart; lineIdx <= lineEnd; lineIdx++)
+        {
+            int selIndexLineStart = GetFirstSelectionIndexOnLine(lineIdx);
+            if (selIndexLineStart < startIdx) selIndexLineStart = startIdx;
+
+            int selIndexLineEnd = GetLastSelectionIndexOnLine(lineIdx);
+            if (selIndexLineEnd > endIdx) selIndexLineEnd = endIdx;
+
+            Rectangle lineBoundStart = GetBoundOfSelectionIndex(selIndexLineStart);
+            Rectangle lineBoundEnd = GetBoundOfSelectionIndex(selIndexLineEnd);
+            Rectangle totalLineBound = Rectangle.FromMinMaxPointsChecked(lineBoundStart.Position, lineBoundEnd.BottomRight);
+            functor(totalLineBound, arg1);
+        }
     }
 
     #endregion
@@ -607,12 +676,17 @@ public class TextLayoutEngine
     {
         Continue,
         Break,
-        SetResultAndContinue
+        BreakAndReturnStoredResult,
+        StoreResultAndContinue
     }
 
-    public T ForEachTextBlock<T, A1>(Func<(TextBlock, int), (int, int, int), A1, (ForEachResult, T)> functor, A1 arg1)
+    public delegate (ForEachResult, T) ForEachTextBlockDelegateFunc<T, A1>((TextBlock, int) blockData, (int, int, int) selData, A1 arg1);
+
+    public T ForEachTextBlock<T, A1>(ForEachTextBlockDelegateFunc<T, A1> functor, A1 arg1)
     {
-        T returnVal = default;
+        T returnVal = default!;
+        bool isValDefault = true;
+
         int index = 0;
         int indexOnLine = 0;
         int lineIdx = 0;
@@ -634,8 +708,18 @@ public class TextLayoutEngine
             for (int ci = 0; ci < block.Length + loopAdd; ci++)
             {
                 (ForEachResult action, T functionVal) = functor((block, ci), (index, lineIdx, indexOnLine), arg1);
-                if (action == ForEachResult.Break) return functionVal;
-                if (action == ForEachResult.SetResultAndContinue) returnVal = functionVal;
+                switch (action)
+                {
+                    case ForEachResult.Break:
+                        return functionVal;
+                    case ForEachResult.StoreResultAndContinue:
+                    case ForEachResult.Continue when isValDefault:
+                        returnVal = functionVal;
+                        break;
+                    case ForEachResult.BreakAndReturnStoredResult:
+                        return returnVal;
+                }
+                isValDefault = false;
 
                 index++;
                 indexOnLine++;

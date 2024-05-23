@@ -100,6 +100,8 @@ public class UIRichText : UIBaseWindow
     /// </summary>
     public float UnderlineThickness = 0.5f;
 
+    public bool WrapText = true;
+
     protected string _text;
     protected FontAsset _fontFile;
     protected DrawableFontAtlas _atlas;
@@ -157,7 +159,10 @@ public class UIRichText : UIBaseWindow
         _scaledUnderlineThickness = UnderlineThickness * scale;
 
         _layoutEngine.InitializeLayout(_text, TextHeightMode);
-        _layoutEngine.SetWrap(space.X);
+        if (WrapText)
+            _layoutEngine.SetWrap(space.X);
+        else
+            _layoutEngine.SetWrap(null);
         _layoutEngine.SetDefaultAtlas(_layouterAtlas);
         _layoutEngine.Run();
         return _layoutEngine.TextSize;
