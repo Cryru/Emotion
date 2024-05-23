@@ -124,6 +124,8 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
     // Positions should always be rounded down.
     // Offsets (spacings) should always be rounded to the closest.
 
+    public bool TEMP_IgnoreOldStretchPropertiesWhenPorting = false;
+
     /// <summary>
     /// Given the max space by the parent, return the minimum size this window needs.
     /// </summary>
@@ -142,7 +144,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 #if !NEW_UI
         bool newPropertiesUsed = !FillX || !FillY;
 
-        if (!newPropertiesUsed)
+        if (!newPropertiesUsed && !TEMP_IgnoreOldStretchPropertiesWhenPorting)
         {
             if (StretchX)
                 FillX = false;

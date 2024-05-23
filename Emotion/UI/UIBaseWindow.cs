@@ -1200,6 +1200,12 @@ namespace Emotion.UI
             return null;
         }
 
+        public TWindow? GetWindowById<TWindow>(string id) where TWindow : UIBaseWindow
+        {
+            var win = GetWindowById(id);
+            return win as TWindow;
+        }
+
         public bool VisibleAlongTree()
         {
             if (Controller == null) return false;

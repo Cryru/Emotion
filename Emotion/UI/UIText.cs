@@ -99,6 +99,10 @@ namespace Emotion.UI
         /// </summary>
         public float UnderlineThickness = 0.5f;
 
+        public float OutlineSize;
+
+        public Color OutlineColor;
+
         protected string _text;
         protected FontAsset _fontFile;
         protected DrawableFontAtlas _atlas;
@@ -195,7 +199,10 @@ namespace Emotion.UI
             }
 
             _layouter.RestartPen();
-            c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter);
+            if (OutlineSize > 0)
+                c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter, FontEffect.Outline, OutlineSize * GetScale(), OutlineColor);
+            else
+                c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter);
 
             return true;
         }
