@@ -22,6 +22,19 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
     public bool ChildrenAllSameWidth; // todo: delete
 #endif
 
+    public bool ExpandParent
+    {
+        get => _expandParent;
+        set
+        {
+            if (_expandParent == value) return;
+            _expandParent = value;
+            InvalidateLayout();
+        }
+    }
+
+    private bool _expandParent = true;
+
     /// <summary>
     /// The amount of space used by the children of this window during measurement.
     /// </summary>

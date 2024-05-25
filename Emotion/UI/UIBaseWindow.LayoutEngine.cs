@@ -114,9 +114,9 @@ public partial class UIBaseWindow
 
                 var childBound = childData.Bound;
 
-                var childWin = childData.Child;
+                UIBaseWindow childWin = childData.Child;
                 var childInsideParent = AnchorsInsideParent(childWin.ParentAnchor, childWin.Anchor);
-                if (childInsideParent)
+                if (childInsideParent && childWin._expandParent)
                     spaceUsedByChildren = spaceUsedByChildren == Rectangle.Empty ? childBound : Rectangle.Union(spaceUsedByChildren, childBound);
 
                 if (!dryRun)
