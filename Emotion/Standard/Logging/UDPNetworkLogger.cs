@@ -19,6 +19,7 @@ namespace Emotion.Standard.Logging
         private int _port;
         private string _userId;
         private UdpClient _udpClient;
+        private bool _disposed;
 
         /// <summary>
         /// Create a network logger, with the provided remote host.
@@ -44,6 +45,7 @@ namespace Emotion.Standard.Logging
         public override void Dispose()
         {
             _udpClient.Dispose();
+            _disposed = true;
         }
 
         #region Networking
@@ -57,6 +59,9 @@ namespace Emotion.Standard.Logging
         /// <return>Whether the message was sent. (Doesn't mean it was received.)</return>
         private bool Send(MessageType logLevel, string sender, string message)
         {
+            if (_disposed)
+                return false;
+
             // Check if no host or port are configured.
             if (string.IsNullOrWhiteSpace(_hostName) || _port == 0)
                 return false;
