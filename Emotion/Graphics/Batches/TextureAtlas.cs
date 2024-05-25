@@ -319,7 +319,6 @@ namespace Emotion.Graphics.Batches
                 if (offset.HasValue)
                 {
                     meta.Offset = offset.Value;
-                    meta.Version = -1; // Force redraw
                     _haveDirtyTextures = true;
                 }
                 else
@@ -328,6 +327,7 @@ namespace Emotion.Graphics.Batches
                     meta.Batched = false;
                     meta.Activity = 0;
                 }
+                meta.Version = -1; // Force redraw
             }
         }
 
