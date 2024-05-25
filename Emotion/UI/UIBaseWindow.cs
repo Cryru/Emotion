@@ -625,6 +625,7 @@ namespace Emotion.UI
             get => _windowColor;
             set
             {
+                if (_windowColor == value) return;
                 _windowColor = value;
                 InvalidateColor();
             }

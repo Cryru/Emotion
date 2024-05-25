@@ -6,6 +6,7 @@ using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Utility;
+using System.Net.Sockets;
 
 #endregion
 
@@ -69,6 +70,7 @@ namespace Emotion.UI
         public int SelectorRatio = 1;
 
         public Color DefaultSelectorColor = Color.Red;
+        public Color RolloverColor = Color.PrettyRed;
 
         [DontSerialize] public Action<int>? OnValueChanged;
 
@@ -90,11 +92,22 @@ namespace Emotion.UI
             UIBaseWindow? scroll = GetWindowById("Selector");
             if (scroll == null)
             {
-                scroll = new UISolidColor {WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true};
+                scroll = new UISolidColor {
+                    WindowColor = DefaultSelectorColor,
+                    Id = "Selector",
+                    CodeGenerated = true
+                };
                 AddChild(scroll);
             }
 
             _selector = scroll;
+        }
+
+        protected override bool UpdateInternal()
+        {
+            Vector2 mouse = MouseInside ? Engine.Host.MousePosition : Vector2.Zero;
+            _selector.WindowColor = _dragging || _selector.RenderBounds.Contains(mouse) ? RolloverColor : DefaultSelectorColor;
+            return base.UpdateInternal();
         }
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
