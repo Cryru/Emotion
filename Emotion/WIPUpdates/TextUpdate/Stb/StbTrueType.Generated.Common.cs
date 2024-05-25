@@ -692,7 +692,7 @@ namespace NewStbTrueTypeSharp
 				var gw = 0;
 				var gh = 0;
 				var g = stbtt_FindGlyphIndex(f, first_char + i);
-				stbtt_GetGlyphHMetrics(f, g, &advance, &lsb);
+				stbtt_GetGlyphHMetrics(f, g, out advance, out lsb);
 				stbtt_GetGlyphBitmapBox(f, g, scale, scale, &x0, &y0, &x1, &y1);
 				gw = x1 - x0;
 				gh = y1 - y0;
@@ -938,7 +938,7 @@ namespace NewStbTrueTypeSharp
 			var info = new stbtt_fontinfo();
 			stbtt_InitFont(info, fontdata, stbtt_GetFontOffsetForIndex(fontdata, index));
 			scale = size > 0 ? stbtt_ScaleForPixelHeight(info, size) : stbtt_ScaleForMappingEmToPixels(info, -size);
-			stbtt_GetFontVMetrics(info, &i_ascent, &i_descent, &i_lineGap);
+			stbtt_GetFontVMetrics(info, out i_ascent, out i_descent, out i_lineGap);
 			*ascent = i_ascent * scale;
 			*descent = i_descent * scale;
 			*lineGap = i_lineGap * scale;

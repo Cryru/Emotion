@@ -275,7 +275,7 @@ public class TextLayoutEngine
             if (currentBlock.Skip) continue;
 
             TextRenderEngine.CacheEntries(_text, currentBlock);
-            TextRenderEngine.RenderBlock(_text, currentBlock, _defaultAtlas.Font);
+            TextRenderEngine.RenderBlock(c, _text, currentBlock, _defaultAtlas.Font);
 
             Color color = currentBlock.UseDefaultColor ? baseColor : currentBlock.Color;
 

@@ -1170,10 +1170,9 @@ namespace NewStbTrueTypeSharp
 			return stbtt_GetGlyphBox(info, stbtt_FindGlyphIndex(info, codepoint), x0, y0, x1, y1);
 		}
 
-		public static void stbtt_GetCodepointHMetrics(stbtt_fontinfo info, int codepoint, int* advanceWidth,
-			int* leftSideBearing)
+		public static void stbtt_GetCodepointHMetrics(stbtt_fontinfo info, int codepoint, out int advanceWidth, out int leftSideBearing)
 		{
-			stbtt_GetGlyphHMetrics(info, stbtt_FindGlyphIndex(info, codepoint), advanceWidth, leftSideBearing);
+			stbtt_GetGlyphHMetrics(info, stbtt_FindGlyphIndex(info, codepoint), out advanceWidth, out leftSideBearing);
 		}
 
 		public static int stbtt_GetCodepointKernAdvance(stbtt_fontinfo info, int ch1, int ch2)
@@ -1235,14 +1234,11 @@ namespace NewStbTrueTypeSharp
 			return null;
 		}
 
-		public static void stbtt_GetFontVMetrics(stbtt_fontinfo info, int* ascent, int* descent, int* lineGap)
+		public static void stbtt_GetFontVMetrics(stbtt_fontinfo info, out int ascent, out int descent, out int lineGap)
 		{
-			if (ascent != null)
-				*ascent = ttSHORT(info.data + info.hhea + 4);
-			if (descent != null)
-				*descent = ttSHORT(info.data + info.hhea + 6);
-			if (lineGap != null)
-				*lineGap = ttSHORT(info.data + info.hhea + 8);
+			ascent = ttSHORT(info.data + info.hhea + 4);
+			descent = ttSHORT(info.data + info.hhea + 6);
+			lineGap = ttSHORT(info.data + info.hhea + 8);
 		}
 
 		public static int stbtt_GetFontVMetricsOS2(stbtt_fontinfo info, int* typoAscent, int* typoDescent,
@@ -1377,24 +1373,19 @@ namespace NewStbTrueTypeSharp
 			return 1;
 		}
 
-		public static void stbtt_GetGlyphHMetrics(stbtt_fontinfo info, int glyph_index, int* advanceWidth,
-			int* leftSideBearing)
+		public static void stbtt_GetGlyphHMetrics(stbtt_fontinfo info, int glyph_index, out int advanceWidth, out int leftSideBearing)
 		{
 			var numOfLongHorMetrics = ttUSHORT(info.data + info.hhea + 34);
 			if (glyph_index < numOfLongHorMetrics)
 			{
-				if (advanceWidth != null)
-					*advanceWidth = ttSHORT(info.data + info.hmtx + 4 * glyph_index);
-				if (leftSideBearing != null)
-					*leftSideBearing = ttSHORT(info.data + info.hmtx + 4 * glyph_index + 2);
+				advanceWidth = ttSHORT(info.data + info.hmtx + 4 * glyph_index);
+				leftSideBearing = ttSHORT(info.data + info.hmtx + 4 * glyph_index + 2);
 			}
 			else
 			{
-				if (advanceWidth != null)
-					*advanceWidth = ttSHORT(info.data + info.hmtx + 4 * (numOfLongHorMetrics - 1));
-				if (leftSideBearing != null)
-					*leftSideBearing = ttSHORT(info.data + info.hmtx + 4 * numOfLongHorMetrics +
-											   2 * (glyph_index - numOfLongHorMetrics));
+				advanceWidth = ttSHORT(info.data + info.hmtx + 4 * (numOfLongHorMetrics - 1));
+				leftSideBearing = ttSHORT(info.data + info.hmtx + 4 * numOfLongHorMetrics +
+											2 * (glyph_index - numOfLongHorMetrics));
 			}
 		}
 
