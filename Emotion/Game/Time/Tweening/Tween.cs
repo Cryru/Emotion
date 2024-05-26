@@ -108,7 +108,7 @@
             float res1 = MathF.Min(a * MathF.Pow(s, 2), a * MathF.Pow(s - 1.5f * b, 2) + 0.75f);
             float res2 = MathF.Min(a * MathF.Pow(s - 2.25f * b, 2) + 0.9375f, a * MathF.Pow(s - 2.625f * b, 2));
 
-            return MathF.Min(res1, res2) + 0.984375f;
+            return MathF.Min(res1, res2);// + 0.984375f;
         }
     }
 }
