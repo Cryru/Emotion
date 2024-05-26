@@ -83,14 +83,16 @@ public static class Helpers
     /// <summary>
     /// Returns a random item from the array.
     /// </summary>
-    public static T GetRandomArrayItem<T>(T[] array)
+    public static T? GetRandomArrayItem<T>(T[] array)
     {
+        if (array.Length == 0) return default;
         var num = GenerateRandomNumber(0, array.Length - 1);
         return array[num];
     }
 
-    public static T GetRandomArrayItem<T>(List<T> array)
+    public static T? GetRandomArrayItem<T>(List<T> array)
     {
+        if (array.Count == 0) return default;
         var num = GenerateRandomNumber(0, array.Count - 1);
         return array[num];
     }
