@@ -7,11 +7,33 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Examples\ComplexPolygonContours.cs" />
+    <Compile Remove="Examples\FrameBufferSampling.cs" />
+    <Compile Remove="Examples\GeneratedCurveMeshExample.cs" />
+    <Compile Remove="Examples\PackingDisplay.cs" />
+    <Compile Remove="Examples\Pathfinding.cs" />
+    <Compile Remove="Examples\PngSuiteExample.cs" />
+    <Compile Remove="Examples\RopeSim.cs" />
+    <Compile Remove="Examples\TextRenderers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Assets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Examples\ComplexPolygonContours.cs" />
+    <None Include="Examples\FrameBufferSampling.cs" />
+    <None Include="Examples\GeneratedCurveMeshExample.cs" />
+    <None Include="Examples\PackingDisplay.cs" />
+    <None Include="Examples\Pathfinding.cs" />
+    <None Include="Examples\PngSuiteExample.cs" />
+    <None Include="Examples\RopeSim.cs" />
+    <None Include="Examples\TextRenderers.cs" />
   </ItemGroup>
 
 </Project>

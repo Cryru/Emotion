@@ -16,30 +16,3 @@ public class UISystem : UIController
 {
 }
 
-public abstract class Scene_UIUpdate : Scene
-{
-    public UISystem UI = new()
-    {
-        UseNewLayoutSystem = true
-    };
-
-    public override void Update()
-    {
-        UpdateScene(Engine.DeltaTime);
-        UI.Update();
-    }
-
-    public override void Draw(RenderComposer composer)
-    {
-        RenderScene(composer);
-
-        composer.SetUseViewMatrix(false);
-        composer.SetDepthTest(true);
-        composer.ClearDepth();
-        UI.Render(composer);
-    }
-
-    protected abstract void UpdateScene(float dt);
-
-    protected abstract void RenderScene(RenderComposer c);
-}

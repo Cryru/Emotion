@@ -1,11 +1,13 @@
 ﻿#region Using
 
+using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
@@ -16,6 +18,7 @@ using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Scenography;
 using Emotion.Utility;
+using SixLabors.ImageSharp;
 
 #endregion
 
@@ -67,10 +70,17 @@ namespace Emotion.Common
         public static AudioContext Audio { get; private set; }
 
         /// <summary>
-        /// The global coroutine manager.
+        /// The global coroutine manager, executes coroutines on update ticks.
         /// [Default Module]
         /// </summary>
         public static CoroutineManager CoroutineManager { get; private set; } = new CoroutineManager();
+
+        /// <summary>
+        /// Global coroutine manager that executes coroutines
+        /// on another thread.
+        /// [Default Module]
+        /// </summary>
+        public static CoroutineManager CoroutineManagerAsync { get; private set; } = new CoroutineManagerSleeping();
 
         #endregion
 
@@ -150,7 +160,7 @@ namespace Emotion.Common
             // Attach engine killer and popup to unhandled exceptions, when the debugger isn't attached.
             // This might be a bit overkill as not all unhandled exceptions are unrecoverable, but let's be pessimistically optimistic for now.
             // Note that async exceptions are considered caught.
-            if (!Debugger.IsAttached) AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject, true); };
+            if (!Debugger.IsAttached) AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception)a.ExceptionObject, true); };
 
             // Attach logging to those pesky async exceptions, and log all exceptions as they happen (handled as well).
             TaskScheduler.UnobservedTaskException += (s, o) =>
@@ -359,7 +369,7 @@ namespace Emotion.Common
             _targetTimeFuzzyUpper = 1000d / (_desiredStep + 1);
 
             // Keep delta time constant.
-            DeltaTime = (float) _targetTime;
+            DeltaTime = (float)_targetTime;
         }
 
         private static void RunTickIfNeeded()
@@ -485,5 +495,57 @@ namespace Emotion.Common
             if (!Configuration.NoErrorPopup) Host?.DisplayMessageBox($"Fatal error occured!\n{ex}");
             Quit();
         }
+
+        #region ONE
+
+        private static Func<IEnumerator> _entryPoint;
+
+        public static void Start(Configurator config, Func<IEnumerator> entryPoint)
+        {
+            _entryPoint = entryPoint;
+            Setup(config);
+
+            // Sanity check.
+            if (Host == null) return;
+
+            // todo: these settings and objects might not be needed when using a non-default loop.
+            byte targetStep = Configuration.DesiredStep;
+            if (targetStep <= 0) targetStep = 60;
+            TargetStep(targetStep);
+
+            Status = EngineStatus.Running;
+
+            Thread asyncRoutineThread = new Thread(() =>
+            {
+                if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Async Routine Thread";
+
+                var lastUpdate = DateTime.Now;
+                while (Status == EngineStatus.Running)
+                {
+                    int timePassed = DateTime.Now.Subtract(lastUpdate).Milliseconds;
+                    CoroutineManagerAsync.Update(timePassed);
+                    if (timePassed != 0) lastUpdate = DateTime.Now;
+                }
+            });
+            asyncRoutineThread.Start();
+
+            CoroutineManagerAsync.StartCoroutine(entryPoint());
+
+            if (Configuration.LoopFactory == null)
+            {
+                Log.Info("Using default loop.", MessageSource.Engine);
+                Configuration.LoopFactory = DefaultMainLoop;
+            }
+
+            Log.Info("Starting loop...", MessageSource.Engine);
+            Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
+        }
+
+        #endregion
     }
+}
+
+public static class Editor
+{
+
 }

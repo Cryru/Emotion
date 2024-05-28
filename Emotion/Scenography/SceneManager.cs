@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 
 // ReSharper disable PossibleUnintendedReferenceComparison
@@ -92,145 +94,157 @@ namespace Emotion.Scenography
 
         #endregion
 
-        #region API
+        //#region API
 
-        /// <summary>
-        /// Sets the provided scene as the current.
-        /// </summary>
-        /// <param name="scene">The scene to set as current.</param>
-        /// <returns>A thread task which will handle the operations.</returns>
-        public Task SetScene(Scene scene)
+        //public class SceneLoadWaiter : PassiveRoutineObserver
+        //{
+        //    public bool Finished => false;
+
+        //    public void Update()
+        //    {
+               
+        //    }
+        //}
+
+        public PassiveRoutineObserver SetSceneAsyncRoutine(Scene scene)
         {
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (scene == null) return Task.CompletedTask;
-
-            if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
-            {
-                Engine.Log.Info("Tried to swap scene while a scene swap is in progress.", MessageSource.SceneManager);
-                return _sceneLoadingTask;
-            }
-
-            Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
-
-            _sceneLoadingTask = Task.Run(() => LoadInternal(scene));
-
-            return _sceneLoadingTask;
+            //Thread testThread = new Thread(() =>
+            //{
+            //    try
+            //    {
+            //        CoroutineManager coroutineManager = new CoroutineManager();
+            //        var coroutine = coroutineManager.StartCoroutine(scene.LoadRoutineAsync());
+            //        while (coroutine.Active)
+            //            coroutineManager.Update();
+            //    }
+            //    catch (Exception)
+            //    {
+            //        throw;
+            //    }
+            //});
+            //testThread.Start();
+            var coroutine = Engine.CoroutineManagerAsync.StartCoroutine(scene.LoadRoutineAsync());
+            return new PassiveRoutineObserver(coroutine);
         }
 
-        private async Task LoadInternal(Scene scene)
-        {
-            // Set the current scene to be the loading screen, and get the old one.
-            Scene old = QueueSceneSwap(LoadingScreen);
+        ///// <summary>
+        ///// Sets the provided scene as the current.
+        ///// </summary>
+        ///// <param name="scene">The scene to set as current.</param>
+        ///// <returns>A thread task which will handle the operations.</returns>
+        //public Task SetScene(Scene scene)
+        //{
+        //    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        //    if (scene == null) return Task.CompletedTask;
 
-            PerfProfiler.ProfilerEventStart("SceneUnload", "Loading");
+        //    if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
+        //    {
+        //        Engine.Log.Info("Tried to swap scene while a scene swap is in progress.", MessageSource.SceneManager);
+        //        return _sceneLoadingTask;
+        //    }
 
-            // Unload the old if it isn't the loading screen.
-            if (old != LoadingScreen)
-            {
-                // Wait for the scene to swap to the loading screen.
-                // We don't want to unload it while it is still being updated/drawn.
-                while (Current != LoadingScreen) await Task.Delay(1);
+        //    Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
-                Unload(old);
-            }
+        //    _sceneLoadingTask = Task.Run(() => LoadInternal(scene));
 
-            PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
-            PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
+        //    return _sceneLoadingTask;
+        //}
 
-            try
-            {
-                // Load the new scene.
-                Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
-                await scene.LoadAsync();
-                Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
-                QueueSceneSwap(scene); // Swap from loading screen.
-                while (_swapScene != null) await Task.Delay(1);
-                Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
-            }
-            catch (Exception ex)
-            {
-                Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
-            }
+        //private async Task LoadInternal(Scene scene)
+        //{
+        //    // Set the current scene to be the loading screen, and get the old one.
+        //    Scene old = QueueSceneSwap(LoadingScreen);
 
-            PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
-        }
+        //    PerfProfiler.ProfilerEventStart("SceneUnload", "Loading");
 
-        /// <summary>
-        /// Sets the provided scene as the loading screen.
-        /// </summary>
-        /// <param name="loadingScene">The scene to set as a loading screen.</param>
-        public Task SetLoadingScreen(Scene loadingScene)
-        {
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (loadingScene == null) return Task.CompletedTask;
+        //    // Unload the old if it isn't the loading screen.
+        //    if (old != LoadingScreen)
+        //    {
+        //        // Wait for the scene to swap to the loading screen.
+        //        // We don't want to unload it while it is still being updated/drawn.
+        //        while (Current != LoadingScreen) await Task.Delay(1);
 
-            if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
-            {
-                Engine.Log.Info("Tried to set loading screen while a scene is loading.", MessageSource.SceneManager);
-                return Task.CompletedTask;
-            }
+        //        Unload(old);
+        //    }
 
-            _sceneLoadingTask = Task.Run(() => SetLoadingScreenInternal(loadingScene));
+        //    PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
+        //    PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
 
-            return _sceneLoadingTask;
-        }
+        //    try
+        //    {
+        //        // Load the new scene.
+        //        Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
+        //        await scene.LoadAsync();
+        //        Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
+        //        QueueSceneSwap(scene); // Swap from loading screen.
+        //        while (_swapScene != null) await Task.Delay(1);
+        //        Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
+        //    }
 
-        private async Task SetLoadingScreenInternal(Scene loadingScene)
-        {
-            Scene oldLoadingScreen = LoadingScreen;
+        //    PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
+        //}
 
-            await loadingScene.LoadAsync();
-            LoadingScreen = loadingScene;
+        ///// <summary>
+        ///// Sets the provided scene as the loading screen.
+        ///// </summary>
+        ///// <param name="loadingScene">The scene to set as a loading screen.</param>
+        //public Task SetLoadingScreen(Scene loadingScene)
+        //{
+        //    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        //    if (loadingScene == null) return Task.CompletedTask;
 
-            // Unload the old loading screen.
-            // If it is currently active, swap it with the new loading screen first.
-            if (Current == oldLoadingScreen) QueueSceneSwap(LoadingScreen);
+        //    if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
+        //    {
+        //        Engine.Log.Info("Tried to set loading screen while a scene is loading.", MessageSource.SceneManager);
+        //        return Task.CompletedTask;
+        //    }
 
-            // Wait for swap.
-            while (Current != LoadingScreen) await Task.Delay(1);
-            Unload(oldLoadingScreen);
-        }
+        //    _sceneLoadingTask = Task.Run(() => SetLoadingScreenInternal(loadingScene));
 
-        #endregion
+        //    return _sceneLoadingTask;
+        //}
 
-        #region Legacy API
+        //private async Task SetLoadingScreenInternal(Scene loadingScene)
+        //{
+        //    Scene oldLoadingScreen = LoadingScreen;
 
-        /// <inheritdoc cref="SetScene(Scene)" />
-        public Task SetScene(IScene scene)
-        {
-            return SetScene(new LegacySceneWrapper(scene));
-        }
+        //    await loadingScene.LoadAsync();
+        //    LoadingScreen = loadingScene;
 
-        /// <inheritdoc cref="SetLoadingScreen(Scene)" />
-        public void SetLoadingScreen(IScene loadingScene)
-        {
-            Task loadingSceneTask = SetLoadingScreen(new LegacySceneWrapper(loadingScene));
-#if !WEB
-            loadingSceneTask.Wait();
-#endif
-        }
+        //    // Unload the old loading screen.
+        //    // If it is currently active, swap it with the new loading screen first.
+        //    if (Current == oldLoadingScreen) QueueSceneSwap(LoadingScreen);
 
-        #endregion
+        //    // Wait for swap.
+        //    while (Current != LoadingScreen) await Task.Delay(1);
+        //    Unload(oldLoadingScreen);
+        //}
+
+        //#endregion
 
         #region Helpers
 
-        private void Unload(Scene scene)
-        {
-            // Check if trying to unload the current loading screen.
-            if (scene == LoadingScreen) return;
+        //private void Unload(Scene scene)
+        //{
+        //    // Check if trying to unload the current loading screen.
+        //    if (scene == LoadingScreen) return;
 
-            try
-            {
-                Engine.Log.Trace($"Unloading scene [{scene}].", MessageSource.SceneManager);
-                scene.Unload();
-                Engine.Log.Info($"Unloaded scene [{scene}].", MessageSource.SceneManager);
-            }
-            catch (Exception ex)
-            {
-                if (Debugger.IsAttached) throw;
-                Engine.CriticalError(new Exception($"Couldn't unload scene - {scene}.", ex));
-            }
-        }
+        //    try
+        //    {
+        //        Engine.Log.Trace($"Unloading scene [{scene}].", MessageSource.SceneManager);
+        //        scene.Unload();
+        //        Engine.Log.Info($"Unloaded scene [{scene}].", MessageSource.SceneManager);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (Debugger.IsAttached) throw;
+        //        Engine.CriticalError(new Exception($"Couldn't unload scene - {scene}.", ex));
+        //    }
+        //}
 
         /// <summary>
         /// Queues the provides scene to be swapped on the next update and returns the old one (which is the current one).

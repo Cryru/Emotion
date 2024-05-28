@@ -1,8 +1,12 @@
 ﻿#region Using
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Game.Time.Routines;
 using Emotion.Game.World2D;
 using Emotion.Game.World2D.SceneControl;
 using Emotion.Game.World3D;
@@ -10,6 +14,7 @@ using Emotion.Game.World3D.SceneControl;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Primitives;
+using Emotion.Scenography;
 using Emotion.Testing;
 using Emotion.Utility;
 
@@ -27,19 +32,10 @@ public class Program
             return;
         }
 
-        var config = new Configurator
-        {
-            DebugMode = true
-        };
-
-        Engine.Setup(config);
-
-        if (CommandLineParser.FindArgument(args, "3d", out string _))
-            Engine.SceneManager.SetScene(new TestScene3D());
-        else
-            Engine.SceneManager.SetScene(new TestScene2D());
-
-        Engine.Run();
+        Engine.Start(new Configurator {
+            DebugMode = true,
+            HostTitle = "Example"
+        }, EntryPointAsync);
     }
 
     private static void MainTests(string[] args)
@@ -49,48 +45,73 @@ public class Program
             DebugMode = true
         };
 
-        TestExecutor.ExecuteTests(args, config);
+        //TestExecutor.ExecuteTests(args, config);
+    }
+
+    private static IEnumerator EntryPointAsync()
+    {
+        yield return Engine.SceneManager.SetSceneAsyncRoutine(new TestScene());
+        
     }
 }
 
-public class TestScene3D : World3DBaseScene<Map3D>
+public class TestScene : Scene
 {
-    public override Task LoadAsync()
+    protected override IEnumerator LoadSceneRoutineAsync()
     {
-        var cam3D = new Camera3D(new Vector3(100));
-        cam3D.LookAtPoint(Vector3.Zero);
-        Engine.Renderer.Camera = cam3D;
-
-        _editor.EnterEditor();
-        return Task.CompletedTask;
+        //throw new System.Exception("haa");
+        yield break;
     }
 
-    public override void Draw(RenderComposer composer)
+    protected override void RenderScene(RenderComposer c)
     {
-        composer.SetUseViewMatrix(false);
-        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
-        composer.ClearDepth();
-        composer.SetUseViewMatrix(true);
+        
+    }
 
-        base.Draw(composer);
+    protected override void UpdateScene(float dt)
+    {
+        
     }
 }
 
-public class TestScene2D : World2DBaseScene<Map2D>
-{
-    public override Task LoadAsync()
-    {
-        _editor.EnterEditor();
-        return Task.CompletedTask;
-    }
+//public class TestScene3D : World3DBaseScene<Map3D>
+//{
+//    public override Task LoadAsync()
+//    {
+//        var cam3D = new Camera3D(new Vector3(100));
+//        cam3D.LookAtPoint(Vector3.Zero);
+//        Engine.Renderer.Camera = cam3D;
 
-    public override void Draw(RenderComposer composer)
-    {
-        composer.SetUseViewMatrix(false);
-        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
-        composer.ClearDepth();
-        composer.SetUseViewMatrix(true);
+//        _editor.EnterEditor();
+//        return Task.CompletedTask;
+//    }
 
-        base.Draw(composer);
-    }
-}
+//    public override void Draw(RenderComposer composer)
+//    {
+//        composer.SetUseViewMatrix(false);
+//        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
+//        composer.ClearDepth();
+//        composer.SetUseViewMatrix(true);
+
+//        base.Draw(composer);
+//    }
+//}
+
+//public class TestScene2D : World2DBaseScene<Map2D>
+//{
+//    public override Task LoadAsync()
+//    {
+//        _editor.EnterEditor();
+//        return Task.CompletedTask;
+//    }
+
+//    public override void Draw(RenderComposer composer)
+//    {
+//        composer.SetUseViewMatrix(false);
+//        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
+//        composer.ClearDepth();
+//        composer.SetUseViewMatrix(true);
+
+//        base.Draw(composer);
+//    }
+//}

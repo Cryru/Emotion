@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Graphics;
 
@@ -13,17 +14,19 @@ namespace Emotion.Scenography
     /// </summary>
     public class DefaultLoadingScene : Scene
     {
-        public override Task LoadAsync()
+        protected override IEnumerator LoadSceneRoutineAsync()
         {
-            return Task.CompletedTask;
+            yield break;
         }
 
-        public override void Update()
+        protected override void UpdateScene(float dt)
         {
+
         }
 
-        public override void Draw(RenderComposer composer)
+        protected override void RenderScene(RenderComposer c)
         {
+
         }
     }
 }

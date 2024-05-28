@@ -87,57 +87,67 @@ namespace Emotion.Game.Time.Routines
         public virtual void Run()
         {
             if (Finished) return;
-
-            if (CurrentWaiter != null) // No waiter, or routine finished
+            
+            while (true)
             {
-                CurrentWaiter.Update();
-
-                // If the current waiter is a subroutine, assign its waiting time to the parent routine so that the
-                // coroutine manager doesn't have to walk down each coroutine.
-                if (CurrentWaiter is Coroutine subRtn && subRtn.WaitingForTime != 0)
-                    WaitingForTime = subRtn.WaitingForTime;
-
-                if (!CurrentWaiter.Finished) return; // Current waiter is not ready. Continue waiting
-            }
-
-            // Increment the routine.
-            bool? incremented = _routine?.MoveNext();
-            object currentYield = _routine?.Current;
-
-            if (incremented == true)
-            {
-                switch (currentYield)
+                if (CurrentWaiter != null) // No waiter, or routine finished
                 {
-                    // Check if a delay, and add it as the routine's delay.
-                    case IRoutineWaiter routineDelay:
-                        CurrentWaiter = routineDelay;
-                        break;
-                    // Check if adding a subroutine.
-                    case IEnumerator subroutine:
-                        var subRtn = new Coroutine(subroutine);
-                        CurrentWaiter = subRtn;
-#if DEBUG
-                        subRtn.DebugCoroutineCreationStack = $"Unknown subroutine stack. Yield a Coroutine object for full stack. Yield statement index {GetCoroutineStack()}";
-#endif
-                        break;
+                    CurrentWaiter.Update();
 
-                    // Time waiting.
-                    case int timeWaiting:
-                        CurrentWaiter = null;
-                        WaitingForTime = timeWaiting;
-                        break;
-                    case float timeWaitingF:
-                        CurrentWaiter = null;
-                        WaitingForTime = timeWaitingF;
-                        break;
+                    // If the current waiter is a subroutine, assign its waiting time to the parent routine so that the
+                    // coroutine manager doesn't have to walk down each coroutine.
+                    if (CurrentWaiter is Coroutine subRtn && subRtn.WaitingForTime != 0)
+                        WaitingForTime = subRtn.WaitingForTime;
+
+                    if (!CurrentWaiter.Finished) break; // Current waiter is not ready. Continue waiting
                 }
 
-                // If the delay is any other object it will delay execution by one coroutine tick.
-                return;
-            }
+                // Currently waiting on time
+                if (WaitingForTime != 0) break;
 
-            CurrentWaiter = null;
-            _routine = null;
+                // Increment the routine.
+                bool? incremented = _routine?.MoveNext();
+                object currentYield = _routine?.Current;
+
+                if (incremented == true)
+                {
+                    switch (currentYield)
+                    {
+                        // Check if a delay, and add it as the routine's delay.
+                        case IRoutineWaiter routineDelay:
+                            CurrentWaiter = routineDelay;
+                            break;
+                        // Check if adding a subroutine.
+                        case IEnumerator subroutine:
+                            var subRtn = new Coroutine(subroutine);
+                            CurrentWaiter = subRtn;
+#if DEBUG
+                            subRtn.DebugCoroutineCreationStack = $"Unknown subroutine stack. Yield a Coroutine object for full stack. Yield statement index {GetCoroutineStack()}";
+#endif
+                            break;
+
+                        // Time waiting.
+                        case int timeWaiting:
+                            CurrentWaiter = null;
+                            WaitingForTime = timeWaiting;
+                            break;
+                        case float timeWaitingF:
+                            CurrentWaiter = null;
+                            WaitingForTime = timeWaitingF;
+                            break;
+                    }
+
+                    // Yielding null means wait one tick.
+                    if (currentYield == null) break;
+                }
+                else
+                {
+                    // It's over!
+                    CurrentWaiter = null;
+                    _routine = null;
+                    break;
+                }
+            }
         }
 
         /// <summary>
