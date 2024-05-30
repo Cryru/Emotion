@@ -1,8 +1,9 @@
 ﻿#nullable enable
 
+using Emotion;
 using Emotion.Editor.PropertyEditors;
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public class GameDataReference
 {
@@ -16,9 +17,9 @@ public class GameDataReference<T> : GameDataReference where T : GameDataObject
         return new GameDataReference<T>() { Id = id };
     }
 
-    public static implicit operator GameDataReference<T>?(T? gameData)
+    public static implicit operator GameDataReference<T>(T? gameData)
     {
-        if (gameData == null) return null;
+        if (gameData == null) return new GameDataReference<T>();
         return new GameDataReference<T>() { Id = gameData.Id };
     }
 

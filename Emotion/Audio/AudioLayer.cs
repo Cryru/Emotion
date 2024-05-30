@@ -512,7 +512,7 @@ namespace Emotion.Audio
             bool currentChanged = _currentTrack != currentTrack;
             bool nextChanged = _nextTrack != nextTrack;
 
-            int prevTracKPlayHead = _playHead;
+            int prevTrackPlayHead = _playHead;
 
             // If both the current and next changed (or just current if no next)
             // that means everything has changed. This usually happens when the current track
@@ -533,7 +533,7 @@ namespace Emotion.Audio
             {
                 OnTrackChanged?.Invoke(_currentTrack?.File, currentTrack?.File);
                 _loopCount = 0;
-                TrackChangedFx(currentTrack, prevTracKPlayHead);
+                TrackChangedFx(currentTrack, prevTrackPlayHead);
 
                 // Current changed, but we're not playing. If we don't
                 // drop the cached audio then once we start playing a couple
@@ -749,6 +749,17 @@ namespace Emotion.Audio
             MetricBackendMissedFrames = 0;
             MetricDataStoredInBlocks = 0;
 #endif
+        }
+
+        public void SetPlayhead(float setTo)
+        {
+            lock (this)
+            {
+                if (_currentTrack == null) return;
+
+                float progress = setTo / _currentTrack.File.Duration;
+                _playHead = (int) Math.Clamp(_totalSamplesConv * progress, 0, _totalSamplesConv);
+            }
         }
 
         #endregion

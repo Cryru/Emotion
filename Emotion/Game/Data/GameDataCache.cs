@@ -4,78 +4,23 @@
 
 using System.Collections;
 using System.Threading.Tasks;
-using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Editor.EditorWindows.DataEditorUtil.GameDataObject>;
+using Emotion.Editor.EditorHelpers;
+using Emotion.Game.Data;
+using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
 #endregion
 
-namespace Emotion.Editor.EditorWindows.DataEditorUtil;
+namespace Emotion.Game.Data;
 
 public static partial class GameDataDatabase
 {
-    public struct GameDataArrayEnum<T> : IEnumerator<T> where T : GameDataObject
-    {
-        private int _currentIndex = -1;
-        private List<GameDataObject> _objects;
-
-        public T Current => (T)_objects[_currentIndex];
-
-        object IEnumerator.Current => Current;
-
-        public GameDataArrayEnum(List<GameDataObject> objects)
-        {
-            _objects = objects;
-        }
-
-        public void Dispose()
-        {
-            _objects = null!;
-        }
-
-        public bool MoveNext()
-        {
-            _currentIndex++;
-            return _currentIndex < _objects.Count;
-        }
-
-        public void Reset()
-        {
-            _currentIndex = 0;
-        }
-    }
-
-    // Protects the game data list and allows enumeration and indexing.
-    public class GameDataArray<T> : IEnumerable<T> where T : GameDataObject
-    {
-        private List<GameDataObject> _objects;
-
-        public int Length { get => _objects.Count; }
-
-        public GameDataArray(List<GameDataObject> objects)
-        {
-            _objects = objects;
-        }
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return new GameDataArrayEnum<T>(_objects);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return new GameDataArrayEnum<T>(_objects);
-        }
-
-        public T this[int key]
-        {
-            get => (T)_objects[key];
-        }
-    }
-
     // Database internal class for handling storage of game data objects of a particular type.
     private sealed class GameDataCache
     {
         public Type Type { get; init; }
+
         public List<GameDataObject> Objects = new();
+
         public Dictionary<string, int> IdMap = new(StringComparer.OrdinalIgnoreCase);
 
         public GameDataCache(Type type)
@@ -115,6 +60,11 @@ public static partial class GameDataDatabase
             return Objects[idx];
         }
 
+        public GameDataArray<T> GetDataEnum<T>() where T : GameDataObject
+        {
+            return new GameDataArray<T>(Objects);
+        }
+
         public static async Task LoadGameDataAssetTask(string fileName, GameDataCache thisAssetCache)
         {
             GameDataObjectAsset? asset = await Engine.AssetLoader.GetAsync<GameDataObjectAsset>(fileName, false);
@@ -129,11 +79,6 @@ public static partial class GameDataDatabase
             {
                 thisAssetCache.Objects.Add(gameDataObjContent);
             }
-        }
-
-        public GameDataArray<T> GetDataEnum<T>() where T : GameDataObject
-        {
-            return new GameDataArray<T>(Objects);
         }
     }
 }

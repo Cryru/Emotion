@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.EditorWindows;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Text;
 using Emotion.Game.World.Editor.Actions;
 using Emotion.Game.World.Prefab;
@@ -22,7 +21,7 @@ using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
-using System.IO;
+using Emotion.Game.Data;
 
 #endregion
 

@@ -625,6 +625,7 @@ namespace Emotion.UI
             get => _windowColor;
             set
             {
+                if (_windowColor == value) return;
                 _windowColor = value;
                 InvalidateColor();
             }
@@ -731,7 +732,7 @@ namespace Emotion.UI
             return new PassiveRoutineObserver(_alphaTweenRoutine);
         }
 
-        protected void CalculateColor()
+        protected virtual void CalculateColor()
         {
             if (Parent == null || IgnoreParentColor)
                 _calculatedColor = WindowColor;
@@ -1198,6 +1199,12 @@ namespace Emotion.UI
             }
 
             return null;
+        }
+
+        public TWindow? GetWindowById<TWindow>(string id) where TWindow : UIBaseWindow
+        {
+            var win = GetWindowById(id);
+            return win as TWindow;
         }
 
         public bool VisibleAlongTree()

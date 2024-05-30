@@ -25,20 +25,6 @@ public class EditorButton : UICallbackButton
 
     private string? _text;
 
-    public bool Enabled
-    {
-        get => _enabled;
-        set
-        {
-            _enabled = value;
-
-            if (Controller == null) return;
-            RecalculateButtonColor();
-        }
-    }
-
-    private bool _enabled = true;
-
     #region Theme
 
     public Color NormalColor = MapEditorColorPalette.ButtonColor;
@@ -81,7 +67,6 @@ public class EditorButton : UICallbackButton
         txt.WindowColor = MapEditorColorPalette.TextColor;
         txt.Id = "buttonText";
         txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-        txt.IgnoreParentColor = true;
         txt.Text = _text;
         _label = txt;
         AddChild(txt);
@@ -122,9 +107,17 @@ public class EditorButton : UICallbackButton
         RecalculateButtonColor();
     }
 
+    protected override void OnEnabledChanged()
+    {
+        base.OnEnabledChanged();
+        RecalculateButtonColor();
+    }
+
     private void RecalculateButtonColor()
     {
-        _label.IgnoreParentColor = Enabled;
+        if (_label != null)
+            _label.IgnoreParentColor = Enabled;
+
         if (!Enabled)
         {
             WindowColor = DisabledColor;

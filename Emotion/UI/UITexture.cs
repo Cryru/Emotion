@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation2D;
 using Emotion.Graphics;
+using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Utility;
 
@@ -103,10 +104,34 @@ namespace Emotion.UI
         /// </summary>
         public Vector2 RowAndColumnSpacing = Vector2.Zero;
 
+        public bool FlipX;
+
         private Rectangle _uv;
 
         [DontSerialize]
         public TextureAsset TextureAsset { get; protected set; }
+
+        #region Shader
+
+        public string ShaderFilePath
+        {
+            get => _shaderFilePath;
+            set
+            {
+                _shaderFilePath = value;
+                InvalidateLoaded();
+            }
+        }
+
+        private string _shaderFilePath;
+
+        [DontSerialize]
+        public ShaderAsset ShaderAsset { get; set; }
+
+        [DontSerialize]
+        public Action<ShaderProgram> OnShaderSet;
+
+        #endregion
 
         public UITexture(TextureAsset texture) : this()
         {
@@ -124,11 +149,24 @@ namespace Emotion.UI
             var loadedNew = false;
             if (TextureFile == null) return;
 
-            var fileEngineName = AssetLoader.NameToEngineName(TextureFile);
+            string fileEngineName = AssetLoader.NameToEngineName(TextureFile);
             if (TextureAsset == null || TextureAsset.Name != fileEngineName || TextureAsset.Disposed)
             {
                 TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(fileEngineName);
                 loadedNew = true;
+            }
+
+            if (ShaderFilePath == null)
+            {
+                ShaderAsset = null;
+            }
+            else
+            {
+                string shaderPathEngineName = AssetLoader.NameToEngineName(ShaderFilePath);
+                if (ShaderAsset == null || ShaderAsset.Name != shaderPathEngineName || ShaderAsset.Disposed)
+                {
+                    ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(ShaderFilePath);
+                }
             }
 
             if (TextureAsset == null) return;
@@ -164,8 +202,21 @@ namespace Emotion.UI
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            if (TextureAsset == null) return base.RenderInternal(c);
-            c.RenderSprite(Position, Size, _calculatedColor, TextureAsset.Texture, _uv);
+            ShaderProgram prevShader = c.CurrentState.Shader;
+            if (ShaderAsset != null)
+            {
+                c.SetShader(ShaderAsset.Shader);
+                OnShaderSet?.Invoke(ShaderAsset.Shader);
+            }
+
+            if (TextureAsset == null)
+                base.RenderInternal(c);
+            else
+                c.RenderSprite(Position, Size, _calculatedColor, TextureAsset.Texture, _uv, FlipX);
+
+            if (ShaderAsset != null)
+                c.SetShader(prevShader);
+
             return true;
         }
 
@@ -192,7 +243,7 @@ namespace Emotion.UI
             _uv = Animation2DHelpers.GetGridFrameBounds(textureSize, frameSize, RowAndColumnSpacing, rowIdx, columnIdx);
         }
 
-        private Vector2 GetRenderSizeProcessed(Vector2 space)
+        protected Vector2 GetRenderSizeProcessed(Vector2 space)
         {
             float scale = GetScale();
             float xVal = RenderSize!.Value.X;

@@ -22,6 +22,7 @@ namespace Emotion.Game.Time
 #if DEBUG
         private string _dbgTimerId;
         private float _dbgLastUpdate;
+        private string _dbgLastUpdateStack;
 #endif
 
         public After(float delay, Action function = null)
@@ -51,8 +52,12 @@ namespace Emotion.Game.Time
             }
 
 #if DEBUG
-            if (_dbgLastUpdate == Engine.TotalTime) Engine.Log.Warning($"Timer {_dbgTimerId} is being updated twice in one tick.", "After.cs", true);
+            if (_dbgLastUpdate == Engine.TotalTime)
+            {
+                Engine.Log.Warning($"Timer is being updated twice in one tick.", "After.cs", true);
+            }
             _dbgLastUpdate = Engine.TotalTime;
+            _dbgLastUpdateStack = Environment.StackTrace;
 #endif
 
             _timePassed += timePassed;

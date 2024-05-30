@@ -4,7 +4,7 @@
 
 using System.Reflection;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
+using Emotion.Game.Data;
 using Emotion.IO;
 using Emotion.UI;
 
@@ -145,8 +145,7 @@ public class DataEditorGeneric : EditorPanel
 
     private void SaveToFile(bool force = false)
     {
-        GameDataDatabase.GameDataArray<GameDataObject>? data = GameDataDatabase.GetObjectsOfType(_type);
-        if (data == null) return;
+        GameDataArray<GameDataObject> data = GameDataDatabase.GetObjectsOfType(_type);
         foreach (var item in data)
         {
             if (!force && !_unsaved.Contains(item)) continue;
@@ -180,8 +179,8 @@ public class DataEditorGeneric : EditorPanel
             var item = data[i];
             var key = item.Id;
 
-            string label = key;
-            if (_unsaved.Contains(item)) label += "(*)";
+            string label = item.ToString() ?? key;
+            if (_unsaved.Contains(item)) label += " (*)";
 
             var uiForItem = new EditorButton
             {

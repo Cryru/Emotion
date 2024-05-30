@@ -6,6 +6,7 @@ using Emotion.Common.Serialization;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Utility;
+using System.Net.Sockets;
 
 #endregion
 
@@ -69,6 +70,7 @@ namespace Emotion.UI
         public int SelectorRatio = 1;
 
         public Color DefaultSelectorColor = Color.Red;
+        public Color RolloverColor = Color.PrettyRed;
 
         [DontSerialize] public Action<int>? OnValueChanged;
 
@@ -80,6 +82,8 @@ namespace Emotion.UI
         public UISlider()
         {
             HandleInput = true;
+            FillX = false;
+            FillY = false;
         }
 
         public override void AttachedToController(UIController controller)
@@ -88,11 +92,22 @@ namespace Emotion.UI
             UIBaseWindow? scroll = GetWindowById("Selector");
             if (scroll == null)
             {
-                scroll = new UISolidColor {WindowColor = DefaultSelectorColor, Id = "Selector", CodeGenerated = true};
+                scroll = new UISolidColor {
+                    WindowColor = DefaultSelectorColor,
+                    Id = "Selector",
+                    CodeGenerated = true
+                };
                 AddChild(scroll);
             }
 
             _selector = scroll;
+        }
+
+        protected override bool UpdateInternal()
+        {
+            Vector2 mouse = MouseInside ? Engine.Host.MousePosition : Vector2.Zero;
+            _selector.WindowColor = _dragging || _selector.RenderBounds.Contains(mouse) ? RolloverColor : DefaultSelectorColor;
+            return base.UpdateInternal();
         }
 
         public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
@@ -149,6 +164,15 @@ namespace Emotion.UI
             _selector.MaxSize = selectorSize;
         }
 
+        // Glue new UI and old UI
+        protected override Vector2 NEW_Measure(Vector2 space)
+        {
+            var size = base.NEW_Measure(space);
+            AfterMeasure(size);
+            BeforeLayout(Vector2.Zero);
+            return size;
+        }
+
         protected override Vector2 BeforeLayout(Vector2 position)
         {
             Vector2 size = Size / GetScale();
@@ -156,7 +180,7 @@ namespace Emotion.UI
 
             if (Horizontal)
             {
-                float selectorSize = _selector.Width / _selector.GetScale();
+                float selectorSize = _selector.MaxSize.X;
                 float offset;
                 if (!KeepSelectorInside)
                 {
@@ -172,7 +196,7 @@ namespace Emotion.UI
             }
             else
             {
-                float selectorSize = _selector.Height / _selector.GetScale();
+                float selectorSize = _selector.MaxSize.Y;
                 float offset;
                 if (!KeepSelectorInside)
                 {

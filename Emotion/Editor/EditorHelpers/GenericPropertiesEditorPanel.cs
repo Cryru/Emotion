@@ -1,7 +1,7 @@
 ﻿#region Using
 
-using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Editor.PropertyEditors;
+using Emotion.Game.Data;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Standard.XML;
@@ -134,7 +134,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
                     editor.SetValue(propertyValue); // Initialize value before attaching callback.
                     editor.SetCallbackValueChanged(newValue => { ApplyObjectChange(editor, field, newValue); });
 
-                    var editorAsWnd = (UIBaseWindow) editor;
+                    var editorAsWnd = (UIBaseWindow)editor;
                     editorAsWnd.Anchor = UIAnchor.CenterRight;
                     editorAsWnd.ParentAnchor = UIAnchor.CenterRight;
                     editorAsWnd.ZOffset = 10;
@@ -192,6 +192,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
         if (field.TypeHandler.Type == typeof(float)) return new PropEditorNumber<float>();
         if (field.TypeHandler.Type == typeof(int)) return new PropEditorNumber<int>();
         if (field.TypeHandler.Type == typeof(byte)) return new PropEditorNumber<byte>();
+        if (field.TypeHandler.Type == typeof(double)) return new PropEditorNumber<double>();
         if (field.TypeHandler.Type == typeof(Vector3)) return new PropEditorFloat3();
         if (field.TypeHandler.Type == typeof(Rectangle)) return new PropEditorRect();
         if (field.TypeHandler.Type == typeof(Matrix4x4)) return new PropEditorMatrix();
@@ -225,7 +226,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
         {
             if (!Helpers.AreObjectsEqual(_obj, value)) OnNonComplexTypeValueChanged?.Invoke(value);
             _obj = value;
-            OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow.Parent!);
+            OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow.Parent!);
             return;
         }
 
@@ -237,7 +238,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
         if (field.TypeHandler is XMLArrayTypeHandler || !Helpers.AreObjectsEqual(oldValue, value))
             OnPropertyEdited?.Invoke(field.Name, oldValue);
 
-        OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow.Parent!);
+        OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow.Parent!);
         UpdateFieldVisibility();
     }
 
@@ -261,7 +262,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
             if (!Helpers.AreObjectsEqual(editor.GetValue(), propertyValue))
             {
                 editor.SetValue(propertyValue);
-                OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel) editorWindow?.Parent!);
+                OnFieldEditorUpdated(field, editor, (FieldEditorWithLabel)editorWindow?.Parent!);
             }
         }
     }

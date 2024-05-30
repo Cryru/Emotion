@@ -37,8 +37,8 @@
             return s =>
             {
                 if (s < 0.5f)
-                    return methodFuncIn(2 * s) * 0.5f;
-                return 1 + methodFuncOut(2 * s - 1) * 0.5f;
+                    return methodFuncIn(2 * s);
+                return methodFuncOut(2 * s - 1);
             };
         }
 
@@ -108,7 +108,7 @@
             float res1 = MathF.Min(a * MathF.Pow(s, 2), a * MathF.Pow(s - 1.5f * b, 2) + 0.75f);
             float res2 = MathF.Min(a * MathF.Pow(s - 2.25f * b, 2) + 0.9375f, a * MathF.Pow(s - 2.625f * b, 2));
 
-            return MathF.Min(res1, res2) + 0.984375f;
+            return MathF.Min(res1, res2);// + 0.984375f;
         }
     }
 }

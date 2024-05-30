@@ -83,19 +83,21 @@ public static class Helpers
     /// <summary>
     /// Returns a random item from the array.
     /// </summary>
-    public static T GetRandomArrayItem<T>(T[] array)
+    public static T? GetRandomArrayItem<T>(T[] array)
     {
+        if (array.Length == 0) return default;
         var num = GenerateRandomNumber(0, array.Length - 1);
         return array[num];
     }
 
-    public static T GetRandomArrayItem<T>(List<T> array)
+    public static T? GetRandomArrayItem<T>(List<T> array)
     {
+        if (array.Count == 0) return default;
         var num = GenerateRandomNumber(0, array.Count - 1);
         return array[num];
     }
 
-    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null)
+    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null)
     {
         if (weights.Count == 0) return default;
         if (weights.Count == 1) return weights[0].obj;
@@ -105,6 +107,8 @@ public static class Helpers
         int total = 0;
         for (int i = 0; i < weights.Count; i++)
         {
+            if (exceptions != null && exceptions.IndexOf(weights[i].obj) != -1) continue;
+
             total += weights[i].weight;
         }
 
@@ -115,11 +119,16 @@ public static class Helpers
         for (int i = 0; i < weights.Count; i++)
         {
             (int weight, T obj) = weights[i];
+            if (exceptions != null && exceptions.IndexOf(weights[i].obj) != -1) continue;
+
             if (weight == 0) continue;
 
             sum += weight;
             if (rand < sum)
+            {
+                if (eject) weights.RemoveAt(i);
                 return obj;
+            }
         }
 
         Assert(false, "No weighted random?");

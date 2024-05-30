@@ -99,6 +99,10 @@ namespace Emotion.UI
         /// </summary>
         public float UnderlineThickness = 0.5f;
 
+        public float OutlineSize;
+
+        public Color OutlineColor;
+
         protected string _text;
         protected FontAsset _fontFile;
         protected DrawableFontAtlas _atlas;
@@ -154,7 +158,18 @@ namespace Emotion.UI
             _scaledUnderlineThickness = UnderlineThickness * scale;
 
             _layouter.Restart();
-            if (string.IsNullOrEmpty(_text)) return new Vector2(0, _atlas.FontHeight);
+            if (string.IsNullOrEmpty(_text))
+            {
+                if (TextHeightMode == GlyphHeightMeasurement.FullHeight)
+                {
+                    return new Vector2(0, _atlas.FontHeight);
+                }
+                else
+                {
+                    _layouter.SetupBox("", space, TextHeightMode);
+                    return new Vector2(_layouter.NeededWidth, _layouter.NeededHeight);
+                }
+            }
 
             _layouter.SetupBox(_text, space, TextHeightMode);
             return new Vector2(_layouter.NeededWidth, _layouter.NeededHeight);
@@ -184,7 +199,10 @@ namespace Emotion.UI
             }
 
             _layouter.RestartPen();
-            c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter);
+            if (OutlineSize > 0)
+                c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter, FontEffect.Outline, OutlineSize * GetScale(), OutlineColor);
+            else
+                c.RenderString(Position, _calculatedColor, _text, _atlas, _layouter);
 
             return true;
         }

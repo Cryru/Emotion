@@ -1,5 +1,4 @@
 ﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using System;

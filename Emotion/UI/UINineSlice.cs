@@ -8,6 +8,10 @@ namespace Emotion.UI
 {
     public class UINineSlice : UITexture
     {
+        public static float FrameScaleMod = 1f;
+
+        public Vector2 FrameScale = Vector2.One;
+
         public Rectangle Frame;
 
         private Rectangle _topLeftUV;
@@ -56,7 +60,7 @@ namespace Emotion.UI
             if (TextureAsset == null) return;
 
             //Vector2 imageScale = ImageScale ?? Vector2.One;
-            Vector2 imageScale = Vector2.One;
+            Vector2 imageScale = FrameScale * (GetScale() / FrameScaleMod);
             Vector2 textureSize = TextureAsset.Texture.Size;
             _topLeftUV = new Rectangle(Vector2.Zero, Frame.Position);
             _topLeftDrawSize = _topLeftUV.Size * imageScale;

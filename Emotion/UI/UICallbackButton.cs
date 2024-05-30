@@ -5,63 +5,82 @@ using Emotion.Platform.Input;
 
 #endregion
 
-namespace Emotion.UI
+#nullable enable
+
+namespace Emotion.UI;
+
+public class UICallbackButton : UIBaseWindow
 {
-    public class UICallbackButton : UIBaseWindow
+    [DontSerialize] public Action<UICallbackButton> OnMouseEnterProxy;
+    [DontSerialize] public Action<UICallbackButton> OnMouseLeaveProxy;
+    [DontSerialize] public Action<UICallbackButton, Vector2> OnMouseMoveProxy;
+    [DontSerialize] public Action<UICallbackButton> OnClickedProxy;
+    [DontSerialize] public Action<UICallbackButton> OnClickedUpProxy;
+    [DontSerialize] public Func<UIRollover> OnRolloverSpawn;
+
+    public bool Enabled
     {
-        [DontSerialize] public Action<UICallbackButton> OnMouseEnterProxy;
-        [DontSerialize] public Action<UICallbackButton> OnMouseLeaveProxy;
-        [DontSerialize] public Action<UICallbackButton, Vector2> OnMouseMoveProxy;
-        [DontSerialize] public Action<UICallbackButton> OnClickedProxy;
-        [DontSerialize] public Action<UICallbackButton> OnClickedUpProxy;
-        [DontSerialize] public Func<UIRollover> OnRolloverSpawn;
-
-        public UICallbackButton()
+        get => _enabled;
+        set
         {
-            HandleInput = true;
+            if (_enabled == value) return;
+            _enabled = value;
+            OnEnabledChanged();
         }
+    }
 
-        public override void OnMouseEnter(Vector2 _)
-        {
-            base.OnMouseEnter(_);
-            OnMouseEnterProxy?.Invoke(this);
-        }
+    private bool _enabled = true;
 
-        public override void OnMouseLeft(Vector2 mousePos)
-        {
-            base.OnMouseLeft(mousePos);
-            OnMouseLeaveProxy?.Invoke(this);
-        }
+    public UICallbackButton()
+    {
+        HandleInput = true;
+    }
 
-        public override void OnMouseMove(Vector2 mousePos)
-        {
-            base.OnMouseMove(mousePos);
-            OnMouseMoveProxy?.Invoke(this, mousePos);
-        }
+    public override void OnMouseEnter(Vector2 _)
+    {
+        base.OnMouseEnter(_);
+        OnMouseEnterProxy?.Invoke(this);
+    }
 
-        public override UIRollover? GetRollover()
-        {
-            return OnRolloverSpawn?.Invoke();
-        }
+    public override void OnMouseLeft(Vector2 mousePos)
+    {
+        base.OnMouseLeft(mousePos);
+        OnMouseLeaveProxy?.Invoke(this);
+    }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override void OnMouseMove(Vector2 mousePos)
+    {
+        base.OnMouseMove(mousePos);
+        OnMouseMoveProxy?.Invoke(this, mousePos);
+    }
+
+    public override UIRollover? GetRollover()
+    {
+        return OnRolloverSpawn?.Invoke();
+    }
+
+    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    {
+        if (key == Key.MouseKeyLeft && Enabled)
         {
-            if (key == Key.MouseKeyLeft)
+            if (status == KeyStatus.Down)
             {
-                if (status == KeyStatus.Down)
-                {
-                    OnClickedProxy?.Invoke(this);
-                    return false;
-                }
-
-                if (status == KeyStatus.Up)
-                {
-                    OnClickedUpProxy?.Invoke(this);
-                    return false;
-                }
+                OnClickedProxy?.Invoke(this);
+                return false;
             }
 
-            return base.OnKey(key, status, mousePos);
+            if (status == KeyStatus.Up)
+            {
+                OnClickedUpProxy?.Invoke(this);
+                return false;
+            }
         }
+
+        return base.OnKey(key, status, mousePos);
+    }
+
+    protected virtual void OnEnabledChanged()
+    {
+
     }
 }

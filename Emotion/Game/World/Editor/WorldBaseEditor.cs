@@ -6,7 +6,6 @@ using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Editor.EditorWindows.DataEditorUtil;
 using Emotion.Game.Time;
 using Emotion.Game.World.SceneControl;
 using Emotion.Game.World2D.EditorHelpers;
