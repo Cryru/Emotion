@@ -15,11 +15,12 @@ namespace Emotion.UI
             public UIScrollAreaScrollableArea()
             {
                 CodeGenerated = true;
+                ChildrenCanExpandParent = false;
             }
 
             protected override bool RenderInternal(RenderComposer c)
             {
-                c.RenderSprite(Position, Size, Color.White * 0.1f);
+                c.RenderSprite(Position, Size, Color.White * 0.05f);
                 return base.RenderInternal(c);
             }
 
@@ -99,6 +100,11 @@ namespace Emotion.UI
             _verticalScroll.TotalArea = _content.MaxScroll.Y;
             _verticalScroll.PageArea = MathF.Min(_verticalScroll.TotalArea, _content.Height);
             _verticalScroll.UpdateScrollbar();
+
+            _horizontalScroll.DontTakeSpaceWhenHidden = true;
+            _verticalScroll.DontTakeSpaceWhenHidden = true;
+            _horizontalScroll.SetVisible(_horizontalScroll.TotalArea > _content.Width);
+            _verticalScroll.SetVisible(true);// _verticalScroll.TotalArea > _content.Height);
         }
 
         protected void ScrollBarCallbackVertical(float amount)
