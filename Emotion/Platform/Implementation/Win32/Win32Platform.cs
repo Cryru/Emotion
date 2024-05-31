@@ -612,7 +612,7 @@ namespace Emotion.Platform.Implementation.Win32
 
         public AssertMessageBoxResponse OpenAssertMessageBox(string message)
         {
-            MessageBoxResult result = User32.MessageBox(IntPtr.Zero, message, "Assert", (uint) MessageBoxFlags.MB_ABORTRETRYIGNORE);
+            MessageBoxResult result = User32.MessageBox(_windowHandle, message, "Assert", (uint) MessageBoxFlags.MB_ABORTRETRYIGNORE);
             switch (result)
             {
                 case MessageBoxResult.IDABORT:
