@@ -576,6 +576,8 @@ namespace Emotion.UI
         /// </summary>
         public UIScaleMode ScaleMode { get; set; } = UIScaleMode.FloatScale;
 
+        public Vector2 Scale = Vector2.One;
+
         /// <summary>
         /// Position relative to another window in the same controller.
         /// </summary>
@@ -1154,12 +1156,9 @@ namespace Emotion.UI
         /// <returns></returns>
         public float GetScale()
         {
-            return ScaleMode switch
-            {
-                UIScaleMode.FloatScale => Engine.Renderer.Scale,
-                UIScaleMode.IntScale => Engine.Renderer.IntScale,
-                _ => 1.0f
-            };
+            if (Scale.X > Scale.Y)
+                return Scale.Y;
+            return Scale.X;
         }
 
         #endregion
@@ -1205,6 +1204,15 @@ namespace Emotion.UI
         {
             var win = GetWindowById(id);
             return win as TWindow;
+        }
+
+        private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Id = "Invalid Window" };
+
+        public UIBaseWindow GetWindowByIdSafe(string id)
+        {
+            UIBaseWindow? win = GetWindowById(id);
+            if (win == null) return _invalidWindow;
+            return win;
         }
 
         public bool VisibleAlongTree()

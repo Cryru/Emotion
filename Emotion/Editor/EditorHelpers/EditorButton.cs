@@ -6,6 +6,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Helpers;
 
 #endregion
 
@@ -29,14 +30,15 @@ public class EditorButton : UICallbackButton
 
     public Color NormalColor = MapEditorColorPalette.ButtonColor;
     public Color RolloverColor = MapEditorColorPalette.ActiveButtonColor;
+    public Color ActiveColor = MapEditorColorPalette.ActiveButtonColor;
     public Color DisabledColor = MapEditorColorPalette.ButtonColorDisabled.SetAlpha(150);
 
     #endregion
 
     public object? UserData;
 
-    private bool _activeMode;
-    private UIText _label = null!;
+    protected bool _activeMode;
+    protected EditorLabel _label;
 
     public EditorButton(string label) : this()
     {
@@ -45,39 +47,27 @@ public class EditorButton : UICallbackButton
 
     public EditorButton()
     {
-        ScaleMode = UIScaleMode.FloatScale;
         FillX = false;
         FillY = false;
+        Paddings = new Rectangle(6, 3, 6, 3);
 
-        StretchX = true;
-        StretchY = true;
-        Paddings = new Rectangle(2, 1, 2, 1);
+        _label = new EditorLabel
+        {
+            Id = "buttonText",
+            Text = _text
+        };
+        AddChild(_label);
     }
 
     public override void AttachedToController(UIController controller)
     {
         base.AttachedToController(controller);
-
-        WindowColor = NormalColor;
-
-        var txt = new UIText();
-        txt.ParentAnchor = UIAnchor.CenterLeft;
-        txt.Anchor = UIAnchor.CenterLeft;
-        txt.ScaleMode = UIScaleMode.FloatScale;
-        txt.WindowColor = MapEditorColorPalette.TextColor;
-        txt.Id = "buttonText";
-        txt.FontSize = MapEditorColorPalette.EditorButtonTextSize;
-        txt.Text = _text;
-        _label = txt;
-        AddChild(txt);
-
         RecalculateButtonColor();
     }
 
     protected override bool RenderInternal(RenderComposer c)
     {
         c.RenderSprite(Position, Size, _calculatedColor);
-        //  if (RenderNonActiveBackground || MouseInside) c.RenderSprite(Position, Size, _calculatedColor);
         return base.RenderInternal(c);
     }
 
@@ -113,7 +103,7 @@ public class EditorButton : UICallbackButton
         RecalculateButtonColor();
     }
 
-    private void RecalculateButtonColor()
+    protected virtual void RecalculateButtonColor()
     {
         if (_label != null)
             _label.IgnoreParentColor = Enabled;
@@ -126,7 +116,7 @@ public class EditorButton : UICallbackButton
 
         if (_activeMode)
         {
-            WindowColor = RolloverColor;
+            WindowColor = ActiveColor;
             return;
         }
 

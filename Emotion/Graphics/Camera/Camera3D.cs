@@ -26,10 +26,12 @@ namespace Emotion.Graphics.Camera
         // Movement
         public float MovementSpeed = 3;
         private Vector2 _lastMousePos;
-        private Vector3 _yawPitchRoll = Vector3.Zero;
+        private Vector3 _yawRollPitch = Vector3.Zero;
         private bool _held;
         private Vector2 _inputDirection;
         private float _inputDirectionZ;
+
+        private Vector3 _movementTarget;
 
         private KeyListenerType _inputPriority;
 
@@ -118,15 +120,15 @@ namespace Emotion.Graphics.Camera
             {
                 Vector2 mousePos = Engine.Host.MousePosition;
                 float xOffset = mousePos.X - _lastMousePos.X;
-                float yOffset = mousePos.Y - _lastMousePos.Y;
-                _yawPitchRoll.X += xOffset * 0.1f;
-                _yawPitchRoll.Z += yOffset * 0.1f;
-                _yawPitchRoll.Z = Maths.Clamp(_yawPitchRoll.Z, -89, 89); // Prevent flip.
+                float yOffset = -(mousePos.Y - _lastMousePos.Y);
+                _yawRollPitch.X += xOffset * 0.1f;
+                _yawRollPitch.Z += yOffset * 0.1f;
+                _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89); // Prevent flip.
                 var direction = new Vector3
                 {
-                    X = MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Z)),
-                    Y = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Z)),
-                    Z = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.Z))
+                    X = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
+                    Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
+                    Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z))
                 };
                 direction = Vector3.Normalize(direction);
                 _lookAt = direction;
@@ -137,7 +139,7 @@ namespace Emotion.Graphics.Camera
 
             if (_inputDirection != Vector2.Zero || _inputDirectionZ != 0)
             {
-                Vector3 movementStraightBack = LookAt * -_inputDirection.Y;
+                Vector3 movementStraightBack = LookAt * _inputDirection.Y;
                 float len = movementStraightBack.Length();
                 movementStraightBack.Z = 0;
                 movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
@@ -162,12 +164,12 @@ namespace Emotion.Graphics.Camera
             else
                 yaw = MathF.Atan2(newVal.Y, newVal.X);
 
-            _yawPitchRoll = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
+            _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
 
             // Prevent look at facing towards or out of RenderComposer.Up
-            _yawPitchRoll.Z = Maths.Clamp(_yawPitchRoll.Z, -89, 89);
-            _lookAt.X = MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.X)) * MathF.Cos(Maths.DegreesToRadians(_yawPitchRoll.Z));
-            _lookAt.Z = MathF.Sin(Maths.DegreesToRadians(_yawPitchRoll.Z));
+            _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89);
+            _lookAt.Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z));
+            _lookAt.Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z));
 
             base.LookAtChanged(oldVal, newVal);
         }
@@ -185,7 +187,7 @@ namespace Emotion.Graphics.Camera
         {
             RenderComposer renderer = Engine.Renderer;
             float aspectRatio = renderer.CurrentTarget.Size.X / renderer.CurrentTarget.Size.Y;
-            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
+            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
         }
 
         public override Vector3 ScreenToWorld(Vector2 position)
@@ -236,23 +238,6 @@ namespace Emotion.Graphics.Camera
         {
             Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
             return new Ray3D(Position, dir - Position);
-        }
-
-        public Quaternion GetCameraOrientation()
-        {
-            Vector3 lookat = LookAt;
-            Vector3 forward = Vector3.Normalize(new Vector3(lookat.X, lookat.Y, 0));
-            Vector3 up = RenderComposer.Up;
-            Vector3 right = Vector3.Cross(forward, up);
-
-            Matrix4x4 rotationMatrix = new Matrix4x4(
-                right.X, right.Y, right.Z, 0,
-                forward.X, forward.Y, forward.Z, 0,
-                up.X, up.Y, up.Z, 0,
-                0, 0, 0, 1
-            );
-
-            return Quaternion.CreateFromRotationMatrix(rotationMatrix);
         }
     }
 }

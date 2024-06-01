@@ -50,7 +50,7 @@ public class Program
 
     private static IEnumerator EntryPointAsync()
     {
-        yield return Engine.SceneManager.SetSceneAsyncRoutine(new TestScene());
+        yield return Engine.SceneManager.SetScene(new TestScene());
         
     }
 }
@@ -65,7 +65,10 @@ public class TestScene : Scene
 
     protected override void RenderScene(RenderComposer c)
     {
-        
+        c.SetUseViewMatrix(false);
+        c.RenderSprite(Vector3.Zero, c.CurrentTarget.Size, Color.PrettyGreen);
+        c.ClearDepth();
+        c.SetUseViewMatrix(true);
     }
 
     protected override void UpdateScene(float dt)

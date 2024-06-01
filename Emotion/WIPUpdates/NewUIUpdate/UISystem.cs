@@ -14,5 +14,44 @@ namespace Emotion.WIPUpdates.NewUIUpdate;
 
 public class UISystem : UIController
 {
+    public Vector2 TargetResolution = new Vector2(1920, 1080);
+
+    protected bool _updateScale;
+
+    public UISystem()
+    {
+        Engine.Host.OnResize += HostResized;
+        HostResized(Engine.Renderer.ScreenBuffer.Size);
+    }
+
+    private void HostResized(Vector2 size)
+    {
+        Scale = size / TargetResolution;
+        _updateScale = true;
+        Engine.Log.Info($"UI Scale is {Scale}", MessageSource.UI);
+    }
+
+    public override void InvalidateLayout()
+    {
+        _updateScale = true;
+        base.InvalidateLayout();
+    }
+
+    protected override bool UpdateInternal()
+    {
+        if (_updateScale) UpdateScaleValues();
+        return base.UpdateInternal();
+    }
+
+    private void UpdateScaleValues()
+    {
+        foreach (UIBaseWindow win in this)
+        {
+            win.Scale = 1f * win.Parent.Scale;
+        }
+        _updateScale = false;
+    }
+
+    
 }
 

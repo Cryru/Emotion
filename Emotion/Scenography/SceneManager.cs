@@ -1,10 +1,12 @@
 ﻿#region Using
 
+using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
+using Silk.NET.Assimp;
 
 // ReSharper disable PossibleUnintendedReferenceComparison
 
@@ -42,26 +44,7 @@ namespace Emotion.Scenography
         /// <summary>
         /// When the scene changes.
         /// </summary>
-        public event Action? SceneChanged;
-
-        #endregion
-
-        #region Private Holders
-
-        /// <summary>
-        /// A mutex which ensures scene swaps don't happen during update and draw.
-        /// </summary>
-        private object _swapMutex = new();
-
-        /// <summary>
-        /// The scene to swap to in the next tick.
-        /// </summary>
-        private Scene? _swapScene;
-
-        /// <summary>
-        /// The task loading the next scene or loading screen.
-        /// </summary>
-        private Task? _sceneLoadingTask;
+        public event Action? OnSceneChanged;
 
         #endregion
 
@@ -79,7 +62,6 @@ namespace Emotion.Scenography
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Update()
         {
-            SwapCheck();
             Current.Update();
         }
 
@@ -106,25 +88,55 @@ namespace Emotion.Scenography
         //    }
         //}
 
-        public PassiveRoutineObserver SetSceneAsyncRoutine(Scene scene)
+        public PassiveRoutineObserver SetScene(Scene scene)
         {
-            //Thread testThread = new Thread(() =>
-            //{
-            //    try
-            //    {
-            //        CoroutineManager coroutineManager = new CoroutineManager();
-            //        var coroutine = coroutineManager.StartCoroutine(scene.LoadRoutineAsync());
-            //        while (coroutine.Active)
-            //            coroutineManager.Update();
-            //    }
-            //    catch (Exception)
-            //    {
-            //        throw;
-            //    }
-            //});
-            //testThread.Start();
-            var coroutine = Engine.CoroutineManagerAsync.StartCoroutine(scene.LoadRoutineAsync());
+            Coroutine coroutine = Engine.CoroutineManagerAsync.StartCoroutine(InternalLoadSceneRoutineAsync(scene));
             return new PassiveRoutineObserver(coroutine);
+        }
+
+
+        public PassiveRoutineObserver SetLoadingScreen(Scene loadingScene)
+        {
+            Coroutine coroutine = Engine.CoroutineManagerAsync.StartCoroutine(InternalLoadLoadingScreenRoutineAsync(loadingScene));
+            return new PassiveRoutineObserver(coroutine);
+        }
+
+        private IEnumerator InternalLoadSceneRoutineAsync(Scene scene)
+        {
+            yield return scene.LoadRoutineAsync();
+            Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(scene));
+        }
+
+        private IEnumerator SceneSwapSynchronized(Scene scene)
+        {
+            Scene oldScene = Current;
+            Current = scene;
+            OnSceneChanged?.Invoke();
+            if (oldScene != LoadingScreen)
+            {
+                Engine.CoroutineManagerAsync.StartCoroutine(oldScene.UnloadRoutineAsync());
+            }
+
+            yield break;
+        }
+
+        private IEnumerator InternalLoadLoadingScreenRoutineAsync(Scene scene)
+        {
+            yield return scene.LoadRoutineAsync();
+            Engine.CoroutineManager.StartCoroutine(LoadingScreenSceneSwapSynchronized(scene));
+        }
+
+        private IEnumerator LoadingScreenSceneSwapSynchronized(Scene scene)
+        {
+            Scene oldScene = Current;
+            Current = scene;
+            OnSceneChanged?.Invoke();
+            if (oldScene != LoadingScreen)
+            {
+                Engine.CoroutineManagerAsync.StartCoroutine(oldScene.UnloadRoutineAsync());
+            }
+
+            yield break;
         }
 
         ///// <summary>
@@ -246,55 +258,55 @@ namespace Emotion.Scenography
         //    }
         //}
 
-        /// <summary>
-        /// Queues the provides scene to be swapped on the next update and returns the old one (which is the current one).
-        /// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene, as otherwise the old
-        /// one won't be unloaded.
-        /// </summary>
-        /// <param name="toSwapTo">The scene to queue a swap to.</param>
-        /// <returns>The previously active scene (the current one).</returns>
-        public Scene QueueSceneSwap(Scene toSwapTo)
-        {
-            // Engine is setup but not running. Perform instant swap. This can happen if SetScene loads before Run.
-            // And is usually not a problem unless the SetScene is awaited.
-            if (Engine.Status == EngineStatus.Setup)
-            {
-                Scene old = Current;
-                Current = toSwapTo;
-                return old;
-            }
+        ///// <summary>
+        ///// Queues the provides scene to be swapped on the next update and returns the old one (which is the current one).
+        ///// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene, as otherwise the old
+        ///// one won't be unloaded.
+        ///// </summary>
+        ///// <param name="toSwapTo">The scene to queue a swap to.</param>
+        ///// <returns>The previously active scene (the current one).</returns>
+        //public Scene QueueSceneSwap(Scene toSwapTo)
+        //{
+        //    // Engine is setup but not running. Perform instant swap. This can happen if SetScene loads before Run.
+        //    // And is usually not a problem unless the SetScene is awaited.
+        //    if (Engine.Status == EngineStatus.Setup)
+        //    {
+        //        Scene old = Current;
+        //        Current = toSwapTo;
+        //        return old;
+        //    }
 
-            lock (_swapMutex)
-            {
-                // Check if already waiting on a swap.
-                // Can happen if a scene loads in before the loading screen swap is complete.
-                if (_swapScene != null)
-                {
-                    Scene old = _swapScene;
-                    _swapScene = toSwapTo;
-                    return old;
-                }
+        //    lock (_swapMutex)
+        //    {
+        //        // Check if already waiting on a swap.
+        //        // Can happen if a scene loads in before the loading screen swap is complete.
+        //        if (_swapScene != null)
+        //        {
+        //            Scene old = _swapScene;
+        //            _swapScene = toSwapTo;
+        //            return old;
+        //        }
 
-                _swapScene = toSwapTo;
+        //        _swapScene = toSwapTo;
 
-                return Current;
-            }
-        }
+        //        return Current;
+        //    }
+        //}
 
-        /// <summary>
-        /// Check whether swapping the scene is needed, and perform it.
-        /// </summary>
-        private void SwapCheck()
-        {
-            lock (_swapMutex)
-            {
-                if (_swapScene == null) return;
-                Current = _swapScene;
-                _swapScene = null;
-            }
+        ///// <summary>
+        ///// Check whether swapping the scene is needed, and perform it.
+        ///// </summary>
+        //private void SwapCheck()
+        //{
+        //    lock (_swapMutex)
+        //    {
+        //        if (_swapScene == null) return;
+        //        Current = _swapScene;
+        //        _swapScene = null;
+        //    }
 
-            SceneChanged?.Invoke();
-        }
+        //    SceneChanged?.Invoke();
+        //}
 
         #endregion
     }

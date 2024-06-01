@@ -4,7 +4,9 @@ using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
+using Emotion.UI;
 using Emotion.WIPUpdates.NewUIUpdate;
+using Emotion.WIPUpdates.One;
 
 #endregion
 
@@ -22,19 +24,29 @@ public abstract class Scene
 {
     public SceneStatus Status { get; private set; } = SceneStatus.None;
 
-    public UISystem UI { get; } = new();
+    public UIBaseWindow UIParent { get; } = new()
+    {
+        Id = "SceneRoot"
+    };
+
+    public GameMap Map { get; protected set; }
 
     public IEnumerator LoadRoutineAsync()
     {
         Status = SceneStatus.Loading;
         yield return LoadSceneRoutineAsync();
-        yield return new TaskRoutineWaiter(UI.PreloadUI());
+        Map ??= new GameMap();
+        yield return Map.LoadRoutine();
+
+        Engine.UI.AddChild(UIParent);
+        yield return new TaskRoutineWaiter(Engine.UI.PreloadUI());
+
         Status = SceneStatus.Loaded;
     }
 
     public IEnumerator UnloadRoutineAsync()
     {
-        UI.Dispose();
+        UIParent.Close();
         Status = SceneStatus.Disposed;
         yield break;
     }
@@ -42,17 +54,11 @@ public abstract class Scene
     public void Update()
     {
         UpdateScene(Engine.DeltaTime);
-        UI.Update();
     }
 
-    public void Draw(RenderComposer composer)
+    public void Draw(RenderComposer c)
     {
-        RenderScene(composer);
-
-        composer.SetUseViewMatrix(false);
-        composer.SetDepthTest(true);
-        composer.ClearDepth();
-        UI.Render(composer);
+        RenderScene(c);
     }
 
     protected abstract IEnumerator LoadSceneRoutineAsync();

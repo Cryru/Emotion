@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,8 +17,11 @@ using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform;
+using Emotion.Platform.Debugger;
 using Emotion.Scenography;
 using Emotion.Utility;
+using Emotion.WIPUpdates.NewUIUpdate;
+using Emotion.WIPUpdates.One;
 using SixLabors.ImageSharp;
 
 #endregion
@@ -409,7 +413,9 @@ namespace Emotion.Common
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);
+            UI.Update();
             SceneManager.Update();
+            EngineEditor.UpdateEditor();
             Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
 
             PerformanceMetrics.RegisterTick();
@@ -439,9 +445,28 @@ namespace Emotion.Common
             Renderer.StartFrame();
             PerfProfiler.FrameEventEnd("StartFrame");
 
+            if (Configuration.DebugMode)
+            {
+                Renderer.SetUseViewMatrix(false);
+                Renderer.RenderSprite(Vector3.Zero, Renderer.CurrentTarget.Size, Color.CornflowerBlue);
+                Renderer.ClearDepth();
+                Renderer.SetUseViewMatrix(true);
+            }
+
             PerfProfiler.FrameEventStart("Scene.Draw");
             SceneManager.Draw(Renderer);
             PerfProfiler.FrameEventEnd("Scene.Draw");
+
+            PerfProfiler.FrameEventStart("Editor.Draw");
+            EngineEditor.RenderEditor(Renderer);
+            PerfProfiler.FrameEventEnd("Editor.Draw");
+
+            PerfProfiler.FrameEventStart("Render UI");
+            Renderer.SetUseViewMatrix(false);
+            Renderer.SetDepthTest(false);
+            Renderer.ClearDepth();
+            UI.Render(Renderer);
+            PerfProfiler.FrameEventEnd("Render UI");
 
             PerfProfiler.FrameEventStart("EndFrame");
             Renderer.EndFrame();
@@ -498,12 +523,16 @@ namespace Emotion.Common
 
         #region ONE
 
-        private static Func<IEnumerator> _entryPoint;
+        public static UISystem UI;
+        private static Func<IEnumerator> _entryPointAsyncRoutine;
 
-        public static void Start(Configurator config, Func<IEnumerator> entryPoint)
+        public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
         {
-            _entryPoint = entryPoint;
+            _entryPointAsyncRoutine = entryPointAsyncRoutine;
             Setup(config);
+
+            UI = new UISystem();
+            EngineEditor.Attach();
 
             // Sanity check.
             if (Host == null) return;
@@ -528,8 +557,7 @@ namespace Emotion.Common
                 }
             });
             asyncRoutineThread.Start();
-
-            CoroutineManagerAsync.StartCoroutine(entryPoint());
+            CoroutineManagerAsync.StartCoroutine(entryPointAsyncRoutine());
 
             if (Configuration.LoopFactory == null)
             {
@@ -543,9 +571,4 @@ namespace Emotion.Common
 
         #endregion
     }
-}
-
-public static class Editor
-{
-
 }

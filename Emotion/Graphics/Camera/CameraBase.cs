@@ -59,7 +59,7 @@ namespace Emotion.Graphics.Camera
             }
         }
 
-        protected Vector3 _lookAt = new Vector3(0, 0, -1);
+        protected Vector3 _lookAt = new Vector3(0, 0, 1);
 
         /// <summary>
         /// Calculated camera scale from the zoom and render size scale.
@@ -268,6 +268,49 @@ namespace Emotion.Graphics.Camera
 
             RenderComposer renderer = Engine.Renderer;
             return Matrix4x4.CreateOrthographicOffCenter(0, renderer.CurrentTarget.Size.X, renderer.CurrentTarget.Size.Y, 0, nearZ, farZ);
+        }
+
+        public Matrix4x4 GetRotationMatrix()
+        {
+            // todo: this is probably wrong
+
+            Vector3 cameraForward = Vector3.Normalize(LookAt);
+            Vector3 cameraRight;
+            if (cameraForward == RenderComposer.Up) // Gimbal lock and/or 2D
+            {
+                cameraForward = Vector3.UnitZ;
+                cameraRight = Vector3.UnitX;
+            }
+            else
+            {
+                cameraRight = Vector3.Normalize(Vector3.Cross(RenderComposer.Up, -cameraForward));
+            }
+
+            Vector3 rotatedCameraUp = Vector3.Cross(cameraForward, cameraRight);
+            Matrix4x4 rotationMatrix = new Matrix4x4(
+                cameraRight.X, cameraRight.Y, cameraRight.Z, 0.0f,
+                rotatedCameraUp.X, rotatedCameraUp.Y, rotatedCameraUp.Z, 0.0f,
+                cameraForward.X, cameraForward.Y, cameraForward.Z, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
+            );
+            return Matrix4x4.Transpose(rotationMatrix);
+        }
+
+        public Quaternion GetCameraOrientation()
+        {
+            Vector3 lookat = LookAt;
+            Vector3 forward = Vector3.Normalize(new Vector3(lookat.X, lookat.Y, 0));
+            Vector3 up = RenderComposer.Up;
+            Vector3 right = Vector3.Cross(forward, up);
+
+            Matrix4x4 rotationMatrix = new Matrix4x4(
+                right.X, right.Y, right.Z, 0,
+                forward.X, forward.Y, forward.Z, 0,
+                up.X, up.Y, up.Z, 0,
+                0, 0, 0, 1
+            );
+
+            return Quaternion.CreateFromRotationMatrix(rotationMatrix);
         }
 
         /// <summary>

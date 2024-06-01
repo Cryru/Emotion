@@ -27,6 +27,18 @@ namespace Emotion.Graphics.Camera
         {
         }
 
+        public override void Attach()
+        {
+            base.Attach();
+            Engine.Host.OnKey.AddListener(CameraKeyHandler, KeyListenerType.Game);
+        }
+
+        public override void Detach()
+        {
+            base.Detach();
+            Engine.Host.OnKey.RemoveListener(CameraKeyHandler);
+        }
+
         public virtual bool CameraKeyHandler(Key key, KeyStatus status)
         {
             Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);

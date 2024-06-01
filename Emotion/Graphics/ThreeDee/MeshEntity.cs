@@ -32,6 +32,17 @@ public class MeshEntity
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
 
+    public Mesh? GetMeshByName(string id)
+    {
+        if (Meshes == null) return null;
+        for (int i = 0; i < Meshes.Length; i++)
+        {
+            Mesh mesh = Meshes[i];
+            if (mesh.Name == id) return mesh;
+        }
+        return null;
+    }
+
     public void EnsureCachedBounds(string? anim, bool forceRecalc = false)
     {
         if (anim == null) anim = "<null>";

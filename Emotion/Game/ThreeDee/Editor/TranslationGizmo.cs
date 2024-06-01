@@ -53,102 +53,122 @@ namespace Emotion.Game.ThreeDee.Editor
 
         public TranslationGizmo()
         {
+            MeshEntity translationGizmoEntity = GetTranslationGizmoEntity();
+
+            XAxis = translationGizmoEntity.GetMeshByName("X")!;
+            XAxis.SetVerticesAlpha((byte)Alpha);
+            YAxis = translationGizmoEntity.GetMeshByName("Y")!;
+            YAxis.SetVerticesAlpha((byte)Alpha);
+            ZAxis = translationGizmoEntity.GetMeshByName("Z")!;
+            ZAxis.SetVerticesAlpha((byte)Alpha);
+
+            ZPlane = translationGizmoEntity.GetMeshByName("Z-Plane")!;
+            ZPlane.SetVerticesAlpha((byte)Alpha);
+
+            ObjectFlags |= ObjectFlags.Map3DDontReceiveShadow;
+            ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
+            ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
+        }
+
+        public static MeshEntity GetTranslationGizmoEntity(float height = 35, float arrowHeight = 7, bool planes = true)
+        {
             var arrowCylinderGen = new CylinderMeshGenerator();
             arrowCylinderGen.RadiusBottom = 2;
             arrowCylinderGen.RadiusTop = 2;
-            arrowCylinderGen.Height = 35;
+            arrowCylinderGen.Height = height;
             arrowCylinderGen.Capped = true;
 
             var arrowGen = new CylinderMeshGenerator();
             arrowGen.RadiusBottom = 4f;
             arrowGen.RadiusTop = 0;
-            arrowGen.Height = 7;
+            arrowGen.Height = arrowHeight;
             arrowGen.Capped = true;
 
             Mesh xCylinder = arrowCylinderGen.GenerateMesh().TransformMeshVertices(
                 Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f)
             );
-
             Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
                 Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
                 Matrix4x4.CreateTranslation(arrowCylinderGen.Height, 0, 0)
             );
-
-            XAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
+            var meshXAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
 
             Mesh yCylinder = arrowCylinderGen.GenerateMesh("YCylinder").TransformMeshVertices(
                 Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f)
             );
-
             Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
                 Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
                 Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height, 0)
             );
-
-            YAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
+            var meshYAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
 
             Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder");
-
             Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
                 Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height)
             );
-
-            ZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
+            var meshZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
 
             var materialX = new MeshMaterial
             {
-                Name = "Tool-X",
+                Name = "Material-Tool-X",
                 DiffuseColor = new Color(165, 40, 40)
             };
-            XAxis.Material = materialX;
-            XAxis.SetVerticesAlpha((byte) Alpha);
+            meshXAxis.Material = materialX;
 
             var materialY = new MeshMaterial
             {
-                Name = "Tool-Y",
+                Name = "Material-Tool-Y",
                 DiffuseColor = new Color(40, 165, 40)
             };
-            YAxis.Material = materialY;
-            YAxis.SetVerticesAlpha((byte) Alpha);
+            meshYAxis.Material = materialY;
 
             var materialZ = new MeshMaterial
             {
-                Name = "Tool-Z",
+                Name = "Material-Tool-Z",
                 DiffuseColor = new Color(40, 40, 165)
             };
-            ZAxis.Material = materialZ;
-            ZAxis.SetVerticesAlpha((byte) Alpha);
+            meshZAxis.Material = materialZ;
 
-            var materialPlaneZ = new MeshMaterial
+            Mesh[] meshes;
+            if (planes)
             {
-                Name = "Plane-Z",
-                DiffuseColor = Color.PrettyBlue
-            };
-            ZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
-            ZPlane.TransformMeshVertices(
-                Matrix4x4.CreateScale(30, 30, 30) *
-                Matrix4x4.CreateTranslation(arrowCylinderGen.Height / 2, arrowCylinderGen.Height / 2, 0)
-            );
-            ZPlane.Material = materialPlaneZ;
-            ZPlane.Name = "Z-Plane";
-            ZPlane.SetVerticesAlpha((byte)Alpha);
-
-            Entity = new MeshEntity
-            {
-                Meshes = new[]
+                var materialPlaneZ = new MeshMaterial
                 {
-                    XAxis,
-                    YAxis,
-                    ZAxis,
+                    Name = "Material-Plane-Z",
+                    DiffuseColor = Color.PrettyBlue
+                };
+                Mesh meshZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
+                meshZPlane.TransformMeshVertices(
+                    Matrix4x4.CreateScale(30, 30, 30) *
+                    Matrix4x4.CreateTranslation(arrowCylinderGen.Height / 2, arrowCylinderGen.Height / 2, 0)
+                );
+                meshZPlane.Material = materialPlaneZ;
+                meshZPlane.Name = "Z-Plane";
 
-                    ZPlane
-                },
+                meshes = new[]
+                {
+                    meshXAxis,
+                    meshYAxis,
+                    meshZAxis,
+
+                    meshZPlane
+                };
+            }
+            else
+            {
+                meshes = new[]
+                {
+                    meshXAxis,
+                    meshYAxis,
+                    meshZAxis,
+                };
+            }
+
+            return new MeshEntity
+            {
+                Meshes = meshes,
                 Name = "Translation Gizmo",
             };
-
-            ObjectFlags |= ObjectFlags.Map3DDontReceiveShadow;
-            ObjectFlags |= ObjectFlags.Map3DDontThrowShadow;
-            ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
         }
 
         public bool KeyHandler(Key key, KeyStatus status)

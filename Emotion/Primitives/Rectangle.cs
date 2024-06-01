@@ -1008,20 +1008,6 @@ namespace Emotion.Primitives
             return ContainsInclusive(ref value);
         }
 
-        [Obsolete("Did you mean Rectangle.Contains(Vector2)?")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Intersects(Vector2 value)
-        {
-            return Contains(ref value);
-        }
-
-        [Obsolete("Did you mean Rectangle.Contains(ref Vector2)?")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Intersects(ref Vector2 value)
-        {
-            return Contains(ref value);
-        }
-
         #endregion
     }
 }

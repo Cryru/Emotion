@@ -120,6 +120,7 @@
     <Compile Remove="Testing\TestWaiterRunLoops.cs" />
     <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
     <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
+    <Compile Remove="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\FontShaders\GenerateSDF.frag" />
@@ -334,6 +335,7 @@
     <None Include="Testing\TestWaiterRunLoops.cs" />
     <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
     <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
+    <None Include="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Silk.NET.Assimp" Version="2.20.0" Condition="$(DefineConstants.Contains('ASSIMP'))" />

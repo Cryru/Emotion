@@ -1,8 +1,11 @@
 ﻿#region Using
 
+using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Graphics.Objects;
+using Emotion.Primitives;
 using Emotion.Utility;
 
 #endregion
@@ -52,16 +55,16 @@ namespace Emotion.Graphics.Data
             Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false
         )
         {
-            vertices[0].Vertex = position;
-            vertices[1].Vertex = new Vector3(position.X + size.X, position.Y, position.Z);
-            vertices[2].Vertex = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
-            vertices[3].Vertex = new Vector3(position.X, position.Y + size.Y, position.Z);
+            vertices[3].Vertex = position;
+            vertices[2].Vertex = new Vector3(position.X + size.X, position.Y, position.Z);
+            vertices[1].Vertex = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
+            vertices[0].Vertex = new Vector3(position.X, position.Y + size.Y, position.Z);
 
             uint c = color.ToUint();
-            vertices[0].Color = c;
-            vertices[1].Color = c;
-            vertices[2].Color = c;
             vertices[3].Color = c;
+            vertices[2].Color = c;
+            vertices[1].Color = c;
+            vertices[0].Color = c;
 
             texture ??= Texture.EmptyWhiteTexture;
 
@@ -79,7 +82,7 @@ namespace Emotion.Graphics.Data
             }
 
             // Convert input from texture coordinates to UV coordinates.
-            TransformUVs(vertices, texture, (Rectangle) textureArea);
+            TransformUVs(vertices, texture, (Rectangle)textureArea);
 
             if (texture.FlipY != flipY) FlipHorizontallySpriteUVs(vertices);
 
@@ -112,10 +115,10 @@ namespace Emotion.Graphics.Data
             // Same order as vertices.
             // 0, 0    1, 0
             // 0, 1    1, 1
-            vertices[0].UV = nnUV;
-            vertices[1].UV = pnUV;
-            vertices[2].UV = ppUV;
-            vertices[3].UV = npUV;
+            vertices[3].UV = nnUV;
+            vertices[2].UV = pnUV;
+            vertices[1].UV = ppUV;
+            vertices[0].UV = npUV;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
