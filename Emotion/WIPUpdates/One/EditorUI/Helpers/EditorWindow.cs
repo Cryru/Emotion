@@ -85,8 +85,7 @@ public class EditorWindow : UIBaseWindow
             FillX = false,
             FillY = false,
 
-            Anchor = UIAnchor.CenterCenter,
-            ParentAnchor = UIAnchor.CenterCenter,
+            AnchorAndParentAnchor = UIAnchor.CenterCenter,
 
             Id = "PanelItself",
         };
@@ -155,7 +154,7 @@ public class EditorWindow : UIBaseWindow
             if (_windowFB.Size != _hostWindow.Size)
             {
                 _windowFB.Resize(_hostWindow.Size, true);
-                _panelItself.MaxSize = _hostWindow.Size / GetScale();
+                _panelItself.SizeConstraint = _hostWindow.Size / GetScale();
                 _panelItself.InvalidateLayout();
             }
             c.RenderToAndClear(_windowFB);
@@ -409,7 +408,7 @@ public class EditorWindow : UIBaseWindow
             _contentParent.Margins = Rectangle.Empty;
 
             _panelItself.Offset = Vector2.Zero;
-            _panelItself.MaxSize = _hostWindow.Size / GetScale();
+            _panelItself.SizeConstraint = _hostWindow.Size / GetScale();
 
             InvalidateLayout();
         }));

@@ -187,6 +187,14 @@ namespace Emotion.Platform.Implementation.Win32
 
                 case WM.MOUSEMOVE:
 
+                    // Dont update mouse when unfocused
+                    // (check if this is the main window too)
+                    if (hWnd == _windowHandle && !IsFocused)
+                    {
+                        MousePosition = new Vector2(-1);
+                        return IntPtr.Zero;
+                    }
+
                     int x = NativeHelpers.LoWordS((uint)lParam);
                     int y = NativeHelpers.HiWordS((uint)lParam);
                     MousePosition = new Vector2(x, y);

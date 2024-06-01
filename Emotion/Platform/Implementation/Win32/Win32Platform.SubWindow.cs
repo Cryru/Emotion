@@ -115,7 +115,7 @@ namespace Emotion.Platform.Implementation.Win32
         {
             if (_subWindows != null)
             {
-                PlatformBase.PlatformSubWindow? windowFound = null;
+                PlatformSubWindow? windowFound = null;
                 for (int i = 0; i < _subWindows.Count; i++)
                 {
                     var win = _subWindows[i];
