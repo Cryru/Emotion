@@ -48,6 +48,7 @@ void main()
         t = 1.0 - t;
         t = t * t;
         t = 1.0 - t;
+        t = clamp(t, 0.0, 1.0);
         color = mix(fill, vec4(outlineColor.rgb, fill.a), t);
     
         // Override distance with outline distance, to grow the distance out.
