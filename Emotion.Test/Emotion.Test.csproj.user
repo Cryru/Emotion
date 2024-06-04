@@ -4,7 +4,10 @@
     <ActiveDebugProfile>Emotion.Test</ActiveDebugProfile>
     <_LastSelectedProfileId>V:\Dev\Projects\TheEmotion\Emotion\Emotion.Test\Properties\PublishProfiles\Win32.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

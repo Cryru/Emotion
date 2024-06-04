@@ -11,220 +11,106 @@
     <OldToolsVersion>2.0</OldToolsVersion>
     <NuspecFile>./Emotion.nuspec</NuspecFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Configurations>Debug;Release;DebugUnix64;DebugWeb;Autobuild;Debug-Pure</Configurations>
+    <Configurations>Debug;Release;DebugUnix64;DebugWeb;Autobuild;Debug-Pure;ReleaseUnix64</Configurations>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Platforms>x64;x86</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile></DocumentationFile>
     <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Pure|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING</DefineConstants>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;OpenAL</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile />
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Pure|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWeb|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <DefineConstants>$(DefineConstants);WEB;ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES</DefineConstants>
-    <DebugType>full</DebugType>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Pure|x86'">
+    <DefineConstants>$(DefineConstants);ANGLE;MESA;OpenAL</DefineConstants>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWeb|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);WEB;ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES</DefineConstants>
+    <DefineConstants>$(DefineConstants);WEB</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;OPENAL;GLFW</DefineConstants>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWeb|x86'">
+    <DefineConstants>$(DefineConstants);WEB</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Optimize>false</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;OPENAL;GLFW</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OPENAL;GLFW</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <Optimize>false</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x86'">
+    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OPENAL;GLFW</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile />
+    <PlatformTarget>x86</PlatformTarget>
+    <Optimize>false</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix64|x64'">
+    <DefineConstants>$(DefineConstants);OPENAL;GLFW</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile />
+    <PlatformTarget>x64</PlatformTarget>
+    <Optimize>true</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|AnyCPU'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD;CSHARP_SCRIPTING</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix64|x86'">
+    <DefineConstants>$(DefineConstants);OPENAL;GLFW</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile />
+    <PlatformTarget>x86</PlatformTarget>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|x86'">
+    <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD;CSHARP_SCRIPTING;OpenAL</DefineConstants>
     <Optimize>True</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|x64'">
     <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD;CSHARP_SCRIPTING</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>True</Optimize>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Game\World2D\SceneControl\World2DBaseScene.cs" />
-    <Compile Remove="Game\World3D\SceneControl\World3DBaseScene.cs" />
-    <Compile Remove="Game\World\SceneControl\WorldBaseScene.cs" />
-    <Compile Remove="Testing\NewUITests.cs" />
-    <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
-    <Compile Remove="Testing\Templates\EmptyTestTemplateClass.cs" />
-    <Compile Remove="Testing\TestExecutor.cs" />
-    <Compile Remove="Testing\TestingScene.cs" />
-    <Compile Remove="Testing\TestingUtility.cs" />
-    <Compile Remove="Testing\TestWaiterRunLoops.cs" />
-    <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
-    <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-    <Compile Remove="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Assets\FontShaders\GenerateSDF.frag" />
-    <None Remove="Assets\FontShaders\GenerateSDF.xml" />
-    <None Remove="Assets\FontShaders\GlyphRenderFill.frag" />
-    <None Remove="Assets\FontShaders\GlyphRenderFill.vert" />
-    <None Remove="Assets\FontShaders\GlyphRenderFill.xml" />
-    <None Remove="Assets\FontShaders\GlyphRenderLine.frag" />
-    <None Remove="Assets\FontShaders\GlyphRenderLine.vert" />
-    <None Remove="Assets\FontShaders\GlyphRenderLine.xml" />
-    <None Remove="Assets\FontShaders\SDF.frag" />
-    <None Remove="Assets\FontShaders\SDF.xml" />
-    <None Remove="Assets\FontShaders\VertColorNoDiscard.frag" />
-    <None Remove="Assets\FontShaders\VertColorNoDiscard.xml" />
-    <None Remove="Assets\FontShaders\Winding.frag" />
-    <None Remove="Assets\FontShaders\Winding.xml" />
-    <None Remove="Assets\FontShaders\WindingAA.frag" />
-    <None Remove="Assets\FontShaders\WindingAA.vert" />
-    <None Remove="Assets\FontShaders\WindingAA.xml" />
-    <None Remove="Assets\Shaders\3DGrid.frag" />
-    <None Remove="Assets\Shaders\3DGrid.xml" />
-    <None Remove="Assets\Shaders\Blit.frag" />
-    <None Remove="Assets\Shaders\Blit.xml" />
-    <None Remove="Assets\Shaders\ColorHelpers.c" />
-    <None Remove="Assets\Shaders\DesatShader.frag" />
-    <None Remove="Assets\Shaders\DesatShader.xml" />
-    <None Remove="Assets\Shaders\MeshShader.frag" />
-    <None Remove="Assets\Shaders\MeshShader.vert" />
-    <None Remove="Assets\Shaders\MeshShader.xml" />
-    <None Remove="Assets\Shaders\OutlineShader.frag" />
-    <None Remove="Assets\Shaders\OutlineShader.xml" />
-    <None Remove="Assets\Shaders\RoundedRectangle.frag" />
-    <None Remove="Assets\Shaders\RoundedRectangle.xml" />
-    <None Remove="Assets\Shaders\TextureColorMask.frag" />
-    <None Remove="Assets\Shaders\TextureColorMask.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\linux\glfw.so" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\macos\glfw.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\win32\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\linux\openal32.so" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\macos\openal32.dylib" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll" Condition="$(DefineConstants.Contains('Superluminal'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\Brush.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\Bucket.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\Checkmark.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\Eraser.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\LittleArrow.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\PanelDragArea.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\TilePicker.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Editor\UbuntuMono-Regular.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <DefineConstants>$(DefineConstants);ANGLE;MESA;OpenAL</DefineConstants>
+    <Optimize>True</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
+    <Optimize>True</Optimize>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
   <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
     <Compile Remove="Platform\Implementation\OpenAL\**\*.cs" />
   </ItemGroup>
@@ -241,111 +127,69 @@
     <Compile Remove="Game\Scripting\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <EmbeddedResource Include="Assets\**\*.*">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\GenerateSDF.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderFill.frag" />
-    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderFill.vert" />
-    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderFill.xml" />
-    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderLine.frag" />
-    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderLine.vert" />
-    <EmbeddedResource Include="Assets\FontShaders\GlyphRenderLine.xml" />
-    <EmbeddedResource Include="Assets\FontShaders\SDF.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\SDF.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\VertColorNoDiscard.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\VertColorNoDiscard.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\Winding.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\Winding.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\WindingAA.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\WindingAA.vert">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\FontShaders\WindingAA.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\3DGrid.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\3DGrid.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\Blit.frag" />
-    <EmbeddedResource Include="Assets\Shaders\Blit.xml" />
-    <EmbeddedResource Include="Assets\Shaders\Blur.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\Blur.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\ColorHelpers.c" />
-    <EmbeddedResource Include="Assets\Shaders\DesatShader.frag" />
-    <EmbeddedResource Include="Assets\Shaders\DesatShader.xml" />
-    <EmbeddedResource Include="Assets\Shaders\MeshShader.frag" />
-    <EmbeddedResource Include="Assets\Shaders\MeshShader.vert" />
-    <EmbeddedResource Include="Assets\Shaders\MeshShader.xml" />
-    <EmbeddedResource Include="Assets\Shaders\OutlineShader.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\OutlineShader.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\RoundedRectangle.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\RoundedRectangle.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\TextureColorMask.frag" />
-    <EmbeddedResource Include="Assets\Shaders\DefaultFrag.frag" />
-    <EmbeddedResource Include="Assets\Shaders\TextureColorMask.xml" />
-    <EmbeddedResource Include="Assets\Shaders\DefaultShader.xml" />
-    <EmbeddedResource Include="Assets\Shaders\DefaultVert.vert" />
-    <EmbeddedResource Include="Assets\Shaders\GetTextureColor.c" />
-    <EmbeddedResource Include="Assets\Shaders\GetTextureSize.c" />
-    <EmbeddedResource Include="Assets\Shaders\SSAA.frag" />
-    <EmbeddedResource Include="Assets\Shaders\SSAA.xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Game\World2D\SceneControl\World2DBaseScene.cs" />
-    <None Include="Game\World3D\SceneControl\World3DBaseScene.cs" />
-    <None Include="Game\World\SceneControl\WorldBaseScene.cs" />
-    <None Include="Testing\NewUITests.cs" />
-    <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
-    <None Include="Testing\Templates\EmptyTestTemplateClass.cs" />
-    <None Include="Testing\TestExecutor.cs" />
-    <None Include="Testing\TestingScene.cs" />
-    <None Include="Testing\TestingUtility.cs" />
-    <None Include="Testing\TestWaiterRunLoops.cs" />
-    <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
-    <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-    <None Include="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
+    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="AssetsNativeLibs\GLFW\linux\glfw.so" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\macos\glfw.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win32\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\linux\openal32.so" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\macos\openal32.dylib" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\win32\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll" Condition="$(DefineConstants.Contains('Superluminal'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <EmbeddedResource Update="Assets\FontShaders\SDF.frag">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Silk.NET.Assimp" Version="2.20.0" Condition="$(DefineConstants.Contains('ASSIMP'))" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.9.2" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="UI\UIScrollbar.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
