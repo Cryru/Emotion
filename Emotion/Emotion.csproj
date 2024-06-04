@@ -194,4 +194,32 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Game\World2D\SceneControl\World2DBaseScene.cs" />
+    <Compile Remove="Game\World3D\SceneControl\World3DBaseScene.cs" />
+    <Compile Remove="Game\World\SceneControl\WorldBaseScene.cs" />
+    <Compile Remove="Testing\NewUITests.cs" />
+    <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
+    <Compile Remove="Testing\Templates\EmptyTestTemplateClass.cs" />
+    <Compile Remove="Testing\TestExecutor.cs" />
+    <Compile Remove="Testing\TestingScene.cs" />
+    <Compile Remove="Testing\TestingUtility.cs" />
+    <Compile Remove="Testing\TestWaiterRunLoops.cs" />
+    <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
+    <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
+    <Compile Remove="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
+    <None Include="Game\World2D\SceneControl\World2DBaseScene.cs" />
+    <None Include="Game\World3D\SceneControl\World3DBaseScene.cs" />
+    <None Include="Game\World\SceneControl\WorldBaseScene.cs" />
+    <None Include="Testing\NewUITests.cs" />
+    <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
+    <None Include="Testing\Templates\EmptyTestTemplateClass.cs" />
+    <None Include="Testing\TestExecutor.cs" />
+    <None Include="Testing\TestingScene.cs" />
+    <None Include="Testing\TestingUtility.cs" />
+    <None Include="Testing\TestWaiterRunLoops.cs" />
+    <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
+    <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
+    <None Include="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
+  </ItemGroup>
 </Project>
