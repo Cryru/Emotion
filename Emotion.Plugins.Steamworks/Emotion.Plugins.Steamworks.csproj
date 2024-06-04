@@ -3,14 +3,27 @@
     <PropertyGroup>
         <OutputType>Library</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <Platforms>AnyCPU;x64</Platforms>
+        <Platforms>x64;x86</Platforms>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Platform)'=='x86'">
+        <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Platform)'=='x64'">
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    
     <ItemGroup>
         <ProjectReference Include="..\Emotion\Emotion.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+        <None Update="AssetsNativeLibs\Steam\linux\steam_api64.so">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\Steam\win32\steam_api64.dll">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="AssetsNativeLibs\Steam\win64\steam_api64.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

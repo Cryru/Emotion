@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Emotion.Common;
@@ -71,11 +72,16 @@ namespace Emotion.Plugins.Steamworks
             Engine.Log.Info($"Initializing Steam plugin - app id is {AppId}", LOG_SOURCE);
 
             // Check if we should restart.
-            bool necessary = SteamNative.RestartAppIfNecessary(AppId);
-            if (necessary)
+            bool skipDrm = Engine.Configuration.DebugMode && Debugger.IsAttached;
+            if (!skipDrm)
             {
-                Engine.Log.Warning("Steam API said we should restart.", LOG_SOURCE);
-                Engine.Quit();
+                bool restart = SteamNative.RestartAppIfNecessary(AppId);
+                if (restart)
+                {
+                    Engine.Log.Warning("Steam API said we should restart.", LOG_SOURCE);
+                    Engine.Quit();
+                    return;
+                }
             }
 
             bool steamOpen = SteamNative.IsSteamRunning();
