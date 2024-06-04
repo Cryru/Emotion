@@ -122,6 +122,9 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override IntPtr LoadLibrary(string path)
         {
+            // Since these libraries are referenced from the base Emotion assembly
+            // they cannot be registered via AssociateAssemblyWithNativeLibrary
+            // todo: maybe have them as plugins?
             switch (path)
             {
                 case "glfw":
