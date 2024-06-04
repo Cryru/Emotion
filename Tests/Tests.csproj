@@ -5,20 +5,35 @@
         <TargetFramework>net8.0</TargetFramework>
         <Configurations>Debug;Release;DebugUnix64</Configurations>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <Platforms>x86;x64</Platforms>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|AnyCPU'">
-        <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x64'">
+      <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x86'">
+      <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
