@@ -219,13 +219,9 @@ namespace Emotion.Primitives
         /// <summary>
         /// Performs linear interpolation of <see cref="Color" />.
         /// </summary>
-        /// <param name="value1">Source <see cref="Color" />.</param>
-        /// <param name="value2">Destination <see cref="Color" />.</param>
-        /// <param name="amount">Interpolation factor.</param>
-        /// <returns>Interpolated <see cref="Color" />.</returns>
         public static Color Lerp(Color value1, Color value2, float amount)
         {
-            amount = Maths.Clamp(amount, 0, 1);
+            amount = Maths.Clamp01(amount);
             return new Color(
                 (byte) Maths.Lerp(value1.R, value2.R, amount),
                 (byte) Maths.Lerp(value1.G, value2.G, amount),
@@ -366,6 +362,7 @@ namespace Emotion.Primitives
         public static readonly Color CornflowerBlue = new Color(100, 149, 237);
         public static readonly Color Pink = new Color(237, 100, 149);
         public static readonly Color Transparent = new Color(0, 0, 0, 0);
+        public static readonly Color TransparentWhite = new Color(255, 255, 255, 0);
 
         public static readonly uint WhiteUint = White.ToUint();
 

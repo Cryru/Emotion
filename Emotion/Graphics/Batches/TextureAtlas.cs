@@ -361,7 +361,7 @@ namespace Emotion.Graphics.Batches
                 else
                 {
                     // Make sure the area in the margins is clean.
-                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.Transparent);
+                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.TransparentWhite);
 
                     offset += _texturesMarginVec;
                     VertexData.SpriteToVertexData(vboLocalSpan.Slice(4), new Vector3(offset, 0), texture.Size, Color.White, texture);
