@@ -129,7 +129,7 @@ namespace Emotion.Standard.XML
         {
             // "utf-16" - Unicode UTF-16, little endian byte order
             if (data.SequenceEqual(Utf16LeAlt)) return Encoding.Unicode;
-            if ((data[2] == 0) ^ (data[3] == 0) && data.SequenceEqual(Utf16Le)) return Encoding.Unicode;
+            if (data.Length >= 4 && (data[2] == 0) ^ (data[3] == 0) && data.SequenceEqual(Utf16Le)) return Encoding.Unicode;
 
             // "utf-8" - Unicode (UTF-8)
             if (data.SequenceEqual(Utf8Le) || data.SequenceEqual(Utf8LeAlt)) return Encoding.UTF8;
@@ -139,7 +139,7 @@ namespace Emotion.Standard.XML
 
             // "unicodeFFFE" - Unicode UTF-16, big endian byte order
             if (data.SequenceEqual(Utf16BeAlt)) return Encoding.BigEndianUnicode;
-            if (data[2] != 0 && data[3] != 0 && data.SequenceEqual(Utf16Be)) return Encoding.BigEndianUnicode;
+            if (data.Length >= 4 && data[2] != 0 && data[3] != 0 && data.SequenceEqual(Utf16Be)) return Encoding.BigEndianUnicode;
 
             return Encoding.UTF8;
         }
