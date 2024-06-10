@@ -31,31 +31,29 @@ namespace Emotion.Graphics.Camera
         private Vector2 _inputDirection;
         private float _inputDirectionZ;
 
-        private Vector3 _movementTarget;
-
-        private KeyListenerType _inputPriority;
-
-        public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom)
+        public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
         {
             NearZ = 10f;
             FarZ = 10_000;
-            _inputPriority = inputPriority;
         }
 
-        public override void Attach()
+        /// <inheritdoc />
+        public override void RecreateViewMatrix()
         {
-            base.Attach();
-            if (_inputPriority != KeyListenerType.None)
-                Engine.Host.OnKey.AddListener(CameraKeyHandler, _inputPriority);
+            Vector3 pos = Position;
+            var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + LookAt, RenderComposer.Up);
+            ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * unscaled;
         }
 
-        public override void Detach()
+        /// <inheritdoc />
+        public override void RecreateProjectionMatrix()
         {
-            base.Detach();
-            Engine.Host.OnKey.RemoveListener(CameraKeyHandler);
+            RenderComposer renderer = Engine.Renderer;
+            float aspectRatio = renderer.CurrentTarget.Size.X / renderer.CurrentTarget.Size.Y;
+            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
         }
 
-        public virtual bool CameraKeyHandler(Key key, KeyStatus status)
+        protected override bool CameraKeyHandler(Key key, KeyStatus status)
         {
             bool dragKey = key == DragKey;
             if (DragKey != Key.MouseKeyLeft) // Secondary way of moving camera in editor.
@@ -119,15 +117,15 @@ namespace Emotion.Graphics.Camera
             if (_held)
             {
                 Vector2 mousePos = Engine.Host.MousePosition;
-                float xOffset = mousePos.X - _lastMousePos.X;
-                float yOffset = -(mousePos.Y - _lastMousePos.Y);
+                float xOffset = -(mousePos.X - _lastMousePos.X);
+                float yOffset = mousePos.Y - _lastMousePos.Y;
                 _yawRollPitch.X += xOffset * 0.1f;
                 _yawRollPitch.Z += yOffset * 0.1f;
                 _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89); // Prevent flip.
                 var direction = new Vector3
                 {
                     X = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
-                    Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
+                    Y = -MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
                     Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z))
                 };
                 direction = Vector3.Normalize(direction);
@@ -139,13 +137,13 @@ namespace Emotion.Graphics.Camera
 
             if (_inputDirection != Vector2.Zero || _inputDirectionZ != 0)
             {
-                Vector3 movementStraightBack = LookAt * _inputDirection.Y;
+                Vector3 movementStraightBack = LookAt * -_inputDirection.Y;
                 float len = movementStraightBack.Length();
                 movementStraightBack.Z = 0;
                 movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
                 Vector3 movementUpDown = RenderComposer.Up * _inputDirectionZ;
-                Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up * -_inputDirection.X, LookAt));
+                Vector3 movementSide = -Vector3.Normalize(Vector3.Cross(LookAt, RenderComposer.Up)) * _inputDirection.X;
                 if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
                 if (!float.IsNaN(movementUpDown.X)) Position += movementUpDown * MovementSpeed;
                 if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
@@ -166,30 +164,15 @@ namespace Emotion.Graphics.Camera
 
             _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
 
-            // Prevent look at facing towards or out of RenderComposer.Up
+            // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
             _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89);
-            _lookAt.Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z));
+            _lookAt.Y = -MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z));
             _lookAt.Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z));
 
             base.LookAtChanged(oldVal, newVal);
         }
 
         /// <inheritdoc />
-        public override void RecreateViewMatrix()
-        {
-            Vector3 pos = Position;
-            var unscaled = Matrix4x4.CreateLookAt(pos, pos + LookAt, RenderComposer.Up);
-            ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * unscaled;
-        }
-
-        /// <inheritdoc />
-        public override void RecreateProjectionMatrix()
-        {
-            RenderComposer renderer = Engine.Renderer;
-            float aspectRatio = renderer.CurrentTarget.Size.X / renderer.CurrentTarget.Size.Y;
-            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
-        }
-
         public override Vector3 ScreenToWorld(Vector2 position)
         {
             // Calculate the normalized device coordinates (-1 to 1)
@@ -211,6 +194,7 @@ namespace Emotion.Graphics.Camera
             return Position + direction;
         }
 
+        /// <inheritdoc />
         public override Vector2 WorldToScreen(Vector3 position)
         {
             // Transform the world position to camera space (view space)
@@ -234,6 +218,7 @@ namespace Emotion.Graphics.Camera
             return new Vector2(screenX, screenY);
         }
 
+        /// <inheritdoc />
         public override Ray3D GetCameraMouseRay()
         {
             Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);

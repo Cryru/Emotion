@@ -1,6 +1,7 @@
 ﻿using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
+using Emotion.WIPUpdates.One.Camera;
 using Silk.NET.Assimp;
 using System;
 using System.Collections.Generic;
@@ -65,7 +66,7 @@ public static partial class EngineEditor
             Vector3 pos = _cameraOutsideEditor.Position;
             if (pos.Z == 0) pos.Z = 500; // Put away from grid.
 
-            _editorCamera = new Camera3D(pos, 1f, KeyListenerType.Game)
+            _editorCamera = new Camera3D(pos, 1f)
             {
                 LookAt = _cameraOutsideEditor.LookAt,
                 DragKey = Key.MouseKeyLeft,
@@ -74,9 +75,10 @@ public static partial class EngineEditor
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
         {
-            _editorCamera = new WASDMoveCamera2D(_cameraOutsideEditor.Position)
+            _editorCamera = new Camera2D(_cameraOutsideEditor.Position, 1f)
             {
                 LookAt = _cameraOutsideEditor.LookAt,
+                MovementSpeed = 10
             };
         }
         AssertNotNull(_editorCamera);

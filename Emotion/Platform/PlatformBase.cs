@@ -358,8 +358,6 @@ namespace Emotion.Platform
             public bool IsFocused;
             public bool IsOpen;
 
-            public abstract Vector2 GetPosition();
-
             public abstract void SwapBuffers();
 
             public abstract void MakeCurrent();
