@@ -26,7 +26,9 @@ public partial class World2DEditor : WorldBaseEditor
 
     protected override CameraBase GetEditorCamera()
     {
-        return new WASDMoveCamera2D(Vector3.Zero);
+        //return new WASDMoveCamera2D(Vector3.Zero);
+        Assert(false);
+        return null;
     }
 
     protected override bool InternalEditorInputHandler(Key key, KeyStatus status)

@@ -211,8 +211,9 @@ public abstract partial class WorldBaseEditor
     private bool TempEditorCamera2DInputHandler(Key key, KeyStatus status)
     {
         // todo: remove, add priority to camera attach, add camera attach to wasd camera
-        if (_editorCamera is WASDMoveCamera2D camera2D)
-            return camera2D.CameraKeyHandler(key, status);
+        //if (_editorCamera is WASDMoveCamera2D camera2D)
+        //    return camera2D.CameraKeyHandler(key, status);
+        Assert(false); // ^
 
         return true;
     }

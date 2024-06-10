@@ -382,7 +382,8 @@ public class ModelViewer : EditorPanel
     {
         if (Controller?.InputFocus == _surface3D)
         {
-            _camera.CameraKeyHandler(key, status);
+            Assert(false);
+            //_camera.CameraKeyHandler(key, status);
             return false;
         }
 
