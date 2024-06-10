@@ -175,6 +175,12 @@ public class Mesh
         vertData.CopyTo(memory.VerticesData);
         indices.CopyTo(memory.IndicesData);
 
+        for (int i = 0; i < memory.VerticesData.Length; i++)
+        {
+            ref VertexData vert = ref memory.VerticesData[i];
+            vert.Color = Material.DiffuseColor.ToUint();
+        }
+
         ushort structOffset = memory.StructIndex;
         for (var j = 0; j < memory.IndicesData.Length; j++)
         {
