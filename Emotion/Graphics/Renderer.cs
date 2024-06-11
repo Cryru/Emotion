@@ -393,6 +393,8 @@ namespace Emotion.Graphics
             Assert(GLThread.IsGLThread());
             InFrame = true;
 
+            _matrixStack.Clear();
+
             // Run GLThread tasks.
             // Needs to be at the start, to ensure assets from others threads are uploaded etc.
             PerfProfiler.FrameEventStart("GLThread.Run");
