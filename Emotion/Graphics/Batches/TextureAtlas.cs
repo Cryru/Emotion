@@ -80,8 +80,8 @@ namespace Emotion.Graphics.Batches
 
             _usagesToPack = usagePackThreshold;
 
-            _vbo = new VertexBuffer((uint)(VertexData.SizeInBytes * 8), BufferUsage.StaticDraw);
-            _vboLocal = new VertexData[8];
+            _vbo = new VertexBuffer((uint)(VertexData.SizeInBytes * 4), BufferUsage.StaticDraw);
+            _vboLocal = new VertexData[4];
             var ibo = new IndexBuffer(12 * sizeof(ushort));
             var quadIndices = new ushort[12];
             IndexBuffer.FillQuadIndices(quadIndices, 0);
@@ -360,18 +360,18 @@ namespace Emotion.Graphics.Batches
                 }
                 else
                 {
-                    // Make sure the area in the margins is clean.
-                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.Transparent);
+                    Vector2 pixelInUv = Vector2.One / texture.Size;
+                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0),
+                        texture.Size + _texturesMarginVec2, Color.White, texture);
+                    vboLocalSpan[0].UV += _texturesMarginVec * (pixelInUv * new Vector2(-1, -1));
+                    vboLocalSpan[1].UV += _texturesMarginVec * (pixelInUv * new Vector2(1, -1));
+                    vboLocalSpan[2].UV += _texturesMarginVec * (pixelInUv * new Vector2(1, 1));
+                    vboLocalSpan[3].UV += _texturesMarginVec * (pixelInUv * new Vector2(-1, 1));
 
-                    offset += _texturesMarginVec;
-                    VertexData.SpriteToVertexData(vboLocalSpan.Slice(4), new Vector3(offset, 0), texture.Size, Color.White, texture);
                     _vbo.Upload(_vboLocal);
 
-                    Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer);
-                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
-
                     Texture.EnsureBound(texture.Pointer);
-                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, 6 * sizeof(ushort));
+                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
                 }
 
                 meta.Version = texture.Version;
@@ -382,7 +382,7 @@ namespace Emotion.Graphics.Batches
             _firstDraw = false;
         }
 
-        #endregion
+#endregion
 
         #region Helpers
 
