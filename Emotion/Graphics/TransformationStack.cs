@@ -54,6 +54,13 @@ namespace Emotion.Graphics
             _stack.Pop();
         }
 
+        // Remove all matrices from the stack, resetting it to identity.
+        public void Clear()
+        {
+            _stack.Clear();
+            Push(Matrix4x4.Identity, false);
+        }
+
         #endregion
     }
 }
