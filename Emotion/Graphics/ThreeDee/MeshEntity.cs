@@ -32,6 +32,17 @@ public class MeshEntity
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
 
+    public Mesh? GetMeshByName(string id)
+    {
+        if (Meshes == null) return null;
+        for (int i = 0; i < Meshes.Length; i++)
+        {
+            Mesh mesh = Meshes[i];
+            if (mesh.Name == id) return mesh;
+        }
+        return null;
+    }
+
     public void EnsureCachedBounds(string? anim, bool forceRecalc = false)
     {
         if (anim == null) anim = "<null>";
@@ -128,7 +139,7 @@ public class MeshEntity
             var mats = new Matrix4x4[boneCount];
             for (int m = 0; m < boneCount; m++)
             {
-               mats[m] = Matrix4x4.Identity;
+                mats[m] = Matrix4x4.Identity;
             }
             boneMatricesPerMesh[i] = mats;
         }
@@ -224,7 +235,7 @@ public class MeshEntity
                             float boneId = vertexData.BoneIds[w];
                             float weight = vertexData.BoneWeights[w];
 
-                            Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
+                            Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
                             Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
                             vertexTransformed += thisWeightPos * weight;
                         }
