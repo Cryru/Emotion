@@ -37,20 +37,20 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// List of running routines.
         /// </summary>
-        private List<Coroutine> _runningRoutines = new();
+        protected List<Coroutine> _runningRoutines = new();
 
         /// <summary>
         /// List of routines waiting on a specific time to pass, sorted by time left.
         /// This list is rebuilt on execution, the list here is just a cache to prevent reallocation.
         /// </summary>
-        private List<Coroutine> _timeWaitingRoutines = new();
+        protected List<Coroutine> _timeWaitingRoutines = new();
 
         /// <summary>
         /// Start a new coroutine.
         /// </summary>
         /// <param name="enumerator">The enumerator of the coroutine.</param>
         /// <returns>An object representing your coroutine.</returns>
-        public Coroutine StartCoroutine(IEnumerator enumerator)
+        public virtual Coroutine StartCoroutine(IEnumerator enumerator)
         {
             var routine = new Coroutine(enumerator);
 
