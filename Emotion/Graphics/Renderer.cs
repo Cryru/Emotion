@@ -21,8 +21,17 @@ namespace Emotion.Graphics
     /// </summary>
     public sealed partial class RenderComposer
     {
+        // Emotion uses a:
+        // Z-Up Left Handed Coordinate System
+        // --------------------------------------
+        // This is the same system used by Unreal
+
         public static Vector3 Up { get; } = new Vector3(0, 0, 1);
-        public static Vector3 Right { get; } = new Vector3(0, -1, 0);
+
+        public static Vector3 Up2D { get; } = new Vector3(0, -1, 0);
+
+        public static Vector3 Right { get; } = new Vector3(0, 1, 0);
+
         public static Vector3 Forward { get; } = new Vector3(1, 0, 0);
 
         public static Vector3 XAxis = new Vector3(1, 0, 0);
