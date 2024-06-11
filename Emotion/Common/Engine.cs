@@ -1,14 +1,12 @@
 ﻿#region Using
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
@@ -17,12 +15,10 @@ using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform;
-using Emotion.Platform.Debugger;
 using Emotion.Scenography;
 using Emotion.Utility;
 using Emotion.WIPUpdates.NewUIUpdate;
 using Emotion.WIPUpdates.One;
-using SixLabors.ImageSharp;
 
 #endregion
 
