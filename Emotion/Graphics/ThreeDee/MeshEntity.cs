@@ -139,7 +139,7 @@ public class MeshEntity
             var mats = new Matrix4x4[boneCount];
             for (int m = 0; m < boneCount; m++)
             {
-               mats[m] = Matrix4x4.Identity;
+                mats[m] = Matrix4x4.Identity;
             }
             boneMatricesPerMesh[i] = mats;
         }
@@ -235,7 +235,7 @@ public class MeshEntity
                             float boneId = vertexData.BoneIds[w];
                             float weight = vertexData.BoneWeights[w];
 
-                            Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
+                            Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
                             Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
                             vertexTransformed += thisWeightPos * weight;
                         }
