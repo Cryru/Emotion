@@ -239,7 +239,7 @@ namespace Emotion.Graphics
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
             Vector2 windowSize = Engine.Host.Size;
             ScreenBuffer = new FrameBuffer(0, windowSize);
-            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, windowSize) : new FrameBuffer(windowSize).WithColor().WithDepth();
+            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, windowSize) : new FrameBuffer(windowSize).WithColor().WithDepthStencil();
             _bufferStack.Push(DrawBuffer);
 
             // Decide on scaling mode.
@@ -350,7 +350,7 @@ namespace Emotion.Graphics
         private void HostResizedBlackBars(Vector2 size)
         {
             // Calculate borderbox / pillarbox.
-            float targetAspectRatio = DrawBuffer.Size.X / DrawBuffer.Size.Y;
+            float targetAspectRatio = Engine.Configuration.RenderSize.X / Engine.Configuration.RenderSize.Y;
             float width = size.X;
             float height = (int) (width / targetAspectRatio + 0.5f);
 
@@ -367,6 +367,21 @@ namespace Emotion.Graphics
                 var yIntScale = (float) Math.Floor(height / DrawBuffer.Size.Y);
                 width = DrawBuffer.Size.X * xIntScale;
                 height = DrawBuffer.Size.Y * yIntScale;
+
+                DrawBuffer.Resize(Engine.Configuration.RenderSize, true);
+            }
+            else
+            {
+                Vector2 sizeInsideBars = new Vector2(width, height);
+                Vector2 baseRes = Engine.Configuration.RenderSize;
+                Vector2 ratio = sizeInsideBars / baseRes;
+
+                Scale = MathF.Min(ratio.X, ratio.Y);
+                IntScale = (int)MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
+
+                DrawBuffer.Resize(sizeInsideBars, true);
+                Engine.Log.Info($"Resized host to {size} - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
+                Engine.Log.Info($"Drawbuffer size is {sizeInsideBars}", MessageSource.Renderer);
             }
 
             var vpX = (int) (size.X / 2 - width / 2);
@@ -375,8 +390,9 @@ namespace Emotion.Graphics
             // Set viewport.
             ScreenBuffer.Resize(size);
             ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
-            DrawBuffer.Resize(Engine.Configuration.RenderSize, true);
-
+           
+            Camera?.RecreateViewMatrix();
+            Camera?.RecreateProjectionMatrix();
             ApplySettings();
         }
 

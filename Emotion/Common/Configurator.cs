@@ -50,7 +50,6 @@ namespace Emotion.Common
         /// also reduces the resolution you can work with outside of integer scaling (as in non-pixel art, UI etc.)
         /// This is off by default, but it is a huge performance boost - at the cost
         /// of very little in games which do not use scaling a lot.
-        /// If scale black bars is enabled this will cause it to scale integerly only.
         /// </summary>
         public bool IntScaleDrawBuffer { get; set; }
 
