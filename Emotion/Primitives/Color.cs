@@ -5,6 +5,8 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using Emotion.Utility;
 using OpenGL;
+using HSL = (int h, int s, int l);
+using RGB = (byte r, byte g, byte b);
 
 #endregion
 
@@ -17,13 +19,31 @@ namespace Emotion.Primitives
     [StructLayout(LayoutKind.Sequential)]
     public struct Color
     {
+        /// <summary>
+        /// Gets or sets the red component.
+        /// </summary>
+        public byte R;
+
+        /// <summary>
+        /// Gets or sets the green component.
+        /// </summary>
+        public byte G;
+
+        /// <summary>
+        /// Gets or sets the blue component.
+        /// </summary>
+        public byte B;
+
+        /// <summary>
+        /// Gets or sets the alpha component.
+        /// </summary>
+        public byte A;
+
         #region Constructors
 
         /// <summary>
-        /// Creates a new instance of <see cref="Color" /> struct.
+        /// Create a new instance of a color by changing the alpha of another color.
         /// </summary>
-        /// <param name="color">A <see cref="Color" /> for RGB values of new <see cref="Color" /> instance.</param>
-        /// <param name="a">Alpha component value.</param>
         public Color(Color color, byte a)
         {
             R = color.R;
@@ -33,12 +53,8 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="Color" /> struct.
+        /// Creates a new instance of color from RGBA bytes.
         /// </summary>
-        /// <param name="r">Red component value.</param>
-        /// <param name="g">Green component value.</param>
-        /// <param name="b">Blue component value</param>
-        /// <param name="a">Alpha component value.</param>
         public Color(byte r, byte g, byte b, byte a = 255)
         {
             R = r;
@@ -47,25 +63,46 @@ namespace Emotion.Primitives
             A = a;
         }
 
-        /// <inheritdoc />
         /// <summary>
-        /// Creates a new instance of <see cref="T:Emotion.Primitives.Color" /> struct.
+        /// Creates a new instance of color from RGBA ints.
         /// </summary>
-        /// <param name="r">Red component value.</param>
-        /// <param name="g">Green component value.</param>
-        /// <param name="b">Blue component value</param>
-        /// <param name="a">Alpha component value.</param>
         public Color(int r, int g, int b, int a = 255) : this((byte) r, (byte) g, (byte) b, (byte) a)
         {
         }
 
         /// <summary>
-        /// Create a new instance of <see cref="Color" /> struct from an HTML hex string.
+        /// Create a new instance of color from a HSL tuple.
+        /// </summary>
+        public Color(HSL hsl)
+        {
+            RGB rgb = HSLToRGB(hsl);
+            R = rgb.r;
+            G = rgb.g;
+            B = rgb.b;
+            A = 255;
+        }
+
+        /// <summary>
+        /// Create a new instance of color from a RGB tuple.
+        /// </summary>
+        public Color(RGB rgb)
+        {
+            R = rgb.r;
+            G = rgb.g;
+            B = rgb.b;
+            A = 255;
+        }
+
+        /// <summary>
+        /// Create a new instance of color from a HTML code, the "#" symbol is optional.
         /// </summary>
         public Color(string htmlFormat) : this(htmlFormat.AsSpan())
         {
         }
 
+        /// <summary>
+        /// Create a new instance of color from a HTML code, the "#" symbol is optional.
+        /// </summary>
         public Color(ReadOnlySpan<char> htmlFormat)
         {
             if (htmlFormat.Length < 6)
@@ -155,26 +192,6 @@ namespace Emotion.Primitives
         }
 
         #endregion
-
-        /// <summary>
-        /// Gets or sets the red component.
-        /// </summary>
-        public byte R;
-
-        /// <summary>
-        /// Gets or sets the green component.
-        /// </summary>
-        public byte G;
-
-        /// <summary>
-        /// Gets or sets the blue component.
-        /// </summary>
-        public byte B;
-
-        /// <summary>
-        /// Gets or sets the alpha component.
-        /// </summary>
-        public byte A;
 
         /// <summary>
         /// Gets the hash code of this <see cref="Color" />.
@@ -407,44 +424,96 @@ namespace Emotion.Primitives
             return ((uint) a << 24) | ((uint) b << 16) | ((uint) g << 8) | r;
         }
 
-        private static (int, int, int) HSLtoRGB(double h, double s, double l)
-        {
-            h /= 360.0;
-            s /= 100.0;
-            l /= 100.0;
-
-            double r, g, b;
-
-            if (s == 0)
-            {
-                r = g = b = l; // achromatic
-            }
-            else
-            {
-                double HueToRGB(double p, double q, double t)
-                {
-                    if (t < 0) t += 1;
-                    if (t > 1) t -= 1;
-                    if (t < 1 / 6.0) return p + (q - p) * 6 * t;
-                    if (t < 1 / 2.0) return q;
-                    if (t < 2 / 3.0) return p + (q - p) * (2 / 3.0 - t) * 6;
-                    return p;
-                }
-
-                double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                double p = 2 * l - q;
-                r = HueToRGB(p, q, h + 1 / 3.0);
-                g = HueToRGB(p, q, h);
-                b = HueToRGB(p, q, h - 1 / 3.0);
-            }
-
-            return ((int)(r * 255), (int)(g * 255), (int)(b * 255));
-        }
-
         public static Color RandomColor()
         {
-            (int r, int g, int b) = HSLtoRGB(Helpers.GenerateRandomNumber(0, 359), 59, 61);
-            return new Color(r, g, b);
+            RGB rgb = HSLToRGB((Helpers.GenerateRandomNumber(0, 359), 59, 61));
+            return new Color(rgb);
+        }
+
+        public static implicit operator Color(string htmlCode)
+        {
+            return new Color(htmlCode);
+        }
+
+        #region HSL
+
+        public static HSL RGBToHSL(RGB rgb)
+        {
+            float rd = rgb.r / 255.0f;
+            float gd = rgb.g / 255.0f;
+            float bd = rgb.b / 255.0f;
+
+            float max = Math.Max(rd, Math.Max(gd, bd));
+            float min = Math.Min(rd, Math.Min(gd, bd));
+            float delta = max - min;
+
+            float l = (max + min) / 2.0f;
+
+            // Achromatic
+            if (delta == 0)
+                return new HSL(0, 0, (int)MathF.Round(l * 100f));
+
+            // Calculate saturation
+            float s;
+            if (l < 0.5)
+                s = delta / (max + min);
+            else
+                s = delta / (2.0f - max - min);
+
+            // Calculate hue
+            float h;
+            if (rd == max)
+                h = (gd - bd) / delta + (gd < bd ? 6 : 0);
+            else if (gd == max)
+                h = (bd - rd) / delta + 2;
+            else
+                h = (rd - gd) / delta + 4;
+
+            h /= 6;
+
+            return new HSL(
+                (int)MathF.Round(h * 360),
+                (int)MathF.Round(s * 100),
+                (int)MathF.Round(l * 100)
+            );
+        }
+
+        private static float HueToRGB(float p, float q, float t)
+        {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6.0f) return p + (q - p) * 6 * t;
+            if (t < 1 / 2.0f) return q;
+            if (t < 2 / 3.0f) return p + (q - p) * (2 / 3.0f - t) * 6;
+            return p;
+        }
+
+        public static RGB HSLToRGB(HSL hsl)
+        {
+            float h = hsl.h / 360.0f;
+            float s = hsl.s / 100.0f;
+            float l = hsl.l / 100.0f;
+
+            if (s == 0) // achromatic
+            {
+                byte v = (byte)(l * 255);
+                return new RGB(v, v, v);
+            }
+
+            float q = l < 0.5f ? l * (1 + s) : l + s - l * s;
+            float p = 2f * l - q;
+
+            byte r = (byte)Math.Round(HueToRGB(p, q, h + 1 / 3.0f) * 255);
+            byte g = (byte)Math.Round(HueToRGB(p, q, h) * 255);
+            byte b = (byte)Math.Round(HueToRGB(p, q, h - 1 / 3.0f) * 255);
+            return new RGB(r, g, b);
+        }
+
+        #endregion
+
+        public RGB AsRGBTuple()
+        {
+            return (R, G, B);
         }
     }
 }
