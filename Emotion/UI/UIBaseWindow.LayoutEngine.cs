@@ -4,6 +4,12 @@ namespace Emotion.UI;
 
 public partial class UIBaseWindow
 {
+    public enum UIPass
+    {
+        Measure,
+        Layout
+    }
+
     private UILayoutEngine _layoutEngine = new UILayoutEngine();
 
     public class UILayoutEngine
@@ -16,7 +22,10 @@ public partial class UIBaseWindow
             public UIBaseWindow Child;
             public Rectangle Bound;
             public Rectangle Margins;
+
             public bool EndOfList;
+            public bool ReversedInList;
+            public bool IsListSizeZero;
 
             public override string ToString()
             {
@@ -26,6 +35,7 @@ public partial class UIBaseWindow
 
         private List<ChildData> _children = new(); // todo: optimize
         private Vector2 _listSpacing;
+        private UIPass _pass;
         private LayoutMode _layoutMode;
         private int _listMask;
 
@@ -44,8 +54,9 @@ public partial class UIBaseWindow
             _bound = rect;
         }
 
-        public void SetLayoutMode(LayoutMode mode, Vector2 listSpacing)
+        public void SetLayoutMode(UIPass pass, LayoutMode mode, Vector2 listSpacing)
         {
+            _pass = pass;
             _layoutMode = mode;
             _listSpacing = listSpacing;
             switch (_layoutMode)
@@ -104,7 +115,7 @@ public partial class UIBaseWindow
             _children.Add(appendData);
         }
 
-        public Vector2 ApplyLayout(bool dryRun = false)
+        public Vector2 ApplyLayout()
         {
             Rectangle spaceUsedByChildren = Rectangle.Empty;
             for (int i = 0; i < _children.Count; i++)
@@ -119,7 +130,7 @@ public partial class UIBaseWindow
                 if (childInsideParent && childWin._expandParent)
                     spaceUsedByChildren = spaceUsedByChildren == Rectangle.Empty ? childBound : Rectangle.Union(spaceUsedByChildren, childBound);
 
-                if (!dryRun)
+                if (_pass == UIPass.Layout)
                 {
                     // 1. Anchor must be before margin in order for w and h margins to work.
                     // 2. Limit must be after margin as not to fold the margin size into the window size.
@@ -129,7 +140,7 @@ public partial class UIBaseWindow
                     childBound = ApplyFill(ref childData, childBound);
                     childBound = DeflateRect(childBound, childData.Margins); // Subtract the margins from the child size, since the child should be layouted inside.
                     childBound = ApplyLimits(ref childData, childBound);
-                    
+
                     childData.Child.Layout(childBound.Position, childBound.Size);
                 }
             }
@@ -208,45 +219,97 @@ public partial class UIBaseWindow
 
         #region List
 
+        public bool IsList()
+        {
+            return _layoutMode is LayoutMode.HorizontalList or LayoutMode.VerticalList;
+        }
+
+        private bool IsListItemInReversedOrder(int listMask, UIBaseWindow child)
+        {
+            bool isReverse = false;
+            if (listMask == 0)
+                isReverse = child.ParentAnchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight;
+            else if (listMask == 1)
+                isReverse = child.ParentAnchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight;
+            return isReverse;
+        }
+
+        private bool ListHasAnyItems(bool reverseSide)
+        {
+            for (int i = 0; i < _children.Count; i++)
+            {
+                ChildData child = _children[i];
+                if (child.IsListSizeZero) continue;
+                if (child.ReversedInList == reverseSide) return true;
+            }
+            return false;
+        }
+
         private ChildData ListAppend(UIBaseWindow child, Vector2 size)
         {
+            bool measurePass = _pass == UIPass.Measure;
             int listMask = _listMask;
 
-            float wall = ListGetLowerWallInMaskDirection(listMask);
+            bool isReverse = IsListItemInReversedOrder(listMask, child);
+            if (measurePass) isReverse = false; // In the measure pass we cant layout the reverse side.
 
-            var boundPos = _bound.Position;
-            var boundSize = _bound.Size;
+            float wall = ListGetWallInDirection(listMask, isReverse);
+            if (isReverse) wall -= size[listMask];
 
-            var rowOrColumnPos = boundPos;
-            var rowOrColumnSize = boundSize;
+            Vector2 boundPos = _bound.Position;
+            Vector2 boundSize = _bound.Size;
+
+            Vector2 rowOrColumnPos = boundPos;
             rowOrColumnPos[listMask] = wall;
+
+            Vector2 rowOrColumnSize = boundSize;
             rowOrColumnSize[listMask] = rowOrColumnSize[listMask] - (boundPos[listMask] - rowOrColumnPos[listMask]);
 
-            Rectangle rowOrColumn = new Rectangle(rowOrColumnPos, rowOrColumnSize);
-
-            if (_children.Count > 0 && size[listMask] != 0)
+            bool isListSizeZero = size[listMask] == 0;
+            if (!isListSizeZero && ListHasAnyItems(isReverse)) // Add spacing if not first item and not size 0.
             {
-                rowOrColumnPos[listMask] += _listSpacing[listMask];
+                if (isReverse)
+                    rowOrColumnPos[listMask] -= _listSpacing[listMask];
+                else
+                    rowOrColumnPos[listMask] += _listSpacing[listMask];
             }
 
             return new ChildData()
             {
                 Child = child,
-                Bound = new Rectangle(rowOrColumnPos, size)
+                Bound = new Rectangle(rowOrColumnPos, size),
+                ReversedInList = isReverse,
+                IsListSizeZero = isListSizeZero
             };
         }
 
-        private float ListGetLowerWallInMaskDirection(int mask)
+        private float ListGetWallInDirection(int mask, bool isReverse)
         {
-            float wall = _bound.Position[mask];
+            float wall;
+            if (isReverse)
+                wall = _bound.Position[mask] + _bound.Size[mask];
+            else
+                wall = _bound.Position[mask];
+
             for (int i = 0; i < _children.Count; i++)
             {
-                var win = _children[i];
-                var winBound = win.Bound;
-                float boundWall = winBound.Position[mask] + winBound.Size[mask];
-                if (boundWall > wall)
+                ChildData winData = _children[i];
+                Rectangle winBound = winData.Bound;
+                bool isWindowReversed = winData.ReversedInList;
+
+                if (isReverse)
                 {
-                    wall = boundWall;
+                    if (!isWindowReversed) continue;
+
+                    float boundWall = winBound.Position[mask];
+                    if (boundWall < wall)
+                        wall = boundWall;
+                }
+                else
+                {
+                    float boundWall = winBound.Position[mask] + winBound.Size[mask];
+                    if (boundWall > wall)
+                        wall = boundWall;
                 }
             }
 
