@@ -60,7 +60,7 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x64'">
-    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OPENAL;GLFW</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
@@ -68,7 +68,7 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x86'">
-    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OPENAL;GLFW</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
@@ -76,7 +76,7 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix64|x64'">
-    <DefineConstants>$(DefineConstants);OPENAL;GLFW</DefineConstants>
+    <DefineConstants>$(DefineConstants);OpenAL;GLFW</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
@@ -84,7 +84,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix64|x86'">
-    <DefineConstants>$(DefineConstants);OPENAL;GLFW</DefineConstants>
+    <DefineConstants>$(DefineConstants);OpenAL;GLFW</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile />
