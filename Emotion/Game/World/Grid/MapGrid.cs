@@ -8,7 +8,7 @@ public interface IMapGrid
 {
     public Task LoadAsync(BaseMap map);
 
-    public void FillToMapSize(Vector2 mapSize);
+    public void ResizeToMapSize(Vector2 mapSize);
 
     public void Render(RenderComposer c);
 }
@@ -44,12 +44,11 @@ public class MapGrid<T> : Grid<T>, IMapGrid
 
     }
 
-    public void FillToMapSize(Vector2 mapSize) // todo: rename to resize so its map-usage agnostic
+    public void ResizeToMapSize(Vector2 mapSize)
     {
         Vector2 currentGridSize = SizeInTiles * TileSize;
         if (currentGridSize.X >= mapSize.X && currentGridSize.Y >= mapSize.Y) return;
-
-        // todo: resize
+        Resize((int) (mapSize.X / TileSize.X), (int) (mapSize.Y / TileSize.Y));
     }
 
     public Vector2 WorldToGrid(Vector3 wPos)

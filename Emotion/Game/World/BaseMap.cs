@@ -201,7 +201,7 @@ public abstract partial class BaseMap
             for (int i = 0; i < Grids.Count; i++)
             {
                 var grid = Grids[i];
-                grid.FillToMapSize(MapSize);
+                grid.ResizeToMapSize(MapSize);
             }
         }
 

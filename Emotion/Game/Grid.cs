@@ -90,13 +90,75 @@ public class Grid<T> : Grid
 
     public IEnumerable<T> EnumAllTiles()
     {
+        for (int i = 0; i < _data.Length; i++)
+        {
+            yield return _data[i];
+        }
+    }
+
+    public void Resize(int newWidth, int newHeight, Func<int, int, T>? initNewDataFunc = null)
+    {
+        if (newWidth == SizeInTiles.X && newHeight == SizeInTiles.Y) return;
+
+        T[] newData = new T[newWidth * newHeight];
         for (int x = 0; x < SizeInTiles.X; x++)
         {
             for (int y = 0; y < SizeInTiles.Y; y++)
             {
-                T val = GetValueInTile(x, y)!;
-                yield return val;
+                int oldOneD = GetCoordinate1DFrom2D(new Vector2(x, y));
+                int newOneD = x + newWidth * y;
+                newData[newOneD] = _data[oldOneD];
             }
         }
+
+        if (initNewDataFunc != null)
+        {
+            for (int x = 0; x < newWidth; x++)
+            {
+                for (int y = 0; y < newHeight; y++)
+                {
+                    if (y < SizeInTiles.Y && x < SizeInTiles.X) continue;
+                    int newOneD = x + newWidth * y;
+                    newData[newOneD] = initNewDataFunc(x, y);
+                }
+            }
+        }
+
+        SizeInTiles = new Vector2(newWidth, newHeight);
+        _data = newData;
+    }
+
+    public void Offset(int x, int y, bool wrapAround, Action<int, int, T>? onOffset = null)
+    {
+        T[] offsetData = new T[_data.Length];
+
+        int width = (int)SizeInTiles.X;
+        int height = (int)SizeInTiles.Y;
+
+        for (int oldX = 0; oldX < width; oldX++)
+        {
+            for (int oldY = 0; oldY < height; oldY++)
+            {
+                int newX = oldX + x;
+                int newY = oldY + y;
+
+                if (wrapAround)
+                {
+                    newX = (newX + width) % width;
+                    newY = (newY + height) % height;
+                }
+
+                if (newX >= 0 && newX < width && newY >= 0 && newY < height)
+                {
+                    int oldIndex = GetCoordinate1DFrom2D(new Vector2(oldX, oldY));
+                    int newIndex = GetCoordinate1DFrom2D(new Vector2(newX, newY));
+                    offsetData[newIndex] = _data[oldIndex];
+
+                    onOffset?.Invoke(newX, newY, offsetData[newIndex]);
+                }
+            }
+        }
+
+        _data = offsetData;
     }
 }
