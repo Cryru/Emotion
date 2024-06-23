@@ -70,4 +70,15 @@ public static class SteamNative
     public static extern ulong GetSteamID(IntPtr iSteamUserThis);
 
     #endregion
+
+    #region Steam Input
+    [DllImport(NativeLibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamClient_GetISteamInput")]
+    public static extern IntPtr GetSteamInput(IntPtr steamClientThis, IntPtr hSteamUser, IntPtr hSteamPipe, string pchVersion);
+
+
+    [DllImport(NativeLibraryName, EntryPoint = "SteamAPI_ISteamInput_Init", CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool ISteamInput_Init(IntPtr instancePtr, [MarshalAs(UnmanagedType.I1)] bool bExplicitlyCallRunFrame);
+
+    #endregion
 }
