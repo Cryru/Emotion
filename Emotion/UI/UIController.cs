@@ -401,7 +401,7 @@ namespace Emotion.UI
                 // call event handlers of destroyed windows, so lets return out.
                 if (status == KeyStatus.Down && _myMouseFocus is not UIController)
                 {
-                    Assert(_myMouseFocus.Controller != null);
+                    //Assert(_myMouseFocus.Controller != null);
                     if (_myMouseFocus.Controller == null) return true;
                 }
 

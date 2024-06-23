@@ -56,11 +56,11 @@ public abstract partial class WorldBaseEditor
         UIBaseWindow worldInspect = GetWorldAttachInspectWindow();
         _editUI.AddChild(worldInspect);
 
-        _setControllersToVisible = UIController.GetControllersLesserPriorityThan(KeyListenerType.Editor);
-        for (var i = 0; i < _setControllersToVisible.Count; i++)
-        {
-            _setControllersToVisible[i].SetVisible(false);
-        }
+        //_setControllersToVisible = UIController.GetControllersLesserPriorityThan(KeyListenerType.Editor);
+        //for (var i = 0; i < _setControllersToVisible.Count; i++)
+        //{
+        //    _setControllersToVisible[i].SetVisible(false);
+        //}
     }
 
     protected void DisposeEditorInterface()
