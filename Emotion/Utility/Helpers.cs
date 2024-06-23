@@ -90,11 +90,33 @@ public static class Helpers
         return array[num];
     }
 
+    /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
+
+    public static T? GetRandomArrayItem<T>(T[] array, Random rng)
+    {
+        if (array.Length == 0) return default;
+
+        int rand = rng.Next(0, array.Length);
+        return array[rand];
+    }
+
+    /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
     public static T? GetRandomArrayItem<T>(List<T> array)
     {
         if (array.Count == 0) return default;
         var num = GenerateRandomNumber(0, array.Count - 1);
         return array[num];
+    }
+
+    /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
+
+    public static T? GetRandomArrayItem<T>(List<T> array, Random rng, bool eject = false)
+    {
+        if (array.Count == 0) return default;
+
+        int rand = rng.Next(0, array.Count);
+        if (eject) array.RemoveAt(rand);
+        return array[rand];
     }
 
     public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null)

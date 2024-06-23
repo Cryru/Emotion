@@ -16,9 +16,24 @@ namespace Emotion.UI;
 
 public class TextLayoutEngine
 {
+    public static bool TestNewRenderer = false; // WIP
+
+    /// <summary>
+    /// The size of the text as layouted last by a call to Run().
+    /// </summary>
     public Vector2 TextSize { get; protected set; }
 
+    /// <summary>
+    /// Whether to resolve tags in the text, such as <color></color>
+    /// </summary>
     public bool ResolveTags = true;
+
+    /// <summary>
+    /// Whether to resolve tags in the text that generate content themselves.
+    /// Requires ResolveTags to be true. If set to false only layout and tags that
+    /// do not add text will be resolved. Text selection APIs do not support content tags.
+    /// </summary>
+    public bool ResolveContentTags = true;
 
     private bool _wrapText = false;
 
@@ -255,7 +270,7 @@ public class TextLayoutEngine
             {
                 ref TextBlock block = ref blocksSpan[b];
                 if (block.Skip) continue;
-
+                
                 if (startIndex <= block.StartIndex && endIndex >= block.StartIndex + block.Length)
                 {
                     ProcessTag(tag, ref block);
@@ -266,7 +281,7 @@ public class TextLayoutEngine
         TextSize = MeasureString();
     }
 
-    public void Render(RenderComposer c, Vector3 offset, Color baseColor)
+    public void Render(RenderComposer c, Vector3 offset, Color baseColor, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
     {
         Vector3 pen = Vector3.Zero;
         for (int i = 0; i < _textBlocks.Count; i++)
@@ -274,8 +289,11 @@ public class TextLayoutEngine
             TextBlock currentBlock = _textBlocks[i];
             if (currentBlock.Skip) continue;
 
-            TextRenderEngine.CacheEntries(_text, currentBlock);
-            TextRenderEngine.RenderBlock(c, _text, currentBlock, _defaultAtlas.Font);
+            if (TestNewRenderer)
+            {
+                TextRenderEngine.CacheEntries(_text, currentBlock);
+                TextRenderEngine.RenderBlock(c, _text, currentBlock, _defaultAtlas.Font);
+            }
 
             Color color = currentBlock.UseDefaultColor ? baseColor : currentBlock.Color;
 
@@ -287,7 +305,7 @@ public class TextLayoutEngine
                 pen.X = 0;
             }
 
-            c.RenderString(offset + pen, color, currentBlock.GetBlockString(_text).ToString(), _defaultAtlas, layouter);
+            c.RenderString(offset + pen, color, currentBlock.GetBlockString(_text).ToString(), _defaultAtlas, layouter, effect, effectAmount, effectColor);
 
             pen = pen + layouter.GetPenLocation().ToVec3();
         }
@@ -388,6 +406,8 @@ public class TextLayoutEngine
 
     private Vector2 MeasureString()
     {
+        float lineSpacing = _defaultAtlas.FontHeight; // todo: height modes
+
         Vector2 sizeSoFar = new Vector2(0, 0);
         float largestLine = 0;
         float tallestOnLine = 0;
@@ -399,7 +419,7 @@ public class TextLayoutEngine
             if (block.Newline)
             {
                 if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
-                sizeSoFar.Y += tallestOnLine;
+                sizeSoFar.Y += lineSpacing;
                 tallestOnLine = 0;
             }
 
@@ -413,12 +433,12 @@ public class TextLayoutEngine
                 if (g == null) continue;
 
                 sizeSoFar.X += g.XAdvance;
-                float verticalSize = g.Height + (_defaultAtlas.Ascent - g.Height) + g.Descent;
-                if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
+                //float verticalSize = g.Height;// + (_defaultAtlas.Ascent - g.Height) + g.Descent;
+                //if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
             }
         }
 
-        sizeSoFar.Y += tallestOnLine;
+        sizeSoFar.Y += lineSpacing;
 
         if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
         if (largestLine != 0) sizeSoFar.X = largestLine;

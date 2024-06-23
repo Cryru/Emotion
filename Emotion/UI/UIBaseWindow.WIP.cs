@@ -166,7 +166,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 
         _layoutEngine.Reset();
         _layoutEngine.SetDimensions(new Rectangle(Vector2.Zero, space));
-        _layoutEngine.SetLayoutMode(LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
+        _layoutEngine.SetLayoutMode(UIPass.Measure, LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
 
         // The parent's margins and paddings is space children cannot take, so we take them out.
         _layoutEngine.AddPadding(Paddings * scale);
@@ -196,7 +196,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
             _layoutEngine.AppendChild(child, childSpaceTaken, child.Margins * childScale);
         }
 
-        Vector2 childrenUsed = _layoutEngine.ApplyLayout(true);
+        Vector2 childrenUsed = _layoutEngine.ApplyLayout();
         _measureChildrenUsedSpace = childrenUsed;
 
         // Find out the minimum size of this window.
@@ -263,7 +263,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 
         _layoutEngine.Reset();
         _layoutEngine.SetDimensions(Bounds);
-        _layoutEngine.SetLayoutMode(LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
+        _layoutEngine.SetLayoutMode(UIPass.Layout, LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
         _layoutEngine.AddPadding(Paddings * scale);
 
         // Append children to the layout.

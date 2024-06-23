@@ -28,6 +28,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private Glfw.WindowFocusFunc _focusCallback;
+        
+        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+        private Glfw.CursorPosFunc _mouseMoveCallback;
 
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private Glfw.ErrorFunc _errorCallback;
@@ -113,6 +116,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             _keyInputCallback = KeyInput;
             Glfw.SetKeyCallback(_win, _keyInputCallback);
 
+            _mouseMoveCallback = MouseMove;
+            Glfw.SetCursorPosCallback(_win, _mouseMoveCallback);
+
             _mouseButtonFunc = MouseButtonKeyInput;
             Glfw.SetMouseButtonCallback(_win, _mouseButtonFunc);
 
@@ -150,8 +156,6 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         {
             IsOpen = !Glfw.WindowShouldClose(_win);
             Glfw.PollEvents();
-            Glfw.GetCursorPos(_win, out double xPos, out double yPos);
-            MousePosition = new Vector2((float) xPos, (float) yPos);
             return true;
         }
 
@@ -173,6 +177,11 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private void MouseScrollInput(Glfw.Window window, double x, double y)
         {
             UpdateScroll((float) y);
+        }
+
+        private void MouseMove(Glfw.Window window, double x, double y)
+        {
+            MousePosition = new Vector2((float) x, (float) y);
         }
 
         private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)

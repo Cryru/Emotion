@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Common.Threading;
@@ -11,8 +12,9 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Test;
 using Emotion.Utility;
+
+using Emotion.Test;
 using Tests.Classes;
 
 #endregion

@@ -102,6 +102,10 @@ public class UIRichText : UIBaseWindow
 
     public bool WrapText = true;
 
+    public float OutlineSize;
+
+    public Color OutlineColor;
+
     protected string _text;
     protected FontAsset _fontFile;
     protected DrawableFontAtlas _atlas;
@@ -179,8 +183,8 @@ public class UIRichText : UIBaseWindow
     {
         if (_text == null || _fontFile == null || _layouter == null) return true;
 
-        c.RenderOutline(Position, Size, Color.Red);
-        _layoutEngine.Render(c, Position, _calculatedColor);
+        //c.RenderOutline(Position, Size, Color.Red);
+        _layoutEngine.Render(c, Position, _calculatedColor, FontEffect.Outline, OutlineSize * GetScale(), OutlineColor);
 
         return true;
     }

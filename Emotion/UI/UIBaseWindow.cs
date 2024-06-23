@@ -1203,7 +1203,11 @@ namespace Emotion.UI
         public TWindow? GetWindowById<TWindow>(string id) where TWindow : UIBaseWindow
         {
             var win = GetWindowById(id);
-            return win as TWindow;
+            var asType = win as TWindow;
+            if (asType == null && win != null)
+                Engine.Log.Warning($"Window with id {id} found of the {win.GetType().Name} type rather than the {typeof(TWindow).Name} type!", "UI", true);
+
+            return asType;
         }
 
         private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Id = "Invalid Window" };

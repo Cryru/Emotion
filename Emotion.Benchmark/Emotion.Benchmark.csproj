@@ -2,14 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove=".editorconfig" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="..\Tests\Assets\Images\logoAlpha.png" Link="Assets\logoAlpha.png">
@@ -21,10 +18,6 @@
     <Content Include="..\Tests\Assets\Sounds\pepsi.wav" Link="Assets\pepsi.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EditorConfigFiles Include=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
