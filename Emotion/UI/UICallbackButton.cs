@@ -65,18 +65,28 @@ public class UICallbackButton : UIBaseWindow
         {
             if (status == KeyStatus.Down)
             {
-                OnClickedProxy?.Invoke(this);
+                OnClicked();
                 return false;
             }
 
             if (status == KeyStatus.Up)
             {
-                OnClickedUpProxy?.Invoke(this);
+                OnClickedUp();
                 return false;
             }
         }
 
         return base.OnKey(key, status, mousePos);
+    }
+
+    protected virtual void OnClicked()
+    {
+        OnClickedProxy?.Invoke(this);
+    }
+
+    protected virtual void OnClickedUp()
+    {
+        OnClickedUpProxy?.Invoke(this);
     }
 
     protected virtual void OnEnabledChanged()
