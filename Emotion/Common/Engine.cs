@@ -520,11 +520,9 @@ namespace Emotion.Common
         #region ONE
 
         public static UISystem UI;
-        private static Func<IEnumerator> _entryPointAsyncRoutine;
 
         public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
         {
-            _entryPointAsyncRoutine = entryPointAsyncRoutine;
             Setup(config);
 
             UI = new UISystem();
@@ -552,6 +550,7 @@ namespace Emotion.Common
                     if (timePassed != 0) lastUpdate = DateTime.Now;
                 }
             });
+            asyncRoutineThread.IsBackground = true;
             asyncRoutineThread.Start();
             CoroutineManagerAsync.StartCoroutine(entryPointAsyncRoutine());
 
