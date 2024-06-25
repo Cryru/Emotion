@@ -119,7 +119,7 @@ public static class Helpers
         return array[rand];
     }
 
-    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null)
+    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null, IList<T>? whiteList = null)
     {
         if (weights.Count == 0) return default;
         if (weights.Count == 1) return weights[0].obj;
@@ -142,6 +142,7 @@ public static class Helpers
         {
             (int weight, T obj) = weights[i];
             if (exceptions != null && exceptions.IndexOf(weights[i].obj) != -1) continue;
+            if (whiteList != null && whiteList.IndexOf(weights[i].obj) == -1) continue;
 
             if (weight == 0) continue;
 
