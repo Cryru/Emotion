@@ -128,7 +128,11 @@ namespace Emotion.Primitives
             byte.TryParse(htmlFormat.Slice(0 + offset, 2), NumberStyles.HexNumber, null, out R);
             byte.TryParse(htmlFormat.Slice(2 + offset, 2), NumberStyles.HexNumber, null, out G);
             byte.TryParse(htmlFormat.Slice(4 + offset, 2), NumberStyles.HexNumber, null, out B);
-            A = 255;
+
+            if (htmlFormat.Length > 6 + offset)
+                byte.TryParse(htmlFormat.Slice(6 + offset, 2), NumberStyles.HexNumber, null, out A);
+            else
+                A = 255;
         }
 
         /// <summary>
