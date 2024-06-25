@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Emotion.Game.Text;
 using Emotion.Graphics.Text;
@@ -281,7 +282,7 @@ public class TextLayoutEngine
         TextSize = MeasureString();
     }
 
-    public void Render(RenderComposer c, Vector3 offset, Color baseColor, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
+    public void Render(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
     {
         Vector3 pen = Vector3.Zero;
         for (int i = 0; i < _textBlocks.Count; i++)
@@ -297,12 +298,37 @@ public class TextLayoutEngine
 
             Color color = currentBlock.UseDefaultColor ? baseColor : currentBlock.Color;
 
+            bool blockEffect = currentBlock.TextEffect != FontEffect.None;
+            FontEffect effect = blockEffect ? currentBlock.TextEffect : defaultEffect;
+            Color effectColor = blockEffect ? currentBlock.EffectColor : defaultEffectColor ?? Color.White;
+            float effectAmount = blockEffect ? currentBlock.EffectParam : defaultEffectAmount;
+
             TextLayouter layouter = new TextLayouter(_defaultAtlas); // todo
 
             if (currentBlock.Newline)
             {
                 layouter.NewLine();
                 pen.X = 0;
+            }
+
+            if (currentBlock.CenterLayout == 1) // starting
+            {
+                float combinedBlockWidth = MeasureStringWidth(currentBlock.GetBlockString(_text));
+                for (int ii = i + 1; ii < _textBlocks.Count; ii++)
+                {
+                    TextBlock otherBlock = _textBlocks[ii];
+                    if (otherBlock.Skip) continue;
+                    if (otherBlock.CenterLayout != 2) break;
+                    if (otherBlock.Newline) break;
+
+                    combinedBlockWidth += MeasureStringWidth(otherBlock.GetBlockString(_text));
+                }
+
+                // todo: calculate blocks positions outside of rendering
+                // maybe also render params such as color?
+                float textWidth = TextSize.X;
+                float center = textWidth / 2f - combinedBlockWidth / 2f;
+                pen.X = center;
             }
 
             c.RenderString(offset + pen, color, currentBlock.GetBlockString(_text).ToString(), _defaultAtlas, layouter, effect, effectAmount, effectColor);
@@ -321,28 +347,40 @@ public class TextLayoutEngine
             LayoutTag_Color(def, ref block);
             return;
         }
+        else if (tagName.StartsWith("outline")) // outline r g b (?a) size=s or outline #htmlColor size=s
+        {
+            LayoutTag_Outline(def, ref block);
+            return;
+        }
+        else if (tagName.StartsWith("center"))
+        {
+            block.CenterLayout = (byte) (def.GetTagStartIndexInText() == block.StartIndex ? 1 : 2);
+            return;
+        }
     }
 
-    private void LayoutTag_Color(TagDefinition tag, ref TextBlock block)
+    private Color? TagReadingHelper_ColorArgs(TagDefinition tag)
     {
         ReadOnlySpan<char> tagName = tag.GetTagName(_text);
         int afterTagSpec = tagName.IndexOf(" ");
-        if (afterTagSpec == -1 || afterTagSpec == tagName.Length - 2) return;
+        if (afterTagSpec == -1 || afterTagSpec == tagName.Length - 2) return null;
 
         ReadOnlySpan<char> tagArgs = tagName.Slice(afterTagSpec + 1);
-        if (tagArgs.Length == 0) return;
+        if (tagArgs.Length == 0) return null;
 
         bool isHtmlColor = tagArgs[0] == '#';
         if (isHtmlColor)
         {
-            block.Color = new Color(tagArgs);
-            block.UseDefaultColor = false;
+            Span<Range> arguments = stackalloc Range[2];
+            int ranges = tagArgs.Split(arguments, ' ');
+
+            return new Color(tagArgs[arguments[0]]);
         }
         else
         {
             Span<Range> arguments = stackalloc Range[4];
             int ranges = tagArgs.Split(arguments, ' ');
-            if (ranges < 3) return;
+            if (ranges < 3) return null;
 
             byte.TryParse(tagArgs[arguments[0]], out byte r);
             byte.TryParse(tagArgs[arguments[1]], out byte g);
@@ -351,8 +389,53 @@ public class TextLayoutEngine
             byte a = 255;
             if (ranges == 4 && !byte.TryParse(tagArgs[arguments[3]], out a)) a = 255;
 
-            block.Color = new Color(r, g, b, a);
+            return new Color(r, g, b, a);
+        }
+    }
+
+    private void LayoutTag_Color(TagDefinition tag, ref TextBlock block)
+    {
+        Color? col = TagReadingHelper_ColorArgs(tag);
+        if (col != null)
+        {
+            block.Color = col.Value;
             block.UseDefaultColor = false;
+        }
+    }
+
+    private void LayoutTag_Outline(TagDefinition tag, ref TextBlock block)
+    {
+        Color? col = TagReadingHelper_ColorArgs(tag);
+        if (col != null)
+        {
+            block.EffectColor = col.Value;
+            block.TextEffect = FontEffect.Outline;
+        }
+        else
+        {
+            return;
+        }
+
+        // todo: add helper function for getting args from tags
+        const string sizeArgStr = "size=";
+        ReadOnlySpan<char> tagName = tag.GetTagName(_text);
+        int sizeSpec = tagName.IndexOf(sizeArgStr);
+        if (sizeSpec != -1)
+        {
+            sizeSpec += sizeArgStr.Length;
+
+            int sizeArgSize = 0;
+            for (int i = sizeSpec; i < tagName.Length; i++)
+            {
+                char c = tagName[i];
+                if (c == ' ') break;
+
+                sizeArgSize++;
+            }
+            ReadOnlySpan<char> sizeArg = tagName.Slice(sizeSpec, sizeArgSize);
+            bool parsed = int.TryParse(sizeArg, out int sizeNum);
+            if (!parsed) sizeNum = 1;
+            block.EffectParam = sizeNum;
         }
     }
 
@@ -375,7 +458,7 @@ public class TextLayoutEngine
         return sizeSoFar;
     }
 
-    private Vector2 GetNextGlyphPosition(Vector2 pen, char c, out Vector2 drawPosition, out DrawableGlyph g)
+    private Vector2 GetNextGlyphPosition(Vector2 pen, char c, out Vector2 drawPosition, out DrawableGlyph? g)
     {
         var _atlas = _defaultAtlas;
         bool _hasZeroGlyph = false;
@@ -419,6 +502,7 @@ public class TextLayoutEngine
             if (block.Newline)
             {
                 if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
+                sizeSoFar.X = 0;
                 sizeSoFar.Y += lineSpacing;
                 tallestOnLine = 0;
             }
@@ -768,6 +852,11 @@ public class TextLayoutEngine
         {
             return totalText.AsSpan().Slice(NameStartIdx, NameLength);
         }
+
+        public int GetTagStartIndexInText()
+        {
+            return NameStartIdx + NameLength + 1; // "name>" + 1 because of the bracket
+        }
     }
 
     public struct TextBlock
@@ -779,7 +868,12 @@ public class TextLayoutEngine
         public Color Color;
         public bool UseDefaultColor;
 
+        public FontEffect TextEffect;
+        public Color EffectColor;
+        public int EffectParam;
+
         public bool Newline;
+        public byte CenterLayout;
 
         public TextBlock(int startIndex)
         {
