@@ -256,14 +256,24 @@ public class TextLayoutEngine
             int startIndex = tag.NameStartIdx;
 
             int endIndex = _text.Length;
+            int depth = 0;
             for (int ii = i + 1; ii < _tagDefinitions.Count; ii++)
             {
                 ref TagDefinition nextTag = ref tagDefSpan[ii];
                 var name = nextTag.GetTagName(_text);
                 if (name.SequenceEqual("/"))
                 {
-                    endIndex = nextTag.NameStartIdx;
-                    break;
+                   
+                    if (depth == 0)
+                    {
+                        endIndex = nextTag.NameStartIdx;
+                        break;
+                    }
+                    depth--;
+                }
+                else
+                {
+                    depth++;
                 }
             }
 
