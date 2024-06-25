@@ -184,7 +184,7 @@ public class UIRichText : UIBaseWindow
         if (_text == null || _fontFile == null || _layouter == null) return true;
 
         //c.RenderOutline(Position, Size, Color.Red);
-        _layoutEngine.Render(c, Position, _calculatedColor, FontEffect.Outline, OutlineSize * GetScale(), OutlineColor);
+        _layoutEngine.Render(c, Position, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
 
         return true;
     }
