@@ -112,15 +112,14 @@ namespace Emotion.Common
 
         static Engine()
         {
-            Helpers.AssociatedAssemblies = new List<Assembly>
-            {
-                // This is the assembly which called this function. Should be the game. Moving this to Setup/LightSetup will invalidate this assembly.
-                Assembly.GetCallingAssembly(),
-                // Is the engine.
-                Assembly.GetExecutingAssembly(),
-                // Is game or debugger. Some platforms don't provide this.
-                Assembly.GetEntryAssembly()
-            }.Distinct().Where(x => x != null).ToArray();
+            // This is the assembly which called this function. Should be the game.
+            Helpers.AddAssociatedAssembly(Assembly.GetCallingAssembly());
+
+            // Is the engine.
+            Helpers.AddAssociatedAssembly(Assembly.GetExecutingAssembly());
+
+            // Is game or debugger. Some platforms don't provide this.
+            Helpers.AddAssociatedAssembly(Assembly.GetEntryAssembly());
         }
 
         /// <summary>

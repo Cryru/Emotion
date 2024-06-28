@@ -38,6 +38,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 _platformExtension = ".dylib";
             }
 
+            ForceDiscreteGPU();
             base.Setup(config);
 
             if (Engine.AssetLoader == null) return;
@@ -220,6 +221,19 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 {
                     throw;
                 }
+            }
+        }
+
+        private static void ForceDiscreteGPU()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (Environment.Is64BitProcess)
+                    NativeLibrary.Load("nvapi64.dll");
+                else
+                    NativeLibrary.Load("nvapi.dll");
+
+                // todo: figure out how to do AMD
             }
         }
     }

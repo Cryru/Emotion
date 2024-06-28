@@ -20,7 +20,14 @@ public static class Helpers
     /// The assemblies of the program running (game, engine, main method containing assembly etc).
     /// Used to find embedded resources from, types referenced in serialization etc.
     /// </summary>
-    public static Assembly[] AssociatedAssemblies = null!;
+    public static Assembly[] AssociatedAssemblies = Array.Empty<Assembly>();
+
+    public static void AddAssociatedAssembly(Assembly? ass)
+    {
+        if (ass == null) return;
+        if (AssociatedAssemblies.IndexOf(ass) != -1) return;
+        AssociatedAssemblies = AssociatedAssemblies.AddToArray(ass);
+    }
 
     /// <summary>
     /// Regex for capturing Windows line endings.
@@ -119,7 +126,7 @@ public static class Helpers
         return array[rand];
     }
 
-    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null)
+    public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null, IList<T>? whiteList = null)
     {
         if (weights.Count == 0) return default;
         if (weights.Count == 1) return weights[0].obj;
@@ -142,6 +149,7 @@ public static class Helpers
         {
             (int weight, T obj) = weights[i];
             if (exceptions != null && exceptions.IndexOf(weights[i].obj) != -1) continue;
+            if (whiteList != null && whiteList.IndexOf(weights[i].obj) == -1) continue;
 
             if (weight == 0) continue;
 
