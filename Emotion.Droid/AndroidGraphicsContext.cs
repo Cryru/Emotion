@@ -44,6 +44,7 @@ public unsafe class AndroidGraphicsContext : GraphicsContext
         _funcDictionary.Add("glFlushMappedBufferRange", (Gl.Delegates.glFlushMappedBufferRange) FlushMappedRange);
 
         _funcDictionary.Add("glClear", (Gl.Delegates.glClear) Clear);
+        _funcDictionary.Add("glScissor", (Gl.Delegates.glScissor)Scissor);
         _funcDictionary.Add("glClearColor", (Gl.Delegates.glClearColor) GLES20.GlClearColor);
         _funcDictionary.Add("glColorMask", (Gl.Delegates.glColorMask) GLES20.GlColorMask);
         _funcDictionary.Add("glEnable", (Gl.Delegates.glEnable) GLES20.GlEnable);
@@ -226,6 +227,11 @@ public unsafe class AndroidGraphicsContext : GraphicsContext
     private void Clear(uint mask)
     {
         GLES20.GlClear((int) mask);
+    }
+
+    private void Scissor(int x, int y, int w, int h)
+    {
+        GLES20.GlScissor(x, y, w, h);
     }
 
     private void StencilMask(uint maskType)
