@@ -15,6 +15,20 @@ namespace Emotion.IO
 
         static DebugAssetStore()
         {
+            try
+            {
+                PopulateAssetDevPath();
+            }
+            catch (Exception ex) // most likely unauthorized IO exception
+            {
+                AssetDevPath = string.Empty;
+                ProjectDevPath = string.Empty;
+                Engine.Log.Warning(ex.ToString(), "DebugAssetStore");
+            }
+        }
+
+        private static void PopulateAssetDevPath()
+        {
             string currentDirectory = Directory.GetCurrentDirectory();
             DirectoryInfo parentDir = Directory.GetParent(currentDirectory);
             int levelsBack = 1;
