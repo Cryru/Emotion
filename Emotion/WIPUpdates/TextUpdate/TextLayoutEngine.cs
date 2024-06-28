@@ -263,7 +263,6 @@ public class TextLayoutEngine
                 var name = nextTag.GetTagName(_text);
                 if (name.SequenceEqual("/"))
                 {
-                   
                     if (depth == 0)
                     {
                         endIndex = nextTag.NameStartIdx;

@@ -13,7 +13,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Configurations>Debug;Release;DebugUnix64;DebugWeb;Autobuild;Debug-Pure;ReleaseUnix64</Configurations>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <Platforms>x64;x86</Platforms>
+    <Platforms>x64;x86;ARM64</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>1701;1702;1591;1734</NoWarn>
   </PropertyGroup>
@@ -110,6 +110,13 @@
     <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
     <Optimize>True</Optimize>
     <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+     <Optimize>True</Optimize>
+     <PlatformTarget>ARM64</PlatformTarget>
+   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <PlatformTarget>ARM64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
     <Compile Remove="Platform\Implementation\OpenAL\**\*.cs" />
