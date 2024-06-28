@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Android.Content.Res;
+using Android.Views;
 using Emotion.Common;
 
 #endregion
@@ -14,6 +15,8 @@ namespace Emotion.Droid
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            Window.RequestFeature(WindowFeatures.NoTitle);
+            Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
 
             // On the Android the application entry point (creation of the main activity)
             // is on an arbitrary UI thread, but we need to initialize the engine on the GL thread.

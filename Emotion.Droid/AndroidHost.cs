@@ -6,6 +6,7 @@ using Android.Opengl;
 using Android.Views;
 using Emotion.Common;
 using Emotion.Platform;
+using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
 
 #endregion
@@ -72,6 +73,8 @@ namespace Emotion.Droid
 
             AndroidContext = new AndroidGraphicsContext(surface, renderer);
             Context = AndroidContext;
+
+            Audio = new NullAudioContext(this);
 
             _mainMethod = mainMethod;
         }
