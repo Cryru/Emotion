@@ -15,13 +15,41 @@ namespace Emotion.Droid
         public AndroidAssetSource(Activity activity)
         {
             _activity = activity;
-            manifest = _activity.Assets?.List("") ?? Array.Empty<string>();
+
+            List<string> assets = PopulateAssetsDown("");
+            manifest = assets.ToArray() ?? Array.Empty<string>();
 
             for (var i = 0; i < manifest.Length; i++)
             {
                 string str = manifest[i];
                 _enginePathToFilePath.Add(AssetLoader.NameToEngineName(str), str);
             }
+        }
+
+        private List<string> PopulateAssetsDown(string path)
+        {
+            var folderAssets = new List<string>();
+
+            var thisFolder = _activity.Assets?.List(path);
+            if (thisFolder == null) return folderAssets;
+
+            for (int i = 0; i < thisFolder.Length; i++)
+            {
+                string folderOrFile = thisFolder[i];
+
+                string innerPath = path == "" ? folderOrFile : (path + "/" + folderOrFile);
+                List<string> insideThis = PopulateAssetsDown(innerPath);
+                if (insideThis.Count > 0)
+                {
+                    folderAssets.AddRange(insideThis);
+                }
+                else
+                {
+                    folderAssets.Add(innerPath);
+                }
+            }
+
+            return folderAssets;
         }
 
         public override ReadOnlyMemory<byte> GetAsset(string enginePath)
