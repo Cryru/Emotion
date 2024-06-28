@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>ema</AssemblyName>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
