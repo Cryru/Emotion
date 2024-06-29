@@ -99,5 +99,24 @@ namespace Emotion.Standard.Logging
         /// Stop logging and cleanup.
         /// </summary>
         public abstract void Dispose();
+
+        #region Filtering
+
+        private List<string> _includeSources = new();
+
+        public bool ShouldFilterLine(string source)
+        {
+            if (_includeSources.Count == 0) return false;
+            if (!_includeSources.Contains(source)) return true;
+            return false;
+        }
+
+        public void FilterAddSourceToShow(string source)
+        {
+            if (_includeSources.Contains(source)) return;
+            _includeSources.Add(source);
+        }
+
+        #endregion
     }
 }
