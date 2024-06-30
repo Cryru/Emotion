@@ -268,6 +268,7 @@ namespace Emotion.Graphics
             Texture.InitializeEmptyTexture();
 
             // Create default render states.
+            RenderState.CreateDefault();
             CurrentState = new RenderState();
             SetState(RenderState.Default);
 

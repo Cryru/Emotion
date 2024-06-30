@@ -50,20 +50,25 @@ namespace Emotion.Graphics
         /// <summary>
         /// A default state.
         /// </summary>
-        public static RenderState Default = new RenderState
+        public static RenderState Default;
+
+        public static void CreateDefault()
         {
-            DepthTest = true,
-            StencilTest = false,
-            ClipRect = null,
-            AlphaBlending = true,
-            SFactorRgb = BlendingFactor.SrcAlpha,
-            DFactorRgb = BlendingFactor.OneMinusSrcAlpha,
-            SFactorA = BlendingFactor.One,
-            DFactorA = BlendingFactor.OneMinusSrcAlpha,
-            Shader = ShaderFactory.DefaultProgram,
-            ViewMatrix = true,
-            ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera
-        };
+            Default = new RenderState
+            {
+                DepthTest = true,
+                StencilTest = false,
+                ClipRect = null,
+                AlphaBlending = true,
+                SFactorRgb = BlendingFactor.SrcAlpha,
+                DFactorRgb = BlendingFactor.OneMinusSrcAlpha,
+                SFactorA = BlendingFactor.One,
+                DFactorA = BlendingFactor.OneMinusSrcAlpha,
+                Shader = ShaderFactory.DefaultProgram,
+                ViewMatrix = true,
+                ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera
+            };
+        }
 
         /// <summary>
         /// Clone the state.
