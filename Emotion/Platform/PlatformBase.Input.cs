@@ -16,6 +16,11 @@ namespace Emotion.Platform
         public EmotionKeyEvent OnKey { get; } = new();
 
         /// <summary>
+        /// Called when the mouse moves. The first vector is the old one, the second is the new position.
+        /// </summary>
+        public event Action<Vector2, Vector2> OnMouseMove;
+
+        /// <summary>
         /// Called when the mouse scrolls.
         /// </summary>
         [Obsolete("Use OnKey(key, status) where Key == Key.MouseWheel")]
@@ -36,13 +41,8 @@ namespace Emotion.Platform
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
         /// Therefore it is in screen coordinates which change with the size of the Engine.Renderer.ScreenBuffer.
         /// </summary>
-        public Vector2 MousePosition
-        {
-            get => _mousePosition;
-            protected set => _mousePosition = WindowPointToViewportPoint(value);
-        }
+        public Vector2 MousePosition { get; private set; }
 
-        private Vector2 _mousePosition;
         private bool _skipTextInputThisTick;
         private bool _skipKeyInputThisTick;
 
@@ -133,6 +133,15 @@ namespace Emotion.Platform
 
             _skipTextInputThisTick = false;
             _skipKeyInputThisTick = false;
+        }
+
+        protected void UpdateMousePosition(Vector2 pos)
+        {
+            pos = WindowPointToViewportPoint(pos);
+
+            Vector2 oldPos = MousePosition;
+            MousePosition = pos;
+            OnMouseMove?.Invoke(oldPos, pos);
         }
 
         protected void UpdateKeyStatus(Key key, bool down)

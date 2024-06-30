@@ -181,7 +181,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         private void MouseMove(Glfw.Window window, double x, double y)
         {
-            MousePosition = new Vector2((float) x, (float) y);
+            UpdateMousePosition(new Vector2((float) x, (float) y));
         }
 
         private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)

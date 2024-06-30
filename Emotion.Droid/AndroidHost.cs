@@ -137,14 +137,19 @@ namespace Emotion.Droid
 
         private void OnTouchEvent(MotionEvent e)
         {
-            var pos = new Vector2(e.GetX(), e.GetY());
+            Vector2 pos = new Vector2(e.GetX(), e.GetY());
             if (e.Action == MotionEventActions.Move ||
                 e.Action == MotionEventActions.Down)
-                MousePosition = pos;
+                UpdateMousePosition(pos);
 
-            if (e.Action == MotionEventActions.Down ||
-                e.Action == MotionEventActions.Up)
-                UpdateKeyStatus(Key.MouseKeyLeft, e.Action == MotionEventActions.Down);
+            if (e.Action == MotionEventActions.Down)
+            {
+                UpdateKeyStatus(Key.MouseKeyLeft, true);
+                UpdateKeyStatus(Key.MouseKeyLeft, false);
+            }
+
+            if (e.Action == MotionEventActions.Up)
+                UpdateMousePosition(new Vector2(-1));
 
             _prevTouch = pos;
             if (e.Action == MotionEventActions.Move)
