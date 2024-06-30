@@ -43,6 +43,7 @@ namespace Emotion.UI
         protected bool _updatePreload = true;
         protected bool _updateLayout = true;
         protected bool _updateInputFocus = true;
+        protected bool _mouseUpdatedThisTick = false;
 
         protected HashSet<UIBaseWindow> _doubleAddChecker = new HashSet<UIBaseWindow>();
 
@@ -51,6 +52,7 @@ namespace Emotion.UI
             HandleInput = true;
             KeyPriority = inputPriority;
             Engine.Host.OnResize += Host_OnResize;
+            Engine.Host.OnMouseMove += Host_MouseMove;
             KeepTemplatePreloaded(this);
 
             _allControllers.Add(this);
@@ -67,6 +69,7 @@ namespace Emotion.UI
             _allControllers.Remove(this);
             StopPreloadTemplate(this);
             Engine.Host.OnResize -= Host_OnResize;
+            Engine.Host.OnMouseMove -= Host_MouseMove;
             if (InputFocus != null) Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
             if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
             ClearChildren();
@@ -76,6 +79,12 @@ namespace Emotion.UI
         {
             InvalidateLayout();
             InvalidatePreload();
+        }
+
+        private void Host_MouseMove(Vector2 old, Vector2 nu)
+        {
+            UpdateMouseFocus();
+            _mouseUpdatedThisTick = true;
         }
 
         public override void InvalidateLayout()
@@ -107,7 +116,10 @@ namespace Emotion.UI
             if (_updatePreload) UpdateLoading();
             if (_updateLayout) UpdateLayout();
             if (_updateInputFocus) UpdateInputFocus();
-            UpdateMouseFocus();
+
+            if (!_mouseUpdatedThisTick) UpdateMouseFocus();
+            _mouseUpdatedThisTick = false;
+
             return true;
         }
 
