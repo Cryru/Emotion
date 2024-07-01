@@ -17,7 +17,8 @@ namespace Emotion.Droid
             base.OnCreate(savedInstanceState);
             Window.RequestFeature(WindowFeatures.NoTitle);
 
-            Window.SetDecorFitsSystemWindows(false);
+            if (Android.OS.Build.VERSION.SdkInt > Android.OS.BuildVersionCodes.S)
+                Window.SetDecorFitsSystemWindows(false);
 
             Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
             Window.DecorView.SystemUiFlags = SystemUiFlags.LayoutFullscreen | SystemUiFlags.LayoutStable |

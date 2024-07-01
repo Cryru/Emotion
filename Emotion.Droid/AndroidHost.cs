@@ -1,6 +1,7 @@
 #region Using
 
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Android.Graphics;
 using Android.Opengl;
 using Android.Views;
@@ -71,7 +72,7 @@ namespace Emotion.Droid
             surface.RenderMode = Rendermode.Continuously;
             surface.PreserveEGLContextOnPause = true;
 
-            AndroidContext = new AndroidGraphicsContext(surface, renderer);
+            AndroidContext = new AndroidGraphicsContext(this, surface, renderer);
             Context = AndroidContext;
 
             Audio = new NullAudioContext(this);
@@ -125,12 +126,12 @@ namespace Emotion.Droid
 
         public override IntPtr LoadLibrary(string path)
         {
-            return IntPtr.Zero;
+            return NativeLibrary.Load(path);
         }
 
         public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
         {
-            return IntPtr.Zero;
+            return !NativeLibrary.TryGetExport(library, symbolName, out IntPtr ptr) ? IntPtr.Zero : ptr;
         }
 
         private Vector2 _prevTouch;
