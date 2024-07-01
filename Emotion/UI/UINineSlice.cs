@@ -107,7 +107,7 @@ namespace Emotion.UI
 
         private void DrawTileVertical(RenderComposer composer, Vector3 startPos, Vector2 tileSize, Vector2 tileArea, Rectangle uv)
         {
-            if (tileSize.Y == 0) return;
+            if (tileSize.Y <= 0) return;
 
             float bottomY = startPos.Y + tileArea.Y;
             for (float y = startPos.Y; y < bottomY; y += tileSize.Y)
@@ -122,7 +122,7 @@ namespace Emotion.UI
 
         private void DrawTileHorizontal(RenderComposer composer, Vector3 startPos, Vector2 tileSize, Vector2 tileArea, Rectangle uv)
         {
-            if (tileSize.X == 0) return;
+            if (tileSize.X <= 0) return;
 
             float rightX = startPos.X + tileArea.X;
             for (float x = startPos.X; x < rightX; x += tileSize.X)

@@ -16,7 +16,13 @@ namespace Emotion.Droid
         {
             base.OnCreate(savedInstanceState);
             Window.RequestFeature(WindowFeatures.NoTitle);
+
+            if (Android.OS.Build.VERSION.SdkInt > Android.OS.BuildVersionCodes.S)
+                Window.SetDecorFitsSystemWindows(false);
+
             Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
+            Window.DecorView.SystemUiFlags = SystemUiFlags.LayoutFullscreen | SystemUiFlags.LayoutStable |
+                SystemUiFlags.HideNavigation | SystemUiFlags.LayoutHideNavigation;
 
             // On the Android the application entry point (creation of the main activity)
             // is on an arbitrary UI thread, but we need to initialize the engine on the GL thread.
