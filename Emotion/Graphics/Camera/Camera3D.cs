@@ -211,17 +211,12 @@ namespace Emotion.Graphics.Camera
 
         public override Vector2 WorldToScreen(Vector3 position)
         {
-            // Transform the world position to camera space (view space)
-            var position4D = new Vector4(position, 1.0f); // Create a 4D vector with a W component of 1
-            Vector4 viewPosition = Vector4.Transform(position4D, ViewMatrix);
+            Vector4 position4D = new Vector4(position, 1.0f); // Create a 4D vector with a W component of 1
+            Vector4 clipPosition = Vector4.Transform(position4D, ViewMatrix * ProjectionMatrix); // Perform projection
+            clipPosition.W = MathF.Abs(clipPosition.W); // We don't care if the point is in front of behind the camera.
 
-            // Perform projection
-            Vector4 clipPosition = Vector4.Transform(viewPosition, ProjectionMatrix);
-
-            // Divide by W component to get normalized device coordinates (NDC)
-            var ndcPosition = new Vector3(clipPosition.X / clipPosition.W, clipPosition.Y / clipPosition.W, clipPosition.Z / clipPosition.W);
-
-            if (ndcPosition.Z > 1.0f) return new Vector2(float.MaxValue, float.MaxValue);
+            // Divide by W component to get normalized device coordinates (NDC) which go -1 to 1 with 0 in the middle
+            var ndcPosition = clipPosition.ToVec3() / clipPosition.W;
 
             // Calculate the normalized device coordinates (-1 to 1)
             float screenWidth = Engine.Renderer.CurrentTarget.Size.X;
