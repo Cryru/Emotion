@@ -375,6 +375,15 @@ namespace Emotion.Platform
 
         #endregion
 
+        #region Switches
+
+        public virtual bool IsTouchScreen()
+        {
+            return false;
+        }
+
+        #endregion
+
         /// <summary>
         /// Close the platform.
         /// This call is meant to notify the platform of a shut-down.

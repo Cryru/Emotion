@@ -7,6 +7,7 @@ using Android.Opengl;
 using Android.Views;
 using Emotion.Common;
 using Emotion.Platform;
+using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
 
@@ -75,7 +76,7 @@ namespace Emotion.Droid
             AndroidContext = new AndroidGraphicsContext(this, surface, renderer);
             Context = AndroidContext;
 
-            Audio = new NullAudioContext(this);
+            Audio = new AndroidAudio(this);
 
             _mainMethod = mainMethod;
         }
@@ -83,6 +84,7 @@ namespace Emotion.Droid
         protected override void SetupInternal(Configurator config)
         {
             Engine.AssetLoader.AddSource(new AndroidAssetSource(_activity));
+            Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
         }
 
         public override void DisplayMessageBox(string message)
@@ -157,6 +159,11 @@ namespace Emotion.Droid
             {
                 // todo: pinch to mouse wheel
             }
+        }
+
+        public override bool IsTouchScreen()
+        {
+            return true;
         }
     }
 }
