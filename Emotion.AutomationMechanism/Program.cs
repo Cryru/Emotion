@@ -126,7 +126,7 @@ public static class EmaSystem
 
     public static bool GetGameProjectFolder(out string? projectFolder)
     {
-        string[] inputArgs = EmaSystem.Args;
+        string[] inputArgs = Args;
         Emotion.Utility.CommandLineParser.FindArgument(inputArgs, "project=", out projectFolder);
         projectFolder ??= inputArgs.Length > 1 ? inputArgs[1] : null;
         if (projectFolder == null)

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Buffers;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -10,7 +11,7 @@ using OpenGL;
 
 namespace Emotion.Standard.Image.ImgBin
 {
-    public class ImgBinFileHeader
+    public struct ImgBinFileHeader
     {
         public Vector2 Size;
         public PixelFormat Format;
@@ -63,16 +64,18 @@ namespace Emotion.Standard.Image.ImgBin
             fileHeader.Size = new Vector2(width, height);
             fileHeader.Format = (PixelFormat) reader.ReadInt32();
 
-            var compressedPixels = fileData.Slice(reader.Position);
+            ReadOnlyMemory<byte> compressedPixels = fileData.Slice(reader.Position);
 
-            // Decompress using the .Net deflate stream
-            using var compressInput = new ReadOnlyMemoryStream(compressedPixels);
-            using var deflateStream = new BrotliStream(compressInput, CompressionMode.Decompress);
-            using var decompressOutput = new MemoryStream();
-            deflateStream.CopyTo(decompressOutput);
-            deflateStream.Flush();
+            int decompressedPixelSize = (int) ((width * height) * Gl.PixelFormatToComponentCount(fileHeader.Format));
+            byte[] pixels = ArrayPool<byte>.Shared.Rent(decompressedPixelSize);
+            bool success = BrotliDecoder.TryDecompress(compressedPixels.Span, pixels, out int bytesWritten);
+            Assert(bytesWritten == decompressedPixelSize);
 
-            return decompressOutput.ToArray();
+            // This success code doesn't seem reliable
+            //if (!success)
+            //    Engine.Log.Warning($"Brotli decompression might not have succeeded :/", "ImgBin");
+
+            return pixels;
         }
     }
 

@@ -224,6 +224,8 @@ namespace Emotion.Common
             // Load game data.
             GameDataDatabase.Initialize();
 
+            AssetLoader.LateInit();
+
             // Setup plugins.
             PerfProfiler.ProfilerEventStart("Plugin Setup", "Loading");
             foreach (IPlugin p in Configuration.Plugins)
