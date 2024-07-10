@@ -22,12 +22,12 @@ public static class EmaSystem
 
     private static Queue<string[]> _commandBuffer = new();
 
-    public static void Main(string[] args)
+    public static void Main(string[]? args)
     {
         if (args.Length == 0)
             ConsoleMode = true;
         else
-            _commandBuffer.Enqueue(args);
+            _commandBuffer.Enqueue(args ?? Array.Empty<string>());
 
         Configurator config = new Configurator();
         config.HiddenWindow = true;
@@ -122,5 +122,18 @@ public static class EmaSystem
         {
             Engine.Log.Error(e.Message, "EMA");
         }
+    }
+
+    public static bool GetGameProjectFolder(out string? projectFolder)
+    {
+        string[] inputArgs = EmaSystem.Args;
+        Emotion.Utility.CommandLineParser.FindArgument(inputArgs, "project=", out projectFolder);
+        projectFolder ??= inputArgs.Length > 1 ? inputArgs[1] : null;
+        if (projectFolder == null)
+        {
+            Engine.Log.Error("No project name specified", "EMA");
+            return false;
+        }
+        return true;
     }
 }
