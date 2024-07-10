@@ -1,1 +1,1 @@
-dotnet run --project Emotion.PostBuildTool\Emotion.PostBuildTool.csproj %*
+dotnet run --project Emotion.AutomationMechanism\Emotion.AutomationMechanism.csproj %*
