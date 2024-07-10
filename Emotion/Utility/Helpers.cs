@@ -244,6 +244,43 @@ public static class Helpers
         return $"{(float) bytes / _oneGb:0.00} Gb";
     }
 
+    public enum ByteName
+    {
+        Byte,
+        Kilobyte,
+        Megabyte,
+        Gigabyte
+    }
+
+    public static double GetNumberInByteFormat(double srcNum, ByteName srcFormat, ByteName dstFormat)
+    {
+        double bytes = srcNum;
+        switch(srcFormat)
+        {
+            case ByteName.Gigabyte:
+                bytes = srcNum * _oneGb;
+                break;
+            case ByteName.Megabyte:
+                bytes = srcNum * _oneMb;
+                break;
+            case ByteName.Kilobyte:
+                bytes = srcNum * _oneKb;
+                break;
+        }
+
+        switch(dstFormat)
+        {
+            case ByteName.Gigabyte:
+                return bytes / _oneGb;
+            case ByteName.Megabyte:
+                return bytes / _oneMb;
+            case ByteName.Kilobyte:
+                return bytes / _oneKb;
+        }
+
+        return bytes;
+    }
+
     /// <summary>
     /// Get the average value in a float array.
     /// </summary>
