@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0-android34.0</TargetFramework>
-        <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>

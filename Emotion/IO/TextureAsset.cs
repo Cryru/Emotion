@@ -6,9 +6,11 @@ using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.ImgBin;
 using Emotion.Standard.Image.PNG;
 using OpenGL;
+using System.Buffers;
 #if MORE_IMAGE_TYPES
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+
 #endif
 
 #endregion
@@ -24,6 +26,8 @@ namespace Emotion.IO
         /// The asset's uploaded graphics texture.
         /// </summary>
         public Texture Texture { get; set; }
+
+        private bool _pixelsMemoryIsRented;
 
         public TextureAsset()
         {
@@ -67,6 +71,7 @@ namespace Emotion.IO
                 pixels = ImgBinFormat.Decode(data, out ImgBinFileHeader header);
                 size = header.Size;
                 format = header.Format;
+                _pixelsMemoryIsRented = true;
             }
 #if MORE_IMAGE_TYPES
             else
@@ -103,6 +108,9 @@ namespace Emotion.IO
                 Texture.NonGLThreadInitializedCreatePointer(Texture);
                 Texture.Upload(size, pixels, pixelFormat, pixelFormat == PixelFormat.Red ? InternalFormat.Red : null);
                 PerfProfiler.ProfilerEventEnd($"Uploading Image {Name}", "Loading");
+
+                if (_pixelsMemoryIsRented)
+                    ArrayPool<byte>.Shared.Return(pixels);
 
 #if DEBUG
                 Texture.CreationStack = new string(' ', 3) + Name + new string(' ', 100) + "\n" + Texture.CreationStack;

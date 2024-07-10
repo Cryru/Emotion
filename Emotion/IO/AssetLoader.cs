@@ -50,6 +50,8 @@ namespace Emotion.IO
         /// </summary>
         protected ConcurrentDictionary<string, IAssetStore> _storage = new();
 
+        private Dictionary<string, string>? _assetRemap = null;
+
         /// <summary>
         /// List of all loaded assets from all sources.
         /// </summary>
@@ -186,8 +188,20 @@ namespace Emotion.IO
                 }
             }
 
+            string nameGetAs = name;
+
             // Get the source which contains it, if any.
             AssetSource? source = GetSource(name);
+
+            if (source == null && _assetRemap != null)
+            {
+                if (_assetRemap.TryGetValue(name, out string? remappedName))
+                {
+                    nameGetAs = remappedName;
+                    source = GetSource(nameGetAs);
+                    Engine.Log.Info($"Remapped {name} -> {remappedName}", MessageSource.AssetLoader);
+                }
+            }
 
             // Check if the asset was found in any source.
             if (source == null)
@@ -199,7 +213,7 @@ namespace Emotion.IO
             PerfProfiler.ProfilerEventStart($"Loading {name}", "Loading");
 
             // Load it from the source.
-            ReadOnlyMemory<byte> data = source.GetAsset(name);
+            ReadOnlyMemory<byte> data = source.GetAsset(nameGetAs);
             if (data.IsEmpty) return default;
 
             // Load the asset.
@@ -329,6 +343,16 @@ namespace Emotion.IO
 
             // Dispose of asset.
             asset!.Dispose();
+        }
+
+        public void LateInit()
+        {
+            if (Exists("AssetRemap.xml"))
+            {
+                var assetRemapAsset = Get<XMLAsset<Dictionary<string, string>>>("AssetRemap.xml");
+                if (assetRemapAsset != null)
+                    _assetRemap = assetRemapAsset.Content;
+            }
         }
 
         #endregion

@@ -9,7 +9,16 @@
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+
   <ItemGroup>
+    <Compile Remove="Scripts\BuildAssets.cs" />
     <Compile Remove="Scripts\CreateProject.cs" />
     <Compile Remove="Scripts\CreateProjectAssets\GlobalImports.cs" />
     <Compile Remove="Scripts\TestRenderScript.cs" />
@@ -17,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Scripts\BuildAssets.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Scripts\CreateProject.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -33,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.9.2" />
   </ItemGroup>
 
   <ItemGroup>
