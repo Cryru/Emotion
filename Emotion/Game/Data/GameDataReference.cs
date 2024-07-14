@@ -2,6 +2,7 @@
 
 using Emotion;
 using Emotion.Editor.PropertyEditors;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Emotion.Game.Data;
 
@@ -39,6 +40,12 @@ public class GameDataReference<T> : GameDataReference where T : GameDataObject
     public bool IsValid()
     {
         return GameDataDatabase.GetDataObject<T>(Id) != null;
+    }
+
+    public bool TryGet([NotNullWhen(true)] out T? obj)
+    {
+        obj = GameDataDatabase.GetDataObject<T>(Id);
+        return obj != null;
     }
 
     public T? GetDataObjectReferenced()
