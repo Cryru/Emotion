@@ -52,7 +52,7 @@ public class TextLayoutEngine
     {
         if (_text == text && _heightMode == heightMode) return;
 
-        _text = text;
+        _text = text ?? string.Empty;
         _heightMode = heightMode;
         _dirty = true;
     }
