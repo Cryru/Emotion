@@ -169,7 +169,11 @@ namespace Emotion.Standard.XML.TypeHandlers
             // Encountering a type which inherits from this type.
             if (Type.IsAssignableFrom(objType))
             {
-                inheritedType = XMLHelpers.GetTypeName(objType, true);
+                // We want the full name - not user friendly name used in tags since it will be passed
+                // into Assembly.GetTypeFromName. In the future if we code generate that we can
+                // use the user friendly names here.
+                // todo: ^
+                inheritedType = objType.FullName; // XMLHelpers.GetTypeName(objType, true);
                 return XMLHelpers.GetTypeHandler(objType);
             }
 
