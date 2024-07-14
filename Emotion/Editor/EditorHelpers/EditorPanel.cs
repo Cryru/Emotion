@@ -89,7 +89,7 @@ public class EditorPanel : UIBaseWindow
             container.FillY = false;
 
             container.MinSize = new Vector2(100, 100);
-            container.MaxSize = new Vector2(500, 200);
+            container.MaxSize = new Vector2(500, 400);
             container.ParentAnchor = UIAnchor.CenterCenter;
             container.Anchor = UIAnchor.CenterCenter;
 
