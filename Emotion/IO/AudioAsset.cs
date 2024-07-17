@@ -1,8 +1,11 @@
 ﻿#region Using
 
 using Emotion.Audio;
+using Emotion.Standard;
 using Emotion.Standard.Audio;
+using Emotion.Standard.Audio.AudioBinFormat;
 using Emotion.Standard.Audio.WAV;
+using System.Buffers;
 
 #endregion
 
@@ -45,8 +48,23 @@ namespace Emotion.IO
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
+            byte[] rentedMemory = null;
+            if (GenericCompressedFile.IsGenericCompressedFile(data))
+            {
+                rentedMemory = GenericCompressedFile.Decode(data);
+                data = rentedMemory;
+            }
+
+            // Check if Audio Bin (currently unused)
+            if (AudioBinFormat.IsAudioBin(data))
+            {
+                SoundData = AudioBinFormat.Decode(data, out AudioFormat format);
+                Format = format;
+                Assert(format.IsFloat);
+                Assert(format.BitsPerSample == 32);
+            }
             // Check if WAV.
-            if (WavFormat.IsWav(data))
+            else if (WavFormat.IsWav(data))
             {
                 // Get the data.
                 ReadOnlySpan<byte> soundDataDecoded = WavFormat.Decode(data, out AudioFormat format).Span;
@@ -66,15 +84,19 @@ namespace Emotion.IO
                 OriginalFormat = format.Copy();
                 format.BitsPerSample = 32;
                 format.IsFloat = true;
-
-                ByteSize = SoundData.Length;
                 Format = format;
-                Duration = format.GetSoundDuration(SoundData.Length * sizeof(float));
-                AudioConverter = new AudioConverter(Format, SoundData);
-
-                if (Format.UnsupportedBitsPerSample())
-                    Engine.Log.Error($"The audio format of {Name} has an unsupported number of bits per sample ({Format.BitsPerSample}). Supported values are 8/16/32", MessageSource.Audio);
             }
+
+            // Return memory
+            if (rentedMemory != null)
+                ArrayPool<byte>.Shared.Return(rentedMemory);
+
+            ByteSize = SoundData.Length;
+            Duration = Format.GetSoundDuration(SoundData.Length * sizeof(float));
+            AudioConverter = new AudioConverter(Format, SoundData);
+
+            if (Format.UnsupportedBitsPerSample())
+                Engine.Log.Error($"The audio format of {Name} has an unsupported number of bits per sample ({Format.BitsPerSample}). Supported values are 8/16/32", MessageSource.Audio);
 
             if (Format == null || SoundData == null) Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
         }

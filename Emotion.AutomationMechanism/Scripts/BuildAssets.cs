@@ -11,7 +11,11 @@ using System.Linq;
 
 Dictionary<string, string> fileMap = new Dictionary<string, string>();
 
-if (!EmaSystem.GetGameProjectFolder(out string projectFolder)) return 0;
+if (!EmaSystem.GetGameProjectFolder(out string projectFolder))
+{
+    Engine.Log.Info($"No project folder specified!", "EMA");
+    return 0;
+}
 
 bool deleteConvertedFiles = false;
 if (CommandLineParser.FindArgument(EmaSystem.Args, "deleteConverted", out string _)) deleteConvertedFiles = true;
@@ -45,6 +49,32 @@ for (int i = 0; i < files.Length; i++)
             string assetNameNew = AssetLoader.NameToEngineName(newNameRelativeToAssets);
 
             lock(fileMap)
+            {
+                fileMap.Add(assetName, assetNameNew);
+            }
+
+            Engine.Log.Info($"Converted file: {fileName.Replace(assetsFolder, "")}", "EMA");
+        });
+        tasks.Add(newTask);
+    }
+    else if(fileName.EndsWith(".wav"))
+    {
+        var newTask = Task.Run(() =>
+        {
+            byte[] fileContent = File.ReadAllBytes(fileName);
+            byte[] convertedFile = GenericCompressedFile.Encode(fileContent);
+
+            string newName = fileName[..^(".wav").Length] + ".ecf";
+            File.WriteAllBytes(newName, convertedFile);
+            if (deleteConvertedFiles) File.Delete(fileName);
+
+            string fileNameRelativeToAssets = fileName.Replace(assetsFolder, "")[1..];
+            string newNameRelativeToAssets = newName.Replace(assetsFolder, "")[1..];
+
+            string assetName = AssetLoader.NameToEngineName(fileNameRelativeToAssets);
+            string assetNameNew = AssetLoader.NameToEngineName(newNameRelativeToAssets);
+
+            lock (fileMap)
             {
                 fileMap.Add(assetName, assetNameNew);
             }
