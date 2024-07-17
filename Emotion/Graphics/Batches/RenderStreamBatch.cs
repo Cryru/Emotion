@@ -286,7 +286,7 @@ namespace Emotion.Graphics.Batches
                 Span<VertexData> data = new Span<VertexData>((void*)_backingBuffer, (int) (mappedBytes / structByteSize));
                 for (int i = 0; i < data.Length; i++)
                 {
-                    _vertexPostProcFunc(ref data[i], i);
+                    _vertexPostProcFunc(ref data[i], i, _vertexPostProcFuncUserData);
                 }
             }
 
@@ -464,17 +464,19 @@ namespace Emotion.Graphics.Batches
 
         #endregion
 
-        public delegate void VertexPostProcessingFunc(ref VertexData vertex, int vIdx);
+        public delegate void VertexPostProcessingFunc(ref VertexData vertex, int vIdx, object? userData);
 
         private VertexPostProcessingFunc? _vertexPostProcFunc = null;
+        private object? _vertexPostProcFuncUserData = null;
 
         /// <summary>
         /// Sets a function to be called for flushed vertices.
         /// </summary>
-        public void SetVerticesPostProcessing(VertexPostProcessingFunc? func)
+        public void SetVerticesPostProcessing(VertexPostProcessingFunc? func, object? userData = null)
         {
             if (AnythingMapped) FlushRender();
             _vertexPostProcFunc = func;
+            _vertexPostProcFuncUserData = func == null ? null : userData;
         }
     }
 }
