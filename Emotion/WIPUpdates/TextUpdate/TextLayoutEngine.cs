@@ -229,10 +229,13 @@ public class TextLayoutEngine
                 block.Skip = lastFitBreakChar == 1 && blockString[0] == ' ';
                 _textBlocks[i] = block;
 
-                TextBlock newBlock = new TextBlock(block.StartIndex + lastFitBreakChar);
-                newBlock.Length = lengthToEnd;
-                newBlock.Newline = true;
-                _textBlocks.Insert(i + 1, newBlock);
+                if (lengthToEnd > 0)
+                {
+                    TextBlock newBlock = new TextBlock(block.StartIndex + lastFitBreakChar);
+                    newBlock.Length = lengthToEnd;
+                    newBlock.Newline = true;
+                    _textBlocks.Insert(i + 1, newBlock);
+                }
 
                 sizeOnCurrentLine += stringWidth;
 
