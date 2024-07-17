@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Audio;
 using Emotion.Game.Data;
+using Emotion.Game.Localization;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
@@ -223,6 +224,7 @@ namespace Emotion.Common
 
             // Load game data.
             GameDataDatabase.Initialize();
+            LocalizationEngine.Initialize();
 
             AssetLoader.LateInit();
 
