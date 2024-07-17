@@ -8,6 +8,7 @@ using System.Text;
 using Emotion.Common;
 using Emotion.Game.Time;
 using Emotion.Plugins.Steamworks.SteamSDK;
+using Emotion.Testing;
 
 #endregion
 
@@ -28,9 +29,9 @@ public partial class SteamworksPlugin : IPlugin
     public static uint AppId { get; private set; }
 
     /// <summary>
-    /// Whether an instance exists.
+    /// The current instance of the plugin (if any).
     /// </summary>
-    private bool _init;
+    public static SteamworksPlugin? Instance { get; private set; }
 
     /// <summary>
     /// Runs steam callbacks at a specified frequency.
@@ -46,10 +47,10 @@ public partial class SteamworksPlugin : IPlugin
 
     public SteamworksPlugin(uint appId, int callbackFrequencyMs = 2000)
     {
-        if (_init) throw new Exception("Only one Steamworks Plugin can be active.");
+        if (Instance != null) throw new Exception("Only one Steamworks Plugin can be active.");
 
-        _init = true;
         AppId = appId;
+        Instance = this;
 
         _callbackRunner = new Every(callbackFrequencyMs, SteamNative.RunCallbacks);
     }
@@ -146,7 +147,7 @@ public partial class SteamworksPlugin : IPlugin
         Engine.Log.Warning(msg.ToString(), $"SteamSDK-{severity}");
     }
 
-    public IEnumerator UpdateRoutine()
+    private IEnumerator UpdateRoutine()
     {
         while (Engine.Status != EngineStatus.Stopped)
         {
@@ -159,4 +160,22 @@ public partial class SteamworksPlugin : IPlugin
     {
         SteamNative.Shutdown();
     }
+
+    #region API
+
+    public void UnlockAchievement(string achievementId)
+    {
+        if (_steamUserStats == 0) return;
+        bool success = SteamNative.SetAchievement(_steamUserStats, achievementId);
+        if (!success)
+        {
+            Engine.Log.Error($"Couldn't unlock achievement {achievementId}", LOG_SOURCE);
+            return;
+        }
+
+        success = SteamNative.StoreStats(_steamUserStats);
+        Assert.True(success);
+    }
+
+    #endregion
 }

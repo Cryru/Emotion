@@ -49,6 +49,14 @@ public static class SteamNative
     [DllImport(NativeLibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamUserStats_RequestCurrentStats")]
     public static extern bool RequestStats(IntPtr steamUserStatsThis);
 
+    [DllImport(NativeLibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamUserStats_SetAchievement")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool SetAchievement(IntPtr steamUserStatsThis, [MarshalAs(UnmanagedType.LPStr)] string pchName);
+
+    [DllImport(NativeLibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SteamAPI_ISteamUserStats_StoreStats")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool StoreStats(IntPtr steamUserStatsThis);
+
     #endregion
 
     #region Steam Utils
