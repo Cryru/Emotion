@@ -19,11 +19,16 @@ public static class EmaSystem
 {
     public static string[] Args;
     public static bool ConsoleMode = false;
+    public static string WorkingDirectory;
+    public static string ExeDirectory;
 
     private static Queue<string[]> _commandBuffer = new();
 
     public static void Main(string[]? args)
     {
+        WorkingDirectory = Directory.GetCurrentDirectory();
+        ExeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
         if (args.Length == 0)
             ConsoleMode = true;
         else
@@ -33,7 +38,8 @@ public static class EmaSystem
         config.HiddenWindow = true;
         config.DebugMode = true;
         config.Logger = new NetIOAsyncLogger(true, "Logs");
-        config.Logger.FilterAddSourceToShow("EMA");
+        if (!CommandLineParser.FindArgument(args, "debug", out string _))
+            config.Logger.FilterAddSourceToShow("EMA");
         Engine.Setup(config);
         Engine.CoroutineManager.StartCoroutine(RunCommandsRoutine());
         Engine.Run();
@@ -93,7 +99,10 @@ public static class EmaSystem
         Engine.Log.Info($"Executing script: {fileName}", "EMA");
 
         string fileContent = File.ReadAllText(filePath);
+
+        Directory.SetCurrentDirectory(WorkingDirectory);
         await ExecuteScript(fileContent);
+        Directory.SetCurrentDirectory(ExeDirectory);
     }
 
     public static async Task ExecuteScript(string text)

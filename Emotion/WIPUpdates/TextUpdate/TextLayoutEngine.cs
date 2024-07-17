@@ -26,15 +26,9 @@ public class TextLayoutEngine
 
     /// <summary>
     /// Whether to resolve tags in the text, such as <color></color>
+    /// Text selection APIs /should/ handle these fine.
     /// </summary>
     public bool ResolveTags = true;
-
-    /// <summary>
-    /// Whether to resolve tags in the text that generate content themselves.
-    /// Requires ResolveTags to be true. If set to false only layout and tags that
-    /// do not add text will be resolved. Text selection APIs do not support content tags.
-    /// </summary>
-    public bool ResolveContentTags = true;
 
     private bool _wrapText = false;
 
@@ -52,7 +46,7 @@ public class TextLayoutEngine
     {
         if (_text == text && _heightMode == heightMode) return;
 
-        _text = text;
+        _text = text ?? string.Empty;
         _heightMode = heightMode;
         _dirty = true;
     }
@@ -229,10 +223,13 @@ public class TextLayoutEngine
                 block.Skip = lastFitBreakChar == 1 && blockString[0] == ' ';
                 _textBlocks[i] = block;
 
-                TextBlock newBlock = new TextBlock(block.StartIndex + lastFitBreakChar);
-                newBlock.Length = lengthToEnd;
-                newBlock.Newline = true;
-                _textBlocks.Insert(i + 1, newBlock);
+                if (lengthToEnd > 0)
+                {
+                    TextBlock newBlock = new TextBlock(block.StartIndex + lastFitBreakChar);
+                    newBlock.Length = lengthToEnd;
+                    newBlock.Newline = true;
+                    _textBlocks.Insert(i + 1, newBlock);
+                }
 
                 sizeOnCurrentLine += stringWidth;
 
