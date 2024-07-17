@@ -1,9 +1,14 @@
 ﻿#region Using
 
+using System.Text;
 using System.Threading.Tasks;
+using Emotion.Game.Localization;
 using Emotion.Game.Text;
 using Emotion.Graphics.Text;
 using Emotion.IO;
+using Emotion.WIPUpdates.TextUpdate;
+using WinApi.User32;
+using ParamDataType = (string paramName, object? paramValue);
 
 #endregion
 
@@ -63,10 +68,34 @@ public class UIRichText : UIBaseWindow
         {
             value ??= "";
             if (_text == value) return;
+            StringIsTranslated = false;
             _text = value;
             InvalidateLayout();
         }
     }
+
+    public virtual string? TranslatedText
+    {
+        get => _text;
+        set
+        {
+            value ??= "";
+            if (_text == value) return;
+            StringIsTranslated = true;
+            _text = value;
+            InvalidateLayout();
+        }
+    }
+
+    /// <summary>
+    /// Whether the string was set via TranslatedText
+    /// </summary>
+    public bool StringIsTranslated { get; private set; }
+
+    /// <summary>
+    /// The context of the string - this is used to resolve tags.
+    /// </summary>
+    public StringContext StringContext;
 
     /// <summary>
     /// Text shadow to draw, if any.
@@ -106,7 +135,7 @@ public class UIRichText : UIBaseWindow
 
     public Color OutlineColor;
 
-    protected string _text;
+    protected string _text = string.Empty;
     protected FontAsset _fontFile;
     protected DrawableFontAtlas _atlas;
     protected TextLayouterWrap _layouter;
@@ -120,6 +149,7 @@ public class UIRichText : UIBaseWindow
     {
         FillX = false;
         FillY = false;
+        StringContext = new StringContext(InvalidateLayout);
     }
 
     protected override async Task LoadContent()
@@ -162,7 +192,9 @@ public class UIRichText : UIBaseWindow
         _scaledUnderlineOffset = UnderlineOffset * scale;
         _scaledUnderlineThickness = UnderlineThickness * scale;
 
-        _layoutEngine.InitializeLayout(_text, TextHeightMode);
+        string text = StringContext.ResolveString(_text, StringIsTranslated);
+
+        _layoutEngine.InitializeLayout(text, TextHeightMode);
         if (WrapText)
             _layoutEngine.SetWrap(space.X);
         else
