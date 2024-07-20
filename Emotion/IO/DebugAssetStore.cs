@@ -12,6 +12,7 @@ namespace Emotion.IO
     {
         public static string ProjectDevPath;
         public static string AssetDevPath;
+        public static bool IsActive => !string.IsNullOrEmpty(ProjectDevPath);
 
         static DebugAssetStore()
         {

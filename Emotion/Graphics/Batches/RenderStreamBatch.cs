@@ -271,6 +271,8 @@ namespace Emotion.Graphics.Batches
                 return;
             }
 
+            PerformanceMetrics.RegisterDrawCall();
+
             var structByteSize = (uint) renderObj.VAO.ByteSize;
 
             PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");

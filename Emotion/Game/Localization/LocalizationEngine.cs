@@ -59,7 +59,7 @@ public static class LocalizationEngine
     {
         if (string.IsNullOrEmpty(myStr)) return myStr;
 
-        if (Engine.Configuration.DebugMode)
+        if (Engine.Configuration.DebugMode && DebugAssetStore.IsActive)
         {
             if (float.TryParse(myStr, out float _)) return myStr;
 
