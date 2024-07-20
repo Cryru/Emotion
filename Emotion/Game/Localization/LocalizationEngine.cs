@@ -28,9 +28,6 @@ public static class LocalizationEngine
         if (Engine.Configuration.DebugMode)
         {
             var masterFile = Engine.AssetLoader.Get<TextAsset>(_masterFilename);
-            if (masterFile == null)
-                Engine.AssetLoader.Save(Array.Empty<byte>(), _masterFilename);
-
             string masterFileContent = masterFile?.Content ?? string.Empty;
             _masterFile = LocalizationCSVToDictionary(masterFileContent);
         }
