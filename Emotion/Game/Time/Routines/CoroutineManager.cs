@@ -37,13 +37,18 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// List of running routines.
         /// </summary>
-        protected List<Coroutine> _runningRoutines = new();
+        protected List<Coroutine> _runningRoutines = new(16);
 
         /// <summary>
         /// List of routines waiting on a specific time to pass, sorted by time left.
         /// This list is rebuilt on execution, the list here is just a cache to prevent reallocation.
         /// </summary>
-        protected List<Coroutine> _timeWaitingRoutines = new();
+        protected List<Coroutine> _timeWaitingRoutines = new(2);
+
+        /// <summary>
+        /// Whether currently running a routine update.
+        /// </summary>
+        private bool _inUpdate;
 
         /// <summary>
         /// Start a new coroutine.
@@ -53,15 +58,21 @@ namespace Emotion.Game.Time.Routines
         public virtual Coroutine StartCoroutine(IEnumerator enumerator)
         {
             var routine = new Coroutine(enumerator);
+            Assert(routine.Parent == null, "Each coroutine should only run within one manager.");
+            routine.Parent = this;
 
+            Assert(!_inUpdate || Current != null);
+            _runningRoutines.Add(routine);
+         
+            return routine;
+        }
+
+        public virtual Coroutine StartCoroutineThreadSafe(IEnumerator enumerator)
+        {
             lock (this)
             {
-                Assert(routine.Parent == null, "Each coroutine should only run within one manager.");
-                routine.Parent = this;
-                _runningRoutines.Add(routine);
+                return StartCoroutine(enumerator);
             }
-
-            return routine;
         }
 
         /// <summary>
@@ -71,10 +82,14 @@ namespace Emotion.Game.Time.Routines
         public void StopCoroutine(Coroutine? routine)
         {
             if (routine == null) return;
-            lock (this)
+
+            routine.Stop();
+            if (!_inUpdate)
             {
-                routine.Stop();
-                _runningRoutines.Remove(routine);
+                lock (this)
+                {
+                    _runningRoutines.Remove(routine);
+                }
             }
         }
 
@@ -102,10 +117,13 @@ namespace Emotion.Game.Time.Routines
                 // If no routines are running, do nothing.
                 if (_runningRoutines.Count == 0) return false;
 
+                _inUpdate = true;
+
                 // Run routines in this order. Routines which add other routines will be added at the back of the queue.
                 for (var i = 0; i < _runningRoutines.Count; i++)
                 {
                     Coroutine current = _runningRoutines[i];
+                    if (current.Stopped) continue;
 
                     // Don't run the routine waiter - it's waiting for precise time.
                     if (current.WaitingForTime != 0)
@@ -116,6 +134,7 @@ namespace Emotion.Game.Time.Routines
 
                     Current = current;
                     current.Run();
+                    Current = null;
 
                     // Check if it just yielded a time wait.
                     // Usually we don't run the same routine twice in a tick (such as like when yielding subroutines)
@@ -141,8 +160,10 @@ namespace Emotion.Game.Time.Routines
                 }
 
                 Current = null;
-                return true;
+                _inUpdate = false;
             }
+
+            return true;
         }
 
 #if DEBUG
@@ -199,6 +220,7 @@ namespace Emotion.Game.Time.Routines
                         // Time passed, continue the routine.
                         Current = routine;
                         routine.Run();
+                        Current = null;
 
                         // Waiting on time again!
                         if (routine.WaitingForTime != 0)
