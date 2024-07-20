@@ -33,6 +33,7 @@ namespace Emotion.Graphics.Objects
         /// The bound textures.
         /// </summary>
         public static uint[] Bound = new uint[Engine.Renderer.TextureArrayLimit];
+        private static int _activeSlot = -1;
 
         /// <summary>
         /// The OpenGL pointer to this Texture.
@@ -282,13 +283,22 @@ namespace Emotion.Graphics.Objects
                 // If in debug mode, verify this with OpenGL.
                 if (!Engine.Configuration.GlDebugMode) return;
 
-                Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
+                if (slot != _activeSlot)
+                {
+                    _activeSlot = (int) slot;
+                    Gl.ActiveTexture(TextureUnit.Texture0 + _activeSlot);
+                }
+
                 Gl.Get(GetPName.TextureBinding2d, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed texture bound to slot {slot} was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }
 
-            Gl.ActiveTexture(TextureUnit.Texture0 + (int)slot);
+            if (slot != _activeSlot)
+            {
+                _activeSlot = (int)slot;
+                Gl.ActiveTexture(TextureUnit.Texture0 + _activeSlot);
+            }
             Gl.BindTexture(TextureTarget.Texture2d, pointer);
             Bound[slot] = pointer;
         }
