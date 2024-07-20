@@ -70,7 +70,7 @@ namespace Emotion.Game.Time.Routines
         public Coroutine(IEnumerator enumerator)
         {
             _routine = enumerator;
-#if DEBUG
+#if DEBUG_STACKS
             string stackTrace = Environment.StackTrace;
             int startCoroutineFuncIdx = stackTrace.IndexOf("StartCoroutine", StringComparison.Ordinal);
             if (startCoroutineFuncIdx == -1) startCoroutineFuncIdx = stackTrace.IndexOf("Coroutine..ctor", StringComparison.Ordinal);

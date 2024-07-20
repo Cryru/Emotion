@@ -51,7 +51,7 @@ namespace Emotion.Game.Time
                 return;
             }
 
-#if DEBUG
+#if DEBUG_STACKS
             if (_dbgLastUpdate == Engine.TotalTime)
             {
                 Engine.Log.Warning($"Timer is being updated twice in one tick.", "After.cs", true);
