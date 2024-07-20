@@ -86,7 +86,7 @@ public sealed class StringContext
 
         while (currentIndex < length)
         {
-            start = input.IndexOf('<', currentIndex);
+            start = input.IndexOf("{{", currentIndex);
             if (start == -1)
             {
                 // No more tags, copy the rest of the string
@@ -98,7 +98,7 @@ public sealed class StringContext
             int textLength = start - currentIndex;
             output.Append(inputSpan.Slice(currentIndex, textLength));
 
-            end = input.IndexOf('>', start);
+            end = input.IndexOf("}}", start);
             if (end == -1)
             {
                 currentIndex++;

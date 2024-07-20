@@ -410,6 +410,8 @@ namespace Emotion.Common
             TotalTime += DeltaTime;
             TickCount++;
 
+            PerformanceMetrics.TickStart();
+
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);
             UI.Update();
@@ -417,7 +419,7 @@ namespace Emotion.Common
             EngineEditor.UpdateEditor();
             Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
 
-            PerformanceMetrics.RegisterTick();
+            PerformanceMetrics.TickEnd();
         }
 
         private static void RunFrame()
