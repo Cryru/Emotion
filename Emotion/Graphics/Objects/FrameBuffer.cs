@@ -213,7 +213,7 @@ namespace Emotion.Graphics.Objects
         {
             EnsureBound(Pointer);
             if (ColorAttachment == null && Pointer != 0) Gl.DrawBuffers((int) DrawBufferMode.None);
-            Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
+            Engine.Renderer._SetViewport(Viewport);
         }
 
         /// <summary>

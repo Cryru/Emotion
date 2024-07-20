@@ -159,6 +159,16 @@ namespace Emotion.Graphics.Shading
             return location;
         }
 
+        private Dictionary<int, Matrix4x4> _matrixUniformCache = new();
+        private uint _uniformCacheForFrame;
+        private int _uploadsPrevented;
+
+        public void ClearUniformCache()
+        {
+            _matrixUniformCache.Clear();
+            _uploadsPrevented = 0;
+        }
+
         /// <summary>
         /// Set the value of the uniform of the specified name to the provided matrix4x4.
         /// </summary>
@@ -167,6 +177,20 @@ namespace Emotion.Graphics.Shading
             int id = GetUniformLocation(name);
             // Check if the id exists.
             if (id == -1) return false;
+
+            if (_matrixUniformCache.TryGetValue(id, out Matrix4x4 lastUploaded))
+            {
+                if (matrix4 == lastUploaded)
+                {
+                    _uploadsPrevented++;
+                    return true;
+                }
+                _matrixUniformCache[id] = matrix4;
+            }
+            else
+            {
+                _matrixUniformCache.Add(id, matrix4);
+            }
 
             unsafe
             {

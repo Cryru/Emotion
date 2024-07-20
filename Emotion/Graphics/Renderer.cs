@@ -11,6 +11,7 @@ using Emotion.IO;
 using Emotion.Platform.Input;
 using Khronos;
 using OpenGL;
+using static OpenGL.Gl.Delegates;
 
 #endregion
 
@@ -420,6 +421,7 @@ namespace Emotion.Graphics
 
             // Reset to the default state.
             PerfProfiler.FrameEventStart("DefaultStateSet");
+            _shaderDirty = true;
             SetState(RenderState.Default, true);
             PerfProfiler.FrameEventEnd("DefaultStateSet");
 
@@ -491,10 +493,36 @@ namespace Emotion.Graphics
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
 
+        private Rectangle _viewport;
+
+        // Used to dedupe SetViewport calls, isn't official API
+        internal void _SetViewport(Rectangle viewport)
+        {
+            if (_viewport == viewport) return;
+            Gl.Viewport((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
+            _viewport = viewport;
+        }
+
         /// <summary>
         /// Synchronizes uniform properties with the currently bound shader.
         /// </summary>
         public void SyncShader()
+        {
+            SetShaderDirty();
+            //ShaderProgram currentShader = CurrentState.Shader;
+            //if (CurrentState.Shader == null) return;
+            //PerfProfiler.FrameEventStart("ShaderSync");
+
+            //SyncModelMatrix();
+            //SyncViewMatrix();
+
+            //currentShader.SetUniformFloat("iTime", Engine.TotalTime / 1000f);
+            //currentShader.SetUniformVector3("iResolution", new Vector3(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0));
+
+            //PerfProfiler.FrameEventEnd("ShaderSync");
+        }
+
+        public void SyncShaderInternal()
         {
             ShaderProgram currentShader = CurrentState.Shader;
             if (CurrentState.Shader == null) return;
@@ -507,6 +535,22 @@ namespace Emotion.Graphics
             currentShader.SetUniformVector3("iResolution", new Vector3(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0));
 
             PerfProfiler.FrameEventEnd("ShaderSync");
+        }
+
+        private bool _shaderDirty;
+
+        public void SetShaderDirty()
+        {
+            _shaderDirty = true;
+        }
+
+        public void SyncShaderIfDirty()
+        {
+            if (_shaderDirty)
+            {
+                SyncShaderInternal();
+                _shaderDirty = false;
+            }
         }
 
         /// <summary>

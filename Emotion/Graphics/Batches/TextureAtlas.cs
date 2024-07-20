@@ -341,6 +341,8 @@ namespace Emotion.Graphics.Batches
             if (_firstDraw) Gl.Clear(ClearBufferMask.ColorBufferBit);
             VertexArrayObject.EnsureBound(_vao);
 
+            Engine.Renderer.SyncShaderIfDirty();
+
             Span<VertexData> vboLocalSpan = _vboLocal;
             foreach ((Texture texture, TextureAtlasMetaData meta) in _textureToMeta)
             {

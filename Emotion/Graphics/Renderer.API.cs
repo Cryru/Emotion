@@ -95,11 +95,11 @@ namespace Emotion.Graphics
             PerfProfiler.FrameEventEnd("StateChange: Stencil");
         }
 
-        private static void StencilStateDefault()
+        private void StencilStateDefault()
         {
-            Gl.StencilMask(0x00);
-            Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
-            Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
+            _StencilMask(0x00);
+            _StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
+            _StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
         }
 
         #region Stencil States
@@ -113,8 +113,8 @@ namespace Emotion.Graphics
         public void StencilStartDraw(int value = 0xFF)
         {
             FlushRenderStream();
-            Gl.StencilMask(0xFF);
-            Gl.StencilFunc(StencilFunction.Always, value, 0xFF);
+            _StencilMask(0xFF);
+            _StencilFunc(StencilFunction.Always, value, 0xFF);
         }
 
         /// <summary>
@@ -125,8 +125,8 @@ namespace Emotion.Graphics
         public void StencilStopDraw()
         {
             FlushRenderStream();
-            Gl.StencilMask(0x00);
-            Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
+            _StencilMask(0x00);
+            _StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
         }
 
         /// <summary>
@@ -136,8 +136,8 @@ namespace Emotion.Graphics
         public void StencilCutOutFrom(int threshold = 0xFF)
         {
             FlushRenderStream();
-            Gl.StencilMask(0x00);
-            Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
+            _StencilMask(0x00);
+            _StencilFunc(StencilFunction.Greater, threshold, 0xFF);
         }
 
         /// <summary>
@@ -146,33 +146,72 @@ namespace Emotion.Graphics
         public void StencilFillIn(int threshold = 0xFF)
         {
             FlushRenderStream();
-            Gl.StencilMask(0xFF);
-            Gl.StencilFunc(StencilFunction.Lequal, threshold, 0xFF);
+            _StencilMask(0xFF);
+            _StencilFunc(StencilFunction.Lequal, threshold, 0xFF);
         }
 
         public void StencilMask(int filter = 0xFF)
         {
             FlushRenderStream();
-            Gl.StencilMask(0x00);
-            Gl.StencilFunc(StencilFunction.Less, filter, 0xFF);
+            _StencilMask(0x00);
+            _StencilFunc(StencilFunction.Less, filter, 0xFF);
         }
 
         public void StencilWindingStart()
         {
             FlushRenderStream();
-            Gl.StencilMask(0xFF);
+            _StencilMask(0xFF);
             // Each draw inverts the value in the stencil.
-            Gl.StencilFunc(StencilFunction.Always, 0, 1);
-            Gl.StencilOp(StencilOp.Invert, StencilOp.Invert, StencilOp.Invert);
+            _StencilFunc(StencilFunction.Always, 0, 1);
+            _StencilOp(StencilOp.Invert, StencilOp.Invert, StencilOp.Invert);
         }
 
         public void StencilWindingEnd()
         {
             FlushRenderStream();
-            Gl.StencilMask(0xFF);
+            _StencilMask(0xFF);
             // Enable drawing only where the value is 1.
-            Gl.StencilFunc(StencilFunction.Equal, 1, 1);
-            Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+            _StencilFunc(StencilFunction.Equal, 1, 1);
+            _StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+        }
+
+        private StencilFunction? _stencilFunc;
+        private int _stencilFuncRef;
+        private uint _stencilFuncMask;
+
+        // Internal state function to reduce redundant state changes.
+        private void _StencilFunc(StencilFunction func, int rf, uint mask)
+        {
+            if (func == _stencilFunc && rf == _stencilFuncRef && _stencilFuncMask == mask) return;
+
+            _stencilFunc = func;
+            _stencilFuncRef = rf;
+            _stencilFuncMask = mask;
+            Gl.StencilFunc(func, rf, mask);
+        }
+
+        private StencilOp? _stencilOp1;
+        private StencilOp? _stencilOp2;
+        private StencilOp? _stencilOp3;
+
+        private void _StencilOp(StencilOp stencilOp1, StencilOp stencilOp2, StencilOp stencilOp3)
+        {
+            if (_stencilOp1 == stencilOp1 && _stencilOp2 == stencilOp2 && _stencilOp3 == stencilOp3) return;
+
+            _stencilOp1 = stencilOp1;
+            _stencilOp2 = stencilOp2;
+            _stencilOp3 = stencilOp3;
+            Gl.StencilOp(stencilOp1, stencilOp2, stencilOp3);
+        }
+
+        private uint _stencilMask;
+
+        private void _StencilMask(uint mask)
+        {
+            if (_stencilMask == mask) return;
+
+            _stencilMask = mask;
+            Gl.StencilMask(mask);
         }
 
         #endregion
@@ -200,7 +239,7 @@ namespace Emotion.Graphics
             RenderState currentState = CurrentState;
             currentState.ViewMatrix = viewMatrix;
             CurrentState = currentState;
-            SyncViewMatrix();
+            //SyncViewMatrix();
         }
 
         /// <summary>
@@ -213,7 +252,7 @@ namespace Emotion.Graphics
             RenderState currentState = CurrentState;
             currentState.ProjectionBehavior = behavior;
             CurrentState = currentState;
-            SyncViewMatrix();
+            //SyncViewMatrix();
         }
 
         /// <summary>
@@ -229,7 +268,7 @@ namespace Emotion.Graphics
             if (alphaBlend)
             {
                 Gl.Enable(EnableCap.Blend);
-                Gl.BlendFuncSeparate(CurrentState.SFactorRgb!.Value, CurrentState.DFactorRgb!.Value, CurrentState.SFactorA!.Value, CurrentState.DFactorA!.Value);
+                _BlendFuncSeparate(CurrentState.SFactorRgb!.Value, CurrentState.DFactorRgb!.Value, CurrentState.SFactorA!.Value, CurrentState.DFactorA!.Value);
             }
             else
             {
@@ -267,6 +306,23 @@ namespace Emotion.Graphics
             SetAlphaBlendType(defaultState.SFactorRgb!.Value, defaultState.DFactorRgb!.Value, defaultState.SFactorA!.Value, defaultState.DFactorA!.Value);
         }
 
+        private BlendingFactor? _SRgb;
+        private BlendingFactor? _DRgb;
+        private BlendingFactor? _SA;
+        private BlendingFactor? _DA;
+
+        // Internal state function to reduce redundant state changes.
+        private void _BlendFuncSeparate(BlendingFactor sRgb, BlendingFactor dRgb, BlendingFactor sA, BlendingFactor dA)
+        {
+            if (sRgb == _SRgb && dRgb == _DRgb && _SA == sA && _DA == dA) return;
+
+            _SRgb = sRgb;
+            _DRgb = dRgb;
+            _SA = sA;
+            _DA = dA;
+            Gl.BlendFuncSeparate(sRgb, dRgb, sA, dA);
+        }
+
         /// <summary>
         /// Set whether to use depth testing.
         /// </summary>
@@ -279,7 +335,7 @@ namespace Emotion.Graphics
             if (depth)
             {
                 Gl.Enable(EnableCap.DepthTest);
-                Gl.DepthFunc(DepthFunction.Lequal);
+                _SetDepthFunc(DepthFunction.Lequal);
             }
             else
             {
@@ -292,6 +348,17 @@ namespace Emotion.Graphics
             PerfProfiler.FrameEventEnd("StateChange: DepthTest");
         }
 
+        private DepthFunction? _depthFuncCache;
+
+        // Internal state function to reduce redundant state changes.
+        private void _SetDepthFunc(DepthFunction depthFunc)
+        {
+            if (depthFunc == _depthFuncCache) return;
+
+            _depthFuncCache = depthFunc;
+            Gl.DepthFunc(depthFunc);
+        }
+
         /// <summary>
         /// Set the current shader.
         /// </summary>
@@ -301,6 +368,7 @@ namespace Emotion.Graphics
             FlushRenderStream();
             shader ??= ShaderFactory.DefaultProgram;
             ShaderProgram.EnsureBound(shader.Pointer);
+            shader.ClearUniformCache();
 
             RenderState currentState = CurrentState;
             currentState.Shader = shader;
@@ -479,7 +547,8 @@ namespace Emotion.Graphics
         {
             FlushRenderStream();
             _matrixStack.Push(matrix, multiply);
-            SyncModelMatrix();
+            SetShaderDirty();
+            //SyncModelMatrix();
         }
 
         /// <summary>
@@ -489,7 +558,8 @@ namespace Emotion.Graphics
         {
             FlushRenderStream();
             _matrixStack.Pop();
-            SyncModelMatrix();
+            SetShaderDirty();
+            //SyncModelMatrix();
         }
 
         #endregion
