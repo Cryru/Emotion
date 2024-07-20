@@ -27,14 +27,15 @@ public static class PerformanceMetrics
     private static int _frameCounterThisSecond;
     private static int _framesPerUpdate;
 
-    public static int DrawCallsThisFrame { get; private set; }
+    public static int DrawCallsLastFrame { get; private set; }
+    private static int _drawCallsThisFrame;
 
     public static int TickTimeTaken { get; private set; }
 
     [Conditional("DEBUG")]
     public static void RegisterDrawCall()
     {
-        DrawCallsThisFrame++;
+        _drawCallsThisFrame++;
     }
 
     [Conditional("DEBUG")]
@@ -63,7 +64,8 @@ public static class PerformanceMetrics
         FrameDelta[FrameRateRingIdx] = _frameTimer.ElapsedMilliseconds;
         _frameTimer.Restart();
         FrameRateRingIdx++;
-        DrawCallsThisFrame = 0;
+        DrawCallsLastFrame = _drawCallsThisFrame;
+        _drawCallsThisFrame = 0;
         if (FrameRateRingIdx > FrameDelta.Length - 1) FrameRateRingIdx = 0;
 
         _framesPerUpdate++;
