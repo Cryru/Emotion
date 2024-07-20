@@ -1,13 +1,22 @@
 #version v
- 
-uniform sampler2D mainTexture;
-uniform vec3 iResolution; // viewport resolution (in pixels)
+
+#ifdef GL_ES
+   #define LOW lowp
+   #define MID mediump
+   #define HIGH highp
+#else
+   #define LOW
+   #define MID
+   #define HIGH
+#endif
+
+uniform LOW sampler2D mainTexture;
  
 // Comes in from the vertex shader. 
-in vec2 UV; 
-in vec4 vertColor;
+in LOW vec2 UV; 
+in LOW vec4 vertColor;
  
-out vec4 fragColor; 
+out LOW vec4 fragColor; 
  
 #using "Shaders/getTextureColor.c"
 
