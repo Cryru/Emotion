@@ -464,7 +464,7 @@ namespace Emotion.Common
 
             PerfProfiler.FrameEventStart("Render UI");
             Renderer.SetUseViewMatrix(false);
-            Renderer.SetDepthTest(false);
+            Renderer.SetDepthTest(true);
             Renderer.ClearDepth();
             UI.Render(Renderer);
             PerfProfiler.FrameEventEnd("Render UI");

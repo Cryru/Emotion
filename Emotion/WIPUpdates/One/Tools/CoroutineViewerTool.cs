@@ -92,7 +92,7 @@ public class CoroutineViewerTool : EditorWindow
 
         public string ExtractLabelFromStack()
         {
-            string creationStack = Routine.DebugCoroutineCreationStack;
+            string creationStack = Routine.DebugCoroutineCreationStack ?? "No stack available";
 
             ReadOnlySpan<char> asSpan = creationStack.AsSpan();
             int firstNewLine = creationStack.IndexOf('\n');

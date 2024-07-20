@@ -179,7 +179,7 @@ public class MapEditorViewMode : UIBaseWindow
 
             c.PushModelMatrix(c.Camera.GetRotationMatrix());
             c.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale()));
-            c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3()));
+            c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3(-100)));
 
             // todo: render 3d in UI
             if (_gizmoEntity.Meshes != null)
@@ -195,7 +195,7 @@ public class MapEditorViewMode : UIBaseWindow
             c.PopModelMatrix();
             c.PopModelMatrix();
 
-            c.SetDepthTest(false);
+            //c.SetDepthTest(false);
 
             return base.RenderInternal(c);
         }

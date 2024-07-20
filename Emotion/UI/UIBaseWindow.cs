@@ -304,7 +304,7 @@ namespace Emotion.UI
 
         public void RecalculateZValue()
         {
-            Z = ZOffset + (Parent?.Z + 0.01f ?? 0);
+            Z = -1;// (Parent?.Z - 0.01f ?? 0);
         }
 
         public virtual void AttachedToController(UIController controller)
