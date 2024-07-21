@@ -159,7 +159,8 @@ public sealed class MeshEntityBatchRenderer
             // A depth component is needed as some drivers will not output gl_FragCoord.z
             if (UseVSMShadows)
             {
-                Buffer = new FrameBuffer(FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
+                //Buffer = new FrameBuffer(FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
+                Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
                 BufferAttachment = Buffer.ColorAttachment;
             }
             else
@@ -214,13 +215,13 @@ public sealed class MeshEntityBatchRenderer
             _skinnedMeshShader = ShaderFactory.DefaultProgram;
         }
 
-        _shadowCascades = new ShadowCascadeData[4]
-        {
-            new ShadowCascadeData(0),
-            new ShadowCascadeData(1),
-            new ShadowCascadeData(2),
-            new ShadowCascadeData(3),
-        };
+        //_shadowCascades = new ShadowCascadeData[4]
+        //{
+        //    new ShadowCascadeData(0),
+        //    new ShadowCascadeData(1),
+        //    new ShadowCascadeData(2),
+        //    new ShadowCascadeData(3),
+        //};
 
         _assetsLoaded = true;
     }

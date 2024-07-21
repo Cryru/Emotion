@@ -277,7 +277,7 @@ namespace Emotion.Common
             }
 
             Log.Info("Starting loop...", MessageSource.Engine);
-            Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
+            //Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
         }
 
         /// <summary>
@@ -375,7 +375,7 @@ namespace Emotion.Common
             DeltaTime = (float)_targetTime;
         }
 
-        private static void RunTickIfNeeded()
+        private static bool RunTickIfNeeded()
         {
             double curTime = _updateTimer.ElapsedMilliseconds;
             double deltaTime = curTime - _lastTick;
@@ -403,6 +403,7 @@ namespace Emotion.Common
                 _accumulator = 0;
                 break;
             }
+            return updates > 0;
         }
 
         private static void RunTickInternal()
@@ -526,6 +527,14 @@ namespace Emotion.Common
 
         public static UISystem UI;
 
+        public static int CurrentUpdateFrame;
+        public static int CurrentRenderFrame;
+
+        public static ManualResetEventSlim RenderPush = new ManualResetEventSlim(false);
+
+        private static Thread _asyncRoutineThread;
+        private static Thread _updateThread;
+
         public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
         {
             Setup(config);
@@ -553,20 +562,84 @@ namespace Emotion.Common
                     int timePassed = DateTime.Now.Subtract(lastUpdate).Milliseconds;
                     CoroutineManagerAsync.Update(timePassed);
                     if (timePassed != 0) lastUpdate = DateTime.Now;
+                    Thread.Yield();
                 }
             });
             asyncRoutineThread.IsBackground = true;
             asyncRoutineThread.Start();
+            _asyncRoutineThread = asyncRoutineThread;
             CoroutineManagerAsync.StartCoroutine(entryPointAsyncRoutine());
+
+            Thread updateThread = new Thread(UpdateThread);
+            updateThread.IsBackground = true;
+            updateThread.Start();
+            _updateThread = updateThread;
 
             if (Configuration.LoopFactory == null)
             {
                 Log.Info("Using default loop.", MessageSource.Engine);
-                Configuration.LoopFactory = DefaultMainLoop;
+                Configuration.LoopFactory = NewDefaultMainLoopFactory;
             }
 
             Log.Info("Starting loop...", MessageSource.Engine);
-            Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
+            Configuration.LoopFactory(EmptyFunc, NewFrameRun);
+        }
+
+        private static void EmptyFunc()
+        {
+
+        }
+
+        private static void NewDefaultMainLoopFactory(Action _, Action frame)
+        {
+            // Main loop
+            DetectVSync();
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
+            while (Status == EngineStatus.Running)
+            {
+                // Run the host events, and check whether it is closing.
+                if (!Host.Update())
+                {
+                    Log?.Info("Host was closed.", MessageSource.Engine);
+                    break;
+                }
+
+                // After tick, as it might close the host.
+                if (!Host.IsOpen) break;
+
+                frame();
+            }
+
+            Quit();
+        }
+
+        private static void NewFrameRun()
+        {
+            if (CurrentRenderFrame > CurrentUpdateFrame) return;
+
+            RunFrame();
+            CurrentRenderFrame++;
+            RenderPush.Set();
+        }
+
+        private static void UpdateThread()
+        {
+            if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Update Thread";
+
+            int updateFramesAhead = 2;
+            while (true)
+            {
+                if (CurrentUpdateFrame >= CurrentRenderFrame + updateFramesAhead)
+                {
+                    RenderPush.Wait();
+                    RenderPush.Reset();
+                }
+
+                bool tickRan = RunTickIfNeeded();
+                if (tickRan)
+                    CurrentUpdateFrame++;
+            }
         }
 
         #endregion
