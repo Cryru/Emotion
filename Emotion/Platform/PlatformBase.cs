@@ -294,6 +294,11 @@ namespace Emotion.Platform
             OnFocusChanged?.Invoke(IsFocused);
         }
 
+        public virtual Vector2 GetDPI()
+        {
+            return new Vector2(96);
+        }
+
         #endregion
 
         #region Library API

@@ -15,6 +15,7 @@ namespace Emotion.WIPUpdates.NewUIUpdate;
 public class UISystem : UIController
 {
     public Vector2 TargetResolution = new Vector2(1920, 1080);
+    public Vector2 TargetDPI = new Vector2(96);
 
     protected bool _updateScale;
 
@@ -26,7 +27,10 @@ public class UISystem : UIController
 
     private void HostResized(Vector2 size)
     {
-        Scale = size / TargetResolution;
+        Vector2 scaledTarget = TargetResolution * TargetDPI;
+        Vector2 scaledCurrent = size * Engine.Host.GetDPI();
+
+        Scale = scaledCurrent / scaledTarget;
         _updateScale = true;
         Engine.Log.Info($"UI Scale is {Scale}", MessageSource.UI);
     }
