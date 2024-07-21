@@ -33,7 +33,7 @@ public class Camera2D : CameraBase
         // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
         Vector2 margin = (currentSize - targetSize) / 2;
         Vector3 pos = posOffset - new Vector3((int)margin.X, (int)margin.Y, 0);
-        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + LookAt, RenderComposer.Up2D);
+        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos - LookAt, -RenderComposer.Up2D); // Not sure why the look at and up have to be minused
         ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * unscaled;
     }
 
@@ -79,7 +79,7 @@ public class Camera2D : CameraBase
     {
         if (_inputDirection != Vector2.Zero)
         {
-            Vector3 movementStraightBack = RenderComposer.Up2D * _inputDirection.Y;
+            Vector3 movementStraightBack = RenderComposer.Up2D * -_inputDirection.Y;
             float len = movementStraightBack.Length();
             movementStraightBack.Z = 0;
             movementStraightBack = Vector3.Normalize(movementStraightBack) * len;

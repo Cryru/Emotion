@@ -255,14 +255,12 @@ public abstract class CameraBase : Positional, IDisposable
 
     public Matrix4x4 GetRotationMatrix()
     {
-        // todo: this is probably wrong
-
         Vector3 cameraForward = Vector3.Normalize(LookAt);
         Vector3 cameraRight;
         if (cameraForward == RenderComposer.Up || cameraForward == -RenderComposer.Up) // Gimbal lock and/or 2D
         {
             cameraForward = -RenderComposer.Up;
-            cameraRight = RenderComposer.Forward; // When looking down
+            cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up2D)); // When looking down
         }
         else
         {
