@@ -750,6 +750,8 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         public static void DrawElements(PrimitiveType mode, int count, DrawElementsType type, IntPtr indices)
         {
+            PerformanceMetrics.RegisterDrawCall();
+
             Assert(Delegates.pglDrawElements != null, "pglDrawElements not implemented");
             Delegates.pglDrawElements((int) mode, count, (int) type, indices);
             DebugCheckErrors(null);
