@@ -2,8 +2,10 @@
 
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Android.Content.Res;
 using Android.Graphics;
 using Android.Opengl;
+using Android.Util;
 using Android.Views;
 using Emotion.Common;
 using Emotion.Platform;
@@ -119,6 +121,18 @@ namespace Emotion.Droid
             var drawableRect = new Rect();
             AndroidContext.Surface.GetDrawingRect(drawableRect);
             return new Vector2(drawableRect.Width(), drawableRect.Height());
+        }
+
+        public override Vector2 GetDPI()
+        {
+            DisplayMetricsDensity? dpiEnum = Resources.System?.DisplayMetrics?.DensityDpi;
+            int dpiNum = 0;
+            if (dpiEnum != null)
+                dpiNum = (int) dpiEnum;
+            else
+                dpiNum = 96;
+
+            return new Vector2(dpiNum);
         }
 
         protected override void SetSize(Vector2 size)
