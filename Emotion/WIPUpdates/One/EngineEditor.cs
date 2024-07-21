@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Game.World.Editor;
+using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
@@ -41,7 +42,7 @@ public static partial class EngineEditor
         return true;
     }
 
-    private static void OpenEditor()
+    public static void OpenEditor()
     {
         Engine.UI.AddChild(EditorRoot);
 
@@ -65,7 +66,7 @@ public static partial class EngineEditor
         Engine.Log.Info($"Editor opened", "Editor");
     }
 
-    private static void CloseEditor()
+    public static void CloseEditor()
     {
         Engine.UI.RemoveChild(EditorRoot);
         EditorRoot.ClearChildren();
@@ -85,7 +86,10 @@ public static partial class EngineEditor
     {
         if (!IsOpen) return;
         RenderMapEditor(c);
-        _perfText.Text = $"FPS: {PerformanceMetrics.FpsLastSecond}\nDraw Calls: {PerformanceMetrics.DrawCallsLastFrame}";
+
+        string perfReadoutStr = $"FPS: {PerformanceMetrics.FpsLastSecond}\nDraw Calls: {PerformanceMetrics.DrawCallsLastFrame}\nUpdate Ahead:{Engine.CurrentUpdateFrame - Engine.CurrentRenderFrame}";
+        c.RenderString(Vector3.Zero, Color.White, perfReadoutStr, FontAsset.GetDefaultBuiltIn().GetAtlas(30), null, Graphics.Text.FontEffect.Outline, 2f, Color.Black);
+        //_perfText.Text = ;
     }
 
     #region Helpers

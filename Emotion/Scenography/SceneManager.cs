@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
-using Silk.NET.Assimp;
 
 // ReSharper disable PossibleUnintendedReferenceComparison
 
