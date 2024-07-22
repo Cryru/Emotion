@@ -71,6 +71,7 @@ public class EditorWindow : UIBaseWindow
     public EditorWindow(string header)
     {
         Header = header;
+        Priority = 10;
     }
 
     public override void AttachedToController(UIController controller)
@@ -126,9 +127,9 @@ public class EditorWindow : UIBaseWindow
     public override void InputFocusChanged(bool haveFocus)
     {
         if (haveFocus)
-            ZOffset++;
+            Priority++;
         else
-            ZOffset--;
+            Priority--;
 
         base.InputFocusChanged(haveFocus);
     }
@@ -161,22 +162,22 @@ public class EditorWindow : UIBaseWindow
         }
 
         if (PanelMode == PanelMode.Modal)
-            c.RenderSprite(Bounds, Color.Black * 0.7f);
+            c.RenderSprite(Position, Size, Color.Black * 0.7f);
 
-        c.RenderSprite(_panelInner.Bounds, MapEditorColorPalette.BarColor * 0.8f);
-        c.RenderOutline(_panelInner.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
+        c.RenderSprite(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.BarColor * 0.8f);
+        c.RenderOutline(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
 
         if (_topBar != null)
         {
             UIBaseWindow? focus = Controller!.InputFocus;
             if (focus != null && focus.IsWithin(this))
-                c.RenderSprite(_topBar.Bounds, _topBarMouseDown || _topBar.MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
+                c.RenderSprite(_topBar.Position, _topBar.Size, _topBarMouseDown || _topBar.MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor);
             else
-                c.RenderSprite(_topBar.Bounds, Color.Black * 0.5f);
+                c.RenderSprite(_topBar.Position, _topBar.Size, Color.Black * 0.5f);
 
-            c.RenderLine(_topBar.Bounds.TopLeft.ToVec3(), _topBar.Bounds.TopRight.ToVec3(), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
-            c.RenderLine(_topBar.Bounds.BottomLeft.ToVec3(), _topBar.Bounds.TopLeft.ToVec3(), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
-            c.RenderLine(_topBar.Bounds.TopRight.ToVec3(), _topBar.Bounds.BottomRight.ToVec3(), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
+            c.RenderLine(_topBar.Bounds.TopLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
+            c.RenderLine(_topBar.Bounds.BottomLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopLeft.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
+            c.RenderLine(_topBar.Bounds.TopRight.ToVec3(_topBar.Z), _topBar.Bounds.BottomRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
         }
 
         return base.RenderInternal(c);
@@ -205,7 +206,7 @@ public class EditorWindow : UIBaseWindow
                 Parent!.RemoveChild(this);
                 return false;
             }
-            ZOffset = _hostWindow.IsFocused ? 999 : 0;
+            Priority = _hostWindow.IsFocused ? 50 : 0;
         }
 
         UpdateResize();
@@ -246,7 +247,7 @@ public class EditorWindow : UIBaseWindow
             OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
             OnClickedProxy = _ => { _panelDragResize = true; },
             OnClickedUpProxy = _ => { _panelDragResize = false; },
-            ZOffset = 99,
+            Priority = 99,
             Anchor = UIAnchor.BottomRight,
             ParentAnchor = UIAnchor.BottomRight,
             FillX = false,

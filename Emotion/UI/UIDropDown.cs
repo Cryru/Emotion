@@ -10,7 +10,7 @@ public class UIDropDown : UIBaseWindow
     {
         CodeGenerated = true;
         HandleInput = true;
-        ZOffset = 99;
+        Priority = 99;
 
         FillX = false;
         FillY = false;

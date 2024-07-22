@@ -129,9 +129,9 @@ public class EditorPanel : UIBaseWindow
     public override void InputFocusChanged(bool haveFocus)
     {
         if (haveFocus)
-            ZOffset++;
+            Priority++;
         else
-            ZOffset--;
+            Priority--;
 
         base.InputFocusChanged(haveFocus);
     }

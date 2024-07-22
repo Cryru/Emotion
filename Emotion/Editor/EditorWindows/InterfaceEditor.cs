@@ -49,7 +49,7 @@ public class InterfaceEditor : EditorPanel
         {
             _inspecting = true;
             HandleInput = true;
-            ZOffset = 999;
+            Priority = 999;
         };
         buttonContainer.AddChild(inspectButton);
 

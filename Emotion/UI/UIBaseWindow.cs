@@ -304,7 +304,18 @@ namespace Emotion.UI
 
         public void RecalculateZValue()
         {
-            Z = -1;// (Parent?.Z - 0.01f ?? 0);
+            Z = (-_priority) + (Parent?.Z - 0.01f ?? 0);
+        }
+
+        public void RecalculateZValueTree()
+        {
+            RecalculateZValue();
+            if (Children == null) return;
+            for (int i = 0; i < Children.Count; i++)
+            {
+                var child = Children[i];
+                child.RecalculateZValueTree();
+            }
         }
 
         public virtual void AttachedToController(UIController controller)
@@ -469,19 +480,19 @@ namespace Emotion.UI
         /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
         /// This is the Z offset for this window, added to this window and its children.
         /// </summary>
-        public float ZOffset
+        public float Priority
         {
-            get => _zOffset;
+            get => _priority;
             set
             {
-                if (_zOffset == value) return;
-                _zOffset = value;
-                RecalculateZValue();
+                if (_priority == value) return;
+                _priority = value;
+                RecalculateZValueTree();
                 InvalidateLayout();
             }
         }
 
-        protected float _zOffset;
+        protected float _priority;
 
         /// <summary>
         /// Margins push the window in one of the four directions, only if it is against another window.
@@ -1245,14 +1256,12 @@ namespace Emotion.UI
         }
 
         /// <summary>
-        /// Compares the windows based on their Z order.
+        /// Compares the windows based on their priority.
         /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
         public int CompareTo(UIBaseWindow? other)
         {
-            if (other == null) return MathF.Sign(ZOffset);
-            return MathF.Sign(ZOffset - other.ZOffset);
+            if (other == null) return 1;
+            return MathF.Sign(Priority - other.Priority);
         }
 
         public override string ToString()

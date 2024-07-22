@@ -141,7 +141,7 @@ public class EditorButtonDropDown : UIBaseWindow
         arrowImage.Margins = new Rectangle(3, 0, 0, 0);
         arrowImage.AnchorAndParentAnchor = UIAnchor.CenterRight;
         arrowImage.Dock = UIDockDirection.Right;
-        arrowImage.ZOffset = -1;
+        arrowImage.Priority = -1;
         button.AddChild(arrowImage);
 
         UpdateCurrentOptionText();

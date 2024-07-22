@@ -109,7 +109,7 @@ public class EditorDropDown : UIDropDown
                         checkBox.SetValue(thatCheckBoxItemAsCheckBoxItem?.Checked() ?? false);
                     }
                 });
-                checkMark.ZOffset = -1;
+                checkMark.Priority = -1;
 
                 checkBoxes.Add(checkMark);
 

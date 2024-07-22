@@ -16,7 +16,7 @@ public class UIRollover : UIBaseWindow
         StretchX = true;
         StretchY = true;
 
-        ZOffset = 99;
+        Priority = 99;
     }
 
     protected override Vector2 BeforeLayout(Vector2 contentPos)

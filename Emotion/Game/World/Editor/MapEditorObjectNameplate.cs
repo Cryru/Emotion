@@ -25,7 +25,7 @@ public class MapEditorObjectNameplate : UIWorldAttachedWindow
         StretchY = true;
         Anchor = UIAnchor.BottomCenter;
         ParentAnchor = UIAnchor.TopLeft;
-        ZOffset = -10;
+        Priority = -10;
         HandleInput = true;
 
         var bg = new UISolidColor();

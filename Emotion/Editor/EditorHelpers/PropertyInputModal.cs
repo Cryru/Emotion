@@ -39,7 +39,7 @@ namespace Emotion.Editor.EditorHelpers
 
             var textLbl = new MapEditorLabel(Text)
             {
-                ZOffset = -100
+                Priority = -100
             };
             _contentParent.AddChild(textLbl);
 
@@ -52,7 +52,7 @@ namespace Emotion.Editor.EditorHelpers
                 },
                 StretchY = true,
                 Text = _buttonText,
-                ZOffset = 100,
+                Priority = 100,
                 Anchor = UIAnchor.CenterCenter,
                 ParentAnchor = UIAnchor.CenterCenter
             };
