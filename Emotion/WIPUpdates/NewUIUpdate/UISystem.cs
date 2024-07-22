@@ -56,6 +56,11 @@ public class UISystem : UIController
         _updateScale = false;
     }
 
-    
+    protected override void RenderChildren(RenderComposer c)
+    {
+        c.EnableSpriteBatcher(true);
+        base.RenderChildren(c);
+        c.EnableSpriteBatcher(false);
+    }
 }
 

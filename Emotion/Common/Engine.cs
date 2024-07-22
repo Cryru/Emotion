@@ -627,7 +627,7 @@ namespace Emotion.Common
         {
             if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Update Thread";
 
-            int updateFramesAhead = 2;
+            int updateFramesAhead = 1;
             while (true)
             {
                 if (CurrentUpdateFrame >= CurrentRenderFrame + updateFramesAhead)

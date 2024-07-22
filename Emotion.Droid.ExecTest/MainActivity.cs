@@ -19,7 +19,7 @@ namespace Emotion.Droid.ExecTest
         public override void Main(Configurator config)
         {
             config.DebugMode = true;
-            config.GlDebugMode = true;
+            //config.GlDebugMode = true;
             Engine.Start(config, EntryPointAsync);
         }
 
