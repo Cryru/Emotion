@@ -103,6 +103,12 @@ namespace Emotion.Game.Text
         /// <param name="atlas">The atlas to set.</param>
         public void SetAtlas(DrawableFontAtlas atlas)
         {
+            if (_atlas == atlas)
+            {
+                Restart();
+                return;
+            }
+
             Restart();
             _atlas = atlas;
             _hasZeroGlyph = atlas.Glyphs.ContainsKey((char) 0);
