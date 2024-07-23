@@ -120,7 +120,7 @@ namespace Emotion.Graphics.Batches
             if (texture.Tile || texture.Smooth != _fbo.Texture.Smooth) return false;
 
             // Don't cache if not default shader, because getTextureSize will not work correctly.
-            if (Engine.Renderer.CurrentState.Shader != ShaderFactory.DefaultProgram) return false;
+            if (Engine.Renderer.CurrentState.Shader != ShaderFactory.DefaultProgram && !Engine.Renderer.CurrentState.Shader.AllowTextureBatch) return false;
 
             // If the texture is in the batch, return it as such only if it was drawn to the internal texture (which means it's usable).
             TextureAtlasMetaData? meta;

@@ -89,6 +89,7 @@ namespace Emotion.Graphics.Shading
 
             // Link into a program and add meta data in debug mode.
             var newShader = ShaderProgram.CreateFromShaders(vertShader, fragShader);
+            newShader.AllowTextureBatch = fragShaderSource.Contains("ALLOW_TEXTURE_BATCHING");
             if (Engine.Configuration.DebugMode)
             {
                 newShader.DebugFragSource = fragShaderSource;
