@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Emotion.Game.Text;
 using Emotion.Graphics.Text;
+using Emotion.Primitives;
 using Emotion.Utility;
 using Emotion.WIPUpdates.TextUpdate;
 using static Emotion.UI.TextLayoutEngine;
@@ -288,9 +289,17 @@ public class TextLayoutEngine
         TextSize = MeasureString();
     }
 
+    private TextLayouter _layouter;
+
     public void Render(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
     {
-        Vector3 pen = Vector3.Zero;
+        _layouter ??= new TextLayouter(_defaultAtlas);
+        _layouter.SetAtlas(_defaultAtlas);
+        TextLayouter layouter = _layouter;
+
+        var reUsableVector = new Vector3();
+        _defaultAtlas.SetupDrawing(c, "", defaultEffect, defaultEffectAmount, defaultEffectColor); // outline layout tag doesnt work because of this
+
         for (int i = 0; i < _textBlocks.Count; i++)
         {
             TextBlock currentBlock = _textBlocks[i];
@@ -309,12 +318,9 @@ public class TextLayoutEngine
             Color effectColor = blockEffect ? currentBlock.EffectColor : defaultEffectColor ?? Color.White;
             float effectAmount = blockEffect ? currentBlock.EffectParam : defaultEffectAmount;
 
-            TextLayouter layouter = new TextLayouter(_defaultAtlas); // todo
-
             if (currentBlock.Newline)
             {
                 layouter.NewLine();
-                pen.X = 0;
             }
 
             if (currentBlock.CenterLayout == 1) // starting
@@ -334,13 +340,26 @@ public class TextLayoutEngine
                 // maybe also render params such as color?
                 float textWidth = TextSize.X;
                 float center = textWidth / 2f - combinedBlockWidth / 2f;
-                pen.X = center;
+
+                var currentPenLoc = layouter.GetPenLocation();
+                layouter.AddToPen(new Vector2(center - currentPenLoc.X, 0));
             }
 
-            c.RenderString(offset + pen, color, currentBlock.GetBlockString(_text).ToString(), _defaultAtlas, layouter, effect, effectAmount, effectColor);
+            string text = currentBlock.GetBlockString(_text).ToString();
+            foreach (char ch in text)
+            {
+                Vector2 gPos = layouter.AddLetter(ch, out DrawableGlyph g);
+                if (g == null || g.GlyphUV == Rectangle.Empty) continue;
 
-            pen = pen + layouter.GetPenLocation().ToVec3();
+                reUsableVector.X = gPos.X;
+                reUsableVector.Y = gPos.Y;
+                _defaultAtlas.DrawGlyph(c, g, offset + reUsableVector, color);
+            }
+
+            //c.RenderString(offset, color, , _defaultAtlas, layouter, effect, effectAmount, effectColor);
         }
+
+        _defaultAtlas.FinishDrawing(c);
 
         RenderTest(c, offset);
     }
