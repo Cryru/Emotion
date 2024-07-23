@@ -161,6 +161,23 @@ public sealed class AndroidAudioLayer : AudioLayer
 
     protected override unsafe void UpdateBackend()
     {
+        // Fill empty buffers!
+        for (int i = 0; i < _uploadBuffers.Length; i++)
+        {
+            AndroidAudioLayerBuffer buffer = _uploadBuffers[i];
+            Assert.True(buffer.FramesContains >= 0);
+            if (!buffer.CanRead)
+            {
+                int framesGotten = BackendGetData(_audioFormat, buffer.SizeInFrames, buffer.GetSpan());
+                if (framesGotten > 0)
+                {
+                    buffer.FramesContains = framesGotten;
+                    buffer.FramesRead = 0;
+                    buffer.CanRead = true;
+                }
+            }
+        }
+
         var state = AAudio.StreamGetState(_stream);
         if (Status == PlaybackStatus.Playing)
         {
@@ -209,24 +226,6 @@ public sealed class AndroidAudioLayer : AudioLayer
                 else
                 {
                     Engine.Log.Trace($"Stream {Name} wants to stop, but waiting for buffers", "AndroidAudio");
-                }
-            }
-        }
-
-        if (Status == PlaybackStatus.Playing)
-        {
-            // Fill empty buffers (but not more than one!)
-            for (int i = 0; i < _uploadBuffers.Length; i++)
-            {
-                AndroidAudioLayerBuffer buffer = _uploadBuffers[i];
-                Assert.True(buffer.FramesContains >= 0);
-                if (!buffer.CanRead)
-                {
-                    int framesGotten = BackendGetData(_audioFormat, buffer.SizeInFrames, buffer.GetSpan());
-                    buffer.FramesContains = framesGotten;
-                    buffer.FramesRead = 0;
-                    buffer.CanRead = true;
-                    break;
                 }
             }
         }

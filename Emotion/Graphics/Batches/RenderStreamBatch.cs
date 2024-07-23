@@ -272,7 +272,6 @@ namespace Emotion.Graphics.Batches
             }
 
             Engine.Renderer.SyncShaderIfDirty();
-            PerformanceMetrics.RegisterDrawCall();
 
             var structByteSize = (uint) renderObj.VAO.ByteSize;
 
