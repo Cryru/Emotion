@@ -27,6 +27,11 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         public bool Valid { get; protected set; }
 
+        /// <summary>
+        /// Whether this shader allow textures drawn by it to be batched.
+        /// </summary>
+        public bool AllowTextureBatch { get; set; }
+
         #region Debug
 
         /// <summary>

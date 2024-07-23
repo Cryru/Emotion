@@ -1,5 +1,7 @@
 #version v
  
+#define ALLOW_TEXTURE_BATCHING
+
 uniform sampler2D mainTexture;
  
 // Comes in from the vertex shader. 
