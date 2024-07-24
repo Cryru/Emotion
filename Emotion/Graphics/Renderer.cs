@@ -148,6 +148,11 @@ namespace Emotion.Graphics
         /// </summary>
         public RenderState BlitState;
 
+        /// <summary>
+        /// A render state for merging two buffers, and applying premult alpha.
+        /// </summary>
+        public RenderState BlitStatePremult;
+
         #endregion
 
         #region State
@@ -277,6 +282,9 @@ namespace Emotion.Graphics
             BlitState.DepthTest = false;
             BlitState.ViewMatrix = false;
             BlitState.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml")!.Shader;
+
+            BlitStatePremult = BlitState.Clone();
+            BlitStatePremult.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml")!.Shader;
 
             // Create render stream. This is used for IM-like rendering.
             RenderStream = new RenderStreamBatch();
