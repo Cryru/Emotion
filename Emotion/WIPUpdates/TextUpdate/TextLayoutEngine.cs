@@ -43,6 +43,13 @@ public class TextLayoutEngine
     private List<TagDefinition> _tagDefinitions = new List<TagDefinition>();
     private List<TextBlock> _textBlocks = new List<TextBlock>();
 
+    public bool NeedsToReRun(string text, float? wrapWidth)
+    {
+        if (_wrapWidth != wrapWidth) return true;
+        if (text != _text) return true;
+        return false;
+    }
+
     public void InitializeLayout(string text, GlyphHeightMeasurement heightMode = GlyphHeightMeasurement.FullHeight)
     {
         if (_text == text && _heightMode == heightMode) return;
@@ -298,7 +305,7 @@ public class TextLayoutEngine
         TextLayouter layouter = _layouter;
 
         var reUsableVector = new Vector3();
-        _defaultAtlas.SetupDrawing(c, "", defaultEffect, defaultEffectAmount, defaultEffectColor); // outline layout tag doesnt work because of this
+        _defaultAtlas.SetupDrawing(c, _text, defaultEffect, defaultEffectAmount, defaultEffectColor); // outline layout tag doesnt work because of this
 
         for (int i = 0; i < _textBlocks.Count; i++)
         {
