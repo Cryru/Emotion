@@ -70,7 +70,7 @@ namespace Emotion.Graphics.Batches
         protected static Vector2 _maxTextureBatchSize;
         protected static Vector2 _atlasTextureSize;
 
-        protected int _toBatchThisFrame;
+        protected int _maxTexturesToDrawToAtlasPerFrame = 2;
 
         static TextureAtlas()
         {
@@ -386,7 +386,9 @@ namespace Emotion.Graphics.Batches
         protected void DrawTextureAtlas(RenderComposer c)
         {
             if (!_haveDirtyTextures) return;
-            _toBatchThisFrame = 0;
+
+            int drawnThisFrame = 0;
+            bool hasMoreToDraw = false;
 
             // Draw all textures that need to be drawn to the atlas.
             c.SetState(c.BlitState);
@@ -404,7 +406,13 @@ namespace Emotion.Graphics.Batches
                 if (!meta.Batched) continue;    
                 if (texture.Pointer == 0) continue;
 
-               
+                if (drawnThisFrame >= _maxTexturesToDrawToAtlasPerFrame)
+                {
+                    hasMoreToDraw = true;
+                    break;
+                }
+                drawnThisFrame++;
+
                 //Engine.Log.Info($"Drawing texture {texture.Pointer} to atlas", "");
 
                 Vector2 offset = meta.Offset;
@@ -459,6 +467,9 @@ namespace Emotion.Graphics.Batches
             c.RenderTo(null);
             _haveDirtyTextures = false;
             _firstDraw = false;
+
+            // We hit the draw limit
+            if (hasMoreToDraw) _haveDirtyTextures = true;
         }
 
 #endregion
