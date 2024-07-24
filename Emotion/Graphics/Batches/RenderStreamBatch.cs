@@ -257,6 +257,12 @@ namespace Emotion.Graphics.Batches
             };
         }
 
+        public bool AttemptToBatchVirtualTexture(VirtualTextureAtlasTexture virtualTexture)
+        {
+            if (_smoothAtlas == null) return false;
+            return _smoothAtlas.TryBatchTexture(virtualTexture);
+        }
+
         public void FlushRender()
         {
             Assert(AnythingMapped);

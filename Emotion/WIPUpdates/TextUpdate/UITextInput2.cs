@@ -312,7 +312,7 @@ public class UITextInput2 : UIRichText
         // Maybe recalculate selection box only when text/selection changes?
         // On the other hand only one can be focused at a time soooo
         bool focused = Controller?.InputFocus == this;
-        if (focused && _layouter != null)
+        if (focused)
         {
             if (_cursorOn)
             {

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Emotion.Game.Localization;
 using Emotion.Game.Text;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.WIPUpdates.TextUpdate;
@@ -136,10 +137,8 @@ public class UIRichText : UIBaseWindow
     public Color OutlineColor;
 
     protected string _text = string.Empty;
-    protected FontAsset _fontFile;
-    protected DrawableFontAtlas _atlas;
-    protected TextLayouterWrap _layouter;
-    protected DrawableFontAtlas _layouterAtlas;
+    protected FontAsset? _fontFile;
+    protected DrawableFontAtlas? _atlas;
     protected Vector2 _scaledUnderlineOffset;
     protected float _scaledUnderlineThickness;
 
@@ -168,19 +167,11 @@ public class UIRichText : UIBaseWindow
         // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
         float scale = GetScale();
         _atlas = _fontFile.GetAtlas((int)MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
-
-        // Reload the layouter if needed. Changing this means the text needs to be relayouted.
-        if (_layouterAtlas != _atlas)
-        {
-            _layouter = new TextLayouterWrap(_atlas);
-            _layouterAtlas = _atlas;
-            InvalidateLayout();
-        }
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
     {
-        if (_fontFile == null || _layouter == null) return Vector2.Zero;
+        if (_fontFile == null || _atlas == null) return Vector2.Zero;
 
         // Text measure should depend on the text, and not its children.
         Assert(!StretchX);
@@ -193,14 +184,21 @@ public class UIRichText : UIBaseWindow
         _scaledUnderlineThickness = UnderlineThickness * scale;
 
         string text = StringContext.ResolveString(_text, StringIsTranslated);
+        if (_layoutEngine.NeedsToReRun(text, space.X))
+        {
+            _layoutEngine.InitializeLayout(text, TextHeightMode);
+            if (WrapText)
+                _layoutEngine.SetWrap(space.X);
+            else
+                _layoutEngine.SetWrap(null);
+            _layoutEngine.SetDefaultAtlas(_atlas);
+            _layoutEngine.Run();
 
-        _layoutEngine.InitializeLayout(text, TextHeightMode);
-        if (WrapText)
-            _layoutEngine.SetWrap(space.X);
-        else
-            _layoutEngine.SetWrap(null);
-        _layoutEngine.SetDefaultAtlas(_layouterAtlas);
-        _layoutEngine.Run();
+            _cachedTextRender ??= new VirtualTextureForRichText(this);
+            _cachedTextRender.SetVirtualSize(_layoutEngine.TextSize + _cachedRenderOffset.ToVec2() * 2f);
+            _cachedTextRender.UpVersion();
+        }
+
         return _layoutEngine.TextSize;
     }
 
@@ -213,11 +211,43 @@ public class UIRichText : UIBaseWindow
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        if (_text == null || _fontFile == null || _layouter == null) return true;
+        if (string.IsNullOrEmpty(_text) || _fontFile == null) return true;
 
-        //c.RenderOutline(Position, Size, Color.Red);
-        _layoutEngine.Render(c, Position, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+        bool batched = _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+        if (batched)
+            c.RenderSprite(Position - _cachedRenderOffset, _cachedTextRender!.Size, _cachedTextRender);
+        else
+            _layoutEngine.Render(c, Position, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
 
         return true;
     }
+
+    #region Atlas Batching
+
+    private class VirtualTextureForRichText : VirtualTextureAtlasTexture
+    {
+        private UIRichText _textElement;
+
+
+        public VirtualTextureForRichText(UIRichText textElement)
+        {
+            _textElement = textElement;
+        }
+
+        public override void VirtualTextureRenderToBatch(RenderComposer c)
+        {
+            c.SetAlphaBlend(true);
+            _textElement.RenderTextForBatch(c);
+        }
+    }
+
+    private VirtualTextureForRichText? _cachedTextRender;
+    private Vector3 _cachedRenderOffset = new Vector3(1f, 1f, 0);
+
+    protected void RenderTextForBatch(RenderComposer c)
+    {
+        _layoutEngine.Render(c, _cachedRenderOffset, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+    }
+
+    #endregion
 }

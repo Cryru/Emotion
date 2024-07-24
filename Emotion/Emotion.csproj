@@ -139,6 +139,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\Shaders\BlitPremultAlpha.frag" />
+    <None Remove="Assets\Shaders\BlitPremultAlpha.xml" />
+    <None Remove="Assets\Shaders\GLESSupport.c" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -195,8 +200,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Silk.NET.Assimp" Version="2.20.0" Condition="$(DefineConstants.Contains('ASSIMP'))" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.9.2" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

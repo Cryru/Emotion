@@ -4,6 +4,7 @@ using System.Linq;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
+using Emotion.Platform.Debugger;
 using Emotion.Utility;
 using OpenGL;
 
@@ -35,10 +36,12 @@ namespace Emotion.Graphics.Batches
             public int Activity;
 
             public Vector2 Offset;
+            public Vector2 SizeBatched;
 
             public bool Batched = false;
 
-            public int Version = -1;
+            public int DrawnVersion = -1;
+            public int BatchedVersion = -1;
         }
 
         private Dictionary<Texture, TextureAtlasMetaData> _textureToMeta = new();
@@ -62,10 +65,12 @@ namespace Emotion.Graphics.Batches
         protected static ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
 
         private static int _repackRate = 60 * 60; // How often to repack the atlas. (In frames) If two repacks pass without a texture being used, it will be ejected.
-        private static int _usagesToPack; // How many texture usages are needed to add the texture to the pack. (In texture usages)
+        private static int _usagesToPack = 20; // How many texture usages are needed to add the texture to the pack. (In texture usages over _repackRate frames)
 
         protected static Vector2 _maxTextureBatchSize;
         protected static Vector2 _atlasTextureSize;
+
+        protected int _toBatchThisFrame;
 
         static TextureAtlas()
         {
@@ -74,11 +79,9 @@ namespace Emotion.Graphics.Batches
             Engine.Log.Trace($"Texture atlas textures will be of size {_atlasTextureSize}", MessageSource.Renderer);
         }
 
-        public TextureAtlas(bool smooth = false, int usagePackThreshold = 20) : base(_atlasTextureSize)
+        public TextureAtlas(bool smooth = false) : base(_atlasTextureSize)
         {
             Size = _atlasTextureSize;
-
-            _usagesToPack = usagePackThreshold;
 
             _vbo = new VertexBuffer((uint)(VertexData.SizeInBytes * 4), BufferUsage.StaticDraw);
             _vboLocal = new VertexData[4];
@@ -104,11 +107,15 @@ namespace Emotion.Graphics.Batches
 
         /// <summary>
         /// Tries to batch the provided texture within the atlas.
+        /// Returns true if the texture is batched.
         /// </summary>
         public bool TryBatchTexture(Texture texture)
         {
             // Don't store frame buffer textures.
             if (texture is FrameBufferTexture) return false;
+
+            // Texture is invalid?
+            if (texture.Size.X == 0 || texture.Size.Y == 0) return false;
 
             // Texture too large to atlas.
             if (texture.Size.X + _texturesMargin2 > _maxTextureBatchSize.X || texture.Size.Y + _texturesMargin2 > _maxTextureBatchSize.Y) return false;
@@ -125,7 +132,44 @@ namespace Emotion.Graphics.Batches
             // If the texture is in the batch, return it as such only if it was drawn to the internal texture (which means it's usable).
             TextureAtlasMetaData? meta;
             if (_textureToMeta.TryGetValue(texture, out meta) && meta.Batched)
-                return meta.Version == texture.Version;
+            {
+                bool isLatestVersion = meta.DrawnVersion == texture.Version;
+                if (isLatestVersion) return true;
+
+                bool latestVersionBatched = meta.BatchedVersion == texture.Version;
+                if (latestVersionBatched) return false;
+
+                Engine.Log.Trace($"Texture {texture.Pointer} was updated!", MessageSource.Renderer);
+
+                // Texture needs an update.
+                if (meta.SizeBatched.X < texture.Size.X || meta.SizeBatched.Y < texture.Size.Y) // Texture needs to be repacked.
+                {
+                    Engine.Log.Trace($"Texture {texture.Pointer} had its size changed!", MessageSource.Renderer);
+
+                    // Try to reuse this space
+                    PackingSpaces.Add(new Packing.PackingSpace(new Rectangle(meta.Offset, meta.SizeBatched + _texturesMarginVec2)));
+
+                    Vector2? newOffset = Packing.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
+                    if (newOffset == null)
+                    {
+                        meta.Batched = false;
+                        return false;
+                    }
+                    else
+                    {
+                        meta.Offset = newOffset.Value;
+                        meta.SizeBatched = texture.Size;
+                        meta.BatchedVersion = texture.Version;
+                        _haveDirtyTextures = true;
+                        return false;
+                    }
+                }
+
+                // Texture just needs to be redrawn.
+                meta.BatchedVersion = texture.Version;
+                _haveDirtyTextures = true;
+                return false;
+            }
 
             // The texture is eligible for this atlas!
             // Add meta so we can track usages, if it is used enough it will be packed.
@@ -142,6 +186,8 @@ namespace Emotion.Graphics.Batches
             Vector2? offset = Packing.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
             if (offset == null) return false;
             meta.Offset = offset.Value;
+            meta.SizeBatched = texture.Size;
+            meta.BatchedVersion = texture.Version;
             meta.Batched = true;
             _haveDirtyTextures = true;
 
@@ -275,9 +321,11 @@ namespace Emotion.Graphics.Batches
                 int timesUsed = meta.Activity;
 
                 // Wasn't used since the last repack tick, delete from the pack only if
-                // the version currently in the pack is the latest one.
+                // the version currently in the pack is the latest one. Otherwise
+                // it means the texture needs to be updated, and the reason it hasn't been
+                // used is because the newer version is used.
                 if (existsInThePack && timesUsed == 0)
-                    deletedTexture = texture.Version == meta.Version;
+                    deletedTexture = texture.Version == meta.DrawnVersion;
 
                 // If the texture wasn't used in the last X frames, or it was disposed,
                 // eject it from the atlas.
@@ -294,10 +342,14 @@ namespace Emotion.Graphics.Batches
             // Cleanup activity. Cannot do that in the foreach as the enumerator will complain.
             for (var i = 0; i < deleteFromDictionary.Count; i++)
             {
-                _textureToMeta.Remove(deleteFromDictionary[i]);
+                Texture texture = deleteFromDictionary[i];
+                Engine.Log.Trace($"Texture {texture.Pointer} dropped from atlas.", MessageSource.Renderer);
+                _textureToMeta.Remove(texture);
             }
 
             if (!repack) return;
+
+            Engine.Log.Trace($"Texture Atlas repack triggered!", MessageSource.Renderer);
 
             CanvasPos = Vector2.Zero;
             PackingSpaces.Clear();
@@ -327,13 +379,14 @@ namespace Emotion.Graphics.Batches
                     meta.Batched = false;
                     meta.Activity = 0;
                 }
-                meta.Version = -1; // Force redraw
+                meta.DrawnVersion = -1; // Force redraw
             }
         }
 
         protected void DrawTextureAtlas(RenderComposer c)
         {
             if (!_haveDirtyTextures) return;
+            _toBatchThisFrame = 0;
 
             // Draw all textures that need to be drawn to the atlas.
             c.SetState(c.BlitState);
@@ -344,16 +397,40 @@ namespace Emotion.Graphics.Batches
             Engine.Renderer.SyncShaderIfDirty();
 
             Span<VertexData> vboLocalSpan = _vboLocal;
-            foreach ((Texture texture, TextureAtlasMetaData meta) in _textureToMeta)
+            foreach ((Texture textureKey, TextureAtlasMetaData meta) in _textureToMeta)
             {
-                if (meta.Version == texture.Version) continue;
-                if (!meta.Batched) continue;
+                Texture texture = textureKey;
+                if (meta.DrawnVersion == texture.Version) continue;
+                if (!meta.Batched) continue;    
                 if (texture.Pointer == 0) continue;
 
+               
+                //Engine.Log.Info($"Drawing texture {texture.Pointer} to atlas", "");
+
                 Vector2 offset = meta.Offset;
-                if (_texturesMarginVec == Vector2.Zero)
+                VirtualTextureAtlasTexture? virtualTexture = texture as VirtualTextureAtlasTexture;
+
+                if (virtualTexture != null)
                 {
-                    offset += _texturesMarginVec;
+                    virtualTexture.StartVirtualTextureRender(c, texture.Size);
+                    virtualTexture.VirtualTextureRenderToBatch(c);
+                    texture = virtualTexture.EndVirtualTextureRender(c);
+
+                    // Restore state
+                    c.SetState(c.BlitStatePremult);
+                    VertexArrayObject.EnsureBound(_vao);
+
+                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset + _texturesMarginVec, 0), textureKey.Size, Color.White, texture);
+
+                    _vbo.Upload(_vboLocal);
+                    Texture.EnsureBound(texture.Pointer);
+                    Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
+
+                    // Restore state, once again
+                    c.SetState(c.BlitState);
+                }
+                else if (_texturesMarginVec == Vector2.Zero)
+                {
                     VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size, Color.White, texture);
                     _vbo.Upload(_vboLocal);
 
@@ -376,7 +453,7 @@ namespace Emotion.Graphics.Batches
                     Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
                 }
 
-                meta.Version = texture.Version;
+                meta.DrawnVersion = textureKey.Version;
             }
 
             c.RenderTo(null);
@@ -392,7 +469,7 @@ namespace Emotion.Graphics.Batches
         {
             _textureToMeta.TryGetValue(texture, out TextureAtlasMetaData? meta);
             AssertNotNull(meta);
-            Assert(meta.Version == texture.Version);
+            Assert(meta.DrawnVersion == texture.Version);
 
             meta.Activity++;
             Vector2 atlasOffset = meta.Offset + _texturesMarginVec;
