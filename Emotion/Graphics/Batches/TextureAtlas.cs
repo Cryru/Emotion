@@ -428,6 +428,8 @@ namespace Emotion.Graphics.Batches
                     c.SetState(c.BlitStatePremult);
                     VertexArrayObject.EnsureBound(_vao);
 
+                    Engine.Renderer.SyncShaderIfDirty();
+
                     VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset + _texturesMarginVec, 0), textureKey.Size, Color.White, texture);
 
                     _vbo.Upload(_vboLocal);
@@ -436,6 +438,8 @@ namespace Emotion.Graphics.Batches
 
                     // Restore state, once again
                     c.SetState(c.BlitState);
+
+                    Engine.Renderer.SyncShaderIfDirty();
                 }
                 else if (_texturesMarginVec == Vector2.Zero)
                 {
