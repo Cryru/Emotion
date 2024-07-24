@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emotion.IO;
@@ -89,6 +90,7 @@ namespace Emotion.Graphics.Shading
 
             // Link into a program and add meta data in debug mode.
             var newShader = ShaderProgram.CreateFromShaders(vertShader, fragShader);
+            newShader.AllowTextureBatch = fragShaderSource.Contains("ALLOW_TEXTURE_BATCHING");
             if (Engine.Configuration.DebugMode)
             {
                 newShader.DebugFragSource = fragShaderSource;
@@ -184,8 +186,6 @@ namespace Emotion.Graphics.Shading
             return false;
         }
 
-        private static Regex _uniformDefaultsDetect = new Regex("uniform ([\\S| ]+?) ([\\S| ]+?)(=)([\\S| ]+?)(;)", RegexOptions.Compiled);
-
         /// <summary>
         /// Inserts the version string, removes any user inputted version strings.
         /// Injects default functions.
@@ -202,21 +202,19 @@ namespace Emotion.Graphics.Shading
             if (code.Count == 0 || string.IsNullOrEmpty(code[0])) return null;
 
             // Version string is required to be first.
-            code[0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n";
+            code[0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}";
 
             // GLES support
-            code.Insert(1, "#ifdef GL_ES\n");
-            code.Insert(2, "precision highp float;\n");
-            code.Insert(3, "#endif\n");
+            code.Insert(1, "#using \"Shaders/GLESSupport.c\"");
 
             // Add user defined compilation constant.
-            if (compileConstant != null) code.Insert(4, $"#define {compileConstant} 1\n");
+            if (compileConstant != null) code.Insert(1, $"#define {compileConstant} 1");
 
-            // Reset line counter to get errors on the right lines relative to the file.
-            code.Insert(5, $"#line {(compileConstant == null ? 3 : 2)}\n");
+            Span<Range> uniformDeclLeftAndRight = stackalloc Range[2];
+            Span<Range> uniformDeclTokens = stackalloc Range[4];
 
             var dependencyIdx = 1;
-            for (var i = 6; i < code.Count; i++)
+            for (var i = 0; i < code.Count; i++)
             {
                 // Legacy texture uniform definitions.
                 if (code[i].Trim() == "uniform sampler2D textures[16];") code[i] = "uniform sampler2D textures[TEXTURE_COUNT];";
@@ -226,15 +224,45 @@ namespace Emotion.Graphics.Shading
                 // Find them and extract them.
                 if (uniformDefaults != null)
                 {
-                    Match match = _uniformDefaultsDetect.Match(code[i]);
-                    while (match.Success && match.Groups.Count > 4)
+                    var lineofCode = code[i].AsSpan();
+                    bool isUniformDecl = lineofCode.Contains("uniform", StringComparison.InvariantCulture);
+                    if (isUniformDecl)
                     {
-                        string uniformType = match.Groups[1].Value.Trim();
-                        string uniformName = match.Groups[2].Value.Trim();
-                        string value = match.Groups[4].Value.Trim();
-                        code[i] = _uniformDefaultsDetect.Replace(code[i], $"uniform {uniformType} {uniformName};", 1);
-                        match = _uniformDefaultsDetect.Match(code[i]);
-                        uniformDefaults.Add(new ShaderUniform(uniformName, uniformType, value));
+                        int parts = lineofCode.Split(uniformDeclLeftAndRight, '=');
+                        if (parts == 2)
+                        {
+                            ReadOnlySpan<char> leftPart = lineofCode[uniformDeclLeftAndRight[0]];
+                            ReadOnlySpan<char> rightPart = lineofCode[uniformDeclLeftAndRight[1]];
+
+                            if (rightPart[^1] == ';') rightPart = rightPart[..^1];
+                            string value = rightPart.Trim().ToString();
+                            string type = string.Empty;
+                            string typeQualifier = string.Empty;
+                            string name = string.Empty;
+
+                            int nameAndTypeTokens = leftPart.Trim().Split(uniformDeclTokens, ' ', StringSplitOptions.TrimEntries);
+                            if (nameAndTypeTokens == 3)
+                            {
+                                // 0 is uniform
+                                // 1 is type
+                                // 2 is name
+                                type = leftPart[uniformDeclTokens[1]].Trim().ToString();
+                                name = leftPart[uniformDeclTokens[2]].Trim().ToString();
+                            }
+                            else if(nameAndTypeTokens == 4)
+                            {
+                                // 0 is uniform
+                                // 1 is type qualifier
+                                // 2 is type
+                                // 3 is name
+                                typeQualifier = leftPart[uniformDeclTokens[1]].Trim().ToString();
+                                type = leftPart[uniformDeclTokens[2]].Trim().ToString();
+                                name = leftPart[uniformDeclTokens[3]].Trim().ToString();
+                            }
+  
+                            code[i] = $"uniform {typeQualifier} {type} {name};";
+                            uniformDefaults.Add(new ShaderUniform(name, type, value));
+                        }
                     }
                 }
 

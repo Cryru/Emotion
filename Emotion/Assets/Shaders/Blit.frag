@@ -1,13 +1,12 @@
 #version v
  
-uniform sampler2D mainTexture;
-uniform vec3 iResolution; // viewport resolution (in pixels)
+uniform LOWP sampler2D mainTexture;
  
 // Comes in from the vertex shader. 
-in vec2 UV; 
-in vec4 vertColor;
+in LOWP vec2 UV; 
+in LOWP vec4 vertColor;
  
-out vec4 fragColor; 
+out LOWP vec4 fragColor; 
  
 #using "Shaders/getTextureColor.c"
 

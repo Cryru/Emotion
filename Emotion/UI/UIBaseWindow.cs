@@ -121,7 +121,7 @@ namespace Emotion.UI
 
         public void Render(RenderComposer c)
         {
-            if (!Visible) return;
+            if (!Visible || _calculatedColor.A == 0) return;
             if (IsLoading()) return;
 
             // Push displacements if any.
@@ -156,8 +156,12 @@ namespace Emotion.UI
                     _transformationStackBacking.RecalculateMatrix(GetScale(), intermediateBounds, Z);
                 }
 
-                c.PushModelMatrix(_transformationStackBacking.CurrentMatrix, !IgnoreParentDisplacement);
-                matrixPushed = true;
+                bool noNeedToPush = _transformationStackBacking.CurrentMatrix.IsIdentity && !IgnoreParentDisplacement;
+                if (!noNeedToPush)
+                {
+                    c.PushModelMatrix(_transformationStackBacking.CurrentMatrix, !IgnoreParentDisplacement);
+                    matrixPushed = true;
+                }
             }
             else if (IgnoreParentDisplacement && !c.ModelMatrix.IsIdentity)
             {
@@ -1323,6 +1327,11 @@ namespace Emotion.UI
                 UIBaseWindow cur = Children[i];
                 yield return cur;
             }
+        }
+
+        public IEnumerable<UIBaseWindow> EnumerateChildren()
+        {
+            return WindowChildren();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

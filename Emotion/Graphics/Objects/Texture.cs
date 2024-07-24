@@ -121,7 +121,7 @@ namespace Emotion.Graphics.Objects
         public PixelType PixelType { get; protected set; } = PixelType.UnsignedByte;
 
         private bool _tile;
-        private bool _smooth;
+        protected bool _smooth;
 
         /// <summary>
         /// Create a new uninitialized texture.
