@@ -139,6 +139,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\Shaders\GLESSupport.c" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
