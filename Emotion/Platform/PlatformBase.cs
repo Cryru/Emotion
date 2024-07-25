@@ -97,7 +97,12 @@ namespace Emotion.Platform
             Engine.Log.Info($"Platform created: {platform}", MessageSource.Engine);
 
             // Set platform as default native library resolver.
-            NativeLibrary.SetDllImportResolver(typeof(PlatformBase).Assembly, (libName, _, _) => platform.LoadLibrary(libName));
+            NativeLibrary.SetDllImportResolver(typeof(PlatformBase).Assembly, (libName, _, _) =>
+                {
+                    Engine.Log.Info($"Loading dll {libName}", MessageSource.Engine);
+                    return platform.LoadLibrary(libName);
+                }
+            );
 
             // Initialize platform.
             platform.Setup(engineConfig);

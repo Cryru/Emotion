@@ -50,20 +50,34 @@ namespace Emotion.Platform.Implementation.Win32
         /// <inheritdoc />
         protected override void SetupInternal(Configurator config)
         {
-            IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin7),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWin7),
-                0);
-            IsWindows8OrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin8),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWin8),
-                0);
-            IsWindows81OrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWinBlue),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWinBlue),
-                0);
-            IsWindows10AnniversaryUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(14393);
-            IsWindows10CreatorsUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(15063);
+            // Ok so, this should exist everywhere as it is part of Windows.
+            // However it seems some people don't have it or it's corrupted or something.
+            // Now usually I'd say we don't need to write code for some broken installations of Windows
+            // but...and hear me out, we only use NtDll to check the windows version...so does it really matter?
+            // I mean we can skip it and have games work on a couple machines more. That's an easy win in my book.
+            // (also chrome manages to run on them somehow, so I guess it's doable)
+            bool ntDllExists = NativeLibrary.TryLoad(NtDll.LIBRARY_NAME, out IntPtr handle);
+            if (ntDllExists)
+            {
+                IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
+                   NativeHelpers.HiByte((ushort)NtDll.WinVer.Win32WinNTWin7),
+                   NativeHelpers.LoByte((ushort)NtDll.WinVer.Win32WinNTWin7),
+                   0);
+                IsWindows8OrGreater = IsWindowsVersionOrGreaterWin32(
+                    NativeHelpers.HiByte((ushort)NtDll.WinVer.Win32WinNTWin8),
+                    NativeHelpers.LoByte((ushort)NtDll.WinVer.Win32WinNTWin8),
+                    0);
+                IsWindows81OrGreater = IsWindowsVersionOrGreaterWin32(
+                    NativeHelpers.HiByte((ushort)NtDll.WinVer.Win32WinNTWinBlue),
+                    NativeHelpers.LoByte((ushort)NtDll.WinVer.Win32WinNTWinBlue),
+                    0);
+                IsWindows10AnniversaryUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(14393);
+                IsWindows10CreatorsUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(15063);
+            }
+            else
+            {
+                Engine.Log.Warning($"No ntdll - fun :)", MessageSource.Win32);
+            }
 
             var windowsVersionFlags = new List<string>();
             if (IsWindows7OrGreater) windowsVersionFlags.Add(nameof(IsWindows7OrGreater));
