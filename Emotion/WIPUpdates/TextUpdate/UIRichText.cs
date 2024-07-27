@@ -1,15 +1,11 @@
 ﻿#region Using
 
-using System.Text;
 using System.Threading.Tasks;
-using Emotion.Game.Localization;
 using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.WIPUpdates.TextUpdate;
-using WinApi.User32;
-using ParamDataType = (string paramName, object? paramValue);
 
 #endregion
 
