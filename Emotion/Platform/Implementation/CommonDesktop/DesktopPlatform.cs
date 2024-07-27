@@ -229,9 +229,9 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (Environment.Is64BitProcess)
-                    NativeLibrary.Load("nvapi64.dll");
+                    NativeLibrary.TryLoad("nvapi64.dll", out nint _);
                 else
-                    NativeLibrary.Load("nvapi.dll");
+                    NativeLibrary.TryLoad("nvapi.dll", out nint _);
 
                 // todo: figure out how to do AMD
             }
