@@ -2,16 +2,19 @@
 
 #region Using
 
+using System;
 using System.Collections;
+using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
+using Emotion.Primitives;
 using Emotion.UI;
 
 #endregion
 
-namespace Emotion.Testing;
+namespace Emotion.Testing.Scenarios;
 
 public class NewUITests : TestingScene
 {
@@ -81,7 +84,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator FillXAxisWithChild()
@@ -104,7 +107,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator FillXAxisMinHeight()
@@ -128,7 +131,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator FillXAxisMinHeightAndWidth()
@@ -153,7 +156,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator FillNeitherAxisMinHeightAndWidth()
@@ -179,7 +182,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator TwoSquaresInFillY()
@@ -213,7 +216,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator FillList()
@@ -236,7 +239,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         {
             UIBaseWindow list = UI.GetWindowById("test")!;
@@ -244,7 +247,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator FillListThreeItems()
@@ -299,7 +302,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -307,7 +310,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -325,7 +328,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -333,7 +336,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(screenshotExtraText);
         }
     }
 
@@ -463,6 +466,7 @@ public class NewUITests : TestingScene
             list.Margins = new Rectangle(3, 3, 3, 3);
             list.Id = "list";
             list.WindowColor = Color.PrettyGreen;
+
             win.AddChild(list);
 
             {
@@ -470,6 +474,7 @@ public class NewUITests : TestingScene
                 a.WindowColor = Color.Black;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
                 a.Id = "text-bg";
+                a.FillX = false;
                 list.AddChild(a);
 
                 var text = new UIText();
@@ -488,7 +493,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         {
             UIBaseWindow list = UI.GetWindowById("list")!;
@@ -517,6 +522,7 @@ public class NewUITests : TestingScene
                 a.WindowColor = Color.PrettyPink;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
                 //a.Id = "text-bg";
+                a.FillX = false;
                 list.AddChild(a);
 
                 var text = new UIText();
@@ -533,7 +539,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         // Bar v2 (Possible only with the new UI)
         {
@@ -541,10 +547,13 @@ public class NewUITests : TestingScene
 
             list.Margins = new Rectangle(3, 0, 3, 0);
             list.AnchorAndParentAnchor = UIAnchor.CenterLeft;
+
+            // Actually the list with the buttons cannot fit inside their parent (buttons are 11 + 3 + 3 = 17 but parent is limited to 15)
+            list.FillY = false;
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         // Add text on the right
         {
@@ -562,7 +571,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator WorldEditorBottomBar()
@@ -592,7 +601,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator VerticalListWithText()
@@ -661,6 +670,7 @@ public class NewUITests : TestingScene
                 text.Id = "text";
                 text.ParentAnchor = UIAnchor.CenterLeft;
                 text.Anchor = UIAnchor.CenterLeft;
+                text.FillX = false;
 
                 a.AddChild(text);
             }
@@ -669,7 +679,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         UI.ClearChildren();
 
@@ -708,6 +718,7 @@ public class NewUITests : TestingScene
                 var a = new UISolidColor();
                 a.WindowColor = Color.Black;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
+                a.FillX = false;
                 //a.Id = "text-bg";
                 list.AddChild(a);
 
@@ -727,30 +738,30 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         {
             UIBaseWindow? list = UI.GetWindowById("list");
-            AssertNotNull(list);
-            AssertNotNull(list.Children);
+            Assert.NotNull(list);
+            Assert.NotNull(list.Children);
             for (var i = 0; i < list.Children.Count; i++)
             {
                 UIBaseWindow child = list.Children[i];
-                //child.FillXInList = true;
+                child.FillX = true;
             }
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
 
         {
             UIBaseWindow? list = UI.GetWindowById("list");
-            AssertNotNull(list);
+            Assert.NotNull(list);
             list.Margins = new Rectangle(0, 0, 8, 0);
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator TextWithBackground()
@@ -776,7 +787,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     private IEnumerator EditorDropDownRelativeToAndOutsideParent()
@@ -836,6 +847,7 @@ public class NewUITests : TestingScene
                 var a = new UISolidColor();
                 a.WindowColor = Color.Black;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
+                a.FillX = false;
                 //a.Id = "text-bg";
                 list.AddChild(a);
 
@@ -855,7 +867,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        yield return VerifyScreenshot();
     }
 
     public IEnumerator EditorPanelEmpty()
