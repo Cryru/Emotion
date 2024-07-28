@@ -293,7 +293,7 @@ namespace Emotion.Graphics.Shading
                 }
 
                 // Ensure shader errors are reported for the correct lines.
-                if (codeAdded) code[i] += $"\n#line {i - 4} 0";
+                if (codeAdded) code[i] += $"\n#line {i} 0";
 
                 code[i] = code[i].Trim() + "\n";
             }
