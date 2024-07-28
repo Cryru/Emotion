@@ -37,7 +37,7 @@ public static class TestExecutor
     /// <summary>
     /// What percentage of the whole image's pixels can be different.
     /// </summary>
-    public static float PixelDerivationTolerance = 10;
+    public static float PixelDerivationTolerance = 2;
 
     public static void ExecuteTests(string[] args, Configurator? config = null, Type? filterTestsOnlyFromClass = null)
     {

@@ -69,6 +69,7 @@ public class NewUITests : TestingScene
     {
         UI.Update();
         yield return new TaskRoutineWaiter(UI.PreloadUI());
+        UI.Update();
         yield return new TestWaiterRunLoops(1);
     }
 
@@ -456,7 +457,7 @@ public class NewUITests : TestingScene
 
         {
             var win = new UISolidColor();
-            win.MaxSizeY = 15;
+            win.MaxSizeY = 17;
             win.WindowColor = Color.PrettyOrange;
             win.Id = "top-parent";
 
@@ -466,7 +467,7 @@ public class NewUITests : TestingScene
             list.Margins = new Rectangle(3, 3, 3, 3);
             list.Id = "list";
             list.WindowColor = Color.PrettyGreen;
-
+            list.FillY = false;
             win.AddChild(list);
 
             {
@@ -547,9 +548,6 @@ public class NewUITests : TestingScene
 
             list.Margins = new Rectangle(3, 0, 3, 0);
             list.AnchorAndParentAnchor = UIAnchor.CenterLeft;
-
-            // Actually the list with the buttons cannot fit inside their parent (buttons are 11 + 3 + 3 = 17 but parent is limited to 15)
-            list.FillY = false;
         }
 
         yield return WaitUILayout();
@@ -566,6 +564,7 @@ public class NewUITests : TestingScene
             a.Text = "Text on the right";
             a.FontSize = 6;
             a.Margins = new Rectangle(0, 0, 5, 0);
+            a.TextHeightMode = Game.Text.GlyphHeightMeasurement.NoMinY;
 
             parent.AddChild(a);
         }
@@ -660,6 +659,7 @@ public class NewUITests : TestingScene
                 a.WindowColor = Color.PrettyPink;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
                 //a.Id = "text-bg";
+                a.FillX = false;
                 list.AddChild(a);
 
                 var text = new UIText();
