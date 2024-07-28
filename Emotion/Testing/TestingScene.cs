@@ -5,6 +5,7 @@
 using System.Collections;
 using System.IO;
 using System.Threading;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
@@ -60,7 +61,7 @@ public abstract class TestingScene : Scene
 
     private HashSet<string> _usedNamed = new();
 
-    public void VerifyScreenshot(string? addToScreenshotName = null)
+    public VerifyScreenshotResult VerifyScreenshot(string? addToScreenshotName = null)
     {
         string fullFunctionName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
         int lastDot = fullFunctionName.LastIndexOf('.');
@@ -88,7 +89,7 @@ public abstract class TestingScene : Scene
             _usedNamed.Add(fileName);
         }
 
-        if (_screenShotBuffer == null || _lastFrameScreenShot == null) return;
+        if (_screenShotBuffer == null || _lastFrameScreenShot == null) return new VerifyScreenshotResult(false);
         Vector2 screenShotSize = _screenShotBuffer.Size;
         byte[] screenshot = _lastFrameScreenShot;
         ImageUtil.FlipImageY(screenshot, (int) screenShotSize.Y);
@@ -107,14 +108,14 @@ public abstract class TestingScene : Scene
         if (referenceImage == null)
         {
             Assert(false, $"Missing reference image {referenceRenderName}");
-            return;
+            return new VerifyScreenshotResult(false);
         }
 
         byte[] dataReference = PngFormat.Decode(referenceImage.Content, out PngFileHeader fileHeader);
         if (fileHeader.Size != screenShotSize)
         {
             Assert(false, $"Reference image {referenceRenderName} is of different size than screenshot");
-            return;
+            return new VerifyScreenshotResult(false);
         }
 
         Assert(dataReference.Length == screenshot.Length);
@@ -149,7 +150,14 @@ public abstract class TestingScene : Scene
         derivationPercent *= 100;
         Engine.Log.Info($"    Derivation is {derivationPercent}%", MessageSource.Test);
 
-        Assert(derivationPercent < TestExecutor.PixelDerivationTolerance, $"Image derivation for {fileName}");
+       
+        if (derivationPercent > TestExecutor.PixelDerivationTolerance)
+        {
+            Engine.Log.Error($"    - Image derivation for {fileName} is too high!", MessageSource.Test);
+            return new VerifyScreenshotResult(false);
+        }
+
+        return new VerifyScreenshotResult(true);
     }
 
     protected abstract void TestUpdate();

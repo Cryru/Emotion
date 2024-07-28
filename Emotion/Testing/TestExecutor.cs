@@ -229,6 +229,8 @@ public static class TestExecutor
                 string functionName = routineReflect.Name;
                 Engine.Log.Info($"  Running test {functionName}...", MessageSource.Test);
 
+                bool testFailed = false;
+
                 sc.RunningTestRoutineIndex++;
                 IEnumerator enumerator = testRoutine();
                 Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(enumerator);
@@ -236,6 +238,9 @@ public static class TestExecutor
                 {
                     IRoutineWaiter? currentWaiter = coroutine.CurrentWaiter;
                     while (currentWaiter is Coroutine subRoutine) currentWaiter = subRoutine.CurrentWaiter;
+
+                    if (currentWaiter is VerifyScreenshotResult verifyResult)
+                        if (!verifyResult.Passed) testFailed = true;
 
                     if (currentWaiter is TestWaiterRunLoops runLoopsWaiter && !runLoopsWaiter.Finished)
                     {
@@ -254,7 +259,8 @@ public static class TestExecutor
                 totalThisScene++;
                 total++;
 
-                if (coroutine.Finished)
+                if (coroutine.Stopped) testFailed = true;
+                if (!testFailed)
                 {
                     completedThisScene++;
                     completed++;
