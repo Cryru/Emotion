@@ -38,7 +38,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 _platformExtension = ".dylib";
             }
 
-            ForceDiscreteGPU();
+            ForceMainGPU();
             base.Setup(config);
 
             if (Engine.AssetLoader == null) return;
@@ -224,7 +224,8 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             }
         }
 
-        private static void ForceDiscreteGPU()
+        // Used to prevent integrated GPU from creating the GL context.
+        private static void ForceMainGPU()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
