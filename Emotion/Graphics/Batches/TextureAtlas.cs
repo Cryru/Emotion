@@ -402,7 +402,7 @@ namespace Emotion.Graphics.Batches
             {
                 Texture texture = textureKey;
                 if (meta.DrawnVersion == texture.Version) continue;
-                if (!meta.Batched) continue;    
+                if (!meta.Batched) continue;
                 if (texture.Pointer == 0) continue;
 
                 if (drawnThisFrame >= _maxTexturesToDrawToAtlasPerFrame)
@@ -419,15 +419,15 @@ namespace Emotion.Graphics.Batches
 
                 if (virtualTexture != null)
                 {
-                    virtualTexture.StartVirtualTextureRender(c, texture.Size);
-                    virtualTexture.VirtualTextureRenderToBatch(c);
+                    virtualTexture.StartVirtualTextureRender(c, texture.Size + _texturesMarginVec2);
+                    virtualTexture.VirtualTextureRenderToBatch(c, _texturesMarginVec);
                     var backingTexture = virtualTexture.EndVirtualTextureRender(c);
 
                     // Restore state
                     c.SetState(c.BlitStatePremult);
                     VertexArrayObject.EnsureBound(_vao);
 
-                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset + _texturesMarginVec, 0), texture.Size, Color.White, backingTexture, new Rectangle(0, 0, texture.Size));
+                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.White, backingTexture, new Rectangle(0, 0, texture.Size + _texturesMarginVec2));
 
                     _vbo.Upload(_vboLocal);
                     Texture.EnsureBound(backingTexture.Pointer);
@@ -471,7 +471,7 @@ namespace Emotion.Graphics.Batches
             if (hasMoreToDraw) _haveDirtyTextures = true;
         }
 
-#endregion
+        #endregion
 
         #region Helpers
 

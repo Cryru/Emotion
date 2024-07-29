@@ -33,7 +33,7 @@ public class VirtualTextureAtlasTexture : Texture
         Version++;
     }
 
-    public virtual void VirtualTextureRenderToBatch(RenderComposer c)
+    public virtual void VirtualTextureRenderToBatch(RenderComposer c, Vector2 offset)
     {
 
     }
