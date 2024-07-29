@@ -227,8 +227,9 @@ namespace Emotion.Graphics.Batches
         /// <param name="uvOffsetIntoStruct">The byte offset within the struct to the Vec2(at least) member which holds the UVs.</param>
         public unsafe void RemapBatchUVs(IntPtr dataPointer, uint lengthBytes, uint structByteSize, int uvOffsetIntoStruct)
         {
+            if (_atlasTextureRange.Count == 0) return; // No batched textures this draw call
             PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
-            Assert(_atlasTextureRange.Count > 0);
+
 #if DEBUG
             var totalStructs = 0;
             int count = _atlasTextureRange.Count;
@@ -420,16 +421,16 @@ namespace Emotion.Graphics.Batches
                 {
                     virtualTexture.StartVirtualTextureRender(c, texture.Size);
                     virtualTexture.VirtualTextureRenderToBatch(c);
-                    texture = virtualTexture.EndVirtualTextureRender(c);
+                    var backingTexture = virtualTexture.EndVirtualTextureRender(c);
 
                     // Restore state
                     c.SetState(c.BlitStatePremult);
                     VertexArrayObject.EnsureBound(_vao);
 
-                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset + _texturesMarginVec, 0), textureKey.Size, Color.White, texture);
+                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset + _texturesMarginVec, 0), texture.Size, Color.White, backingTexture, new Rectangle(0, 0, texture.Size));
 
                     _vbo.Upload(_vboLocal);
-                    Texture.EnsureBound(texture.Pointer);
+                    Texture.EnsureBound(backingTexture.Pointer);
                     Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
 
                     // Restore state, once again

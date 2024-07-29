@@ -184,16 +184,22 @@ namespace Emotion.Graphics.Batches
             uint texturePointer = texture.Pointer;
 
             // Texture atlas logic
-            bool batchedTexture = _atlas != null;
-            if (batchedTexture)
+            bool batchedTexture = false;
+            if (_atlas != null)
             {
                 AssertNotNull(_atlas);
                 AssertNotNull(_smoothAtlas);
 
                 if (texture.Smooth && _smoothAtlas.TryBatchTexture(texture))
+                {
                     texturePointer = _smoothAtlas.AtlasPointer;
+                    batchedTexture = true;
+                }
                 else if (!texture.Smooth && _atlas.TryBatchTexture(texture))
+                {
                     texturePointer = _atlas.AtlasPointer;
+                    batchedTexture = true;
+                }
             }
 
             // If the texture is changing, flush old data.
