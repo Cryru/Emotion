@@ -1002,7 +1002,7 @@ namespace Emotion.UI
         {
             if (_rotationRoutineCurrent != null && _rotationRoutineCurrent.Active)
             {
-                Assert(_rotationRoutineCurrent.Finished);
+                Assert(!_rotationRoutineCurrent.Finished);
                 Engine.CoroutineManager.StopCoroutine(_rotationRoutineCurrent);
             }
             _rotationRoutineCurrent = Engine.CoroutineManager.StartCoroutine(RotationDisplacement(_rotation, degrees, tween));
