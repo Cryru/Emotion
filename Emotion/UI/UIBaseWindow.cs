@@ -124,6 +124,13 @@ namespace Emotion.UI
             if (!Visible || _calculatedColor.A == 0) return;
             if (IsLoading()) return;
 
+            List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
+            for (int i = 0; i < relativeToMe.Count; i++)
+            {
+                UIBaseWindow child = relativeToMe[i];
+                child.Render(c);
+            }
+
             // Push displacements if any.
             var matrixPushed = false;
             if (_transformationStackBacking != null)
@@ -131,16 +138,7 @@ namespace Emotion.UI
                 if (_transformationStackBacking.MatrixDirty)
                 {
                     // Mark children matrices as dirty.
-                    if (Children != null)
-                    {
-                        for (int i = 0; i < Children.Count; i++)
-                        {
-                            UIBaseWindow child = Children[i];
-                            if (child.IgnoreParentDisplacement) continue;
-                            if (child._transformationStackBacking != null)
-                                child._transformationStackBacking.MatrixDirty = true;
-                        }
-                    }
+                    MarkChildrenMatricesAsDirty();
 
                     Rectangle intermediateBounds;
                     if (IgnoreParentDisplacement)
@@ -154,6 +152,8 @@ namespace Emotion.UI
                         intermediateBounds.Size = intermediateBounds.Size.Ceiling();
                     }
                     _transformationStackBacking.RecalculateMatrix(GetScale(), intermediateBounds, Z);
+
+
                 }
 
                 bool noNeedToPush = _transformationStackBacking.CurrentMatrix.IsIdentity && !IgnoreParentDisplacement;
@@ -199,6 +199,7 @@ namespace Emotion.UI
             {
                 UIBaseWindow child = Children[i];
                 if (!child.Visible) continue;
+                if (child.RelativeTo != null) continue;
                 child.Render(c);
             }
         }
@@ -931,6 +932,19 @@ namespace Emotion.UI
         }
 
         protected NamedTransformationStack? _transformationStackBacking;
+
+        protected void MarkChildrenMatricesAsDirty()
+        {
+            if (Children == null) return;
+            for (int i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow child = Children[i];
+                if (child.IgnoreParentDisplacement) continue;
+                if (child._transformationStackBacking != null)
+                    child._transformationStackBacking.MatrixDirty = true;
+                child.MarkChildrenMatricesAsDirty();
+            }
+        }
 
         /// <summary>
         /// Displace the position of a UI window over time.
