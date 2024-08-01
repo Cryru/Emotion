@@ -328,10 +328,12 @@ namespace Emotion.UI
             for (var i = 0; i < Children!.Count; i++)
             {
                 UIBaseWindow child = Children[i];
+
+                // this doesnt really take into consideration windows that have their own displacements
                 child.EnsureRenderBoundsCached(c);
 
                 if (!child.Visible) continue;
-                if (!child.IsInsideOrIntersectRect(renderRect, out bool inside) && HideOutsideChildren) continue;
+                if (!child.IsInsideOrIntersectRect(renderRect, out bool inside)) continue;
 
                 if (inside)
                 {
@@ -339,6 +341,8 @@ namespace Emotion.UI
                 }
                 else
                 {
+                    if (HideOutsideChildren) continue;
+
                     Rectangle? clip = c.CurrentState.ClipRect;
                     c.SetClipRect(renderRect);
                     child.Render(c);
@@ -376,6 +380,8 @@ namespace Emotion.UI
                 _scrollArea.X - child.X + child.Margins.X * child.GetScale(),
                 _scrollArea.Y - child.Y + child.Margins.Y * child.GetScale(), 0);
             SyncScrollbar();
+
+            MarkChildrenMatricesAsDirty();
 
             // Code to keep selection in view (by moving the selection) idk it's kinda jank
             //if (SelectedWnd != null)
@@ -469,8 +475,8 @@ namespace Emotion.UI
                 if (scrollPos == _scrollPos)
                 {
                     _lastMousePos = Vector2.Zero;
-                    _renderBoundsCalculatedFrom = Rectangle.Empty;
-                    _renderBounds = Rectangle.Empty;
+                    //_renderBoundsCalculatedFrom = Rectangle.Empty;
+                    //_renderBounds = Rectangle.Empty;
                 }
 
                 return false;
