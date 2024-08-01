@@ -397,6 +397,8 @@ namespace Emotion.Graphics.Batches
             if (_firstDraw) Gl.Clear(ClearBufferMask.ColorBufferBit);
             VertexArrayObject.EnsureBound(_vao);
 
+            Engine.Renderer.SyncShaderIfDirty();
+
             Span<VertexData> vboLocalSpan = _vboLocal;
             foreach ((Texture textureKey, TextureAtlasMetaData meta) in _textureToMeta)
             {
@@ -427,6 +429,7 @@ namespace Emotion.Graphics.Batches
                     c.SetState(c.BlitStatePremult);
                     VertexArrayObject.EnsureBound(_vao);
 
+                    Engine.Renderer.SyncShaderIfDirty();
                     VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.White, backingTexture, new Rectangle(0, 0, texture.Size + _texturesMarginVec2));
 
                     _vbo.Upload(_vboLocal);
@@ -435,6 +438,8 @@ namespace Emotion.Graphics.Batches
 
                     // Restore state, once again
                     c.SetState(c.BlitState);
+
+                    Engine.Renderer.SyncShaderIfDirty();
                 }
                 else if (_texturesMarginVec == Vector2.Zero)
                 {
