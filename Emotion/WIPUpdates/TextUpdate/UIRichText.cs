@@ -195,7 +195,7 @@ public class UIRichText : UIBaseWindow
                 _cachedRenderOffset = emSdf.GetDrawOffset().Ceiling();
 
             _cachedTextRender ??= new VirtualTextureForRichText(this);
-            _cachedTextRender.SetVirtualSize(_layoutEngine.TextSize + _cachedRenderOffset.ToVec2() * 2f);
+            _cachedTextRender.SetVirtualSize(new Vector2(_layoutEngine.TextSize.X, _layoutEngine.TextRenderHeight) + _cachedRenderOffset.ToVec2() * 2f);
             _cachedTextRender.UpVersion();
         }
 
@@ -215,7 +215,7 @@ public class UIRichText : UIBaseWindow
 
         bool batched = _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
         if (batched)
-            c.RenderSprite(Position - _cachedRenderOffset, _cachedTextRender!.Size, _cachedTextRender);
+            c.RenderSprite(Position - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender!.Size, _cachedTextRender);
         else
             _layoutEngine.Render(c, Position, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
 
@@ -246,7 +246,7 @@ public class UIRichText : UIBaseWindow
 
     protected void RenderTextForBatch(RenderComposer c, Vector2 offset)
     {
-        _layoutEngine.Render(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+        _layoutEngine.RenderNoOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
     #endregion
