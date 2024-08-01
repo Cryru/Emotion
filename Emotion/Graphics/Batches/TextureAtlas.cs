@@ -139,10 +139,11 @@ namespace Emotion.Graphics.Batches
                 bool latestVersionBatched = meta.BatchedVersion == texture.Version;
                 if (latestVersionBatched) return false;
 
+                // Texture needs an update, version is different
                 Engine.Log.Trace($"Texture {texture.Pointer} was updated!", MessageSource.Renderer);
 
-                // Texture needs an update.
-                if (meta.SizeBatched.X < texture.Size.X || meta.SizeBatched.Y < texture.Size.Y) // Texture needs to be repacked.
+                // If it got bigger, it needs to be repacked.
+                if (meta.SizeBatched.X < texture.Size.X || meta.SizeBatched.Y < texture.Size.Y) 
                 {
                     Engine.Log.Trace($"Texture {texture.Pointer} had its size changed!", MessageSource.Renderer);
 
@@ -165,7 +166,10 @@ namespace Emotion.Graphics.Batches
                     }
                 }
 
-                // Texture just needs to be redrawn.
+                // If the texture got smaller or didn't change size, it just needs to be redrawn.
+                // Note that if it got smaller and then bigger it will need to be rebatched despite the
+                // space previously used being free. This is an inefficiency, but this is a super edge case.
+                meta.SizeBatched = texture.Size;
                 meta.BatchedVersion = texture.Version;
                 _haveDirtyTextures = true;
                 return false;
