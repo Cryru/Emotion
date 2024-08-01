@@ -26,6 +26,12 @@ public class TextLayoutEngine
     public Vector2 TextSize { get; protected set; }
 
     /// <summary>
+    /// The height of the text as if the height mode is FullHeight.
+    /// Used to determine total bounds where text will be rendered.
+    /// </summary>
+    public float TextRenderHeight;
+
+    /// <summary>
     /// Whether to resolve tags in the text, such as <color></color>
     /// Text selection APIs /should/ handle these fine.
     /// </summary>
@@ -42,6 +48,11 @@ public class TextLayoutEngine
 
     private List<TagDefinition> _tagDefinitions = new List<TagDefinition>();
     private List<TextBlock> _textBlocks = new List<TextBlock>();
+
+    /// <summary>
+    /// The render offset of the text. This is applied by default when calling Render, but can be skipped by calling RenderNoOffset
+    /// </summary>
+    public Vector3 LayoutRenderOffset { get; protected set; } = Vector3.Zero;
 
     public bool NeedsToReRun(string text, float? wrapWidth)
     {
@@ -296,9 +307,14 @@ public class TextLayoutEngine
         TextSize = MeasureString();
     }
 
-    private TextLayouter _layouter;
+    private TextLayouter _layouter; // temporarily used for text layout render
 
     public void Render(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
+    {
+        RenderNoOffset(c, offset + LayoutRenderOffset, baseColor, defaultEffect, defaultEffectAmount, defaultEffectColor);
+    }
+
+    public void RenderNoOffset(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
     {
         _layouter ??= new TextLayouter(_defaultAtlas);
         _layouter.SetAtlas(_defaultAtlas);
@@ -386,7 +402,7 @@ public class TextLayoutEngine
         }
         else if (tagName.StartsWith("center"))
         {
-            block.CenterLayout = (byte) (def.GetTagStartIndexInText() == block.StartIndex ? 1 : 2);
+            block.CenterLayout = (byte)(def.GetTagStartIndexInText() == block.StartIndex ? 1 : 2);
             return;
         }
     }
@@ -481,7 +497,7 @@ public class TextLayoutEngine
         for (int i = 0; i < text.Length; i++)
         {
             char c = text[i];
-            Vector2 pos = GetNextGlyphPosition(new Vector2(sizeSoFar, 0), c, out Vector2 _, out DrawableGlyph g);
+            Vector2 pos = GetNextGlyphPosition(new Vector2(sizeSoFar, 0), c, out Vector2 _, out DrawableGlyph? g);
             sizeSoFar = pos.X;
             if (g == null) continue;
 
@@ -521,11 +537,17 @@ public class TextLayoutEngine
 
     private Vector2 MeasureString()
     {
-        float lineSpacing = _defaultAtlas.FontHeight; // todo: height modes
+        Vector3 layoutRenderOffset = Vector3.Zero;
+
+        float lineSpacing = _defaultAtlas.FontHeight;
 
         Vector2 sizeSoFar = new Vector2(0, 0);
         float largestLine = 0;
-        float tallestOnLine = 0;
+
+        float currentLineWithoutDescent = 0;
+        float smallestCharacterHeight = lineSpacing;
+        float largestCharacterHeight = 0;
+
         for (int i = 0; i < _textBlocks.Count; i++)
         {
             TextBlock block = _textBlocks[i];
@@ -536,7 +558,10 @@ public class TextLayoutEngine
                 if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
                 sizeSoFar.X = 0;
                 sizeSoFar.Y += lineSpacing;
-                tallestOnLine = 0;
+
+                currentLineWithoutDescent = 0;
+                smallestCharacterHeight = lineSpacing;
+                largestCharacterHeight = 0;
             }
 
             ReadOnlySpan<char> blockString = block.GetBlockString(_text);
@@ -544,22 +569,50 @@ public class TextLayoutEngine
             {
                 char c = blockString[ci];
 
-                Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out DrawableGlyph g);
+                Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out DrawableGlyph? g);
                 sizeSoFar = pos;
                 if (g == null) continue;
 
                 sizeSoFar.X += g.XAdvance;
-                //float verticalSize = g.Height;// + (_defaultAtlas.Ascent - g.Height) + g.Descent;
-                //if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
+
+                // Record these metrics to use for height mode
+                var characterHeightWithoutDescent = g.Height + (_defaultAtlas.Ascent - g.Height) + g.Descent;
+                if (characterHeightWithoutDescent > currentLineWithoutDescent) currentLineWithoutDescent = characterHeightWithoutDescent;
+                if (g.Height > largestCharacterHeight) largestCharacterHeight = g.Height;
+                if (g.Height > 0 && g.Height < smallestCharacterHeight) smallestCharacterHeight = g.Height;
             }
         }
-
-        sizeSoFar.Y += lineSpacing;
 
         if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
         if (largestLine != 0) sizeSoFar.X = largestLine;
 
-        sizeSoFar.Y = MathF.Max(sizeSoFar.Y, _defaultAtlas.FontHeight);
+        // As if FullHeight
+        TextRenderHeight = sizeSoFar.Y + lineSpacing;
+
+        switch (_heightMode)
+        {
+            case GlyphHeightMeasurement.FullHeight:
+                sizeSoFar.Y += lineSpacing;
+                break;
+            case GlyphHeightMeasurement.NoDescent:
+                sizeSoFar.Y += MathF.Ceiling(currentLineWithoutDescent);
+                break;
+            case GlyphHeightMeasurement.UnderflowLittle:
+                float halfWay = Maths.Lerp(smallestCharacterHeight, largestCharacterHeight, 0.5f);
+                sizeSoFar.Y += MathF.Ceiling(halfWay);
+                layoutRenderOffset.Y = -MathF.Ceiling(_defaultAtlas.Ascent - halfWay);
+                break;
+            case GlyphHeightMeasurement.NoMinY:
+                sizeSoFar.Y += MathF.Ceiling(largestCharacterHeight);
+                layoutRenderOffset.Y = -MathF.Ceiling(_defaultAtlas.Ascent - largestCharacterHeight);
+                break;
+            case GlyphHeightMeasurement.Underflow:
+                sizeSoFar.Y += MathF.Ceiling(smallestCharacterHeight);
+                layoutRenderOffset.Y = -MathF.Ceiling(_defaultAtlas.Ascent - smallestCharacterHeight);
+                break;
+        }
+
+        LayoutRenderOffset = layoutRenderOffset;
 
         return sizeSoFar;
     }

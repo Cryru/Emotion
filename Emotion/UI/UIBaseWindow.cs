@@ -128,7 +128,7 @@ namespace Emotion.UI
             for (int i = 0; i < relativeToMe.Count; i++)
             {
                 UIBaseWindow child = relativeToMe[i];
-                child.Render(c);
+                child.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.Unscaled);
             }
 
             // Push displacements if any.
@@ -152,8 +152,6 @@ namespace Emotion.UI
                         intermediateBounds.Size = intermediateBounds.Size.Ceiling();
                     }
                     _transformationStackBacking.RecalculateMatrix(GetScale(), intermediateBounds, Z);
-
-
                 }
 
                 bool noNeedToPush = _transformationStackBacking.CurrentMatrix.IsIdentity && !IgnoreParentDisplacement;
@@ -199,7 +197,6 @@ namespace Emotion.UI
             {
                 UIBaseWindow child = Children[i];
                 if (!child.Visible) continue;
-                if (child.RelativeTo != null) continue;
                 child.Render(c);
             }
         }

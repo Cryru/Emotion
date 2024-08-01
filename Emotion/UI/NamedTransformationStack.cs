@@ -11,7 +11,8 @@ namespace Emotion.UI
         None,
         RotateBoundsCenter,
         ScaleBoundsCenter,
-        TranslationPositionReplace
+        TranslationPositionReplace,
+        Unscaled
     }
 
     /// <summary>
@@ -62,12 +63,17 @@ namespace Emotion.UI
             MatrixWithId? matWithId = Get(id);
             if (matWithId != null)
             {
+                // Being set to same.
+                if (matWithId.Matrix == matrix && matWithId.ResetToIdentity == !multiply && matWithId.Flag == flag) return;
+
                 matWithId.Matrix = matrix;
                 matWithId.ResetToIdentity = !multiply;
                 matWithId.Flag = flag;
             }
             else
             {
+                if (matrix == Matrix4x4.Identity && multiply) return;
+
                 matWithId = new MatrixWithId(matrix, id, !multiply);
                 matWithId.Flag = flag;
                 _stack.Add(matWithId);
@@ -125,11 +131,17 @@ namespace Emotion.UI
                 return;
             }
 
+            var scaleMatrix = Matrix4x4.CreateScale(scale, scale, 1f);
+            var scaleMatrixInverted = scaleMatrix.Inverted();
+
             Matrix4x4 mat = Matrix4x4.Identity;
             for (var i = 0; i < _stack.Count; i++)
             {
                 MatrixWithId matWithId = _stack[i];
                 if (matWithId.ResetToIdentity) mat = Matrix4x4.Identity;
+
+                // Quick out - this shouldn't change anything.
+                if (matWithId.Matrix.IsIdentity) continue;
 
                 if (matWithId.Flag == MatrixSpecialFlag.RotateBoundsCenter ||
                     matWithId.Flag == MatrixSpecialFlag.ScaleBoundsCenter)
@@ -144,6 +156,10 @@ namespace Emotion.UI
                     mat *= Matrix4x4.CreateTranslation(-bounds.X / scale, -bounds.Y / scale, 0) *
                            matWithId.Matrix;
                 }
+                else if (matWithId.Flag == MatrixSpecialFlag.Unscaled)
+                {
+                    mat *= scaleMatrix * matWithId.Matrix * scaleMatrixInverted;
+                }
                 else
                 {
                     mat *= matWithId.Matrix;
@@ -151,8 +167,7 @@ namespace Emotion.UI
             }
 
             // Scale the matrix according to the UI scale.
-            var scaleMatrix = Matrix4x4.CreateScale(scale, scale, 1f);
-            CurrentMatrix = scaleMatrix.Inverted() * mat * scaleMatrix;
+            CurrentMatrix = scaleMatrixInverted * mat * scaleMatrix;
             MatrixDirty = false;
         }
 
