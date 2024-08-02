@@ -140,12 +140,12 @@ namespace Emotion.Graphics.Batches
                 if (latestVersionBatched) return false;
 
                 // Texture needs an update, version is different
-                Engine.Log.Trace($"Texture {texture.Pointer} was updated!", MessageSource.Renderer);
+                // Engine.Log.Trace($"Texture {texture.Pointer} was updated!", MessageSource.Renderer);
 
                 // If it got bigger, it needs to be repacked.
                 if (meta.SizeBatched.X < texture.Size.X || meta.SizeBatched.Y < texture.Size.Y) 
                 {
-                    Engine.Log.Trace($"Texture {texture.Pointer} had its size changed!", MessageSource.Renderer);
+                    // Engine.Log.Trace($"Texture {texture.Pointer} had its size changed!", MessageSource.Renderer);
 
                     // Try to reuse this space
                     PackingSpaces.Add(new Packing.PackingSpace(new Rectangle(meta.Offset, meta.SizeBatched + _texturesMarginVec2)));
