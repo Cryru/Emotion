@@ -12,7 +12,7 @@ namespace Emotion.UI
         RotateBoundsCenter,
         ScaleBoundsCenter,
         TranslationPositionReplace,
-        Unscaled
+        AlreadyScaled
     }
 
     /// <summary>
@@ -156,7 +156,7 @@ namespace Emotion.UI
                     mat *= Matrix4x4.CreateTranslation(-bounds.X / scale, -bounds.Y / scale, 0) *
                            matWithId.Matrix;
                 }
-                else if (matWithId.Flag == MatrixSpecialFlag.Unscaled)
+                else if (matWithId.Flag == MatrixSpecialFlag.AlreadyScaled)
                 {
                     mat *= scaleMatrix * matWithId.Matrix * scaleMatrixInverted;
                 }
