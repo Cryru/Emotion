@@ -127,8 +127,9 @@ namespace Emotion.UI
             List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
             for (int i = 0; i < relativeToMe.Count; i++)
             {
-                UIBaseWindow child = relativeToMe[i];
-                child.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.Unscaled);
+                UIBaseWindow relativeChild = relativeToMe[i];
+                if (relativeChild.IgnoreParentDisplacement)
+                    relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
             }
 
             // Push displacements if any.
@@ -169,6 +170,13 @@ namespace Emotion.UI
 
             // Cache displaced position.
             EnsureRenderBoundsCached(c);
+
+            for (int i = 0; i < relativeToMe.Count; i++)
+            {
+                UIBaseWindow relativeChild = relativeToMe[i];
+                if (!relativeChild.IgnoreParentDisplacement)
+                    relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
+            }
 
             if (RenderInternal(c) && Children != null)
             {
