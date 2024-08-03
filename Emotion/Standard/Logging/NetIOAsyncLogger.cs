@@ -68,10 +68,15 @@ namespace Emotion.Standard.Logging
             }
         }
 
+        protected virtual string GenerateLogName()
+        {
+            return $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}";
+        }
+
         private void LogThread()
         {
             int logCount = 0;
-            string logFileName = $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}";
+            string logFileName = GenerateLogName();
             string fileName = $"{logFileName}.log";
             string? fileDirectory = Path.GetDirectoryName(fileName);
             if (fileDirectory != null) Directory.CreateDirectory(fileDirectory);
