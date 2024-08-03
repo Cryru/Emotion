@@ -195,7 +195,7 @@ public class MapEditorViewMode : UIBaseWindow
             c.PopModelMatrix();
             c.PopModelMatrix();
 
-            //c.SetDepthTest(false);
+            c.SetDepthTest(false);
 
             return base.RenderInternal(c);
         }
