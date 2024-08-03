@@ -373,7 +373,7 @@ namespace Emotion.UI
             return true;
         }
 
-        private bool MouseFocusOnKey(Key key, KeyStatus status)
+        protected virtual bool MouseFocusOnKey(Key key, KeyStatus status)
         {
             if (_updateInputFocus && status == KeyStatus.Down)
             {

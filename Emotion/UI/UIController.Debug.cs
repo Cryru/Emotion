@@ -15,30 +15,31 @@ public partial class UIController
         output.Clear();
         var mousePos = Engine.Host.MousePosition;
 
-        for (var c = 0; c < _allControllers.Count; c++) // Controllers are presorted in priority order.
+        List<(UIBaseWindow, int)> outputWithDepth = new List<(UIBaseWindow, int)>();
+
+        var children = Engine.UI.Children;
+        for (int i = children.Count - 1; i >= 0; i--) // Top to bottom
         {
-            UIController controller = _allControllers[c];
-
-            // Controller inactive via update. (We check the older variable because this function is called in the update of the interface editor)
-            if (!controller._calledUpdateTickBeforeLast) continue;
-            if (controller.Children == null) continue;
-
-            for (int i = controller.Children.Count - 1; i >= 0; i--) // Top to bottom
+            UIBaseWindow win = children[i];
+            if (win.Visible && win.IsPointInside(mousePos))
             {
-                UIBaseWindow win = controller.Children[i];
-                if (win.Visible && win.IsPointInside(mousePos))
-                {
-                    Debug_GetWindowsUnderMouseInner(win, mousePos, output);
-                }
+                Debug_GetWindowsUnderMouseInner(win, mousePos, outputWithDepth, 0);
             }
+        }
+
+        outputWithDepth.Sort((x, y) => MathF.Sign(x.Item2 - y.Item2));
+        for (int i = 0; i < outputWithDepth.Count; i++)
+        {
+            var window = outputWithDepth[i].Item1;
+            output.Add(window);
         }
     }
 
-    private static bool Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<UIBaseWindow> output)
+    private static bool Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<(UIBaseWindow, int)> output, int depth)
     {
         if (win.Children == null)
         {
-            output.Add(win);
+            output.Add((win, depth));
             return true;
         }
 
@@ -49,13 +50,13 @@ public partial class UIController
             if (child.Visible && child.IsPointInside(mousePos))
             {
                 anyHandled = true;
-                Debug_GetWindowsUnderMouseInner(child, mousePos, output);
+                Debug_GetWindowsUnderMouseInner(child, mousePos, output, depth + 1);
             }
         }
 
         if (!anyHandled)
         {
-            output.Add(win);
+            output.Add((win, depth));
             return true;
         }
         return false;

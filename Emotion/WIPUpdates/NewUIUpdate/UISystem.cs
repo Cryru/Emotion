@@ -1,10 +1,14 @@
-﻿using Emotion.Scenography;
+﻿using Emotion.Platform.Input;
+using Emotion.Scenography;
 using Emotion.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+#nullable enable
 
 namespace Emotion.WIPUpdates.NewUIUpdate;
 
@@ -58,9 +62,56 @@ public class UISystem : UIController
 
     protected override void RenderChildren(RenderComposer c)
     {
-        c.EnableSpriteBatcher(true);
+        //c.EnableSpriteBatcher(true);
         base.RenderChildren(c);
-        c.EnableSpriteBatcher(false);
+        //c.EnableSpriteBatcher(false);
+
+        if (_debugInspectMode && _debugWindowsUnderMouse!.Count > 0)
+        {
+            var windowUnderMouse = _debugWindowsUnderMouse[^1];
+            c.RenderOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
+        }
     }
+
+    protected override void UpdateMouseFocus()
+    {
+        base.UpdateMouseFocus();
+
+        if (_debugInspectMode) DebugInspectModeUpdate();
+    }
+
+    protected override bool MouseFocusOnKey(Key key, KeyStatus status)
+    {
+        if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyStatus.Down)
+        {
+            _debugInspectMode = false;
+            return false;
+        }
+        return base.MouseFocusOnKey(key, status);
+    }
+
+    #region Debugger
+
+    private bool _debugInspectMode = false;
+    private List<UIBaseWindow>? _debugWindowsUnderMouse;
+
+    public void EnterInspectMode()
+    {
+        _debugInspectMode = true;
+        _debugWindowsUnderMouse = new List<UIBaseWindow>();
+    }
+
+    private void DebugInspectModeUpdate()
+    {
+        UIController.Debug_GetWindowsUnderMouse(_debugWindowsUnderMouse);
+    }
+
+    public List<UIBaseWindow>? GetInspectModeSelectedWindow()
+    {
+        if (!_debugInspectMode) return null;
+        return _debugWindowsUnderMouse;
+    }
+
+    #endregion
 }
 

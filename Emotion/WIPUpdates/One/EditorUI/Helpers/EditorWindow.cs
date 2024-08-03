@@ -48,7 +48,13 @@ public class EditorWindow : UIBaseWindow
         {
             if ((value == PanelMode.Embedded || _panelMode == PanelMode.Embedded) && Controller != null)
             {
-                Assert(false, "Embedded mode can only be set prior to it attaching to a controller.");
+                Assert(false, "Embedded mode can only be set/unset prior to it attaching to a controller.");
+                return;
+            }
+
+            if ((value == PanelMode.Modal || _panelMode == PanelMode.Modal) && Controller != null)
+            {
+                Assert(false, "Modal mode can only be set/unset prior to it attaching to a controller.");
                 return;
             }
 
@@ -82,18 +88,13 @@ public class EditorWindow : UIBaseWindow
         {
             HandleInput = true,
             LayoutMode = LayoutMode.VerticalList,
-
             FillX = false,
             FillY = false,
-
             AnchorAndParentAnchor = UIAnchor.CenterCenter,
-
             Id = "PanelItself",
         };
         AddChild(panelItself);
         _centered = true;
-
-        AttachTopBar(panelItself);
 
         var panelInner = new UIBaseWindow()
         {
@@ -101,7 +102,6 @@ public class EditorWindow : UIBaseWindow
             Id = "PanelInner"
         };
         panelItself.AddChild(panelInner);
-        AttachResizeButton(panelInner);
 
         var panelContent = new UIBaseWindow
         {
@@ -113,6 +113,17 @@ public class EditorWindow : UIBaseWindow
         _panelItself = panelItself;
         _panelInner = panelInner;
         _contentParent = panelContent;
+
+        if (_panelMode == PanelMode.Modal)
+        {
+            AllowDragMove = false;
+            AllowSubWindow = false;
+        }
+        else if (_panelMode == PanelMode.Default)
+        {
+            AttachResizeButton(panelInner);
+        }
+        AttachTopBar(panelItself);
 
         controller.SetInputFocus(panelContent);
         ApplySettings();
@@ -282,6 +293,7 @@ public class EditorWindow : UIBaseWindow
     #region TopBar
 
     public bool AllowDragMove = true;
+    public bool AllowSubWindow = true;
 
     private bool _topBarMouseDown;
     private Vector2 _topBarMouseDownPos;
@@ -291,6 +303,7 @@ public class EditorWindow : UIBaseWindow
     {
         UICallbackButton topBar = new UICallbackButton
         {
+            Priority = -1,
             HandleInput = true,
             MaxSizeY = 40,
             Id = "TopBar",
@@ -323,7 +336,7 @@ public class EditorWindow : UIBaseWindow
         };
         topBar.AddChild(topBarButtonList);
 
-        if (Engine.Host.SupportsSubWindows())
+        if (Engine.Host.SupportsSubWindows() && AllowSubWindow)
         {
             var subWindowButton = new EditorButton
             {

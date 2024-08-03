@@ -314,7 +314,7 @@ namespace Emotion.UI
 
         public void RecalculateZValue()
         {
-            Z = (-_priority) + (Parent?.Z - 0.01f ?? 0);
+            //Z = (-_priority) + (Parent?.Z - 0.01f ?? 0);
         }
 
         public void RecalculateZValueTree()

@@ -20,7 +20,7 @@ public partial class UIController
     private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
     private bool _calledUpdateTickBeforeLast;
 
-    private void UpdateMouseFocus()
+    protected virtual void UpdateMouseFocus()
     {
         _calledUpdateLastTick = true;
 
