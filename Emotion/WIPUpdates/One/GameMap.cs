@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Emotion.WIPUpdates.One.Work;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,15 @@ public class GameMap
     public IEnumerator LoadRoutine()
     {
         yield break;
+    }
+
+    public void AddObject(MapObject obj)
+    {
+
+    }
+
+    public void AddAndInitObject(MapObject obj)
+    {
+        AddObject(obj);
     }
 }
