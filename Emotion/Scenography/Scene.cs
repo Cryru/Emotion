@@ -51,19 +51,15 @@ public abstract class Scene
         yield break;
     }
 
-    public void Update()
+    public virtual void UpdateScene(float dt)
     {
-        UpdateScene(Engine.DeltaTime);
+        Map.Update(dt);
     }
 
-    public void Draw(RenderComposer c)
+    public virtual void RenderScene(RenderComposer c)
     {
-        RenderScene(c);
+        Map.Render(c);
     }
 
     protected abstract IEnumerator LoadSceneRoutineAsync();
-
-    protected abstract void UpdateScene(float dt);
-
-    protected abstract void RenderScene(RenderComposer c);
 }

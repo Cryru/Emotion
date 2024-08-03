@@ -34,7 +34,7 @@ public abstract class TestingScene : Scene
         }
     }
 
-    public override void Draw(RenderComposer composer)
+    public override void RenderScene(RenderComposer composer)
     {
         _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor();
         if (_screenShotBuffer.Size != composer.DrawBuffer.Size) _screenShotBuffer.Resize(composer.DrawBuffer.Size, true);

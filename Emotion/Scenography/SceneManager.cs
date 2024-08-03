@@ -61,7 +61,7 @@ namespace Emotion.Scenography
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Update()
         {
-            Current.Update();
+            Current.UpdateScene(Engine.DeltaTime);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Emotion.Scenography
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Draw(RenderComposer composer)
         {
-            Current.Draw(composer);
+            Current.RenderScene(composer);
         }
 
         #endregion

@@ -19,14 +19,14 @@ namespace Emotion.Scenography
             yield break;
         }
 
-        protected override void UpdateScene(float dt)
+        public override void UpdateScene(float dt)
         {
 
         }
 
-        protected override void RenderScene(RenderComposer c)
+        public override void RenderScene(RenderComposer c)
         {
-
+            
         }
     }
 }
