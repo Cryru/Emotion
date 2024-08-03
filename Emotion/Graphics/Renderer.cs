@@ -9,6 +9,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;
+using Emotion.WIPUpdates.One.Camera;
 using Khronos;
 using OpenGL;
 
@@ -270,7 +271,7 @@ namespace Emotion.Graphics
             }
 
             // Create default camera. RenderState applying requires one to be set.
-            Camera = new PixelArtCamera(Vector3.Zero);
+            Camera = new Camera2D(Vector3.Zero, 1, KeyListenerType.None);
 
             // Create default render objects.
             Vector4 c = Engine.Configuration.ClearColor.ToVec4();

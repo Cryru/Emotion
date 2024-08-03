@@ -30,7 +30,7 @@ public class PixelArtCamera : Camera2D
         // This allows for pixel art to scale integerly in FullScale mode.
         Vector2 margin = (currentSize - targetSize) / 2;
         Vector3 pos = posOffset - new Vector3((int)margin.X, (int)margin.Y, 0);
-        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + LookAt, new Vector3(0.0f, 1.0f, 0.0f));
+        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos - LookAt, -RenderComposer.Up2D);
         ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * unscaled;
     }
 }
