@@ -14,7 +14,7 @@ public class DebugCamera : Camera3D
         LookAt = lookAt;
     }
 
-    protected override bool CameraKeyHandler(Key key, KeyStatus status)
+    protected override bool CameraKeyHandler(Key key, KeyState status)
     {
         bool propagateInput = base.CameraKeyHandler(key, status);
         if (Engine.Host.IsAltModifierHeld()) return true;

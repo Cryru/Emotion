@@ -27,7 +27,7 @@ public class EmotionKeyEventPair
     // Holds an array of all key down states in order to ensure that each listener will
     // always receive an "Up" after they've received a "Down" for a given key.
     public bool[] KeysDown = null!;
-    public Func<Key, KeyStatus, bool> Func = null!;
+    public Func<Key, KeyState, bool> Func = null!;
 
     public EmotionKeyEventPair()
     {
@@ -47,7 +47,7 @@ public class EmotionKeyEvent
     private ObjectPool<EmotionKeyEventPair> _pairPool = new ObjectPool<EmotionKeyEventPair>();
     private readonly List<EmotionKeyEventPair>?[] _listenerArray = new List<EmotionKeyEventPair>?[(int) KeyListenerType.Last];
 
-    public bool Invoke(Key key, KeyStatus status)
+    public bool Invoke(Key key, KeyState status)
     {
         lock (this)
         {
@@ -75,16 +75,16 @@ public class EmotionKeyEvent
                     // has requested, when the handler considers that key pressed. Basically if you
                     // get a down, you will always get a up.
                     // But you won't get an up if you didn't get a down.
-                    if (status == KeyStatus.Up && !listener.KeysDown[(int) key]) continue;
+                    if (status == KeyState.Up && !listener.KeysDown[(int) key]) continue;
 
                     bool funcPropagate = listener.Func(key, status);
-                    if (status == KeyStatus.Down || status == KeyStatus.Up) listener.KeysDown[(int) key] = status == KeyStatus.Down;
+                    if (status == KeyState.Down || status == KeyState.Up) listener.KeysDown[(int) key] = status == KeyState.Down;
 
                     // Stop propagation if the event handler said so.
                     if (!funcPropagate) propagate = false;
 
                     // If the event is not up, we can stop calling handlers.
-                    if (status != KeyStatus.Up && !propagate) return true;
+                    if (status != KeyState.Up && !propagate) return true;
                 }
             }
         }
@@ -92,7 +92,7 @@ public class EmotionKeyEvent
         return false;
     }
 
-    public void AddListener(Func<Key, KeyStatus, bool> func, KeyListenerType listenerType = KeyListenerType.UI)
+    public void AddListener(Func<Key, KeyState, bool> func, KeyListenerType listenerType = KeyListenerType.UI)
     {
         lock (this)
         {
@@ -121,7 +121,7 @@ public class EmotionKeyEvent
         }
     }
 
-    public void RemoveListener(Func<Key, KeyStatus, bool> func)
+    public void RemoveListener(Func<Key, KeyState, bool> func)
     {
         lock (this)
         {
@@ -139,7 +139,7 @@ public class EmotionKeyEvent
                     for (var j = 0; j < listener.KeysDown.Length; j++)
                     {
                         if (!listener.KeysDown[j]) continue;
-                        listener.Func((Key) j, KeyStatus.Up);
+                        listener.Func((Key) j, KeyState.Up);
                         listener.KeysDown[j] = false;
                     }
 

@@ -171,11 +171,11 @@ namespace Emotion.Game.ThreeDee.Editor
             };
         }
 
-        public bool KeyHandler(Key key, KeyStatus status)
+        public bool KeyHandler(Key key, KeyState status)
         {
             if (key == Key.MouseKeyLeft)
             {
-                if (_meshMouseover != null && status == KeyStatus.Down)
+                if (_meshMouseover != null && status == KeyState.Down)
                 {
                     _dragPointStart = GetPointAlongPlane();
                     _positionMoveStart = Position;
@@ -184,7 +184,7 @@ namespace Emotion.Game.ThreeDee.Editor
                     return false;
                 }
 
-                if (status == KeyStatus.Up)
+                if (status == KeyState.Up)
                 {
                     _dragPointStart = Vector3.Zero;
                     _startMovingEventFired = false;

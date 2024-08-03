@@ -347,10 +347,10 @@ namespace Emotion.UI
 
         #region Input
 
-        private bool KeyboardFocusOnKey(Key key, KeyStatus status)
+        private bool KeyboardFocusOnKey(Key key, KeyState status)
         {
             // It is possible to receive an input even while a recalculating is pending.
-            if (_updateInputFocus && status == KeyStatus.Down)
+            if (_updateInputFocus && status == KeyState.Down)
             {
                 UpdateInputFocus();
                 UpdateMouseFocus();
@@ -373,9 +373,9 @@ namespace Emotion.UI
             return true;
         }
 
-        protected virtual bool MouseFocusOnKey(Key key, KeyStatus status)
+        protected virtual bool MouseFocusOnKey(Key key, KeyState status)
         {
-            if (_updateInputFocus && status == KeyStatus.Down)
+            if (_updateInputFocus && status == KeyState.Down)
             {
                 UpdateInputFocus();
                 UpdateMouseFocus();
@@ -385,9 +385,9 @@ namespace Emotion.UI
 
             if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && _myMouseFocus != null)
             {
-                _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyStatus.Down;
+                _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyState.Down;
 
-                if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
+                if (key == Key.MouseKeyLeft && status == KeyState.Down)
                 {
                     // todo: there must be a better way of consuming clicks outside yourself? (SetInputFocus param?)
                     UIBaseWindow? oldFocus = _inputFocusManual;
@@ -411,7 +411,7 @@ namespace Emotion.UI
                 // However I don't believe Emotion will send out both click events?
                 // Not sure how the platform code handles this, in any case we don't want to
                 // call event handlers of destroyed windows, so lets return out.
-                if (status == KeyStatus.Down && _myMouseFocus is not UIController)
+                if (status == KeyState.Down && _myMouseFocus is not UIController)
                 {
                     Assert(_myMouseFocus.Controller != null);
                     if (_myMouseFocus.Controller == null) return true;

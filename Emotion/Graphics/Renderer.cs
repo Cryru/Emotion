@@ -655,9 +655,9 @@ namespace Emotion.Graphics
             }
         }
 
-        private bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
+        private bool DebugFunctionalityKeyInput(Key key, KeyState state)
         {
-            if (state != KeyStatus.Down) return true;
+            if (state != KeyState.Down) return true;
 
             bool ctrl = Engine.Host.IsCtrlModifierHeld();
             if (key == Key.F1 && !ctrl) ToggleDebugCamera();

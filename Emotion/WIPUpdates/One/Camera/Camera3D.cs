@@ -53,25 +53,25 @@ namespace Emotion.Graphics.Camera
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
         }
 
-        protected override bool CameraKeyHandler(Key key, KeyStatus status)
+        protected override bool CameraKeyHandler(Key key, KeyState status)
         {
             bool dragKey = key == DragKey;
             if (DragKey != Key.MouseKeyLeft) // Secondary way of moving camera in editor.
             {
-                bool leftClickWithControlOrLeftClickLetGo = key == Key.MouseKeyLeft && (Engine.Host.IsCtrlModifierHeld() || status == KeyStatus.Up);
+                bool leftClickWithControlOrLeftClickLetGo = key == Key.MouseKeyLeft && (Engine.Host.IsCtrlModifierHeld() || status == KeyState.Up);
                 dragKey = dragKey || leftClickWithControlOrLeftClickLetGo;
             }
 
             if (dragKey)
             {
-                if (status == KeyStatus.Down)
+                if (status == KeyState.Down)
                 {
                     _lastMousePos = Engine.Host.MousePosition;
                     _held = true;
                     return false;
                 }
 
-                if (status == KeyStatus.Up)
+                if (status == KeyState.Up)
                 {
                     _held = false;
                     return false;
@@ -81,23 +81,23 @@ namespace Emotion.Graphics.Camera
             Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
             if (keyAxisPart != Vector2.Zero)
             {
-                if (status == KeyStatus.Down)
+                if (status == KeyState.Down)
                     _inputDirection += keyAxisPart;
-                else if (status == KeyStatus.Up)
+                else if (status == KeyState.Up)
                     _inputDirection -= keyAxisPart;
                 return false;
             }
 
             if (key == Key.Space || key == Key.LeftShift)
             {
-                if (status == KeyStatus.Down)
+                if (status == KeyState.Down)
                 {
                     if (key == Key.Space)
                         _inputDirectionZ += 1;
                     else
                         _inputDirectionZ -= 1;
                 }
-                else if (status == KeyStatus.Up)
+                else if (status == KeyState.Up)
                 {
                     if (key == Key.Space)
                         _inputDirectionZ -= 1;

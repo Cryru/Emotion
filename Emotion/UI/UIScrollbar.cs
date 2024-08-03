@@ -49,11 +49,11 @@ namespace Emotion.UI
             _selectorColor = DefaultSelectorColor;
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             if (key == Key.MouseKeyLeft)
             {
-                if (status == KeyStatus.Down)
+                if (status == KeyState.Down)
                 {
                     if (_selectorRect.ContainsInclusive(mousePos))
                         _dragging = mousePos - _selectorRect.Position;
@@ -62,7 +62,7 @@ namespace Emotion.UI
 
                     OnMouseMove(mousePos);
                 }
-                else if (status == KeyStatus.Up)
+                else if (status == KeyState.Up)
                 {
                     _dragging = Vector2.Zero;
                 }

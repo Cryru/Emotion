@@ -345,9 +345,9 @@ public abstract partial class WorldBaseEditor
         // nop
     }
 
-    private bool ObjectEditorInputHandler(Key key, KeyStatus status)
+    private bool ObjectEditorInputHandler(Key key, KeyState status)
     {
-        if (key == Key.LeftAlt && status == KeyStatus.Down) RolloverObjectIncrement();
+        if (key == Key.LeftAlt && status == KeyState.Down) RolloverObjectIncrement();
 
         bool leftClick = key == Key.MouseKeyLeft;
         bool rightClick = key == Key.MouseKeyRight;
@@ -356,7 +356,7 @@ public abstract partial class WorldBaseEditor
 
         if (leftClick)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
             {
                 if (_rolloverObject != null)
                 {
@@ -376,7 +376,7 @@ public abstract partial class WorldBaseEditor
                     SelectObject(null);
                 }
             }
-            else if (status == KeyStatus.Up)
+            else if (status == KeyState.Up)
             {
                 _objectDragging = null;
             }
@@ -384,7 +384,7 @@ public abstract partial class WorldBaseEditor
 
         if (rightClick && noMouseFocus)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
             {
                 if (_rolloverObject != null)
                 {
@@ -395,13 +395,13 @@ public abstract partial class WorldBaseEditor
                     EditorOpenContextMenuObjectModeNoSelection();
                 }
             }
-            else if (status == KeyStatus.Up)
+            else if (status == KeyState.Up)
             {
 
             }
         }
 
-        if (noMouseFocus && controlHeld && status == KeyStatus.Down)
+        if (noMouseFocus && controlHeld && status == KeyState.Down)
         {
             if (key == Key.C)
             {
@@ -416,7 +416,7 @@ public abstract partial class WorldBaseEditor
             }
         }
 
-        if (key == Key.N && status == KeyStatus.Down)
+        if (key == Key.N && status == KeyState.Down)
         {
             ShowObjectNameplates(!_nameplatesShown);
             return false;

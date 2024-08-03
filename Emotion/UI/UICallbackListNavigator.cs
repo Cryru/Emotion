@@ -416,7 +416,7 @@ namespace Emotion.UI
             return Vector2.Zero;
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             if (Children == null) return true;
 
@@ -456,7 +456,7 @@ namespace Emotion.UI
                 //if (newItem != oldSel) OnItemSelected?.Invoke(newItem, oldSel);
             }
 
-            if (key == ConfirmChoice && status == KeyStatus.Down && SelectedWnd != null)
+            if (key == ConfirmChoice && status == KeyState.Down && SelectedWnd != null)
             {
                 OnChoiceConfirmed?.Invoke(SelectedWnd, SelectedChildIdx);
                 return false;
@@ -464,7 +464,7 @@ namespace Emotion.UI
 
             if (key == Key.MouseWheel)
             {
-                bool up = status == KeyStatus.MouseWheelScrollUp;
+                bool up = status == KeyState.MouseWheelScrollUp;
 
                 Vector2 scrollPos = _scrollPos;
                 if (up)

@@ -800,7 +800,7 @@ namespace Emotion.UI
 
         private bool _handleInput;
 
-        public virtual bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public virtual bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             return true;
         }

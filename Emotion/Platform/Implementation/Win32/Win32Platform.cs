@@ -261,9 +261,9 @@ namespace Emotion.Platform.Implementation.Win32
             // is sent only to the latter one. To work around this manually query the status of both shift keys every tick.
             if (IsFocused)
             {
-                KeyState lShift = User32.GetAsyncKeyState(VirtualKey.LSHIFT);
+                Win32KeyState lShift = User32.GetAsyncKeyState(VirtualKey.LSHIFT);
                 UpdateKeyStatus(Key.LeftShift, lShift.IsPressed);
-                KeyState rShift = User32.GetAsyncKeyState(VirtualKey.RSHIFT);
+                Win32KeyState rShift = User32.GetAsyncKeyState(VirtualKey.RSHIFT);
                 UpdateKeyStatus(Key.RightShift, rShift.IsPressed);
             }
 

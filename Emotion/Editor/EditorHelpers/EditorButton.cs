@@ -71,7 +71,7 @@ public class EditorButton : UICallbackButton
         return base.RenderInternal(c);
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         if (!Enabled) return false;
         return base.OnKey(key, status, mousePos);

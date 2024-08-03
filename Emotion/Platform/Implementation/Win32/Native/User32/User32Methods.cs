@@ -397,16 +397,16 @@ namespace WinApi.User32
         public static extern uint MapVirtualKeyEx(VirtualKey uCode, VirtualKeyMapType uMapType, IntPtr dwhkl);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
-        public static extern KeyState GetAsyncKeyState(int vKey);
+        public static extern Win32KeyState GetAsyncKeyState(int vKey);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
-        public static extern KeyState GetAsyncKeyState(VirtualKey vKey);
+        public static extern Win32KeyState GetAsyncKeyState(VirtualKey vKey);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
-        public static extern KeyState GetKeyState(int vKey);
+        public static extern Win32KeyState GetKeyState(int vKey);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
-        public static extern KeyState GetKeyState(VirtualKey vKey);
+        public static extern Win32KeyState GetKeyState(VirtualKey vKey);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool GetKeyboardState(

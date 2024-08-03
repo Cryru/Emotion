@@ -36,7 +36,7 @@ public partial class World3DEditor : WorldBaseEditor
         };
     }
 
-    protected override bool InternalEditorInputHandler(Key key, KeyStatus status)
+    protected override bool InternalEditorInputHandler(Key key, KeyState status)
     {
         bool propagate = true;
         if (MoveGizmo != null) propagate = MoveGizmo.KeyHandler(key, status);

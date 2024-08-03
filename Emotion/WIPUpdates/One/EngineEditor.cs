@@ -28,9 +28,9 @@ public static partial class EngineEditor
         };
     }
 
-    private static bool EditorButtonHandler(Key key, KeyStatus status)
+    private static bool EditorButtonHandler(Key key, KeyState status)
     {
-        if (key == Key.GraveAccent && status == KeyStatus.Down)
+        if (key == Key.GraveAccent && status == KeyState.Down)
         {
             if (IsOpen)
                 CloseEditor();

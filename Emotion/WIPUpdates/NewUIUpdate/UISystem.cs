@@ -80,9 +80,9 @@ public class UISystem : UIController
         if (_debugInspectMode) DebugInspectModeUpdate();
     }
 
-    protected override bool MouseFocusOnKey(Key key, KeyStatus status)
+    protected override bool MouseFocusOnKey(Key key, KeyState status)
     {
-        if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyStatus.Down)
+        if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyState.Down)
         {
             _debugInspectMode = false;
             return false;

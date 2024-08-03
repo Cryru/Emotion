@@ -151,7 +151,7 @@ public abstract class CameraBase : Positional, IDisposable
         Engine.Host.OnKey.RemoveListener(CameraKeyHandler);
     }
 
-    protected virtual bool CameraKeyHandler(Key key, KeyStatus status)
+    protected virtual bool CameraKeyHandler(Key key, KeyState status)
     {
         return true;
     }

@@ -43,14 +43,14 @@ public class Camera2D : CameraBase
         ProjectionMatrix = GetDefault2DProjection(NearZ, FarZ);
     }
 
-    protected override bool CameraKeyHandler(Key key, KeyStatus status)
+    protected override bool CameraKeyHandler(Key key, KeyState status)
     {
         Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
         if (keyAxisPart != Vector2.Zero)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
                 _inputDirection += keyAxisPart;
-            else if (status == KeyStatus.Up)
+            else if (status == KeyState.Up)
                 _inputDirection -= keyAxisPart;
 
             return false;

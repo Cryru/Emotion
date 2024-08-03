@@ -110,16 +110,16 @@ namespace Emotion.UI
             return base.UpdateInternal();
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             if (key == Key.MouseKeyLeft)
             {
-                if (status == KeyStatus.Down)
+                if (status == KeyState.Down)
                 {
                     SetValueFromPos(mousePos);
                     _dragging = true;
                 }
-                else if (status == KeyStatus.Up)
+                else if (status == KeyState.Up)
                 {
                     _dragging = false;
                 }
@@ -127,7 +127,7 @@ namespace Emotion.UI
 
             if (ScrollParent != null) return ScrollParent.OnKey(key, status, mousePos);
 
-            if (key == Key.MouseWheel) Value += status == KeyStatus.MouseWheelScrollUp ? -1 : 1;
+            if (key == Key.MouseWheel) Value += status == KeyState.MouseWheelScrollUp ? -1 : 1;
 
             return base.OnKey(key, status, mousePos);
         }

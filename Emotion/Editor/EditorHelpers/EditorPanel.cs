@@ -158,7 +158,7 @@ public class EditorPanel : UIBaseWindow
         return base.RenderInternal(c);
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         bool returnVal = base.OnKey(key, status, mousePos);
 

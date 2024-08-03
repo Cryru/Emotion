@@ -31,7 +31,7 @@ public partial class World2DEditor : WorldBaseEditor
         return null;
     }
 
-    protected override bool InternalEditorInputHandler(Key key, KeyStatus status)
+    protected override bool InternalEditorInputHandler(Key key, KeyState status)
     {
         bool propagate = TileEditorInputHandler(key, status);
         if (!propagate) return false;

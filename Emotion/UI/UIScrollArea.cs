@@ -119,14 +119,14 @@ namespace Emotion.UI
             SyncScrollbar();
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             if (Children == null) return true;
 
             if (key == Key.MouseWheel && _content != null)
             {
                 var currentScroll = _content.CurrentScroll;
-                bool up = status == KeyStatus.MouseWheelScrollUp;
+                bool up = status == KeyState.MouseWheelScrollUp;
                 if (up)
                     _content.ScrollToPos(currentScroll - new Vector2(0, 1) * Engine.DeltaTime);
                 else
