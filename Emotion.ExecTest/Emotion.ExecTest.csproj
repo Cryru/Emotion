@@ -37,4 +37,10 @@
     <None Include="Examples\TextRenderers.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Assets\Test\player.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
