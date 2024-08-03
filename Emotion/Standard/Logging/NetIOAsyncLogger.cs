@@ -68,14 +68,11 @@ namespace Emotion.Standard.Logging
             }
         }
 
-        protected virtual string GenerateLogName()
-        {
-            return $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
-        }
-
         private void LogThread()
         {
-            string fileName = GenerateLogName();
+            int logCount = 0;
+            string logFileName = $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}";
+            string fileName = $"{logFileName}.log";
             string? fileDirectory = Path.GetDirectoryName(fileName);
             if (fileDirectory != null) Directory.CreateDirectory(fileDirectory);
 
@@ -118,7 +115,8 @@ namespace Emotion.Standard.Logging
                     fileSizeCounter += line.Length;
 
                     if (fileSizeCounter <= MAX_LOG_SIZE) continue;
-                    fileName = GenerateLogName();
+                    logCount++;
+                    fileName = $"{logFileName}_{logCount}.log";
                     currentFileStream = File.CreateText(fileName);
                     fileSizeCounter = 0;
                 }
