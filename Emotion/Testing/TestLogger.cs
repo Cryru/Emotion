@@ -14,7 +14,7 @@ namespace Emotion.Testing
 
         protected override string GenerateLogName()
         {
-            return $"{_logFolder}{Path.DirectorySeparatorChar}TestLog.log";
+            return $"{_logFolder}{Path.DirectorySeparatorChar}TestLog";
         }
 
         public override void Log(MessageType type, string source, string message)
