@@ -465,7 +465,7 @@ namespace Emotion.Common
 
             PerfProfiler.FrameEventStart("Render UI");
             Renderer.SetUseViewMatrix(false);
-            Renderer.SetDepthTest(true);
+            Renderer.SetDepthTest(false);
             Renderer.ClearDepth();
             UI.Render(Renderer);
             PerfProfiler.FrameEventEnd("Render UI");
@@ -614,9 +614,18 @@ namespace Emotion.Common
             Quit();
         }
 
+        private static bool _multihreaded = false;
+
         private static void NewFrameRun()
         {
             if (CurrentRenderFrame > CurrentUpdateFrame) return;
+
+            if (!_multihreaded)
+            {
+                //Single threaded mode!
+                RunTickIfNeeded();
+                CurrentUpdateFrame++;
+            }
 
             RunFrame();
             CurrentRenderFrame++;
@@ -625,6 +634,7 @@ namespace Emotion.Common
 
         private static void UpdateThread()
         {
+            if (!_multihreaded) return;
             if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Update Thread";
 
             int updateFramesAhead = 1;
