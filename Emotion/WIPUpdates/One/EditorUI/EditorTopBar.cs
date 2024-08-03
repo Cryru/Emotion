@@ -25,7 +25,7 @@ public class EditorTopBar : UISolidColor
         UIBaseWindow buttonContainer = new()
         {
             LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(2, 0),
+            ListSpacing = new Vector2(5, 0),
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
             Margins = new Rectangle(5, 5, 5, 10)
         };
@@ -49,6 +49,18 @@ public class EditorTopBar : UISolidColor
         {
             EditorButton toolButton = new EditorButton("Coroutines");
             toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new CoroutineViewerTool());
+            buttonContainer.AddChild(toolButton);
+        }
+
+        {
+            EditorButton toolButton = new EditorButton("Sprite Tool");
+            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new SpriteEntityTool());
+            buttonContainer.AddChild(toolButton);
+        }
+        
+        {
+            EditorButton toolButton = new EditorButton("UI Debug Tool");
+            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new UIDebugTool());
             buttonContainer.AddChild(toolButton);
         }
     }
