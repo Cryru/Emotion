@@ -37,7 +37,7 @@ namespace Emotion.Graphics
         /// <param name="flipY">Whether to flip the texture on the y axis.</param>
         public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            if (_spriteBatcherEnabled)
+            if (_spriteBatcherEnabled && _bufferStack.Count == 1)
             {
                 Span<VertexData> vertices = _batcher.AddSprite(CurrentState, texture);
                 VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
