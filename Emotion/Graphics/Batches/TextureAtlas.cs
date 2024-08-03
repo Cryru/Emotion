@@ -139,12 +139,13 @@ namespace Emotion.Graphics.Batches
                 bool latestVersionBatched = meta.BatchedVersion == texture.Version;
                 if (latestVersionBatched) return false;
 
-                Engine.Log.Trace($"Texture {texture.Pointer} was updated!", MessageSource.Renderer);
+                // Texture needs an update, version is different
+                // Engine.Log.Trace($"Texture {texture.Pointer} was updated!", MessageSource.Renderer);
 
-                // Texture needs an update.
-                if (meta.SizeBatched.X < texture.Size.X || meta.SizeBatched.Y < texture.Size.Y) // Texture needs to be repacked.
+                // If it got bigger, it needs to be repacked.
+                if (meta.SizeBatched.X < texture.Size.X || meta.SizeBatched.Y < texture.Size.Y) 
                 {
-                    Engine.Log.Trace($"Texture {texture.Pointer} had its size changed!", MessageSource.Renderer);
+                    // Engine.Log.Trace($"Texture {texture.Pointer} had its size changed!", MessageSource.Renderer);
 
                     // Try to reuse this space
                     PackingSpaces.Add(new Packing.PackingSpace(new Rectangle(meta.Offset, meta.SizeBatched + _texturesMarginVec2)));
@@ -165,7 +166,10 @@ namespace Emotion.Graphics.Batches
                     }
                 }
 
-                // Texture just needs to be redrawn.
+                // If the texture got smaller or didn't change size, it just needs to be redrawn.
+                // Note that if it got smaller and then bigger it will need to be rebatched despite the
+                // space previously used being free. This is an inefficiency, but this is a super edge case.
+                meta.SizeBatched = texture.Size;
                 meta.BatchedVersion = texture.Version;
                 _haveDirtyTextures = true;
                 return false;
@@ -227,8 +231,9 @@ namespace Emotion.Graphics.Batches
         /// <param name="uvOffsetIntoStruct">The byte offset within the struct to the Vec2(at least) member which holds the UVs.</param>
         public unsafe void RemapBatchUVs(IntPtr dataPointer, uint lengthBytes, uint structByteSize, int uvOffsetIntoStruct)
         {
+            if (_atlasTextureRange.Count == 0) return; // No batched textures this draw call
             PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
-            Assert(_atlasTextureRange.Count > 0);
+
 #if DEBUG
             var totalStructs = 0;
             int count = _atlasTextureRange.Count;
@@ -401,7 +406,7 @@ namespace Emotion.Graphics.Batches
             {
                 Texture texture = textureKey;
                 if (meta.DrawnVersion == texture.Version) continue;
-                if (!meta.Batched) continue;    
+                if (!meta.Batched) continue;
                 if (texture.Pointer == 0) continue;
 
                 if (drawnThisFrame >= _maxTexturesToDrawToAtlasPerFrame)
@@ -418,18 +423,18 @@ namespace Emotion.Graphics.Batches
 
                 if (virtualTexture != null)
                 {
-                    virtualTexture.StartVirtualTextureRender(c, texture.Size);
-                    virtualTexture.VirtualTextureRenderToBatch(c);
-                    texture = virtualTexture.EndVirtualTextureRender(c);
+                    virtualTexture.StartVirtualTextureRender(c, texture.Size + _texturesMarginVec2);
+                    virtualTexture.VirtualTextureRenderToBatch(c, _texturesMarginVec);
+                    var backingTexture = virtualTexture.EndVirtualTextureRender(c);
 
                     // Restore state
                     c.SetState(c.BlitStatePremult);
                     VertexArrayObject.EnsureBound(_vao);
 
-                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset + _texturesMarginVec, 0), textureKey.Size, Color.White, texture);
+                    VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.White, backingTexture, new Rectangle(0, 0, texture.Size + _texturesMarginVec2));
 
                     _vbo.Upload(_vboLocal);
-                    Texture.EnsureBound(texture.Pointer);
+                    Texture.EnsureBound(backingTexture.Pointer);
                     Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
 
                     // Restore state, once again
@@ -470,7 +475,7 @@ namespace Emotion.Graphics.Batches
             if (hasMoreToDraw) _haveDirtyTextures = true;
         }
 
-#endregion
+        #endregion
 
         #region Helpers
 

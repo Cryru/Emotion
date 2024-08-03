@@ -275,5 +275,10 @@ namespace Emotion.Graphics.Text.EmotionSDF
             base.FinishDrawing(c);
             c.SetShader();
         }
+
+        public Vector3 GetDrawOffset()
+        {
+            return _drawOffset;
+        }
     }
 }

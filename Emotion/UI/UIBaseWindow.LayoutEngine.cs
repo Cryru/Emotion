@@ -38,6 +38,7 @@ public partial class UIBaseWindow
         private UIPass _pass;
         private LayoutMode _layoutMode;
         private int _listMask;
+        private float _wrappingListOtherAxisLimit;
 
         public void Reset()
         {
@@ -47,6 +48,7 @@ public partial class UIBaseWindow
             _listSpacing = Vector2.Zero;
             _layoutMode = LayoutMode.Free;
             _listMask = 0;
+            _wrappingListOtherAxisLimit = -1;
         }
 
         public void SetDimensions(Rectangle rect)
@@ -81,6 +83,11 @@ public partial class UIBaseWindow
             _padding = rect;
         }
 
+        public void SetBoundLimit(Vector2 limit)
+        {
+            _bound.Size = Vector2.Min(_bound.Size, limit);
+        }
+
         private Rectangle DeflateRect(Rectangle bound, Rectangle amount)
         {
             bound.X += amount.X;
@@ -105,6 +112,10 @@ public partial class UIBaseWindow
                 case LayoutMode.HorizontalList:
                 case LayoutMode.VerticalList:
                     appendData = ListAppend(child, size);
+                    break;
+                case LayoutMode.HorizontalListWrap:
+                case LayoutMode.VerticalListWrap:
+                    appendData = ListWrapAppend(child, size);
                     break;
                 case LayoutMode.Free:
                     appendData = FreeAppend(child, size);
@@ -234,12 +245,19 @@ public partial class UIBaseWindow
             return isReverse;
         }
 
-        private bool ListHasAnyItems(bool reverseSide)
+        private bool ListHasAnyItems(bool reverseSide, int filterAxis = -1, float limitInAxis = -1)
         {
             for (int i = 0; i < _children.Count; i++)
             {
                 ChildData child = _children[i];
                 if (child.IsListSizeZero) continue;
+
+                if (filterAxis != -1)
+                {
+                    var filterLimit = child.Bound.Position[filterAxis];
+                    if (filterLimit < limitInAxis) continue;
+                }
+
                 if (child.ReversedInList == reverseSide) return true;
             }
             return false;
@@ -283,7 +301,7 @@ public partial class UIBaseWindow
             };
         }
 
-        private float ListGetWallInDirection(int mask, bool isReverse)
+        private float ListGetWallInDirection(int mask, bool isReverse, float limitInOtherAxis = -1)
         {
             float wall;
             if (isReverse)
@@ -295,8 +313,14 @@ public partial class UIBaseWindow
             {
                 ChildData winData = _children[i];
                 Rectangle winBound = winData.Bound;
-                bool isWindowReversed = winData.ReversedInList;
 
+                if (limitInOtherAxis != -1)
+                {
+                    bool skip = winBound.Position[mask == 0 ? 1 : 0] < limitInOtherAxis;
+                    if (skip) continue;
+                }
+
+                bool isWindowReversed = winData.ReversedInList;
                 if (isReverse)
                 {
                     if (!isWindowReversed) continue;
@@ -332,6 +356,62 @@ public partial class UIBaseWindow
 
         #endregion
 
+        #region List Wrap
+
+        private ChildData ListWrapAppend(UIBaseWindow child, Vector2 size)
+        {
+            bool measurePass = _pass == UIPass.Measure;
+            int listMask = _listMask;
+            int reverseListMask = _listMask == 0 ? 1 : 0;
+
+            //if (measurePass)
+            //{
+            //    return new ChildData()
+            //    {
+            //        Child = child,
+            //        Bound = new Rectangle(_bound.Position, size),
+            //        ReversedInList = false,
+            //        IsListSizeZero = false
+            //    };
+            //}
+
+            float wall = ListGetWallInDirection(listMask, false, _wrappingListOtherAxisLimit);
+
+            Vector2 boundPos = _bound.Position;
+            Vector2 boundSize = _bound.Size;
+
+            bool wrap = wall + size[listMask] > boundPos[listMask] + boundSize[listMask];
+            if (wrap)
+            {
+                float limit = ListGetWallInDirection(reverseListMask, false);
+                _wrappingListOtherAxisLimit = limit + _listSpacing[reverseListMask];
+                wall = ListGetWallInDirection(listMask, false, _wrappingListOtherAxisLimit);
+            }
+
+            Vector2 rowOrColumnPos = boundPos;
+            rowOrColumnPos[listMask] = wall;
+            if (_wrappingListOtherAxisLimit != -1)
+                rowOrColumnPos[reverseListMask] = _wrappingListOtherAxisLimit;
+
+            Vector2 rowOrColumnSize = boundSize;
+            rowOrColumnSize[listMask] = rowOrColumnSize[listMask] - (boundPos[listMask] - rowOrColumnPos[listMask]);
+
+            // Add spacing if not first item and not size 0.
+            bool isListSizeZero = size[listMask] == 0;
+            if (!isListSizeZero && ListHasAnyItems(false, reverseListMask, _wrappingListOtherAxisLimit))
+                rowOrColumnPos[listMask] += _listSpacing[listMask];
+
+            return new ChildData()
+            {
+                Child = child,
+                Bound = new Rectangle(rowOrColumnPos, size),
+                ReversedInList = false,
+                IsListSizeZero = isListSizeZero
+            };
+        }
+
+        #endregion
+
         private Rectangle ApplyAnchors(ref ChildData childData, Rectangle childBound)
         {
             Rectangle myItemSpace = _bound;
@@ -343,6 +423,11 @@ public partial class UIBaseWindow
                     break;
                 case LayoutMode.VerticalList:
                     myItemSpace = _bound;
+                    myItemSpace.Height = childBound.Height;
+                    break;
+                case LayoutMode.HorizontalListWrap:
+                case LayoutMode.VerticalListWrap:
+                    myItemSpace.Width = childBound.Width;
                     myItemSpace.Height = childBound.Height;
                     break;
             }

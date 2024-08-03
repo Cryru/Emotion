@@ -169,8 +169,9 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         _layoutEngine.SetLayoutMode(UIPass.Measure, LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
 
         // The parent's margins and paddings is space children cannot take, so we take them out.
-        _layoutEngine.AddPadding(Paddings * scale);
         _layoutEngine.DeflateDimensions(Margins * scale);
+        _layoutEngine.SetBoundLimit(MaxSize * scale);
+        _layoutEngine.AddPadding(Paddings * scale);
 
         // Append children to the layout.
         List<UIBaseWindow> children = Children ?? EMPTY_CHILDREN_LIST;

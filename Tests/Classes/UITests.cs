@@ -258,8 +258,11 @@ namespace Tests.Classes
             var winOne = (MouseTestWindow) ui.GetWindowById("WinOne");
             var winThree = (MouseTestWindow) ui.GetWindowById("WinThree");
 
+            var updateMousePrivateMethod = Engine.Host.GetType().GetMethod("UpdateMousePosition",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
             // Mouse outside.
-            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, new Vector2(0, 0));
+            updateMousePrivateMethod.Invoke(Engine.Host, new object[] { new Vector2(0, 0) });
             ui.TestUpdate();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
@@ -267,14 +270,14 @@ namespace Tests.Classes
             Assert.Equal(winOne.WindowColor, Color.White);
 
             // Mouse inside.
-            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winOne.Position2 + new Vector2(10, 10));
+            updateMousePrivateMethod.Invoke(Engine.Host, new object[] { winOne.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
             Assert.Equal(winOne.WindowColor, Color.Red);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
             Assert.Equal(winOne.ClickedCount, 1);
 
-            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, winThree.Position2 + new Vector2(10, 10));
+            updateMousePrivateMethod.Invoke(Engine.Host, new object[] { winThree.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
             Assert.Equal(winOne.WindowColor, Color.White);
             Assert.Equal(winThree.WindowColor, Color.Red);
@@ -296,7 +299,7 @@ namespace Tests.Classes
             var notChild = (MouseTestWindow) ui.GetWindowById("WithinParentButNotChild");
 
             // Try to click on the out of parent window.
-            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, outOfParent.Position2 + new Vector2(10, 10));
+            updateMousePrivateMethod.Invoke(Engine.Host, new object[] { outOfParent.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
@@ -304,7 +307,7 @@ namespace Tests.Classes
             Assert.Equal(outOfParent.WindowColor, Color.Red);
 
             // Try to click on the window that is within the parental bounds, but not a child.
-            Engine.Host.GetType().GetProperty("MousePosition").SetValue(Engine.Host, notChild.Position2 + new Vector2(10, 10));
+            updateMousePrivateMethod.Invoke(Engine.Host, new object[] { notChild.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
             Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
