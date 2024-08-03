@@ -8,6 +8,15 @@ using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.Work;
 
-public class MapObject
+public class MapObject : Transform
 {
+    public virtual void Update(float dt)
+    {
+
+    }
+
+    public virtual void Render(RenderComposer c)
+    {
+
+    }
 }

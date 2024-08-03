@@ -8,7 +8,8 @@ namespace Emotion.WIPUpdates.One.Work;
 
 public class MapObjectSprite : MapObject
 {
-    public string EntityFile;
+    public string EntityFilename;
+    public SpriteEntity SpriteEntity;
 
     //public MapObjectSprite(string entityFile)
     //{

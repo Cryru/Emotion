@@ -4,6 +4,7 @@ using Emotion.IO;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.Work;
 using System.Collections;
 
 #nullable enable
@@ -22,23 +23,94 @@ public class SpriteEntityTool : EditorWindow
     {
         base.AttachedToController(controller);
 
+        UIBaseWindow mainDiv = new()
         {
+            LayoutMode = LayoutMode.VerticalList
+        };
+        _contentParent.AddChild(mainDiv);
+
+        {
+            UIBaseWindow buttonList = new()
+            {
+                LayoutMode = LayoutMode.HorizontalList,
+                Paddings = new Primitives.Rectangle(5, 5, 5, 5)
+            };
+            mainDiv.AddChild(buttonList);
+
             EditorButton button = new EditorButton("Import Texture");
             button.OnClickedProxy = (_) =>
             {
-                var explorer = new FilePicker<TextureAsset>((file) =>
-                {
-
-                });
+                var explorer = new FilePicker<TextureAsset>((file) => NewEntity(file));
                 Parent!.AddChild(explorer);
             };
-            _contentParent.AddChild(button);
+            buttonList.AddChild(button);
         }
+
+        UISolidColor content = new UISolidColor
+        {
+            IgnoreParentColor = true,
+            MinSize = new Vector2(100),
+            WindowColor = new Color(0, 0, 0, 50),
+            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
+            //LayoutMode = LayoutMode.HorizontalList
+        };
+        mainDiv.AddChild(content);
+
+        UISolidColor viewPort = new UISolidColor
+        {
+            IgnoreParentColor = true,
+            Id = "Viewport",
+            MinSize = new Vector2(50),
+            WindowColor = Color.CornflowerBlue,
+            Dock = UIDockDirection.Left
+        };
+        content.AddChild(viewPort);
+
+        UIBaseWindow contentRight = new()
+        {
+            IgnoreParentColor = true,
+            Id = "EntityData",
+            LayoutMode = LayoutMode.VerticalList,
+            FillX = false,
+            AnchorAndParentAnchor = UIAnchor.TopRight
+        };
+        content.AddChild(contentRight);
     }
 
     protected override bool UpdateInternal()
     {
 
         return base.UpdateInternal();
+    }
+
+    #region UI Helpers
+
+    public void PopulateEntityDataForEntity(SpriteEntity entity)
+    {
+        var entityData = GetWindowById("EntityData");
+        if (entityData == null) return;
+        entityData.ClearChildren();
+
+        UIText name = new UIText
+        {
+            Text = "Name: " + entity.Name,
+            FontSize = 20
+        };
+        entityData.AddChild(name);
+    }
+
+    #endregion
+
+    private SpriteEntity SpriteEntity;
+
+    private Texture _spriteEntityTexture;
+
+    public void NewEntity(TextureAsset baseFile)
+    {
+        SpriteEntity = new SpriteEntity();
+        SpriteEntity.SourceFile = baseFile.Name;
+        _spriteEntityTexture = baseFile.Texture;
+
+        PopulateEntityDataForEntity(SpriteEntity);
     }
 }
