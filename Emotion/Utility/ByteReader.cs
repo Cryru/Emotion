@@ -96,6 +96,11 @@ namespace Emotion.Utility
             return b;
         }
 
+        public bool CanReadByteCount(int count)
+        {
+            return Position + count < Data.Span.Length;
+        }
+
         /// <summary>
         /// Read a number of bytes.
         /// </summary>

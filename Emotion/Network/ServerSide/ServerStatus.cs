@@ -1,4 +1,6 @@
-﻿namespace Emotion.Network;
+﻿#nullable enable
+
+namespace Emotion.Network.ServerSide;
 
 public enum ServerStatus
 {
