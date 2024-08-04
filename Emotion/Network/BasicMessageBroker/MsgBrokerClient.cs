@@ -30,7 +30,7 @@ public class MsgBrokerClient : Client
             var metaDataBytes = reader.ReadBytes(metaDataLength);
             var metaData = Encoding.UTF8.GetString(metaDataBytes);
 
-            Engine.Log.Trace($"MsgBroker Invoking {methodName} with {metaData}", LogTag);
+            // Engine.Log.Trace($"MsgBroker Invoking {methodName} with {metaData}", LogTag);
 
             func.Invoke(metaData);
         }

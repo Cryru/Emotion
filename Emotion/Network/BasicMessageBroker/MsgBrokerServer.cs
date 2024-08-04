@@ -10,11 +10,14 @@ public class MsgBrokerServer : Server
 {
     protected override void ServerProcessMessage(ServerUser sender, NetworkMessage msg, ByteReader reader)
     {
-        for (int i = 0; i < ConnectedUsers.Count; i++)
+        ServerRoom? room = sender.InRoom;
+        if (room == null) return;
+
+        for (int i = 0; i < room.UsersInside.Count; i++)
         {
-            var user = ConnectedUsers[i];
-            if (user == sender) continue;
-            user.SendMessage(this, msg.Content.Span);
+            ServerUser userInRoom = room.UsersInside[i];
+            if (userInRoom == sender) continue;
+            userInRoom.SendMessage(this, msg.Content.Span);
         }
     }
 }

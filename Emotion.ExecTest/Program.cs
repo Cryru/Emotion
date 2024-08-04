@@ -71,13 +71,22 @@ public class Program
 
 public class TestObject : MapObject
 {
+    public int PlayerId;
+
+    public Color Color;
+    public bool PlayerControlled;
+
     private Vector2 _inputDirection;
 
     public TestObject()
     {
         Size = new Vector2(20);
+    }
 
+    public void AttachInput()
+    {
         Engine.Host.OnKey.AddListener(KeyInput, KeyListenerType.Game);
+        PlayerControlled = true;
     }
 
     protected bool KeyInput(Key key, Platform.Input.KeyState status)
@@ -98,20 +107,22 @@ public class TestObject : MapObject
 
     public override void Update(float dt)
     {
-        Position2 += _inputDirection * 0.1f * dt;
+        if (PlayerControlled)
+            Position2 += _inputDirection * 0.1f * dt;
     }
 
     public override void Render(RenderComposer c)
     {
-        c.RenderSprite(Position, Size, Color.Red);
+        c.RenderSprite(Position, Size, Color);
     }
 }
 
 public class TestScene : Scene
 {
-    NetworkCommunicator _networkCom = null;
-    MsgBrokerClient _clientCom = null;
-    TestObject _obj = null;
+    private NetworkCommunicator _networkCom = null;
+    private MsgBrokerClient _clientCom = null;
+    private TestObject _myObj = null;
+    private List<TestObject> _objects = new List<TestObject>();
 
     protected override IEnumerator LoadSceneRoutineAsync()
     {
@@ -129,6 +140,9 @@ public class TestScene : Scene
                 _networkCom = Server.CreateServer<MsgBrokerServer>(1337);
                 _clientCom = Client.CreateClient<MsgBrokerClient>("127.0.0.1:1337");
                 _clientCom.ConnectIfNotConnected();
+                _clientCom.OnConnectionChanged = (_) => _clientCom.RequestHostRoom();
+                _clientCom.OnRoomJoined = OnRoomJoined;
+                _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 RegisterFuncs();
 
                 Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
@@ -144,10 +158,15 @@ public class TestScene : Scene
                 string serverIp = File.ReadAllText("ip.txt");
                 _clientCom = Client.CreateClient<MsgBrokerClient>(serverIp);
                 _networkCom = _clientCom;
+                _clientCom.OnConnectionChanged = (_) => _clientCom.RequestRoomList();
+                _clientCom.OnRoomListReceived = (list) => _clientCom.RequestJoinRoom(list[0].Id);
+                _clientCom.OnRoomJoined = OnRoomJoined;
+                _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 _clientCom.ConnectIfNotConnected();
                 RegisterFuncs();
 
                 Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
+                Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
             }
@@ -159,8 +178,7 @@ public class TestScene : Scene
         //    EntityFile = "Test/Character.em2"
         //});
 
-        _obj = new TestObject();
-        Map.AddAndInitObject(_obj);
+        
 
         //throw new System.Exception("haa");
         yield break;
@@ -171,11 +189,63 @@ public class TestScene : Scene
         _clientCom.RegisterFunction<Vector3>("MoveObj", MoveObj);
     }
 
+    private void OnRoomJoined(ServerRoomInfo info)
+    {
+        _objects = new List<TestObject>();
+        for (int i = 0; i < info.UsersInside.Length; i++)
+        {
+            var userId = info.UsersInside[i];
+
+            var playerObject = new TestObject();
+            playerObject.PlayerId = userId;
+            playerObject.Color = Color.PrettyPurple;
+            _objects.Add(playerObject);
+            Map.AddAndInitObject(playerObject);
+        }
+
+        for (int i = 0; i < _objects.Count; i++)
+        {
+            var obj = _objects[i];
+            if (obj.PlayerId == _clientCom.UserId)
+            {
+                _myObj = obj;
+                _myObj.Color = Color.PrettyYellow;
+                _myObj.AttachInput();
+            }
+        }
+    }
+
+    private void OnPlayerJoinedRoom(ServerRoomInfo info)
+    {
+        for (int i = 0; i < info.UsersInside.Length; i++)
+        {
+            var userId = info.UsersInside[i];
+
+            bool foundObject = false;
+            for (int ii = 0; ii < _objects.Count; ii++)
+            {
+                var obj = _objects[ii];
+                if (obj.PlayerId == userId)
+                {
+                    foundObject = true;
+                    break;
+                }
+            }
+
+            if (!foundObject)
+            {
+                var playerObject = new TestObject();
+                playerObject.PlayerId = userId;
+                playerObject.Color = Color.PrettyPurple;
+                _objects.Add(playerObject);
+                Map.AddAndInitObject(playerObject);
+            }
+        }
+    }
+
     public override void UpdateScene(float dt)
     {
         base.UpdateScene(dt);
-
-
     }
 
     public override void RenderScene(RenderComposer c)
@@ -213,17 +283,26 @@ public class TestScene : Scene
     {
         while (true)
         {
-            if (_clientCom != null)
+            if (_clientCom != null && _myObj != null)
             {
-                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(_obj.Position));
+                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2, _clientCom.UserId)));
             }
-            yield return 30;
+            yield return null;
         }
     }
 
     public void MoveObj(Vector3 pos)
     {
-        _obj.Position = pos;
+        int senderIdx = (int) pos.Z;
+        for (int i = 0; i < _objects.Count; i++)
+        {
+            var obj = _objects[i];
+            if (obj.PlayerId == senderIdx)
+            {
+                obj.Position2 = Vector2.Lerp(obj.Position2, pos.ToVec2(), 0.5f);
+                break;
+            }
+        }
     }
 }
 

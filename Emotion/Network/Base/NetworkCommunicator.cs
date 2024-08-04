@@ -1,7 +1,11 @@
 ﻿using Emotion.Network.ServerSide;
+using Emotion.Standard.XML;
+using Emotion.Utility;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 
 #nullable enable
@@ -71,6 +75,22 @@ public class NetworkCommunicator
             MessageSent(_socket, _sendEventArgs);
     }
 
+    public void SendMessage<T>(IPEndPoint to, NetworkMessageType msgType, T msgInfo, int msgOrderIndex)
+    {
+        Span<byte> data = stackalloc byte[NetworkMessage.MaxMessageContent];
+        data[0] = (byte)msgType;
+
+        string? metaAsString = XMLFormat.To(msgInfo);
+        int byteCount = Encoding.UTF8.GetByteCount(metaAsString);
+        MemoryMarshal.Write(data.Slice(1), byteCount);
+
+        int written = Encoding.UTF8.GetBytes(metaAsString, data.Slice(1 + sizeof(int)));
+        data = data.Slice(0, written + 1 + sizeof(int));
+
+        AssertNotNull(to);
+        SendMessage(data, to, msgOrderIndex);
+    }
+
     public void Update()
     {
         switch (Status)
@@ -96,9 +116,9 @@ public class NetworkCommunicator
             msg.Process();
             if (msg.Valid)
             {
-                var str = Encoding.UTF8.GetString(msg.Content.Span);
-                Engine.Log.Info($"Got message {str} from {msg.Sender}", LogTag);
-
+                //var str = Encoding.UTF8.GetString(msg.Content.Span);
+                //Engine.Log.Info($"Got message {str} from {msg.Sender}", LogTag);
+                
                 ProcessMessageInternal(msg);
             }
             NetworkMessage.Shared.Return(msg);

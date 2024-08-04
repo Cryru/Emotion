@@ -1,7 +1,9 @@
-﻿using Emotion.Utility;
+﻿using Emotion.Standard.XML;
+using Emotion.Utility;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 
 #nullable enable
 
@@ -125,5 +127,17 @@ public class NetworkMessage
         if (!Valid) return null;
         _reader.Seek(MessageContentOffset, SeekOrigin.Begin);
         return _reader;
+    }
+
+    public static bool TryReadXMLDataFromMessage<T>(ByteReader reader, out T? data)
+    {
+        data = default;
+
+        if (!reader.CanReadByteCount(4)) return false;
+        int dataLength = reader.ReadInt32();
+        if (!reader.CanReadByteCount(dataLength)) return false;
+        var span = reader.ReadBytes(dataLength);
+        data = XMLFormat.From<T>(Encoding.UTF8.GetString(span));
+        return true;
     }
 }
