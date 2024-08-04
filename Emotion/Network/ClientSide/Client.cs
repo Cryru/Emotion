@@ -1,4 +1,5 @@
 ﻿using Emotion.Network.Base;
+using Emotion.Network.ServerSide;
 using Emotion.Utility;
 using System.Net;
 using System.Net.Sockets;
@@ -19,24 +20,29 @@ public class Client : NetworkCommunicator
     {
     }
 
-    public static T CreateClient<T>(string serverIp, int serverPort) where T : Client, new()
+    public static T CreateClient<T>(string serverIpAndPort) where T : Client, new()
     {
         var client = new T();
 
-        IPEndPoint serverEndpoint = IPEndPoint.Parse(serverIp + ":" + serverPort);
+        IPEndPoint serverEndpoint = IPEndPoint.Parse(serverIpAndPort);
         client._serverEndPoint = serverEndpoint;
 
         client._socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         client._socket.Connect(serverEndpoint);
 
-        client.Ip = serverIp;
-        client.Port = serverPort;
+        client.Ip = serverEndpoint.Address.ToString();
+        client.Port = serverEndpoint.Port;
 
         client.LogTag = "Client";
 
         client.SetupArgs();
 
         return client;
+    }
+
+    public static T CreateClient<T>(string serverIp, int serverPort) where T : Client, new()
+    {
+        return CreateClient<T>(serverIp + ":" + serverPort);
     }
 
     public void ConnectIfNotConnected()

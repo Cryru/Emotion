@@ -1,9 +1,10 @@
 ﻿using Emotion.Network.Base;
+using Emotion.Network.ServerSide;
 using Emotion.Utility;
 
 #nullable enable
 
-namespace Emotion.Network.ServerSide.BasicMessageBroker;
+namespace Emotion.Network.BasicMessageBroker;
 
 public class MsgBrokerServer : Server
 {

@@ -5,6 +5,7 @@
 public enum NetworkMessageType : byte
 {
     None,
+    Generic, // Wildcard
 
     // Server -> Client
     Connected,
