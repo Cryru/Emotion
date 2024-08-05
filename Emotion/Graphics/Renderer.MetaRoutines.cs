@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.IO;
 
 #endregion
@@ -220,11 +221,12 @@ namespace Emotion.Graphics
         {
             var roundedRectShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
 
+            ShaderProgram prevShader = CurrentState.Shader;
             SetShader(roundedRectShader.Shader);
             roundedRectShader.Shader.SetUniformVector2("RectSize", size);
             roundedRectShader.Shader.SetUniformFloat("RadiusPixels", radius * 2);
             RenderUVRect(pos, size, c);
-            SetShader();
+            SetShader(prevShader);
         }
     }
 }
