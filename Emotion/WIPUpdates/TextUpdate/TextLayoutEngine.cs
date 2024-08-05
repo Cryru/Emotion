@@ -240,6 +240,11 @@ public class TextLayoutEngine
                 int lengthToEnd = block.Length - lastFitBreakChar;
                 block.Length = lastFitBreakChar;
                 block.Skip = lastFitBreakChar == 1 && blockString[0] == ' ';
+                // Special case for when going on a new line there could be a space at the end.
+                // For text centering and so forth purpsoes we don't want this part of the measured length, so we cut it out.
+                // However we don't want to do this if ResolveTags is false, since that most likely means the user wants
+                // to retain a mapping of virtual characters to characters. (such as in the case of a text input)
+                if (ResolveTags && lastFitBreakChar > 0 && _text[block.StartIndex + block.Length - 1] == ' ') block.Length--;
                 _textBlocks[i] = block;
 
                 if (lengthToEnd > 0)

@@ -133,6 +133,8 @@ public class UIRichText : UIBaseWindow
 
     public Color OutlineColor;
 
+    public bool AllowRenderBatch = true;
+
     protected string _text = string.Empty;
     protected FontAsset? _fontFile;
     protected DrawableFontAtlas? _atlas;
@@ -213,7 +215,7 @@ public class UIRichText : UIBaseWindow
     {
         if (string.IsNullOrEmpty(_text) || _fontFile == null) return true;
 
-        bool batched = _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+        bool batched = AllowRenderBatch && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
         if (batched)
             c.RenderSprite(Position - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender!.Size, _cachedTextRender);
         else
