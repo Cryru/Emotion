@@ -339,7 +339,7 @@ public class TextLayoutEngine
                 TextRenderEngine.RenderBlock(c, _text, currentBlock, _defaultAtlas.Font);
             }
 
-            Color color = currentBlock.UseDefaultColor ? baseColor : currentBlock.Color;
+            Color color = currentBlock.UseDefaultColor ? baseColor : currentBlock.Color * baseColor.A;
 
             bool blockEffect = currentBlock.TextEffect != FontEffect.None;
             FontEffect effect = blockEffect ? currentBlock.TextEffect : defaultEffect;
