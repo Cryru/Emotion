@@ -133,6 +133,8 @@ public class UIRichText : UIBaseWindow
 
     public Color OutlineColor;
 
+    public bool AllowRenderBatch = true;
+
     protected string _text = string.Empty;
     protected FontAsset? _fontFile;
     protected DrawableFontAtlas? _atlas;
@@ -202,6 +204,14 @@ public class UIRichText : UIBaseWindow
         return _layoutEngine.TextSize;
     }
 
+    protected override void CalculateColor()
+    {
+        base.CalculateColor();
+
+        if (_cachedTextRender != null)
+            _cachedTextRender.UpVersion();
+    }
+
 #if !NEW_UI
     protected override Vector2 NEW_InternalMeasure(Vector2 space)
     {
@@ -213,9 +223,9 @@ public class UIRichText : UIBaseWindow
     {
         if (string.IsNullOrEmpty(_text) || _fontFile == null) return true;
 
-        bool batched = _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+        bool batched = AllowRenderBatch && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
         if (batched)
-            c.RenderSprite(Position - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender!.Size, _cachedTextRender);
+            c.RenderSprite(Position - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender!.Size, Color.White * _calculatedColor.A, _cachedTextRender);
         else
             _layoutEngine.Render(c, Position, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
 
@@ -246,7 +256,7 @@ public class UIRichText : UIBaseWindow
 
     protected void RenderTextForBatch(RenderComposer c, Vector2 offset)
     {
-        _layoutEngine.RenderNoOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+        _layoutEngine.RenderNoOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor.CloneWithAlpha(255), OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
     #endregion

@@ -1,237 +1,196 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ApplicationIcon />
-    <StartupObject />
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>2.0</OldToolsVersion>
-    <NuspecFile>./Emotion.nuspec</NuspecFile>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Configurations>Debug;Release;DebugUnix64;DebugWeb;Autobuild;Debug-Pure;ReleaseUnix64</Configurations>
-    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <Platforms>x64;x86;ARM64</Platforms>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>1701;1702;1591;1734</NoWarn>
-  </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;OpenAL</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Pure|x64'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Pure|x86'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA;OpenAL</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWeb|x64'">
-    <DefineConstants>$(DefineConstants);WEB</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWeb|x86'">
-    <DefineConstants>$(DefineConstants);WEB</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x64'">
-    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x64</PlatformTarget>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix64|x86'">
-    <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x86</PlatformTarget>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix64|x64'">
-    <DefineConstants>$(DefineConstants);OpenAL;GLFW</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x64</PlatformTarget>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix64|x86'">
-    <DefineConstants>$(DefineConstants);OpenAL;GLFW</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile />
-    <PlatformTarget>x86</PlatformTarget>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|x86'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD;CSHARP_SCRIPTING;OpenAL</DefineConstants>
-    <Optimize>True</Optimize>
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|x64'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA;AUTOBUILD;CSHARP_SCRIPTING</DefineConstants>
-    <Optimize>True</Optimize>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA;OpenAL</DefineConstants>
-    <Optimize>True</Optimize>
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DefineConstants>$(DefineConstants);ANGLE;MESA</DefineConstants>
-    <Optimize>True</Optimize>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-     <Optimize>True</Optimize>
-     <PlatformTarget>ARM64</PlatformTarget>
-   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <PlatformTarget>ARM64</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
-    <Compile Remove="Platform\Implementation\OpenAL\**\*.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="!$(DefineConstants.Contains('GLFW'))">
-    <Compile Remove="Platform\Implementation\GlfwImplementation\**\*.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="!$(DefineConstants.Contains('ANGLE'))">
-    <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
-  </ItemGroup> 
-  <ItemGroup Condition="!$(DefineConstants.Contains('ASSIMP'))">
-    <Compile Remove="IO\MeshAssetTypes\Assimp\**\*.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
-    <Compile Remove="Game\Scripting\**\*.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\**\*.*">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Assets\Shaders\BlitPremultAlpha.frag" />
-    <None Remove="Assets\Shaders\BlitPremultAlpha.xml" />
-    <None Remove="Assets\Shaders\GLESSupport.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AssetsNativeLibs\GLFW\linux\glfw.so" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\macos\glfw.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\win32\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\linux\openal32.so" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\macos\openal32.dylib" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\OpenAL\win32\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll" Condition="$(DefineConstants.Contains('Superluminal'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <EmbeddedResource Update="Assets\FontShaders\SDF.frag">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Silk.NET.Assimp" Version="2.20.0" Condition="$(DefineConstants.Contains('ASSIMP'))" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Game\World2D\SceneControl\World2DBaseScene.cs" />
-    <Compile Remove="Game\World3D\SceneControl\World3DBaseScene.cs" />
-    <Compile Remove="Game\World\SceneControl\WorldBaseScene.cs" />
-    <Compile Remove="Testing\NewUITests.cs" />
-    <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
-    <Compile Remove="Testing\Templates\EmptyTestTemplateClass.cs" />
-    <Compile Remove="Testing\TestExecutor.cs" />
-    <Compile Remove="Testing\TestingScene.cs" />
-    <Compile Remove="Testing\TestingUtility.cs" />
-    <Compile Remove="Testing\TestWaiterRunLoops.cs" />
-    <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
-    <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-    <Compile Remove="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
-    <None Include="Game\World2D\SceneControl\World2DBaseScene.cs" />
-    <None Include="Game\World3D\SceneControl\World3DBaseScene.cs" />
-    <None Include="Game\World\SceneControl\WorldBaseScene.cs" />
-    <None Include="Testing\NewUITests.cs" />
-    <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
-    <None Include="Testing\Templates\EmptyTestTemplateClass.cs" />
-    <None Include="Testing\TestExecutor.cs" />
-    <None Include="Testing\TestingScene.cs" />
-    <None Include="Testing\TestingUtility.cs" />
-    <None Include="Testing\TestWaiterRunLoops.cs" />
-    <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
-    <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-    <None Include="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ApplicationIcon />
+        <StartupObject />
+        <FileUpgradeFlags>
+        </FileUpgradeFlags>
+        <UpgradeBackupLocation>
+        </UpgradeBackupLocation>
+        <OldToolsVersion>2.0</OldToolsVersion>
+        <NuspecFile>./Emotion.nuspec</NuspecFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <NoWarn>1701;1702;1591;1734</NoWarn>
+        <Configurations>Debug;Release;Autobuild</Configurations>
+        <Platforms>Win64;Win64NoDepend;Win32;Linux64;MacOS64;Android;Web</Platforms>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+
+    <!-- Windows 64 bit -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64'">
+        <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;WIN64</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64NoDepend'">
+        <DefineConstants>$(DefineConstants);WIN64</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win64'">
+        <DefineConstants>$(DefineConstants);ANGLE;MESA;WIN64</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win64NoDepend'">
+        <DefineConstants>$(DefineConstants);WIN64</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+
+    <!-- Windows 32 bit -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+        <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;WIN32;OpenAL</DefineConstants>
+        <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+        <DefineConstants>$(DefineConstants);ANGLE;MESA;WIN32;OpenAL</DefineConstants>
+        <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+
+    <!-- Linux 64 bit -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Linux64'">
+        <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW;LINUX</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Linux64'">
+        <DefineConstants>$(DefineConstants);OpenAL;GLFW;LINUX</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+
+    <!-- MacOS 64 bit -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|MacOS64'">
+        <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW;MACOS</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|MacOS64'">
+        <DefineConstants>$(DefineConstants);OpenAL;GLFW;MACOS</DefineConstants>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+
+    <!-- Android -->
+    <PropertyGroup Condition="'$(Platform)'=='Android'">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+    
+    <!-- Currently doesn't work, I think? -->
+    <PropertyGroup Condition="'$(Platform)'=='Web'">
+        <DefineConstants>$(DefineConstants);WEB</DefineConstants>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+
+    <!-- Github Autobuild -->
+    <PropertyGroup Condition="'$(Configuration)'=='Autobuild'">
+        <DefineConstants>$(DefineConstants);AUTOBUILD;CSHARP_SCRIPTING</DefineConstants>
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+
+    <!-- Libraries Code Include -->
+    <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
+        <Compile Remove="Platform\Implementation\OpenAL\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('GLFW'))">
+        <Compile Remove="Platform\Implementation\GlfwImplementation\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('ANGLE'))">
+        <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('ASSIMP'))">
+        <Compile Remove="IO\MeshAssetTypes\Assimp\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
+        <Compile Remove="Game\Scripting\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Assets\**\*.*">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <!-- Libraries Binaries -->
+    <ItemGroup>
+        <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll"
+            Condition="$(DefineConstants.Contains('ANGLE')) And $(DefineConstants.Contains('WIN64'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll"
+            Condition="$(DefineConstants.Contains('ANGLE')) And $(DefineConstants.Contains('WIN64'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="AssetsNativeLibs\GLFW\linux\glfw.so"
+            Condition="$(DefineConstants.Contains('GLFW')) And $(DefineConstants.Contains('LINUX'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\GLFW\macos\glfw.dylib"
+            Condition="$(DefineConstants.Contains('GLFW')) And $(DefineConstants.Contains('MACOS'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\GLFW\win32\glfw.dll"
+            Condition="$(DefineConstants.Contains('GLFW')) And $(DefineConstants.Contains('WIN32'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll"
+            Condition="$(DefineConstants.Contains('GLFW')) And $(DefineConstants.Contains('WIN64'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll"
+            Condition="$(DefineConstants.Contains('MESA')) And $(DefineConstants.Contains('WIN32'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll"
+            Condition="$(DefineConstants.Contains('MESA')) And $(DefineConstants.Contains('WIN64'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1"
+            Condition="$(DefineConstants.Contains('OpenAL')) And $(DefineConstants.Contains('LINUX'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\OpenAL\linux\openal32.so"
+            Condition="$(DefineConstants.Contains('OpenAL')) And $(DefineConstants.Contains('LINUX'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\OpenAL\macos\openal32.dylib"
+            Condition="$(DefineConstants.Contains('OpenAL')) And $(DefineConstants.Contains('MACOS'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll"
+            Condition="$(DefineConstants.Contains('OpenAL')) And $(DefineConstants.Contains('WIN64'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="AssetsNativeLibs\OpenAL\win32\openal32.dll"
+            Condition="$(DefineConstants.Contains('OpenAL')) And $(DefineConstants.Contains('WIN32'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll"
+            Condition="$(DefineConstants.Contains('Superluminal'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Silk.NET.Assimp" Version="2.20.0"
+            Condition="$(DefineConstants.Contains('ASSIMP'))" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5"
+            Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0"
+            Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Properties\" />
+    </ItemGroup>
 </Project>

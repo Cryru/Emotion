@@ -7,11 +7,11 @@
         <ApplicationIcon></ApplicationIcon>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <StartupObject />
-        <Platforms>x86;x64</Platforms>
+        <Platforms>x64</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Emotion\Emotion.csproj" />
+      <ProjectReference Include="..\..\Emotion\Emotion.csproj" />
     </ItemGroup>
 
 </Project>

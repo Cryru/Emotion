@@ -1,46 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Platforms>x86;x64</Platforms>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Platforms>Default</Platforms>
+        <StartupObject>Emotion.ExecTest.Program</StartupObject>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Examples\ComplexPolygonContours.cs" />
-    <Compile Remove="Examples\FrameBufferSampling.cs" />
-    <Compile Remove="Examples\GeneratedCurveMeshExample.cs" />
-    <Compile Remove="Examples\PackingDisplay.cs" />
-    <Compile Remove="Examples\Pathfinding.cs" />
-    <Compile Remove="Examples\PngSuiteExample.cs" />
-    <Compile Remove="Examples\RopeSim.cs" />
-    <Compile Remove="Examples\TextRenderers.cs" />
-  </ItemGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Emotion\Emotion.csproj" />
-  </ItemGroup>
+    <PropertyGroup Condition="'$(Platform)'=='Default'">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Assets\" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Examples\ComplexPolygonContours.cs" />
-    <None Include="Examples\FrameBufferSampling.cs" />
-    <None Include="Examples\GeneratedCurveMeshExample.cs" />
-    <None Include="Examples\PackingDisplay.cs" />
-    <None Include="Examples\Pathfinding.cs" />
-    <None Include="Examples\PngSuiteExample.cs" />
-    <None Include="Examples\RopeSim.cs" />
-    <None Include="Examples\TextRenderers.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Assets\Test\player.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion\Emotion.csproj" />
+    </ItemGroup>
 
 </Project>

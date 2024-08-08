@@ -60,6 +60,8 @@ namespace Emotion.UI
         {
             _stack ??= new List<MatrixWithId>();
 
+            bool matrixDirty = true;
+
             MatrixWithId? matWithId = Get(id);
             if (matWithId != null)
             {
@@ -72,14 +74,15 @@ namespace Emotion.UI
             }
             else
             {
-                if (matrix == Matrix4x4.Identity && multiply) return;
+                if (matrix == Matrix4x4.Identity && multiply)
+                    matrixDirty = false;
 
                 matWithId = new MatrixWithId(matrix, id, !multiply);
                 matWithId.Flag = flag;
                 _stack.Add(matWithId);
             }
 
-            MatrixDirty = true;
+            MatrixDirty = matrixDirty;
         }
 
         /// <summary>

@@ -8,7 +8,21 @@
         <ApplicationId>com.Emotion.ExecTest</ApplicationId>
         <ApplicationVersion>1</ApplicationVersion>
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>Android</Platforms>
+        <PlatformTarget>AnyCPU</PlatformTarget>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+
     <ItemGroup>
         <None Remove="Assets\Guide.txt" />
         <None Remove="Resources\logoAlpha.png" />

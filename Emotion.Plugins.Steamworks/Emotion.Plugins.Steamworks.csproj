@@ -3,28 +3,44 @@
     <PropertyGroup>
         <OutputType>Library</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <Platforms>x64;x86</Platforms>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>Win64;Win32;Linux64;MacOS64</Platforms>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Platform)'=='x86'">
-        <PlatformTarget>x86</PlatformTarget>
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Platform)'=='Win64'">
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
-    
+    <PropertyGroup Condition="'$(Platform)'=='Win32'">
+        <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Platform)'=='Linux64'">
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Platform)'=='MacOS64'">
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Emotion\Emotion.csproj" />
+      <ProjectReference Include="..\Emotion\Emotion.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="AssetsNativeLibs\Steam\linux\steam_api64.so">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="AssetsNativeLibs\Steam\linux\steam_api64.so" Condition="'$(Platform)'=='Linux64'">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="AssetsNativeLibs\Steam\win32\steam_api64.dll">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="AssetsNativeLibs\Steam\win32\steam_api64.dll" Condition="'$(Platform)'=='Win32'">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="AssetsNativeLibs\Steam\win64\steam_api64.dll">
+        <None Update="AssetsNativeLibs\Steam\win64\steam_api64.dll" Condition="'$(Platform)'=='Win64'">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
