@@ -37,7 +37,7 @@ namespace Emotion.Graphics
         /// </summary>
         public bool VSync
         {
-            get => ForcedVSync || _vSync;
+            get => _vSync;
             set
             {
                 _vSync = value;
@@ -55,11 +55,6 @@ namespace Emotion.Graphics
         #endregion
 
         #region Flags
-
-        /// <summary>
-        /// Whether v-sync is forced by the platform or driver.
-        /// </summary>
-        public bool ForcedVSync { get; internal set; }
 
         /// <summary>
         /// Whether the renderer is running in compatibility mode, falling back to older features.

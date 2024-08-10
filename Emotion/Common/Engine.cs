@@ -277,8 +277,6 @@ namespace Emotion.Common
         /// </summary>
         public static void DefaultMainLoop(Action tick, Action frame)
         {
-            DetectVSync();
-
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
             while (Status == EngineStatus.Running)
@@ -303,42 +301,6 @@ namespace Emotion.Common
         }
 
         #region Loop Parts
-
-        private static void DetectVSync()
-        {
-            // Check if a host is available.
-            if (Host == null || !Host.IsOpen) return;
-
-            var timer = new Stopwatch();
-
-            // Detect VSync (yes I know)
-            // Because life is unfair and we cannot have nice things, in order to detect
-            // whether the GPU lord has enforced VSync on us (not that we can do anything about it)
-            // we have to swap buffers around while messing with the settings and see if it
-            // changes anything. If it doesn't - it means VSync is either forced on or off.
-            const int jitLoops = 5;
-            const int loopCount = 15;
-            var timings = new double[(loopCount - jitLoops) * 2];
-            Host.Context.SwapInterval = 0;
-            for (var i = 0; i < timings.Length + jitLoops; i++)
-            {
-                timer.Restart();
-                Host.Context.SwapBuffers();
-                // Run a couple of loops to get the JIT warmed up.
-                if (i >= jitLoops)
-                    timings[i - jitLoops] = timer.ElapsedMilliseconds;
-                // Alright, now turn v-sync on.
-                if (i == loopCount - 1)
-                    Host.Context.SwapInterval = 1;
-            }
-
-            double averageTimeOff = timings.Take(loopCount - jitLoops).Sum() / (timings.Length / 2);
-            double averageTimeOn = timings.Skip(loopCount - jitLoops).Sum() / (timings.Length / 2);
-            Renderer.ForcedVSync = Math.Abs(averageTimeOff - averageTimeOn) <= 1;
-
-            // Restore settings.
-            Renderer.ApplySettings();
-        }
 
         private static byte _desiredStep;
         private static Stopwatch _updateTimer;
