@@ -82,6 +82,7 @@ namespace Emotion.Game.Time.Routines
         public void StopCoroutine(Coroutine? routine)
         {
             if (routine == null) return;
+            if (!routine.Active) return;
 
             routine.Stop();
             if (!_inUpdate)
