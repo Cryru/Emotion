@@ -282,7 +282,7 @@ public class TextureAtlas : Packing.PackingResumableState
         for (var i = 0; i < deleteFromDictionary.Count; i++)
         {
             Texture texture = deleteFromDictionary[i];
-            Engine.Log.Trace($"Texture {texture.Pointer} dropped from atlas.", MessageSource.Renderer);
+            //Engine.Log.Trace($"Texture {texture.Pointer} dropped from atlas.", MessageSource.Renderer);
             _textureToMeta.Remove(texture);
         }
 
