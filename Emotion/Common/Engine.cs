@@ -357,9 +357,16 @@ namespace Emotion.Common
             }
         }
 
+        public static float DeltaTimeFactor = 1f;
+        public static float RealTimeDelta;
+
         private static void RunTickInternal()
         {
-            TotalTime += DeltaTime;
+            var deltaTimeReal = DeltaTime;
+            RealTimeDelta = deltaTimeReal;
+
+            DeltaTime = deltaTimeReal * DeltaTimeFactor;
+            TotalTime += RealTimeDelta;
             TickCount++;
 
             PerformanceMetrics.TickStart();
@@ -370,6 +377,8 @@ namespace Emotion.Common
             Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
 
             PerformanceMetrics.TickEnd();
+
+            DeltaTime = deltaTimeReal;
         }
 
         private static void RunFrame()
