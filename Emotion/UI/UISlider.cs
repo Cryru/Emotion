@@ -184,12 +184,12 @@ namespace Emotion.UI
                 float offset;
                 if (!KeepSelectorInside)
                 {
-                    offset = size.X / range * Value;
+                    offset = size.X / range * (Value - MinValue);
                     offset -= selectorSize / 2;
                 }
                 else
                 {
-                    offset = (size.X - selectorSize) / range * Value;
+                    offset = (size.X - selectorSize) / range * (Value - MinValue);
                 }
 
                 _selector.Offset = new Vector2(offset, 0);
@@ -200,12 +200,12 @@ namespace Emotion.UI
                 float offset;
                 if (!KeepSelectorInside)
                 {
-                    offset = size.Y / range * Value;
+                    offset = size.Y / range * (Value - MinValue);
                     offset -= selectorSize / 2;
                 }
                 else
                 {
-                    offset = (size.Y - selectorSize) / range * Value;
+                    offset = (size.Y - selectorSize) / range * (Value - MinValue);
                 }
 
                 _selector.Offset = new Vector2(0, float.IsNaN(offset) ? 0 : offset);
