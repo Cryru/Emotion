@@ -106,7 +106,7 @@ namespace Emotion.UI
 
         public bool FlipX;
 
-        private Rectangle _uv;
+        protected Rectangle _uv;
 
         [DontSerialize]
         public TextureAsset TextureAsset { get; protected set; }
