@@ -351,14 +351,14 @@ public class TextLayoutEngine
                 layouter.NewLine();
             }
 
-            if (currentBlock.CenterLayout == 1) // starting
+            if (currentBlock.SpecialLayout == SpecialLayoutFlag.CenterStart)
             {
                 float combinedBlockWidth = MeasureStringWidth(currentBlock.GetBlockString(_text));
                 for (int ii = i + 1; ii < _textBlocks.Count; ii++)
                 {
                     TextBlock otherBlock = _textBlocks[ii];
                     if (otherBlock.Skip) continue;
-                    if (otherBlock.CenterLayout != 2) break;
+                    if (otherBlock.SpecialLayout != SpecialLayoutFlag.CenterContinue) break;
                     if (otherBlock.Newline) break;
 
                     combinedBlockWidth += MeasureStringWidth(otherBlock.GetBlockString(_text));
@@ -368,6 +368,27 @@ public class TextLayoutEngine
                 // maybe also render params such as color?
                 float textWidth = TextSize.X;
                 float center = textWidth / 2f - combinedBlockWidth / 2f;
+
+                var currentPenLoc = layouter.GetPenLocation();
+                layouter.AddToPen(new Vector2(center - currentPenLoc.X, 0));
+            }
+            else if(currentBlock.SpecialLayout == SpecialLayoutFlag.RightStart)
+            {
+                float combinedBlockWidth = MeasureStringWidth(currentBlock.GetBlockString(_text));
+                for (int ii = i + 1; ii < _textBlocks.Count; ii++)
+                {
+                    TextBlock otherBlock = _textBlocks[ii];
+                    if (otherBlock.Skip) continue;
+                    if (otherBlock.SpecialLayout != SpecialLayoutFlag.RightContinue) break;
+                    if (otherBlock.Newline) break;
+
+                    combinedBlockWidth += MeasureStringWidth(otherBlock.GetBlockString(_text));
+                }
+
+                // todo: calculate blocks positions outside of rendering
+                // maybe also render params such as color?
+                float textWidth = TextSize.X;
+                float center = textWidth - combinedBlockWidth;
 
                 var currentPenLoc = layouter.GetPenLocation();
                 layouter.AddToPen(new Vector2(center - currentPenLoc.X, 0));
@@ -407,7 +428,12 @@ public class TextLayoutEngine
         }
         else if (tagName.StartsWith("center"))
         {
-            block.CenterLayout = (byte)(def.GetTagStartIndexInText() == block.StartIndex ? 1 : 2);
+            block.SpecialLayout = def.GetTagStartIndexInText() == block.StartIndex ? SpecialLayoutFlag.CenterStart : SpecialLayoutFlag.CenterContinue;
+            return;
+        }
+        else if (tagName.StartsWith("right"))
+        {
+            block.SpecialLayout = def.GetTagStartIndexInText() == block.StartIndex ? SpecialLayoutFlag.RightStart : SpecialLayoutFlag.RightContinue;
             return;
         }
     }
@@ -949,6 +975,15 @@ public class TextLayoutEngine
         }
     }
 
+    public enum SpecialLayoutFlag : byte
+    {
+        None,
+        CenterStart,
+        CenterContinue,
+        RightStart,
+        RightContinue,
+    }
+
     public struct TextBlock
     {
         public int StartIndex;
@@ -963,7 +998,7 @@ public class TextLayoutEngine
         public int EffectParam;
 
         public bool Newline;
-        public byte CenterLayout;
+        public SpecialLayoutFlag SpecialLayout;
 
         public TextBlock(int startIndex)
         {
