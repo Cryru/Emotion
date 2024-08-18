@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "Profile 1": {
+    "DebugSourceGen": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Emotion.SourceGen\\Emotion.SourceGen.csproj"
+      "targetProject": "..\\Emotion.ExecTest\\Emotion.ExecTest.csproj"
     }
   }
 }

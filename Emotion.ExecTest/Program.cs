@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Emotion.Common;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
@@ -23,6 +24,7 @@ using Emotion.Network.ServerSide;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
+using Emotion.Standard.Reflector;
 using Emotion.Standard.XML;
 using Emotion.Testing;
 using Emotion.UI;
@@ -37,8 +39,20 @@ namespace Emotion.ExecTest;
 
 public class Program
 {
+    public int Pepegich = 1;
+    public int Pepegich2 { get; set; } = 1;
+    public int Pepegich3 { get; } = 1;
+
     private static void Main(string[] args)
     {
+        var data = ReflectorEngine.GetTypeData("Program");
+        var members = data.GetMembers();
+        foreach ( var member in members )
+        {
+            var val = member.ReadValue(new Program());
+            bool a = true;
+        }
+
         if (CommandLineParser.FindArgument(args, "tests", out string _))
         {
             MainTests(args);
