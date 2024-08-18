@@ -29,6 +29,8 @@ namespace Emotion.Graphics.Batches
         /// </summary>
         public Type CurrentVertexType { get; protected set; } = typeof(VertexData);
 
+        private Func<GLRenderObjects>? CurrentVertexTypeCreateObjectMethod;
+
         // Performance cache for GetStreamMemory
         private uint _currentVertexTypeByteSize = (uint) VertexData.SizeInBytes;
 
@@ -122,7 +124,7 @@ namespace Emotion.Graphics.Batches
             // Godspeed.
             for (var i = 0; i < 16; i++)
             {
-                CreateRenderObject(typeof(VertexData));
+                CreateRenderObject<VertexData>();
             }
 
             for (var i = 0; i < _batchableLengths.Length; i++)
@@ -159,9 +161,10 @@ namespace Emotion.Graphics.Batches
             if (CurrentVertexType != type)
             {
                 if (AnythingMapped) FlushRender();
-                EnsureRenderObjectsOfType(type);
+                EnsureRenderObjectsOfType<T>();
                 _currentVertexTypeByteSize = vertexTypeByteSize;
                 CurrentVertexType = type;
+                CurrentVertexTypeCreateObjectMethod = CreateRenderObject<T>;
             }
 
             // Check if the request can be served, if not - flush the buffers.
@@ -276,7 +279,7 @@ namespace Emotion.Graphics.Batches
             uint mappedBytes = _backingBufferOffset;
             uint mappedBytesIndices = _backingIndexOffset;
 
-            GLRenderObjects? renderObj = GetFirstFreeRenderObject(CurrentVertexType);
+            GLRenderObjects? renderObj = GetFreeRenderObjectOfCurrentVertexType();
             if (renderObj == null) // Impossible!
             {
                 Assert(false, "RenderStream had no render object to flush with.");
@@ -371,14 +374,15 @@ namespace Emotion.Graphics.Batches
 
         #region GL Render Objects
 
-        protected GLRenderObjects CreateRenderObject(Type vertexType)
+        protected GLRenderObjects CreateRenderObject<T>() where T : struct
         {
             var vbo = new VertexBuffer(0, BufferUsage.StreamDraw);
             var ibo = new IndexBuffer(0, BufferUsage.StreamDraw);
-            var vao = new VertexArrayObjectTypeArg(vertexType, vbo, ibo);
+            var vao = new VertexArrayObject<T>(vbo, ibo);
 
             var objectsPair = new GLRenderObjects(vbo, ibo, vao);
 
+            Type vertexType = typeof(T);
             if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
             {
                 renderObjsOfType = new Stack<GLRenderObjects>();
@@ -392,9 +396,10 @@ namespace Emotion.Graphics.Batches
             return objectsPair;
         }
 
-        protected void EnsureRenderObjectsOfType(Type type)
+        protected void EnsureRenderObjectsOfType<T>() where T : struct
         {
-            if (!_renderObjects.ContainsKey(type)) CreateRenderObject(type);
+            var type = typeof(T);
+            if (!_renderObjects.ContainsKey(type)) CreateRenderObject<T>();
         }
 
         // According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
@@ -404,15 +409,22 @@ namespace Emotion.Graphics.Batches
         //
         // Because of this we cannot reuse buffers in the same frame, regardless of how small of a draw there is,
         // and fencing is a lot slower than just allocating a bunch.
-        protected GLRenderObjects? GetFirstFreeRenderObject(Type vertexType)
+        protected GLRenderObjects? GetFreeRenderObjectOfCurrentVertexType()
         {
+            Type vertexType = CurrentVertexType;
             if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
             {
                 Assert(false, $"No render object of vertex type {vertexType.Name}");
                 return null;
             }
 
-            if (renderObjsOfType.Count == 0) CreateRenderObject(vertexType);
+            if (renderObjsOfType.Count == 0)
+            {
+                if (CurrentVertexTypeCreateObjectMethod == null)
+                    CreateRenderObject<VertexData>();
+                else
+                    CurrentVertexTypeCreateObjectMethod();
+            }
 
             if (renderObjsOfType.Count > 0)
             {
@@ -555,7 +567,7 @@ namespace Emotion.Graphics.Batches
             if (CurrentVertexType != type)
             {
                 if (AnythingMapped) FlushRender();
-                EnsureRenderObjectsOfType(type);
+                EnsureRenderObjectsOfType<T>();
                 _currentVertexTypeByteSize = vertexTypeByteSize;
                 CurrentVertexType = type;
             }

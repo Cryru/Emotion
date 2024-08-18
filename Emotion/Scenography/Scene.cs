@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Threading.Tasks;
+using Emotion.Common.Serialization;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.UI;
@@ -20,6 +21,7 @@ public enum SceneStatus
     Disposed
 }
 
+[DontSerialize]
 public abstract class Scene
 {
     public SceneStatus Status { get; private set; } = SceneStatus.None;
