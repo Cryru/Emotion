@@ -1,12 +1,13 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
-using Emotion.Graphics;
+using Emotion.Common.Serialization;
 
 #endregion
 
 namespace Emotion.Scenography
 {
+    [DontSerialize]
     public abstract class Scene
     {
         public abstract Task LoadAsync();
