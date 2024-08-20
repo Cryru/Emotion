@@ -2679,17 +2679,11 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void Uniform4f<T>(int location, int count, T value) where T : struct
+        public unsafe static void Uniform4f<T>(int location, int count, T value) where T : unmanaged
         {
             Assert(Delegates.pglUniform4fv != null, "pglUniform4fv not implemented");
-            unsafe
-            {
-                TypedReference refValue = __makeref(value);
-                IntPtr refValuePtr = *(IntPtr*) (&refValue);
-
-                Delegates.pglUniform4fv(location, count, (float*) refValuePtr.ToPointer());
-            }
-
+            float* ptr = (float*)&value;
+            Delegates.pglUniform4fv(location, count, ptr);
             DebugCheckErrors(null);
         }
 

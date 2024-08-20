@@ -38,12 +38,12 @@ public class GameDataArray<T> : IEnumerable<T> where T : GameDataObject
         get => (T)_objects[key];
     }
 
-    public struct GameDataArrayEnum<T> : IEnumerator<T> where T : GameDataObject
+    public struct GameDataArrayEnum<TT> : IEnumerator<TT> where TT : GameDataObject
     {
         private int _currentIndex = -1;
         private List<GameDataObject> _objects;
 
-        public T Current => (T)_objects[_currentIndex];
+        public TT Current => (TT)_objects[_currentIndex];
 
         object IEnumerator.Current => Current;
 
