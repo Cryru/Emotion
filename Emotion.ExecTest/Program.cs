@@ -45,11 +45,11 @@ public class Program
 
     private static void Main(string[] args)
     {
-        var data = ReflectorEngine.GetTypeData("Program");
+        var data = ReflectorEngine.GetTypeHandler(typeof(Program));
         var members = data.GetMembers();
         foreach ( var member in members )
         {
-            var val = member.ReadValue(new Program());
+            member.ReadValueFromComplexObject(new Program(), out object? val);
             bool a = true;
         }
 

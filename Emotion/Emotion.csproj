@@ -16,6 +16,7 @@
         <NoWarn>1701;1702;1591;1734</NoWarn>
         <Configurations>Debug;Release;Autobuild</Configurations>
         <Platforms>Win64;Win64NoDepend;Win32;Linux64;MacOS64;Android;Web</Platforms>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
     
     <ItemGroup>

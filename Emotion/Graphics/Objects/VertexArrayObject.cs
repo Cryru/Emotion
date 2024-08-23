@@ -113,19 +113,19 @@ public abstract class VertexArrayObject : IDisposable
         int stride = Marshal.SizeOf<T>();
         var vertexType = typeof(T);
 
-        var typeData = ReflectorEngine.GetTypeData(vertexType.Name);
+        var typeData = ReflectorEngine.GetTypeHandler(vertexType);
         var members = typeData.GetMembers();
 
         uint positionOffset = _lastAttributePosition;
         for (uint i = 0; i < members.Length; i++)
         {
-            ReflectorTypeMember member = members[i];
+            Standard.Reflector.Handlers.ComplexTypeHandlerMember member = members[i];
             VertexAttributeAttribute vertexAttributeData = member.HasAttribute<VertexAttributeAttribute>();
             if (vertexAttributeData == null) continue;
 
             string fieldName = member.Name;
             nint offset = Marshal.OffsetOf(vertexType, fieldName);
-            Type fieldType = vertexAttributeData.TypeOverride ?? member.MemberType;
+            Type fieldType = vertexAttributeData.TypeOverride ?? member.Type;
             if (fieldName == "UV") UVByteOffset = (int) offset;
 
             uint position = positionOffset + i;

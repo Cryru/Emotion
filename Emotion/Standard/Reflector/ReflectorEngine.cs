@@ -1,24 +1,22 @@
 ﻿#nullable enable
 
+using Emotion.Standard.Reflector.Handlers;
+using System.Runtime.CompilerServices;
+
 namespace Emotion.Standard.Reflector;
 
 public static class ReflectorEngine
 {
-    private static List<IEmotionReflectorDataSource> _dataSources = new List<IEmotionReflectorDataSource>();
+    private static Dictionary<Type, IReflectorTypeHandler> _typeHandlers = new();
 
-    public static void RegisterDataSource(IEmotionReflectorDataSource source)
+    public static void RegisterTypeHandler(IReflectorTypeHandler typeHandler)
     {
-        _dataSources.Add(source);
+        _typeHandlers.Add(typeHandler.Type, typeHandler);
     }
 
-    public static IReflectorTypeData? GetTypeData(string name)
+    public static IReflectorTypeHandler? GetTypeHandler(Type typ)
     {
-        for (int i = 0; i < _dataSources.Count; i++)
-        {
-            var src = _dataSources[i];
-            var typ = src.GetTypeData(name);
-            if (typ != null) return typ;
-        }
+        if (_typeHandlers.TryGetValue(typ, out IReflectorTypeHandler? handler)) return handler;
         return null;
     }
 }
