@@ -11,6 +11,11 @@ using System.Collections;
 
 namespace Emotion.WIPUpdates.One.Tools;
 
+public class HorizontalPanelSeparator : UIBaseWindow
+{
+
+}
+
 public class SpriteEntityTool : EditorWindow
 {
     private UIList _list = null!;
@@ -52,7 +57,7 @@ public class SpriteEntityTool : EditorWindow
             MinSize = new Vector2(100),
             WindowColor = new Color(0, 0, 0, 50),
             Paddings = new Primitives.Rectangle(5, 5, 5, 5),
-            //LayoutMode = LayoutMode.HorizontalList
+            LayoutMode = LayoutMode.HorizontalEditorPanel
         };
         mainDiv.AddChild(content);
 
@@ -61,18 +66,19 @@ public class SpriteEntityTool : EditorWindow
             IgnoreParentColor = true,
             Id = "Viewport",
             MinSize = new Vector2(50),
-            WindowColor = Color.CornflowerBlue,
-            Dock = UIDockDirection.Left
+            WindowColor = Color.CornflowerBlue
         };
         content.AddChild(viewPort);
 
+        content.AddChild(new HorizontalPanelSeparator());
+        
         UIBaseWindow contentRight = new()
         {
             IgnoreParentColor = true,
             Id = "EntityData",
             LayoutMode = LayoutMode.VerticalList,
             FillX = false,
-            AnchorAndParentAnchor = UIAnchor.TopRight
+            MinSize = new Vector2(50)
         };
         content.AddChild(contentRight);
     }

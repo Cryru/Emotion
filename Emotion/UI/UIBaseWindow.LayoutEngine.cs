@@ -117,6 +117,7 @@ public partial class UIBaseWindow
                 case LayoutMode.VerticalListWrap:
                     appendData = ListWrapAppend(child, size);
                     break;
+                case LayoutMode.HorizontalEditorPanel:
                 case LayoutMode.Free:
                     appendData = FreeAppend(child, size);
                     break;
