@@ -17,6 +17,7 @@ using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Scenography;
+using Emotion.Standard.Reflector;
 using Emotion.Utility;
 using Emotion.WIPUpdates.NewUIUpdate;
 using Emotion.WIPUpdates.One;
@@ -196,6 +197,8 @@ namespace Emotion.Common
 
             // Mount default assets. The platform should add it's own specific sources and stores.
             AssetLoader = AssetLoader.CreateDefaultAssetLoader();
+            ReflectorEngineInit.Init();
+
             Status = EngineStatus.LightSetup;
 
             PerfProfiler.ProfilerEventEnd("LightSetup", "Loading");

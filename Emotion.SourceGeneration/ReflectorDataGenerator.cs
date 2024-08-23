@@ -54,7 +54,7 @@ namespace SourceGenerator
             bool includeSubSpaces = includeTypes && !_excludedNamespacesSubSpaces.Contains(fullSpaceName);
             if (!includeSubSpaces) includeTypesFromNamespace = false;
 
-            if (_forceIncludeSubspaces.Contains(fullSpaceName))
+            if (_mainNamespace == "Emotion" && _forceIncludeSubspaces.Contains(fullSpaceName))
             {
                 includeTypesFromNamespace = true;
                 includeSubSpaces = true;
@@ -148,9 +148,9 @@ namespace SourceGenerator
         public bool HasDontSerialize(INamedTypeSymbol typ)
         {
             INamedTypeSymbol typeToCheck = typ;
-            while (typeToCheck != null && !SymbolEqualityComparer.Default.Equals(typeToCheck, typ.BaseType))
+            while (typeToCheck != null)
             {
-                var attributes = typ.GetAttributes();
+                var attributes = typeToCheck.GetAttributes();
                 foreach (var attribute in attributes)
                 {
                     if (attribute.AttributeClass.Name == "DontSerializeAttribute")
@@ -159,7 +159,7 @@ namespace SourceGenerator
                     }
                 }
 
-                typeToCheck = typ.BaseType;
+                typeToCheck = typeToCheck.BaseType;
             }
 
             return false;
@@ -260,7 +260,12 @@ namespace SourceGenerator
             _reflectorTypeGetCodeGen.AppendLine("   {");
             _reflectorTypeGetCodeGen.AppendLine("");
             _reflectorTypeGetCodeGen.AppendLine("       [ModuleInitializer]");
-            _reflectorTypeGetCodeGen.AppendLine("       public unsafe static void Initialize()");
+            _reflectorTypeGetCodeGen.AppendLine("       public static void Load()");
+            _reflectorTypeGetCodeGen.AppendLine("       {");
+            _reflectorTypeGetCodeGen.AppendLine("           ReflectorEngineInit.OnInit += LateLoad;");
+            _reflectorTypeGetCodeGen.AppendLine("       }");
+            _reflectorTypeGetCodeGen.AppendLine("");
+            _reflectorTypeGetCodeGen.AppendLine("       public unsafe static void LateLoad()");
             _reflectorTypeGetCodeGen.AppendLine("       {");
 
             INamespaceSymbol globalNamespace = context.Compilation.GlobalNamespace;

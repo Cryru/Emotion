@@ -5,6 +5,16 @@ using System.Runtime.CompilerServices;
 
 namespace Emotion.Standard.Reflector;
 
+public static class ReflectorEngineInit
+{
+    public static event Action? OnInit;
+
+    public static void Init()
+    {
+        OnInit?.Invoke();
+    }
+}
+
 public static class ReflectorEngine
 {
     private static Dictionary<Type, IReflectorTypeHandler> _typeHandlers = new();

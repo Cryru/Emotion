@@ -45,6 +45,7 @@ public class Program
 
     private static void Main(string[] args)
     {
+        Engine.LightSetup();
         var data = ReflectorEngine.GetTypeHandler(typeof(Program));
         var members = data.GetMembers();
         foreach ( var member in members )
