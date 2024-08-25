@@ -1,6 +1,7 @@
 ﻿using Emotion.Network.ServerSide;
 using Emotion.Standard.XML;
 using Emotion.Utility;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Net;
@@ -105,8 +106,14 @@ public class NetworkCommunicator
                 }
                 break;
             case ServerStatus.Listening:
+                UpdateInternal();
                 break;
         }
+    }
+
+    protected virtual void UpdateInternal()
+    {
+
     }
 
     public void PumpMessages()
@@ -121,12 +128,22 @@ public class NetworkCommunicator
                 
                 ProcessMessageInternal(msg);
             }
-            NetworkMessage.Shared.Return(msg);
+
+            if (msg.AutoFree)
+                NetworkMessage.Shared.Return(msg);
         }
     }
 
     protected virtual void ProcessMessageInternal(NetworkMessage msg)
     {
         // nop
+    }
+
+    public static int WriteStringToMessage(Span<byte> spanDataCur, string str)
+    {
+        int byteCount = Encoding.ASCII.GetByteCount(str);
+        BinaryPrimitives.WriteInt32LittleEndian(spanDataCur, byteCount);
+        int methodNameBytesWritten = Encoding.ASCII.GetBytes(str, spanDataCur.Slice(sizeof(int)));
+        return methodNameBytesWritten + sizeof(int);
     }
 }

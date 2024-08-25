@@ -61,6 +61,8 @@ public class Server : NetworkCommunicator
         }
 
         NetworkMessageType msgType = (NetworkMessageType)reader.ReadInt8();
+        msg.MessageType = msgType;
+
         switch (msgType)
         {
             case NetworkMessageType.RequestConnect:
@@ -100,7 +102,7 @@ public class Server : NetworkCommunicator
             ConnectedUsers.Add(user);
         }
 
-        user.SendMessage(this, NetworkMessageType.Connected, user.Id);
+        SendMessage(user, NetworkMessageType.Connected, user.Id);
     }
 
     protected void Msg_HostRoom(ServerUser user, NetworkMessage msg, ByteReader reader)
@@ -124,18 +126,19 @@ public class Server : NetworkCommunicator
         ActiveRooms.Add(newRoom);
 
         Engine.Log.Info($"New room created: {newRoom.Id}", LogTag);
+        RoomCreated(newRoom);
     }
 
     protected void Msg_GetRoomInfo(ServerUser user)
     {
         if (user.InRoom == null)
         {
-            user.SendMessage(this, NetworkMessageType.NotInRoom);
+            SendMessage(user, NetworkMessageType.NotInRoom);
             return;
         }
 
         ServerRoom room = user.InRoom;
-        user.SendMessage(this, NetworkMessageType.RoomInfo, room.GetRoomInfo());
+        SendMessage(user, NetworkMessageType.RoomInfo, room.GetRoomInfo());
     }
 
     protected void Msg_GetRooms(ServerUser user, NetworkMessage msg, ByteReader reader)
@@ -149,7 +152,7 @@ public class Server : NetworkCommunicator
             if (roomInfo.Count > 10) break;
         }
 
-        user.SendMessage(this, NetworkMessageType.RoomList, roomInfo);
+        SendMessage(user, NetworkMessageType.RoomList, roomInfo);
     }
 
     protected void Msg_JoinRoom(ServerUser user, NetworkMessage msg, ByteReader reader)
@@ -178,7 +181,36 @@ public class Server : NetworkCommunicator
         }
     }
 
+    public void SendMessage(ServerUser user, ReadOnlySpan<byte> data)
+    {
+        AssertNotNull(user.MyIP);
+        SendMessage(data, user.MyIP, user.SendMessageIndex);
+        user.SendMessageIndex++;
+    }
+
+    public void SendMessage(ServerUser user, NetworkMessageType shorthand)
+    {
+        Span<byte> data = stackalloc byte[1];
+        data[0] = (byte)shorthand;
+
+        AssertNotNull(user.MyIP);
+        SendMessage(data, user.MyIP, user.SendMessageIndex);
+        user.SendMessageIndex++;
+    }
+
+    public void SendMessage<T>(ServerUser user, NetworkMessageType msgType, T msgInfo)
+    {
+        AssertNotNull(user.MyIP);
+        SendMessage(user.MyIP, msgType, msgInfo, user.SendMessageIndex);
+        user.SendMessageIndex++;
+    }
+
     protected virtual void ServerProcessMessage(ServerUser sender, NetworkMessage msg, ByteReader reader)
+    {
+        // nop
+    }
+
+    protected virtual void RoomCreated(ServerRoom room)
     {
         // nop
     }

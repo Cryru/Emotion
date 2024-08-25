@@ -92,6 +92,7 @@ public class Client : NetworkCommunicator
         ReceiveMessageIndex = msg.Index;
 
         NetworkMessageType msgType = (NetworkMessageType)reader.ReadInt8();
+        msg.MessageType = msgType;
         switch (msgType)
         {
             case NetworkMessageType.Connected:

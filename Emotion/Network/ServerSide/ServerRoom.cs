@@ -18,11 +18,14 @@ public class ServerRoom
     public ServerUser? Host;
     public List<ServerUser> UsersInside = new List<ServerUser>();
 
+    public object? ServerData;
+
     public void Reset()
     {
         Id = -1;
         UsersInside.Clear();
         Host = null;
+        ServerData = null;
         Active = true;
     }
 
@@ -30,13 +33,13 @@ public class ServerRoom
     {
         user.InRoom = this;
         UsersInside.Add(user);
-        user.SendMessage(server, NetworkMessageType.RoomJoined, GetRoomInfo());
+        server.SendMessage(user, NetworkMessageType.RoomJoined, GetRoomInfo());
 
         for (int i = 0; i < UsersInside.Count; i++)
         {
             ServerUser otherUser = UsersInside[i];
             if (otherUser != user)
-                otherUser.SendMessage(server, NetworkMessageType.UserJoinedRoom, GetRoomInfo());
+                server.SendMessage(otherUser, NetworkMessageType.UserJoinedRoom, GetRoomInfo());
         }
 
         Engine.Log.Info($"User {user.Id} joined room {Id}", server.LogTag);

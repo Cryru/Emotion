@@ -27,27 +27,8 @@ public class ServerUser
         InRoom = null;
     }
 
-    public void SendMessage(Server server, ReadOnlySpan<byte> data)
+    public override string ToString()
     {
-        AssertNotNull(MyIP);
-        server.SendMessage(data, MyIP, SendMessageIndex);
-        SendMessageIndex++;
-    }
-
-    public void SendMessage(Server server, NetworkMessageType shorthand)
-    {
-        Span<byte> data = stackalloc byte[1];
-        data[0] = (byte)shorthand;
-
-        AssertNotNull(MyIP);
-        server.SendMessage(data, MyIP, SendMessageIndex);
-        SendMessageIndex++;
-    }
-
-    public void SendMessage<T>(Server server, NetworkMessageType msgType, T msgInfo)
-    {
-        AssertNotNull(MyIP);
-        server.SendMessage(MyIP, msgType, msgInfo, SendMessageIndex);
-        SendMessageIndex++;
+        return $"User {Id} - {MyIP}";
     }
 }

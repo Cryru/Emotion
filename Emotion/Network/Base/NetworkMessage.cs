@@ -1,4 +1,5 @@
-﻿using Emotion.Standard.XML;
+﻿using Emotion.Network.ServerSide;
+using Emotion.Standard.XML;
 using Emotion.Utility;
 using System.IO;
 using System.Net;
@@ -19,9 +20,17 @@ public class NetworkMessage
     // [32] - hash
 
     public IPEndPoint? Sender;
+
     public bool Valid;
     public int Index;
     public ReadOnlyMemory<byte> Content = ReadOnlyMemory<byte>.Empty;
+
+    public NetworkMessageType MessageType = NetworkMessageType.None;
+
+    // Whether the message instance will be automatically returned to the pool once
+    // processing ends. If this set to false the message needs to be freed by the user manually
+    // via NetworkMessage.Shared.Return(msg) which will reset AutoFree to true for the next usage.
+    public bool AutoFree = true;
 
     public const int MaxMessageSize = 1000 * 10; // 10KB
     public const int MaxMessageContent = MaxMessageSize - 3 - 4 - 4 - 4 - 32;
@@ -120,6 +129,9 @@ public class NetworkMessage
         Sender = null;
         Valid = false;
         Index = -1;
+
+        MessageType = NetworkMessageType.None;
+        AutoFree = true;
     }
 
     public ByteReader? GetContentReader()

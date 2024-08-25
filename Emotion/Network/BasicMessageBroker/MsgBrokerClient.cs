@@ -1,6 +1,7 @@
 ﻿using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
 using Emotion.Utility;
+using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 
@@ -10,7 +11,7 @@ namespace Emotion.Network.BasicMessageBroker;
 
 public class MsgBrokerClient : Client
 {
-    private Dictionary<string, MsgBrokerFunction> _functions = new Dictionary<string, MsgBrokerFunction>();
+    protected Dictionary<string, MsgBrokerFunction> _functions = new Dictionary<string, MsgBrokerFunction>();
 
     public void RegisterFunction<T>(string name, Action<T> func)
     {
@@ -36,25 +37,16 @@ public class MsgBrokerClient : Client
         }
     }
 
-    public void SendBrokerMsg(string method, string metadata)
+    public virtual void SendBrokerMsg(string method, string metadata)
     {
         Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        int bytesWritten = 0;
 
-        using MemoryStream str = new MemoryStream();
-        using BinaryWriter wri = new BinaryWriter(str);
+        spanData[0] = (byte)NetworkMessageType.Generic;
+        bytesWritten += sizeof(byte);
 
-        wri.Write((byte)NetworkMessageType.Generic);
-
-        var methodNameBytes = Encoding.ASCII.GetBytes(method);
-        wri.Write(methodNameBytes.Length);
-        wri.Write(methodNameBytes);
-
-        var methodMetadataBytes = Encoding.UTF8.GetBytes(metadata);
-        wri.Write(methodMetadataBytes.Length);
-        wri.Write(methodMetadataBytes);
-
-        wri.Flush();
-        var arr = str.ToArray();
-        SendMessageToServer(arr);
+        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), method);
+        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), metadata);
+        SendMessageToServer(spanData.Slice(0, bytesWritten));
     }
 }
