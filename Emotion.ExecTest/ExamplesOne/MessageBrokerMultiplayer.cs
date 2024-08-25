@@ -36,55 +36,7 @@ using WinApi.User32;
 #endregion
 
 namespace Emotion.ExecTest;
-
-public class Program
-{
-    public int Pepegich = 1;
-    public int Pepegich2 { get; set; } = 1;
-    public int Pepegich3 { get; } = 1;
-
-    private static void Main(string[] args)
-    {
-        if (CommandLineParser.FindArgument(args, "tests", out string _))
-        {
-            MainTests(args);
-            return;
-        }
-
-        Engine.Start(new Configurator
-        {
-            DebugMode = true,
-            HostTitle = "Example"
-        }, EntryPointAsync);
-    }
-
-    private static void MainTests(string[] args)
-    {
-        var config = new Configurator
-        {
-            DebugMode = true
-        };
-
-        //TestExecutor.ExecuteTests(args, config);
-    }
-
-    private static IEnumerator EntryPointAsync()
-    {
-        // Reflector test
-        var data = ReflectorEngine.GetTypeHandler(typeof(Program));
-        var members = data.GetMembers();
-        foreach (var member in members)
-        {
-            member.ReadValueFromComplexObject(new Program(), out object? val);
-            bool a = true;
-        }
-
-        //yield return Engine.SceneManager.SetScene(new TestScene());
-        yield return Engine.SceneManager.SetScene(new TestScene());
-    }
-}
-
-public class TestObject : MapObject
+public class MessageBrokerMultiplayer_TestObject : MapObject
 {
     public int PlayerId;
 
@@ -93,7 +45,7 @@ public class TestObject : MapObject
 
     private Vector2 _inputDirection;
 
-    public TestObject()
+    public MessageBrokerMultiplayer_TestObject()
     {
         Size = new Vector2(20);
     }
@@ -132,12 +84,12 @@ public class TestObject : MapObject
     }
 }
 
-public class TestScene : Scene
+public class MessageBrokerMultiplayer_TestScene : Scene
 {
     private NetworkCommunicator _networkCom = null;
     private MsgBrokerClient _clientCom = null;
-    private TestObject _myObj = null;
-    private List<TestObject> _objects = new List<TestObject>();
+    private MessageBrokerMultiplayer_TestObject _myObj = null;
+    private List<MessageBrokerMultiplayer_TestObject> _objects = new ();
 
     protected override IEnumerator LoadSceneRoutineAsync()
     {
@@ -206,12 +158,12 @@ public class TestScene : Scene
 
     private void OnRoomJoined(ServerRoomInfo info)
     {
-        _objects = new List<TestObject>();
+        _objects = new List<MessageBrokerMultiplayer_TestObject>();
         for (int i = 0; i < info.UsersInside.Length; i++)
         {
             var userId = info.UsersInside[i];
 
-            var playerObject = new TestObject();
+            var playerObject = new MessageBrokerMultiplayer_TestObject();
             playerObject.PlayerId = userId;
             playerObject.Color = Color.PrettyPurple;
             _objects.Add(playerObject);
@@ -249,7 +201,7 @@ public class TestScene : Scene
 
             if (!foundObject)
             {
-                var playerObject = new TestObject();
+                var playerObject = new MessageBrokerMultiplayer_TestObject();
                 playerObject.PlayerId = userId;
                 playerObject.Color = Color.PrettyPurple;
                 _objects.Add(playerObject);
@@ -320,45 +272,3 @@ public class TestScene : Scene
         }
     }
 }
-
-//public class TestScene3D : World3DBaseScene<Map3D>
-//{
-//    public override Task LoadAsync()
-//    {
-//        var cam3D = new Camera3D(new Vector3(100));
-//        cam3D.LookAtPoint(Vector3.Zero);
-//        Engine.Renderer.Camera = cam3D;
-
-//        _editor.EnterEditor();
-//        return Task.CompletedTask;
-//    }
-
-//    public override void Draw(RenderComposer composer)
-//    {
-//        composer.SetUseViewMatrix(false);
-//        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
-//        composer.ClearDepth();
-//        composer.SetUseViewMatrix(true);
-
-//        base.Draw(composer);
-//    }
-//}
-
-//public class TestScene2D : World2DBaseScene<Map2D>
-//{
-//    public override Task LoadAsync()
-//    {
-//        _editor.EnterEditor();
-//        return Task.CompletedTask;
-//    }
-
-//    public override void Draw(RenderComposer composer)
-//    {
-//        composer.SetUseViewMatrix(false);
-//        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
-//        composer.ClearDepth();
-//        composer.SetUseViewMatrix(true);
-
-//        base.Draw(composer);
-//    }
-//}

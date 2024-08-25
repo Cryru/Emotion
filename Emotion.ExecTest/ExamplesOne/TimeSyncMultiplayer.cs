@@ -18,9 +18,9 @@ using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Network.Base;
-using Emotion.Network.BasicMessageBroker;
 using Emotion.Network.ClientSide;
 using Emotion.Network.ServerSide;
+using Emotion.Network.TimeSyncMessageBroker;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
@@ -37,55 +37,9 @@ using WinApi.User32;
 
 namespace Emotion.ExecTest;
 
-public class Program
+public class TimeSyncMultiplayer_TestObject : MapObject
 {
-    public int Pepegich = 1;
-    public int Pepegich2 { get; set; } = 1;
-    public int Pepegich3 { get; } = 1;
-
-    private static void Main(string[] args)
-    {
-        if (CommandLineParser.FindArgument(args, "tests", out string _))
-        {
-            MainTests(args);
-            return;
-        }
-
-        Engine.Start(new Configurator
-        {
-            DebugMode = true,
-            HostTitle = "Example"
-        }, EntryPointAsync);
-    }
-
-    private static void MainTests(string[] args)
-    {
-        var config = new Configurator
-        {
-            DebugMode = true
-        };
-
-        //TestExecutor.ExecuteTests(args, config);
-    }
-
-    private static IEnumerator EntryPointAsync()
-    {
-        // Reflector test
-        var data = ReflectorEngine.GetTypeHandler(typeof(Program));
-        var members = data.GetMembers();
-        foreach (var member in members)
-        {
-            member.ReadValueFromComplexObject(new Program(), out object? val);
-            bool a = true;
-        }
-
-        //yield return Engine.SceneManager.SetScene(new TestScene());
-        yield return Engine.SceneManager.SetScene(new TestScene());
-    }
-}
-
-public class TestObject : MapObject
-{
+    public Vector2 DesiredPosition;
     public int PlayerId;
 
     public Color Color;
@@ -93,7 +47,7 @@ public class TestObject : MapObject
 
     private Vector2 _inputDirection;
 
-    public TestObject()
+    public TimeSyncMultiplayer_TestObject()
     {
         Size = new Vector2(20);
     }
@@ -123,7 +77,7 @@ public class TestObject : MapObject
     public override void Update(float dt)
     {
         if (PlayerControlled)
-            Position2 += _inputDirection * 0.1f * dt;
+            DesiredPosition += _inputDirection * 0.1f * dt;
     }
 
     public override void Render(RenderComposer c)
@@ -132,12 +86,12 @@ public class TestObject : MapObject
     }
 }
 
-public class TestScene : Scene
+public class TimeSyncMultiplayer_TestScene : Scene
 {
     private NetworkCommunicator _networkCom = null;
-    private MsgBrokerClient _clientCom = null;
-    private TestObject _myObj = null;
-    private List<TestObject> _objects = new List<TestObject>();
+    private MsgBrokerClientTimeSync _clientCom = null;
+    private TimeSyncMultiplayer_TestObject _myObj = null;
+    private List<TimeSyncMultiplayer_TestObject> _objects = new();
 
     protected override IEnumerator LoadSceneRoutineAsync()
     {
@@ -152,8 +106,8 @@ public class TestScene : Scene
         {
             OnClickedProxy = (_) =>
             {
-                _networkCom = Server.CreateServer<MsgBrokerServer>(1337);
-                _clientCom = Client.CreateClient<MsgBrokerClient>("127.0.0.1:1337");
+                _networkCom = Server.CreateServer<MsgBrokerServerTimeSync>(1337);
+                _clientCom = Client.CreateClient<MsgBrokerClientTimeSync>("127.0.0.1:1337");
                 _clientCom.ConnectIfNotConnected();
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestHostRoom();
                 _clientCom.OnRoomJoined = OnRoomJoined;
@@ -161,7 +115,6 @@ public class TestScene : Scene
                 RegisterFuncs();
 
                 Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
-                Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
             }
@@ -171,7 +124,7 @@ public class TestScene : Scene
             OnClickedProxy = (_) =>
             {
                 string serverIp = File.ReadAllText("ip.txt");
-                _clientCom = Client.CreateClient<MsgBrokerClient>(serverIp);
+                _clientCom = Client.CreateClient<MsgBrokerClientTimeSync>(serverIp);
                 _networkCom = _clientCom;
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestRoomList();
                 _clientCom.OnRoomListReceived = (list) => _clientCom.RequestJoinRoom(list[0].Id);
@@ -181,7 +134,6 @@ public class TestScene : Scene
                 RegisterFuncs();
 
                 Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
-                Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
             }
@@ -206,12 +158,12 @@ public class TestScene : Scene
 
     private void OnRoomJoined(ServerRoomInfo info)
     {
-        _objects = new List<TestObject>();
+        _objects = new List<TimeSyncMultiplayer_TestObject>();
         for (int i = 0; i < info.UsersInside.Length; i++)
         {
             var userId = info.UsersInside[i];
 
-            var playerObject = new TestObject();
+            var playerObject = new TimeSyncMultiplayer_TestObject();
             playerObject.PlayerId = userId;
             playerObject.Color = Color.PrettyPurple;
             _objects.Add(playerObject);
@@ -249,7 +201,7 @@ public class TestScene : Scene
 
             if (!foundObject)
             {
-                var playerObject = new TestObject();
+                var playerObject = new TimeSyncMultiplayer_TestObject();
                 playerObject.PlayerId = userId;
                 playerObject.Color = Color.PrettyPurple;
                 _objects.Add(playerObject);
@@ -261,16 +213,32 @@ public class TestScene : Scene
     public override void UpdateScene(float dt)
     {
         base.UpdateScene(dt);
+
+        if (_clientCom != null && _myObj != null)
+        {
+            _clientCom.GameTimeRunner.StartCoroutineThreadSafe(SendMoveObjGameTime());
+        }
+    }
+
+    private IEnumerator SendMoveObjGameTime()
+    {
+        _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.DesiredPosition, _clientCom.UserId)));
+        yield break;
     }
 
     public override void RenderScene(RenderComposer c)
     {
         c.SetUseViewMatrix(false);
         c.RenderSprite(Vector3.Zero, c.CurrentTarget.Size, Color.PrettyGreen);
+
+        if (_clientCom != null)
+            c.RenderString(Vector3.Zero, Color.Red, _clientCom.CurrentGameTime.ToString(), FontAsset.GetDefaultBuiltIn().GetAtlas(35));
+
         c.ClearDepth();
         c.SetUseViewMatrix(true);
 
         c.RenderCircle(Vector3.Zero, 20, Color.White, true);
+
         base.RenderScene(c);
     }
 
@@ -294,18 +262,6 @@ public class TestScene : Scene
         }
     }
 
-    public IEnumerator UpdateObjectNetwork()
-    {
-        while (true)
-        {
-            if (_clientCom != null && _myObj != null)
-            {
-                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2, _clientCom.UserId)));
-            }
-            yield return null;
-        }
-    }
-
     public void MoveObj(Vector3 pos)
     {
         int senderIdx = (int) pos.Z;
@@ -315,50 +271,11 @@ public class TestScene : Scene
             if (obj.PlayerId == senderIdx)
             {
                 obj.Position2 = Vector2.Lerp(obj.Position2, pos.ToVec2(), 0.5f);
+
+                var hsh = (obj.Position.RoundClosest().ToString() + _clientCom.CurrentGameTime.ToString()).GetStableHashCode();
+                _clientCom.SendTimeSyncHash(hsh);
                 break;
             }
         }
     }
 }
-
-//public class TestScene3D : World3DBaseScene<Map3D>
-//{
-//    public override Task LoadAsync()
-//    {
-//        var cam3D = new Camera3D(new Vector3(100));
-//        cam3D.LookAtPoint(Vector3.Zero);
-//        Engine.Renderer.Camera = cam3D;
-
-//        _editor.EnterEditor();
-//        return Task.CompletedTask;
-//    }
-
-//    public override void Draw(RenderComposer composer)
-//    {
-//        composer.SetUseViewMatrix(false);
-//        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
-//        composer.ClearDepth();
-//        composer.SetUseViewMatrix(true);
-
-//        base.Draw(composer);
-//    }
-//}
-
-//public class TestScene2D : World2DBaseScene<Map2D>
-//{
-//    public override Task LoadAsync()
-//    {
-//        _editor.EnterEditor();
-//        return Task.CompletedTask;
-//    }
-
-//    public override void Draw(RenderComposer composer)
-//    {
-//        composer.SetUseViewMatrix(false);
-//        composer.RenderSprite(Vector3.Zero, composer.CurrentTarget.Size, Color.CornflowerBlue);
-//        composer.ClearDepth();
-//        composer.SetUseViewMatrix(true);
-
-//        base.Draw(composer);
-//    }
-//}
