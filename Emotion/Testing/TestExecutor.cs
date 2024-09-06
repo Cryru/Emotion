@@ -6,6 +6,7 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
@@ -15,6 +16,12 @@ using Emotion.Utility;
 #endregion
 
 namespace Emotion.Testing;
+
+public class TestExecutionReport
+{
+    public int Completed;
+    public int Total;
+}
 
 public static class TestExecutor
 {
@@ -39,12 +46,13 @@ public static class TestExecutor
     /// </summary>
     public static float PixelDerivationTolerance = 2;
 
+    private static Type? _testsFilter;
+
     public static void ExecuteTests(string[] args, Configurator? config = null, Type? filterTestsOnlyFromClass = null)
     {
         // todo: read args and start running split processes, different configs etc.
 
         string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
-
         TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
 
         config ??= new Configurator();
@@ -52,8 +60,20 @@ public static class TestExecutor
         config.NoErrorPopup = true;
         config.Logger = new TestLogger(Path.Join(TestRunFolder, "Logs"));
 
-        Engine.Setup(config);
+        _testsFilter = filterTestsOnlyFromClass;
 
+        Engine.Start(config, TestSystemInit);
+    }
+
+    private static IEnumerator TestSystemInit()
+    {
+        var testRoutine = Engine.CoroutineManagerAsync.StartCoroutine(RunTestsRoutine());
+        yield return new PassiveRoutineObserver(testRoutine);
+        Engine.Quit();
+    }
+
+    private static IEnumerator RunTestsRoutine()
+    {
         // Find all test functions in test classes.
         var testFunctions = new List<MethodInfo>();
         foreach (Assembly ass in Helpers.AssociatedAssemblies)
@@ -61,7 +81,7 @@ public static class TestExecutor
             IEnumerable<Type> classTypes = ass.GetTypes().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
             foreach (Type classType in classTypes)
             {
-                if (filterTestsOnlyFromClass != null && classType != filterTestsOnlyFromClass) continue;
+                if (_testsFilter != null && classType != _testsFilter) continue;
 
                 // Find all test functions in this class.
                 testFunctions.AddRange(classType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0));
@@ -75,40 +95,29 @@ public static class TestExecutor
             IEnumerable<Type> sceneTypes = ass.GetTypes().Where(x => x.IsSubclassOf(typeof(TestingScene)));
             foreach (Type sceneType in sceneTypes)
             {
-                if (filterTestsOnlyFromClass != null && sceneType != filterTestsOnlyFromClass) continue;
+                if (_testsFilter != null && sceneType != _testsFilter) continue;
 
                 testScenes.Add(sceneType);
             }
         }
 
-        Task.Run(async () =>
-        {
-            try
-            {
-                (int completed, int total) resultClasses = RunTestClasses(testFunctions);
-                (int completed, int total) resultScenes = await RunTestScenes(testScenes);
+        var reportClasses = new TestExecutionReport();
+        RunTestClasses(testFunctions, reportClasses);
 
-                // The format of this message must match the old system's regex!
-                var completed = resultClasses.completed + resultScenes.completed;
-                var total = resultClasses.total + resultScenes.total;
-                Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
+        var reportScenes = new TestExecutionReport();
+        yield return RunTestScenes(testScenes, reportScenes);
+
+        // The format of this message must match the old system's regex!
+        var completed = reportClasses.Completed + reportScenes.Completed;
+        var total = reportClasses.Total + reportScenes.Total;
+        Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
 
 #if !AUTOBUILD
-                if (Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
+        if (Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
 #endif
-            }
-            catch (Exception)
-            {
-                // ignored, prevent stalling
-            }
-
-            Engine.Quit();
-        });
-
-        Engine.Run();
     }
 
-    private static (int completed, int total) RunTestClasses(List<MethodInfo> testFunctions)
+    private static void RunTestClasses(List<MethodInfo> testFunctions, TestExecutionReport report)
     {
         int completed = 0;
         int total = 0;
@@ -199,10 +208,11 @@ public static class TestExecutor
             Engine.Log.Info($"Completed {declaringType}: {completedThisClass}/{totalThisClass}!\n", MessageSource.Test);
         }
 
-        return (completed, total);
+        report.Completed = completed;
+        report.Total = total;
     }
 
-    private static async Task<(int, int)> RunTestScenes(List<Type> testScenes)
+    private static IEnumerator RunTestScenes(List<Type> testScenes, TestExecutionReport report)
     {
         int completed = 0;
         int total = 0;
@@ -221,7 +231,7 @@ public static class TestExecutor
             var totalThisScene = 0;
 
             Engine.Log.Info($"\nRunning test scene {sceneType}...", MessageSource.Test);
-            await Engine.SceneManager.SetScene(sc);
+            yield return Engine.SceneManager.SetScene(sc);
             Func<IEnumerator>[] testRoutines = sc.GetTestCoroutines();
             foreach (Func<IEnumerator> testRoutine in testRoutines)
             {
@@ -264,12 +274,13 @@ public static class TestExecutor
                 {
                     completedThisScene++;
                     completed++;
-                } 
+                }
             }
 
             Engine.Log.Info($"Completed {sceneType}: {completedThisScene}/{totalThisScene}!\n", MessageSource.Test);
         }
 
-        return (completed, total);
+        report.Completed = completed;
+        report.Total = total;
     }
 }

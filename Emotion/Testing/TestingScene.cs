@@ -25,7 +25,7 @@ public abstract class TestingScene : Scene
     protected static FrameBuffer? _screenShotBuffer;
     protected static byte[]? _lastFrameScreenShot;
 
-    public override void Update()
+    public override void UpdateScene(float dt)
     {
         if (!_runUpdateLoop.IsSet || _runLoopsConstant)
         {
