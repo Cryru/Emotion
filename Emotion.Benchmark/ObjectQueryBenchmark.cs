@@ -7,7 +7,7 @@ using Emotion.Game.World;
 using Emotion.Game.World2D;
 using Emotion.Primitives;
 
-using Emotion.Test;
+using Emotion.Testing;
 
 #endregion
 

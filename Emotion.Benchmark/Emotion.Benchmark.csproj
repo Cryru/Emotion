@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Benchmarks.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\Tests\Assets\Images\logoAlpha.png" Link="Assets\logoAlpha.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -21,12 +25,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Benchmarks.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
-    <ProjectReference Include="..\Tests\Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
