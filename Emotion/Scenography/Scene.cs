@@ -24,8 +24,34 @@ public enum SceneStatus
 [DontSerialize]
 public abstract class Scene
 {
-    public SceneStatus Status { get; private set; } = SceneStatus.None;
+    public SceneStatus Status { get; protected set; } = SceneStatus.None;
 
+    public virtual IEnumerator LoadSceneRoutineAsync()
+    {
+        Status = SceneStatus.Loaded;
+        yield break;
+    }
+
+    public virtual IEnumerator UnloadSceneRoutineAsync()
+    {
+        Status = SceneStatus.Disposed;
+        yield break;
+    }
+
+    public virtual void UpdateScene(float dt)
+    {
+
+    }
+
+    public virtual void RenderScene(RenderComposer c)
+    {
+
+    }
+}
+
+[DontSerialize]
+public abstract class SceneWithMap : Scene
+{
     public UIBaseWindow UIParent { get; } = new()
     {
         Id = "SceneRoot"
@@ -33,10 +59,10 @@ public abstract class Scene
 
     public GameMap Map { get; protected set; }
 
-    public IEnumerator LoadRoutineAsync()
+    public override IEnumerator LoadSceneRoutineAsync()
     {
         Status = SceneStatus.Loading;
-        yield return LoadSceneRoutineAsync();
+        yield return InternalLoadSceneRoutineAsync();
         Map ??= new GameMap();
         yield return Map.LoadRoutine();
 
@@ -45,23 +71,22 @@ public abstract class Scene
 
         Status = SceneStatus.Loaded;
     }
+    protected abstract IEnumerator InternalLoadSceneRoutineAsync();
 
-    public IEnumerator UnloadRoutineAsync()
+    public override IEnumerator UnloadSceneRoutineAsync()
     {
         UIParent.Close();
         Status = SceneStatus.Disposed;
         yield break;
     }
 
-    public virtual void UpdateScene(float dt)
+    public override void UpdateScene(float dt)
     {
         Map.Update(dt);
     }
 
-    public virtual void RenderScene(RenderComposer c)
+    public override void RenderScene(RenderComposer c)
     {
         Map.Render(c);
     }
-
-    protected abstract IEnumerator LoadSceneRoutineAsync();
 }

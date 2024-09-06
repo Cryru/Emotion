@@ -24,12 +24,7 @@ public class GlyphSoftwareRasterizerTests : TestingScene
 {
     private List<IntPtr> _pinnedFonts = new();
 
-    public override Task LoadAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public override void Unload()
+    public override IEnumerator UnloadSceneRoutineAsync()
     {
         for (var i = 0; i < _pinnedFonts.Count; i++)
         {
@@ -37,7 +32,7 @@ public class GlyphSoftwareRasterizerTests : TestingScene
         }
 
         _pinnedFonts.Clear();
-        base.Unload();
+        return base.UnloadSceneRoutineAsync();
     }
 
     protected override void TestUpdate()

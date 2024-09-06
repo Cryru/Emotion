@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Numerics;
 using System.Threading.Tasks;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Testing;
@@ -19,10 +20,11 @@ public class UITests : TestingScene
 {
     public UIController UI = null!;
 
-    public override async Task LoadAsync()
+    public override IEnumerator LoadSceneRoutineAsync()
     {
         UI = new UIController();
-        await UI.PreloadUI();
+        yield return new TaskRoutineWaiter(UI.PreloadUI());
+        yield return base.LoadSceneRoutineAsync();
     }
 
     protected override void TestUpdate()

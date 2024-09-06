@@ -96,7 +96,7 @@ namespace Emotion.Scenography
             yield return new PassiveRoutineObserver(swapToLoadingRoutine);
 
             Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
-            yield return scene.LoadRoutineAsync();
+            yield return scene.LoadSceneRoutineAsync();
             Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
 
             // Swap current to new scene.
@@ -110,14 +110,14 @@ namespace Emotion.Scenography
             Current = scene;
             OnSceneChanged?.Invoke();
             if (oldScene != LoadingScreen)
-                Engine.CoroutineManagerAsync.StartCoroutine(oldScene.UnloadRoutineAsync());
+                Engine.CoroutineManagerAsync.StartCoroutine(oldScene.UnloadSceneRoutineAsync());
 
             yield break;
         }
 
         private IEnumerator InternalLoadLoadingScreenRoutineAsync(Scene scene)
         {
-            yield return scene.LoadRoutineAsync();
+            yield return scene.LoadSceneRoutineAsync();
             Engine.CoroutineManager.StartCoroutine(LoadingScreenSceneSwapSynchronized(scene));
         }
 
@@ -129,7 +129,7 @@ namespace Emotion.Scenography
             if (Current == loadingLoadingScreen)
                 Current = scene;
 
-            Engine.CoroutineManagerAsync.StartCoroutine(loadingLoadingScreen.UnloadRoutineAsync());
+            Engine.CoroutineManagerAsync.StartCoroutine(loadingLoadingScreen.UnloadSceneRoutineAsync());
 
             yield break;
         }

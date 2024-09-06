@@ -20,11 +20,11 @@ public class NewUITests : TestingScene
 {
     public UIController UI = null!;
 
-    public override Task LoadAsync()
+    public override IEnumerator LoadSceneRoutineAsync()
     {
         UI = new UIController();
         UI.UseNewLayoutSystem = true;
-        return Task.CompletedTask;
+        yield return base.LoadSceneRoutineAsync();
     }
 
     protected override void TestUpdate()

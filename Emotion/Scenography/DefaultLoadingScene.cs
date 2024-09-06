@@ -14,7 +14,7 @@ namespace Emotion.Scenography
     /// </summary>
     public class DefaultLoadingScene : Scene
     {
-        protected override IEnumerator LoadSceneRoutineAsync()
+        public override IEnumerator LoadSceneRoutineAsync()
         {
             yield break;
         }

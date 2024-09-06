@@ -86,14 +86,14 @@ public class TimeSyncMultiplayer_TestObject : MapObject
     }
 }
 
-public class TimeSyncMultiplayer_TestScene : Scene
+public class TimeSyncMultiplayer_TestScene : SceneWithMap
 {
     private NetworkCommunicator _networkCom = null;
     private MsgBrokerClientTimeSync _clientCom = null;
     private TimeSyncMultiplayer_TestObject _myObj = null;
     private List<TimeSyncMultiplayer_TestObject> _objects = new();
 
-    protected override IEnumerator LoadSceneRoutineAsync()
+    protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
         // Fixes deadlock
         Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");

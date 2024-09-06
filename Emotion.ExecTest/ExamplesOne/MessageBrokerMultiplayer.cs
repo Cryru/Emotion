@@ -84,14 +84,14 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
     }
 }
 
-public class MessageBrokerMultiplayer_TestScene : Scene
+public class MessageBrokerMultiplayer_TestScene : SceneWithMap
 {
     private NetworkCommunicator _networkCom = null;
     private MsgBrokerClient _clientCom = null;
     private MessageBrokerMultiplayer_TestObject _myObj = null;
     private List<MessageBrokerMultiplayer_TestObject> _objects = new ();
 
-    protected override IEnumerator LoadSceneRoutineAsync()
+    protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
         // Fixes deadlock
         Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
