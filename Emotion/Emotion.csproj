@@ -13,7 +13,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <NoWarn>1701;1702;1591;1734</NoWarn>
+        <NoWarn>1701;1702;1591;1734;IDE0001;IDE0002;IDE0049</NoWarn>
         <Configurations>Debug;Release;Autobuild</Configurations>
         <Platforms>Win64;Win64NoDepend;Win32;Linux64;MacOS64;Android;Web</Platforms>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -188,9 +188,6 @@
       <Compile Remove="Game\World3D\SceneControl\World3DBaseScene.cs" />
       <Compile Remove="Game\World\SceneControl\WorldBaseScene.cs" />
       <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
-      <Compile Remove="Testing\TestExecutor.cs" />
-      <Compile Remove="Testing\TestingScene.cs" />
-      <Compile Remove="Testing\TestWaiterRunLoops.cs" />
       <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
       <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
       <Compile Remove="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
@@ -262,13 +259,8 @@
       <None Include="Game\World3D\SceneControl\World3DBaseScene.cs" />
       <None Include="Game\World\SceneControl\WorldBaseScene.cs" />
       <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
-      <None Include="Testing\TestExecutor.cs" />
-      <None Include="Testing\TestWaiterRunLoops.cs" />
       <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
       <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
       <None Include="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="Testing\TestingScene.cs" />
     </ItemGroup>
 </Project>

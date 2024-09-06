@@ -164,6 +164,7 @@ Global
 		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Debug|Web.ActiveCfg = Debug|Default
 		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Debug|Web.Build.0 = Debug|Default
 		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Debug|Win64.ActiveCfg = Debug|Default
+		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Debug|Win64.Build.0 = Debug|Default
 		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Debug|Win64NoDepend.ActiveCfg = Debug|Default
 		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Debug|Win64NoDepend.Build.0 = Debug|Default
 		{DEFBA854-275A-4203-A15D-ED97D3C51041}.Release|Android.ActiveCfg = Release|Default

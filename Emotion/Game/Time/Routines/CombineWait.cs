@@ -19,11 +19,11 @@ namespace Emotion.Game.Time.Routines
         private IRoutineWaiter _a;
         private IRoutineWaiter _b;
 
-        public CombineWait(IEnumerator a, IEnumerator b)
-        {
-            _a = new Coroutine(a);
-            _b = new Coroutine(b);
-        }
+        //public CombineWait(IEnumerator a, IEnumerator b)
+        //{
+        //    _a = new Coroutine(a);
+        //    _b = new Coroutine(b);
+        //}
 
         public CombineWait(IRoutineWaiter a, IRoutineWaiter b)
         {
@@ -43,14 +43,14 @@ namespace Emotion.Game.Time.Routines
         public bool Finished { get; protected set; }
         private IRoutineWaiter[] _waiters;
 
-        public CombineWaitMany(params IEnumerator[] routines)
-        {
-            _waiters = new IRoutineWaiter[routines.Length];
-            for (var i = 0; i < _waiters.Length; i++)
-            {
-                _waiters[i] = new Coroutine(routines[i]);
-            }
-        }
+        //public CombineWaitMany(params IEnumerator[] routines)
+        //{
+        //    _waiters = new IRoutineWaiter[routines.Length];
+        //    for (var i = 0; i < _waiters.Length; i++)
+        //    {
+        //        _waiters[i] = new Coroutine(routines[i]);
+        //    }
+        //}
 
         public CombineWaitMany(params IRoutineWaiter[] waiters)
         {

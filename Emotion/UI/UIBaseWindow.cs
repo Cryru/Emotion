@@ -1032,11 +1032,8 @@ namespace Emotion.UI
         /// </summary>
         public void SetRotation(float degrees, ITimer? tween = null)
         {
-            if (_rotationRoutineCurrent != null && _rotationRoutineCurrent.Active)
-            {
-                Assert(!_rotationRoutineCurrent.Finished);
+            if (_rotationRoutineCurrent != null && !_rotationRoutineCurrent.Finished)
                 Engine.CoroutineManager.StopCoroutine(_rotationRoutineCurrent);
-            }
             _rotationRoutineCurrent = Engine.CoroutineManager.StartCoroutine(RotationDisplacement(_rotation, degrees, tween));
         }
 
