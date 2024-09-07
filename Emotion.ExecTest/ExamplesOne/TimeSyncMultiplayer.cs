@@ -215,9 +215,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         base.UpdateScene(dt);
 
         if (_clientCom != null && _myObj != null)
-        {
-            _clientCom.GameTimeRunner.StartCoroutineThreadSafe(SendMoveObjGameTime());
-        }
+            _clientCom.GameTimeRunner.StartCoroutine(SendMoveObjGameTime());
     }
 
     private IEnumerator SendMoveObjGameTime()

@@ -376,4 +376,50 @@ public class CoroutineTest
         Assert.True(routineHandle2.Finished);
         Assert.Equal(nonTimeWaitState.Step, 3);
     }
+
+    [Test]
+    public void CoroutineFinishedWaiterAndTimeWaitingInSingleRun()
+    {
+        static IEnumerator YieldFinishedWaiterAndTimeWaitRoutine(CoroutineTestStateTracker state)
+        {
+            yield return null; // Eager prevention
+
+            for (int i = 0; i < 100; i++)
+            {
+                yield return new ProxyWaiter(() => true);
+            }
+            yield return 500;
+            yield return 100;
+            state.Step = 1;
+        }
+
+        static IEnumerator YieldFinishedWaiterAndTimeWaitRoutineInterweaved(CoroutineTestStateTracker state)
+        {
+            yield return 550;
+            for (int i = 0; i < 100; i++)
+            {
+                yield return new ProxyWaiter(() => true);
+            }
+            yield return 50;
+            state.Step = 1;
+        }
+
+        CoroutineTestStateTracker state = new();
+        CoroutineTestStateTracker state2 = new();
+
+        var manager = new CoroutineManager();
+        Coroutine routineHandle1 = manager.StartCoroutine(YieldFinishedWaiterAndTimeWaitRoutine(state));
+        Coroutine routineHandle2 = manager.StartCoroutine(YieldFinishedWaiterAndTimeWaitRoutineInterweaved(state2));
+
+        Assert.Equal(2, manager.Count);
+        Assert.False(routineHandle1.Finished);
+
+        manager.Update(600);
+
+        Assert.True(routineHandle1.Finished);
+        Assert.Equal(state.Step, 1);
+        
+        Assert.True(routineHandle2.Finished);
+        Assert.Equal(state2.Step, 1);
+    }
 }

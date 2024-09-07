@@ -15,7 +15,7 @@ namespace Emotion.Network.TimeSyncMessageBroker;
 
 public class MsgBrokerClientTimeSync : MsgBrokerClient
 {
-    public CoroutineManager GameTimeRunner = new CoroutineManager();
+    public CoroutineManager GameTimeRunner = new CoroutineManager(false);
     public int CurrentGameTime = 0;
 
     private int _advanceGameTimeTo = 0;

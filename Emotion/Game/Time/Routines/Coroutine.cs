@@ -79,7 +79,6 @@ public sealed class Coroutine : IRoutineWaiter
 
         Parent = parent;
         _routine = enumerator;
-        Run(0);
 
 #if DEBUG_STACKS
         string stackTrace = Environment.StackTrace;
@@ -113,6 +112,7 @@ public sealed class Coroutine : IRoutineWaiter
 
         if (Status != CoroutineStatus.Running) return;
 
+        // One coroutine tick can end up advancing the coroutine multiple times.
         while (RunInternal(ref dt))
         {
         }
@@ -175,6 +175,11 @@ public sealed class Coroutine : IRoutineWaiter
         object? currentYield = _routine.Current;
         switch (currentYield)
         {
+            // Yielding a coroutine will wait for it to complete.
+            // Note that this other routine can be in another CoroutineManager.
+            case Coroutine routine:
+                CurrentWaiter_SubRoutine = routine;
+                break;
             // Check if a delay, and add it as the routine's delay.
             case IRoutineWaiter routineDelay:
                 CurrentWaiter = routineDelay;
