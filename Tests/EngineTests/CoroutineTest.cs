@@ -12,12 +12,17 @@ using Emotion.Testing;
 namespace Tests.EngineTests;
 
 [Test]
-//[TestClassRunParallel]
+[TestClassRunParallel]
 public class CoroutineTest
 {
     private class CoroutineTestStateTracker
     {
         public int Step;
+    }
+
+    private class CoroutineTestOrderStateTracker
+    {
+        public List<int> RoutineHandles = new();
     }
 
     [Test]
@@ -309,5 +314,66 @@ public class CoroutineTest
         Assert.Equal(routineHandle2.CurrentWaiter_Time, 0);
         Assert.False(routineHandle3.Finished);
         Assert.Equal(routineHandle3.CurrentWaiter_Time, 483.353516f);
+    }
+
+    [Test]
+    public void CoroutineTimeWaitingRoutineThatAddsAnotherTimeWaitingRoutine()
+    {
+        static IEnumerator WaitTimeAndIncrementStateRoutine(CoroutineTestOrderStateTracker state, int routineIdx, float timeToWait)
+        {
+            yield return timeToWait;
+            state.RoutineHandles.Add(routineIdx);
+        }
+
+        static IEnumerator TimeWaitingRoutineThatAddsRoutine(CoroutineTestOrderStateTracker state, CoroutineManager manager, int routineIdx, float timeToWait)
+        {
+            yield return timeToWait;
+            state.RoutineHandles.Add(routineIdx);
+            yield return manager.StartCoroutine(WaitTimeAndIncrementStateRoutine(state, routineIdx+1, timeToWait));
+        }
+
+        static IEnumerator NonTimeWaitingLoopingRoutine(CoroutineTestStateTracker state)
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                state.Step = i + 1; // (Dont set 0 since thats init value)
+                yield return null;
+            }
+        }
+
+        CoroutineTestOrderStateTracker state = new();
+        CoroutineTestStateTracker nonTimeWaitState = new();
+
+        var manager = new CoroutineManager();
+        Coroutine routineHandle1 = manager.StartCoroutine(WaitTimeAndIncrementStateRoutine(state, 1, 1000f));
+        Coroutine routineHandle2 = manager.StartCoroutine(TimeWaitingRoutineThatAddsRoutine(state, manager, 2, 500f));
+        Coroutine routineHandle4 = manager.StartCoroutine(NonTimeWaitingLoopingRoutine(nonTimeWaitState));
+
+        Assert.Equal(3, manager.Count);
+        Assert.False(routineHandle1.Finished);
+        Assert.False(routineHandle2.Finished);
+        Assert.False(routineHandle4.Finished);
+
+        // Add time enough to pass routine 1 and routine 2
+        // This will result in routine 2 passing and adding routine 3 which is also 500
+        // The expected result is for then routine 1 to finish (it only has 500 remaining and is older than routine 3) and
+        // then routine 3 to finish.
+        manager.Update(1000);
+
+        Assert.Equal(3, state.RoutineHandles.Count);
+        Assert.Equal(2, state.RoutineHandles[0]);
+        Assert.Equal(1, state.RoutineHandles[1]);
+        Assert.Equal(3, state.RoutineHandles[2]);
+        Assert.True(routineHandle1.Finished);
+        Assert.False(routineHandle2.Finished); // Routine 2 added routine 3, which itself is complete, but it doesn't know that until the next update
+
+        // The non time waiting routine shouldn've run only once.
+        // Once on start because eager 0->1
+        // One update 1->2
+        Assert.Equal(nonTimeWaitState.Step, 2);
+
+        manager.Update(0);
+        Assert.True(routineHandle2.Finished);
+        Assert.Equal(nonTimeWaitState.Step, 3);
     }
 }
