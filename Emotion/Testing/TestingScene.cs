@@ -27,10 +27,9 @@ public abstract class TestingScene : Scene
 
     public override void UpdateScene(float dt)
     {
-        if (!_runUpdateLoop.IsSet || _runLoopsConstant)
+        if (ShouldRunLoop())
         {
             TestUpdate();
-            _runUpdateLoop.Set();
         }
     }
 
@@ -39,7 +38,7 @@ public abstract class TestingScene : Scene
         _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor();
         if (_screenShotBuffer.Size != composer.DrawBuffer.Size) _screenShotBuffer.Resize(composer.DrawBuffer.Size, true);
 
-        if (!_runRenderLoop.IsSet || _runLoopsConstant)
+        if (ShouldRunLoop())
         {
             composer.RenderToAndClear(_screenShotBuffer);
 
@@ -55,7 +54,7 @@ public abstract class TestingScene : Scene
             FrameBuffer drawBuffer = _screenShotBuffer;
             _lastFrameScreenShot = drawBuffer.Sample(drawBuffer.Viewport, PixelFormat.Rgba);
 
-            _runRenderLoop.Set();
+            OnLoopRan();
         }
     }
 
@@ -164,23 +163,31 @@ public abstract class TestingScene : Scene
     protected abstract void TestDraw(RenderComposer c);
     public abstract Func<IEnumerator>[] GetTestCoroutines();
 
-    private ManualResetEventSlim _runUpdateLoop = new(true);
-    private ManualResetEventSlim _runRenderLoop = new(true);
-    private bool _runLoopsConstant;
+    // Loop waiter
+    private TestWaiterRunLoops? _loopWaiter;
+    private static TestingScene? _currentTestingScene;
 
-    public void RunLoop()
+    public static void SetCurrent(TestingScene? sc)
     {
-        _runUpdateLoop.Reset();
-        _runRenderLoop.Reset();
-
-        _runUpdateLoop.Wait();
-        _runRenderLoop.Wait();
+        _currentTestingScene = sc;
     }
 
-    public void RunLoopsConstant(bool toggle)
+    public static void AddLoopWaiter(TestWaiterRunLoops loopRunWaiter)
     {
-        _runLoopsConstant = toggle;
-        _runUpdateLoop.Reset();
-        _runRenderLoop.Reset();
+        AssertNotNull(_currentTestingScene);
+        _currentTestingScene._loopWaiter = loopRunWaiter;
+    }
+
+    private bool ShouldRunLoop()
+    {
+        if (_loopWaiter == null) return false;
+        if (_loopWaiter.LoopsToRun == -1) return true;
+        if (_loopWaiter.Finished) return false;
+        return true;
+    }
+
+    private void OnLoopRan()
+    {
+        _loopWaiter?.AddLoopRan();
     }
 }

@@ -2,16 +2,13 @@
 
 #region Using
 
-using System.Collections;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Utility;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -62,17 +59,17 @@ public static class TestExecutor
 
         _testsFilter = filterTestsOnlyFromClass;
 
-        Engine.Start(config, TestSystemInit);
+        Engine.Start(config, TestSystemInitRoutineAsync);
     }
 
-    private static IEnumerator TestSystemInit()
+    private static IEnumerator TestSystemInitRoutineAsync()
     {
-        var testRoutine = Engine.CoroutineManagerAsync.StartCoroutine(RunTestsRoutine());
-        yield return new PassiveRoutineObserver(testRoutine);
+        Coroutine testRoutine = Engine.CoroutineManagerAsync.StartCoroutine(RunTestsRoutineAsync());
+        yield return testRoutine;
         Engine.Quit();
     }
 
-    private static IEnumerator RunTestsRoutine()
+    private static IEnumerator RunTestsRoutineAsync()
     {
         // Find all test functions in test classes.
         var testFunctions = new List<MethodInfo>();
@@ -105,7 +102,7 @@ public static class TestExecutor
         RunTestClasses(testFunctions, reportClasses);
 
         var reportScenes = new TestExecutionReport();
-        yield return RunTestScenes(testScenes, reportScenes);
+        yield return RunTestScenesRoutineAsync(testScenes, reportScenes);
 
         // The format of this message must match the old system's regex!
         var completed = reportClasses.Completed + reportScenes.Completed;
@@ -212,7 +209,7 @@ public static class TestExecutor
         report.Total = total;
     }
 
-    private static IEnumerator RunTestScenes(List<Type> testScenes, TestExecutionReport report)
+    private static IEnumerator RunTestScenesRoutineAsync(List<Type> testScenes, TestExecutionReport report)
     {
         int completed = 0;
         int total = 0;
@@ -232,6 +229,8 @@ public static class TestExecutor
 
             Engine.Log.Info($"\nRunning test scene {sceneType}...", MessageSource.Test);
             yield return Engine.SceneManager.SetScene(sc);
+            TestingScene.SetCurrent(sc);
+
             Func<IEnumerator>[] testRoutines = sc.GetTestCoroutines();
             foreach (Func<IEnumerator> testRoutine in testRoutines)
             {
@@ -239,48 +238,33 @@ public static class TestExecutor
                 string functionName = routineReflect.Name;
                 Engine.Log.Info($"  Running test {functionName}...", MessageSource.Test);
 
-                bool testFailed = false;
-
+                _currentSceneCurrentRoutineFailed = false;
                 sc.RunningTestRoutineIndex++;
-                IEnumerator enumerator = testRoutine();
-                Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(enumerator);
-                while (!coroutine.Finished && !coroutine.Stopped)
-                {
-                    IRoutineWaiter? currentWaiter = coroutine.CurrentWaiter;
-                    while (currentWaiter is Coroutine subRoutine) currentWaiter = subRoutine.CurrentWaiter;
-
-                    if (currentWaiter is VerifyScreenshotResult verifyResult)
-                        if (!verifyResult.Passed) testFailed = true;
-
-                    if (currentWaiter is TestWaiterRunLoops runLoopsWaiter && !runLoopsWaiter.Finished)
-                    {
-                        if (runLoopsWaiter.LoopsToRun == -1)
-                        {
-                            sc.RunLoopsConstant(true);
-                        }
-                        else
-                        {
-                            sc.RunLoop();
-                            runLoopsWaiter.AddLoopRan();
-                        }
-                    }
-                }
-
+                Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(testRoutine());
+                yield return coroutine;
                 totalThisScene++;
                 total++;
 
-                if (coroutine.Stopped) testFailed = true;
-                if (!testFailed)
+                if (coroutine.Stopped) _currentSceneCurrentRoutineFailed = true;
+                if (!_currentSceneCurrentRoutineFailed)
                 {
                     completedThisScene++;
                     completed++;
                 }
             }
 
+            TestingScene.SetCurrent(null);
             Engine.Log.Info($"Completed {sceneType}: {completedThisScene}/{totalThisScene}!\n", MessageSource.Test);
         }
 
         report.Completed = completed;
         report.Total = total;
+    }
+
+    private static bool _currentSceneCurrentRoutineFailed = false;
+
+    public static void SetCurrentTestSceneTestAsFailed()
+    {
+        _currentSceneCurrentRoutineFailed = true;
     }
 }
