@@ -67,6 +67,14 @@ namespace Emotion.Game.Time.Routines
             return routine;
         }
 
+        public virtual Coroutine StartCoroutineInline(IEnumerator enumerator)
+        {
+            bool hasNext = enumerator.MoveNext();
+            if (!hasNext) return Coroutine.CompletedRoutine;
+
+            return StartCoroutine(enumerator);
+        }
+
         public virtual Coroutine StartCoroutineThreadSafe(IEnumerator enumerator)
         {
             lock (this)

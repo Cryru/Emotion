@@ -1024,7 +1024,7 @@ namespace Emotion.UI
                 Assert(!_rotationRoutineCurrent.Finished);
                 Engine.CoroutineManager.StopCoroutine(_rotationRoutineCurrent);
             }
-            _rotationRoutineCurrent = Engine.CoroutineManager.StartCoroutine(RotationDisplacement(_rotation, degrees, tween));
+            _rotationRoutineCurrent = Engine.CoroutineManager.StartCoroutineInline(RotationDisplacement(_rotation, degrees, tween));
         }
 
         /// <summary>
