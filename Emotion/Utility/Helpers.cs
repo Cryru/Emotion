@@ -3,6 +3,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Emotion.Game.Data;
 using Emotion.Platform.Input;
 
 #endregion
@@ -108,7 +109,7 @@ public static class Helpers
     }
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
-    public static T? GetRandomArrayItem<T>(List<T> array)
+    public static T? GetRandomArrayItem<T>(IList<T> array)
     {
         if (array.Count == 0) return default;
         var num = GenerateRandomNumber(0, array.Count - 1);
@@ -117,7 +118,7 @@ public static class Helpers
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
 
-    public static T? GetRandomArrayItem<T>(List<T> array, Random rng, bool eject = false)
+    public static T? GetRandomArrayItem<T>(IList<T> array, Random rng, bool eject = false)
     {
         if (array.Count == 0) return default;
 
