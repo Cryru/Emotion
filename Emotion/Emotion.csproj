@@ -15,7 +15,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>1701;1702;1591;1734;IDE0001;IDE0002;IDE0049</NoWarn>
         <Configurations>Debug;Release;Autobuild</Configurations>
-        <Platforms>Win64;Win64NoDepend;Win32;Linux64;MacOS64;Android;Web</Platforms>
+        <Platforms>Win64;Win64NoDepend;Win32;Linux64;MacOS64;Android;Web;Other</Platforms>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
     
@@ -103,6 +103,11 @@
 
     <!-- Android -->
     <PropertyGroup Condition="'$(Platform)'=='Android'">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+    
+    <!-- Generic AnyCPU, no native libraries -->
+    <PropertyGroup Condition="'$(Platform)'=='Other'">
         <PlatformTarget>AnyCPU</PlatformTarget>
     </PropertyGroup>
     
