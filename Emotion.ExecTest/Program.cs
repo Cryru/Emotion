@@ -79,8 +79,8 @@ public class Program
             bool a = true;
         }
 
-        //yield return Engine.SceneManager.SetScene(new TestScene());
         yield return Engine.SceneManager.SetScene(new TestScene());
+        //yield return Engine.SceneManager.SetScene(new TimeSyncMultiplayer_TestScene());
     }
 }
 
@@ -132,14 +132,14 @@ public class TestObject : MapObject
     }
 }
 
-public class TestScene : Scene
+public class TestScene : SceneWithMap
 {
     private NetworkCommunicator _networkCom = null;
     private MsgBrokerClient _clientCom = null;
     private TestObject _myObj = null;
     private List<TestObject> _objects = new List<TestObject>();
 
-    protected override IEnumerator LoadSceneRoutineAsync()
+    protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
         // Fixes deadlock
         Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
