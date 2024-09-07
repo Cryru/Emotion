@@ -144,6 +144,15 @@ public static class AssertWrapper
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
     [DebuggerHidden]
+    public static void AssertEqual(object? objA, object? objB)
+    {
+        Testing.Assert.Equal(objA, objB);
+    }
+
+
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void AssertNotNull([NotNull] object? obj)
     {
         Testing.Assert.True(obj != null);
