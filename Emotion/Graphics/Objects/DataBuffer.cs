@@ -21,7 +21,7 @@ namespace Emotion.Graphics.Objects
         static DataBuffer()
         {
             // Create bound dictionary with all types.
-            var possibleTypes = (BufferTarget[]) Enum.GetValues(typeof(BufferTarget));
+            var possibleTypes = Enum.GetValues<BufferTarget>();
             foreach (BufferTarget type in possibleTypes)
             {
                 Bound[type] = 0;

@@ -10,7 +10,7 @@ namespace Emotion.Game.Data;
 
 
 // Protects the game data list and allows enumeration and indexing.
-public class GameDataArray<T> : IEnumerable<T> where T : GameDataObject
+public class GameDataArray<T> : IEnumerable<T>, IList<T> where T : GameDataObject
 {
     public static GameDataArray<T> Empty { get; } = new GameDataArray<T>(new List<GameDataObject>());
 
@@ -38,34 +38,53 @@ public class GameDataArray<T> : IEnumerable<T> where T : GameDataObject
         get => (T)_objects[key];
     }
 
-    public struct GameDataArrayEnum<T> : IEnumerator<T> where T : GameDataObject
+    #region List Interface
+
+    public int Count => _objects.Count;
+
+    public bool IsReadOnly => true;
+
+    T IList<T>.this[int index] { get => (T)_objects[index]; set => throw new NotImplementedException(); }
+
+    public int IndexOf(T item)
     {
-        private int _currentIndex = -1;
-        private List<GameDataObject> _objects;
-
-        public T Current => (T)_objects[_currentIndex];
-
-        object IEnumerator.Current => Current;
-
-        public GameDataArrayEnum(List<GameDataObject> objects)
-        {
-            _objects = objects;
-        }
-
-        public void Dispose()
-        {
-            _objects = null!;
-        }
-
-        public bool MoveNext()
-        {
-            _currentIndex++;
-            return _currentIndex < _objects.Count;
-        }
-
-        public void Reset()
-        {
-            _currentIndex = 0;
-        }
+        return _objects.IndexOf(item);
     }
+
+    public bool Contains(T item)
+    {
+        return _objects.Contains(item);
+    }
+
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        _objects.CopyTo(array, arrayIndex);
+    }
+
+    public void Insert(int index, T item)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RemoveAt(int index)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Add(T item)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Remove(T item)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Clear()
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
 }

@@ -893,9 +893,9 @@ public sealed class MeshEntityBatchRenderer
 
         var ibo = new IndexBuffer(ushort.MaxValue * sizeof(ushort) * 3, BufferUsage.StreamDraw);
 
-        var vao = new VertexArrayObjectTypeArg(typeof(VertexData), vbo, ibo);
-        vao.AppendType(typeof(VertexDataMesh3DExtra), vboExt);
-        if (withBones) vao.AppendType(typeof(Mesh3DVertexDataBones), vboBones);
+        var vao = new VertexArrayObject<VertexData>(vbo, ibo);
+        vao.AppendType<VertexDataMesh3DExtra>(vboExt);
+        if (withBones) vao.AppendType<Mesh3DVertexDataBones>(vboBones);
 
         var objectsPair = new GLRenderObjects(vbo, vboExt, vboBones, ibo, vao);
         if (withBones)

@@ -4,7 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Platforms>Default</Platforms>
+        <Platforms>x64</Platforms>
         <StartupObject>Emotion.ExecTest.Program</StartupObject>
     </PropertyGroup>
 
@@ -18,8 +18,8 @@
         <Optimize>True</Optimize>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Platform)'=='Default'">
-        <PlatformTarget>AnyCPU</PlatformTarget>
+    <PropertyGroup Condition="'$(Platform)'=='x64'">
+        <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 
     <ItemGroup>
