@@ -182,7 +182,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
         }
     }
 
-    private void OnPlayerJoinedRoom(ServerRoomInfo info)
+    private void OnPlayerJoinedRoom(ServerRoomInfo info, int newUserId)
     {
         for (int i = 0; i < info.UsersInside.Length; i++)
         {

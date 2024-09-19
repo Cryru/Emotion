@@ -7,6 +7,8 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace Emotion.Network.ServerSide;
 
 public class ServerRoom
