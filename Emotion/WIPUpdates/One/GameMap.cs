@@ -17,9 +17,16 @@ public class GameMap
         yield break;
     }
 
+    public List<MapObject> ForEachObject()
+    {
+        return _objects;
+    }
+
     public void AddObject(MapObject obj)
     {
+        obj.Map = this;
         _objects.Add(obj);
+        obj.Init();
     }
 
     public void AddAndInitObject(MapObject obj)
