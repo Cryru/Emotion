@@ -16,8 +16,8 @@ public class Camera2D : CameraBase
     /// <inheritdoc />
     public override void RecreateViewMatrix()
     {
-        var iX = (int)X;
-        var iY = (int)Y;
+        var iX = X;
+        var iY = Y;
 
         Vector2 targetSize = Engine.Configuration.RenderSize;
         Vector2 currentSize = Engine.Renderer.DrawBuffer.Size;
@@ -32,7 +32,7 @@ public class Camera2D : CameraBase
         // Find the camera margin and scale from the center.
         // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
         Vector2 margin = (currentSize - targetSize) / 2;
-        Vector3 pos = posOffset - new Vector3((int)margin.X, (int)margin.Y, 0);
+        Vector3 pos = posOffset - new Vector3(margin.X, margin.Y, 0);
         var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos - LookAt, -RenderComposer.Up2D); // Not sure why the look at and up have to be minused
         ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * unscaled;
     }
