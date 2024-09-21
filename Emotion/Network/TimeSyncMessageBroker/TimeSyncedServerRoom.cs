@@ -13,7 +13,7 @@ public partial class TimeSyncedServerRoom
     public ServerRoom Room;
 
     public int CurrentGameTime = 0;
-    public int GameTimeTick = 16;
+    public int GameTimeTick = 20;
     private List<NetworkMessage> _messagesForNextTick = new List<NetworkMessage>();
     private Coroutine _gameTimeRoutine = Coroutine.CompletedRoutine;
     private List<TimeHashPair> _hashPairs = new List<TimeHashPair>();
@@ -73,7 +73,7 @@ public partial class TimeSyncedServerRoom
 
     private void StartGameTime()
     {
-        if (!_gameTimeRoutine.Finished) Engine.CoroutineManagerAsync.StopCoroutine(_gameTimeRoutine);
+        if (!_gameTimeRoutine.Finished) Engine.CoroutineManager.StopCoroutine(_gameTimeRoutine);
 
         CurrentGameTime = 0;
 
@@ -85,7 +85,7 @@ public partial class TimeSyncedServerRoom
         }
         _messagesForNextTick.Clear();
 
-        _gameTimeRoutine = Engine.CoroutineManagerAsync.StartCoroutine(TickRoutine());
+        _gameTimeRoutine = Engine.CoroutineManager.StartCoroutine(TickRoutine());
     }
 
     protected IEnumerator TickRoutine()

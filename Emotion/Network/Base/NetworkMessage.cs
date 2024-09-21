@@ -10,6 +10,16 @@ using System.Text;
 
 namespace Emotion.Network.Base;
 
+// This represents both a pending send message and a received message.
+
+// In the case of a pending send:
+//  Sender - Is actually who to send it to
+//  Content - Is actually the whole message, not just the content
+
+// In the case of a received message:
+//  Sender - Is actually who sent the message
+//  Content - Is just the content of the message.
+
 public class NetworkMessage
 {
     // [3] - EMO
@@ -36,6 +46,7 @@ public class NetworkMessage
     public const int MaxMessageContent = MaxMessageSize - 3 - 4 - 4 - 4 - 32;
     public const int MessageContentOffset = 3 + 4 + 4 + 4;
 
+    // Dont allocate network messages, reuse them!
     public static ObjectPool<NetworkMessage> Shared = new ObjectPool<NetworkMessage>((r) => r.Reset(), 100);
 
     private byte[] _memory = new byte[MaxMessageSize];
@@ -46,11 +57,11 @@ public class NetworkMessage
         _reader = new ByteReader(_memory);
     }
 
-    public void CopyToLocalBuffer(IPEndPoint sender, byte[] buffer)
+    public void CopyToLocalBuffer(IPEndPoint sender, ReadOnlySpan<byte> buffer)
     {
         Sender = sender;
         Assert(buffer.Length == _memory.Length);
-        buffer.CopyTo(_memory, 0);
+        buffer.CopyTo(_memory);
     }
 
     public void Process()
@@ -122,6 +133,13 @@ public class NetworkMessage
 
         writer.Flush();
         return (int)str.Position;
+    }
+
+    public void EncodeMessageInLocalBuffer(IPEndPoint to, ReadOnlySpan<byte> data, int msgIndex)
+    {
+        Sender = to;
+        int encodedLength = EncodeMessage(data, _memory, msgIndex);
+        Content = new Memory<byte>(_memory, 0, encodedLength);
     }
 
     public void Reset()
