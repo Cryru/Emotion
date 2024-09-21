@@ -73,6 +73,7 @@ namespace Emotion.Tools.Windows.Audio
             composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, 50, 0)));
 
             // Render ImGui section of layers.
+            int waveFormsDrawn = 0;
             string[] layers = Engine.Audio.GetLayers();
             for (var i = 0; i < layers.Length; i++)
             {
@@ -153,9 +154,13 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.PopID();
                 ImGui.NewLine();
 
-                composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(10, i * (_waveFormHeight + 10), 0)));
-                cache?.Render(composer);
-                composer.PopModelMatrix();
+                if (layer.Status == PlaybackStatus.Playing)
+                {
+                    composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(10, waveFormsDrawn * (_waveFormHeight + 10), 0)));
+                    cache?.Render(composer);
+                    composer.PopModelMatrix();
+                    waveFormsDrawn++;
+                }
             }
 
             composer.PopModelMatrix();
