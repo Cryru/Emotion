@@ -110,6 +110,18 @@ namespace Emotion.Standard.XML
             return From<T>(encoding.GetString(span));
         }
 
+        public static T? From<T>(ReadOnlySpan<byte> span)
+        {
+            Encoding encoding = GuessStringEncoding(span);
+            return From<T>(encoding.GetString(span));
+        }
+
+        public static T? From<T>(byte[] data)
+        {
+            Encoding encoding = GuessStringEncoding(data);
+            return From<T>(encoding.GetString(data));
+        }
+
         private static readonly byte[] Utf16Le = {0xFF, 0xFE};
         private static readonly byte[] Utf8Le = {0xEF, 0xBB, 0xBF};
         private static readonly byte[] Utf32Le = {0xFF, 0xFE, 0, 0};
