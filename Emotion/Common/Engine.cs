@@ -78,6 +78,17 @@ namespace Emotion.Common
         public static CoroutineManager CoroutineManager { get; private set; } = new CoroutineManager();
 
         /// <summary>
+        /// The global coroutine manager that executes coroutines on update ticks and is considered in "game time".
+        /// In singleplayer games these routines are paused when the game is paused, in multiplayer this is used for time sync, etc.
+        /// </summary>
+        public static CoroutineManager CoroutineManagerGameTime => GameTime.CoroutineManager;
+
+        /// <summary>
+        /// The current game time.
+        /// </summary>
+        public static float CurrentGameTime => GameTime.CoroutineManager.Time;
+
+        /// <summary>
         /// Global coroutine manager that executes coroutines
         /// on another thread.
         /// [Default Module]
@@ -418,6 +429,8 @@ namespace Emotion.Common
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);
+            GameTime.Update(DeltaTime);
+
             UI.Update();
             SceneManager.Update();
             EngineEditor.UpdateEditor();
