@@ -56,14 +56,14 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
         PlayerControlled = true;
     }
 
-    protected bool KeyInput(Key key, Platform.Input.KeyState status)
+    protected bool KeyInput(Key key, KeyState status)
     {
         Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
         if (keyAxisPart != Vector2.Zero)
         {
-            if (status == Platform.Input.KeyState.Down)
+            if (status == KeyState.Down)
                 _inputDirection += keyAxisPart;
-            else if (status == Platform.Input.KeyState.Up)
+            else if (status == KeyState.Up)
                 _inputDirection -= keyAxisPart;
 
             return false;
@@ -112,7 +112,6 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
                 _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 RegisterFuncs();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
                 Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
@@ -132,7 +131,6 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
                 _clientCom.ConnectIfNotConnected();
                 RegisterFuncs();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
                 Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
@@ -213,6 +211,10 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
     public override void UpdateScene(float dt)
     {
         base.UpdateScene(dt);
+        if (_clientCom != null && _networkCom != _clientCom)
+            _clientCom.Update();
+        if (_networkCom != null)
+            _networkCom.Update();
     }
 
     public override void RenderScene(RenderComposer c)
@@ -224,26 +226,6 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
 
         c.RenderCircle(Vector3.Zero, 20, Color.White, true);
         base.RenderScene(c);
-    }
-
-    public IEnumerator UpdateNetworkAsyncRoutine()
-    {
-        while (true)
-        {
-            if (_networkCom != null)
-            {
-                _networkCom.Update();
-                _networkCom.PumpMessages();
-            }
-
-            if (_clientCom != null && _networkCom != _clientCom)
-            {
-                _clientCom.Update();
-                _clientCom.PumpMessages();
-            }
-
-            yield return null;
-        }
     }
 
     public IEnumerator UpdateObjectNetwork()

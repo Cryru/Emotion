@@ -70,6 +70,12 @@ public class TestScene : SceneWithMap
     {
         base.UpdateScene(dt);
 
+        if (_networkCom != null)
+            _networkCom.Update();
+
+        if (_clientCom != null && _networkCom != _clientCom)
+            _clientCom.Update();
+
         UpdateInputLocal(dt);
         if (LocalPlayer.Character != null && LocalPlayer.Character.IsDead())
             SpawnPlayerCharacter();
@@ -166,7 +172,7 @@ public class TestScene : SceneWithMap
 
             if (key == Key.Num4 && status == KeyState.Down)
             {
-                _clientCom.GameTimeRunner.StartCoroutine(UseThrash(LocalPlayer.Character));
+                //_clientCom.GameTimeRunner.StartCoroutine(UseThrash(LocalPlayer.Character));
                 return false;
             }
         }
@@ -295,8 +301,6 @@ public class TestScene : SceneWithMap
                 _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 InitServerGame();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
-
                 buttonList.ClearChildren();
             }
         });
@@ -314,31 +318,9 @@ public class TestScene : SceneWithMap
                 _clientCom.ConnectIfNotConnected();
                 InitNetworkGame();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
-
                 buttonList.ClearChildren();
             }
         });
-    }
-
-    public IEnumerator UpdateNetworkAsyncRoutine()
-    {
-        while (true)
-        {
-            if (_networkCom != null)
-            {
-                _networkCom.Update();
-                _networkCom.PumpMessages();
-            }
-
-            if (_clientCom != null && _networkCom != _clientCom)
-            {
-                _clientCom.Update();
-                _clientCom.PumpMessages();
-            }
-
-            yield return null;
-        }
     }
 
     private void OnRoomJoined(ServerRoomInfo info)
@@ -372,8 +354,8 @@ public class TestScene : SceneWithMap
 
         LocalPlayer = new GamePlayer();
 
-        _clientCom.GameTimeRunner.StartCoroutine(UpdateMyCharacterPosition());
-        _clientCom.GameTimeRunner.StartCoroutine(UpdateCharactersSystem(_clientCom.GameTimeRunner));
+        //_clientCom.GameTimeRunner.StartCoroutine(UpdateMyCharacterPosition());
+        //_clientCom.GameTimeRunner.StartCoroutine(UpdateCharactersSystem(_clientCom.GameTimeRunner));
     }
 
     private void InitServerGame()
@@ -385,7 +367,7 @@ public class TestScene : SceneWithMap
         LocalPlayer = new GamePlayer();
         SetupTestLevel();
 
-        _clientCom.GameTimeRunner.StartCoroutine(ServerTick());
+        //_clientCom.GameTimeRunner.StartCoroutine(ServerTick());
     }
 
     private void SpawnPlayerCharacter()
@@ -420,13 +402,7 @@ public class TestScene : SceneWithMap
 
         string? dataXML = XMLFormat.To(data);
         if (dataXML == null) return;
-        ts._clientCom.GameTimeRunner.StartCoroutine(SendMessageRoutine(ts._clientCom, method, dataXML));
-    }
-
-    private static IEnumerator SendMessageRoutine(MsgBrokerClientTimeSync from, string method, string data)
-    {
-        from.SendBrokerMsg(method, data);
-        yield break;
+        ts._clientCom.SendBrokerMsg(method, dataXML);
     }
 }
 

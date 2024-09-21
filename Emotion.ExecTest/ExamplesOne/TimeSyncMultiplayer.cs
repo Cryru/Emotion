@@ -114,8 +114,6 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
                 _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 RegisterFuncs();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
-
                 buttonList.ClearChildren();
             }
         });
@@ -133,21 +131,12 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
                 _clientCom.ConnectIfNotConnected();
                 RegisterFuncs();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
-
                 buttonList.ClearChildren();
             }
         });
 
         Map = new GameMap();
-        //Map.AddAndInitObject(new MapObjectSprite()
-        //{
-        //    EntityFile = "Test/Character.em2"
-        //});
 
-        
-
-        //throw new System.Exception("haa");
         yield break;
     }
 
@@ -214,14 +203,14 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
     {
         base.UpdateScene(dt);
 
-        if (_clientCom != null && _myObj != null)
-            _clientCom.GameTimeRunner.StartCoroutine(SendMoveObjGameTime());
-    }
+        if (_clientCom != null && _myObj != null && _myObj.DesiredPosition != Vector2.Zero)
+            _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.DesiredPosition, _clientCom.UserId)));
 
-    private IEnumerator SendMoveObjGameTime()
-    {
-        _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.DesiredPosition, _clientCom.UserId)));
-        yield break;
+        if (_clientCom != null && _networkCom != _clientCom)
+            _clientCom.Update();
+
+        if (_networkCom != null)
+            _networkCom.Update();
     }
 
     public override void RenderScene(RenderComposer c)
@@ -229,8 +218,18 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         c.SetUseViewMatrix(false);
         c.RenderSprite(Vector3.Zero, c.CurrentTarget.Size, Color.PrettyGreen);
 
-        if (_clientCom != null)
-            c.RenderString(Vector3.Zero, Color.Red, _clientCom.CurrentGameTime.ToString(), FontAsset.GetDefaultBuiltIn().GetAtlas(35));
+        if (_networkCom is MsgBrokerServerTimeSync server && server.ActiveRooms.Count > 0)
+        {
+            var firstRoom = server.ActiveRooms[0];
+            if (firstRoom.ServerData is TimeSyncedServerRoom syncRoom)
+            {
+                c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{syncRoom.CurrentGameTime}", FontAsset.GetDefaultBuiltIn().GetAtlas(35));
+            }
+        }
+        else if (_clientCom != null)
+        {
+            c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{_networkCom}", FontAsset.GetDefaultBuiltIn().GetAtlas(35));
+        }
 
         c.ClearDepth();
         c.SetUseViewMatrix(true);
@@ -238,26 +237,6 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         c.RenderCircle(Vector3.Zero, 20, Color.White, true);
 
         base.RenderScene(c);
-    }
-
-    public IEnumerator UpdateNetworkAsyncRoutine()
-    {
-        while (true)
-        {
-            if (_networkCom != null)
-            {
-                _networkCom.Update();
-                _networkCom.PumpMessages();
-            }
-
-            if (_clientCom != null && _networkCom != _clientCom)
-            {
-                _clientCom.Update();
-                _clientCom.PumpMessages();
-            }
-
-            yield return null;
-        }
     }
 
     public void MoveObj(Vector3 pos)
@@ -270,7 +249,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             {
                 obj.Position2 = Vector2.Lerp(obj.Position2, pos.ToVec2(), 0.5f);
 
-                var hsh = (obj.Position.RoundClosest().ToString() + _clientCom.CurrentGameTime.ToString()).GetStableHashCode();
+                var hsh = (obj.Position.RoundClosest().ToString() + Engine.CurrentGameTime.ToString()).GetStableHashCode();
                 _clientCom.SendTimeSyncHash(hsh);
                 break;
             }
