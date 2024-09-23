@@ -13,14 +13,14 @@ namespace Emotion.Standard.XML
     {
         public static string IndentChar = "  ";
 
-        public static string? To<T>(T obj)
+        public static string To<T>(T obj)
         {
             Type type = typeof(T);
             var output = new StringBuilder();
             output.Append("<?xml version=\"1.0\"?>\n");
 
             XMLTypeHandler? handler = XMLHelpers.GetTypeHandler(type);
-            if (handler == null) return null;
+            if (handler == null) return string.Empty;
 
             var recursionChecker = new XMLRecursionChecker();
             recursionChecker.PushReference(obj, "main");
