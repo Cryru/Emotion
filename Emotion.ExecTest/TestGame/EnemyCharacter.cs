@@ -5,7 +5,7 @@ using Emotion.IO;
 
 namespace Emotion.ExecTest.TestGame;
 
-public class EnemyCharacter : ServerAuthorityCharacter
+public class EnemyCharacter : Character
 {
     public int AggroRange = 50;
     public int MeleeRange = 20;
@@ -39,57 +39,62 @@ public class EnemyCharacter : ServerAuthorityCharacter
         Position2 += _velocity * 0.1f * dt;
     }
 
-    public override IEnumerator UpdateCharacterRoutine()
+    public override void UpdateCharacter()
     {
-        while (true)
-        {
-            _velocity = Vector2.Zero;
-            if (IsDead())
-            {
-                break;
-            }
-
-            if (State == CharacterState.NotInCombat)
-            {
-                foreach (var obj in Map.ForEachObject())
-                {
-                    if (obj == this) continue;
-                    if (obj is EnemyCharacter) continue;
-
-                    Character? ch = obj as Character;
-                    if (ch == null) continue;
-                    if (ch.IsDead()) continue;
-
-                    var objPos = ch.Position;
-                    if (Vector3.Distance(objPos, Position) < AggroRange)
-                    {
-                        Target = ch;
-                        State = CharacterState.InCombat;
-                        break;
-                    }
-                }
-            }
-            else if (State == CharacterState.InCombat)
-            {
-                if (Target == null || Target.IsDead())
-                {
-                    State = CharacterState.NotInCombat;
-                    continue;
-                }
-
-                if (Vector2.Distance(Target.Position2, Position2) > MeleeRange)
-                {
-                    _velocity = Vector3.Normalize(Target.Position - Position).ToVec2();
-                }
-                else
-                {
-                    yield return PerformMeleeAttack(Target);
-                }
-            }
-
-            yield return 16;
-        }
+        
     }
+
+    //public override IEnumerator UpdateCharacterRoutine()
+    //{
+    //    while (true)
+    //    {
+    //        _velocity = Vector2.Zero;
+    //        if (IsDead())
+    //        {
+    //            break;
+    //        }
+
+    //        if (State == CharacterState.NotInCombat)
+    //        {
+    //            foreach (var obj in Map.ForEachObject())
+    //            {
+    //                if (obj == this) continue;
+    //                if (obj is EnemyCharacter) continue;
+
+    //                Character? ch = obj as Character;
+    //                if (ch == null) continue;
+    //                if (ch.IsDead()) continue;
+
+    //                var objPos = ch.Position;
+    //                if (Vector3.Distance(objPos, Position) < AggroRange)
+    //                {
+    //                    Target = ch;
+    //                    State = CharacterState.InCombat;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //        else if (State == CharacterState.InCombat)
+    //        {
+    //            if (Target == null || Target.IsDead())
+    //            {
+    //                State = CharacterState.NotInCombat;
+    //                continue;
+    //            }
+
+    //            if (Vector2.Distance(Target.Position2, Position2) > MeleeRange)
+    //            {
+    //                _velocity = Vector3.Normalize(Target.Position - Position).ToVec2();
+    //            }
+    //            else
+    //            {
+    //                yield return PerformMeleeAttack(Target);
+    //            }
+    //        }
+
+    //        yield return 16;
+    //    }
+    //}
 
     private IEnumerator PerformMeleeAttack(Character target)
     {

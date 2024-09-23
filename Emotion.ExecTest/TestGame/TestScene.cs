@@ -25,32 +25,8 @@ namespace Emotion.ExecTest.TestGame;
 
 public class TestScene : SceneWithMap
 {
-    public GamePlayer LocalPlayer = new GamePlayer();
-
-    private List<NetworkCharacter> _networkCharacters = new();
+    public PlayerCharacter? MyCharacter;
     private Character? _lastMouseoverChar;
-
-
-
-    private void SetupTestLevel()
-    {
-        {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(0, -100) };
-            Map.AddObject(badGuy);
-        }
-        {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(50, -200) };
-            Map.AddObject(badGuy);
-        }
-        {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(-50, -200) };
-            Map.AddObject(badGuy);
-        }
-        {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(0, -200) };
-            Map.AddObject(badGuy);
-        }
-    }
 
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
@@ -70,17 +46,13 @@ public class TestScene : SceneWithMap
     {
         base.UpdateScene(dt);
 
-        if (_networkCom != null)
-            _networkCom.Update();
-
-        if (_clientCom != null && _networkCom != _clientCom)
-            _clientCom.Update();
+        _serverCom?.Update();
+        _clientCom?.Update();
 
         UpdateInputLocal(dt);
-        if (LocalPlayer.Character != null && LocalPlayer.Character.IsDead())
-            SpawnPlayerCharacter();
+        ClientTick();
 
-        if (LocalPlayer.Character != null)
+        if (MyCharacter != null)
         {
             if (_lastMouseoverChar != null)
             {
@@ -146,14 +118,14 @@ public class TestScene : SceneWithMap
             return false;
         }
 
-        if (_clientCom != null && LocalPlayer.Character != null)
+        if (_clientCom != null && MyCharacter != null)
         {
             if (key == Key.MouseKeyLeft && status == KeyState.Down)
             {
                 var charUnderMouse = GetCharacterUnderMouse();
                 if (charUnderMouse != null)
                 {
-                    LocalPlayer.Character.SetTarget(charUnderMouse);
+                    MyCharacter.SetTarget(charUnderMouse);
 
                     UIBaseWindow? targetNameplate = UIParent.GetWindowById("TargetNameplate");
                     targetNameplate?.Close();
@@ -182,9 +154,9 @@ public class TestScene : SceneWithMap
 
     private void UpdateInputLocal(float dt)
     {
-        if (LocalPlayer.Character == null) return;
-        LocalPlayer.Character.Position2 += _inputDirection * 0.1f * dt;
-        Engine.Renderer.Camera.Position = LocalPlayer.Character.Position;
+        if (MyCharacter == null) return;
+        MyCharacter.Position2 += _inputDirection * 0.1f * dt;
+        Engine.Renderer.Camera.Position = MyCharacter.Position;
     }
 
     private IEnumerator UseThrash(Character user)
@@ -206,77 +178,68 @@ public class TestScene : SceneWithMap
 
     #endregion
 
-    #region Systems
+    #region Network
 
-    public IEnumerator ServerTick()
+    //public IEnumerator UpdateMyCharacterPosition()
+    //{
+    //    while (true)
+    //    {
+    //        AssertNotNull(_clientCom);
+
+    //        Character? myCharacter = MyCharacter;
+    //        if (myCharacter != null)
+    //        {
+    //            string? meta = XMLFormat.To(new Vector3(myCharacter.X, myCharacter.Y, _clientCom.UserId));
+    //            if (meta != null)
+    //                _clientCom.SendBrokerMsg("UpdateObjectPosition", meta);
+    //        }
+
+    //        yield return 16;
+    //    }
+    //}
+
+    //public IEnumerator UpdateCharactersSystem(CoroutineManager manager)
+    //{
+    //    while (true)
+    //    {
+    //        AssertNotNull(_clientCom);
+
+    //        foreach (MapObject? obj in Map.ForEachObject())
+    //        {
+    //            Character? ch = obj as Character;
+    //            if (ch == null) continue;
+    //            ch.UpdateCharacter(manager);
+    //        }
+
+    //        yield return 16;
+    //    }
+    //}
+
+    private void UpdateObjectPosition(MovementUpdate data)
     {
-        AssertNotNull(_clientCom);
-        while (true)
+        // todo
+        // Ignore updates about my character
+        // broker except me?
+        if (_clientCom != null)
         {
-
-
-            yield return 16;
+            var charId = data.ObjectId;
+            if (charId == Character.PLAYER_OBJECT_OFFSET + _clientCom.UserId) return;
         }
-    }
 
-    public IEnumerator UpdateMyCharacterPosition()
-    {
-        while (true)
+        // todo
+        // Better way of getting it
+        foreach (MapObject? obj in Map.ForEachObject())
         {
-            AssertNotNull(_clientCom);
-
-            Character? myCharacter = LocalPlayer.Character;
-            if (myCharacter != null)
+            if (obj is Character ch && ch.ObjectId == data.ObjectId)
             {
-                string? meta = XMLFormat.To(new Vector3(myCharacter.X, myCharacter.Y, _clientCom.UserId));
-                if (meta != null)
-                    _clientCom.SendBrokerMsg("UpdateObjectPosition", meta);
-            }
-
-            yield return 16;
-        }
-    }
-
-    public IEnumerator UpdateCharactersSystem(CoroutineManager manager)
-    {
-        while (true)
-        {
-            AssertNotNull(_clientCom);
-
-            foreach (MapObject? obj in Map.ForEachObject())
-            {
-                Character? ch = obj as Character;
-                if (ch == null) continue;
-                ch.UpdateCharacter(manager);
-            }
-
-            yield return 16;
-        }
-    }
-
-    private void UpdateObjectPosition(Vector3 data)
-    {
-        int userId = (int)data.Z;
-        for (int i = 0; i < _networkCharacters.Count; i++)
-        {
-            NetworkCharacter networkChar = _networkCharacters[i];
-            if (networkChar.NetworkId == userId)
-            {
-                networkChar.X = data.X;
-                networkChar.Y = data.Y;
-                return;
+                ch.Position2 = data.Pos;
             }
         }
-    }
-
-    private void CreateServerObject(ServerAuthorityCharacter ch)
-    {
-        Map.AddAndInitObject(ch);
     }
 
     #endregion
 
-    private NetworkCommunicator? _networkCom = null;
+    private MsgBrokerServerTimeSync? _serverCom = null;
     public MsgBrokerClientTimeSync? _clientCom = null;
 
     private void SetupOnlineButtons()
@@ -293,14 +256,12 @@ public class TestScene : SceneWithMap
         {
             OnClickedProxy = (_) =>
             {
-                _networkCom = Server.CreateServer<MsgBrokerServerTimeSync>(1337);
+                _serverCom = Server.CreateServer<MsgBrokerServerTimeSync>(1337);
                 _clientCom = Client.CreateClient<MsgBrokerClientTimeSync>("127.0.0.1:1337");
                 _clientCom.ConnectIfNotConnected();
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestHostRoom();
-                _clientCom.OnRoomJoined = OnRoomJoined;
-                _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
-                InitServerGame();
-
+                _clientCom.OnRoomJoined = OnServerRoomJoined;
+                _clientCom.OnPlayerJoinedRoom = OnServerPlayerJoinedRoom;
                 buttonList.ClearChildren();
             }
         });
@@ -310,89 +271,167 @@ public class TestScene : SceneWithMap
             {
                 string serverIp = File.ReadAllText("ip.txt");
                 _clientCom = Client.CreateClient<MsgBrokerClientTimeSync>(serverIp);
-                _networkCom = _clientCom;
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestRoomList();
+                _clientCom.OnRoomJoined = (_) => InitClientGame();
                 _clientCom.OnRoomListReceived = (list) => _clientCom.RequestJoinRoom(list[0].Id);
-                _clientCom.OnRoomJoined = OnRoomJoined;
-                _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 _clientCom.ConnectIfNotConnected();
-                InitNetworkGame();
+                
 
                 buttonList.ClearChildren();
             }
         });
     }
 
-    private void OnRoomJoined(ServerRoomInfo info)
-    {
-        AssertNotNull(_clientCom);
-
-        SpawnPlayerCharacter();
-        for (int i = 0; i < info.UsersInside.Length; i++)
-        {
-            int id = info.UsersInside[i];
-            if (id == _clientCom.UserId) continue;
-
-            NetworkCharacter newChar = new(id);
-            Map.AddAndInitObject(newChar);
-            _networkCharacters.Add(newChar);
-        }
-    }
-
-    private void OnPlayerJoinedRoom(ServerRoomInfo info, int newUserId)
-    {
-        NetworkCharacter newChar = new(newUserId);
-        Map.AddAndInitObject(newChar);
-        _networkCharacters.Add(newChar);
-    }
-
-    private void InitNetworkGame()
-    {
-        AssertNotNull(_clientCom);
-        _clientCom.RegisterFunction<Vector3>("UpdateObjectPosition", UpdateObjectPosition);
-        _clientCom.RegisterFunction<ServerAuthorityCharacter>("CreateServerObject", CreateServerObject);
-
-        LocalPlayer = new GamePlayer();
-
-        //_clientCom.GameTimeRunner.StartCoroutine(UpdateMyCharacterPosition());
-        //_clientCom.GameTimeRunner.StartCoroutine(UpdateCharactersSystem(_clientCom.GameTimeRunner));
-    }
+    #region Server
 
     private void InitServerGame()
     {
         AssertNotNull(_clientCom);
-        _clientCom.RegisterFunction<Vector3>("UpdateObjectPosition", UpdateObjectPosition);
-        _clientCom.RegisterFunction<ServerAuthorityCharacter>("CreateServerObject", CreateServerObject);
+        _clientCom.RegisterFunction<MovementUpdate>("UpdateObjectPosition", UpdateObjectPosition);
 
-        LocalPlayer = new GamePlayer();
         SetupTestLevel();
-
-        //_clientCom.GameTimeRunner.StartCoroutine(ServerTick());
+        Engine.CoroutineManager.StartCoroutine(ServerTick());
     }
 
-    private void SpawnPlayerCharacter()
+    private IEnumerator ServerTick()
     {
-        // Cleanup
-        Character? localCharacter = LocalPlayer.Character;
-        if (localCharacter != null)
+        yield return null; // eager
+
+        while (true)
         {
-            
+            foreach (MapObject? obj in Map.ForEachObject())
+            {
+                Character? ch = obj as Character; // todo: how bad is converting this?
+                if (ch == null) continue;
+                ch.UpdateCharacter();
+            }
+
+            yield return null;
         }
+    }
+
+    private void OnServerPlayerJoinedRoom(ServerRoomInfo info, int newUserId)
+    {
+        AssertNotNull(_clientCom);
+        AssertNotNull(_serverCom);
+
+        PlayerCharacter newChar = new((uint) newUserId);
+        Map.AddAndInitObject(newChar);
+        _clientCom.SendBrokerMsg("UnitSpawned", XMLFormat.To(newChar));
+
+        // Sync current state
+        List<Character> charsToSend = new List<Character>();
+        foreach (var obj in Map.ForEachObject())
+        {
+            if (obj is Character ch)
+                charsToSend.Add(ch);
+        }
+
+        string data = XMLFormat.To(charsToSend) ?? string.Empty;
+        _clientCom.SendBrokerMsg("StartMap", data);
+    }
+
+    private void OnServerRoomJoined(ServerRoomInfo info)
+    {
+        AssertNotNull(_clientCom);
+        InitServerGame();
+    }
+    private void SetupTestLevel()
+    {
+        {
+            var badGuy = new EnemyCharacter() { Position2 = new Vector2(0, -100) };
+            Map.AddObject(badGuy);
+        }
+        {
+            var badGuy = new EnemyCharacter() { Position2 = new Vector2(50, -200) };
+            Map.AddObject(badGuy);
+        }
+        {
+            var badGuy = new EnemyCharacter() { Position2 = new Vector2(-50, -200) };
+            Map.AddObject(badGuy);
+        }
+        {
+            var badGuy = new EnemyCharacter() { Position2 = new Vector2(0, -200) };
+            Map.AddObject(badGuy);
+        }
+    }
+
+    #endregion
+
+    #region Client
+
+    // todo: server send this only to new user
+    // todo: user id as handle rather than sequential index 
+    private bool _mapStarted;
+
+    private void InitClientGame()
+    {
+        AssertNotNull(_clientCom);
+        _clientCom.RegisterFunction<MovementUpdate>("UpdateObjectPosition", UpdateObjectPosition);
+        _clientCom.RegisterFunction<Character>("UnitSpawned", (c) =>
+        {
+            if (!_mapStarted) return;
+            Map.AddAndInitObject(c);
+        });
+        _clientCom.RegisterFunction<List<Character>>("StartMap", (characters) =>
+        {
+            if (_mapStarted) return;
+            _mapStarted = true;
+
+            for (int i = 0; i < characters.Count; i++)
+            {
+                var ch = characters[i];
+                if (ch is PlayerCharacter pChar && pChar.PlayerId == _clientCom.UserId)
+                {
+                    var myChar = new MyCharacter(pChar.PlayerId);
+                    Map.AddAndInitObject(myChar);
+                    MyCharacter = myChar;
+                    SetupUIForMyCharacter();
+                }
+                else
+                {
+                    Map.AddAndInitObject(ch);
+                }
+            }
+        });
+    }
+
+    private void SetupUIForMyCharacter()
+    {
         UIBaseWindow? targetNameplate = UIParent.GetWindowById("PlayerNameplate");
         targetNameplate?.Close();
 
-        // Make new
-        Character newChar = new MyCharacter();
-        Map.AddAndInitObject(newChar);
-        LocalPlayer.Character = newChar;
+        if (MyCharacter == null) return;
 
-        var nameplate = new Nameplate(newChar)
+        var nameplate = new Nameplate(MyCharacter)
         {
             Margins = new Rectangle(5, 5, 5, 5),
             Id = "PlayerNameplate"
         };
         UIParent.AddChild(nameplate);
     }
+
+    struct MovementUpdate
+    {
+        public uint ObjectId;
+        public Vector2 Pos;
+    }
+
+    private void ClientTick()
+    {
+        if (_clientCom == null) return;
+        if (MyCharacter == null) return;
+
+        var movement = new MovementUpdate()
+        {
+            ObjectId = MyCharacter.ObjectId,
+            Pos = MyCharacter.Position2
+        };
+        string? meta = XMLFormat.To(movement);
+        _clientCom.SendBrokerMsg("UpdateObjectPosition", meta);
+    }
+
+    #endregion
 
     public static void SendMsg<T>(string method, T data)
     {
@@ -403,21 +442,5 @@ public class TestScene : SceneWithMap
         string? dataXML = XMLFormat.To(data);
         if (dataXML == null) return;
         ts._clientCom.SendBrokerMsg(method, dataXML);
-    }
-}
-
-public class ServerAuthorityCharacter : Character
-{
-    public Guid Id { get; } = Guid.NewGuid();
-
-    public ServerAuthorityCharacter()
-    {
-
-    }
-
-    public override void Init()
-    {
-        base.Init();
-        TestScene.SendMsg("CreateServerObject", this);
     }
 }

@@ -17,7 +17,7 @@ public class HpBar : UIBaseWindow
 
     protected override Vector2 NEW_InternalMeasure(Vector2 space)
     {
-        return new Vector2(200, 30);
+        return new Vector2(200, 30) * GetScale();
     }
 
     protected override bool RenderInternal(RenderComposer c)

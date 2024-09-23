@@ -15,6 +15,11 @@ public enum CharacterState
 
 public class Character : MapObject
 {
+    public const uint PLAYER_OBJECT_OFFSET = 2_000_000;
+
+    public uint ObjectId;
+    private static uint _nextObjectIdLocal = 1;
+
     public string Image = string.Empty;
     private Texture _image = Texture.EmptyWhiteTexture;
 
@@ -32,22 +37,28 @@ public class Character : MapObject
         Size = new Vector2(32);
     }
 
+    protected Character(uint id) : this()
+    {
+        ObjectId = id;
+    }
+
     public override void Init()
     {
         base.Init();
         Health = MaxHealth;
         UpdateRenderMode();
+
+        if (ObjectId == 0)
+        {
+            Engine.Log.Warning("Creating object id!", "Game");
+            ObjectId = _nextObjectIdLocal;
+            _nextObjectIdLocal++;
+        }
     }
 
-    public void UpdateCharacter(CoroutineManager manager)
+    public virtual void UpdateCharacter()
     {
-        if (!_updateCoroutine.Finished) return;
-        _updateCoroutine = manager.StartCoroutine(UpdateCharacterRoutine());
-    }
-
-    public virtual IEnumerator UpdateCharacterRoutine()
-    {
-        yield break;
+        // nop
     }
 
     public void TakeDamage(int damage)
