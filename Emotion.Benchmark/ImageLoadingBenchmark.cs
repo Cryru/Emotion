@@ -24,12 +24,10 @@ namespace Emotion.Benchmark
             Engine.Setup(config);
 
             var asset = Engine.AssetLoader.Get<OtherAsset>("logoAlpha.png");
-            _fileBytes = asset.Content;
+            _fileBytes = asset!.Content;
 
             var pixels = PngFormat.Decode(_fileBytes, out PngFileHeader header);
             _emotionFileBytes = ImgBinFormat.Encode(pixels, header.Size, header.PixelFormat);
-
-            bool a = true;
         }
 
         [Benchmark]

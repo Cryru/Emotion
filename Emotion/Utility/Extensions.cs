@@ -658,17 +658,5 @@ namespace System
         {
             return (int) xxHash32.ComputeHash(span, span.Length);
         }
-
-        // Non xxHash implementation
-        private static int __NoDepend_GetStableHashCode(this ReadOnlySpan<byte> span)
-        {
-            Span<byte> hash = stackalloc byte[32];
-
-            if (MD5.TryHashData(span, hash, out int bytesWritten))
-                return BitConverter.ToInt32(hash.Slice(0, bytesWritten));
-
-            Assert(false, "Couldn't produce MD5 hash in 32 bytes!");
-            return BitConverter.ToInt32(hash);
-        }
     }
 }

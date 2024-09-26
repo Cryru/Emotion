@@ -5,6 +5,8 @@ using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Image.ImgBin;
 using Emotion.Standard.Image.PNG;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 #endregion
 
@@ -36,8 +38,28 @@ namespace Emotion.Benchmark
         [Benchmark]
         public void Md5()
         {
-            _fileBytes.Span.__NoDepend_GetStableHashCode();
-            "random string".__NoDepend_GetStableHashCode();
+            _fileBytes.Span.Md5GetStableHashCode();
+            "random string".Md5GetStableHashCode();
         }
     }
+
+    public static class Md5HashCode
+    {
+        public static int Md5GetStableHashCode(this string str)
+        {
+            ReadOnlySpan<byte> stringAsBytes = MemoryMarshal.Cast<char, byte>(str);
+            return stringAsBytes.Md5GetStableHashCode();
+        }
+
+        public static int Md5GetStableHashCode(this ReadOnlySpan<byte> span)
+        {
+            Span<byte> hash = stackalloc byte[32];
+
+            if (MD5.TryHashData(span, hash, out int bytesWritten))
+                return BitConverter.ToInt32(hash.Slice(0, bytesWritten));
+
+            return BitConverter.ToInt32(hash);
+        }
+    }
+
 }
