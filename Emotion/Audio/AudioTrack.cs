@@ -50,6 +50,11 @@ namespace Emotion.Audio
         /// </summary>
         public bool SetLoopingCurrent { get; set; }
 
+        /// <summary>
+        /// How much pitch to shift up or down.
+        /// </summary>
+        public float PitchShiftFactor = 1;
+
         public AudioTrack(AudioAsset file)
         {
             File = file;
