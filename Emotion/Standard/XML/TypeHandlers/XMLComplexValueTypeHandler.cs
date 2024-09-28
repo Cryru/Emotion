@@ -46,15 +46,20 @@ namespace Emotion.Standard.XML.TypeHandlers
             input.GoToNextTag();
             while (input.Depth >= depth && !input.Finished)
             {
-                string currentTag = input.ReadTagWithoutAttribute();
+                XMLTypeHandler? inheritedHandler = XMLHelpers.GetInheritedTypeHandlerFromXMLTag(input, out string currentTag);
                 if (!_fieldHandlers.Value.TryGetValue(currentTag, out XMLFieldHandler? field))
                 {
                     Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
                     return newObj;
                 }
 
-                object? val = field.TypeHandler.Deserialize(input);
-                if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
+                XMLTypeHandler? typeHandler = inheritedHandler ?? field?.TypeHandler;
+                if (field != null && typeHandler != null)
+                {
+                    object? val = typeHandler.Deserialize(input);
+                    if (!field.Skip) field.ReflectionInfo.SetValue(newObj, val);
+                }
+
                 input.GoToNextTag();
             }
 
