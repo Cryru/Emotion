@@ -1,5 +1,6 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Tools;
 using System;
@@ -61,6 +62,13 @@ public class EditorTopBar : UISolidColor
         {
             EditorButton toolButton = new EditorButton("UI Debug Tool");
             toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new UIDebugTool());
+            buttonContainer.AddChild(toolButton);
+        }
+
+        {
+            EditorButton toolButton = new EditorButton("Open Folder");
+            toolButton.OnClickedProxy = (_) => Process.Start("explorer.exe", ".");
+            toolButton.Enabled = Engine.Host is Win32Platform;
             buttonContainer.AddChild(toolButton);
         }
     }

@@ -107,6 +107,8 @@ public struct Timer
 
 public static class Interpolation
 {
+    // Delta is in seconds (so ms should be delta / 1000f)
+
     public static float SmoothLerp(float current, float target, int speed, float delta)
     {
         return target + (current - target) * MathF.Exp(-speed * delta);

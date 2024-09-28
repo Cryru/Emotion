@@ -192,7 +192,7 @@ namespace Tests.Classes
         {
             int sampleCount = frameCount * format.Channels;
             var conversionBuffer = new Span<float>(new float[sampleCount]);
-            int framesGotten = converter.GetResamplesFrames(format, startIdx, frameCount, conversionBuffer);
+            int framesGotten = converter.GetResampledFrames(format, startIdx, frameCount, conversionBuffer);
             if (framesGotten == 0) return 0;
 
             int samplesGotten = framesGotten * format.Channels;

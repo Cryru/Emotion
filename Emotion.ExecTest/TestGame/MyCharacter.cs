@@ -16,6 +16,7 @@ public class MyCharacter : PlayerCharacter
     {
         Name = "You";
         Image = "Test/proto/person_you";
+        LocallyControlled = true;
     }
 
     public override void SetTarget(Character? ch)

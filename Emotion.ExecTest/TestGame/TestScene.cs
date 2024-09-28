@@ -1,4 +1,5 @@
 ﻿using Emotion.Editor.EditorHelpers;
+using Emotion.ExecTest.TestGame.Abilities;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Network.Base;
@@ -18,6 +19,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Numerics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #nullable enable
 
@@ -25,6 +27,8 @@ namespace Emotion.ExecTest.TestGame;
 
 public class TestScene : SceneWithMap
 {
+    public static MsgBrokerClientTimeSync NetworkCom;
+
     public PlayerCharacter? MyCharacter;
     private Character? _lastMouseoverChar;
 
@@ -44,11 +48,6 @@ public class TestScene : SceneWithMap
 
     public override void UpdateScene(float dt)
     {
-        base.UpdateScene(dt);
-
-        _serverCom?.Update();
-        _clientCom?.Update();
-
         UpdateInputLocal(dt);
         ClientTick();
 
@@ -66,6 +65,11 @@ public class TestScene : SceneWithMap
                 underMouse.SetRenderMouseover(true);
             }
         }
+
+        _serverCom?.Update();
+        _clientCom?.Update();
+
+        base.UpdateScene(dt);
     }
 
     public override void RenderScene(RenderComposer c)
@@ -155,8 +159,12 @@ public class TestScene : SceneWithMap
     private void UpdateInputLocal(float dt)
     {
         if (MyCharacter == null) return;
+        if (_inputDirection == Vector2.Zero) return;
+        if (_clientCom == null) return;
+
         MyCharacter.Position2 += _inputDirection * 0.1f * dt;
         Engine.Renderer.Camera.Position = MyCharacter.Position;
+        MyCharacter.SendMovementUpdate();
     }
 
     private IEnumerator UseThrash(Character user)
@@ -180,51 +188,11 @@ public class TestScene : SceneWithMap
 
     #region Network
 
-    //public IEnumerator UpdateMyCharacterPosition()
-    //{
-    //    while (true)
-    //    {
-    //        AssertNotNull(_clientCom);
-
-    //        Character? myCharacter = MyCharacter;
-    //        if (myCharacter != null)
-    //        {
-    //            string? meta = XMLFormat.To(new Vector3(myCharacter.X, myCharacter.Y, _clientCom.UserId));
-    //            if (meta != null)
-    //                _clientCom.SendBrokerMsg("UpdateObjectPosition", meta);
-    //        }
-
-    //        yield return 16;
-    //    }
-    //}
-
-    //public IEnumerator UpdateCharactersSystem(CoroutineManager manager)
-    //{
-    //    while (true)
-    //    {
-    //        AssertNotNull(_clientCom);
-
-    //        foreach (MapObject? obj in Map.ForEachObject())
-    //        {
-    //            Character? ch = obj as Character;
-    //            if (ch == null) continue;
-    //            ch.UpdateCharacter(manager);
-    //        }
-
-    //        yield return 16;
-    //    }
-    //}
-
     private void UpdateObjectPosition(MovementUpdate data)
     {
         // todo
         // Ignore updates about my character
         // broker except me?
-        if (_clientCom != null)
-        {
-            var charId = data.ObjectId;
-            if (charId == Character.PLAYER_OBJECT_OFFSET + _clientCom.UserId) return;
-        }
 
         // todo
         // Better way of getting it
@@ -232,9 +200,49 @@ public class TestScene : SceneWithMap
         {
             if (obj is Character ch && ch.ObjectId == data.ObjectId)
             {
+                if (ch.LocallyControlled) break;
+
                 ch.Position2 = data.Pos;
+                break;
             }
         }
+    }
+
+    private void UseAbility(AbillityUsePacket packet)
+    {
+        var ability = packet.AbilityInstance;
+
+        uint caster = packet.UserId;
+        Character? casterUnit = null;
+
+        foreach (MapObject? obj in Map.ForEachObject())
+        {
+            if (obj is Character ch && ch.ObjectId == caster)
+            {
+                casterUnit = ch;
+                break;
+            }
+        }
+
+        AssertNotNull(casterUnit);
+        if (casterUnit.IsDead()) return;
+
+        uint target = packet.TargetId;
+        Character? targetUnit = null;
+
+        if (target != 0)
+        {
+            foreach (MapObject? obj in Map.ForEachObject())
+            {
+                if (obj is Character ch && ch.ObjectId == target)
+                {
+                    targetUnit = ch;
+                    break;
+                }
+            }
+        }
+
+        casterUnit.Network_UseAbility(ability, targetUnit);
     }
 
     #endregion
@@ -262,9 +270,20 @@ public class TestScene : SceneWithMap
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestHostRoom();
                 _clientCom.OnRoomJoined = OnServerRoomJoined;
                 _clientCom.OnPlayerJoinedRoom = OnServerPlayerJoinedRoom;
+                NetworkCom = _clientCom;
                 buttonList.ClearChildren();
+
+                buttonList.AddChild(new EditorButton("Launch Player")
+                {
+                    OnClickedProxy = (_) =>
+                    {
+                        string exePath = Process.GetCurrentProcess().MainModule.FileName;
+                        Process.Start(exePath);
+                    }
+                });
             }
         });
+
         buttonList.AddChild(new EditorButton("I am Player")
         {
             OnClickedProxy = (_) =>
@@ -275,7 +294,7 @@ public class TestScene : SceneWithMap
                 _clientCom.OnRoomJoined = (_) => InitClientGame();
                 _clientCom.OnRoomListReceived = (list) => _clientCom.RequestJoinRoom(list[0].Id);
                 _clientCom.ConnectIfNotConnected();
-                
+                NetworkCom = _clientCom;
 
                 buttonList.ClearChildren();
             }
@@ -288,6 +307,7 @@ public class TestScene : SceneWithMap
     {
         AssertNotNull(_clientCom);
         _clientCom.RegisterFunction<MovementUpdate>("UpdateObjectPosition", UpdateObjectPosition);
+        _clientCom.RegisterFunction<AbillityUsePacket>("UseAbility", UseAbility);
 
         SetupTestLevel();
         Engine.CoroutineManager.StartCoroutine(ServerTick());
@@ -299,11 +319,13 @@ public class TestScene : SceneWithMap
 
         while (true)
         {
+            if (_clientCom == null) break;
+
             foreach (MapObject? obj in Map.ForEachObject())
             {
                 Character? ch = obj as Character; // todo: how bad is converting this?
                 if (ch == null) continue;
-                ch.UpdateCharacter();
+                ch.ServerUpdate(Engine.DeltaTime, _clientCom);
             }
 
             yield return null;
@@ -368,6 +390,8 @@ public class TestScene : SceneWithMap
     {
         AssertNotNull(_clientCom);
         _clientCom.RegisterFunction<MovementUpdate>("UpdateObjectPosition", UpdateObjectPosition);
+        _clientCom.RegisterFunction<AbillityUsePacket>("UseAbility", UseAbility);
+
         _clientCom.RegisterFunction<Character>("UnitSpawned", (c) =>
         {
             if (!_mapStarted) return;
@@ -411,24 +435,9 @@ public class TestScene : SceneWithMap
         UIParent.AddChild(nameplate);
     }
 
-    struct MovementUpdate
-    {
-        public uint ObjectId;
-        public Vector2 Pos;
-    }
-
     private void ClientTick()
     {
-        if (_clientCom == null) return;
-        if (MyCharacter == null) return;
 
-        var movement = new MovementUpdate()
-        {
-            ObjectId = MyCharacter.ObjectId,
-            Pos = MyCharacter.Position2
-        };
-        string? meta = XMLFormat.To(movement);
-        _clientCom.SendBrokerMsg("UpdateObjectPosition", meta);
     }
 
     #endregion

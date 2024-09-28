@@ -78,6 +78,6 @@ public class Program
     private static IEnumerator EntryPointAsync()
     {
         //yield return Engine.SceneManager.SetScene(new TestScene());
-        yield return Engine.SceneManager.SetScene(new TimeSyncMultiplayer_TestScene());
+        yield return Engine.SceneManager.SetScene(new TestGame.TestScene());
     }
 }
