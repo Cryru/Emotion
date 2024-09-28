@@ -1003,6 +1003,39 @@ public class XMLTests
         Assert.True(((TypeInherit) restored).Val2 == 120);
     }
 
+    public struct StructTransformHolder
+    {
+        public Transform Child;
+    }
+
+    [Test]
+    public void ComplexValueTypeWithInheritedMember()
+    {
+        string objectBase = ToXMLForTest(new StructTransformHolder
+        {
+            Child = new Transform()
+            {
+                Y = 52
+            }
+        });
+
+        var restoredBase = XMLFormat.From<StructTransformHolder>(objectBase);
+        Assert.NotNull(restoredBase.Child);
+        Assert.Equal(restoredBase.Child.Y, 52);
+
+        string arrayInherited = ToXMLForTest(new StructTransformHolder
+        {
+            Child = new TransformInherited()
+            {
+                Height = 15
+            }
+        });
+
+        var restoredInherited = XMLFormat.From<StructTransformHolder>(arrayInherited);
+        Assert.NotNull(restoredInherited.Child);
+        Assert.Equal(restoredInherited.Child.Height, 15);
+    }
+
     private HashSet<string> _usedNamed = new();
 
     private string ToXMLForTest<T>(T obj)
