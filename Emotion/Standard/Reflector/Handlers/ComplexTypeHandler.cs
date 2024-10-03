@@ -1,27 +1,19 @@
 ﻿#nullable enable
 
+using System.Text;
+
 namespace Emotion.Standard.Reflector.Handlers;
 
-public abstract class ComplexTypeHandler : IReflectorTypeHandler
+public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflectorComplexTypeHandler
 {
-    public Type Type { get; protected set; }
+    public override Type Type => typeof(T);
 
-    public bool CanGetOrParseValueAsString => false;
+    public override bool CanGetOrParseValueAsString => false;
 
-    protected ComplexTypeHandler(Type t)
-    {
-        Type = t;
-    }
-
-    public abstract ComplexTypeHandlerMember[] GetMembers();
-}
-
-public class ComplexTypeHandler<T> : ComplexTypeHandler
-{
     private ComplexTypeHandlerMember[] _membersArr;
     private Dictionary<string, ComplexTypeHandlerMember> _members;
 
-    public ComplexTypeHandler(ComplexTypeHandlerMember[] members) : base(typeof(T))
+    public ComplexTypeHandler(ComplexTypeHandlerMember[] members)
     {
         _membersArr = members;
         _members = new Dictionary<string, ComplexTypeHandlerMember>();
@@ -31,7 +23,7 @@ public class ComplexTypeHandler<T> : ComplexTypeHandler
             _members.Add(member.Name, member);
         }
     }
-    public override ComplexTypeHandlerMember[] GetMembers()
+    public ComplexTypeHandlerMember[] GetMembers()
     {
         return _membersArr;
     }
@@ -40,5 +32,16 @@ public class ComplexTypeHandler<T> : ComplexTypeHandler
     {
         if (_members.TryGetValue(name, out ComplexTypeHandlerMember? member)) return member;
         return null;
+    }
+
+    public override bool WriteValueAsString(StringBuilder builder, T? instance)
+    {
+        return false;
+    }
+
+    public override bool ParseValueAsString<TReader>(TReader reader, out T? result)
+    {
+        result = default;
+        return false;
     }
 }

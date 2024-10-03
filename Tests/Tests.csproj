@@ -38,6 +38,11 @@
         <Compile Remove="Assets\Scripts\CustomMainScript.cs" />
         <Compile Remove="Assets\Scripts\MainScript.cs" />
         <Compile Remove="Classes\UITests.cs" />
+        <Compile Remove="EngineTests\CoroutineTest.cs" />
+        <Compile Remove="EngineTests\GlyphSoftwareRasterizerTests.cs" />
+        <Compile Remove="EngineTests\NewUITests.cs" />
+        <Compile Remove="EngineTests\UITests.cs" />
+        <Compile Remove="EngineTests\XMLTests.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -63,11 +68,20 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Include="Classes\UITests.cs" />
+        <None Include="EngineTests\CoroutineTest.cs" />
+        <None Include="EngineTests\GlyphSoftwareRasterizerTests.cs" />
+        <None Include="EngineTests\NewUITests.cs" />
+        <None Include="EngineTests\UITests.cs" />
+        <None Include="EngineTests\XMLTests.cs" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Emotion\Emotion.csproj" />
         <ProjectReference Include="..\Legacy\Emotion.Test\Emotion.Test.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
