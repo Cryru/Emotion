@@ -55,7 +55,7 @@ namespace SourceGenerator
                 sb.AppendLine("           ReflectorEngineInit.OnInit += LateLoad;");
                 sb.AppendLine("       }");
                 sb.AppendLine("");
-                sb.AppendLine("       public unsafe static void LateLoad()");
+                sb.AppendLine("       public static void LateLoad()");
                 sb.AppendLine("       {");
 
                 foreach (var space in namespaces)
@@ -149,6 +149,9 @@ namespace SourceGenerator
             if (typ.DeclaredAccessibility != Accessibility.Public) return;
             if (typ.IsGenericType) return;
 
+            ImmutableArray<AttributeData> classAttributes = typ.GetAttributes();
+            if (IsObsolete(classAttributes)) return;
+
             // Emotion generates its own reflection data, don't generate any for it.
             if (typ.ContainingAssembly.Name == "Emotion" && mainNamespace != "Emotion") return;
 
@@ -182,6 +185,9 @@ namespace SourceGenerator
                 string memberName = member.Name;
                 if (memberName == "this[]") continue;
 
+                ImmutableArray<AttributeData> memberAttributes = member.GetAttributes();
+                if (IsObsolete(memberAttributes)) continue;
+
                 string memberFullTypeName = memberType?.ToDisplayString();
 
                 // Pointers not supported
@@ -193,12 +199,14 @@ namespace SourceGenerator
                 sb.AppendLine($"              new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(\"{memberName}\", (p, v) => p.{memberName} = v, (p) => p.{memberName})");
                 sb.AppendLine($"              {{");
 
-                var attributes = member.GetAttributes();
-                if (attributes.Length > 0)
+                if (memberAttributes.Length > 0)
                 {
                     sb.AppendLine($"                  Attributes = new Attribute[] {{");
-                    foreach (var attribute in attributes)
+                    foreach (var attribute in memberAttributes)
                     {
+                        var clazz = attribute.AttributeClass;
+                        if (clazz.Name != "VertexAttributeAttribute") continue; // todo
+
                         sb.AppendLine($"                      {GenerateAttributeDeclaration(attribute)},");
                     }
                     sb.AppendLine($"                  }},");

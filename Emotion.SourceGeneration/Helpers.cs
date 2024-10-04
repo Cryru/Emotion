@@ -100,5 +100,16 @@ namespace Emotion.SourceGeneration
                 return argument.Value?.ToString() ?? string.Empty;
             }
         }
+
+        public static bool IsObsolete(ImmutableArray<AttributeData> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                string name = attribute.AttributeClass.Name.ToString();
+                if (name == "ObsoleteAttribute")
+                    return true;
+            }
+            return false;
+        }
     }
 }
