@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-namespace Emotion.Standard.ByteReadWrite;
+namespace Emotion.Standard.OptimizedStringReadWrite;
 
 public interface IStringReader
 {

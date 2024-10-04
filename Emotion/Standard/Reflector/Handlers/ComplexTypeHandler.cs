@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using System.Text;
+using Emotion.Standard.OptimizedStringReadWrite;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -34,14 +34,14 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         return null;
     }
 
-    public override bool WriteValueAsString(StringBuilder builder, T? instance)
-    {
-        return false;
-    }
-
     public override bool ParseValueAsString<TReader>(TReader reader, out T? result)
     {
         result = default;
+        return false;
+    }
+
+    public override bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance)
+    {
         return false;
     }
 }

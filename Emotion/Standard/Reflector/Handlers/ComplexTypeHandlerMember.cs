@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Standard.OptimizedStringReadWrite;
 using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -30,7 +31,13 @@ public abstract class ComplexTypeHandlerMember
 
     public abstract IGenericReflectorTypeHandler? GetTypeHandler();
 
-    public abstract bool WriteValueFromComplexObject(StringBuilder builder, object? obj);
+    public bool WriteValueFromComplexObject(StringBuilder builder, object? obj)
+    {
+        ValueStringWriter writer = new ValueStringWriter(builder);
+        return WriteValueFromComplexObject(ref writer, obj);
+    }
+
+    public abstract bool WriteValueFromComplexObject(ref ValueStringWriter writer, object? obj);
 
     public abstract bool ReadValueFromComplexObject(object obj, out object? readValue); //unused
 
@@ -74,7 +81,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         return false;
     }
 
-    public override bool WriteValueFromComplexObject(StringBuilder builder, object? obj)
+    public override bool WriteValueFromComplexObject(ref ValueStringWriter writer, object? obj)
     {
         if (obj is not ParentT parentType) return false;
 
@@ -84,13 +91,8 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
 
         MyT? val = _getValue(parentType);
         if (val == null)
-        {
-            builder.Append("null");
-            return true;
-        }
+            return writer.WriteString("null");
         else
-        {
-            return typeHandler.WriteValueAsString(builder, val);
-        }
+            return typeHandler.WriteValueAsString(ref writer, val);
     }
 }

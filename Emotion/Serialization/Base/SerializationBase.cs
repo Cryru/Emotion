@@ -27,7 +27,7 @@ public static class SerializationBase
         builder.Append(type.Name);
         builder.Append("\n");
 
-        if (typeHandler is ComplexTypeHandler complexTypeHandler)
+        if (typeHandler is IGenericReflectorComplexTypeHandler complexTypeHandler)
         {
             ComplexTypeHandlerMember[] members = complexTypeHandler.GetMembers();
             foreach (ComplexTypeHandlerMember member in members)

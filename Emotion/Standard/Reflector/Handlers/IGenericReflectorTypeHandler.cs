@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.Standard.ByteReadWrite;
+using Emotion.Standard.OptimizedStringReadWrite;
 using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -14,9 +14,15 @@ public interface IGenericReflectorTypeHandler
     /// </summary>
     public bool CanGetOrParseValueAsString { get; }
 
-    public bool WriteValueAsStringGeneric<T>(StringBuilder builder, T? instance)
+    public bool WriteValueAsStringGeneric<T>(ref ValueStringWriter stringWriter, T? instance)
     {
         throw new Exception("Not supported!");
+    }
+
+    public bool WriteValueAsStringGeneric<T>(StringBuilder builder, T? instance)
+    {
+        ValueStringWriter writer = new ValueStringWriter(builder);
+        return WriteValueAsStringGeneric<T>(ref writer, instance);
     }
 
     public bool ParseValueFromStringGeneric<TReader>(TReader reader, out object? result) where TReader : IStringReader

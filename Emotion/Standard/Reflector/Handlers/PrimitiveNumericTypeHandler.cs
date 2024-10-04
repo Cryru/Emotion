@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Standard.OptimizedStringReadWrite;
 using System.Globalization;
 using System.Text;
 
@@ -11,10 +12,9 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
 
     public override bool CanGetOrParseValueAsString => true;
 
-    public override bool WriteValueAsString(StringBuilder builder, T instance)
+    public override bool WriteValueAsString(ref ValueStringWriter stringWriter, T instance)
     {
-        builder.Append(instance.ToString() ?? string.Empty);
-        return true;
+        return stringWriter.WriteNumber(instance);
     }
 
     public object? ParseValueFromString(string val)
