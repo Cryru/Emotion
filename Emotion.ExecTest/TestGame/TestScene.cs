@@ -1,7 +1,9 @@
 ﻿using Emotion.Editor.EditorHelpers;
-using Emotion.ExecTest.TestGame.Abilities;
+using Emotion.ExecTest.TestGame.Packets;
+using Emotion.ExecTest.TestGame.UI;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
+using Emotion.IO;
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
 using Emotion.Network.ServerSide;
@@ -29,8 +31,10 @@ public class TestScene : SceneWithMap
 {
     public static MsgBrokerClientTimeSync NetworkCom;
 
-    public PlayerCharacter? MyCharacter;
-    private Character? _lastMouseoverChar;
+    public PlayerUnit? MyUnit;
+    private Unit? _lastMouseoverUnit;
+
+    protected List<FloatingText> _floatingTexts = new List<FloatingText>();
 
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
@@ -39,29 +43,35 @@ public class TestScene : SceneWithMap
 
         SetupOnlineButtons();
 
-        SpellButton spell = new SpellButton();
-        spell.AnchorAndParentAnchor = UIAnchor.BottomLeft;
-        UIParent.AddChild(spell);
-
         yield break;
     }
 
     public override void UpdateScene(float dt)
     {
+        for (int i = _floatingTexts.Count - 1; i >= 0; i--)
+        {
+            var text = _floatingTexts[i];
+            text.Timer.Update(Engine.DeltaTime);
+            if (text.Timer.Finished)
+            {
+                _floatingTexts.Remove(text);
+            }
+        }
+
         UpdateInputLocal(dt);
         ClientTick();
 
-        if (MyCharacter != null)
+        if (MyUnit != null)
         {
-            if (_lastMouseoverChar != null)
+            if (_lastMouseoverUnit != null)
             {
-                _lastMouseoverChar.SetRenderMouseover(false);
+                _lastMouseoverUnit.SetRenderMouseover(false);
             }
 
-            Character? underMouse = GetCharacterUnderMouse();
+            Unit? underMouse = GetCharacterUnderMouse();
             if (underMouse != null)
             {
-                _lastMouseoverChar = underMouse;
+                _lastMouseoverUnit = underMouse;
                 underMouse.SetRenderMouseover(true);
             }
         }
@@ -82,20 +92,35 @@ public class TestScene : SceneWithMap
         //c.RenderCircle(Vector3.Zero, 20, Color.White, true);
 
         base.RenderScene(c);
+
+        for (int i = 0; i < _floatingTexts.Count; i++)
+        {
+            var textInstance = _floatingTexts[i];
+
+            float y = 30 * textInstance.Timer.Progress;
+            float opacity = 1f;
+            if (textInstance.Timer.Progress > 0.5f)
+            {
+                opacity = 1.0f - ((textInstance.Timer.Progress - 0.5f) / 0.5f);
+            }
+
+            c.RenderString(textInstance.Position - new Vector3(0, y, 0), textInstance.Color * opacity, textInstance.Text,
+                FontAsset.GetDefaultBuiltIn().GetAtlas(13), null, Emotion.Graphics.Text.FontEffect.Outline, 0.6f, Color.Black * opacity);
+        }
     }
 
     #region Input
 
-    protected Character? GetCharacterUnderMouse()
+    protected Unit? GetCharacterUnderMouse()
     {
         Vector2 mousePos = Engine.Host.MousePosition;
         Vector2 worldClick = Engine.Renderer.Camera.ScreenToWorld(mousePos).ToVec2();
 
         foreach (MapObject? obj in Map.ForEachObject())
         {
-            Character? ch = obj as Character;
+            Unit? ch = obj as Unit;
             if (ch == null) continue;
-            if (obj is not EnemyCharacter) continue;
+            if (obj is not EnemyUnit) continue;
 
             Rectangle bounds = ch.Bounds;
             bounds.Center = ch.Position2;
@@ -122,33 +147,16 @@ public class TestScene : SceneWithMap
             return false;
         }
 
-        if (_clientCom != null && MyCharacter != null)
+        if (_clientCom != null && MyUnit != null)
         {
             if (key == Key.MouseKeyLeft && status == KeyState.Down)
             {
                 var charUnderMouse = GetCharacterUnderMouse();
                 if (charUnderMouse != null)
                 {
-                    MyCharacter.SetTarget(charUnderMouse);
-
-                    UIBaseWindow? targetNameplate = UIParent.GetWindowById("TargetNameplate");
-                    targetNameplate?.Close();
-
-                    var nameplate = new Nameplate(charUnderMouse)
-                    {
-                        Offset = new Vector2(350, 0),
-                        Margins = new Rectangle(5, 5, 5, 5),
-                        Id = "TargetNameplate"
-                    };
-                    UIParent.AddChild(nameplate);
+                    MyUnit.SetTarget(charUnderMouse);
                 }
 
-                return false;
-            }
-
-            if (key == Key.Num4 && status == KeyState.Down)
-            {
-                //_clientCom.GameTimeRunner.StartCoroutine(UseThrash(LocalPlayer.Character));
                 return false;
             }
         }
@@ -158,30 +166,13 @@ public class TestScene : SceneWithMap
 
     private void UpdateInputLocal(float dt)
     {
-        if (MyCharacter == null) return;
+        if (MyUnit == null) return;
         if (_inputDirection == Vector2.Zero) return;
         if (_clientCom == null) return;
 
-        MyCharacter.Position2 += _inputDirection * 0.1f * dt;
-        Engine.Renderer.Camera.Position = MyCharacter.Position;
-        MyCharacter.SendMovementUpdate();
-    }
-
-    private IEnumerator UseThrash(Character user)
-    {
-        Vector3 pos = user.Position;
-        foreach (MapObject? obj in Map.ForEachObject())
-        {
-            Character? ch = obj as Character;
-            if (ch == null) continue;
-            if (obj is not EnemyCharacter) continue;
-            if (ch.IsDead()) continue;
-
-            var dist = Vector3.Distance(obj.Position, user.Position);
-            if (dist < 100)
-                ch.TakeDamage(15);
-        }
-        yield return 15;
+        MyUnit.Position2 += _inputDirection * 0.1f * dt;
+        Engine.Renderer.Camera.Position = MyUnit.Position;
+        MyUnit.SendMovementUpdate();
     }
 
     #endregion
@@ -198,7 +189,7 @@ public class TestScene : SceneWithMap
         // Better way of getting it
         foreach (MapObject? obj in Map.ForEachObject())
         {
-            if (obj is Character ch && ch.ObjectId == data.ObjectId)
+            if (obj is Unit ch && ch.ObjectId == data.ObjectId)
             {
                 if (ch.LocallyControlled) break;
 
@@ -210,14 +201,12 @@ public class TestScene : SceneWithMap
 
     private void UseAbility(AbillityUsePacket packet)
     {
-        var ability = packet.AbilityInstance;
-
         uint caster = packet.UserId;
-        Character? casterUnit = null;
+        Unit? casterUnit = null;
 
         foreach (MapObject? obj in Map.ForEachObject())
         {
-            if (obj is Character ch && ch.ObjectId == caster)
+            if (obj is Unit ch && ch.ObjectId == caster)
             {
                 casterUnit = ch;
                 break;
@@ -228,19 +217,23 @@ public class TestScene : SceneWithMap
         if (casterUnit.IsDead()) return;
 
         uint target = packet.TargetId;
-        Character? targetUnit = null;
+        Unit? targetUnit = null;
 
         if (target != 0)
         {
             foreach (MapObject? obj in Map.ForEachObject())
             {
-                if (obj is Character ch && ch.ObjectId == target)
+                if (obj is Unit ch && ch.ObjectId == target)
                 {
                     targetUnit = ch;
                     break;
                 }
             }
         }
+
+        string abilityId = packet.AbilityId;
+        Abilities.Ability? ability = casterUnit.GetMyAbilityById(abilityId);
+        if (ability == null) return;
 
         casterUnit.Network_UseAbility(ability, targetUnit);
     }
@@ -323,7 +316,7 @@ public class TestScene : SceneWithMap
 
             foreach (MapObject? obj in Map.ForEachObject())
             {
-                Character? ch = obj as Character; // todo: how bad is converting this?
+                Unit? ch = obj as Unit; // todo: how bad is converting this?
                 if (ch == null) continue;
                 ch.ServerUpdate(Engine.DeltaTime, _clientCom);
             }
@@ -337,15 +330,15 @@ public class TestScene : SceneWithMap
         AssertNotNull(_clientCom);
         AssertNotNull(_serverCom);
 
-        PlayerCharacter newChar = new((uint) newUserId);
+        PlayerUnit newChar = new((uint) newUserId);
         Map.AddAndInitObject(newChar);
         _clientCom.SendBrokerMsg("UnitSpawned", XMLFormat.To(newChar));
 
         // Sync current state
-        List<Character> charsToSend = new List<Character>();
+        List<Unit> charsToSend = new List<Unit>();
         foreach (var obj in Map.ForEachObject())
         {
-            if (obj is Character ch)
+            if (obj is Unit ch)
                 charsToSend.Add(ch);
         }
 
@@ -361,19 +354,19 @@ public class TestScene : SceneWithMap
     private void SetupTestLevel()
     {
         {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(0, -100) };
+            var badGuy = new EnemyUnit() { Position2 = new Vector2(0, -100) };
             Map.AddObject(badGuy);
         }
         {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(50, -200) };
+            var badGuy = new EnemyUnit() { Position2 = new Vector2(50, -200) };
             Map.AddObject(badGuy);
         }
         {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(-50, -200) };
+            var badGuy = new EnemyUnit() { Position2 = new Vector2(-50, -200) };
             Map.AddObject(badGuy);
         }
         {
-            var badGuy = new EnemyCharacter() { Position2 = new Vector2(0, -200) };
+            var badGuy = new EnemyUnit() { Position2 = new Vector2(0, -200) };
             Map.AddObject(badGuy);
         }
     }
@@ -392,12 +385,12 @@ public class TestScene : SceneWithMap
         _clientCom.RegisterFunction<MovementUpdate>("UpdateObjectPosition", UpdateObjectPosition);
         _clientCom.RegisterFunction<AbillityUsePacket>("UseAbility", UseAbility);
 
-        _clientCom.RegisterFunction<Character>("UnitSpawned", (c) =>
+        _clientCom.RegisterFunction<Unit>("UnitSpawned", (c) =>
         {
             if (!_mapStarted) return;
             Map.AddAndInitObject(c);
         });
-        _clientCom.RegisterFunction<List<Character>>("StartMap", (characters) =>
+        _clientCom.RegisterFunction<List<Unit>>("StartMap", (characters) =>
         {
             if (_mapStarted) return;
             _mapStarted = true;
@@ -405,11 +398,11 @@ public class TestScene : SceneWithMap
             for (int i = 0; i < characters.Count; i++)
             {
                 var ch = characters[i];
-                if (ch is PlayerCharacter pChar && pChar.PlayerId == _clientCom.UserId)
+                if (ch is PlayerUnit pChar && pChar.PlayerId == _clientCom.UserId)
                 {
-                    var myChar = new MyCharacter(pChar.PlayerId);
+                    var myChar = new MyUnit(pChar.PlayerId);
                     Map.AddAndInitObject(myChar);
-                    MyCharacter = myChar;
+                    MyUnit = myChar;
                     SetupUIForMyCharacter();
                 }
                 else
@@ -425,14 +418,17 @@ public class TestScene : SceneWithMap
         UIBaseWindow? targetNameplate = UIParent.GetWindowById("PlayerNameplate");
         targetNameplate?.Close();
 
-        if (MyCharacter == null) return;
+        if (MyUnit == null) return;
 
-        var nameplate = new Nameplate(MyCharacter)
+        var nameplate = new Nameplate(MyUnit)
         {
             Margins = new Rectangle(5, 5, 5, 5),
             Id = "PlayerNameplate"
         };
         UIParent.AddChild(nameplate);
+
+        var skillBar = new UnitSkillBar(MyUnit);
+        UIParent.AddChild(skillBar);
     }
 
     private void ClientTick()
@@ -451,5 +447,29 @@ public class TestScene : SceneWithMap
         string? dataXML = XMLFormat.To(data);
         if (dataXML == null) return;
         ts._clientCom.SendBrokerMsg(method, dataXML);
+    }
+
+    public static void SendHash(string method, int hash)
+    {
+        var currentScene = Engine.SceneManager.Current;
+        if (currentScene is not TestScene ts) return;
+        if (ts._clientCom == null) return;
+
+        ts._clientCom.SendTimeSyncHash(hash);
+    }
+
+    public static void AddFloatingText(string text, Unit source, Unit target, Color? color)
+    {
+        TestScene? scene = Engine.SceneManager.Current as TestScene;
+        if (scene == null) return;
+
+        Vector2 midPoint = target.Position2;
+        if (source != target)
+        {
+            Vector2 dirTowardsSource = Vector2.Normalize(source.Position2 - target.Position2);
+            midPoint = midPoint + dirTowardsSource * target.Size / 2.3f;
+        }
+
+        scene._floatingTexts.Add(new FloatingText(text, midPoint.ToVec3(source.Z), color));
     }
 }

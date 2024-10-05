@@ -2,13 +2,13 @@ using Emotion.UI;
 
 #nullable enable
 
-namespace Emotion.ExecTest.TestGame;
+namespace Emotion.ExecTest.TestGame.UI;
 
 public class Nameplate : UIBaseWindow
 {
-    private Character _char;
+    private Unit _char;
 
-    public Nameplate(Character ch)
+    public Nameplate(Unit ch)
     {
         _char = ch;
         FillX = false;

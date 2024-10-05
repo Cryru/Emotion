@@ -1,10 +1,12 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.ExecTest.TestGame.Abilities;
+using Emotion.ExecTest.TestGame.Packets;
 using Emotion.Game.Time.Routines;
 using Emotion.IO;
 using Emotion.Network.TimeSyncMessageBroker;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.TimeUpdate;
 using System;
@@ -15,21 +17,33 @@ using System.Reflection;
 
 namespace Emotion.ExecTest.TestGame;
 
+[Flags]
 public enum CharacterState
 {
-    NotInCombat,
-    InCombat,
-    CombatAI_MoveToTargetOffset
+    None = 0,
+    InCombat = 2 << 0,
+    CombatAI_MoveToTargetOffset = 2 << 1
 }
 
-public partial class Character : MapObject
+public class AbilityMeta
+{
+    public int LastTimeCast;
+    public int CooldownTimeStamp;
+}
+
+public partial class Unit : MapObject
 {
     public const uint PLAYER_OBJECT_OFFSET = 2_000_000;
 
-    public CharacterState State = CharacterState.NotInCombat;
-    public int MeleeRange = 20;
-    public int LastMeleeAttack = 0;
-    public int MeleeSpeed = 500;
+    public float CastProgress = 0;
+
+    public int GlobalCooldownLastActivated = 0;
+    public int GlobalCooldownTimestamp = 0;
+
+    public List<Ability> Abilities = new List<Ability>();
+    private Dictionary<string, AbilityMeta> _abilityMeta = new Dictionary<string, AbilityMeta>();
+
+    public CharacterState State = CharacterState.None;
 
     public uint ObjectId;
     private static uint _nextObjectIdLocal = 1;
@@ -44,20 +58,22 @@ public partial class Character : MapObject
     public int Health;
     public int MaxHealth = 100;
 
+    public int MeleeRange = 20;
     public int MeleeDamage = 5;
+    public int MeleeSpeed = 500;
 
     [DontSerialize]
-    public Character? Target;
+    public Unit? Target;
 
     public Vector2 VisualPosition;
     public Vector3 VisualPosition3 => VisualPosition.ToVec3();
 
-    public Character()
+    public Unit()
     {
         Size = new Vector2(32);
     }
 
-    protected Character(uint id) : this()
+    protected Unit(uint id) : this()
     {
         ObjectId = id;
     }
@@ -93,11 +109,23 @@ public partial class Character : MapObject
 
     #region Combat
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Unit? source)
     {
         if (IsDead()) return;
+
+        if (Target == null)
+        {
+            SetTarget(source);
+        }
+
+        if (!State.EnumHasFlag(CharacterState.InCombat))
+        {
+            State |= CharacterState.InCombat;
+        }
+
         Health -= damage;
         if (Health < 0) Health = 0;
+        TestScene.AddFloatingText($"-{damage}", this, source ?? this, Color.PrettyRed);
     }
 
     public bool IsDead()
@@ -105,7 +133,7 @@ public partial class Character : MapObject
         return Health <= 0;
     }
 
-    public virtual void SetTarget(Character? ch)
+    public virtual void SetTarget(Unit? ch)
     {
         Target = ch;
     }
@@ -114,24 +142,24 @@ public partial class Character : MapObject
 
     #region Melee Attacker Spread
 
-    private List<Character>? _attackers = null;
+    private List<Unit>? _attackers = null;
 
-    public void RegisterMeleeAttacker(Character ch)
+    public void RegisterMeleeAttacker(Unit ch)
     {
         if (_attackers == null)
-            _attackers = new List<Character>();
+            _attackers = new List<Unit>();
 
         Assert(!_attackers.Contains(ch));
         _attackers.Add(ch);
     }
 
-    public void UnregisterMeleeAttacker(Character ch)
+    public void UnregisterMeleeAttacker(Unit ch)
     {
         if (_attackers == null) return;
         _attackers.Remove(ch);
     }
 
-    public Vector2? MeleeAttackerGetNonOverlappingOffset(Character ch)
+    public Vector2? MeleeAttackerGetNonOverlappingOffset(Unit ch)
     {
         if (_attackers == null) return null;
 
@@ -141,7 +169,7 @@ public partial class Character : MapObject
 
         for (int i = 0; i < _attackers.Count; i++)
         {
-            Character att = _attackers[i];
+            Unit att = _attackers[i];
             if (att == ch) continue;
             if (att.State == CharacterState.CombatAI_MoveToTargetOffset) continue;
 
@@ -185,28 +213,96 @@ public partial class Character : MapObject
     protected Ability? _usingAbility;
     protected Coroutine _usingAbilityRoutine;
 
-    public void SendUseAbility(Ability ability, Character? target)
+    public AbilityMeta? GetAbilityMeta(Ability ability)
     {
+        string abilityId = ability.Id;
+        if (_abilityMeta.TryGetValue(abilityId, out AbilityMeta? meta))
+        {
+            return meta;
+        }
+
+        bool hasAbility = false;
+        for (int i = 0; i < Abilities.Count; i++)
+        {
+            var ab = Abilities[i];
+            var abId = ab.Id;
+            if (abId == abilityId)
+            {
+                hasAbility = true;
+                break;
+            }
+        }
+        
+        if (hasAbility)
+        {
+            AbilityMeta newMeta = new AbilityMeta();
+            _abilityMeta.Add(abilityId, newMeta);
+            return newMeta;
+        }
+
+        return null;
+    }
+
+    public Ability? GetMyAbilityById(string abilityId)
+    {
+        for (int i = 0; i < Abilities.Count; i++)
+        {
+            var ab = Abilities[i];
+            var abId = ab.Id;
+            if (abId == abilityId)
+            {
+                return ab;
+            }
+        }
+        return null;
+    }
+
+    public void SendUseAbility(Ability ability)
+    {
+        Unit? target = Target;
+
         if (LocallyControlled)
             _usingAbility = ability;
 
+        string abilityId = ability.Id;
         var packet = new AbillityUsePacket()
         {
             UserId = ObjectId,
             TargetId = target?.ObjectId ?? 0,
-            AbilityInstance = ability
+            AbilityId = abilityId
         };
         TestScene.NetworkCom.SendBrokerMsg("UseAbility", XMLFormat.To(packet));
     }
 
-    public void Network_UseAbility(Ability ability, Character? target)
+    public void Network_UseAbility(Ability ability, Unit? target)
     {
         _usingAbility = ability; // GameTime routines are not eager
         _usingAbilityRoutine = Engine.CoroutineManagerGameTime.StartCoroutine(UseAbilityLocalRoutine(ability, target));
     }
 
-    public IEnumerator UseAbilityLocalRoutine(Ability ability, Character? target)
+    public IEnumerator UseAbilityLocalRoutine(Ability ability, Unit? target)
     {
+        if (!ability.CanUse(this, target))
+        {
+            _usingAbility = null;
+            yield break;
+        }
+
+        AbilityMeta? meta = GetAbilityMeta(ability);
+        AssertNotNull(meta);
+        if (meta != null)
+        {
+            int timeNow = (int)Engine.CurrentGameTime;
+            if (ability.Flags.EnumHasFlag(AbilityFlags.StartsGlobalCooldown))
+            {
+                GlobalCooldownTimestamp = timeNow + 1000;
+                GlobalCooldownLastActivated = timeNow;
+            }
+            
+            meta.CooldownTimeStamp = timeNow + ability.GetCooldown(this, target);
+            meta.LastTimeCast = timeNow;
+        }
+
         yield return ability.OnUseAbility(this, target);
         _usingAbility = null;
     }

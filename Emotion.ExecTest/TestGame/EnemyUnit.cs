@@ -1,19 +1,16 @@
 ﻿using Emotion.ExecTest.TestGame.Abilities;
-using Emotion.Game.Time.Routines;
 using Emotion.IO;
 using Emotion.Network.TimeSyncMessageBroker;
+using Emotion.Utility;
 
 #nullable enable
 
 namespace Emotion.ExecTest.TestGame;
 
-public class EnemyCharacter : Character
+public class EnemyUnit : Unit
 {
     public int AggroRange = 50;
 
-
-    private bool _showSword;
-    private Texture _swordAsset = Texture.EmptyWhiteTexture;
     private Vector2 _moveDir;
 
     private bool _inMeleeRangeOfTarget;
@@ -22,20 +19,19 @@ public class EnemyCharacter : Character
 
     private MeleeAttack _attackSkill = new();
 
-    public EnemyCharacter()
+    public EnemyUnit()
     {
         Name = "Bad Guy";
         Image = "Test/proto/enemy";
         Size = new Vector2(16);
+
+        Abilities.Add(new MeleeAttack());
     }
 
     public override void Init()
     {
         base.Init();
         _spawnPos = Position2;
-
-        _swordAsset = Engine.AssetLoader.Get<TextureAsset>("Test/proto/sword.png")?.Texture ?? Texture.EmptyWhiteTexture;
-        _swordAsset.Smooth = true;
     }
 
     public override void Update(float dt)
@@ -50,20 +46,23 @@ public class EnemyCharacter : Character
         if (IsDead())
             return;
 
+        if (CombatAI_BusyUsingAbility())
+            return;
+
         if (_moveDir != Vector2.Zero)
         {
             Position2 += _moveDir * 0.1f * dt;
             SendMovementUpdate();
         }
 
-        if (State == CharacterState.NotInCombat)
+        if (!State.EnumHasFlag(CharacterState.InCombat))
         {
             foreach (var obj in Map.ForEachObject())
             {
                 if (obj == this) continue;
-                if (obj is EnemyCharacter) continue;
+                if (obj is EnemyUnit) continue;
 
-                Character? ch = obj as Character;
+                Unit? ch = obj as Unit;
                 if (ch == null) continue;
                 if (ch.IsDead()) continue;
 
@@ -71,19 +70,16 @@ public class EnemyCharacter : Character
                 if (Vector3.Distance(objPos, Position) < AggroRange)
                 {
                     Target = ch;
-                    State = CharacterState.InCombat;
+                    State |= CharacterState.InCombat;
                     break;
                 }
             }
         }
-        if (State == CharacterState.InCombat || State == CharacterState.CombatAI_MoveToTargetOffset)
+        if (State.EnumHasFlag(CharacterState.InCombat) || State.EnumHasFlag(CharacterState.CombatAI_MoveToTargetOffset))
         {
-            if (CombatAI_BusyUsingAbility()) return;
-            _showSword = false;
-
             if (Target == null || Target.IsDead())
             {
-                State = CharacterState.NotInCombat;
+                State = State.EnumRemoveFlag(CharacterState.InCombat);
                 return;
             }
 
@@ -98,7 +94,7 @@ public class EnemyCharacter : Character
                     _inMeleeRangeOfTarget = false;
                 }
             }
-            else if (State == CharacterState.CombatAI_MoveToTargetOffset && _targetingOffset != Vector2.Zero && Vector2.Distance(Position2, _targetingOffset) > 1f)
+            else if (State.EnumHasFlag(CharacterState.CombatAI_MoveToTargetOffset) && _targetingOffset != Vector2.Zero && Vector2.Distance(Position2, _targetingOffset) > 1f)
             {
                 _moveDir = Vector2.Normalize(_targetingOffset - Position2);
             }
@@ -111,9 +107,9 @@ public class EnemyCharacter : Character
                     _moveDir = Vector2.Zero;
                 }
                
-                if (State == CharacterState.CombatAI_MoveToTargetOffset)
+                if (State.EnumHasFlag(CharacterState.CombatAI_MoveToTargetOffset))
                 {
-                    State = CharacterState.InCombat;
+                    State = State.EnumRemoveFlag(CharacterState.CombatAI_MoveToTargetOffset);
                     _targetingOffset = Vector2.Zero;
                     _moveDir = Vector2.Zero;
                 }
@@ -123,12 +119,11 @@ public class EnemyCharacter : Character
                 if (offset != null)
                 {
                     _targetingOffset = Target.Position2 + offset.Value;
-                    State = CharacterState.CombatAI_MoveToTargetOffset;
+                    State |= CharacterState.CombatAI_MoveToTargetOffset;
                 }
-                else
+                else if(_attackSkill.CanUse(this, Target))
                 {
-                    SendUseAbility(_attackSkill, Target);
-                    _showSword = true;
+                    SendUseAbility(_attackSkill);
                 }
             }
         }
@@ -145,8 +140,5 @@ public class EnemyCharacter : Character
         c.RenderSprite(bar, Color.PrettyRed * 0.5f);
 
         c.RenderCircleOutline(pos, AggroRange, Color.Red, true);
-
-        if (_showSword)
-            c.RenderSprite(pos - new Vector3(8, 8, 0), new Vector2(16), _swordAsset);
     }
 }

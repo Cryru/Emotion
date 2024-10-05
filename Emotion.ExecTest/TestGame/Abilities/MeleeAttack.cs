@@ -1,26 +1,35 @@
-﻿using Emotion.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable enable
 
 namespace Emotion.ExecTest.TestGame.Abilities;
 
 public class MeleeAttack : Ability
 {
-    public override IEnumerator OnUseAbility(Character caster, Character target)
+    public MeleeAttack()
     {
-        float time = Engine.CurrentGameTime;
-        int lastMeleeAttack = caster.LastMeleeAttack;
-        int nextAttackPossibleAt = lastMeleeAttack + caster.MeleeSpeed;
-        if (nextAttackPossibleAt > time)
-        {
-            yield return nextAttackPossibleAt - time;
-        }
+        Icon = "Test/proto/abilities/melee_attack.png";
+        Flags = AbilityFlags.RequireTarget;
+    }
 
-        if (Vector2.Distance(target.Position2, caster.Position2) > caster.MeleeRange) yield break;
-        target.TakeDamage(caster.MeleeDamage);
-        caster.LastMeleeAttack = (int) Engine.CurrentGameTime;
+    // todo: return error such as out of range
+    public override bool CanUse(Unit caster, Unit? target)
+    {
+        if (target == null) return false;
+
+        // todo: get range + flag
+        float dist = Vector2.Distance(caster.Position2, target.Position2);
+        if (dist > caster.MeleeRange) return false;
+
+        return base.CanUse(caster, target);
+    }
+
+    public override int GetCooldown(Unit caster, Unit? target)
+    {
+        return caster.MeleeSpeed;
+    }
+
+    public override IEnumerator OnUseAbility(Unit caster, Unit? target)
+    {
+        target!.TakeDamage(caster.MeleeDamage, caster);
+        yield break;
     }
 }

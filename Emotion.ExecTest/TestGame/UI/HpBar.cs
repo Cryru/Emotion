@@ -2,13 +2,13 @@
 
 #nullable enable
 
-namespace Emotion.ExecTest.TestGame;
+namespace Emotion.ExecTest.TestGame.UI;
 
 public class HpBar : UIBaseWindow
 {
-    private Character _char;
+    private Unit _char;
 
-    public HpBar(Character ch)
+    public HpBar(Unit ch)
     {
         _char = ch;
         FillX = false;

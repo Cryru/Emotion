@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
-namespace Emotion.ExecTest.TestGame;
+using Emotion;
+
+namespace Emotion.ExecTest.TestGame.Packets;
 
 public struct MovementUpdate
 {
