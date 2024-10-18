@@ -27,14 +27,7 @@ public class EmptyTestSceneTemplate : TestingScene
 	{
 	}
 
-	public override Func<IEnumerator>[] GetTestCoroutines()
-	{
-		return new Func<IEnumerator>[]
-		{
-			TemplateTestRoutine
-		};
-	}
-
+    [Test]
 	public IEnumerator TemplateTestRoutine()
 	{
 		yield break;

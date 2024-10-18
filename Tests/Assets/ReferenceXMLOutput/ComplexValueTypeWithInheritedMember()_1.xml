@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<StructTransformHolder>
+  <Child type="Tests.EngineTests.XMLTests+TransformInherited">
+    <Size>
+      <Y>15</Y>
+    </Size>
+  </Child>
+</StructTransformHolder>

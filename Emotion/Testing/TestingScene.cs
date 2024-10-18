@@ -20,8 +20,6 @@ namespace Emotion.Testing;
 
 public abstract class TestingScene : Scene
 {
-    public int RunningTestRoutineIndex = 0;
-
     protected static FrameBuffer? _screenShotBuffer;
     protected static byte[]? _lastFrameScreenShot;
 
@@ -31,6 +29,11 @@ public abstract class TestingScene : Scene
         {
             TestUpdate();
         }
+    }
+
+    public virtual void BetweenEachTest()
+    {
+
     }
 
     public override void RenderScene(RenderComposer composer)
@@ -78,7 +81,7 @@ public abstract class TestingScene : Scene
             testClass = testClass.Replace("+MoveNext()", "");
         }
 
-        fileName = $"{RunningTestRoutineIndex} {fileName}";
+        fileName = $"{fileName}";
         if (addToScreenshotName != null) fileName += addToScreenshotName;
         lock (_usedNamed)
         {
@@ -161,7 +164,6 @@ public abstract class TestingScene : Scene
 
     protected abstract void TestUpdate();
     protected abstract void TestDraw(RenderComposer c);
-    public abstract Func<IEnumerator>[] GetTestCoroutines();
 
     // Loop waiter
     private TestWaiterRunLoops? _loopWaiter;
