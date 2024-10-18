@@ -14,15 +14,24 @@ public enum AbilityFlags
     Default = RequireTarget | StartsGlobalCooldown | CantBeUsedOnGlobalCooldown
 }
 
+public enum AbilityCanUseResult
+{
+    CanUse,
+    OnCooldown,
+    NoTarget,
+    OutOfRange,
+    OnGlobalCooldown
+}
+
 public class Ability
 {
     public string Id => GetType().Name;
 
-    public string Icon = string.Empty;
+    public string Icon = "Test/proto/abilities/placeholder.png";
 
     public AbilityFlags Flags = AbilityFlags.Default;
 
-    public virtual bool CanUse(Unit caster, Unit? target)
+    public virtual AbilityCanUseResult CanUse(Unit caster, Unit? target)
     {
         AbilityMeta? meta = caster.GetAbilityMeta(this);
         AssertNotNull(meta);
@@ -30,20 +39,20 @@ public class Ability
         {
             float timeNow = Engine.CurrentGameTime;
             if (meta.CooldownTimeStamp > timeNow)
-                return false;
+                return AbilityCanUseResult.OnCooldown;
         }
 
-        if (Flags.EnumHasFlag(AbilityFlags.RequireTarget) && target == null)
-            return false;
+        if (Flags.EnumHasFlag(AbilityFlags.RequireTarget) && (target == null || target.IsDead()))
+            return AbilityCanUseResult.NoTarget;
 
         if (Flags.EnumHasFlag(AbilityFlags.CantBeUsedOnGlobalCooldown))
         {
             float timeNow = Engine.CurrentGameTime;
             if (timeNow < caster.GlobalCooldownTimestamp)
-                return false;
+                return AbilityCanUseResult.OnGlobalCooldown;
         }
 
-        return true;
+        return AbilityCanUseResult.CanUse;
     }
 
     public virtual int GetCooldown(Unit caster, Unit? target)

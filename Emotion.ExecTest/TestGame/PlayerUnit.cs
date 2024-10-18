@@ -19,6 +19,7 @@ public class PlayerUnit : Unit
 
         Abilities.Add(new MeleeAttack());
         Abilities.Add(new AbilityThrash());
+        Abilities.Add(new GodModeToggleAbility());
     }
 
     // serialization

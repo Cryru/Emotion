@@ -1,5 +1,6 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.ExecTest.TestGame.Abilities;
+using Emotion.ExecTest.TestGame.Combat;
 using Emotion.ExecTest.TestGame.Packets;
 using Emotion.Game.Time.Routines;
 using Emotion.IO;
@@ -12,6 +13,7 @@ using Emotion.WIPUpdates.TimeUpdate;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 #nullable enable
 
@@ -22,7 +24,7 @@ public enum CharacterState
 {
     None = 0,
     InCombat = 2 << 0,
-    CombatAI_MoveToTargetOffset = 2 << 1
+    CombatAI_MoveToMeleeRangeSpot = 2 << 1
 }
 
 public class AbilityMeta
@@ -34,6 +36,7 @@ public class AbilityMeta
 public partial class Unit : MapObject
 {
     public const uint PLAYER_OBJECT_OFFSET = 2_000_000;
+    public const int AI_MOVE_RANGE_IMPRECISION = 1;
 
     public float CastProgress = 0;
 
@@ -52,7 +55,7 @@ public partial class Unit : MapObject
     public bool LocallyControlled;
 
     public string Image = string.Empty;
-    private Texture _image = Texture.EmptyWhiteTexture;
+    public AssetHandle<TextureAsset> _image;
 
     public string Name = "???";
     public int Health;
@@ -61,6 +64,9 @@ public partial class Unit : MapObject
     public int MeleeRange = 20;
     public int MeleeDamage = 5;
     public int MeleeSpeed = 500;
+
+    public int LastMoved;
+    public bool IsMoving => LastMoved != 0 && (Engine.CurrentGameTime - LastMoved < 50);
 
     [DontSerialize]
     public Unit? Target;
@@ -123,7 +129,14 @@ public partial class Unit : MapObject
             State |= CharacterState.InCombat;
         }
 
+        if (HasAuraWithId(GodModeToggleAbility.AURA_ID) != null)
+        {
+            damage = 0;
+        }
+
         Health -= damage;
+        //Console.WriteLine($"{Health} (-{damage}) of {ObjectId}");
+        TestScene.SendHash($"{Health} (-{damage}) of {ObjectId}");
         if (Health < 0) Health = 0;
         TestScene.AddFloatingText($"-{damage}", this, source ?? this, Color.PrettyRed);
     }
@@ -142,58 +155,73 @@ public partial class Unit : MapObject
 
     #region Melee Attacker Spread
 
-    private List<Unit>? _attackers = null;
+    private const int _meleeSpotAngleDiff = 30;
+    protected bool[] _freeMeleeRangeSpots = new bool[(360 / _meleeSpotAngleDiff)]; 
 
-    public void RegisterMeleeAttacker(Unit ch)
+    public Vector2 GetFreeMeleeRangeSpot(Unit ch)
     {
-        if (_attackers == null)
-            _attackers = new List<Unit>();
+        Vector2 chPos = ch.Position2;
+        Vector2 directionToAttacker = Vector2.Normalize(chPos - Position2);
+        float currentAngle = (float)Math.Atan2(directionToAttacker.Y, directionToAttacker.X);
+        float currentAngleInDegrees = Maths.RadiansToDegrees(currentAngle);
+        int closestAngleInDegrees = (int)(MathF.Round(currentAngleInDegrees / _meleeSpotAngleDiff) * _meleeSpotAngleDiff);
+        closestAngleInDegrees = (int)Maths.ClampAngle(closestAngleInDegrees);
 
-        Assert(!_attackers.Contains(ch));
-        _attackers.Add(ch);
-    }
-
-    public void UnregisterMeleeAttacker(Unit ch)
-    {
-        if (_attackers == null) return;
-        _attackers.Remove(ch);
-    }
-
-    public Vector2? MeleeAttackerGetNonOverlappingOffset(Unit ch)
-    {
-        if (_attackers == null) return null;
-
-        var overlapDist = ch.MeleeRange / 2f;
-
-        float angleIncrement = 0.15f; // Amount to rotate in each step (radians)
-
-        for (int i = 0; i < _attackers.Count; i++)
+        int closestAngleIndex = closestAngleInDegrees / _meleeSpotAngleDiff;
+        if (_freeMeleeRangeSpots[closestAngleIndex])
         {
-            Unit att = _attackers[i];
-            if (att == ch) continue;
-            if (att.State == CharacterState.CombatAI_MoveToTargetOffset) continue;
+            _freeMeleeRangeSpots[closestAngleIndex] = false;
+            return GetMeleeRangeSpotOfIndex(closestAngleIndex, ch.MeleeRange - AI_MOVE_RANGE_IMPRECISION);
+        }
 
-            var attPos = att.Position2;
-            var chPos = ch.Position2;
+        // Check to the left and right of the closest angle index
+        for (int i = 1; i < _freeMeleeRangeSpots.Length; i++)
+        {
+            int leftIndex = (closestAngleIndex - i + _freeMeleeRangeSpots.Length) % _freeMeleeRangeSpots.Length; // Left index
+            int rightIndex = (closestAngleIndex + i) % _freeMeleeRangeSpots.Length; // Right index
 
-            var dist = Vector2.Distance(attPos, chPos);
-            if (dist < overlapDist)
+            // Check left
+            if (_freeMeleeRangeSpots[leftIndex])
             {
-                Vector2 directionToAttacker = Vector2.Normalize(chPos - Position2);
-                float currentAngle = (float)Math.Atan2(directionToAttacker.Y, directionToAttacker.X);
-                currentAngle += angleIncrement;
+                _freeMeleeRangeSpots[leftIndex] = false;
+                return GetMeleeRangeSpotOfIndex(leftIndex, ch.MeleeRange - AI_MOVE_RANGE_IMPRECISION);
+            }
 
-                Vector2 offset = new Vector2((float)Math.Cos(currentAngle), (float)Math.Sin(currentAngle)) * ch.MeleeRange;
-                return offset;
+            // Check right
+            if (_freeMeleeRangeSpots[rightIndex])
+            {
+                _freeMeleeRangeSpots[rightIndex] = false;
+                return GetMeleeRangeSpotOfIndex(rightIndex, ch.MeleeRange - AI_MOVE_RANGE_IMPRECISION);
             }
         }
 
-        return null;
+        // No free spots, just take closest with some derivation
+        float xDeriv = Helpers.GenerateRandomNumber(-100, 100) / 100f;
+        float yDeriv = Helpers.GenerateRandomNumber(-100, 100) / 100f;
+        return GetMeleeRangeSpotOfIndex(closestAngleIndex, ch.MeleeRange - AI_MOVE_RANGE_IMPRECISION) + new Vector2(xDeriv, yDeriv);
+    }
+
+    private Vector2 GetMeleeRangeSpotOfIndex(int index, float range)
+    {
+        int angleDeg = index * _meleeSpotAngleDiff;
+        var angleRad = Maths.DegreesToRadians(angleDeg);
+        Vector2 offset = new Vector2((float)Math.Cos(angleRad), (float)Math.Sin(angleRad)) * range;
+        return Position2 + offset;
     }
 
     #endregion
 
     #region Movement
+
+    public void MovedEvent()
+    {
+        LastMoved = (int)Engine.CurrentGameTime;
+
+        for (int i = 0; i < _freeMeleeRangeSpots.Length; i++)
+        {
+            _freeMeleeRangeSpots[i] = true;
+        }
+    }
 
     public void SendMovementUpdate()
     {
@@ -282,7 +310,7 @@ public partial class Unit : MapObject
 
     public IEnumerator UseAbilityLocalRoutine(Ability ability, Unit? target)
     {
-        if (!ability.CanUse(this, target))
+        if (ability.CanUse(this, target) != AbilityCanUseResult.CanUse)
         {
             _usingAbility = null;
             yield break;
@@ -314,6 +342,56 @@ public partial class Unit : MapObject
 
     #endregion
 
+    #region Aura
+
+    private List<Aura> _auras = new List<Aura>();
+    
+    public IEnumerable<Aura> ForEachAura()
+    {
+        return _auras;
+    }
+
+    public bool ApplyAura(Aura aura)
+    {
+        _auras.Add(aura);
+        aura.OnAttach(this);
+        return true;
+    }
+
+    public bool RemoveAura(Aura aura)
+    {
+        bool success = _auras.Remove(aura);
+        if (success)
+        {
+            aura.OnDetach(this);
+            return true;
+        }
+        return false;
+    }
+
+    public Aura? HasAuraWithId(string id)
+    {
+        for (int i = 0; i < _auras.Count; i++)
+        {
+            var aura = _auras[i];
+            if (aura.Id == id) return aura;
+        }
+
+        return null;
+    }
+
+    public void UpdateAuras()
+    {
+        for (int i = 0; i < _auras.Count; i++)
+        {
+            var aura = _auras[i];
+            if (aura.IsFinished()) aura.OnDetach(this);
+        }
+        _auras.RemoveAll(x => x.IsFinished());
+    }
+
+    #endregion
+
     #region Render
 
     private bool _mouseOver = false;
@@ -331,36 +409,65 @@ public partial class Unit : MapObject
         UpdateRenderMode();
     }
 
+    private AssetHandle<TextureAsset> _mouseOverImage;
+    private AssetHandle<TextureAsset> _targetCurrentImage;
+    private AssetHandle<TextureAsset> _normalImage;
+
+    public override void LoadAssets(AssetLoader assetLoader)
+    {
+        _normalImage = assetLoader.ONE_Get<TextureAsset>(Image + ".png");
+        _mouseOverImage = assetLoader.ONE_Get<TextureAsset>(Image + "_Target.png");
+        _targetCurrentImage = assetLoader.ONE_Get<TextureAsset>(Image + "_Target_Current.png");
+    }
+
     private void UpdateRenderMode()
     {
         if (_mouseOver)
         {
-            var modeImage = Engine.AssetLoader.Get<TextureAsset>(Image + "_Target.png");
-            if (modeImage != null)
-            {
-                _image = modeImage.Texture;
-                return;
-            }
+            _image = _mouseOverImage.AssetExists ? _mouseOverImage : _normalImage;
+            return;
         }
 
         if (_targetMode)
         {
-            var modeImage = Engine.AssetLoader.Get<TextureAsset>(Image + "_Target_Current.png");
-            if (modeImage != null)
-            {
-                _image = modeImage.Texture;
-                return;
-            }
+            _image = _targetCurrentImage.AssetExists ? _targetCurrentImage : _normalImage;
+            return;
         }
 
-        var normalImage = Engine.AssetLoader.Get<TextureAsset>(Image + ".png");
-        _image = normalImage?.Texture ?? Texture.EmptyWhiteTexture;
+        _image = _normalImage;
     }
 
     public override void Render(RenderComposer c)
     {
         base.Render(c);
-        c.RenderSprite((VisualPosition - Size / 2f).ToVec3(), Size, Color.White, _image);
+        c.RenderSprite((VisualPosition - Size / 2f).ToVec3(), Size, _image);
+
+        if (this is PlayerUnit)
+        {
+            //Vector2 chPos = new Vector2(0f);
+            //Vector2 directionToAttacker = Vector2.Normalize(chPos - Position2);
+            //float currentAngle = (float)Math.Atan2(directionToAttacker.Y, directionToAttacker.X);
+            //float currentAngleInDegrees = Maths.RadiansToDegrees(currentAngle);
+            //int closestAngleInDegrees = (int)(MathF.Round(currentAngleInDegrees / _meleeSpotAngleDiff) * _meleeSpotAngleDiff);
+            //closestAngleInDegrees = (int) Maths.ClampAngle(closestAngleInDegrees);
+
+            //int closestAngleIndex = closestAngleInDegrees / _meleeSpotAngleDiff;
+
+            //c.RenderLine(chPos.ToVec3(), Position2.ToVec3(), Color.Blue);
+
+            int angle = 0;
+            for (int i = 0; i < (360 / 30); i++)
+            {
+                var angleRad = Maths.DegreesToRadians(angle);
+                Vector2 offset = new Vector2((float)Math.Cos(angleRad), (float)Math.Sin(angleRad)) * MeleeRange;
+
+                bool free = _freeMeleeRangeSpots[i];
+
+                c.RenderCircle((Position2 + offset).ToVec3(), 2, free ? Color.Blue : Color.Red, true);
+
+                angle += 30;
+            }
+        }
 
         // if (LocallyControlled) c.RenderSprite((VisualPosition - Size / 2f).ToVec3(), Size, Color.Red);
     }

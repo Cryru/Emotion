@@ -11,13 +11,11 @@ public class EnemyUnit : Unit
 {
     public int AggroRange = 50;
 
-    private Vector2 _moveDir;
-
-    private bool _inMeleeRangeOfTarget;
     private Vector2 _spawnPos;
-    private Vector2 _targetingOffset;
+    private Vector2 _aiMoveTo;
+    private Vector2 _aiTargetLastPosition;
 
-    private MeleeAttack _attackSkill = new();
+    private MeleeAttack _attackSkill;
 
     public EnemyUnit()
     {
@@ -25,7 +23,8 @@ public class EnemyUnit : Unit
         Image = "Test/proto/enemy";
         Size = new Vector2(16);
 
-        Abilities.Add(new MeleeAttack());
+        _attackSkill = new MeleeAttack();
+        Abilities.Add(_attackSkill);
     }
 
     public override void Init()
@@ -39,6 +38,37 @@ public class EnemyUnit : Unit
         base.Update(dt);
     }
 
+    private void AI_MoveTo(Vector2 point)
+    {
+        Assert(point != Vector2.Zero);
+        _aiMoveTo = point;
+    }
+
+    private void AI_StopMoving()
+    {
+        _aiMoveTo = Vector2.Zero;
+    }
+
+    private void AI_ProcessMovement(float dt)
+    {
+        if (_aiMoveTo == Vector2.Zero) return;
+
+        Vector2 diff = _aiMoveTo - Position2;
+        float length = diff.Length();
+        if (length < AI_MOVE_RANGE_IMPRECISION)
+        {
+            AI_StopMoving();
+            return;
+        }
+
+        Vector2 moveDir = Vector2.Normalize(diff);
+        if (moveDir != Vector2.Zero)
+        {
+            Position2 += moveDir * 0.1f * dt;
+            SendMovementUpdate();
+        }
+    }
+
     public override void ServerUpdate(float dt, MsgBrokerClientTimeSync clientCom)
     {
         AssertNotNull(Map);
@@ -49,11 +79,7 @@ public class EnemyUnit : Unit
         if (CombatAI_BusyUsingAbility())
             return;
 
-        if (_moveDir != Vector2.Zero)
-        {
-            Position2 += _moveDir * 0.1f * dt;
-            SendMovementUpdate();
-        }
+        AI_ProcessMovement(dt);
 
         if (!State.EnumHasFlag(CharacterState.InCombat))
         {
@@ -75,56 +101,33 @@ public class EnemyUnit : Unit
                 }
             }
         }
-        if (State.EnumHasFlag(CharacterState.InCombat) || State.EnumHasFlag(CharacterState.CombatAI_MoveToTargetOffset))
+
+        if (State.EnumHasFlag(CharacterState.InCombat))
         {
             if (Target == null || Target.IsDead())
             {
+                AI_StopMoving();
                 State = State.EnumRemoveFlag(CharacterState.InCombat);
+                State = State.EnumRemoveFlag(CharacterState.CombatAI_MoveToMeleeRangeSpot);
                 return;
             }
 
-            if (Vector2.Distance(Target.Position2, Position2) > MeleeRange)
+            AbilityCanUseResult canUse = _attackSkill.CanUse(this, Target);
+            if (canUse == AbilityCanUseResult.CanUse)
             {
-                _moveDir = Vector2.Normalize(Target.Position2 - Position2);
-
-                if (_inMeleeRangeOfTarget)
-                {
-                    _targetingOffset = Vector2.Zero;
-                    Target.UnregisterMeleeAttacker(this);
-                    _inMeleeRangeOfTarget = false;
-                }
+                SendUseAbility(_attackSkill);
+                return;
             }
-            else if (State.EnumHasFlag(CharacterState.CombatAI_MoveToTargetOffset) && _targetingOffset != Vector2.Zero && Vector2.Distance(Position2, _targetingOffset) > 1f)
+            else if (canUse == AbilityCanUseResult.OutOfRange)
             {
-                _moveDir = Vector2.Normalize(_targetingOffset - Position2);
-            }
-            else
-            {
-                if (!_inMeleeRangeOfTarget)
+                if (_aiTargetLastPosition != Target.Position2)
                 {
-                    _inMeleeRangeOfTarget = true;
-                    Target.RegisterMeleeAttacker(this);
-                    _moveDir = Vector2.Zero;
-                }
-               
-                if (State.EnumHasFlag(CharacterState.CombatAI_MoveToTargetOffset))
-                {
-                    State = State.EnumRemoveFlag(CharacterState.CombatAI_MoveToTargetOffset);
-                    _targetingOffset = Vector2.Zero;
-                    _moveDir = Vector2.Zero;
-                }
+                    _aiTargetLastPosition = Target.Position2;
 
-
-                Vector2? offset = Target.MeleeAttackerGetNonOverlappingOffset(this);
-                if (offset != null)
-                {
-                    _targetingOffset = Target.Position2 + offset.Value;
-                    State |= CharacterState.CombatAI_MoveToTargetOffset;
+                    Vector2 pointInMelee = Target.GetFreeMeleeRangeSpot(this);
+                    AI_MoveTo(pointInMelee);
                 }
-                else if(_attackSkill.CanUse(this, Target))
-                {
-                    SendUseAbility(_attackSkill);
-                }
+                return;
             }
         }
     }
@@ -133,12 +136,14 @@ public class EnemyUnit : Unit
     {
         base.Render(c);
 
-        Vector3 pos = VisualPosition3;
+        Vector2 pos = VisualPosition;
 
-        float healthPercent = (float) Health / MaxHealth;
+        float healthPercent = (float)Health / MaxHealth;
         var bar = new Rectangle(pos.X - 20, pos.Y - 15, 40 * healthPercent, 5);
-        c.RenderSprite(bar, Color.PrettyRed * 0.5f);
+        var barBg = new Rectangle(pos.X - 21, pos.Y - 16, 42, 7);
+        c.RenderSprite(barBg, Color.Black * 0.75f);
+        c.RenderSprite(bar, Color.PrettyRed);
 
-        c.RenderCircleOutline(pos, AggroRange, Color.Red, true);
+        //c.RenderCircleOutline(pos, AggroRange, Color.Red, true);
     }
 }

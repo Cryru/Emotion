@@ -10,14 +10,14 @@ public class MeleeAttack : Ability
         Flags = AbilityFlags.RequireTarget;
     }
 
-    // todo: return error such as out of range
-    public override bool CanUse(Unit caster, Unit? target)
+    public override AbilityCanUseResult CanUse(Unit caster, Unit? target)
     {
-        if (target == null) return false;
+        if (target == null) return AbilityCanUseResult.NoTarget;
 
-        // todo: get range + flag
         float dist = Vector2.Distance(caster.Position2, target.Position2);
-        if (dist > caster.MeleeRange) return false;
+        int casterMeleeRange = caster.MeleeRange;
+        //if (target.IsMoving) casterMeleeRange += casterMeleeRange / 2;
+        if (dist > casterMeleeRange) return AbilityCanUseResult.OutOfRange;
 
         return base.CanUse(caster, target);
     }

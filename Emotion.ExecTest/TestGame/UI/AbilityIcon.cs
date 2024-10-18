@@ -5,6 +5,7 @@ using Emotion.Graphics.Data;
 using Emotion.Utility;
 using Emotion.IO;
 using Emotion.ExecTest.TestGame.Abilities;
+using Emotion.ExecTest.TestGame.Combat;
 
 namespace Emotion.ExecTest.TestGame.UI;
 
@@ -24,23 +25,24 @@ public static class AbilityIcon
             {
                 float cooldown = (float) cooldownTimestamp - meta.LastTimeCast;
                 float cooldownPassed = (float) cooldownTimestamp - timeNow;
-                cooldownProgress = 1.0f - (cooldownPassed / cooldown);
+                cooldownProgress = (cooldownPassed / cooldown);
             }
         }
 
         // Global cooldown
-        if (ability.Flags.HasFlag(AbilityFlags.CantBeUsedOnGlobalCooldown) && 
+        if (cooldownProgress == 0f &&
+            ability.Flags.HasFlag(AbilityFlags.CantBeUsedOnGlobalCooldown) && 
             user != null && user.GlobalCooldownTimestamp > timeNow)
         {
             int cooldownTimestamp = user.GlobalCooldownTimestamp;
             float cooldown = (float)cooldownTimestamp - user.GlobalCooldownLastActivated;
             float cooldownPassed = (float)cooldownTimestamp - timeNow;
             float globalCdProgress = 1.0f - (cooldownPassed / cooldown);
-            cooldownProgress = MathF.Max(cooldownProgress, globalCdProgress);
+            //cooldownProgress = MathF.Min(cooldownProgress, globalCdProgress);
         }
 
         // Can't use at all
-        if (cooldownProgress == 0 && user != null && !ability.CanUse(user, user.Target))
+        if (cooldownProgress == 0 && user != null && ability.CanUse(user, user.Target) != AbilityCanUseResult.CanUse)
         {
             cooldownProgress = 1f;
         }
@@ -60,37 +62,37 @@ public static class AbilityIcon
         RenderProgress(c, position, size, Color.Black * 0.5f, cooldownProgress);
     }
 
-    //public static void RenderAura(RenderComposer c, Aura aura, Vector3 position, Vector2 size)
-    //{
-    //    float progress = 1.0f - ((float)aura.TimePassed / aura.Duration);
+    public static void RenderAura(RenderComposer c, Aura aura, Vector3 position, Vector2 size)
+    {
+        float progress = 1f;// 1.0f - ((float)aura.TimePassed / aura.Duration);
 
-    //    Texture? auraIcon = null;
-    //    if (!string.IsNullOrEmpty(aura.Icon))
-    //    {
-    //        var auraIconAsset = Engine.AssetLoader.Get<TextureAsset>(aura.Icon);
-    //        if (auraIconAsset != null)
-    //        {
-    //            if (!auraIconAsset.Texture.Smooth) auraIconAsset.Texture.Smooth = true;
-    //            auraIcon = auraIconAsset.Texture;
-    //        }
-    //    }
+        Texture? auraIcon = null;
+        if (!string.IsNullOrEmpty(aura.Icon))
+        {
+            var auraIconAsset = Engine.AssetLoader.Get<TextureAsset>(aura.Icon);
+            if (auraIconAsset != null)
+            {
+                if (!auraIconAsset.Texture.Smooth) auraIconAsset.Texture.Smooth = true;
+                auraIcon = auraIconAsset.Texture;
+            }
+        }
 
-    //    c.SetStencilTest(true);
-    //    c.ToggleRenderColor(false);
-    //    c.StencilStartDraw();
+        c.SetStencilTest(true);
+        c.ToggleRenderColor(false);
+        c.StencilStartDraw();
 
-    //    //c.RenderRoundedRectSdf(position, size, Color.White, 40);
-    //    c.RenderRoundedRect(position, size, Color.White, 7);
+        //c.RenderRoundedRectSdf(position, size, Color.White, 40);
+        c.RenderRoundedRect(position, size, Color.White, 4);
 
-    //    c.ToggleRenderColor(true);
-    //    c.StencilFillIn();
+        c.ToggleRenderColor(true);
+        c.StencilFillIn();
 
-    //    c.RenderSprite(position, size, Color.White, auraIcon);
-    //    c.RenderSprite(position, size, Color.Black * 0.65f);
-    //    RenderProgress(c, position, size, Color.White, progress, auraIcon);
+        c.RenderSprite(position, size, Color.White, auraIcon);
+        c.RenderSprite(position, size, Color.Black * 0.65f);
+        RenderProgress(c, position, size, Color.White, progress, auraIcon);
 
-    //    c.SetStencilTest(false);
-    //}
+        c.SetStencilTest(false);
+    }
 
     private static void RenderProgress(RenderComposer composer, Vector3 position, Vector2 size, Color color, float progress, Texture? t = null)
     {

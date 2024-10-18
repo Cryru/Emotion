@@ -191,8 +191,9 @@ public class TestScene : SceneWithMap
         {
             if (obj is Unit ch && ch.ObjectId == data.ObjectId)
             {
-                if (ch.LocallyControlled) break;
+                ch.MovedEvent();
 
+                if (ch.LocallyControlled) break;
                 ch.Position2 = data.Pos;
                 break;
             }
@@ -449,13 +450,14 @@ public class TestScene : SceneWithMap
         ts._clientCom.SendBrokerMsg(method, dataXML);
     }
 
-    public static void SendHash(string method, int hash)
+    public static void SendHash(string hash)
     {
         var currentScene = Engine.SceneManager.Current;
         if (currentScene is not TestScene ts) return;
         if (ts._clientCom == null) return;
 
-        ts._clientCom.SendTimeSyncHash(hash);
+        //ts._clientCom.SendTimeSyncHash(hash);
+        ts._clientCom.SendTimeSyncHashDebug(hash);
     }
 
     public static void AddFloatingText(string text, Unit source, Unit target, Color? color)
