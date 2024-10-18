@@ -60,4 +60,22 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
         BinaryPrimitives.WriteInt32LittleEndian(spanData.Slice(1), hash);
         SendMessageToServer(spanData);
     }
+
+    [Conditional("DEBUG")]
+    public void SendTimeSyncHashDebug(string hashString)
+    {
+        if (Engine.CoroutineManagerGameTime.Current == null)
+        {
+            Assert(false, "Can't send time sync hashes outside the Engine.CoroutineManagerGameTime runner!");
+            return;
+        }
+
+        int bytesWritten = 0;
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        spanData[0] = (byte)NetworkMessageType.TimeSyncHashDebug;
+
+        bytesWritten += sizeof(byte);
+        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), hashString);
+        SendMessageToServer(spanData.Slice(0, bytesWritten));
+    }
 }
