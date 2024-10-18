@@ -6,6 +6,7 @@ using Emotion.Graphics.Batches.SpriteBatcher;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
+using Emotion.IO;
 using Emotion.Utility;
 
 #endregion
@@ -89,6 +90,24 @@ namespace Emotion.Graphics
         public void RenderSprite(Vector3 position, Texture texture, Rectangle? textureArea = null)
         {
             RenderSprite(position, texture.Size, Color.White, texture, textureArea);
+        }
+
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector3 position, Vector2 size, Color color, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        {
+            Texture? textureUnderlying = null;
+            if (texture.AssetLoaded)
+            {
+                TextureAsset? textureAsset = texture.Asset;
+                textureUnderlying = textureAsset?.Texture;
+            }
+            RenderSprite(position, size, color, textureUnderlying);
+        }
+
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector3 position, Vector2 size, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        {
+            RenderSprite(position, size, Color.White, texture);
         }
 
         public enum RenderLineMode
