@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Emotion.Game.Time.Routines;
 using Emotion.Utility;
 
 #endregion
@@ -51,6 +52,8 @@ namespace Emotion.IO
         protected ConcurrentDictionary<string, IAssetStore> _storage = new();
 
         private Dictionary<string, string>? _assetRemap = null;
+
+        private List<AssetSource> _assetSources = new(4);
 
         /// <summary>
         /// List of all loaded assets from all sources.
@@ -184,7 +187,7 @@ namespace Emotion.IO
                 if (_loadedAssets.TryGetValue(name, out asset) && !asset.Disposed)
                 {
                     Assert(asset is T, "Asset was requested twice as different types.");
-                    return (T) asset;
+                    return (T)asset;
                 }
             }
 
@@ -217,13 +220,13 @@ namespace Emotion.IO
             if (data.IsEmpty) return default;
 
             // Load the asset.
-            asset = new T {Name = name};
+            asset = new T { Name = name };
             asset.Create(data);
             if (cache) _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
             PerfProfiler.ProfilerEventEnd($"Loading {name}", "Loading");
 
-            return (T) asset;
+            return (T)asset;
         }
 
         /// <summary>
@@ -263,7 +266,7 @@ namespace Emotion.IO
                 Engine.Log.Info($"Saved asset {name} via {store}", MessageSource.AssetLoader);
 
                 // If it didn't exist until now - add it to the internal manifest.
-                if (!Exists(name)) _manifest.TryAdd(name, (AssetSource) store);
+                if (!Exists(name)) _manifest.TryAdd(name, (AssetSource)store);
                 return true;
             }
             catch (Exception ex)
@@ -280,6 +283,14 @@ namespace Emotion.IO
         /// <returns>The source which can load the asset, or null if none.</returns>
         public AssetSource? GetSource(string name)
         {
+            for (int i = 0; i < _assetSources.Count; i++)
+            {
+                AssetSource assSrc = _assetSources[i];
+                bool hasIt = assSrc.HasAsset(name);
+                if (hasIt)
+                    return assSrc;
+            }
+
             bool found = _manifest.TryGetValue(name, out AssetSource? source);
             return found ? source : null;
         }
@@ -307,20 +318,20 @@ namespace Emotion.IO
         /// <returns>The loaded or cached asset.</returns>
         public Task<T?> GetAsync<T>(string? name, bool cache = true) where T : Asset, new()
         {
-            if (name == null) return Task.FromResult((T?) null);
+            if (name == null) return Task.FromResult((T?)null);
             name = NameToEngineName(name);
 
             Task? task;
             lock (_asyncLoadingTasks)
             {
                 if (_asyncLoadingTasks.TryGetValue(name, out task)) // Check if already async loading this asset.
-                    return (Task<T?>) task;
+                    return (Task<T?>)task;
 
                 task = Task.Run(() => Get<T>(name, cache));
                 _asyncLoadingTasks.Add(name, task);
             }
 
-            return (Task<T?>) task;
+            return (Task<T?>)task;
         }
 
         /// <summary>
@@ -520,5 +531,120 @@ namespace Emotion.IO
 
             return loader;
         }
+
+        #region ONE
+
+        public void ONE_AddAssetSource(AssetSource source)
+        {
+            _assetSources.Add(source);
+            Engine.Log.Info($"Mounted asset source '{source}'", MessageSource.AssetLoader);
+        }
+
+        private ConcurrentDictionary<string, AssetHandleBase> _createdAssetHandles = new ConcurrentDictionary<string, AssetHandleBase>();
+        private ConcurrentQueue<AssetHandleBase> _assetsToLoad = new ConcurrentQueue<AssetHandleBase>();
+        private Coroutine _assetLoadRoutine = Coroutine.CompletedRoutine;
+
+        public AssetHandle<T> ONE_Get<T>(string name) where T : Asset, new()
+        {
+            if (string.IsNullOrEmpty(name)) return AssetHandle<T>.Empty;
+
+            name = NameToEngineNameRemapped(name);
+
+            // If a handle already exists, get it.
+            if (_createdAssetHandles.TryGetValue(name, out AssetHandleBase? handle) && handle is AssetHandle<T> handleOfType)
+                return handleOfType;
+
+            AssetHandle<T> newHandle = new AssetHandle<T>(name);
+            _createdAssetHandles.TryAdd(name, newHandle);
+
+            // Asset not found in any source
+            AssetSource? source = GetSource(name);
+            if (source == null)
+            {
+                Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
+                newHandle.AssetSource = null; // Explicit for readability
+                return newHandle;
+            }
+
+            newHandle.AssetSource = source;
+            _assetsToLoad.Enqueue(newHandle);
+
+            // Start async asset loading
+            if (_assetLoadRoutine.Finished)
+                _assetLoadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetLoadRoutineAsync());
+
+            return newHandle;
+        }
+
+        public void AddReferenceToAssetHandle(AssetHandleBase handle, object referencingObject)
+        {
+
+        }
+
+        public void RemoveReferenceFromAssetHandle(AssetHandleBase handle, object referencingObject, bool deleteIfNoReferences = true)
+        {
+
+        }
+
+        private IEnumerator AssetLoadRoutineAsync()
+        {
+            // todo: distribute over multiple threads
+            while (_assetsToLoad.TryDequeue(out AssetHandleBase? assetHandle))
+            {
+                bool loaded = assetHandle.LoadAsset();
+                if (!loaded)
+                    _assetsToLoad.Enqueue(assetHandle);
+            }
+            yield break;
+        }
+
+        private Coroutine _assetReloadRoutine = Coroutine.CompletedRoutine;
+        private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
+
+        public void ONE_ReloadAsset(string name)
+        {
+            // todo: check remapping, maybe add it to NameToEngineName
+            name = NameToEngineNameRemapped(name);
+            _assetsToReload.Enqueue(name);
+
+            if (_assetReloadRoutine.Finished)
+                _assetReloadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetReloadRoutineAsync());
+        }
+
+        private IEnumerator AssetReloadRoutineAsync()
+        {
+            yield return 10;
+
+            while (_assetsToReload.TryDequeue(out string? assetNameToReload))
+            {
+                // Dedupe if next is same.
+                if (_assetsToReload.TryPeek(out string? nextAssetToReload))
+                {
+                    if (nextAssetToReload == assetNameToReload) continue;
+                }
+
+                if (_createdAssetHandles.TryGetValue(assetNameToReload, out AssetHandleBase? handle))
+                {
+                    _assetsToLoad.Enqueue(handle);
+
+                    // Start async asset loading
+                    if (_assetLoadRoutine.Finished)
+                        _assetLoadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetLoadRoutineAsync());
+                }
+
+                yield return 10;
+            }
+        }
+
+        private string NameToEngineNameRemapped(string name)
+        {
+            string engineName = NameToEngineName(name);
+
+            if (_assetRemap != null && _assetRemap.TryGetValue(engineName, out string? remappedName))
+                return remappedName;
+            return engineName;
+        }
+
+        #endregion
     }
 }
