@@ -147,7 +147,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 #endif
     {
         UIController.DebugShouldBreakpointMeasure(this);
-        SortChildren();
+        SortChildren(); // ?
         UseNewLayoutSystem = true;
         // ==========
 
@@ -163,6 +163,8 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         // Now find out the minimum size of children of this window.
         bool amInsideParent = AnchorsInsideParent(ParentAnchor, Anchor);
         if (!amInsideParent) space = Controller!.Size;
+
+        UILayouterState layout = UILayouter.StartNewLayout(new Rectangle(Vector2.Zero, space), UIPass.Measure, LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
 
         _layoutEngine.Reset();
         _layoutEngine.SetDimensions(new Rectangle(Vector2.Zero, space));

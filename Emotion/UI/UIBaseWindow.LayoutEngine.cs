@@ -1,6 +1,27 @@
 ﻿using System.ComponentModel;
+using static Emotion.UI.UIBaseWindow;
 
 namespace Emotion.UI;
+
+public struct UILayouterState
+{
+    public Rectangle Bounds;
+    public UIPass Pass;
+
+    public UILayouterState(Rectangle rect, UIPass pass)
+    {
+        Bounds = rect;
+        Pass = pass;
+    }
+}
+
+public static class UILayouter
+{
+    public static UILayouterState StartNewLayout(Rectangle rect, UIPass pass)
+    {
+        return new UILayouterState(rect, pass);
+    }
+}
 
 public partial class UIBaseWindow
 {

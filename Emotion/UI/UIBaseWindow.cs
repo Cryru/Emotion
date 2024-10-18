@@ -408,6 +408,22 @@ namespace Emotion.UI
         #region Layout
 
         /// <summary>
+        /// Whether this window is the background of its parent.
+        /// </summary>
+        public bool BackgroundWindow
+        {
+            get => _backgroundWindow;
+            set
+            {
+                if (value == _backgroundWindow) return;
+                _backgroundWindow = value;
+                InvalidateLayout();
+            }
+        }
+
+        protected bool _backgroundWindow;
+
+        /// <summary>
         /// The point in the parent to anchor the window to.
         /// </summary>
         public UIAnchor ParentAnchor
@@ -1284,6 +1300,7 @@ namespace Emotion.UI
         public int CompareTo(UIBaseWindow? other)
         {
             if (other == null) return 1;
+            if (_backgroundWindow && !other._backgroundWindow) return -1;
             return MathF.Sign(Priority - other.Priority);
         }
 
