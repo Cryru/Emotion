@@ -123,6 +123,8 @@ namespace Emotion.Common
         /// </summary>
         public static uint FrameCount { get; set; }
 
+        public static bool LogExceptions = true;
+
         static Engine()
         {
             // This is the assembly which called this function. Should be the game.
@@ -191,6 +193,7 @@ namespace Emotion.Common
 
                 // If log.error throws an exception here, we're screwed.
                 // It wouldn't...but what if it does.
+                if (!LogExceptions) return;
                 try
                 {
                     Log.Error(exception);
