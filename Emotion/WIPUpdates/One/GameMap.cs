@@ -26,6 +26,7 @@ public class GameMap
     {
         obj.Map = this;
         _objects.Add(obj);
+        obj.LoadAssets(Engine.AssetLoader);
         obj.Init();
     }
 

@@ -1,4 +1,5 @@
 ﻿using Emotion.Common.Serialization;
+using Emotion.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,12 @@ namespace Emotion.WIPUpdates.One.Work;
 public class MapObject : Transform
 {
     [DontSerialize]
-    public GameMap? Map; 
+    public GameMap? Map;
+
+    public virtual void LoadAssets(AssetLoader assetLoader)
+    {
+
+    }
 
     public virtual void Init()
     {
