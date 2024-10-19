@@ -44,16 +44,16 @@ public class EditorDropDown : UIDropDown
             HideScrollBarWhenNothingToScroll = true,
         };
 
-        var scrollBar = new EditorScrollBar
-        {
-            MaxSizeY = 90,
-            Dock = UIDockDirection.Right,
-            DontTakeSpaceWhenHidden = true,
-            Margins = new Rectangle(2, 0, 0, 0)
-        };
-        list.SetScrollbar(scrollBar);
+        //var scrollBar = new EditorScrollBar
+        //{
+        //    MaxSizeY = 90,
+        //    Dock = UIDockDirection.Right,
+        //    DontTakeSpaceWhenHidden = true,
+        //    Margins = new Rectangle(2, 0, 0, 0)
+        //};
+        //list.SetScrollbar(scrollBar);
 
-        inner.AddChild(scrollBar);
+        //inner.AddChild(scrollBar);
         inner.AddChild(list);
 
         List = list;
@@ -162,10 +162,5 @@ public class EditorDropDown : UIDropDown
     {
         base.DetachedFromController(controller);
         OnCloseProxy?.Invoke();
-    }
-
-    protected override Vector2 Measure(Vector2 space)
-    {
-        return base.Measure(space);
     }
 }

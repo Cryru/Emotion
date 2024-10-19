@@ -33,12 +33,6 @@ namespace Emotion.UI
         /// </summary>
         public string? Id { get; set; }
 
-        /// <summary>
-        /// Whether to layout the window using the new layout system.
-        /// Off by default due to legacy compatibility, will be on by default once the new system is stable.
-        /// </summary>
-        public bool UseNewLayoutSystem = true;
-
         #region Runtime State
 
         [DontSerialize]
@@ -125,12 +119,12 @@ namespace Emotion.UI
             if (IsLoading()) return;
 
             List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
-            for (int i = 0; i < relativeToMe.Count; i++)
-            {
-                UIBaseWindow relativeChild = relativeToMe[i];
-                if (relativeChild.IgnoreParentDisplacement)
-                    relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
-            }
+            //for (int i = 0; i < relativeToMe.Count; i++)
+            //{
+            //    UIBaseWindow relativeChild = relativeToMe[i];
+            //    if (relativeChild.IgnoreParentDisplacement)
+            //        relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
+            //}
 
             // Push displacements if any.
             var matrixPushed = false;
@@ -171,14 +165,14 @@ namespace Emotion.UI
             // Cache displaced position.
             EnsureRenderBoundsCached(c);
 
-            for (int i = 0; i < relativeToMe.Count; i++)
-            {
-                UIBaseWindow relativeChild = relativeToMe[i];
-                if (!relativeChild.IgnoreParentDisplacement)
-                    relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
-            }
+            //for (int i = 0; i < relativeToMe.Count; i++)
+            //{
+            //    UIBaseWindow relativeChild = relativeToMe[i];
+            //    if (!relativeChild.IgnoreParentDisplacement)
+            //        relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
+            //}
 
-            if (RenderInternal(c) && Children != null)
+            if (RenderInternal(c))
             {
                 RenderChildren(c);
                 // Pop displacements, if any were pushed.
@@ -201,9 +195,10 @@ namespace Emotion.UI
 
         protected virtual void RenderChildren(RenderComposer c)
         {
-            for (var i = 0; i < Children!.Count; i++)
+            List<UIBaseWindow> children = GetWindowChildren();
+            for (var i = 0; i < children.Count; i++)
             {
-                UIBaseWindow child = Children[i];
+                UIBaseWindow child = children[i];
                 if (!child.Visible) continue;
                 child.Render(c);
             }
@@ -248,6 +243,30 @@ namespace Emotion.UI
             child.EnsureParentLinks();
             if (Controller != null) child.AttachedToController(Controller);
             SortChildren();
+        }
+
+        public static void SortChildren(List<UIBaseWindow> children)
+        {
+            // Custom insertion sort as Array.Sort is unstable
+            // Isn't too problematic performance wise since adding children shouldn't happen often.
+            for (var i = 1; i < children.Count; i++)
+            {
+                UIBaseWindow thisC = children[i];
+                for (int j = i - 1; j >= 0;)
+                {
+                    UIBaseWindow otherC = children[j];
+                    if (thisC.CompareTo(otherC) < 0)
+                    {
+                        children[j + 1] = otherC;
+                        children[j] = thisC;
+                        j--;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         public void SortChildren()
@@ -367,6 +386,15 @@ namespace Emotion.UI
         {
             Assert(Parent != null);
             Parent?.RemoveChild(this);
+        }
+
+        public virtual List<UIBaseWindow> GetWindowChildren()
+        {
+            if (Controller == null)
+                return EMPTY_CHILDREN_LIST;
+
+            AssertNotNull(Controller);
+            return Controller.GetChildrenMapping(this);
         }
 
         /// <summary>
@@ -1217,6 +1245,7 @@ namespace Emotion.UI
 
         public const string SPECIAL_WIN_ID_MOUSE_FOCUS = "MouseFocus";
         public const string SPECIAL_WIN_ID_CONTROLLER = "Controller";
+        public const string SPECIAL_WIN_ID_DROPDOWN = "DropdownSpecial";
 
 
         /// <summary>
@@ -1229,6 +1258,9 @@ namespace Emotion.UI
         {
             if (id == SPECIAL_WIN_ID_MOUSE_FOCUS)
                 return UIController.MouseFocus;
+
+            if (id == SPECIAL_WIN_ID_DROPDOWN && this is UIDropDown dropDown)
+                return dropDown.SpawningWindow;
 
             if (id == SPECIAL_WIN_ID_CONTROLLER)
                 return Controller;
@@ -1330,6 +1362,24 @@ namespace Emotion.UI
         #endregion
 
         #region Enum
+
+        public IEnumerable<UIBaseWindow> ForEachChildrenDeep()
+        {
+            var childrenLists = new Queue<UIBaseWindow>();
+            childrenLists.Enqueue(this);
+
+            while (childrenLists.TryDequeue(out UIBaseWindow? queueTop))
+            {
+                yield return queueTop;
+
+                List<UIBaseWindow> children = queueTop.Children ?? EMPTY_CHILDREN_LIST;
+                for (int i = 0; i < children.Count; i++)
+                {
+                    UIBaseWindow child = children[i];
+                    childrenLists.Enqueue(child);
+                }
+            }
+        }
 
         public IEnumerator<UIBaseWindow> GetEnumerator()
         {
