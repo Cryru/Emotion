@@ -165,9 +165,9 @@ namespace Emotion.UI
         }
 
         // Glue new UI and old UI
-        protected override Vector2 NEW_Measure(Vector2 space)
+        protected override Vector2 Measure(Vector2 space)
         {
-            var size = base.NEW_Measure(space);
+            var size = base.Measure(space);
             AfterMeasure(size);
             BeforeLayout(Vector2.Zero);
             return size;
