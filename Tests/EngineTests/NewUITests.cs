@@ -734,24 +734,27 @@ public class NewUITests : TestingScene
     public IEnumerator EditorDropDownRelativeToAndOutsideParent()
     {
         {
-            var a = new UISolidColor();
-            a.WindowColor = Color.PrettyPink;
-            a.Paddings = new Rectangle(2, 1, 2, 1);
-            a.Id = "AttachToMe";
-            a.FillX = false;
-            a.FillY = false;
-            UI.AddChild(a);
+            var bg = new UISolidColor
+            {
+                WindowColor = Color.PrettyPink,
+                Paddings = new Rectangle(2, 1, 2, 1),
+                Id = "AttachToMe",
+                FillX = false,
+                FillY = false
+            };
+            UI.AddChild(bg);
 
-            var text = new UIText();
-            text.FontSize = 9;
-            text.Text = "Attach To Me!";
-            text.WindowColor = Color.White;
-            text.ScaleMode = UIScaleMode.FloatScale;
+            var text = new UIText
+            {
+                FontSize = 9,
+                Text = "Attach To Me!",
+                WindowColor = Color.White,
+                ScaleMode = UIScaleMode.FloatScale,
 
-            text.ParentAnchor = UIAnchor.CenterLeft;
-            text.Anchor = UIAnchor.CenterLeft;
-
-            a.AddChild(text);
+                ParentAnchor = UIAnchor.CenterLeft,
+                Anchor = UIAnchor.CenterLeft
+            };
+            bg.AddChild(text);
         }
 
         {
@@ -855,7 +858,86 @@ public class NewUITests : TestingScene
         MapEditorColorPalette.EditorButtonTextSize = oldTextSize;
     }
 
-    [DebugTest]
+    [Test]
+    public IEnumerator OutsideParentWindow()
+    {
+        var win = new UISolidColor
+        {
+            WindowColor = Color.PrettyRed,
+            Anchor = UIAnchor.TopLeft,
+            ParentAnchor = UIAnchor.CenterCenter,
+
+            MinSize = new Vector2(20, 20),
+            FillY = false,
+
+            SetChildren = new()
+            {
+                new UISolidColor()
+                {
+                    WindowColor = Color.PrettyGreen,
+                    MinSize = new Vector2(20),
+                    Anchor = UIAnchor.TopRight,
+                    ParentAnchor = UIAnchor.TopLeft,
+                },
+
+                new UISolidColor()
+                {
+                    WindowColor = Color.PrettyPurple,
+                    MinSize = new Vector2(20),
+                    Anchor = UIAnchor.TopLeft,
+                    ParentAnchor = UIAnchor.BottomLeft
+                },
+            },
+        };
+        UI.AddChild(win);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.Paddings = new Rectangle(5, 5, 5, 5);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.Paddings = Rectangle.Empty;
+        win.LayoutMode = LayoutMode.HorizontalList;
+
+        var a = new UISolidColor()
+        {
+            WindowColor = Color.White,
+            MinSize = new Vector2(20),
+            FillX = false,
+            FillY = false,
+        };
+        win.AddChild(a);
+
+        var b = new UISolidColor()
+        {
+            WindowColor = Color.Black,
+            MinSize = new Vector2(20),
+            FillX = false,
+            FillY = false,
+        };
+        win.AddChild(b);
+
+        var c = new UISolidColor()
+        {
+            WindowColor = Color.White,
+            MinSize = new Vector2(20),
+            FillX = false,
+            FillY = false,
+        };
+        win.AddChild(c);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.Paddings = new Rectangle(5, 5, 5, 5);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+    }
+
     [Test]
     public IEnumerator BackgroundWindow()
     {
@@ -869,24 +951,30 @@ public class NewUITests : TestingScene
                 new UISolidColor()
                 {
                     WindowColor = Color.White,
-                    MaxSize = new Vector2(20)
+                    MinSize = new Vector2(20),
+                    FillX = false,
+                    FillY = false,
                 },
                 new UISolidColor()
                 {
                     WindowColor = Color.Black,
-                    MaxSize = new Vector2(20)
+                    MinSize = new Vector2(20),
+                    FillX = false,
+                    FillY = false,
                 },
                 new UISolidColor()
                 {
                     WindowColor = Color.White,
-                    MaxSize = new Vector2(20)
+                    MinSize = new Vector2(20),
+                    FillX = false,
+                    FillY = false,
                 },
                 new UISolidColor()
                 {
                     WindowColor = Color.PrettyGreen,
                     BackgroundWindow = true
                 },
-            }
+            },
         };
         UI.AddChild(win);
 
@@ -894,12 +982,9 @@ public class NewUITests : TestingScene
         VerifyScreenshot();
 
         win.LayoutMode = LayoutMode.HorizontalList;
+        win.InvalidateLayout();
 
         yield return WaitUILayout();
         VerifyScreenshot();
-
-        yield return new TestWaiterRunLoops(-1);
-
-        yield break;
     }
 }

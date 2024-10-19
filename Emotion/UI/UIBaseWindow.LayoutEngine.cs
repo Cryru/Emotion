@@ -1,27 +1,8 @@
-﻿using System.ComponentModel;
-using static Emotion.UI.UIBaseWindow;
+﻿using WinApi;
 
 namespace Emotion.UI;
 
-public struct UILayouterState
-{
-    public Rectangle Bounds;
-    public UIPass Pass;
-
-    public UILayouterState(Rectangle rect, UIPass pass)
-    {
-        Bounds = rect;
-        Pass = pass;
-    }
-}
-
-public static class UILayouter
-{
-    public static UILayouterState StartNewLayout(Rectangle rect, UIPass pass)
-    {
-        return new UILayouterState(rect, pass);
-    }
-}
+#nullable enable
 
 public partial class UIBaseWindow
 {
@@ -36,14 +17,16 @@ public partial class UIBaseWindow
     public class UILayoutEngine
     {
         private Rectangle _bound;
+        private Rectangle _boundWithoutPadding;
         private Rectangle _padding;
 
         private struct ChildData
         {
             public UIBaseWindow Child;
             public Rectangle Bound;
-            public Rectangle Margins;
 
+            public bool InsideParent;
+            public bool OutsideCurrentLayout;
             public bool EndOfList;
             public bool ReversedInList;
             public bool IsListSizeZero;
@@ -72,11 +55,6 @@ public partial class UIBaseWindow
             _wrappingListOtherAxisLimit = -1;
         }
 
-        public void SetDimensions(Rectangle rect)
-        {
-            _bound = rect;
-        }
-
         public void SetLayoutMode(UIPass pass, LayoutMode mode, Vector2 listSpacing)
         {
             _pass = pass;
@@ -93,20 +71,20 @@ public partial class UIBaseWindow
             }
         }
 
-        public void DeflateDimensions(Rectangle rect)
+        public void SetLayoutDimensions(Rectangle dimensions, Rectangle margins, Vector2 limit, Rectangle paddings)
         {
-            _bound = DeflateRect(_bound, rect);
-        }
+            _bound = dimensions;
 
-        public void AddPadding(Rectangle rect)
-        {
-            DeflateDimensions(rect);
-            _padding = rect;
-        }
+            // The parent's margins and paddings is space children cannot take, so we take them out.
+            // For more explanation on the order of operations check out ApplyLayout.
 
-        public void SetBoundLimit(Vector2 limit)
-        {
+            _bound = DeflateRect(_bound, margins);
+
             _bound.Size = Vector2.Min(_bound.Size, limit);
+
+            _boundWithoutPadding = _bound;
+            _bound = DeflateRect(_bound, paddings);
+            _padding = paddings;
         }
 
         private Rectangle DeflateRect(Rectangle bound, Rectangle amount)
@@ -127,55 +105,47 @@ public partial class UIBaseWindow
         {
             size += new Vector2(margins.X + margins.Width, margins.Y + margins.Height);
 
-            ChildData appendData = new ChildData();
+            ChildData childData = new ChildData();
+            childData.Child = child;
+            childData.InsideParent = AnchorsInsideParent(child.ParentAnchor, child.Anchor);
+            childData.OutsideCurrentLayout = !childData.InsideParent || child.BackgroundWindow;
+
             switch (_layoutMode)
             {
+                case LayoutMode _ when childData.OutsideCurrentLayout:
+                    OutsideLayoutAppend(child, size, ref childData);
+                    break;
                 case LayoutMode.HorizontalList:
                 case LayoutMode.VerticalList:
-                    appendData = ListAppend(child, size);
+                    ListAppend(child, size, ref childData);
                     break;
                 case LayoutMode.HorizontalListWrap:
                 case LayoutMode.VerticalListWrap:
-                    appendData = ListWrapAppend(child, size);
+                    ListWrapAppend(child, size, ref childData);
                     break;
                 case LayoutMode.HorizontalEditorPanel:
                 case LayoutMode.Free:
-                    appendData = FreeAppend(child, size);
+                    FreeAppend(child, size, ref childData);
                     break;
             }
 
-            appendData.Margins = margins;
-            _children.Add(appendData);
+            _children.Add(childData);
         }
 
-        public Vector2 ApplyLayout()
+        public Vector2 ApplyMeasure()
         {
             Rectangle spaceUsedByChildren = Rectangle.Empty;
             for (int i = 0; i < _children.Count; i++)
             {
-                var childData = _children[i];
+                ChildData childData = _children[i];
                 childData.EndOfList = i == _children.Count - 1;
 
-                var childBound = childData.Bound;
+                Rectangle childBound = childData.Bound;
 
                 UIBaseWindow childWin = childData.Child;
-                var childInsideParent = AnchorsInsideParent(childWin.ParentAnchor, childWin.Anchor);
+                bool childInsideParent = childData.InsideParent;
                 if (childInsideParent && childWin._expandParent)
                     spaceUsedByChildren = spaceUsedByChildren == Rectangle.Empty ? childBound : Rectangle.Union(spaceUsedByChildren, childBound);
-
-                if (_pass == UIPass.Layout)
-                {
-                    // 1. Anchor must be before margin in order for w and h margins to work.
-                    // 2. Limit must be after margin as not to fold the margin size into the window size.
-                    // 3. Fill has been decided to be after anchors in order for anchors to matter to filling children.
-
-                    childBound = ApplyAnchors(ref childData, childBound);
-                    childBound = ApplyFill(ref childData, childBound);
-                    childBound = DeflateRect(childBound, childData.Margins); // Subtract the margins from the child size, since the child should be layouted inside.
-                    childBound = ApplyLimits(ref childData, childBound);
-
-                    childData.Child.Layout(childBound.Position, childBound.Size);
-                }
             }
 
             // Technically padding is also space used by the children.
@@ -184,56 +154,57 @@ public partial class UIBaseWindow
             return spaceUsedByChildren.Size + paddingSize;
         }
 
-        private Rectangle ApplyFill(ref ChildData childData, Rectangle childBound)
+        public void ApplyLayout()
         {
-            var childWin = childData.Child;
-
-            switch (_layoutMode)
+            for (int i = 0; i < _children.Count; i++)
             {
-                case LayoutMode.HorizontalList:
-                case LayoutMode.VerticalList:
-                    {
-                        if (childWin.FillX)
-                            childBound = List_FillX(ref childData, childBound);
-                        if (childWin.FillY)
-                            childBound = List_FillY(ref childData, childBound);
-                        return childBound;
-                    }
-                case LayoutMode.Free:
-                    {
-                        if (childWin.FillX)
-                            childBound = Free_FillX(ref childData, childBound);
-                        if (childWin.FillY)
-                            childBound = Free_FillY(ref childData, childBound);
-                        return childBound;
-                    }
+                ChildData childData = _children[i];
+                childData.EndOfList = i == _children.Count - 1;
+
+                Rectangle childBound = childData.Bound;
+
+                UIBaseWindow childWin = childData.Child;
+                bool childInsideParent = childData.InsideParent;
+
+                // 1. Anchor must be before margin in order for w and h margins to work.
+                // 2. Limit must be after margin as not to fold the margin size into the window size.
+                // 3. Fill has been decided to be after anchors in order for anchors to matter to filling children.
+
+                childBound = ApplyAnchors(ref childData, childBound);
+                if (childInsideParent) childBound = ApplyFill(ref childData, childBound);
+                childBound = DeflateRect(childBound, childWin.Margins * childWin.GetScale()); // Subtract the margins from the child size, since the child should be layouted inside.
+                childBound = ApplyLimits(ref childData, childBound);
+
+                childData.Child.Layout(childBound.Position, childBound.Size);
             }
-
-            return childBound;
         }
 
-        private Rectangle ApplyLimits(ref ChildData childData, Rectangle childBound)
+        #region Outside Layout
+
+        private void OutsideLayoutAppend(UIBaseWindow child, Vector2 size, ref ChildData data)
         {
-            var childWin = childData.Child;
-            var scale = childWin.GetScale();
+            data.Bound = new Rectangle(_boundWithoutPadding.Position, size);
+        }
 
-            Vector2 size = childBound.Size;
-            size = Vector2.Clamp(size, childWin.MinSize * scale, childWin.MaxSize * scale);
-            size = size.Ceiling();
-
-            childBound.Size = size;
+        private Rectangle Outside_FillX(ref ChildData childData, Rectangle childBound)
+        {
+            childBound.Width = _boundWithoutPadding.X + _boundWithoutPadding.Width - childBound.X;
             return childBound;
         }
+
+        private Rectangle Outside_FillY(ref ChildData childData, Rectangle childBound)
+        {
+            childBound.Height = _boundWithoutPadding.Y + _boundWithoutPadding.Height - childBound.Y;
+            return childBound;
+        }
+
+        #endregion
 
         #region Free
 
-        private ChildData FreeAppend(UIBaseWindow child, Vector2 size)
+        private void FreeAppend(UIBaseWindow child, Vector2 size, ref ChildData data)
         {
-            return new ChildData()
-            {
-                Child = child,
-                Bound = new Rectangle(_bound.Position, size)
-            };
+            data.Bound = new Rectangle(_bound.Position, size);
         }
 
         private Rectangle Free_FillX(ref ChildData childData, Rectangle childBound)
@@ -273,6 +244,7 @@ public partial class UIBaseWindow
             {
                 ChildData child = _children[i];
                 if (child.IsListSizeZero) continue;
+                if (child.OutsideCurrentLayout) continue;
 
                 if (filterAxis != -1)
                 {
@@ -285,13 +257,12 @@ public partial class UIBaseWindow
             return false;
         }
 
-        private ChildData ListAppend(UIBaseWindow child, Vector2 size)
+        private void ListAppend(UIBaseWindow child, Vector2 size, ref ChildData data)
         {
-            bool measurePass = _pass == UIPass.Measure;
             int listMask = _listMask;
 
             bool isReverse = IsListItemInReversedOrder(listMask, child);
-            if (measurePass) isReverse = false; // In the measure pass we cant layout the reverse side.
+            if (_pass == UIPass.Measure) isReverse = false; // In the measure pass we cant layout the reverse side.
 
             float wall = ListGetWallInDirection(listMask, isReverse);
             if (isReverse) wall -= size[listMask];
@@ -314,13 +285,9 @@ public partial class UIBaseWindow
                     rowOrColumnPos[listMask] += _listSpacing[listMask];
             }
 
-            return new ChildData()
-            {
-                Child = child,
-                Bound = new Rectangle(rowOrColumnPos, size),
-                ReversedInList = isReverse,
-                IsListSizeZero = isListSizeZero
-            };
+            data.Bound = new Rectangle(rowOrColumnPos, size);
+            data.ReversedInList = isReverse;
+            data.IsListSizeZero = isListSizeZero;
         }
 
         private float ListGetWallInDirection(int mask, bool isReverse, float limitInOtherAxis = -1)
@@ -334,6 +301,8 @@ public partial class UIBaseWindow
             for (int i = 0; i < _children.Count; i++)
             {
                 ChildData winData = _children[i];
+                if (winData.OutsideCurrentLayout) continue;
+
                 Rectangle winBound = winData.Bound;
 
                 if (limitInOtherAxis != -1)
@@ -380,7 +349,7 @@ public partial class UIBaseWindow
 
         #region List Wrap
 
-        private ChildData ListWrapAppend(UIBaseWindow child, Vector2 size)
+        private void ListWrapAppend(UIBaseWindow child, Vector2 size, ref ChildData data)
         {
             bool measurePass = _pass == UIPass.Measure;
             int listMask = _listMask;
@@ -423,28 +392,75 @@ public partial class UIBaseWindow
             if (!isListSizeZero && ListHasAnyItems(false, reverseListMask, _wrappingListOtherAxisLimit))
                 rowOrColumnPos[listMask] += _listSpacing[listMask];
 
-            return new ChildData()
-            {
-                Child = child,
-                Bound = new Rectangle(rowOrColumnPos, size),
-                ReversedInList = false,
-                IsListSizeZero = isListSizeZero
-            };
+            data.Bound = new Rectangle(rowOrColumnPos, size);
+            data.ReversedInList = false;
+            data.IsListSizeZero = isListSizeZero;
         }
 
         #endregion
 
+        private Rectangle ApplyFill(ref ChildData childData, Rectangle childBound)
+        {
+            UIBaseWindow childWin = childData.Child;
+
+            switch (_layoutMode)
+            {
+                case LayoutMode _ when childData.OutsideCurrentLayout:
+                    {
+                        if (childWin.FillX)
+                            childBound = Outside_FillX(ref childData, childBound);
+                        if (childWin.FillY)
+                            childBound = Outside_FillY(ref childData, childBound);
+                        return childBound;
+                    }
+
+                case LayoutMode.HorizontalList:
+                case LayoutMode.VerticalList:
+                    {
+                        if (childWin.FillX)
+                            childBound = List_FillX(ref childData, childBound);
+                        if (childWin.FillY)
+                            childBound = List_FillY(ref childData, childBound);
+                        return childBound;
+                    }
+
+                case LayoutMode.Free:
+                    {
+                        if (childWin.FillX)
+                            childBound = Free_FillX(ref childData, childBound);
+                        if (childWin.FillY)
+                            childBound = Free_FillY(ref childData, childBound);
+                        return childBound;
+                    }
+            }
+
+            return childBound;
+        }
+
+        private Rectangle ApplyLimits(ref ChildData childData, Rectangle childBound)
+        {
+            var childWin = childData.Child;
+            var scale = childWin.GetScale();
+
+            Vector2 size = childBound.Size;
+            size = Vector2.Clamp(size, childWin.MinSize * scale, childWin.MaxSize * scale);
+            size = size.Ceiling();
+
+            childBound.Size = size;
+            return childBound;
+        }
+
         private Rectangle ApplyAnchors(ref ChildData childData, Rectangle childBound)
         {
             Rectangle myItemSpace = _bound;
+            if (childData.OutsideCurrentLayout) myItemSpace = _boundWithoutPadding;
+
             switch (_layoutMode)
             {
                 case LayoutMode.HorizontalList:
-                    myItemSpace = _bound;
                     myItemSpace.Width = childBound.Width;
                     break;
                 case LayoutMode.VerticalList:
-                    myItemSpace = _bound;
                     myItemSpace.Height = childBound.Height;
                     break;
                 case LayoutMode.HorizontalListWrap:
@@ -457,7 +473,7 @@ public partial class UIBaseWindow
             UIBaseWindow childWin = childData.Child;
             Vector2 positionFromLayout = childBound.Position;
             Vector2 positionOffset = GetAnchorOffset(childWin.Anchor, childWin.ParentAnchor, childBound.Size, myItemSpace);
-            Vector2 diff = positionOffset - _bound.Position;
+            Vector2 diff = positionOffset - myItemSpace.Position;
 
             return new Rectangle(positionFromLayout + diff, childBound.Size);
         }
