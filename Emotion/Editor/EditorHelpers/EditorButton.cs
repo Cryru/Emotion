@@ -71,6 +71,12 @@ public class EditorButton : UICallbackButton
         return base.RenderInternal(c);
     }
 
+    protected override bool UpdateInternal()
+    {
+        UpdateDropdownState();
+        return base.UpdateInternal();
+    }
+
     public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         if (!Enabled) return false;
@@ -88,6 +94,9 @@ public class EditorButton : UICallbackButton
     {
         if (!Enabled) return;
         base.OnMouseLeft(_);
+       
+        CheckIfDropdownSpawned();
+
         RecalculateButtonColor();
     }
 
@@ -114,7 +123,7 @@ public class EditorButton : UICallbackButton
             return;
         }
 
-        if (_activeMode)
+        if (_activeMode || _dropDownSpawned)
         {
             WindowColor = ActiveColor;
             return;
@@ -122,4 +131,33 @@ public class EditorButton : UICallbackButton
 
         WindowColor = MouseInside ? RolloverColor : NormalColor;
     }
+
+    #region DropDown Support
+
+    private bool _dropDownSpawned;
+
+    private void CheckIfDropdownSpawned()
+    {
+        if (HasDropdown()) _dropDownSpawned = true;
+    }
+
+    private bool HasDropdown()
+    {
+        return Controller != null && Controller.DropDown != null && Controller.DropDown.SpawningWindow == this;
+    }
+
+    private void UpdateDropdownState()
+    {
+        if (_dropDownSpawned)
+        {
+            bool hasDropdown = HasDropdown();
+            if (!hasDropdown)
+            {
+                _dropDownSpawned = false;
+                RecalculateButtonColor();
+            }
+        }
+    }
+
+    #endregion
 }
