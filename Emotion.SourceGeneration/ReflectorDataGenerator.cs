@@ -174,6 +174,7 @@ namespace SourceGenerator
                     if (propSymb.GetMethod == null || propSymb.SetMethod == null) continue;
                     if (propSymb.GetMethod.DeclaredAccessibility != Accessibility.Public) continue;
                     if (propSymb.SetMethod.DeclaredAccessibility != Accessibility.Public) continue;
+                    if (propSymb.SetMethod.IsInitOnly) continue;
                     memberType = propSymb.Type;
                 }
                 else if (member is IFieldSymbol fieldSymb)
