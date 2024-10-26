@@ -12,7 +12,8 @@ namespace Emotion.UI
         RotateBoundsCenter,
         ScaleBoundsCenter,
         TranslationPositionReplace,
-        AlreadyScaled
+        AlreadyScaled,
+        Translate_ApplyLast
     }
 
     /// <summary>
@@ -146,6 +147,8 @@ namespace Emotion.UI
                 // Quick out - this shouldn't change anything.
                 if (matWithId.Matrix.IsIdentity) continue;
 
+                if (matWithId.Flag == MatrixSpecialFlag.Translate_ApplyLast) continue;
+
                 if (matWithId.Flag == MatrixSpecialFlag.RotateBoundsCenter ||
                     matWithId.Flag == MatrixSpecialFlag.ScaleBoundsCenter)
                 {
@@ -164,6 +167,15 @@ namespace Emotion.UI
                     mat *= scaleMatrix * matWithId.Matrix * scaleMatrixInverted;
                 }
                 else
+                {
+                    mat *= matWithId.Matrix;
+                }
+            }
+
+            for (var i = 0; i < _stack.Count; i++)
+            {
+                MatrixWithId matWithId = _stack[i];
+                if (matWithId.Flag == MatrixSpecialFlag.Translate_ApplyLast)
                 {
                     mat *= matWithId.Matrix;
                 }
