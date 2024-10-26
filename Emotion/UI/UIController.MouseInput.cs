@@ -40,6 +40,7 @@ public partial class UIController
         Vector2 pos = Engine.Host.MousePosition;
         UIBaseWindow? focus = FindMouseInput(pos);
         if (focus == this && _inputFocusManual == null) focus = null;
+        Assert(focus == null || focus.HandleInput, "The focus doesn't handle input? How'd we get it?");
         SetControllerMouseFocus(focus);
 
     }
