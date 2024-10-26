@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Emotion.Standard.Audio;
 using Emotion.Utility;
 
@@ -114,6 +115,9 @@ namespace Emotion.Audio
                     break;
                 case AudioResampleQuality.HighHann:
                     requestedFrames = HannResample(dstFormat, dstSampleIdxStart, requestedFrames, buffer);
+                    break;
+                case AudioResampleQuality.ONE_ExperimentalOptimized:
+                    requestedFrames = Optimized_GetResamplesFrames(dstFormat, dstSampleIdxStart, requestedFrames, buffer);
                     break;
             }
 
@@ -297,8 +301,8 @@ namespace Emotion.Audio
             // Nyquist half of destination sampleRate
             const double maxDivSr = 0.5f;
             const double rG = 2 * maxDivSr;
-            const int convQuality = 10;
-            const int convQuality2 = 10 * 2;
+            const int convQuality = HANN_FILTER_SIZE / 2;
+            const int convQuality2 = HANN_FILTER_SIZE;
             float[] soundData = SoundData;
             int samplesPerChannel = SourceSamplesPerChannel;
 
@@ -330,9 +334,11 @@ namespace Emotion.Audio
                     }
 
                     var rY = 0.0;
-                    for (int tau = -convQuality; tau < convQuality; tau++)
+                    for (int tau = -convQuality; tau <= convQuality; tau++)
                     {
                         var inputSampleIdx = (int) (srcFrame + tau);
+                        inputSampleIdx = Maths.Clamp(inputSampleIdx, 0, samplesPerChannel - 1);
+
                         double relativeIdx = inputSampleIdx - srcFrame;
 
                         // Hann Window. Scale and calculate sinc
@@ -340,7 +346,6 @@ namespace Emotion.Audio
                         double rA = Maths.TWO_PI_DOUBLE * relativeIdx * maxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (inputSampleIdx < 0 || inputSampleIdx >= samplesPerChannel) continue;
 
                         float sample = getSamplesDirectly ? soundData[inputSampleIdx * srcChannels + c] : GetChannelConvertedSample(inputSampleIdx * srcChannels, c, channelRemap);
                         rY += rG * rW * rSnc * sample;
@@ -408,6 +413,17 @@ namespace Emotion.Audio
         /// </summary>
         public static void SetResamplerQuality(AudioResampleQuality quality = AudioResampleQuality.Auto)
         {
+            // A-B testing
+            if (quality == AudioResampleQuality.Auto)
+            {
+                int roll = Random.Shared.Next(0, 100);
+                if (roll < 33)
+                {
+                    AudioResampleQuality = AudioResampleQuality.ONE_ExperimentalOptimized;
+                    return;
+                }
+            }
+
             if (quality == AudioResampleQuality.Auto)
             {
                 // Use cores to gauge cpu power, technically not correct but serviceable.
@@ -435,6 +451,108 @@ namespace Emotion.Audio
             }
 
             Engine.Log.Info($"Set audio resample quality to {AudioResampleQuality}", MessageSource.Audio);
+        }
+
+        #endregion
+
+        #region ONE Optimizations
+
+        // L1 Cache - 64KB
+        // (FilterHalfSize + 1) * Resolution
+        // Filter of 32 at resolution 500 = 9000 * 4 = 36KB
+        // Filter of 16 at resolution 1000 = 36KB
+        private const int HANN_SINC_CACHE_RESOLUTION = 1000; // 36 KB 
+        private const int HANN_FILTER_SIZE = 16;
+
+        private static double Sinc(double x)
+        {
+            if (x == 0) return 1.0;
+            return Math.Sin(Math.PI * x) / (Math.PI * x);
+        }
+
+        private static double HannWindow(double x, double width)
+        {
+            // Original unoptimized formula:
+            // 0.5 * (1 - Math.Cos(Maths.TWO_PI_DOUBLE * (x + width / 2) / width))
+            return 0.5 - 0.5 * Math.Cos(Maths.TWO_PI_DOUBLE * (0.5 + x / width));
+        }
+
+        private static float[] PrecalcHannSincTable(int filterSize)
+        {
+            var halfSize = (filterSize / 2) + 1;
+            var resolution = HANN_SINC_CACHE_RESOLUTION;
+
+            // We add one because the filter is actually one larger than the size, due to the center point.
+            float[] filter = new float[(halfSize + 1) * resolution];
+            for (int i = 0; i < filter.Length; i++)
+            {
+                double factor = (double)i / resolution;
+                filter[i] = (float)(Sinc(factor) * HannWindow(factor, filterSize));
+            }
+
+            return filter;
+        }
+        private static float[] _hannWindowSincPrecomputed = PrecalcHannSincTable(HANN_FILTER_SIZE);
+
+        public int Optimized_GetResamplesFrames(AudioFormat dstFormat, int dstSampleIdxStart, int requestedFrames, Span<float> buffer)
+        {
+            // Stereo fast path, this is the most common case :)
+            if (dstFormat.Channels == 2 && SourceFormat.Channels == 2)
+            {
+                // Snap if more samples requested than left.
+                int totalSamples = GetSampleCountInFormat(dstFormat);
+                if (dstSampleIdxStart + requestedFrames * 2 >= totalSamples)
+                    requestedFrames = (totalSamples - dstSampleIdxStart) / 2;
+
+                return Optimized_HannResampleStereo(buffer, dstSampleIdxStart, requestedFrames, SourceFormat.SampleRate, dstFormat.SampleRate);
+            }
+
+            return HannResample(dstFormat, dstSampleIdxStart, requestedFrames, buffer);
+        }
+
+        public int Optimized_HannResampleStereo(Span<float> output, int dstSampleIdxStart, int requestedFrames, int originalSampleRate, int targetSampleRate)
+        {
+            const int filterLength = HANN_FILTER_SIZE;
+            const int channelCount = 2;
+
+            // filter size - half on each side
+            int halfFilterLength = filterLength / 2;
+            int dstFrameIdxStart = dstSampleIdxStart / channelCount;
+
+            double resampleStep = (double)originalSampleRate / targetSampleRate;
+
+            float[] input = SoundData;
+            int inputFrames = input.Length / channelCount;
+
+            ReadOnlySpan<Vector2> inputAsVec2 = MemoryMarshal.Cast<float, Vector2>(input);
+            Span<Vector2> outputAsVec2 = MemoryMarshal.Cast<float, Vector2>(output);
+
+            double srcFrame = dstFrameIdxStart * resampleStep;
+            for (int i = dstFrameIdxStart; i < dstFrameIdxStart + requestedFrames; i++)
+            {
+                int baseFrame = (int)Math.Floor(srcFrame);
+                Vector2 sum = Vector2.Zero;
+                for (int tau = -halfFilterLength; tau <= halfFilterLength; tau++)
+                {
+                    int frameTapIdx = baseFrame + tau;
+                    int frameTap = Math.Clamp(frameTapIdx, 0, inputFrames - 1);
+                    double relativeIdx = srcFrame - frameTap;
+
+                    int sincFactorMaxRes = (int)Math.Abs(relativeIdx * HANN_SINC_CACHE_RESOLUTION);
+                    float factor = _hannWindowSincPrecomputed[sincFactorMaxRes];
+
+                    Vector2 thisFrame = inputAsVec2[frameTap];
+                    sum += thisFrame * factor;
+                }
+
+                int indexInBuffer = i - dstFrameIdxStart;
+                outputAsVec2[indexInBuffer] = Vector2.Clamp(sum, new Vector2(-1f), Vector2.One);
+
+                // Increment to next frame.
+                srcFrame += resampleStep;
+            }
+
+            return requestedFrames;
         }
 
         #endregion
