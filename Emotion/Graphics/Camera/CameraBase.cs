@@ -29,7 +29,7 @@ public abstract class CameraBase : Positional, IDisposable
         }
     }
 
-    private float _farZ = 100;
+    private float _farZ = 10_000f;
 
     /// <summary>
     /// The NearZ clipping plane. All Z vertices before this wont be rendered.
@@ -44,7 +44,7 @@ public abstract class CameraBase : Positional, IDisposable
         }
     }
 
-    private float _nearZ = -100;
+    private float _nearZ = 10f;
 
     /// <summary>
     /// The direction (normalized) vector the camera is looking in.
@@ -85,6 +85,9 @@ public abstract class CameraBase : Positional, IDisposable
     protected float _zoom;
 
     #endregion
+
+    protected Vector3 _yawRollPitch = Vector3.Zero;
+    protected Vector3 _lookAtSafe;
 
     #region Calculated
 
@@ -189,6 +192,23 @@ public abstract class CameraBase : Positional, IDisposable
 
     protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
     {
+        float roll = MathF.Asin(newVal.Z);
+        float yaw;
+        if (newVal.Z < 0)
+            yaw = MathF.PI + MathF.Atan2(-newVal.Y, -newVal.X);
+        else
+            yaw = MathF.Atan2(newVal.Y, newVal.X);
+
+        var yawPitchRow = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
+
+        // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
+        yawPitchRow.Z = Maths.Clamp(yawPitchRow.Z, -89, 89);
+
+        _lookAtSafe = newVal;
+        _lookAtSafe.Y = -MathF.Cos(Maths.DegreesToRadians(yawPitchRow.X)) * MathF.Cos(Maths.DegreesToRadians(yawPitchRow.Z));
+        _lookAtSafe.Z = MathF.Sin(Maths.DegreesToRadians(yawPitchRow.Z));
+
+        _yawRollPitch = yawPitchRow;
     }
 
     /// <summary>
@@ -238,7 +258,7 @@ public abstract class CameraBase : Positional, IDisposable
 
     public Quaternion GetCameraOrientation()
     {
-        Vector3 lookat = LookAt;
+        Vector3 lookat = _lookAtSafe;
         Vector3 forward = Vector3.Normalize(new Vector3(lookat.X, lookat.Y, 0));
         Vector3 up = RenderComposer.Up;
         Vector3 right = Vector3.Cross(forward, up);
@@ -255,17 +275,8 @@ public abstract class CameraBase : Positional, IDisposable
 
     public Matrix4x4 GetRotationMatrix()
     {
-        Vector3 cameraForward = Vector3.Normalize(LookAt);
-        Vector3 cameraRight;
-        if (cameraForward == RenderComposer.Up || cameraForward == -RenderComposer.Up) // Gimbal lock and/or 2D
-        {
-            cameraForward = -RenderComposer.Up;
-            cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up2D)); // When looking down
-        }
-        else
-        {
-            cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up));
-        }
+        Vector3 cameraForward = Vector3.Normalize(_lookAtSafe);
+        Vector3 cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up));
 
         Vector3 rotatedCameraUp = Vector3.Cross(cameraRight, cameraForward);
         Matrix4x4 rotationMatrix = new Matrix4x4(

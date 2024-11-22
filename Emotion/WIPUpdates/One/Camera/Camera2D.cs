@@ -1,5 +1,6 @@
 ﻿using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
+using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.One.Camera;
 
@@ -11,6 +12,7 @@ public class Camera2D : CameraBase
 
     public Camera2D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
     {
+
     }
 
     /// <inheritdoc />
@@ -32,9 +34,13 @@ public class Camera2D : CameraBase
         // Find the camera margin and scale from the center.
         // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
         Vector2 margin = (currentSize - targetSize) / 2;
-        Vector3 pos = posOffset - new Vector3(margin.X, margin.Y, 0);
-        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos - LookAt, -RenderComposer.Up2D); // Not sure why the look at and up have to be minused
-        ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * unscaled;
+        Vector3 pos = posOffset - new Vector3(margin.X, -margin.Y, 0) + new Vector3(0, targetSize.Y, 0);
+        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + _lookAtSafe, RenderComposer.Up);
+
+        // We need to flip the Y scale since OpenGL expects a natural origin at the bottom-left corner but we
+        // have set up our projection to be top-left. This is also the reason we add targetSize.Y above
+        // and flip the Y margin.
+        ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, -scale, 1), new Vector3(iX, iY, 0)) * unscaled;
     }
 
     /// <inheritdoc />
@@ -84,7 +90,7 @@ public class Camera2D : CameraBase
             movementStraightBack.Z = 0;
             movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
-            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up2D, LookAt)) * _inputDirection.X;
+            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up, _lookAtSafe)) * _inputDirection.X;
             if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
             if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
             // todo: interpolate.

@@ -26,22 +26,19 @@ namespace Emotion.Graphics.Camera
         // Movement
         public float MovementSpeed = 3;
         private Vector2 _lastMousePos;
-        private Vector3 _yawRollPitch = Vector3.Zero;
         private bool _held;
         private Vector2 _inputDirection;
         private float _inputDirectionZ;
 
         public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
         {
-            NearZ = 10f;
-            FarZ = 10_000;
         }
 
         /// <inheritdoc />
         public override void RecreateViewMatrix()
         {
             Vector3 pos = Position;
-            var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + LookAt, RenderComposer.Up);
+            var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + _lookAtSafe, RenderComposer.Up);
             ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * unscaled;
         }
 
@@ -130,6 +127,7 @@ namespace Emotion.Graphics.Camera
                 };
                 direction = Vector3.Normalize(direction);
                 _lookAt = direction;
+                _lookAtSafe = direction;
                 _lastMousePos = mousePos;
 
                 RecreateViewMatrix();
@@ -137,13 +135,13 @@ namespace Emotion.Graphics.Camera
 
             if (_inputDirection != Vector2.Zero || _inputDirectionZ != 0)
             {
-                Vector3 movementStraightBack = LookAt * -_inputDirection.Y;
+                Vector3 movementStraightBack = _lookAtSafe * -_inputDirection.Y;
                 float len = movementStraightBack.Length();
                 movementStraightBack.Z = 0;
                 movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
                 Vector3 movementUpDown = RenderComposer.Up * _inputDirectionZ;
-                Vector3 movementSide = -Vector3.Normalize(Vector3.Cross(LookAt, RenderComposer.Up)) * _inputDirection.X;
+                Vector3 movementSide = -Vector3.Normalize(Vector3.Cross(_lookAtSafe, RenderComposer.Up)) * _inputDirection.X;
                 if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
                 if (!float.IsNaN(movementUpDown.X)) Position += movementUpDown * MovementSpeed;
                 if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
@@ -151,25 +149,6 @@ namespace Emotion.Graphics.Camera
 
                 RecreateViewMatrix();
             }
-        }
-
-        protected override void LookAtChanged(Vector3 oldVal, Vector3 newVal)
-        {
-            float roll = MathF.Asin(newVal.Z);
-            float yaw;
-            if (newVal.Z < 0)
-                yaw = MathF.PI + MathF.Atan2(-newVal.Y, -newVal.X);
-            else
-                yaw = MathF.Atan2(newVal.Y, newVal.X);
-
-            _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
-
-            // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
-            _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89);
-            _lookAt.Y = -MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z));
-            _lookAt.Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z));
-
-            base.LookAtChanged(oldVal, newVal);
         }
 
         /// <inheritdoc />
