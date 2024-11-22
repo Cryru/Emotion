@@ -47,7 +47,7 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
 
     public MessageBrokerMultiplayer_TestObject()
     {
-        Size = new Vector2(20);
+        Size2D = new Vector2(20);
     }
 
     public void AttachInput()
@@ -75,12 +75,12 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
     public override void Update(float dt)
     {
         if (PlayerControlled)
-            Position2 += _inputDirection * 0.1f * dt;
+            Position2D += _inputDirection * 0.1f * dt;
     }
 
     public override void Render(RenderComposer c)
     {
-        c.RenderSprite(Position, Size, Color);
+        c.RenderSprite(Position, Size2D, Color);
     }
 }
 
@@ -234,7 +234,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
         {
             if (_clientCom != null && _myObj != null)
             {
-                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2, _clientCom.UserId)));
+                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2D, _clientCom.UserId)));
             }
             yield return null;
         }
@@ -248,7 +248,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
             var obj = _objects[i];
             if (obj.PlayerId == senderIdx)
             {
-                obj.Position2 = Vector2.Lerp(obj.Position2, pos.ToVec2(), 0.5f);
+                obj.Position2D = Vector2.Lerp(obj.Position2D, pos.ToVec2(), 0.5f);
                 break;
             }
         }

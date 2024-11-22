@@ -49,7 +49,7 @@ public class TimeSyncMultiplayer_TestObject : MapObject
 
     public TimeSyncMultiplayer_TestObject()
     {
-        Size = new Vector2(20);
+        Size2D = new Vector2(20);
     }
 
     public void AttachInput()
@@ -82,7 +82,7 @@ public class TimeSyncMultiplayer_TestObject : MapObject
 
     public override void Render(RenderComposer c)
     {
-        c.RenderSprite(Position, Size, Color);
+        c.RenderSprite(Position, Size2D, Color);
     }
 }
 
@@ -247,7 +247,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             var obj = _objects[i];
             if (obj.PlayerId == senderIdx)
             {
-                obj.Position2 = Vector2.Lerp(obj.Position2, pos.ToVec2(), 0.5f);
+                obj.Position2D = Vector2.Lerp(obj.Position2D, pos.ToVec2(), 0.5f);
 
                 var hsh = (obj.Position.RoundClosest().ToString() + Engine.CurrentGameTime.ToString()).GetStableHashCode();
                 _clientCom.SendTimeSyncHash(hsh);
