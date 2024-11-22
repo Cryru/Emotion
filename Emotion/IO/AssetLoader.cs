@@ -544,7 +544,7 @@ namespace Emotion.IO
         private ConcurrentQueue<AssetHandleBase> _assetsToLoad = new ConcurrentQueue<AssetHandleBase>();
         private Coroutine _assetLoadRoutine = Coroutine.CompletedRoutine;
 
-        public AssetHandle<T> ONE_Get<T>(string name) where T : Asset, new()
+        public AssetHandle<T> ONE_Get<T>(string name, object? addRefenceToObject = null) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name)) return AssetHandle<T>.Empty;
 
@@ -552,10 +552,18 @@ namespace Emotion.IO
 
             // If a handle already exists, get it.
             if (_createdAssetHandles.TryGetValue(name, out AssetHandleBase? handle) && handle is AssetHandle<T> handleOfType)
+            {
+                if (addRefenceToObject != null)
+                    AddReferenceToAssetHandle(handleOfType, addRefenceToObject);
+
                 return handleOfType;
+            }
 
             AssetHandle<T> newHandle = new AssetHandle<T>(name);
             _createdAssetHandles.TryAdd(name, newHandle);
+
+            if (addRefenceToObject != null)
+                AddReferenceToAssetHandle(newHandle, addRefenceToObject);
 
             // Asset not found in any source
             AssetSource? source = GetSource(name);
