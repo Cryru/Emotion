@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Numerics;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
@@ -12,6 +13,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.Tools;
 
 #endregion
 
@@ -986,5 +988,43 @@ public class NewUITests : TestingScene
 
         yield return WaitUILayout();
         VerifyScreenshot();
+    }
+
+    //[DebugTest]
+    [Test]
+    public IEnumerator HorizontalPanelLayout()
+    {
+        var win = new UISolidColor
+        {
+            WindowColor = Color.PrettyRed,
+            LayoutMode = LayoutMode.HorizontalEditorPanel,
+
+            Id = "Panel",
+            Paddings = new Rectangle(5, 5, 5, 5),
+            SetChildren = new()
+            {
+                new UISolidColor()
+                {
+                    FillX = false,
+                    MinSize = new Vector2(50),
+                    WindowColor = Color.PrettyGreen,
+                },
+                new HorizontalPanelSeparator(),
+                new UISolidColor()
+                {
+                    FillX = false,
+                    MinSize = new Vector2(50),
+                    WindowColor = Color.PrettyBlue,
+                },
+            }
+        };
+        UI.AddChild(win);
+
+        yield return WaitUILayout();
+        //VerifyScreenshot();
+
+        yield return new TestWaiterRunLoops(-1);
+
+        yield break;
     }
 }

@@ -1,4 +1,4 @@
-﻿using WinApi;
+﻿using Emotion.WIPUpdates.One.Tools;
 
 namespace Emotion.UI;
 
@@ -9,7 +9,8 @@ public partial class UIBaseWindow
     public enum UIPass
     {
         Measure,
-        Layout
+        Layout,
+        LayoutExtra
     }
 
     private UILayoutEngine _layoutEngine = new UILayoutEngine();
@@ -38,6 +39,7 @@ public partial class UIBaseWindow
         }
 
         private List<ChildData> _children = new(); // todo: optimize
+        private List<ChildData> _childrenPrePass = new(); // todo: optimize
         private Vector2 _listSpacing;
         private UIPass _pass;
         private LayoutMode _layoutMode;
@@ -49,6 +51,7 @@ public partial class UIBaseWindow
             _bound = Rectangle.Empty;
             _padding = Rectangle.Empty;
             _children.Clear();
+            _childrenPrePass.Clear();
             _listSpacing = Vector2.Zero;
             _layoutMode = LayoutMode.Free;
             _listMask = 0;
@@ -63,6 +66,7 @@ public partial class UIBaseWindow
             switch (_layoutMode)
             {
                 case LayoutMode.HorizontalList:
+                case LayoutMode.HorizontalEditorPanel:
                     _listMask = 0;
                     break;
                 case LayoutMode.VerticalList:
@@ -115,6 +119,7 @@ public partial class UIBaseWindow
                 case LayoutMode _ when childData.OutsideCurrentLayout:
                     OutsideLayoutAppend(child, size, ref childData);
                     break;
+                case LayoutMode.HorizontalEditorPanel when _pass == UIPass.LayoutExtra:
                 case LayoutMode.HorizontalList:
                 case LayoutMode.VerticalList:
                     ListAppend(child, size, ref childData);
@@ -156,6 +161,29 @@ public partial class UIBaseWindow
 
         public void ApplyLayout()
         {
+            // Special panel mode
+            bool requireExtraPass = false;
+            if (_layoutMode == LayoutMode.HorizontalEditorPanel)
+            {
+                requireExtraPass = true;
+                ApplyPanelModePrePass();
+            }
+
+            // Some UI layouts require an extra pass, so re-append children now that we
+            // have done extra calculations with the knowledge of what all of our children are.
+            if (requireExtraPass)
+            {
+                _childrenPrePass.AddRange(_children);
+                _children.Clear();
+
+                _pass = UIPass.LayoutExtra;
+                for (int i = 0; i < _childrenPrePass.Count; i++)
+                {
+                    ChildData childDataPre = _childrenPrePass[i];
+                    AppendChild(childDataPre.Child, childDataPre.Bound.Size, Rectangle.Empty); // Margins should have been added to size by the first layout pass.
+                }
+            }
+
             for (int i = 0; i < _children.Count; i++)
             {
                 ChildData childData = _children[i];
@@ -333,14 +361,14 @@ public partial class UIBaseWindow
 
         private Rectangle List_FillX(ref ChildData childData, Rectangle childBound)
         {
-            if (childData.EndOfList || _layoutMode == LayoutMode.VerticalList)
+            if (childData.EndOfList || _listMask == 1)
                 childBound.Width = _bound.X + _bound.Width - childBound.X;
             return childBound;
         }
 
         private Rectangle List_FillY(ref ChildData childData, Rectangle childBound)
         {
-            if (childData.EndOfList || _layoutMode == LayoutMode.HorizontalList)
+            if (childData.EndOfList || _listMask == 0)
                 childBound.Height = _bound.Y + _bound.Height - childBound.Y;
             return childBound;
         }
@@ -399,6 +427,40 @@ public partial class UIBaseWindow
 
         #endregion
 
+        #region Panel
+
+        private void ApplyPanelModePrePass()
+        {
+            // temp
+            float sizeAvailable = _bound.Width;
+            HorizontalPanelSeparator? separator = null;
+            float separation = 0.5f;
+            for (int i = 0; i < _children.Count; i++)
+            {
+                ChildData childData = _children[i];
+                UIBaseWindow childWin = childData.Child;
+                if (childWin is HorizontalPanelSeparator sep)
+                {
+                    separation = sep.SeparationPercent;
+                    separator = sep;
+
+                    sizeAvailable -= childData.Bound.Width;
+                }
+            }
+
+            float rightSidePercent = 1f - separation;
+
+            ChildData leftChild = _children[0];
+            leftChild.Bound.Width = sizeAvailable * separation;
+            _children[0] = leftChild;
+
+            ChildData rightChild = _children[2];
+            rightChild.Bound.Width = sizeAvailable * separation;
+            _children[2] = rightChild;
+        }
+        
+        #endregion
+
         private Rectangle ApplyFill(ref ChildData childData, Rectangle childBound)
         {
             UIBaseWindow childWin = childData.Child;
@@ -411,9 +473,10 @@ public partial class UIBaseWindow
                             childBound = Outside_FillX(ref childData, childBound);
                         if (childWin.FillY)
                             childBound = Outside_FillY(ref childData, childBound);
-                        return childBound;
+                        break;
                     }
 
+                case LayoutMode.HorizontalEditorPanel:
                 case LayoutMode.HorizontalList:
                 case LayoutMode.VerticalList:
                     {
@@ -421,7 +484,7 @@ public partial class UIBaseWindow
                             childBound = List_FillX(ref childData, childBound);
                         if (childWin.FillY)
                             childBound = List_FillY(ref childData, childBound);
-                        return childBound;
+                        break;
                     }
 
                 case LayoutMode.Free:
@@ -430,7 +493,7 @@ public partial class UIBaseWindow
                             childBound = Free_FillX(ref childData, childBound);
                         if (childWin.FillY)
                             childBound = Free_FillY(ref childData, childBound);
-                        return childBound;
+                        break;
                     }
             }
 
