@@ -2,14 +2,9 @@
 
 using BenchmarkDotNet.Attributes;
 using Emotion.Common;
-using Emotion.IO;
 using Emotion.Serialization.XML;
 using Emotion.Standard.XML;
 using Emotion.Testing;
-using FastSerialization;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
 
 #endregion
 

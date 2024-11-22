@@ -61,16 +61,26 @@ namespace Emotion.Benchmark
             }
 
             {
+//#if DEBUG
+//                var benchmark = new ReflectorBenchmark();
+//                benchmark.GlobalSetup();
+//                benchmark.ReflectorXML_ComplexWithPrimitiveMember();
+//                benchmark.ReflectorXML_ComplexWithPrimitiveMember_StackUTF16();
+//                benchmark.ReflectorXML_ComplexWithPrimitiveMember_StackUTF8();
+//                benchmark.StockEmotionXML_ComplexWithPrimitiveMember();
+//                Console.WriteLine("Done!");
+//#else
+//                BenchmarkRunner.Run<ReflectorBenchmark>();
+//#endif
+            }
+
+            {
 #if DEBUG
-                var benchmark = new ReflectorBenchmark();
+                var benchmark = new MiscBenchmark();
                 benchmark.GlobalSetup();
-                benchmark.ReflectorXML_ComplexWithPrimitiveMember();
-                benchmark.ReflectorXML_ComplexWithPrimitiveMember_StackUTF16();
-                benchmark.ReflectorXML_ComplexWithPrimitiveMember_StackUTF8();
-                benchmark.StockEmotionXML_ComplexWithPrimitiveMember();
                 Console.WriteLine("Done!");
 #else
-                BenchmarkRunner.Run<ReflectorBenchmark>();
+                BenchmarkRunner.Run<MiscBenchmark>();
 #endif
             }
         }

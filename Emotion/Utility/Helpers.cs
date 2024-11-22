@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emotion.Game.Data;
@@ -337,5 +338,12 @@ public static class Helpers
             builder.Append(ch);
         }
         return builder.ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] SafeForEachArray<T>(T[]? arr)
+    {
+        if (arr == null) return Array.Empty<T>();
+        return arr;
     }
 }
