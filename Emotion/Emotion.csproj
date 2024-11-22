@@ -35,10 +35,10 @@
 
     <!-- Windows 64 bit -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64'">
-        <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;WIN64</DefineConstants>
+        <DefineConstants>$(DefineConstants);MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;WIN64</DefineConstants>
         <PlatformTarget>x64</PlatformTarget>
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible>True</IsAotCompatible>
+        <IsTrimmable>False</IsTrimmable>
+        <IsAotCompatible>False</IsAotCompatible>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64NoDepend'">
         <DefineConstants>$(DefineConstants);WIN64</DefineConstants>
@@ -61,7 +61,7 @@
 
     <!-- Windows 32 bit -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-        <DefineConstants>$(DefineConstants);ASSIMP;MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;WIN32;OpenAL</DefineConstants>
+        <DefineConstants>$(DefineConstants);MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING;WIN32;OpenAL</DefineConstants>
         <PlatformTarget>x86</PlatformTarget>
         <IsTrimmable>True</IsTrimmable>
         <IsAotCompatible>True</IsAotCompatible>
@@ -75,7 +75,7 @@
 
     <!-- Linux 64 bit -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Linux64'">
-        <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW;LINUX</DefineConstants>
+        <DefineConstants>$(DefineConstants);MORE_IMAGE_TYPES;OpenAL;GLFW;LINUX</DefineConstants>
         <PlatformTarget>x64</PlatformTarget>
         <IsTrimmable>True</IsTrimmable>
         <IsAotCompatible>True</IsAotCompatible>
@@ -89,7 +89,7 @@
 
     <!-- MacOS 64 bit -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|MacOS64'">
-        <DefineConstants>$(DefineConstants);ASSIMP;MORE_IMAGE_TYPES;OpenAL;GLFW;MACOS</DefineConstants>
+        <DefineConstants>$(DefineConstants);MORE_IMAGE_TYPES;OpenAL;GLFW;MACOS</DefineConstants>
         <PlatformTarget>x64</PlatformTarget>
         <IsTrimmable>True</IsTrimmable>
         <IsAotCompatible>True</IsAotCompatible>
@@ -122,6 +122,8 @@
         <DefineConstants>$(DefineConstants);AUTOBUILD;CSHARP_SCRIPTING</DefineConstants>
         <Optimize>True</Optimize>
     </PropertyGroup>
+    
+    <!-- todo -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Android'">
       <IsTrimmable>True</IsTrimmable>
       <IsAotCompatible>True</IsAotCompatible>
@@ -177,7 +179,7 @@
     <ItemGroup Condition="!$(DefineConstants.Contains('ANGLE'))">
         <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
     </ItemGroup>
-    <ItemGroup Condition="!$(DefineConstants.Contains('ASSIMP'))">
+    <ItemGroup Condition="!$(DefineConstants.Contains('MORE_MESH_TYPES'))">
         <Compile Remove="IO\MeshAssetTypes\Assimp\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
@@ -252,11 +254,12 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Silk.NET.Assimp" Version="2.20.0" Condition="$(DefineConstants.Contains('ASSIMP'))" />
+        <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
     </ItemGroup>
     <ItemGroup>
+        <Folder Include="IO\MeshAssetTypes\Assimp\GLTF\" />
         <Folder Include="Properties\" />
     </ItemGroup>
     <ItemGroup>

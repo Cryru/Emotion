@@ -113,9 +113,9 @@ public class FileExplorerButton : UICallbackButton
     {
         var bg = GetWindowById("buttonBackground");
 
-        if (_extension == ".em3" || _extension == ".obj"
-#if ASSIMP
-                                 || _extension == ".fbx" || _extension == ".gltf" || _extension == ".dae"
+        if (_extension == ".em3" || _extension == ".gltf"
+#if MORE_MESH_TYPES
+                                 || _extension == ".obj" || _extension == ".fbx" || _extension == ".dae"
 #endif
            )
         {
