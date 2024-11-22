@@ -105,7 +105,7 @@ public partial class Unit : MapObject
         if (LocallyControlled)
             VisualPosition = Position2D;
         else
-            VisualPosition = Interpolation.SmoothLerp(VisualPosition, Position2, 10, Engine.DeltaTime / 1000f);
+            VisualPosition = Interpolation.SmoothLerp(VisualPosition, Position2D, 10, Engine.DeltaTime);
     }
 
     public virtual void ServerUpdate(float dt, MsgBrokerClientTimeSync clientCom)
