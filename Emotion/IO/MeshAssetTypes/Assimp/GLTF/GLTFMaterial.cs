@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Emotion.IO.MeshAssetTypes.GLTF;
+namespace Emotion.IO.MeshAssetTypes.Assimp.GLTF;
 
 public class GLTFMaterial
 {

@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 #nullable enable
 
-namespace Emotion.IO.MeshAssetTypes.GLTF;
+namespace Emotion.IO.MeshAssetTypes.Assimp.GLTF;
 
 public class GLTFAccessor
 {

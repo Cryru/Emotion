@@ -12,7 +12,7 @@ using AssTexture = Silk.NET.Assimp.Texture;
 using AssMesh = Silk.NET.Assimp.Mesh;
 using File = Silk.NET.Assimp.File;
 using System.Text.Json;
-using Emotion.IO.MeshAssetTypes.GLTF;
+using Emotion.IO.MeshAssetTypes.Assimp.GLTF;
 
 #endregion
 
@@ -36,7 +36,8 @@ public class AssimpAsset : Asset
                                               PostProcessSteps.FlipUVs |
                                               PostProcessSteps.SortByPrimitiveType |
                                               PostProcessSteps.OptimizeGraph |
-                                              PostProcessSteps.OptimizeMeshes;
+                                              PostProcessSteps.OptimizeMeshes |
+                                              PostProcessSteps.MakeLeftHanded;
 
     protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
     {
@@ -721,14 +722,16 @@ public class AssimpAsset : Asset
         if (gltfDoc == null) return;
         if (gltfDoc.Skins == null) return;
 
-        var skin = gltfDoc.Skins[0]; // todo
+        GLTFSkins skin = gltfDoc.Skins[0]; // todo
 
         GLTFMesh[] gltfMeshes = gltfDoc.Meshes;
         for (var i = 0; i < gltfMeshes.Length; i++)
         {
-            var gltfMesh = gltfMeshes[i];
-            var primitives = gltfMesh.Primitives;
-            var primaryPrimitive = primitives[0]; // ??
+            GLTFMesh gltfMesh = gltfMeshes[i];
+            GLTFMeshPrimitives[] primitives = gltfMesh.Primitives;
+            GLTFMeshPrimitives primaryPrimitive = primitives[0]; // ??
+
+            if (i == 1) break;
 
             bool foundWeight = primaryPrimitive.Attributes.TryGetValue("WEIGHTS_0", out int weightAccessorIdx);
             if (!foundWeight) continue;
@@ -743,8 +746,64 @@ public class AssimpAsset : Asset
             ReadOnlyMemory<byte> jointBuffer = gltfDoc.ReadGltfBuffer(Name, jointAccessor, out int jointStride);
             int jointDataSize = jointAccessor.GetDataSize();
 
-            var assimpMesh = meshes[i];
+            // Since vertices and indices in Assimp are in a totally different order, in order to make sure
+            // the weights and joints are set correctly, we need to actually set the whole vertices.
+            bool foundPos = primaryPrimitive.Attributes.TryGetValue("POSITION", out int positionAccessorIdx);
+            if (!foundPos) continue;
+
+            GLTFAccessor positionAccessor = gltfDoc.Accessors[positionAccessorIdx];
+            int positionDataSize = positionAccessor.GetDataSize();
+            ReadOnlyMemory<byte> positionBuffer = gltfDoc.ReadGltfBuffer(Name, positionAccessor, out int positionStride);
+
+            bool foundUv = primaryPrimitive.Attributes.TryGetValue("TEXCOORD_0", out int uvAccessorIdx);
+            if (!foundUv) continue;
+
+            GLTFAccessor uvAccessor = gltfDoc.Accessors[uvAccessorIdx];
+            int uvDataSize = uvAccessor.GetDataSize();
+            ReadOnlyMemory<byte> uvBuffer = gltfDoc.ReadGltfBuffer(Name, uvAccessor, out int uvStride);
+
+            bool foundNormal = primaryPrimitive.Attributes.TryGetValue("NORMAL", out int normalAccessorIdx);
+            if (!foundNormal) continue;
+
+            GLTFAccessor normalAccessor = gltfDoc.Accessors[uvAccessorIdx];
+            int normalDataSize = normalAccessor.GetDataSize();
+            ReadOnlyMemory<byte> normalBuffer = gltfDoc.ReadGltfBuffer(Name, normalAccessor, out int normalStride);
+
+            int indicesAccessorIdx = primaryPrimitive.Indices;
+            GLTFAccessor indicesAccessor = gltfDoc.Accessors[indicesAccessorIdx];
+            int indicesDataSize = indicesAccessor.GetDataSize();
+            ReadOnlyMemory<byte> indicesBuffer = gltfDoc.ReadGltfBuffer(Name, indicesAccessor, out int indexStride);
+
+            ushort[] indices = new ushort[indicesAccessor.Count];
+            for (int idx = 0; idx < indicesAccessor.Count; idx++)
+            {
+                ReadOnlyMemory<byte> indicesData = indicesBuffer.Slice(idx * indexStride, indicesDataSize);
+                Vector4 index = indicesAccessor.GetDataAsVec4Float(indicesData);
+
+                indices[idx] = (ushort)index[0];
+            }
+
+            Mesh assimpMesh = meshes[i];
             if (assimpMesh.BoneData == null) continue;
+            assimpMesh.Indices = indices;
+
+            for (int v = 0; v < positionAccessor.Count; v++)
+            {
+                Vector3 position = positionAccessor.GetDataAsVec4Float(positionBuffer.Slice(v * positionStride, positionDataSize)).ToVec3();
+                if (_postProcFlags.EnumHasFlag(PostProcessSteps.MakeLeftHanded)) position.Z = -position.Z;
+
+                Vector4 uv = uvAccessor.GetDataAsVec4Float(uvBuffer.Slice(v * uvStride, uvDataSize));
+
+                Vector3 normal = normalAccessor.GetDataAsVec4Float(uvBuffer.Slice(v * normalStride, normalDataSize)).ToVec3();
+                if (_postProcFlags.EnumHasFlag(PostProcessSteps.MakeLeftHanded)) normal.Z = -normal.Z;
+
+                ref VertexData vertexData = ref assimpMesh.Vertices[v];
+                vertexData.Vertex = position;
+                vertexData.UV = new Vector2(uv.X, uv.Y);
+
+                ref VertexDataMesh3DExtra extraVertexData = ref assimpMesh.ExtraVertexData[v];
+                extraVertexData.Normal = normal;
+            }
 
             // Implement JoinIdenticalVertices so we can assign the correct weights and joints
             // to the vertex assimp will output.
@@ -817,11 +876,11 @@ public class AssimpAsset : Asset
 
             for (int v = 0; v < weightAccessor.Count; v++)
             {
-                var weightsForVertex = weightBuffer.Slice(v * weightStride, weightDataSize);
-                Vector4 weights = weightAccessor.GetDataAsVec4Float(weightsForVertex);
+                ReadOnlyMemory<byte> weightsData = weightBuffer.Slice(v * weightStride, weightDataSize);
+                Vector4 weights = weightAccessor.GetDataAsVec4Float(weightsData);
 
-                var jointsForVertex = jointBuffer.Slice(v * jointStride, jointDataSize);
-                Vector4 joints = jointAccessor.GetDataAsVec4Float(jointsForVertex);
+                ReadOnlyMemory<byte> jointData = jointBuffer.Slice(v * jointStride, jointDataSize);
+                Vector4 joints = jointAccessor.GetDataAsVec4Float(jointData);
 
                 // Joints and weights in GLTF use 0 both as an index and as an empty value.
                 // You can differentiate using weights, in addition in GLTF you might have
@@ -846,7 +905,7 @@ public class AssimpAsset : Asset
                     GLTFNode node = gltfDoc.Nodes[nodeIndex];
                     string nodeName = node.Name ?? $"nodes[{nodeIndex}]";
 
-                    var meshBone = assimpMesh.GetMeshBoneByName(nodeName);
+                    MeshBone? meshBone = assimpMesh.GetMeshBoneByName(nodeName);
                     AssertNotNull(meshBone);
                     int assimpIndex = meshBone.BoneIndex;
 
@@ -862,8 +921,9 @@ public class AssimpAsset : Asset
                     }
                 }
 
-                assimpMesh.BoneData[v].BoneIds = jointsConverted;
-                assimpMesh.BoneData[v].BoneWeights = weightsConverted;
+                ref Mesh3DVertexDataBones boneData = ref assimpMesh.BoneData[v];
+                boneData.BoneIds = jointsConverted;
+                boneData.BoneWeights = weightsConverted;
             }
         }
     }
