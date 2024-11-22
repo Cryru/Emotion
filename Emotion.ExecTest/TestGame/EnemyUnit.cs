@@ -21,7 +21,7 @@ public class EnemyUnit : Unit
     {
         Name = "Bad Guy";
         Image = "Test/proto/enemy";
-        Size = new Vector2(16);
+        Size2D = new Vector2(16);
 
         _attackSkill = new MeleeAttack();
         Abilities.Add(_attackSkill);
@@ -30,7 +30,7 @@ public class EnemyUnit : Unit
     public override void Init()
     {
         base.Init();
-        _spawnPos = Position2;
+        _spawnPos = Position2D;
     }
 
     public override void Update(float dt)
@@ -53,7 +53,7 @@ public class EnemyUnit : Unit
     {
         if (_aiMoveTo == Vector2.Zero) return;
 
-        Vector2 diff = _aiMoveTo - Position2;
+        Vector2 diff = _aiMoveTo - Position2D;
         float length = diff.Length();
         if (length < AI_MOVE_RANGE_IMPRECISION)
         {
@@ -64,7 +64,7 @@ public class EnemyUnit : Unit
         Vector2 moveDir = Vector2.Normalize(diff);
         if (moveDir != Vector2.Zero)
         {
-            Position2 += moveDir * 0.1f * dt;
+            Position2D += moveDir * 0.1f * dt;
             SendMovementUpdate();
         }
     }
@@ -120,9 +120,9 @@ public class EnemyUnit : Unit
             }
             else if (canUse == AbilityCanUseResult.OutOfRange)
             {
-                if (_aiTargetLastPosition != Target.Position2)
+                if (_aiTargetLastPosition != Target.Position2D)
                 {
-                    _aiTargetLastPosition = Target.Position2;
+                    _aiTargetLastPosition = Target.Position2D;
 
                     Vector2 pointInMelee = Target.GetFreeMeleeRangeSpot(this);
                     AI_MoveTo(pointInMelee);

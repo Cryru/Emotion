@@ -122,8 +122,8 @@ public class TestScene : SceneWithMap
             if (ch == null) continue;
             if (obj is not EnemyUnit) continue;
 
-            Rectangle bounds = ch.Bounds;
-            bounds.Center = ch.Position2;
+            Rectangle bounds = ch.Bounds2D;
+            bounds.Center = ch.Position2D;
             if (bounds.Contains(worldClick))
             {
                 return ch;
@@ -170,7 +170,7 @@ public class TestScene : SceneWithMap
         if (_inputDirection == Vector2.Zero) return;
         if (_clientCom == null) return;
 
-        MyUnit.Position2 += _inputDirection * 0.1f * dt;
+        MyUnit.Position2D += _inputDirection * 0.1f * dt;
         Engine.Renderer.Camera.Position = MyUnit.Position;
         MyUnit.SendMovementUpdate();
     }
@@ -194,7 +194,7 @@ public class TestScene : SceneWithMap
                 ch.MovedEvent();
 
                 if (ch.LocallyControlled) break;
-                ch.Position2 = data.Pos;
+                ch.Position2D = data.Pos;
                 break;
             }
         }
@@ -355,19 +355,19 @@ public class TestScene : SceneWithMap
     private void SetupTestLevel()
     {
         {
-            var badGuy = new EnemyUnit() { Position2 = new Vector2(0, -100) };
+            var badGuy = new EnemyUnit() { Position2D = new Vector2(0, -100) };
             Map.AddObject(badGuy);
         }
         {
-            var badGuy = new EnemyUnit() { Position2 = new Vector2(50, -200) };
+            var badGuy = new EnemyUnit() { Position2D = new Vector2(50, -200) };
             Map.AddObject(badGuy);
         }
         {
-            var badGuy = new EnemyUnit() { Position2 = new Vector2(-50, -200) };
+            var badGuy = new EnemyUnit() { Position2D = new Vector2(-50, -200) };
             Map.AddObject(badGuy);
         }
         {
-            var badGuy = new EnemyUnit() { Position2 = new Vector2(0, -200) };
+            var badGuy = new EnemyUnit() { Position2D = new Vector2(0, -200) };
             Map.AddObject(badGuy);
         }
     }
@@ -465,11 +465,11 @@ public class TestScene : SceneWithMap
         TestScene? scene = Engine.SceneManager.Current as TestScene;
         if (scene == null) return;
 
-        Vector2 midPoint = target.Position2;
+        Vector2 midPoint = target.Position2D;
         if (source != target)
         {
-            Vector2 dirTowardsSource = Vector2.Normalize(source.Position2 - target.Position2);
-            midPoint = midPoint + dirTowardsSource * target.Size / 2.3f;
+            Vector2 dirTowardsSource = Vector2.Normalize(source.Position2D - target.Position2D);
+            midPoint = midPoint + dirTowardsSource * target.Size2D / 2.3f;
         }
 
         scene._floatingTexts.Add(new FloatingText(text, midPoint.ToVec3(source.Z), color));

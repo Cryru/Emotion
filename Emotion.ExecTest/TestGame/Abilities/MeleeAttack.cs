@@ -14,7 +14,7 @@ public class MeleeAttack : Ability
     {
         if (target == null) return AbilityCanUseResult.NoTarget;
 
-        float dist = Vector2.Distance(caster.Position2, target.Position2);
+        float dist = Vector2.Distance(caster.Position2D, target.Position2D);
         int casterMeleeRange = caster.MeleeRange;
         //if (target.IsMoving) casterMeleeRange += casterMeleeRange / 2;
         if (dist > casterMeleeRange) return AbilityCanUseResult.OutOfRange;

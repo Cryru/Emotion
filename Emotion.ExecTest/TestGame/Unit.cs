@@ -76,7 +76,7 @@ public partial class Unit : MapObject
 
     public Unit()
     {
-        Size = new Vector2(32);
+        Size2D = new Vector2(32);
     }
 
     protected Unit(uint id) : this()
@@ -88,7 +88,7 @@ public partial class Unit : MapObject
     {
         base.Init();
         Health = MaxHealth;
-        VisualPosition = Position2;
+        VisualPosition = Position2D;
         UpdateRenderMode();
 
         if (ObjectId == 0)
@@ -103,7 +103,7 @@ public partial class Unit : MapObject
     public override void Update(float dt)
     {
         if (LocallyControlled)
-            VisualPosition = Position2;
+            VisualPosition = Position2D;
         else
             VisualPosition = Interpolation.SmoothLerp(VisualPosition, Position2, 10, Engine.DeltaTime / 1000f);
     }
@@ -160,8 +160,8 @@ public partial class Unit : MapObject
 
     public Vector2 GetFreeMeleeRangeSpot(Unit ch)
     {
-        Vector2 chPos = ch.Position2;
-        Vector2 directionToAttacker = Vector2.Normalize(chPos - Position2);
+        Vector2 chPos = ch.Position2D;
+        Vector2 directionToAttacker = Vector2.Normalize(chPos - Position2D);
         float currentAngle = (float)Math.Atan2(directionToAttacker.Y, directionToAttacker.X);
         float currentAngleInDegrees = Maths.RadiansToDegrees(currentAngle);
         int closestAngleInDegrees = (int)(MathF.Round(currentAngleInDegrees / _meleeSpotAngleDiff) * _meleeSpotAngleDiff);
@@ -206,7 +206,7 @@ public partial class Unit : MapObject
         int angleDeg = index * _meleeSpotAngleDiff;
         var angleRad = Maths.DegreesToRadians(angleDeg);
         Vector2 offset = new Vector2((float)Math.Cos(angleRad), (float)Math.Sin(angleRad)) * range;
-        return Position2 + offset;
+        return Position2D + offset;
     }
 
     #endregion
@@ -228,7 +228,7 @@ public partial class Unit : MapObject
         var movement = new MovementUpdate()
         {
             ObjectId = ObjectId,
-            Pos = Position2
+            Pos = Position2D
         };
         string? meta = XMLFormat.To(movement);
         TestScene.NetworkCom.SendBrokerMsg("UpdateObjectPosition", meta);
@@ -440,7 +440,7 @@ public partial class Unit : MapObject
     public override void Render(RenderComposer c)
     {
         base.Render(c);
-        c.RenderSprite((VisualPosition - Size / 2f).ToVec3(), Size, _image);
+        c.RenderSprite((VisualPosition - Size2D / 2f).ToVec3(), Size2D, _image);
 
         if (this is PlayerUnit)
         {
@@ -463,7 +463,7 @@ public partial class Unit : MapObject
 
                 bool free = _freeMeleeRangeSpots[i];
 
-                c.RenderCircle((Position2 + offset).ToVec3(), 2, free ? Color.Blue : Color.Red, true);
+                c.RenderCircle((Position2D + offset).ToVec3(), 2, free ? Color.Blue : Color.Red, true);
 
                 angle += 30;
             }

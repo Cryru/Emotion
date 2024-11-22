@@ -10,10 +10,13 @@ using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.Work;
 
-public class MapObject : Transform
+public partial class MapObject
 {
     [DontSerialize]
     public GameMap? Map;
+
+    [DontSerialize]
+    public bool Initialized = false;
 
     public virtual void LoadAssets(AssetLoader assetLoader)
     {
@@ -22,7 +25,7 @@ public class MapObject : Transform
 
     public virtual void Init()
     {
-
+        Initialized = true;
     }
 
     public virtual void Update(float dt)
