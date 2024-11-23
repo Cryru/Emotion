@@ -27,7 +27,7 @@ uniform mat4 cascadeLightProj[CASCADE_COUNT];
 uniform int renderingShadowMap;
 
 #ifdef SKINNED
-const int MAX_BONES = 126;
+const int MAX_BONES = 200;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 boneMatrices[MAX_BONES];
 #endif

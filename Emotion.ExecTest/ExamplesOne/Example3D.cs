@@ -14,7 +14,7 @@ public class Example3D : SceneWithMap
         Map = new GameMap();
 
         var testObj = new MapObjectMesh("Test/creatures/rabbit2/rabbit2_rabbitskin2_white.gltf");
-        //var vee = new MapObjectMesh("Test/creatures/peacockmount/peacockmount_body_blue.gltf");
+        //var testObj = new MapObjectMesh("Test/creatures/peacockmount/peacockmount_body_blue.gltf");
         testObj.Z = 50;
         testObj.Size3D = new Vector3(300, 300, 300);
         testObj.SetAnimation("Stand (ID 0 variation 2)");

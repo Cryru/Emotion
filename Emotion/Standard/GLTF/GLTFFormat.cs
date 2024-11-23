@@ -18,7 +18,7 @@ public static partial class GLTFFormat
         GLTFDocument? gltfDoc = JsonSerializer.Deserialize<GLTFDocument>(fileData.Span);
         if (gltfDoc == null) return null;
 
-        bool makeLeftHanded = false;
+        bool makeLeftHanded = true;
 
         // Read all byte buffers
         const string base64DataPrefix = "data:application/gltf-buffer;base64,";
@@ -85,6 +85,7 @@ public static partial class GLTFFormat
                 if (rot != null)
                 {
                     Quaternion quart = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+                    if (makeLeftHanded) quart.Z = -quart.Z;
                     rotMat = Matrix4x4.CreateFromQuaternion(quart);
                 }
 
@@ -92,7 +93,9 @@ public static partial class GLTFFormat
                 float[]? trans = gltfRigItem.Translation;
                 if (trans != null)
                 {
-                    transMat = Matrix4x4.CreateTranslation(trans[0], trans[1], trans[2]);
+                    Vector3 pos = new Vector3(trans[0], trans[1], trans[2]);
+                    if (makeLeftHanded) pos.Z = -pos.Z;
+                    transMat = Matrix4x4.CreateTranslation(pos);
                 }
 
                 rigItem.LocalTransform = scaleMat * rotMat * transMat;
@@ -173,8 +176,6 @@ public static partial class GLTFFormat
                         animDuration = MathF.Max(animDuration, time);
                     }
 
-                    //ReadOnlySpan<ushort> indicesAsUshort = MemoryMarshal.Cast<byte, ushort>(indicesData.Span);
-
                     int dataId = sampler.Output;
                     GLTFAccessor dataAccessor = gltfDoc.Accessors[dataId];
 
@@ -209,7 +210,11 @@ public static partial class GLTFFormat
                                 for (int s = 0; s < samplerData.Count; s++)
                                 {
                                     Vector4 data = samplerData.ReadElement(s);
-                                    //if (makeLeftHanded) data.Z = -data.Z;
+                                    if (makeLeftHanded)
+                                    {
+                                        data.X = -data.X;
+                                        data.Y = -data.Y;
+                                    }
 
                                     rotations[s] = new MeshAnimBoneRotation()
                                     {
@@ -228,7 +233,7 @@ public static partial class GLTFFormat
                                 for (int s = 0; s < samplerData.Count; s++)
                                 {
                                     Vector3 data = samplerData.ReadElement(s);
-                                    //if (makeLeftHanded) data.Z = -data.Z;
+                                    if (makeLeftHanded) data.Z = -data.Z;
 
                                     translations[s] = new MeshAnimBoneTranslation()
                                     {
@@ -247,7 +252,6 @@ public static partial class GLTFFormat
                                 for (int s = 0; s < samplerData.Count; s++)
                                 {
                                     Vector3 data = samplerData.ReadElement(s);
-                                    //if (makeLeftHanded) data.Z = -data.Z;
 
                                     scales[s] = new MeshAnimBoneScale()
                                     {
@@ -461,6 +465,18 @@ public static partial class GLTFFormat
                     SkeletonAnimRigNode joint = rigNodes[jointId];
 
                     Matrix4x4 offsetMatrix = bindMatrixData.ReadElement(i);
+
+                    if (makeLeftHanded)
+                    {
+                        offsetMatrix.M13 *= -1;
+                        offsetMatrix.M23 *= -1;
+                        offsetMatrix.M43 *= -1;
+
+                        offsetMatrix.M31 *= -1;
+                        offsetMatrix.M32 *= -1;
+                        offsetMatrix.M34 *= -1;
+                    }
+
                     bones[i] = new MeshBone()
                     {
                         BoneIndex = i,

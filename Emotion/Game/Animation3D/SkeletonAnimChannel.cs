@@ -76,7 +76,7 @@ public class SkeletonAnimChannel
 
         ref MeshAnimBoneScale lastKey = ref Scales[^1];
         timestamp = lastKey.Timestamp;
-        return Rotations.Length - 2;
+        return Scales.Length - 2;
     }
 
     private Matrix4x4 GetInterpolatedPosition(float timestamp)

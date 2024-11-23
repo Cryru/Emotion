@@ -204,7 +204,7 @@ public class MapObjectMesh : MapObject
 
     #region Animation and Bones
 
-    protected const int MAX_BONES = 126; // Must match number in SkeletalAnim.vert
+    protected const int MAX_BONES = 200; // Must match number in SkeletalAnim.vert
     protected Matrix4x4[][]? _boneMatricesPerMesh;
     private SkeletalAnimation? _currentAnimation;
     private float _time;
