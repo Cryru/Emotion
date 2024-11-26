@@ -14,6 +14,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -52,6 +53,47 @@ public class Render3DTests : TestingScene
         _gameMap.Update(16);
     }
 
+    public IEnumerator ScreenshotPointFromAllSides(Vector3 point)
+    {
+        var cam = Engine.Renderer.Camera;
+
+        cam.Position = point + new Vector3(0, 0, 100);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot();
+
+        cam.Position = point + new Vector3(0, 0, -100);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot();
+
+        cam.Position = point + new Vector3(100, 0, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot();
+
+        cam.Position = point + new Vector3(-100, 0, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot();
+
+        cam.Position = point + new Vector3(0, 100, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot();
+
+        cam.Position = point + new Vector3(0, -100, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot();
+    }
+
     [DebugTest]
     [Test]
     public IEnumerator WorldWith2DCamera()
@@ -60,40 +102,6 @@ public class Render3DTests : TestingScene
         Engine.Renderer.Camera = cam;
         yield return new TestWaiterRunLoops(1);
 
-        cam.Position = new Vector3(0, 0, 100);
-        cam.LookAtPoint(Vector3.Zero);
-
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
-
-        cam.Position = new Vector3(0, 0, -100);
-        cam.LookAtPoint(Vector3.Zero);
-
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
-
-        cam.Position = new Vector3(100, 0, 0);
-        cam.LookAtPoint(Vector3.Zero);
-
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
-
-        cam.Position = new Vector3(-100, 0, 0);
-        cam.LookAtPoint(Vector3.Zero);
-
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
-
-        cam.Position = new Vector3(0, 100, 0);
-        cam.LookAtPoint(Vector3.Zero);
-
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
-
-        cam.Position = new Vector3(0, -100, 0);
-        cam.LookAtPoint(Vector3.Zero);
-
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        yield return ScreenshotPointFromAllSides(Vector3.Zero);
     }
 }
