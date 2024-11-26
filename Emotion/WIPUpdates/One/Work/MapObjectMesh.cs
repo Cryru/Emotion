@@ -30,6 +30,11 @@ public class MapObjectMesh : MapObject
         EntityFilename = entityFile;
     }
 
+    public MapObjectMesh(MeshEntity? entity)
+    {
+        SetEntity(entity ?? Cube.GetEntity());
+    }
+
     // serialization constructor
     protected MapObjectMesh()
     {

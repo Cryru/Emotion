@@ -30,15 +30,36 @@ namespace Emotion.Graphics.Camera
         private Vector2 _inputDirection;
         private float _inputDirectionZ;
 
+        protected Vector3 _yawRollPitch = Vector3.Zero;
+
         public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
         {
+        }
+
+        protected override void LookAtChanged(Vector3 _, Vector3 lookAt)
+        {
+            // Init rotation for mouse turning.
+            float pitch = MathF.Asin(lookAt.Z);
+            float yaw;
+            if (lookAt.Z < 0)
+                yaw = MathF.PI + MathF.Atan2(-lookAt.Y, -lookAt.X);
+            else
+                yaw = MathF.Atan2(lookAt.Y, lookAt.X);
+
+            // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
+            pitch = Maths.Clamp(pitch, Maths.DegreesToRadians(-89), Maths.DegreesToRadians(89));
+            _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(pitch));
         }
 
         /// <inheritdoc />
         public override void RecreateViewMatrix()
         {
             Vector3 pos = Position;
-            var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + _lookAtSafe, RenderComposer.Up);
+            Vector3 lookAt = _lookAt;
+
+            Vector3 worldUp = GetCameraWorldUp();
+
+            Matrix4x4 unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + lookAt, worldUp);
             ViewMatrix = Matrix4x4.CreateScale(new Vector3(Zoom, Zoom, 1), pos) * unscaled;
         }
 
@@ -114,10 +135,11 @@ namespace Emotion.Graphics.Camera
             if (_held)
             {
                 Vector2 mousePos = Engine.Host.MousePosition;
-                float xOffset = -(mousePos.X - _lastMousePos.X);
-                float yOffset = mousePos.Y - _lastMousePos.Y;
-                _yawRollPitch.X += xOffset * 0.1f;
-                _yawRollPitch.Z += yOffset * 0.1f;
+                float xOffset = -(mousePos.X - _lastMousePos.X) * 0.1f;
+                float yOffset = (mousePos.Y - _lastMousePos.Y) * 0.1f;
+
+                _yawRollPitch.X += xOffset;
+                _yawRollPitch.Z += yOffset;
                 _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89); // Prevent flip.
                 var direction = new Vector3
                 {
@@ -127,7 +149,6 @@ namespace Emotion.Graphics.Camera
                 };
                 direction = Vector3.Normalize(direction);
                 _lookAt = direction;
-                _lookAtSafe = direction;
                 _lastMousePos = mousePos;
 
                 RecreateViewMatrix();
@@ -135,13 +156,16 @@ namespace Emotion.Graphics.Camera
 
             if (_inputDirection != Vector2.Zero || _inputDirectionZ != 0)
             {
-                Vector3 movementStraightBack = _lookAtSafe * -_inputDirection.Y;
+                Vector3 worldUp = GetCameraWorldUp();
+
+                Vector3 forwardMoveVector = _lookAt.X == 0 && _lookAt.Y == 0 ? worldUp : _lookAt;
+                Vector3 movementStraightBack = forwardMoveVector * -_inputDirection.Y;
                 float len = movementStraightBack.Length();
                 movementStraightBack.Z = 0;
                 movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
                 Vector3 movementUpDown = RenderComposer.Up * _inputDirectionZ;
-                Vector3 movementSide = -Vector3.Normalize(Vector3.Cross(_lookAtSafe, RenderComposer.Up)) * _inputDirection.X;
+                Vector3 movementSide = -Vector3.Normalize(Vector3.Cross(_lookAt, worldUp)) * _inputDirection.X;
                 if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
                 if (!float.IsNaN(movementUpDown.X)) Position += movementUpDown * MovementSpeed;
                 if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;

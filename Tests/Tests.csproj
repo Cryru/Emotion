@@ -702,6 +702,72 @@
         <None Update="Assets\uitesttemplates\WrappingList.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Assets\WoWModels\rabbit2\armorreflect5.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white.gltf">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim0-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim0-1.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim0-2.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim1-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim13-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim16-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim37-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim38-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim39-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim4-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim40-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim41-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim42-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim43-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim44-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim45-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim5-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim9-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbitskin2_white.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="OtherAssets\LoremIpsum.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

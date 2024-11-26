@@ -86,9 +86,6 @@ public abstract class CameraBase : Positional, IDisposable
 
     #endregion
 
-    protected Vector3 _yawRollPitch = Vector3.Zero;
-    protected Vector3 _lookAtSafe;
-
     #region Calculated
 
     /// <summary>
@@ -121,7 +118,6 @@ public abstract class CameraBase : Positional, IDisposable
     private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
 
     #endregion
-
 
     protected KeyListenerType _inputPriority;
 
@@ -192,23 +188,7 @@ public abstract class CameraBase : Positional, IDisposable
 
     protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
     {
-        float roll = MathF.Asin(newVal.Z);
-        float yaw;
-        if (newVal.Z < 0)
-            yaw = MathF.PI + MathF.Atan2(-newVal.Y, -newVal.X);
-        else
-            yaw = MathF.Atan2(newVal.Y, newVal.X);
-
-        var yawPitchRow = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(roll));
-
-        // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
-        yawPitchRow.Z = Maths.Clamp(yawPitchRow.Z, -89, 89);
-
-        _lookAtSafe = newVal;
-        _lookAtSafe.Y = -MathF.Cos(Maths.DegreesToRadians(yawPitchRow.X)) * MathF.Cos(Maths.DegreesToRadians(yawPitchRow.Z));
-        _lookAtSafe.Z = MathF.Sin(Maths.DegreesToRadians(yawPitchRow.Z));
-
-        _yawRollPitch = yawPitchRow;
+       
     }
 
     /// <summary>
@@ -229,6 +209,14 @@ public abstract class CameraBase : Positional, IDisposable
     }
 
     #region Helpers
+
+    public Vector3 GetCameraWorldUp()
+    {
+        Vector3 worldUp = RenderComposer.Up;
+        if (MathF.Abs(Vector3.Dot(_lookAt, RenderComposer.Up)) == 1f)
+            worldUp = RenderComposer.Up2D;
+        return worldUp;
+    }
 
     /// <summary>
     /// Set the camera's look at to a point in space.
@@ -256,27 +244,11 @@ public abstract class CameraBase : Positional, IDisposable
         GetCameraFrustum3D(frustumCorners, (ViewMatrix * ProjectionMatrix).Inverted());
     }
 
-    public Quaternion GetCameraOrientation()
-    {
-        Vector3 lookat = _lookAtSafe;
-        Vector3 forward = Vector3.Normalize(new Vector3(lookat.X, lookat.Y, 0));
-        Vector3 up = RenderComposer.Up;
-        Vector3 right = Vector3.Cross(forward, up);
-
-        Matrix4x4 rotationMatrix = new Matrix4x4(
-            right.X, right.Y, right.Z, 0,
-            forward.X, forward.Y, forward.Z, 0,
-            up.X, up.Y, up.Z, 0,
-            0, 0, 0, 1
-        );
-
-        return Quaternion.CreateFromRotationMatrix(rotationMatrix);
-    }
-
     public Matrix4x4 GetRotationMatrix()
     {
-        Vector3 cameraForward = Vector3.Normalize(_lookAtSafe);
-        Vector3 cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up));
+        Vector3 up = GetCameraWorldUp();
+        Vector3 cameraForward = Vector3.Normalize(_lookAt);
+        Vector3 cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, up));
 
         Vector3 rotatedCameraUp = Vector3.Cross(cameraRight, cameraForward);
         Matrix4x4 rotationMatrix = new Matrix4x4(

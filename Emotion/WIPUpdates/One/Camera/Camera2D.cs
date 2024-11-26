@@ -35,7 +35,10 @@ public class Camera2D : CameraBase
         // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
         Vector2 margin = (currentSize - targetSize) / 2;
         Vector3 pos = posOffset - new Vector3(margin.X, -margin.Y, 0) + new Vector3(0, targetSize.Y, 0);
-        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + _lookAtSafe, RenderComposer.Up);
+
+        Vector3 lookAt = _lookAt;
+        Vector3 worldUp = GetCameraWorldUp();
+        Matrix4x4 unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + lookAt, worldUp);
 
         // We need to flip the Y scale since OpenGL expects a natural origin at the bottom-left corner but we
         // have set up our projection to be top-left. This is also the reason we add targetSize.Y above
@@ -85,12 +88,14 @@ public class Camera2D : CameraBase
     {
         if (_inputDirection != Vector2.Zero)
         {
-            Vector3 movementStraightBack = RenderComposer.Up2D * -_inputDirection.Y;
+            Vector3 worldUp = GetCameraWorldUp();
+
+            Vector3 movementStraightBack = worldUp * -_inputDirection.Y;
             float len = movementStraightBack.Length();
             movementStraightBack.Z = 0;
             movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
-            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up, _lookAtSafe)) * _inputDirection.X;
+            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(worldUp, _lookAt)) * _inputDirection.X;
             if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
             if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
             // todo: interpolate.

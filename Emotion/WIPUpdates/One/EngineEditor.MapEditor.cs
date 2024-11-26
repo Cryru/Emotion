@@ -63,7 +63,7 @@ public static partial class EngineEditor
         if (MapEditorMode == MapEditorMode.ThreeDee)
         {
             Vector3 pos = _cameraOutsideEditor.Position;
-            if (pos.Z == 0) pos.Z = 500; // Put away from grid.
+            if (_cameraOutsideEditor is Camera2D && pos.Z == 0) pos.Z = 550; // Put away from grid.
 
             _editorCamera = new Camera3D(pos, 1f)
             {

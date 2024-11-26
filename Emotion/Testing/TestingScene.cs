@@ -5,6 +5,7 @@
 using System.Collections;
 using System.IO;
 using System.Threading;
+using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -38,7 +39,7 @@ public abstract class TestingScene : Scene
 
     public override void RenderScene(RenderComposer composer)
     {
-        _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor();
+        _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor().WithDepth();
         if (_screenShotBuffer.Size != composer.DrawBuffer.Size) _screenShotBuffer.Resize(composer.DrawBuffer.Size, true);
 
         if (ShouldRunLoop())
@@ -48,6 +49,7 @@ public abstract class TestingScene : Scene
             TestDraw(composer);
 
             composer.RenderTo(null);
+            composer.SetUseViewMatrix(false);
             composer.RenderSprite(Vector3.Zero, _screenShotBuffer.Size, _screenShotBuffer.Texture);
 
             // We need to sample and store screenshots here as the GLThread tasks are ran at the beginning of a frame
