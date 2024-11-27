@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Emotion.Game.Time.Routines;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ using System.Xml.Linq;
 
 namespace Emotion.IO;
 
-public abstract class AssetHandleBase
+public abstract class AssetHandleBase : IRoutineWaiter
 {
     public string Name { get; init; }
 
@@ -25,6 +26,17 @@ public abstract class AssetHandleBase
     }
 
     public abstract bool LoadAsset();
+
+    #region Routine Waiter
+
+    public bool Finished => !AssetExists || AssetLoaded;
+
+    public void Update()
+    {
+        // nop
+    }
+
+    #endregion
 }
 
 public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
