@@ -65,9 +65,9 @@ public abstract class TestingScene : Scene
 
     private HashSet<string> _usedNamed = new();
 
-    public VerifyScreenshotResult VerifyScreenshot(string? addToScreenshotName = null)
+    public VerifyScreenshotResult VerifyScreenshot(string? addToScreenshotName = null, string? stackOverwrite = null)
     {
-        string fullFunctionName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
+        string fullFunctionName = stackOverwrite ?? TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
         int lastDot = fullFunctionName.LastIndexOf('.');
 
         string fileName = fullFunctionName;
@@ -111,14 +111,14 @@ public abstract class TestingScene : Scene
         var referenceImage = Engine.AssetLoader.Get<OtherAsset>(referenceRenderName, false);
         if (referenceImage == null)
         {
-            Assert(false, $"Missing reference image {referenceRenderName}");
+            Engine.Log.Error($"    - Missing reference image {referenceRenderName}!", MessageSource.Test);
             return new VerifyScreenshotResult(false);
         }
 
         byte[] dataReference = PngFormat.Decode(referenceImage.Content, out PngFileHeader fileHeader);
         if (fileHeader.Size != screenShotSize)
         {
-            Assert(false, $"Reference image {referenceRenderName} is of different size than screenshot");
+            Engine.Log.Error($"    - Reference image {referenceRenderName} is of different size than screenshot!", MessageSource.Test);
             return new VerifyScreenshotResult(false);
         }
 

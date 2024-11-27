@@ -4,19 +4,10 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Testing;
-using Emotion.UI;
-using Emotion.Utility;
 using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Work;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tests.EngineTests;
 
@@ -53,7 +44,7 @@ public class Render3DTests : TestingScene
         _gameMap.Update(16);
     }
 
-    public IEnumerator ScreenshotPointFromAllSides(Vector3 point)
+    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string? stackOverwrite = null)
     {
         var cam = Engine.Renderer.Camera;
 
@@ -61,40 +52,39 @@ public class Render3DTests : TestingScene
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        VerifyScreenshot(null, stackOverwrite);
 
         cam.Position = point + new Vector3(0, 0, -100);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        VerifyScreenshot(null, stackOverwrite);
 
         cam.Position = point + new Vector3(100, 0, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        VerifyScreenshot(null, stackOverwrite);
 
         cam.Position = point + new Vector3(-100, 0, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        VerifyScreenshot(null, stackOverwrite);
 
         cam.Position = point + new Vector3(0, 100, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        VerifyScreenshot(null, stackOverwrite);
 
         cam.Position = point + new Vector3(0, -100, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot();
+        VerifyScreenshot(null, stackOverwrite);
     }
 
-    [DebugTest]
     [Test]
     public IEnumerator WorldWith2DCamera()
     {
@@ -102,6 +92,6 @@ public class Render3DTests : TestingScene
         Engine.Renderer.Camera = cam;
         yield return new TestWaiterRunLoops(1);
 
-        yield return ScreenshotPointFromAllSides(Vector3.Zero);
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, TestingUtility.GetFunctionBackInStack(0));
     }
 }

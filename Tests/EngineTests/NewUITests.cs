@@ -990,7 +990,6 @@ public class NewUITests : TestingScene
         VerifyScreenshot();
     }
 
-    //[DebugTest]
     [Test]
     public IEnumerator HorizontalPanelLayout()
     {

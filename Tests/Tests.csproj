@@ -231,6 +231,24 @@
         <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29_3.png">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_1.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_2.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_3.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_4.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_5.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="Assets\ReferenceXMLOutput\ArrayWithDefaultHoles().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
