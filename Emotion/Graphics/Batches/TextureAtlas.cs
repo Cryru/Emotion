@@ -124,6 +124,8 @@ public class TextureAtlas : Packing.PackingResumableState
         // Don't store frame buffer textures.
         if (texture is FrameBufferTexture) return false;
 
+        if (texture.DontBatch) return false;
+
         // Texture is invalid?
         if (texture.Size.X == 0 || texture.Size.Y == 0) return false;
 

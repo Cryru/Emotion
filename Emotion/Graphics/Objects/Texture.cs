@@ -23,6 +23,8 @@ namespace Emotion.Graphics.Objects
 
         #endregion
 
+        public bool DontBatch = false;
+
         /// <summary>
         /// The texture's version is incremented every time new data is uploaded to it.
         /// It's used to keep track of changes.
