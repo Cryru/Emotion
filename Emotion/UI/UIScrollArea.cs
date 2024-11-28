@@ -151,18 +151,22 @@ namespace Emotion.UI
 
             AddChild(_content);
 
-            var scrollVert = new EditorScrollBar();
-            scrollVert.Dock = UIDockDirection.Right;
-            scrollVert.OnScroll = ScrollBarCallbackVertical;
-            scrollVert.Margins = new Rectangle(0, 0, 0, 5);
-            AddChild(scrollVert);
-            _verticalScroll = scrollVert;
+            //var scrollVert = new EditorScrollBar
+            //{
+            //    Dock = UIDockDirection.Right,
+            //    OnScroll = ScrollBarCallbackVertical,
+            //    Margins = new Rectangle(0, 0, 0, 5)
+            //};
+            //AddChild(scrollVert);
+            //_verticalScroll = scrollVert;
 
-            var scrollHorz = new EditorScrollBarHorizontal();
-            scrollHorz.Dock = UIDockDirection.Bottom;
-            scrollHorz.OnScroll = ScrollBarCallbackHorizontal;
-            AddChild(scrollHorz);
-            _horizontalScroll = scrollHorz;
+            //var scrollHorz = new EditorScrollBarHorizontal
+            //{
+            //    Dock = UIDockDirection.Bottom,
+            //    OnScroll = ScrollBarCallbackHorizontal
+            //};
+            //AddChild(scrollHorz);
+            //_horizontalScroll = scrollHorz;
         }
     }
 }

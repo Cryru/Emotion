@@ -145,13 +145,8 @@ public class CoroutineManager
         }
     }
 
-#if DEBUG
     public List<Coroutine> DbgGetRunningRoutines()
     {
-        lock (_runningRoutines)
-        {
-            return _runningRoutines;
-        }
+        return new List<Coroutine>();
     }
-#endif
 }

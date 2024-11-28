@@ -23,5 +23,6 @@ public enum NetworkMessageType : byte
     JoinRoom,       // <int> roomId
 
     // Specials
-    TimeSyncHash    // <int> hash
+    TimeSyncHash,        // <int> hash
+    TimeSyncHashDebug    // <string> hash
 }

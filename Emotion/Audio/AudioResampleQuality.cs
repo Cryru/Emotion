@@ -5,6 +5,7 @@
         Auto,
         LowCubic,
         MediumHermite,
-        HighHann
+        HighHann,
+        ONE_ExperimentalOptimized
     }
 }

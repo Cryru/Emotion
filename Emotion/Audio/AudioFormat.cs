@@ -84,6 +84,14 @@
             return new AudioFormat(BitsPerSample, IsFloat, Channels, SampleRate);
         }
 
+        public void CopyTo(AudioFormat other)
+        {
+            other.BitsPerSample = BitsPerSample;
+            other.IsFloat = IsFloat;
+            other.Channels = Channels;
+            other.SampleRate = SampleRate;
+        }
+
         /// <summary>
         /// Returns the duration of a sound in seconds based on it's sound data - if it is in this format.
         /// </summary>

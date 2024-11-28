@@ -29,7 +29,7 @@ public abstract class CameraBase : Positional, IDisposable
         }
     }
 
-    private float _farZ = 100;
+    private float _farZ = 10_000f;
 
     /// <summary>
     /// The NearZ clipping plane. All Z vertices before this wont be rendered.
@@ -44,7 +44,7 @@ public abstract class CameraBase : Positional, IDisposable
         }
     }
 
-    private float _nearZ = -100;
+    private float _nearZ = 10f;
 
     /// <summary>
     /// The direction (normalized) vector the camera is looking in.
@@ -119,7 +119,6 @@ public abstract class CameraBase : Positional, IDisposable
 
     #endregion
 
-
     protected KeyListenerType _inputPriority;
 
     protected CameraBase(Vector3 position, float zoom, KeyListenerType inputPriority = KeyListenerType.Game)
@@ -189,6 +188,7 @@ public abstract class CameraBase : Positional, IDisposable
 
     protected virtual void LookAtChanged(Vector3 oldVal, Vector3 newVal)
     {
+       
     }
 
     /// <summary>
@@ -209,6 +209,14 @@ public abstract class CameraBase : Positional, IDisposable
     }
 
     #region Helpers
+
+    public Vector3 GetCameraWorldUp()
+    {
+        Vector3 worldUp = RenderComposer.Up;
+        if (MathF.Abs(Vector3.Dot(_lookAt, RenderComposer.Up)) == 1f)
+            worldUp = RenderComposer.Up2D;
+        return worldUp;
+    }
 
     /// <summary>
     /// Set the camera's look at to a point in space.
@@ -236,36 +244,11 @@ public abstract class CameraBase : Positional, IDisposable
         GetCameraFrustum3D(frustumCorners, (ViewMatrix * ProjectionMatrix).Inverted());
     }
 
-    public Quaternion GetCameraOrientation()
-    {
-        Vector3 lookat = LookAt;
-        Vector3 forward = Vector3.Normalize(new Vector3(lookat.X, lookat.Y, 0));
-        Vector3 up = RenderComposer.Up;
-        Vector3 right = Vector3.Cross(forward, up);
-
-        Matrix4x4 rotationMatrix = new Matrix4x4(
-            right.X, right.Y, right.Z, 0,
-            forward.X, forward.Y, forward.Z, 0,
-            up.X, up.Y, up.Z, 0,
-            0, 0, 0, 1
-        );
-
-        return Quaternion.CreateFromRotationMatrix(rotationMatrix);
-    }
-
     public Matrix4x4 GetRotationMatrix()
     {
-        Vector3 cameraForward = Vector3.Normalize(LookAt);
-        Vector3 cameraRight;
-        if (cameraForward == RenderComposer.Up || cameraForward == -RenderComposer.Up) // Gimbal lock and/or 2D
-        {
-            cameraForward = -RenderComposer.Up;
-            cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up2D)); // When looking down
-        }
-        else
-        {
-            cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, RenderComposer.Up));
-        }
+        Vector3 up = GetCameraWorldUp();
+        Vector3 cameraForward = Vector3.Normalize(_lookAt);
+        Vector3 cameraRight = -Vector3.Normalize(Vector3.Cross(cameraForward, up));
 
         Vector3 rotatedCameraUp = Vector3.Cross(cameraRight, cameraForward);
         Matrix4x4 rotationMatrix = new Matrix4x4(

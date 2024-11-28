@@ -13,7 +13,7 @@ public partial class TimeSyncedServerRoom
     public ServerRoom Room;
 
     public int CurrentGameTime = 0;
-    public int GameTimeTick = 16;
+    public int GameTimeTick = 20;
     private List<NetworkMessage> _messagesForNextTick = new List<NetworkMessage>();
     private Coroutine _gameTimeRoutine = Coroutine.CompletedRoutine;
     private List<TimeHashPair> _hashPairs = new List<TimeHashPair>();
@@ -35,12 +35,24 @@ public partial class TimeSyncedServerRoom
         Assert(!msg.AutoFree);
         Assert(msg.Valid);
 
-        if (msg.MessageType == NetworkMessageType.TimeSyncHash)
+        if (msg.MessageType == NetworkMessageType.TimeSyncHash || msg.MessageType == NetworkMessageType.TimeSyncHashDebug)
         {
             Utility.ByteReader reader = msg.GetContentReader()!;
             reader.ReadByte(); // message type.
 
-            int hash = reader.ReadInt32();
+            int hash;
+            string hashMeta = string.Empty;
+            if (msg.MessageType == NetworkMessageType.TimeSyncHashDebug)
+            {
+                int methodNameLength = reader.ReadInt32();
+                var methodNameBytes = reader.ReadBytes(methodNameLength);
+                hashMeta = System.Text.Encoding.ASCII.GetString(methodNameBytes);
+                hash = methodNameBytes.GetStableHashCode();
+            }
+            else
+            {
+                hash = reader.ReadInt32();
+            }
 
             System.Net.IPEndPoint? userIp = msg.Sender;
             if (userIp != null && Server.IPToUser.TryGetValue(userIp, out ServerUser? user))
@@ -51,7 +63,7 @@ public partial class TimeSyncedServerRoom
                     TimeHashPair hashPair = _hashPairs[i];
                     if (!hashPair.IsFull() && !hashPair.ContainsUser(user))
                     {
-                        hashPair.AddHash(user, hash);
+                        hashPair.AddHash(user, hash, hashMeta);
                         found = true;
                         break;
                     }
@@ -60,7 +72,7 @@ public partial class TimeSyncedServerRoom
                 if (!found)
                 {
                     var newPair = new TimeHashPair(Room.UsersInside.Count);
-                    newPair.AddHash(user, hash);
+                    newPair.AddHash(user, hash, hashMeta);
                     _hashPairs.Add(newPair);
                 }
             }
@@ -73,7 +85,7 @@ public partial class TimeSyncedServerRoom
 
     private void StartGameTime()
     {
-        if (!_gameTimeRoutine.Finished) Engine.CoroutineManagerAsync.StopCoroutine(_gameTimeRoutine);
+        if (!_gameTimeRoutine.Finished) Engine.CoroutineManager.StopCoroutine(_gameTimeRoutine);
 
         CurrentGameTime = 0;
 
@@ -85,7 +97,7 @@ public partial class TimeSyncedServerRoom
         }
         _messagesForNextTick.Clear();
 
-        _gameTimeRoutine = Engine.CoroutineManagerAsync.StartCoroutine(TickRoutine());
+        _gameTimeRoutine = Engine.CoroutineManager.StartCoroutine(TickRoutine());
     }
 
     protected IEnumerator TickRoutine()

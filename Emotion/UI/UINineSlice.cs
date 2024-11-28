@@ -143,7 +143,7 @@ namespace Emotion.UI
 #if !NEW_UI
         protected override Vector2 NEW_InternalMeasure(Vector2 space)
         {
-            return base.InternalMeasure(space);
+            return Vector2.Zero;// base.InternalMeasure(space);
         }
 #endif
 

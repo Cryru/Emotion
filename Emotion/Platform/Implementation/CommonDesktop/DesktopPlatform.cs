@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Emotion.IO;
 using WinApi.User32;
 
@@ -42,11 +43,94 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             base.Setup(config);
 
             if (Engine.AssetLoader == null) return;
-            Engine.Log.Trace("Adding default desktop asset sources.", MessageSource.Platform);
-            Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
+
+            if (!Engine.Configuration.DebugMode || !DeveloperMode_InitializeAssetsFromProject())
+            {
+                Engine.Log.Trace("Adding default desktop asset sources.", MessageSource.Platform);
+                Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
+            }
+
             Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
-            if (Engine.Configuration.DebugMode && Directory.Exists(DebugAssetStore.AssetDevPath)) Engine.AssetLoader.AddStore(new DebugAssetStore());
         }
+
+        #region File IO
+
+        private bool DeveloperMode_InitializeAssetsFromProject()
+        {
+            Engine.Log.Trace("Attempting to add developer mode desktop asset sources.", MessageSource.Platform);
+
+            string? projectFolder = null;
+            try
+            {
+                projectFolder = DetermineDeveloperModeProjectFolder();
+                Engine.Log.Info($"Found project folder: {projectFolder}", MessageSource.Platform);
+            }
+            catch (Exception)
+            {
+
+            }
+
+            if (projectFolder == null) return false;
+
+            string assetFolder = Path.Join(projectFolder, "Assets");
+            Engine.AssetLoader.ONE_AddAssetSource(new DevModeProjectAssetSource(assetFolder));
+
+            // todo: add store
+
+            return true;
+        }
+
+        private static string DetermineDeveloperModeProjectFolder()
+        {
+            string currentDirectory = Directory.GetCurrentDirectory();
+            DirectoryInfo parentDir = Directory.GetParent(currentDirectory);
+            int levelsBack = 1;
+            while (parentDir != null)
+            {
+                bool found = false;
+                foreach (DirectoryInfo dir in parentDir.GetDirectories())
+                {
+                    if (dir.Name == "Assets")
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    found = false;
+                    foreach (FileInfo file in parentDir.EnumerateFiles())
+                    {
+                        if (file.Extension == ".csproj" || file.Extension == ".sln")
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (found)
+                {
+                    // Convert to relative path.
+                    StringBuilder s = new StringBuilder();
+                    for (int i = 0; i < levelsBack; i++)
+                    {
+                        s.Append("..");
+                        if (i != levelsBack - 1) s.Append("\\");
+                    }
+
+                    return s.ToString();
+                }
+
+                parentDir = Directory.GetParent(parentDir.FullName);
+                levelsBack++;
+            }
+
+            return null;
+        }
+
+        #endregion
 
         /// <summary>
         /// List of connected monitors.
@@ -196,31 +280,19 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
         public void OpenUrl(string url)
         {
-            // https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
-            try
+            // hack because of this: https://github.com/dotnet/corefx/issues/10361
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Process.Start(url);
+                url = url.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
-            catch
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                // hack because of this: https://github.com/dotnet/corefx/issues/10361
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    url = url.Replace("&", "^&");
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Process.Start("xdg-open", url);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start("open", url);
-                }
-                else
-                {
-                    throw;
-                }
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
             }
         }
 

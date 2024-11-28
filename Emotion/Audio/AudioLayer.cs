@@ -764,6 +764,11 @@ namespace Emotion.Audio
 
         #endregion
 
+        public override string ToString()
+        {
+            return $"Layer {Name}, Playing: {CurrentTrack?.File.Name}";
+        }
+
         public virtual void Dispose()
         {
             Disposed = true;

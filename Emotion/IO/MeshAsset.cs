@@ -2,7 +2,8 @@
 
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO.MeshAssetTypes;
-#if ASSIMP
+using Emotion.Standard.GLTF;
+#if MORE_MESH_TYPES
 using Emotion.IO.MeshAssetTypes.Assimp;
 using System.Threading.Tasks;
 #endif
@@ -36,19 +37,29 @@ namespace Emotion.IO
                 Entity = asset.Entity;
                 _underlyingAsset = asset;
             }
-            else if (Name.Contains(".obj"))
+            // Our native support for .obj is trash
+            //else if (Name.Contains(".obj"))
+            //{
+            //    var asset = new ObjMeshAsset
+            //    {
+            //        Name = Name
+            //    };
+            //    asset.Create(data);
+            //    Entity = asset.Entity;
+            //    _underlyingAsset = asset;
+            //}
+            else if (Name.Contains(".gltf"))
             {
-                var asset = new ObjMeshAsset
+                MeshEntity? entity = GLTFFormat.Decode(AssetLoader.GetDirectoryName(Name), data);
+                if (entity != null)
                 {
-                    Name = Name
-                };
-                asset.Create(data);
-                Entity = asset.Entity;
-                _underlyingAsset = asset;
+                    entity.Name = Name;
+                    Entity = entity;
+                }
             }
             else
             {
-#if ASSIMP
+#if MORE_MESH_TYPES
                 var asset = new AssimpAsset
                 {
                     Name = Name

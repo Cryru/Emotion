@@ -11,29 +11,28 @@ namespace Emotion.Network.BasicMessageBroker;
 
 public class MsgBrokerClient : Client
 {
-    protected Dictionary<string, MsgBrokerFunction> _functions = new Dictionary<string, MsgBrokerFunction>();
+    protected Dictionary<int, MsgBrokerFunction> _functions = new Dictionary<int, MsgBrokerFunction>();
 
     public void RegisterFunction<T>(string name, Action<T> func)
     {
         MsgBrokerFunction<T> funcDef = new MsgBrokerFunction<T>(name, func);
-        _functions.Add(name, funcDef);
+        _functions.Add(name.GetStableHashCodeASCII(), funcDef);
     }
 
     protected override void ClientProcessMessage(NetworkMessage msg, ByteReader reader)
     {
         int methodNameLength = reader.ReadInt32();
         var methodNameBytes = reader.ReadBytes(methodNameLength);
-        var methodName = Encoding.ASCII.GetString(methodNameBytes);
+        var methodNameHash = methodNameBytes.GetStableHashCode();
 
-        if (_functions.TryGetValue(methodName, out MsgBrokerFunction? func))
+        if (_functions.TryGetValue(methodNameHash, out MsgBrokerFunction? func))
         {
             var metaDataLength = reader.ReadInt32();
             var metaDataBytes = reader.ReadBytes(metaDataLength);
-            var metaData = Encoding.UTF8.GetString(metaDataBytes);
 
             // Engine.Log.Trace($"MsgBroker Invoking {methodName} with {metaData}", LogTag);
 
-            func.Invoke(metaData);
+            func.Invoke(metaDataBytes);
         }
     }
 

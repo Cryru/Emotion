@@ -47,7 +47,7 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
 
     public MessageBrokerMultiplayer_TestObject()
     {
-        Size = new Vector2(20);
+        Size2D = new Vector2(20);
     }
 
     public void AttachInput()
@@ -56,14 +56,14 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
         PlayerControlled = true;
     }
 
-    protected bool KeyInput(Key key, Platform.Input.KeyState status)
+    protected bool KeyInput(Key key, KeyState status)
     {
         Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
         if (keyAxisPart != Vector2.Zero)
         {
-            if (status == Platform.Input.KeyState.Down)
+            if (status == KeyState.Down)
                 _inputDirection += keyAxisPart;
-            else if (status == Platform.Input.KeyState.Up)
+            else if (status == KeyState.Up)
                 _inputDirection -= keyAxisPart;
 
             return false;
@@ -75,12 +75,12 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
     public override void Update(float dt)
     {
         if (PlayerControlled)
-            Position2 += _inputDirection * 0.1f * dt;
+            Position2D += _inputDirection * 0.1f * dt;
     }
 
     public override void Render(RenderComposer c)
     {
-        c.RenderSprite(Position, Size, Color);
+        c.RenderSprite(Position, Size2D, Color);
     }
 }
 
@@ -112,7 +112,6 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
                 _clientCom.OnPlayerJoinedRoom = OnPlayerJoinedRoom;
                 RegisterFuncs();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
                 Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
@@ -132,7 +131,6 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
                 _clientCom.ConnectIfNotConnected();
                 RegisterFuncs();
 
-                Engine.CoroutineManagerAsync.StartCoroutine(UpdateNetworkAsyncRoutine());
                 Engine.CoroutineManager.StartCoroutine(UpdateObjectNetwork());
 
                 buttonList.ClearChildren();
@@ -182,7 +180,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
         }
     }
 
-    private void OnPlayerJoinedRoom(ServerRoomInfo info)
+    private void OnPlayerJoinedRoom(ServerRoomInfo info, int newUserId)
     {
         for (int i = 0; i < info.UsersInside.Length; i++)
         {
@@ -213,6 +211,10 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
     public override void UpdateScene(float dt)
     {
         base.UpdateScene(dt);
+        if (_clientCom != null && _networkCom != _clientCom)
+            _clientCom.Update();
+        if (_networkCom != null)
+            _networkCom.Update();
     }
 
     public override void RenderScene(RenderComposer c)
@@ -226,33 +228,13 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
         base.RenderScene(c);
     }
 
-    public IEnumerator UpdateNetworkAsyncRoutine()
-    {
-        while (true)
-        {
-            if (_networkCom != null)
-            {
-                _networkCom.Update();
-                _networkCom.PumpMessages();
-            }
-
-            if (_clientCom != null && _networkCom != _clientCom)
-            {
-                _clientCom.Update();
-                _clientCom.PumpMessages();
-            }
-
-            yield return null;
-        }
-    }
-
     public IEnumerator UpdateObjectNetwork()
     {
         while (true)
         {
             if (_clientCom != null && _myObj != null)
             {
-                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2, _clientCom.UserId)));
+                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2D, _clientCom.UserId)));
             }
             yield return null;
         }
@@ -266,7 +248,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
             var obj = _objects[i];
             if (obj.PlayerId == senderIdx)
             {
-                obj.Position2 = Vector2.Lerp(obj.Position2, pos.ToVec2(), 0.5f);
+                obj.Position2D = Vector2.Lerp(obj.Position2D, pos.ToVec2(), 0.5f);
                 break;
             }
         }

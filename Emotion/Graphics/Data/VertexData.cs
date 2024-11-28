@@ -148,5 +148,10 @@ namespace Emotion.Graphics.Data
             vertices[3].UV = vertices[2].UV;
             vertices[2].UV = temp;
         }
+
+        public override string ToString()
+        {
+            return $"Vertex: {Vertex}";
+        }
     }
 }

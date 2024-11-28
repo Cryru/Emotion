@@ -176,7 +176,9 @@ public class EditorWindow : UIBaseWindow
             c.RenderSprite(Position, Size, Color.Black * 0.7f);
 
         c.RenderSprite(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.BarColor * 0.8f);
-        c.RenderOutline(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
+
+        if (_panelMode != PanelMode.SubWindow)
+            c.RenderOutline(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
 
         if (_topBar != null)
         {
@@ -344,7 +346,7 @@ public class EditorWindow : UIBaseWindow
                 Id = "SubWindowButton",
                 NormalColor = Color.PrettyYellow * 0.75f,
                 RolloverColor = Color.PrettyYellow,
-                OnClickedProxy = _ => CreateOwnWindow()
+                OnClickedProxy = _ => CreateSubWindow()
             };
             topBarButtonList.AddChild(subWindowButton);
         }
@@ -404,28 +406,27 @@ public class EditorWindow : UIBaseWindow
         return base.FindMouseInput(pos);
     }
 
-    private void CreateOwnWindow()
+    private void CreateSubWindow()
     {
-        Task.Run(() => GLThread.ExecuteGLThreadAsync(() =>
+        // Transition layout to embedded mode.
+        _topBar?.Close();
+        _topBar = null;
+
+        _dragButton?.Close();
+        _dragButton = null;
+
+        _contentParent.Margins = Rectangle.Empty;
+        _panelMode = PanelMode.SubWindow;
+
+        GLThread.ExecuteGLThreadAsync(() =>
         {
             var contentSize = _contentParent.Size;
             _windowFB = new FrameBuffer(contentSize).WithColor();
             _hostWindow = Engine.Host.CreateSubWindow(Header, contentSize);
 
-            // Transition layout to embedded mode.
-            _topBar?.Parent?.RemoveChild(_topBar);
-            _topBar = null;
-
-            _dragButton?.Parent?.RemoveChild(_dragButton);
-            _dragButton = null;
-
-            _contentParent.Margins = Rectangle.Empty;
-
             _panelItself.Offset = Vector2.Zero;
             _panelItself.SizeConstraint = _hostWindow.Size / GetScale();
-
-            InvalidateLayout();
-        }));
+        });
     }
 
     private void FlushToOwnWindow(RenderComposer c)

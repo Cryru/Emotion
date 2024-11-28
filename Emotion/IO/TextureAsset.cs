@@ -20,7 +20,7 @@ namespace Emotion.IO
     /// <summary>
     /// Represents an image. Supports all formats supported by Emotion.Standard.Image
     /// </summary>
-    public class TextureAsset : Asset
+    public class TextureAsset : Asset, IHotReloadableAsset
     {
         /// <summary>
         /// The asset's uploaded graphics texture.
@@ -100,7 +100,8 @@ namespace Emotion.IO
 
         protected virtual void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat)
         {
-            Texture = Texture.NonGLThreadInitialize(size);
+            Texture ??= Texture.NonGLThreadInitialize(size);
+
             Texture.FlipY = flipped;
             GLThread.ExecuteGLThreadAsync(() =>
             {
@@ -122,6 +123,11 @@ namespace Emotion.IO
         {
             Texture.Dispose();
             Texture = null;
+        }
+
+        public void Reload(ReadOnlyMemory<byte> data)
+        {
+            CreateInternal(data);
         }
     }
 }

@@ -147,12 +147,12 @@ public class Client : NetworkCommunicator
     {
         if (!NetworkMessage.TryReadXMLDataFromMessage(reader, out ServerRoomInfo? info)) return;
         AssertNotNull(info);
-        OnPlayerJoinedRoom?.Invoke(info);
+        OnPlayerJoinedRoom?.Invoke(info, info.UsersInside[^1]);
     }
 
     public Action<bool> OnConnectionChanged;
     public Action<ServerRoomInfo> OnRoomJoined;
-    public Action<ServerRoomInfo> OnPlayerJoinedRoom;
+    public Action<ServerRoomInfo, int> OnPlayerJoinedRoom;
     public Action<List<ServerRoomInfo>> OnRoomListReceived;
 
     public void RequestJoinRoom(int roomId)

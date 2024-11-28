@@ -47,19 +47,9 @@
       <None Include="Examples\RopeSim.cs" />
       <None Include="Examples\TextRenderers.cs" />
     </ItemGroup>
-    
-    <ItemGroup>
-        <Folder Include="Assets\" />
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Emotion\Emotion.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="Assets\Test\player.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
 
 </Project>

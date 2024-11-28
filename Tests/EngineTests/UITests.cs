@@ -39,17 +39,8 @@ public class UITests : TestingScene
         UI.Render(c);
     }
 
-    public override Func<IEnumerator>[] GetTestCoroutines()
-    {
-        return new[]
-        {
-            TestWindow,
-            TestFreeLayout,
-            TestFreeLayoutWithStretching
-        };
-    }
-
-    private IEnumerator TestWindow()
+    [Test]
+    public IEnumerator TestWindow()
     {
         UI.ClearChildren();
 
@@ -62,6 +53,7 @@ public class UITests : TestingScene
         //yield return new TestWaiterRunLoops(-1);
     }
 
+    [Test]
     private IEnumerator TestFreeLayout()
     {
         UI.ClearChildren();
@@ -86,7 +78,8 @@ public class UITests : TestingScene
         //yield return new TestWaiterRunLoops(-1);
     }
 
-    private IEnumerator TestFreeLayoutWithStretching()
+    [Test]
+    public IEnumerator TestFreeLayoutWithStretching()
     {
         UI.ClearChildren();
 

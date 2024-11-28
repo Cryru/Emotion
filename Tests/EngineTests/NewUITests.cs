@@ -5,12 +5,15 @@
 using System;
 using System.Collections;
 using System.Numerics;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
+using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.Tools;
 
 #endregion
 
@@ -38,33 +41,6 @@ public class NewUITests : TestingScene
         UI.Render(c);
     }
 
-    public override Func<IEnumerator>[] GetTestCoroutines()
-    {
-        return new[]
-        {
-            Fill,
-            FillXAxisWithChild,
-            FillXAxisMinHeight,
-            FillXAxisMinHeightAndWidth,
-            FillNeitherAxisMinHeightAndWidth,
-            TwoSquaresInFillY,
-
-            FillList,
-            FillListThreeItems,
-            FillListFillingItems,
-
-            WorldEditorTopBar,
-            VerticalListWithText,
-
-            TextWithBackground,
-            EditorDropDownRelativeToAndOutsideParent,
-
-            WorldEditorBottomBar,
-
-            EditorPanelEmpty
-        };
-    }
-
     private IEnumerator WaitUILayout()
     {
         UI.Update();
@@ -73,10 +49,16 @@ public class NewUITests : TestingScene
         yield return new TestWaiterRunLoops(1);
     }
 
-    private IEnumerator Fill()
+    public override void BetweenEachTest()
     {
-        UI.ClearChildren();
+        base.BetweenEachTest();
 
+        UI.ClearChildren();
+    }
+
+    [Test]
+    public IEnumerator Fill()
+    {
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -88,10 +70,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator FillXAxisWithChild()
+    [Test]
+    public IEnumerator FillXAxisWithChild()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -111,10 +92,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator FillXAxisMinHeight()
+    [Test]
+    public IEnumerator FillXAxisMinHeight()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -135,10 +115,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator FillXAxisMinHeightAndWidth()
+    [Test]
+    public IEnumerator FillXAxisMinHeightAndWidth()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -160,10 +139,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator FillNeitherAxisMinHeightAndWidth()
+    [Test]
+    public IEnumerator FillNeitherAxisMinHeightAndWidth()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -186,10 +164,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator TwoSquaresInFillY()
+    [Test]
+    public IEnumerator TwoSquaresInFillY()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -220,10 +197,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator FillList()
+    [Test]
+    public IEnumerator FillList()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -251,10 +227,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator FillListThreeItems()
+    [Test]
+    public IEnumerator FillListThreeItems()
     {
-        UI.ClearChildren();
-
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
@@ -341,10 +316,10 @@ public class NewUITests : TestingScene
         }
     }
 
-    private IEnumerator FillListFillingItems()
+    [Test]
+    public IEnumerator FillListFillingItems()
     {
         yield break;
-        //UI.ClearChildren();
 
         //{
         //    var win = new UISolidColor();
@@ -441,7 +416,8 @@ public class NewUITests : TestingScene
         //}
     }
 
-    private IEnumerator WorldEditorTopBar()
+    [Test]
+    public IEnumerator WorldEditorTopBar()
     {
         // This tests:
         // 1. Whether the world editor toolbar (first UI you see) layouts the same.
@@ -452,8 +428,6 @@ public class NewUITests : TestingScene
         // 6. UIText in a window in a list
         // 7. UIText in a window with paddings
         // 8. Whether children can expand their parents beyond grandparent's maxsize.
-
-        UI.ClearChildren();
 
         {
             var win = new UISolidColor();
@@ -573,40 +547,9 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator WorldEditorBottomBar()
+    [Test]
+    public IEnumerator VerticalListWithText()
     {
-        // This also tests margins on all sides.
-        UI.ClearChildren();
-
-        {
-            var bottomBar = new UISolidColor();
-            bottomBar.MaxSizeY = 12;
-            bottomBar.FillY = false;
-            bottomBar.WindowColor = Color.PrettyOrange;
-            bottomBar.Id = "BottomBar";
-            bottomBar.Anchor = UIAnchor.BottomLeft;
-            bottomBar.ParentAnchor = UIAnchor.BottomLeft;
-
-            var label = new UIText();
-            label.Text = "No object selected";
-            label.Margins = new Rectangle(3, 3, 3, 3);
-            label.FontSize = 7;
-            label.ParentAnchor = UIAnchor.CenterLeft;
-            label.Anchor = UIAnchor.CenterLeft;
-            label.Id = "Label";
-            bottomBar.AddChild(label);
-
-            UI.AddChild(bottomBar);
-        }
-
-        yield return WaitUILayout();
-        yield return VerifyScreenshot();
-    }
-
-    private IEnumerator VerticalListWithText()
-    {
-        UI.ClearChildren();
-
         {
             var list = new UISolidColor
             {
@@ -764,11 +707,10 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator TextWithBackground()
+    [Test]
+    public IEnumerator TextWithBackground()
     {
         // This is a layout that is not possible in the old UI system.
-
-        UI.ClearChildren();
 
         {
             var container = new UIBaseWindow();
@@ -790,29 +732,31 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
-    private IEnumerator EditorDropDownRelativeToAndOutsideParent()
+    [Test]
+    public IEnumerator EditorDropDownRelativeToAndOutsideParent()
     {
-        UI.ClearChildren();
-
         {
-            var a = new UISolidColor();
-            a.WindowColor = Color.PrettyPink;
-            a.Paddings = new Rectangle(2, 1, 2, 1);
-            a.Id = "AttachToMe";
-            a.FillX = false;
-            a.FillY = false;
-            UI.AddChild(a);
+            var bg = new UISolidColor
+            {
+                WindowColor = Color.PrettyPink,
+                Paddings = new Rectangle(2, 1, 2, 1),
+                Id = "AttachToMe",
+                FillX = false,
+                FillY = false
+            };
+            UI.AddChild(bg);
 
-            var text = new UIText();
-            text.FontSize = 9;
-            text.Text = "Attach To Me!";
-            text.WindowColor = Color.White;
-            text.ScaleMode = UIScaleMode.FloatScale;
+            var text = new UIText
+            {
+                FontSize = 9,
+                Text = "Attach To Me!",
+                WindowColor = Color.White,
+                ScaleMode = UIScaleMode.FloatScale,
 
-            text.ParentAnchor = UIAnchor.CenterLeft;
-            text.Anchor = UIAnchor.CenterLeft;
-
-            a.AddChild(text);
+                ParentAnchor = UIAnchor.CenterLeft,
+                Anchor = UIAnchor.CenterLeft
+            };
+            bg.AddChild(text);
         }
 
         {
@@ -870,10 +814,41 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot();
     }
 
+    [Test]
+    public IEnumerator WorldEditorBottomBar()
+    {
+        // This also tests margins on all sides.
+
+        {
+            var bottomBar = new UISolidColor();
+            bottomBar.MaxSizeY = 12;
+            bottomBar.FillY = false;
+            bottomBar.WindowColor = Color.PrettyOrange;
+            bottomBar.Id = "BottomBar";
+            bottomBar.Anchor = UIAnchor.BottomLeft;
+            bottomBar.ParentAnchor = UIAnchor.BottomLeft;
+
+            var label = new UIText();
+            label.Text = "No object selected";
+            label.Margins = new Rectangle(3, 3, 3, 3);
+            label.FontSize = 7;
+            label.ParentAnchor = UIAnchor.CenterLeft;
+            label.Anchor = UIAnchor.CenterLeft;
+            label.Id = "Label";
+            bottomBar.AddChild(label);
+
+            UI.AddChild(bottomBar);
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot();
+    }
+
+    [Test]
     public IEnumerator EditorPanelEmpty()
     {
-        UI.ClearChildren();
-
+        int oldTextSize = MapEditorColorPalette.EditorButtonTextSize;
+        MapEditorColorPalette.EditorButtonTextSize = 9;
         {
             var editorPanel = new EditorPanel("Test");
             UI.AddChild(editorPanel);
@@ -881,5 +856,174 @@ public class NewUITests : TestingScene
 
         yield return WaitUILayout();
         VerifyScreenshot();
+
+        MapEditorColorPalette.EditorButtonTextSize = oldTextSize;
+    }
+
+    [Test]
+    public IEnumerator OutsideParentWindow()
+    {
+        var win = new UISolidColor
+        {
+            WindowColor = Color.PrettyRed,
+            Anchor = UIAnchor.TopLeft,
+            ParentAnchor = UIAnchor.CenterCenter,
+
+            MinSize = new Vector2(20, 20),
+            FillY = false,
+
+            SetChildren = new()
+            {
+                new UISolidColor()
+                {
+                    WindowColor = Color.PrettyGreen,
+                    MinSize = new Vector2(20),
+                    Anchor = UIAnchor.TopRight,
+                    ParentAnchor = UIAnchor.TopLeft,
+                },
+
+                new UISolidColor()
+                {
+                    WindowColor = Color.PrettyPurple,
+                    MinSize = new Vector2(20),
+                    Anchor = UIAnchor.TopLeft,
+                    ParentAnchor = UIAnchor.BottomLeft
+                },
+            },
+        };
+        UI.AddChild(win);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.Paddings = new Rectangle(5, 5, 5, 5);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.Paddings = Rectangle.Empty;
+        win.LayoutMode = LayoutMode.HorizontalList;
+
+        var a = new UISolidColor()
+        {
+            WindowColor = Color.White,
+            MinSize = new Vector2(20),
+            FillX = false,
+            FillY = false,
+        };
+        win.AddChild(a);
+
+        var b = new UISolidColor()
+        {
+            WindowColor = Color.Black,
+            MinSize = new Vector2(20),
+            FillX = false,
+            FillY = false,
+        };
+        win.AddChild(b);
+
+        var c = new UISolidColor()
+        {
+            WindowColor = Color.White,
+            MinSize = new Vector2(20),
+            FillX = false,
+            FillY = false,
+        };
+        win.AddChild(c);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.Paddings = new Rectangle(5, 5, 5, 5);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+    }
+
+    [Test]
+    public IEnumerator BackgroundWindow()
+    {
+        var win = new UISolidColor
+        {
+            WindowColor = Color.PrettyRed,
+
+            Paddings = new Rectangle(5, 5, 5, 5),
+            SetChildren = new()
+            {
+                new UISolidColor()
+                {
+                    WindowColor = Color.White,
+                    MinSize = new Vector2(20),
+                    FillX = false,
+                    FillY = false,
+                },
+                new UISolidColor()
+                {
+                    WindowColor = Color.Black,
+                    MinSize = new Vector2(20),
+                    FillX = false,
+                    FillY = false,
+                },
+                new UISolidColor()
+                {
+                    WindowColor = Color.White,
+                    MinSize = new Vector2(20),
+                    FillX = false,
+                    FillY = false,
+                },
+                new UISolidColor()
+                {
+                    WindowColor = Color.PrettyGreen,
+                    BackgroundWindow = true
+                },
+            },
+        };
+        UI.AddChild(win);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        win.LayoutMode = LayoutMode.HorizontalList;
+        win.InvalidateLayout();
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+    }
+
+    [Test]
+    public IEnumerator HorizontalPanelLayout()
+    {
+        var win = new UISolidColor
+        {
+            WindowColor = Color.PrettyRed,
+            LayoutMode = LayoutMode.HorizontalEditorPanel,
+
+            Id = "Panel",
+            Paddings = new Rectangle(5, 5, 5, 5),
+            SetChildren = new()
+            {
+                new UISolidColor()
+                {
+                    FillX = false,
+                    MinSize = new Vector2(50),
+                    WindowColor = Color.PrettyGreen,
+                },
+                new HorizontalPanelSeparator(),
+                new UISolidColor()
+                {
+                    FillX = false,
+                    MinSize = new Vector2(50),
+                    WindowColor = Color.PrettyBlue,
+                },
+            }
+        };
+        UI.AddChild(win);
+
+        yield return WaitUILayout();
+        //VerifyScreenshot();
+
+        yield return new TestWaiterRunLoops(-1);
+
+        yield break;
     }
 }

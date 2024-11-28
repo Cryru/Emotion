@@ -5,6 +5,7 @@
 using Emotion.Game.Time.Routines;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Utility;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -73,6 +74,7 @@ public static class TestExecutor
     {
         // Find all test functions in test classes.
         var testFunctions = new List<MethodInfo>();
+        var testFunctionsDebugOnly = new List<MethodInfo>();
         foreach (Assembly ass in Helpers.AssociatedAssemblies)
         {
             IEnumerable<Type> classTypes = ass.GetTypes().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
@@ -80,13 +82,18 @@ public static class TestExecutor
             {
                 if (_testsFilter != null && classType != _testsFilter) continue;
 
-                // Find all test functions in this class.
-                testFunctions.AddRange(classType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0));
+                // Get all test functions in this class.
+                IEnumerable<MethodInfo> methodsInTestClass = classType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+
+                testFunctionsDebugOnly.AddRange(GetFunctionsWithDebugThis(methodsInTestClass));
+                testFunctions.AddRange(methodsInTestClass);
             }
         }
 
         // Find all test scenes.
         var testScenes = new List<Type>();
+        var testScenesWithMethods = new Dictionary<Type, List<MethodInfo>>();
+        var testScenesWithMethodsDebugThis = new Dictionary<Type, List<MethodInfo>>();
         foreach (Assembly ass in Helpers.AssociatedAssemblies)
         {
             IEnumerable<Type> sceneTypes = ass.GetTypes().Where(x => x.IsSubclassOf(typeof(TestingScene)));
@@ -94,15 +101,36 @@ public static class TestExecutor
             {
                 if (_testsFilter != null && sceneType != _testsFilter) continue;
 
-                testScenes.Add(sceneType);
+                List<MethodInfo> methodsInThisClass = new();
+                List<MethodInfo> methodsInThisClassDebugThis = new();
+
+                // Get all test functions
+                IEnumerable<MethodInfo> methodsInTestScene = sceneType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+
+                methodsInThisClassDebugThis.AddRange(GetFunctionsWithDebugThis(methodsInTestScene));
+                if (methodsInThisClassDebugThis.Count > 0)
+                    testScenesWithMethodsDebugThis.Add(sceneType, methodsInThisClassDebugThis);
+
+                methodsInThisClass.AddRange(methodsInTestScene);
+                if (methodsInThisClass.Count > 0)
+                    testScenesWithMethods.Add(sceneType, methodsInThisClass);
             }
         }
+
+#if !AUTOBUILD
+        // Debugging tests!
+        if (testFunctionsDebugOnly.Count > 0 || testScenesWithMethodsDebugThis.Count > 0)
+        {
+            testFunctions = testFunctionsDebugOnly;
+            testScenesWithMethods = testScenesWithMethodsDebugThis;
+        }
+#endif
 
         var reportClasses = new TestExecutionReport();
         RunTestClasses(testFunctions, reportClasses);
 
         var reportScenes = new TestExecutionReport();
-        yield return RunTestScenesRoutineAsync(testScenes, reportScenes);
+        yield return RunTestScenesRoutineAsync(testScenesWithMethods, reportScenes);
 
         // The format of this message must match the old system's regex!
         var completed = reportClasses.Completed + reportScenes.Completed;
@@ -209,16 +237,16 @@ public static class TestExecutor
         report.Total = total;
     }
 
-    private static IEnumerator RunTestScenesRoutineAsync(List<Type> testScenes, TestExecutionReport report)
+    private static IEnumerator RunTestScenesRoutineAsync(Dictionary<Type, List<MethodInfo>> testScenes, TestExecutionReport report)
     {
         int completed = 0;
         int total = 0;
 
-        for (var i = 0; i < testScenes.Count; i++)
+        foreach (KeyValuePair<Type, List<MethodInfo>> scenePair in testScenes)
         {
-            Type sceneType = testScenes[i];
-            object? sceneInstance = Activator.CreateInstance(sceneType);
-            if (sceneInstance is not TestingScene sc)
+            Type sceneType = scenePair.Key;
+            object? sceneInstanceObject = Activator.CreateInstance(sceneType);
+            if (sceneInstanceObject is not TestingScene testScene)
             {
                 Engine.Log.Error($"Couldn't initialize test scene of type {sceneType.Name}", MessageSource.Test);
                 continue;
@@ -228,19 +256,26 @@ public static class TestExecutor
             var totalThisScene = 0;
 
             Engine.Log.Info($"\nRunning test scene {sceneType}...", MessageSource.Test);
-            yield return Engine.SceneManager.SetScene(sc);
-            TestingScene.SetCurrent(sc);
+            yield return Engine.SceneManager.SetScene(testScene);
+            TestingScene.SetCurrent(testScene);
 
-            Func<IEnumerator>[] testRoutines = sc.GetTestCoroutines();
-            foreach (Func<IEnumerator> testRoutine in testRoutines)
+            List<MethodInfo> functions = scenePair.Value;
+            foreach (MethodInfo testFunction in functions)
             {
-                MethodInfo routineReflect = testRoutine.GetMethodInfo();
-                string functionName = routineReflect.Name;
+                string functionName = testFunction.Name;
                 Engine.Log.Info($"  Running test {functionName}...", MessageSource.Test);
 
                 _currentSceneCurrentRoutineFailed = false;
-                sc.RunningTestRoutineIndex++;
-                Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(testRoutine());
+
+                Coroutine coroutine = Coroutine.CompletedRoutine;
+
+                testScene.BetweenEachTest();
+
+                // Run the function
+                object? returnVal = testFunction.Invoke(testScene, null);
+                if (returnVal is IEnumerator routineFunc)
+                    coroutine = Engine.CoroutineManager.StartCoroutine(routineFunc);
+
                 yield return coroutine;
                 totalThisScene++;
                 total++;
@@ -266,5 +301,10 @@ public static class TestExecutor
     public static void SetCurrentTestSceneTestAsFailed()
     {
         _currentSceneCurrentRoutineFailed = true;
+    }
+
+    private static IEnumerable<MethodInfo> GetFunctionsWithDebugThis(IEnumerable<MethodInfo> methodsInTestClass)
+    {
+        return methodsInTestClass.Where(x => x.GetCustomAttributes(typeof(DebugTestAttribute), true).Length > 0);
     }
 }

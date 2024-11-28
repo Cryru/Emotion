@@ -19,6 +19,7 @@ using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.UI;
 using Emotion.Utility;
+using Emotion.WIPUpdates.One.Work;
 using OpenGL;
 
 #endregion
@@ -215,6 +216,7 @@ public sealed class MeshEntityBatchRenderer
             _skinnedMeshShader = ShaderFactory.DefaultProgram;
         }
 
+        _shadowCascades = Array.Empty<ShadowCascadeData>();
         //_shadowCascades = new ShadowCascadeData[4]
         //{
         //    new ShadowCascadeData(0),
@@ -398,7 +400,146 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    public unsafe void EndScene(RenderComposer c, Map3D map)
+    public void SubmitObjectForRendering(MapObjectMesh meshObj, MeshEntity entity, MeshEntityMetaState renderState)
+    {
+        if (!_inScene) return;
+
+        // No visual representation
+        if (entity == null) return;
+
+        // Invalid
+        if (renderState == null) return;
+
+        // No meshes to render
+        Mesh[]? meshes = entity.Meshes;
+        if (meshes == null) return;
+
+        Matrix4x4 objModelMatrix = meshObj.GetModelMatrix();
+
+        // Objects can contain multiple meshes and they will refer to this.
+        ref RenderInstanceObjectData objectInstance = ref _objectDataPool.Allocate(out int indexOfThisObjectData);
+        objectInstance.BackfaceCulling = entity.BackFaceCulling;
+        objectInstance.ModelMatrix = objModelMatrix;
+        objectInstance.MetaState = renderState;
+        objectInstance.Flags = 0;// obj.ObjectFlags;
+        objectInstance.FrustumCullingSphere = new Sphere(Vector3.Zero, 10_000);// obj.BoundingSphere;
+
+        if (renderState.CustomObjectFlags != null) objectInstance.Flags = renderState.CustomObjectFlags.Value;
+
+        // Calculate distance to camera for transparent object sorting.
+        CameraBase camera = Engine.Renderer.Camera;
+        Sphere objBSphere = objectInstance.FrustumCullingSphere;
+        float distanceToCamera = Vector3.Distance(camera.Position, objBSphere.Origin);
+        objectInstance.DistanceToCamera = distanceToCamera;
+
+        bool objIsTransparent = false;// obj.IsTransparent();
+
+        // Register all meshes in this entity.
+        for (int m = 0; m < meshes.Length; m++)
+        {
+            // Don't render mesh!
+            if (!renderState.RenderMesh[m]) continue;
+
+            var mesh = meshes[m];
+
+            if (!_meshesUsedLookup.Contains(mesh))
+            {
+                _meshesUsedLookup.Add(mesh);
+                _meshesUsedList.Add(mesh);
+            }
+
+            // Decide on the pipeline state for this mesh.
+            bool skinnedMesh = mesh.Bones != null;
+            ShaderProgram currentShader;
+            bool overwrittenShader = false;
+            if (renderState.ShaderAsset != null)
+            {
+                currentShader = renderState.ShaderAsset.Shader;
+                overwrittenShader = true;
+            }
+            else if (skinnedMesh)
+            {
+                currentShader = _skinnedMeshShader;
+            }
+            else
+            {
+                currentShader = _meshShader;
+            }
+
+            if (!_shadersUsedLookup.Contains(currentShader))
+            {
+                _shadersUsedLookup.Add(currentShader);
+                _shadersUsedList.Add(currentShader);
+            }
+
+            Matrix4x4[]? boneMatrices = meshObj.GetBoneMatricesForMesh(m);
+
+            if (objIsTransparent)
+            {
+                // Transparent objects are just inserted into a flat list to be sorted later. No batching.
+                ref RenderInstanceMeshDataTransparent instanceRegistration = ref _meshDataPoolTransparent.Allocate(out int _);
+                instanceRegistration.Mesh = mesh;
+                instanceRegistration.Shader = currentShader;
+                instanceRegistration.BoneData = boneMatrices;
+                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
+                instanceRegistration.UploadMetaStateToShader = overwrittenShader;
+            }
+            else
+            {
+                // Opaque objects are grouped by pipeline state and then mesh usage
+                StructArenaAllocator<MeshRenderPipelineStateGroup> shaderGroupPool = _mainPassShaderGroups;
+
+                // Get the pipeline group this mesh will use. (same pass, same pipe state)
+                ref MeshRenderPipelineStateGroup pipelineGroup = ref shaderGroupPool[0];
+                int shaderHash = currentShader.GetHashCode();
+                int pipelineGroupHash = HashCode.Combine(shaderHash);
+                if (_pipelineBatchLookup.ContainsKey(pipelineGroupHash))
+                {
+                    int key = _pipelineBatchLookup[pipelineGroupHash];
+                    pipelineGroup = ref shaderGroupPool[key];
+                }
+                else  // create new
+                {
+                    pipelineGroup = ref shaderGroupPool.Allocate(out int thisShaderGroupIndex);
+                    pipelineGroup.Shader = currentShader;
+                    pipelineGroup.MeshRenderBatchList.Reset();
+
+                    // Assuming that the overwritten shader will require all meshes using it to upload state.
+                    // AKA that a custom shader is custom for everyone that uses it, which is true unless the
+                    // custom shader is a base mesh shader, but that's stupid.
+                    pipelineGroup.UploadMetaStateToShader = overwrittenShader;
+
+                    _pipelineBatchLookup.Add(pipelineGroupHash, thisShaderGroupIndex);
+                }
+
+                // Get the mesh batch for this pipeline state. (same mesh and same pipe state)
+                ref MeshRenderMeshBatch meshBatch = ref _renderBatchPool[0];
+                int meshShaderGroupHash = HashCode.Combine(mesh, pipelineGroupHash);
+                if (_meshShaderGroupBatchLookup.ContainsKey(meshShaderGroupHash))
+                {
+                    int key = _meshShaderGroupBatchLookup[meshShaderGroupHash];
+                    meshBatch = ref _renderBatchPool[key];
+                }
+                else // create new
+                {
+                    meshBatch = ref _renderBatchPool.Allocate(out int thisMeshGroupIndex);
+                    meshBatch.Mesh = mesh;
+                    meshBatch.MeshInstanceList.Reset();
+                    pipelineGroup.MeshRenderBatchList.AddToList(thisMeshGroupIndex, _renderBatchPool);
+
+                    _meshShaderGroupBatchLookup.Add(meshShaderGroupHash, thisMeshGroupIndex);
+                }
+
+                // Create a instance of the mesh data. (unique props for this instance of the mesh)
+                ref RenderInstanceMeshData instanceRegistration = ref _meshDataPool.Allocate(out int indexOfThisMeshData);
+                instanceRegistration.BoneData = boneMatrices;
+                instanceRegistration.ObjectRegistrationId = indexOfThisObjectData;
+                meshBatch.MeshInstanceList.AddToList(indexOfThisMeshData, _meshDataPool);
+            }
+        }
+    }
+
+    public unsafe void EndScene(RenderComposer c, LightModel light)
     {
         _inScene = false;
         _renderCounter++;
@@ -435,7 +576,6 @@ public sealed class MeshEntityBatchRenderer
             }
         }
 
-        var light = map.LightModel;
         CalculateShadowMapCascadeData(light);
 
         // Apply object culling.
@@ -680,7 +820,7 @@ public sealed class MeshEntityBatchRenderer
                     }
 
                     bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
-                    bool receiveShadow = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+                    bool receiveShadow = false;//!flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
                     int lightMode = 0;
                     if (!receiveAmbient) lightMode = 1;
                     if (!receiveShadow) lightMode = 2;
@@ -950,6 +1090,8 @@ public sealed class MeshEntityBatchRenderer
 
     private void CalculateShadowMapCascadeData(LightModel light)
     {
+        if (_shadowCascades == null) return;
+
         var c = Engine.Renderer;
 
         // Split the scene using "practical/weighted splits"

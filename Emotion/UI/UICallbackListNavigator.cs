@@ -86,9 +86,9 @@ namespace Emotion.UI
         {
             Vector2 measuredSize = base.Measure(space);
 #else
-        protected override Vector2 NEW_Measure(Vector2 space)
+        protected override Vector2 Measure(Vector2 space)
         {
-            Vector2 measuredSize = base.NEW_Measure(space);
+            Vector2 measuredSize = base.Measure(space);
 #endif
 
             Vector2 usedSpace = _measureChildrenUsedSpace;

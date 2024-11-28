@@ -43,14 +43,6 @@ public class GlyphSoftwareRasterizerTests : TestingScene
     {
     }
 
-    public override Func<IEnumerator>[] GetTestCoroutines()
-    {
-        return new[]
-        {
-            CompareMetricsOfBuiltInFont
-        };
-    }
-
     private unsafe stbtt_fontinfo GetStbFont(FontAsset emotionFont)
     {
         var byteAsset = Engine.AssetLoader.Get<OtherAsset>(emotionFont.Name, false);
@@ -65,7 +57,8 @@ public class GlyphSoftwareRasterizerTests : TestingScene
         return fontInfo;
     }
 
-    private IEnumerator CompareMetricsOfBuiltInFont()
+    [Test]
+    public IEnumerator CompareMetricsOfBuiltInFont()
     {
         FontAsset? builtIn = FontAsset.GetDefaultBuiltIn();
 

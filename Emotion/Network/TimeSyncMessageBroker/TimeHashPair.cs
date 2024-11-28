@@ -6,7 +6,14 @@ namespace Emotion.Network.TimeSyncMessageBroker;
 
 public class TimeHashPair
 {
-    private List<(ServerUser user, int hash)> _timeHashes = new(6);
+    struct TimeHashPairStruct
+    {
+        public ServerUser User;
+        public int Hash;
+        public string Meta;
+    }
+
+    private List<TimeHashPairStruct> _timeHashes = new(6);
     private int _playerCountAtCreation;
 
     public TimeHashPair(int players)
@@ -14,16 +21,23 @@ public class TimeHashPair
         _playerCountAtCreation = players;
     }
 
-    public void AddHash(ServerUser user, int hash)
+    public void AddHash(ServerUser user, int hash, string meta)
     {
-        _timeHashes.Add((user, hash));
+        TimeHashPairStruct str = new TimeHashPairStruct()
+        {
+            User = user,
+            Hash = hash,
+            Meta = meta
+        };
+
+        _timeHashes.Add(str);
     }
 
     public bool ContainsUser(ServerUser user)
     {
         for (int i = 0; i < _timeHashes.Count; i++)
         {
-            if (_timeHashes[i].user == user) return true;
+            if (_timeHashes[i].User == user) return true;
         }
         return false;
     }
@@ -35,14 +49,24 @@ public class TimeHashPair
 
     public void Verify()
     {
-        int hashFirst = _timeHashes[0].hash;
+        TimeHashPairStruct hashStructFirstPlayer = _timeHashes[0];
+
+        bool hasMeta = hashStructFirstPlayer.Meta != string.Empty;
+        int hashFirst = hashStructFirstPlayer.Hash;
         for (int i = 1; i < _timeHashes.Count; i++)
         {
-            int hashOther = _timeHashes[i].hash;
+            TimeHashPairStruct hashOtherStruct = _timeHashes[i];
+
+            int hashOther = hashOtherStruct.Hash;
             bool hashMatch = hashFirst == hashOther;
             if (!hashMatch)
             {
-                Engine.Log.Warning($"Hash mismatch: {hashFirst}!", "Server");
+                Engine.Log.Warning($"Hash mismatch: [0] {hashFirst} & [{i}] {hashOther}!", "Server");
+                if (hasMeta)
+                {
+                    Engine.Log.Warning($"   Meta First: {hashStructFirstPlayer.Meta}", "Server");
+                    Engine.Log.Warning($"    Meta Fail: {hashOtherStruct.Meta}", "Server");
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
+using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.One.Camera;
 
@@ -11,13 +12,14 @@ public class Camera2D : CameraBase
 
     public Camera2D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
     {
+
     }
 
     /// <inheritdoc />
     public override void RecreateViewMatrix()
     {
-        var iX = (int)X;
-        var iY = (int)Y;
+        var iX = X;
+        var iY = Y;
 
         Vector2 targetSize = Engine.Configuration.RenderSize;
         Vector2 currentSize = Engine.Renderer.DrawBuffer.Size;
@@ -32,9 +34,16 @@ public class Camera2D : CameraBase
         // Find the camera margin and scale from the center.
         // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
         Vector2 margin = (currentSize - targetSize) / 2;
-        Vector3 pos = posOffset - new Vector3((int)margin.X, (int)margin.Y, 0);
-        var unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos - LookAt, -RenderComposer.Up2D); // Not sure why the look at and up have to be minused
-        ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * unscaled;
+        Vector3 pos = posOffset - new Vector3(margin.X, -margin.Y, 0) + new Vector3(0, targetSize.Y, 0);
+
+        Vector3 lookAt = _lookAt;
+        Vector3 worldUp = GetCameraWorldUp();
+        Matrix4x4 unscaled = Matrix4x4.CreateLookAtLeftHanded(pos, pos + lookAt, worldUp);
+
+        // We need to flip the Y scale since OpenGL expects a natural origin at the bottom-left corner but we
+        // have set up our projection to be top-left. This is also the reason we add targetSize.Y above
+        // and flip the Y margin.
+        ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, -scale, 1), new Vector3(iX, iY, 0)) * unscaled;
     }
 
     /// <inheritdoc />
@@ -79,12 +88,14 @@ public class Camera2D : CameraBase
     {
         if (_inputDirection != Vector2.Zero)
         {
-            Vector3 movementStraightBack = RenderComposer.Up2D * -_inputDirection.Y;
+            Vector3 worldUp = GetCameraWorldUp();
+
+            Vector3 movementStraightBack = worldUp * -_inputDirection.Y;
             float len = movementStraightBack.Length();
             movementStraightBack.Z = 0;
             movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
-            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(RenderComposer.Up2D, LookAt)) * _inputDirection.X;
+            Vector3 movementSide = Vector3.Normalize(Vector3.Cross(worldUp, _lookAt)) * _inputDirection.X;
             if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
             if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
             // todo: interpolate.

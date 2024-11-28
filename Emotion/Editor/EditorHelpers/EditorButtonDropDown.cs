@@ -135,14 +135,16 @@ public class EditorButtonDropDown : UIBaseWindow
         };
         tempContainer.AddChild(button);
 
-        var arrowImage = new UITexture();
-        arrowImage.TextureFile = "Editor/LittleArrow.png";
-        arrowImage.ImageScale = new Vector2(0.2f);
-        arrowImage.Margins = new Rectangle(3, 0, 0, 0);
-        arrowImage.AnchorAndParentAnchor = UIAnchor.CenterRight;
-        arrowImage.Dock = UIDockDirection.Right;
-        arrowImage.Priority = -1;
-        button.AddChild(arrowImage);
+        //var arrowImage = new UITexture
+        //{
+        //    TextureFile = "Editor/LittleArrow.png",
+        //    ImageScale = new Vector2(0.2f),
+        //    Margins = new Rectangle(3, 0, 0, 0),
+        //    AnchorAndParentAnchor = UIAnchor.CenterRight,
+        //    Dock = UIDockDirection.Right,
+        //    Priority = -1
+        //};
+        //button.AddChild(arrowImage);
 
         UpdateCurrentOptionText();
     }

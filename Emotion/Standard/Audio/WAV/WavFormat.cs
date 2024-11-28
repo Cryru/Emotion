@@ -41,7 +41,7 @@ namespace Emotion.Standard.Audio.WAV
         /// <param name="soundData">The date to encode.</param>
         /// <param name="format">The format of the data.</param>
         /// <returns>A 24bit BMP image as bytes.</returns>
-        public static byte[] Encode(ReadOnlyMemory<byte> soundData, AudioFormat format)
+        public static byte[] Encode(ReadOnlySpan<byte> soundData, AudioFormat format)
         {
             var file = new byte[12 + 24 + 8 + soundData.Length];
             using var writer = new BinaryWriter(new MemoryStream(file));
@@ -64,7 +64,7 @@ namespace Emotion.Standard.Audio.WAV
             // Data - 8 + soundLength
             writer.Write(Encoding.ASCII.GetBytes("data"));
             writer.Write(soundData.Length);
-            writer.Write(soundData.Span);
+            writer.Write(soundData);
 
             return file;
         }

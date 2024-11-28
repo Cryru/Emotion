@@ -42,6 +42,8 @@ namespace Emotion.Audio
             if (sample > EndSample) return EndVolume;
 
             float duration = EndSample - StartSample;
+            if (duration == 0) return EndVolume;
+
             float progress = (sample - StartSample) / duration;
 
             // Apply cubic in a way that is always in the out direction.

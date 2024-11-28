@@ -13,14 +13,14 @@ namespace Emotion.Standard.XML
     {
         public static string IndentChar = "  ";
 
-        public static string? To<T>(T obj)
+        public static string To<T>(T obj)
         {
             Type type = typeof(T);
             var output = new StringBuilder();
             output.Append("<?xml version=\"1.0\"?>\n");
 
             XMLTypeHandler? handler = XMLHelpers.GetTypeHandler(type);
-            if (handler == null) return null;
+            if (handler == null) return string.Empty;
 
             var recursionChecker = new XMLRecursionChecker();
             recursionChecker.PushReference(obj, "main");
@@ -108,6 +108,18 @@ namespace Emotion.Standard.XML
             ReadOnlySpan<byte> span = data.Span;
             Encoding encoding = GuessStringEncoding(span);
             return From<T>(encoding.GetString(span));
+        }
+
+        public static T? From<T>(ReadOnlySpan<byte> span)
+        {
+            Encoding encoding = GuessStringEncoding(span);
+            return From<T>(encoding.GetString(span));
+        }
+
+        public static T? From<T>(byte[] data)
+        {
+            Encoding encoding = GuessStringEncoding(data);
+            return From<T>(encoding.GetString(data));
         }
 
         private static readonly byte[] Utf16Le = {0xFF, 0xFE};

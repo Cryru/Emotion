@@ -25,11 +25,20 @@ namespace Emotion.Audio
         // If this is too late it will sound weird tho.
         private bool _triggeredCrossFadeFadingOut;
 
+        private AudioFormat _formatResample = new();
+
         protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, int sampleStartOffset, bool crossFade = false)
         {
+            if (track.PitchShiftFactor != 1 && track.PitchShiftFactor > 0)
+            {
+                format.CopyTo(_formatResample);
+                format = _formatResample;
+                format.SampleRate = (int) (format.SampleRate * track.PitchShiftFactor);
+            }
+
             // Get data.
             int channels = format.Channels;
-            int framesOutput = track.File.AudioConverter.GetResamplesFrames(format, sampleStartOffset, frames, memory);
+            int framesOutput = track.File.AudioConverter.GetResampledFrames(format, sampleStartOffset, frames, memory);
             Assert(framesOutput <= frames);
 
             // Force mono post process.

@@ -54,10 +54,33 @@ in vec3 fragPosition; // world pos
 in vec3 fragNormal; // multiplied by normal matrix
 in vec3 fragLightDir;
 
+//#ifdef SKINNED
+//#define DEBUG_WEIGHT_BONE
+//#endif
+
+#ifdef DEBUG_WEIGHT_BONE
+in float debugBoneWeight;
+#endif
+
 out vec4 fragColor; 
  
 #using "Shaders/getTextureColor.c"
 #using "Shaders/ColorHelpers.c"
+
+#ifdef DEBUG_WEIGHT_BONE
+vec3 weightToColor(float weight) {
+    // Map weight to a color gradient: blue -> green -> yellow -> red
+    if (weight < 0.25) {
+        return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), weight * 4.0); // Blue to Cyan
+    } else if (weight < 0.5) {
+        return mix(vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), (weight - 0.25) * 4.0); // Cyan to Green
+    } else if (weight < 0.75) {
+        return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), (weight - 0.5) * 4.0); // Green to Yellow
+    } else {
+        return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), (weight - 0.75) * 4.0); // Yellow to Red
+    }
+}
+#endif
 
 vec4 GetCascadeDebugColor(int cascade)
 {
@@ -220,7 +243,10 @@ void main()
     }
 
     // Calculate the color of the object.
-    vec4 objectColor = getTextureColor(diffuseTexture, UV) * diffuseColor * vertColor;
+    vec4 textureColor = getTextureColor(diffuseTexture, UV);
+    textureColor.a = 1.0; // temp
+
+    vec4 objectColor = textureColor * diffuseColor * vertColor;
     objectColor = ApplyColorTint(objectColor, objectTint);
 
     // Cascade debug
@@ -229,6 +255,11 @@ void main()
 
     // Normal debug
     // objectColor = vec4(fragNormal.x, fragNormal.y, fragNormal.z, 1.0);
+
+#ifdef DEBUG_WEIGHT_BONE
+    // Weight debug
+    objectColor = vec4(weightToColor(debugBoneWeight), 1.0);
+#endif
 
     vec3 finalColor = objectColor.rgb;
 

@@ -31,5 +31,14 @@ namespace Emotion.IO
         /// </summary>
         /// <returns>A list of engine paths to assets this source can provide.</returns>
         public abstract string[] GetManifest();
+
+        #region ONE
+
+        public virtual bool HasAsset(string enginePath)
+        {
+            return false;
+        }
+
+        #endregion
     }
 }

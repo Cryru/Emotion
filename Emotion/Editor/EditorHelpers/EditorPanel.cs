@@ -16,7 +16,8 @@ public enum PanelMode
 {
     Default,
     Modal,
-    Embedded
+    Embedded,
+    SubWindow
 }
 
 /// <summary>

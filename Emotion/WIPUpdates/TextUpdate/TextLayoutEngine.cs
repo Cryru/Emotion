@@ -321,6 +321,9 @@ public class TextLayoutEngine
 
     public void RenderNoOffset(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
     {
+        if (_defaultAtlas == null) return;
+        AssertNotNull(_defaultAtlas);
+
         _layouter ??= new TextLayouter(_defaultAtlas);
         _layouter.SetAtlas(_defaultAtlas);
         TextLayouter layouter = _layouter;

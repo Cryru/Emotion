@@ -5,6 +5,7 @@
 using System.Collections;
 using System.IO;
 using System.Threading;
+using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -20,8 +21,6 @@ namespace Emotion.Testing;
 
 public abstract class TestingScene : Scene
 {
-    public int RunningTestRoutineIndex = 0;
-
     protected static FrameBuffer? _screenShotBuffer;
     protected static byte[]? _lastFrameScreenShot;
 
@@ -33,9 +32,14 @@ public abstract class TestingScene : Scene
         }
     }
 
+    public virtual void BetweenEachTest()
+    {
+
+    }
+
     public override void RenderScene(RenderComposer composer)
     {
-        _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor();
+        _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor().WithDepth();
         if (_screenShotBuffer.Size != composer.DrawBuffer.Size) _screenShotBuffer.Resize(composer.DrawBuffer.Size, true);
 
         if (ShouldRunLoop())
@@ -45,6 +49,7 @@ public abstract class TestingScene : Scene
             TestDraw(composer);
 
             composer.RenderTo(null);
+            composer.SetUseViewMatrix(false);
             composer.RenderSprite(Vector3.Zero, _screenShotBuffer.Size, _screenShotBuffer.Texture);
 
             // We need to sample and store screenshots here as the GLThread tasks are ran at the beginning of a frame
@@ -60,9 +65,9 @@ public abstract class TestingScene : Scene
 
     private HashSet<string> _usedNamed = new();
 
-    public VerifyScreenshotResult VerifyScreenshot(string? addToScreenshotName = null)
+    public VerifyScreenshotResult VerifyScreenshot(string? addToScreenshotName = null, string? stackOverwrite = null)
     {
-        string fullFunctionName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
+        string fullFunctionName = stackOverwrite ?? TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
         int lastDot = fullFunctionName.LastIndexOf('.');
 
         string fileName = fullFunctionName;
@@ -78,7 +83,7 @@ public abstract class TestingScene : Scene
             testClass = testClass.Replace("+MoveNext()", "");
         }
 
-        fileName = $"{RunningTestRoutineIndex} {fileName}";
+        fileName = $"{fileName}";
         if (addToScreenshotName != null) fileName += addToScreenshotName;
         lock (_usedNamed)
         {
@@ -106,14 +111,14 @@ public abstract class TestingScene : Scene
         var referenceImage = Engine.AssetLoader.Get<OtherAsset>(referenceRenderName, false);
         if (referenceImage == null)
         {
-            Assert(false, $"Missing reference image {referenceRenderName}");
+            Engine.Log.Error($"    - Missing reference image {referenceRenderName}!", MessageSource.Test);
             return new VerifyScreenshotResult(false);
         }
 
         byte[] dataReference = PngFormat.Decode(referenceImage.Content, out PngFileHeader fileHeader);
         if (fileHeader.Size != screenShotSize)
         {
-            Assert(false, $"Reference image {referenceRenderName} is of different size than screenshot");
+            Engine.Log.Error($"    - Reference image {referenceRenderName} is of different size than screenshot!", MessageSource.Test);
             return new VerifyScreenshotResult(false);
         }
 
@@ -161,7 +166,6 @@ public abstract class TestingScene : Scene
 
     protected abstract void TestUpdate();
     protected abstract void TestDraw(RenderComposer c);
-    public abstract Func<IEnumerator>[] GetTestCoroutines();
 
     // Loop waiter
     private TestWaiterRunLoops? _loopWaiter;

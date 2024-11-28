@@ -1,5 +1,8 @@
 ﻿#nullable enable
 
+using Emotion.Standard.OptimizedStringReadWrite;
+using System.Text;
+
 namespace Emotion.Standard.Reflector.Handlers;
 
 public abstract class ComplexTypeHandlerMember
@@ -16,8 +19,6 @@ public abstract class ComplexTypeHandlerMember
         Name = name;
     }
 
-    public abstract IReflectorTypeHandler? GetTypeHandler();
-
     public T? HasAttribute<T>() where T : Attribute
     {
         for (int i = 0; i < Attributes.Length; i++)
@@ -28,7 +29,17 @@ public abstract class ComplexTypeHandlerMember
         return null;
     }
 
-    public abstract bool ReadValueFromComplexObject(object obj, out object? readValue);
+    public abstract IGenericReflectorTypeHandler? GetTypeHandler();
+
+    public bool WriteValueFromComplexObject(StringBuilder builder, object? obj)
+    {
+        ValueStringWriter writer = new ValueStringWriter(builder);
+        return WriteValueFromComplexObject(ref writer, obj);
+    }
+
+    public abstract bool WriteValueFromComplexObject(ref ValueStringWriter writer, object? obj);
+
+    public abstract bool ReadValueFromComplexObject(object obj, out object? readValue); //unused
 
     public abstract bool SetValueInComplexObject(object obj, object val);
 }
@@ -44,9 +55,9 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         _getValue = getValue;
     }
 
-    public override IReflectorTypeHandler? GetTypeHandler()
+    public override ReflectorTypeHandlerBase<MyT>? GetTypeHandler()
     {
-        return ReflectorEngine.GetTypeHandler(Type);
+        return ReflectorEngine.GetTypeHandler<MyT>();
     }
 
     public override bool ReadValueFromComplexObject(object obj, out object? readValue)
@@ -68,5 +79,20 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
             return true;
         }
         return false;
+    }
+
+    public override bool WriteValueFromComplexObject(ref ValueStringWriter writer, object? obj)
+    {
+        if (obj is not ParentT parentType) return false;
+
+        ReflectorTypeHandlerBase<MyT>? typeHandler = GetTypeHandler();
+        if (typeHandler == null) return false;
+        if (!typeHandler.CanGetOrParseValueAsString) return false;
+
+        MyT? val = _getValue(parentType);
+        if (val == null)
+            return writer.WriteString("null");
+        else
+            return typeHandler.WriteValueAsString(ref writer, val);
     }
 }

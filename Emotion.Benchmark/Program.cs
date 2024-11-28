@@ -37,14 +37,50 @@ namespace Emotion.Benchmark
             }
 
             {
+//#if DEBUG
+//                var benchmark = new ImageLoadingBenchmark();
+//                benchmark.GlobalSetup();
+//                benchmark.LoadPNG();
+//                benchmark.LoadImgBin();
+//                Console.WriteLine("Done!");
+//#else
+//                BenchmarkRunner.Run<ImageLoadingBenchmark>();
+//#endif
+            }
+
+            {
+//#if DEBUG
+//                var benchmark = new AudioBenchmark();
+//                benchmark.GlobalSetup();
+//                benchmark.ContinousResampleEmotion();
+//                benchmark.ContinousResampleEmotionFast();
+//                Console.WriteLine("Done!");
+//#else
+//                BenchmarkRunner.Run<AudioBenchmark>();
+//#endif
+            }
+
+            {
+//#if DEBUG
+//                var benchmark = new ReflectorBenchmark();
+//                benchmark.GlobalSetup();
+//                benchmark.ReflectorXML_ComplexWithPrimitiveMember();
+//                benchmark.ReflectorXML_ComplexWithPrimitiveMember_StackUTF16();
+//                benchmark.ReflectorXML_ComplexWithPrimitiveMember_StackUTF8();
+//                benchmark.StockEmotionXML_ComplexWithPrimitiveMember();
+//                Console.WriteLine("Done!");
+//#else
+//                BenchmarkRunner.Run<ReflectorBenchmark>();
+//#endif
+            }
+
+            {
 #if DEBUG
-                var benchmark = new ImageLoadingBenchmark();
+                var benchmark = new MiscBenchmark();
                 benchmark.GlobalSetup();
-                benchmark.LoadPNG();
-                benchmark.LoadImgBin();
                 Console.WriteLine("Done!");
 #else
-                BenchmarkRunner.Run<ImageLoadingBenchmark>();
+                BenchmarkRunner.Run<MiscBenchmark>();
 #endif
             }
         }

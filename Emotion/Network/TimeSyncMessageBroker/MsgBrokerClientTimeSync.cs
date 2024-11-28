@@ -15,63 +15,43 @@ namespace Emotion.Network.TimeSyncMessageBroker;
 
 public class MsgBrokerClientTimeSync : MsgBrokerClient
 {
-    public CoroutineManager GameTimeRunner = new CoroutineManager(false);
-    public int CurrentGameTime = 0;
-
-    private int _advanceGameTimeTo = 0;
+    private bool _firstTimeSyncMsg = true;
 
     public MsgBrokerClientTimeSync()
     {
         RegisterFunction<bool>("AdvanceTime", (va) => { Assert(va); });
     }
 
-    protected override void UpdateInternal()
-    {
-        base.UpdateInternal();
-
-        if (_advanceGameTimeTo != CurrentGameTime)
-        {
-            int diff = _advanceGameTimeTo - CurrentGameTime;
-            GameTimeRunner.Update(diff);
-            CurrentGameTime = _advanceGameTimeTo;
-        }
-    }
-
     protected override void ClientProcessMessage(NetworkMessage msg, ByteReader reader)
     {
         int gameTime = reader.ReadInt32();
-        if (gameTime > _advanceGameTimeTo)
-            _advanceGameTimeTo = gameTime;
+        if (_firstTimeSyncMsg)
+        {
+            GameTime.GameTimeAdvanceLimit = gameTime;
+            GameTime.ResetGameTime(gameTime);
+            _firstTimeSyncMsg = false;
+        }
+        else
+        {
+            GameTime.GameTimeAdvanceLimit = MathF.Max(GameTime.GameTimeAdvanceLimit, gameTime);
+        }
 
         int methodNameLength = reader.ReadInt32();
         var methodNameBytes = reader.ReadBytes(methodNameLength);
-        var methodName = Encoding.ASCII.GetString(methodNameBytes);
-
-        if (_functions.TryGetValue(methodName, out MsgBrokerFunction? func))
+        int methodNameHash = methodNameBytes.GetStableHashCode();
+        if (_functions.TryGetValue(methodNameHash, out MsgBrokerFunction? func))
         {
             var metaDataLength = reader.ReadInt32();
             var metaDataBytes = reader.ReadBytes(metaDataLength);
-            var metaData = Encoding.UTF8.GetString(metaDataBytes);
-
-            // Engine.Log.Trace($"MsgBroker Invoking {methodName} with {metaData}", LogTag);
-            GameTimeRunner.StartCoroutine(RunMessageFunctionAtTime(gameTime, func, metaData));
+            func.InvokeAtGameTime(gameTime, metaDataBytes);
         }
-    }
-
-    protected IEnumerator RunMessageFunctionAtTime(int time, MsgBrokerFunction brokerFunc, string metaData)
-    {
-        int timeDiff = time - CurrentGameTime;
-        yield return timeDiff;
-        CurrentGameTime = time;
-
-        brokerFunc.Invoke(metaData);
     }
 
     public void SendTimeSyncHash(int hash)
     {
-        if (GameTimeRunner.Current == null)
+        if (Engine.CoroutineManagerGameTime.Current == null)
         {
-            Assert(false, "Can't send time synced messages outside the GameTimeRunner!");
+            Assert(false, "Can't send time sync hashes outside the Engine.CoroutineManagerGameTime runner!");
             return;
         }
 
@@ -81,14 +61,21 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
         SendMessageToServer(spanData);
     }
 
-    public override void SendBrokerMsg(string method, string metadata)
+    [Conditional("DEBUG")]
+    public void SendTimeSyncHashDebug(string hashString)
     {
-        if (GameTimeRunner.Current == null)
+        if (Engine.CoroutineManagerGameTime.Current == null)
         {
-            Assert(false, "Can't send time synced messages outside the GameTimeRunner!");
+            Assert(false, "Can't send time sync hashes outside the Engine.CoroutineManagerGameTime runner!");
             return;
         }
 
-        base.SendBrokerMsg(method, metadata);
+        int bytesWritten = 0;
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        spanData[0] = (byte)NetworkMessageType.TimeSyncHashDebug;
+
+        bytesWritten += sizeof(byte);
+        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), hashString);
+        SendMessageToServer(spanData.Slice(0, bytesWritten));
     }
 }

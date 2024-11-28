@@ -30,6 +30,7 @@ public class NetworkCommunicator
     private SocketAsyncEventArgs _receiveEventArgs;
     private SocketAsyncEventArgs _sendEventArgs;
 
+    private ConcurrentQueue<NetworkMessage> _sendQueue = new();
     private ConcurrentQueue<NetworkMessage> _processQueue = new();
 
     protected void SetupArgs()
@@ -67,13 +68,10 @@ public class NetworkCommunicator
 
     public void SendMessage(ReadOnlySpan<byte> data, IPEndPoint to, int msgOrderIndex)
     {
-        int bytesWritten = NetworkMessage.EncodeMessage(data, _sendBuffer, msgOrderIndex);
-        _sendEventArgs.SetBuffer(_sendBuffer, 0, bytesWritten);
-        _sendEventArgs.RemoteEndPoint = to;
-
-        bool willRaiseEvent = _socket.SendToAsync(_sendEventArgs);
-        if (!willRaiseEvent)
-            MessageSent(_socket, _sendEventArgs);
+        NetworkMessage newMessage = NetworkMessage.Shared.Get();
+        newMessage.EncodeMessageInLocalBuffer(to, data, msgOrderIndex);
+        newMessage.Index = msgOrderIndex;
+        _sendQueue.Enqueue(newMessage);
     }
 
     public void SendMessage<T>(IPEndPoint to, NetworkMessageType msgType, T msgInfo, int msgOrderIndex)
@@ -97,6 +95,7 @@ public class NetworkCommunicator
         switch (Status)
         {
             case ServerStatus.None:
+                while (Status == ServerStatus.None)
                 {
                     bool willRaiseEvent = _socket.ReceiveFromAsync(_receiveEventArgs);
                     if (!willRaiseEvent)
@@ -109,6 +108,7 @@ public class NetworkCommunicator
                 UpdateInternal();
                 break;
         }
+        PumpMessages();
     }
 
     protected virtual void UpdateInternal()
@@ -116,8 +116,23 @@ public class NetworkCommunicator
 
     }
 
-    public void PumpMessages()
+    private void PumpMessages()
     {
+        while (_sendQueue.TryDequeue(out NetworkMessage? msg))
+        {
+            msg.Content.CopyTo(_sendBuffer);
+            _sendEventArgs.SetBuffer(_sendBuffer, 0, msg.Content.Length);
+            _sendEventArgs.RemoteEndPoint = msg.Sender;
+
+            //Engine.Log.Info($"Sent message to {msg.Sender}", LogTag);
+
+            bool willRaiseEvent = _socket.SendToAsync(_sendEventArgs);
+            if (!willRaiseEvent)
+                MessageSent(_socket, _sendEventArgs);
+
+            NetworkMessage.Shared.Return(msg);
+        }
+
         while (_processQueue.TryDequeue(out NetworkMessage? msg))
         {
             msg.Process();

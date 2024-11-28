@@ -71,6 +71,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
         <None Update="Assets\CachedResults\AnimatedTextureTest1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -209,6 +213,42 @@
         <None Update="Assets\CachedResults\UIControllerNineSlice.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\BackgroundWindow%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\BackgroundWindow%28%29_1.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29_1.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29_2.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29_3.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_1.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_2.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_3.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_4.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29_5.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="Assets\ReferenceXMLOutput\ArrayWithDefaultHoles().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -268,6 +308,12 @@
         </None>
         <None Update="Assets\ReferenceXMLOutput\ComplexValueType().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceXMLOutput\ComplexValueTypeWithInheritedMember%28%29.xml">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceXMLOutput\ComplexValueTypeWithInheritedMember%28%29_1.xml">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\ReferenceXMLOutput\DictionaryWithObjectKeysThatArePrimitiveTypes().xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -380,127 +426,127 @@
         <None Update="Assets\ReferenceRenders\NewUITests\1 Fill%28%29.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\WorldEditorTopBar().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\WorldEditorTopBar()_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_2.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\WorldEditorTopBar()_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_3.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\WorldEditorTopBar()_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\VerticalListWithText().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\VerticalListWithText()_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_2.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\VerticalListWithText()_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_3.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\VerticalListWithText()_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\12 TextWithBackground%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\TextWithBackground().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\13 EditorDropDownRelativeToAndOutsideParent%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\EditorDropDownRelativeToAndOutsideParent().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\14 WorldEditorBottomBar%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\WorldEditorBottomBar().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\15 EditorPanelEmpty%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\EditorPanelEmpty().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\2 FillXAxisWithChild%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillXAxisWithChild().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\3 FillXAxisMinHeight%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillXAxisMinHeight().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\4 FillXAxisMinHeightAndWidth%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillXAxisMinHeightAndWidth().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\5 FillNeitherAxisMinHeightAndWidth%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillNeitherAxisMinHeightAndWidth().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\6 TwoSquaresInFillY%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\TwoSquaresInFillY().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\7 FillList%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillList().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\7 FillList%28%29_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillList()_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()+VerticalList.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()+VerticalList_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_2.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()+VerticalList_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_3.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()+VerticalList_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_4.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()+VerticalList_4.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_2.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_3.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_4.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListThreeItems()_4.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()+VerticalList.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()+VerticalList_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_2.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()+VerticalList_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_3.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()+VerticalList_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_4.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()+VerticalList_4.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_5.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()+VerticalList_5.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_1.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_2.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_3.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_4.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()_4.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_5.png">
+        <None Update="Assets\ReferenceRenders\NewUITests\FillListFillingItems()_5.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\Shaders\BrokenShader.xml">
@@ -673,6 +719,72 @@
         </None>
         <None Update="Assets\uitesttemplates\WrappingList.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\armorreflect5.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white.gltf">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim0-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim0-1.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim0-2.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim1-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim13-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim16-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim37-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim38-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim39-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim4-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim40-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim41-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim42-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim43-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim44-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim45-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim5-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbit2_rabbitskin2_white_anim9-0.bin">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\WoWModels\rabbit2\rabbitskin2_white.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="OtherAssets\LoremIpsum.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
