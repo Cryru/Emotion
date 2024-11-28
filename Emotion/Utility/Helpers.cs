@@ -123,8 +123,9 @@ public static class Helpers
         if (array.Count == 0) return default;
 
         int rand = rng.Next(0, array.Count);
+        T item = array[rand];
         if (eject) array.RemoveAt(rand);
-        return array[rand];
+        return item;
     }
 
     public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null, IList<T>? whiteList = null)
