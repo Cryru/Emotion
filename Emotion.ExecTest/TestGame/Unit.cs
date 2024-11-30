@@ -55,7 +55,8 @@ public partial class Unit : MapObject
     public bool LocallyControlled;
 
     public string Image = string.Empty;
-    public AssetHandle<TextureAsset> _image;
+
+    private AssetHandle<TextureAsset> _image;
 
     public string Name = "???";
     public int Health;
