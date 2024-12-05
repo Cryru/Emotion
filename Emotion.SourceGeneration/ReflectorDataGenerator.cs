@@ -92,6 +92,10 @@ namespace SourceGenerator
             "Emotion.Common",
             "Emotion.Audio",
             "Emotion.Editor",
+            "Android",
+            "Xamarin",
+            "Java",
+            "Org"
         };
         private static HashSet<string> _excludedNamespacesTypes = new HashSet<string>()
         {
@@ -108,7 +112,7 @@ namespace SourceGenerator
             string fullSpaceName = space.ToDisplayString();
 
             bool includeTypesFromNamespace = includeTypes && !_excludedNamespacesTypes.Contains(fullSpaceName);
-            bool includeSubSpaces = includeTypes && !_excludedNamespacesSubSpaces.Contains(fullSpaceName);
+            bool includeSubSpaces = includeTypes && !_excludedNamespacesSubSpaces.Contains(fullSpaceName) && fullSpaceName[0] != '_';
             if (!includeSubSpaces) includeTypesFromNamespace = false;
 
             if (mainNamespace == "Emotion" && _forceIncludeSubspaces.Contains(fullSpaceName))
