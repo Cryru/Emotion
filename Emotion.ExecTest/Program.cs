@@ -15,7 +15,7 @@ namespace Emotion.ExecTest;
 
 public class Program
 {
-    private static void Main(string[] args)
+    public static void Main(string[] args)
     {
         if (CommandLineParser.FindArgument(args, "tests", out string _))
         {
@@ -53,8 +53,8 @@ public class Program
     private static IEnumerator EntryPointAsync()
     {
         //yield return Engine.SceneManager.SetScene(new TestScene());
-        //yield return Engine.SceneManager.SetScene(new TestGame.TestScene());
-        yield return Engine.SceneManager.SetScene(new Example3D());
+        yield return Engine.SceneManager.SetScene(new TestGame.TestScene());
+        //yield return Engine.SceneManager.SetScene(new Example3D());
     }
 
     private static void ResampleTest()

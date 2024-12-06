@@ -18,7 +18,7 @@ public class Example3D : SceneWithMap
         testObj.Z = 50;
         testObj.Size3D = new Vector3(300, 300, 300);
         testObj.SetAnimation("Stand (ID 0 variation 2)");
-        testObj.RotationDeg = new Vector3(0, 0, 90);
+        //testObj.RotationDeg = new Vector3(0, 0, 90);
         Map.AddObject(testObj);
 
         yield break;

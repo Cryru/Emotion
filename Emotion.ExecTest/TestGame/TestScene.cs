@@ -16,12 +16,7 @@ using Emotion.UI;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Work;
-using Emotion.WIPUpdates.TimeUpdate;
-using System;
-using System.Collections;
 using System.IO;
-using System.Numerics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #nullable enable
 
