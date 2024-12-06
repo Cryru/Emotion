@@ -36,7 +36,9 @@ public static class ReflectorEngine
 
     public static void RegisterTypeHandler(IGenericReflectorTypeHandler typeHandler)
     {
-        _typeHandlers.Add(typeHandler.Type, typeHandler);
+        Type type = typeHandler.Type;
+        if (_typeHandlers.ContainsKey(type)) return;
+        _typeHandlers.Add(type, typeHandler);
     }
 
     public static IGenericReflectorTypeHandler? GetTypeHandler(Type typ)
