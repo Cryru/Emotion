@@ -65,7 +65,7 @@ public class EditorWindow : UIBaseWindow
 
     private PanelMode _panelMode = PanelMode.Default;
 
-    protected UIBaseWindow _contentParent = null!;
+    private UIBaseWindow _contentParent = null!;
     private EditorWindowContent _panelItself = null!;
     private UIBaseWindow _panelInner = null!;
     private bool _centered;
@@ -78,6 +78,11 @@ public class EditorWindow : UIBaseWindow
     {
         Header = header;
         Priority = 10;
+    }
+
+    protected virtual UIBaseWindow GetContentParent()
+    {
+        return _contentParent;
     }
 
     public override void AttachedToController(UIController controller)

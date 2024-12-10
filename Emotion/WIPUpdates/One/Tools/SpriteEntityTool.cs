@@ -1,6 +1,8 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.IO;
+using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
@@ -21,9 +23,13 @@ public class HorizontalPanelSeparator : UIBaseWindow
     }
 }
 
-public class SpriteEntityTool : EditorWindow
+public class SpriteEntityTool : EditorWindowFileSupport
 {
     private UIList _list = null!;
+
+    private SpriteEntity SpriteEntity;
+
+    private Texture _spriteEntityTexture;
 
     public SpriteEntityTool() : base("Sprite Entity Tool")
     {
@@ -33,28 +39,26 @@ public class SpriteEntityTool : EditorWindow
     {
         base.AttachedToController(controller);
 
-        UIBaseWindow mainDiv = new()
-        {
-            LayoutMode = LayoutMode.VerticalList
-        };
-        _contentParent.AddChild(mainDiv);
+        UIBaseWindow contentParent = GetContentParent();
 
-        {
-            UIBaseWindow buttonList = new()
+        /*
+         EditorButton button = new EditorButton("Import Texture");
+            newFile.OnClickedProxy = (_) =>
             {
-                LayoutMode = LayoutMode.HorizontalList,
-                Paddings = new Primitives.Rectangle(5, 5, 5, 5)
-            };
-            mainDiv.AddChild(buttonList);
+                var platform = Engine.Host;
+                if (platform is DesktopPlatform winPl)
+                {
+                    winPl.DeveloperMode_SelectFileNative<TextureAsset>((file) =>
+                    {
+                        bool a = true;
+                    });
+                }
 
-            EditorButton button = new EditorButton("Import Texture");
-            button.OnClickedProxy = (_) =>
-            {
-                var explorer = new FilePicker<TextureAsset>((file) => NewEntity(file));
-                Parent!.AddChild(explorer);
+                //var explorer = new FilePicker<TextureAsset>((file) => NewEntity(file));
+                //Parent!.AddChild(explorer);
             };
-            buttonList.AddChild(button);
-        }
+            buttonList.AddChild(newFile);
+         */
 
         UISolidColor content = new UISolidColor
         {
@@ -64,7 +68,7 @@ public class SpriteEntityTool : EditorWindow
             Paddings = new Primitives.Rectangle(5, 5, 5, 5),
             LayoutMode = LayoutMode.HorizontalEditorPanel
         };
-        mainDiv.AddChild(content);
+        contentParent.AddChild(content);
 
         UISolidColor viewPort = new UISolidColor
         {
@@ -111,10 +115,6 @@ public class SpriteEntityTool : EditorWindow
     }
 
     #endregion
-
-    private SpriteEntity SpriteEntity;
-
-    private Texture _spriteEntityTexture;
 
     public void NewEntity(TextureAsset baseFile)
     {

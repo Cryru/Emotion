@@ -63,6 +63,9 @@ public class FileExplorerButton : UICallbackButton
 
         MinSizeX = 150;
         MaxSizeX = 150;
+
+        FillX = false;
+        FillY = false;
     }
 
     public void SetFileName(string fileName)
@@ -137,7 +140,8 @@ public class FileExplorerButton : UICallbackButton
                 TextureFile = _fileName,
                 //RenderSize = new Vector2(-200, -100),
                 ParentAnchor = UIAnchor.CenterCenter,
-                Anchor = UIAnchor.CenterCenter
+                Anchor = UIAnchor.CenterCenter,
+                RenderSize = new Vector2(-100, -100)
             };
 
             return texturePreview;

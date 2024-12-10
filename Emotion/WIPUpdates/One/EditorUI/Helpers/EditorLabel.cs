@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.EditorUI.Helpers;
 
-public class EditorLabel : UIText // : UIRichText
+public class EditorLabel : UIRichText
 {
     public EditorLabel()
     {

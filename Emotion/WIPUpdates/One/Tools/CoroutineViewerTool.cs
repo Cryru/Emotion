@@ -21,12 +21,14 @@ public class CoroutineViewerTool : EditorWindow
     {
         base.AttachedToController(controller);
 
+        UIBaseWindow contentParent = GetContentParent();
+
         _list = new UIList()
         {
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 5)
         };
-        _contentParent.AddChild(_list);
+        contentParent.AddChild(_list);
 
         Engine.CoroutineManager.StartCoroutine(Testche());
         UpdateCoroutines();

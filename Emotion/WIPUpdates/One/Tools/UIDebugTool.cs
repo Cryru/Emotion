@@ -32,11 +32,13 @@ public class UIDebugTool : EditorWindow
     {
         base.AttachedToController(controller);
 
+        UIBaseWindow contentParent = GetContentParent();
+
         var container = new UIBaseWindow
         {
             LayoutMode = LayoutMode.VerticalList
         };
-        _contentParent.AddChild(container);
+        contentParent.AddChild(container);
 
         var buttonContainer = new UIBaseWindow
         {

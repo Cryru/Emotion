@@ -4,13 +4,6 @@ using Emotion.IO;
 using Emotion.UI;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 #nullable enable
 
@@ -35,29 +28,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         _onFileSelected = onFileSelected;
         FileFilterFunc = fileFilter;
         UseAssetLoaderCache = false;
-        _fileSystem = FilesToTree(Engine.AssetLoader.AllAssets);
-
-        //PanelMode = PanelMode.Modal;
-    }
-
-    public static Tree<string, string> FilesToTree(IEnumerable<string> assets)
-    {
-        assets = assets.OrderBy(x => x);
-        var tree = new Tree<string, string>();
-        foreach (string a in assets)
-        {
-            if (a.Contains('/'))
-            {
-                string[] folderPath = a.Split('/')[..^1];
-                tree.Add(folderPath, a);
-            }
-            else
-            {
-                tree.Leaves.Add(a);
-            }
-        }
-
-        return tree;
+        _fileSystem = Engine.AssetLoader.GetAssetFileTree();
     }
 
     private void SetTreeBranch(string[]? branch)
@@ -68,7 +39,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
     private void GenerateUIForCurrentBranch()
     {
-        var currentPathLabel = GetWindowById<MapEditorLabel>("CurrentPathLabel");
+        MapEditorLabel? currentPathLabel = GetWindowById<MapEditorLabel>("CurrentPathLabel");
         if (currentPathLabel != null)
             currentPathLabel.Text = $"@: Assets{(_currentBranch != null ? $"/{string.Join("/", _currentBranch)}/" : "")}";
 
@@ -160,6 +131,8 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
     {
         base.AttachedToController(controller);
 
+        UIBaseWindow contentParent = GetContentParent();
+
         UIBaseWindow container = new UIBaseWindow
         {
             Id = "MainContainer",
@@ -167,7 +140,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
             Paddings = new Rectangle(10, 10, 10, 10),
             ListSpacing = new Vector2(0, 10)
         };
-        _contentParent.AddChild(container);
+        contentParent.AddChild(container);
 
         MapEditorLabel label = new MapEditorLabel("Loading")
         {
@@ -175,11 +148,19 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         };
         container.AddChild(label);
 
-        UIList containerList = new()
+        UIBaseWindow containerList = new()
         {
             Id = "ContainerList",
-            LayoutMode = LayoutMode.HorizontalList,
+            LayoutMode = LayoutMode.HorizontalListWrap,
             ListSpacing = new Vector2(10, 10),
+            FillX = false,
+            FillY = false,
+
+            MinSizeX = 1250,
+            MaxSizeX = 1250,
+
+            MinSizeY = 500,
+            MaxSizeY = 500,
         };
         container.AddChild(containerList);
 

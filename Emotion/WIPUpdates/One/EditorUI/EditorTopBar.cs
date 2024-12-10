@@ -67,7 +67,7 @@ public class EditorTopBar : UISolidColor
 
         {
             EditorButton toolButton = new EditorButton("UI File Tool");
-            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new UIToolWithFileSupport());
+            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new EditorWindowFileSupport("test"));
             buttonContainer.AddChild(toolButton);
         }
 

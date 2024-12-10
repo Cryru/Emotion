@@ -30,7 +30,7 @@ namespace Emotion.IO
 
         private static void PopulateAssetDevPath()
         {
-            string currentDirectory = Directory.GetCurrentDirectory();
+            string currentDirectory = AssetLoader.GameDirectory;
             DirectoryInfo parentDir = Directory.GetParent(currentDirectory);
             int levelsBack = 1;
             while (parentDir != null)

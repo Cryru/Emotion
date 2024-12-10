@@ -11,32 +11,42 @@ using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.Tools;
 
-public class UIToolWithFileSupport : EditorWindow
+public class EditorWindowFileSupport : EditorWindow
 {
+    private UIBaseWindow _mainContent;
 
-    public UIToolWithFileSupport() : base("UI Tool With File Support")
+    public EditorWindowFileSupport(string title) : base(title ?? "Generic Tool")
     {
-        
     }
+
 
     public override void AttachedToController(UIController controller)
     {
         base.AttachedToController(controller);
 
-        var container = new UIBaseWindow
+        UIBaseWindow contentParent = GetContentParent();
+
+        UIBaseWindow mainContent = new()
         {
             LayoutMode = LayoutMode.VerticalList
         };
-        _contentParent.AddChild(container);
+        contentParent.AddChild(mainContent);
+        _mainContent = mainContent;
 
-        var buttonContainer = new UIBaseWindow
+        UIBaseWindow buttonList = new()
         {
             LayoutMode = LayoutMode.HorizontalList,
+            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
             ListSpacing = new Vector2(5, 0)
         };
-        container.AddChild(buttonContainer);
+        mainContent.AddChild(buttonList);
 
-        CreateTopBarButtons(buttonContainer);
+        CreateTopBarButtons(buttonList);
+    }
+
+    protected override UIBaseWindow GetContentParent()
+    {
+        return _mainContent ?? base.GetContentParent();
     }
 
     protected virtual void CreateTopBarButtons(UIBaseWindow topBar)
@@ -49,26 +59,29 @@ public class UIToolWithFileSupport : EditorWindow
             {
                 EditorButton button = new EditorButton("New");
                 button.FillX = true;
+                button.OnClickedProxy = (_) => NewFile();
                 dropDown.AddChild(button);
             }
 
             {
                 EditorButton button = new EditorButton("Open");
                 button.FillX = true;
+                button.OnClickedProxy = (_) => OpenFile();
                 dropDown.AddChild(button);
             }
 
             {
                 EditorButton button = new EditorButton("Save");
                 button.FillX = true;
+                button.OnClickedProxy = (_) => SaveFile();
                 dropDown.AddChild(button);
             }
 
-            {
-                EditorButton button = new EditorButton("Save As");
-                button.FillX = true;
-                dropDown.AddChild(button);
-            }
+            //{
+            //    EditorButton button = new EditorButton("Save As");
+            //    button.FillX = true;
+            //    dropDown.AddChild(button);
+            //}
 
             Controller?.AddChild(dropDown);
         };
@@ -97,4 +110,23 @@ public class UIToolWithFileSupport : EditorWindow
 
         return dropDown;
     }
+
+    #region API
+
+    protected virtual void NewFile()
+    {
+
+    }
+
+    protected virtual void SaveFile()
+    {
+
+    }
+
+    protected virtual void OpenFile()
+    {
+
+    }
+
+    #endregion
 }
