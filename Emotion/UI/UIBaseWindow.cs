@@ -200,6 +200,7 @@ namespace Emotion.UI
             {
                 UIBaseWindow child = children[i];
                 if (!child.Visible) continue;
+                if (child.OverlayWindow) continue;
                 child.Render(c);
             }
         }
@@ -421,6 +422,13 @@ namespace Emotion.UI
             if (within == null) return false;
             if (within == this) return true;
 
+            if (RelativeTo != null)
+            {
+                UIBaseWindow? relativeToWin = Controller?.GetWindowById(RelativeTo);
+                if (relativeToWin == null) return false;
+                return relativeToWin.IsWithin(within);
+            }
+
             UIBaseWindow? parent = Parent;
             while (parent != null)
             {
@@ -450,6 +458,22 @@ namespace Emotion.UI
         }
 
         protected bool _backgroundWindow;
+
+        /// <summary>
+        /// Whether this window should be rendered on top of all other windows.
+        /// </summary>
+        public bool OverlayWindow
+        {
+            get => _overlayWindow;
+            set
+            {
+                if (value == _overlayWindow) return;
+                _overlayWindow = value;
+                InvalidateLayout();
+            }
+        }
+
+        protected bool _overlayWindow;
 
         /// <summary>
         /// The point in the parent to anchor the window to.
@@ -534,7 +558,7 @@ namespace Emotion.UI
         /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
         /// This is the Z offset for this window, added to this window and its children.
         /// </summary>
-        public float Priority
+        public float OrderInParent
         {
             get => _priority;
             set
@@ -1333,7 +1357,7 @@ namespace Emotion.UI
         {
             if (other == null) return 1;
             if (_backgroundWindow && !other._backgroundWindow) return -1;
-            return MathF.Sign(Priority - other.Priority);
+            return MathF.Sign(OrderInParent - other.OrderInParent);
         }
 
         public override string ToString()

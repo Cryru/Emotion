@@ -1020,10 +1020,184 @@ public class NewUITests : TestingScene
         UI.AddChild(win);
 
         yield return WaitUILayout();
-        //VerifyScreenshot();
+        VerifyScreenshot();
 
-        yield return new TestWaiterRunLoops(-1);
+        //yield return new TestWaiterRunLoops(-1);
 
         yield break;
+    }
+
+    [Test]
+    public IEnumerator IsWithinTest()
+    {
+        UIBaseWindow parent = new UIBaseWindow();
+        UI.AddChild(parent);
+
+        UIBaseWindow child = new UIBaseWindow();
+        parent.AddChild(child);
+
+        Assert.True(child.IsWithin(parent));
+        Assert.False(parent.IsWithin(child));
+
+        UIBaseWindow otherParent = new UIBaseWindow();
+        UI.AddChild(otherParent);
+
+        UIBaseWindow relative = new UIBaseWindow();
+        parent.Id = "Parent";
+        relative.RelativeTo = "Parent";
+        otherParent.AddChild(relative);
+
+        Assert.True(relative.IsWithin(parent));
+        Assert.False(relative.IsWithin(otherParent));
+
+        Assert.True(parent.IsWithin(UI));
+        Assert.True(child.IsWithin(UI));
+        Assert.True(otherParent.IsWithin(UI));
+
+        yield break;
+    }
+
+    [Test]
+    public IEnumerator OverlayWindow()
+    {
+        UISolidColor win = new UISolidColor()
+        {
+            WindowColor = Color.Black,
+            LayoutMode = LayoutMode.VerticalList,
+            Paddings = new Rectangle(10, 10, 10, 10),
+            FillY = false,
+            Id = "MainWin"
+        };
+        UI.AddChild(win);
+
+        UIBaseWindow insideWin = new UISolidColor()
+        {
+            WindowColor = Color.Red,
+            MinSizeY = 20,
+            MaxSizeY = 20,
+            Offset = new Vector2(0, 10),
+            Id = "FirstWin"
+        };
+        win.AddChild(insideWin);
+
+        UIBaseWindow insideWin2 = new UISolidColor()
+        {
+            WindowColor = Color.Green,
+            MinSizeY = 20,
+            MaxSizeY = 20,
+        };
+        win.AddChild(insideWin2);
+
+        UIBaseWindow insideWin3 = new UISolidColor()
+        {
+            WindowColor = Color.Blue,
+            MinSizeY = 20,
+            MaxSizeY = 20,
+        };
+        win.AddChild(insideWin3);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        insideWin.OverlayWindow = true;
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        insideWin.OverlayWindow = false;
+
+        UIBaseWindow relativeWin = new UISolidColor()
+        {
+            WindowColor = Color.PrettyYellow,
+
+            MinSizeY = 20,
+            MaxSizeY = 20,
+            RelativeTo = "FirstWin",
+            Offset = new Vector2(0, 10)
+        };
+        UI.AddChild(relativeWin);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        relativeWin.OverlayWindow = true;
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+    }
+
+    [Test]
+    public IEnumerator RichTextCases()
+    {
+        UIRichText label = new UIRichText();
+        label.Text = "The quick brown fox jumped over the lazy dog.";
+        label.WindowColor = Color.Red;
+        label.FontSize = 20;
+        UI.AddChild(label);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // Check for tag false positives
+        label.Text = "<text in brackets that isnt a tag>";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        label.Text = "<word>";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // Check color tag functionality
+
+        label.Text = "The quick brown <color #00FF00>fox</> jumped over the lazy dog.";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // Check outline tag functionality
+        // (Currently text outline functionality doesn't work)
+
+        label.Text = "The quick brown <outline #00FF00 size=5>fox</> jumped over the lazy dog.";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // Check center tag functionality
+
+        label.Text = "<center>The quick brown fox,</>\n<center> jumped over the lazy dog.</>";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        label.Text = "<center>The quick brown fox,\n jumped over the lazy dog.</>";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // Check right tag functionality
+
+        label.Text = "<right>The quick brown fox,</>\n<right> jumped over the lazy dog.</>";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        label.Text = "<right>The quick brown fox,\n jumped over the lazy dog.</>";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // Check some edge cases
+
+        label.Text = "<unclosed The quick brown fox, jumped over the lazy dog.";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        label.Text = "</>The quick brown fox, jumped over the lazy dog.";
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
     }
 }

@@ -1,24 +1,18 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.Tools;
 
-public class EditorWindowFileSupport : EditorWindow
+public partial class EditorWindowFileSupport : EditorWindow
 {
     private UIBaseWindow _mainContent;
 
     public EditorWindowFileSupport(string title) : base(title ?? "Generic Tool")
     {
     }
-
 
     public override void AttachedToController(UIController controller)
     {
@@ -90,23 +84,14 @@ public class EditorWindowFileSupport : EditorWindow
 
     private UIDropDown OpenDropdown(UIBaseWindow spawningWindow)
     {
-        UIDropDown dropDown = new UIDropDown(spawningWindow)
+        EditorDropDown dropDown = new (spawningWindow)
         {
-            Paddings = new Primitives.Rectangle(0, 5, 0, 0),
+            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
             Anchor = UIAnchor.TopLeft,
             ParentAnchor = UIAnchor.BottomLeft,
             LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            ListSpacing = new Vector2(0, 5),
         };
-
-        UISolidColor col = new UISolidColor
-        {
-            FillX = false,
-            FillY = false,
-            WindowColor = Color.Black * 0.5f,
-            BackgroundWindow = true
-        };
-        dropDown.AddChild(col);
 
         return dropDown;
     }

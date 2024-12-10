@@ -219,6 +219,12 @@
         <None Update="Assets\ReferenceRenders\NewUITests\BackgroundWindow%28%29_1.png">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\Fill%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\HorizontalPanelLayout%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29.png">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -229,6 +235,51 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\ReferenceRenders\NewUITests\OutsideParentWindow%28%29_3.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OverlayWindow%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OverlayWindow%28%29_1.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OverlayWindow%28%29_2.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\OverlayWindow%28%29_3.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_1.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_10.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_2.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_3.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_4.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_5.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_6.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_7.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_8.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets\ReferenceRenders\NewUITests\RichTextCases%28%29_9.png">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\ReferenceRenders\Render3DTests\WorldWith2DCamera%28%29.png">

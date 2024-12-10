@@ -166,6 +166,7 @@ public class UIRichText : UIBaseWindow
         // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
         float scale = GetScale();
         _atlas = _fontFile.GetAtlas((int)MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
+        InvalidateLayout();
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
@@ -256,7 +257,7 @@ public class UIRichText : UIBaseWindow
 
     protected void RenderTextForBatch(RenderComposer c, Vector2 offset)
     {
-        _layoutEngine.RenderNoOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor.CloneWithAlpha(255), OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+        _layoutEngine.RenderWithNoLayoutOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor.CloneWithAlpha(255), OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
     #endregion

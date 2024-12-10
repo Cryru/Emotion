@@ -15,8 +15,9 @@ public class UIRollover : UIBaseWindow
         RelativeTo = SPECIAL_WIN_ID_MOUSE_FOCUS;
         StretchX = true;
         StretchY = true;
+        OverlayWindow = true;
 
-        Priority = 99;
+        OrderInParent = 99;
     }
 
     protected override Vector2 BeforeLayout(Vector2 contentPos)

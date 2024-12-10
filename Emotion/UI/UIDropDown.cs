@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-
-
 namespace Emotion.UI;
 
 public class UIDropDown : UIBaseWindow
@@ -16,7 +14,8 @@ public class UIDropDown : UIBaseWindow
         CodeGenerated = true;
         HandleInput = true;
         RelativeTo = SPECIAL_WIN_ID_DROPDOWN;
-        Priority = 99;
+        OrderInParent = 99;
+        OverlayWindow = true;
 
         FillX = false;
         FillY = false;
@@ -27,7 +26,7 @@ public class UIDropDown : UIBaseWindow
     {
         CodeGenerated = true;
         HandleInput = true;
-        Priority = 99;
+        OrderInParent = 99;
 
         FillX = false;
         FillY = false;

@@ -13,16 +13,6 @@ using System.Collections;
 
 namespace Emotion.WIPUpdates.One.Tools;
 
-public class HorizontalPanelSeparator : UIBaseWindow
-{
-    public float SeparationPercent = 0.5f;
-
-    public HorizontalPanelSeparator()
-    {
-        MinSizeX = 10;
-    }
-}
-
 public class SpriteEntityTool : EditorWindowFileSupport
 {
     private UIList _list = null!;

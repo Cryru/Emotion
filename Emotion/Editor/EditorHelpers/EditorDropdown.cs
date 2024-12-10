@@ -109,7 +109,7 @@ public class EditorDropDown : UIDropDown
                         checkBox.SetValue(thatCheckBoxItemAsCheckBoxItem?.Checked() ?? false);
                     }
                 });
-                checkMark.Priority = -1;
+                checkMark.OrderInParent = -1;
 
                 checkBoxes.Add(checkMark);
 

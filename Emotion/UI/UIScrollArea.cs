@@ -75,7 +75,7 @@ namespace Emotion.UI
             HandleInput = true;
 
             var areaInside = new UIScrollAreaScrollableArea();
-            areaInside.Priority = 5;
+            areaInside.OrderInParent = 5;
             _content = areaInside;
         }
 

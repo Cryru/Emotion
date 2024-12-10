@@ -186,6 +186,39 @@ namespace Emotion.UI
             InvalidateInputFocus();
         }
 
+        protected override void RenderChildren(RenderComposer c)
+        {
+            // Reset overlay children render flag.
+            for (int i = 0; i < _overlayWindows.Count; i++)
+            {
+                (UIBaseWindow win, bool rendered) pair = _overlayWindows[i];
+                pair.rendered = false;
+                _overlayWindows[i] = pair;
+            }
+
+            base.RenderChildren(c);
+            RenderOverlayChildren(this, c);
+        }
+
+        public void RenderOverlayChildren(UIBaseWindow within, RenderComposer c)
+        {
+            // todo: apply parent displacements (combine together all the way up?)
+
+            for (int i = 0; i < _overlayWindows.Count; i++)
+            {
+                (UIBaseWindow win, bool rendered) pair = _overlayWindows[i];
+                if (pair.rendered)
+                    continue;
+
+                if (within == this || pair.win.IsWithin(within)) // can be cached, in theory
+                {
+                    pair.win.Render(c);
+                    pair.rendered = true;
+                    _overlayWindows[i] = pair; // tuple is value type
+                }
+            }
+        }
+
         #region Dedupe Hierarchy Checker
 
         private HashSet<UIBaseWindow> _doubleAddChecker = new HashSet<UIBaseWindow>();
@@ -222,7 +255,8 @@ namespace Emotion.UI
         #region RelativeTo Layout
 
         private Dictionary<UIBaseWindow, List<UIBaseWindow>>? _parentToRelatives;
-        private Dictionary<UIBaseWindow, List<UIBaseWindow>> _parentToChildren = new();
+        private Dictionary<UIBaseWindow, List<UIBaseWindow>> _parentToChildren = new(16);
+        private List<(UIBaseWindow win, bool rendered)> _overlayWindows = new(2);
 
         public List<UIBaseWindow>? GetWindowsRelativeToWindow(UIBaseWindow win)
         {
@@ -240,6 +274,8 @@ namespace Emotion.UI
 
         protected void BuildRelativeToMapping()
         {
+            _overlayWindows.Clear();
+
             Dictionary<UIBaseWindow, List<UIBaseWindow>> parentToChildren = _parentToChildren;
             parentToChildren.Clear();
 
@@ -299,6 +335,9 @@ namespace Emotion.UI
                     }
                 }
 
+                if (thisWin.OverlayWindow)
+                    _overlayWindows.Add((thisWin, false));
+
                 // Check if my window is supposed to be relative to another.
                 if (thisWin.RelativeTo != null)
                 {
@@ -335,7 +374,15 @@ namespace Emotion.UI
                         }
 
                         AssertNotNull(parentMapping);
-                        parentMapping.Add(thisWin);
+                        if (parentMapping.IndexOf(thisWin) == -1)
+                        {
+                            parentMapping.Add(thisWin);
+                        }
+                        else
+                        {
+                            // Window that is RelativeTo a window that is a sibling.
+                            bool a = true;
+                        }
                     }
                 }
             }

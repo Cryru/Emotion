@@ -130,9 +130,9 @@ public class EditorPanel : UIBaseWindow
     public override void InputFocusChanged(bool haveFocus)
     {
         if (haveFocus)
-            Priority++;
+            OrderInParent++;
         else
-            Priority--;
+            OrderInParent--;
 
         base.InputFocusChanged(haveFocus);
     }

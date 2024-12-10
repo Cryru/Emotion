@@ -77,7 +77,7 @@ public class EditorWindow : UIBaseWindow
     public EditorWindow(string header)
     {
         Header = header;
-        Priority = 10;
+        OrderInParent = 10;
     }
 
     protected virtual UIBaseWindow GetContentParent()
@@ -108,7 +108,9 @@ public class EditorWindow : UIBaseWindow
         };
         panelItself.AddChild(panelInner);
 
-        var panelContent = new UIBaseWindow
+        // Make sure the window's rollovers and dropdowns are rendered as children,
+        // to make them work inside the subwindows.
+        var panelContent = new UIOverlayWindowParent
         {
             Id = "Content",
             Margins = new Rectangle(5, 5, 5, 5)
@@ -143,9 +145,9 @@ public class EditorWindow : UIBaseWindow
     public override void InputFocusChanged(bool haveFocus)
     {
         if (haveFocus)
-            Priority++;
+            OrderInParent++;
         else
-            Priority--;
+            OrderInParent--;
 
         base.InputFocusChanged(haveFocus);
     }
@@ -224,7 +226,7 @@ public class EditorWindow : UIBaseWindow
                 Parent!.RemoveChild(this);
                 return false;
             }
-            Priority = _hostWindow.IsFocused ? 50 : 0;
+            OrderInParent = _hostWindow.IsFocused ? 50 : 0;
         }
 
         UpdateResize();
@@ -265,7 +267,7 @@ public class EditorWindow : UIBaseWindow
             OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
             OnClickedProxy = _ => { _panelDragResize = true; },
             OnClickedUpProxy = _ => { _panelDragResize = false; },
-            Priority = 99,
+            OrderInParent = 99,
             Anchor = UIAnchor.BottomRight,
             ParentAnchor = UIAnchor.BottomRight,
             FillX = false,
@@ -310,7 +312,7 @@ public class EditorWindow : UIBaseWindow
     {
         UICallbackButton topBar = new UICallbackButton
         {
-            Priority = -1,
+            OrderInParent = -1,
             HandleInput = true,
             MaxSizeY = 40,
             Id = "TopBar",
