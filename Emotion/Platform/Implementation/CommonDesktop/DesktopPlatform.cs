@@ -55,6 +55,36 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
         #region File IO
 
+        protected string _devModeAssetFolder = "";
+
+        public void DeveloperMode_SelectFileNative<T>(Action<AssetHandle<T>> onLoaded) where T : Asset, IAssetWithFileExtensionSupport, new()
+        {
+            string selectedPath = DeveloperMode_OSSelectFileToImport<T>();
+            if (string.IsNullOrEmpty(selectedPath)) return;
+
+            string assetPath = _devModeAssetFolder;
+            string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameDirectory);
+
+            bool existingAsset = selectedPath.StartsWith(fullAssetPath);
+            if (existingAsset)
+            {
+                string relativePath = Path.GetRelativePath(fullAssetPath, selectedPath);
+                AssetHandle<T> handle = Engine.AssetLoader.ONE_Get<T>(relativePath);
+                if (handle.AssetExists)
+                    onLoaded.Invoke(handle);
+            }
+            else
+            {
+                // todo: import asset
+            }
+        }
+
+        protected virtual string DeveloperMode_OSSelectFileToImport<T>() where T : Asset, IAssetWithFileExtensionSupport
+        {
+            // nop
+            return string.Empty;
+        }
+
         private bool DeveloperMode_InitializeAssetsFromProject()
         {
             Engine.Log.Trace("Attempting to add developer mode desktop asset sources.", MessageSource.Platform);
@@ -73,6 +103,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (projectFolder == null) return false;
 
             string assetFolder = Path.Join(projectFolder, "Assets");
+            _devModeAssetFolder = assetFolder;
             Engine.AssetLoader.ONE_AddAssetSource(new DevModeProjectAssetSource(assetFolder));
 
             // todo: add store
@@ -82,7 +113,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
         private static string DetermineDeveloperModeProjectFolder()
         {
-            string currentDirectory = Directory.GetCurrentDirectory();
+            string currentDirectory = AssetLoader.GameDirectory;
             DirectoryInfo parentDir = Directory.GetParent(currentDirectory);
             int levelsBack = 1;
             while (parentDir != null)
