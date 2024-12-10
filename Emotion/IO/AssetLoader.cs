@@ -4,8 +4,10 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
+using Emotion.Testing;
 using Emotion.Utility;
 
 #endregion
@@ -532,6 +534,34 @@ namespace Emotion.IO
             return loader;
         }
 
+        public Tree<string, string> GetAssetFileTree()
+        {
+            Tree<string, string> tree = new Tree<string, string>();
+
+            for (int i = 0; i < _assetSources.Count; i++)
+            {
+                AssetSource source = _assetSources[i];
+
+                string[] assets = source.GetManifest();
+                Array.Sort(assets);
+
+                foreach (string assetPath in assets)
+                {
+                    if (assetPath.Contains('/'))
+                    {
+                        string[] folderPath = assetPath.Split('/')[..^1];
+                        tree.Add(folderPath, assetPath);
+                    }
+                    else
+                    {
+                        tree.Leaves.Add(assetPath);
+                    }
+                }
+            }
+
+            return tree;
+        }
+
         #region ONE
 
         public void ONE_AddAssetSource(AssetSource source)
@@ -651,6 +681,22 @@ namespace Emotion.IO
             if (_assetRemap != null && _assetRemap.TryGetValue(engineName, out string? remappedName))
                 return remappedName;
             return engineName;
+        }
+
+        #endregion
+
+        #region Static Setup
+
+        public static string GameDirectory = string.Empty;
+
+        public static void SetupGameDirectory()
+        {
+            if (RuntimeInformation.OSDescription != "Browser")
+            {
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                GameDirectory = Directory.GetCurrentDirectory();
+                Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+            }
         }
 
         #endregion

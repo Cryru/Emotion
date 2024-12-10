@@ -144,18 +144,14 @@ namespace Emotion.Common
             if (Status >= EngineStatus.LightSetup) return;
             PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
 
-            // Correct the startup directory to the directory of the executable.
-            if (RuntimeInformation.OSDescription != "Browser")
-            {
-                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
-            }
-
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
             // If no config provided - use default.
             Configuration = configurator ?? new Configurator();
+
+            // Correct the startup directory to the directory of the executable.
+            AssetLoader.SetupGameDirectory();
 
             Log = Configuration.Logger ?? new NetIOAsyncLogger(Configuration.DebugMode);
             Log.Info($"Emotion V{MetaData.Version} [{MetaData.BuildConfig}] {MetaData.GitHash}", MessageSource.Engine);
@@ -165,7 +161,7 @@ namespace Emotion.Common
             Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
             Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
             Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
-            Log.Info($" Execution Directory: {Environment.CurrentDirectory}", MessageSource.Engine);
+            Log.Info($" Execution Directory: {Environment.CurrentDirectory}, Game Directory: {AssetLoader.GameDirectory}", MessageSource.Engine);
             Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
 
