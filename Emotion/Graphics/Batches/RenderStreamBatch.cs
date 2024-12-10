@@ -193,6 +193,13 @@ namespace Emotion.Graphics.Batches
                 AssertNotNull(_atlas);
                 AssertNotNull(_smoothAtlas);
 
+                // Optimization for batching empty textures into the smooth atlas too.
+                if (texture == Texture.EmptyWhiteTexture && _currentTexture == _smoothAtlas.AtlasPointer)
+                {
+                    texture = Texture.Smooth_EmptyWhiteTexture;
+                    texturePointer = texture.Pointer;
+                }
+
                 if (texture.Smooth && _smoothAtlas.TryBatchTexture(texture))
                 {
                     texturePointer = _smoothAtlas.AtlasPointer;
