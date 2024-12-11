@@ -505,7 +505,7 @@ namespace Emotion.Common
             Renderer.StartFrame();
             PerfProfiler.FrameEventEnd("StartFrame");
 
-            if (Configuration.DebugMode)
+            if (Configuration.DebugMode && EngineEditor.IsOpen)
             {
                 Renderer.SetUseViewMatrix(false);
                 Renderer.RenderSprite(Vector3.Zero, Renderer.CurrentTarget.Size, Color.CornflowerBlue);

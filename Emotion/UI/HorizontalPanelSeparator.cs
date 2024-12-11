@@ -1,4 +1,5 @@
-﻿using Emotion.UI;
+﻿
+using Emotion.UI;
 
 #nullable enable
 

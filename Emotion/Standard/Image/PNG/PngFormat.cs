@@ -307,13 +307,13 @@ namespace Emotion.Standard.Image.PNG
                 return null;
             }
 
-            if (fileHeader.BitDepth != 8) Engine.Log.Warning("Loading PNGs with a bit depth different than 8 will be deprecated in future versions.", MessageSource.ImagePng);
+            if (fileHeader.BitDepth != 8) Engine.Log.Warning("Loading PNGs with a bit depth other than 8 is slow. Convert your images!", MessageSource.ImagePng);
             if (fileHeader.BitDepth >= 8) bytesPerPixel = channelsPerColor * fileHeader.BitDepth / 8;
 
             // Check interlacing.
             if (fileHeader.InterlaceMethod == 1)
             {
-                Engine.Log.Warning("Loading interlaced PNGs will be deprecated in future versions. Convert your images!", MessageSource.ImagePng);
+                Engine.Log.Warning("Loading interlaced PNGs is slow. Convert your images!", MessageSource.ImagePng);
                 return ParseInterlaced(data, fileHeader, bytesPerPixel, channelsPerColor, reader);
             }
 

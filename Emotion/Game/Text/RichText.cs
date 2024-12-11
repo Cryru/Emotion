@@ -12,6 +12,7 @@ namespace Emotion.Game.Text
     /// <summary>
     /// A RichText object which manages text wrapping, styles, tagging, and more.
     /// </summary>
+    [Obsolete("Use UIRichText")]
     public class RichText : TransformRenderable
     {
         #region Global Settings

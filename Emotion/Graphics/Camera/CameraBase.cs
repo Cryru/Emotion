@@ -264,8 +264,8 @@ public abstract class CameraBase : Positional, IDisposable
 
     #region Statics
 
-    public static float NearZDefault2DProjection = -100;
-    public static float FarZDefault2DProjection = 100;
+    public static float NearZDefault2DProjection = -1000;
+    public static float FarZDefault2DProjection = 1000;
 
     /// <summary>
     /// Get the default 2d projection matrix for the currently bound framebuffer.

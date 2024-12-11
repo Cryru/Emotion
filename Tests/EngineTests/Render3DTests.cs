@@ -11,7 +11,6 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
-[Test]
 public class Render3DTests : TestingScene
 {
     private MeshEntity _testEntity;

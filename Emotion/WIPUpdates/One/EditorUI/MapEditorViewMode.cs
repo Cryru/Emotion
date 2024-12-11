@@ -178,8 +178,8 @@ public class MapEditorViewMode : UIBaseWindow
             c.SetDepthTest(true);
 
             c.PushModelMatrix(c.Camera.GetRotationMatrix());
-            c.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale()));
-            c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3(-100)));
+            c.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale(), 2f * GetScale(), -2f * GetScale()));
+            c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3(100)));
 
             // todo: render 3d in UI
             if (_gizmoEntity.Meshes != null)
