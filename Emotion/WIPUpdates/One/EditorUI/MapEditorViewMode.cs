@@ -177,6 +177,12 @@ public class MapEditorViewMode : UIBaseWindow
             c.RenderCircle(Position, Size.X / 2f, Color.White * 0.5f);
             c.SetDepthTest(true);
 
+            // todo: weirdness
+            // why is the scale inverted on the z axis
+            // why is the scale after the rotate, it should be SRT (scale, rotate, translate)
+            // wtf is going on here?
+            // if the scale is before the rotate it doesnt need to be inverted if the default projection has the near and far swapped.
+            // the mesh seems to be correct?
             c.PushModelMatrix(c.Camera.GetRotationMatrix());
             c.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale(), 2f * GetScale(), -2f * GetScale()));
             c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3(100)));
