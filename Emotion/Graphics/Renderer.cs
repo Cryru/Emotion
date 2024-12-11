@@ -567,7 +567,13 @@ namespace Emotion.Graphics
             // Check if the view matrix is off.
             if (!Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault())
             {
-                CurrentState.Shader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
+                // Same as in Camera2D as the default "no view" view is a 2D view.
+                // Keep that code in sync :)
+                Matrix4x4 noProjectionView =
+                    Matrix4x4.CreateScale(new Vector3(1, -1, 1)) *
+                    Matrix4x4.CreateLookAtLeftHanded(Vector3.Zero, new Vector3(0, 0, -1), Up2D);
+
+                CurrentState.Shader.SetUniformMatrix4("viewMatrix", noProjectionView);
                 return;
             }
 
