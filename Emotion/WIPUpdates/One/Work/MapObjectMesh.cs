@@ -54,6 +54,7 @@ public class MapObjectMesh : MapObject
     public void SetEntity(string assetPath)
     {
         UnloadOldAssetHandle();
+        EntityFilename = assetPath;
         _assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
         _assetHandle.OnAssetLoaded += OnEntityAssetChanged;
     }
@@ -72,6 +73,7 @@ public class MapObjectMesh : MapObject
 
     protected void UnloadOldAssetHandle()
     {
+        EntityFilename = null;
         if (_assetHandle != null)
         {
             _assetHandle.OnAssetLoaded -= OnEntityAssetChanged;
@@ -198,7 +200,7 @@ public class MapObjectMesh : MapObject
         }
 
         _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
-        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
+        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Z, _rotation.Y, _rotation.X);
         _scaleMatrix = Matrix4x4.CreateScale(_sizeX * entityScale, _sizeY * entityScale, _sizeZ * entityScale);
 
         Matrix4x4 rotMatrix = ignoreRotation ? Matrix4x4.Identity : _rotationMatrix;
