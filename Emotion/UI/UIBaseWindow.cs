@@ -1,11 +1,8 @@
 ﻿#region Using
 
-using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
-using Emotion.Game.Time;
 using Emotion.Game.Time.Routines;
-using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Standard.XML;
@@ -118,14 +115,6 @@ namespace Emotion.UI
             if (!Visible || _calculatedColor.A == 0) return;
             if (IsLoading()) return;
 
-            List<UIBaseWindow> relativeToMe = Controller?.GetWindowsRelativeToWindow(this) ?? EMPTY_CHILDREN_LIST;
-            //for (int i = 0; i < relativeToMe.Count; i++)
-            //{
-            //    UIBaseWindow relativeChild = relativeToMe[i];
-            //    if (relativeChild.IgnoreParentDisplacement)
-            //        relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
-            //}
-
             // Push displacements if any.
             var matrixPushed = false;
             if (_transformationStackBacking != null)
@@ -164,13 +153,6 @@ namespace Emotion.UI
 
             // Cache displaced position.
             EnsureRenderBoundsCached(c);
-
-            //for (int i = 0; i < relativeToMe.Count; i++)
-            //{
-            //    UIBaseWindow relativeChild = relativeToMe[i];
-            //    if (!relativeChild.IgnoreParentDisplacement)
-            //        relativeChild.TransformationStack.AddOrUpdate("relative-to-model-matrix", c.ModelMatrix, true, MatrixSpecialFlag.AlreadyScaled);
-            //}
 
             if (RenderInternal(c))
             {
@@ -332,22 +314,6 @@ namespace Emotion.UI
             Children = null;
         }
 
-        public void RecalculateZValue()
-        {
-            //Z = (-_priority) + (Parent?.Z - 0.01f ?? 0);
-        }
-
-        public void RecalculateZValueTree()
-        {
-            RecalculateZValue();
-            if (Children == null) return;
-            for (int i = 0; i < Children.Count; i++)
-            {
-                var child = Children[i];
-                child.RecalculateZValueTree();
-            }
-        }
-
         public virtual void AttachedToController(UIController controller)
         {
             bool isPresent = controller.IsWindowPresentInHierarchy(this);
@@ -361,7 +327,7 @@ namespace Emotion.UI
 
             Controller = controller;
             Controller?.InvalidatePreload();
-            RecalculateZValue();
+
             if (Children == null) return;
             for (var i = 0; i < Children.Count; i++)
             {
@@ -565,7 +531,6 @@ namespace Emotion.UI
             {
                 if (_priority == value) return;
                 _priority = value;
-                RecalculateZValueTree();
                 InvalidateLayout();
             }
         }

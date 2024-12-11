@@ -1,7 +1,6 @@
 ﻿#region Using
 
-using System.Globalization;
-using System.IO;
+using System.Globalization; 
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -38,36 +37,40 @@ namespace Emotion.Common
 
         /// <summary>
         /// Logs runtime information.
-        /// [LightSetup] Module
+        /// [LightSetup Module]
         /// </summary>
         public static LoggingProvider Log { get; private set; } = new PreSetupLogger();
 
         /// <summary>
         /// Handles loading assets and storing assets.
-        /// [LightSetup] Module
+        /// [LightSetup Module]
         /// </summary>
         public static AssetLoader AssetLoader { get; private set; }
 
         /// <summary>
         /// The platform reference.
+        /// [Setup Module]
         /// </summary>
         public static PlatformBase Host { get; private set; }
 
         /// <summary>
         /// Handles graphics and graphics context state, provides rendering APIs,
         /// and holds objects related to rendering.
+        /// [Host Module]
         /// </summary>
         public static RenderComposer Renderer { get; private set; }
 
         /// <summary>
-        /// Module which manages loading and unloading of scenes.
-        /// </summary>
-        public static SceneManager SceneManager { get; private set; }
-
-        /// <summary>
         /// The audio context of the platform. A redirect of Host.Audio.
+        /// [Host Module]
         /// </summary>
         public static AudioContext Audio { get; private set; }
+
+        /// <summary>
+        /// Module which manages loading and unloading of scenes.
+        /// [Setup Module]
+        /// </summary>
+        public static SceneManager SceneManager { get; private set; }
 
         /// <summary>
         /// The global coroutine manager, executes coroutines on update ticks.
@@ -78,20 +81,21 @@ namespace Emotion.Common
         /// <summary>
         /// The global coroutine manager that executes coroutines on update ticks and is considered in "game time".
         /// In singleplayer games these routines are paused when the game is paused, in multiplayer this is used for time sync, etc.
+        /// [Default Module]
         /// </summary>
         public static CoroutineManager CoroutineManagerGameTime => GameTime.CoroutineManager;
 
         /// <summary>
-        /// The current game time.
-        /// </summary>
-        public static float CurrentGameTime => GameTime.CoroutineManager.Time;
-
-        /// <summary>
-        /// Global coroutine manager that executes coroutines
-        /// on another thread.
+        /// Global coroutine manager that executes coroutines on another thread.
         /// [Default Module]
         /// </summary>
         public static CoroutineManager CoroutineManagerAsync { get; private set; } = new CoroutineManagerSleeping();
+
+        /// <summary>
+        /// Global UI system.
+        /// [Setup Module]
+        /// </summary>
+        public static UISystem UI;
 
         #endregion
 
@@ -105,6 +109,12 @@ namespace Emotion.Common
         /// Depends on the Configuration's TPS, and should always be constant.
         /// </summary>
         public static float DeltaTime { get; set; }
+
+        /// <summary>
+        /// The current game time. The meaning of this is a bit dependant on the game, but is
+        /// the time within the CoroutineManagerGameTime.
+        /// </summary>
+        public static float CurrentGameTime => GameTime.CoroutineManager.Time;
 
         /// <summary>
         /// The total time passed since the start of the engine, in milliseconds.
@@ -121,7 +131,11 @@ namespace Emotion.Common
         /// </summary>
         public static uint FrameCount { get; set; }
 
-        public static bool LogExceptions = true;
+        #region Internals
+
+        private static Thread _asyncRoutineThread;
+
+        #endregion
 
         static Engine()
         {
@@ -139,7 +153,7 @@ namespace Emotion.Common
         /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
         /// </summary>
         /// <param name="configurator">Optional engine configuration.</param>
-        public static void LightSetup(Configurator configurator = null)
+        private static void LightSetup(Configurator configurator = null)
         {
             if (Status >= EngineStatus.LightSetup) return;
             PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
@@ -187,7 +201,7 @@ namespace Emotion.Common
 
                 // If log.error throws an exception here, we're screwed.
                 // It wouldn't...but what if it does.
-                if (!LogExceptions) return;
+                if (!_logExceptions) return;
                 try
                 {
                     Log.Error(exception);
@@ -213,10 +227,20 @@ namespace Emotion.Common
         }
 
         /// <summary>
+        /// Start the engine with the specified config, calling the passing in coroutine as soon as
+        /// the engine is setup, on the CoroutineManagerAsync thread.
+        /// </summary>
+        public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
+        {
+            Setup(config);
+            Run(entryPointAsyncRoutine);
+        }
+
+        /// <summary>
         /// Perform engine setup.
         /// </summary>
         /// <param name="configurator">An optional engine configuration - will be passed to the light setup.</param>
-        public static void Setup(Configurator configurator = null)
+        private static void Setup(Configurator configurator = null)
         {
             // Call light setup if needed.
             if (Status < EngineStatus.LightSetup) LightSetup(configurator);
@@ -241,13 +265,16 @@ namespace Emotion.Common
             Renderer.Setup();
 
             // Now "game-mode" modules can be created.
+            AssetLoader.LateInit(); // init after host creation
             SceneManager = new SceneManager();
+            UI = new UISystem();
 
             // Load game data.
             GameDataDatabase.Initialize();
             LocalizationEngine.Initialize();
 
-            AssetLoader.LateInit();
+            // Debuggers
+            EngineEditor.Attach();
 
             // Setup plugins.
             PerfProfiler.ProfilerEventStart("Plugin Setup", "Loading");
@@ -267,7 +294,7 @@ namespace Emotion.Common
         /// <summary>
         /// Start running the engine. This call could be blocking depending on the loop.
         /// </summary>
-        public static void Run()
+        private static void Run(Func<IEnumerator> entryPointAsyncRoutine)
         {
             // This will prevent running when a startup error occured or when not setup at all.
             if (Status != EngineStatus.Setup) return;
@@ -281,6 +308,25 @@ namespace Emotion.Common
             TargetStep(targetStep);
 
             Status = EngineStatus.Running;
+
+            Thread asyncRoutineThread = new Thread(() =>
+            {
+                if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Async Routine Thread";
+
+                var lastUpdate = DateTime.Now;
+                while (Status == EngineStatus.Running)
+                {
+                    int timePassed = DateTime.Now.Subtract(lastUpdate).Milliseconds;
+                    CoroutineManagerAsync.Update(timePassed);
+                    if (timePassed != 0) lastUpdate = DateTime.Now;
+                    Thread.Yield();
+                }
+            });
+            asyncRoutineThread.IsBackground = true;
+            asyncRoutineThread.Start();
+            _asyncRoutineThread = asyncRoutineThread;
+            CoroutineManagerAsync.StartCoroutine(entryPointAsyncRoutine());
+
             if (Configuration.LoopFactory == null)
             {
                 Log.Info("Using default loop.", MessageSource.Engine);
@@ -288,7 +334,7 @@ namespace Emotion.Common
             }
 
             Log.Info("Starting loop...", MessageSource.Engine);
-            //Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
+            Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
         }
 
         /// <summary>
@@ -296,7 +342,7 @@ namespace Emotion.Common
         /// For more information on how the timing of the loop works ->
         /// https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
         /// </summary>
-        public static void DefaultMainLoop(Action tick, Action frame)
+        private static void DefaultMainLoop(Action tick, Action frame)
         {
             DetectVSync();
 
@@ -386,7 +432,7 @@ namespace Emotion.Common
             DeltaTime = (float)_targetTime;
         }
 
-        private static bool RunTickIfNeeded()
+        private static void RunTickIfNeeded()
         {
             double curTime = _updateTimer.ElapsedMilliseconds;
             double deltaTime = curTime - _lastTick;
@@ -414,7 +460,6 @@ namespace Emotion.Common
                 _accumulator = 0;
                 break;
             }
-            return updates > 0;
         }
 
         private static void RunTickInternal()
@@ -536,135 +581,15 @@ namespace Emotion.Common
             Quit();
         }
 
-        #region ONE
+        private static bool _logExceptions = true;
 
-        public static UISystem UI;
-
-        public static int CurrentUpdateFrame;
-        public static int CurrentRenderFrame;
-
-        public static ManualResetEventSlim RenderPush = new ManualResetEventSlim(false);
-
-        private static Thread _asyncRoutineThread;
-        private static Thread _updateThread;
-
-        public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
+        /// <summary>
+        /// Whether to temporarily suppress logging of uncaught exceptions.
+        /// Don't forget to call it with the inverse value when you're done!
+        /// </summary>
+        public static void SuppressLogExceptions(bool suppress)
         {
-            Setup(config);
-
-            UI = new UISystem();
-            EngineEditor.Attach();
-
-            // Sanity check.
-            if (Host == null) return;
-
-            // todo: these settings and objects might not be needed when using a non-default loop.
-            byte targetStep = Configuration.DesiredStep;
-            if (targetStep <= 0) targetStep = 60;
-            TargetStep(targetStep);
-
-            Status = EngineStatus.Running;
-
-            Thread asyncRoutineThread = new Thread(() =>
-            {
-                if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Async Routine Thread";
-
-                var lastUpdate = DateTime.Now;
-                while (Status == EngineStatus.Running)
-                {
-                    int timePassed = DateTime.Now.Subtract(lastUpdate).Milliseconds;
-                    CoroutineManagerAsync.Update(timePassed);
-                    if (timePassed != 0) lastUpdate = DateTime.Now;
-                    Thread.Yield();
-                }
-            });
-            asyncRoutineThread.IsBackground = true;
-            asyncRoutineThread.Start();
-            _asyncRoutineThread = asyncRoutineThread;
-            CoroutineManagerAsync.StartCoroutine(entryPointAsyncRoutine());
-
-            Thread updateThread = new Thread(UpdateThread);
-            updateThread.IsBackground = true;
-            updateThread.Start();
-            _updateThread = updateThread;
-
-            if (Configuration.LoopFactory == null)
-            {
-                Log.Info("Using default loop.", MessageSource.Engine);
-                Configuration.LoopFactory = NewDefaultMainLoopFactory;
-            }
-
-            Log.Info("Starting loop...", MessageSource.Engine);
-            Configuration.LoopFactory(EmptyFunc, NewFrameRun);
+            _logExceptions = !suppress;
         }
-
-        private static void EmptyFunc()
-        {
-
-        }
-
-        private static void NewDefaultMainLoopFactory(Action _, Action frame)
-        {
-            // Main loop
-            DetectVSync();
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
-            while (Status == EngineStatus.Running)
-            {
-                // Run the host events, and check whether it is closing.
-                if (!Host.Update())
-                {
-                    Log?.Info("Host was closed.", MessageSource.Engine);
-                    break;
-                }
-
-                // After tick, as it might close the host.
-                if (!Host.IsOpen) break;
-
-                frame();
-            }
-
-            Quit();
-        }
-
-        private static bool _multihreaded = false;
-
-        private static void NewFrameRun()
-        {
-            if (CurrentRenderFrame > CurrentUpdateFrame) return;
-
-            if (!_multihreaded)
-            {
-                //Single threaded mode!
-                RunTickIfNeeded();
-                CurrentUpdateFrame++;
-            }
-
-            RunFrame();
-            CurrentRenderFrame++;
-            RenderPush.Set();
-        }
-
-        private static void UpdateThread()
-        {
-            if (!_multihreaded) return;
-            if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Update Thread";
-
-            int updateFramesAhead = 1;
-            while (true)
-            {
-                if (CurrentUpdateFrame >= CurrentRenderFrame + updateFramesAhead)
-                {
-                    RenderPush.Wait();
-                    RenderPush.Reset();
-                }
-
-                bool tickRan = RunTickIfNeeded();
-                if (tickRan)
-                    CurrentUpdateFrame++;
-            }
-        }
-
-        #endregion
     }
 }

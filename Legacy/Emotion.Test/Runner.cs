@@ -138,101 +138,101 @@ namespace Emotion.Test
             Dictionary<string, byte[]> screenResultDb = null
         )
         {
-            if (args == null) args = new string[] { };
-            _otherConfigs = otherConfigs ?? new Dictionary<string, Action<Configurator>>();
-            _screenResultDb = screenResultDb ?? new Dictionary<string, byte[]>();
+            //if (args == null) args = new string[] { };
+            //_otherConfigs = otherConfigs ?? new Dictionary<string, Action<Configurator>>();
+            //_screenResultDb = screenResultDb ?? new Dictionary<string, byte[]>();
 
-            // Check for test run id. This signifies whether the runner is linked.
-            TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString().ToLower();
+            //// Check for test run id. This signifies whether the runner is linked.
+            //TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString().ToLower();
 
-            // Check if running only specific tests.
-            if (CommandLineParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
+            //// Check if running only specific tests.
+            //if (CommandLineParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
 
-            // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
-            string argsJoined = string.Join(" ", args);
-            string customConfig = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
-            CustomConfig = customConfig;
+            //// Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
+            //string argsJoined = string.Join(" ", args);
+            //string customConfig = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
+            //CustomConfig = customConfig;
 
-            string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
-            TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
+            //string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
+            //TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
 
-            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"Runner {TestTagDisplay}");
+            //RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"Runner {TestTagDisplay}");
 
-            // Check if master runner.
-            bool linked = TestRunId != RunnerId.ToString();
-            LoggingProvider log = new TestRunnerLogger(linked, Path.Join(TestRunFolder, "Logs"));
+            //// Check if master runner.
+            //bool linked = TestRunId != RunnerId.ToString();
+            //LoggingProvider log = new TestRunnerLogger(linked, Path.Join(TestRunFolder, "Logs"));
 
-            // Set the default engine settings for the test runner.
-            Configurator config = engineConfig;
-            config.DebugMode = true;
-            config.LoopFactory = TestLoop;
-            config.Logger = log;
+            //// Set the default engine settings for the test runner.
+            //Configurator config = engineConfig;
+            //config.DebugMode = true;
+            //config.LoopFactory = TestLoop;
+            //config.Logger = log;
 
-            if (customConfig != null && _otherConfigs.ContainsKey(customConfig) && _otherConfigs[customConfig] != null)
-            {
-                CustomConfig = customConfig;
-                Engine.Log.Info($"Loading custom engine config - {customConfig}...", TestRunnerLogger.TestRunnerSrc);
-                _otherConfigs[customConfig](config);
-            }
+            //if (customConfig != null && _otherConfigs.ContainsKey(customConfig) && _otherConfigs[customConfig] != null)
+            //{
+            //    CustomConfig = customConfig;
+            //    Engine.Log.Info($"Loading custom engine config - {customConfig}...", TestRunnerLogger.TestRunnerSrc);
+            //    _otherConfigs[customConfig](config);
+            //}
 
-            // Perform light setup.
-            Engine.LightSetup(config);
+            //// Perform light setup.
+            //Engine.LightSetup(config);
 
-            // Run linked runners (if the master).
-            if (linked)
-            {
-                log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", TestRunnerLogger.TestRunnerSrc);
-            }
-            else
-            {
-                // Spawn linked runners
-                if (!NoLinkedRunners)
-                    // Spawn a runner for each runtime config.
-                    foreach ((string arg, Action<Configurator> _) in _otherConfigs)
-                    {
-                        _linkedRunners.Add(new LinkedRunner(arg));
-                    }
-            }
+            //// Run linked runners (if the master).
+            //if (linked)
+            //{
+            //    log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", TestRunnerLogger.TestRunnerSrc);
+            //}
+            //else
+            //{
+            //    // Spawn linked runners
+            //    if (!NoLinkedRunners)
+            //        // Spawn a runner for each runtime config.
+            //        foreach ((string arg, Action<Configurator> _) in _otherConfigs)
+            //        {
+            //            _linkedRunners.Add(new LinkedRunner(arg));
+            //        }
+            //}
 
-            // Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
-            if (CommandLineParser.FindArgument(args, "testOnly", out string _))
-            {
-                Task tests = Task.Run(BeginRun);
-                while (!tests.IsCompleted) TestLoopUpdate();
-                Engine.Quit();
-                return;
-            }
+            //// Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
+            //if (CommandLineParser.FindArgument(args, "testOnly", out string _))
+            //{
+            //    Task tests = Task.Run(BeginRun);
+            //    while (!tests.IsCompleted) TestLoopUpdate();
+            //    Engine.Quit();
+            //    return;
+            //}
 
-            // Perform engine setup.
-            Engine.Setup(config);
+            //// Perform engine setup.
+            //Engine.Setup(config);
 
-            if (Engine.Renderer == null) return;
+            //if (Engine.Renderer == null) return;
 
-            // Move the camera center in a way that its center is 0,0
-            Engine.Renderer.Camera.Position += Engine.Renderer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
-            Task.Run(() =>
-            {
-                // Wait for the engine to start.
-                while (Engine.Status != EngineStatus.Running)
-                {
-                }
+            //// Move the camera center in a way that its center is 0,0
+            //Engine.Renderer.Camera.Position += Engine.Renderer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
+            //Task.Run(() =>
+            //{
+            //    // Wait for the engine to start.
+            //    while (Engine.Status != EngineStatus.Running)
+            //    {
+            //    }
 
-                // If crashed.
-                if (Engine.Status == EngineStatus.Stopped) return;
+            //    // If crashed.
+            //    if (Engine.Status == EngineStatus.Stopped) return;
 
-                // Name the thread.
-                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Runner Thread";
+            //    // Name the thread.
+            //    if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Runner Thread";
 
-                BeginRun();
+            //    BeginRun();
 
-                Engine.Quit();
+            //    Engine.Quit();
 
-                // Wait for the engine to stop.
-                while (Engine.Status == EngineStatus.Running)
-                {
-                }
-            });
-            Engine.Run();
+            //    // Wait for the engine to stop.
+            //    while (Engine.Status == EngineStatus.Running)
+            //    {
+            //    }
+            //});
+            //Engine.Run();
         }
 
         private static void BeginRun()

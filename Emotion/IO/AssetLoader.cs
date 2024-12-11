@@ -362,7 +362,7 @@ namespace Emotion.IO
         {
             if (Exists("AssetRemap.xml"))
             {
-                var assetRemapAsset = Get<XMLAsset<Dictionary<string, string>>>("AssetRemap.xml");
+                XMLAsset<Dictionary<string, string>>? assetRemapAsset = Get<XMLAsset<Dictionary<string, string>>>("AssetRemap.xml");
                 if (assetRemapAsset != null)
                     _assetRemap = assetRemapAsset.Content;
             }

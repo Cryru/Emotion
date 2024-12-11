@@ -62,10 +62,10 @@ public abstract partial class WorldBaseEditor
         if (!Engine.Configuration.DebugMode) return;
         Engine.Host.OnKey.AddListener(EditorInputHandler, KeyListenerType.Editor);
         Engine.Host.OnKey.AddListener(TempEditorCamera2DInputHandler, KeyListenerType.EditorCamera);
-        _editorUIAlways = new UIController(KeyListenerType.EditorUI)
-        {
-            Id = "WorldEditor_AlwaysOnTop"
-        };
+        //_editorUIAlways = new UIController(KeyListenerType.EditorUI)
+        //{
+        //    Id = "WorldEditor_AlwaysOnTop"
+        //};
     }
 
     public void UnloadEditor()

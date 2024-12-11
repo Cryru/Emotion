@@ -63,7 +63,7 @@ public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
         if (Asset != null)
         {
             // Due to sharing violations we should try to hot reload this in a try-catch.
-            Engine.LogExceptions = false;
+            Engine.SuppressLogExceptions(true);
             try
             {
                 data = source.GetAsset(Name);
@@ -74,7 +74,7 @@ public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
             }
             finally
             {
-                Engine.LogExceptions = true;
+                Engine.SuppressLogExceptions(false);
             }
 
             if (Asset is not IHotReloadableAsset reloadableAsset) return true;

@@ -87,7 +87,7 @@ public static partial class EngineEditor
         if (!IsOpen) return;
         RenderMapEditor(c);
 
-        string perfReadoutStr = $"FPS: {PerformanceMetrics.FpsLastSecond}\nDraw Calls: {PerformanceMetrics.DrawCallsLastFrame}\nUpdate Ahead:{Engine.CurrentUpdateFrame - Engine.CurrentRenderFrame}";
+        string perfReadoutStr = $"FPS: {PerformanceMetrics.FpsLastSecond}\nDraw Calls: {PerformanceMetrics.DrawCallsLastFrame}";
         //c.RenderString(Vector3.Zero, Color.White, perfReadoutStr, FontAsset.GetDefaultBuiltIn().GetAtlas(30), null, Graphics.Text.FontEffect.Outline, 2f, Color.Black);
         //_perfText.Text = ;
     }

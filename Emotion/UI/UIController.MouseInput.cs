@@ -1,4 +1,6 @@
-﻿namespace Emotion.UI;
+﻿using Emotion.Platform.Input;
+
+namespace Emotion.UI;
 
 #nullable enable
 
@@ -44,26 +46,6 @@ public partial class UIController
 
     }
 
-    private static void ClearControllersMouseInputExcept(UIController? except)
-    {
-        for (var i = 0; i < _allControllers.Count; i++)
-        {
-            UIController controller = _allControllers[i];
-            if (controller == except) continue;
-            controller.SetControllerMouseFocus(null);
-        }
-
-        // Reset update trackers.
-        for (var i = 0; i < _allControllers.Count; i++)
-        {
-            UIController controller = _allControllers[i];
-            controller._calledUpdateTickBeforeLast = controller._calledUpdateLastTick;
-            controller._calledUpdateLastTick = false;
-        }
-
-        MouseFocus = except?._myMouseFocus;
-    }
-
     /// <summary>
     /// If currently holding down a mouse button don't change the mouse focus if it is still valid.
     /// </summary>
@@ -87,7 +69,7 @@ public partial class UIController
             _myMouseFocus?.OnMouseLeft(mousePos);
             if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
             _myMouseFocus = newMouseFocus;
-            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
+            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyListenerType.UI);
             _myMouseFocus?.OnMouseEnter(mousePos);
             MouseFocus = newMouseFocus;
 
