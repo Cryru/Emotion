@@ -1,11 +1,25 @@
 # Emotion
 <img src="EmotionLogo.png" width="128px" />
 
-![CI-Windows](https://github.com/Cryru/Emotion/workflows/CI-Windows/badge.svg?branch=master)
+![CI-Windows](https://github.com/Cryru/Emotion/actions/workflows/buildWindows.yml/badge.svg?branch=master)
 
 ## What is it?
 
-Emotion is a cross-platform 2D oriented game engine written in C#. Its goal is to have *no native* dependencies and be truly portable (apart from the platform specific code of course). The core principle is that making games as a programmer should be about coding. Not about drag and drop interfaces and navigating menus, nor wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
+Emotion is a cross-platform game engine written in C# with minimal dependencies, for me to make games in. The engine is more targeted towards programmers and is alternative to stuff like MonoGame, FNA, and Love rather than Unity.
+
+## Games
+
+### [Electric Sleep](https://store.steampowered.com/app/1011620/Electric_Sleep/)
+
+A visual novel built on the first versions of Emotion for Windows, Linux, and x64 Mac.
+The version this game was built on is kept in the "adfectus-backup" branch. 
+
+### Escape the Arcana
+
+A roguelike deckbuilder built on "version zero" of Emotion for Windows and Linux, with an Android version built but not published.
+The version this game was built on is kept in the "EtA" branch.
+
+https://store.steampowered.com/app/2953200/Escape_the_Arcana/
 
 ## Documentation
 
@@ -13,34 +27,20 @@ Check out the "Tests" project for examples, the comments in code, and the [Emoti
 
 ## Requirements for Developers and Players:
 
-- OpenGL 3.0 or higher
+- OpenGL 3.0 or higher supported hardware
   - Or DirectX 11 if ANGLE is enabled
   - Or a multi-core CPU if the Mesa software renderer is enabled
   - WebGL 2.0 on Web
-- Be able to run the Net 7 runtime.
+- Be able to run the Net 9 runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
-  - For Windows 7 you'll also need a specific security update [KB3063858](https://learn.microsoft.com/en-us/dotnet/core/install/windows?tabs=net60#dependencies)
-	- WASM support on Web
-- A supported platform.
+	- For Windows 7 you'll also need a specific security update [KB3063858](https://learn.microsoft.com/en-us/dotnet/core/install/windows?tabs=net60#dependencies)
+- A supported platform:
+	- Windows 32 and 64 bit
+ 	- Linux 64 bit (Steam Deck works too)
+	- Android API 23+
+ 	- Or implement your own via PlatformBase :)
 
 That's it.
-
-## Platforms
-
-Supported platforms are those implemented in Emotion.Platform. You are free to implement one yourself. Refer to the code for more information.
-
-The goal is for the following platforms to be supported: 
-  - Debian 9+ x64 +
-    - Linux Mint 18 +
-    - Ubuntu 17.10 +
-  - Chromium 70+
-
-Currently supported:
-  - Windows 7+ x64 & x86
-  - MacOSX 10.13+ x64 (Compile with "GLFW;OpenAL")
-  - Ubuntu/Mint 20.03+ x64 (Compile with "GLFW;OpenAL")
-
-Note: WebAssembly support (Emotion.Web) isn't functional since .Net 7
 
 ### Configurations Tested On:
 
@@ -51,6 +51,7 @@ Note: WebAssembly support (Emotion.Web) isn't functional since .Net 7
   - AMD Radeon HD 5700 Series
   - Nvidia 960M
   - GPU-less (Microsoft Basic Render Driver)
+  - AMD Radeon RX 6600
 - Windows 7 x86
   - Intel 4 Series Express (using Mesa)
   - Nvidia 960M
@@ -59,91 +60,24 @@ Note: WebAssembly support (Emotion.Web) isn't functional since .Net 7
 - Linux Mint 19.2
   - Nvidia 960M
 - Chromium 86 (Not feature complete)
+- Steam Deck
+	- Native linux build
 
-## Features So Far
+## Developing and Building
 
-- Custom platform code.
-  - Window creation, keyboard, mouse, and text input.
-  - Borderless fullscreen, and windowed support. (terms and conditions may apply)
-  - Pause when focus is lost, lowering resource usage in the background.
-  - Google ANGLE support
-  - Software renderer (llvmpipe) fallback on Windows
-  - GLFW support
-- File Support
-  - Reading and writing of various BMP formats and PNG files.
-	- BMP: 8/16/24/32bit
-	- PNG: All png formats and bit depths are supported. Tested against the PNGSuite.
-  - Parsing and rasterizing of "CFF" and "TTF" font formats using a custom parser and rasterizer.
-	  - Optionally the font can also be rasterized using StbTrueType.
-  - "WAV" files for audio.
-  - OBJ files (Vertices, UVs, Multiple Geosets, MTL's with diffuse color textures) + their rendering.
-- Asset loading and management, virtual file system.
-  - Reading and writing of files - for custom editors.
-  - Packing files into binary blobs for obfuscation, easy transport, and potentially compression. (Only option for Web platform)
-  - Keeps track of which assets are loaded.
-- Layer-based audio system with playlists and a high quality sinc sample-rate converter.
-  - Custom WASAPI implementation for Windows
-  - OpenAL support
-- Extensible camera system.
-  - Included pixel art, 2d, and 3d camera.
-- Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
-  - Unsynchronized rendering
-  - Sensible defaults
-  - Built in drawing functions for 2D primitives like lines, rectangles, triangles, and ellipses (or circles).
-  - Easy drawing of arbitrary vertices.
-- Spritesheet based animation in either a grid or freeform format.
-  - The animation editor allows you to easily detect frames in a spritesheet and visually create animation controllers.
-  - The animation controller keeps a set of animations and handles switching between them.
-- Custom text rendering with atlases created at runtime.
-  - Extensible RichText and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
-  - Load and rasterize glyphs in real time, allowing CJK+ support without having to preload large atlases.
-  - Crisp SDF text and rasterizer, with atlas caching.
-- Automatic scaling, making your game look reasonably the same on all resolutions.
-  - Integer scaling mode for pixel art games. (With black borders, or camera scaling)
-- Shader Pipeline
-  - Automatically tries multiple preprocessors to increase the compatibility of your shader.
-  - Specify custom fallbacks!
-  - Predefined uniforms based on ShaderToy.
-  - Easily switch between backends such as ANGLE (GLES) and Mesa3D to check your shader compatibility.
-  - Custom uniform default values on GLES
-- Various data structures and algorithms implemented.
-  - A* with custom heuristic support
-  - Generic QuadTree
-  - 2D binning
-  - Sprite stacking - generate voxel models from a spritesheet!
-- Logging, easily extendible and modifiable.
-  - Runs on another thread and generates log files.
-  - Remote logging to PaperTrail and other services which support UDP logging.
-- Framerate independent timing with a configurable semi-fixed step.
-  - Provide your own custom engine loop, if you'd like.
-- Easy tilemap drawing and handling, animated tiles, object handling and lookup, and more.
-  - .TMX support and integration with [Tiled](https://www.mapeditor.org/)
-- Custom fast XML serializer/deserializer with support for derived types, dictionaries, and others.
-  - Compliant with .Net System.Text.XML
-- Basic scene system, where new scenes load in a new thread while a loading screen scene plays.
-- Basic skeletal animation
-- FBX, OBJ and other file types supported by Assimp are supported.
-	- Need to be converted to a custom 3D format (em3) using the included tool.
-
-and many more!
-
-## Building and Using
-
-If you want to use all of Emotion's features such as, the testing library (Emotion.Test) to create unit/intergration tests for your game, the tools library (Emotion.Tools) to easily create developer tools (or use the included tools), or any of the plugins, you should clone the repo and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
-
-If you just want to write some code or take it for a spin you can use the Nuget package - https://www.nuget.org/packages/Emotion
-The package includes a precompiled debug version of Emotion, but doesn't include any of the native libraries. You don't really need those for most use cases, but you can download them seperately from the repo at [Emotion/AssetsNativeLibs](https://github.com/Cryru/Emotion/tree/master/Emotion/AssetsNativeLibs).
-
-It is recommended you develop with a cloned version of the Emotion repo referenced rather than using the precompiled nuget.
+It is recommended you develop with a cloned version of the Emotion repo linking Emotion.csproj in your solution. This way you have the most control over your code.
+Using nuget packages, prebuilt dlls, and any other ways of linking Emotion is not supported.
 
 ## Projects Used
 
 This includes dependencies and projects which were used for research references.
+If you're distributing code using this project include the "LICENSE THIRD-PARTY" file from the repository.
 
 | Library | License | Used For | Inclusion |
 | -- | -- | -- | -- |
 | .Net Core | MIT | Runtime | Nuget
 | System.Numerics | MIT | Data structures and hardware intrinsics | Nuget
+| [xxhash (pure C# implementation)](https://github.com/uranium62/xxHash) | MIT | Hashing data
 | Forks
 | [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Platform/Implementation/Win32/Native
 | [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Platform/OpenGL
@@ -169,14 +103,3 @@ This includes dependencies and projects which were used for research references.
 | [NAudio](https://github.com/naudio/NAudio) | X | Audio Code Reference | None
 | [Audacity](https://github.com/audacity) | X | Audio Code Reference | None
 | [Astiopin's SDF generator](https://github.com/astiopin/sdf_atlas) | X | EmotionSDF4 atlas generation reference | None
-
-If you're distributing code using this project include the "LICENSE THIRD-PARTY" file from the repository.
-
-## Inspired By:
-
-- Processing
-- MonoGame
-- Mononoke
-- LOVE Framework
-- Sparky
-- OpenTK
