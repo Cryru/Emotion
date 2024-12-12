@@ -112,10 +112,10 @@
         <None Update="Assets\CachedResults\EmotionTTAtlas.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\FramebufferResizing.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\FramebufferResizing().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\LineDrawing.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\LineDrawing().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\LineDrawingLinux.png">
@@ -149,19 +149,19 @@
         <None Update="Assets\CachedResults\ShaderTest3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestDepthFromOtherFrameBuffer.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\TestDepthFromOtherFrameBuffer().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestFullScale.png">
+        <None Update="Assets\ReferenceRenders\ResizeTests\TestFullScale().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestFullScaleInteger.png">
+        <None Update="Assets\ReferenceRenders\ResizeTests\TestFullScaleInteger().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestUVMapping.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\TestUVMapping().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TilemapRender.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\TilemapRender().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\UIControllerDisplacementTest.png">

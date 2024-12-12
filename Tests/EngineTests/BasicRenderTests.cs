@@ -14,7 +14,6 @@ using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Testing;
 using Emotion.Utility;
-using Tests.Results;
 
 #endregion
 
@@ -286,170 +285,174 @@ public class BasicRenderTests : ProxyRenderTestingScene
         VerifyScreenshot();
     }
 
-    //[Test]
-    //public void TilemapTest()
-    //{
-    //    var tileMap = new TileMap<TransformRenderable>("Tilemap/DeepForest.tmx");
+    [Test]
+    public IEnumerator TilemapRender()
+    {
+        var tileMap = new TileMap<TransformRenderable>("Tilemap/DeepForest.tmx");
 
-    //    Runner.ExecuteAsLoop(_ =>
-    //    {
-    //        RenderComposer composer = Engine.Renderer.StartFrame();
+        ToRender = (composer) =>
+        {
+            composer.SetUseViewMatrix(false);
+            composer.Render(tileMap);
+        };
 
-    //        composer.Render(tileMap);
+        yield return new TestWaiterRunLoops(1);
+        VerifyScreenshot();
+    }
 
-    //        Engine.Renderer.EndFrame();
-    //        Runner.VerifyScreenshot(ResultDb.TilemapRender);
-    //    }).WaitOne();
+    /// <summary>
+    /// Tests reading the FrameBuffer's depth texture, and using it to copy the depth over to the draw buffer.
+    /// </summary>
+    [Test]
+    public IEnumerator TestDepthFromOtherFrameBuffer()
+    {
+        ToRender = (composer) =>
+         {
+             FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WithDepth(true);
+             ShaderAsset shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/DepthTest.xml");
 
-    //    tileMap.Reset("");
-    //}
+             composer.Camera.Position += composer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
 
-    ///// <summary>
-    ///// Tests reading the FrameBuffer's depth texture, and using it to copy the depth over to the draw buffer.
-    ///// </summary>
-    //[Test]
-    //public void TestDepthFromOtherFrameBuffer()
-    //{
-    //    Runner.ExecuteAsLoop(_ =>
-    //    {
-    //        FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WithDepth(true);
-    //        var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/DepthTest.xml");
+             composer.RenderTo(testBuffer);
+             composer.ClearFrameBuffer();
+             composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), Color.Green);
+             composer.RenderTo(null);
 
-    //        RenderComposer composer = Engine.Renderer.StartFrame();
-    //        composer.RenderTo(testBuffer);
-    //        composer.ClearFrameBuffer();
-    //        composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), Color.Green);
-    //        composer.RenderTo(null);
+             composer.SetUseViewMatrix(false);
+             composer.SetShader(shader.Shader);
+             shader.Shader.SetUniformInt("depthTexture", 1);
+             Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
+             composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
+             composer.SetShader();
+             composer.SetUseViewMatrix(true);
 
-    //        composer.SetUseViewMatrix(false);
-    //        composer.SetShader(shader.Shader);
-    //        shader.Shader.SetUniformInt("depthTexture", 1);
-    //        Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
-    //        composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
-    //        composer.SetShader();
-    //        composer.SetUseViewMatrix(true);
+             composer.RenderSprite(new Vector3(20, 20, 15), new Vector2(100, 100), Color.Blue);
+             composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.Red);
 
-    //        composer.RenderSprite(new Vector3(20, 20, 15), new Vector2(100, 100), Color.Blue);
-    //        composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.Red);
+             composer.FlushRenderStream();
+             testBuffer.Dispose();
 
-    //        Engine.Renderer.EndFrame();
-    //        Runner.VerifyScreenshot(ResultDb.TestDepthFromOtherFrameBuffer);
+             composer.Camera.Position = Vector3.Zero;
+         };
 
-    //        testBuffer.Dispose();
-    //    }).WaitOne();
-    //}
+        yield return new TestWaiterRunLoops(1);
+        VerifyScreenshot();
+    }
 
-    ///// <summary>
-    ///// Tests whether the UVs are mapped properly and flipping functionality.
-    ///// </summary>
-    //[Test]
-    //public void TestUVMapping()
-    //{
-    //    var asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAsymmetric.png");
+    /// <summary>
+    /// Tests whether the UVs are mapped properly and flipping functionality.
+    /// </summary>
+    [Test]
+    public IEnumerator TestUVMapping()
+    {
+        var asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAsymmetric.png");
 
-    //    Runner.ExecuteAsLoop(_ =>
-    //    {
-    //        RenderComposer composer = Engine.Renderer.StartFrame();
+        ToRender = (composer) =>
+        {
+            composer.SetUseViewMatrix(false);
 
-    //        composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true);
-    //        composer.RenderSprite(new Vector3(100, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, false, true);
-    //        composer.RenderSprite(new Vector3(200, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true, true);
+            composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true);
+            composer.RenderSprite(new Vector3(100, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, false, true);
+            composer.RenderSprite(new Vector3(200, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true, true);
 
-    //        composer.FlushRenderStream();
-    //        asset.Texture.Tile = false;
+            composer.FlushRenderStream();
+            asset.Texture.Tile = false;
 
-    //        composer.RenderSprite(new Vector3(10, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true);
-    //        composer.RenderSprite(new Vector3(100, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, false, true);
-    //        composer.RenderSprite(new Vector3(200, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true, true);
+            composer.RenderSprite(new Vector3(10, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true);
+            composer.RenderSprite(new Vector3(100, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, false, true);
+            composer.RenderSprite(new Vector3(200, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true, true);
 
-    //        composer.RenderSprite(new Vector3(10, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), true);
-    //        composer.RenderSprite(new Vector3(100, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), false, true);
-    //        composer.RenderSprite(new Vector3(200, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), true, true);
+            composer.RenderSprite(new Vector3(10, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), true);
+            composer.RenderSprite(new Vector3(100, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), false, true);
+            composer.RenderSprite(new Vector3(200, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), true, true);
 
-    //        composer.FlushRenderStream();
-    //        asset.Texture.Tile = true;
-    //        Engine.Renderer.EndFrame();
-    //        Runner.VerifyScreenshot(ResultDb.TestUVMapping);
-    //    }).WaitOne();
-    //}
+            composer.FlushRenderStream();
+            asset.Texture.Tile = true;
+        };
 
-    ///// <summary>
-    ///// Framebuffer resizing
-    ///// </summary>
-    //[Test]
-    //public void FramebufferResizing()
-    //{
-    //    Runner.ExecuteAsLoop(_ =>
-    //    {
-    //        FrameBuffer testBuffer = new FrameBuffer(new Vector2(1000, 1000)).WithColor();
+        yield return new TestWaiterRunLoops(1);
+        VerifyScreenshot();
+    }
 
-    //        RenderComposer composer = Engine.Renderer.StartFrame();
+    /// <summary>
+    /// Framebuffer resizing
+    /// </summary>
+    [Test]
+    public IEnumerator FramebufferResizing()
+    {
+        ToRender = (composer) =>
+        {
+            FrameBuffer testBuffer = new FrameBuffer(new Vector2(1000, 1000)).WithColor();
 
-    //        composer.RenderToAndClear(testBuffer);
-    //        composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(1000, 1000), Color.Red);
-    //        composer.RenderTo(null);
+            composer.SetUseViewMatrix(false);
 
-    //        composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(100, 100), Color.White, testBuffer.Texture);
-    //        testBuffer.Resize(new Vector2(500, 500), true);
+            composer.RenderToAndClear(testBuffer);
+            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(1000, 1000), Color.Red);
+            composer.RenderTo(null);
 
-    //        composer.RenderToAndClear(testBuffer);
-    //        composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(500, 500), Color.Green);
-    //        composer.RenderTo(null);
+            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(100, 100), Color.White, testBuffer.Texture);
+            testBuffer.Resize(new Vector2(500, 500), true);
 
-    //        composer.RenderFrameBuffer(testBuffer, new Vector2(100, 100), new Vector3(100, 0, 0));
+            composer.RenderToAndClear(testBuffer);
+            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(500, 500), Color.Green);
+            composer.RenderTo(null);
 
-    //        Engine.Renderer.EndFrame();
-    //        Runner.VerifyScreenshot(ResultDb.FramebufferResizing);
+            composer.RenderFrameBuffer(testBuffer, new Vector2(100, 100), new Vector3(100, 0, 0));
 
-    //        testBuffer.Dispose();
-    //    }).WaitOne();
-    //}
+            composer.FlushRenderStream();
 
-    ///// <summary>
-    ///// Test drawing of lines.
-    ///// </summary>
-    //[Test]
-    //public void LineDrawing()
-    //{
-    //    Runner.ExecuteAsLoop(_ =>
-    //    {
-    //        RenderComposer composer = Engine.Renderer.StartFrame();
+            testBuffer.Dispose();
+        };
 
-    //        composer.PushModelMatrix(Matrix4x4.CreateTranslation(200, 200, 0));
+        yield return new TestWaiterRunLoops(1);
+        VerifyScreenshot();
+    }
 
-    //        // Diagonal Lines
-    //        composer.RenderLine(new Vector3(10, 10, 0), new Vector3(50, 50, 0), Color.White);
-    //        composer.RenderLine(new Vector3(50, 50, 0), new Vector3(100, 100, 0), Color.White, 2);
-    //        composer.RenderLine(new Vector3(100, 100, 0), new Vector3(150, 150, 0), Color.White, 3);
+    /// <summary>
+    /// Test drawing of lines.
+    /// </summary>
+    [Test]
+    public IEnumerator LineDrawing()
+    {
+        ToRender = (composer) =>
+        {
+            composer.SetUseViewMatrix(false);
 
-    //        // Horizontal lines
-    //        // 100 pixels long
-    //        composer.RenderLine(new Vector3(100, 10, 0), new Vector3(200, 10, 0), Color.White);
-    //        composer.RenderLine(new Vector3(100, 20, 0), new Vector3(200, 20, 0), Color.White, 2);
-    //        composer.RenderLine(new Vector3(100, 30, 0), new Vector3(200, 30, 0), Color.White, 3);
-    //        composer.RenderLine(new Vector3(100, 40, 0), new Vector3(200, 40, 0), Color.White, 4);
+            composer.PushModelMatrix(Matrix4x4.CreateTranslation(200, 200, 0));
 
-    //        // Vertical
-    //        // 100 pixels high
-    //        composer.RenderLine(new Vector3(10, 100, 0), new Vector3(10, 200, 0), Color.White);
-    //        composer.RenderLine(new Vector3(20, 100, 0), new Vector3(20, 200, 0), Color.White, 2);
-    //        composer.RenderLine(new Vector3(30, 100, 0), new Vector3(30, 200, 0), Color.White, 3);
-    //        composer.RenderLine(new Vector3(40, 100, 0), new Vector3(40, 200, 0), Color.White, 4);
+            // Diagonal Lines
+            composer.RenderLine(new Vector3(10, 10, 0), new Vector3(50, 50, 0), Color.White);
+            composer.RenderLine(new Vector3(50, 50, 0), new Vector3(100, 100, 0), Color.White, 2);
+            composer.RenderLine(new Vector3(100, 100, 0), new Vector3(150, 150, 0), Color.White, 3);
 
-    //        // Test lines in all 2d directions. Z would only be visible with a 3d. camera.
-    //        composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(10, 0, 0), Color.Red);
-    //        composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 10, 0), Color.Green);
-    //        composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 0, 10), Color.Blue);
+            // Horizontal lines
+            // 100 pixels long
+            composer.RenderLine(new Vector3(100, 10, 0), new Vector3(200, 10, 0), Color.White);
+            composer.RenderLine(new Vector3(100, 20, 0), new Vector3(200, 20, 0), Color.White, 2);
+            composer.RenderLine(new Vector3(100, 30, 0), new Vector3(200, 30, 0), Color.White, 3);
+            composer.RenderLine(new Vector3(100, 40, 0), new Vector3(200, 40, 0), Color.White, 4);
 
-    //        // Lines must be at least 1 pixel thick.
-    //        composer.RenderArrow(new Vector3(10, 0, 0), new Vector3(100, 0, 0), Color.Red, 0.1f);
-    //        composer.RenderArrow(new Vector3(0, 10, 0), new Vector3(0, 100, 0), Color.Green, 0.1f);
-    //        composer.RenderArrow(new Vector3(0, 0, 10), new Vector3(0, 0, 100), Color.Blue, 0.1f);
+            // Vertical
+            // 100 pixels high
+            composer.RenderLine(new Vector3(10, 100, 0), new Vector3(10, 200, 0), Color.White);
+            composer.RenderLine(new Vector3(20, 100, 0), new Vector3(20, 200, 0), Color.White, 2);
+            composer.RenderLine(new Vector3(30, 100, 0), new Vector3(30, 200, 0), Color.White, 3);
+            composer.RenderLine(new Vector3(40, 100, 0), new Vector3(40, 200, 0), Color.White, 4);
 
-    //        composer.PopModelMatrix();
-    //        Engine.Renderer.EndFrame();
+            // Test lines in all 2d directions. Z would only be visible with a 3d. camera.
+            composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(10, 0, 0), Color.Red);
+            composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 10, 0), Color.Green);
+            composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 0, 10), Color.Blue);
 
-    //        Runner.VerifyScreenshot(ResultDb.LineDrawing);
-    //    }).WaitOne();
-    //}
+            // Lines must be at least 1 pixel thick.
+            composer.RenderArrow(new Vector3(10, 0, 0), new Vector3(100, 0, 0), Color.Red, 0.1f);
+            composer.RenderArrow(new Vector3(0, 10, 0), new Vector3(0, 100, 0), Color.Green, 0.1f);
+            composer.RenderArrow(new Vector3(0, 0, 10), new Vector3(0, 0, 100), Color.Blue, 0.1f);
+
+            composer.PopModelMatrix();
+        };
+
+        yield return new TestWaiterRunLoops(1);
+        VerifyScreenshot();
+    }
 }

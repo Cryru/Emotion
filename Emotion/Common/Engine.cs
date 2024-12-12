@@ -438,7 +438,7 @@ namespace Emotion.Common
             _targetTimeFuzzyUpper = 1000d / (_desiredStep + 1);
 
             // Keep delta time constant.
-            DeltaTime = (float)_targetTime;
+            DeltaTime = (float) _targetTime;
         }
 
         private static void RunTickIfNeeded()
