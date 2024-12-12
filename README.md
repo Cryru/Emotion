@@ -11,15 +11,15 @@ Emotion is a cross-platform game engine written in C# with minimal dependencies,
 
 ### [Electric Sleep](https://store.steampowered.com/app/1011620/Electric_Sleep/)
 
-A visual novel built on the first versions of Emotion for Windows, Linux, and x64 Mac.
+A visual novel for Windows, Linux, and x64 Mac.
+
 The version this game was built on is kept in the "adfectus-backup" branch. 
 
-### Escape the Arcana
+### [Escape the Arcana](https://store.steampowered.com/app/2953200/Escape_the_Arcana/)
 
-A roguelike deckbuilder built on "version zero" of Emotion for Windows and Linux, with an Android version built but not published.
+A roguelike deckbuilder for Windows and Linux, with an Android version built but not published.
+
 The version this game was built on is kept in the "EtA" branch.
-
-https://store.steampowered.com/app/2953200/Escape_the_Arcana/
 
 ## Documentation
 
@@ -41,27 +41,6 @@ Check out the "Tests" project for examples, the comments in code, and the [Emoti
  	- Or implement your own via PlatformBase :)
 
 That's it.
-
-### Configurations Tested On:
-
-- Windows 10 x64
-  - Nvidia GeForce 1050, 1060, 1070
-  - Intel UHD Graphics 620
-  - Nvidia GeForce 940MX
-  - AMD Radeon HD 5700 Series
-  - Nvidia 960M
-  - GPU-less (Microsoft Basic Render Driver)
-  - AMD Radeon RX 6600
-- Windows 7 x86
-  - Intel 4 Series Express (using Mesa)
-  - Nvidia 960M
-- MacOSX 10.13 x64 High Sierra
-  - MacBook Air (Intel 4000)
-- Linux Mint 19.2
-  - Nvidia 960M
-- Chromium 86 (Not feature complete)
-- Steam Deck
-	- Native linux build
 
 ## Developing and Building
 
