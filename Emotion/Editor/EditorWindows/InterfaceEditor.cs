@@ -49,7 +49,7 @@ public class InterfaceEditor : EditorPanel
         {
             _inspecting = true;
             HandleInput = true;
-            ZOffset = 999;
+            OrderInParent = 999;
         };
         buttonContainer.AddChild(inspectButton);
 
@@ -149,11 +149,11 @@ public class InterfaceEditor : EditorPanel
         return pathBuild.ToString();
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         bool returnVal = base.OnKey(key, status, mousePos);
 
-        if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
+        if (key == Key.MouseKeyLeft && status == KeyState.Down)
         {
             if (_inspecting) _inspecting = false;
         }

@@ -8,6 +8,6 @@
         public static Color ActiveButtonColor = new Color("#8189b1");
         public static Color TextColor = Color.White;
 
-        public static int EditorButtonTextSize = 9;
+        public static int EditorButtonTextSize = 22;
     }
 }

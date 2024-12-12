@@ -38,7 +38,7 @@ namespace Emotion.Primitives
             float startingBottomX = prevBottomX;
             float startingBottomY = prevBottomY;
 
-            float step = 2 * MathF.PI / Sides;
+            float step = -2 * MathF.PI / Sides;
             for (var i = 0; i < Sides; i++)
             {
                 float angle = (i + 1) * step;

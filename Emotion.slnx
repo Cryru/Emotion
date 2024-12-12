@@ -1,0 +1,31 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Win64" />
+        <Platform Name="Android" />
+        <BuildType Name="Autobuild" />
+        <BuildType Name="Debug" />
+        <BuildType Name="Release" />
+    </Configurations>
+    <Project Path="Emotion.SourceGeneration\Emotion.SourceGeneration.csproj">
+        <BuildType Solution="Autobuild|*" Project="Release" />
+    </Project>
+    <Project Path="Emotion\Emotion.csproj">
+        <Platform Solution="*|Android" Project="Android" />
+        <Platform Solution="*|Win64" Project="Win64" />
+    </Project>
+    <Project Path="Emotion.ExecTest\Emotion.ExecTest.csproj">
+        <Platform Solution="*|Win64" Project="x64" />
+        <Build Solution="Autobuild|*" Project="false" />
+        <Platform Solution="*|Android" Project="Android" />
+        <Deploy Solution="*|Android" />
+    </Project>
+    <Project Path="Legacy\Emotion.Test\Emotion.Test.csproj">
+        <Platform Project="x64" />
+        <Build Solution="*|Android" Project="false" />
+    </Project>
+    <Project Path="Tests\Tests.csproj">
+        <Platform Project="Default" />
+        <BuildType Solution="Autobuild|*" Project="Release" />
+        <Build Solution="*|Android" Project="false" />
+    </Project>
+</Solution>

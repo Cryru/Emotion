@@ -40,14 +40,14 @@ public class EditorListOfItemsWithSelection<T> : UIBaseWindow
             HideScrollBarWhenNothingToScroll = true,
         };
 
-        var scrollBar = new EditorScrollBar
-        {
-            Dock = UIDockDirection.Right,
-            DontTakeSpaceWhenHidden = true,
-            Margins = new Rectangle(2, 0, 0, 0)
-        };
-        list.SetScrollbar(scrollBar);
-        AddChild(scrollBar);
+        //var scrollBar = new EditorScrollBar
+        //{
+        //    Dock = UIDockDirection.Right,
+        //    DontTakeSpaceWhenHidden = true,
+        //    Margins = new Rectangle(2, 0, 0, 0)
+        //};
+        //list.SetScrollbar(scrollBar);
+        //AddChild(scrollBar);
         AddChild(list);
 
         for (int i = 0; i < _items.Count; i++)

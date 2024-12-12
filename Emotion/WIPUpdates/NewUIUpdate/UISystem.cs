@@ -1,10 +1,14 @@
-﻿using Emotion.Scenography;
+﻿using Emotion.Platform.Input;
+using Emotion.Scenography;
 using Emotion.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+#nullable enable
 
 namespace Emotion.WIPUpdates.NewUIUpdate;
 
@@ -14,32 +18,100 @@ namespace Emotion.WIPUpdates.NewUIUpdate;
 
 public class UISystem : UIController
 {
-}
+    public Vector2 TargetResolution = new Vector2(1920, 1080);
+    public Vector2 TargetDPI = new Vector2(96);
 
-public abstract class Scene_UIUpdate : Scene
-{
-    public UISystem UI = new()
-    {
-        UseNewLayoutSystem = true
-    };
+    protected bool _updateScale;
 
-    public override void Update()
+    public UISystem()
     {
-        UpdateScene(Engine.DeltaTime);
-        UI.Update();
+        Engine.Host.OnResize += HostResized;
+        HostResized(Engine.Renderer.ScreenBuffer.Size);
     }
 
-    public override void Draw(RenderComposer composer)
+    private void HostResized(Vector2 size)
     {
-        RenderScene(composer);
+        Vector2 scaledTarget = TargetResolution * TargetDPI;
+        Vector2 scaledCurrent = size * Engine.Host.GetDPI();
 
-        composer.SetUseViewMatrix(false);
-        composer.SetDepthTest(true);
-        composer.ClearDepth();
-        UI.Render(composer);
+        Scale = scaledCurrent / scaledTarget;
+        _updateScale = true;
+        Engine.Log.Info($"UI Scale is {Scale}", MessageSource.UI);
     }
 
-    protected abstract void UpdateScene(float dt);
+    public override void InvalidateLayout()
+    {
+        _updateScale = true;
+        base.InvalidateLayout();
+    }
 
-    protected abstract void RenderScene(RenderComposer c);
+    protected override bool UpdateInternal()
+    {
+        if (_updateScale) UpdateScaleValues();
+        return base.UpdateInternal();
+    }
+
+    private void UpdateScaleValues()
+    {
+        foreach (UIBaseWindow win in this)
+        {
+            win.Scale = 1f * win.Parent.Scale;
+        }
+        _updateScale = false;
+    }
+
+    protected override void RenderChildren(RenderComposer c)
+    {
+        //c.EnableSpriteBatcher(true);
+        base.RenderChildren(c);
+        //c.EnableSpriteBatcher(false);
+
+        if (_debugInspectMode && _debugWindowsUnderMouse!.Count > 0)
+        {
+            var windowUnderMouse = _debugWindowsUnderMouse[^1];
+            c.RenderOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
+        }
+    }
+
+    protected override void UpdateMouseFocus()
+    {
+        base.UpdateMouseFocus();
+
+        if (_debugInspectMode) DebugInspectModeUpdate();
+    }
+
+    protected override bool MouseFocusOnKey(Key key, KeyState status)
+    {
+        if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyState.Down)
+        {
+            _debugInspectMode = false;
+            return false;
+        }
+        return base.MouseFocusOnKey(key, status);
+    }
+
+    #region Debugger
+
+    private bool _debugInspectMode = false;
+    private List<UIBaseWindow>? _debugWindowsUnderMouse;
+
+    public void EnterInspectMode()
+    {
+        _debugInspectMode = true;
+        _debugWindowsUnderMouse = new List<UIBaseWindow>();
+    }
+
+    private void DebugInspectModeUpdate()
+    {
+        UIController.Debug_GetWindowsUnderMouse(_debugWindowsUnderMouse);
+    }
+
+    public List<UIBaseWindow>? GetInspectModeSelectedWindow()
+    {
+        if (!_debugInspectMode) return null;
+        return _debugWindowsUnderMouse;
+    }
+
+    #endregion
 }
+

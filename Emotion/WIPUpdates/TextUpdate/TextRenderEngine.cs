@@ -1,7 +1,7 @@
 ﻿using Emotion.IO;
 using Emotion.Standard.OpenType;
+using Emotion.WIPUpdates.TextUpdate.LayoutEngineTypes;
 using System.Linq;
-using static Emotion.UI.TextLayoutEngine;
 using static NewStbTrueTypeSharp.StbTrueType;
 
 namespace Emotion.WIPUpdates.TextUpdate;

@@ -212,9 +212,9 @@ namespace Tests.Classes
                 HandleInput = true;
             }
 
-            public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+            public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
             {
-                if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd && status == KeyStatus.Down) ClickedCount++;
+                if (key is > Key.MouseKeyStart and < Key.MouseKeyEnd && status == KeyState.Down) ClickedCount++;
 
                 return base.OnKey(key, status, mousePos);
             }
@@ -264,8 +264,8 @@ namespace Tests.Classes
             // Mouse outside.
             updateMousePrivateMethod.Invoke(Engine.Host, new object[] { new Vector2(0, 0) });
             ui.TestUpdate();
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Up);
             Assert.Equal(winOne.ClickedCount, 0);
             Assert.Equal(winOne.WindowColor, Color.White);
 
@@ -273,18 +273,18 @@ namespace Tests.Classes
             updateMousePrivateMethod.Invoke(Engine.Host, new object[] { winOne.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
             Assert.Equal(winOne.WindowColor, Color.Red);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Up);
             Assert.Equal(winOne.ClickedCount, 1);
 
             updateMousePrivateMethod.Invoke(Engine.Host, new object[] { winThree.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
             Assert.Equal(winOne.WindowColor, Color.White);
             Assert.Equal(winThree.WindowColor, Color.Red);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Up);
             Assert.Equal(winOne.ClickedCount, 1);
             Assert.Equal(winThree.ClickedCount, 2);
 
@@ -301,16 +301,16 @@ namespace Tests.Classes
             // Try to click on the out of parent window.
             updateMousePrivateMethod.Invoke(Engine.Host, new object[] { outOfParent.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Up);
             Assert.Equal(outOfParent.ClickedCount, 1);
             Assert.Equal(outOfParent.WindowColor, Color.Red);
 
             // Try to click on the window that is within the parental bounds, but not a child.
             updateMousePrivateMethod.Invoke(Engine.Host, new object[] { notChild.Position2 + new Vector2(10, 10) });
             ui.TestUpdate();
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Down);
-            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyStatus.Up);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Down);
+            Engine.Host.OnKey.Invoke(Key.MouseKeyLeft, KeyState.Up);
             Assert.Equal(notChild.ClickedCount, 1);
             Assert.Equal(notChild.WindowColor, Color.Red);
         }

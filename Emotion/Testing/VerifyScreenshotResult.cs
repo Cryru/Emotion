@@ -15,6 +15,7 @@ public class VerifyScreenshotResult : IRoutineWaiter
     public VerifyScreenshotResult(bool passed)
     {
         Passed = passed;
+        if (!passed) TestExecutor.SetCurrentTestSceneTestAsFailed();
     }
 
     public bool Finished { get; set; }

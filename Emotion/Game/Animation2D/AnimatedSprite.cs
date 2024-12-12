@@ -9,5 +9,17 @@
         public string AssetFile;
         public SpriteAnimationFrameSource FrameSource;
         public Dictionary<string, SpriteAnimationData> Animations;
+
+        public AnimatedSprite(string textureAssetName, SpriteAnimationFrameSource frameSource)
+        {
+            AssetFile = textureAssetName;
+            FrameSource = frameSource;
+        }
+
+        // serialization
+        protected AnimatedSprite()
+        {
+
+        }
     }
 }

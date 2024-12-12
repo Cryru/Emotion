@@ -378,11 +378,12 @@ public class ModelViewer : EditorPanel
         base.DetachedFromController(controller);
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         if (Controller?.InputFocus == _surface3D)
         {
-            _camera.CameraKeyHandler(key, status);
+            Assert(false);
+            //_camera.CameraKeyHandler(key, status);
             return false;
         }
 

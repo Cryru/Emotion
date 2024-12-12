@@ -9,6 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using Emotion.Utility;
+using Standart.Hash.xxHash;
 
 #endregion
 
@@ -626,13 +627,15 @@ namespace System
         public static int GetStableHashCode(this string str)
         {
             ReadOnlySpan<byte> stringAsBytes = MemoryMarshal.Cast<char, byte>(str);
-            Span<byte> stringHash = stackalloc byte[32];
-            
-            if (MD5.TryHashData(stringAsBytes, stringHash, out int bytesWritten))
-                return BitConverter.ToInt32(stringHash.Slice(0, bytesWritten));
+            return stringAsBytes.GetStableHashCode();
+        }
 
-            Assert(false, "Couldn't produce MD5 for a string in 32 bytes!");
-            return BitConverter.ToInt32(stringHash);
+        public static int GetStableHashCodeASCII(this string str)
+        {
+            Span<byte> asciiBytes = stackalloc byte[str.Length];
+            int bytes = System.Text.Encoding.ASCII.GetBytes(str, asciiBytes);
+            ReadOnlySpan<byte> stringAsASCIIBytes = asciiBytes.Slice(0, bytes);
+            return stringAsASCIIBytes.GetStableHashCode();
         }
 
         public static unsafe string AsString(this ReadOnlySpan<char> source)
@@ -646,6 +649,14 @@ namespace System
                 }
             }
             return result;
+        }
+    }
+
+    public static class SpanExtensions
+    {
+        public static int GetStableHashCode(this ReadOnlySpan<byte> span)
+        {
+            return (int) xxHash32.ComputeHash(span, span.Length);
         }
     }
 }

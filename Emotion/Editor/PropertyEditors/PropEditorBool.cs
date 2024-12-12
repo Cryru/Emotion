@@ -86,9 +86,9 @@ namespace Emotion.Editor.PropertyEditors
                 bg.WindowColor = MapEditorColorPalette.ButtonColor;
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
-            if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
+            if (key == Key.MouseKeyLeft && status == KeyState.Down)
             {
                 SetValue(!_value);
                 _callback?.Invoke(_value);

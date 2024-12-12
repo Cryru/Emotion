@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <Configurations>Debug;Release</Configurations>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <Platforms>Default</Platforms>
@@ -37,6 +37,7 @@
         <Compile Remove="Assets\Scripts\CustomMainArgsScript.cs" />
         <Compile Remove="Assets\Scripts\CustomMainScript.cs" />
         <Compile Remove="Assets\Scripts\MainScript.cs" />
+        <Compile Remove="Classes\UITests.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -61,6 +62,7 @@
         <None Include="Assets\Scripts\MainScript.cs">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Include="Classes\UITests.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -69,36 +71,20 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="Assets\CachedResults\AnimatedTextureTest1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+         <None Update="Assets\ReferenceRenders\**\*.*">
+           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest10.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="Assets\ReferenceXMLOutput\**\*.*">
+           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="Assets\WoWModels\**\*.*">
+           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest4.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest5.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest6.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest7.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest8.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\AnimatedTextureTest9.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+        
         <None Update="Assets\CachedResults\Bmp16ColorDecode.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -111,16 +97,10 @@
         <None Update="Assets\CachedResults\BrokenShader.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\ClearColorBasicRender.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\ComposerRender.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\RenderDepthTest().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\ComposerRenderSorted.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\ComposerRenderText.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\EmotionCffAtlas.png">
@@ -132,10 +112,10 @@
         <None Update="Assets\CachedResults\EmotionTTAtlas.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\FramebufferResizing.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\FramebufferResizing().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\LineDrawing.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\LineDrawing().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\LineDrawingLinux.png">
@@ -150,22 +130,8 @@
         <None Update="Assets\CachedResults\RenderComposerCustomBatch.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\RenderComposerMultiBatchVariant0.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\RenderComposerMultiBatchVariant1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\RenderComposerMultiBatchVariant2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\RenderComposerMultiBatchVariant3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\RenderComposerSpriteLimitTest.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\RenderRichText.png">
+        
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\RenderRichText().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\ShaderFallback.png">
@@ -183,19 +149,19 @@
         <None Update="Assets\CachedResults\ShaderTest3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestDepthFromOtherFrameBuffer.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\TestDepthFromOtherFrameBuffer().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestFullScale.png">
+        <None Update="Assets\ReferenceRenders\ResizeTests\TestFullScale().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestFullScaleInteger.png">
+        <None Update="Assets\ReferenceRenders\ResizeTests\TestFullScaleInteger().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TestUVMapping.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\TestUVMapping().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\TilemapRender.png">
+        <None Update="Assets\ReferenceRenders\BasicRenderTests\TilemapRender().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\UIControllerDisplacementTest.png">
@@ -207,123 +173,7 @@
         <None Update="Assets\CachedResults\UIControllerNineSlice.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceXMLOutput\ArrayWithDefaultHoles().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\BasicString().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\BasicStringNull().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\BasicValueType().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ClassWithNonPublicGetSet().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexDictionary().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexInheritedType().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexType().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeExcluded().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeExcluded()_1.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeExcludedProperties().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveListWitInherited().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveReferenceArrayError().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveReferenceArrayError()_1.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveReferenceError().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveType().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveTypeArrayWithInherited().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeRecursiveTypeInherited().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexTypeWithCustomDefaults().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\ComplexValueType().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\DictionaryWithObjectKeysThatArePrimitiveTypes().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\EnumSerialize().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\Exclusions().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\GenericArraySerialize().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\GenericSerialize().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\GenericsSerialize().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\InheritedFields().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\InheritedFields()_1.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NonOpaqueArrayWithDefaultHoles().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableComplex().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableComplex()_1.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableComplex()_2.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableComplex()_3.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableTrivial().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableTrivial()_1.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\NullableTrivialNull().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\PrimitiveDictionary().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\RecursiveArrayType().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceXMLOutput\StringSanitizeSerialize().xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+        
         <None Update="Assets\Fonts\1980XX.ttf">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
@@ -375,132 +225,7 @@
         <None Update="Assets\Images\standardTif.tif">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\1 Fill%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\10 WorldEditorTopBar%28%29_3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\11 VerticalListWithText%28%29_3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\12 TextWithBackground%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\13 EditorDropDownRelativeToAndOutsideParent%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\14 WorldEditorBottomBar%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\15 EditorPanelEmpty%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\2 FillXAxisWithChild%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\3 FillXAxisMinHeight%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\4 FillXAxisMinHeightAndWidth%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\5 FillNeitherAxisMinHeightAndWidth%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\6 TwoSquaresInFillY%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\7 FillList%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\7 FillList%28%29_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29+VerticalList_4.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\8 FillListThreeItems%28%29_4.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_4.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29+VerticalList_5.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_3.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_4.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\NewUITests\9 FillListFillingItems%28%29_5.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+        
         <None Update="Assets\Shaders\BrokenShader.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

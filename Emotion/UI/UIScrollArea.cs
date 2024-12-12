@@ -75,7 +75,7 @@ namespace Emotion.UI
             HandleInput = true;
 
             var areaInside = new UIScrollAreaScrollableArea();
-            areaInside.ZOffset = 5;
+            areaInside.OrderInParent = 5;
             _content = areaInside;
         }
 
@@ -119,14 +119,14 @@ namespace Emotion.UI
             SyncScrollbar();
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             if (Children == null) return true;
 
             if (key == Key.MouseWheel && _content != null)
             {
                 var currentScroll = _content.CurrentScroll;
-                bool up = status == KeyStatus.MouseWheelScrollUp;
+                bool up = status == KeyState.MouseWheelScrollUp;
                 if (up)
                     _content.ScrollToPos(currentScroll - new Vector2(0, 1) * Engine.DeltaTime);
                 else
@@ -151,18 +151,22 @@ namespace Emotion.UI
 
             AddChild(_content);
 
-            var scrollVert = new EditorScrollBar();
-            scrollVert.Dock = UIDockDirection.Right;
-            scrollVert.OnScroll = ScrollBarCallbackVertical;
-            scrollVert.Margins = new Rectangle(0, 0, 0, 5);
-            AddChild(scrollVert);
-            _verticalScroll = scrollVert;
+            //var scrollVert = new EditorScrollBar
+            //{
+            //    Dock = UIDockDirection.Right,
+            //    OnScroll = ScrollBarCallbackVertical,
+            //    Margins = new Rectangle(0, 0, 0, 5)
+            //};
+            //AddChild(scrollVert);
+            //_verticalScroll = scrollVert;
 
-            var scrollHorz = new EditorScrollBarHorizontal();
-            scrollHorz.Dock = UIDockDirection.Bottom;
-            scrollHorz.OnScroll = ScrollBarCallbackHorizontal;
-            AddChild(scrollHorz);
-            _horizontalScroll = scrollHorz;
+            //var scrollHorz = new EditorScrollBarHorizontal
+            //{
+            //    Dock = UIDockDirection.Bottom,
+            //    OnScroll = ScrollBarCallbackHorizontal
+            //};
+            //AddChild(scrollHorz);
+            //_horizontalScroll = scrollHorz;
         }
     }
 }

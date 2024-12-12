@@ -3,7 +3,10 @@
 global using System;
 global using System.Diagnostics;
 global using System.Numerics;
+global using System.Threading;
+global using System.Collections;
 global using System.Collections.Generic;
+
 global using Emotion.Common;
 global using Emotion.Standard.Logging;
 global using Emotion.Primitives;
@@ -21,5 +24,6 @@ global using Color = Emotion.Primitives.Color;
 global using Rectangle = Emotion.Primitives.Rectangle;
 global using Mesh = Emotion.Graphics.ThreeDee.Mesh;
 global using Matrix4x4 = System.Numerics.Matrix4x4;
+global using ITimer = Emotion.Game.Time.ITimer;
 
 #endregion

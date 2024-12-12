@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using System.Collections.Generic;
 using Emotion.Game.Time.Routines;
 using Emotion.Testing;
 
@@ -8,329 +9,417 @@ using Emotion.Testing;
 
 #endregion
 
-namespace Tests.EngineTests
+namespace Tests.EngineTests;
+
+[Test]
+[TestClassRunParallel]
+public class CoroutineTest
 {
-    [Test]
-    [TestClassRunParallel]
-    public class CoroutineTest
+    private class CoroutineTestStateTracker
     {
-        /// <summary>
-        /// Test coroutine time waiting.
-        /// </summary>
-        [Test]
-        public void CoroutineMagicNumberWait()
+        public int Step;
+    }
+
+    private class CoroutineTestOrderStateTracker
+    {
+        public List<int> RoutineHandles = new();
+    }
+
+    [Test]
+    public void CoroutineBasicExecutionTest()
+    {
+        static IEnumerator RoutineFunc(CoroutineTestStateTracker state)
         {
-            var testState = new CoroutineTestingState();
-
-            var manager = new CoroutineManager();
-            manager.Update();
-
-            // No routines should be running.
-            Assert.Equal(0, manager.Count);
-
-            // Start a routine that will wait for the magic number to be larger than 2
-            Coroutine routineHandle = manager.StartCoroutine(MagicNumberWaitRoutine(testState, 2));
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            manager.Update();
-
-            // One routine should still be running, as magic number hasn't changed.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            // Advance magic number and update again.
-            testState.MagicNumber = 4;
-            manager.Update();
-
-            // The routine should've finished.
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle.Finished);
+            state.Step = 1;
+            yield return null;
+            state.Step = 2;
+            yield return null;
+            state.Step = 3;
+            yield return null;
+            state.Step = 4;
         }
 
-        /// <summary>
-        /// Test coroutine time waiting, in more than one increment.
-        /// </summary>
-        [Test]
-        public void CoroutineMagicNumberWaitTwoIncrements()
+        var state = new CoroutineTestStateTracker();
+        var manager = new CoroutineManager();
+
+        var coroutine = manager.StartCoroutine(RoutineFunc(state));
+        Assert.Equal(state.Step, 1);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 2);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 3);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 4);
+        Assert.True(coroutine.Finished);
+    }
+
+    [Test]
+    public void CoroutineStartingRoutineFromInside()
+    {
+        static IEnumerator RoutineFuncInner(CoroutineTestStateTracker state)
         {
-            var testState = new CoroutineTestingState();
-
-            var manager = new CoroutineManager();
-            manager.Update();
-
-            // No routines should be running.
-            Assert.Equal(0, manager.Count);
-
-            Coroutine routineHandle = manager.StartCoroutine(MagicNumberWaitRoutineTwoIncrements(testState, 1f));
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            manager.Update(); // No change, since magic number hasn't changed.
-            testState.MagicNumber = 4;
-            manager.Update(); // This will get past the first wait, set the flag, and get past the second wait.
-
-            // The routine should've finished.
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle.Finished);
-            Assert.True(testState.FlagSetByRoutine);
+            state.Step = 1;
+            yield return null;
+            state.Step = 2;
+            yield return null;
+            state.Step = 3;
+            yield return null;
+            state.Step = 4;
         }
 
-        /// <summary>
-        /// Test coroutine loop waits.
-        /// </summary>
-        [Test]
-        public void CoroutineNullYieldTest()
+        static IEnumerator RoutineFunc(CoroutineTestStateTracker state, CoroutineManager manager)
         {
-            var testState = new CoroutineTestingState();
+            state.Step = 1;
+            yield return null;
 
-            var manager = new CoroutineManager();
+            var stateInner = new CoroutineTestStateTracker();
+            manager.StartCoroutine(RoutineFuncInner(stateInner));
+            Assert.Equal(stateInner.Step, 1);
 
-            // No routines should be running.
-            Assert.Equal(0, manager.Count);
+            state.Step = 2;
+            yield return null;
 
-            // Start a routine that will yield twice before setting the flag.
-            Coroutine routineHandle = manager.StartCoroutine(YieldTwiceRoutine(testState));
+            Assert.Equal(stateInner.Step, 1); // Since this routine should update before the one started after it.
+            state.Step = 3;
+            yield return null;
 
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            // First yield null
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine);
-
-            // Second yield null
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine);
-
-            // Finishing update, no yield so the routine is done.
-            manager.Update();
-
-            // The routine should now be finished
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle.Finished);
-            Assert.True(testState.FlagSetByRoutine);
+            Assert.Equal(stateInner.Step, 2);
+            state.Step = 4;
         }
 
-        /// <summary>
-        /// Test waiting of subroutine.
-        /// </summary>
-        [Test]
-        public void CoroutineWaitSubroutine()
+        var state = new CoroutineTestStateTracker();
+        var manager = new CoroutineManager();
+
+        var coroutine = manager.StartCoroutine(RoutineFunc(state, manager));
+        Assert.Equal(state.Step, 1);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 2);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 3);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 4);
+        Assert.True(coroutine.Finished);
+    }
+
+    [Test]
+    public void CoroutineSubRoutine()
+    {
+        static IEnumerator RoutineFuncInner(CoroutineTestStateTracker state)
         {
-            var testState = new CoroutineTestingState();
-
-            var manager = new CoroutineManager();
-
-            // No routines should be running.
-            Assert.Equal(0, manager.Count);
-
-            Coroutine routineHandle = manager.StartCoroutine(SubroutineTestRoutine(testState));
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            // This is when the second routine will be created.
-            // However the number of running routines will remain the same as it is a subroutine.
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine);
-
-            // First yield null in the subroutine
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine);
-
-            // Second yield null in the subroutine.
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine);
-
-            // The finishing update will run the parent routine as well
-            manager.Update();
-
-            // The subroutine will have finished now.
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle.Finished);
-            Assert.True(testState.FlagSetByRoutine);
+            state.Step = 1;
+            yield return null;
+            state.Step = 2;
+            yield return null;
+            state.Step = 3;
+            yield return null;
+            state.Step = 4;
         }
 
-        /// <summary>
-        /// Test stopping of a coroutine.
-        /// </summary>
-        [Test]
-        public void CoroutineStop()
+        static IEnumerator RoutineFunc(CoroutineTestStateTracker state, CoroutineTestStateTracker stateInner, CoroutineManager manager)
         {
-            var testState = new CoroutineTestingState();
+            state.Step = 1;
+            yield return null;
 
-            var manager = new CoroutineManager();
+            yield return RoutineFuncInner(stateInner);
+            Assert.Equal(stateInner.Step, 4);
 
-            // No routines should be running.
-            Assert.Equal(0, manager.Count);
-
-            Coroutine routineHandle = manager.StartCoroutine(YieldTwiceRoutine(testState));
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            // First yield null
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine);
-
-            routineHandle.Stop();
-            manager.Update(); // The routine will be removed on the next manager update.
-
-            // Check routine stopped
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle.Finished);
-            Assert.False(testState.FlagSetByRoutine); // flag shouldn't be set since the routine was stopped beforehand
+            state.Step = 2;
+            yield return null;
+            state.Step = 3;
+            yield return null;
+            state.Step = 4;
         }
 
-        [Test]
-        public void CoroutinePreciseTimeWait()
+        var state = new CoroutineTestStateTracker();
+        var stateInner = new CoroutineTestStateTracker();
+        var manager = new CoroutineManager();
+
+        Coroutine coroutine = manager.StartCoroutine(RoutineFunc(state, stateInner, manager));
+        Assert.Equal(state.Step, 1);
+        Assert.Equal(manager.Count, 1);
+        Assert.False(coroutine.Finished);
+
+        // Subroutine
+        manager.Update(); // 0->1 (this adds the subroutine)
+        Assert.Equal(manager.Count, 2);
+        Assert.Equal(stateInner.Step, 1);
+        manager.Update(); // 1->2
+        Assert.Equal(stateInner.Step, 2);
+        manager.Update(); // 2->3
+        Assert.Equal(stateInner.Step, 3);
+        manager.Update(); // 3->4+Finished
+        Assert.Equal(stateInner.Step, 4);
+
+        manager.Update();
+        Assert.Equal(state.Step, 2);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 3);
+        Assert.False(coroutine.Finished);
+
+        manager.Update();
+        Assert.Equal(state.Step, 4);
+        Assert.True(coroutine.Finished);
+    }
+
+    [Test]
+    public void CoroutineStop()
+    {
+        static IEnumerator YieldTwiceRoutine(CoroutineTestStateTracker state)
         {
-            var manager = new CoroutineManager();
-            Coroutine routineHandle = manager.StartCoroutine(CoroutinePreciseTimewait(10f));
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            manager.Update(0); // Zero time, nothing changed.
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-
-            // Pass 10 time in two increments.
-            manager.Update(5);
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            manager.Update(5);
-
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle.Finished);
+            state.Step = 1;
+            yield return null;
+            state.Step = 2;
+            yield return null;
+            state.Step = 3;
         }
 
-        [Test]
-        public void CoroutinePreciseTimeWaitComplex()
+        var testState = new CoroutineTestStateTracker();
+        var manager = new CoroutineManager();
+
+        // No routines should be running.
+        Assert.Equal(0, manager.Count);
+
+        Coroutine routineHandle = manager.StartCoroutine(YieldTwiceRoutine(testState));
+
+        // One routine should be running.
+        Assert.Equal(1, manager.Count);
+        Assert.False(routineHandle.Finished);
+        Assert.Equal(testState.Step, 1);
+
+        // First yield null
+        manager.Update();
+        Assert.Equal(1, manager.Count);
+        Assert.False(routineHandle.Finished);
+        Assert.Equal(testState.Step, 2);
+
+        routineHandle.RequestStop();
+        manager.Update(); // The routine will be removed on the next manager update.
+
+        // Check routine stopped
+        Assert.Equal(0, manager.Count);
+        Assert.True(routineHandle.Finished);
+        Assert.Equal(testState.Step, 2); // Step should still be 2, since the routine was stopped beforehand
+    }
+
+    [Test]
+    public void CoroutinePreciseTimeWait()
+    {
+        static IEnumerator CoroutinePreciseTimewait(float timeToWait)
         {
-            var testState = new CoroutineTestingState();
-
-            var manager = new CoroutineManager();
-            Coroutine routineHandle1 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 1, 5f));
-            Coroutine routineHandle2 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 2, 2f));
-            Coroutine routineHandle3 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 3, 10f));
-
-            Assert.Equal(3, manager.Count);
-            Assert.False(routineHandle1.Finished);
-            Assert.False(routineHandle2.Finished);
-            Assert.False(routineHandle3.Finished);
-
-            manager.Update(8); // Pass time increment that would complete two routines at once.
-
-            // Routine2 should've completed first.
-            Assert.Equal(testState.MagicNumber, 2f);
-
-            // One routine should be running.
-            Assert.Equal(1, manager.Count);
-            Assert.True(routineHandle1.Finished);
-            Assert.True(routineHandle2.Finished);
-
-            // Pass rest of time
-            manager.Update(3);
-            Assert.Equal(0, manager.Count);
-            Assert.True(routineHandle3.Finished);
+            yield return timeToWait;
         }
 
+        var manager = new CoroutineManager();
+        Coroutine routineHandle = manager.StartCoroutine(CoroutinePreciseTimewait(10f));
 
-        [Test]
-        public void CoroutineTimeWaitRealTimeIncrement()
+        // One routine should be running.
+        Assert.Equal(1, manager.Count);
+        Assert.False(routineHandle.Finished);
+
+        manager.Update(0); // Zero time, nothing changed.
+
+        // One routine should be running.
+        Assert.Equal(1, manager.Count);
+        Assert.False(routineHandle.Finished);
+
+        // Pass 10 time in two increments.
+        manager.Update(5);
+        Assert.Equal(1, manager.Count);
+        Assert.False(routineHandle.Finished);
+        manager.Update(5);
+
+        Assert.Equal(0, manager.Count);
+        Assert.True(routineHandle.Finished);
+    }
+
+    [Test]
+    public void CoroutinePreciseTimeWaitComplex()
+    {
+        static IEnumerator CoroutinePreciseTimewaitWithMagicNumberFlag(CoroutineTestStateTracker state, int routineIndex, float timeToWait)
         {
-            var testState = new CoroutineTestingState();
+            yield return timeToWait;
+            if (state.Step == 0)
+                state.Step = routineIndex;
+        }
 
-            var manager = new CoroutineManager();
-            Coroutine routineHandle1 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 1, 500f));
-            Coroutine routineHandle2 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 2, 200f));
-            Coroutine routineHandle3 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 3, 1000f));
+        var testState = new CoroutineTestStateTracker();
+        var manager = new CoroutineManager();
+        Coroutine routineHandle1 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 1, 5f));
+        Coroutine routineHandle2 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 2, 2f));
+        Coroutine routineHandle3 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 3, 10f));
 
-            float timePassed = 0;
-            while (timePassed < 500)
+        Assert.Equal(3, manager.Count);
+        Assert.False(routineHandle1.Finished);
+        Assert.False(routineHandle2.Finished);
+        Assert.False(routineHandle3.Finished);
+
+        manager.Update(8); // Pass time increment that would complete two routines at once.
+
+        // Routine2 should've completed first.
+        Assert.Equal(testState.Step, 2f);
+
+        // One routine should be running.
+        Assert.Equal(1, manager.Count);
+        Assert.True(routineHandle1.Finished);
+        Assert.True(routineHandle2.Finished);
+
+        // Pass rest of time
+        manager.Update(3);
+        Assert.Equal(0, manager.Count);
+        Assert.True(routineHandle3.Finished);
+    }
+
+    [Test]
+    public void CoroutineTimeWaitRealTimeIncrement()
+    {
+        static IEnumerator CoroutinePreciseTimewaitWithMagicNumberFlag(CoroutineTestStateTracker state, int routineIndex, float timeToWait)
+        {
+            yield return timeToWait;
+            if (state.Step == 0)
+                state.Step = routineIndex;
+        }
+
+        var testState = new CoroutineTestStateTracker();
+        var manager = new CoroutineManager();
+        Coroutine routineHandle1 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 1, 500f));
+        Coroutine routineHandle2 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 2, 200f));
+        Coroutine routineHandle3 = manager.StartCoroutine(CoroutinePreciseTimewaitWithMagicNumberFlag(testState, 3, 1000f));
+
+        float timePassed = 0;
+        while (timePassed < 500)
+        {
+            float incr = 16.666f;
+            manager.Update(incr);
+            timePassed += incr;
+        }
+
+        Assert.Equal(1, manager.Count);
+        Assert.True(routineHandle1.Finished);
+        Assert.Equal(routineHandle1.CurrentWaiter_Time, 0);
+        Assert.True(routineHandle2.Finished);
+        Assert.Equal(routineHandle2.CurrentWaiter_Time, 0);
+        Assert.False(routineHandle3.Finished);
+        Assert.Equal(routineHandle3.CurrentWaiter_Time, 483.353516f);
+    }
+
+    [Test]
+    public void CoroutineTimeWaitingRoutineThatAddsAnotherTimeWaitingRoutine()
+    {
+        static IEnumerator WaitTimeAndIncrementStateRoutine(CoroutineTestOrderStateTracker state, int routineIdx, float timeToWait)
+        {
+            yield return timeToWait;
+            state.RoutineHandles.Add(routineIdx);
+        }
+
+        static IEnumerator TimeWaitingRoutineThatAddsRoutine(CoroutineTestOrderStateTracker state, CoroutineManager manager, int routineIdx, float timeToWait)
+        {
+            yield return timeToWait;
+            state.RoutineHandles.Add(routineIdx);
+            yield return manager.StartCoroutine(WaitTimeAndIncrementStateRoutine(state, routineIdx+1, timeToWait));
+        }
+
+        static IEnumerator NonTimeWaitingLoopingRoutine(CoroutineTestStateTracker state)
+        {
+            for (int i = 0; i < 100; i++)
             {
-                float incr = 16.666f;
-                manager.Update(incr);
-                timePassed += incr;
+                state.Step = i + 1; // (Dont set 0 since thats init value)
+                yield return null;
             }
-
-            Assert.Equal(1, manager.Count);
-            Assert.True(routineHandle1.Finished);
-            Assert.Equal(routineHandle1.WaitingForTime, 0);
-            Assert.True(routineHandle2.Finished);
-            Assert.Equal(routineHandle2.WaitingForTime, 0);
-            Assert.False(routineHandle3.Finished);
-            Assert.Equal(routineHandle3.WaitingForTime, 483.353516f);
         }
 
-        private class CoroutineTestingState
+        CoroutineTestOrderStateTracker state = new();
+        CoroutineTestStateTracker nonTimeWaitState = new();
+
+        var manager = new CoroutineManager();
+        Coroutine routineHandle1 = manager.StartCoroutine(WaitTimeAndIncrementStateRoutine(state, 1, 1000f));
+        Coroutine routineHandle2 = manager.StartCoroutine(TimeWaitingRoutineThatAddsRoutine(state, manager, 2, 500f));
+        Coroutine routineHandle4 = manager.StartCoroutine(NonTimeWaitingLoopingRoutine(nonTimeWaitState));
+
+        Assert.Equal(3, manager.Count);
+        Assert.False(routineHandle1.Finished);
+        Assert.False(routineHandle2.Finished);
+        Assert.False(routineHandle4.Finished);
+
+        // Add time enough to pass routine 1 and routine 2
+        // This will result in routine 2 passing and adding routine 3 which is also 500
+        // The expected result is for then routine 1 to finish (it only has 500 remaining and is older than routine 3) and
+        // then routine 3 to finish.
+        manager.Update(1000);
+
+        Assert.Equal(3, state.RoutineHandles.Count);
+        Assert.Equal(2, state.RoutineHandles[0]);
+        Assert.Equal(1, state.RoutineHandles[1]);
+        Assert.Equal(3, state.RoutineHandles[2]);
+        Assert.True(routineHandle1.Finished);
+        Assert.False(routineHandle2.Finished); // Routine 2 added routine 3, which itself is complete, but it doesn't know that until the next update
+
+        // The non time waiting routine shouldn've run only once.
+        // Once on start because eager 0->1
+        // One update 1->2
+        Assert.Equal(nonTimeWaitState.Step, 2);
+
+        manager.Update(0);
+        Assert.True(routineHandle2.Finished);
+        Assert.Equal(nonTimeWaitState.Step, 3);
+    }
+
+    [Test]
+    public void CoroutineFinishedWaiterAndTimeWaitingInSingleRun()
+    {
+        static IEnumerator YieldFinishedWaiterAndTimeWaitRoutine(CoroutineTestStateTracker state)
         {
-            public int MagicNumber;
-            public bool FlagSetByRoutine;
+            yield return null; // Eager prevention
+
+            for (int i = 0; i < 100; i++)
+            {
+                yield return new ProxyWaiter(() => true);
+            }
+            yield return 500;
+            yield return 100;
+            state.Step = 1;
         }
 
-        private static IEnumerator MagicNumberWaitRoutine(CoroutineTestingState state, float magicNumberGoal)
+        static IEnumerator YieldFinishedWaiterAndTimeWaitRoutineInterweaved(CoroutineTestStateTracker state)
         {
-            while (state.MagicNumber < magicNumberGoal)
-                yield return null;
+            yield return 550;
+            for (int i = 0; i < 100; i++)
+            {
+                yield return new ProxyWaiter(() => true);
+            }
+            yield return 50;
+            state.Step = 1;
         }
 
-        private static IEnumerator MagicNumberWaitRoutineTwoIncrements(CoroutineTestingState state, float magicNumberGoal)
-        {
-            yield return null;
-            while (state.MagicNumber < magicNumberGoal)
-                yield return null;
-            state.FlagSetByRoutine = true;
-            while (state.MagicNumber < magicNumberGoal)
-                yield return null;
-        }
+        CoroutineTestStateTracker state = new();
+        CoroutineTestStateTracker state2 = new();
 
-        private static IEnumerator YieldTwiceRoutine(CoroutineTestingState state)
-        {
-            yield return null;
-            yield return null;
-            state.FlagSetByRoutine = true;
-        }
+        var manager = new CoroutineManager();
+        Coroutine routineHandle1 = manager.StartCoroutine(YieldFinishedWaiterAndTimeWaitRoutine(state));
+        Coroutine routineHandle2 = manager.StartCoroutine(YieldFinishedWaiterAndTimeWaitRoutineInterweaved(state2));
 
-        private static IEnumerator SubroutineTestRoutine(CoroutineTestingState state)
-        {
-            yield return YieldTwiceRoutine(state);
-        }
+        Assert.Equal(2, manager.Count);
+        Assert.False(routineHandle1.Finished);
 
-        private static IEnumerator CoroutinePreciseTimewait(float timeToWait)
-        {
-            yield return timeToWait;
-        }
+        manager.Update(600);
 
-        private static IEnumerator CoroutinePreciseTimewaitWithMagicNumberFlag(CoroutineTestingState state, int flagNumber, float timeToWait)
-        {
-            yield return timeToWait;
-            if (state.MagicNumber == 0)
-                state.MagicNumber = flagNumber;
-        }
+        Assert.True(routineHandle1.Finished);
+        Assert.Equal(state.Step, 1);
+        
+        Assert.True(routineHandle2.Finished);
+        Assert.Equal(state2.Step, 1);
     }
 }

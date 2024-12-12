@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Numerics;
 using System.Threading.Tasks;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Testing;
@@ -19,10 +20,11 @@ public class UITests : TestingScene
 {
     public UIController UI = null!;
 
-    public override async Task LoadAsync()
+    public override IEnumerator LoadSceneRoutineAsync()
     {
         UI = new UIController();
-        await UI.PreloadUI();
+        yield return new TaskRoutineWaiter(UI.PreloadUI());
+        yield return base.LoadSceneRoutineAsync();
     }
 
     protected override void TestUpdate()
@@ -37,17 +39,8 @@ public class UITests : TestingScene
         UI.Render(c);
     }
 
-    public override Func<IEnumerator>[] GetTestCoroutines()
-    {
-        return new[]
-        {
-            TestWindow,
-            TestFreeLayout,
-            TestFreeLayoutWithStretching
-        };
-    }
-
-    private IEnumerator TestWindow()
+    [Test]
+    public IEnumerator TestWindow()
     {
         UI.ClearChildren();
 
@@ -60,6 +53,7 @@ public class UITests : TestingScene
         //yield return new TestWaiterRunLoops(-1);
     }
 
+    [Test]
     private IEnumerator TestFreeLayout()
     {
         UI.ClearChildren();
@@ -84,7 +78,8 @@ public class UITests : TestingScene
         //yield return new TestWaiterRunLoops(-1);
     }
 
-    private IEnumerator TestFreeLayoutWithStretching()
+    [Test]
+    public IEnumerator TestFreeLayoutWithStretching()
     {
         UI.ClearChildren();
 

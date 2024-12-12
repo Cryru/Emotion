@@ -40,6 +40,7 @@ public class TestWaiterRunLoops : IRoutineWaiter
         }
 
         LoopsToRun = loopsToRun;
+        TestingScene.AddLoopWaiter(this);
     }
 
     public void Update()

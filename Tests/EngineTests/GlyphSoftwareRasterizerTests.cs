@@ -24,12 +24,7 @@ public class GlyphSoftwareRasterizerTests : TestingScene
 {
     private List<IntPtr> _pinnedFonts = new();
 
-    public override Task LoadAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public override void Unload()
+    public override IEnumerator UnloadSceneRoutineAsync()
     {
         for (var i = 0; i < _pinnedFonts.Count; i++)
         {
@@ -37,7 +32,7 @@ public class GlyphSoftwareRasterizerTests : TestingScene
         }
 
         _pinnedFonts.Clear();
-        base.Unload();
+        return base.UnloadSceneRoutineAsync();
     }
 
     protected override void TestUpdate()
@@ -46,14 +41,6 @@ public class GlyphSoftwareRasterizerTests : TestingScene
 
     protected override void TestDraw(RenderComposer c)
     {
-    }
-
-    public override Func<IEnumerator>[] GetTestCoroutines()
-    {
-        return new[]
-        {
-            CompareMetricsOfBuiltInFont
-        };
     }
 
     private unsafe stbtt_fontinfo GetStbFont(FontAsset emotionFont)
@@ -70,7 +57,8 @@ public class GlyphSoftwareRasterizerTests : TestingScene
         return fontInfo;
     }
 
-    private IEnumerator CompareMetricsOfBuiltInFont()
+    [Test]
+    public IEnumerator CompareMetricsOfBuiltInFont()
     {
         FontAsset? builtIn = FontAsset.GetDefaultBuiltIn();
 

@@ -9,6 +9,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;
+using Emotion.WIPUpdates.One.Camera;
 using Khronos;
 using OpenGL;
 
@@ -21,8 +22,17 @@ namespace Emotion.Graphics
     /// </summary>
     public sealed partial class RenderComposer
     {
+        // Emotion uses a:
+        // Z-Up Left Handed Coordinate System
+        // --------------------------------------
+        // This is the same system used by Unreal
+
         public static Vector3 Up { get; } = new Vector3(0, 0, 1);
-        public static Vector3 Right { get; } = new Vector3(0, -1, 0);
+
+        public static Vector3 Up2D { get; } = new Vector3(0, -1, 0);
+
+        public static Vector3 Right { get; } = new Vector3(0, 1, 0);
+
         public static Vector3 Forward { get; } = new Vector3(1, 0, 0);
 
         public static Vector3 XAxis = new Vector3(1, 0, 0);
@@ -261,7 +271,7 @@ namespace Emotion.Graphics
             }
 
             // Create default camera. RenderState applying requires one to be set.
-            Camera = new PixelArtCamera(Vector3.Zero);
+            Camera = new Camera2D(Vector3.Zero, 1, KeyListenerType.None);
 
             // Create default render objects.
             Vector4 c = Engine.Configuration.ClearColor.ToVec4();
@@ -557,7 +567,13 @@ namespace Emotion.Graphics
             // Check if the view matrix is off.
             if (!Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault())
             {
-                CurrentState.Shader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
+                // Same as in Camera2D as the default "no view" view is a 2D view.
+                // Keep that code in sync :)
+                Matrix4x4 noProjectionView =
+                    Matrix4x4.CreateScale(new Vector3(1, -1, 1)) *
+                    Matrix4x4.CreateLookAtLeftHanded(Vector3.Zero, new Vector3(0, 0, -1), Up2D);
+
+                CurrentState.Shader.SetUniformMatrix4("viewMatrix", noProjectionView);
                 return;
             }
 
@@ -645,9 +661,9 @@ namespace Emotion.Graphics
             }
         }
 
-        private bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
+        private bool DebugFunctionalityKeyInput(Key key, KeyState state)
         {
-            if (state != KeyStatus.Down) return true;
+            if (state != KeyState.Down) return true;
 
             bool ctrl = Engine.Host.IsCtrlModifierHeld();
             if (key == Key.F1 && !ctrl) ToggleDebugCamera();

@@ -16,6 +16,8 @@ using WinApi.Kernel32;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
+using Emotion.IO;
+
 
 #if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
@@ -261,9 +263,9 @@ namespace Emotion.Platform.Implementation.Win32
             // is sent only to the latter one. To work around this manually query the status of both shift keys every tick.
             if (IsFocused)
             {
-                KeyState lShift = User32.GetAsyncKeyState(VirtualKey.LSHIFT);
+                Win32KeyState lShift = User32.GetAsyncKeyState(VirtualKey.LSHIFT);
                 UpdateKeyStatus(Key.LeftShift, lShift.IsPressed);
-                KeyState rShift = User32.GetAsyncKeyState(VirtualKey.RSHIFT);
+                Win32KeyState rShift = User32.GetAsyncKeyState(VirtualKey.RSHIFT);
                 UpdateKeyStatus(Key.RightShift, rShift.IsPressed);
             }
 
@@ -600,6 +602,64 @@ namespace Emotion.Platform.Implementation.Win32
 
         #region File Helpers
 
+        protected override string DeveloperMode_OSSelectFileToImport<T>()
+        {
+            const int MAX_PATH = 260;
+
+            OpenFileName ofn = new OpenFileName();
+            ofn.lStructSize = Marshal.SizeOf<OpenFileName>();
+
+            string[] extensions = T.GetFileExtensionsSupported();
+            StringBuilder b = new();
+            if (extensions.Length > 0)
+            {
+                string typeName = typeof(T).Name;
+                b.Append(typeName);
+                b.Append(" (");
+
+                for (int i = 0; i < extensions.Length; i++)
+                {
+                    string ext = extensions[i];
+                    if (i != 0) b.Append(", ");
+                    b.Append($"*.{ext}");
+                }
+
+                b.Append(")\0");
+
+                for (int i = 0; i < extensions.Length; i++)
+                {
+                    string ext = extensions[i];
+                    if (i != 0) b.Append(";");
+                    b.Append($"*.{ext}");
+                }
+
+                b.Append(")\0");
+            }
+            b.Append("All Files (*.*)\0*.*\0");
+
+            ofn.lpstrFilter = b.ToString();
+            ofn.nFilterIndex = 1;
+
+            ofn.lpstrFile = new string(new char[MAX_PATH]);
+            ofn.nMaxFile = MAX_PATH;
+
+            ofn.lpstrFileTitle = null;
+            ofn.nMaxFileTitle = MAX_PATH;
+
+            ofn.lpstrTitle = "Emotion: Select a file";
+
+            string assetPath = _devModeAssetFolder;
+            string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameDirectory);
+            ofn.lpstrInitialDir = fullAssetPath;
+
+            ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+
+            if (GetOpenFileName(ref ofn))
+                return ofn.lpstrFile;
+
+            return string.Empty;
+        }
+
         public void OpenFolderAndSelectFile(string filePath)
         {
             if (Path.EndsInDirectorySeparator(filePath))
@@ -639,6 +699,42 @@ namespace Emotion.Platform.Implementation.Win32
 
             return AssertMessageBoxResponse.Break;
         }
+
+        // From https://www.pinvoke.net/default.aspx/Structures/OPENFILENAME.html
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct OpenFileName
+        {
+            public int lStructSize;
+            public IntPtr hwndOwner;
+            public IntPtr hInstance;
+            public string lpstrFilter;
+            public string lpstrCustomFilter;
+            public int nMaxCustFilter;
+            public int nFilterIndex;
+            public string lpstrFile;
+            public int nMaxFile;
+            public string lpstrFileTitle;
+            public int nMaxFileTitle;
+            public string lpstrInitialDir;
+            public string lpstrTitle;
+            public int Flags;
+            public short nFileOffset;
+            public short nFileExtension;
+            public string lpstrDefExt;
+            public IntPtr lCustData;
+            public IntPtr lpfnHook;
+            public string lpTemplateName;
+            public IntPtr pvReserved;
+            public int dwReserved;
+            public int flagsEx;
+        }
+
+        [DllImport("comdlg32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool GetOpenFileName(ref OpenFileName lpofn);
+
+        private const int OFN_FILEMUSTEXIST = 0x00001000;
+        private const int OFN_PATHMUSTEXIST = 0x00000800;
+        private const int OFN_NOCHANGEDIR = 0x00000008;
 
         #endregion
 

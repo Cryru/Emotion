@@ -59,17 +59,17 @@ public class UICallbackButton : UIBaseWindow
         return OnRolloverSpawn?.Invoke();
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         if (key == Key.MouseKeyLeft && Enabled)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
             {
                 OnClicked();
                 return false;
             }
 
-            if (status == KeyStatus.Up)
+            if (status == KeyState.Up)
             {
                 OnClickedUp();
                 return false;

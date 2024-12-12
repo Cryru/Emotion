@@ -40,10 +40,10 @@ public abstract partial class WorldBaseEditor
 
     protected void InitializeEditorInterface()
     {
-        _editUI = new UIController(KeyListenerType.EditorUI)
-        {
-            Id = "WorldEditor"
-        };
+        //_editUI = new UIController(KeyListenerType.EditorUI)
+        //{
+        //    Id = "WorldEditor"
+        //};
 
         UIBaseWindow topBar = GetEditorTopBar();
         _editUI.AddChild(topBar);
@@ -56,11 +56,11 @@ public abstract partial class WorldBaseEditor
         UIBaseWindow worldInspect = GetWorldAttachInspectWindow();
         _editUI.AddChild(worldInspect);
 
-        _setControllersToVisible = UIController.GetControllersLesserPriorityThan(KeyListenerType.Editor);
-        for (var i = 0; i < _setControllersToVisible.Count; i++)
-        {
-            _setControllersToVisible[i].SetVisible(false);
-        }
+        //_setControllersToVisible = UIController.GetControllersLesserPriorityThan(KeyListenerType.Editor);
+        //for (var i = 0; i < _setControllersToVisible.Count; i++)
+        //{
+        //    _setControllersToVisible[i].SetVisible(false);
+        //}
     }
 
     protected void DisposeEditorInterface()

@@ -21,6 +21,7 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void Equal(object? a, object? b)
     {
         if (!Helpers.AreObjectsEqual(a, b)) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
@@ -28,6 +29,7 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void Equal(float a, float b)
     {
         if (a != b) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
@@ -35,6 +37,7 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void Equal(int a, int b)
     {
         if (a != b) AssertFailed($"Assert equal failed. Left is {a} and right is {b}");
@@ -42,6 +45,7 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void True(bool condition, string? text = null)
     {
         if (!condition) AssertFailed($"Assert failed {text}");
@@ -49,6 +53,7 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void False(bool condition, string? text = null)
     {
         if (condition) AssertFailed($"Assert failed {text}");
@@ -56,6 +61,7 @@ public static class Assert
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void NotNull([NotNull] object? obj, string? text = null)
     {
         if (obj == null) AssertFailed($"{text ?? "object"} was null");
@@ -66,6 +72,7 @@ public static class Assert
 
     private static HashSet<string>? _ignoredAsserts;
 
+    [DebuggerHidden]
     private static void AssertFailed(string msg)
     {
 #if AUTOBUILD
@@ -128,6 +135,7 @@ public static class AssertWrapper
 {
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void Assert(bool condition, string? text = null)
     {
         Testing.Assert.True(condition, text);
@@ -135,6 +143,16 @@ public static class AssertWrapper
 
     [Conditional("DEBUG")]
     [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
+    public static void AssertEqual(object? objA, object? objB)
+    {
+        Testing.Assert.Equal(objA, objB);
+    }
+
+
+    [Conditional("DEBUG")]
+    [Conditional("AUTOBUILD")]
+    [DebuggerHidden]
     public static void AssertNotNull([NotNull] object? obj)
     {
         Testing.Assert.True(obj != null);

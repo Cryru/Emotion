@@ -7,6 +7,7 @@ using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Utility;
 using Emotion.WIPUpdates.TextUpdate;
+using Emotion.WIPUpdates.TextUpdate.LayoutEngineTypes;
 using static Emotion.UI.TextLayoutEngine;
 using static Emotion.UI.UIBaseWindow;
 
@@ -116,27 +117,32 @@ public class TextLayoutEngine
                 // Inside tag name and it is being closed
                 if (tagNameStart != -1 && c == '>')
                 {
-                    var tagDefine = new TagDefinition(tagNameStart + 1, cIdx - tagNameStart - 1); // + and - are for skipping the brackets
-                    _tagDefinitions.Add(tagDefine);
+                    // + and - are for skipping the brackets
+                    int tagStart = tagNameStart + 1;
+                    int tagLength = cIdx - tagNameStart - 1;
 
-                    tagNameStart = -1;
-                    currentBlock = new TextBlock(cIdx + 1);
+                    TagDefinition tagDefine = new TagDefinition(tagStart, tagLength);
+                    bool isValidTag = ProcessTag(ref tagDefine);
+
+                    if (isValidTag)
+                    {
+                        // Close current block.
+                        currentBlock.Length = tagNameStart - currentBlock.StartIndex;
+                        _textBlocks.Add(currentBlock);
+
+                        // Add current define
+                        _tagDefinitions.Add(tagDefine);
+
+                        tagNameStart = -1;
+                        currentBlock = new TextBlock(cIdx + 1);
+                    }
                 }
 
                 if (c == '<')
                 {
-                    // Close current tag.
-                    currentBlock.Length = cIdx - currentBlock.StartIndex;
-                    _textBlocks.Add(currentBlock);
-
                     // New tag starts
                     tagNameStart = cIdx;
                 }
-            }
-
-            if (tagNameStart != -1)
-            {
-                currentBlock = new TextBlock(tagNameStart);
             }
 
             // Close final block
@@ -240,8 +246,8 @@ public class TextLayoutEngine
                 int lengthToEnd = block.Length - lastFitBreakChar;
                 block.Length = lastFitBreakChar;
                 block.Skip = lastFitBreakChar == 1 && blockString[0] == ' ';
-                // Special case for when going on a new line there could be a space at the end.
-                // For text centering and so forth purpsoes we don't want this part of the measured length, so we cut it out.
+                // Special case for when going on a new line and there is a space at the end.
+                // For text centering and other purposes we don't want this part of the measured length, so we cut it out.
                 // However we don't want to do this if ResolveTags is false, since that most likely means the user wants
                 // to retain a mapping of virtual characters to characters. (such as in the case of a text input)
                 if (ResolveTags && lastFitBreakChar > 0 && _text[block.StartIndex + block.Length - 1] == ' ') block.Length--;
@@ -281,8 +287,7 @@ public class TextLayoutEngine
             for (int ii = i + 1; ii < _tagDefinitions.Count; ii++)
             {
                 ref TagDefinition nextTag = ref tagDefSpan[ii];
-                var name = nextTag.GetTagName(_text);
-                if (name.SequenceEqual("/"))
+                if (nextTag.TagType == TextTagType.ClosingTag)
                 {
                     if (depth == 0)
                     {
@@ -301,10 +306,10 @@ public class TextLayoutEngine
             {
                 ref TextBlock block = ref blocksSpan[b];
                 if (block.Skip) continue;
-                
+
                 if (startIndex <= block.StartIndex && endIndex >= block.StartIndex + block.Length)
                 {
-                    ProcessTag(tag, ref block);
+                    ApplyTag(tag, ref block);
                 }
             }
         }
@@ -316,11 +321,14 @@ public class TextLayoutEngine
 
     public void Render(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
     {
-        RenderNoOffset(c, offset + LayoutRenderOffset, baseColor, defaultEffect, defaultEffectAmount, defaultEffectColor);
+        RenderWithNoLayoutOffset(c, offset + LayoutRenderOffset, baseColor, defaultEffect, defaultEffectAmount, defaultEffectColor);
     }
 
-    public void RenderNoOffset(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
+    public void RenderWithNoLayoutOffset(RenderComposer c, Vector3 offset, Color baseColor, FontEffect defaultEffect = FontEffect.None, float defaultEffectAmount = 0f, Color? defaultEffectColor = null)
     {
+        if (_defaultAtlas == null) return;
+        AssertNotNull(_defaultAtlas);
+
         _layouter ??= new TextLayouter(_defaultAtlas);
         _layouter.SetAtlas(_defaultAtlas);
         TextLayouter layouter = _layouter;
@@ -372,7 +380,7 @@ public class TextLayoutEngine
                 var currentPenLoc = layouter.GetPenLocation();
                 layouter.AddToPen(new Vector2(center - currentPenLoc.X, 0));
             }
-            else if(currentBlock.SpecialLayout == SpecialLayoutFlag.RightStart)
+            else if (currentBlock.SpecialLayout == SpecialLayoutFlag.RightStart)
             {
                 float combinedBlockWidth = MeasureStringWidth(currentBlock.GetBlockString(_text));
                 for (int ii = i + 1; ii < _textBlocks.Count; ii++)
@@ -405,7 +413,7 @@ public class TextLayoutEngine
                 _defaultAtlas.DrawGlyph(c, g, offset + reUsableVector, color);
             }
 
-            //c.RenderString(offset, color, , _defaultAtlas, layouter, effect, effectAmount, effectColor);
+            // c.RenderString(offset, color, text, _defaultAtlas, layouter, effect, effectAmount, effectColor);
         }
 
         _defaultAtlas.FinishDrawing(c);
@@ -413,34 +421,100 @@ public class TextLayoutEngine
         RenderTest(c, offset);
     }
 
-    private void ProcessTag(TagDefinition def, ref TextBlock block)
+    private bool ProcessTag(ref TagDefinition def)
     {
-        var tagName = def.GetTagName(_text);
+        ReadOnlySpan<char> tagName = def.GetTagName(_text);
+        if (tagName.SequenceEqual("/"))
+        {
+            def.TagType = TextTagType.ClosingTag;
+            return true;
+        }
+
         if (tagName.StartsWith("color")) // color r g b (?a) or color #htmlColor
         {
-            LayoutTag_Color(def, ref block);
-            return;
+            Color? col = TagReadingHelper_ColorArgs(tagName);
+            if (col != null)
+            {
+                def.ExtraData = col.Value;
+                def.TagType = TextTagType.Color;
+                return true;
+            }
         }
         else if (tagName.StartsWith("outline")) // outline r g b (?a) size=s or outline #htmlColor size=s
         {
-            LayoutTag_Outline(def, ref block);
-            return;
+            Color? col = TagReadingHelper_ColorArgs(tagName);
+            if (col == null) return false;
+
+            // todo: add helper function for getting args from tags
+            const string sizeArgStr = "size=";
+            int sizeSpec = tagName.IndexOf(sizeArgStr);
+            if (sizeSpec == -1) return false;
+
+            sizeSpec += sizeArgStr.Length;
+
+            int sizeArgSize = 0;
+            for (int i = sizeSpec; i < tagName.Length; i++)
+            {
+                char c = tagName[i];
+                if (c == ' ') break;
+
+                sizeArgSize++;
+            }
+            ReadOnlySpan<char> sizeArg = tagName.Slice(sizeSpec, sizeArgSize);
+            bool parsed = int.TryParse(sizeArg, out int sizeNum);
+            if (!parsed) sizeNum = 1;
+
+            def.ExtraData = col.Value;
+            def.ExtraData2 = sizeNum;
+            def.TagType = TextTagType.Outline;
+            return true;
         }
-        else if (tagName.StartsWith("center"))
+        else if (tagName.SequenceEqual("center"))
         {
-            block.SpecialLayout = def.GetTagStartIndexInText() == block.StartIndex ? SpecialLayoutFlag.CenterStart : SpecialLayoutFlag.CenterContinue;
-            return;
+            def.TagType = TextTagType.Center;
+            return true;
         }
-        else if (tagName.StartsWith("right"))
+        else if (tagName.SequenceEqual("right"))
         {
-            block.SpecialLayout = def.GetTagStartIndexInText() == block.StartIndex ? SpecialLayoutFlag.RightStart : SpecialLayoutFlag.RightContinue;
-            return;
+            def.TagType = TextTagType.Right;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ApplyTag(TagDefinition def, ref TextBlock block)
+    {
+        switch (def.TagType)
+        {
+            case TextTagType.Color:
+                {
+                    block.Color = def.ExtraData;
+                    block.UseDefaultColor = false;
+                    break;
+                }
+            case TextTagType.Outline:
+                {
+                    block.TextEffect = FontEffect.Outline;
+                    block.EffectColor = def.ExtraData;
+                    block.EffectParam = def.ExtraData2;
+                    break;
+                }
+            case TextTagType.Center:
+                {
+                    block.SpecialLayout = def.GetTagStartIndexInText() == block.StartIndex ? SpecialLayoutFlag.CenterStart : SpecialLayoutFlag.CenterContinue;
+                    break;
+                }
+            case TextTagType.Right:
+                {
+                    block.SpecialLayout = def.GetTagStartIndexInText() == block.StartIndex ? SpecialLayoutFlag.RightStart : SpecialLayoutFlag.RightContinue;
+                    break;
+                }
         }
     }
 
-    private Color? TagReadingHelper_ColorArgs(TagDefinition tag)
+    private Color? TagReadingHelper_ColorArgs(ReadOnlySpan<char> tagName)
     {
-        ReadOnlySpan<char> tagName = tag.GetTagName(_text);
         int afterTagSpec = tagName.IndexOf(" ");
         if (afterTagSpec == -1 || afterTagSpec == tagName.Length - 2) return null;
 
@@ -469,52 +543,6 @@ public class TextLayoutEngine
             if (ranges == 4 && !byte.TryParse(tagArgs[arguments[3]], out a)) a = 255;
 
             return new Color(r, g, b, a);
-        }
-    }
-
-    private void LayoutTag_Color(TagDefinition tag, ref TextBlock block)
-    {
-        Color? col = TagReadingHelper_ColorArgs(tag);
-        if (col != null)
-        {
-            block.Color = col.Value;
-            block.UseDefaultColor = false;
-        }
-    }
-
-    private void LayoutTag_Outline(TagDefinition tag, ref TextBlock block)
-    {
-        Color? col = TagReadingHelper_ColorArgs(tag);
-        if (col != null)
-        {
-            block.EffectColor = col.Value;
-            block.TextEffect = FontEffect.Outline;
-        }
-        else
-        {
-            return;
-        }
-
-        // todo: add helper function for getting args from tags
-        const string sizeArgStr = "size=";
-        ReadOnlySpan<char> tagName = tag.GetTagName(_text);
-        int sizeSpec = tagName.IndexOf(sizeArgStr);
-        if (sizeSpec != -1)
-        {
-            sizeSpec += sizeArgStr.Length;
-
-            int sizeArgSize = 0;
-            for (int i = sizeSpec; i < tagName.Length; i++)
-            {
-                char c = tagName[i];
-                if (c == ' ') break;
-
-                sizeArgSize++;
-            }
-            ReadOnlySpan<char> sizeArg = tagName.Slice(sizeSpec, sizeArgSize);
-            bool parsed = int.TryParse(sizeArg, out int sizeNum);
-            if (!parsed) sizeNum = 1;
-            block.EffectParam = sizeNum;
         }
     }
 
@@ -865,7 +893,7 @@ public class TextLayoutEngine
 
         (int lineStart, int _) = GetLineOfSelectedIndex(startIdx);
         (int lineEnd, int _) = GetLineOfSelectedIndex(endIdx);
-        
+
         if (lineStart == lineEnd)
         {
             Rectangle lineBoundStart = GetBoundOfSelectionIndex(startIdx);
@@ -892,7 +920,7 @@ public class TextLayoutEngine
 
     #endregion
 
-    public enum ForEachResult
+    private enum ForEachResult
     {
         Continue,
         Break,
@@ -900,9 +928,9 @@ public class TextLayoutEngine
         StoreResultAndContinue
     }
 
-    public delegate (ForEachResult, T) ForEachTextBlockDelegateFunc<T, A1>((TextBlock, int) blockData, (int, int, int) selData, A1 arg1);
+    private delegate (ForEachResult, T) ForEachTextBlockDelegateFunc<T, A1>((TextBlock, int) blockData, (int, int, int) selData, A1 arg1);
 
-    public T ForEachTextBlock<T, A1>(ForEachTextBlockDelegateFunc<T, A1> functor, A1 arg1)
+    private T ForEachTextBlock<T, A1>(ForEachTextBlockDelegateFunc<T, A1> functor, A1 arg1)
     {
         T returnVal = default!;
         bool isValDefault = true;
@@ -950,72 +978,4 @@ public class TextLayoutEngine
     }
 
     #endregion
-
-    private struct TagDefinition
-    {
-        public int NameStartIdx;
-        public int NameLength;
-        public bool Skip;
-
-        public TagDefinition(int nameStartIdx, int nameLength)
-        {
-            NameStartIdx = nameStartIdx;
-            NameLength = nameLength;
-            Skip = false;
-        }
-
-        public ReadOnlySpan<char> GetTagName(string totalText)
-        {
-            return totalText.AsSpan().Slice(NameStartIdx, NameLength);
-        }
-
-        public int GetTagStartIndexInText()
-        {
-            return NameStartIdx + NameLength + 1; // "name>" + 1 because of the bracket
-        }
-    }
-
-    public enum SpecialLayoutFlag : byte
-    {
-        None,
-        CenterStart,
-        CenterContinue,
-        RightStart,
-        RightContinue,
-    }
-
-    public struct TextBlock
-    {
-        public int StartIndex;
-        public int Length;
-        public bool Skip;
-
-        public Color Color;
-        public bool UseDefaultColor;
-
-        public FontEffect TextEffect;
-        public Color EffectColor;
-        public int EffectParam;
-
-        public bool Newline;
-        public SpecialLayoutFlag SpecialLayout;
-
-        public TextBlock(int startIndex)
-        {
-            StartIndex = startIndex;
-            UseDefaultColor = true;
-        }
-
-        public TextBlock(int startIndex, int length)
-        {
-            StartIndex = startIndex;
-            Length = length;
-            UseDefaultColor = true;
-        }
-
-        public ReadOnlySpan<char> GetBlockString(string totalText)
-        {
-            return totalText.AsSpan().Slice(StartIndex, Length);
-        }
-    }
 }

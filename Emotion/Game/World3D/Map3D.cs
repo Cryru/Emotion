@@ -71,6 +71,6 @@ public class Map3D : BaseMap
         {
             obj.Render(c);
         }
-        c.MeshEntityRenderer.EndScene(c, this);
+        c.MeshEntityRenderer.EndScene(c, LightModel);
     }
 }

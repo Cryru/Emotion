@@ -1,9 +1,9 @@
 ﻿#region Using
 
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Data;
+using Emotion.Standard.Reflector;
 using OpenGL;
 
 #endregion
@@ -113,25 +113,20 @@ public abstract class VertexArrayObject : IDisposable
         int stride = Marshal.SizeOf<T>();
         var vertexType = typeof(T);
 
-        // ONE
-        //var typeData = ReflectorEngine.GetTypeData(vertexType.Name);
-        //var members = typeData.GetMembers();
-        FieldInfo[] members = vertexType.GetFields(BindingFlags.Public | BindingFlags.Instance);
-        
+        var typeData = ReflectorEngine.GetTypeHandler(vertexType);
+        var members = typeData.GetMembers();
 
         uint positionOffset = _lastAttributePosition;
         for (uint i = 0; i < members.Length; i++)
         {
-            var member = members[i];
-            // ONE
-            // VertexAttributeAttribute vertexAttributeData = member.HasAttribute<VertexAttributeAttribute>();
-            var vertexAttributeData = member.GetCustomAttribute<VertexAttributeAttribute>();
+            Standard.Reflector.Handlers.ComplexTypeHandlerMember member = members[i];
+            VertexAttributeAttribute vertexAttributeData = member.HasAttribute<VertexAttributeAttribute>();
             if (vertexAttributeData == null) continue;
 
             string fieldName = member.Name;
             nint offset = Marshal.OffsetOf(vertexType, fieldName);
-            Type fieldType = vertexAttributeData.TypeOverride ?? member.FieldType; // member.MemberType
-            if (fieldName == "UV") UVByteOffset = (int)offset;
+            Type fieldType = vertexAttributeData.TypeOverride ?? member.Type;
+            if (fieldName == "UV") UVByteOffset = (int) offset;
 
             uint position = positionOffset + i;
             Gl.EnableVertexAttribArray(position);

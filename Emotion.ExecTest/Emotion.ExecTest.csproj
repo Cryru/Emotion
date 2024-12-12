@@ -2,11 +2,15 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Platforms>x64</Platforms>
-        <StartupObject>Emotion.ExecTest.Program</StartupObject>
+        <Platforms>Android;x64</Platforms>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <DebugType>full</DebugType>
@@ -20,10 +24,47 @@
 
     <PropertyGroup Condition="'$(Platform)'=='x64'">
         <PlatformTarget>x64</PlatformTarget>
+        <StartupObject>Emotion.ExecTest.Program</StartupObject>
     </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Platform)'=='Android'">
+        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <TargetFramework>net9.0-android</TargetFramework>
+        <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
+        <Debugger>Xamarin</Debugger>
+        <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'$(Platform)'=='Android'">
+      <AndroidResource Include="AndroidResources\layout\activity_main.xml" />
+      <AndroidResource Include="AndroidResources\mipmap-anydpi-v26\appicon.png" />
+      <AndroidResource Include="AndroidResources\values\strings.xml" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('ANDROID'))">
+        <Compile Remove="Android\**\*.cs" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Compile Remove="Examples\ComplexPolygonContours.cs" />
+      <Compile Remove="Examples\FrameBufferSampling.cs" />
+      <Compile Remove="Examples\GeneratedCurveMeshExample.cs" />
+      <Compile Remove="Examples\PackingDisplay.cs" />
+      <Compile Remove="Examples\Pathfinding.cs" />
+      <Compile Remove="Examples\PngSuiteExample.cs" />
+      <Compile Remove="Examples\RopeSim.cs" />
+      <Compile Remove="Examples\TextRenderers.cs" />
+    </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Assets\" />
+      <None Include="Examples\ComplexPolygonContours.cs" />
+      <None Include="Examples\FrameBufferSampling.cs" />
+      <None Include="Examples\GeneratedCurveMeshExample.cs" />
+      <None Include="Examples\PackingDisplay.cs" />
+      <None Include="Examples\Pathfinding.cs" />
+      <None Include="Examples\PngSuiteExample.cs" />
+      <None Include="Examples\RopeSim.cs" />
+      <None Include="Examples\TextRenderers.cs" />
     </ItemGroup>
 
     <ItemGroup>

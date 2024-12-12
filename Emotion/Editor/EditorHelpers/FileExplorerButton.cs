@@ -23,15 +23,16 @@ public class FileExplorerButton : UICallbackButton
 
     public FileExplorerButton()
     {
-        ScaleMode = UIScaleMode.FloatScale;
         LayoutMode = LayoutMode.VerticalList;
 
         var directoryNotch = new UISolidColor
         {
             WindowColor = MapEditorColorPalette.ButtonColor,
-            MaxSizeY = 5,
-            MaxSizeX = 10,
-            Visible = false
+            MinSizeY = 10,
+            MinSizeX = 20,
+            Visible = false,
+            FillY = false,
+            FillX = false
         };
         _notch = directoryNotch;
         AddChild(directoryNotch);
@@ -39,30 +40,32 @@ public class FileExplorerButton : UICallbackButton
         var bg = new UISolidColor
         {
             WindowColor = MapEditorColorPalette.ButtonColor,
-            Margins = new Rectangle(0, 0, 0, 2),
-            MaxSizeY = 30,
-            Id = "buttonBackground"
+            Id = "buttonBackground",
+            MinSizeY = 60,
+            MaxSizeY = 60
         };
         _bg = bg;
         AddChild(bg);
 
         var txt = new UIText
         {
-            ParentAnchor = UIAnchor.BottomCenter,
-            Anchor = UIAnchor.BottomCenter,
-            ScaleMode = UIScaleMode.FloatScale,
+            ParentAnchor = UIAnchor.TopCenter,
+            Anchor = UIAnchor.TopCenter,
             WindowColor = MapEditorColorPalette.TextColor,
             Id = "buttonText",
-            FontFile = "Editor/UbuntuMono-Regular.ttf",
             FontSize = MapEditorColorPalette.EditorButtonTextSize - 2,
-            IgnoreParentColor = true
+            IgnoreParentColor = true,
+            Margins = new Primitives.Rectangle(0, 5, 0, 0),
+            MaxSizeX = 140
         };
         _label = txt;
         AddChild(txt);
 
-        MinSize = new Vector2(70, 0);
-        MaxSize = new Vector2(70, 999);
-        StretchY = true;
+        MinSizeX = 150;
+        MaxSizeX = 150;
+
+        FillX = false;
+        FillY = false;
     }
 
     public void SetFileName(string fileName)
@@ -100,41 +103,46 @@ public class FileExplorerButton : UICallbackButton
 
     private void GeneratePreviewUI()
     {
-        var previewWindow = GeneratePreviewUIInternal(_extension);
-        var filePreview = GetWindowById("FilePreview");
-        if (filePreview != null) filePreview.Parent.RemoveChild(filePreview);
+        UIBaseWindow previewWindow = GeneratePreviewUIInternal(_extension);
+        UIBaseWindow? filePreview = GetWindowById("FilePreview");
+        if (filePreview != null) filePreview.Parent?.RemoveChild(filePreview);
 
         previewWindow.Id = "FilePreview";
-        var bg = GetWindowById("buttonBackground");
-        bg.AddChild(previewWindow);
+        UIBaseWindow? bg = GetWindowById("buttonBackground");
+        if (bg != null) bg.AddChild(previewWindow);
     }
 
     private UIBaseWindow GeneratePreviewUIInternal(string extension)
     {
         var bg = GetWindowById("buttonBackground");
 
-        if (_extension == ".em3" || _extension == ".obj"
-#if ASSIMP
-                                 || _extension == ".fbx" || _extension == ".gltf" || _extension == ".dae"
+        if (_extension == ".em3" || _extension == ".gltf"
+#if MORE_MESH_TYPES
+                                 || _extension == ".obj" || _extension == ".fbx" || _extension == ".dae"
 #endif
            )
         {
-            var obj3DPreview = new UIMeshEntityWindow();
-            obj3DPreview.AssetPath = _fileName;
-            obj3DPreview.Async = true;
-            obj3DPreview.ParentAnchor = UIAnchor.CenterCenter;
-            obj3DPreview.Anchor = UIAnchor.CenterCenter;
+            var obj3DPreview = new UIMeshEntityWindow
+            {
+                AssetPath = _fileName,
+                Async = true,
+                ParentAnchor = UIAnchor.CenterCenter,
+                Anchor = UIAnchor.CenterCenter
+            };
 
             return obj3DPreview;
         }
 
         if (_extension == ".png" || _extension  == ".bmp" || _extension == ".eib")
         {
-            var texturePreview = new UITexture();
-            texturePreview.TextureFile = _fileName;
-            texturePreview.RenderSize = new Vector2(-200, -100);
-            texturePreview.ParentAnchor = UIAnchor.CenterCenter;
-            texturePreview.Anchor = UIAnchor.CenterCenter;
+            var texturePreview = new UITexture
+            {
+                TextureFile = _fileName,
+                //RenderSize = new Vector2(-200, -100),
+                ParentAnchor = UIAnchor.CenterCenter,
+                Anchor = UIAnchor.CenterCenter,
+                RenderSize = new Vector2(-100, -100)
+            };
 
             return texturePreview;
         }
@@ -146,9 +154,7 @@ public class FileExplorerButton : UICallbackButton
         {
             ParentAnchor = UIAnchor.CenterCenter,
             Anchor = UIAnchor.CenterCenter,
-            ScaleMode = UIScaleMode.FloatScale,
             WindowColor = MapEditorColorPalette.TextColor,
-            FontFile = "Editor/UbuntuMono-Regular.ttf",
             FontSize = MapEditorColorPalette.EditorButtonTextSize,
             IgnoreParentColor = true,
             Margins = new Rectangle(5, 0, 5, 0),

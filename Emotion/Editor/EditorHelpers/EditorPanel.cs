@@ -16,7 +16,8 @@ public enum PanelMode
 {
     Default,
     Modal,
-    Embedded
+    Embedded,
+    SubWindow
 }
 
 /// <summary>
@@ -129,9 +130,9 @@ public class EditorPanel : UIBaseWindow
     public override void InputFocusChanged(bool haveFocus)
     {
         if (haveFocus)
-            ZOffset++;
+            OrderInParent++;
         else
-            ZOffset--;
+            OrderInParent--;
 
         base.InputFocusChanged(haveFocus);
     }
@@ -158,7 +159,7 @@ public class EditorPanel : UIBaseWindow
         return base.RenderInternal(c);
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         bool returnVal = base.OnKey(key, status, mousePos);
 

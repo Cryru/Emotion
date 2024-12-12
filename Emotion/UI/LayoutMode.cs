@@ -6,6 +6,7 @@
         VerticalList,
         VerticalListWrap,
         HorizontalList,
-        HorizontalListWrap
+        HorizontalListWrap,
+        HorizontalEditorPanel
     }
 }

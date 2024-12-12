@@ -86,7 +86,7 @@ public class DataEditorGeneric : EditorPanel
                 StretchX = true,
                 StretchY = true,
                 LayoutMode = LayoutMode.HorizontalList,
-                ZOffset = 10
+                OrderInParent = 10
             };
             leftPart.AddChild(listContainer);
 

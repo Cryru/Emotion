@@ -27,7 +27,7 @@ uniform mat4 cascadeLightProj[CASCADE_COUNT];
 uniform int renderingShadowMap;
 
 #ifdef SKINNED
-const int MAX_BONES = 126;
+const int MAX_BONES = 200;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 boneMatrices[MAX_BONES];
 #endif
@@ -41,17 +41,38 @@ out vec3 fragLightDir;
 
 out vec3 fragPosition;
 
+//#ifdef SKINNED
+//#define DEBUG_WEIGHT_BONE 3
+//#endif
+
+#ifdef DEBUG_WEIGHT_BONE
+out float debugBoneWeight;
+#endif
+
 void main() { 
     // Pass to frag.
     UV = uv;
     vertColor = color;
-
     
     fragLightDir = normalize(sunDirection);
 
     vec4 totalPosition = vec4(vertPos, 1.0);
 
 #ifdef SKINNED
+
+#ifdef DEBUG_WEIGHT_BONE
+    debugBoneWeight = 0.0;
+    for (int i = 0; i < MAX_BONE_INFLUENCE; i++)
+    {
+        int id = int(boneIds[0]);
+        if (id == DEBUG_WEIGHT_BONE)
+        {
+            debugBoneWeight = boneWeights[i];
+            break;
+        }
+    }
+#endif
+
     mat4 totalTransform = boneMatrices[int(boneIds[0])] * boneWeights[0];
     for (int i = 1; i < MAX_BONE_INFLUENCE; i++)
     {

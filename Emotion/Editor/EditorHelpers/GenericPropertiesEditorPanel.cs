@@ -80,7 +80,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
         listContainer.StretchX = true;
         listContainer.StretchY = true;
         listContainer.LayoutMode = LayoutMode.HorizontalList;
-        listContainer.ZOffset = 10;
+        listContainer.OrderInParent = 10;
         innerContainer.AddChild(listContainer);
 
         var listNav = new UICallbackListNavigator();
@@ -137,7 +137,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
                     var editorAsWnd = (UIBaseWindow)editor;
                     editorAsWnd.Anchor = UIAnchor.CenterRight;
                     editorAsWnd.ParentAnchor = UIAnchor.CenterRight;
-                    editorAsWnd.ZOffset = 10;
+                    editorAsWnd.OrderInParent = 10;
 
                     _editorUIs.Add(editor);
                 }

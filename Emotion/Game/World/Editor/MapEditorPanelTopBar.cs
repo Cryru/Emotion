@@ -51,11 +51,11 @@ namespace Emotion.Game.World.Editor
             UseNewLayoutSystem = true;
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
             if (key == Key.MouseKeyLeft)
             {
-                _mouseDown = status == KeyStatus.Down;
+                _mouseDown = status == KeyState.Down;
                 _mouseDownPos = Engine.Host.MousePosition;
                 return false;
             }

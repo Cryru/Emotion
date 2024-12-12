@@ -58,9 +58,9 @@ public class UITextInput2 : UIRichText
         base.DetachedFromController(controller);
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
-        if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down && !MultiLine)
+        if (SubmitOnEnter && key == Key.Enter && status == KeyState.Down && !MultiLine)
         {
             OnSubmit?.Invoke(_text);
             return false;
@@ -68,11 +68,11 @@ public class UITextInput2 : UIRichText
 
         if (key == Key.LeftArrow || key == Key.RightArrow || key == Key.UpArrow || key == Key.DownArrow)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
             {
                 _arrowHeld = key;
             }
-            else if(status == KeyStatus.Up && _arrowHeld == key)
+            else if(status == KeyState.Up && _arrowHeld == key)
             {
                 _arrowHeld = null;
             }
@@ -83,7 +83,7 @@ public class UITextInput2 : UIRichText
         // Selection drag
         if (key == Key.MouseKeyLeft)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
             {
                 _selectionHeld = true;
 
@@ -95,7 +95,7 @@ public class UITextInput2 : UIRichText
                     EnsureSelectionRight();
                 }
             }
-            else if (status == KeyStatus.Up)
+            else if (status == KeyState.Up)
             {
                 _selectionHeld = false;
             }
@@ -103,7 +103,7 @@ public class UITextInput2 : UIRichText
             return false;
         }
 
-        if (status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
+        if (status == KeyState.Down && Engine.Host.IsCtrlModifierHeld())
         {
             if (key == Key.A) // Select All
             {
@@ -136,7 +136,7 @@ public class UITextInput2 : UIRichText
                 return false;
         }
 
-        if (key == Key.Delete && status == KeyStatus.Down)
+        if (key == Key.Delete && status == KeyState.Down)
         {
             TextInputEventHandler((char) 127);
             return false;

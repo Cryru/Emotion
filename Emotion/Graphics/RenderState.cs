@@ -47,6 +47,23 @@ namespace Emotion.Graphics
 
         public ShaderProgram Shader;
 
+        public bool Equals(RenderState otherState)
+        {
+            return AlphaBlending == otherState.AlphaBlending &&
+                   SFactorRgb == otherState.SFactorRgb &&
+                   DFactorRgb == otherState.DFactorRgb &&
+                   SFactorA == otherState.SFactorA &&
+                   DFactorA == otherState.DFactorA &&
+                   DepthTest == otherState.DepthTest &&
+                   StencilTest == otherState.StencilTest &&
+                   ClipRect == otherState.ClipRect &&
+                   FaceCulling == otherState.FaceCulling &&
+                   FaceCullingBackFace == otherState.FaceCullingBackFace &&
+                   ViewMatrix == otherState.ViewMatrix &&
+                   ProjectionBehavior == otherState.ProjectionBehavior &&
+                   Shader == otherState.Shader;
+        }
+
         /// <summary>
         /// A default state.
         /// </summary>

@@ -80,14 +80,14 @@ namespace Emotion.Platform
         /// Provides default button behavior for all platforms.
         /// Includes debug shortcuts and universal engine shortcuts.
         /// </summary>
-        private bool DefaultButtonBehavior(Key key, KeyStatus state)
+        private bool DefaultButtonBehavior(Key key, KeyState state)
         {
             if (Engine.Configuration.DebugMode)
             {
                 Engine.Log.Trace($"Key {key} is {state}.", MessageSource.Input);
 
                 bool ctrl = IsCtrlModifierHeld();
-                if (key >= Key.F1 && key <= Key.F10 && state == KeyStatus.Down && ctrl)
+                if (key >= Key.F1 && key <= Key.F10 && state == Input.KeyState.Down && ctrl)
                 {
                     Vector2 chosenSize = _windowSizes[key - Key.F1];
                     Size = chosenSize;
@@ -97,16 +97,16 @@ namespace Emotion.Platform
 
                 switch (key)
                 {
-                    case Key.F11 when state == KeyStatus.Down && ctrl:
+                    case Key.F11 when state == Input.KeyState.Down && ctrl:
                         Size = Engine.Configuration.RenderSize * 1.999f - Vector2.One;
                         return false;
-                    case Key.Pause when state == KeyStatus.Down:
+                    case Key.Pause when state == Input.KeyState.Down:
                         PerfProfiler.ProfileNextFrame();
                         break;
                 }
             }
 
-            if (key == Key.Enter && state == KeyStatus.Down && IsAltModifierHeld())
+            if (key == Key.Enter && state == Input.KeyState.Down && IsAltModifierHeld())
             {
                 DisplayMode = DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
                 return false;
@@ -162,11 +162,11 @@ namespace Emotion.Platform
             //if (wasDown && down) OnKey.Invoke(key, KeyStatus.Held);
 
             // If it was down, but no longer is - it was let go.
-            if (wasDown && !down) OnKey.Invoke(key, KeyStatus.Up);
+            if (wasDown && !down) OnKey.Invoke(key, Input.KeyState.Up);
 
             // If it was up, and now is down - it was pressed.
             var downHandled = false;
-            if (!wasDown && down) downHandled = OnKey.Invoke(key, KeyStatus.Down);
+            if (!wasDown && down) downHandled = OnKey.Invoke(key, Input.KeyState.Down);
 
             // The click was handled, disable text input in case we get an event.
             if (down && downHandled) _skipTextInputThisTick = true;
@@ -177,7 +177,7 @@ namespace Emotion.Platform
             if (amount != 0)
             {
                 _mouseScrollAccum += amount;
-                OnKey.Invoke(Key.MouseWheel, amount < 0 ? KeyStatus.MouseWheelScrollDown : KeyStatus.MouseWheelScrollUp);
+                OnKey.Invoke(Key.MouseWheel, amount < 0 ? Input.KeyState.MouseWheelScrollDown : Input.KeyState.MouseWheelScrollUp);
                 //UpdateKeyStatus(Key.MouseKeyWheel, amount < 0);
             }
 
@@ -435,7 +435,7 @@ namespace Emotion.Platform
         /// Called when a mouse key is pressed or let go.
         /// </summary>
         [Obsolete("Please use OnKey instead of OnMouseKey")]
-        public EmotionEvent<MouseKey, KeyStatus> OnMouseKey { get; } = new EmotionEvent<MouseKey, KeyStatus>();
+        public EmotionEvent<MouseKey, KeyState> OnMouseKey { get; } = new EmotionEvent<MouseKey, KeyState>();
 
         /// <summary>
         /// Returns whether the specified mouse key was pressed down this tick.

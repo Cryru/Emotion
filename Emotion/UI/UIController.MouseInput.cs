@@ -1,4 +1,6 @@
-﻿namespace Emotion.UI;
+﻿using Emotion.Platform.Input;
+
+namespace Emotion.UI;
 
 #nullable enable
 
@@ -20,84 +22,28 @@ public partial class UIController
     private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
     private bool _calledUpdateTickBeforeLast;
 
-    private void UpdateMouseFocus()
+    protected virtual void UpdateMouseFocus()
     {
         _calledUpdateLastTick = true;
 
-        // It was already updated this tick.
-        if (_thisTick == Engine.TickCount) return;
-        _thisTick = Engine.TickCount;
-
-        if (Engine.Host.HostPaused)
+        if (Engine.Host.HostPaused || !ChildrenHandleInput || !Visible)
         {
-            ClearControllersMouseInputExcept(null);
+            SetControllerMouseFocus(null);
             return;
         }
 
-        // First check if any controller has a priority focus.
-        // Priority focus means currently holding down a mouse button.
-        UIController? consumedInput = null;
-        for (var i = 0; i < _allControllers.Count; i++) // Controllers are presorted in priority order.
+        UIBaseWindow? hasPriority = HasButtonHeldMouseFocus();
+        if (hasPriority != null)
         {
-            UIController controller = _allControllers[i];
-            if (!controller._calledUpdateLastTick) continue; // Controller inactive via update.
-            if (!controller.ChildrenHandleInput) continue;
-
-            UIBaseWindow? hasPriority = controller.HasButtonHeldMouseFocus();
-            if (hasPriority == null) continue;
-
-            controller.SetControllerMouseFocus(hasPriority);
-            consumedInput = controller;
-            break;
-        }
-
-        if (consumedInput != null)
-        {
-            ClearControllersMouseInputExcept(consumedInput);
+            SetControllerMouseFocus(hasPriority);
             return;
         }
 
-        // Check if any controller has a window under the cursor.
-        Vector2 mousePos = Engine.Host.MousePosition;
-        for (var i = 0; i < _allControllers.Count; i++)
-        {
-            UIController controller = _allControllers[i];
-            if (!controller._calledUpdateLastTick) continue;
-            if (!controller.ChildrenHandleInput || !controller.Visible) continue;
+        Vector2 pos = Engine.Host.MousePosition;
+        UIBaseWindow? focus = FindMouseInput(pos);
+        if (focus == this && _inputFocusManual == null) focus = null;
+        SetControllerMouseFocus(focus);
 
-            UIBaseWindow? focus = controller.FindMouseInput(mousePos);
-
-            if (focus == controller && controller._inputFocusManual == null) focus = null;
-
-            if (focus != null)
-            {
-                controller.SetControllerMouseFocus(focus);
-                consumedInput = controller;
-                break;
-            }
-        }
-
-        ClearControllersMouseInputExcept(consumedInput);
-    }
-
-    private static void ClearControllersMouseInputExcept(UIController? except)
-    {
-        for (var i = 0; i < _allControllers.Count; i++)
-        {
-            UIController controller = _allControllers[i];
-            if (controller == except) continue;
-            controller.SetControllerMouseFocus(null);
-        }
-
-        // Reset update trackers.
-        for (var i = 0; i < _allControllers.Count; i++)
-        {
-            UIController controller = _allControllers[i];
-            controller._calledUpdateTickBeforeLast = controller._calledUpdateLastTick;
-            controller._calledUpdateLastTick = false;
-        }
-
-        MouseFocus = except?._myMouseFocus;
     }
 
     /// <summary>
@@ -123,8 +69,9 @@ public partial class UIController
             _myMouseFocus?.OnMouseLeft(mousePos);
             if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
             _myMouseFocus = newMouseFocus;
-            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
+            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyListenerType.UI);
             _myMouseFocus?.OnMouseEnter(mousePos);
+            MouseFocus = newMouseFocus;
 
             if (CurrentRollover != null)
             {

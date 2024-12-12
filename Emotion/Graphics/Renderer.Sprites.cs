@@ -2,9 +2,11 @@
 
 using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
+using Emotion.Graphics.Batches.SpriteBatcher;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
+using Emotion.IO;
 using Emotion.Utility;
 
 #endregion
@@ -14,6 +16,16 @@ namespace Emotion.Graphics
     // Command routines for sprites (and sprite-like) which use the RenderComposer.
     public sealed partial class RenderComposer
     {
+        private bool _spriteBatcherEnabled;
+        private RenderSpriteBatch _batcher = new RenderSpriteBatch();
+
+        public void EnableSpriteBatcher(bool on)
+        {
+            _spriteBatcherEnabled = on;
+
+            if (!on) _batcher.Clear();
+        }
+
         /// <summary>
         /// Render a (textured) quad to the screen.
         /// </summary>
@@ -26,8 +38,16 @@ namespace Emotion.Graphics
         /// <param name="flipY">Whether to flip the texture on the y axis.</param>
         public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, texture);
-            VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
+            if (_spriteBatcherEnabled && _bufferStack.Count == 1)
+            {
+                Span<VertexData> vertices = _batcher.AddSprite(CurrentState, texture);
+                VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
+            }
+            else
+            {
+                Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, texture);
+                VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
+            }
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
@@ -70,6 +90,24 @@ namespace Emotion.Graphics
         public void RenderSprite(Vector3 position, Texture texture, Rectangle? textureArea = null)
         {
             RenderSprite(position, texture.Size, Color.White, texture, textureArea);
+        }
+
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector3 position, Vector2 size, Color color, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        {
+            Texture? textureUnderlying = null;
+            if (texture.AssetLoaded)
+            {
+                TextureAsset? textureAsset = texture.Asset;
+                textureUnderlying = textureAsset?.Texture;
+            }
+            RenderSprite(position, size, color, textureUnderlying);
+        }
+
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(Vector3 position, Vector2 size, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        {
+            RenderSprite(position, size, Color.White, texture);
         }
 
         public enum RenderLineMode

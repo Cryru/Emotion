@@ -51,7 +51,7 @@ public partial class World2DEditor
         _grid.ApplyTopLeftOriginCorrection = true;
     }
 
-    protected virtual bool TileEditorInputHandler(Key key, KeyStatus status)
+    protected virtual bool TileEditorInputHandler(Key key, KeyState status)
     {
         if (!IsTileEditorOpen()) return true;
 
@@ -60,7 +60,7 @@ public partial class World2DEditor
 
         if (key == Key.MouseKeyLeft)
         {
-            _mouseDown = status == KeyStatus.Down;
+            _mouseDown = status == KeyState.Down;
 
             // Clear last action to group undos by mouse clicks.
             if (!_mouseDown) _lastAction = null;

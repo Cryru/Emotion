@@ -31,7 +31,7 @@ public partial class World2DEditor
                 Enabled = () => map != null
             },
         });
-        tilesMenu.ZOffset = 4;
+        tilesMenu.OrderInParent = 4;
 
         // todo: GPU texture viewer
         // todo: animation tool (convert from imgui)

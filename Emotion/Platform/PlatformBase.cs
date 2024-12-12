@@ -2,7 +2,6 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Emotion.Audio;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
@@ -12,7 +11,10 @@ using OpenGL;
 using Emotion.Platform.Implementation.GlfwImplementation;
 
 #endif
+#if ANDROID
+using Emotion.Platform.Implementation.Android;
 
+#endif
 #endregion
 
 namespace Emotion.Platform
@@ -86,6 +88,12 @@ namespace Emotion.Platform
                 platform = engineConfig.PlatformOverride;
                 Engine.Log.Info($"Platform override of \"{platform}\" accepted", MessageSource.Engine);
             }
+
+#if ANDROID
+            // The host is initialized by the activity, and that is what
+            // actually calls Engine.Setup because we want to be initialized on the GL layer.
+            platform = EmotionActivity.MainActivity.Host;
+#endif
 
 #if GLFW
             platform ??= new GlfwPlatform();
@@ -292,6 +300,11 @@ namespace Emotion.Platform
             }
 
             OnFocusChanged?.Invoke(IsFocused);
+        }
+
+        public virtual Vector2 GetDPI()
+        {
+            return new Vector2(96);
         }
 
         #endregion

@@ -48,21 +48,21 @@ public sealed class TilesetTileSelector : UIScrollArea
         HandleInput = true;
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         var propagate = base.OnKey(key, status, mousePos);
         if (!propagate) return false;
 
         if (key == Key.MouseKeyLeft)
         {
-            if (status == KeyStatus.Down)
+            if (status == KeyState.Down)
             {
                 if (!Engine.Host.IsCtrlModifierHeld())
                     SelectedTiles.Clear();
                 _mouseDragStartPos = mousePos;
                 OnMouseMove(mousePos);
             }
-            else if (status == KeyStatus.Up)
+            else if (status == KeyState.Up)
             {
                 _mouseDragStartPos = null;
 

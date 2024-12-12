@@ -68,7 +68,7 @@ namespace Emotion.IO
             Engine.Host.OnKey.AddListener((k, s) =>
             {
                 // The reload shaders shortcut is Ctrl + R
-                bool reloadShaders = k == Key.R && s == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld();
+                bool reloadShaders = k == Key.R && s == KeyState.Down && Engine.Host.IsCtrlModifierHeld();
                 if (!reloadShaders) return true;
 
                 for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)

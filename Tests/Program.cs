@@ -58,7 +58,7 @@ namespace Tests
                 ExtraArgs = new[] {"software"} // Enable software renderer to ensure consistent results.
             };
 
-            //Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
+            Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
             if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
             {
                 TestExecutor.ExecuteTests(args, config);

@@ -6,19 +6,44 @@ public class UIDropDown : UIBaseWindow
 {
     public object? OwningObject = null;
 
-    public UIDropDown()
+    public UIBaseWindow SpawningWindow { get; init; }
+
+    public UIDropDown(UIBaseWindow spawningWindow)
     {
+        SpawningWindow = spawningWindow;
         CodeGenerated = true;
         HandleInput = true;
-        ZOffset = 99;
+        RelativeTo = SPECIAL_WIN_ID_DROPDOWN;
+        OrderInParent = 99;
+        OverlayWindow = true;
 
         FillX = false;
         FillY = false;
     }
 
+    // todo: ONE delete me
+    public UIDropDown()
+    {
+        CodeGenerated = true;
+        HandleInput = true;
+        OrderInParent = 99;
+
+        FillX = false;
+        FillY = false;
+    }
+
+    protected override bool RenderInternal(RenderComposer c)
+    {
+        return base.RenderInternal(c);
+    }
+
     public override void AttachedToController(UIController controller)
     {
         base.AttachedToController(controller);
+
+        if (controller.DropDown != null)
+            controller.DropDown.Close();
+
         controller.SetInputFocus(this);
         controller.DropDown = this;
     }
@@ -32,7 +57,6 @@ public class UIDropDown : UIBaseWindow
     public override void InputFocusChanged(bool haveFocus)
     {
         base.InputFocusChanged(haveFocus);
-
-        if (!haveFocus) Parent?.RemoveChild(this);
+        if (!haveFocus) Close();
     }
 }

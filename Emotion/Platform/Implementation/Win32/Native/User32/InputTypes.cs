@@ -242,11 +242,11 @@ namespace WinApi.User32
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct KeyState
+    public struct Win32KeyState
     {
         public short Value;
 
-        public KeyState(short value)
+        public Win32KeyState(short value)
         {
             Value = value;
         }

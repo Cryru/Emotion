@@ -89,9 +89,9 @@ public class UICheckbox : UIBaseWindow
             bg.WindowColor = NormalColor;
     }
 
-    public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
-        if (key == Key.MouseKeyLeft && status == KeyStatus.Down)
+        if (key == Key.MouseKeyLeft && status == KeyState.Down)
         {
             Value = !Value;
             return false;

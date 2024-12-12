@@ -331,10 +331,17 @@ namespace Emotion.Graphics.Objects
 
         public static Texture NoTexture = new(0);
         public static Texture EmptyWhiteTexture;
+        public static Texture Smooth_EmptyWhiteTexture;
 
         public static void InitializeEmptyTexture()
         {
             EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] { 255, 255, 255, 255 }, PixelFormat.Rgba);
+            Smooth_EmptyWhiteTexture = new Texture(new Vector2(2, 2), new byte[] {
+                    255, 255, 255, 255,
+                    255, 255, 255, 255,
+                    255, 255, 255, 255,
+                    255, 255, 255, 255
+            }, PixelFormat.Rgba, true);
         }
     }
 }

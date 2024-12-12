@@ -50,15 +50,15 @@ namespace Emotion.UI
             base.DetachedFromController(controller);
         }
 
-        public override bool OnKey(Key key, KeyStatus status, Vector2 mousePos)
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
         {
-            if (SubmitOnEnter && key == Key.Enter && status == KeyStatus.Down && !MultiLine)
+            if (SubmitOnEnter && key == Key.Enter && status == KeyState.Down && !MultiLine)
             {
                 OnSubmit?.Invoke(_text);
                 return false;
             }
 
-            if (key == Key.LeftArrow && status == KeyStatus.Down)
+            if (key == Key.LeftArrow && status == KeyState.Down)
             {
                 if (_selectionEnd != _selectionStart)
                 {
@@ -76,7 +76,7 @@ namespace Emotion.UI
                 ResetBlinkingCursor();
             }
 
-            if (key == Key.RightArrow && status == KeyStatus.Down)
+            if (key == Key.RightArrow && status == KeyState.Down)
             {
                 if (_selectionEnd != _selectionStart)
                 {
@@ -94,7 +94,7 @@ namespace Emotion.UI
                 ResetBlinkingCursor();
             }
 
-            if (key == Key.UpArrow && status == KeyStatus.Down)
+            if (key == Key.UpArrow && status == KeyState.Down)
             {
                 Vector2 posOfCurrent = GetPositionFromSelectionIdx(_selectionStart);
                 posOfCurrent.Y -= _atlas.FontHeight / 2;
@@ -109,7 +109,7 @@ namespace Emotion.UI
                 ResetBlinkingCursor();
             }
 
-            if (key == Key.DownArrow && status == KeyStatus.Down)
+            if (key == Key.DownArrow && status == KeyState.Down)
             {
                 Vector2 posOfCurrent = GetPositionFromSelectionIdx(_selectionStart);
                 posOfCurrent.Y += _atlas.FontHeight * 2;
@@ -127,7 +127,7 @@ namespace Emotion.UI
             // Selection drag
             if (key == Key.MouseKeyLeft)
             {
-                if (status == KeyStatus.Down)
+                if (status == KeyState.Down)
                 {
                     _selectionHeld = true;
 
@@ -139,7 +139,7 @@ namespace Emotion.UI
                         EnsureSelectionRight();
                     }
                 }
-                else if (status == KeyStatus.Up)
+                else if (status == KeyState.Up)
                 {
                     _selectionHeld = false;
                 }
@@ -147,7 +147,7 @@ namespace Emotion.UI
                 return false;
             }
 
-            if (status == KeyStatus.Down && Engine.Host.IsCtrlModifierHeld())
+            if (status == KeyState.Down && Engine.Host.IsCtrlModifierHeld())
             {
                 if (key == Key.A) // Select All
                 {

@@ -48,14 +48,15 @@ namespace Emotion.Game.Scripting
                 options = options.AddReferences(Helpers.AssociatedAssemblies);
                 for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
                 {
-                    Assembly? assembly = Helpers.AssociatedAssemblies[i];
-                    Type[] allTypes = assembly.GetTypes();
-                    for (var j = 0; j < allTypes.Length; j++)
-                    {
-                        var type = allTypes[j];
-                        if (type.Namespace == null) continue;
-                        options = options.AddImports(type.Namespace);
-                    }
+                    // ONE
+                    //Assembly? assembly = Helpers.AssociatedAssemblies[i];
+                    //Type[] allTypes = assembly.GetTypes();
+                    //for (var j = 0; j < allTypes.Length; j++)
+                    //{
+                    //    var type = allTypes[j];
+                    //    if (type.Namespace == null) continue;
+                    //    options = options.AddImports(type.Namespace);
+                    //}
                 }
 
                 _scriptingEnvironment = options;

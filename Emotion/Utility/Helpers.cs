@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emotion.Game.Data;
@@ -123,8 +124,9 @@ public static class Helpers
         if (array.Count == 0) return default;
 
         int rand = rng.Next(0, array.Count);
+        T item = array[rand];
         if (eject) array.RemoveAt(rand);
-        return array[rand];
+        return item;
     }
 
     public static T? GetWeightedRandomArrayItem<T>(IList<(int weight, T obj)> weights, Random? rng = null, bool eject = false, IList<T>? exceptions = null, IList<T>? whiteList = null)
@@ -337,5 +339,12 @@ public static class Helpers
             builder.Append(ch);
         }
         return builder.ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] SafeForEachArray<T>(T[]? arr)
+    {
+        if (arr == null) return Array.Empty<T>();
+        return arr;
     }
 }

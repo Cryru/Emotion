@@ -834,6 +834,33 @@ namespace Emotion.Primitives
             return new Vector2(depthX, depthY);
         }
 
+        public float GetOverlapPercent(Rectangle other)
+        {
+            // Calculate the edges of the overlap
+            float overlapLeft = Math.Max(X, other.X);
+            float overlapRight = Math.Min(X + Width, other.X + other.Width);
+            float overlapTop = Math.Max(Y, other.Y);
+            float overlapBottom = Math.Min(Y + Height, other.Y + other.Height);
+
+            // Check if there is an overlap
+            if (overlapLeft < overlapRight && overlapTop < overlapBottom)
+            {
+                // Calculate the overlap area
+                float overlapWidth = overlapRight - overlapLeft;
+                float overlapHeight = overlapBottom - overlapTop;
+                float overlapArea = overlapWidth * overlapHeight;
+
+                // Calculate the area of this rectangle
+                float area = Width * Height;
+
+                // Return the overlap percentage
+                return (overlapArea / area) * 100.0f;
+            }
+
+            // No overlap
+            return 0.0f;
+        }
+
         public Vector2 GetClosestPointOnBoundsToOrigin()
         {
             var max = new Vector2(Right, Bottom);
@@ -1006,20 +1033,6 @@ namespace Emotion.Primitives
         public bool ContainsInclusive(Rectangle value)
         {
             return ContainsInclusive(ref value);
-        }
-
-        [Obsolete("Did you mean Rectangle.Contains(Vector2)?")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Intersects(Vector2 value)
-        {
-            return Contains(ref value);
-        }
-
-        [Obsolete("Did you mean Rectangle.Contains(ref Vector2)?")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Intersects(ref Vector2 value)
-        {
-            return Contains(ref value);
         }
 
         #endregion

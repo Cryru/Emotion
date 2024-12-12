@@ -38,7 +38,7 @@ namespace Emotion.Audio
 
             // Get data.
             int channels = format.Channels;
-            int framesOutput = track.File.AudioConverter.GetResamplesFrames(format, sampleStartOffset, frames, memory);
+            int framesOutput = track.File.AudioConverter.GetResampledFrames(format, sampleStartOffset, frames, memory);
             Assert(framesOutput <= frames);
 
             // Force mono post process.

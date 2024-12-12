@@ -62,10 +62,10 @@ public abstract partial class WorldBaseEditor
         if (!Engine.Configuration.DebugMode) return;
         Engine.Host.OnKey.AddListener(EditorInputHandler, KeyListenerType.Editor);
         Engine.Host.OnKey.AddListener(TempEditorCamera2DInputHandler, KeyListenerType.EditorCamera);
-        _editorUIAlways = new UIController(KeyListenerType.EditorUI)
-        {
-            Id = "WorldEditor_AlwaysOnTop"
-        };
+        //_editorUIAlways = new UIController(KeyListenerType.EditorUI)
+        //{
+        //    Id = "WorldEditor_AlwaysOnTop"
+        //};
     }
 
     public void UnloadEditor()
@@ -208,18 +208,19 @@ public abstract partial class WorldBaseEditor
         _editUI?.Update();
     }
 
-    private bool TempEditorCamera2DInputHandler(Key key, KeyStatus status)
+    private bool TempEditorCamera2DInputHandler(Key key, KeyState status)
     {
         // todo: remove, add priority to camera attach, add camera attach to wasd camera
-        if (_editorCamera is WASDMoveCamera2D camera2D)
-            return camera2D.CameraKeyHandler(key, status);
+        //if (_editorCamera is WASDMoveCamera2D camera2D)
+        //    return camera2D.CameraKeyHandler(key, status);
+        Assert(false); // ^
 
         return true;
     }
 
-    private bool EditorInputHandler(Key key, KeyStatus status)
+    private bool EditorInputHandler(Key key, KeyState status)
     {
-        if (key == Key.F3 && status == KeyStatus.Down)
+        if (key == Key.F3 && status == KeyState.Down)
         {
             if (EditorOpen)
                 ExitEditor();
@@ -232,7 +233,7 @@ public abstract partial class WorldBaseEditor
         if (CurrentMap != null &&
             key == Key.S && Engine.Host.IsCtrlModifierHeld())
         {
-            if (status == KeyStatus.Up)
+            if (status == KeyState.Up)
                 EditorSaveMap();
             return false;
         }
@@ -240,7 +241,7 @@ public abstract partial class WorldBaseEditor
         if (CurrentMap != null &&
             key == Key.Z && Engine.Host.IsCtrlModifierHeld())
         {
-            if (status == KeyStatus.Up)
+            if (status == KeyState.Up)
                 EditorUndoLastAction(this);
             return false;
         }
@@ -253,12 +254,12 @@ public abstract partial class WorldBaseEditor
         return propagate;
     }
 
-    protected virtual bool InternalEditorInputHandler(Key key, KeyStatus status)
+    protected virtual bool InternalEditorInputHandler(Key key, KeyState status)
     {
         return true;
     }
 
-    private bool EditorBarrierInputHandler(Key key, KeyStatus status)
+    private bool EditorBarrierInputHandler(Key key, KeyState status)
     {
         return false;
     }
