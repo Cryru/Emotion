@@ -237,6 +237,15 @@ namespace Emotion.Common
         }
 
         /// <summary>
+        /// Start the engine without the main loop, but initializing its internal systems.
+        /// Used for testing.
+        /// </summary>
+        public static void StartHeadless(Configurator config)
+        {
+            Setup(config);
+        }
+
+        /// <summary>
         /// Perform engine setup.
         /// </summary>
         /// <param name="configurator">An optional engine configuration - will be passed to the light setup.</param>

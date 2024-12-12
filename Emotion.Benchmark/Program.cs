@@ -4,21 +4,21 @@ using BenchmarkDotNet.Running;
 
 #endregion
 
-namespace Emotion.Benchmark
+namespace Emotion.Benchmark;
+
+public class Program
 {
-    public class Program
+    public static void Main()
     {
-        public static void Main()
         {
-            {
-                //BenchmarkRunner.Run<Benchmarks>();
+            //BenchmarkRunner.Run<Benchmarks>();
 
-                //var benchmark = new Benchmarks();
-                //benchmark.GlobalSetup();
-                //benchmark.Atlas();
-            }
+            //var benchmark = new Benchmarks();
+            //benchmark.GlobalSetup();
+            //benchmark.Atlas();
+        }
 
-            {
+        {
 //#if DEBUG
 //                var benchmark = new ObjectQueryBenchmark();
 //                benchmark.GlobalSetup();
@@ -34,9 +34,9 @@ namespace Emotion.Benchmark
 //#else
 //                BenchmarkRunner.Run<ObjectQueryBenchmark>();
 //#endif
-            }
+        }
 
-            {
+        {
 //#if DEBUG
 //                var benchmark = new ImageLoadingBenchmark();
 //                benchmark.GlobalSetup();
@@ -46,9 +46,9 @@ namespace Emotion.Benchmark
 //#else
 //                BenchmarkRunner.Run<ImageLoadingBenchmark>();
 //#endif
-            }
+        }
 
-            {
+        {
 //#if DEBUG
 //                var benchmark = new AudioBenchmark();
 //                benchmark.GlobalSetup();
@@ -58,9 +58,9 @@ namespace Emotion.Benchmark
 //#else
 //                BenchmarkRunner.Run<AudioBenchmark>();
 //#endif
-            }
+        }
 
-            {
+        {
 //#if DEBUG
 //                var benchmark = new ReflectorBenchmark();
 //                benchmark.GlobalSetup();
@@ -72,17 +72,16 @@ namespace Emotion.Benchmark
 //#else
 //                BenchmarkRunner.Run<ReflectorBenchmark>();
 //#endif
-            }
+        }
 
-            {
+        {
 #if DEBUG
-                var benchmark = new MiscBenchmark();
-                benchmark.GlobalSetup();
-                Console.WriteLine("Done!");
+            var benchmark = new MiscBenchmark();
+            benchmark.GlobalSetup();
+            Console.WriteLine("Done!");
 #else
-                BenchmarkRunner.Run<MiscBenchmark>();
+            BenchmarkRunner.Run<MiscBenchmark>();
 #endif
-            }
         }
     }
 }

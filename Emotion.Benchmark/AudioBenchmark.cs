@@ -32,7 +32,7 @@ public class AudioBenchmark
         Configurator config = new Configurator();
         config.HiddenWindow = true;
         config.AudioQuality = AudioResampleQuality.HighHann;
-        Engine.Setup(config);
+        Engine.StartHeadless(config);
 
         _audioAsset = Engine.AssetLoader.Get<AudioAsset>("pepsi.wav")!;
         _output = new float[_audioAsset.SoundData.Length * 4];

@@ -28,7 +28,7 @@ public class ReflectorBenchmark
     {
         Configurator config = new Configurator();
         config.HiddenWindow = true;
-        Engine.Setup(config);
+        Engine.StartHeadless(config);
     }
 
     [Benchmark]

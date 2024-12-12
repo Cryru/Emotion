@@ -20,7 +20,7 @@ public class HashingBenchmark
     {
         Configurator config = new Configurator();
         config.HiddenWindow = true;
-        Engine.Setup(config);
+        Engine.StartHeadless(config);
 
         var asset = Engine.AssetLoader.Get<OtherAsset>("logoAlpha.png");
         _fileBytes = asset.Content;
