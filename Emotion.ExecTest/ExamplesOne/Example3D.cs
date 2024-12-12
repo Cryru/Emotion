@@ -4,6 +4,8 @@ using Emotion;
 using Emotion.Scenography;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
+using System.Collections;
+using System.Numerics;
 
 namespace Emotion.ExecTest.ExamplesOne;
 
