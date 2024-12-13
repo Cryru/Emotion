@@ -85,16 +85,16 @@
            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         
-        <None Update="Assets\CachedResults\Bmp16ColorDecode.png">
+        <None Update="Assets\ReferenceRenders\StandardImageTests\DecodeBmp16().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\Bmp24BitDecode.png">
+        <None Update="Assets\ReferenceRenders\StandardImageTests\DecodeBmp24().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\Bmp256ColorDecode.png">
+        <None Update="Assets\ReferenceRenders\StandardImageTests\DecodeBmp256().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\BrokenShader.png">
+        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderBrokenLoad().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\ReferenceRenders\BasicRenderTests\RenderDepthTest().png">
@@ -118,13 +118,10 @@
         <None Update="Assets\ReferenceRenders\BasicRenderTests\LineDrawing().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\LineDrawingLinux.png">
+        <None Update="Assets\ReferenceRenders\StandardImageTests\DecodePng().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\PngDecode.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\CachedResults\PngDecodeInterlaced.png">
+        <None Update="Assets\ReferenceRenders\StandardImageTests\DecodePngInterlaced().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\CachedResults\RenderComposerCustomBatch.png">
@@ -134,19 +131,19 @@
         <None Update="Assets\ReferenceRenders\BasicRenderTests\RenderRichText().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\ShaderFallback.png">
+        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderFallback().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\ShaderTest0.png">
+        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\ShaderTest1.png">
+        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest()_1.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\ShaderTest2.png">
+        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest()_2.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\CachedResults\ShaderTest3.png">
+        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest()_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\ReferenceRenders\BasicRenderTests\TestDepthFromOtherFrameBuffer().png">
