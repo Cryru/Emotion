@@ -348,9 +348,12 @@ public static class TestExecutor
 
     private static IEnumerable<MethodInfo> GetFunctionsWithDebugThis(Type parentType, IEnumerable<MethodInfo> methodsInTestClass)
     {
+        IEnumerable<MethodInfo> debugThisMethods = methodsInTestClass.Where(x => x.GetCustomAttributes(typeof(DebugTestAttribute), true).Length > 0);
+        if (debugThisMethods.Any()) return debugThisMethods;
+
         bool classIsDebugThis = parentType.GetCustomAttribute<DebugTestAttribute>() != null;
         if (classIsDebugThis) return methodsInTestClass;
 
-        return methodsInTestClass.Where(x => x.GetCustomAttributes(typeof(DebugTestAttribute), true).Length > 0);
+        return Array.Empty<MethodInfo>();
     }
 }
