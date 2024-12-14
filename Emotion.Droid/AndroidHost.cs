@@ -148,11 +148,14 @@ namespace Emotion.Droid
             if (e.Action == MotionEventActions.Down)
             {
                 UpdateKeyStatus(Key.MouseKeyLeft, true);
-                UpdateKeyStatus(Key.MouseKeyLeft, false);
+               
             }
 
             if (e.Action == MotionEventActions.Up)
+            {
+                UpdateKeyStatus(Key.MouseKeyLeft, false);
                 UpdateMousePosition(new Vector2(-1));
+            }
 
             _prevTouch = pos;
             if (e.Action == MotionEventActions.Move)
