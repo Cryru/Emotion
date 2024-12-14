@@ -83,7 +83,7 @@ namespace Emotion.Common
         /// In singleplayer games these routines are paused when the game is paused, in multiplayer this is used for time sync, etc.
         /// [Default Module]
         /// </summary>
-        public static CoroutineManager CoroutineManagerGameTime => GameTime.CoroutineManager;
+        public static CoroutineManagerGameTime CoroutineManagerGameTime { get; private set; } = new CoroutineManagerGameTime();
 
         /// <summary>
         /// Global coroutine manager that executes coroutines on another thread.
@@ -114,7 +114,7 @@ namespace Emotion.Common
         /// The current game time. The meaning of this is a bit dependant on the game, but is
         /// the time within the CoroutineManagerGameTime.
         /// </summary>
-        public static float CurrentGameTime => GameTime.CoroutineManager.Time;
+        public static float CurrentGameTime => CoroutineManagerGameTime.Time;
 
         /// <summary>
         /// The total time passed since the start of the engine, in milliseconds.
@@ -480,7 +480,7 @@ namespace Emotion.Common
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);
-            GameTime.Update(DeltaTime);
+            CoroutineManagerGameTime.Update(DeltaTime);
 
             UI.Update();
             SceneManager.Update();
