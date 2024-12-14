@@ -14,6 +14,8 @@ public class Client : NetworkCommunicator
     public bool ConnectedToServer { get; protected set; }
     public int UserId { get; protected set; }
 
+    public ServerRoomInfo? InRoom { get; protected set; }
+
     public IPEndPoint? _serverEndPoint { get; protected set; }
 
     public int SendMessageIndex = 1;
@@ -133,6 +135,7 @@ public class Client : NetworkCommunicator
     {
         if (!NetworkMessage.TryReadXMLDataFromMessage(reader, out ServerRoomInfo? info)) return;
         AssertNotNull(info);
+        InRoom = info;
         OnRoomJoined?.Invoke(info);
     }
 
@@ -147,6 +150,7 @@ public class Client : NetworkCommunicator
     {
         if (!NetworkMessage.TryReadXMLDataFromMessage(reader, out ServerRoomInfo? info)) return;
         AssertNotNull(info);
+        InRoom = info;
         OnPlayerJoinedRoom?.Invoke(info, info.UsersInside[^1]);
     }
 

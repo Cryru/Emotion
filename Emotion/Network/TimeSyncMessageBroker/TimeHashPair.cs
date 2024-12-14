@@ -47,11 +47,13 @@ public class TimeHashPair
         return _playerCountAtCreation == _timeHashes.Count;
     }
 
-    public void Verify()
+    public bool Verify()
     {
         TimeHashPairStruct hashStructFirstPlayer = _timeHashes[0];
 
         bool hasMeta = hashStructFirstPlayer.Meta != string.Empty;
+        bool hasError = false;
+
         int hashFirst = hashStructFirstPlayer.Hash;
         for (int i = 1; i < _timeHashes.Count; i++)
         {
@@ -67,7 +69,10 @@ public class TimeHashPair
                     Engine.Log.Warning($"   Meta First: {hashStructFirstPlayer.Meta}", "Server");
                     Engine.Log.Warning($"    Meta Fail: {hashOtherStruct.Meta}", "Server");
                 }
+                hasError = true;
             }
         }
+
+        return hasError;
     }
 }

@@ -161,4 +161,10 @@ public class NetworkCommunicator
         int methodNameBytesWritten = Encoding.ASCII.GetBytes(str, spanDataCur.Slice(sizeof(int)));
         return methodNameBytesWritten + sizeof(int);
     }
+
+    public void Dispose()
+    {
+        //_socket?.Disconnect(true);
+        _socket?.Dispose();
+    }
 }

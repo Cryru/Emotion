@@ -1,4 +1,5 @@
-﻿using Emotion.Network.Base;
+﻿using Emotion.Game.Time.Routines;
+using Emotion.Network.Base;
 using Emotion.Network.BasicMessageBroker;
 using Emotion.Network.ServerSide;
 using Emotion.Standard.XML;
@@ -11,17 +12,7 @@ namespace Emotion.Network.TimeSyncMessageBroker;
 
 public class MsgBrokerServerTimeSync : MsgBrokerServer
 {
-    protected override void UpdateInternal()
-    {
-        base.UpdateInternal();
-
-        for (int i = 0; i < ActiveRooms.Count; i++)
-        {
-            var activeRoom = ActiveRooms[i];
-            if (activeRoom.ServerData is TimeSyncedServerRoom timeSyncRoom)
-                timeSyncRoom.Update();
-        }
-    }
+    public CoroutineManager CoroutineManager = Engine.CoroutineManager;
 
     protected override void ServerProcessMessage(ServerUser sender, NetworkMessage msg, ByteReader reader)
     {
@@ -35,7 +26,10 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
 
     protected override void RoomCreated(ServerRoom room)
     {
-        room.ServerData = new TimeSyncedServerRoom(this, room);
+        TimeSyncedServerRoom timeSyncRoomData = new TimeSyncedServerRoom(this, room);
+        room.ServerData = timeSyncRoomData;
+
+        timeSyncRoomData.StartGameTime(CoroutineManager);
         base.RoomCreated(room);
     }
 

@@ -15,6 +15,8 @@ namespace Emotion.Network.TimeSyncMessageBroker;
 
 public class MsgBrokerClientTimeSync : MsgBrokerClient
 {
+    public CoroutineManagerGameTime CoroutineManager = Engine.CoroutineManagerGameTime;
+
     private bool _firstTimeSyncMsg = true;
 
     public MsgBrokerClientTimeSync()
@@ -27,13 +29,13 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
         int gameTime = reader.ReadInt32();
         if (_firstTimeSyncMsg)
         {
-            GameTime.GameTimeAdvanceLimit = gameTime;
-            GameTime.ResetGameTime(gameTime);
+            CoroutineManager.GameTimeAdvanceLimit = gameTime;
+            CoroutineManager.ResetGameTime(gameTime);
             _firstTimeSyncMsg = false;
         }
         else
         {
-            GameTime.GameTimeAdvanceLimit = MathF.Max(GameTime.GameTimeAdvanceLimit, gameTime);
+            CoroutineManager.GameTimeAdvanceLimit = MathF.Max(CoroutineManager.GameTimeAdvanceLimit, gameTime);
         }
 
         int methodNameLength = reader.ReadInt32();
@@ -43,13 +45,13 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
         {
             var metaDataLength = reader.ReadInt32();
             var metaDataBytes = reader.ReadBytes(metaDataLength);
-            func.InvokeAtGameTime(gameTime, metaDataBytes);
+            func.InvokeAtGameTime(CoroutineManager, gameTime, metaDataBytes);
         }
     }
 
     public void SendTimeSyncHash(int hash)
     {
-        if (Engine.CoroutineManagerGameTime.Current == null)
+        if (CoroutineManager.Current == null)
         {
             Assert(false, "Can't send time sync hashes outside the Engine.CoroutineManagerGameTime runner!");
             return;
@@ -64,7 +66,7 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
     [Conditional("DEBUG")]
     public void SendTimeSyncHashDebug(string hashString)
     {
-        if (Engine.CoroutineManagerGameTime.Current == null)
+        if (CoroutineManager.Current == null)
         {
             Assert(false, "Can't send time sync hashes outside the Engine.CoroutineManagerGameTime runner!");
             return;

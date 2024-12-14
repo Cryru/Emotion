@@ -12,8 +12,11 @@ public partial class TimeSyncedServerRoom
     public MsgBrokerServerTimeSync Server;
     public ServerRoom Room;
 
+    public int Errors;
+
     public int CurrentGameTime = 0;
-    public int GameTimeTick = 20;
+    public int GameTimeAdvancePerTick = 20;
+
     private List<NetworkMessage> _messagesForNextTick = new List<NetworkMessage>();
     private Coroutine _gameTimeRoutine = Coroutine.CompletedRoutine;
     private List<TimeHashPair> _hashPairs = new List<TimeHashPair>();
@@ -22,12 +25,6 @@ public partial class TimeSyncedServerRoom
     {
         Server = server;
         Room = room;
-    }
-
-    public void Update()
-    {
-        if (_gameTimeRoutine.Finished)
-            StartGameTime();
     }
 
     public void AddMessageForNextTick(NetworkMessage msg)
@@ -83,13 +80,14 @@ public partial class TimeSyncedServerRoom
         _messagesForNextTick.Add(msg);
     }
 
-    private void StartGameTime()
+    public void StartGameTime(CoroutineManager coroutineManager)
     {
-        if (!_gameTimeRoutine.Finished) Engine.CoroutineManager.StopCoroutine(_gameTimeRoutine);
+        if (!_gameTimeRoutine.Finished) coroutineManager.StopCoroutine(_gameTimeRoutine);
 
         CurrentGameTime = 0;
 
         // In case messages are stuck from before.
+        // todo: is this needed? I don't think these rooms are reused
         for (int i = 0; i < _messagesForNextTick.Count; i++)
         {
             NetworkMessage msgInstance = _messagesForNextTick[i];
@@ -97,14 +95,14 @@ public partial class TimeSyncedServerRoom
         }
         _messagesForNextTick.Clear();
 
-        _gameTimeRoutine = Engine.CoroutineManager.StartCoroutine(TickRoutine());
+        _gameTimeRoutine = coroutineManager.StartCoroutine(TickRoutine());
     }
 
     protected IEnumerator TickRoutine()
     {
         while (Room.Active && Room.ServerData == this)
         {
-            yield return GameTimeTick;
+            yield return GameTimeAdvancePerTick;
 
             // Verify hashes for this slice.
             for (int i = _hashPairs.Count - 1; i >= 0; i--)
@@ -112,7 +110,8 @@ public partial class TimeSyncedServerRoom
                 var hashPair = _hashPairs[i];
                 if (!hashPair.IsFull()) continue;
 
-                hashPair.Verify();
+                bool success = hashPair.Verify();
+                if (!success) Errors++;
                 _hashPairs.RemoveAt(i);
             }
 
@@ -125,10 +124,10 @@ public partial class TimeSyncedServerRoom
             }
             _messagesForNextTick.Clear();
 
-            int nextTime = CurrentGameTime + GameTimeTick;
+            int nextTime = CurrentGameTime + GameTimeAdvancePerTick;
             Server.BroadcastAdvanceTimeMessage(Room.UsersInside, nextTime);
 
-            CurrentGameTime += GameTimeTick;
+            CurrentGameTime += GameTimeAdvancePerTick;
         }
     }
 }
