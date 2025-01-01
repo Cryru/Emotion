@@ -5,7 +5,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Configurations>Debug;Release</Configurations>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-        <Platforms>Default</Platforms>
+        <Platforms>Default;DefaultSubProcess</Platforms>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -18,7 +18,7 @@
         <Optimize>True</Optimize>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Platform)'=='Default'">
+    <PropertyGroup Condition="'$(Platform)'=='Default' Or '$(Platform)'=='DefaultSubProcess'">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
     </PropertyGroup>
@@ -66,12 +66,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\Emotion\Emotion.csproj" />
         <ProjectReference Include="..\Legacy\Emotion.Test\Emotion.Test.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
     </ItemGroup>
 
     <ItemGroup>

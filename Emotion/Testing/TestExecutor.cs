@@ -3,13 +3,19 @@
 #region Using
 
 using Emotion.Game.Time.Routines;
+using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Platform;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Utility;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using System.Collections.Immutable;
+using System.Text;
 
 #endregion
 
@@ -48,6 +54,15 @@ public static class TestExecutor
 
     public static void ExecuteTests(string[] args, Configurator? config = null, Type? filterTestsOnlyFromClass = null)
     {
+        // Check if sub process.
+#if AUTOBUILD
+        if (CommandLineParser.FindArgument(args, "SubTestLinkId=", out string linkId))
+        {
+            SubProcessEvaluation(linkId);
+            return;
+        }
+#endif
+
         // todo: read args and start running split processes, different configs etc.
 
         string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
@@ -255,7 +270,7 @@ public static class TestExecutor
                     if (returnVal != null && returnVal is IEnumerator routineFunc)
                     {
                         coroutine = Engine.CoroutineManager.StartCoroutine(routineFunc);
-                        Engine.Log.Info($"    Running coroutine", MessageSource.Test);
+                        Engine.Log.Info($"    Running as coroutine", MessageSource.Test);
                     }
                     yield return coroutine;
 
@@ -318,7 +333,7 @@ public static class TestExecutor
                 if (returnVal is IEnumerator routineFunc)
                 {
                     coroutine = Engine.CoroutineManager.StartCoroutine(routineFunc);
-                    Engine.Log.Info($"    Running coroutine", MessageSource.Test);
+                    Engine.Log.Info($"    Running as coroutine", MessageSource.Test);
                 }
 
                 yield return coroutine;
@@ -356,4 +371,156 @@ public static class TestExecutor
 
         return Array.Empty<MethodInfo>();
     }
+
+    #region SubProcess
+
+    public enum TestScriptResult
+    {
+        Success,
+        Error
+    }
+
+    const string SUBPROCESS_SUCCESS_MSG = "SCRIPT_COMPLETE_SUCCESS";
+    const bool DEBUG_SUBPROCESS = false;
+
+    private static void SubProcessEvaluation(string linkId)
+    {
+        using NamedPipeClientStream pipe = new NamedPipeClientStream(".", linkId, PipeDirection.InOut);
+        pipe.Connect();
+
+        byte[] lengthBytes = new byte[4];
+        pipe.ReadExactly(lengthBytes, 0, 4);
+
+        int length = BitConverter.ToInt32(lengthBytes, 0);
+
+        byte[] scriptData = new byte[length];
+        pipe.ReadExactly(scriptData, 0, length);
+
+        string testScript = System.Text.Encoding.UTF8.GetString(scriptData, 0, length);
+
+        StringBuilder resultData = new StringBuilder();
+
+        ScriptOptions options = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies());
+        Script<object> script = CSharpScript.Create(testScript + $"\nreturn \"{SUBPROCESS_SUCCESS_MSG}\";", options);
+        ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> compilation = script.Compile();
+
+        for (int i = 0; i < compilation.Length; i++)
+        {
+            if (i != 0) resultData.Append("\n      ");
+            resultData.Append(compilation[i].GetMessage());
+        }
+        if (compilation.Length == 0)
+        {
+            ScriptState<object> result = script.RunAsync().Result;
+            object returnVal = result.ReturnValue;
+            if (Helpers.AreObjectsEqual(returnVal, SUBPROCESS_SUCCESS_MSG))
+            {
+                resultData.AppendLine(SUBPROCESS_SUCCESS_MSG);
+            }
+            else
+            {
+                resultData.AppendLine($"Subscript finished early - {returnVal}.");
+            }
+        }
+
+        // Get response and write back.
+        byte[] respBytes = System.Text.Encoding.UTF8.GetBytes(resultData.ToString());
+
+        // Write length
+        int respLength = respBytes.Length;
+        pipe.Write(BitConverter.GetBytes(respLength), 0, 4);
+
+        // Write bytes and flush!
+        pipe.Write(respBytes, 0, respBytes.Length);
+        pipe.Flush();
+    }
+
+    public static IEnumerator RunTestScriptInSubProcess(string testScript, TestScriptResult expectedResult = TestScriptResult.Success)
+    {
+        yield return null;
+        yield return null;
+
+        PlatformBase host = Engine.Host;
+        if (host is not DesktopPlatform desktopHost) yield break;
+
+        string projectFolder = desktopHost.DeveloperMode_GetProjectFolder();
+        if (projectFolder == "") yield break;
+
+        string solutionFolder = Path.Join(projectFolder, "..");
+
+        int randomNumber = Helpers.GenerateRandomNumber(1000, 9999);
+        using var pipe = new NamedPipeServerStream($"SubLink{randomNumber}", PipeDirection.InOut, 1);
+
+        Engine.Log.Info($"    Running test script in sub process", MessageSource.Test);
+
+        bool success = false;
+        Task sendDataTask = Task.Run(async () =>
+        {
+            await pipe.WaitForConnectionAsync();
+
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(testScript);
+
+            // Write length
+            int length = bytes.Length;
+            pipe.Write(BitConverter.GetBytes(length), 0, 4);
+
+            // Write bytes and flush!
+            pipe.Write(bytes, 0, bytes.Length);
+            pipe.Flush();
+
+            byte[] lengthBytes = new byte[4];
+            pipe.ReadExactly(lengthBytes, 0, 4);
+
+            int respLength = BitConverter.ToInt32(lengthBytes, 0);
+
+            byte[] scriptData = new byte[respLength];
+            pipe.ReadExactly(scriptData, 0, respLength);
+
+            string testScriptResponse = System.Text.Encoding.UTF8.GetString(scriptData, 0, respLength);
+
+            bool containsSuccessMsg = testScriptResponse.Contains(SUBPROCESS_SUCCESS_MSG);
+            if (expectedResult == TestScriptResult.Success)
+                success = containsSuccessMsg;
+            else if (expectedResult == TestScriptResult.Error)
+                success = !containsSuccessMsg;
+
+            if (success)
+                Engine.Log.Error($"      Script error: {testScriptResponse}", MessageSource.Test);
+        });
+
+        ProcessStartInfo subProcessStart = new ProcessStartInfo("dotnet", $"run -c Autobuild /p:Platform=DefaultSubProcess SubTestLinkId=SubLink{randomNumber}");
+        subProcessStart.WorkingDirectory = projectFolder;
+        if (!DEBUG_SUBPROCESS)
+        {
+            subProcessStart.RedirectStandardOutput = true;
+            subProcessStart.RedirectStandardError = true;
+        }
+        subProcessStart.UseShellExecute = false;
+        using (Process subProcess = new Process())
+        {
+            subProcess.StartInfo = subProcessStart;
+            subProcess.Start();
+
+            while (!subProcess.HasExited)
+            {
+                if (!DEBUG_SUBPROCESS)
+                {
+                    while (!subProcess.StandardOutput.EndOfStream)
+                        subProcess.StandardOutput.ReadToEnd();
+
+                    while (!subProcess.StandardError.EndOfStream)
+                        subProcess.StandardError.ReadToEnd();
+                }
+
+                yield return null;
+            }
+        }
+
+        if (success)
+            Engine.Log.Info($"      Script finished successfully", MessageSource.Test);
+
+        Assert.True(success, "Test script didn't succeed, check response above.");
+    }
+
+    #endregion
 }

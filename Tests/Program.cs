@@ -58,16 +58,18 @@ namespace Tests
                 ExtraArgs = new[] {"software"} // Enable software renderer to ensure consistent results.
             };
 
-            Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
-            if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
-            {
-                TestExecutor.ExecuteTests(args, config);
-                return;
-            }
+            TestExecutor.ExecuteTests(args, config);
+
+            //Runner.RunAsRunner("EMOTION_TEST_LIBRARY", ref args);
+            //if (CommandLineParser.FindArgument(args, "EMOTION_TEST_LIBRARY", out string _))
+            //{
+            //    TestExecutor.ExecuteTests(args, config);
+            //    return;
+            //}
 
             //FontAsset.GlyphRasterizer = GlyphRasterizer.StbTrueType;
-            ResultDb.LoadCache();
-            Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
+            //ResultDb.LoadCache();
+            //Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
         }
     }
 }
