@@ -8,14 +8,16 @@ using System.Text;
 using Emotion.IO;
 using WinApi.User32;
 
+#nullable enable
+
 #endregion
 
 namespace Emotion.Platform.Implementation.CommonDesktop
 {
     public abstract class DesktopPlatform : PlatformBase
     {
-        protected string _platformIdentifier;
-        protected string _platformExtension;
+        protected string _platformIdentifier = "";
+        protected string _platformExtension = "";
 
         protected override void Setup(Configurator config)
         {
@@ -56,6 +58,17 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         #region File IO
 
         protected string _devModeAssetFolder = "";
+        protected string _devModeProjectFolder = "";
+
+        public string DeveloperMode_GetProjectFolder()
+        {
+            return _devModeProjectFolder;
+        }
+
+        public string DeveloperMode_GetAssetFolder()
+        {
+            return _devModeAssetFolder;
+        }
 
         public void DeveloperMode_SelectFileNative<T>(Action<AssetHandle<T>> onLoaded) where T : Asset, IAssetWithFileExtensionSupport, new()
         {
@@ -102,6 +115,8 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
             if (projectFolder == null) return false;
 
+            _devModeProjectFolder = projectFolder;
+
             string assetFolder = Path.Join(projectFolder, "Assets");
             _devModeAssetFolder = assetFolder;
             Engine.AssetLoader.ONE_AddAssetSource(new DevModeProjectAssetSource(assetFolder));
@@ -114,7 +129,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         private static string DetermineDeveloperModeProjectFolder()
         {
             string currentDirectory = AssetLoader.GameDirectory;
-            DirectoryInfo parentDir = Directory.GetParent(currentDirectory);
+            DirectoryInfo? parentDir = Directory.GetParent(currentDirectory);
             int levelsBack = 1;
             while (parentDir != null)
             {
@@ -285,6 +300,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <inheritdoc />
         public override void DisplayMessageBox(string message)
         {
+            // todo: do this with inheritance in GLFW platform and Win32 platform
             try
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

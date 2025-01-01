@@ -150,9 +150,4 @@ public static partial class GameDataDatabase
     }
 
     #endregion
-
-    public static EditorAdapter GetEditorAdapter()
-    {
-        return new EditorAdapter();
-    }
 }

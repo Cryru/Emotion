@@ -82,7 +82,7 @@ public partial class EditorWindowFileSupport : EditorWindow
         topBar.AddChild(fileButton);
     }
 
-    private UIDropDown OpenDropdown(UIBaseWindow spawningWindow)
+    protected UIDropDown OpenDropdown(UIBaseWindow spawningWindow)
     {
         EditorDropDown dropDown = new (spawningWindow)
         {

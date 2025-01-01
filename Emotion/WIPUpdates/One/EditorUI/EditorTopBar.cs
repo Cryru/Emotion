@@ -1,4 +1,5 @@
 ﻿using Emotion.Editor.EditorHelpers;
+using Emotion.Game.Data;
 using Emotion.Game.World.Editor;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.UI;
@@ -10,6 +11,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
+
+public class ExampleData : GameDataObject
+{
+}
+
 
 public class EditorTopBar : UISolidColor
 {
@@ -68,6 +74,12 @@ public class EditorTopBar : UISolidColor
         {
             EditorButton toolButton = new EditorButton("UI File Tool");
             toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new EditorWindowFileSupport("test"));
+            buttonContainer.AddChild(toolButton);
+        }
+
+        {
+            EditorButton toolButton = new EditorButton("Game Data Test");
+            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new GameDataEditor<ExampleData>());
             buttonContainer.AddChild(toolButton);
         }
 

@@ -54,12 +54,14 @@ public static partial class EngineEditor
         barContainer.AddChild(new EditorTopBar());
         barContainer.AddChild(new MapEditorViewMode());
 
-        _perfText = new UIText();
-        _perfText.FontSize = 25;
-        _perfText.AnchorAndParentAnchor = UIAnchor.TopRight;
-        _perfText.OutlineColor = Color.Black;
-        _perfText.OutlineSize = 2;
-        _perfText.Margins = new Primitives.Rectangle(0, 50, 5, 0);
+        _perfText = new UIText
+        {
+            FontSize = 25,
+            AnchorAndParentAnchor = UIAnchor.TopRight,
+            OutlineColor = Color.Black,
+            OutlineSize = 2,
+            Margins = new Primitives.Rectangle(0, 50, 5, 0)
+        };
         EditorRoot.AddChild(_perfText);
 
         IsOpen = true;

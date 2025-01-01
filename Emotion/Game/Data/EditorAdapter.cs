@@ -9,7 +9,11 @@ using System.Text;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Data;
 using Emotion.IO;
+using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Platform;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
+using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
 
 #endregion
 
@@ -18,7 +22,7 @@ namespace Emotion.Game.Data;
 public static partial class GameDataDatabase
 {
     // Class used for hiding editor functions from GameDataDatabase class scope.
-    public class EditorAdapter
+    public static class EditorAdapter
     {
         public static bool EditorAddObject(Type type, GameDataObject obj)
         {
@@ -39,12 +43,22 @@ public static partial class GameDataDatabase
 
             EditorReIndex(type);
 
-            string path = GetAssetPath(obj);
-            obj.LoadedFromFile = path;
+            string generatedClassPath = GetGeneratedClassPathOSPath(obj);
+            string? directory = Path.GetDirectoryName(generatedClassPath);
+            AssertNotNull(directory);
+            Directory.CreateDirectory(directory);
 
-            // todo: maybe leave file saving to the editor :P
-            GameDataObjectAsset asAsset = GameDataObjectAsset.CreateFromContent(obj, path);
-            return asAsset.Save();
+            string classCode = GetClassGenShimCode(type, obj);
+            File.WriteAllText(generatedClassPath, classCode);
+
+            return true;
+
+            //string path = GetAssetPath(obj);
+            //obj.LoadedFromFile = path;
+
+            //// todo: maybe leave file saving to the editor :P
+            //GameDataObjectAsset asAsset = GameDataObjectAsset.CreateFromContent(obj, path);
+            //return asAsset.Save();
         }
 
         public static void EditorDeleteObject(Type type, GameDataObject obj)
@@ -74,8 +88,8 @@ public static partial class GameDataDatabase
             if (_database.TryGetValue(type, out dataCache))
                 dataCache.RecreateIdMap();
 
-            GenerateCode();
-            UpdateCsProjFile();
+            //GenerateCode();
+            //UpdateCsProjFile();
         }
 
         public static string EnsureNonDuplicatedId(string name, Type type)
@@ -85,6 +99,103 @@ public static partial class GameDataDatabase
                 return cache.EnsureNonDuplicatedId(name);
 
             return name;
+        }
+
+        public static string GetClassGenShimCode(Type type, GameDataObject obj)
+        {
+            string className = $"{type.Name}_{obj.Id}";
+            return $"namespace GameData;\n" +
+                $"\n" +
+                $"public static partial class {type.Name}Defs\n" +
+                $"{{\n" +
+                $"    public static {className} {obj.Id} = new();\n" +
+                $"\n" +
+                $"    public class {className} : {type.FullName}\n" +
+                $"    {{\n" +
+                $"        public {className}()\n" +
+                $"        {{\n" +
+                $"{GetClassGenConstructorCode(obj)}\n" +
+                $"        }}\n" +
+                $"    }}\n" +
+                $"}}";
+        }
+
+        private static string GetClassGenConstructorCode(GameDataObject obj)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            IGenericReflectorTypeHandler? reflectorHandler = ReflectorEngine.GetTypeHandler(obj.GetType());
+            AssertNotNull(reflectorHandler);
+
+            ComplexTypeHandlerMember[]? members = reflectorHandler.GetMembers();
+            AssertNotNull(members);
+
+            bool first = true;
+            foreach (ComplexTypeHandlerMember member in members)
+            {
+                if(!first) builder.Append("\n");
+                first = false;
+
+                builder.Append("            ");
+                builder.Append($"{member.Name} = ");
+
+                IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
+                AssertNotNull(memberHandler);
+
+                if (member.ReadValueFromComplexObject(obj, out object? memberValue))
+                {
+                    if (memberValue == null)
+                    {
+                        builder.Append("null");
+                    }
+                    else
+                    {
+                        bool isString = memberHandler.Type == typeof(string);
+
+                        if (isString)
+                            builder.Append("\"");
+
+                        memberHandler.WriteValueAsStringGeneric(builder, memberValue);
+
+                        if (isString)
+                            builder.Append("\"");
+                    }
+                    
+                }
+
+                builder.Append($";");
+            }
+
+            return builder.ToString();
+        }
+
+        public static string GetGeneratedClassPathOSPath(GameDataObject obj)
+        {
+            Type type = obj.GetType();
+            while (type.BaseType != typeof(GameDataObject))
+            {
+                if (type.BaseType == null) // Doesn't inherit GameDataObject?!?
+                {
+                    Assert(false);
+                    type = obj.GetType();
+                    break;
+                }
+                else
+                {
+                    type = type.BaseType;
+                }
+            }
+
+            PlatformBase host = Engine.Host;
+            if (host is DesktopPlatform desktopHost)
+            {
+                string projectFolder = desktopHost.DeveloperMode_GetProjectFolder();
+                if (projectFolder != "")
+                    return Path.Join(projectFolder, "GameData", type.Name, obj.Id) + ".cs";
+            }
+
+            Assert(false, "Trying to get generated class path on a non-developer platform");
+            return "";
         }
 
         public static string GetAssetPath(GameDataObject obj)
