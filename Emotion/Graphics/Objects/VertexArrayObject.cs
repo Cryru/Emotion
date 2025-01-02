@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
 using OpenGL;
 
 #endregion
@@ -113,8 +114,9 @@ public abstract class VertexArrayObject : IDisposable
         int stride = Marshal.SizeOf<T>();
         var vertexType = typeof(T);
 
-        var typeData = ReflectorEngine.GetTypeHandler(vertexType);
-        var members = typeData.GetMembers();
+        var typeData = ReflectorEngine.GetTypeHandler(vertexType) as IGenericReflectorComplexTypeHandler;
+        AssertNotNull(typeData);
+        ComplexTypeHandlerMember[] members = typeData.GetMembers();
 
         uint positionOffset = _lastAttributePosition;
         for (uint i = 0; i < members.Length; i++)

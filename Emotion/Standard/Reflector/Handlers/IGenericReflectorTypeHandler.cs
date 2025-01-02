@@ -29,9 +29,4 @@ public interface IGenericReflectorTypeHandler
     {
         throw new Exception("Not supported!");
     }
-
-    public ComplexTypeHandlerMember[]? GetMembers()
-    {
-        return null;
-    }
 }

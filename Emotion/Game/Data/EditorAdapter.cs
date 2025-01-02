@@ -124,7 +124,7 @@ public static partial class GameDataDatabase
         {
             StringBuilder builder = new StringBuilder();
 
-            IGenericReflectorTypeHandler? reflectorHandler = ReflectorEngine.GetTypeHandler(obj.GetType());
+            var reflectorHandler = ReflectorEngine.GetTypeHandler(obj.GetType()) as IGenericReflectorComplexTypeHandler;
             AssertNotNull(reflectorHandler);
 
             ComplexTypeHandlerMember[]? members = reflectorHandler.GetMembers();
