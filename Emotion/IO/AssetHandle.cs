@@ -1,10 +1,5 @@
-﻿using Emotion.Game.Time.Routines;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using Emotion.Common.Serialization;
+using Emotion.Game.Time.Routines;
 
 #nullable enable
 
@@ -14,10 +9,6 @@ public abstract class AssetHandleBase : IRoutineWaiter
 {
     public string Name { get; init; }
 
-    public AssetSource? AssetSource;
-
-    public bool AssetExists => AssetSource != null;
-
     public bool AssetLoaded;
 
     protected AssetHandleBase(string name)
@@ -25,11 +16,11 @@ public abstract class AssetHandleBase : IRoutineWaiter
         Name = name;
     }
 
-    public abstract bool LoadAsset();
+    public abstract bool LoadAsset(AssetSource source);
 
     #region Routine Waiter
 
-    public bool Finished => !AssetExists || AssetLoaded;
+    public bool Finished => AssetLoaded || !Engine.AssetLoader.IsAssetHandleQueued(this); // if not queued we consider it non-existing at this point
 
     public void Update()
     {
@@ -39,22 +30,36 @@ public abstract class AssetHandleBase : IRoutineWaiter
     #endregion
 }
 
+[DontSerialize]
 public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
 {
+    /// <summary>
+    /// An empty invalid asset of this specified type.
+    /// The Asset property will be null.
+    /// </summary>
     public static AssetHandle<T> Empty = new(string.Empty);
 
+    /// <summary>
+    /// The asset type itself.
+    /// </summary>
     public T? Asset;
 
+    /// <summary>
+    /// Fires when the asset is loaded or hot reloaded.
+    /// </summary>
     public event Action<T>? OnAssetLoaded;
 
     public AssetHandle(string name) : base(name)
     {
     }
 
-    public override bool LoadAsset()
+    /// <summary>
+    /// Called by the asset loader on the asset loading thread(s),
+    /// which performs the IO and asset creation and/or hot reloading if
+    /// already loaded.
+    /// </summary>
+    public override bool LoadAsset(AssetSource source)
     {
-        AssetSource? source = AssetSource;
-        AssertNotNull(source);
         if (source == null) return true; // ???
 
         ReadOnlyMemory<byte> data;
@@ -99,5 +104,16 @@ public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
     {
         OnAssetLoaded?.Invoke(asset);
         yield break;
+    }
+}
+
+public class SerializableAssetHandle<T> where T : Asset, new()
+{
+    public string? Name { get; set; }
+
+    public AssetHandle<T> GetAssetHandle(object? referenceObject = null)
+    {
+        if (string.IsNullOrEmpty(Name)) return AssetHandle<T>.Empty;
+        return Engine.AssetLoader.ONE_Get<T>(Name, referenceObject);
     }
 }

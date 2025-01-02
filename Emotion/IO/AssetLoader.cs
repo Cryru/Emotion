@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Emotion.Game.Time.Routines;
-using Emotion.Testing;
 using Emotion.Utility;
 
 #endregion
@@ -581,6 +580,7 @@ namespace Emotion.IO
             name = NameToEngineNameRemapped(name);
 
             // If a handle already exists, get it.
+            // todo: what do we do if loaded as different types? currently this will error in the register
             if (_createdAssetHandles.TryGetValue(name, out AssetHandleBase? handle) && handle is AssetHandle<T> handleOfType)
             {
                 if (addRefenceToObject != null)
@@ -589,22 +589,14 @@ namespace Emotion.IO
                 return handleOfType;
             }
 
+            // Create a new handle and register it.
             AssetHandle<T> newHandle = new AssetHandle<T>(name);
             _createdAssetHandles.TryAdd(name, newHandle);
 
             if (addRefenceToObject != null)
                 AddReferenceToAssetHandle(newHandle, addRefenceToObject);
 
-            // Asset not found in any source
-            AssetSource? source = GetSource(name);
-            if (source == null)
-            {
-                Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
-                newHandle.AssetSource = null; // Explicit for readability
-                return newHandle;
-            }
-
-            newHandle.AssetSource = source;
+            // Queue loading
             _assetsToLoad.Enqueue(newHandle);
 
             // Start async asset loading
@@ -629,7 +621,17 @@ namespace Emotion.IO
             // todo: distribute over multiple threads
             while (_assetsToLoad.TryDequeue(out AssetHandleBase? assetHandle))
             {
-                bool loaded = assetHandle.LoadAsset();
+                string name = assetHandle.Name;
+
+                // Asset not found in any source.
+                AssetSource? source = GetSource(name);
+                if (source == null)
+                {
+                    Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
+                    continue;
+                }
+
+                bool loaded = assetHandle.LoadAsset(source);
                 if (!loaded)
                     _assetsToLoad.Enqueue(assetHandle);
             }
@@ -639,6 +641,18 @@ namespace Emotion.IO
         private Coroutine _assetReloadRoutine = Coroutine.CompletedRoutine;
         private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
 
+        public bool IsAssetHandleQueued(AssetHandleBase handle)
+        {
+            return _assetsToLoad.Contains(handle);
+        }
+
+        /// <summary>
+        /// Reloads any loaded asset handles with the provided name.
+        /// This is called to hot reload assets by their managing sources.
+        /// 
+        /// The reload sequence will eventually converge into the same code as the load sequence,
+        /// however it dedupes reload requests as usually managing sources spam reload requests (at least on windows).
+        /// </summary>
         public void ONE_ReloadAsset(string name)
         {
             // todo: check remapping, maybe add it to NameToEngineName
