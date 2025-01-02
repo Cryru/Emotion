@@ -9,17 +9,22 @@ using Emotion.WIPUpdates.One.Work;
 using System.Collections;
 using System.Numerics;
 
+#nullable enable
+
 namespace Tests.EngineTests;
 
 public class Render3DTests : TestingScene
 {
-    private MeshEntity _testEntity;
-    private GameMap _gameMap;
+    private MeshEntity _testEntity = null!;
+    private GameMap _gameMap = null!;
 
     public override IEnumerator LoadSceneRoutineAsync()
     {
         AssetHandle<MeshAsset> meshEntityRef = Engine.AssetLoader.ONE_Get<MeshAsset>("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
         yield return meshEntityRef;
+
+        Assert.NotNull(meshEntityRef.Asset);
+        Assert.NotNull(meshEntityRef.Asset.Entity);
 
         _testEntity = meshEntityRef.Asset.Entity;
 

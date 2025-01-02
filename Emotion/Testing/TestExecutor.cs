@@ -3,19 +3,26 @@
 #region Using
 
 using Emotion.Game.Time.Routines;
-using Emotion.Platform.Implementation.CommonDesktop;
-using Emotion.Platform;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Utility;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+
+// Subprocess functionality
+#if CSHARP_SCRIPTING
+using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Platform;
+
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+
 using System.Collections.Immutable;
 using System.Text;
+
+using System.IO.Pipes;
+#endif
 
 #endregion
 
@@ -374,6 +381,8 @@ public static class TestExecutor
 
     #region SubProcess
 
+#if CSHARP_SCRIPTING
+
     public enum TestScriptResult
     {
         Success,
@@ -484,7 +493,7 @@ public static class TestExecutor
             else if (expectedResult == TestScriptResult.Error)
                 success = !containsSuccessMsg;
 
-            if (success)
+            if (!success)
                 Engine.Log.Error($"      Script error: {testScriptResponse}", MessageSource.Test);
         });
 
@@ -521,6 +530,8 @@ public static class TestExecutor
 
         Assert.True(success, "Test script didn't succeed, check response above.");
     }
+
+#endif
 
     #endregion
 }

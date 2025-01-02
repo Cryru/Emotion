@@ -22,6 +22,8 @@ public class GameDataSystemTests
     [Test]
     public IEnumerator CreateData()
     {
+        const string NEW_DATA_NAME = "TestData1";
+
         PlatformBase host = Engine.Host;
         if (host is not DesktopPlatform desktopHost) yield break;
 
@@ -33,7 +35,7 @@ public class GameDataSystemTests
             $"using GameData;\n" +
             $"using Emotion.Testing;\n" +
             $"\n" +
-            $"var gameDataExists = GameData.GameDataClassForTestDefs.Untitled;\n",
+            $"var gameDataExists = GameData.GameDataClassForTestDefs.{NEW_DATA_NAME};\n",
             TestExecutor.TestScriptResult.Error);
 
         string gameDataFolder = Path.Join(projectFolder, "GameData");
@@ -43,23 +45,46 @@ public class GameDataSystemTests
         Assert.False(Directory.Exists(gameDataFolderForType));
 
         var newData = new GameDataClassForTest();
+        newData.Id = NEW_DATA_NAME;
+        newData.StringProperty = "Yo";
+        newData.NumberProperty = 1337;
         GameDataDatabase.EditorAdapter.EditorAddObject(typeof(GameDataClassForTest), newData);
 
         string[] data = GameDataDatabase.EditorAdapter.GetObjectIdsOfType(typeof(GameDataClassForTest));
         Assert.Equal(data.Length, 1);
-        Assert.True(data[0] == "Untitled");
+        Assert.True(data[0] == NEW_DATA_NAME);
+
+        GameDataArray<GameDataObject> objects = GameDataDatabase.GetObjectsOfType(typeof(GameDataClassForTest));
+        Assert.Equal(objects[0], newData);
+
+        GameDataClassForTest obj = GameDataDatabase.GetDataObject<GameDataClassForTest>(NEW_DATA_NAME);
+        Assert.Equal(obj, newData);
 
         Assert.True(Directory.Exists(gameDataFolder));
         Assert.True(Directory.Exists(gameDataFolderForType));
 
+        // Now the game data exists, this script should pass.
+        yield return TestExecutor.RunTestScriptInSubProcess($@"
+            using GameData;
+            using Emotion.Testing;
+
+            var data = GameData.GameDataClassForTestDefs.{NEW_DATA_NAME};
+            Assert.NotNull(data);
+            Assert.Equal(data.StringProperty, ""{newData.StringProperty}"");
+            Assert.Equal(data.NumberProperty, {newData.NumberProperty});
+            Assert.Equal(data.NumberPropertyWithDefault, {newData.NumberPropertyWithDefault});
+            Assert.Equal(data.StringPropertyWithDefault, ""{newData.StringPropertyWithDefault}"");
+        ");
+
+        Directory.Delete(gameDataFolder, true);
+
+        // We've deleted the data, the script should once again fail.
         yield return TestExecutor.RunTestScriptInSubProcess($"" +
             $"using GameData;\n" +
             $"using Emotion.Testing;\n" +
             $"\n" +
-            $"var gameDataExists = GameData.GameDataClassForTestDefs.Untitled;\n" +
-            $"Assert.NotNull(gameDataExists);\n");
-
-        Directory.Delete(gameDataFolder, true);
+            $"var gameDataExists = GameData.GameDataClassForTestDefs.{NEW_DATA_NAME};\n",
+            TestExecutor.TestScriptResult.Error);
 
         yield break;
     }
