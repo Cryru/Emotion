@@ -1,10 +1,8 @@
-﻿using Emotion.SourceGeneration;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using static Emotion.SourceGeneration.Helpers;
 
@@ -132,9 +130,15 @@ namespace SourceGenerator
                    true), Location.None)
                 );
 
+                HashSet<INamedTypeSymbol> genericTypesToGenerate = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
                 foreach (var type in types)
                 {
-                    GenerateReflectorForType(ref context, sb, type, mainNamespace);
+                    GenerateReflectorForType(ref context, sb, type, mainNamespace, genericTypesToGenerate);
+                }
+
+                foreach (var type in genericTypesToGenerate)
+                {
+                    GenerateReflectorForType(ref context, sb, type, mainNamespace, null);
                 }
             }
 
@@ -145,13 +149,14 @@ namespace SourceGenerator
             }
         }
 
-        public static void GenerateReflectorForType(ref SourceProductionContext context, StringBuilder sb, INamedTypeSymbol typ, string mainNamespace)
+        public static void GenerateReflectorForType(ref SourceProductionContext context, StringBuilder sb, INamedTypeSymbol typ, string mainNamespace, HashSet<INamedTypeSymbol> genericTypeSpecifications = null)
         {
             if (!HasParameterlessConstructor(typ)) return;
             if (HasDontSerialize(typ)) return;
             if (typ.IsAbstract) return;
             if (typ.DeclaredAccessibility != Accessibility.Public) return;
-            if (typ.IsGenericType) return;
+            if (typ.IsGenericType && SymbolEqualityComparer.Default.Equals(typ, typ.ConstructedFrom)) return;
+            if (typ.IsRefLikeType && typ.IsValueType) return;
 
             ImmutableArray<AttributeData> classAttributes = typ.GetAttributes();
             if (IsObsolete(classAttributes)) return;
@@ -189,6 +194,9 @@ namespace SourceGenerator
 
                 string memberName = member.Name;
                 if (memberName == "this[]") continue;
+
+                if (genericTypeSpecifications != null && memberType is INamedTypeSymbol namedType && namedType.IsGenericType)
+                    genericTypeSpecifications.Add(namedType);
 
                 ImmutableArray<AttributeData> memberAttributes = member.GetAttributes();
                 if (IsObsolete(memberAttributes)) continue;
