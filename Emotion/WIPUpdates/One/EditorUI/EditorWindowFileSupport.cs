@@ -8,10 +8,16 @@ namespace Emotion.WIPUpdates.One.Tools;
 
 public partial class EditorWindowFileSupport : EditorWindow
 {
-    private UIBaseWindow _mainContent;
+    public const string DEFAULT_FILE_NAME = "Untitled";
+
+    private UIBaseWindow _mainContent = null!;
+
+    private string _headerBaseText;
+    protected string _currentFileName = DEFAULT_FILE_NAME;
 
     public EditorWindowFileSupport(string title) : base(title ?? "Generic Tool")
     {
+        _headerBaseText = Header;
     }
 
     public override void AttachedToController(UIController controller)
@@ -53,12 +59,16 @@ public partial class EditorWindowFileSupport : EditorWindow
             {
                 EditorButton button = new EditorButton("New");
                 button.FillX = true;
-                button.OnClickedProxy = (_) => NewFile();
+                button.OnClickedProxy = (_) =>
+                {
+                    NewFile();
+                    Controller?.DropDown?.Close();
+                };
                 dropDown.AddChild(button);
             }
 
             {
-                EditorButton button = new EditorButton("Open");
+                EditorButton button = new EditorButton("Open...");
                 button.FillX = true;
                 button.OnClickedProxy = (_) => OpenFile();
                 dropDown.AddChild(button);
@@ -100,7 +110,8 @@ public partial class EditorWindowFileSupport : EditorWindow
 
     protected virtual void NewFile()
     {
-
+        _currentFileName = DEFAULT_FILE_NAME;
+        Header = $"*{_currentFileName} - {_headerBaseText}";
     }
 
     protected virtual void SaveFile()
