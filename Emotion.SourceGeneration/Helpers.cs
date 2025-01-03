@@ -44,6 +44,17 @@ namespace Emotion.SourceGeneration
             return false;
         }
 
+        public static bool HasDontSerialize(ImmutableArray<AttributeData> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                string name = attribute.AttributeClass.Name.ToString();
+                if (name == "DontSerializeAttribute")
+                    return true;
+            }
+            return false;
+        }
+
         public static string GenerateAttributeDeclaration(AttributeData attribute)
         {
             var constructorArgs = string.Join(", ", attribute.ConstructorArguments.Select(arg => GetArgumentString(arg)).Where(x => x != null));
