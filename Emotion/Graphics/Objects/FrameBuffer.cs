@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using OpenGL;
@@ -13,6 +14,7 @@ namespace Emotion.Graphics.Objects
     /// Represents a FrameBuffer, also known as a "render target", "drawable texture" and others.
     /// This class is also used to represent the primary frame buffer (screen buffer) in which case the GL Pointer is 0.
     /// </summary>
+    [DontSerialize]
     public class FrameBuffer : IDisposable
     {
         /// <summary>

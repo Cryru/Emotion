@@ -147,7 +147,6 @@ namespace Standart.Hash.xxHash
         /// <returns>hash</returns>
         public static unsafe uint ComputeHash(Span<byte> data, int length, uint seed = 0)
         {
-            Debug.Assert(data != null);
             Debug.Assert(length >= 0);
             Debug.Assert(length <= data.Length);
 
@@ -166,7 +165,6 @@ namespace Standart.Hash.xxHash
         /// <returns>hash</returns>
         public static unsafe uint ComputeHash(ReadOnlySpan<byte> data, int length, uint seed = 0)
         {
-            Debug.Assert(data != null);
             Debug.Assert(length >= 0);
             Debug.Assert(length <= data.Length);
 

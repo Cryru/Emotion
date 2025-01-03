@@ -77,7 +77,7 @@ namespace Emotion.IO
 
             // Read from stream.
             var data = new byte[stream.Length];
-            stream.Read(data, 0, (int) stream.Length);
+            stream.ReadExactly(data, 0, (int) stream.Length);
 
             return data;
         }

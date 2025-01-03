@@ -1,5 +1,6 @@
 #region Using
 
+using Emotion.Common.Serialization;
 using Emotion.Game.World;
 using Emotion.Game.World3D;
 using Emotion.Game.World3D.Objects;
@@ -15,6 +16,7 @@ using Emotion.Utility;
 
 namespace Emotion.Game.ThreeDee.Editor
 {
+    [DontSerialize]
     public class TranslationGizmo : GameObject3D
     {
         public int Alpha = 200;

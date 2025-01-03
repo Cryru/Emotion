@@ -1,4 +1,5 @@
-﻿using Emotion.Network.Base;
+﻿using Emotion.Common.Serialization;
+using Emotion.Network.Base;
 using Emotion.Network.ServerSide;
 using Emotion.Utility;
 using System.Net;

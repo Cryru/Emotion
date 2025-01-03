@@ -88,9 +88,8 @@ namespace Emotion.Graphics
         {
             var vertsNeeded = (uint) ((detail + 1) * 3);
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertsNeeded, BatchMode.SequentialTriangles);
-            Assert(vertices != null);
-            var vertexIdx = 0;
 
+            var vertexIdx = 0;
             Vector3 posOffset = positionIsCenter ? new Vector3(position.X - radius.X, position.Y - radius.Y, position.Z) : position;
 
             float pX = 0;

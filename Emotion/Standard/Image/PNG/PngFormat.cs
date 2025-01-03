@@ -370,7 +370,7 @@ namespace Emotion.Standard.Image.PNG
 
         private static void Palette(ReadOnlySpan<byte> palette, ReadOnlySpan<byte> paletteAlpha, int pixelCount, Span<byte> data, byte[] pixels, int y)
         {
-            if (paletteAlpha != null && paletteAlpha.Length > 0)
+            if (paletteAlpha.Length > 0)
             {
                 // If the alpha palette is not null and does one or
                 // more entries, this means, that the image contains and alpha

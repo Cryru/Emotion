@@ -1,10 +1,13 @@
 ﻿#nullable enable
 
+using Emotion.Common.Serialization;
+
 namespace Emotion.Game.Time.Routines;
 
 /// <summary>
 /// Manages coroutines and their execution.
 /// </summary>
+[DontSerialize]
 public class CoroutineManager
 {
     /// <summary>

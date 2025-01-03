@@ -42,8 +42,6 @@ namespace Emotion.Graphics
         {
             var vertCount = (uint) verts.Length;
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
-            Assert(vertices != null);
-
             for (var i = 0; i < verts.Length; i++)
             {
                 vertices[i].Vertex = verts[i].ToVec3();

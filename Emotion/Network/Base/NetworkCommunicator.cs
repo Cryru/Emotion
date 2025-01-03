@@ -1,4 +1,5 @@
-﻿using Emotion.Network.ServerSide;
+﻿using Emotion.Common.Serialization;
+using Emotion.Network.ServerSide;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 using System.Buffers.Binary;
@@ -13,6 +14,7 @@ using System.Text;
 
 namespace Emotion.Network.Base;
 
+[DontSerialize]
 public class NetworkCommunicator
 {
     public ServerStatus Status;

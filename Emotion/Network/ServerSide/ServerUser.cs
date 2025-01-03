@@ -1,4 +1,5 @@
-﻿using Emotion.Network.Base;
+﻿using Emotion.Common.Serialization;
+using Emotion.Network.Base;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 using System.Net;
@@ -7,6 +8,7 @@ using System.Net;
 
 namespace Emotion.Network.ServerSide;
 
+[DontSerialize]
 public class ServerUser
 {
     public static ObjectPool<ServerUser> Shared = new ObjectPool<ServerUser>((r) => r.Reset(), 50);

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Runtime.CompilerServices;
+using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches3D;
@@ -20,6 +21,7 @@ namespace Emotion.Graphics
     /// <summary>
     /// Handles all drawing APIs, initialization, and state management.
     /// </summary>
+    [DontSerialize]
     public sealed partial class RenderComposer
     {
         // Emotion uses a:

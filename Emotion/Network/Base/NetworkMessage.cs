@@ -1,4 +1,5 @@
-﻿using Emotion.Network.ServerSide;
+﻿using Emotion.Common.Serialization;
+using Emotion.Network.ServerSide;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 using System.IO;
@@ -19,7 +20,7 @@ namespace Emotion.Network.Base;
 // In the case of a received message:
 //  Sender - Is actually who sent the message
 //  Content - Is just the content of the message.
-
+[DontSerialize]
 public class NetworkMessage
 {
     // [3] - EMO

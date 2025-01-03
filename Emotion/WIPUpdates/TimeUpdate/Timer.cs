@@ -81,7 +81,9 @@ public struct Timer
         switch (Method)
         {
             case FactorMethod.Linear:
+#pragma warning disable CS1717 // Assignment made to same variable
                 t = t;
+#pragma warning restore CS1717 // Assignment made to same variable
                 break;
             case FactorMethod.Cubic:
                 t = t * t * t;
