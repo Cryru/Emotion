@@ -293,7 +293,7 @@ public class UITextInput2 : UIRichText
     protected override Vector2 InternalMeasure(Vector2 space)
     {
         Vector2 textSize = base.InternalMeasure(space);
-        return new Vector2(space.X, MultiLine ? space.Y : textSize.Y);
+        return textSize;// new Vector2(space.X, MultiLine ? space.Y : textSize.Y);
     }
 
     protected override bool UpdateInternal()
@@ -305,6 +305,8 @@ public class UITextInput2 : UIRichText
 
     protected override bool RenderInternal(RenderComposer c)
     {
+        c.RenderSprite(Position, Size, Color.White);
+
         c.SetClipRect(Bounds);
         base.RenderInternal(c);
         c.SetClipRect(null);

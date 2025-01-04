@@ -5,7 +5,6 @@ using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
 using Emotion.WIPUpdates.One.Work;
 using System.Collections;
 
@@ -69,23 +68,88 @@ public class SpriteEntityTool : EditorWindowFileSupport
         };
         content.AddChild(viewPort);
 
-        content.AddChild(new HorizontalPanelSeparator());
-        
-        UIBaseWindow contentRight = new()
+        content.AddChild(new HorizontalPanelSeparator()
         {
-            IgnoreParentColor = true,
+            SeparationPercent = 0.6f
+        });
+
+        content.AddChild(new ObjectPropertyWindow()
+        {
             Id = "EntityData",
-            LayoutMode = LayoutMode.VerticalList,
+            IgnoreParentColor = true,
             FillX = false,
             MinSize = new Vector2(50)
-        };
-        content.AddChild(contentRight);
+        });
+        
+        //UIBaseWindow contentRight = new()
+        //{
+        //    IgnoreParentColor = true,
+        //    Id = "EntityData",
+        //    LayoutMode = LayoutMode.VerticalList,
+        //    FillX = false,
+        //    MinSize = new Vector2(50)
+        //};
+        //content.AddChild(contentRight);
+
+        NewFile();
     }
 
     protected override bool UpdateInternal()
     {
 
         return base.UpdateInternal();
+    }
+
+    protected override bool RenderInternal(RenderComposer c)
+    {
+        SpriteEntity.Render(c);
+
+        return base.RenderInternal(c);
+    }
+
+    protected override void CreateTopBarButtons(UIBaseWindow topBar)
+    {
+        base.CreateTopBarButtons(topBar);
+
+        EditorButton fileButton = new EditorButton("Image");
+        fileButton.OnClickedProxy = (me) =>
+        {
+            UIDropDown dropDown = OpenDropdown(me);
+
+            {
+                EditorButton button = new EditorButton("Add");
+                button.FillX = true;
+                button.OnClickedProxy = (_) =>
+                {
+                    NewFile();
+                    Controller?.DropDown?.Close();
+                };
+                dropDown.AddChild(button);
+            }
+
+            {
+                EditorButton button = new EditorButton("Open...");
+                button.FillX = true;
+                button.OnClickedProxy = (_) => OpenFile();
+                dropDown.AddChild(button);
+            }
+
+            {
+                EditorButton button = new EditorButton("Save");
+                button.FillX = true;
+                button.OnClickedProxy = (_) => SaveFile();
+                dropDown.AddChild(button);
+            }
+
+            //{
+            //    EditorButton button = new EditorButton("Save As");
+            //    button.FillX = true;
+            //    dropDown.AddChild(button);
+            //}
+
+            Controller?.AddChild(dropDown);
+        };
+        topBar.AddChild(fileButton);
     }
 
     #region UI Helpers
@@ -105,6 +169,16 @@ public class SpriteEntityTool : EditorWindowFileSupport
     }
 
     #endregion
+
+    protected override void NewFile()
+    {
+        base.NewFile();
+
+        SpriteEntity = new SpriteEntity();
+
+        ObjectPropertyWindow? entityData = GetWindowById<ObjectPropertyWindow>("EntityData");
+        entityData?.SetObject(SpriteEntity);
+    }
 
     public void NewEntity(TextureAsset baseFile)
     {

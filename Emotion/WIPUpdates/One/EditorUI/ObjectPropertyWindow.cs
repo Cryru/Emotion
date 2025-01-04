@@ -1,7 +1,9 @@
-﻿using Emotion.Standard.Reflector;
+﻿using Emotion.IO;
+using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #nullable enable
 
@@ -63,9 +65,15 @@ public class ObjectPropertyWindow : UIBaseWindow
 
             foreach (ComplexTypeHandlerMember member in complexTypeMembers)
             {
-                var memberHandler = member.GetTypeHandler();
+                IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
 
-                bool a = true;
+                // todo
+                if (memberHandler.Type == typeof(SerializableAssetHandle<TextureAsset>))
+                {
+                    AssetHandleEditor<TextureAsset> newEditor = new AssetHandleEditor<TextureAsset>();
+                    newEditor.SetEditor(member.Name);
+                    editorList.AddChild(newEditor);
+                }
             }
         }
     }
