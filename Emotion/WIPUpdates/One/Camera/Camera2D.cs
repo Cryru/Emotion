@@ -111,16 +111,24 @@ public class Camera2D : CameraBase
             RecreateViewMatrix();
         }
 
-        // todo: zoom at mouse
         if (_zoomDir != 0)
         {
-            float movementSpeed = ((MovementSpeed / 1000f) / 2f) * Engine.DeltaTime;
+            float movementSpeed = ((MovementSpeed / 10f)) * Engine.DeltaTime;
 
             Vector2 mouseScreen = Engine.Host.MousePosition;
             Vector2 mouseWorld = ScreenToWorld(mouseScreen).ToVec2();
 
-            float zoom = _zoomDir * movementSpeed;
-            Zoom = Maths.Clamp(Zoom + zoom, 0.1f, 4f);
+            // Zoom is perceived as logarithmic-ish
+            float zoomFactorIncrease = 1.0f + ((movementSpeed / 100f) * MathF.Abs(_zoomDir));
+
+            if (_zoomDir < 0)
+                Zoom = Zoom / zoomFactorIncrease;
+            else
+                Zoom = Zoom * zoomFactorIncrease;
+
+            Zoom = Maths.Clamp(Zoom, 0.1f, 4f);
+            Zoom = MathF.Round(Zoom, 2);
+
             Vector2 mouseWorldAfterZoom = ScreenToWorld(mouseScreen).ToVec2();
             Position2 += mouseWorld - mouseWorldAfterZoom;
 
