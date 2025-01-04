@@ -1,6 +1,7 @@
 ﻿using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
 using Emotion.Utility;
+using Emotion.WIPUpdates.TimeUpdate;
 
 namespace Emotion.WIPUpdates.One.Camera;
 
@@ -8,7 +9,10 @@ public class Camera2D : CameraBase
 {
     // Movement
     public float MovementSpeed = 3;
-    private Vector2 _inputDirection;
+    protected Vector2 _inputDirection;
+
+    public bool ZoomAllowed;
+    protected float _zoomDir;
 
     public Camera2D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
     {
@@ -72,13 +76,13 @@ public class Camera2D : CameraBase
         //    return false;
         //}
 
-        //if (key == Key.MouseWheel)
-        //{
-        //    float zoomDir = status == KeyStatus.MouseWheelScrollUp ? 1 : -1;
-        //    _zoomDir = zoomDir;
+        if (ZoomAllowed && key == Key.MouseWheel)
+        {
+            float zoomDir = status == KeyState.MouseWheelScrollUp ? 1 : -1;
+            _zoomDir = zoomDir;
 
-        //    return false;
-        //}
+            return false;
+        }
 
         return true;
     }
@@ -88,6 +92,10 @@ public class Camera2D : CameraBase
     {
         if (_inputDirection != Vector2.Zero)
         {
+            float movementSpeed = (MovementSpeed / 10f) * Engine.DeltaTime;
+            float movementSpeedZoomScale = ((MovementSpeed / Zoom) / 10f) * Engine.DeltaTime;
+            movementSpeed = Interpolation.SmoothLerp(movementSpeed, movementSpeedZoomScale, 10, Engine.DeltaTime);
+
             Vector3 worldUp = GetCameraWorldUp();
 
             Vector3 movementStraightBack = worldUp * -_inputDirection.Y;
@@ -96,11 +104,27 @@ public class Camera2D : CameraBase
             movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
             Vector3 movementSide = Vector3.Normalize(Vector3.Cross(worldUp, _lookAt)) * _inputDirection.X;
-            if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
-            if (!float.IsNaN(movementSide.X)) Position += movementSide * MovementSpeed;
+            if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * movementSpeed;
+            if (!float.IsNaN(movementSide.X)) Position += movementSide * movementSpeed;
             // todo: interpolate.
 
             RecreateViewMatrix();
+        }
+
+        // todo: zoom at mouse
+        if (_zoomDir != 0)
+        {
+            float movementSpeed = ((MovementSpeed / 1000f) / 2f) * Engine.DeltaTime;
+
+            Vector2 mouseScreen = Engine.Host.MousePosition;
+            Vector2 mouseWorld = ScreenToWorld(mouseScreen).ToVec2();
+
+            float zoom = _zoomDir * movementSpeed;
+            Zoom = Maths.Clamp(Zoom + zoom, 0.1f, 4f);
+            Vector2 mouseWorldAfterZoom = ScreenToWorld(mouseScreen).ToVec2();
+            Position2 += mouseWorld - mouseWorldAfterZoom;
+
+            _zoomDir = 0;
         }
     }
 
