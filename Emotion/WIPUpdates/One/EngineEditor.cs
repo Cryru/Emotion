@@ -16,7 +16,7 @@ public static partial class EngineEditor
 
     public static UIBaseWindow EditorRoot;
 
-    private static UIText _perfText;
+    private static UIRichText _perfText;
 
     public static void Attach()
     {
@@ -54,13 +54,14 @@ public static partial class EngineEditor
         barContainer.AddChild(new EditorTopBar());
         barContainer.AddChild(new MapEditorViewMode());
 
-        _perfText = new UIText
+        _perfText = new UIRichText
         {
             FontSize = 25,
             AnchorAndParentAnchor = UIAnchor.TopRight,
             OutlineColor = Color.Black,
             OutlineSize = 2,
-            Margins = new Primitives.Rectangle(0, 50, 5, 0)
+            Margins = new Primitives.Rectangle(0, 50, 5, 0),
+            AllowRenderBatch = false
         };
         EditorRoot.AddChild(_perfText);
 
@@ -89,9 +90,8 @@ public static partial class EngineEditor
         if (!IsOpen) return;
         RenderMapEditor(c);
 
-        string perfReadoutStr = $"FPS: {PerformanceMetrics.FpsLastSecond}\nDraw Calls: {PerformanceMetrics.DrawCallsLastFrame}";
-        //c.RenderString(Vector3.Zero, Color.White, perfReadoutStr, FontAsset.GetDefaultBuiltIn().GetAtlas(30), null, Graphics.Text.FontEffect.Outline, 2f, Color.Black);
-        //_perfText.Text = ;
+        string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDPF: {PerformanceMetrics.DrawCallsLastFrame:00}";
+        _perfText.Text = perfReadoutStr;
     }
 
     #region Helpers

@@ -68,20 +68,25 @@ public class MapEditorViewMode : UIBaseWindow
         UIBaseWindow locationContainer = new()
         {
             LayoutMode = LayoutMode.VerticalList,
-            Paddings = new Rectangle(5, 5, 5, 5),
+            Paddings = new Rectangle(10, 10, 5, 5),
             SetChildren = new List<UIBaseWindow>()
             {
                 new EditorLabel()
                 {
                     Id = "CameraPosition",
                     TextShadow = Color.Black,
-                    ShadowOffset = new Vector2(1f)
+                    ShadowOffset = new Vector2(1f),
+                    OutlineColor = Color.Black,
+                    OutlineSize = 2,
+                    AllowRenderBatch = false,
+                    FontSize = 25,
+                    Text = "Position:\nLook At:"
                 },
                 new MapEditorViewModeOrientationGizmo()
                 {
                     FillX = false,
                     FillY = false,
-                    Margins = new Rectangle(0, 5, 0, 0),
+                    Margins = new Rectangle(0, 10, 0, 0),
                     MinSize = new Vector2(128),
                 }
             }
