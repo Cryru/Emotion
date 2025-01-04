@@ -405,10 +405,10 @@ public class TextureAtlas : Packing.PackingResumableState
                 Vector2 pixelInUv = Vector2.One / texture.Size;
                 VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0),
                     texture.Size + _texturesMarginVec2, Color.White, texture);
-                vboLocalSpan[0].UV += _texturesMarginVec * (pixelInUv * new Vector2(-1, -1));
-                vboLocalSpan[1].UV += _texturesMarginVec * (pixelInUv * new Vector2(1, -1));
-                vboLocalSpan[2].UV += _texturesMarginVec * (pixelInUv * new Vector2(1, 1));
-                vboLocalSpan[3].UV += _texturesMarginVec * (pixelInUv * new Vector2(-1, 1));
+                vboLocalSpan[0].UV += _texturesMarginVec * (pixelInUv * new Vector2(-1, 1));
+                vboLocalSpan[1].UV += _texturesMarginVec * (pixelInUv * new Vector2(1, 1));
+                vboLocalSpan[2].UV += _texturesMarginVec * (pixelInUv * new Vector2(1, -1));
+                vboLocalSpan[3].UV += _texturesMarginVec * (pixelInUv * new Vector2(-1, -1));
 
                 _vbo.Upload(_vboLocal);
 
