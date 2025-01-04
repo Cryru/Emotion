@@ -197,9 +197,12 @@ public class UIRichText : UIBaseWindow
             if (_atlas is EmotionSDFDrawableFontAtlas emSdf)
                 _cachedRenderOffset = emSdf.GetDrawOffset().Ceiling();
 
-            _cachedTextRender ??= new VirtualTextureForRichText(this);
-            _cachedTextRender.SetVirtualSize(new Vector2(_layoutEngine.TextSize.X, _layoutEngine.TextRenderHeight) + _cachedRenderOffset.ToVec2() * 2f);
-            _cachedTextRender.UpVersion();
+            if (AllowRenderBatch)
+            {
+                _cachedTextRender ??= new VirtualTextureForRichText(this);
+                _cachedTextRender.SetVirtualSize(new Vector2(_layoutEngine.TextSize.X, _layoutEngine.TextRenderHeight) + _cachedRenderOffset.ToVec2() * 2f);
+                _cachedTextRender.UpVersion();
+            }
         }
 
         return _layoutEngine.TextSize;
@@ -209,7 +212,8 @@ public class UIRichText : UIBaseWindow
     {
         base.CalculateColor();
 
-        if (_cachedTextRender != null)
+        // The text color has changed.
+        if (_cachedTextRender != null && _cachedColor != _calculatedColor)
             _cachedTextRender.UpVersion();
     }
 
@@ -254,9 +258,11 @@ public class UIRichText : UIBaseWindow
 
     private VirtualTextureForRichText? _cachedTextRender;
     private Vector3 _cachedRenderOffset = new Vector3(1f, 1f, 0);
+    private Color _cachedColor;
 
     protected void RenderTextForBatch(RenderComposer c, Vector2 offset)
     {
+        _cachedColor = _calculatedColor;
         _layoutEngine.RenderWithNoLayoutOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor.CloneWithAlpha(255), OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
