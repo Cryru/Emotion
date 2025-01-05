@@ -77,8 +77,8 @@ public class EmotionKeyEvent
                     // But you won't get an up if you didn't get a down.
                     if (status == KeyState.Up && !listener.KeysDown[(int) key]) continue;
 
+                    if (status == KeyState.Down || status == KeyState.Up) listener.KeysDown[(int)key] = status == KeyState.Down;
                     bool funcPropagate = listener.Func(key, status);
-                    if (status == KeyState.Down || status == KeyState.Up) listener.KeysDown[(int) key] = status == KeyState.Down;
 
                     // Stop propagation if the event handler said so.
                     if (!funcPropagate) propagate = false;
@@ -139,8 +139,8 @@ public class EmotionKeyEvent
                     for (var j = 0; j < listener.KeysDown.Length; j++)
                     {
                         if (!listener.KeysDown[j]) continue;
-                        listener.Func((Key) j, KeyState.Up);
                         listener.KeysDown[j] = false;
+                        listener.Func((Key) j, KeyState.Up);
                     }
 
                     list.RemoveAt(i);
