@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
+using Emotion.Utility;
 
 #endregion
 
@@ -83,6 +84,19 @@ namespace Emotion.Primitives
             float x = Radius * angle + X;
             float y = Radius * angle + Y;
             return new Vector2(x, y);
+        }
+
+        public Vector2 GetRandomPointInsideCircle()
+        {
+            // Generate a random radius and angle.
+            float angle = Helpers.GenerateRandomFloat() * 2 * MathF.PI;
+            float randomRadius = MathF.Sqrt(Helpers.GenerateRandomFloat()) * Radius;
+
+            // Convert polar coordinates to Cartesian coordinates
+            float randomX = X + (float)(randomRadius * MathF.Cos(angle));
+            float randomY = Y + (float)(randomRadius * MathF.Sin(angle));
+
+            return new Vector2(randomX, randomY);
         }
 
         /// <inheritdoc />

@@ -113,8 +113,8 @@ namespace Emotion.Graphics.Data
             Vector2 nnUV = new Vector2(uvRect.X, uvYp) / texture.Size;
 
             // Same order as vertices.
-            // 0, 0    1, 0
-            // 0, 1    1, 1
+            // [3] 0, 0  [2] 1, 0
+            // [0] 0, 1  [1] 1, 1
             vertices[3].UV = nnUV;
             vertices[2].UV = pnUV;
             vertices[1].UV = ppUV;

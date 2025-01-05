@@ -90,6 +90,14 @@ public static class Helpers
     }
 
     /// <summary>
+    /// Returns a randomly generated float between 0 and 1
+    /// </summary>
+    public static float GenerateRandomFloat()
+    {
+        return (float) _generator.NextDouble();
+    }
+
+    /// <summary>
     /// Returns a random item from the array.
     /// </summary>
     public static T? GetRandomArrayItem<T>(T[] array)
