@@ -25,7 +25,8 @@ namespace Emotion.Graphics
         /// <param name="color">The circle color.</param>
         /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
         /// <param name="circleDetail">How detailed the circle should be.</param>
-        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
+        /// <param name="thickness">The width of the circle line.</param>
+        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false, float thickness = 1, int circleDetail = 30)
         {
             Vector3 posOffset = useCenter ? new Vector3(position.X - radius, position.Y - radius, position.Z) : position;
 
@@ -48,13 +49,13 @@ namespace Emotion.Graphics
                 }
                 else
                 {
-                    RenderLine(posOffset + new Vector3(radius + pX, radius + pY, 0), posOffset + new Vector3(radius + x, radius + y, 0), color);
+                    RenderLine(posOffset + new Vector3(radius + pX, radius + pY, 0), posOffset + new Vector3(radius + x, radius + y, 0), color, thickness);
                 }
 
                 pX = x;
                 pY = y;
 
-                if (i == circleDetail - 1) RenderLine(posOffset + new Vector3(radius + x, radius + y, 0), posOffset + new Vector3(radius + fX, radius + fY, 0), color);
+                if (i == circleDetail - 1) RenderLine(posOffset + new Vector3(radius + x, radius + y, 0), posOffset + new Vector3(radius + fX, radius + fY, 0), color, thickness);
             }
         }
 
@@ -71,6 +72,16 @@ namespace Emotion.Graphics
         public void RenderCircle(Vector3 position, float radius, Color color, bool positionIsCenter = false, int detail = 30)
         {
             RenderEllipse(position, new Vector2(radius), color, positionIsCenter, detail);
+        }
+
+        public void RenderCircle(Circle circle, Color color, int circleDetail = 30)
+        {
+            RenderCircle(circle.Center.ToVec3(), circle.Radius, color, true, circleDetail);
+        }
+
+        public void RenderCircleOutline(Circle circle, Color color, float thickness = 1, int circleDetail = 30)
+        {
+            RenderCircleOutline(circle.Center.ToVec3(), circle.Radius, color, true, thickness, circleDetail);
         }
 
         /// <summary>
