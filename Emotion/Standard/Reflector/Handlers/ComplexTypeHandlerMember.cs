@@ -31,15 +31,16 @@ public abstract class ComplexTypeHandlerMember
 
     public abstract IGenericReflectorTypeHandler? GetTypeHandler();
 
-    public bool WriteValueFromComplexObject(StringBuilder builder, object? obj)
+    // This is the same as getting the type handler and calling WriteValueAsString, but avoids boxing.
+    public bool WriteValueAsStringFromComplexObject(StringBuilder builder, object? obj)
     {
         ValueStringWriter writer = new ValueStringWriter(builder);
-        return WriteValueFromComplexObject(ref writer, obj);
+        return WriteValueAsStringFromComplexObject(ref writer, obj);
     }
 
-    public abstract bool WriteValueFromComplexObject(ref ValueStringWriter writer, object? obj);
+    public abstract bool WriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj);
 
-    public abstract bool ReadValueFromComplexObject(object obj, out object? readValue); //unused
+    public abstract bool GetValueFromComplexObject(object obj, out object? readValue);
 
     public abstract bool SetValueInComplexObject(object obj, object val);
 }
@@ -60,7 +61,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         return ReflectorEngine.GetTypeHandler<MyT>();
     }
 
-    public override bool ReadValueFromComplexObject(object obj, out object? readValue)
+    public override bool GetValueFromComplexObject(object obj, out object? readValue)
     {
         readValue = null;
         if (obj is ParentT parentType)
@@ -81,7 +82,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         return false;
     }
 
-    public override bool WriteValueFromComplexObject(ref ValueStringWriter writer, object? obj)
+    public override bool WriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj)
     {
         if (obj is not ParentT parentType) return false;
 

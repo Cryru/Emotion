@@ -127,7 +127,7 @@ public static class XMLSerialize
                 written = writer.WriteChar('>');
                 if (!written) return -1;
 
-                if (member.WriteValueFromComplexObject(ref writer, obj))
+                if (member.WriteValueAsStringFromComplexObject(ref writer, obj))
                 {
 
                 }

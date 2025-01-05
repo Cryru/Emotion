@@ -46,6 +46,9 @@ public class ObjectPropertyWindow : UIBaseWindow
 
         if (_type == null) return;
 
+        // todo
+        if (Object == null) return;
+
         IGenericReflectorTypeHandler? typeHandler = ReflectorEngine.GetTypeHandler(_type);
 
         if (typeHandler == null)
@@ -71,10 +74,27 @@ public class ObjectPropertyWindow : UIBaseWindow
                 if (memberHandler.Type == typeof(SerializableAssetHandle<TextureAsset>))
                 {
                     AssetHandleEditor<TextureAsset> newEditor = new AssetHandleEditor<TextureAsset>();
-                    newEditor.SetEditor(member.Name);
+
+                    SerializableAssetHandle<TextureAsset> handleValue;
+                    if (member.GetValueFromComplexObject(Object, out object? memberValue) && memberValue is SerializableAssetHandle<TextureAsset> readMember)
+                    {
+                        handleValue = readMember;
+                    }
+                    else
+                    {
+                        handleValue = new SerializableAssetHandle<TextureAsset>();
+                        member.SetValueInComplexObject(Object, handleValue);
+                    }
+
+                    newEditor.SetEditor(member.Name, handleValue);
                     editorList.AddChild(newEditor);
                 }
             }
         }
+    }
+
+    public static void ObjectChanged(object obj)
+    {
+
     }
 }

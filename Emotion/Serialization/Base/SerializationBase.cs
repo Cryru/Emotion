@@ -35,7 +35,7 @@ public static class SerializationBase
                 builder.Append(member.Name);
                 builder.Append("\n");
 
-                if (member.WriteValueFromComplexObject(builder, obj))
+                if (member.WriteValueAsStringFromComplexObject(builder, obj))
                 {
 
                 }

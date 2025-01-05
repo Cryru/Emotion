@@ -142,7 +142,7 @@ public static partial class GameDataDatabase
                 IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
                 AssertNotNull(memberHandler);
 
-                if (member.ReadValueFromComplexObject(obj, out object? memberValue))
+                if (member.GetValueFromComplexObject(obj, out object? memberValue))
                 {
                     if (memberValue == null)
                     {
