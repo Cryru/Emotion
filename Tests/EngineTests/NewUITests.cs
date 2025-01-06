@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -1199,5 +1200,79 @@ public class NewUITests : TestingScene
 
         yield return WaitUILayout();
         VerifyScreenshot();
+    }
+
+    [Test]
+    public IEnumerator CenterAndFillWarningCheck()
+    {
+        var parent = new UISolidColor()
+        {
+            WindowColor = Color.CornflowerBlue,
+
+            MinSizeY = 10,
+            FillY = false,
+        };
+        UI.AddChild(parent);
+
+        var windowOne = new UISolidColor()
+        {
+            LayoutMode = LayoutMode.HorizontalList,
+
+            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+
+            ListSpacing = new Vector2(5, 0),
+
+            WindowColor = Color.PrettyOrange
+        };
+        parent.AddChild(windowOne);
+
+        var windowOneChild = new UISolidColor()
+        {
+            WindowColor = Color.Red,
+
+            MinSizeX = 10,
+            MinSizeY = 10,
+
+            FillX = false,
+            FillY = false,
+        };
+        windowOne.AddChild(windowOneChild);
+
+        var windowTwo = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.HorizontalList,
+
+            AnchorAndParentAnchor = UIAnchor.CenterRight,
+
+            ListSpacing = new Vector2(5, 0),
+
+            Margins = new Rectangle(0, 10, 0, 0)
+        };
+        parent.AddChild(windowTwo);
+
+        var windowTwoChild = new UISolidColor()
+        {
+            WindowColor = Color.Red,
+
+            MinSizeX = 200,
+            MinSizeY = 200,
+
+            FillX = false,
+            FillY = false,
+        };
+        windowTwo.AddChild(windowTwoChild);
+
+        List<UIBaseWindow.UIWarning> warnings = windowOne.GetWarnings();
+        bool found = false;
+        foreach (var warning in warnings)
+        {
+            if (warning.Warning == UIBaseWindow.WARN_CENTER_FILL)
+                found = true;
+        }
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        Assert.True(found);
     }
 }
