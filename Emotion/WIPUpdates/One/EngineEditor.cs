@@ -1,8 +1,10 @@
 ﻿#region Using
 
+using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
 using Emotion.IO;
 using Emotion.Platform.Input;
+using Emotion.Scenography;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
 
@@ -90,7 +92,7 @@ public static partial class EngineEditor
         if (!IsOpen) return;
         RenderMapEditor(c);
 
-        string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDPF: {PerformanceMetrics.DrawCallsLastFrame:00}";
+        string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDCF: {PerformanceMetrics.DrawCallsLastFrame:00}";
         _perfText.Text = perfReadoutStr;
     }
 

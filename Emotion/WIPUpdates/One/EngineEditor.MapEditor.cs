@@ -1,7 +1,10 @@
-﻿using Emotion.Game.World3D.Objects;
+﻿using Emotion.Game;
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
+using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;
+using Emotion.WIPUpdates.One.Editor2D;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,23 +44,29 @@ public static partial class EngineEditor
     private static CameraBase? _editorCamera;
     private static InfiniteGrid? _grid;
 
+    private static bool _enableDragWithMiddleMouse;
+    private static Vector2? _draggingWithMiddleMouse;
+
     private static void EnterMapEditor()
     {
         Assert(MapEditorMode != MapEditorMode.Off);
 
-        UI.UIBaseWindow? gameUI = Engine.UI.GetWindowById("GameUIRoot");
+        UIBaseWindow? gameUI = Engine.UI.GetWindowById("GameUIRoot");
         gameUI?.SetVisible(false);
 
+        UIBaseWindow? bottomBarCurrent = EditorRoot.GetWindowById("BottomBar");
+        bottomBarCurrent?.Close();
+
+        _enableDragWithMiddleMouse = false;
+
         if (_grid == null)
-            Task.Run(async () =>
-            {
-                var grid = new InfiniteGrid();
-                await grid.LoadAssetsAsync();
-                grid.TileSize = 100;
-                grid.Offset = new Vector2(grid.TileSize / 2f + 0.5f);
-                grid.Tint = Color.White.SetAlpha(125);
-                _grid = grid;
-            });
+        {
+            var grid = new InfiniteGrid();
+            grid.TileSize = 0;
+            grid.Tint = Color.White.SetAlpha(125);
+            _grid = grid;
+            Task.Run(grid.LoadAssetsAsync);
+        }
 
         _cameraOutsideEditor = Engine.Renderer.Camera;
         if (MapEditorMode == MapEditorMode.ThreeDee)
@@ -69,7 +78,7 @@ public static partial class EngineEditor
             {
                 LookAt = _cameraOutsideEditor.LookAt,
                 DragKey = Key.MouseKeyLeft,
-                MovementSpeed = 10
+                MovementSpeed = 10,
             };
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
@@ -77,32 +86,84 @@ public static partial class EngineEditor
             _editorCamera = new Camera2D(_cameraOutsideEditor.Position, 1f)
             {
                 LookAt = _cameraOutsideEditor.LookAt,
-                MovementSpeed = 10
+                MovementSpeed = 7, // todo: modify speed property in camera to make more sense (check its Update)
+                ZoomAllowed = true
             };
+
+            Editor2DBottomBar bottomBar = new Editor2DBottomBar
+            {
+                Id = "BottomBar"
+            };
+            EditorRoot.AddChild(bottomBar);
+
+            _enableDragWithMiddleMouse = true;
         }
         AssertNotNull(_editorCamera);
         Engine.Renderer.Camera = _editorCamera;
+
+        Engine.Host.OnKey.AddListener(InputHandler);
     }
 
     private static void ExitMapEditor()
     {
-        UI.UIBaseWindow? gameUI = Engine.UI.GetWindowById("GameUIRoot");
+        UIBaseWindow? gameUI = Engine.UI.GetWindowById("GameUIRoot");
         gameUI?.SetVisible(true);
+
+        UIBaseWindow? bottomBarCurrent = EditorRoot.GetWindowById("BottomBar");
+        bottomBarCurrent?.Close();
 
         Engine.Renderer.Camera = _cameraOutsideEditor;
         _editorCamera = null;
         _cameraOutsideEditor = null;
+
+        Engine.Host.OnKey.RemoveListener(InputHandler);
     }
 
     private static void UpdateMapEditor()
     {
         if (MapEditorMode == MapEditorMode.Off) return;
         _grid?.Update(Engine.DeltaTime);
+
+        if (_draggingWithMiddleMouse.HasValue)
+        {
+            CameraBase camera = Engine.Renderer.Camera;
+
+            Vector2 mousePos = camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
+            Vector2 diff = _draggingWithMiddleMouse.Value - mousePos;
+            _draggingWithMiddleMouse = mousePos;
+
+            Engine.Renderer.Camera.Position2 += diff;
+        }
     }
 
     private static void RenderMapEditor(RenderComposer c)
     {
         if (MapEditorMode == MapEditorMode.Off) return;
         _grid?.Render(c);
+    }
+
+    public static void SetGridSize(float size)
+    {
+        if (_grid == null) return;
+        _grid.TileSize = size;
+        _grid.Offset = new Vector2(0.6f);
+    }
+
+    private static bool InputHandler(Key key, KeyState state)
+    {
+        if (key == Key.MouseKeyMiddle)
+        {
+            if (_enableDragWithMiddleMouse && state == KeyState.Down)
+            {
+                CameraBase camera = Engine.Renderer.Camera;
+                _draggingWithMiddleMouse = camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
+            }
+            else
+            {
+                _draggingWithMiddleMouse = null;
+            }
+        }
+
+        return true;
     }
 }
