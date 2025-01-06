@@ -198,6 +198,8 @@ public partial class UIBaseWindow
                 // 2. Limit must be after margin as not to fold the margin size into the window size.
                 // 3. Fill has been decided to be after anchors in order for anchors to matter to filling children.
 
+                UIController.DebugShouldBreakpointLayout(childWin);
+
                 childBound = ApplyAnchors(ref childData, childBound);
                 if (childInsideParent) childBound = ApplyFill(ref childData, childBound);
                 childBound = DeflateRect(childBound, childWin.Margins * childWin.GetScale()); // Subtract the margins from the child size, since the child should be layouted inside.

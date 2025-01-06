@@ -41,6 +41,8 @@ public class UITextInput2 : UIRichText
         WrapText = false;
         UseNewLayoutSystem = true;
 
+        AllowRenderBatch = false;
+
         FillX = true;
         FillY = true;
     }
@@ -305,8 +307,6 @@ public class UITextInput2 : UIRichText
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        c.RenderSprite(Position, Size, Color.White);
-
         c.SetClipRect(Bounds);
         base.RenderInternal(c);
         c.SetClipRect(null);

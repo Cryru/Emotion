@@ -182,8 +182,6 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 
     protected virtual void Layout(Vector2 pos, Vector2 size)
     {
-        UIController.DebugShouldBreakpointLayout(this);
-
         if (size.X < 0 || size.Y < 0)
         {
             Assert(false, $"UIWindow of id {Id} layouted with a size smaller than 0.");

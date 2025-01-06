@@ -16,6 +16,7 @@ public class UIWindowDebugInfo
     public string Path;
     public string Id;
     public Rectangle Bounds;
+    public Rectangle ScaledPadding;
 }
 
 public class UIDebugTool : EditorWindow
@@ -114,6 +115,7 @@ public class UIDebugTool : EditorWindow
                 _debugInfo.Path = GetWindowPath(windowUnderMouse);
                 _debugInfo.Id = windowUnderMouse.Id;
                 _debugInfo.Bounds = windowUnderMouse.Bounds;
+                _debugInfo.ScaledPadding = windowUnderMouse.Paddings * windowUnderMouse.GetScale();
             }
         }
 
