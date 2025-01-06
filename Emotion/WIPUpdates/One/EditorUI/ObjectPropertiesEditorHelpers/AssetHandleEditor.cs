@@ -1,13 +1,19 @@
 ﻿using Emotion.Editor.EditorHelpers;
+using Emotion.Game.World.Editor;
 using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using System.Reflection.Emit;
+
+#nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFileExtensionSupport, new()
 {
+    private SerializableAssetHandle<T>? _objectEditting = null;
+
     public AssetHandleEditor()
     {
         FillY = false;
@@ -25,20 +31,37 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
         };
         container.AddChild(label);
 
-        UITextInput2 input = new UITextInput2();
-        container.AddChild(input);
+        var inputBackground = new UISolidColor
+        {
+            WindowColor = Color.Black * 0.5f,
+            Paddings = new Primitives.Rectangle(5, 3, 5, 3)
+        };
+        container.AddChild(inputBackground);
+
+        UITextInput2 input = new UITextInput2
+        {
+            Id = "TextInput",
+
+            FontSize = MapEditorColorPalette.EditorButtonTextSize,
+            MinSizeX = 100,
+            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+            IgnoreParentColor = true
+        };
+        inputBackground.AddChild(input);
 
         EditorButton browse = new EditorButton
         {
             Text = "...",
-            OnClickedUpProxy = (_) =>
+            OnClickedProxy = (_) =>
             {
                 var platform = Engine.Host;
                 if (platform is DesktopPlatform winPl)
                 {
                     winPl.DeveloperMode_SelectFileNative<T>((file) =>
                     {
-                        bool a = true;
+                        if (_objectEditting != null)
+                            _objectEditting.Name = file.Name;
+                        OnValueUpdated();
                     });
                 }
 
@@ -49,10 +72,23 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
         container.AddChild(browse);
     }
 
-    public void SetEditor(string labelText)
+    private void OnValueUpdated()
     {
-        EditorLabel label = GetWindowById<EditorLabel>("Label");
+        if (_objectEditting == null) return;
+
+        ObjectPropertyWindow.ObjectChanged(_objectEditting);
+
+        UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
+        AssertNotNull(textInput);
+        textInput.Text = _objectEditting.Name;
+    }
+
+    public void SetEditor(string labelText, SerializableAssetHandle<T> obj)
+    {
+        EditorLabel? label = GetWindowById<EditorLabel>("Label");
         AssertNotNull(label);
         label.Text = labelText + ":";
+
+        _objectEditting = obj;
     }
 }

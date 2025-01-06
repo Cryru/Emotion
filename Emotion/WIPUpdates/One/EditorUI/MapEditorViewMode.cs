@@ -5,6 +5,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
 
 #nullable enable
@@ -103,7 +104,10 @@ public class MapEditorViewMode : UIBaseWindow
         if (camLabel != null)
         {
             CameraBase camera = Engine.Renderer.Camera;
-            camLabel.Text = $"Position: {camera.Position:0.00}\nLook At: {camera.LookAt:0.00}";
+            if (camera is Camera2D cam2D)
+                camLabel.Text = $"Position: {camera.Position:0.00}\nLook At: {camera.LookAt:0.00}\nZoom: {cam2D.Zoom}";
+            else
+                camLabel.Text = $"Position: {camera.Position:0.00}\nLook At: {camera.LookAt:0.00}";
         }
 
         return base.UpdateInternal();
