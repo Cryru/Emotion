@@ -1,10 +1,5 @@
-﻿using Emotion.WIPUpdates.One.Work;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Emotion.Game.World.Grid;
+using Emotion.WIPUpdates.One.Work;
 
 namespace Emotion.WIPUpdates.One;
 
@@ -12,8 +7,12 @@ public class GameMap
 {
     private List<MapObject> _objects = new();
 
+    public List<IMapGrid> Grids = new();
+
     public IEnumerator LoadRoutine()
     {
+        Grids.Add(new TileDataLayerGrid() { TileSize = new Vector2(32) });
+
         yield break;
     }
 
