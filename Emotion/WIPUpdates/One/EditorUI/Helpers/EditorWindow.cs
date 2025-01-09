@@ -18,7 +18,7 @@ namespace Emotion.WIPUpdates.One.EditorUI.Helpers;
 
 public class EditorWindowContent : UIBaseWindow
 {
-    public Vector2 SizeConstraint = new Vector2(100, 100);
+    public Vector2 SizeConstraint = new Vector2(960, 540);
 
     protected override Vector2 NEW_InternalMeasure(Vector2 space)
     {
@@ -253,18 +253,21 @@ public class EditorWindow : UIBaseWindow
     {
         // todo: move to panel property
 
+        var dragAreaColor = new Primitives.Color(180, 180, 180);
+        var dragAreaActive = new Primitives.Color(240, 240, 240);
+
         UITexture dragArea = new UITexture
         {
             TextureFile = "Editor/PanelDragArea.png",
             RenderSize = new Vector2(25, 25),
             Smooth = true,
-            WindowColor = MapEditorColorPalette.ButtonColor
+            WindowColor = dragAreaColor
         };
 
         var dragButton = new UICallbackButton
         {
-            OnMouseEnterProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ActiveButtonColor; },
-            OnMouseLeaveProxy = _ => { dragArea.WindowColor = MapEditorColorPalette.ButtonColor; },
+            OnMouseEnterProxy = _ => { dragArea.WindowColor = dragAreaActive; },
+            OnMouseLeaveProxy = _ => { dragArea.WindowColor = dragAreaColor; },
             OnClickedProxy = _ => { _panelDragResize = true; },
             OnClickedUpProxy = _ => { _panelDragResize = false; },
             OrderInParent = 99,
