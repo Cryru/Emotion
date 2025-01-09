@@ -457,7 +457,7 @@ public partial class UIBaseWindow
             _children[0] = leftChild;
 
             ChildData rightChild = _children[2];
-            rightChild.Bound.Width = sizeAvailable * separation;
+            rightChild.Bound.Width = sizeAvailable * rightSidePercent;
             _children[2] = rightChild;
         }
         

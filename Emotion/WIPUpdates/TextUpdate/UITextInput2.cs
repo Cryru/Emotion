@@ -307,9 +307,10 @@ public class UITextInput2 : UIRichText
 
     protected override bool RenderInternal(RenderComposer c)
     {
+        Rectangle? prevClip = c.CurrentState.ClipRect;
         c.SetClipRect(Bounds);
         base.RenderInternal(c);
-        c.SetClipRect(null);
+        c.SetClipRect(prevClip);
 
         // Maybe recalculate selection box only when text/selection changes?
         // On the other hand only one can be focused at a time soooo

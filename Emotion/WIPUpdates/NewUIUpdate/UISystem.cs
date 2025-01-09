@@ -55,7 +55,9 @@ public class UISystem : UIController
     {
         foreach (UIBaseWindow win in this)
         {
-            win.Scale = 1f * win.Parent.Scale;
+            AssertNotNull(win.Parent);
+            if (win.ScaleMode != UIScaleMode.NoScale)
+                win.Scale = 1f * win.Parent.Scale;
         }
         _updateScale = false;
     }
