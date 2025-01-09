@@ -169,11 +169,11 @@ namespace Emotion.UI
         {
             var size = base.Measure(space);
             AfterMeasure(size);
-            BeforeLayout(Vector2.Zero);
+            Logic();
             return size;
         }
 
-        protected override Vector2 BeforeLayout(Vector2 position)
+        protected void Logic()
         {
             Vector2 size = Size / GetScale();
             int range = MaxValue - MinValue;
@@ -210,8 +210,6 @@ namespace Emotion.UI
 
                 _selector.Offset = new Vector2(0, float.IsNaN(offset) ? 0 : offset);
             }
-
-            return base.BeforeLayout(position);
         }
 
         protected override bool RenderInternal(RenderComposer c)

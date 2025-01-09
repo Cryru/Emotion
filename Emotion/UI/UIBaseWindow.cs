@@ -653,12 +653,6 @@ namespace Emotion.UI
             Parent?.InvalidateLayout();
         }
 
-        protected virtual Vector2 BeforeLayout(Vector2 position)
-        {
-            SortChildren();
-            return position;
-        }
-
         protected virtual void AfterMeasure(Vector2 contentSize)
         {
         }

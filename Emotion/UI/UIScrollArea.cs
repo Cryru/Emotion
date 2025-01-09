@@ -17,7 +17,8 @@ public class UIScrollArea : UIBaseWindow
 
         var areaInside = new UIScrollAreaScrollableArea
         {
-            OrderInParent = -1
+            OrderInParent = -1,
+            Margins = new Primitives.Rectangle(0, 0, 20, 0)
         };
         AddChild(areaInside);
         _content = areaInside;
@@ -127,6 +128,7 @@ public class UIScrollArea : UIBaseWindow
             base.AfterLayout();
             MaxScroll = Vector2.Max(Size, _measureChildrenUsedSpace);
             CurrentScroll = Vector2.Clamp(CurrentScroll, Vector2.Zero, MaxScroll - Size);
+            ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-CurrentScroll.X, -CurrentScroll.Y, 0);
         }
 
         public bool ScrollToPos(Vector2 posToScrollTo)
