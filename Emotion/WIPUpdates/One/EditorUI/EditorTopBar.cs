@@ -47,17 +47,17 @@ public class EditorTopBar : UISolidColor
         };
         AddChild(accent);
 
-        {
-            EditorButton toolButton = new EditorButton("Test Tool");
-            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new TestTool());
-            buttonContainer.AddChild(toolButton);
-        }
+        //{
+        //    EditorButton toolButton = new EditorButton("Test Tool");
+        //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new TestTool());
+        //    buttonContainer.AddChild(toolButton);
+        //}
 
-        {
-            EditorButton toolButton = new EditorButton("Coroutines");
-            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new CoroutineViewerTool());
-            buttonContainer.AddChild(toolButton);
-        }
+        //{
+        //    EditorButton toolButton = new EditorButton("Coroutines");
+        //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new CoroutineViewerTool());
+        //    buttonContainer.AddChild(toolButton);
+        //}
 
         {
             EditorButton toolButton = new EditorButton("Sprite Tool");

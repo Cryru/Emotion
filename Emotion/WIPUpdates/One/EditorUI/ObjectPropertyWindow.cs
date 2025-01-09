@@ -2,7 +2,7 @@
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #nullable enable

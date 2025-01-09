@@ -14,7 +14,7 @@ using static Emotion.Platform.PlatformBase;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI.Helpers;
+namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
 public class EditorWindowContent : UIBaseWindow
 {

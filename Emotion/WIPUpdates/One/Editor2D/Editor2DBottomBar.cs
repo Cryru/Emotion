@@ -3,7 +3,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.Editor;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 

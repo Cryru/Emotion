@@ -1,7 +1,7 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Data;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using static Emotion.Game.Data.GameDataDatabase;
 
 namespace Emotion.WIPUpdates.One.Tools;

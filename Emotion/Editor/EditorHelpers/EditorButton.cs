@@ -6,7 +6,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 

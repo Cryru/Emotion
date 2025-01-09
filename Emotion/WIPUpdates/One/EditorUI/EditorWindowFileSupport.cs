@@ -1,6 +1,6 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 

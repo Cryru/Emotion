@@ -1,12 +1,7 @@
 ﻿using Emotion.Game.World.Editor;
 using Emotion.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Helpers;
+namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
 public class EditorLabel : UIRichText
 {

@@ -3,7 +3,7 @@ using Emotion.Game.World.Editor;
 using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using System.Reflection.Emit;
 
 #nullable enable

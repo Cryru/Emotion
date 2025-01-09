@@ -1,5 +1,5 @@
 ﻿using Emotion.Editor.EditorHelpers;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;

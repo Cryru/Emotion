@@ -3,7 +3,7 @@ using Emotion.Game.Time.Routines;
 using Emotion.IO;
 using Emotion.UI;
 using Emotion.Utility;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 

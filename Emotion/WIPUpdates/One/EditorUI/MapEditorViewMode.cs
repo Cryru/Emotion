@@ -6,7 +6,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 

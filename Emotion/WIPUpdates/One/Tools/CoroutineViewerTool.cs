@@ -1,7 +1,7 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using System.Collections;
 
 #nullable enable

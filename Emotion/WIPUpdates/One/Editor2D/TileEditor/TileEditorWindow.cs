@@ -4,7 +4,8 @@ using Emotion.Game.World2D.Tile;
 using Emotion.Scenography;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
-using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.TileMap;
 
 #nullable enable
@@ -34,6 +35,8 @@ public sealed class TileEditorWindow : UIBaseWindow
     private UIBaseWindow? _bottomBarToolButtons;
     private UIRichText? _bottomText;
     private TileEditorTilesetSelector? _tilesetSelector;
+
+    private DropdownChoiceEditor<TileMapTileset> _tilesetChoose;
 
     public TileEditorWindow()
     {
@@ -69,12 +72,9 @@ public sealed class TileEditorWindow : UIBaseWindow
             };
             sidePanel.AddChild(sidePanelBackground);
 
-            var dropDown = new UISolidColor()
-            {
-                WindowColor = Color.PrettyGreen,
-                FillY = false,
-            };
-            sidePanel.AddChild(dropDown);
+            var tilesetChoose = new DropdownChoiceEditor<TileMapTileset>();
+            sidePanel.AddChild(tilesetChoose);
+            _tilesetChoose = tilesetChoose;
 
             var tilesetTileSelector = new TileEditorTilesetSelector(this)
             {
@@ -127,6 +127,8 @@ public sealed class TileEditorWindow : UIBaseWindow
             TileEditorTool tool = Tools[i];
             buttonList.AddChild(new TileEditorToolButton(this, tool));
         }
+
+        TilesetsChanged();
 
         // Select first tileset and layer.
         foreach (var layer in GetTileLayers())
@@ -231,6 +233,11 @@ public sealed class TileEditorWindow : UIBaseWindow
         if (map.TileMapData == null) return Array.Empty<TileMapLayerGrid>();
 
         return map.TileMapData.Layers;
+    }
+
+    private void TilesetsChanged()
+    {
+        _tilesetChoose.SetEditor(GetTilesets(), CurrentTileset);
     }
 
     public IEnumerable<TileMapTileset> GetTilesets()
