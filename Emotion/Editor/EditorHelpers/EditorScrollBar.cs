@@ -17,22 +17,21 @@ public class EditorScrollBar : UIScrollbar
         DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
         SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
         WindowColor = Color.Black * 0.5f;
-        Anchor = UIAnchor.TopRight;
-        ParentAnchor = UIAnchor.TopRight;
-        MinSize = new Vector2(5, 0);
-        MaxSize = new Vector2(5, 9999);
+        AnchorAndParentAnchor = UIAnchor.TopRight;
+        MinSizeX = 15;
+        MaxSizeX = 15;
     }
 
     protected override bool RenderInternal(RenderComposer c)
     {
         base.RenderInternal(c);
 
-        var grabLineColor = Color.Black * 0.35f;
+        var grabLineColor = Color.White * 0.35f;
 
         var center = _selectorRect.Center;
         var scale = GetScale();
-        var lineWidth = 3 * scale;
-        var lineHeight = 1 * scale;
+        var lineWidth = 10 * scale;
+        var lineHeight = 3 * scale;
 
         c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
         c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
@@ -49,10 +48,9 @@ public class EditorScrollBarHorizontal : UIScrollbar
         DefaultSelectorColor = MapEditorColorPalette.ButtonColor;
         SelectorMouseInColor = MapEditorColorPalette.ActiveButtonColor;
         WindowColor = Color.Black * 0.5f;
-        Anchor = UIAnchor.BottomLeft;
-        ParentAnchor = UIAnchor.BottomLeft;
-        MinSize = new Vector2(0, 5);
-        MaxSize = new Vector2(9999, 5);
+        AnchorAndParentAnchor = UIAnchor.BottomLeft;
+        MinSizeY = 15;
+        MaxSizeY = 15;
         Horizontal = true;
     }
 
@@ -60,12 +58,12 @@ public class EditorScrollBarHorizontal : UIScrollbar
     {
         base.RenderInternal(c);
 
-        var grabLineColor = Color.Black * 0.35f;
+        var grabLineColor = Color.White * 0.35f;
 
         var center = _selectorRect.Center;
         var scale = GetScale();
-        var lineWidth = 1 * scale;
-        var lineHeight = 3 * scale;
+        var lineWidth = 3 * scale;
+        var lineHeight = 10 * scale;
 
         c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
         c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 2f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
