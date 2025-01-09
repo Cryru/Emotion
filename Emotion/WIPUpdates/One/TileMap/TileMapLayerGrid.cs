@@ -1,13 +1,19 @@
-﻿using System;
+﻿using Emotion.Game.World.Grid;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Emotion.Game.World.Grid;
+namespace Emotion.WIPUpdates.One.TileMap;
 
-public class TileDataLayerGrid : PackedNumericMapGrid<uint>
+public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 {
+    public TileMapLayerGrid()
+    {
+        SizeInTiles = new Vector2(10);
+    }
+
     public Vector2 GetTilePosOfWorldPos(Vector2 location)
     {
         //location -= TileSize / 2f;
@@ -29,6 +35,6 @@ public class TileDataLayerGrid : PackedNumericMapGrid<uint>
 
     public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
     {
-        return (tileCoord2d * TileSize) - TileSize / 2f;
+        return tileCoord2d * TileSize - TileSize / 2f;
     }
 }

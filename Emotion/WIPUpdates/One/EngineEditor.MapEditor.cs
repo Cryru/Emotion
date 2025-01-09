@@ -149,7 +149,6 @@ public static partial class EngineEditor
     {
         if (_grid == null) return;
         _grid.TileSize = size;
-        _grid.Offset = new Vector2(0.6f);
     }
 
     private static bool InputHandler(Key key, KeyState state)

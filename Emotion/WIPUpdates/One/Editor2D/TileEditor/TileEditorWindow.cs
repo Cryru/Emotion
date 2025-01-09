@@ -1,25 +1,39 @@
 ﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World.Grid;
-using Emotion.Game.World2D.Editor;
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.Tile;
 using Emotion.Scenography;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 using Emotion.WIPUpdates.One.EditorUI.Helpers;
+using Emotion.WIPUpdates.One.TileMap;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
 
-public class TileEditorWindow : UIBaseWindow
+public sealed class TileEditorWindow : UIBaseWindow
 {
-    public TileEditorTool? CurrentTool { get; private set; } = null;
+    public static TileEditorTool[] Tools =
+    {
+        new TileEditorBrushTool(),
+        new TileEditorEraserTool(),
+        new TileEditorBucketTool(),
+        new TileEditorPickerTool()
+    };
 
-    public TileEditorTool _previousPlacingTool = TileEditorTool.Brush;
+    public TileEditorTool CurrentTool = Tools[0];
 
-    private Vector2? _cursorTilePos;
-    private TileDataLayerGrid? _currentLayer;
+    public Vector2? CursorTilePos { get; private set; }
 
+    public TileMapLayerGrid? CurrentLayer { get; private set; }
+
+    public TileMapTileset? CurrentTileset { get; private set; }
+
+    private TileEditorTool _lastUsedPlacingTool = Tools[0];
+
+    private UIBaseWindow? _bottomBarToolButtons;
     private UIRichText? _bottomText;
+    private TileEditorTilesetSelector? _tilesetSelector;
 
     public TileEditorWindow()
     {
@@ -36,13 +50,43 @@ public class TileEditorWindow : UIBaseWindow
         };
         barContent.AddChild(back);
 
-        var layers = new UIBaseWindow()
+        var sidePanel = new UIBaseWindow()
         {
             Anchor = UIAnchor.BottomRight,
-            ParentAnchor = UIAnchor.BottomRight,
-            Id = "Layers"
+            ParentAnchor = UIAnchor.TopRight,
+            MinSizeX = 400,
+            //Paddings = new Primitives.Rectangle(10, 10, 10, 10),
+            HandleInput = true,
+            LayoutMode = LayoutMode.VerticalList
         };
-        barContent.AddChild(layers);
+        barContent.AddChild(sidePanel);
+
+        {
+            var sidePanelBackground = new UISolidColor
+            {
+                WindowColor = MapEditorColorPalette.BarColor * 0.3f,
+                BackgroundWindow = true
+            };
+            sidePanel.AddChild(sidePanelBackground);
+
+            var dropDown = new UISolidColor()
+            {
+                WindowColor = Color.PrettyGreen,
+                FillY = false,
+            };
+            sidePanel.AddChild(dropDown);
+
+            var tilesetTileSelector = new TileEditorTilesetSelector(this)
+            {
+                Id = "TileSelector",
+                
+                MaxSizeX = 400, // temp
+                MinSizeY = 450,
+                MaxSizeY = 450
+            };
+            _tilesetSelector = tilesetTileSelector;
+            sidePanel.AddChild(tilesetTileSelector);
+        }
 
         var textList = new UIBaseWindow()
         {
@@ -76,17 +120,24 @@ public class TileEditorWindow : UIBaseWindow
             Margins = new Rectangle(5, 5, 5, 5),
         };
         barContent.AddChild(buttonList);
+        _bottomBarToolButtons = buttonList;
 
-        TileEditorTool[] toolsEnumVal = Enum.GetValues<TileEditorTool>();
-        for (int i = 0; i < toolsEnumVal.Length; i++)
+        for (int i = 0; i < Tools.Length; i++)
         {
-            TileEditorTool myTool = toolsEnumVal[i];
-            buttonList.AddChild(new TileEditorToolButton(this, myTool));
+            TileEditorTool tool = Tools[i];
+            buttonList.AddChild(new TileEditorToolButton(this, tool));
         }
 
+        // Select first tileset and layer.
         foreach (var layer in GetTileLayers())
         {
             SelectTileLayer(layer);
+            break;
+        }
+
+        foreach (var tileset in GetTilesets())
+        {
+            SelectTileset(tileset);
             break;
         }
     }
@@ -112,14 +163,13 @@ public class TileEditorWindow : UIBaseWindow
     {
         c.SetUseViewMatrix(true);
 
-        if (_cursorTilePos != null && _currentLayer != null)
+        if (CursorTilePos != null && CurrentLayer != null)
         {
-            Vector2 cursorTile = _cursorTilePos.Value;
-            Vector2 tileInWorld = _currentLayer.GetWorldPosOfTile(cursorTile);
+            Vector2 cursorTile = CursorTilePos.Value;
+            Vector2 tileInWorld = CurrentLayer.GetWorldPosOfTile(cursorTile);
+            Vector2 tileSize = CurrentLayer.TileSize;
 
-            c.RenderSprite(tileInWorld, _currentLayer.TileSize, Color.Black * 0.3f);
-            c.RenderOutline(tileInWorld.ToVec3(), _currentLayer.TileSize, Color.Black);
-            c.RenderCircle(new Vector3(0, 0, 0), 10, Color.Red, true);
+            CurrentTool.RenderCursor(c, this);
         }
 
         c.SetUseViewMatrix(false);
@@ -129,18 +179,22 @@ public class TileEditorWindow : UIBaseWindow
 
     private void UpdateCursor()
     {
-        _cursorTilePos = null;
+        CursorTilePos = null;
 
-        if (!MouseInside) return;
-        if (_currentLayer == null) return;
+        if (CurrentLayer == null || !MouseInside)
+        {
+            if (_bottomText != null)
+                _bottomText.Text = "";
+            return;
+        }
 
         Vector3 worldSpaceMousePos = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
-        Vector2 tilePos = _currentLayer.GetTilePosOfWorldPos(worldSpaceMousePos.ToVec2());
-        _cursorTilePos = tilePos;
+        Vector2 tilePos = CurrentLayer.GetTilePosOfWorldPos(worldSpaceMousePos.ToVec2());
+        CursorTilePos = tilePos;
 
         GameMap? map = GetCurrentMap();
 
-        bool inMap = _currentLayer.IsPositionInMap(tilePos);
+        bool inMap = CurrentLayer.IsPositionInMap(tilePos);
         string inMapText = "";
         if (!inMap) inMapText = " (Outside Map)";
 
@@ -150,7 +204,16 @@ public class TileEditorWindow : UIBaseWindow
 
     public void SetCurrentTool(TileEditorTool currentTool)
     {
+        CurrentTool = currentTool;
 
+        if (_bottomBarToolButtons == null) return;
+        foreach (UIBaseWindow child in _bottomBarToolButtons)
+        {
+            if (child is TileEditorToolButton toolButton)
+            {
+                toolButton.UpdateStyle();
+            }
+        }
     }
 
     private GameMap? GetCurrentMap()
@@ -161,22 +224,29 @@ public class TileEditorWindow : UIBaseWindow
         return currentMap;
     }
 
-    public IEnumerable<TileDataLayerGrid> GetTileLayers()
+    public IEnumerable<TileMapLayerGrid> GetTileLayers()
     {
         GameMap? map = GetCurrentMap();
-        if (map == null) yield break;
+        if (map == null) return Array.Empty<TileMapLayerGrid>();
+        if (map.TileMapData == null) return Array.Empty<TileMapLayerGrid>();
 
-        foreach (var grid in map.Grids)
-        {
-            if (grid is TileDataLayerGrid tileData) yield return tileData;
-        }
+        return map.TileMapData.Layers;
     }
 
-    public void SelectTileLayer(TileDataLayerGrid? tileLayer)
+    public IEnumerable<TileMapTileset> GetTilesets()
+    {
+        GameMap? map = GetCurrentMap();
+        if (map == null) return Array.Empty<TileMapTileset>();
+        if (map.TileMapData == null) return Array.Empty<TileMapTileset>();
+
+        return map.TileMapData.Tilesets;
+    }
+
+    public void SelectTileLayer(TileMapLayerGrid? tileLayer)
     {
         if (tileLayer == null)
         {
-            _currentLayer = null;
+            CurrentLayer = null;
             EngineEditor.SetGridSize(0);
             return;
         }
@@ -193,7 +263,31 @@ public class TileEditorWindow : UIBaseWindow
         Assert(found, "Currently selected tile layer doesn't exist in the current map.");
 
         EngineEditor.SetGridSize(tileLayer.TileSize.X);
-        _currentLayer = tileLayer;
+        CurrentLayer = tileLayer;
+    }
+
+    public void SelectTileset(TileMapTileset? tileset)
+    {
+        if (_tilesetSelector == null)
+        {
+            CurrentTileset = null;
+            _tilesetSelector?.SetTileset(null);
+            return;
+        }
+
+        bool found = false;
+        foreach (var mapTileset in GetTilesets())
+        {
+            if (mapTileset == tileset)
+            {
+                found = true;
+                break;
+            }
+        }
+        Assert(found, "Currently selected tileset doesn't exist in the current map.");
+
+        _tilesetSelector?.SetTileset(tileset);
+        CurrentTileset = tileset;
     }
 
     //protected void UpdateTileEditor()

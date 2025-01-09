@@ -9,7 +9,7 @@ using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
 
-public class ObjectPropertyWindow : UIBaseWindow
+public class ObjectPropertyWindow : UIScrollArea
 {
     public object? Object;
     protected Type? _type;
@@ -30,9 +30,10 @@ public class ObjectPropertyWindow : UIBaseWindow
         {
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 5),
+            Paddings = new Primitives.Rectangle(10, 5, 10, 5),
             Id = "EditorListParent"
         };
-        AddChild(editorList);
+        AddChildInside(editorList);
 
         SpawnEditors();
     }

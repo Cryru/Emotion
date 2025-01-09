@@ -1,5 +1,5 @@
-﻿using Emotion.Game.World2D.Editor;
-using Emotion.UI;
+﻿using Emotion.UI;
+using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 
 #nullable enable
 
@@ -21,7 +21,6 @@ public class TileEditorToolButton : UICallbackButton
 
         var windowBackground = new UISolidColor
         {
-            WindowColor = Editor.CurrentTool == Tool ? TileEditorColorPalette.ToolButtonSelectedColor : TileEditorColorPalette.ToolButtonColor,
             Id = "Background"
         };
         AddChild(windowBackground);
@@ -29,11 +28,13 @@ public class TileEditorToolButton : UICallbackButton
 
         var iconUI = new UITexture
         {
-            TextureFile = $"Editor/{Tool}.png",
+            TextureFile = $"Editor/{Tool.Name}.png",
             Smooth = true,
             ImageScale = new Vector2(1f)
         };
         AddChild(iconUI);
+
+        UpdateStyle();
     }
 
     protected override void OnClicked()
@@ -41,19 +42,27 @@ public class TileEditorToolButton : UICallbackButton
         Editor.SetCurrentTool(Tool);
     }
 
+    public void UpdateStyle()
+    {
+        bool isSelected = Editor.CurrentTool == Tool;
+        bool isRollover = MouseInside;
+        if (isSelected)
+            _windowBackground.WindowColor = TileEditorColorPalette.ToolButtonSelectedColor;
+        else if (isRollover)
+            _windowBackground.WindowColor = TileEditorColorPalette.ToolButtonRolloverColor;
+        else
+            _windowBackground.WindowColor = TileEditorColorPalette.ToolButtonColor;
+    }
+
     public override void OnMouseEnter(Vector2 _)
     {
         base.OnMouseEnter(_);
-
-        bool isSelected = Editor.CurrentTool == Tool;
-        _windowBackground.WindowColor = isSelected ? TileEditorColorPalette.ToolButtonSelectedColor : TileEditorColorPalette.ToolButtonRolloverColor;
+        UpdateStyle();
     }
 
     public override void OnMouseLeft(Vector2 mousePos)
     {
         base.OnMouseLeft(mousePos);
-
-        bool isSelected = Editor.CurrentTool == Tool;
-        _windowBackground.WindowColor = isSelected ? TileEditorColorPalette.ToolButtonSelectedColor : TileEditorColorPalette.ToolButtonColor;
+        UpdateStyle();
     }
 }

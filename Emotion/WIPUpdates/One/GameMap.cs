@@ -1,17 +1,22 @@
-﻿using Emotion.Game.World.Grid;
+﻿using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
 
 namespace Emotion.WIPUpdates.One;
+
+#nullable enable
 
 public class GameMap
 {
     private List<MapObject> _objects = new();
 
-    public List<IMapGrid> Grids = new();
+    //public List<IMapGrid> Grids = new();
+    public GameMapTileData? TileMapData;
 
     public IEnumerator LoadRoutine()
     {
-        Grids.Add(new TileDataLayerGrid() { TileSize = new Vector2(32) });
+        TileMapData = new GameMapTileData();
+        TileMapData.Layers.Add(new TileMapLayerGrid() { TileSize = new Vector2(64) });
+        TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Flat.png", TileSize = new Vector2(64) });
 
         yield break;
     }
