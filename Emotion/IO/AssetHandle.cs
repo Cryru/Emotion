@@ -116,4 +116,24 @@ public class SerializableAssetHandle<T> where T : Asset, new()
         if (string.IsNullOrEmpty(Name)) return AssetHandle<T>.Empty;
         return Engine.AssetLoader.ONE_Get<T>(Name, referenceObject);
     }
+
+    public static implicit operator SerializableAssetHandle<T>(string? name)
+    {
+        return new SerializableAssetHandle<T> { Name = name };
+    }
+
+    public static implicit operator string?(SerializableAssetHandle<T> handle)
+    {
+        return handle.Name;
+    }
+
+    public static implicit operator SerializableAssetHandle<T>(AssetHandle<T> handle)
+    {
+        return new SerializableAssetHandle<T> { Name = handle.Name };
+    }
+
+    public static implicit operator AssetHandle<T>(SerializableAssetHandle<T> handle)
+    {
+        return handle.GetAssetHandle();
+    }
 }
