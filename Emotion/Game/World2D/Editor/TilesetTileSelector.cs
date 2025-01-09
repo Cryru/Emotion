@@ -96,7 +96,7 @@ public sealed class TilesetTileSelector : UIScrollArea
         if (_tileset == null) return;
 
         Vector3 tileSetImageOrigin = new Vector3(0);
-        tileSetImageOrigin = Vector3.Transform(tileSetImageOrigin, _content.Displacement);
+        tileSetImageOrigin = Vector3.Transform(tileSetImageOrigin, _content.ScrollTranslationMatrix);
         tileSetImageOrigin += _content.Position;
 
         Vector2 tileSetImageOrigin2 = tileSetImageOrigin.ToVec2();
@@ -197,7 +197,7 @@ public sealed class TilesetTileSelector : UIScrollArea
     {
         base.AfterRenderChildren(c);
 
-        c.PushModelMatrix(_content.Displacement);
+        c.PushModelMatrix(_content.ScrollTranslationMatrix);
         Rectangle? clip = c.CurrentState.ClipRect;
         c.SetClipRect(_content.Bounds);
 
