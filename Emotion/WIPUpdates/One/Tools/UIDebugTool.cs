@@ -52,6 +52,17 @@ public class UIDebugTool : EditorWindow
         inspectButton.OnClickedProxy = (_) => Engine.UI.EnterInspectMode();
         buttonContainer.AddChild(inspectButton);
 
+        var selectParent = new EditorButton("Select Parent");
+        selectParent.OnClickedProxy = (_) =>
+        {
+            var window = _debuggingWindow;
+            if (window == null) return;
+
+            if (window.Parent == null) return;
+            DebugWindow(window.Parent);
+        };
+        buttonContainer.AddChild(selectParent);
+
         var bpMeasure = new EditorButton("Breakpoint Window Measure");
         bpMeasure.OnClickedProxy = (_) =>
         {
@@ -110,16 +121,21 @@ public class UIDebugTool : EditorWindow
 
             if (underMouse.Count > 0)
             {
-                var windowUnderMouse = underMouse[^1];
-                _debuggingWindow = windowUnderMouse;
-                _debugInfo.Path = GetWindowPath(windowUnderMouse);
-                _debugInfo.Id = windowUnderMouse.Id;
-                _debugInfo.Bounds = windowUnderMouse.Bounds;
-                _debugInfo.ScaledPadding = windowUnderMouse.Paddings * windowUnderMouse.GetScale();
+                UIBaseWindow windowUnderMouse = underMouse[^1];
+                DebugWindow(windowUnderMouse);
             }
         }
 
         return base.UpdateInternal();
+    }
+
+    private void DebugWindow(UIBaseWindow dbgWindow)
+    {
+        _debuggingWindow = dbgWindow;
+        _debugInfo.Path = GetWindowPath(dbgWindow);
+        _debugInfo.Id = dbgWindow.Id;
+        _debugInfo.Bounds = dbgWindow.Bounds;
+        _debugInfo.ScaledPadding = dbgWindow.Paddings * dbgWindow.GetScale();
     }
 
     private string GetWindowPath(UIBaseWindow win)
