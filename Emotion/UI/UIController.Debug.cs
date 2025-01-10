@@ -49,7 +49,7 @@ public partial class UIController
         bool anyHandled = false;
         for (int i = children.Count - 1; i >= 0; i--)
         {
-            var child = childrenn[i];
+            var child = children[i];
             if (child.Visible && child.IsPointInside(mousePos))
             {
                 anyHandled = true;
