@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion.Game.World.Editor;
-using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
@@ -20,7 +19,13 @@ public class EditorButton : UICallbackButton
         set
         {
             _text = value;
-            if (_label != null) _label.Text = _text;
+
+            AssertNotNull(_label);
+            if (_label != null)
+            {
+                _label.Text = _text;
+                _label.Visible = _text != null;
+            }
         }
     }
 
@@ -54,7 +59,9 @@ public class EditorButton : UICallbackButton
         _label = new EditorLabel
         {
             Id = "buttonText",
-            Text = _text
+            Text = _text,
+            Visible = _text != null,
+            DontTakeSpaceWhenHidden = true
         };
         AddChild(_label);
     }
@@ -96,7 +103,6 @@ public class EditorButton : UICallbackButton
         base.OnMouseLeft(_);
        
         CheckIfDropdownSpawned();
-
         RecalculateButtonColor();
     }
 
