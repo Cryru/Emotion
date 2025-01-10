@@ -114,7 +114,7 @@ public class SpriteEntityTool : EditorWindowFileSupport
         EditorButton fileButton = new EditorButton("Image");
         fileButton.OnClickedProxy = (me) =>
         {
-            UIDropDown dropDown = OpenDropdown(me);
+            UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
 
             {
                 EditorButton button = new EditorButton("Add");
@@ -146,8 +146,6 @@ public class SpriteEntityTool : EditorWindowFileSupport
             //    button.FillX = true;
             //    dropDown.AddChild(button);
             //}
-
-            Controller?.AddChild(dropDown);
         };
         topBar.AddChild(fileButton);
     }

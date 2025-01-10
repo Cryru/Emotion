@@ -2,7 +2,6 @@
 
 #region Using
 
-using Emotion.Game.World2D.Tile;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.TileMap;
@@ -179,12 +178,12 @@ public sealed class TileEditorTilesetSelector : UIScrollArea
 
             child.Render(c);
 
-            if (child is UIScrollAreaScrollableArea)
-                AfterRenderInsideContent(c);
+            if (i == 0)
+                AfterContentRendered(c);
         }
     }
 
-    private void AfterRenderInsideContent(RenderComposer c)
+    private void AfterContentRendered(RenderComposer c)
     {
         c.PushModelMatrix(_content.ScrollTranslationMatrix);
         Rectangle? clip = c.CurrentState.ClipRect;

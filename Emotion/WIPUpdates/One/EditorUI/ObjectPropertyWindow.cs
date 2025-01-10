@@ -19,6 +19,8 @@ public class ObjectPropertyWindow : UIScrollArea
         Object = obj;
         _type = obj.GetType();
 
+        AutoHideScrollY = true;
+
         SpawnEditors();
     }
 

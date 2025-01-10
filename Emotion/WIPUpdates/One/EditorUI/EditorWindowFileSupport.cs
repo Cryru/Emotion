@@ -54,7 +54,7 @@ public partial class EditorWindowFileSupport : EditorWindow
         EditorButton fileButton = new EditorButton("File");
         fileButton.OnClickedProxy = (me) =>
         {
-            UIDropDown dropDown = OpenDropdown(me);
+            UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
 
             {
                 EditorButton button = new EditorButton("New");
@@ -86,24 +86,8 @@ public partial class EditorWindowFileSupport : EditorWindow
             //    button.FillX = true;
             //    dropDown.AddChild(button);
             //}
-
-            Controller?.AddChild(dropDown);
         };
         topBar.AddChild(fileButton);
-    }
-
-    protected UIDropDown OpenDropdown(UIBaseWindow spawningWindow)
-    {
-        EditorDropDown dropDown = new (spawningWindow)
-        {
-            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
-            Anchor = UIAnchor.TopLeft,
-            ParentAnchor = UIAnchor.BottomLeft,
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5),
-        };
-
-        return dropDown;
     }
 
     #region API
