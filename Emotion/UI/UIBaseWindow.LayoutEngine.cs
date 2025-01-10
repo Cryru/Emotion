@@ -518,21 +518,26 @@ public partial class UIBaseWindow
         private Rectangle ApplyAnchors(ref ChildData childData, Rectangle childBound)
         {
             Rectangle myItemSpace = _bound;
-            if (childData.OutsideCurrentLayout) myItemSpace = _boundWithoutPadding;
-
-            switch (_layoutMode)
+            if (childData.OutsideCurrentLayout)
             {
-                case LayoutMode.HorizontalList:
-                    myItemSpace.Width = childBound.Width;
-                    break;
-                case LayoutMode.VerticalList:
-                    myItemSpace.Height = childBound.Height;
-                    break;
-                case LayoutMode.HorizontalListWrap:
-                case LayoutMode.VerticalListWrap:
-                    myItemSpace.Width = childBound.Width;
-                    myItemSpace.Height = childBound.Height;
-                    break;
+                myItemSpace = _boundWithoutPadding;
+            }
+            else
+            {
+                switch (_layoutMode)
+                {
+                    case LayoutMode.HorizontalList:
+                        myItemSpace.Width = childBound.Width;
+                        break;
+                    case LayoutMode.VerticalList:
+                        myItemSpace.Height = childBound.Height;
+                        break;
+                    case LayoutMode.HorizontalListWrap:
+                    case LayoutMode.VerticalListWrap:
+                        myItemSpace.Width = childBound.Width;
+                        myItemSpace.Height = childBound.Height;
+                        break;
+                }
             }
 
             UIBaseWindow childWin = childData.Child;
