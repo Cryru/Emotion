@@ -15,6 +15,8 @@ public class UIWindowDebugInfo
 {
     public string Path;
     public string Id;
+    public string WindowType;
+    public LayoutMode LayoutMode;
     public Rectangle Bounds;
     public Rectangle ScaledPadding;
 }
@@ -48,42 +50,99 @@ public class UIDebugTool : EditorWindow
         };
         container.AddChild(buttonContainer);
 
-        var inspectButton = new EditorButton("Select Window");
-        inspectButton.OnClickedProxy = (_) => Engine.UI.EnterInspectMode();
+        var inspectButton = new EditorButton("Select Window")
+        {
+            OnClickedProxy = (_) => Engine.UI.EnterInspectMode()
+        };
         buttonContainer.AddChild(inspectButton);
 
-        var selectParent = new EditorButton("Select Parent");
-        selectParent.OnClickedProxy = (_) =>
+        var selectParent = new EditorButton("Select Parent")
         {
-            var window = _debuggingWindow;
-            if (window == null) return;
+            OnClickedProxy = (_) =>
+            {
+                var window = _debuggingWindow;
+                if (window == null) return;
 
-            if (window.Parent == null) return;
-            DebugWindow(window.Parent);
+                if (window.Parent == null) return;
+                DebugWindow(window.Parent);
+            }
         };
         buttonContainer.AddChild(selectParent);
 
-        var bpMeasure = new EditorButton("Breakpoint Window Measure");
-        bpMeasure.OnClickedProxy = (_) =>
+        var highlightButton = new EditorButton("Highlight Current")
         {
-            var window = _debuggingWindow;
-            if (window == null) return;
+            OnClickedProxy = (_) =>
+            {
+                var window = _debuggingWindow;
+                if (window == null) return;
 
-            UIController.SetWindowBreakpointOnMeasure(window);
-            window.InvalidateLayout();
+                UIController.SetWindowVisualizeLayout(_debuggingWindow);
+            }
         };
-        buttonContainer.AddChild(bpMeasure);
+        buttonContainer.AddChild(highlightButton);
 
-        var bpLayout = new EditorButton("Breakpoint Window Layout");
-        bpLayout.OnClickedProxy = (_) =>
+        var breakpointContainer = new UIBaseWindow
         {
-            var window = _debuggingWindow;
-            if (window == null) return;
-
-            UIController.SetWindowBreakpointOnLayout(window);
-            window.InvalidateLayout();
+            LayoutMode = LayoutMode.HorizontalList,
+            ListSpacing = new Vector2(5, 0)
         };
-        buttonContainer.AddChild(bpLayout);
+        container.AddChild(breakpointContainer);
+
+        var label = new EditorLabel();
+        label.Text = "Breakpoint On:";
+        breakpointContainer.AddChild(label);
+
+        {
+            var bpMeasure = new EditorButton("Window Measure");
+            bpMeasure.OnClickedProxy = (_) =>
+            {
+                var window = _debuggingWindow;
+                if (window == null) return;
+
+                UIController.SetWindowBreakpointOnMeasure(window);
+                window.InvalidateLayout();
+            };
+            breakpointContainer.AddChild(bpMeasure);
+        }
+
+        {
+            var bpMeasure = new EditorButton("Measure After Children");
+            bpMeasure.OnClickedProxy = (_) =>
+            {
+                var window = _debuggingWindow;
+                if (window == null) return;
+
+                UIController.SetWindowBreakpointOnMeasureAfterChildren(window);
+                window.InvalidateLayout();
+            };
+            breakpointContainer.AddChild(bpMeasure);
+        }
+
+        {
+            var bpLayout = new EditorButton("Layout");
+            bpLayout.OnClickedProxy = (_) =>
+            {
+                var window = _debuggingWindow;
+                if (window == null) return;
+
+                UIController.SetWindowBreakpointOnLayout(window);
+                window.InvalidateLayout();
+            };
+            breakpointContainer.AddChild(bpLayout);
+        }
+
+        {
+            var bpLayout = new EditorButton("Layout After Children");
+            bpLayout.OnClickedProxy = (_) =>
+            {
+                var window = _debuggingWindow;
+                if (window == null) return;
+
+                UIController.SetWindowBreakpointOnLayoutAfterChildren(window);
+                window.InvalidateLayout();
+            };
+            breakpointContainer.AddChild(bpLayout);
+        }
 
         //var bpVisualize = new EditorButton("Visualize Window Layout");
         //bpVisualize.OnClickedProxy = (_) =>
@@ -103,6 +162,15 @@ public class UIDebugTool : EditorWindow
             },
         };
         container.AddChild(properties);
+
+        UIController.SetUIDebugTool(this);
+    }
+
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+
+        UIController.SetUIDebugTool(null);
     }
 
     protected override bool UpdateInternal()
@@ -134,6 +202,8 @@ public class UIDebugTool : EditorWindow
         _debuggingWindow = dbgWindow;
         _debugInfo.Path = GetWindowPath(dbgWindow);
         _debugInfo.Id = dbgWindow.Id;
+        _debugInfo.WindowType = dbgWindow.GetType().Name;
+        _debugInfo.LayoutMode = dbgWindow.LayoutMode;
         _debugInfo.Bounds = dbgWindow.Bounds;
         _debugInfo.ScaledPadding = dbgWindow.Paddings * dbgWindow.GetScale();
     }

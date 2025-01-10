@@ -138,6 +138,8 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
             _layoutEngine.AppendChild(child, childNeedsSpace, child.Margins * child.GetScale());
         }
 
+        UIController.DebugShouldBreakpointMeasureAfterChildren(this);
+
         Vector2 childrenUsed = _layoutEngine.ApplyMeasure();
         _measureChildrenUsedSpace = childrenUsed;
 
@@ -215,6 +217,8 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
             float childScale = child.GetScale();
             _layoutEngine.AppendChild(child, childSize, child.Margins * childScale);
         }
+
+        UIController.DebugShouldBreakpointLayoutAfterChildren(this);
 
         _layoutEngine.ApplyLayout();
 

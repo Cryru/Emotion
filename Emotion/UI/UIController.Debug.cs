@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Emotion.WIPUpdates.One.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,16 +38,18 @@ public partial class UIController
 
     private static bool Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<(UIBaseWindow, int)> output, int depth)
     {
-        if (win.Children == null)
+        List<UIBaseWindow> children = win.GetWindowChildren();
+
+        if (children.Count == 0)
         {
             output.Add((win, depth));
             return true;
         }
 
         bool anyHandled = false;
-        for (int i = win.Children.Count - 1; i >= 0; i--)
+        for (int i = children.Count - 1; i >= 0; i--)
         {
-            var child = win.Children[i];
+            var child = childrenn[i];
             if (child.Visible && child.IsPointInside(mousePos))
             {
                 anyHandled = true;
@@ -68,7 +71,17 @@ public partial class UIController
     private static UIBaseWindow? _debugBPLayout;
     private static bool _bpLayoutOnce = false;
 
+    private static UIBaseWindow? _debugBPMeasureAfterChildren;
+    private static UIBaseWindow? _debugBPLayoutAfterChildren;
+
+    private static UIDebugTool? _debugTool;
+
     public static UIBaseWindow? Debug_RenderLayoutEngine;
+
+    public static void SetUIDebugTool(UIDebugTool? debugTool)
+    {
+        _debugTool = debugTool;
+    }
 
     public static void SetWindowBreakpointOnMeasure(UIBaseWindow? win, bool once = true)
     {
@@ -80,6 +93,16 @@ public partial class UIController
     {
         _debugBPLayout = win;
         _bpLayoutOnce = once;
+    }
+
+    public static void SetWindowBreakpointOnMeasureAfterChildren(UIBaseWindow? win)
+    {
+        _debugBPMeasureAfterChildren = win;
+    }
+
+    public static void SetWindowBreakpointOnLayoutAfterChildren(UIBaseWindow? win, bool once = true)
+    {
+        _debugBPLayoutAfterChildren = win;
     }
 
     public static void SetWindowVisualizeLayout(UIBaseWindow? win)
@@ -103,6 +126,26 @@ public partial class UIController
         if (me == _debugBPLayout)
         {
             if (_bpLayoutOnce) _debugBPLayout = null;
+            Debugger.Break();
+        }
+    }
+
+    [Conditional("DEBUG")]
+    public static void DebugShouldBreakpointMeasureAfterChildren(UIBaseWindow me)
+    {
+        if (me == _debugBPMeasureAfterChildren)
+        {
+            _debugBPMeasureAfterChildren = null;
+            Debugger.Break();
+        }
+    }
+
+    [Conditional("DEBUG")]
+    public static void DebugShouldBreakpointLayoutAfterChildren(UIBaseWindow me)
+    {
+        if (me == _debugBPLayoutAfterChildren)
+        {
+            _debugBPLayoutAfterChildren = null;
             Debugger.Break();
         }
     }
