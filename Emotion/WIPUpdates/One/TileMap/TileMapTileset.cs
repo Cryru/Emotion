@@ -11,6 +11,11 @@ public class TileMapTileset
     public Vector2 Margin;
     public Vector2 TileSize = Vector2.One;
 
+    public override string ToString()
+    {
+        return Texture?.Name ?? "Textureless Tileset";
+    }
+
     public Vector2 GetTilesetSizeInTiles()
     {
         AssetHandle<TextureAsset> handle = Texture.GetAssetHandle();

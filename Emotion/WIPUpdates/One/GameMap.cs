@@ -17,6 +17,7 @@ public class GameMap
         TileMapData = new GameMapTileData();
         TileMapData.Layers.Add(new TileMapLayerGrid() { TileSize = new Vector2(64) });
         TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Flat.png", TileSize = new Vector2(64) });
+        TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Elevation.png", TileSize = new Vector2(64) });
 
         yield break;
     }
