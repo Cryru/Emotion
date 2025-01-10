@@ -460,12 +460,21 @@ public partial class UIController : UIBaseWindow
             if (key == Key.MouseKeyLeft && status == KeyState.Down)
             {
                 // todo: there must be a better way of consuming clicks outside yourself? (SetInputFocus param?)
-                UIBaseWindow? oldFocus = _inputFocusManual;
-                bool oldFocusDropDown = oldFocus is UIDropDown;
-                if (oldFocusDropDown && !_myMouseFocus.IsWithin(_inputFocusManual))
+                // todo: kind of cringe that dropdowns are so heavily hardcoded into the system...
+                if (DropDown != null)
                 {
-                    SetInputFocus(null);
-                    return false;
+                    UIBaseWindow? oldFocus = _inputFocusManual;
+                    UIBaseWindow newFocus = _myMouseFocus;
+                    bool newFocusIsDebugWindow = _debugTool != null && newFocus.IsWithin(_debugTool);
+
+                    bool oldFocusDropDown = oldFocus != null && oldFocus.IsWithin(DropDown);
+                    if (oldFocusDropDown && !newFocus.IsWithin(DropDown) && !newFocusIsDebugWindow)
+                    {
+                        DropDown.Close();
+                        DropDown = null;
+                        SetInputFocus(null);
+                        return false;
+                    }
                 }
 
                 // todo: there also must be a way to consume clicks inside yourself that cause you to focus

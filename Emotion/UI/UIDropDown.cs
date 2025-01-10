@@ -54,9 +54,5 @@ public class UIDropDown : UIBaseWindow
         if (controller.DropDown == this) controller.DropDown = null;
     }
 
-    public override void InputFocusChanged(bool haveFocus)
-    {
-        base.InputFocusChanged(haveFocus);
-        if (!haveFocus) Close();
-    }
+    // Close on defocus logic is implemented in the UISystem
 }
