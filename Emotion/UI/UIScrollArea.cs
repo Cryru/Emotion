@@ -7,7 +7,10 @@ namespace Emotion.UI;
 
 public class UIScrollArea : UIBaseWindow
 {
-    protected UIScrollAreaScrollableArea _content;
+    public bool AutoHideScrollX = true;
+    public bool AutoHideScrollY = false;
+
+    protected UIScrollContentArea _content;
     protected UIScrollbar _verticalScroll;
     protected UIScrollbar _horizontalScroll;
 
@@ -15,17 +18,26 @@ public class UIScrollArea : UIBaseWindow
     {
         HandleInput = true;
 
-        var areaInside = new UIScrollAreaScrollableArea
+        // todo: not sure why this is needed, but
+        // the margins on the scroll content make the whole area bigger otherwise
+        // so this is a workaround
+        var scrollParent = new UIBaseWindow
         {
             OrderInParent = -1,
-            Margins = new Primitives.Rectangle(0, 0, 20, 0)
         };
-        AddChild(areaInside);
+        AddChild(scrollParent);
+
+        var areaInside = new UIScrollContentArea
+        {
+            Id = "ScrollAreaContent",
+        };
+        scrollParent.AddChild(areaInside);
         _content = areaInside;
 
         var scrollVert = new EditorScrollBar
         {
             OnScroll = ScrollBarCallbackVertical,
+            DontTakeSpaceWhenHidden = true
         };
         AddChild(scrollVert);
         _verticalScroll = scrollVert;
@@ -33,7 +45,8 @@ public class UIScrollArea : UIBaseWindow
         var scrollHorz = new EditorScrollBarHorizontal
         {
             OnScroll = ScrollBarCallbackHorizontal,
-            Margins = new Primitives.Rectangle(0, 0, 15, 0)
+            Margins = new Primitives.Rectangle(0, 0, 20, 0),
+            DontTakeSpaceWhenHidden = true
         };
         AddChild(scrollHorz);
         _horizontalScroll = scrollHorz;
@@ -61,10 +74,18 @@ public class UIScrollArea : UIBaseWindow
         _verticalScroll.PageArea = MathF.Min(_verticalScroll.TotalArea, _content.Height);
         _verticalScroll.UpdateScrollbar();
 
-        _horizontalScroll.DontTakeSpaceWhenHidden = true;
-        _verticalScroll.DontTakeSpaceWhenHidden = true;
-        _horizontalScroll.SetVisible(_horizontalScroll.TotalArea > _content.Width);
-        _verticalScroll.SetVisible(true);// _verticalScroll.TotalArea > _content.Height);
+        bool horizontalVisible = true;
+        if (AutoHideScrollX)
+            horizontalVisible = _horizontalScroll.TotalArea > _content.Width;
+        _horizontalScroll.SetVisible(horizontalVisible);
+
+        bool verticalVisible = true;
+        if (AutoHideScrollY)
+            verticalVisible = _verticalScroll.TotalArea > _content.Height;
+        _verticalScroll.SetVisible(verticalVisible);
+
+        Rectangle paddings = new Primitives.Rectangle(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
+        _content.Margins = paddings;
     }
 
     protected void ScrollBarCallbackVertical(float amount)
@@ -105,14 +126,14 @@ public class UIScrollArea : UIBaseWindow
         SyncScrollbar();
     }
 
-    protected class UIScrollAreaScrollableArea : UIBaseWindow
+    protected class UIScrollContentArea : UIBaseWindow
     {
         public Matrix4x4 ScrollTranslationMatrix = Matrix4x4.Identity;
 
         public Vector2 CurrentScroll;
         public Vector2 MaxScroll;
 
-        public UIScrollAreaScrollableArea()
+        public UIScrollContentArea()
         {
             ChildrenCanExpandParent = false;
         }
@@ -121,6 +142,11 @@ public class UIScrollArea : UIBaseWindow
         {
             c.RenderSprite(Position, Size, Color.White * 0.05f);
             return base.RenderInternal(c);
+        }
+
+        protected override Rectangle GetChildrenLayoutSpace(Vector2 pos, Vector2 space)
+        {
+            return new Rectangle(pos, UIBaseWindow.DefaultMaxSize);
         }
 
         protected override void AfterLayout()

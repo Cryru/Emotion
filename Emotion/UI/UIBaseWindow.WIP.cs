@@ -100,6 +100,11 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         return Vector2.Zero;
     }
 
+    protected virtual Rectangle GetChildrenLayoutSpace(Vector2 pos, Vector2 space)
+    {
+        return new Rectangle(pos, space);
+    }
+
     /// <summary>
     /// Given the max space by the parent, return the minimum size this window needs.
     /// </summary>
@@ -121,7 +126,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         if (!amInsideParent) space = Controller!.Size;
 
         _layoutEngine.Reset();
-        _layoutEngine.SetLayoutDimensions(new Rectangle(Vector2.Zero, space), Margins * scale, MaxSize * scale, Paddings * scale);
+        _layoutEngine.SetLayoutDimensions(GetChildrenLayoutSpace(Vector2.Zero, space), Margins * scale, MaxSize * scale, Paddings * scale);
 
         Vector2 scaledListSpacing = (ListSpacing * scale).RoundAwayFromZero();
         _layoutEngine.SetLayoutMode(UIPass.Measure, LayoutMode, scaledListSpacing);
@@ -202,7 +207,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         // The size being passed to us in Layout already respects our limit and
         // has the margins applied - meaning we don't have to do it.
         // Since the paddings are on the inside of our content though, we have to apply them.
-        _layoutEngine.SetLayoutDimensions(Bounds, Rectangle.Empty, DefaultMaxSize, Paddings * scale);
+        _layoutEngine.SetLayoutDimensions(GetChildrenLayoutSpace(Position2, Size), Rectangle.Empty, DefaultMaxSize, Paddings * scale);
 
         _layoutEngine.SetLayoutMode(UIPass.Layout, LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
 
