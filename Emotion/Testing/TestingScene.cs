@@ -102,9 +102,9 @@ public abstract class TestingScene : Scene
         screenShotFolder = Path.Join(screenShotFolder, testClass);
         Directory.CreateDirectory(screenShotFolder);
 
-        string screenShotFile = Path.Join(screenShotFolder, $"{fileName}.png");
+        string screenShotFilePath = Path.Join(screenShotFolder, $"{fileName}.png");
         byte[] screenShotAsPng = PngFormat.Encode(screenshot, screenShotSize, PixelFormat.Rgba);
-        File.WriteAllBytes(screenShotFile, screenShotAsPng);
+        File.WriteAllBytes(screenShotFilePath, screenShotAsPng);
 
         // Load reference screenshot.
         var referenceRenderName = $"ReferenceRenders/{testClass}/{fileName}.png";
@@ -121,6 +121,9 @@ public abstract class TestingScene : Scene
             Engine.Log.Error($"    - Reference image {referenceRenderName} is of different size than screenshot!", MessageSource.Test);
             return new VerifyScreenshotResult(false);
         }
+
+        string referenceFilePath = Path.Join(screenShotFolder, $"{fileName}_reference.png");
+        File.WriteAllBytes(referenceFilePath, referenceImage.Content.Span);
 
         Assert(dataReference.Length == screenshot.Length);
 
