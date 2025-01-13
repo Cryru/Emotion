@@ -2,12 +2,9 @@
 
 #region Using
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.Game.World.Editor;
@@ -193,7 +190,7 @@ public class NewUITests : TestingScene
 
             UI.AddChild(win);
         }
-
+        
         yield return WaitUILayout();
         yield return VerifyScreenshot();
     }
@@ -1217,11 +1214,8 @@ public class NewUITests : TestingScene
         var windowOne = new UISolidColor()
         {
             LayoutMode = LayoutMode.HorizontalList,
-
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
-
             ListSpacing = new Vector2(5, 0),
-
             WindowColor = Color.PrettyOrange
         };
         parent.AddChild(windowOne);
@@ -1241,12 +1235,11 @@ public class NewUITests : TestingScene
         var windowTwo = new UIBaseWindow()
         {
             LayoutMode = LayoutMode.HorizontalList,
-
             AnchorAndParentAnchor = UIAnchor.CenterRight,
-
             ListSpacing = new Vector2(5, 0),
+            Margins = new Rectangle(0, 10, 0, 0),
 
-            Margins = new Rectangle(0, 10, 0, 0)
+            FillX = false
         };
         parent.AddChild(windowTwo);
 
@@ -1274,5 +1267,87 @@ public class NewUITests : TestingScene
         VerifyScreenshot();
 
         Assert.True(found);
+    }
+
+    [Test]
+    public IEnumerator ScrollAreaTests()
+    {
+        var parent = new UISolidColor()
+        {
+            WindowColor = Color.CornflowerBlue,
+            AnchorAndParentAnchor = UIAnchor.CenterCenter,
+            MinSize = new Vector2(200, 200),
+            MaxSize = new Vector2(200, 200)
+        };
+        UI.AddChild(parent);
+
+        var scrollArea = new UIScrollArea()
+        {
+        };
+        parent.AddChild(scrollArea);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        var list = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 5)
+        };
+        scrollArea.AddChildInside(list);
+
+        for (int i = 0; i < 10; i++)
+        {
+            var editorButton = new EditorButton();
+            editorButton.FillX = true;
+            editorButton.Text = $"Button {i}";
+            list.AddChild(editorButton);
+        }
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        scrollArea.ScrollTo(new Vector2(100, 100));
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        scrollArea.AutoHideScrollX = false;
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        scrollArea.AutoHideScrollX = true;
+        scrollArea.AutoHideScrollY = true;
+
+        list.ClearChildren();
+        for (int i = 0; i < 3; i++)
+        {
+            var editorButton = new EditorButton();
+            editorButton.FillX = true;
+            editorButton.Text = $"Button {i}";
+            list.AddChild(editorButton);
+        }
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        list.Close();
+        UITexture texture = new UITexture()
+        {
+            TextureFile = "Images/logoAlpha.png",
+            ImageScale = new Vector2(3f)
+        };
+        scrollArea.AddChildInside(texture);
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        scrollArea.ScrollTo(new Vector2(100, 100));
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        // todo: test input (scroll wheel, scroll bar dragging etc)
     }
 }

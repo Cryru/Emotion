@@ -100,6 +100,15 @@ public partial class UIBaseWindow
             return bound;
         }
 
+        private Rectangle InflateRect(Rectangle bound, Rectangle amount)
+        {
+            bound.X -= amount.X;
+            bound.Y -= amount.Y;
+            bound.Width += amount.X + amount.Width;
+            bound.Height += amount.Y + amount.Height;
+            return bound;
+        }
+
         public Vector2 GetFreeSpace()
         {
             return _bound.Size;
@@ -200,10 +209,21 @@ public partial class UIBaseWindow
 
                 UIController.DebugShouldBreakpointLayout(childWin);
 
-                childBound = ApplyAnchors(ref childData, childBound);
-                if (childInsideParent) childBound = ApplyFill(ref childData, childBound);
+                // Here is experimental code which performs the fill before the anchor.
+                // -----
+                //if (childInsideParent) childBound = ApplyFill(childData, childBound);
+                //childBound = DeflateRect(childBound, childWin.Margins * childWin.GetScale());
+                //childBound = ApplyLimits(childData, childBound);
+
+                //childBound = InflateRect(childBound, childWin.Margins * childWin.GetScale());
+                //childBound = ApplyAnchors(childData, childBound);
+                //childBound = DeflateRect(childBound, childWin.Margins * childWin.GetScale());
+                // -----
+
+                childBound = ApplyAnchors(childData, childBound);
+                if (childInsideParent) childBound = ApplyFill(childData, childBound);
                 childBound = DeflateRect(childBound, childWin.Margins * childWin.GetScale()); // Subtract the margins from the child size, since the child should be layouted inside.
-                childBound = ApplyLimits(ref childData, childBound);
+                childBound = ApplyLimits(childData, childBound);
 
                 childData.Child.Layout(childBound.Position, childBound.Size);
             }
@@ -216,13 +236,13 @@ public partial class UIBaseWindow
             data.Bound = new Rectangle(_boundWithoutPadding.Position, size);
         }
 
-        private Rectangle Outside_FillX(ref ChildData childData, Rectangle childBound)
+        private Rectangle Outside_FillX(ChildData childData, Rectangle childBound)
         {
             childBound.Width = _boundWithoutPadding.X + _boundWithoutPadding.Width - childBound.X;
             return childBound;
         }
 
-        private Rectangle Outside_FillY(ref ChildData childData, Rectangle childBound)
+        private Rectangle Outside_FillY(ChildData childData, Rectangle childBound)
         {
             childBound.Height = _boundWithoutPadding.Y + _boundWithoutPadding.Height - childBound.Y;
             return childBound;
@@ -237,13 +257,13 @@ public partial class UIBaseWindow
             data.Bound = new Rectangle(_bound.Position, size);
         }
 
-        private Rectangle Free_FillX(ref ChildData childData, Rectangle childBound)
+        private Rectangle Free_FillX(ChildData childData, Rectangle childBound)
         {
             childBound.Width = _bound.X + _bound.Width - childBound.X;
             return childBound;
         }
 
-        private Rectangle Free_FillY(ref ChildData childData, Rectangle childBound)
+        private Rectangle Free_FillY(ChildData childData, Rectangle childBound)
         {
             childBound.Height = _bound.Y + _bound.Height - childBound.Y;
             return childBound;
@@ -361,14 +381,14 @@ public partial class UIBaseWindow
             return wall;
         }
 
-        private Rectangle List_FillX(ref ChildData childData, Rectangle childBound)
+        private Rectangle List_FillX(ChildData childData, Rectangle childBound)
         {
             if (childData.EndOfList || _listMask == 1)
                 childBound.Width = _bound.X + _bound.Width - childBound.X;
             return childBound;
         }
 
-        private Rectangle List_FillY(ref ChildData childData, Rectangle childBound)
+        private Rectangle List_FillY(ChildData childData, Rectangle childBound)
         {
             if (childData.EndOfList || _listMask == 0)
                 childBound.Height = _bound.Y + _bound.Height - childBound.Y;
@@ -463,7 +483,7 @@ public partial class UIBaseWindow
         
         #endregion
 
-        private Rectangle ApplyFill(ref ChildData childData, Rectangle childBound)
+        private Rectangle ApplyFill(ChildData childData, Rectangle childBound)
         {
             UIBaseWindow childWin = childData.Child;
 
@@ -472,9 +492,9 @@ public partial class UIBaseWindow
                 case LayoutMode _ when childData.OutsideCurrentLayout:
                     {
                         if (childWin.FillX)
-                            childBound = Outside_FillX(ref childData, childBound);
+                            childBound = Outside_FillX(childData, childBound);
                         if (childWin.FillY)
-                            childBound = Outside_FillY(ref childData, childBound);
+                            childBound = Outside_FillY(childData, childBound);
                         break;
                     }
 
@@ -483,18 +503,18 @@ public partial class UIBaseWindow
                 case LayoutMode.VerticalList:
                     {
                         if (childWin.FillX)
-                            childBound = List_FillX(ref childData, childBound);
+                            childBound = List_FillX(childData, childBound);
                         if (childWin.FillY)
-                            childBound = List_FillY(ref childData, childBound);
+                            childBound = List_FillY(childData, childBound);
                         break;
                     }
 
                 case LayoutMode.Free:
                     {
                         if (childWin.FillX)
-                            childBound = Free_FillX(ref childData, childBound);
+                            childBound = Free_FillX(childData, childBound);
                         if (childWin.FillY)
-                            childBound = Free_FillY(ref childData, childBound);
+                            childBound = Free_FillY(childData, childBound);
                         break;
                     }
             }
@@ -502,7 +522,7 @@ public partial class UIBaseWindow
             return childBound;
         }
 
-        private Rectangle ApplyLimits(ref ChildData childData, Rectangle childBound)
+        private Rectangle ApplyLimits(ChildData childData, Rectangle childBound)
         {
             var childWin = childData.Child;
             var scale = childWin.GetScale();
@@ -515,7 +535,7 @@ public partial class UIBaseWindow
             return childBound;
         }
 
-        private Rectangle ApplyAnchors(ref ChildData childData, Rectangle childBound)
+        private Rectangle ApplyAnchors(ChildData childData, Rectangle childBound)
         {
             Rectangle myItemSpace = _bound;
             if (childData.OutsideCurrentLayout)

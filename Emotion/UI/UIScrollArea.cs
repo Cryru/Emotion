@@ -104,7 +104,7 @@ public class UIScrollArea : UIBaseWindow
     {
         if (Children == null) return true;
 
-        if (key == Key.MouseWheel && _content != null)
+        if (key == Key.MouseWheel)
         {
             var currentScroll = _content.CurrentScroll;
             bool up = status == KeyState.MouseWheelScrollUp;
@@ -118,6 +118,12 @@ public class UIScrollArea : UIBaseWindow
         }
 
         return base.OnKey(key, status, mousePos);
+    }
+
+    public void ScrollTo(Vector2 pos)
+    {
+        _content.ScrollToPos(pos);
+        SyncScrollbar();
     }
 
     protected override void AfterLayout()
