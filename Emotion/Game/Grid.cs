@@ -1,4 +1,7 @@
-﻿namespace Emotion.Game;
+﻿using Emotion.Utility;
+using Emotion.WIPUpdates.One.TileMap;
+
+namespace Emotion.Game;
 
 #nullable enable
 
@@ -6,7 +9,7 @@ public abstract class Grid
 {
     public Vector2 TileSize { get; set; } = new Vector2(1f);
 
-    public Vector2 SizeInTiles { get; set; } = new Vector2(1f);
+    public Vector2 SizeInTiles { get; set; } = new Vector2(0);
 
     public Vector2 GetCoordinate2DFrom1D(int oneD)
     {
@@ -20,7 +23,7 @@ public abstract class Grid
 
     public int GetCoordinate1DFrom2D(Vector2 twoD)
     {
-        if (!IsCoordinate2DValid(twoD)) return 0;
+        if (!IsCoordinate2DValid(twoD)) return -1;
 
         var top = (int)twoD.Y;
         var left = (int)twoD.X;
@@ -101,9 +104,9 @@ public class Grid<T> : Grid
         if (newWidth == SizeInTiles.X && newHeight == SizeInTiles.Y) return;
 
         T[] newData = new T[newWidth * newHeight];
-        for (int x = 0; x < SizeInTiles.X; x++)
+        for (int x = 0; x < MathF.Min(newWidth, SizeInTiles.X); x++)
         {
-            for (int y = 0; y < SizeInTiles.Y; y++)
+            for (int y = 0; y < MathF.Min(newHeight, SizeInTiles.Y); y++)
             {
                 int oldOneD = GetCoordinate1DFrom2D(new Vector2(x, y));
                 int newOneD = x + newWidth * y;
@@ -130,6 +133,8 @@ public class Grid<T> : Grid
 
     public void Offset(int x, int y, bool wrapAround, Action<int, int, T>? onOffset = null)
     {
+        if (x == 0 && y == 0) return;
+
         T[] offsetData = new T[_data.Length];
 
         int width = (int)SizeInTiles.X;
@@ -160,5 +165,54 @@ public class Grid<T> : Grid
         }
 
         _data = offsetData;
+    }
+
+    public Vector2 Compact(T compactValue)
+    {
+        Vector2 minNonEmpty = new Vector2(-1);
+        Vector2 maxNonEmpty = new Vector2(-1);
+
+        for (int y = 0; y < SizeInTiles.Y; y++)
+        {
+            for (int x = 0; x < SizeInTiles.X; x++)
+            {
+                Vector2 thisTile2D = new Vector2(x, y);
+                int thisOneD = GetCoordinate1DFrom2D(thisTile2D);
+                Assert(thisOneD != -1);
+
+                T val = _data[thisOneD];
+                if (Helpers.AreObjectsEqual(val, compactValue)) continue;
+
+                if (minNonEmpty.X == -1 || minNonEmpty.X > x)
+                    minNonEmpty.X = x;
+
+                if (minNonEmpty.Y == -1 || minNonEmpty.Y > x)
+                    minNonEmpty.Y = x;
+
+                if (maxNonEmpty.X == -1 || maxNonEmpty.X < x)
+                    maxNonEmpty.X = x;
+
+                if (maxNonEmpty.Y == -1 || maxNonEmpty.Y < x)
+                    maxNonEmpty.Y = x;
+            }
+        }
+
+        // Fully empty
+        if (minNonEmpty.X == -1)
+        {
+            Resize(0, 0);
+            return Vector2.Zero;
+        }
+
+        if (minNonEmpty.X > 0 || minNonEmpty.Y > 0 || maxNonEmpty.X < SizeInTiles.X - 1 || maxNonEmpty.Y < SizeInTiles.Y - 1)
+        {
+            Offset((int)-minNonEmpty.X, (int)-minNonEmpty.Y, false);
+
+            float sizeX = (maxNonEmpty.X - minNonEmpty.X) + 1;
+            float sizeY = (maxNonEmpty.Y - minNonEmpty.Y) + 1;
+            Resize((int)sizeX, (int)sizeY);
+        }
+
+        return -minNonEmpty;
     }
 }
