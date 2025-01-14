@@ -50,8 +50,9 @@ public class GridTests
         Assert.Equal(readTile.TilesetId, 69);
 
         // Try auto-resize X
-        success = layer.EditorSetTileAt(new Vector2(100, 0), 13, 37);
+        success = layer.EditorSetTileAt(new Vector2(100, 0), 13, 37, out bool layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
 
         readTile = layer.GetTileAt(new Vector2(100, 0));
         Assert.Equal(readTile.TextureId, 13);
@@ -60,8 +61,9 @@ public class GridTests
         Assert.Equal(layer.SizeInTiles, new Vector2(101, 10));
 
         // Auto resize Y
-        success = layer.EditorSetTileAt(new Vector2(100, 100), 14, 47);
+        success = layer.EditorSetTileAt(new Vector2(100, 100), 14, 47, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
 
         readTile = layer.GetTileAt(new Vector2(100, 100));
         Assert.Equal(readTile.TextureId, 14);
@@ -70,8 +72,9 @@ public class GridTests
         Assert.Equal(layer.SizeInTiles, new Vector2(101, 101));
 
         // Auto resize both
-        success = layer.EditorSetTileAt(new Vector2(200, 200), 15, 57);
+        success = layer.EditorSetTileAt(new Vector2(200, 200), 15, 57, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
 
         readTile = layer.GetTileAt(new Vector2(200, 200));
         Assert.Equal(readTile.TextureId, 15);
@@ -80,10 +83,11 @@ public class GridTests
         Assert.Equal(layer.SizeInTiles, new Vector2(201, 201));
 
         // Auto resize with offset
-        success = layer.EditorSetTileAt(new Vector2(-200, -200), 16, 67);
+        success = layer.EditorSetTileAt(new Vector2(-200, -200), 16, 67, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
 
-        Assert.Equal(layer.RenderOffset, new Vector2(200, 200) * layer.TileSize);
+        Assert.Equal(layer.RenderOffsetInTiles, new Vector2(200, 200));
 
         readTile = layer.GetTileAt(new Vector2(0, 0));
         Assert.Equal(readTile.TextureId, 16);
@@ -106,28 +110,34 @@ public class GridTests
         Assert.Equal(readTile.TilesetId, 69);
 
         // Auto compact tests
-        success = layer.EditorSetTileAt(new Vector2(1, 1), 0, 0);
+        success = layer.EditorSetTileAt(new Vector2(1, 1), 0, 0, out layerBoundsChanged);
         Assert.True(success);
+        Assert.False(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(401, 401)); // Size unchanged
        
-        success = layer.EditorSetTileAt(new Vector2(0, 0), 0, 0);
+        success = layer.EditorSetTileAt(new Vector2(0, 0), 0, 0, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(201, 201)); // Shrunk
 
-        success = layer.EditorSetTileAt(new Vector2(200, 200), 0, 0);
+        success = layer.EditorSetTileAt(new Vector2(200, 200), 0, 0, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(101, 101)); // Shrunk
 
-        success = layer.EditorSetTileAt(new Vector2(100, 100), 0, 0);
+        success = layer.EditorSetTileAt(new Vector2(100, 100), 0, 0, out layerBoundsChanged);
         Assert.True(success);
+        Assert.False(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(101, 101)); // Should be same size
 
-        success = layer.EditorSetTileAt(new Vector2(100, 0), 0, 0);
+        success = layer.EditorSetTileAt(new Vector2(100, 0), 0, 0, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(1, 1)); // Now it should have shrunk
 
-        success = layer.EditorSetTileAt(new Vector2(0, 0), 0, 0);
+        success = layer.EditorSetTileAt(new Vector2(0, 0), 0, 0, out layerBoundsChanged);
         Assert.True(success);
+        Assert.True(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(0, 0)); // Shrunk
 
         yield break;

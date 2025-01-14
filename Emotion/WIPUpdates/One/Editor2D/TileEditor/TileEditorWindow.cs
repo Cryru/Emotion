@@ -174,9 +174,9 @@ public sealed class TileEditorWindow : UIBaseWindow
         {
             Vector2 tileSize = CurrentLayer.TileSize;
 
-            Vector2 renderOffset = (CurrentLayer.RenderOffsetInTiles * tileSize) - tileSize / 2f;
+            Vector2 renderOffset = (-CurrentLayer.RenderOffsetInTiles * tileSize) - tileSize / 2f;
             Vector2 sizeWorldSpace = CurrentLayer.SizeInTiles * tileSize;
-            c.RenderOutline(renderOffset.ToVec3(), sizeWorldSpace, Color.PrettyRed * 0.5f, 4 * GetScale());
+            c.RenderOutline(renderOffset, sizeWorldSpace, Color.PrettyRed * 0.5f, 4 * GetScale());
         }
 
         // Render cursor
@@ -356,8 +356,6 @@ public sealed class TileEditorWindow : UIBaseWindow
 
         if (CursorTilePos == null) return;
         Vector2 cursorPos = CursorTilePos.Value;
-
-        //_mouseDown = false;
 
         (TileTextureId, Vector2)[] placementPattern = _tileTextureSelector.GetSelectedTileTextures(out Vector2 center);
 

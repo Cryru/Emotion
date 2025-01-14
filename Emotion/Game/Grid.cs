@@ -183,7 +183,7 @@ public class Grid<T> : Grid
         _data = offsetData;
     }
 
-    public Vector2 Compact(T compactValue)
+    public bool Compact(T compactValue, out Vector2 compactOffset)
     {
         Vector2 minNonEmpty = new Vector2(-1);
         Vector2 maxNonEmpty = new Vector2(-1);
@@ -217,7 +217,8 @@ public class Grid<T> : Grid
         if (minNonEmpty.X == -1)
         {
             Resize(0, 0);
-            return Vector2.Zero;
+            compactOffset = Vector2.Zero;
+            return true;
         }
 
         if (minNonEmpty.X > 0 || minNonEmpty.Y > 0 || maxNonEmpty.X < SizeInTiles.X - 1 || maxNonEmpty.Y < SizeInTiles.Y - 1)
@@ -227,8 +228,12 @@ public class Grid<T> : Grid
             float sizeX = (maxNonEmpty.X - minNonEmpty.X) + 1;
             float sizeY = (maxNonEmpty.Y - minNonEmpty.Y) + 1;
             Resize((int)sizeX, (int)sizeY);
+
+            compactOffset = -minNonEmpty;
+            return true;
         }
 
-        return -minNonEmpty;
+        compactOffset = Vector2.Zero;
+        return false;
     }
 }

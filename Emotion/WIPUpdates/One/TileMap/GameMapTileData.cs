@@ -125,7 +125,7 @@ public class GameMapTileData
         Vector2 tileSize = layer.TileSize;
         Vector2 tileSizeHalf = tileSize / 2f;
         Vector2 tileIdx2D = layer.GetCoordinate2DFrom1D(tileIdx);
-        Vector2 layerOffset = layer.RenderOffsetInTiles * layer.TileSize;
+        tileIdx2D -= layer.RenderOffsetInTiles;
 
         TileMapTile tileData = layer.GetTileAt(tileIdx);
         //GetTileData(layer, tileIdx, out uint tId, out bool flipX, out bool flipY, out bool _);
@@ -149,7 +149,6 @@ public class GameMapTileData
 
         // Calculate dimensions of the tile.
         Vector2 position = (tileIdx2D * tileSize) - tileSizeHalf;
-        position += layerOffset;
 
         var v3 = new Vector3(position, layerIdx);
         var c = new Color(255, 255, 255, (int)(layer.Opacity * 255));

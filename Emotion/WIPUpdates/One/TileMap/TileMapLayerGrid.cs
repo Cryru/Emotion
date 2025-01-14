@@ -94,10 +94,10 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
             if (!isDelete) return success;
 
             // We deleted a tile, try compacting the grid.
-            Vector2 compacted = Compact(TileMapTile.EmptyUint);
-            if (compacted != Vector2.Zero)
+            bool compacted = Compact(TileMapTile.EmptyUint, out Vector2 compactOffset);
+            if (compacted)
             {
-                RenderOffsetInTiles += compacted;
+                RenderOffsetInTiles += compactOffset;
                 layerBoundsChanged = true;
             }
 
@@ -138,7 +138,7 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 
         Resize((int) newWidth, (int) newHeight);
         Offset((int) offsetX, (int) offsetY, false);
-        RenderOffsetInTiles -= new Vector2(offsetX, offsetY);
+        RenderOffsetInTiles += new Vector2(offsetX, offsetY);
         layerBoundsChanged = true;
 
         Vector2 newLocation = location + new Vector2(offsetX, offsetY);
@@ -154,7 +154,7 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
         var left = MathF.Round(location.X / TileSize.X);
         var top = MathF.Round(location.Y / TileSize.Y);
 
-        return new Vector2(left, top) - RenderOffsetInTiles;
+        return new Vector2(left, top) + RenderOffsetInTiles;
     }
 
     public bool IsPositionInMap(Vector2 tileCoord2d)
@@ -164,7 +164,7 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 
     public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
     {
-        tileCoord2d = tileCoord2d + RenderOffsetInTiles;
+        tileCoord2d = tileCoord2d - RenderOffsetInTiles;
         return (tileCoord2d * TileSize) - TileSize / 2f;
     }
 }
