@@ -1,7 +1,6 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
-using Emotion.Game.World2D.Tile;
 using Emotion.Platform.Input;
 using Emotion.Scenography;
 using Emotion.UI;
@@ -37,7 +36,7 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     private UIBaseWindow? _bottomBarToolButtons;
     private UIRichText? _bottomText;
-    private TileEditorTileTextureSelector? _tileTextureSelector;
+    public TileEditorTileTextureSelector? TileTextureSelector;
 
     private DropdownChoiceEditor<TileMapTileset>? _tilesetChoose;
 
@@ -89,7 +88,7 @@ public sealed class TileEditorWindow : UIBaseWindow
                 MinSizeY = 450,
                 MaxSizeY = 450
             };
-            _tileTextureSelector = tilesetTileSelector;
+            TileTextureSelector = tilesetTileSelector;
             sidePanel.AddChild(tilesetTileSelector);
         }
 
@@ -133,6 +132,7 @@ public sealed class TileEditorWindow : UIBaseWindow
             buttonList.AddChild(new TileEditorToolButton(this, tool));
         }
 
+        // Init UI
         TilesetsChanged();
 
         // Select first tileset and layer.
@@ -159,8 +159,8 @@ public sealed class TileEditorWindow : UIBaseWindow
     protected override bool UpdateInternal()
     {
         UpdateCursor();
-        if (_mouseDown && CursorTilePos != null)
-            PaintCurrentTile();
+        if (CursorTilePos != null && CurrentLayer != null && _mouseDown)
+            CurrentTool.ApplyTool(this, CurrentLayer, CursorTilePos.Value);
 
         return base.UpdateInternal();
     }
@@ -176,25 +176,19 @@ public sealed class TileEditorWindow : UIBaseWindow
 
             Vector2 renderOffset = (-CurrentLayer.RenderOffsetInTiles * tileSize) - tileSize / 2f;
             Vector2 sizeWorldSpace = CurrentLayer.SizeInTiles * tileSize;
-            c.RenderOutline(renderOffset, sizeWorldSpace, Color.PrettyRed * 0.5f, 4 * GetScale());
+            c.RenderOutline(renderOffset, sizeWorldSpace, Color.Black * 0.5f, 4 * GetScale());
         }
 
         // Render cursor
         if (CursorTilePos != null && CurrentLayer != null)
-        {
-            Vector2 cursorTile = CursorTilePos.Value;
-            Vector2 tileInWorld = CurrentLayer.GetWorldPosOfTile(cursorTile);
-            Vector2 tileSize = CurrentLayer.TileSize;
-
-            CurrentTool.RenderCursor(c, this);
-        }
+            CurrentTool.RenderCursor(c, this, CurrentLayer, CursorTilePos.Value);
 
         c.SetUseViewMatrix(false);
 
         return base.RenderInternal(c);
     }
 
-    private void UpdateCursor()
+    public void UpdateCursor()
     {
         CursorTilePos = null;
 
@@ -236,15 +230,7 @@ public sealed class TileEditorWindow : UIBaseWindow
         }
     }
 
-    private GameMap? GetCurrentMap()
-    {
-        GameMap? currentMap = null;
-        if (Engine.SceneManager.Current is SceneWithMap sceneWithMap)
-            currentMap = sceneWithMap.Map;
-        return currentMap;
-    }
-
-    private GameMapTileData? GetCurrentMapTileData()
+    public GameMapTileData? GetCurrentMapTileData()
     {
         if (Engine.SceneManager.Current is SceneWithMap sceneWithMap && sceneWithMap.Map != null && sceneWithMap.Map.TileMapData != null)
             return sceneWithMap.Map.TileMapData;
@@ -318,10 +304,10 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     public void SelectTileset(TileMapTileset? tileset)
     {
-        if (_tileTextureSelector == null)
+        if (TileTextureSelector == null)
         {
             CurrentTileset = null;
-            _tileTextureSelector?.SetTileset(null);
+            TileTextureSelector?.SetTileset(null);
             return;
         }
 
@@ -336,55 +322,21 @@ public sealed class TileEditorWindow : UIBaseWindow
         }
         Assert(found, "Currently selected tileset doesn't exist in the current map.");
 
-        _tileTextureSelector?.SetTileset(tileset);
+        TileTextureSelector?.SetTileset(tileset);
         CurrentTileset = tileset;
     }
 
-    #endregion
-
-    #region Paint
-
-    public void PaintCurrentTile()
+    public TilesetId GetCurrentTilesetIndex()
     {
-        AssertNotNull(_tileTextureSelector);
-        if (_tileTextureSelector == null) return;
-
-        GameMapTileData? tileData = GetCurrentMapTileData();
-        if (tileData == null) return;
-
-        if (CurrentLayer == null) return;
-
-        if (CursorTilePos == null) return;
-        Vector2 cursorPos = CursorTilePos.Value;
-
-        (TileTextureId, Vector2)[] placementPattern = _tileTextureSelector.GetSelectedTileTextures(out Vector2 center);
-
-        Vector2 tileSize = CurrentLayer.TileSize;
-        Vector2 centerInWorldSpace = (center / tileSize).Floor() * tileSize;
-
-        for (int i = 0; i < placementPattern.Length; i++)
+        TilesetId i = 0;
+        foreach (var mapTileset in GetTilesets())
         {
-            (TileTextureId, Vector2) data = placementPattern[i];
-            TileTextureId tileToPlace = data.Item1;
-            Vector2 tileToPlaceOffset = data.Item2 - center;
-
-            Vector2 thisTilePos = cursorPos + (tileToPlaceOffset / tileSize);
-
-            // todo: current tool
-            bool success = CurrentLayer.EditorSetTileAt(thisTilePos, new TileMapTile(tileToPlace, 0), out bool layerBoundsChanged);
-            if (success)
-            {
-                if (layerBoundsChanged)
-                {
-                    tileData.EditorUpdateRenderCacheForLayer(CurrentLayer);
-                    UpdateCursor();
-                }
-                else
-                {
-                    tileData.EditorUpdateRenderCacheForTile(CurrentLayer, thisTilePos);
-                }
-            }
+            if (mapTileset == CurrentTileset)
+                return i;
+            i++;
         }
+
+        return TilesetId.Invalid;
     }
 
     #endregion

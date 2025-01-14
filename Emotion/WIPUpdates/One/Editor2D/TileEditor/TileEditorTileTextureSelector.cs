@@ -271,6 +271,7 @@ public sealed class TileEditorTileTextureSelector : UIScrollArea
             pattern[i] = (tId, offsetFromOriginInTiles);
         }
         center /= _selectedTiles.Count;
+        center = center.Floor();
 
         return pattern;
     }

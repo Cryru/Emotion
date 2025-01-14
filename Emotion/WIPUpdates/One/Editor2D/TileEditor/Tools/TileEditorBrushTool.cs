@@ -2,6 +2,8 @@
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 
+#nullable enable
+
 public class TileEditorBrushTool : TileEditorTool
 {
     public TileEditorBrushTool()
@@ -10,21 +12,86 @@ public class TileEditorBrushTool : TileEditorTool
         IsPlacingTool = true;
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor)
+    private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorTilePos)
     {
-        Vector2? cursorTilePos = editor.CursorTilePos;
-        AssertNotNull(cursorTilePos);
+        AssertNotNull(editor.TileTextureSelector);
+        if (editor.TileTextureSelector == null) yield break;
 
-        TileMapLayerGrid currentLayer = editor.CurrentLayer;
-        AssertNotNull(currentLayer);
-
-        Vector2 cursorTile = cursorTilePos.Value;
-        Vector2 tileInWorld = currentLayer.GetWorldPosOfTile(cursorTile);
         Vector2 tileSize = currentLayer.TileSize;
 
-        Vector2 tileWorldOffset = new Vector2(0);
-        c.RenderSprite((tileInWorld + tileWorldOffset).ToVec3(), tileSize, Color.Blue * 0.2f);
-        c.RenderOutline((tileInWorld + tileWorldOffset).ToVec3(), tileSize, Color.PrettyBlue, 1f);
+        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        if (tileData == null) yield break;
+
+        TilesetId currentTilesetId = editor.GetCurrentTilesetIndex();
+        if (currentTilesetId == TilesetId.Invalid) yield break;
+
+        (TileTextureId, Vector2)[] placementPattern = editor.TileTextureSelector.GetSelectedTileTextures(out Vector2 center);
+        Vector2 centerInWorldSpace = (center / tileSize).Floor() * tileSize;
+
+        for (int i = 0; i < placementPattern.Length; i++)
+        {
+            (TileTextureId tId, Vector2 tileSpaceOffset) = placementPattern[i];
+            tileSpaceOffset -= center;
+            Vector2 currentTilePos = cursorTilePos + tileSpaceOffset;
+
+            var tile = new TileMapTile(tId, currentTilesetId);
+            yield return (tile, currentTilePos);
+
+            // Check if the cursor has changed (such as when the map has changed)
+            Vector2? newCursorPos = editor.CursorTilePos;
+            if (!newCursorPos.HasValue) yield break;
+            if (newCursorPos != cursorTilePos)
+                cursorTilePos = newCursorPos.Value;
+        }
+    }
+
+    public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    {
+        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        AssertNotNull(tileData);
+        if (tileData == null) return;
+
+        foreach ((TileMapTile tile, Vector2 tilePos) in ForEachTileInPlacement(editor, currentLayer, cursorPos))
+        {
+            if (tile == TileMapTile.Empty) continue;
+
+            // todo: current tool
+            bool success = currentLayer.EditorSetTileAt(tilePos, tile, out bool layerBoundsChanged);
+            if (success)
+            {
+                if (layerBoundsChanged)
+                {
+                    tileData.EditorUpdateRenderCacheForLayer(currentLayer);
+                    editor.UpdateCursor();
+                }
+                else
+                {
+                    tileData.EditorUpdateRenderCacheForTile(currentLayer, tilePos);
+                }
+            }
+        }
+    }
+
+    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    {
+        Vector2 tileSize = currentLayer.TileSize;
+
+        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        AssertNotNull(tileData);
+        if (tileData == null) return;
+
+        foreach ((TileMapTile tile, Vector2 tilePos) in ForEachTileInPlacement(editor, currentLayer, cursorPos))
+        {
+            Vector2 worldPos = currentLayer.GetWorldPosOfTile(tilePos);
+            if (tile != TileMapTile.Empty)
+            {
+                (Texture texture, Rectangle uv) = tileData.GetTileRenderData(tile);
+                c.RenderSprite(worldPos, tileSize, Color.White, texture, uv);
+            }
+
+            c.RenderSprite(worldPos, tileSize, Color.Blue * 0.2f);
+            c.RenderOutline(worldPos, tileSize, Color.PrettyBlue, 3f * editor.GetScale());
+        }
     }
 }
 

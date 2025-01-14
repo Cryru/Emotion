@@ -4,6 +4,8 @@ namespace Emotion.WIPUpdates.One.TileMap;
 
 public struct TilesetId
 {
+    public static TilesetId Invalid = ushort.MaxValue;
+
     public ushort Value;
 
     public static implicit operator TilesetId(ushort val)

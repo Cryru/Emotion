@@ -9,20 +9,18 @@ public class TileEditorBucketTool : TileEditorTool
         Name = "Bucket";
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor)
+    public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
     {
-        Vector2? cursorTilePos = editor.CursorTilePos;
-        AssertNotNull(cursorTilePos);
 
-        TileMapLayerGrid currentLayer = editor.CurrentLayer;
-        AssertNotNull(currentLayer);
+    }
 
-        Vector2 cursorTile = cursorTilePos.Value;
-        Vector2 tileInWorld = currentLayer.GetWorldPosOfTile(cursorTile);
+    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    {
+        Vector2 tileInWorld = currentLayer.GetWorldPosOfTile(cursorPos);
         Vector2 tileSize = currentLayer.TileSize;
 
         c.RenderSprite(tileInWorld.ToVec3(), tileSize, Color.Green * 0.2f);
-        c.RenderOutline(tileInWorld.ToVec3(), tileSize, Color.Green, 1f);
+        c.RenderOutline(tileInWorld.ToVec3(), tileSize, Color.White, 3f * editor.GetScale());
     }
 }
 

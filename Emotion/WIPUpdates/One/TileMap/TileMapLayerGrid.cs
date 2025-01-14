@@ -83,6 +83,8 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 
     public bool EditorSetTileAt(Vector2 location, TileMapTile tileData, out bool layerBoundsChanged)
     {
+        Assert(location == location.Floor());
+
         layerBoundsChanged = false;
 
         bool isDelete = tileData.Equals(TileMapTile.Empty);

@@ -1,4 +1,5 @@
 ﻿using Emotion.IO;
+using Microsoft.CodeAnalysis;
 
 #nullable enable
 
@@ -10,6 +11,7 @@ public class TileMapTileset
     public Vector2 Spacing;
     public Vector2 Margin;
     public Vector2 TileSize = Vector2.One;
+    public bool BilinearFilterTexture = true;
 
     public override string ToString()
     {
@@ -24,6 +26,14 @@ public class TileMapTileset
         TextureAsset? asset = handle.Asset;
         if (asset == null || asset.Texture == null) return Vector2.Zero;
 
-        return asset.Texture.Size / TileSize;
+        Vector2 textureAssetSize = asset.Texture.Size;
+        Vector2 margin = Margin;
+        Vector2 spacing = Spacing;
+
+        Vector2 marginLess = textureAssetSize - margin;
+        Vector2 tileSizeWithSpacing = TileSize + Spacing;
+        Vector2 sizeInTiles = (marginLess / tileSizeWithSpacing).Round();
+
+        return Vector2.Max(sizeInTiles, Vector2.One);
     }
 }

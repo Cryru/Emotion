@@ -7,6 +7,8 @@ using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Utility;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Emotion.WIPUpdates.One.TileMap;
 
@@ -37,9 +39,17 @@ public class GameMapTileData
 
             // todo: hot reload
             if (handle.AssetLoaded && handle.Asset != null)
-                _tilesetTexturesLoaded[i] = handle.Asset.Texture;
+            {
+                Texture texture = handle.Asset.Texture;
+                if (ts.BilinearFilterTexture)
+                    texture.Smooth = true;
+
+                _tilesetTexturesLoaded[i] = texture;
+            }
             else
+            {
                 _tilesetTexturesLoaded[i] = Texture.EmptyWhiteTexture;
+            }
         }
 
         BuildRenderCache();
@@ -55,7 +65,7 @@ public class GameMapTileData
         }
     }
 
-    private (Texture texture, Rectangle uv) GetTileRenderData(TileMapTile tile)
+    public (Texture texture, Rectangle uv) GetTileRenderData(TileMapTile tile)
     {
         if (_tilesetTexturesLoaded == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
 
@@ -64,9 +74,24 @@ public class GameMapTileData
         Texture tilesetTexture = _tilesetTexturesLoaded[tile.TilesetId];
         if (tilesetTexture == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
 
-        Vector2 coord = Grid.GetCoordinate2DFrom1D(tile.TextureId - 1, tilesetTexture.Size);
-        Rectangle uv = new Rectangle(coord * tileset.TileSize, tileset.TileSize);
-        return (tilesetTexture, uv);
+        Vector2 tilesetSizeInTiles = tileset.GetTilesetSizeInTiles();
+        int widthInTiles = (int) tilesetSizeInTiles.X;
+        Vector2 tilesetTileSize = tileset.TileSize;
+        
+        int tId = tile.TextureId - 1;
+
+        // Get tile image properties.
+        int tiColumn = tId % widthInTiles;
+        var tiRow = (int)(tId / (float)widthInTiles);
+        var tiRect = new Rectangle(tilesetTileSize.X * tiColumn, tilesetTileSize.Y * tiRow, tilesetTileSize);
+
+        // Add margins and spacing.
+        tiRect.X += tileset.Margin.X;
+        tiRect.Y += tileset.Margin.Y;
+        tiRect.X += tileset.Spacing.X * tiColumn;
+        tiRect.Y += tileset.Spacing.Y * tiRow;
+
+        return (tilesetTexture, tiRect);
     }
 
     #region Render Cache
