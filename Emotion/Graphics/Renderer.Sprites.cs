@@ -260,9 +260,15 @@ namespace Emotion.Graphics
         }
 
         /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float, bool)" />
+        public void RenderOutline(Vector2 position, Vector2 size, Color color, float thickness = 1, bool snapToPixel = true)
+        {
+            RenderOutline(position.ToVec3(), size, color, thickness, snapToPixel);
+        }
+
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float, bool)" />
         public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
         {
-            RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
+            RenderOutline(rect.Position.ToVec3(), rect.Size, color, thickness);
         }
 
         /// <summary>
