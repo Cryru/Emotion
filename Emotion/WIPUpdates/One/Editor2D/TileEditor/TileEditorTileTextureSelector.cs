@@ -6,12 +6,13 @@ using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.TileMap;
 using System.Linq;
+using static Emotion.UI.UIBaseWindow;
 
 #endregion
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
 
-public sealed class TileEditorTilesetSelector : UIScrollArea
+public sealed class TileEditorTileTextureSelector : UIScrollArea
 {
     public float TilesetScale
     {
@@ -31,13 +32,14 @@ public sealed class TileEditorTilesetSelector : UIScrollArea
     private float _tilesetScale = 0.5f;
 
     private TileMapTileset? _tileset;
+    private Vector2 _tilesetSizeInTiles;
 
     private HashSet<Vector2> _rolloverTiles = new HashSet<Vector2>();
     private List<Vector2> _selectedTiles = new List<Vector2>();
 
     private Vector2? _mouseDragStartPos;
 
-    public TileEditorTilesetSelector(TileEditorWindow editor)
+    public TileEditorTileTextureSelector(TileEditorWindow editor)
     {
         HandleInput = true;
     }
@@ -162,9 +164,15 @@ public sealed class TileEditorTilesetSelector : UIScrollArea
         return pos;
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    private TileTextureId GetTIdFromTilesetCoord(Vector2 coord)
     {
-        return base.RenderInternal(c);
+        if (_tileset == null) return 0;
+
+        float tilesPerRow = _tilesetSizeInTiles.X;
+        var tileOneD = (coord.Y * tilesPerRow) + coord.X;
+        tileOneD += 1; // 0 is empty
+
+        return (TileTextureId) tileOneD;
     }
 
     protected override void RenderChildren(RenderComposer c)
@@ -225,6 +233,9 @@ public sealed class TileEditorTilesetSelector : UIScrollArea
         _content.ScrollToPos(Vector2.Zero);
         if (_tileset == null) return;
 
+        // todo: load asset, support hot reload
+        _tilesetSizeInTiles = _tileset.GetTilesetSizeInTiles();
+
         var textureUI = new UITexture
         {
             Id = "TilesetTexture",
@@ -234,6 +245,34 @@ public sealed class TileEditorTilesetSelector : UIScrollArea
             Smooth = true
         };
         AddChildInside(textureUI);
+    }
+
+    public (TileTextureId, Vector2)[] GetSelectedTileTextures(out Vector2 center)
+    {
+        center = Vector2.Zero;
+        if (_selectedTiles.Count == 0)
+            return [(0, new Vector2(0))];
+
+        var pattern = new (TileTextureId, Vector2)[_selectedTiles.Count];
+        Vector2 originPos = Vector2.Zero;
+        for (int i = 0; i < _selectedTiles.Count; i++)
+        {
+            Vector2 tileCoord = _selectedTiles[i];
+            TileTextureId tId = GetTIdFromTilesetCoord(tileCoord);
+
+            if (i == 0)
+            {
+                originPos = tileCoord;
+                pattern[i] = (tId, Vector2.Zero);
+                continue;
+            }
+            Vector2 offsetFromOriginInTiles = tileCoord - originPos;
+            center += offsetFromOriginInTiles;
+            pattern[i] = (tId, offsetFromOriginInTiles);
+        }
+        center /= _selectedTiles.Count;
+
+        return pattern;
     }
 
     //public uint? GetSelectedTidToPlaceAbsolute()

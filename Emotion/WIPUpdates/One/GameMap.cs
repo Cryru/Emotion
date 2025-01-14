@@ -19,6 +19,8 @@ public class GameMap
         TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Flat.png", TileSize = new Vector2(64) });
         TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Elevation.png", TileSize = new Vector2(64) });
 
+        yield return TileMapData.InitRuntimeDataRoutine();
+
         yield break;
     }
 
@@ -51,6 +53,9 @@ public class GameMap
 
     public void Render(RenderComposer c)
     {
+        Rectangle clipArea = c.Camera.GetCameraFrustum();
+        TileMapData?.RenderTileLayerRange(c, new Rectangle(0, 0, 999999999, 999999999));
+
         for (int i = 0; i < _objects.Count; i++)
         {
             var obj = _objects[i];

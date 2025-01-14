@@ -1,10 +1,18 @@
 ﻿using Emotion.Game.World.Grid;
+using Emotion.Graphics.Batches;
+using Emotion.Graphics.Data;
+using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.One.TileMap;
 
+#nullable enable
+
 public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 {
-    public Vector2 RenderOffset;
+    public bool Visible = true;
+
+    public Vector2 RenderOffsetInTiles;
+    public float Opacity = 1f;
 
     public TileMapLayerGrid()
     {
@@ -20,9 +28,14 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
     public TileMapTile GetTileAt(Vector2 location)
     {
         int oneD = GetCoordinate1DFrom2D(location);
-        if (oneD == -1) return new TileMapTile();
+        return GetTileAt(oneD);
+    }
 
-        uint tileDataPacked = _data[oneD];
+    public TileMapTile GetTileAt(int location)
+    {
+        if (location == -1) return new TileMapTile();
+
+        uint tileDataPacked = _data[location];
         var tileData = new TileMapTile();
 
         unsafe
@@ -63,30 +76,36 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 
     #region Editor
 
-    public bool EditorSetTileAt(Vector2 location, TileTextureId tId, TilesetId tsId)
+    public bool EditorSetTileAt(Vector2 location, TileTextureId tId, TilesetId tsId, out bool layerBoundsChanged)
     {
-        return EditorSetTileAt(location, new TileMapTile(tId, tsId));
+        return EditorSetTileAt(location, new TileMapTile(tId, tsId), out layerBoundsChanged);
     }
 
-    public bool EditorSetTileAt(Vector2 location, TileMapTile tileData)
+    public bool EditorSetTileAt(Vector2 location, TileMapTile tileData, out bool layerBoundsChanged)
     {
-        bool isDelete = tileData.Equals(TileMapTile.Empty);
+        layerBoundsChanged = false;
 
+        bool isDelete = tileData.Equals(TileMapTile.Empty);
         int oneD = GetCoordinate1DFrom2D(location);
         if (oneD != -1)
         {
+            // Changing tile in map - easy peasy
             bool success = SetTileAt(location, tileData);
             if (!isDelete) return success;
 
-            // We are deleting - compact the grid.
+            // We deleted a tile, try compacting the grid.
             Vector2 compacted = Compact(TileMapTile.EmptyUint);
-            RenderOffset += compacted * TileSize;
+            if (compacted != Vector2.Zero)
+            {
+                RenderOffsetInTiles += compacted;
+                layerBoundsChanged = true;
+            }
 
             return true;
         }
 
         // Deleting outside bounds - no need to do anything
-        if (isDelete) return true;
+        if (isDelete) return false;
 
         // Resize the grid to fit the tile.
         float setX = location.X;
@@ -118,11 +137,12 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
         }
 
         Resize((int) newWidth, (int) newHeight);
-
         Offset((int) offsetX, (int) offsetY, false);
-        RenderOffset += new Vector2(offsetX, offsetY) * TileSize;
+        RenderOffsetInTiles -= new Vector2(offsetX, offsetY);
+        layerBoundsChanged = true;
 
-        return SetTileAt(location + new Vector2(offsetX, offsetY), tileData);
+        Vector2 newLocation = location + new Vector2(offsetX, offsetY);
+        return SetTileAt(newLocation, tileData);
     }
 
     #endregion
@@ -134,7 +154,7 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
         var left = MathF.Round(location.X / TileSize.X);
         var top = MathF.Round(location.Y / TileSize.Y);
 
-        return new Vector2(left, top);
+        return new Vector2(left, top) - RenderOffsetInTiles;
     }
 
     public bool IsPositionInMap(Vector2 tileCoord2d)
@@ -144,6 +164,7 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 
     public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
     {
-        return tileCoord2d * TileSize - TileSize / 2f;
+        tileCoord2d = tileCoord2d + RenderOffsetInTiles;
+        return (tileCoord2d * TileSize) - TileSize / 2f;
     }
 }
