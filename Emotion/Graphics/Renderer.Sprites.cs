@@ -208,6 +208,11 @@ namespace Emotion.Graphics
             RenderLine(segment.Start, segment.End, color, thickness);
         }
 
+        public void RenderLine(LineSegment segment, Color color, float thickness = 1f)
+        {
+            RenderLine(segment.Start, segment.End, color, thickness);
+        }
+
         /// <summary>
         /// Render a line with an arrow at the end.
         /// </summary>
