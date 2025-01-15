@@ -126,8 +126,8 @@ public class Camera2D : CameraBase
             else
                 Zoom = Zoom * zoomFactorIncrease;
 
-            Zoom = Maths.Clamp(Zoom, 0.1f, 4f);
-            Zoom = MathF.Round(Zoom, 2);
+            Zoom = Maths.Clamp(Zoom, 0.01f, 4f);
+            Zoom = MathF.Round(Zoom, 3);
 
             Vector2 mouseWorldAfterZoom = ScreenToWorld(mouseScreen).ToVec2();
             Position2 += mouseWorld - mouseWorldAfterZoom;
