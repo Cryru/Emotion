@@ -43,7 +43,6 @@ public partial class UIController
         UIBaseWindow? focus = FindMouseInput(pos);
         if (focus == this && _inputFocusManual == null) focus = null;
         SetControllerMouseFocus(focus);
-
     }
 
     /// <summary>

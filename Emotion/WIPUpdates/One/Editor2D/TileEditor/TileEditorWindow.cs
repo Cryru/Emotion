@@ -28,6 +28,8 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     public Vector2? CursorTilePos { get; private set; }
 
+    private HashSet<Vector2> _preciseDrawDedupe = new();
+
     public TileMapLayerGrid? CurrentLayer { get; private set; }
 
     public TileMapTileset? CurrentTileset { get; private set; }
@@ -149,19 +151,16 @@ public sealed class TileEditorWindow : UIBaseWindow
         }
     }
 
-    public override void AttachedToController(UIController controller)
+    private Vector2 _previousMousePos = new Vector2(-1);
+
+    public override void OnMouseMove(Vector2 mousePos)
     {
-        base.AttachedToController(controller);
-
-
+        UpdateCurrentTool(_previousMousePos, mousePos);
+        _previousMousePos = mousePos;
     }
 
     protected override bool UpdateInternal()
     {
-        UpdateCursor();
-        if (CursorTilePos != null && CurrentLayer != null && _mouseDown)
-            CurrentTool.ApplyTool(this, CurrentLayer, CursorTilePos.Value);
-
         return base.UpdateInternal();
     }
 
@@ -186,6 +185,64 @@ public sealed class TileEditorWindow : UIBaseWindow
         c.SetUseViewMatrix(false);
 
         return base.RenderInternal(c);
+    }
+
+
+    #region Using Tools
+
+    private void UpdateCurrentTool(Vector2 previousPos, Vector2 newPos)
+    {
+        UpdateCursor();
+
+        if (!MouseInside) return;
+        if (!_mouseDown) return;
+        if (CurrentLayer == null) return;
+        if (CursorTilePos == null) return;
+
+        previousPos = Engine.Renderer.Camera.ScreenToWorld(previousPos).ToVec2();
+        newPos = Engine.Renderer.Camera.ScreenToWorld(newPos).ToVec2();
+
+        LineSegment moveSegment = new LineSegment(previousPos, newPos);
+        float moveSegmentLength = moveSegment.Length();
+        if (!CurrentTool.IsPrecisePaint || moveSegmentLength == 0)
+            CurrentTool.ApplyTool(this, CurrentLayer, CursorTilePos.Value);
+        else
+            PrecisePaintApplyTool(moveSegment);
+    }
+
+    private void PrecisePaintApplyTool(LineSegment moveSegment)
+    {
+        AssertNotNull(CurrentLayer);
+
+        float moveSegmentLength = moveSegment.Length();
+
+        // Cause a resize of the layer by painting the min and max
+        Rectangle lineBound = Rectangle.FromMinMaxPointsChecked(moveSegment.Start, moveSegment.End);
+        lineBound.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+
+        Vector2 tileMin = CurrentLayer.GetTilePosOfWorldPos(min);
+        CurrentLayer.EditorResizeToFitTile(tileMin, out bool layerBoundsChangedMin);
+
+        Vector2 tileMax = CurrentLayer.GetTilePosOfWorldPos(max);
+        CurrentLayer.EditorResizeToFitTile(tileMax, out bool layerBoundsChangedMax);
+
+        if (layerBoundsChangedMin || layerBoundsChangedMax)
+        {
+            GameMapTileData? tileData = GetCurrentMapTileData();
+            AssertNotNull(tileData);
+            tileData.EditorUpdateRenderCacheForLayer(CurrentLayer);
+        }
+
+        // Draw the line
+        _preciseDrawDedupe.Clear();
+        for (float i = 0; i < moveSegmentLength; i += 0.5f)
+        {
+            Vector2 pointAtLineSegment = moveSegment.PointOnLineAtDistance(i);
+            Vector2 tile = CurrentLayer.GetTilePosOfWorldPos(pointAtLineSegment);
+            if (!_preciseDrawDedupe.Add(tile)) continue;
+
+            CurrentTool.ApplyTool(this, CurrentLayer, tile);
+        }
     }
 
     public void UpdateCursor()
@@ -216,6 +273,24 @@ public sealed class TileEditorWindow : UIBaseWindow
             _bottomText.Text = $"Rollover Tile - {tilePos}{inMapText}";
     }
 
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
+    {
+        if (key == Key.MouseKeyLeft)
+        {
+            _mouseDown = status == KeyState.Down;
+
+            // Instantly responsive on the mouse click event, don't wait for update
+            if (_mouseDown) UpdateCurrentTool(mousePos, mousePos);
+
+            // Clear last action to group undos by mouse clicks.
+            //if (!_mouseDown) _lastAction = null;
+        }
+
+        return base.OnKey(key, status, mousePos);
+    }
+
+    #endregion
+
     public void SetCurrentTool(TileEditorTool currentTool)
     {
         CurrentTool = currentTool;
@@ -235,19 +310,6 @@ public sealed class TileEditorWindow : UIBaseWindow
         if (Engine.SceneManager.Current is SceneWithMap sceneWithMap && sceneWithMap.Map != null && sceneWithMap.Map.TileMapData != null)
             return sceneWithMap.Map.TileMapData;
         return null;
-    }
-
-    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
-    {
-        if (key == Key.MouseKeyLeft)
-        {
-            _mouseDown = status == KeyState.Down;
-
-            // Clear last action to group undos by mouse clicks.
-            //if (!_mouseDown) _lastAction = null;
-        }
-
-        return base.OnKey(key, status, mousePos);
     }
 
     #region TileLayer
@@ -285,7 +347,6 @@ public sealed class TileEditorWindow : UIBaseWindow
     }
 
     #endregion
-
 
     #region Tilesets
 

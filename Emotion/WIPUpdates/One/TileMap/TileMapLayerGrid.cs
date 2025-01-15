@@ -76,6 +76,54 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 
     #region Editor
 
+    public bool EditorResizeToFitTile(Vector2 location, out bool layerBoundsChanged)
+    {
+        Assert(location == location.Floor());
+
+        int oneD = GetCoordinate1DFrom2D(location);
+        if (oneD != -1)
+        {
+            layerBoundsChanged = false;
+            return true;
+        }
+
+        // Resize the grid to fit the tile.
+        float setX = location.X;
+        float newWidth = SizeInTiles.X;
+        float offsetX = 0;
+        if (setX < 0)
+        {
+            newWidth += -setX;
+            offsetX = -setX;
+        }
+        else if (setX >= SizeInTiles.X)
+        {
+            float diff = setX - (SizeInTiles.X - 1);
+            newWidth += diff;
+        }
+
+        float setY = location.Y;
+        float newHeight = SizeInTiles.Y;
+        float offsetY = 0;
+        if (setY < 0)
+        {
+            newHeight += -setY;
+            offsetY = -setY;
+        }
+        else if (setY >= SizeInTiles.Y)
+        {
+            float diff = setY - (SizeInTiles.Y - 1);
+            newHeight += diff;
+        }
+
+        Resize((int)newWidth, (int)newHeight);
+        Offset((int)offsetX, (int)offsetY, false);
+        RenderOffsetInTiles += new Vector2(offsetX, offsetY);
+        layerBoundsChanged = true;
+
+        return true;
+    }
+
     public bool EditorSetTileAt(Vector2 location, TileTextureId tId, TilesetId tsId, out bool layerBoundsChanged)
     {
         return EditorSetTileAt(location, new TileMapTile(tId, tsId), out layerBoundsChanged);
@@ -138,8 +186,8 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
             newHeight += diff;
         }
 
-        Resize((int) newWidth, (int) newHeight);
-        Offset((int) offsetX, (int) offsetY, false);
+        Resize((int)newWidth, (int)newHeight);
+        Offset((int)offsetX, (int)offsetY, false);
         RenderOffsetInTiles += new Vector2(offsetX, offsetY);
         layerBoundsChanged = true;
 

@@ -106,6 +106,8 @@ public class GameMapTileData
     /// </summary>
     private Texture[][]? _cachedTileTextures;
 
+    private Vector2[]? _cachedSizeInTiles;
+
     private void BuildRenderCache()
     {
         if (Tilesets.Count == 0) return;
@@ -116,20 +118,24 @@ public class GameMapTileData
 
         _cachedTileRenderData = new VertexData[Layers.Count][];
         _cachedTileTextures = new Texture[Layers.Count][];
+        _cachedSizeInTiles = new Vector2[Layers.Count];
         for (var layerIdx = 0; layerIdx < Layers.Count; layerIdx++)
         {
-            (VertexData[] vertexData, Texture[] textureData) = CalculateRenderCacheForLayer(layerIdx);
+            (VertexData[] vertexData, Texture[] textureData, Vector2 sizeInTiles) = CalculateRenderCacheForLayer(layerIdx);
 
             _cachedTileRenderData[layerIdx] = vertexData;
             _cachedTileTextures[layerIdx] = textureData;
+            _cachedSizeInTiles[layerIdx] = sizeInTiles;
         }
     }
 
-    private (VertexData[], Texture[]) CalculateRenderCacheForLayer(int layerIdx)
+    private (VertexData[], Texture[], Vector2) CalculateRenderCacheForLayer(int layerIdx)
     {
         TileMapLayerGrid layer = Layers[layerIdx];
-        int tileColumns = (int)layer.SizeInTiles.X;
-        int tileRows = (int)layer.SizeInTiles.Y;
+        Vector2 sizeInTiles = layer.SizeInTiles;
+
+        int tileColumns = (int)sizeInTiles.X;
+        int tileRows = (int)sizeInTiles.Y;
         int totalTileSize = tileRows * tileColumns;
 
         var layerVertexCache = new VertexData[totalTileSize * 4];
@@ -141,7 +147,7 @@ public class GameMapTileData
             CalculateRenderCacheForTile(layerIdx, tileIdx, layerVertexCache, layerTextureCache);
         }
 
-        return (layerVertexCache, layerTextureCache);
+        return (layerVertexCache, layerTextureCache, sizeInTiles);
     }
 
     private void CalculateRenderCacheForTile(int layerIdx, int tileIdx, Span<VertexData> layerCache, Texture[] textureCache)
@@ -153,8 +159,6 @@ public class GameMapTileData
         tileIdx2D -= layer.RenderOffsetInTiles;
 
         TileMapTile tileData = layer.GetTileAt(tileIdx);
-        //GetTileData(layer, tileIdx, out uint tId, out bool flipX, out bool flipY, out bool _);
-
         Span<VertexData> tileRenderData = layerCache.Slice(tileIdx * 4, 4);
 
         // If empty skip it
@@ -210,10 +214,12 @@ public class GameMapTileData
 
         AssertNotNull(_cachedTileRenderData);
         AssertNotNull(_cachedTileTextures);
+        AssertNotNull(_cachedSizeInTiles);
 
-        (VertexData[] vertexData, Texture[] textureData) = CalculateRenderCacheForLayer(layerIdx);
+        (VertexData[] vertexData, Texture[] textureData, Vector2 sizeInTiles) = CalculateRenderCacheForLayer(layerIdx);
         _cachedTileRenderData[layerIdx] = vertexData;
         _cachedTileTextures[layerIdx] = textureData;
+        _cachedSizeInTiles[layerIdx] = sizeInTiles;
     }
 
     #endregion
@@ -233,13 +239,13 @@ public class GameMapTileData
 
     public void RenderLayer(RenderComposer composer, int layerIdx, Rectangle clipVal)
     {
-        if (_cachedTileRenderData == null || _cachedTileTextures == null) return;
+        if (_cachedTileRenderData == null || _cachedTileTextures == null || _cachedSizeInTiles == null) return;
         VertexData[] renderCache = _cachedTileRenderData[layerIdx];
         Texture[] textureCache = _cachedTileTextures[layerIdx];
+        Vector2 sizeInTiles = _cachedSizeInTiles[layerIdx];
 
         var layer = Layers[layerIdx];
         Vector2 tileSize = layer.TileSize;
-        Vector2 sizeInTiles = layer.SizeInTiles;
 
         // Apply render offset
         Vector2 offset = layer.RenderOffsetInTiles;
