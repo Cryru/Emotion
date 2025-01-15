@@ -199,6 +199,14 @@ public sealed class TileEditorWindow : UIBaseWindow
         if (CurrentLayer == null) return;
         if (CursorTilePos == null) return;
 
+        if (CurrentTool.RequireTileSelection)
+        {
+            AssertNotNull(TileTextureSelector);
+            if (TileTextureSelector == null) return;
+            (TileTextureId, Vector2)[] currentlySelectedTile = TileTextureSelector.GetSelectedTileTextures(out _);
+            if (currentlySelectedTile[0].Item1 == TileMapTile.Empty) return;
+        }
+
         previousPos = Engine.Renderer.Camera.ScreenToWorld(previousPos).ToVec2();
         newPos = Engine.Renderer.Camera.ScreenToWorld(newPos).ToVec2();
 

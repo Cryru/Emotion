@@ -12,6 +12,7 @@ public class TileEditorBucketTool : TileEditorTool
     {
         Name = "Bucket";
         IsPlacingTool = true;
+        RequireTileSelection = true;
     }
 
     private Stack<(Vector2, TileMapTile)> _spanFillStack = new Stack<(Vector2, TileMapTile)>();
@@ -89,7 +90,7 @@ public class TileEditorBucketTool : TileEditorTool
         (Texture texture, Rectangle uv) = tileData.GetTileRenderData(tileToPlace);
 
         TileMapTile currentTileData = currentLayer.GetTileAt(cursorPos);
-        if (currentTileData == tileToPlace || tileToPlace == TileMapTile.Empty) return;
+        if (currentTileData == tileToPlace) return;
 
         _bucketTilesToSet.Clear();
         SpanFill(cursorPos, currentTileData, currentLayer);

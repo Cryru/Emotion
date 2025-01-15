@@ -1,5 +1,6 @@
 ﻿using Emotion.Utility;
 using Emotion.WIPUpdates.One.TileMap;
+using System;
 
 namespace Emotion.Game;
 
@@ -120,14 +121,19 @@ public class Grid<T> : Grid
         if (newWidth == SizeInTiles.X && newHeight == SizeInTiles.Y) return;
 
         T[] newData = new T[newWidth * newHeight];
-        for (int x = 0; x < MathF.Min(newWidth, SizeInTiles.X); x++)
+        int oldWidth = (int) SizeInTiles.X;
+        int minX = (int) MathF.Min(newWidth, SizeInTiles.X);
+        int minY = (int) MathF.Min(newHeight, SizeInTiles.Y);
+
+        Span<T> dataSpan = _data.AsSpan();
+        for (int y = 0; y < minY; y++)
         {
-            for (int y = 0; y < MathF.Min(newHeight, SizeInTiles.Y); y++)
-            {
-                int oldOneD = GetCoordinate1DFrom2D(new Vector2(x, y));
-                int newOneD = x + newWidth * y;
-                newData[newOneD] = _data[oldOneD];
-            }
+            // Create slices for the old and new data rows
+            var oldRow = dataSpan.Slice(y * oldWidth, minX);
+            var newRow = newData.AsSpan(y * newWidth, minX);
+
+            // Copy the data for this row
+            oldRow.CopyTo(newRow);
         }
 
         if (initNewDataFunc != null)

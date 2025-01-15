@@ -11,6 +11,7 @@ public class TileEditorBrushTool : TileEditorTool
         Name = "Brush";
         IsPlacingTool = true;
         IsPrecisePaint = true;
+        RequireTileSelection = true;
     }
 
     private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorTilePos)
@@ -54,9 +55,6 @@ public class TileEditorBrushTool : TileEditorTool
 
         foreach ((TileMapTile tile, Vector2 tilePos) in ForEachTileInPlacement(editor, currentLayer, cursorPos))
         {
-            if (tile == TileMapTile.Empty) continue;
-
-            // todo: current tool
             bool success = currentLayer.EditorSetTileAt(tilePos, tile, out bool layerBoundsChanged);
             if (success)
             {
