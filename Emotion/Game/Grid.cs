@@ -202,14 +202,14 @@ public class Grid<T> : Grid
                 if (minNonEmpty.X == -1 || minNonEmpty.X > x)
                     minNonEmpty.X = x;
 
-                if (minNonEmpty.Y == -1 || minNonEmpty.Y > x)
-                    minNonEmpty.Y = x;
+                if (minNonEmpty.Y == -1 || minNonEmpty.Y > y)
+                    minNonEmpty.Y = y;
 
                 if (maxNonEmpty.X == -1 || maxNonEmpty.X < x)
                     maxNonEmpty.X = x;
 
-                if (maxNonEmpty.Y == -1 || maxNonEmpty.Y < x)
-                    maxNonEmpty.Y = x;
+                if (maxNonEmpty.Y == -1 || maxNonEmpty.Y < y)
+                    maxNonEmpty.Y = y;
             }
         }
 

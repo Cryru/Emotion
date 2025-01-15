@@ -16,7 +16,7 @@ namespace Tests.EngineTests;
 public class GridTests
 {
     [Test]
-    public IEnumerator TilemapGridTest()
+    public void TilemapGridTest()
     {
         var layer = new TileMapLayerGrid() { TileSize = new Vector2(64) };
 
@@ -127,8 +127,8 @@ public class GridTests
 
         success = layer.EditorSetTileAt(new Vector2(100, 100), 0, 0, out layerBoundsChanged);
         Assert.True(success);
-        Assert.False(layerBoundsChanged);
-        Assert.Equal(layer.SizeInTiles, new Vector2(101, 101)); // Should be same size
+        Assert.True(layerBoundsChanged);
+        Assert.Equal(layer.SizeInTiles, new Vector2(101, 1)); // Should be same size
 
         success = layer.EditorSetTileAt(new Vector2(100, 0), 0, 0, out layerBoundsChanged);
         Assert.True(success);
@@ -140,7 +140,29 @@ public class GridTests
         Assert.True(layerBoundsChanged);
         Assert.Equal(layer.SizeInTiles, new Vector2(0, 0)); // Shrunk
 
-        yield break;
+        layer.EditorSetTileAt(new Vector2(0, 0), 1, 0, out layerBoundsChanged);
+        layer.EditorSetTileAt(new Vector2(1, 0), 1, 0, out layerBoundsChanged);
+        layer.EditorSetTileAt(new Vector2(0, 1), 1, 0, out layerBoundsChanged);
+        layer.EditorSetTileAt(new Vector2(1, 1), 1, 0, out layerBoundsChanged);
+        Assert.Equal(layer.SizeInTiles, new Vector2(2, 2));
+
+        // . .
+        // . .
+
+        success = layer.EditorSetTileAt(new Vector2(0, 1), 0, 0, out layerBoundsChanged);
+        Assert.True(success);
+        Assert.False(layerBoundsChanged);
+        Assert.Equal(layer.SizeInTiles, new Vector2(2, 2));
+
+        // . .
+        // x .
+
+        success = layer.EditorSetTileAt(new Vector2(1, 1), 0, 0, out layerBoundsChanged);
+        Assert.True(success);
+        Assert.True(layerBoundsChanged);
+        Assert.Equal(layer.SizeInTiles, new Vector2(2, 1));
+
+        // . .
     }
 
     private static void DebugShowGrid(TileMapLayerGrid grid)
