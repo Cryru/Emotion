@@ -54,7 +54,7 @@ public class GameMap
     public void Render(RenderComposer c)
     {
         Rectangle clipArea = c.Camera.GetCameraFrustum();
-        TileMapData?.RenderTileLayerRange(c, new Rectangle(0, 0, 999999999, 999999999));
+        TileMapData?.RenderTileLayerRange(c, clipArea);
 
         for (int i = 0; i < _objects.Count; i++)
         {

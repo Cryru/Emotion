@@ -241,6 +241,11 @@ public class GameMapTileData
         Vector2 tileSize = layer.TileSize;
         Vector2 sizeInTiles = layer.SizeInTiles;
 
+        // Apply render offset
+        Vector2 offset = layer.RenderOffsetInTiles;
+        clipVal.Position += offset * tileSize;
+        clipVal.Size += tileSize;
+
         var yStart = (int)Maths.Clamp(MathF.Floor(clipVal.Y / tileSize.Y), 0, sizeInTiles.Y);
         var yEnd = (int)Maths.Clamp(MathF.Ceiling(clipVal.Bottom / tileSize.Y), 0, sizeInTiles.Y);
         var xStart = (int)Maths.Clamp(MathF.Floor(clipVal.X / tileSize.X), 0, sizeInTiles.X);

@@ -10,6 +10,7 @@ public class TileEditorBrushTool : TileEditorTool
     {
         Name = "Brush";
         IsPlacingTool = true;
+        IsPrecisePaint = true;
     }
 
     private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorTilePos)

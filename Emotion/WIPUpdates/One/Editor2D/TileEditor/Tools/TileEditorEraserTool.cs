@@ -9,6 +9,7 @@ public class TileEditorEraserTool : TileEditorTool
     public TileEditorEraserTool()
     {
         Name = "Eraser";
+        IsPrecisePaint = true;
     }
 
     public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)

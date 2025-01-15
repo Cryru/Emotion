@@ -8,6 +8,8 @@ public abstract class TileEditorTool
 
     public bool IsPlacingTool { get; protected set; }
 
+    public bool IsPrecisePaint { get; protected set; }
+
     public abstract void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos);
 
     public abstract void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos);
