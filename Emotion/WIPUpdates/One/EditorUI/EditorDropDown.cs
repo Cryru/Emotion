@@ -36,8 +36,8 @@ public class EditorDropDown : UIDropDown
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        c.RenderSprite(Position, Size, MapEditorColorPalette.BarColor * 0.8f);
-        c.RenderOutline(Position, Size, MapEditorColorPalette.ActiveButtonColor, 2 * GetScale(), false);
+        c.RenderSprite(Position, Size, MapEditorColorPalette.BarColor);
+        c.RenderOutline(Position, Size, MapEditorColorPalette.ActiveButtonColor, 3 * GetScale(), false);
 
         return base.RenderInternal(c);
     }

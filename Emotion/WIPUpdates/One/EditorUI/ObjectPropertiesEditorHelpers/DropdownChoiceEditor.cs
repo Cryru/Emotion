@@ -2,122 +2,57 @@
 using Emotion.Game.World.Editor;
 using Emotion.UI;
 using Emotion.Utility;
+using Emotion.WIPUpdates.One.EditorUI.Base;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class DropdownChoiceEditor<T> : UIBaseWindow
+public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 {
     private UIRichText _label;
-
-    private IEnumerable<T>? _items;
-    private T? _current;
-    private int _currentIndex = -1;
+    private UICallbackButton _button;
+    private UISolidColor _arrowParent;
 
     public DropdownChoiceEditor()
     {
-        Paddings = new Primitives.Rectangle(2, 2, 2, 2);
-        
-        LayoutMode = LayoutMode.HorizontalList;
-        ListSpacing = new Vector2(5, 0);
+        Paddings = new Primitives.Rectangle(3, 3, 0, 3);
+
+        var button = new UICallbackButton()
+        {
+            OnClickedProxy = (_) => Clicked(),
+            OnMouseEnterProxy = (_) =>
+            {
+                _arrowParent!.WindowColor = MapEditorColorPalette.ActiveButtonColor;
+            },
+            OnMouseLeaveProxy = (_) =>
+            {
+                _arrowParent!.WindowColor = MapEditorColorPalette.ButtonColor;
+            }
+        };
+        AddChild(button);
+        _button = button;
 
         var label = new EditorLabel()
         {
             Margins = new Primitives.Rectangle(10, 0, 5, 0)
         };
-        AddChild(label);
+        button.AddChild(label);
         _label = label;
 
-        var button = new EditorButton()
+        var arrowSquare = new UISolidColor()
         {
-            MinSizeY = 25,
-            MinSizeX = 25,
-            Paddings = Rectangle.Empty,
+            FillX = false,
+            FillY = false,
+            WindowColor = MapEditorColorPalette.ButtonColor,
+            MinSizeY = 23,
+            MinSizeX = 29,
             AnchorAndParentAnchor = UIAnchor.TopRight,
-            OnClickedProxy = (me) =>
-            {
-                if (_items == null) return;
-
-                Emotion.WIPUpdates.One.Tools.EditorDropDown dropDown = Emotion.WIPUpdates.One.Tools.EditorDropDown.OpenListDropdown(this);
-                //dropDown.ClampToSpawningWindowWidth = true;
-                dropDown.MaxSizeY = 300;
-                dropDown.ParentAnchor = UIAnchor.BottomRight;
-                dropDown.Anchor = UIAnchor.TopRight;
-
-                foreach (T item in _items)
-                {
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-                    {
-                        var button = new EditorButton
-                        {
-                            Text = item?.ToString() ?? "<null>",
-                            FillX = true
-                        };
-                        dropDown.AddChild(button);
-                    }
-
-                }
-            }
         };
         // enabled = _items != null
-        AddChild(button);
+        button.AddChild(arrowSquare);
+        _arrowParent = arrowSquare;
 
         var arrowIcon = new UITexture()
         {
@@ -126,52 +61,53 @@ public class DropdownChoiceEditor<T> : UIBaseWindow
             ImageScale = new Vector2(0.6f),
             Offset = new Vector2(0, 1),
             AnchorAndParentAnchor = UIAnchor.CenterCenter
-  
         };
-        button.AddChild(arrowIcon);
+        arrowSquare.AddChild(arrowIcon);
     }
 
-    public void SetEditor(IEnumerable<T> values, int currentValueIdx)
+    protected void Clicked()
     {
-        _items = values;
-        _currentIndex = currentValueIdx;
+        if (_items == null) return;
 
-        int i = 0;
-        foreach (var item in values)
+        Emotion.WIPUpdates.One.Tools.EditorDropDown dropDown = Emotion.WIPUpdates.One.Tools.EditorDropDown.OpenListDropdown(this);
+        //dropDown.ClampToSpawningWindowWidth = true;
+        dropDown.MaxSizeY = 300;
+        dropDown.ParentAnchor = UIAnchor.BottomRight;
+        dropDown.Anchor = UIAnchor.TopRight;
+        dropDown.Offset = new Vector2(0, -3);
+
+        foreach (T item in _items)
         {
-            if (i == _currentIndex)
+            var button = new EditorButton
             {
-                _label.Text = item?.ToString() ?? "<null>";
-                break;
-            }
-
-            i++;
+                Text = item?.ToString() ?? "<null>",
+                FillX = true
+            };
+            dropDown.AddChild(button);
         }
+    }
 
+    protected override void OnItemsChanged(IEnumerable<T>? items)
+    {
+
+    }
+
+    protected override void OnSelectionChanged(T? newSel)
+    {
+        _label.Text = newSel?.ToString() ?? "<null>";
+    }
+
+    protected override void OnSelectionEmpty()
+    {
         _label.Text = "<empty>";
-    }
-
-    public void SetEditor(IEnumerable<T> values, T? currentValue)
-    {
-        int i = 0;
-        int idxFound = -1;
-        foreach (var item in values)
-        {
-            if (Helpers.AreObjectsEqual(item, currentValue))
-            {
-                idxFound = i;
-                break;
-            }
-            i++;
-        }
-
-        SetEditor(values, idxFound);
     }
 
     protected override bool RenderInternal(RenderComposer c)
     {
         c.RenderSprite(Bounds, MapEditorColorPalette.BarColor);
-        c.RenderOutline(Bounds, MapEditorColorPalette.ActiveButtonColor, 2 * GetScale());
+        c.RenderOutline(Bounds, _button.MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor, 3 * GetScale());
+
+        if (_button.MouseInside) c.RenderSprite(_button.Bounds, Color.White * 0.3f);
 
         return base.RenderInternal(c);
     }
