@@ -50,7 +50,6 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
             MinSizeX = 29,
             AnchorAndParentAnchor = UIAnchor.TopRight,
         };
-        // enabled = _items != null
         button.AddChild(arrowSquare);
         _arrowParent = arrowSquare;
 

@@ -13,4 +13,9 @@ public class EditorLabel : UIRichText
         Anchor = UIAnchor.CenterLeft;
         ParentAnchor = UIAnchor.CenterLeft;
     }
+
+    public EditorLabel(string txt) : this()
+    {
+        Text = txt;
+    }
 }
