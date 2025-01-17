@@ -36,7 +36,7 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 
         var label = new EditorLabel()
         {
-            Margins = new Primitives.Rectangle(10, 0, 5, 0)
+            Margins = new Primitives.Rectangle(5, 0, 5, 0)
         };
         button.AddChild(label);
         _label = label;
