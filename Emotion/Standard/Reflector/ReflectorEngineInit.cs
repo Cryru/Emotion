@@ -28,5 +28,6 @@ public static class ReflectorEngineInit
         ReflectorEngine.RegisterTypeHandler(new StringTypeHandler());
 
         OnInit?.Invoke();
+        ReflectorEngine.BuildRelations();
     }
 }

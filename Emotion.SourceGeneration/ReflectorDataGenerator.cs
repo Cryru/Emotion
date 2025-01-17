@@ -279,52 +279,50 @@ namespace SourceGenerator
             sb.AppendLine("using Emotion.Standard.Reflector;");
             sb.AppendLine("using Emotion.Standard.Reflector.Handlers;");
             sb.AppendLine();
-            sb.AppendLine($"namespace ReflectorGen");
+            sb.AppendLine($"namespace ReflectorGen;");
+            sb.AppendLine($"public static class ReflectorData{safeName}");
             sb.AppendLine("{");
-            sb.AppendLine($"   public static class ReflectorData{safeName}");
-            sb.AppendLine("   {");
             sb.AppendLine("");
-            sb.AppendLine("       [ModuleInitializer]");
-            sb.AppendLine("       public static void Load()");
-            sb.AppendLine("       {");
-            sb.AppendLine("           ReflectorEngineInit.OnInit += AttachToEngine;");
-            sb.AppendLine("       }");
+            sb.AppendLine("    [ModuleInitializer]");
+            sb.AppendLine("    public static void Load()");
+            sb.AppendLine("    {");
+            sb.AppendLine("        ReflectorEngineInit.OnInit += AttachToEngine;");
+            sb.AppendLine("    }");
             sb.AppendLine("");
-            sb.AppendLine("       public static void AttachToEngine()");
-            sb.AppendLine("       {");
+            sb.AppendLine("    public static void AttachToEngine()");
+            sb.AppendLine("    {");
 
-            sb.AppendLine($"          ReflectorEngine.RegisterTypeHandler(new ComplexTypeHandler<{fullTypName}>(new ComplexTypeHandlerMember[]");
-            sb.AppendLine($"          {{");
+            sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new ComplexTypeHandler<{fullTypName}>(new ComplexTypeHandlerMember[]");
+            sb.AppendLine($"       {{");
 
             foreach (var memberDesc in members)
             {
                 string memberFullTypeName = memberDesc.TypeNameFull;
                 string memberName = memberDesc.MemberSymbol.Name;
 
-                sb.AppendLine($"              new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(\"{memberName}\", (p, v) => p.{memberName} = v, (p) => p.{memberName})");
-                sb.AppendLine($"              {{");
+                sb.AppendLine($"           new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(\"{memberName}\", (p, v) => p.{memberName} = v, (p) => p.{memberName})");
+                sb.AppendLine("           {");
 
                 // Generate attributes
                 ImmutableArray<AttributeData> memberAttributes = memberDesc.MemberSymbol.GetAttributes();
                 if (memberAttributes.Length > 0)
                 {
-                    sb.AppendLine($"                  Attributes = new Attribute[] {{");
+                    sb.AppendLine("               Attributes = new Attribute[] {");
                     foreach (var attribute in memberAttributes)
                     {
                         var clazz = attribute.AttributeClass;
                         if (clazz.Name != "VertexAttributeAttribute") continue; // todo
 
-                        sb.AppendLine($"                      {GenerateAttributeDeclaration(attribute)},");
+                        sb.AppendLine($"                   {GenerateAttributeDeclaration(attribute)},");
                     }
-                    sb.AppendLine($"                  }},");
+                    sb.AppendLine("               },");
                 }
 
-                sb.AppendLine($"              }},");
+                sb.AppendLine("           },");
             }
-            sb.AppendLine($"          }}));");
+            sb.AppendLine("       }));");
 
-            sb.AppendLine("       }");
-            sb.AppendLine("   }");
+            sb.AppendLine("    }");
             sb.AppendLine("}");
 
             context.AddSource($"RFLC.{safeName}.g.cs", sb.ToString());

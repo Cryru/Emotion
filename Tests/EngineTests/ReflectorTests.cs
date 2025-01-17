@@ -6,6 +6,7 @@ using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.XML;
 using Emotion.Testing;
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -14,6 +15,26 @@ namespace Tests.EngineTests;
 public class TestClassWithPrimitiveMember
 {
     public int Number;
+}
+
+public class BaseClass
+{
+
+}
+
+public class BaseClassExtended : BaseClass
+{
+
+}
+
+public class BaseClassExtendedTwo : BaseClass
+{
+
+}
+
+public class BaseClassExtendedExtended : BaseClassExtended
+{
+
 }
 
 [Test]
@@ -86,6 +107,19 @@ public class ReflectorTests
             ComplexTypeHandlerMember numberMemberHandler = genericHandlerComplex.GetMemberHandler("Number");
             Assert.Equal(numberMemberHandler, members[0]);
         }
+    }
+
+    [Test]
+    public void BasicReflector_Inheritance()
+    {
+        Type[] typesDescended = ReflectorEngine.GetTypesDescendedFrom(typeof(BaseClass));
+        Assert.Equal(typesDescended.Length, 3);
+        Assert.True(typesDescended.Contains(typeof(BaseClassExtended)));
+        Assert.True(typesDescended.Contains(typeof(BaseClassExtendedExtended)));
+        Assert.True(typesDescended.Contains(typeof(BaseClassExtendedTwo)));
+
+        typesDescended = ReflectorEngine.GetTypesDescendedFrom(typeof(int));
+        Assert.Equal(typesDescended.Length, 0);
     }
 
     [Test]
