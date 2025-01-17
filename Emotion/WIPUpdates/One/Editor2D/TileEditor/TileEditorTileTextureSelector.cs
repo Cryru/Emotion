@@ -2,8 +2,10 @@
 
 #region Using
 
+using Emotion.Game.World.Editor;
 using Emotion.Platform.Input;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.TileMap;
 using System.Linq;
 using static Emotion.UI.UIBaseWindow;
@@ -12,7 +14,7 @@ using static Emotion.UI.UIBaseWindow;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
 
-public sealed class TileEditorTileTextureSelector : UIScrollArea
+public sealed class TileEditorTileTextureSelector : EditorScrollArea
 {
     public float TilesetScale
     {
@@ -42,6 +44,7 @@ public sealed class TileEditorTileTextureSelector : UIScrollArea
     public TileEditorTileTextureSelector(TileEditorWindow editor)
     {
         HandleInput = true;
+        Paddings = new Primitives.Rectangle(5, 5, 5, 5);
     }
 
     public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
