@@ -2,6 +2,7 @@
 
 using Emotion.Common.Serialization;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using System.Linq;
 
 #endregion

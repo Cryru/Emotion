@@ -17,6 +17,7 @@ using Emotion.IO.MeshAssetTypes;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Extensions = Emotion.Utility.Extensions;
 
 #endregion

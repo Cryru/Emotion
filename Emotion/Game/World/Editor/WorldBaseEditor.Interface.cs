@@ -22,6 +22,7 @@ using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
 using Emotion.Game.Data;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 

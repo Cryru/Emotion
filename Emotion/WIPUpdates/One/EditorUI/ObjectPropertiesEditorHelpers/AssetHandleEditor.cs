@@ -1,5 +1,4 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World.Editor;
+﻿using Emotion.Game.World.Editor;
 using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.UI;

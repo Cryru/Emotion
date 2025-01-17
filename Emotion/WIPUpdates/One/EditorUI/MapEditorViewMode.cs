@@ -1,5 +1,4 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Game;
+﻿using Emotion.Game;
 using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World.Editor;
 using Emotion.Graphics.Camera;

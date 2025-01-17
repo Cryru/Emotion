@@ -4,6 +4,7 @@
 
 using Emotion.Editor.EditorHelpers;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 

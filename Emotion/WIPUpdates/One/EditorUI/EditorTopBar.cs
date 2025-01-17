@@ -1,8 +1,8 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Game.Data;
+﻿using Emotion.Game.Data;
 using Emotion.Game.World.Editor;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.Tools;
 using System;
 using System.Collections.Generic;

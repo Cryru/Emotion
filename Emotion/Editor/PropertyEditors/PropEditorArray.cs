@@ -6,6 +6,7 @@ using System.Collections;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Standard.XML;
 using Emotion.Utility;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 

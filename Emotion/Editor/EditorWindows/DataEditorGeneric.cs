@@ -7,6 +7,7 @@ using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Data;
 using Emotion.IO;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 
