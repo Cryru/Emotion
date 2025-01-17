@@ -104,7 +104,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         {
             _rolloverTiles.Clear();
 
-            Vector2 tileSize = _tileset.TileSize * new Vector2(_tilesetScale);
+            Vector2 tileSize = (_tileset.TileSize * new Vector2(_tilesetScale) * GetScale()).Floor();
             Vector2 tileSizeHalf = tileSize / 2f;
 
             Vector2 startPosRelative = _mouseDragStartPos.Value - tileSetImageOrigin2;
@@ -144,7 +144,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         tileSize = Vector2.Zero;
         if (_tileset == null) return Vector2.Zero;
 
-        Vector2 displayScale = new Vector2(_tilesetScale);
+        Vector2 displayScale = new Vector2(_tilesetScale) * GetScale();
 
         tileSize = _tileset.TileSize * displayScale;
         Vector2 margin = _tileset.Margin * displayScale;
@@ -157,7 +157,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
     {
         if (_tileset == null) return Vector2.Zero;
 
-        Vector2 displayScale = new Vector2(_tilesetScale);
+        Vector2 displayScale = new Vector2(_tilesetScale) * GetScale();
         var tileSize = _tileset.TileSize * displayScale;
         var margin = _tileset.Margin * displayScale;
         var spacing = _tileset.Spacing * displayScale;
@@ -207,6 +207,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
             foreach (Vector2 rolloverTileCoord in _rolloverTiles)
             {
                 Vector2 uiSpace = TilesetCoordToUISpace(rolloverTileCoord, out Vector2 tileSize);
+                tileSize = tileSize.Ceiling();
 
                 c.RenderSprite(contentPos + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
                 c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
@@ -216,6 +217,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
             foreach (Vector2 selectedTileCoord in _selectedTiles)
             {
                 Vector2 uiSpace = TilesetCoordToUISpace(selectedTileCoord, out Vector2 tileSize);
+                tileSize = tileSize.Ceiling();
 
                 c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
                 c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White, 1f);
@@ -239,12 +241,13 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         // todo: load asset, support hot reload
         _tilesetSizeInTiles = _tileset.GetTilesetSizeInTiles();
 
+        _tilesetScale = 32f / _tileset.TileSize.X;
         var textureUI = new UITexture
         {
             Id = "TilesetTexture",
             TextureFile = _tileset.Texture,
-            ImageScale = new Vector2(TilesetScale),
-            ScaleMode = UIScaleMode.NoScale,
+            ImageScale = new Vector2(_tilesetScale),
+            //ScaleMode = UIScaleMode.NoScale,
             Smooth = true
         };
         AddChildInside(textureUI);

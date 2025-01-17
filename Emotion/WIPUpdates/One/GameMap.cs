@@ -14,12 +14,8 @@ public class GameMap
 
     public IEnumerator LoadRoutine()
     {
-        TileMapData = new GameMapTileData();
-        TileMapData.Layers.Add(new TileMapLayerGrid() { TileSize = new Vector2(64) });
-        TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Flat.png", TileSize = new Vector2(64) });
-        TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/tinysword/Tilemap_Elevation.png", TileSize = new Vector2(64) });
-
-        yield return TileMapData.InitRuntimeDataRoutine();
+        if (TileMapData != null)
+            yield return TileMapData.InitRuntimeDataRoutine();
 
         yield break;
     }

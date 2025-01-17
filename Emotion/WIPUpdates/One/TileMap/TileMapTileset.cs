@@ -11,7 +11,7 @@ public class TileMapTileset
     public Vector2 Spacing;
     public Vector2 Margin;
     public Vector2 TileSize = Vector2.One;
-    public bool BilinearFilterTexture = true;
+    public bool BilinearFilterTexture = false;
 
     public override string ToString()
     {
