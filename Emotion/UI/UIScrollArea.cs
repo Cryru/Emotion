@@ -146,7 +146,6 @@ public class UIScrollArea : UIBaseWindow
 
         protected override bool RenderInternal(RenderComposer c)
         {
-            c.RenderSprite(Position, Size, Color.White * 0.05f);
             return base.RenderInternal(c);
         }
 

@@ -129,8 +129,8 @@ public class Grid<T> : Grid
         for (int y = 0; y < minY; y++)
         {
             // Create slices for the old and new data rows
-            var oldRow = dataSpan.Slice(y * oldWidth, minX);
-            var newRow = newData.AsSpan(y * newWidth, minX);
+            Span<T> oldRow = dataSpan.Slice(y * oldWidth, minX);
+            Span<T> newRow = newData.AsSpan(y * newWidth, minX);
 
             // Copy the data for this row
             oldRow.CopyTo(newRow);
