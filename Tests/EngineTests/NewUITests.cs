@@ -11,6 +11,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.Tools;
 
 #endregion

@@ -41,6 +41,7 @@ public sealed class TileEditorWindow : UIBaseWindow
     public TileEditorTileTextureSelector? TileTextureSelector;
 
     private DropdownChoiceEditor<TileMapTileset>? _tilesetChoose;
+    private EditorSelectableListWithButtons<TileMapLayerGrid>? _layerChoose;
 
     private bool _mouseDown;
 
@@ -64,19 +65,47 @@ public sealed class TileEditorWindow : UIBaseWindow
             Anchor = UIAnchor.BottomRight,
             ParentAnchor = UIAnchor.TopRight,
             MinSizeX = 400,
-            //Paddings = new Primitives.Rectangle(10, 10, 10, 10),
+            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
             HandleInput = true,
-            LayoutMode = LayoutMode.VerticalList
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 5)
         };
         barContent.AddChild(sidePanel);
 
+        var sidePanelBg = new UISolidColor
         {
-            var sidePanelBackground = new UISolidColor
+            WindowColor = MapEditorColorPalette.BarColor,
+            BackgroundWindow = true
+        };
+        sidePanel.AddChild(sidePanelBg);
+
+        // Layers
+        {
+            var layers = new EditorSelectableListWithButtons<TileMapLayerGrid>()
             {
-                WindowColor = MapEditorColorPalette.BarColor * 0.3f,
-                BackgroundWindow = true
+                LabelText = "Layers",
+
+                MaxSizeX = 400, // temp
+                MinSizeY = 350,
+                MaxSizeY = 350
             };
-            sidePanel.AddChild(sidePanelBackground);
+            sidePanel.AddChild(layers);
+            _layerChoose = layers;
+
+            //var layersBackground = new UISolidColor
+            //{
+            //    WindowColor = MapEditorColorPalette.BarColor,
+            //    BackgroundWindow = true
+            //};
+            //layers.AddChild(layersBackground);
+        }
+
+        // Tile selector
+        {
+            sidePanel.AddChild(new EditorLabel("Tilesets")
+            {
+                Margins = new Primitives.Rectangle(5, 0, 0, 0)
+            });
 
             var tilesetChoose = new DropdownChoiceEditor<TileMapTileset>();
             sidePanel.AddChild(tilesetChoose);
@@ -94,48 +123,51 @@ public sealed class TileEditorWindow : UIBaseWindow
             sidePanel.AddChild(tilesetTileSelector);
         }
 
-        var textList = new UIBaseWindow()
+        // Bottom text
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(10, 0),
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
-            FillY = false,
-        };
-        barContent.AddChild(textList);
+            var textList = new UIBaseWindow()
+            {
+                LayoutMode = LayoutMode.HorizontalList,
+                ListSpacing = new Vector2(10, 0),
+                AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                FillY = false,
+            };
+            barContent.AddChild(textList);
 
-        var label = new EditorLabel
-        {
-            Text = "Tile Editor",
-            WindowColor = Color.White * 0.5f
-        };
-        textList.AddChild(label);
+            var label = new EditorLabel
+            {
+                Text = "Tile Editor",
+                WindowColor = Color.White * 0.5f
+            };
+            textList.AddChild(label);
 
-        var labelDynamic = new EditorLabel
-        {
-            Text = "",
-            AllowRenderBatch = false
-        };
-        textList.AddChild(labelDynamic);
-        _bottomText = labelDynamic;
-
-        var buttonList = new UIBaseWindow()
-        {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0),
-            AnchorAndParentAnchor = UIAnchor.CenterRight,
-            Margins = new Rectangle(5, 5, 5, 5),
-        };
-        barContent.AddChild(buttonList);
-        _bottomBarToolButtons = buttonList;
-
-        for (int i = 0; i < Tools.Length; i++)
-        {
-            TileEditorTool tool = Tools[i];
-            buttonList.AddChild(new TileEditorToolButton(this, tool));
+            var labelDynamic = new EditorLabel
+            {
+                Text = "",
+                AllowRenderBatch = false
+            };
+            textList.AddChild(labelDynamic);
+            _bottomText = labelDynamic;
         }
 
-        // Init UI
-        TilesetsChanged();
+        // Tool buttons
+        {
+            var buttonList = new UIBaseWindow()
+            {
+                LayoutMode = LayoutMode.HorizontalList,
+                ListSpacing = new Vector2(5, 0),
+                AnchorAndParentAnchor = UIAnchor.CenterRight,
+                Margins = new Rectangle(5, 5, 5, 5),
+            };
+            barContent.AddChild(buttonList);
+            _bottomBarToolButtons = buttonList;
+
+            for (int i = 0; i < Tools.Length; i++)
+            {
+                TileEditorTool tool = Tools[i];
+                buttonList.AddChild(new TileEditorToolButton(this, tool));
+            }
+        }
 
         // Select first tileset and layer.
         foreach (var layer in GetTileLayers())
@@ -322,6 +354,13 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     #region TileLayer
 
+    public void TileLayersChanged()
+    {
+        GameMapTileData? tileData = GetCurrentMapTileData();
+        List<TileMapLayerGrid>? list = tileData?.Layers;
+        _layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
+    }
+
     public IEnumerable<TileMapLayerGrid> GetTileLayers()
     {
         GameMapTileData? tileData = GetCurrentMapTileData();
@@ -352,6 +391,8 @@ public sealed class TileEditorWindow : UIBaseWindow
 
         EngineEditor.SetGridSize(tileLayer.TileSize.X);
         CurrentLayer = tileLayer;
+
+        TileLayersChanged();
     }
 
     #endregion
@@ -360,7 +401,7 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     private void TilesetsChanged()
     {
-        _tilesetChoose.SetEditor(GetTilesets(), CurrentTileset);
+        _tilesetChoose?.SetEditor(GetTilesets(), CurrentTileset, SelectTileset);
     }
 
     public IEnumerable<TileMapTileset> GetTilesets()
@@ -393,6 +434,8 @@ public sealed class TileEditorWindow : UIBaseWindow
 
         TileTextureSelector?.SetTileset(tileset);
         CurrentTileset = tileset;
+
+        TilesetsChanged();
     }
 
     public TilesetId GetCurrentTilesetIndex()

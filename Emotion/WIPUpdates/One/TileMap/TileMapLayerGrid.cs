@@ -18,6 +18,11 @@ public class TileMapLayerGrid : PackedNumericMapGrid<uint>
     {
     }
 
+    public override string ToString()
+    {
+        return Name;
+    }
+
     #region Set/Get
 
     public TileMapTile GetTileAt(int x, int y)

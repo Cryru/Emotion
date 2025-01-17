@@ -108,18 +108,23 @@ public class GameMapTileData
 
     private Vector2[]? _cachedSizeInTiles;
 
+    private int _cachedLayers;
+
     private void BuildRenderCache()
     {
         if (Tilesets.Count == 0) return;
 
         _cachedTileRenderData = null;
         _cachedTileTextures = null;
-        if (Layers.Count == 0) return;
+        _cachedSizeInTiles = null;
 
-        _cachedTileRenderData = new VertexData[Layers.Count][];
-        _cachedTileTextures = new Texture[Layers.Count][];
-        _cachedSizeInTiles = new Vector2[Layers.Count];
-        for (var layerIdx = 0; layerIdx < Layers.Count; layerIdx++)
+        _cachedLayers = Layers.Count;
+        if (_cachedLayers == 0) return;
+
+        _cachedTileRenderData = new VertexData[_cachedLayers][];
+        _cachedTileTextures = new Texture[_cachedLayers][];
+        _cachedSizeInTiles = new Vector2[_cachedLayers];
+        for (var layerIdx = 0; layerIdx < _cachedLayers; layerIdx++)
         {
             (VertexData[] vertexData, Texture[] textureData, Vector2 sizeInTiles) = CalculateRenderCacheForLayer(layerIdx);
 
@@ -228,7 +233,7 @@ public class GameMapTileData
 
     public void RenderTileLayerRange(RenderComposer composer, Rectangle clipRect, int start = 0, int end = -1)
     {
-        end = end == -1 ? Layers.Count : end;
+        end = end == -1 ? _cachedLayers : end;
         for (int layerId = start; layerId < end; layerId++)
         {
             TileMapLayerGrid layer = Layers[layerId];

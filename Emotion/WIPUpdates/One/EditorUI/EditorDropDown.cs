@@ -61,7 +61,7 @@ public class EditorDropDown : UIDropDown
         var list = new UIBaseWindow()
         {
             LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5),
+            ListSpacing = new Vector2(0, 3),
         };
         scrollArea.AddChildInside(list);
 
