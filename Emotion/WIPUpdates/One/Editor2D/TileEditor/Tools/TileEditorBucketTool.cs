@@ -12,6 +12,7 @@ public class TileEditorBucketTool : TileEditorTool
         Name = "Bucket";
         IsPlacingTool = true;
         RequireTileSelection = true;
+        HotKey = Platform.Input.Key.G;
     }
 
     private Stack<(Vector2, TileMapTile)> _spanFillStack = new Stack<(Vector2, TileMapTile)>();

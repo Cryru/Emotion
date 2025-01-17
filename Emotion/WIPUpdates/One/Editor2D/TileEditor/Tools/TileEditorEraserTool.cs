@@ -10,6 +10,7 @@ public class TileEditorEraserTool : TileEditorTool
     {
         Name = "Eraser";
         IsPrecisePaint = true;
+        HotKey = Platform.Input.Key.R;
     }
 
     public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)

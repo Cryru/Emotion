@@ -12,6 +12,7 @@ public class TileEditorBrushTool : TileEditorTool
         IsPlacingTool = true;
         IsPrecisePaint = true;
         RequireTileSelection = true;
+        HotKey = Platform.Input.Key.B;
     }
 
     private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorTilePos)

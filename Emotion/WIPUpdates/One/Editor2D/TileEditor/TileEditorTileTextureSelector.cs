@@ -167,6 +167,14 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         return pos;
     }
 
+    private Vector2 GetTilesetCoordFromTId(TileTextureId tId)
+    {
+        if (_tileset == null) return Vector2.Zero;
+
+        tId -= 1;
+        return Grid.GetCoordinate2DFrom1D(tId, _tilesetSizeInTiles);
+    }
+
     private TileTextureId GetTIdFromTilesetCoord(Vector2 coord)
     {
         if (_tileset == null) return 0;
@@ -253,6 +261,12 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         AddChildInside(textureUI);
     }
 
+    public void AddTileToSelection(TileTextureId tId)
+    {
+        Vector2 pos = GetTilesetCoordFromTId(tId);
+        _selectedTiles.Add(pos);
+    }
+
     public (TileTextureId, Vector2)[] GetSelectedTileTextures(out Vector2 center)
     {
         center = Vector2.Zero;
@@ -281,14 +295,4 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
 
         return pattern;
     }
-
-    //public uint? GetSelectedTidToPlaceAbsolute()
-    //{
-    //    if (_tileset == null) return null;
-    //    if (SelectedTiles.Count == 0) return null;
-
-    //    uint firstSel = SelectedTiles[0];
-    //    int tIdStart = _mapData.GetTilesetTidOffset(_tileset);
-    //    return (uint)tIdStart + firstSel;
-    //}
 }

@@ -38,7 +38,7 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     private UIBaseWindow? _bottomBarToolButtons;
     private UIRichText? _bottomText;
-    public TileEditorTileTextureSelector? TileTextureSelector;
+    public TileEditorTileTextureSelector TileTextureSelector = null!;
 
     private DropdownChoiceEditor<TileMapTileset>? _tilesetChoose;
     private EditorSelectableListWithButtons<TileMapLayerGrid>? _layerChoose;
@@ -48,6 +48,14 @@ public sealed class TileEditorWindow : UIBaseWindow
     public TileEditorWindow()
     {
         HandleInput = true;
+    }
+
+    public override void AttachedToController(UIController controller)
+    {
+        base.AttachedToController(controller);
+
+        // temp
+        controller.SetInputFocus(this);
     }
 
     public void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
@@ -91,13 +99,6 @@ public sealed class TileEditorWindow : UIBaseWindow
             };
             sidePanel.AddChild(layers);
             _layerChoose = layers;
-
-            //var layersBackground = new UISolidColor
-            //{
-            //    WindowColor = MapEditorColorPalette.BarColor,
-            //    BackgroundWindow = true
-            //};
-            //layers.AddChild(layersBackground);
         }
 
         // Tile selector
@@ -326,6 +327,19 @@ public sealed class TileEditorWindow : UIBaseWindow
             //if (!_mouseDown) _lastAction = null;
         }
 
+        if (status == KeyState.Down)
+        {
+            for (int i = 0; i < Tools.Length; i++)
+            {
+                TileEditorTool tool = Tools[i];
+                if (key == tool.HotKey)
+                {
+                    SetCurrentTool(tool);
+                    break;
+                }
+            }
+        }
+
         return base.OnKey(key, status, mousePos);
     }
 
@@ -334,6 +348,7 @@ public sealed class TileEditorWindow : UIBaseWindow
     public void SetCurrentTool(TileEditorTool currentTool)
     {
         CurrentTool = currentTool;
+        if (currentTool.IsPlacingTool) _lastUsedPlacingTool = CurrentTool;
 
         if (_bottomBarToolButtons == null) return;
         foreach (UIBaseWindow child in _bottomBarToolButtons)
@@ -343,6 +358,11 @@ public sealed class TileEditorWindow : UIBaseWindow
                 toolButton.UpdateStyle();
             }
         }
+    }
+
+    public void SetCurrentToolAsLastPlacingTool()
+    {
+        SetCurrentTool(_lastUsedPlacingTool);
     }
 
     public GameMapTileData? GetCurrentMapTileData()
