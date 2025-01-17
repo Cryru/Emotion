@@ -30,6 +30,7 @@ using Emotion.Testing;
 using Emotion.UI;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.Work;
 using WinApi.User32;
 

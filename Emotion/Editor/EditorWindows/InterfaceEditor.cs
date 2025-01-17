@@ -1,6 +1,7 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.Platform.Input;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;

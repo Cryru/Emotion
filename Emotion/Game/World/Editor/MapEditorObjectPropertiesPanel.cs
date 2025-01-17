@@ -15,6 +15,7 @@ using Emotion.Game.World3D;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 

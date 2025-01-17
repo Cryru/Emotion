@@ -2,6 +2,7 @@
 
 using Emotion.Game.World.Editor;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 

@@ -8,6 +8,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #endregion
 
