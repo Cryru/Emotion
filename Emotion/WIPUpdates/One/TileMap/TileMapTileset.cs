@@ -1,5 +1,4 @@
 ﻿using Emotion.IO;
-using Microsoft.CodeAnalysis;
 
 #nullable enable
 
