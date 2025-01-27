@@ -1178,7 +1178,7 @@ namespace Emotion.UI
         /// The scale factor applied on the UI.
         /// </summary>
         /// <returns></returns>
-        public float GetScale()
+        public virtual float GetScale()
         {
             return ScaleMode switch
             {
