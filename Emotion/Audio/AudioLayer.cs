@@ -644,8 +644,16 @@ namespace Emotion.Audio
             int framesOutput = GetProcessedFramesFromTrack(CurrentStreamingFormat, _currentTrack, framesRequested, _internalBuffer, _playHead);
             _playHead += framesOutput * CurrentStreamingFormat.Channels;
 
+            var destByteOffset = framesOffset * CurrentStreamingFormat.FrameSize;
+            if (destByteOffset > dest.Length)
+            {
+                Assert(false);
+                Engine.Log.Error($"Frames dont fit in destination :/", MessageSource.Audio);
+                return 0;
+            }
+
             // Convert data to the destination sample size format.
-            Span<byte> destBuffer = dest.Slice(framesOffset * CurrentStreamingFormat.FrameSize);
+            Span<byte> destBuffer = dest.Slice(destByteOffset);
             var srcBuffer = new Span<float>(_internalBuffer, 0, samplesRequested);
             AudioUtil.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, CurrentStreamingFormat);
 
