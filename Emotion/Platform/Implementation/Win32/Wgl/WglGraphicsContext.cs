@@ -183,8 +183,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError("Creating WGL legacy context", true);
                 Engine.Log.Info("WGL legacy context created.", MessageSource.Wgl);
             }
-
-            Win32Platform.CheckError("Checking if context creation passed.");
+            
             Valid = true;
         }
 
