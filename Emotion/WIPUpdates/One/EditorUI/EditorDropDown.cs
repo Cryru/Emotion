@@ -31,6 +31,13 @@ public class EditorDropDown : UIDropDown
         if (ClampToSpawningWindowWidth && size.X > SpawningWindow.Width)
             size.X = SpawningWindow.Width;
 
+        if (size.X < SpawningWindow.Width)
+        {
+            float diff = SpawningWindow.Width - Size.X;
+            pos.X -= diff;
+            size.X += diff;
+        }
+
         base.Layout(pos, size);
     }
 

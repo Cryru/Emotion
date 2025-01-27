@@ -11,54 +11,34 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 {
-    private UIRichText _label;
-    private UICallbackButton _button;
-    private UISolidColor _arrowParent;
+    private EditorButton _button;
 
     public DropdownChoiceEditor()
     {
-        Paddings = new Primitives.Rectangle(3, 3, 0, 3);
-
-        var button = new UICallbackButton()
+        var button = new EditorButton()
         {
-            OnClickedProxy = (_) => Clicked(),
-            OnMouseEnterProxy = (_) =>
-            {
-                _arrowParent!.WindowColor = MapEditorColorPalette.ActiveButtonColor;
-            },
-            OnMouseLeaveProxy = (_) =>
-            {
-                _arrowParent!.WindowColor = MapEditorColorPalette.ButtonColor;
-            }
+            FillX = true,
+            OnClickedProxy = (_) => Clicked()
         };
         AddChild(button);
         _button = button;
 
-        var label = new EditorLabel()
-        {
-            Margins = new Primitives.Rectangle(5, 0, 5, 0)
-        };
-        button.AddChild(label);
-        _label = label;
-
-        var arrowSquare = new UISolidColor()
+        var arrowSquare = new UIBaseWindow()
         {
             FillX = false,
             FillY = false,
-            WindowColor = MapEditorColorPalette.ButtonColor,
             MinSizeY = 23,
             MinSizeX = 29,
             AnchorAndParentAnchor = UIAnchor.TopRight,
         };
-        button.AddChild(arrowSquare);
-        _arrowParent = arrowSquare;
+        AddChild(arrowSquare);
 
         var arrowIcon = new UITexture()
         {
             Smooth = true,
             TextureFile = "Editor/LittleArrow.png",
             ImageScale = new Vector2(0.6f),
-            Offset = new Vector2(0, 1),
+            Offset = new Vector2(0, 4),
             AnchorAndParentAnchor = UIAnchor.CenterCenter
         };
         arrowSquare.AddChild(arrowIcon);
@@ -73,16 +53,15 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
         dropDown.MaxSizeY = 300;
         dropDown.ParentAnchor = UIAnchor.BottomRight;
         dropDown.Anchor = UIAnchor.TopRight;
-        dropDown.Offset = new Vector2(0, -3);
 
+        int idx = 0;
         foreach (T item in _items)
         {
-            var button = new EditorButton
-            {
-                Text = item?.ToString() ?? "<null>",
-                FillX = true
-            };
+            var button = new EditorListItem<T>(item, (item) => dropDown.Close());
+            button.Selected = _currentIndex == idx;
             dropDown.AddChild(button);
+
+            idx++;
         }
     }
 
@@ -93,21 +72,16 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 
     protected override void OnSelectionChanged(T? newSel)
     {
-        _label.Text = newSel?.ToString() ?? "<null>";
+        _button.Text = newSel?.ToString() ?? "<null>";
     }
 
     protected override void OnSelectionEmpty()
     {
-        _label.Text = "<empty>";
+        _button.Text = "<empty>";
     }
 
     protected override bool RenderInternal(RenderComposer c)
     {
-        c.RenderSprite(Bounds, MapEditorColorPalette.BarColor);
-        c.RenderOutline(Bounds, _button.MouseInside ? MapEditorColorPalette.ActiveButtonColor : MapEditorColorPalette.ButtonColor, 3 * GetScale());
-
-        if (_button.MouseInside) c.RenderSprite(_button.Bounds, Color.White * 0.3f);
-
         return base.RenderInternal(c);
     }
 }

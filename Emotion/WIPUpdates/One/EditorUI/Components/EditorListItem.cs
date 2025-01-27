@@ -25,7 +25,7 @@ public class EditorListItem<T> : EditorButton
 
     public EditorListItem(T item, Action<T>? onClick)
     {
-        NormalColor = new Primitives.Color(0, 0, 0, 1);
+        NormalColor = MapEditorColorPalette.ButtonColor.CloneWithAlpha(150);
 
         Item = item;
         FillX = true;

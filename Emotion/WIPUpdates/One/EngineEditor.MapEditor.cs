@@ -1,14 +1,9 @@
-﻿using Emotion.Game;
-using Emotion.Game.World3D.Objects;
+﻿using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Editor2D;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One;
