@@ -1,7 +1,9 @@
 ﻿#region Using
 
+using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Game.Text;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Text;
 using Emotion.Graphics.Text.EmotionSDF;
@@ -24,7 +26,7 @@ public class UIRichText : UIBaseWindow
         get => _fontFileName;
         set
         {
-            _fontFileName = value;
+            _fontFileName = AssetLoader.NameToEngineName(value);
             InvalidateLoaded();
         }
     }
@@ -153,20 +155,28 @@ public class UIRichText : UIBaseWindow
     protected override async Task LoadContent()
     {
         // Load font if not loaded.
-        if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-        if (_fontFile == null) return;
-
-        if (FontSize == 0)
+        if (FontNeedsUpdate())
         {
-            _atlas = null;
-            return;
+            Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+            _fontFile = await loadTask;
+            _atlas = null; // Update atlas
         }
 
-        // Load atlas as well. This one will change based on UI scale.
-        // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
-        float scale = GetScale();
-        _atlas = _fontFile.GetAtlas((int)MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
-        InvalidateLayout();
+        if (SizeNeedsUpdate())
+        {
+            if (_fontFile == null || FontSize == 0)
+            {
+                _atlas = null;
+                return;
+            }
+
+            // todo: check if the atlas actually uses the scaled metrics or can we apply scale during draw?
+            // probably not with the current draw caching going on
+            float scale = GetScale();
+            float atlasSize = (int)MathF.Ceiling(FontSize * scale);
+            _atlas = _fontFile.GetAtlas(atlasSize, FontSizePixelPerfect);
+            InvalidateLayout();
+        }
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
@@ -264,6 +274,109 @@ public class UIRichText : UIBaseWindow
     {
         _cachedColor = _calculatedColor;
         _layoutEngine.RenderWithNoLayoutOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor.CloneWithAlpha(255), OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+    }
+
+    #endregion
+
+    #region Virtual UI
+
+    protected override void InvalidateLoaded()
+    {
+        base.InvalidateLoaded();
+        _virtualDrawInvalidated = true;
+    }
+
+    public Vector2 VirtualSizeLast;
+
+    private Coroutine _loadingRoutine = Coroutine.CompletedRoutine;
+    private Color _virtualLastDrawnColor;
+    private Vector2 _virtualLastDrawnSize;
+    private bool _virtualDrawInvalidated = true;
+
+    private IEnumerator UpdateVirtualWindowAsync()
+    {
+        // Load font if not loaded.
+        if (FontNeedsUpdate())
+        {
+            Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+            yield return new TaskRoutineWaiter(loadTask);
+            _fontFile = loadTask.Result;
+            _atlas = null; // Update atlas
+        }
+       
+        if (SizeNeedsUpdate())
+        {
+            if (_fontFile == null || FontSize == 0)
+            {
+                _atlas = null;
+                yield break;
+            }
+
+            // todo: check if the atlas actually uses the scaled metrics or can we apply scale during draw?
+            // probably not with the current draw caching going on
+            float scale = GetScale();
+            float atlasSize = (int)MathF.Ceiling(FontSize * scale);
+            _atlas = _fontFile.GetAtlas(atlasSize, FontSizePixelPerfect);
+            _virtualDrawInvalidated = true;
+        }
+    }
+
+    private bool FontNeedsUpdate()
+    {
+        return _fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed;
+    }
+
+    private bool SizeNeedsUpdate()
+    {
+        if (_atlas == null) return true;
+
+        float scale = GetScale();
+        float atlasSize = (int)MathF.Ceiling(FontSize * scale);
+        return _atlas.FontSize != atlasSize;
+    }
+
+    public void UpdateVirtual(Vector2 space)
+    {
+        if (space != _virtualLastDrawnSize || _virtualDrawInvalidated)
+        {
+            VirtualSizeLast = InternalMeasure(space);
+            _virtualLastDrawnSize = space;
+            _virtualDrawInvalidated = false;
+        }
+    }
+
+    public void RenderVirtual(RenderComposer c, Vector3 position, Vector2 space, Color color)
+    {
+        if (string.IsNullOrEmpty(_text)) return;
+
+        // Load assets
+        if (!_loadingRoutine.Finished) return; // Loading currently
+        if (FontNeedsUpdate() || SizeNeedsUpdate())
+            _loadingRoutine = Engine.CoroutineManager.StartCoroutine(UpdateVirtualWindowAsync());
+        if (!_loadingRoutine.Finished) return; // Loading currently
+
+        // Invalid config
+        if (_atlas == null) return;
+
+        // Check update color
+        if (color != _virtualLastDrawnColor)
+        {
+            _virtualLastDrawnColor = color;
+
+            if (_cachedTextRender != null)
+                _cachedTextRender.UpVersion();
+
+            _calculatedColor = color;
+        }
+
+        // Check update size
+        UpdateVirtual(space);
+
+        bool batched = AllowRenderBatch && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+        if (batched)
+            c.RenderSprite(position - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender!.Size, Color.White * color.A, _cachedTextRender);
+        else
+            _layoutEngine.Render(c, position, color, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
     #endregion
