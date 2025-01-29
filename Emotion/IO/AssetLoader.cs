@@ -328,7 +328,17 @@ namespace Emotion.IO
                 if (_asyncLoadingTasks.TryGetValue(name, out task)) // Check if already async loading this asset.
                     return (Task<T?>)task;
 
-                task = Task.Run(() => Get<T>(name, cache));
+                // Avoid lambda allocation
+                task = Task.Factory.StartNew(
+                    static (state) =>
+                    {
+                        var stateTuple = (ValueTuple<string, bool>?)state;
+                        if (stateTuple == null || !stateTuple.HasValue) return null;
+                        (string, bool) taskParam = stateTuple.Value;
+                        return Engine.AssetLoader.Get<T>(taskParam.Item1, taskParam.Item2);
+                    },
+                    (name, cache)
+                );
                 _asyncLoadingTasks.Add(name, task);
             }
 
@@ -369,6 +379,8 @@ namespace Emotion.IO
 
         #endregion
 
+        private static Dictionary<string, string> _cachedNameToEngineNameConversions = new(); // Reduce allocations
+
         /// <summary>
         /// Converts the provided asset name to an engine name
         /// </summary>
@@ -376,7 +388,11 @@ namespace Emotion.IO
         /// <returns>The converted name.</returns>
         public static string NameToEngineName(string name)
         {
-            return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
+            if (_cachedNameToEngineNameConversions.TryGetValue(name, out string? cachedConversion)) return cachedConversion;
+
+            string engineName = name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
+            _cachedNameToEngineNameConversions.Add(name, engineName);
+            return engineName;
         }
 
         /// <summary>

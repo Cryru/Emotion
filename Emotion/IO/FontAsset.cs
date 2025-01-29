@@ -118,7 +118,7 @@ namespace Emotion.IO
             DestroyAtlas((int) MathF.Ceiling(fontSize));
         }
 
-        public static string DefaultBuiltInFontName = "Editor/UbuntuMono-Regular.ttf";
+        public static string DefaultBuiltInFontName = AssetLoader.NameToEngineName("Editor/UbuntuMono-Regular.ttf");
 
         /// <summary>
         /// Loads and returns the default font shipped with the engine.
