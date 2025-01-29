@@ -188,12 +188,10 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Silk.NET.Assimp" Version="2.20.0"
-            Condition="$(DefineConstants.Contains('ASSIMP'))" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5"
-            Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0"
-            Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
+        <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" Condition="$(DefineConstants.Contains('ASSIMP'))" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
+        <PackageReference Include="System.Text.Json" Version="9.0.1" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Properties\" />
