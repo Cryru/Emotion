@@ -392,15 +392,36 @@ namespace Emotion.Audio
 
         // Debug
         private Stopwatch? _updateTimer;
-        private UpdateScopeTracker? _inUpdateLoop;
+        private UpdateScopeTracker _inUpdateLoop = new ();
 
         private class UpdateScopeTracker : IDisposable
         {
             public bool Disposed;
 
+            public void Reset()
+            {
+                Disposed = false;
+            }
+
             public void Dispose()
             {
                 Disposed = true;
+            }
+        }
+
+        private struct UpdateScopeTrackerUsingStatementHack : IDisposable // Hack to remove allocations from update tracking
+        {
+            public UpdateScopeTracker Tracker;
+
+            public UpdateScopeTrackerUsingStatementHack(UpdateScopeTracker tracker)
+            {
+                Tracker = tracker;
+                tracker.Reset();
+            }
+
+            public void Dispose()
+            {
+                Tracker.Dispose();
             }
         }
 
@@ -418,8 +439,7 @@ namespace Emotion.Audio
         /// <param name="exact">Whether to update exactly that amount. Used for testing.</param>
         public void Update(int timePassed, bool exact = false)
         {
-            using var updateLoopTrack = new UpdateScopeTracker();
-            _inUpdateLoop = updateLoopTrack;
+            using var _ = new UpdateScopeTrackerUsingStatementHack(_inUpdateLoop);
 
             UpdateCurrentTrack();
 
@@ -644,8 +664,8 @@ namespace Emotion.Audio
             int framesOutput = GetProcessedFramesFromTrack(CurrentStreamingFormat, _currentTrack, framesRequested, _internalBuffer, _playHead);
             _playHead += framesOutput * CurrentStreamingFormat.Channels;
 
-            var destByteOffset = framesOffset * CurrentStreamingFormat.FrameSize;
-            if (destByteOffset > dest.Length)
+            int destByteOffset = framesOffset * CurrentStreamingFormat.FrameSize;
+            if (destByteOffset >= dest.Length)
             {
                 Assert(false);
                 Engine.Log.Error($"Frames dont fit in destination :/", MessageSource.Audio);
