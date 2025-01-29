@@ -20,7 +20,7 @@ namespace Emotion.Standard.Logging
         private const int MAX_LOG_SIZE = 10000000;
 
         private ConcurrentQueue<(MessageType, string)> _logQueue = new ConcurrentQueue<(MessageType, string)>();
-        private AutoResetEvent _queueEvent = new AutoResetEvent(false);
+        private AutoResetEvent _queueEvent = new AutoResetEvent(true);
         private bool _stdOut;
         protected string _logFolder;
         private Thread? _logThread;
