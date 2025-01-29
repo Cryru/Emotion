@@ -82,13 +82,16 @@ public partial class UIController
 
     private void SetControllerMouseFocus(UIBaseWindow? newMouseFocus)
     {
+        if (_mouseFocusOnKeyDelegateCache == null)
+            _mouseFocusOnKeyDelegateCache = MouseFocusOnKey;
+
         Vector2 mousePos = Engine.Host.MousePosition;
         if (newMouseFocus != _myMouseFocus)
         {
             _myMouseFocus?.OnMouseLeft(mousePos);
-            if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+            if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
             _myMouseFocus = newMouseFocus;
-            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyPriority);
+            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyPriority);
             _myMouseFocus?.OnMouseEnter(mousePos);
             MouseFocus = newMouseFocus;
 

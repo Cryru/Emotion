@@ -373,6 +373,9 @@ namespace Emotion.UI
             return true;
         }
 
+        // Remove allocation from delegate cast
+        private Func<Key, KeyStatus, bool> _mouseFocusOnKeyDelegateCache;
+
         private bool MouseFocusOnKey(Key key, KeyStatus status)
         {
             if (_updateInputFocus && status == KeyStatus.Down)
