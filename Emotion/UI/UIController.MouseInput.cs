@@ -66,9 +66,9 @@ public partial class UIController
         if (newMouseFocus != _myMouseFocus)
         {
             _myMouseFocus?.OnMouseLeft(mousePos);
-            if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+            if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
             _myMouseFocus = newMouseFocus;
-            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyListenerType.UI);
+            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyListenerType.UI);
             _myMouseFocus?.OnMouseEnter(mousePos);
             MouseFocus = newMouseFocus;
 
