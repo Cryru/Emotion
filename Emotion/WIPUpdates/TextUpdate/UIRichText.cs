@@ -163,7 +163,8 @@ public class UIRichText : UIBaseWindow
         }
 
         float scale = GetScale();
-        UpdateAtlasIfNeeded(scale, FontSize);
+        if (UpdateAtlasIfNeeded(scale, FontSize))
+            InvalidateLayout();
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
