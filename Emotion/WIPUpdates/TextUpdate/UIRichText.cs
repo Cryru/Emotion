@@ -162,20 +162,8 @@ public class UIRichText : UIBaseWindow
             _atlas = null; // Update atlas
         }
 
-        if (SizeNeedsUpdate())
-        {
-            if (_fontFile == null || FontSize == 0)
-            {
-                _atlas = null;
-                return;
-            }
-
-            // todo: check if the atlas actually uses the scaled metrics or can we apply scale during draw?
-            // probably not with the current draw caching going on
-            float scale = GetScale();
-            float atlasSize = (int)MathF.Ceiling(FontSize * scale);
-            _atlas = _fontFile.GetAtlas(atlasSize, FontSizePixelPerfect);
-        }
+        float scale = GetScale();
+        UpdateAtlasIfNeeded(scale, FontSize);
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
@@ -193,7 +181,7 @@ public class UIRichText : UIBaseWindow
         _scaledUnderlineThickness = UnderlineThickness * scale;
 
         string text = StringContext.ResolveString(_text, StringIsTranslated);
-        if (_layoutEngine.NeedsToReRun(text, space.X))
+        if (_layoutEngine.NeedsToReRun(text, space.X, _atlas))
         {
             _layoutEngine.InitializeLayout(text, TextHeightMode);
             if (WrapText)
@@ -248,7 +236,6 @@ public class UIRichText : UIBaseWindow
     {
         private UIRichText _textElement;
 
-
         public VirtualTextureForRichText(UIRichText textElement)
         {
             _textElement = textElement;
@@ -273,9 +260,15 @@ public class UIRichText : UIBaseWindow
 
     #region Virtual UI
 
-    protected override void InvalidateLoaded()
+    protected override void InvalidateLoaded() // FontFile changed
     {
         base.InvalidateLoaded();
+        _virtualDrawInvalidated = true;
+    }
+
+    public override void InvalidateLayout() // Text changed
+    {
+        base.InvalidateLayout();
         _virtualDrawInvalidated = true;
     }
 
@@ -286,32 +279,12 @@ public class UIRichText : UIBaseWindow
     private Vector2 _virtualLastDrawnSize;
     private bool _virtualDrawInvalidated = true;
 
-    private IEnumerator UpdateVirtualWindowAsync()
+    private IEnumerator VirtualUILoadAssetsRoutine()
     {
-        // Load font if not loaded.
-        if (FontNeedsUpdate())
-        {
-            Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-            yield return new TaskRoutineWaiter(loadTask);
-            _fontFile = loadTask.Result;
-            _atlas = null; // Update atlas
-        }
-       
-        if (SizeNeedsUpdate())
-        {
-            if (_fontFile == null || FontSize == 0)
-            {
-                _atlas = null;
-                yield break;
-            }
-
-            // todo: check if the atlas actually uses the scaled metrics or can we apply scale during draw?
-            // probably not with the current draw caching going on
-            float scale = GetScale();
-            float atlasSize = (int)MathF.Ceiling(FontSize * scale);
-            _atlas = _fontFile.GetAtlas(atlasSize, FontSizePixelPerfect);
-            _virtualDrawInvalidated = true;
-        }
+        Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+        yield return new TaskRoutineWaiter(loadTask);
+        _fontFile = loadTask.Result;
+        _atlas = null; // Update atlas
     }
 
     private bool FontNeedsUpdate()
@@ -319,17 +292,32 @@ public class UIRichText : UIBaseWindow
         return _fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed;
     }
 
-    private bool SizeNeedsUpdate()
+    private bool UpdateAtlasIfNeeded(float scale, int fontSize)
     {
-        if (_atlas == null) return true;
+        float atlasSize = (int)MathF.Ceiling(fontSize * scale);
 
-        float scale = GetScale();
-        float atlasSize = (int)MathF.Ceiling(FontSize * scale);
-        return _atlas.FontSize != atlasSize;
+        if (_atlas != null && _atlas.FontSize == atlasSize)
+            return false;
+
+        if (_fontFile == null || fontSize == 0)
+        {
+            _atlas = null;
+        }
+        else
+        {
+            // todo: check if the atlas actually uses the scaled metrics or can we apply scale during draw?
+            // probably not with the current draw caching going on
+            _atlas = _fontFile.GetAtlas(atlasSize, FontSizePixelPerfect);
+        }
+
+        return true;
     }
 
-    public void UpdateVirtual(Vector2 space)
+    public void UpdateVirtual(Vector2 space, float scale)
     {
+        if (UpdateAtlasIfNeeded(scale, FontSize))
+            _virtualDrawInvalidated = true;
+
         if (space != _virtualLastDrawnSize || _virtualDrawInvalidated)
         {
             VirtualSizeLast = InternalMeasure(space);
@@ -338,15 +326,17 @@ public class UIRichText : UIBaseWindow
         }
     }
 
-    public void RenderVirtual(RenderComposer c, Vector3 position, Vector2 space, Color color)
+    public void RenderVirtual(RenderComposer c, Vector3 position, Vector2 space, float scale, Color color)
     {
         if (string.IsNullOrEmpty(_text)) return;
 
         // Load assets
         if (!_loadingRoutine.Finished) return; // Loading currently
-        if (FontNeedsUpdate() || SizeNeedsUpdate())
-            _loadingRoutine = Engine.CoroutineManager.StartCoroutine(UpdateVirtualWindowAsync());
+        if (FontNeedsUpdate()) _loadingRoutine = Engine.CoroutineManager.StartCoroutine(VirtualUILoadAssetsRoutine());
         if (!_loadingRoutine.Finished) return; // Loading currently
+
+        // Check update metrics and atlas
+        UpdateVirtual(space, scale);
 
         // Invalid config
         if (_atlas == null) return;
@@ -355,15 +345,9 @@ public class UIRichText : UIBaseWindow
         if (color != _virtualLastDrawnColor)
         {
             _virtualLastDrawnColor = color;
-
-            if (_cachedTextRender != null)
-                _cachedTextRender.UpVersion();
-
+            _cachedTextRender?.UpVersion();
             _calculatedColor = color;
         }
-
-        // Check update size
-        UpdateVirtual(space);
 
         bool batched = AllowRenderBatch && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
         if (batched)

@@ -54,10 +54,11 @@ public class TextLayoutEngine
     /// </summary>
     public Vector3 LayoutRenderOffset { get; protected set; } = Vector3.Zero;
 
-    public bool NeedsToReRun(string text, float? wrapWidth)
+    public bool NeedsToReRun(string text, float? wrapWidth, DrawableFontAtlas defaultAtlas)
     {
         if (_wrapWidth != wrapWidth) return true;
         if (text != _text) return true;
+        if (defaultAtlas != _defaultAtlas) return true;
         return false;
     }
 
