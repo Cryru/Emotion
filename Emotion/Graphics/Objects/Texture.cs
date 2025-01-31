@@ -59,8 +59,9 @@ namespace Emotion.Graphics.Objects
             get => _smooth;
             set
             {
-                if (value == _smooth) return;
+                if (value == _smooth && _smoothSet) return;
                 _smooth = value;
+                _smoothSet = true;
 
                 GLThread.ExecuteGLThreadAsync(() =>
                 {
@@ -123,6 +124,7 @@ namespace Emotion.Graphics.Objects
 
         private bool _tile;
         protected bool _smooth;
+        private bool _smoothSet;
 
         /// <summary>
         /// Create a new uninitialized texture.
