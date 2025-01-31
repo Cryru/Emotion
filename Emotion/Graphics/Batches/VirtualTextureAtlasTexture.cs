@@ -20,7 +20,7 @@ public class VirtualTextureAtlasTexture : Texture
     {
         PixelFormat = OpenGL.PixelFormat.Rgba;
         PixelType = OpenGL.PixelType.UnsignedByte;
-        _smooth = true;
+        _smooth = false;
     }
 
     public void SetVirtualSize(Vector2 size)
