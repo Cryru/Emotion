@@ -61,6 +61,7 @@ namespace Emotion.Graphics.Objects
             get => _smooth;
             set
             {
+                if (value == _smooth) return;
                 _smooth = value;
 
                 GLThread.ExecuteGLThreadAsync(() =>
