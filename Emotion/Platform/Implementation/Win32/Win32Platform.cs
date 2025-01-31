@@ -47,7 +47,6 @@ namespace Emotion.Platform.Implementation.Win32
         // Resources
         private IntPtr _helperWindowHandle;
         private IntPtr _windowHandle;
-        private IntPtr _deviceNotificationHandle;
 
         /// <inheritdoc />
         protected override void SetupInternal(Configurator config)
@@ -341,11 +340,12 @@ namespace Emotion.Platform.Implementation.Win32
             User32.ShowWindow(_helperWindowHandle, ShowWindowCommands.SW_HIDE);
 
             // Register for HID device notifications
-            var dbi = new DevBroadcastDeviceInterfaceW();
-            dbi.DbccSize = (uint) Marshal.SizeOf(dbi);
-            dbi.DbccDeviceType = DeviceType.DeviceInterface;
-            dbi.DbccClassGuid = User32Guids.GuidDevInterfaceHid;
-            _deviceNotificationHandle = User32.RegisterDeviceNotificationW(_helperWindowHandle, ref dbi, DeviceNotificationFlags.WindowHandle);
+            // todo: Not supported on Proton, and we don't use it right now so I'm disabling it.
+            //var dbi = new DevBroadcastDeviceInterfaceW();
+            //dbi.DbccSize = (uint) Marshal.SizeOf(dbi);
+            //dbi.DbccDeviceType = DeviceType.DeviceInterface;
+            //dbi.DbccClassGuid = User32Guids.GuidDevInterfaceHid;
+            //_deviceNotificationHandle = User32.RegisterDeviceNotificationW(_helperWindowHandle, ref dbi, DeviceNotificationFlags.WindowHandle);
 
             CheckError("Registering for device notifications.");
 
