@@ -502,5 +502,10 @@ namespace Emotion.Graphics.Batches
             _vertexPostProcFunc = func;
             _vertexPostProcFuncUserData = func == null ? null : userData;
         }
+
+        public bool HasVerticesPostProcessingFunction()
+        {
+            return _vertexPostProcFunc != null;
+        }
     }
 }
