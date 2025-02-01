@@ -360,7 +360,7 @@ public class UIRichText : UIBaseWindow
     {
         AssertNotNull(_atlas);
 
-        bool batched = AllowRenderBatch && _atlas.FontSize > 15 && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+        bool batched = AllowRenderBatch && _atlas.FontSize > 10 && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
         if (batched)
         {
             AssertNotNull(_cachedTextRender);
