@@ -360,16 +360,26 @@ public class UIRichText : UIBaseWindow
     {
         AssertNotNull(_atlas);
 
-        bool batched = AllowRenderBatch && _atlas.FontSize > 10 && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
-        if (batched)
+        // Optimization for rendering the text as part of the texture batch,
+        // this reduces draw calls dramatically but the text can be blurry if
+        // scaled, rotated, or transformed in various ways.
+        if (_cachedTextRender != null && AllowRenderBatch)
         {
-            AssertNotNull(_cachedTextRender);
-            c.RenderSprite(pos - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender.Size, Color.White * _calculatedColor.A, _cachedTextRender);
+            bool canBatch = c.ModelMatrix.IsIdentity; // todo: check if just translation
+            canBatch = canBatch && c.CurrentState.ViewMatrix == false; // todo: check if just translation
+            canBatch = canBatch && !c.RenderStream.HasVerticesPostProcessingFunction();
+
+            // If can be batched, attempt to, and if successful - draw the batched texture
+            bool batched = canBatch && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+            if (batched)
+            {
+                c.RenderSprite(pos - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender.Size, Color.White * _calculatedColor.A, _cachedTextRender);
+                return;
+            }
         }
-        else
-        {
-            _layoutEngine.Render(c, pos, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
-        }
+
+        // Render normally
+        _layoutEngine.Render(c, pos, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
     #endregion
