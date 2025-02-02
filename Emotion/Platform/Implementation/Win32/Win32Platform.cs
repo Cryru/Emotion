@@ -47,7 +47,6 @@ namespace Emotion.Platform.Implementation.Win32
         // Resources
         private IntPtr _helperWindowHandle;
         private IntPtr _windowHandle;
-        private IntPtr _deviceNotificationHandle;
 
         /// <inheritdoc />
         protected override void SetupInternal(Configurator config)
@@ -341,11 +340,12 @@ namespace Emotion.Platform.Implementation.Win32
             User32.ShowWindow(_helperWindowHandle, ShowWindowCommands.SW_HIDE);
 
             // Register for HID device notifications
-            var dbi = new DevBroadcastDeviceInterfaceW();
-            dbi.DbccSize = (uint) Marshal.SizeOf(dbi);
-            dbi.DbccDeviceType = DeviceType.DeviceInterface;
-            dbi.DbccClassGuid = User32Guids.GuidDevInterfaceHid;
-            _deviceNotificationHandle = User32.RegisterDeviceNotificationW(_helperWindowHandle, ref dbi, DeviceNotificationFlags.WindowHandle);
+            // todo: Not supported on Proton, and we don't use it right now so I'm disabling it.
+            //var dbi = new DevBroadcastDeviceInterfaceW();
+            //dbi.DbccSize = (uint) Marshal.SizeOf(dbi);
+            //dbi.DbccDeviceType = DeviceType.DeviceInterface;
+            //dbi.DbccClassGuid = User32Guids.GuidDevInterfaceHid;
+            //_deviceNotificationHandle = User32.RegisterDeviceNotificationW(_helperWindowHandle, ref dbi, DeviceNotificationFlags.WindowHandle);
 
             CheckError("Registering for device notifications.");
 
@@ -407,24 +407,30 @@ namespace Emotion.Platform.Implementation.Win32
         /// </summary>
         /// <param name="msg">A message to display with the error.</param>
         /// <param name="sureError">Whether you are sure an error occured.</param>
-        public static void CheckError(string msg, bool sureError = false)
+        public static void CheckError(string msg, bool sureError = false, bool critical = true)
         {
             uint errorCheck = Kernel32.GetLastError();
             if (errorCheck == 0 && !sureError) return;
 
             // Check predefined errors.
+            Exception exToLog;
             switch (errorCheck)
             {
                 case ERROR_INVALID_VERSION_ARB:
-                    Engine.CriticalError(new Exception($"Driver doesn't support version of {msg}"));
+                    exToLog = new Exception($"Driver doesn't support version of {msg}");
                     break;
                 case ERROR_INVALID_PROFILE_ARB:
-                    Engine.CriticalError(new Exception($"Driver doesn't support profile of {msg}"));
+                    exToLog = new Exception($"Driver doesn't support profile of {msg}");
                     break;
                 default:
-                    Engine.CriticalError(new Exception(msg, new Win32Exception((int) errorCheck)));
+                    exToLog = new Exception(msg, new Win32Exception((int) errorCheck));
                     break;
             }
+
+            if (critical)
+                Engine.CriticalError(exToLog);
+            else
+                Engine.Log.Error(exToLog);
         }
 
         #endregion

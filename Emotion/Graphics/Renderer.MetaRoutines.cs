@@ -227,9 +227,17 @@ namespace Emotion.Graphics
             RenderSprite(new Vector3(r.X, r.Y + radius, z), new Vector2(r.Width, r.Height - radius * 2), c);
         }
 
+        public void RenderRoundedRectSdf(Vector2 pos, Vector2 size, Color c, float radius = 7f)
+        {
+            RenderRoundedRectSdf(pos.ToVec3(), size, c, radius);
+        }
+
+        private ShaderAsset? _roundedRectangleSdfShader;
+
         public void RenderRoundedRectSdf(Vector3 pos, Vector2 size, Color c, float radius = 7f)
         {
-            var roundedRectShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
+            _roundedRectangleSdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
+            ShaderAsset roundedRectShader = _roundedRectangleSdfShader;
 
             ShaderProgram prevShader = CurrentState.Shader;
             SetShader(roundedRectShader.Shader);

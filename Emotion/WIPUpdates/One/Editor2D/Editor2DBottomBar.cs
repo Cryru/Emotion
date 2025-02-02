@@ -3,6 +3,7 @@ using Emotion.Game.World2D.Editor;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 
 #nullable enable
 
@@ -74,12 +75,13 @@ public class Editor2DBottomBar : UISolidColor
         _currentEditor = null;
 
         {
-            EditorButton toolButton = new EditorButton("Tile Editor");
+            EditorButton toolButton = new EditorButton("Objects");
             toolButton.OnClickedProxy = (_) =>
             {
                 barContent.ClearChildren();
+                SpawnBackButton(this, barContent);
 
-                TileEditorWindow editorWindow = new TileEditorWindow();
+                var editorWindow = new MapObjectEditorWindow();
                 editorWindow.OrderInParent = -1;
                 editorWindow.SpawnBottomBarContent(this, barContent);
                 _currentEditor = editorWindow;
@@ -88,6 +90,34 @@ public class Editor2DBottomBar : UISolidColor
             };
             toolButtonList.AddChild(toolButton);
         }
+
+        {
+            EditorButton toolButton = new EditorButton("Tile Editor");
+            toolButton.OnClickedProxy = (_) =>
+            {
+                barContent.ClearChildren();
+                SpawnBackButton(this, barContent);
+
+                var editorWindow = new TileEditorWindow();
+                editorWindow.OrderInParent = -1;
+                editorWindow.SpawnBottomBarContent(this, barContent);
+                _currentEditor = editorWindow;
+
+                EngineEditor.EditorRoot.AddChild(editorWindow);
+            };
+            toolButtonList.AddChild(toolButton);
+        }
+    }
+
+    private void SpawnBackButton(Editor2DBottomBar bar, UIBaseWindow barContent)
+    {
+        var back = new EditorButton("Back")
+        {
+            OnClickedProxy = (_) => bar.SpawnEditorChoiceScreen(),
+            Anchor = UIAnchor.BottomLeft,
+            ParentAnchor = UIAnchor.TopLeft,
+        };
+        barContent.AddChild(back);
     }
 
     #endregion

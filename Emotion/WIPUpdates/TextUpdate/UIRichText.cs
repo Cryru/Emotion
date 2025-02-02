@@ -1,7 +1,9 @@
 ﻿#region Using
 
+using System.Collections;
 using System.Threading.Tasks;
 using Emotion.Game.Text;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Text;
 using Emotion.Graphics.Text.EmotionSDF;
@@ -24,7 +26,7 @@ public class UIRichText : UIBaseWindow
         get => _fontFileName;
         set
         {
-            _fontFileName = value;
+            _fontFileName = AssetLoader.NameToEngineName(value);
             InvalidateLoaded();
         }
     }
@@ -153,20 +155,16 @@ public class UIRichText : UIBaseWindow
     protected override async Task LoadContent()
     {
         // Load font if not loaded.
-        if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-        if (_fontFile == null) return;
-
-        if (FontSize == 0)
+        if (FontNeedsUpdate())
         {
-            _atlas = null;
-            return;
+            Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+            _fontFile = await loadTask;
+            _atlas = null; // Update atlas
         }
 
-        // Load atlas as well. This one will change based on UI scale.
-        // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
         float scale = GetScale();
-        _atlas = _fontFile.GetAtlas((int)MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
-        InvalidateLayout();
+        if (UpdateAtlasIfNeeded(scale, FontSize))
+            InvalidateLayout();
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
@@ -184,7 +182,7 @@ public class UIRichText : UIBaseWindow
         _scaledUnderlineThickness = UnderlineThickness * scale;
 
         string text = StringContext.ResolveString(_text, StringIsTranslated);
-        if (_layoutEngine.NeedsToReRun(text, space.X))
+        if (_layoutEngine.NeedsToReRun(text, space.X, _atlas))
         {
             _layoutEngine.InitializeLayout(text, TextHeightMode);
             if (WrapText)
@@ -227,12 +225,9 @@ public class UIRichText : UIBaseWindow
     protected override bool RenderInternal(RenderComposer c)
     {
         if (string.IsNullOrEmpty(_text) || _fontFile == null) return true;
+        if (_atlas == null) return true;
 
-        bool batched = AllowRenderBatch && _cachedTextRender != null && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
-        if (batched)
-            c.RenderSprite(Position - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender!.Size, Color.White * _calculatedColor.A, _cachedTextRender);
-        else
-            _layoutEngine.Render(c, Position, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+        RenderBase(c, Position);
 
         return true;
     }
@@ -242,7 +237,6 @@ public class UIRichText : UIBaseWindow
     private class VirtualTextureForRichText : VirtualTextureAtlasTexture
     {
         private UIRichText _textElement;
-
 
         public VirtualTextureForRichText(UIRichText textElement)
         {
@@ -264,6 +258,128 @@ public class UIRichText : UIBaseWindow
     {
         _cachedColor = _calculatedColor;
         _layoutEngine.RenderWithNoLayoutOffset(c, offset.ToVec3() + _cachedRenderOffset, _calculatedColor.CloneWithAlpha(255), OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
+    }
+
+    #endregion
+
+    #region Virtual UI
+
+    protected override void InvalidateLoaded() // FontFile changed
+    {
+        base.InvalidateLoaded();
+        _virtualDrawInvalidated = true;
+    }
+
+    public override void InvalidateLayout() // Text changed
+    {
+        base.InvalidateLayout();
+        _virtualDrawInvalidated = true;
+    }
+
+    public Vector2 VirtualSizeLast;
+
+    private Coroutine _loadingRoutine = Coroutine.CompletedRoutine;
+    private Color _virtualLastDrawnColor;
+    private Vector2 _virtualLastDrawnSize;
+    private bool _virtualDrawInvalidated = true;
+
+    private IEnumerator VirtualUILoadAssetsRoutine()
+    {
+        Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+        yield return new TaskRoutineWaiter(loadTask);
+        _fontFile = loadTask.Result;
+        _atlas = null; // Update atlas
+    }
+
+    private bool FontNeedsUpdate()
+    {
+        return _fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed;
+    }
+
+    private bool UpdateAtlasIfNeeded(float scale, int fontSize)
+    {
+        float atlasSize = (int)MathF.Ceiling(fontSize * scale);
+
+        if (_atlas != null && _atlas.FontSize == atlasSize)
+            return false;
+
+        if (_fontFile == null || fontSize == 0)
+        {
+            _atlas = null;
+        }
+        else
+        {
+            // todo: check if the atlas actually uses the scaled metrics or can we apply scale during draw?
+            // probably not with the current draw caching going on
+            _atlas = _fontFile.GetAtlas(atlasSize, FontSizePixelPerfect);
+        }
+
+        return true;
+    }
+
+    public void UpdateVirtual(Vector2 space, float scale)
+    {
+        if (UpdateAtlasIfNeeded(scale, FontSize))
+            _virtualDrawInvalidated = true;
+
+        if (space != _virtualLastDrawnSize || _virtualDrawInvalidated)
+        {
+            VirtualSizeLast = InternalMeasure(space);
+            _virtualLastDrawnSize = space;
+            _virtualDrawInvalidated = false;
+        }
+    }
+
+    public void RenderVirtual(RenderComposer c, Vector3 position, Vector2 space, float scale, Color color)
+    {
+        if (string.IsNullOrEmpty(_text)) return;
+
+        // Load assets
+        if (!_loadingRoutine.Finished) return; // Loading currently
+        if (FontNeedsUpdate()) _loadingRoutine = Engine.CoroutineManager.StartCoroutine(VirtualUILoadAssetsRoutine());
+        if (!_loadingRoutine.Finished) return; // Loading currently
+
+        // Check update metrics and atlas
+        UpdateVirtual(space, scale);
+
+        // Invalid config
+        if (_atlas == null) return;
+
+        // Check update color
+        if (color != _virtualLastDrawnColor)
+        {
+            _virtualLastDrawnColor = color;
+            _cachedTextRender?.UpVersion();
+            _calculatedColor = color;
+        }
+
+        RenderBase(c, position);
+    }
+
+    private void RenderBase(RenderComposer c, Vector3 pos)
+    {
+        AssertNotNull(_atlas);
+
+        // Optimization for rendering the text as part of the texture batch,
+        // this reduces draw calls dramatically but the text can be blurry if
+        // scaled, rotated, or transformed in various ways.
+        if (_cachedTextRender != null && AllowRenderBatch)
+        {
+            bool canBatch = c.ModelMatrix.IsIdentity; // todo: check if just translation
+            canBatch = canBatch && c.CurrentState.ViewMatrix == false; // todo: check if just translation
+            canBatch = canBatch && !c.RenderStream.HasVerticesPostProcessingFunction();
+
+            // If can be batched, attempt to, and if successful - draw the batched texture
+            bool batched = canBatch && c.RenderStream.AttemptToBatchVirtualTexture(_cachedTextRender);
+            if (batched)
+            {
+                c.RenderSprite(pos - _cachedRenderOffset + _layoutEngine.LayoutRenderOffset, _cachedTextRender.Size, Color.White * _calculatedColor.A, _cachedTextRender);
+                return;
+            }
+        }
+
+        // Render normally
+        _layoutEngine.Render(c, pos, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 
     #endregion

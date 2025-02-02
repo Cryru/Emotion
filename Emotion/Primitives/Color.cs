@@ -294,6 +294,12 @@ namespace Emotion.Primitives
             return this;
         }
 
+        public Color SetAlpha(float a)
+        {
+            A = (byte) (255f * a);
+            return this;
+        }
+
         public Color CloneWithAlpha(byte a)
         {
             return new Color(R, G, B, a);

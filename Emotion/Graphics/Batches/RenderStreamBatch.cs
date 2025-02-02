@@ -510,6 +510,11 @@ namespace Emotion.Graphics.Batches
             _vertexPostProcFuncUserData = func == null ? null : userData;
         }
 
+        public bool HasVerticesPostProcessingFunction()
+        {
+            return _vertexPostProcFunc != null;
+        }
+
         #region ONE
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

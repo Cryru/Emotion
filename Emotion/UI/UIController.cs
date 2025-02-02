@@ -33,8 +33,14 @@ public partial class UIController : UIBaseWindow
     protected bool _updateInputFocus = true;
     protected bool _mouseUpdatedThisTick = false;
 
+    private Func<Key, KeyState, bool> _mouseFocusOnKeyDelegateCache;
+    private Func<Key, KeyState, bool> _keyboardFocusOnKeyDelegateCache;
+
     public UIController()
     {
+        _mouseFocusOnKeyDelegateCache = MouseFocusOnKey;
+        _keyboardFocusOnKeyDelegateCache = KeyboardFocusOnKey;
+
         HandleInput = true;
         Engine.Host.OnResize += Host_OnResize;
         Engine.Host.OnMouseMove += Host_MouseMove;
@@ -46,8 +52,8 @@ public partial class UIController : UIBaseWindow
         StopPreloadTemplate(this);
         Engine.Host.OnResize -= Host_OnResize;
         Engine.Host.OnMouseMove -= Host_MouseMove;
-        if (InputFocus != null) Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
-        if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+        if (InputFocus != null) Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
+        if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
         ClearChildren();
     }
 
@@ -565,7 +571,7 @@ public partial class UIController : UIBaseWindow
             // Re-hook event to get KeyUp events on keys that are pressed down.
             if (InputFocus != null)
             {
-                Engine.Host.OnKey.RemoveListener(KeyboardFocusOnKey);
+                Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
 
                 // Send focus remove events only on the part of the tree that will be unfocused.
                 commonParentWithOldFocus = FindCommonParent(InputFocus, newFocus);
@@ -576,7 +582,7 @@ public partial class UIController : UIBaseWindow
 
             if (InputFocus != null)
             {
-                Engine.Host.OnKey.AddListener(KeyboardFocusOnKey, KeyListenerType.UI);
+                Engine.Host.OnKey.AddListener(_keyboardFocusOnKeyDelegateCache, KeyListenerType.UI);
 
                 // Send focus add events down to the child that will be focused.
                 SetFocusUpTree(InputFocus, true, commonParentWithOldFocus);

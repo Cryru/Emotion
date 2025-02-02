@@ -25,9 +25,7 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
             Engine.Log.Error("Couldn't create WasApi context.", MessageSource.Audio);
             Engine.Log.Error(ex);
 
-            uint lastErr = Kernel32Methods.GetLastError();
-            if (lastErr != 0)
-                Engine.Log.Error(new Win32Exception((int)lastErr));
+            Win32Platform.CheckError("WasApi context creation", false, false);
         }
 
         return null;

@@ -60,14 +60,6 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     public void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
     {
-        var back = new EditorButton("Back")
-        {
-            OnClickedProxy = (_) => bar.SpawnEditorChoiceScreen(),
-            Anchor = UIAnchor.BottomLeft,
-            ParentAnchor = UIAnchor.TopLeft,
-        };
-        barContent.AddChild(back);
-
         var sidePanel = new UIBaseWindow()
         {
             Anchor = UIAnchor.BottomRight,

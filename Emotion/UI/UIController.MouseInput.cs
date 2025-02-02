@@ -22,6 +22,12 @@ public partial class UIController
     private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
     private bool _calledUpdateTickBeforeLast;
 
+    public static void RemoveCurrentRollover()
+    {
+        CurrentRollover?.Close();
+        CurrentRollover = null;
+    }
+
     protected virtual void UpdateMouseFocus()
     {
         _calledUpdateLastTick = true;
@@ -66,18 +72,13 @@ public partial class UIController
         if (newMouseFocus != _myMouseFocus)
         {
             _myMouseFocus?.OnMouseLeft(mousePos);
-            if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(MouseFocusOnKey);
+            if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
             _myMouseFocus = newMouseFocus;
-            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(MouseFocusOnKey, KeyListenerType.UI);
+            if (_myMouseFocus != null) Engine.Host.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyListenerType.UI);
             _myMouseFocus?.OnMouseEnter(mousePos);
             MouseFocus = newMouseFocus;
 
-            if (CurrentRollover != null)
-            {
-                UIController? rolloverController = CurrentRollover.Controller;
-                rolloverController?.RemoveChild(CurrentRollover);
-                CurrentRollover = null;
-            }
+            RemoveCurrentRollover();
 
             if (newMouseFocus != null && newMouseFocus is not UIController)
             {
