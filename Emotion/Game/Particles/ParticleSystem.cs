@@ -1,6 +1,7 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Game.Particles.ParticleShape;
 using Emotion.IO;
+using Emotion.Utility;
 
 namespace Emotion.Game.Particles
 {
@@ -22,6 +23,8 @@ namespace Emotion.Game.Particles
 
         private float _timer = 0;
 
+        private static ObjectPool<Particle> _particlePool = new ObjectPool<Particle>(null, 132);
+
         public ParticleSystem()
         {
 
@@ -38,8 +41,9 @@ namespace Emotion.Game.Particles
 
             while (_timer > Periodicity)
             {
-                var particle = new Particle();
-                var initialPos = SpawnShape.GetRandomPointInsideCircle();
+                Particle particle = _particlePool.Get();
+                particle.AliveTime = 0;
+                Vector2 initialPos = SpawnShape.GetRandomPointInsideCircle();
                 particle.Position = initialPos.ToVec3();
                 DirectionShape.SetParticleDirection(particle);
 
@@ -55,6 +59,7 @@ namespace Emotion.Game.Particles
                 if (particle.AliveTime > LifeTime)
                 {
                     Particles.Remove(particle);
+                    _particlePool.Return(particle);
                 }
             }
 
@@ -69,7 +74,8 @@ namespace Emotion.Game.Particles
 
         public void Render(RenderComposer c)
         {
-            var particleTexture = Engine.AssetLoader.Get<TextureAsset>("Particle.png");
+            //var particleTexture = Engine.AssetLoader.Get<TextureAsset>("Particle.png");
+            var particleTexture = Engine.AssetLoader.ONE_Get<TextureAsset>("Particle.png");
 
             //c.RenderCircleOutline(SpawnShape, Color.PrettyYellow, 1, 30);
 
@@ -78,7 +84,7 @@ namespace Emotion.Game.Particles
             {
                 Color particleColor = GetColorAtCurrentLifetime(particle.AliveTime);
                 Vector2 particleSize = GetSizeAtCurrentLifetime(particle.AliveTime);
-                c.RenderSprite(particle.Position - new Vector3(particleSize.X / 2f, particleSize.Y / 2f, 0), particleSize, particleColor, particleTexture?.Texture);
+                c.RenderSprite(particle.Position - new Vector3(particleSize.X / 2f, particleSize.Y / 2f, 0), particleSize, particleColor, particleTexture);
             }
         }
 
