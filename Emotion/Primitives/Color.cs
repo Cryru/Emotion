@@ -243,11 +243,16 @@ namespace Emotion.Primitives
         public static Color Lerp(Color value1, Color value2, float amount)
         {
             amount = Maths.Clamp01(amount);
+            Vector4 vec1 = new Vector4(value1.R, value1.G, value1.B, value1.A);
+            Vector4 vec2 = new Vector4(value2.R, value2.G, value2.B, value2.A);
+            Vector4 lerped = Vector4.Lerp(vec1, vec2, amount);
+
             return new Color(
-                (byte) Maths.Lerp(value1.R, value2.R, amount),
-                (byte) Maths.Lerp(value1.G, value2.G, amount),
-                (byte) Maths.Lerp(value1.B, value2.B, amount),
-                (byte) Maths.Lerp(value1.A, value2.A, amount));
+                (byte) lerped.X,
+                (byte) lerped.Y,
+                (byte) lerped.Z,
+                (byte) lerped.W
+            );
         }
 
         /// <summary>
