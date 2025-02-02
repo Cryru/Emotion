@@ -44,6 +44,10 @@ public class ParticlesTestScene : SceneWithMap
         FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.22f, new Color("FFD563")));
         FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.31f, new Color("FF5D15")));
         FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.9f, new Color("FF1A00").SetAlpha(0)));
+        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0f, new Vector2(0, 0)));
+        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0.1f, new Vector2(10, 10)));
+        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0.7f, new Vector2(20, 20)));
+        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0.9f, new Vector2(40, 40)));
         FireParticleSystem.Speed = 50;
         FireParticleSystem.Periodicity = 30;
         FireParticleSystem.LifeTime = 5000;

@@ -4,24 +4,13 @@ using Emotion.IO;
 
 namespace Emotion.Game.Particles
 {
-    public class ColorAtTime
-    {
-        public float PercentOfLifetime;
-        public Color Color;
-
-        public ColorAtTime(float percent, Color color)
-        {
-            PercentOfLifetime = percent;
-            Color = color;
-        }
-    }
-
     [DontSerialize]
     public class ParticleSystem
     {
         public Vector3 Position;
 
         public List<ColorAtTime> ColorAtTime = new();
+        public List<SizeAtTime> SizeAtTime = new();
 
         public List<Particle> Particles = new();
         public float Periodicity = 70;
@@ -84,17 +73,21 @@ namespace Emotion.Game.Particles
 
             //c.RenderCircleOutline(SpawnShape, Color.PrettyYellow, 1, 30);
 
-            float particleSize = 20;
+            //float particleSize = 20;
             foreach (var particle in Particles)
             {
                 Color particleColor = GetColorAtCurrentLifetime(particle.AliveTime);
-                c.RenderSprite(particle.Position - new Vector3(particleSize / 2f, particleSize / 2f, 0), new Vector2(particleSize), particleColor, particleTexture?.Texture);
+                Vector2 particleSize = GetSizeAtCurrentLifetime(particle.AliveTime);
+                c.RenderSprite(particle.Position - new Vector3(particleSize.X / 2f, particleSize.Y / 2f, 0), particleSize, particleColor, particleTexture?.Texture);
             }
         }
 
         private Color GetColorAtCurrentLifetime(float currentTime)
         {
             float timePercentage = currentTime / LifeTime;
+
+            if (ColorAtTime.Count == 0)
+                return new Color(255, 255, 255, 255);
 
             ColorAtTime first = ColorAtTime[0];
             if (timePercentage < first.PercentOfLifetime)
@@ -122,6 +115,41 @@ namespace Emotion.Game.Particles
             }
 
             return Color.Lerp(color1, color2, amount);
+        }
+
+        private Vector2 GetSizeAtCurrentLifetime(float currentTime)
+        {
+            float timePercentage = currentTime / LifeTime;
+
+            if (SizeAtTime.Count == 0)
+                return new Vector2(10, 10);
+ 
+            SizeAtTime first = SizeAtTime[0];
+            if (timePercentage < first.PercentOfLifetime)
+                return first.Size;
+
+            SizeAtTime last = SizeAtTime[^1];
+            if (timePercentage > last.PercentOfLifetime)
+                return last.Size;
+
+            Vector2 size1 = new Vector2(0, 0);
+            Vector2 size2 = new Vector2(0, 0);
+            float amount = 0f;
+            for (int i = 0; i < SizeAtTime.Count; i++)
+            {
+                SizeAtTime current = SizeAtTime[i];
+                if (timePercentage < current.PercentOfLifetime)
+                {
+                    SizeAtTime previous = SizeAtTime[i - 1];
+
+                    size1 = previous.Size;
+                    size2 = current.Size;
+                    amount = (timePercentage - previous.PercentOfLifetime) / (current.PercentOfLifetime - previous.PercentOfLifetime);
+                    break;
+                }
+            }
+
+            return Vector2.Lerp(size1, size2, amount);
         }
     }
 }
