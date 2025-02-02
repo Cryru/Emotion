@@ -79,10 +79,10 @@ namespace Emotion.Primitives
 
         #endregion
 
-        public Vector2 PointOnCircle(float angle)
+        public Vector2 PointOnCircumference(float angle)
         {
-            float x = Radius * angle + X;
-            float y = Radius * angle + Y;
+            float x = Radius * MathF.Cos(angle) + X;
+            float y = Radius * MathF.Sin(-angle) + Y;
             return new Vector2(x, y);
         }
 
