@@ -24,7 +24,7 @@ public class ParticleConstantDirection : IParticleDirectionShape
         _directionMax = directionMax;
     }
 
-    public void SetParticleDirection(Particle particle)
+    public void SetParticleDirection(ref Particle particle)
     {
         if (_directionMax != null)
         {

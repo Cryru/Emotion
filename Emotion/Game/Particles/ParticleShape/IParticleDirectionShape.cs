@@ -9,5 +9,5 @@ namespace Emotion.Game.Particles.ParticleShape;
 
 public interface IParticleDirectionShape
 {
-    public void SetParticleDirection(Particle particle);
+    public void SetParticleDirection(ref Particle particle);
 }

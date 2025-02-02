@@ -13,7 +13,7 @@ namespace Emotion.Game.Particles.ParticleShape
             _circle = circle;
         }
 
-        public void SetParticleDirection(Particle particle)
+        public void SetParticleDirection(ref Particle particle)
         {
             Vector2 direction = Vector2.Normalize(_circle.Center - particle.Position.ToVec2());
             float angle = MathF.Atan2(direction.Y, direction.X);
