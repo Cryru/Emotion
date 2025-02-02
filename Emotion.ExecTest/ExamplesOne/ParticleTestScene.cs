@@ -6,6 +6,7 @@ using Emotion.Game.Particles.ParticleShape;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Scenography;
+using Emotion.Utility;
 
 namespace Emotion.ExecTest.ExamplesOne;
 
@@ -39,17 +40,23 @@ public class ParticlesTestScene : SceneWithMap
         //FireParticleSystem.Init();
 
         FireParticleSystem = new ParticleSystem();
-        FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0f, new Color(255, 255, 255, 0)));
-        FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.13f, new Color("FFD563").SetAlpha(125)));
-        FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.22f, new Color("FFD563")));
-        FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.31f, new Color("FF5D15")));
-        FireParticleSystem.ColorAtTime.Add(new ColorAtTime(0.9f, new Color("FF1A00").SetAlpha(0)));
-        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0f, new Vector2(0, 0)));
-        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0.1f, new Vector2(10, 10)));
-        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0.7f, new Vector2(20, 20)));
-        FireParticleSystem.SizeAtTime.Add(new SizeAtTime(0.9f, new Vector2(40, 40)));
+        FireParticleSystem.ColorAtTime = [
+            new ColorAtTime(0f, new Color(255, 255, 255, 0)),
+            new ColorAtTime(0.13f, new Color("FFD563").SetAlpha(125)),
+            new ColorAtTime(0.22f, new Color("FFD563")),
+            new ColorAtTime(0.31f, new Color("FF5D15")),
+            new ColorAtTime(0.9f, new Color("FF1A00").SetAlpha(0))
+        ];
+
+        FireParticleSystem.SizeAtTime = [
+            new SizeAtTime(0f, new Vector2(0, 0)),
+            new SizeAtTime(0.1f, new Vector2(10, 10)),
+            new SizeAtTime(0.7f, new Vector2(20, 20)),
+            new SizeAtTime(0.9f, new Vector2(40, 40))
+        ];
+
         FireParticleSystem.Speed = 50;
-        FireParticleSystem.Periodicity = 30;
+        FireParticleSystem.Periodicity = 1;
         FireParticleSystem.LifeTime = 5000;
         FireParticleSystem.SpawnShape = new Circle(new Vector2(0, 0), 5);
         FireParticleSystem.DirectionShape = new ParticleCircleShape(circle);

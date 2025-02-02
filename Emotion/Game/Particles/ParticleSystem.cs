@@ -10,10 +10,10 @@ namespace Emotion.Game.Particles
     {
         public Vector3 Position;
 
-        public List<ColorAtTime> ColorAtTime = new();
-        public List<SizeAtTime> SizeAtTime = new();
-
+        public ColorAtTime[] ColorAtTime = Array.Empty<ColorAtTime>();
+        public SizeAtTime[] SizeAtTime = Array.Empty<SizeAtTime>();
         public List<Particle> Particles = new();
+
         public float Periodicity = 70;
         public float LifeTime = 1000;
         //public ENUM MovementMode
@@ -32,7 +32,8 @@ namespace Emotion.Game.Particles
 
         public void Init()
         {
-            ColorAtTime.Sort((x, y) => x.PercentOfLifetime > y.PercentOfLifetime ? 1 : -1);
+            Array.Sort(ColorAtTime, (x, y) => x.PercentOfLifetime > y.PercentOfLifetime ? 1 : -1);
+            Array.Sort(SizeAtTime, (x, y) => x.PercentOfLifetime > y.PercentOfLifetime ? 1 : -1);
         }
 
         public void Update(float dt)
@@ -92,27 +93,26 @@ namespace Emotion.Game.Particles
         {
             float timePercentage = currentTime / LifeTime;
 
-            if (ColorAtTime.Count == 0)
+            if (ColorAtTime.Length == 0)
                 return new Color(255, 255, 255, 255);
 
-            ColorAtTime first = ColorAtTime[0];
+            ref ColorAtTime first = ref ColorAtTime[0];
             if (timePercentage < first.PercentOfLifetime)
                 return first.Color;
 
-            ColorAtTime last = ColorAtTime[^1];
+            ref ColorAtTime last = ref ColorAtTime[^1];
             if (timePercentage > last.PercentOfLifetime)
                 return last.Color;
 
             Color color1 = new Color(255, 255, 255, 255);
             Color color2 = new Color(255, 255, 255, 255);
             float amount = 0f;
-            for (int i = 0; i < ColorAtTime.Count; i++)
+            for (int i = 0; i < ColorAtTime.Length; i++)
             {
-                ColorAtTime current = ColorAtTime[i];
+                ref ColorAtTime current = ref ColorAtTime[i];
                 if (timePercentage < current.PercentOfLifetime)
                 {
-                    ColorAtTime previous = ColorAtTime[i - 1];
-
+                    ref ColorAtTime previous = ref ColorAtTime[i - 1];
                     color1 = previous.Color;
                     color2 = current.Color;
                     amount = (timePercentage - previous.PercentOfLifetime) / (current.PercentOfLifetime - previous.PercentOfLifetime);
@@ -127,26 +127,26 @@ namespace Emotion.Game.Particles
         {
             float timePercentage = currentTime / LifeTime;
 
-            if (SizeAtTime.Count == 0)
+            if (SizeAtTime.Length == 0)
                 return new Vector2(10, 10);
  
-            SizeAtTime first = SizeAtTime[0];
+            ref SizeAtTime first = ref SizeAtTime[0];
             if (timePercentage < first.PercentOfLifetime)
                 return first.Size;
 
-            SizeAtTime last = SizeAtTime[^1];
+            ref SizeAtTime last = ref SizeAtTime[^1];
             if (timePercentage > last.PercentOfLifetime)
                 return last.Size;
 
             Vector2 size1 = new Vector2(0, 0);
             Vector2 size2 = new Vector2(0, 0);
             float amount = 0f;
-            for (int i = 0; i < SizeAtTime.Count; i++)
+            for (int i = 0; i < SizeAtTime.Length; i++)
             {
-                SizeAtTime current = SizeAtTime[i];
+                ref SizeAtTime current = ref SizeAtTime[i];
                 if (timePercentage < current.PercentOfLifetime)
                 {
-                    SizeAtTime previous = SizeAtTime[i - 1];
+                    ref SizeAtTime previous = ref SizeAtTime[i - 1];
 
                     size1 = previous.Size;
                     size2 = current.Size;

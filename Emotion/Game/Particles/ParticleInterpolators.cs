@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Emotion.Game.Particles
 {
-    public class ColorAtTime
+    public struct ColorAtTime
     {
         public float PercentOfLifetime;
         public Color Color;
@@ -18,7 +18,7 @@ namespace Emotion.Game.Particles
         }
     }
 
-    public class SizeAtTime
+    public struct SizeAtTime
     {
         public float PercentOfLifetime;
         public Vector2 Size;
