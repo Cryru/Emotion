@@ -74,14 +74,17 @@ public class Program
 //#endif
         }
 
-        {
-#if DEBUG
-            var benchmark = new MiscBenchmark();
-            benchmark.GlobalSetup();
-            Console.WriteLine("Done!");
-#else
-            BenchmarkRunner.Run<MiscBenchmark>();
-#endif
-        }
+//        {
+//#if DEBUG
+//            var benchmark = new MiscBenchmark();
+//            benchmark.GlobalSetup();
+//            Console.WriteLine("Done!");
+//#else
+//            BenchmarkRunner.Run<MiscBenchmark>();
+//#endif
+//        }
+
+        BenchmarkRunner.Run<ParticleBenchmark>();
+        //BenchmarkRunner.Run<MathsBenchmark>();
     }
 }
