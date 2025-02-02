@@ -381,7 +381,7 @@ public class TextureAtlas : Packing.PackingResumableState
 
                 // Restore state
                 c.SetState(c.BlitStatePremult);
-                VertexArrayObject.EnsureBound(_vao);
+                VertexArrayObject.EnsureBound(_vao); // VirtualTextureRenderToBatch has changed it for sure :D
 
                 VertexData.SpriteToVertexData(vboLocalSpan, new Vector3(offset, 0), texture.Size + _texturesMarginVec2, Color.White, backingTexture, new Rectangle(0, 0, texture.Size + _texturesMarginVec2));
 
