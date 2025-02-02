@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Emotion.Common.Serialization;
+﻿using Emotion.Common.Serialization;
 using Emotion.Game.Particles.ParticleShape;
 using Emotion.IO;
 
