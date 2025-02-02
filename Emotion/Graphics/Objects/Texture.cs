@@ -256,6 +256,7 @@ namespace Emotion.Graphics.Objects
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)internalFormat, (int)Size.X, (int)Size.Y, 0, (PixelFormat)pixelFormat,
                     (PixelType)pixelType, data);
 
+            _smoothSet = false;
             Smooth = _smooth;
             Tile = _tile;
             Version++;
