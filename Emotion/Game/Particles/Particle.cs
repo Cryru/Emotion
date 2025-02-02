@@ -1,6 +1,6 @@
 ﻿namespace Emotion.Game.Particles
 {
-    public struct Particle
+    public class Particle
     {
         public Vector3 Position;
         public float AliveTime;

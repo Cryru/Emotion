@@ -12,7 +12,7 @@ namespace Emotion.Game.Particles
 
         public ColorAtTime[] ColorAtTime = Array.Empty<ColorAtTime>();
         public SizeAtTime[] SizeAtTime = Array.Empty<SizeAtTime>();
-        public Particle[] Particles = Array.Empty<Particle>();
+        public List<Particle> Particles = new();
 
         public float Periodicity = 70;
         public float LifeTime = 1000;
@@ -23,6 +23,8 @@ namespace Emotion.Game.Particles
 
         private float _timer = 0;
 
+        private static ObjectPool<Particle> _particlePool = new ObjectPool<Particle>(null, 132);
+
         public ParticleSystem()
         {
 
@@ -30,8 +32,6 @@ namespace Emotion.Game.Particles
 
         public void Init()
         {
-            int numberOfParticles = (int)(LifeTime / Periodicity);
-            Particles = new Particle[numberOfParticles * 2];
             Array.Sort(ColorAtTime, (x, y) => x.PercentOfLifetime > y.PercentOfLifetime ? 1 : -1);
             Array.Sort(SizeAtTime, (x, y) => x.PercentOfLifetime > y.PercentOfLifetime ? 1 : -1);
         }
@@ -42,43 +42,32 @@ namespace Emotion.Game.Particles
 
             while (_timer > Periodicity)
             {
-                int freeParticle = -1;
-                for (int i = 0; i < Particles.Length; i++)
-                {
-                    ref Particle tempParticle = ref Particles[i];
-                    if (tempParticle.AliveTime == 0)
-                    {
-                        freeParticle = i;
-                        break;
-                    }
-                }
-                if (freeParticle == -1)
-                {
-                    freeParticle = Particles.Length;
-                    Array.Resize(ref Particles, Particles.Length * 2);
-                }
-
-                ref Particle particle = ref Particles[freeParticle];
-                particle.AliveTime = 0.1f;
+                Particle particle = _particlePool.Get();
+                particle.AliveTime = 0;
                 Vector2 initialPos = SpawnShape.GetRandomPointInsideCircle();
                 particle.Position = initialPos.ToVec3();
-                DirectionShape.SetParticleDirection(ref particle);
+                DirectionShape.SetParticleDirection(particle);
 
                 particle.Position += Position;
+                Particles.Add(particle);
                 _timer -= Periodicity;
+            }
+
+            for (int i = Particles.Count - 1; i >= 0; i--)
+            {
+                Particle particle = Particles[i];
+                particle.AliveTime += dt;
+                if (particle.AliveTime > LifeTime)
+                {
+                    Particles.Remove(particle);
+                    _particlePool.Return(particle);
+                }
             }
 
             var speedPerMS = Speed / 1000f;
             var speedPerDt = speedPerMS * dt;
-            for (int i = 0; i < Particles.Length; i++)
+            foreach (var particle in Particles)
             {
-                ref Particle particle = ref Particles[i];
-                if (particle.AliveTime == 0) continue;
-
-                particle.AliveTime += dt;
-                if (particle.AliveTime > LifeTime)
-                    particle.AliveTime = 0;
-
                 Vector3 change = particle.TargetDirection * speedPerDt;
                 particle.Position += change;
             }
@@ -94,8 +83,6 @@ namespace Emotion.Game.Particles
             //float particleSize = 20;
             foreach (var particle in Particles)
             {
-                if (particle.AliveTime == 0) continue;
-
                 Color particleColor = GetColorAtCurrentLifetime(particle.AliveTime);
                 Vector2 particleSize = GetSizeAtCurrentLifetime(particle.AliveTime);
                 c.RenderSprite(particle.Position - new Vector3(particleSize.X / 2f, particleSize.Y / 2f, 0), particleSize, particleColor, particleTexture);
@@ -142,7 +129,7 @@ namespace Emotion.Game.Particles
 
             if (SizeAtTime.Length == 0)
                 return new Vector2(10, 10);
-
+ 
             ref SizeAtTime first = ref SizeAtTime[0];
             if (timePercentage < first.PercentOfLifetime)
                 return first.Size;
