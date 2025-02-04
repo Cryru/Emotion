@@ -403,7 +403,7 @@ public class TextLayoutEngine
                 layouter.AddToPen(new Vector2(center - currentPenLoc.X, 0));
             }
 
-            string text = currentBlock.GetBlockString(_text).ToString();
+            ReadOnlySpan<char> text = currentBlock.GetBlockString(_text);
             foreach (char ch in text)
             {
                 Vector2 gPos = layouter.AddLetter(ch, out DrawableGlyph g);
