@@ -237,7 +237,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             {
                 obj.Position2D = Vector2.Lerp(obj.Position2D, pos.ToVec2(), 0.5f);
 
-                var hsh = (obj.Position.RoundClosest().ToString() + Engine.CurrentGameTime.ToString()).GetStableHashCode();
+                var hsh = (obj.Position.Round().ToString() + Engine.CurrentGameTime.ToString()).GetStableHashCode();
                 _clientCom.SendTimeSyncHash(hsh);
                 break;
             }
