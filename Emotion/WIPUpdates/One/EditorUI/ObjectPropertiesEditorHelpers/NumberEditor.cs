@@ -1,23 +1,21 @@
 ﻿using Emotion.Game.World.Editor;
-using Emotion.IO;
-using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Reflection.Emit;
+using System.Globalization;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class StringEditor : UIBaseWindow, IObjectPropertyEditor
+public class NumberEditor<TNumber> : UIBaseWindow, IObjectPropertyEditor where TNumber : INumber<TNumber>
 {
     private object? _objectEditting;
-    private string? _value;
+    private TNumber? _value = TNumber.Zero;
 
     private ComplexTypeHandlerMember? _handler;
 
-    public StringEditor()
+    public NumberEditor()
     {
         FillY = false;
 
@@ -67,17 +65,21 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
     {
         if (_objectEditting == null) return;
 
-        _handler?.SetValueInComplexObject(_objectEditting, txt);
-        EngineEditor.ObjectChanged(_objectEditting, this);
+        if (TNumber.TryParse(txt, CultureInfo.InvariantCulture, out TNumber? valParsed))
+        {
+            _handler?.SetValueInComplexObject(_objectEditting, valParsed);
+            EngineEditor.ObjectChanged(_objectEditting, this);
+        }
     }
 
     private void OnValueUpdated()
     {
         if (_objectEditting == null) return;
+        if (_value == null) return;
 
         UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
         AssertNotNull(textInput);
-        textInput.Text = _value ?? "";
+        textInput.Text = _value.ToString();
     }
 
     public void SetEditor(object parentObj, ComplexTypeHandlerMember memberHandler)
@@ -94,8 +96,8 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
 
         if (memberHandler.GetValueFromComplexObject(parentObj, out object? readValue))
         {
-            Assert(readValue is string);
-            _value = (string?) readValue;
+            Assert(readValue is TNumber);
+            _value = (TNumber?) readValue;
             OnValueUpdated();
         }
     }

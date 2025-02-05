@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -10,6 +11,11 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
     public abstract Type Type { get; }
 
     public abstract bool CanGetOrParseValueAsString { get; }
+
+    public virtual IObjectPropertyEditor? GetEditor()
+    {
+        return null;
+    }
 
     public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
     {

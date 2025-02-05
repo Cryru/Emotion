@@ -9,7 +9,7 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class ObjectPropertyWindow : UIScrollArea
+public class ObjectPropertyWindow : EditorScrollArea
 {
     public object? Object;
     protected Type? _type;
@@ -70,11 +70,13 @@ public class ObjectPropertyWindow : UIScrollArea
 
                 IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
 
-                if (memberHandler is StringTypeHandler)
+                IObjectPropertyEditor? editorFromReflector = memberHandler?.GetEditor();
+                if (editorFromReflector != null)
                 {
-                    var stringEditor = new StringEditor();
-                    stringEditor.SetEditor(Object, member);
-                    editorList.AddChild(stringEditor);
+                    editorFromReflector.SetEditor(Object, member);
+                    Assert(editorFromReflector is UIBaseWindow);
+                    if (editorFromReflector is UIBaseWindow editorWindow)
+                        editorList.AddChild(editorWindow);
                 }
                 else if (memberHandler?.Type == typeof(SerializableAssetHandle<TextureAsset>))
                 {

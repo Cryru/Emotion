@@ -10,14 +10,14 @@ using System.Reflection.Emit;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class StringEditor : UIBaseWindow, IObjectPropertyEditor
+public class BooleanEditor : UIBaseWindow, IObjectPropertyEditor
 {
     private object? _objectEditting;
-    private string? _value;
+    private bool? _value;
 
     private ComplexTypeHandlerMember? _handler;
 
-    public StringEditor()
+    public BooleanEditor()
     {
         FillY = false;
 
@@ -34,27 +34,12 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
         };
         container.AddChild(label);
 
-        var inputBackground = new UISolidColor
+        var checkbox = new EditorCheckboxButton()
         {
-            WindowColor = Color.Black * 0.5f,
-            Paddings = new Primitives.Rectangle(5, 3, 5, 3)
+            Id = "Checkbox",
+            OnValueChanged = OnInputValueChanged
         };
-        container.AddChild(inputBackground);
-
-        UITextInput2 input = new UITextInput2
-        {
-            Id = "TextInput",
-
-            FontSize = MapEditorColorPalette.EditorButtonTextSize,
-            MinSizeX = 100,
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
-            IgnoreParentColor = true,
-
-            SubmitOnEnter = true,
-            SubmitOnFocusLoss = true,
-            OnSubmit = OnTextInputChanged
-        };
-        inputBackground.AddChild(input);
+        container.AddChild(checkbox);
     }
 
     public override void DetachedFromController(UIController controller)
@@ -63,11 +48,11 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
-    private void OnTextInputChanged(string txt)
+    private void OnInputValueChanged(bool newValue)
     {
         if (_objectEditting == null) return;
 
-        _handler?.SetValueInComplexObject(_objectEditting, txt);
+        _handler?.SetValueInComplexObject(_objectEditting, newValue);
         EngineEditor.ObjectChanged(_objectEditting, this);
     }
 
@@ -75,9 +60,9 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
     {
         if (_objectEditting == null) return;
 
-        UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
+        var textInput = GetWindowById<EditorCheckboxButton>("Checkbox");
         AssertNotNull(textInput);
-        textInput.Text = _value ?? "";
+        textInput.Value = _value ?? false;
     }
 
     public void SetEditor(object parentObj, ComplexTypeHandlerMember memberHandler)
@@ -94,8 +79,8 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
 
         if (memberHandler.GetValueFromComplexObject(parentObj, out object? readValue))
         {
-            Assert(readValue is string);
-            _value = (string?) readValue;
+            Assert(readValue is bool);
+            _value = (bool?) readValue;
             OnValueUpdated();
         }
     }

@@ -27,6 +27,7 @@ public static class ReflectorEngineInit
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<decimal>());
 
         ReflectorEngine.RegisterTypeHandler(new StringTypeHandler());
+        ReflectorEngine.RegisterTypeHandler(new BooleanTypeHandler());
 
         OnInit?.Invoke();
         ReflectorEngine.BuildRelations();

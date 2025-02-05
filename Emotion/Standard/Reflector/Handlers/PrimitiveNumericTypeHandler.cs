@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Globalization;
-using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -11,6 +11,11 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
     public override Type Type => typeof(T);
 
     public override bool CanGetOrParseValueAsString => true;
+
+    public override IObjectPropertyEditor? GetEditor()
+    {
+        return new NumberEditor<T>();
+    }
 
     public override bool WriteValueAsString(ref ValueStringWriter stringWriter, T instance)
     {

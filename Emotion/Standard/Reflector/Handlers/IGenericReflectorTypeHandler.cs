@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -13,6 +14,11 @@ public interface IGenericReflectorTypeHandler
     /// Whether the type handler's value can be get/set as a string.
     /// </summary>
     public bool CanGetOrParseValueAsString { get; }
+
+    public virtual IObjectPropertyEditor? GetEditor()
+    {
+        return null;
+    }
 
     public bool WriteValueAsStringGeneric<T>(ref ValueStringWriter stringWriter, T? instance)
     {
