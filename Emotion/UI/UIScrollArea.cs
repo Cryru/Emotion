@@ -149,7 +149,7 @@ public class UIScrollArea : UIBaseWindow
             return base.RenderInternal(c);
         }
 
-        protected override Rectangle GetChildrenLayoutSpace(Vector2 pos, Vector2 space)
+        protected override Rectangle GetChildrenMeasureSpace(Vector2 pos, Vector2 space)
         {
             return new Rectangle(pos, UIBaseWindow.DefaultMaxSize);
         }
