@@ -19,6 +19,7 @@ public static class ReflectorEngineInit
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<short>());
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<int>());
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<long>());
+        ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<char>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<float>());
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<double>());

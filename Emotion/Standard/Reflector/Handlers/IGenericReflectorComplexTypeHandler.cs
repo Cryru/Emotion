@@ -6,5 +6,7 @@ public interface IGenericReflectorComplexTypeHandler
 {
     public ComplexTypeHandlerMember[] GetMembers();
 
+    public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep();
+
     public ComplexTypeHandlerMember? GetMemberHandler(string name);
 }

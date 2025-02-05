@@ -23,9 +23,34 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             _members.Add(member.Name, member);
         }
     }
+
     public ComplexTypeHandlerMember[] GetMembers()
     {
         return _membersArr;
+    }
+
+    public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep()
+    {
+        for (int i = 0; i < _membersArr.Length; i++)
+        {
+            ComplexTypeHandlerMember member = _membersArr[i];
+            yield return member;
+        }
+
+        Type? baseType = Type.BaseType;
+        if (baseType == null) yield break;
+
+        IGenericReflectorTypeHandler? handler = ReflectorEngine.GetTypeHandler(baseType);
+        if (handler == null) yield break; // Yikes?
+
+        Assert(handler is IGenericReflectorComplexTypeHandler);
+        if (handler is IGenericReflectorComplexTypeHandler complexHandler)
+        {
+            foreach (ComplexTypeHandlerMember member in complexHandler.GetMembersDeep())
+            {
+                yield return member;
+            }
+        }
     }
 
     public ComplexTypeHandlerMember? GetMemberHandler(string name)

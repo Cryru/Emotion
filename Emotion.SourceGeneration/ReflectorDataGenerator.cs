@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Mime;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using static Emotion.SourceGeneration.Helpers;
@@ -29,34 +31,36 @@ namespace SourceGenerator
                 var typeToMembers = new Dictionary<INamedTypeSymbol, ImmutableArray<ReflectorMemberData>>(SymbolEqualityComparer.Default);
                 foreach (INamedTypeSymbol type in definedTypes)
                 {
-                    if (!IsReflectorableType(type)) continue;
+                    AddTypeAndFindAssociatedTypes(sourceProductionContext, type, typesToReflector, typeToMembers);
 
-                    Console.WriteLine($"[ReflectorV2] Generating handler for {type.ToDisplayString()}");
+                    //if (!IsReflectorableType(type)) continue;
 
-                    ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(sourceProductionContext, type);
-                    typeToMembers.Add(type, members); // Cache this for later.
+                    //Console.WriteLine($"[ReflectorV2] Generating handler for {type.ToDisplayString()}");
 
-                    foreach (ReflectorMemberData member in members)
-                    {
-                        ITypeSymbol memberType = member.TypeSymbol;
-                        if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
-                        {
-                            memberType = memberType.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                        }
+                    //ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(sourceProductionContext, type);
+                    //typeToMembers.Add(type, members); // Cache this for later.
 
-                        var name = memberType.ToDisplayString();
-                        if (name[name.Length - 1] == '?') continue;
+                    //foreach (ReflectorMemberData member in members)
+                    //{
+                    //    ITypeSymbol memberType = member.TypeSymbol;
+                    //    if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                    //        memberType = memberType.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
 
-                        INamedTypeSymbol namedTypeSymbol = memberType as INamedTypeSymbol;
-                        if (namedTypeSymbol != null && IsReflectorBuiltInType(namedTypeSymbol)) continue;
+                    //    string name = memberType.ToDisplayString();
+                    //    if (name[name.Length - 1] == '?') continue;
 
-                        if (typesToReflector.Add(memberType))
-                        {
-                            Console.WriteLine($"[ReflectorV2]     Associated type added {memberType.ToDisplayString()}");
-                        }
-                    }
+                    //    INamedTypeSymbol namedTypeSymbol = memberType as INamedTypeSymbol;
+                    //    if (namedTypeSymbol != null && IsReflectorBuiltInType(namedTypeSymbol)) continue;
 
-                    typesToReflector.Add(type);
+                    //    if (typesToReflector.Add(memberType))
+                    //    {
+                    //        AddBaseTypesToReflect(namedTypeSymbol, typesToReflector);
+                    //        Console.WriteLine($"[ReflectorV2]     Associated type added {memberType.ToDisplayString()}");
+                    //    }
+                    //}
+
+                    //AddBaseTypesToReflect(type, typesToReflector);
+                    //typesToReflector.Add(type);
                 }
 
                 // [2nd pass] Generate handlers
@@ -132,6 +136,8 @@ namespace SourceGenerator
             string typName = typ.ToDisplayString();
             if (typName[typName.Length - 1] == '?') typName = typName.Substring(0, typName.Length - 1);
 
+            if (typName == "System.ValueType") return true; // yikes
+            if (typName == "System.Enum") return true; // yikes
             if (typName == "object") return true; // yikes
 
             if (typName == "byte") return true;
@@ -143,6 +149,7 @@ namespace SourceGenerator
             if (typName == "short") return true;
             if (typName == "int") return true;
             if (typName == "long") return true;
+            if (typName == "char") return true;
 
             if (typName == "float") return true;
             if (typName == "double") return true;
@@ -264,6 +271,47 @@ namespace SourceGenerator
             return result.ToImmutable();
         }
 
+        private void AddTypeAndFindAssociatedTypes(SourceProductionContext context, INamedTypeSymbol typ, HashSet<ITypeSymbol> typesToProcess, Dictionary<INamedTypeSymbol, ImmutableArray<ReflectorMemberData>> typeToMembers)
+        {
+            if (!IsReflectorableType(typ)) return;
+            if (IsReflectorBuiltInType(typ)) return;
+
+            if (typ.NullableAnnotation == NullableAnnotation.Annotated)
+                typ = (INamedTypeSymbol)typ.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+
+            string name = typ.ToDisplayString();
+            if (name[name.Length - 1] == '?') return;
+
+            if (!typesToProcess.Add(typ)) return;
+
+            Console.WriteLine($"[ReflectorV2] Added type {typ.ToDisplayString()}");
+
+            INamedTypeSymbol baseTyp = typ.BaseType;
+            if (baseTyp != null)
+            {
+                Console.WriteLine($"[ReflectorV2]       Base type found {baseTyp.ToDisplayString()}");
+                AddTypeAndFindAssociatedTypes(context, baseTyp, typesToProcess, typeToMembers);
+            }
+
+            ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(context, typ);
+            typeToMembers.Add(typ, members); // Cache this for later.
+
+            foreach (ReflectorMemberData member in members)
+            {
+                ITypeSymbol memberType = member.TypeSymbol;
+                INamedTypeSymbol namedTypeSymbol = memberType as INamedTypeSymbol;
+                if (namedTypeSymbol != null)
+                {
+                    Console.WriteLine($"[ReflectorV2]     Associated type found {memberType.ToDisplayString()}");
+                    AddTypeAndFindAssociatedTypes(context, namedTypeSymbol, typesToProcess, typeToMembers);
+                }
+                else
+                {
+                    Console.WriteLine($"[ReflectorV2]     Found unnamed associated type {memberType.ToDisplayString()}");
+                }
+            }
+        }
+
         public static void GenerateReflectorTypeHandlerForType(ref SourceProductionContext context, INamedTypeSymbol typ, ImmutableArray<ReflectorMemberData> members)
         {
             string fullTypName = typ.ToDisplayString();
@@ -311,7 +359,8 @@ namespace SourceGenerator
                     foreach (var attribute in memberAttributes)
                     {
                         var clazz = attribute.AttributeClass;
-                        if (clazz.Name != "VertexAttributeAttribute") continue; // todo
+                        if (clazz.Name != "VertexAttributeAttribute" &&
+                            clazz.Name != "DontShowInEditorAttribute") continue; // todo
 
                         sb.AppendLine($"                   {GenerateAttributeDeclaration(attribute)},");
                     }
