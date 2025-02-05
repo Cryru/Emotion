@@ -3,8 +3,8 @@ using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.Work;
 using System.Collections;
 
@@ -175,7 +175,7 @@ public class SpriteEntityTool : EditorWindowFileSupport
         SpriteEntity = new SpriteEntity();
 
         ObjectPropertyWindow? entityData = GetWindowById<ObjectPropertyWindow>("EntityData");
-        entityData?.SetObject(SpriteEntity);
+        entityData?.SetEditor(SpriteEntity);
     }
 
     public void NewEntity(TextureAsset baseFile)

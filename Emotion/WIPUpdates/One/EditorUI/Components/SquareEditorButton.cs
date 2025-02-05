@@ -24,4 +24,10 @@ public class SquareEditorButton : EditorButton
 
         base.AttachedToController(controller);
     }
+
+    protected override void AfterRenderChildren(RenderComposer c)
+    {
+        base.AfterRenderChildren(c);
+        c.RenderOutline(Bounds, Color.White * 0.5f, 1 * GetScale());
+    }
 }

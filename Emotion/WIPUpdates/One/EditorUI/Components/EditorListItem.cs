@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Game.World.Editor;
+using Emotion.UI;
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
@@ -23,14 +24,40 @@ public class EditorListItem<T> : EditorButton
 
     private Action<T>? _onClick;
 
-    public EditorListItem(T item, Action<T>? onClick)
+    public EditorListItem(T item, Action<T>? onClick, bool canEdit = false)
     {
+        AssertNotNull(item);
+
         NormalColor = MapEditorColorPalette.ButtonColor.CloneWithAlpha(150);
 
         Item = item;
         FillX = true;
-        Text = item?.ToString() ?? "<null>";
         _onClick = onClick;
+
+        if (canEdit)
+        {
+            var editButton = new EditorEditObjectButton()
+            {
+                ParentAnchor = UI.UIAnchor.CenterRight,
+                Anchor = UI.UIAnchor.CenterRight
+            };
+            editButton.SetEditor(item);
+            AddChild(editButton);
+        }
+
+        EngineEditor.RegisterForObjectChanges(item, UpdateLabel, this);
+        UpdateLabel();
+    }
+
+    private void UpdateLabel()
+    {
+        Text = Item?.ToString() ?? "<null>";
+    }
+
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+        EngineEditor.UnregisterForObjectChanges(this);
     }
 
     protected override bool RenderInternal(RenderComposer c)

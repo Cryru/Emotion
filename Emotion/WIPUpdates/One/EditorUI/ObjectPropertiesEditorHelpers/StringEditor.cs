@@ -1,6 +1,7 @@
 ﻿using Emotion.Game.World.Editor;
 using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using System.Reflection.Emit;
@@ -9,11 +10,14 @@ using System.Reflection.Emit;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFileExtensionSupport, new()
+public class StringEditor : UIBaseWindow
 {
-    private SerializableAssetHandle<T>? _objectEditting = null;
+    private object? _objectEditting;
+    private string? _value;
 
-    public AssetHandleEditor()
+    private ComplexTypeHandlerMember? _handler;
+
+    public StringEditor()
     {
         FillY = false;
 
@@ -44,50 +48,55 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
             FontSize = MapEditorColorPalette.EditorButtonTextSize,
             MinSizeX = 100,
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
-            IgnoreParentColor = true
+            IgnoreParentColor = true,
+
+            SubmitOnEnter = true,
+            SubmitOnFocusLoss = true,
+            OnSubmit = OnTextInputChanged
         };
         inputBackground.AddChild(input);
+    }
 
-        EditorButton browse = new EditorButton
-        {
-            Text = "...",
-            OnClickedProxy = (_) =>
-            {
-                var platform = Engine.Host;
-                if (platform is DesktopPlatform winPl)
-                {
-                    winPl.DeveloperMode_SelectFileNative<T>((file) =>
-                    {
-                        if (_objectEditting != null)
-                            _objectEditting.Name = file.Name;
-                        OnValueUpdated();
-                    });
-                }
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+        EngineEditor.UnregisterForObjectChanges(this);
+    }
 
-                //var explorer = new FilePicker<TextureAsset>((file) => NewEntity(file));
-                //Parent!.AddChild(explorer);
-            }
-        };
-        container.AddChild(browse);
+    private void OnTextInputChanged(string txt)
+    {
+        if (_objectEditting == null) return;
+
+        _handler?.SetValueInComplexObject(_objectEditting, txt);
+        EngineEditor.ObjectChanged(_objectEditting, this);
     }
 
     private void OnValueUpdated()
     {
         if (_objectEditting == null) return;
 
-        EngineEditor.ObjectChanged(_objectEditting, this);
-
         UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
         AssertNotNull(textInput);
-        textInput.Text = _objectEditting.Name;
+        textInput.Text = _value ?? "";
     }
 
-    public void SetEditor(string labelText, SerializableAssetHandle<T> obj)
+    public void SetEditor(object parentObj, ComplexTypeHandlerMember memberHandler)
     {
+        _objectEditting = parentObj;
+        _handler = memberHandler;
+
         EditorLabel? label = GetWindowById<EditorLabel>("Label");
         AssertNotNull(label);
-        label.Text = labelText + ":";
+        label.Text = memberHandler.Name + ":";
 
-        _objectEditting = obj;
+        EngineEditor.UnregisterForObjectChanges(this);
+        EngineEditor.RegisterForObjectChanges(_objectEditting, OnValueUpdated, this);
+
+        if (memberHandler.GetValueFromComplexObject(parentObj, out object? readValue))
+        {
+            Assert(readValue is string);
+            _value = (string?) readValue;
+            OnValueUpdated();
+        }
     }
 }

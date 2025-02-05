@@ -1,13 +1,28 @@
-﻿using Emotion.UI;
+﻿#nullable enable
+
+using Emotion.UI;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.Base;
-
-#nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
 public class EditorSelectableList<T> : ArrayEditorBase<T>
 {
+    public bool CanEdit
+    {
+        get => _canEdit;
+        set
+        {
+            if (value == _canEdit) return;
+            _canEdit = value;
+
+            // Respawn items
+            OnItemsChanged(_items);
+        }
+    }
+
+    private bool _canEdit;
+
     private UIScrollArea _scrollArea;
     private UIBaseWindow _itemList;
 
@@ -32,7 +47,7 @@ public class EditorSelectableList<T> : ArrayEditorBase<T>
 
         foreach (T item in items)
         {
-            _itemList.AddChild(new EditorListItem<T>(item, ChangeSelectedItem));
+            _itemList.AddChild(new EditorListItem<T>(item, ChangeSelectedItem, CanEdit));
         }
     }
 

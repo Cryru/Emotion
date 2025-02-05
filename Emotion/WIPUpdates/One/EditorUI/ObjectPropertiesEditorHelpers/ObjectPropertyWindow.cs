@@ -1,42 +1,37 @@
-﻿using Emotion.IO;
+﻿using Emotion.Editor;
+using Emotion.IO;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI;
+namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyWindow : UIScrollArea
 {
     public object? Object;
     protected Type? _type;
 
-    public void SetObject(object obj)
+    public ObjectPropertyWindow()
     {
-        Object = obj;
-        _type = obj.GetType();
-
         AutoHideScrollY = true;
-
-        SpawnEditors();
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
 
         UIBaseWindow editorList = new()
         {
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 5),
-            Paddings = new Primitives.Rectangle(10, 5, 10, 5),
+            Paddings = new Rectangle(10, 5, 10, 5),
             Id = "EditorListParent"
         };
         AddChildInside(editorList);
+    }
 
+    public void SetEditor(object obj)
+    {
+        Object = obj;
+        _type = obj.GetType();
         SpawnEditors();
     }
 
@@ -57,7 +52,7 @@ public class ObjectPropertyWindow : UIScrollArea
         if (typeHandler == null)
         {
             EditorLabel label = new EditorLabel();
-            label.Text = $"The reflector engine cannot reflect this type :/";
+            label.Text = $"The object attempting to be edited is non-editable.";
             editorList.AddChild(label);
             return;
         }
@@ -67,14 +62,21 @@ public class ObjectPropertyWindow : UIScrollArea
 
         if (typeHandler is IGenericReflectorComplexTypeHandler complex)
         {
-            ComplexTypeHandlerMember[]? complexTypeMembers = complex.GetMembers();
+            IEnumerable<ComplexTypeHandlerMember> complexTypeMembers = complex.GetMembersDeep();
 
             foreach (ComplexTypeHandlerMember member in complexTypeMembers)
             {
+                if (member.HasAttribute<DontShowInEditorAttribute>() != null) continue;
+
                 IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
 
-                // todo
-                if (memberHandler.Type == typeof(SerializableAssetHandle<TextureAsset>))
+                if (memberHandler is StringTypeHandler)
+                {
+                    var stringEditor = new StringEditor();
+                    stringEditor.SetEditor(Object, member);
+                    editorList.AddChild(stringEditor);
+                }
+                else if (memberHandler?.Type == typeof(SerializableAssetHandle<TextureAsset>))
                 {
                     AssetHandleEditor<TextureAsset> newEditor = new AssetHandleEditor<TextureAsset>();
 
@@ -92,12 +94,11 @@ public class ObjectPropertyWindow : UIScrollArea
                     newEditor.SetEditor(member.Name, handleValue);
                     editorList.AddChild(newEditor);
                 }
+                else
+                {
+                    editorList.AddChild(new EditorLabel($"{member.Name}: [No handler for type - {member.Type.Name}]"));
+                }
             }
         }
-    }
-
-    public static void ObjectChanged(object obj)
-    {
-
     }
 }

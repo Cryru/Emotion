@@ -82,6 +82,8 @@ public sealed class TileEditorWindow : UIBaseWindow
         {
             var layers = new EditorSelectableListWithButtons<TileMapLayerGrid>()
             {
+                CanEdit = true,
+
                 LabelText = "Layers",
 
                 MaxSizeX = 400, // temp

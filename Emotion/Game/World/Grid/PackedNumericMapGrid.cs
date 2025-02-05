@@ -10,7 +10,7 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
     [DontShowInEditor]
     public string Data { get => PackData(_data); set => _data = UnpackData(value); }
 
-    public int DataStride { get; set; } = -1;
+    //public int DataStride { get; set; } = -1;
 
     #region Data Packing
 

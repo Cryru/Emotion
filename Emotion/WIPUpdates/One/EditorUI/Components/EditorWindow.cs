@@ -1,4 +1,6 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
@@ -6,13 +8,10 @@ using Emotion.Game.World.Editor;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using OpenGL;
-using System.Threading.Tasks;
 using static Emotion.Graphics.RenderComposer;
 using static Emotion.Platform.PlatformBase;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
@@ -239,6 +238,12 @@ public class EditorWindow : UIBaseWindow
         bool returnVal = base.OnKey(key, status, mousePos);
 
         if (key == Key.MouseKeyLeft) return false;
+
+        if (key == Key.Z && Engine.Host.IsCtrlModifierHeld())
+        {
+
+        }
+
         if (PanelMode == PanelMode.Modal) return false;
 
         return returnVal;
@@ -468,6 +473,44 @@ public class EditorWindow : UIBaseWindow
         // Restore main window context.
         Engine.Host.Context.MakeCurrent();
         Engine.Renderer.CurrentTarget.Bind();
+    }
+
+    #endregion
+
+    #region UndoSystem
+
+    private List<EditorUndoableOperation> _undoList = new List<EditorUndoableOperation>();
+    private int _currentOperationIndex = 0;
+
+    public static void SubmitUndoOperation(UIBaseWindow originator, EditorUndoableOperation operation)
+    {
+        UIBaseWindow? parent = originator.Parent;
+        while(true)
+        {
+            if (parent == null) break;
+            if (parent is EditorWindow editorWindow && editorWindow.PanelMode != PanelMode.Embedded)
+            {
+                // submit
+                return;
+            }
+
+            parent = parent.Parent;
+        }
+    }
+
+    public void SubmitUndoOperation(EditorUndoableOperation operation)
+    {
+
+    }
+
+    protected void Undo()
+    {
+
+    }
+
+    protected void Redo()
+    {
+
     }
 
     #endregion
