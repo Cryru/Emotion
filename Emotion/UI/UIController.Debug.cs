@@ -111,6 +111,7 @@ public partial class UIController
     }
 
     [Conditional("DEBUG")]
+    [DebuggerHidden]
     public static void DebugShouldBreakpointMeasure(UIBaseWindow me)
     {
         if (me == _debugBPMeasure)
@@ -121,6 +122,7 @@ public partial class UIController
     }
 
     [Conditional("DEBUG")]
+    [DebuggerHidden]
     public static void DebugShouldBreakpointLayout(UIBaseWindow me)
     {
         if (me == _debugBPLayout)
@@ -131,6 +133,7 @@ public partial class UIController
     }
 
     [Conditional("DEBUG")]
+    [DebuggerHidden]
     public static void DebugShouldBreakpointMeasureAfterChildren(UIBaseWindow me)
     {
         if (me == _debugBPMeasureAfterChildren)
@@ -141,6 +144,7 @@ public partial class UIController
     }
 
     [Conditional("DEBUG")]
+    [DebuggerHidden]
     public static void DebugShouldBreakpointLayoutAfterChildren(UIBaseWindow me)
     {
         if (me == _debugBPLayoutAfterChildren)
