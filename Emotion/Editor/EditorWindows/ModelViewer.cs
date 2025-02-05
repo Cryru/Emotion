@@ -18,7 +18,6 @@ using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using Extensions = Emotion.Utility.Extensions;
 
 #endregion
 
@@ -250,7 +249,7 @@ public class ModelViewer : EditorPanel
                         anim.Name = Helpers.EnsureNoStringCollision(takenNames, anim.Name);
                     }
 
-                    currentEntity.Animations = Extensions.JoinArrays(currentEntity.Animations, assetEntity.Animations);
+                    currentEntity.Animations = currentEntity.Animations.JoinArrays(assetEntity.Animations);
                     UpdateAnimationList();
                 }));
             }

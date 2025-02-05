@@ -1,19 +1,15 @@
-﻿#region Using
+﻿#nullable enable
 
-using System.Reflection.Metadata;
+#region Using
+
 using System.Runtime.InteropServices;
 using Emotion.Game.Text;
 using Emotion.Graphics.Text;
-using Emotion.Primitives;
 using Emotion.Utility;
 using Emotion.WIPUpdates.TextUpdate;
 using Emotion.WIPUpdates.TextUpdate.LayoutEngineTypes;
-using static Emotion.UI.TextLayoutEngine;
-using static Emotion.UI.UIBaseWindow;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.UI;
 

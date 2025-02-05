@@ -1,6 +1,6 @@
-﻿using Emotion.WIPUpdates.One.TileMap;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 

@@ -7,14 +7,14 @@ using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using OpenGL;
+
 #if GLFW
 using Emotion.Platform.Implementation.GlfwImplementation;
-
 #endif
 #if ANDROID
 using Emotion.Platform.Implementation.Android;
-
 #endif
+
 #endregion
 
 namespace Emotion.Platform

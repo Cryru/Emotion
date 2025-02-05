@@ -1,6 +1,6 @@
-﻿using Emotion.IO;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.IO;
 
 namespace Emotion.WIPUpdates.One.TileMap;
 

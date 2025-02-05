@@ -121,7 +121,7 @@ namespace Emotion.Utility
         /// <summary>
         /// The four 2d directions and the four diagonals.
         /// </summary>
-        public static Vector2[] CardinalDirectionsAndDiagonals2D = Extensions.JoinArrays(CardinalDirections2D, Diagonals2D);
+        public static Vector2[] CardinalDirectionsAndDiagonals2D = ArrayExtensions.JoinArrays(CardinalDirections2D, Diagonals2D);
 
         /// <summary>
         /// Ceiling round the float to the nearest int value above y. note that this only works for values in the range of short.
@@ -681,17 +681,6 @@ namespace Emotion.Utility
         public static float RoundToNearest(float value, float roundToNearest)
         {
             return MathF.Round(value / roundToNearest) * roundToNearest;
-        }
-
-        /// <summary>
-        /// Round to the closest integer. x.5 and higher will round to 1, anything lower will round to 0.
-        /// </summary>
-        /// <param name="v"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float RoundClosest(float v)
-        {
-            return MathF.Floor(v + 0.5f);
         }
 
         /// <summary>

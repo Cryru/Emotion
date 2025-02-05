@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Graphics.Objects;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
 using OpenGL;

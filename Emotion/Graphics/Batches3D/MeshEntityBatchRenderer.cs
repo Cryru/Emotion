@@ -2,22 +2,15 @@
 
 #region Using
 
-using Emotion;
-using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
-using Emotion.Editor;
-using Emotion.Editor.EditorHelpers;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World;
 using Emotion.Game.World3D;
-using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
-using Emotion.UI;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.Work;
 using OpenGL;

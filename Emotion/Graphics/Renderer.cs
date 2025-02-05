@@ -6,7 +6,6 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;

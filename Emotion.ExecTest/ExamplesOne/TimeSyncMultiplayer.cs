@@ -5,17 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Emotion.Common;
-using Emotion.Editor.EditorHelpers;
-using Emotion.Game.Time.Routines;
-using Emotion.Game.World2D;
-using Emotion.Game.World2D.SceneControl;
-using Emotion.Game.World3D;
-using Emotion.Game.World3D.SceneControl;
 using Emotion.Graphics;
-using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
@@ -24,15 +15,11 @@ using Emotion.Network.TimeSyncMessageBroker;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
-using Emotion.Standard.Reflector;
 using Emotion.Standard.XML;
-using Emotion.Testing;
 using Emotion.UI;
-using Emotion.Utility;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.Work;
-using WinApi.User32;
 
 #endregion
 

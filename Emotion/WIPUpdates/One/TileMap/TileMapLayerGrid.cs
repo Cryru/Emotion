@@ -1,11 +1,8 @@
-﻿using Emotion.Game.World.Grid;
-using Emotion.Graphics.Batches;
-using Emotion.Graphics.Data;
-using Emotion.Utility;
+﻿#nullable enable
+
+using Emotion.Game.World.Grid;
 
 namespace Emotion.WIPUpdates.One.TileMap;
-
-#nullable enable
 
 public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 {

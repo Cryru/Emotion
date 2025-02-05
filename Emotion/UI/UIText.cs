@@ -2,7 +2,6 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.Text;
-using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 

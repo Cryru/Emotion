@@ -1,10 +1,11 @@
-﻿using Emotion.Game.World3D;
+﻿#nullable enable
+
+using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace Emotion.Game.World.Grid;
+
 public class TerrainHeightMapGrid : TextureSourceGrid
 {
     private TerrainChunkObject[]? _chunks;

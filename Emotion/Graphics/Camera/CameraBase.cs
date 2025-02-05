@@ -3,7 +3,6 @@
 using Emotion.Common.Threading;
 using Emotion.Platform.Input;
 using Emotion.Utility;
-using System.Net.Sockets;
 
 #endregion
 

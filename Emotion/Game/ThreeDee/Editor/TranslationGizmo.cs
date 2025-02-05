@@ -4,7 +4,6 @@ using Emotion.Common.Serialization;
 using Emotion.Game.World;
 using Emotion.Game.World3D;
 using Emotion.Game.World3D.Objects;
-using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Platform.Input;
@@ -292,7 +291,7 @@ namespace Emotion.Game.ThreeDee.Editor
                 // Find plane that contains the axis and faces the camera.
                 Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
                 Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
-                planeNormal = planeNormal.Normalize();
+                planeNormal = planeNormal.SafeNormalize();
 
                 intersection = ray.IntersectWithPlane(planeNormal, Position);
 

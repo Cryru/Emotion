@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Utility;
 

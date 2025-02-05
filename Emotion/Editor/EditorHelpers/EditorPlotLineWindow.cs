@@ -1,9 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common.Threading;
-using Emotion.Graphics;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.UI;
 using Emotion.Utility;

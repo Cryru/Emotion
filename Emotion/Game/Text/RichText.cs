@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Linq;
-using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Utility;
 

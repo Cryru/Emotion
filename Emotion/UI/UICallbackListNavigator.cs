@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Common.Serialization;
-using Emotion.Graphics;
 using Emotion.Platform.Input;
 
 #endregion
@@ -99,7 +98,7 @@ namespace Emotion.UI
             if (Children != null)
             {
                 float lastChildSize = 0;
-                Vector2 scaledListSpacing = (ListSpacing * GetScale()).RoundClosest();
+                Vector2 scaledListSpacing = (ListSpacing * GetScale()).Round();
                 for (var i = 0; i < Children.Count; i++)
                 {
                     UIBaseWindow child = Children[i];
@@ -166,7 +165,7 @@ namespace Emotion.UI
             if (Children != null)
             {
                 float lastChildSize = 0;
-                Vector2 scaledListSpacing = (ListSpacing * GetScale()).RoundClosest();
+                Vector2 scaledListSpacing = (ListSpacing * GetScale()).Round();
                 for (var i = 0; i < Children.Count; i++)
                 {
                     UIBaseWindow child = Children[i];

@@ -3,7 +3,6 @@
 using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Game.Time;
-using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Platform.Input;
 

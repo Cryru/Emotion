@@ -4,10 +4,8 @@ using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches.SpriteBatcher;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.IO;
-using Emotion.Utility;
 
 #endregion
 

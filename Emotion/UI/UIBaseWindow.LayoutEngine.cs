@@ -1,8 +1,8 @@
-﻿using Emotion.WIPUpdates.One.Tools;
+﻿#nullable enable
+
+using Emotion.WIPUpdates.One.Tools;
 
 namespace Emotion.UI;
-
-#nullable enable
 
 public partial class UIBaseWindow
 {

@@ -1,6 +1,7 @@
-﻿#region Using
+﻿#nullable enable
 
-using System.Collections;
+#region Using
+
 using System.Threading.Tasks;
 using Emotion.Game.Text;
 using Emotion.Game.Time.Routines;
@@ -11,8 +12,6 @@ using Emotion.IO;
 using Emotion.WIPUpdates.TextUpdate;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.UI;
 

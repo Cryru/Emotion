@@ -1,4 +1,6 @@
-﻿using Emotion.Game.World3D.Objects;
+﻿#nullable enable
+
+using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
 using Emotion.UI;
@@ -7,8 +9,6 @@ using Emotion.WIPUpdates.One.Editor2D;
 using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One;
-
-#nullable enable
 public enum MapEditorMode
 {
     Off,

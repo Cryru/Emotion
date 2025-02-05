@@ -1,8 +1,8 @@
-﻿using Emotion.WIPUpdates.One.TileMap;
+﻿#nullable enable
+
+using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
-
-#nullable enable
 
 public class TileEditorEraserTool : TileEditorTool
 {

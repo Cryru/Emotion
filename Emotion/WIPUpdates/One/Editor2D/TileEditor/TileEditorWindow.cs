@@ -1,5 +1,6 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.Editor.EditorHelpers;
+﻿#nullable enable
+
+using Emotion.Common.Serialization;
 using Emotion.Game.World.Editor;
 using Emotion.Platform.Input;
 using Emotion.Scenography;
@@ -8,8 +9,6 @@ using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.TileMap;
-
-#nullable enable
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
 

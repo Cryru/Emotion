@@ -2,13 +2,11 @@
 
 #region Using
 
-using Emotion.Game.World.Editor;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.TileMap;
 using System.Linq;
-using static Emotion.UI.UIBaseWindow;
 
 #endregion
 

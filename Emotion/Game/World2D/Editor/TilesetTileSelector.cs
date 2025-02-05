@@ -2,14 +2,10 @@
 
 #region Using
 
-using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.Tile;
-using Emotion.Graphics;
-using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using System.Linq;
-using System.Security.Cryptography;
 
 #endregion
 

@@ -3,7 +3,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Emotion.Graphics.Batches;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Standard.OpenType;
@@ -140,8 +139,8 @@ namespace Emotion.Graphics.Text.EmotionSDF
             {
                 DrawableGlyph glyph = glyphsMissingReferences[i];
                 glyph.GlyphUV.Location = new Vector2(glyph.GlyphUV.X, bufferHeight - glyph.GlyphUV.Bottom);
-                glyph.GlyphUV.Location = glyph.GlyphUV.Location.RoundClosest();
-                glyph.GlyphUV.Size = glyph.GlyphUV.Size.RoundClosest();
+                glyph.GlyphUV.Location = glyph.GlyphUV.Location.Round();
+                glyph.GlyphUV.Size = glyph.GlyphUV.Size.Round();
 
                 DrawableGlyph? g = glyphsMissing[i];
                 if (g != null) g.GlyphUV = glyph.GlyphUV;

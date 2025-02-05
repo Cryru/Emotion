@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Emotion.Game.World;
-using Emotion.Graphics;
 
 #endregion
 

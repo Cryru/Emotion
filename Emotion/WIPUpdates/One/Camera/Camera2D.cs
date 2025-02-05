@@ -1,4 +1,6 @@
-﻿using Emotion.Graphics.Camera;
+﻿#nullable enable
+
+using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
 using Emotion.Utility;
 using Emotion.WIPUpdates.TimeUpdate;

@@ -1,14 +1,10 @@
 ﻿#region Using
 
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
-using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Utility;
 

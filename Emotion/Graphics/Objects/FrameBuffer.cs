@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Collections;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;

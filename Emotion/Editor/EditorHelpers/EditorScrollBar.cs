@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Game.World.Editor;
-using Emotion.Graphics;
 using Emotion.UI;
 
 #endregion

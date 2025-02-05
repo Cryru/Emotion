@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Collections.Concurrent;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.Text.EmotionRenderer;
 using Emotion.Graphics.Text.EmotionSDF;

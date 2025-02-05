@@ -2,7 +2,6 @@
 
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using OpenGL;
 
