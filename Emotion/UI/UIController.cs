@@ -132,7 +132,8 @@ public partial class UIController : UIBaseWindow
         // determines the minimum size of the parent.
         // Layout rules and extra metrics (paddings, margins) are measured too.
         // Children are measured in insertion order (and by the OrderInParent property).
-        Measure(Engine.Renderer.DrawBuffer.Size);
+        Size = Engine.Renderer.DrawBuffer.Size; // Used by "amInsideParent" during measurement
+        Measure(Size);
 
         // 2. Layout windows within their parents, starting with the controller taking up the full screen.
         // Sizes returned during measuring can be used, but larger sizes can be set. Positions are
