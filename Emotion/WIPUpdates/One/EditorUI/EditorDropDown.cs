@@ -34,7 +34,7 @@ public class EditorDropDown : UIDropDown
         if (size.X < SpawningWindow.Width)
         {
             float diff = SpawningWindow.Width - Size.X;
-            pos.X -= diff;
+            if (Anchor == UIAnchor.TopRight) pos.X -= diff;
             size.X += diff;
         }
 
@@ -59,9 +59,12 @@ public class EditorDropDown : UIDropDown
         };
         spawningWindow.Controller?.AddChild(dropDown);
 
-        UIScrollArea scrollArea = new UIScrollArea()
+        var scrollArea = new UIScrollArea()
         {
-            AutoHideScrollY = true
+            AutoHideScrollY = true,
+            ExpandX = true,
+            ExpandY = true,
+            // todo: there should probably be a max height here
         };
         dropDown.AddChild(scrollArea);
 

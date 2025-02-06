@@ -1,18 +1,24 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Platform.Input;
+﻿#nullable enable
+// ONE
 
-#nullable enable
+using Emotion.Editor.EditorHelpers;
+using Emotion.Platform.Input;
 
 namespace Emotion.UI;
 
 public class UIScrollArea : UIBaseWindow
 {
-    public bool AutoHideScrollX = true;
-    public bool AutoHideScrollY = false;
+    public bool ExpandX { get; set; }
+    public bool ExpandY { get; set; }
+
+    public bool AutoHideScrollX { get; set; } = true;
+    public bool AutoHideScrollY { get; set; } = false;
 
     protected UIScrollContentArea _content;
     protected UIScrollbar _verticalScroll;
     protected UIScrollbar _horizontalScroll;
+
+    private bool _noChildrenAddLock = false;
 
     public UIScrollArea()
     {
@@ -27,11 +33,12 @@ public class UIScrollArea : UIBaseWindow
         };
         AddChild(scrollParent);
 
-        var areaInside = new UIScrollContentArea
+        var areaInside = new UIScrollContentArea(this)
         {
+            OrderInParent = -1,
             Id = "ScrollAreaContent",
         };
-        scrollParent.AddChild(areaInside);
+        AddChild(areaInside);
         _content = areaInside;
 
         var scrollVert = new EditorScrollBar
@@ -45,11 +52,19 @@ public class UIScrollArea : UIBaseWindow
         var scrollHorz = new EditorScrollBarHorizontal
         {
             OnScroll = ScrollBarCallbackHorizontal,
-            Margins = new Primitives.Rectangle(0, 0, 20, 0),
+            Margins = new Rectangle(0, 0, 20, 0),
             DontTakeSpaceWhenHidden = true
         };
         AddChild(scrollHorz);
         _horizontalScroll = scrollHorz;
+
+        _noChildrenAddLock = true;
+    }
+
+    public override void AddChild(UIBaseWindow? child)
+    {
+        Assert(!_noChildrenAddLock);
+        base.AddChild(child);
     }
 
     public void AddChildInside(UIBaseWindow win)
@@ -84,7 +99,7 @@ public class UIScrollArea : UIBaseWindow
             verticalVisible = _verticalScroll.TotalArea > _content.Height;
         _verticalScroll.SetVisible(verticalVisible);
 
-        Rectangle paddings = new Primitives.Rectangle(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
+        Rectangle paddings = new Rectangle(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
         _content.Margins = paddings;
     }
 
@@ -139,19 +154,25 @@ public class UIScrollArea : UIBaseWindow
         public Vector2 CurrentScroll;
         public Vector2 MaxScroll;
 
-        public UIScrollContentArea()
+        private UIScrollArea _parent;
+
+        public UIScrollContentArea(UIScrollArea parent)
         {
-            ChildrenCanExpandParent = false;
+            _parent = parent;
         }
 
-        protected override bool RenderInternal(RenderComposer c)
+        protected override Vector2 Measure_ExpandByChildren(Vector2 myMeasure, Vector2 childrenUsed)
         {
-            return base.RenderInternal(c);
+            // The scroll area is only expanded by its children if set to expand
+            Vector2 size = myMeasure;
+            if (_parent.ExpandX) size.X = MathF.Max(childrenUsed.X, size.X);
+            if (_parent.ExpandY) size.Y = MathF.Max(childrenUsed.Y, size.Y);
+            return size;
         }
 
-        protected override Rectangle GetChildrenMeasureSpace(Vector2 pos, Vector2 space)
+        protected override Rectangle Measure_GetChildrenSpace(Vector2 pos, Vector2 space)
         {
-            return new Rectangle(pos, UIBaseWindow.DefaultMaxSize);
+            return new Rectangle(pos, DefaultMaxSize);
         }
 
         protected override void AfterLayout()

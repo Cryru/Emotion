@@ -86,8 +86,6 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         }
     }
 
-    public bool ChildrenCanExpandParent = true;
-
     // ReSharper disable once InconsistentNaming
     protected static List<UIBaseWindow> EMPTY_CHILDREN_LIST = new(0);
 
@@ -98,11 +96,6 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
 #endif
     {
         return Vector2.Zero;
-    }
-
-    protected virtual Rectangle GetChildrenMeasureSpace(Vector2 pos, Vector2 space)
-    {
-        return new Rectangle(pos, space);
     }
 
     /// <summary>
@@ -126,7 +119,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         if (!amInsideParent) space = Controller!.Size;
 
         _layoutEngine.Reset();
-        _layoutEngine.SetLayoutDimensions(GetChildrenMeasureSpace(Vector2.Zero, space), Margins * scale, MaxSize * scale, Paddings * scale);
+        _layoutEngine.SetLayoutDimensions(Measure_GetChildrenSpace(Vector2.Zero, space), Margins * scale, MaxSize * scale, Paddings * scale);
 
         Vector2 scaledListSpacing = (ListSpacing * scale).RoundAwayFromZero();
         _layoutEngine.SetLayoutMode(UIPass.Measure, LayoutMode, scaledListSpacing);
@@ -159,20 +152,14 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         // Now that we know how big this window wants to be at minimum,
         // and the minimum of all children, we can determine the actual minimum of this window.
         Vector2 size = minWindowSize;
-
-        // Parents are expanded by their children.
+        
         // todo: disable some windows from having children? maybe just editor hint?
-        if (true)
-        {
-            childrenUsed.X = MathF.Min(childrenUsed.X, space.X); // Dont allow expansion higher than space.
-            size.X = MathF.Max(childrenUsed.X, size.X);
-        }
 
-        if (true)
-        {
-            childrenUsed.Y = MathF.Min(childrenUsed.Y, space.Y);
-            size.Y = MathF.Max(childrenUsed.Y, size.Y);
-        }
+        // Dont allow expansion higher than space.
+        childrenUsed.X = MathF.Min(childrenUsed.X, space.X);
+        childrenUsed.Y = MathF.Min(childrenUsed.Y, space.Y);
+
+        size = Measure_ExpandByChildren(size, childrenUsed);
 
         if (size.X < 0 || size.Y < 0)
         {
@@ -185,6 +172,19 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         Size = size;
 
         return size;
+    }
+
+    protected virtual Rectangle Measure_GetChildrenSpace(Vector2 pos, Vector2 space)
+    {
+        return new Rectangle(pos, space);
+    }
+
+    protected virtual Vector2 Measure_ExpandByChildren(Vector2 myMeasure, Vector2 childrenUsed)
+    {
+        // Parents are expanded by their children by default.
+        float x = MathF.Max(childrenUsed.X, myMeasure.X);
+        float y = MathF.Max(childrenUsed.Y, myMeasure.Y);
+        return new Vector2(x, y);
     }
 
     protected virtual void Layout(Vector2 pos, Vector2 size)
