@@ -94,7 +94,7 @@ public class StringEditor : UIBaseWindow, IObjectPropertyEditor
 
         if (memberHandler.GetValueFromComplexObject(parentObj, out object? readValue))
         {
-            Assert(readValue is string);
+            Assert(readValue == null || readValue is string);
             _value = (string?) readValue;
             OnValueUpdated();
         }
