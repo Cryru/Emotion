@@ -5,6 +5,7 @@
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
+using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using OpenGL;
@@ -17,7 +18,7 @@ namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
 public class EditorWindowContent : UIBaseWindow
 {
-    public Vector2 SizeConstraint = new Vector2(960, 540);
+    public Vector2 SizeConstraint;
 
     protected override Vector2 NEW_InternalMeasure(Vector2 space)
     {
@@ -69,6 +70,8 @@ public class EditorWindow : UIBaseWindow
     private UIBaseWindow _panelInner = null!;
     private bool _centered;
 
+    protected Vector2 _initialSize = new Vector2(960, 540);
+
     public EditorWindow()
     {
     }
@@ -96,6 +99,7 @@ public class EditorWindow : UIBaseWindow
             FillY = false,
             AnchorAndParentAnchor = UIAnchor.CenterCenter,
             Id = "PanelItself",
+            SizeConstraint = _initialSize
         };
         AddChild(panelItself);
         _centered = true;
@@ -197,6 +201,9 @@ public class EditorWindow : UIBaseWindow
             c.RenderLine(_topBar.Bounds.TopLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
             c.RenderLine(_topBar.Bounds.BottomLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopLeft.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
             c.RenderLine(_topBar.Bounds.TopRight.ToVec3(_topBar.Z), _topBar.Bounds.BottomRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
+
+            // For debugging order in parent V
+            //c.RenderString(_topBar.Position, Color.Red, OrderInParent.ToString(), FontAsset.GetDefaultBuiltIn().GetAtlas(35));
         }
 
         return base.RenderInternal(c);

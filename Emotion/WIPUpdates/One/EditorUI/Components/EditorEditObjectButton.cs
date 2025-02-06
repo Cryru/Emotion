@@ -52,7 +52,7 @@ public class EditorEditObjectButton : SquareEditorButton
         AssertNotNull(_obj);
         AssertNotNull(_typeHandler);
 
-        var objEditWindow = new ObjectPropertyEditorWindow(_obj);
+        var objEditWindow = new ObjectPropertyEditorWindow(_obj, Position2);
         EngineEditor.EditorRoot.AddChild(objEditWindow);
     }
 
