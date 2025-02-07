@@ -195,7 +195,7 @@ public static partial class GLTFFormat
                     if (channel == null)
                     {
                         channel = new SkeletonAnimChannel();
-                        channel.Name = node.Name; // todo
+                        channel.Name = node.Name ?? string.Empty; // todo
                         channels[nextChannelAlloc] = channel;
                         nextChannelAlloc++;
                     }

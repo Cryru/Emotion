@@ -15,7 +15,7 @@ public class GLTFSkins
     public string Name { get; set; }
 
     [JsonPropertyName("joints")]
-    public int[] Joints { get; set; }
+    public int[] Joints { get; set; } = Array.Empty<int>();
 
     [JsonPropertyName("inverseBindMatrices")]
     public int InverseBindMatrices { get; set; }
