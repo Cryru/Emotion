@@ -119,7 +119,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         if (!amInsideParent) space = Controller!.Size;
 
         _layoutEngine.Reset();
-        _layoutEngine.SetLayoutDimensions(Measure_GetChildrenSpace(Vector2.Zero, space), Margins * scale, MaxSize * scale, Paddings * scale);
+        Measure_SetLayoutEngineDimensions(_layoutEngine, space, scale);
 
         Vector2 scaledListSpacing = (ListSpacing * scale).RoundAwayFromZero();
         _layoutEngine.SetLayoutMode(UIPass.Measure, LayoutMode, scaledListSpacing);
@@ -174,9 +174,9 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         return size;
     }
 
-    protected virtual Rectangle Measure_GetChildrenSpace(Vector2 pos, Vector2 space)
+    protected virtual void Measure_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 space, float scale)
     {
-        return new Rectangle(pos, space);
+        layoutEngine.SetLayoutDimensions(new Rectangle(Vector2.Zero, space), Margins * scale, MaxSize * scale, Paddings * scale);
     }
 
     protected virtual Vector2 Measure_ExpandByChildren(Vector2 myMeasure, Vector2 childrenUsed)
@@ -203,11 +203,7 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         Size = size.Ceiling();
 
         _layoutEngine.Reset();
-
-        // The size being passed to us in Layout already respects our limit and
-        // has the margins applied - meaning we don't have to do it.
-        // Since the paddings are on the inside of our content though, we have to apply them.
-        _layoutEngine.SetLayoutDimensions(new Rectangle(Position2, Size), Rectangle.Empty, DefaultMaxSize, Paddings * scale);
+        Layout_SetLayoutEngineDimensions(_layoutEngine, Position2, Size, scale);
 
         _layoutEngine.SetLayoutMode(UIPass.Layout, LayoutMode, (ListSpacing * scale).RoundAwayFromZero());
 
@@ -239,5 +235,13 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
         }
 
         AfterLayout();
+    }
+
+    protected virtual void Layout_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 pos, Vector2 size, float scale)
+    {
+        // The size being passed to us in Layout already respects our limit and
+        // has the margins applied - meaning we don't have to add it to the layout dimensions.
+        // Since the paddings are on the inside of our content, we have to apply them.
+        layoutEngine.SetLayoutDimensions(new Rectangle(pos, size), Rectangle.Empty, DefaultMaxSize, Paddings * scale);
     }
 }

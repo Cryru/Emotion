@@ -170,9 +170,16 @@ public class UIScrollArea : UIBaseWindow
             return size;
         }
 
-        protected override Rectangle Measure_GetChildrenSpace(Vector2 pos, Vector2 space)
+        protected override void Measure_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 space, float scale)
         {
-            return new Rectangle(pos, DefaultMaxSize);
+            layoutEngine.SetLayoutDimensions(new Rectangle(Vector2.Zero, DefaultMaxSize), Margins * scale, DefaultMaxSize, Paddings * scale);
+        }
+
+        protected override void Layout_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 pos, Vector2 size, float scale)
+        {
+            // Layout in the content space - this allows fills to work properly.
+            size = Vector2.Max(size, _measureChildrenUsedSpace);
+            base.Layout_SetLayoutEngineDimensions(layoutEngine, pos, size, scale);
         }
 
         protected override void AfterLayout()
