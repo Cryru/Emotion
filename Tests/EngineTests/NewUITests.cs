@@ -1293,7 +1293,8 @@ public class NewUITests : TestingScene
         var list = new UIBaseWindow()
         {
             LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            ListSpacing = new Vector2(0, 5),
+            ChildrenHandleInput = false
         };
         scrollArea.AddChildInside(list);
 
@@ -1314,6 +1315,7 @@ public class NewUITests : TestingScene
         VerifyScreenshot();
 
         scrollArea.AutoHideScrollX = false;
+        scrollArea.InvalidateLayout();
 
         yield return WaitUILayout();
         VerifyScreenshot();
@@ -1326,9 +1328,14 @@ public class NewUITests : TestingScene
         {
             var editorButton = new EditorButton();
             editorButton.FillX = true;
-            editorButton.Text = $"Button {i}";
+            editorButton.Text = $"Button {i} ----------";
             list.AddChild(editorButton);
         }
+
+        yield return WaitUILayout();
+        VerifyScreenshot();
+
+        scrollArea.ScrollTo(new Vector2(100, 100));
 
         yield return WaitUILayout();
         VerifyScreenshot();
