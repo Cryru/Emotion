@@ -1,4 +1,6 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
@@ -34,7 +36,7 @@ namespace Emotion.Graphics
         /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
         /// <param name="flipX">Whether to flip the texture on the x axis.</param>
         /// <param name="flipY">Whether to flip the texture on the y axis.</param>
-        public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture? texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
             if (_spriteBatcherEnabled && _bufferStack.Count == 1)
             {
@@ -49,25 +51,25 @@ namespace Emotion.Graphics
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Transform transform, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void RenderSprite(Transform transform, Color color, Texture? texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(transform.Position, transform.Size, color, texture, textureArea);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Rectangle rect, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void RenderSprite(Rectangle rect, Color color, Texture? texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(rect.Position.ToVec3(), rect.Size, color, texture, textureArea);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Vector3 position, Vector2 size, Texture texture = null, Rectangle? textureArea = null)
+        public void RenderSprite(Vector3 position, Vector2 size, Texture? texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(position, size, Color.White, texture, textureArea);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Vector2 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void RenderSprite(Vector2 position, Vector2 size, Color color, Texture? texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(position.ToVec3(), size, color, texture, textureArea);
         }
@@ -300,7 +302,7 @@ namespace Emotion.Graphics
         /// <param name="effectAmount">The effect amount.</param>
         /// <param name="effectColor">The effect color.</param>
         public void RenderString(
-            Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter = null,
+            Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter? layouter = null,
             FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
             layouter ??= new TextLayouter(atlas);
