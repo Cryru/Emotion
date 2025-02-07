@@ -308,7 +308,11 @@ public class UITextInput2 : UIRichText
     protected override bool RenderInternal(RenderComposer c)
     {
         Rectangle? prevClip = c.CurrentState.ClipRect;
-        c.SetClipRect(Bounds);
+        Rectangle clipRect = Bounds.Offset(c.ModelMatrix.Translation.ToVec2());
+        if (prevClip != null)
+            clipRect = Rectangle.Clip(prevClip.Value, clipRect);
+
+        c.SetClipRect(clipRect);
         base.RenderInternal(c);
         c.SetClipRect(prevClip);
 

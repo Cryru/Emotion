@@ -705,6 +705,29 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
+        /// Return a rectangle clipped (limited to be inside) by another rectangle.
+        /// Note that the output rectangle could be smaller than the rectangle being clipped
+        /// (because it is clipped, duh :P).
+        /// </summary>
+        public static Rectangle Clip(Rectangle clipBy, Rectangle rect)
+        {
+            rect.GetMinMaxPoints(out Vector2 rectMin, out Vector2 rectMax);
+            clipBy.GetMinMaxPoints(out Vector2 clipMin, out Vector2 clipMax);
+
+            // We have to reverse the min/max for the Y axis because it is in reverse
+            Vector2 clippedMin = new Vector2(
+                MathF.Max(rectMin.X, clipMin.X),
+                MathF.Min(rectMax.Y, clipMax.Y)
+            );
+            Vector2 clippedMax = new Vector2(
+                MathF.Min(rectMax.X, clipMax.X),
+                MathF.Max(rectMin.Y, clipMin.Y)
+            );
+
+            return Rectangle.FromMinMaxPointsChecked(clippedMin, clippedMax);
+        }
+
+        /// <summary>
         /// Get the rectangle's min/max points (top-left, bottom-right points)
         /// </summary>
         public void GetMinMaxPoints(out Vector2 min, out Vector2 max)
