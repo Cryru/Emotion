@@ -36,6 +36,8 @@ public class EditorListItem<T> : EditorButton
 
         if (canEdit)
         {
+            _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
+
             var editButton = new EditorEditObjectButton()
             {
                 ParentAnchor = UI.UIAnchor.CenterRight,

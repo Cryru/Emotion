@@ -61,6 +61,7 @@ public sealed class TileEditorWindow : UIBaseWindow
     {
         var sidePanel = new UIBaseWindow()
         {
+            Id = "TileEditorSidePanel",
             Anchor = UIAnchor.BottomRight,
             ParentAnchor = UIAnchor.TopRight,
             MinSizeX = 400,
@@ -109,7 +110,7 @@ public sealed class TileEditorWindow : UIBaseWindow
             {
                 Id = "TileSelector",
 
-                MaxSizeX = 400, // temp
+                //MaxSizeX = 400, // temp
                 MinSizeY = 450,
                 MaxSizeY = 450
             };
