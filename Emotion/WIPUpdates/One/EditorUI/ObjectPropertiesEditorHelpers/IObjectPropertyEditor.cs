@@ -1,8 +1,24 @@
-﻿using Emotion.Standard.Reflector.Handlers;
+﻿#nullable enable
+
+using Emotion.Common.Serialization;
+using Emotion.UI;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public interface IObjectPropertyEditor
+public abstract class ObjectPropertyEditor : UIBaseWindow
 {
-    public void SetEditor(object parentObj, ComplexTypeHandlerMember memberHandler);
+    [DontSerialize]
+    private Action<object?>? _onValueChanged;
+
+    public abstract void SetValue(object? value);
+
+    public void SetCallbackOnValueChange(Action<object?> onValueChanged)
+    {
+        _onValueChanged = onValueChanged;
+    }
+
+    protected void OnValueChanged(object? newValue)
+    {
+        _onValueChanged?.Invoke(newValue);
+    }
 }

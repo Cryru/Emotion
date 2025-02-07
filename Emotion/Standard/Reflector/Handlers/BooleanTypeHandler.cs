@@ -12,7 +12,7 @@ public sealed class BooleanTypeHandler : ReflectorTypeHandlerBase<bool>
 
     public override bool CanGetOrParseValueAsString => true;
 
-    public override IObjectPropertyEditor? GetEditor()
+    public override ObjectPropertyEditor? GetEditor()
     {
         return new BooleanEditor();
     }

@@ -70,13 +70,11 @@ public class ObjectPropertyWindow : EditorScrollArea
 
                 IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
 
-                IObjectPropertyEditor? editorFromReflector = memberHandler?.GetEditor();
+                ObjectPropertyEditor? editorFromReflector = memberHandler?.GetEditor();
                 if (editorFromReflector != null)
                 {
-                    editorFromReflector.SetEditor(Object, member);
-                    Assert(editorFromReflector is UIBaseWindow);
-                    if (editorFromReflector is UIBaseWindow editorWindow)
-                        editorList.AddChild(editorWindow);
+                    var editorWithlabel = new EditorWithLabel(editorFromReflector, Object, member);
+                    editorList.AddChild(editorWithlabel);
                 }
                 else if (memberHandler?.Type == typeof(SerializableAssetHandle<TextureAsset>))
                 {

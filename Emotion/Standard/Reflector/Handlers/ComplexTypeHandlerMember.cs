@@ -42,7 +42,7 @@ public abstract class ComplexTypeHandlerMember
 
     public abstract bool GetValueFromComplexObject(object obj, out object? readValue);
 
-    public abstract bool SetValueInComplexObject(object obj, object val);
+    public abstract bool SetValueInComplexObject(object obj, object? val);
 }
 
 public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
