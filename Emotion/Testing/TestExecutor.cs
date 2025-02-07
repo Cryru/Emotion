@@ -165,6 +165,11 @@ public static class TestExecutor
         var total = reportClasses.Total + reportScenes.Total;
         Engine.Log.Info($"Test completed: {completed}/{total}!", MessageSource.Test);
 
+#if AUTOBUILD
+        if (completed != total)
+            throw new Exception("Some tests have failed :(");
+#endif
+
 #if !AUTOBUILD
         if (Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
 #endif
