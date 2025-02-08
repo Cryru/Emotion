@@ -11,7 +11,7 @@ using System.Reflection.Emit;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class StringEditor : ObjectPropertyEditor
+public class StringEditor : TypeEditor
 {
     public StringEditor()
     {

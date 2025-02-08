@@ -4,6 +4,8 @@ using Emotion.Common.Serialization;
 using Emotion.Game.World.Editor;
 using Emotion.Platform.Input;
 using Emotion.Scenography;
+using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 using Emotion.WIPUpdates.One.EditorUI.Components;
@@ -40,7 +42,6 @@ public sealed class TileEditorWindow : UIBaseWindow
     public TileEditorTileTextureSelector TileTextureSelector = null!;
 
     private DropdownChoiceEditor<TileMapTileset>? _tilesetChoose;
-    private EditorSelectableListWithButtons<TileMapLayerGrid>? _layerChoose;
 
     private bool _mouseDown;
 
@@ -79,20 +80,41 @@ public sealed class TileEditorWindow : UIBaseWindow
         };
         sidePanel.AddChild(sidePanelBg);
 
+        IGenericReflectorComplexTypeHandler? tileDataTypeHandler = ReflectorEngine.GetComplexTypeHandler<GameMapTileData>();
+
         // Layers
         {
-            var layers = new EditorSelectableListWithButtons<TileMapLayerGrid>()
+            //GameMapTileData? tileData = GetCurrentMapTileData();
+            //List<TileMapLayerGrid>? list = tileData?.Layers;
+            //_layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
+            GameMapTileData? tileData = GetCurrentMapTileData();
+            ComplexTypeHandlerMember? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
+            if (tileData != null && layerHandler != null)
             {
-                CanEdit = true,
+                ListEditor<TileMapLayerGrid> listEditor = new ListEditor<TileMapLayerGrid>();
+                listEditor.CanSelect = true;
+                listEditor.OnItemSelected = SelectTileLayer;
 
-                LabelText = "Layers",
+                EditorWithLabel layerEditor = new EditorWithLabel(listEditor, tileData, layerHandler);
+                layerEditor.MinSizeY = 350;
+                layerEditor.MaxSizeY = 350;
+                layerEditor.SetVertical();
 
-                MaxSizeX = 400, // temp
-                MinSizeY = 350,
-                MaxSizeY = 350
-            };
-            sidePanel.AddChild(layers);
-            _layerChoose = layers;
+                sidePanel.AddChild(layerEditor);
+            }
+
+            //var layers = new EditorSelectableListWithButtons<TileMapLayerGrid>()
+            //{
+            //    CanEdit = true,
+
+            //    LabelText = "Layers",
+
+            //    MaxSizeX = 400, // temp
+            //    MinSizeY = 350,
+            //    MaxSizeY = 350
+            //};
+            //sidePanel.AddChild(layers);
+            //_layerChoose = layers;
         }
 
         // Tile selector
@@ -206,8 +228,11 @@ public sealed class TileEditorWindow : UIBaseWindow
         }
 
         // Render cursor
-        if (CursorTilePos != null && CurrentLayer != null)
-            CurrentTool.RenderCursor(c, this, CurrentLayer, CursorTilePos.Value);
+        if (MouseInside)
+        {
+            if (CursorTilePos != null && CurrentLayer != null)
+                CurrentTool.RenderCursor(c, this, CurrentLayer, CursorTilePos.Value);
+        }
 
         c.SetUseViewMatrix(false);
 
@@ -370,9 +395,9 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     public void TileLayersChanged()
     {
-        GameMapTileData? tileData = GetCurrentMapTileData();
-        List<TileMapLayerGrid>? list = tileData?.Layers;
-        _layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
+        //GameMapTileData? tileData = GetCurrentMapTileData();
+        //List<TileMapLayerGrid>? list = tileData?.Layers;
+        //_layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
     }
 
     public IEnumerable<TileMapLayerGrid> GetTileLayers()

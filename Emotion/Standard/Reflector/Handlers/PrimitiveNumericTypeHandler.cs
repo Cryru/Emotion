@@ -12,7 +12,7 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
 
     public override bool CanGetOrParseValueAsString => true;
 
-    public override ObjectPropertyEditor? GetEditor()
+    public override TypeEditor? GetEditor()
     {
         return new NumberEditor<T>();
     }

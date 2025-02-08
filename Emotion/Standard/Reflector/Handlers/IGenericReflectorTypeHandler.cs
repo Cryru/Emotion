@@ -15,7 +15,7 @@ public interface IGenericReflectorTypeHandler
     /// </summary>
     public bool CanGetOrParseValueAsString { get; }
 
-    public virtual ObjectPropertyEditor? GetEditor()
+    public virtual TypeEditor? GetEditor()
     {
         return null;
     }

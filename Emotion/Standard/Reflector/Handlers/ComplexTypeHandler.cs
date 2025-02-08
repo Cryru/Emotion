@@ -53,7 +53,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         }
     }
 
-    public ComplexTypeHandlerMember? GetMemberHandler(string name)
+    public ComplexTypeHandlerMember? GetMemberByName(string name)
     {
         if (_members.TryGetValue(name, out ComplexTypeHandlerMember? member)) return member;
         return null;

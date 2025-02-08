@@ -70,7 +70,7 @@ public class ObjectPropertyWindow : EditorScrollArea
 
                 IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
 
-                ObjectPropertyEditor? editorFromReflector = memberHandler?.GetEditor();
+                TypeEditor? editorFromReflector = memberHandler?.GetEditor();
                 if (editorFromReflector != null)
                 {
                     var editorWithlabel = new EditorWithLabel(editorFromReflector, Object, member);

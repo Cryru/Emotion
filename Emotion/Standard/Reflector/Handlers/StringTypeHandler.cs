@@ -12,7 +12,7 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
 
     public override bool CanGetOrParseValueAsString => true;
 
-    public override ObjectPropertyEditor? GetEditor()
+    public override TypeEditor? GetEditor()
     {
         return new StringEditor();
     }

@@ -27,11 +27,11 @@ public class UIScrollArea : UIBaseWindow
         // todo: not sure why this is needed, but
         // the margins on the scroll content make the whole area bigger otherwise
         // so this is a workaround
-        var scrollParent = new UIBaseWindow
-        {
-            OrderInParent = -1,
-        };
-        AddChild(scrollParent);
+        //var scrollParent = new UIBaseWindow
+        //{
+        //    OrderInParent = -1,
+        //};
+        //AddChild(scrollParent);
 
         var areaInside = new UIScrollContentArea(this)
         {

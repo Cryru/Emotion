@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class NumberEditor<TNumber> : ObjectPropertyEditor where TNumber : INumber<TNumber>
+public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
 {
     public NumberEditor()
     {

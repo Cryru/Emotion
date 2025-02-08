@@ -8,7 +8,8 @@ namespace Emotion.WIPUpdates.One.EditorUI.Components;
 public class EditorListItem<T> : EditorButton
 {
     public Color SelectedColor = MapEditorColorPalette.ButtonColor;
-    public T Item;
+
+    public T? Item { get; protected set; }
 
     public bool Selected
     {
@@ -20,35 +21,34 @@ public class EditorListItem<T> : EditorButton
         }
     }
 
-    private bool _selected;
+    protected bool _selected;
+    protected int _itemIdx;
 
-    private Action<T>? _onClick;
+    private Action<int, T?>? _onClick;
 
-    public EditorListItem(T item, Action<T>? onClick, bool canEdit = false)
+    public EditorListItem(int itemIdx, T? item, Action<int, T?>? onClick)
     {
-        AssertNotNull(item);
-
         NormalColor = MapEditorColorPalette.ButtonColor.CloneWithAlpha(150);
 
+        _itemIdx = itemIdx;
         Item = item;
         FillX = true;
         _onClick = onClick;
 
-        if (canEdit)
-        {
-            _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
-
-            var editButton = new EditorEditObjectButton()
-            {
-                ParentAnchor = UI.UIAnchor.CenterRight,
-                Anchor = UI.UIAnchor.CenterRight
-            };
-            editButton.SetEditor(item);
-            AddChild(editButton);
-        }
-
-        EngineEditor.RegisterForObjectChanges(item, UpdateLabel, this);
+        if (item != null)
+            EngineEditor.RegisterForObjectChanges(item, UpdateLabel, this);
         UpdateLabel();
+    }
+
+    public void AttachButton(SquareEditorButton button)
+    {
+        Assert(button.Parent == null, "Button shouldn't have a UI parent");
+
+        _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
+
+        button.ParentAnchor = UI.UIAnchor.CenterRight;
+        button.Anchor = UI.UIAnchor.CenterRight;
+        AddChild(button);
     }
 
     private void UpdateLabel()
@@ -70,7 +70,7 @@ public class EditorListItem<T> : EditorButton
 
     protected override void OnClicked()
     {
-        _onClick?.Invoke(Item);
+        _onClick?.Invoke(_itemIdx, Item);
     }
 
     protected override void RecalculateButtonColor()

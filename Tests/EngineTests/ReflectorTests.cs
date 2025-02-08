@@ -93,7 +93,7 @@ public class ReflectorTests
             Assert.Equal(members[0].Name, "Number");
             Assert.Equal(members[0].Type, typeof(int));
 
-            ComplexTypeHandlerMember numberMemberHandler = typedHandlerComplex.GetMemberHandler("Number");
+            ComplexTypeHandlerMember numberMemberHandler = typedHandlerComplex.GetMemberByName("Number");
             Assert.Equal(numberMemberHandler, members[0]);
         }
 
@@ -104,7 +104,7 @@ public class ReflectorTests
             Assert.Equal(members[0].Name, "Number");
             Assert.Equal(members[0].Type, typeof(int));
 
-            ComplexTypeHandlerMember numberMemberHandler = genericHandlerComplex.GetMemberHandler("Number");
+            ComplexTypeHandlerMember numberMemberHandler = genericHandlerComplex.GetMemberByName("Number");
             Assert.Equal(numberMemberHandler, members[0]);
         }
     }

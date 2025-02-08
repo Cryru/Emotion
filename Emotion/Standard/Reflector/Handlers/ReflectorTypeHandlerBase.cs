@@ -12,7 +12,7 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 
     public abstract bool CanGetOrParseValueAsString { get; }
 
-    public virtual ObjectPropertyEditor? GetEditor()
+    public virtual TypeEditor? GetEditor()
     {
         return null;
     }

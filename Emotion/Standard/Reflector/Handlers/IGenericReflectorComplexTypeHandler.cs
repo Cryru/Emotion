@@ -8,5 +8,5 @@ public interface IGenericReflectorComplexTypeHandler
 
     public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep();
 
-    public ComplexTypeHandlerMember? GetMemberHandler(string name);
+    public ComplexTypeHandlerMember? GetMemberByName(string name);
 }

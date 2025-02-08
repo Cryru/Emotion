@@ -10,7 +10,7 @@ using System.Reflection.Emit;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class BooleanEditor : ObjectPropertyEditor
+public class BooleanEditor : TypeEditor
 {
     public BooleanEditor()
     {

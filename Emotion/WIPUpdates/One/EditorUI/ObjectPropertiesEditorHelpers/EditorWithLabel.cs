@@ -9,14 +9,16 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class EditorWithLabel : UIBaseWindow
 {
-    private ObjectPropertyEditor _editor;
+    private TypeEditor _editor;
     private EditorLabel _label;
 
     private object _objectEditting;
     private ComplexTypeHandlerMember _handler;
 
-    public EditorWithLabel(ObjectPropertyEditor editor, object parentObj, ComplexTypeHandlerMember memberHandler)
+    public EditorWithLabel(TypeEditor editor, object parentObj, ComplexTypeHandlerMember memberHandler)
     {
+        Assert(editor.Parent == null, "TypeEditor shouldn't have a UI parent");
+
         FillY = false;
         LayoutMode = LayoutMode.HorizontalList;
 
@@ -38,6 +40,12 @@ public class EditorWithLabel : UIBaseWindow
         EngineEditor.RegisterForObjectChanges(parentObj, OnValueUpdated, this);
 
         OnValueUpdated();
+    }
+
+    public void SetVertical()
+    {
+        LayoutMode = LayoutMode.VerticalList;
+        _label.Margins = new Primitives.Rectangle(0, 0, 0, 5);
     }
 
     private void OnInputChanged(object? newValue)

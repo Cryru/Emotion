@@ -9,7 +9,7 @@ public class ObjectPropertyEditorWindow : EditorWindow
 {
     private object _obj;
 
-    public ObjectPropertyEditorWindow(object obj, Vector2 initialPosition) : base($"Object Editor")
+    public ObjectPropertyEditorWindow(object obj, Vector2 initialPosition) : base($"Object Editor - {obj.GetType().Name}")
     {
         _obj = obj;
 

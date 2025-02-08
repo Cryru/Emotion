@@ -5,7 +5,7 @@ using Emotion.UI;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public abstract class ObjectPropertyEditor : UIBaseWindow
+public abstract class TypeEditor : UIBaseWindow
 {
     [DontSerialize]
     private Action<object?>? _onValueChanged;

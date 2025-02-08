@@ -1,10 +1,11 @@
 ﻿using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
-public class EditorSelectableListWithButtons<T> : EditorSelectableList<T> where T: new()
+public class EditorSelectableListWithButtons<T> : EditorSelectableList<T> where T : new()
 {
     public string? LabelText
     {

@@ -56,9 +56,11 @@ public static partial class EngineEditor
 
         if (_grid == null)
         {
-            var grid = new InfiniteGrid();
-            grid.TileSize = 0;
-            grid.Tint = Color.White.SetAlpha(125);
+            var grid = new InfiniteGrid
+            {
+                TileSize = 0,
+                Tint = Color.White.SetAlpha(125)
+            };
             _grid = grid;
             Task.Run(grid.LoadAssetsAsync);
         }

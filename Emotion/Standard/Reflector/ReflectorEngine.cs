@@ -29,6 +29,14 @@ public static class ReflectorEngine
         return null;
     }
 
+    public static IGenericReflectorComplexTypeHandler? GetComplexTypeHandler<T>()
+    {
+        Type typ = typeof(T);
+        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
+            return (IGenericReflectorComplexTypeHandler)handler;
+        return null;
+    }
+
     internal static void BuildRelations()
     {
         _typeRelations.Clear();

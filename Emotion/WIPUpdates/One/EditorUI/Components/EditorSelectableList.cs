@@ -47,7 +47,7 @@ public class EditorSelectableList<T> : ArrayEditorBase<T>
 
         foreach (T item in items)
         {
-            _itemList.AddChild(new EditorListItem<T>(item, ChangeSelectedItem, CanEdit));
+            //_itemList.AddChild(new EditorListItem<T>(item, ChangeSelectedItem, CanEdit));
         }
     }
 

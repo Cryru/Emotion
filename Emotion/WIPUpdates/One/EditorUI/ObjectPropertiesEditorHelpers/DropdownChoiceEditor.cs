@@ -57,7 +57,7 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
         int idx = 0;
         foreach (T item in _items)
         {
-            var button = new EditorListItem<T>(item, (item) => dropDown.Close());
+            var button = new EditorListItem<T>(-1, item, (_, item) => dropDown.Close());
             button.Selected = _currentIndex == idx;
             dropDown.AddChild(button);
 
