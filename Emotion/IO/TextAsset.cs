@@ -10,7 +10,7 @@ namespace Emotion.IO
     /// <summary>
     /// A text file asset.
     /// </summary>
-    public class TextAsset : Asset
+    public class TextAsset : Asset, IHotReloadableAsset
     {
         /// <summary>
         /// The context of the text file.
@@ -25,6 +25,11 @@ namespace Emotion.IO
 
             // Convert Windows new lines (\r\n) to Unix ones (\n) and remove BOM.
             Content = Content.Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
+        }
+
+        public void Reload(ReadOnlyMemory<byte> data)
+        {
+            CreateInternal(data);
         }
 
         protected override void DisposeInternal()
