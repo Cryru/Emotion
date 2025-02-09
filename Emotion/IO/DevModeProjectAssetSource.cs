@@ -53,6 +53,7 @@ public class DevModeProjectAssetSource : FileAssetSource
             string oldEnginePath = FilePathToEnginePath(oldPath, FolderInPath);
             InternalManifest.Remove(oldEnginePath, out string? _);
             InternalManifest.TryAdd(enginePath, filePath);
+            Engine.AssetLoader.ONE_ReloadAsset(enginePath);
         }
         else if (e.ChangeType == WatcherChangeTypes.Changed)
         {
