@@ -6,6 +6,8 @@ namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
 public class SquareEditorButton : EditorButton
 {
+    public bool ShowOutline = true;
+
     public SquareEditorButton() : base()
     {
     }
@@ -28,6 +30,8 @@ public class SquareEditorButton : EditorButton
     protected override void AfterRenderChildren(RenderComposer c)
     {
         base.AfterRenderChildren(c);
-        c.RenderOutline(Bounds, Color.White * 0.5f, 1 * GetScale());
+
+        if (ShowOutline)
+            c.RenderOutline(Bounds, Color.White * 0.5f, 1 * GetScale());
     }
 }

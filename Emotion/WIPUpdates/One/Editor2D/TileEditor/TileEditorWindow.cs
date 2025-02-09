@@ -91,8 +91,7 @@ public sealed class TileEditorWindow : UIBaseWindow
             ComplexTypeHandlerMember? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
             if (tileData != null && layerHandler != null)
             {
-                ListEditor<TileMapLayerGrid> listEditor = new ListEditor<TileMapLayerGrid>();
-                listEditor.CanSelect = true;
+                var listEditor = new ListEditor<TileMapLayerGrid>();
                 listEditor.OnItemSelected = SelectTileLayer;
 
                 EditorWithLabel layerEditor = new EditorWithLabel(listEditor, tileData, layerHandler);

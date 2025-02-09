@@ -25,6 +25,7 @@ public class EditorListItem<T> : EditorButton
     protected int _itemIdx;
 
     private Action<int, T?>? _onClick;
+    private UIBaseWindow? _buttonList;
 
     public EditorListItem(int itemIdx, T? item, Action<int, T?>? onClick)
     {
@@ -44,11 +45,21 @@ public class EditorListItem<T> : EditorButton
     {
         Assert(button.Parent == null, "Button shouldn't have a UI parent");
 
-        _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
+        if (_buttonList == null)
+        {
+            _buttonList = new UIBaseWindow()
+            {
+                LayoutMode = LayoutMode.HorizontalList,
+                ListSpacing = new Vector2(3, 0)
+            };
+            AddChild(_buttonList);
 
+            _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
+        }
+       
         button.ParentAnchor = UI.UIAnchor.CenterRight;
         button.Anchor = UI.UIAnchor.CenterRight;
-        AddChild(button);
+        _buttonList.AddChild(button);
     }
 
     private void UpdateLabel()
