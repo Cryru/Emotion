@@ -1,3 +1,5 @@
 *.command text eol=lf
 
 Tools/* linguist-vendored=false
+
+Tests/Assets/TextTest/UnixLineEndings.txt eol=lf
