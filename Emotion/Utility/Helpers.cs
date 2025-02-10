@@ -355,4 +355,83 @@ public static class Helpers
         if (arr == null) return Array.Empty<T>();
         return arr;
     }
+
+    // https://en.wikipedia.org/wiki/Byte_order_mark
+    private static readonly byte[] Utf16Le = { 0xFF, 0xFE };
+    private static readonly byte[] Utf8Le = { 0xEF, 0xBB, 0xBF };
+    private static readonly byte[] Utf32Le = { 0xFF, 0xFE, 0, 0 };
+    private static readonly byte[] Utf16Be = { 0xFE, 0xFF };
+
+    // <?xml search
+    private static readonly byte[] Utf16LeAlt = { 0x3C, 0, 0x3F, 0 };
+    private static readonly byte[] Utf8LeAlt = { 0x3C, 0x3F, 0x78, 0x6D };
+    private static readonly byte[] Utf32LeAlt = { 0x3C, 0, 0, 0 };
+    private static readonly byte[] Utf16BeAlt = { 0, 0x3C, 00, 0x3F };
+
+    /// <summary>
+    /// Guess the string encoding of the data array.
+    /// https://stackoverflow.com/questions/581318/c-sharp-detect-xml-encoding-from-byte-array
+    /// </summary>
+    public static Encoding GuessStringEncoding(ReadOnlySpan<byte> data)
+    {
+        return GuessStringEncoding(data, out byte[] _);
+    }
+
+    public static Encoding GuessStringEncoding(ReadOnlySpan<byte> data, out byte[] header)
+    {
+        // "utf-16" - Unicode UTF-16, little endian byte order
+        if (data.StartsWith(Utf16LeAlt))
+        {
+            header = Array.Empty<byte>();
+            return Encoding.Unicode;
+        }
+
+        if (data.Length >= 4 && (data[2] == 0) ^ (data[3] == 0) && data.StartsWith(Utf16Le))
+        {
+            header = Utf16Le;
+            return Encoding.Unicode;
+        }
+
+        // "utf-8" - Unicode (UTF-8)
+        if (data.StartsWith(Utf8LeAlt))
+        {
+            header = Array.Empty<byte>();
+            return Encoding.UTF8;
+        }
+
+        if (data.StartsWith(Utf8Le))
+        {
+            header = Utf8Le;
+            return Encoding.UTF8;
+        }
+
+        // "utf-32" - Unicode UTF-32, little endian byte order
+        if (data.StartsWith(Utf32LeAlt))
+        {
+            header = Array.Empty<byte>();
+            return Encoding.UTF32;
+        }
+
+        if (data.StartsWith(Utf32Le))
+        {
+            header = Array.Empty<byte>();
+            return Encoding.UTF32;
+        }
+
+        // "unicodeFFFE" - Unicode UTF-16, big endian byte order
+        if (data.StartsWith(Utf16BeAlt))
+        {
+            header = Array.Empty<byte>();
+            return Encoding.BigEndianUnicode;
+        }
+
+        if (data.StartsWith(Utf16Be))
+        {
+            header = Utf16Be;
+            return Encoding.BigEndianUnicode;
+        }
+
+        header = Array.Empty<byte>();
+        return Encoding.UTF8;
+    }
 }

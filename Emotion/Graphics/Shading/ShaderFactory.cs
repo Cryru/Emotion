@@ -361,5 +361,76 @@ namespace Emotion.Graphics.Shading
         }
 
         #endregion
+
+        #region ONE
+
+        public static ShaderProgram CreateShaderRaw(string vertShaderSource, string fragShaderSource)
+        {
+            uint vertShader = Gl.CreateShader(ShaderType.VertexShader);
+            bool vertCompiled = TryCompileRaw(vertShaderSource, vertShader);
+            if (!vertCompiled) Engine.Log.Warning("Vert shader compilation failed.", MessageSource.Renderer);
+
+            uint fragShader = Gl.CreateShader(ShaderType.FragmentShader);
+            bool fragCompiled = TryCompileRaw(fragShaderSource, fragShader);
+            if (!fragCompiled) Engine.Log.Warning("Frag shader compilation failed.", MessageSource.Renderer);
+
+            // If none of the stages compiled - we're cooked.
+            if (!vertCompiled || !fragCompiled)
+            {
+                Gl.DeleteShader(vertShader);
+                Gl.DeleteShader(fragShader);
+                return null;
+            }
+
+            // Link into a program and add meta data in debug mode.
+            var newShader = ShaderProgram.CreateFromShaders(vertShader, fragShader);
+            if (Engine.Configuration.DebugMode)
+            {
+                newShader.DebugFragSource = fragShaderSource;
+                newShader.DebugVertSource = vertShaderSource;
+            }
+
+            // Once the shaders are compiled into a program it is save to clean them up.
+            // One might think that it's a good idea to reuse them, especially those
+            // which can be used as fallbacks, but some drivers prevent them
+            // from being reused once compiled.
+            Gl.DeleteShader(vertShader);
+            Gl.DeleteShader(fragShader);
+
+            // Check if the program compiled successfully.
+            if (!newShader.Valid) return null;
+
+            return newShader;
+        }
+
+        private static bool TryCompileRaw(string shaderSource, uint shaderId)
+        {
+            Gl.ShaderSource(shaderId, [shaderSource], [shaderSource.Length]);
+            Gl.CompileShader(shaderId);
+
+            // Check if there's a log to print.
+            Gl.GetShader(shaderId, ShaderParameterName.InfoLogLength, out int lLength);
+            if (lLength > 1) // 0 without null termination
+            {
+                // Get the info log.
+                var compileStatusReader = new StringBuilder(lLength);
+                Gl.GetShaderInfoLog(shaderId, lLength, out int _, compileStatusReader);
+                var compileStatus = compileStatusReader.ToString();
+                Engine.Log.Warning($"Shader Compilation Log\n{compileStatus}", MessageSource.GL);
+                Engine.Log.Trace(shaderSource, MessageSource.ShaderSource);
+            }
+
+            // Check if the shader compiled successfully, if not 0 is returned.
+            Gl.GetShader(shaderId, ShaderParameterName.CompileStatus, out int status);
+            if (status != 1)
+            {
+                Engine.Log.Trace($"Shader compilation failed.", MessageSource.Renderer);
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
     }
 }

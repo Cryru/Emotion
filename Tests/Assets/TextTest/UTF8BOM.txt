@@ -1,0 +1,1 @@
+﻿I am UTF8 text with BOM, but Emotion should've cleared that up :)

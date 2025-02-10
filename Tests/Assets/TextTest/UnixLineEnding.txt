@@ -1,0 +1,3 @@
+I am UTF8 text without
+a BOM, but with
+Linux line endings
