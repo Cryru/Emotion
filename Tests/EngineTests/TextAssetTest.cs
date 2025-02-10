@@ -47,7 +47,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UnixLneEnding()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UnixLineEnding.txt");
+        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8_UnixLineEnding.txt");
         yield return assetHandle;
 
         Assert.True(assetHandle.AssetLoaded);

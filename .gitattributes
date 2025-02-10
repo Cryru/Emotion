@@ -2,4 +2,4 @@
 
 Tools/* linguist-vendored=false
 
-Tests/Assets/TextTest/UnixLineEndings.txt eol=lf
+Tests/Assets/TextTest/UTF8_UnixLineEnding.txt text eol=lf
