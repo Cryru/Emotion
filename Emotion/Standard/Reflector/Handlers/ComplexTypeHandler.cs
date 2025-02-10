@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -22,6 +23,18 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             ComplexTypeHandlerMember member = members[i];
             _members.Add(member.Name, member);
         }
+    }
+
+    public override TypeEditor? GetEditor()
+    {
+        if (typeof(T) == typeof(Vector2))
+            return new VectorEditor(2);
+        if (typeof(T) == typeof(Vector3))
+            return new VectorEditor(3);
+        if (typeof(T) == typeof(Vector4))
+            return new VectorEditor(4);
+
+        return base.GetEditor();
     }
 
     public ComplexTypeHandlerMember[] GetMembers()

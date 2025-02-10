@@ -72,7 +72,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         return false;
     }
 
-    public override bool SetValueInComplexObject(object obj, object val)
+    public override bool SetValueInComplexObject(object obj, object? val)
     {
         if (obj is ParentT parentType && val is MyT valType)
         {
