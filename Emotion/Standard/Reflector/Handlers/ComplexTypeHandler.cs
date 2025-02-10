@@ -33,6 +33,8 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             return new VectorEditor(3);
         if (typeof(T) == typeof(Vector4))
             return new VectorEditor(4);
+        if (typeof(T) == typeof(Rectangle))
+            return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
 
         return base.GetEditor();
     }

@@ -11,17 +11,20 @@ public class VectorEditor : TypeEditor
 {
     private int _componentCount;
 
-    private string[] _componentNames = { "X", "Y", "Z", "W" };
+    private static string[] _componentNamesDefault = { "X", "Y", "Z", "W" };
+    private string[] _componentNames;
     private UITextInput2[] _componentEditors;
 
     private object? _value;
     private float[] _componentValues;
 
-    public VectorEditor(int componentCount)
+    public VectorEditor(int componentCount, string[]? componentNameOverride = null)
     {
         _componentCount = componentCount;
         _componentEditors = new UITextInput2[componentCount];
         _componentValues = new float[componentCount];
+
+        _componentNames = componentNameOverride ?? _componentNamesDefault;
 
         UIBaseWindow editorContainer = new()
         {
@@ -100,12 +103,22 @@ public class VectorEditor : TypeEditor
 
         if (_componentCount == 4)
         {
-            Vector4 valVector = (Vector4)_value;
-            valVector.X = _componentValues[0];
-            valVector.Y = _componentValues[1];
-            valVector.Z = _componentValues[2];
-            valVector.W = _componentValues[3];
-            _value = valVector;
+            if (_value is Vector4 valVector)
+            {
+                valVector.X = _componentValues[0];
+                valVector.Y = _componentValues[1];
+                valVector.Z = _componentValues[2];
+                valVector.W = _componentValues[3];
+                _value = valVector;
+            }
+            else if (_value is Rectangle valRect)
+            {
+                valRect.X = _componentValues[0];
+                valRect.Y = _componentValues[1];
+                valRect.Width = _componentValues[2];
+                valRect.Height = _componentValues[3];
+                _value = valRect;
+            }
         }
 
         OnValueChanged(_value);
@@ -141,12 +154,22 @@ public class VectorEditor : TypeEditor
 
         if (_componentCount == 4)
         {
-            Vector4 valVector = (Vector4)_value;
-            _componentValues[0] = valVector.X;
-            _componentValues[1] = valVector.Y;
-            _componentValues[2] = valVector.Z;
-            _componentValues[3] = valVector.W;
-            _value = valVector;
+            if (_value is Vector4 valVector)
+            {
+                _componentValues[0] = valVector.X;
+                _componentValues[1] = valVector.Y;
+                _componentValues[2] = valVector.Z;
+                _componentValues[3] = valVector.W;
+                _value = valVector;
+            }
+            else if (_value is Rectangle valRect)
+            {
+                _componentValues[0] = valRect.X;
+                _componentValues[1] = valRect.Y;
+                _componentValues[2] = valRect.Width;
+                _componentValues[3] = valRect.Height;
+                _value = valRect;
+            }
         }
 
         for (int i = 0; i < _componentCount; i++)
