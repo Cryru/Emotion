@@ -1,0 +1,2 @@
+Hello world!
+I am UTF8 text without BOM :)

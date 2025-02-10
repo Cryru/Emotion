@@ -1,40 +1,71 @@
-﻿#region Using
+﻿#nullable enable
 
+#region Using
+
+using Emotion.Utility;
+using System.Buffers;
 using System.Text;
-using Emotion.Standard.XML;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.IO;
+
+public class TextAsset : Asset, IHotReloadableAsset
 {
     /// <summary>
-    /// A text file asset.
+    /// The context of the text file without any encoding mark and normalized new lines to \n
     /// </summary>
-    public class TextAsset : Asset, IHotReloadableAsset
+    public string Content { get; private set; } = string.Empty;
+
+    protected override void CreateInternal(ReadOnlyMemory<byte> data)
     {
-        /// <summary>
-        /// The context of the text file.
-        /// </summary>
-        public string Content { get; private set; }
+        ReadOnlySpan<byte> span = data.Span;
+        Encoding encoding = Helpers.GuessStringEncoding(span, out byte[] byteHeader); // Commonly the string is xml.
 
-        protected override void CreateInternal(ReadOnlyMemory<byte> data)
+        // Remove BOM header
+        if (byteHeader.Length > 0)
         {
-            ReadOnlySpan<byte> span = data.Span;
-            Encoding encoding = XMLFormat.GuessStringEncoding(span); // Commonly the string is xml.
-            Content = encoding.GetString(span);
+            span = span.Slice(byteHeader.Length);
 
-            // Convert Windows new lines (\r\n) to Unix ones (\n) and remove BOM.
-            Content = Content.Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
+            // Sometimes the BOM mark is present multiple times due to
+            // shitty text editors adding it over and over again.
+            // Make sure we sanitize this completely
+            while (span.StartsWith(byteHeader))
+            {
+                span = span.Slice(byteHeader.Length);
+            }
         }
 
-        public void Reload(ReadOnlyMemory<byte> data)
-        {
-            CreateInternal(data);
-        }
+        // Decode the string in the detected encoding using a temporary memory.
+        int charCount = encoding.GetCharCount(span);
+        char[] stringDecodeMemory = ArrayPool<char>.Shared.Rent(charCount);
+        int charCountConverted = encoding.GetChars(span, stringDecodeMemory);
+        AssertEqual(charCount, charCountConverted);
 
-        protected override void DisposeInternal()
+        // Remove Windows new lines
+        int writeIdx = 0;
+        for (int i = 0; i < charCountConverted; i++)
         {
-            Content = null;
+            var c = stringDecodeMemory[i];
+            if (c != '\r')
+            {
+                stringDecodeMemory[writeIdx] = c;
+                writeIdx++;
+            }
         }
+        
+        // Allocate a string object and copy our decoded memory to it.
+        Content = new string(stringDecodeMemory, 0, writeIdx);
+        ArrayPool<char>.Shared.Return(stringDecodeMemory);
+    }
+
+    public void Reload(ReadOnlyMemory<byte> data)
+    {
+        CreateInternal(data);
+    }
+
+    protected override void DisposeInternal()
+    {
+        Content = string.Empty;
     }
 }
