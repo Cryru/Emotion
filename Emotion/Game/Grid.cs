@@ -1,6 +1,4 @@
 ﻿using Emotion.Utility;
-using Emotion.WIPUpdates.One.TileMap;
-using System;
 
 namespace Emotion.Game;
 
