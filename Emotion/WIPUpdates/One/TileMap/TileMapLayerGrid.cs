@@ -6,6 +6,8 @@ namespace Emotion.WIPUpdates.One.TileMap;
 
 public class TileMapLayerGrid : PackedNumericMapGrid<uint>
 {
+    public string Name { get; set; } = "Untitled";
+
     public bool Visible = true;
 
     public Vector2 RenderOffsetInTiles;

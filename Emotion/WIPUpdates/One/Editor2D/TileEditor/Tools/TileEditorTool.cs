@@ -13,9 +13,10 @@ public abstract class TileEditorTool
 
     public bool RequireTileSelection { get; protected set; }
 
+
     public Key HotKey;
 
-    public abstract void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos);
+    public abstract void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos);
 
-    public abstract void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos);
+    public abstract void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos);
 }

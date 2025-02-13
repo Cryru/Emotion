@@ -15,7 +15,7 @@ public class TileEditorBrushTool : TileEditorTool
         HotKey = Platform.Input.Key.B;
     }
 
-    private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorTilePos)
+    private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorTilePos)
     {
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) yield break;
@@ -48,7 +48,7 @@ public class TileEditorBrushTool : TileEditorTool
         }
     }
 
-    public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         GameMapTileData? tileData = editor.GetCurrentMapTileData();
         AssertNotNull(tileData);
@@ -56,23 +56,13 @@ public class TileEditorBrushTool : TileEditorTool
 
         foreach ((TileMapTile tile, Vector2 tilePos) in ForEachTileInPlacement(editor, currentLayer, cursorPos))
         {
-            bool success = currentLayer.EditorSetTileAt(tilePos, tile, out bool layerBoundsChanged);
+            bool success = currentLayer.EditorSetTileAt(tilePos, tile);
             if (success)
-            {
-                if (layerBoundsChanged)
-                {
-                    tileData.EditorUpdateRenderCacheForLayer(currentLayer);
-                    editor.UpdateCursor();
-                }
-                else
-                {
-                    tileData.EditorUpdateRenderCacheForTile(currentLayer, tilePos);
-                }
-            }
+                editor.UpdateCursor();
         }
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         Vector2 tileSize = currentLayer.TileSize;
 

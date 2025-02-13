@@ -18,7 +18,7 @@ public class TileEditorBucketTool : TileEditorTool
     private Stack<(Vector2, TileMapTile)> _spanFillStack = new Stack<(Vector2, TileMapTile)>();
     protected HashSet<Vector2> _bucketTilesToSet = new();
 
-    private HashSet<Vector2> SpanFill(Vector2 cursorPosition, TileMapTile previousTileData, TileMapLayerGrid layer)
+    private HashSet<Vector2> SpanFill(Vector2 cursorPosition, TileMapTile previousTileData, TileMapLayer layer)
     {
         _bucketTilesToSet.Clear();
         _spanFillStack.Clear();
@@ -48,16 +48,16 @@ public class TileEditorBucketTool : TileEditorTool
         return _bucketTilesToSet;
     }
 
-    private bool SpanFill_IsValid(Vector2 tilePosToCheck, TileMapTile currentTile, TileMapLayerGrid layerToPlaceIn)
+    private bool SpanFill_IsValid(Vector2 tilePosToCheck, TileMapTile currentTile, TileMapLayer layerToPlaceIn)
     {
-        TileMapTile tileOneD = layerToPlaceIn.GetTileAt(tilePosToCheck);
-        Vector2 sizeInTiles = layerToPlaceIn.SizeInTiles;
+        if (!layerToPlaceIn.IsTileInBounds(tilePosToCheck)) return false;
+        if (_bucketTilesToSet.Contains(tilePosToCheck)) return false;
 
-        if (_bucketTilesToSet.Contains(new Vector2(tilePosToCheck.X, tilePosToCheck.Y))) return false;
-        else return tilePosToCheck.X >= 0 && tilePosToCheck.X < sizeInTiles.X && tilePosToCheck.Y >= 0 && tilePosToCheck.Y < sizeInTiles.Y && currentTile == tileOneD;
+        TileMapTile tileData = layerToPlaceIn.GetTileAt(tilePosToCheck);
+        return currentTile == tileData;
     }
 
-    private void SpanFill_Scan(float lx, float rx, float y, TileMapTile currentTile, TileMapLayerGrid layerToPlaceIn)
+    private void SpanFill_Scan(float lx, float rx, float y, TileMapTile currentTile, TileMapLayer layerToPlaceIn)
     {
         bool spanAdded = false;
         for (float i = lx; i <= rx; i++)
@@ -71,7 +71,7 @@ public class TileEditorBucketTool : TileEditorTool
         }
     }
 
-    public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;
@@ -97,13 +97,11 @@ public class TileEditorBucketTool : TileEditorTool
 
         foreach (Vector2 tilePos in _bucketTilesToSet)
         {
-            currentLayer.EditorSetTileAt(tilePos, tileToPlace, out bool layerBoundsChanged);
-            tileData.EditorUpdateRenderCacheForTile(currentLayer, tilePos);
-            Assert(!layerBoundsChanged);
+            currentLayer.EditorSetTileAt(tilePos, tileToPlace);
         }
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;

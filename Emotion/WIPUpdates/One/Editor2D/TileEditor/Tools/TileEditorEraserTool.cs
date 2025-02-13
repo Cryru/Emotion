@@ -13,7 +13,7 @@ public class TileEditorEraserTool : TileEditorTool
         HotKey = Platform.Input.Key.R;
     }
 
-    public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;
@@ -21,22 +21,12 @@ public class TileEditorEraserTool : TileEditorTool
         GameMapTileData? tileData = editor.GetCurrentMapTileData();
         if (tileData == null) return;
 
-        bool success = currentLayer.EditorSetTileAt(cursorPos, TileMapTile.Empty, out bool layerBoundsChanged);
+        bool success = currentLayer.EditorSetTileAt(cursorPos, TileMapTile.Empty);
         if (success)
-        {
-            if (layerBoundsChanged)
-            {
-                tileData.EditorUpdateRenderCacheForLayer(currentLayer);
-                editor.UpdateCursor();
-            }
-            else
-            {
-                tileData.EditorUpdateRenderCacheForTile(currentLayer, cursorPos);
-            }
-        }
+            editor.UpdateCursor();
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         Vector2 tileInWorld = currentLayer.GetWorldPosOfTile(cursorPos);
         Vector2 tileSize = currentLayer.TileSize;
