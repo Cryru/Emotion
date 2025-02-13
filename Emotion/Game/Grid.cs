@@ -82,6 +82,11 @@ public class Grid<T> : Grid
 
     }
 
+    public T[] GetRawData()
+    {
+        return _data;
+    }
+
     public T? GetValueInTile(int x, int y)
     {
         return GetValueInTile(new Vector2(x, y));

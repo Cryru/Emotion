@@ -43,7 +43,7 @@ public class TerrainHeightMapGrid : TextureSourceGrid
         {
             var chunk = chunks[i];
 
-            if (AutoCenterOnMapOrigin)
+            if (false)
             {
                 Vector2 mapCenter = map.MapSize / 2f;
                 Vector2 moveOffset = new Vector2(-1, 1);
