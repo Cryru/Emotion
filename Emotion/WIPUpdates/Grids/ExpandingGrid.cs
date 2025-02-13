@@ -1,8 +1,10 @@
 ﻿#nullable enable
 
+using Emotion.Utility;
+
 namespace Emotion.WIPUpdates.Grids;
 
-public class ExpandingNumberGrid<T>(Vector2 size) : GenericGrid<T>(size), IPackedNumberGrid<T> where T : struct, INumber<T>
+public class ExpandingGrid<T>(Vector2 size) : GenericGrid<T>(size) where T : struct
 {
     public Vector2 PositionOffset;
 
@@ -19,7 +21,8 @@ public class ExpandingNumberGrid<T>(Vector2 size) : GenericGrid<T>(size), IPacke
     {
         Assert(location == location.Floor());
 
-        bool isDelete = T.IsZero(value);
+        T defVal = default;
+        bool isDelete = Helpers.AreObjectsEqual(defVal, value);
         bool validPosition = IsValidPosition(location);
         if (validPosition)
         {
@@ -28,7 +31,7 @@ public class ExpandingNumberGrid<T>(Vector2 size) : GenericGrid<T>(size), IPacke
             if (!isDelete) return false;
 
             // We deleted a tile, try compacting the grid.
-            bool compacted = Compact(T.Zero, out Vector2 compactOffset);
+            bool compacted = Compact(defVal, out Vector2 compactOffset);
             if (compacted)
             {
                 PositionOffset += compactOffset;

@@ -32,7 +32,7 @@ public class TileMapLayer
     /// <summary>
     /// Layer chunks containing tile data.
     /// </summary>
-    private Dictionary<Vector2, TileMapChunk> Chunks { get; set; } = new();
+    private Dictionary<Vector2, TileMapChunk> _chunks { get; set; } = new();
 
     public override string ToString()
     {
@@ -50,19 +50,19 @@ public class TileMapLayer
     {
         Vector2 chunkCoord = GetChunkCoordinateOfTileCoordinate(tile);
         relativeCoord = tile - chunkCoord * CHUNK_SIZE2;
-        Chunks.TryGetValue(chunkCoord, out TileMapChunk? chunk);
+        _chunks.TryGetValue(chunkCoord, out TileMapChunk? chunk);
         return chunk;
     }
 
     public TileMapChunk? GetChunk(Vector2 chunkCoord)
     {
-        Chunks.TryGetValue(chunkCoord, out TileMapChunk? chunk);
+        _chunks.TryGetValue(chunkCoord, out TileMapChunk? chunk);
         return chunk;
     }
 
     public IEnumerable<Rectangle> ForEachLoadedChunkBound()
     {
-        foreach (KeyValuePair<Vector2, TileMapChunk> chunkData in Chunks)
+        foreach (KeyValuePair<Vector2, TileMapChunk> chunkData in _chunks)
         {
             yield return new Primitives.Rectangle( chunkData.Key * CHUNK_SIZE2 * TileSize - TileSize / 2f, CHUNK_SIZE2 * TileSize);
         }
@@ -128,7 +128,7 @@ public class TileMapLayer
 
             // Compact the grid if the chunk is now empty.
             if (chunk.CheckIfEmpty())
-                Chunks.Remove(chunkCoord);
+                _chunks.Remove(chunkCoord);
 
             return true;
         }
@@ -137,7 +137,7 @@ public class TileMapLayer
         if (isDelete) return true;
 
         TileMapChunk newChunk = new TileMapChunk(CHUNK_SIZE);
-        Chunks.Add(chunkCoord, newChunk);
+        _chunks.Add(chunkCoord, newChunk);
 
         return newChunk.SetTileAt(relativeLocation, tileData);
     }

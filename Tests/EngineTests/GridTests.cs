@@ -13,7 +13,7 @@ public class GridTests
     [Test]
     public void ExpandingGridTest()
     {
-        var grid = new ExpandingNumberGrid<uint>(Vector2.Zero);
+        var grid = new ExpandingGrid<uint>(Vector2.Zero);
 
         // Default is no size
         Assert.Equal(grid.GetSize(), new Vector2(0));
@@ -134,7 +134,7 @@ public class GridTests
         // . .
     }
 
-    private static void DebugShowGrid<T>(ExpandingNumberGrid<T> grid) where T : struct, INumber<T>
+    private static void DebugShowGrid<T>(ExpandingGrid<T> grid) where T : struct, INumber<T>
     {
         StringBuilder b = new StringBuilder();
 
