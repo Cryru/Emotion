@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Graphics.Data;
-
 namespace Emotion.WIPUpdates.One.TileMap;
 
 public class TileMapLayer
