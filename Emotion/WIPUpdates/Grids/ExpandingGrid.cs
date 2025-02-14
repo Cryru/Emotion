@@ -1,10 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Utility;
-
 namespace Emotion.WIPUpdates.Grids;
 
-public class ExpandingGrid<T>(Vector2 size) : GenericGrid<T>(size) where T : struct
+public class ExpandingGrid<T>(Vector2 size) : GenericGrid<T>(size) where T : struct, IEquatable<T>
 {
     public Vector2 PositionOffset;
 
@@ -22,7 +20,7 @@ public class ExpandingGrid<T>(Vector2 size) : GenericGrid<T>(size) where T : str
         Assert(location == location.Floor());
 
         T defVal = default;
-        bool isDelete = Helpers.AreObjectsEqual(defVal, value);
+        bool isDelete = defVal.Equals(value);
         bool validPosition = IsValidPosition(location);
         if (validPosition)
         {

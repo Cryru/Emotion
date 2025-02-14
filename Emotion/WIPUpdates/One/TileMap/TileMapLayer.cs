@@ -1,12 +1,14 @@
 ﻿#nullable enable
 
+using Emotion.WIPUpdates.Grids;
+
 namespace Emotion.WIPUpdates.One.TileMap;
 
-public class TileMapLayer
+public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>
 {
-    public const float CHUNK_SIZE = 16;
-    public static Vector2 CHUNK_SIZE2 = new Vector2(CHUNK_SIZE);
-
+    /// <summary>
+    /// The name of the layer, to be used by the editor or code.
+    /// </summary>
     public string Name { get; set; } = "Untitled";
 
     /// <summary>
@@ -20,7 +22,7 @@ public class TileMapLayer
     public Vector2 LayerOffset { get; set; }
 
     /// <summary>
-    /// The size of tiles in the grid.
+    /// The size of tiles in world space.
     /// </summary>
     public Vector2 TileSize { get; set; }
 
@@ -29,125 +31,33 @@ public class TileMapLayer
     /// </summary>
     public float Opacity { get; set; } = 1f;
 
-    /// <summary>
-    /// Layer chunks containing tile data.
-    /// </summary>
-    private Dictionary<Vector2, TileMapChunk> _chunks { get; set; } = new();
-
     public override string ToString()
     {
         return Name;
     }
 
-    #region Chunks
-
-    public Vector2 GetChunkCoordinateOfTileCoordinate(Vector2 tile)
+    public TileMapLayer() : base(16)
     {
-        return (tile / CHUNK_SIZE2).Floor();
+
     }
 
-    public TileMapChunk? GetChunkAtTile(Vector2 tile, out Vector2 relativeCoord)
+    public TileMapLayer(float chunkSize) : base(chunkSize)
     {
-        Vector2 chunkCoord = GetChunkCoordinateOfTileCoordinate(tile);
-        relativeCoord = tile - chunkCoord * CHUNK_SIZE2;
-        _chunks.TryGetValue(chunkCoord, out TileMapChunk? chunk);
-        return chunk;
-    }
 
-    public TileMapChunk? GetChunk(Vector2 chunkCoord)
-    {
-        _chunks.TryGetValue(chunkCoord, out TileMapChunk? chunk);
-        return chunk;
     }
 
     public IEnumerable<Rectangle> ForEachLoadedChunkBound()
     {
         foreach (KeyValuePair<Vector2, TileMapChunk> chunkData in _chunks)
         {
-            yield return new Primitives.Rectangle( chunkData.Key * CHUNK_SIZE2 * TileSize - TileSize / 2f, CHUNK_SIZE2 * TileSize);
+            yield return new Rectangle(chunkData.Key * ChunkSize * TileSize - TileSize / 2f, ChunkSize * TileSize);
         }
     }
 
-    #endregion
-
-    #region Set/Get Tiles
-
-    public TileMapTile GetTileAt(int x, int y)
+    protected override void SetAtForChunk(TileMapChunk chunk, Vector2 position, TileMapTile value)
     {
-        return GetTileAt(new Vector2(x, y));
-    }
-
-    public TileMapTile GetTileAt(Vector2 location)
-    {
-        TileMapChunk? chunk = GetChunkAtTile(location, out Vector2 relativeCoord);
-        if (chunk == null) return TileMapTile.Empty;
-
-        return chunk.GetTileAt(relativeCoord);
-    }
-
-    public bool IsTileInBounds(Vector2 location)
-    {
-        return GetChunkAtTile(location, out Vector2 _) != null;
-    }
-
-    public bool SetTileAt(Vector2 location, TileTextureId tId, TilesetId tsId)
-    {
-        return SetTileAt(location, new TileMapTile() { TilesetId = tsId, TextureId = tId });
-    }
-
-    public bool SetTileAt(Vector2 location, TileMapTile tileData)
-    {
-        TileMapChunk? chunk = GetChunkAtTile(location, out Vector2 relativeCoord);
-        if (chunk == null) return false;
-
-        return chunk.SetTileAt(relativeCoord, tileData);
-    }
-
-    #endregion
-
-    #region Editor
-
-    public bool EditorSetTileAt(Vector2 location, TileTextureId tId, TilesetId tsId)
-    {
-        return EditorSetTileAt(location, new TileMapTile(tId, tsId));
-    }
-
-    public bool EditorSetTileAt(Vector2 location, TileMapTile tileData)
-    {
-        Assert(location == location.Floor());
-
-        Vector2 chunkCoord = GetChunkCoordinateOfTileCoordinate(location);
-        bool isDelete = tileData.Equals(TileMapTile.Empty);
-
-        TileMapChunk? chunk = GetChunkAtTile(location, out Vector2 relativeLocation);
-        if (chunk != null)
-        {
-            bool success = chunk.SetTileAt(relativeLocation, tileData);
-            if (!isDelete) return success;
-            if (!success) return false;
-
-            // Compact the grid if the chunk is now empty.
-            if (chunk.CheckIfEmpty())
-                _chunks.Remove(chunkCoord);
-
-            return true;
-        }
-
-        // Trying to delete nothing
-        if (isDelete) return true;
-
-        TileMapChunk newChunk = new TileMapChunk(CHUNK_SIZE);
-        _chunks.Add(chunkCoord, newChunk);
-
-        return newChunk.SetTileAt(relativeLocation, tileData);
-    }
-
-    #endregion
-
-    public bool IsTilePositionValid(Vector2 tileCoord2d)
-    {
-        TileMapChunk? chunk = GetChunkAtTile(tileCoord2d, out Vector2 _);
-        return chunk != null;
+        base.SetAtForChunk(chunk, position, value);
+        chunk.ChunkVersion++;
     }
 
     public Vector2 GetTilePosOfWorldPos(Vector2 location)

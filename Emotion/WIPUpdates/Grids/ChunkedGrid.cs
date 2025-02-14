@@ -1,19 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Utility;
-
 namespace Emotion.WIPUpdates.Grids;
 
-public interface IGridChunk<T> : IGrid<T> where T : struct
-{
-    public abstract static IGridChunk<T> CreateChunk(float chunkSize);
-
-    public bool IsEmpty();
-
-    public int GetNonEmptyCount();
-}
-
-public class ChunkedGrid<T, ChunkT> : IGrid<T> where ChunkT : IGridChunk<T> where T : struct
+public class ChunkedGrid<T, ChunkT> : IGrid<T>
+    where ChunkT : IGridChunk<T>, new()
+    where T : struct, IEquatable<T>
 {
     public Vector2 ChunkSize { get; private set; }
 
@@ -43,6 +34,23 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T> where ChunkT : IGridChunk<T> wher
         return chunk;
     }
 
+    #region ChunkHelpers
+
+    protected virtual void SetAtForChunk(ChunkT chunk, Vector2 position, T value)
+    {
+        T[] data = chunk.GetRawData();
+        int idx = GridHelpers.GetCoordinate1DFrom2D(position, ChunkSize);
+        data[idx] = value;
+    }
+
+    protected virtual T GetAtForChunk(ChunkT chunk, Vector2 position)
+    {
+        T[] data = chunk.GetRawData();
+        int idx = GridHelpers.GetCoordinate1DFrom2D(position, ChunkSize);
+        return data[idx];
+    }
+
+    #endregion
 
     public T[] GetRawData()
     {
@@ -96,16 +104,14 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T> where ChunkT : IGridChunk<T> wher
     {
         ChunkT? chunk = GetChunkAt(position, out Vector2 relativeCoord);
         if (chunk == null) return;
-
-        chunk.SetAt(relativeCoord, value);
+        SetAtForChunk(chunk, relativeCoord, value);
     }
 
     public T GetAt(Vector2 position)
     {
         ChunkT? chunk = GetChunkAt(position, out Vector2 relativeCoord);
         if (chunk == null) return default;
-
-        return chunk.GetAt(relativeCoord);
+        return GetAtForChunk(chunk, relativeCoord);
     }
 
     public bool ExpandingSetAt(Vector2 position, T value)
@@ -115,13 +121,13 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T> where ChunkT : IGridChunk<T> wher
         Vector2 chunkCoord = GetChunkCoordinateOfValueCoordinate(position);
 
         T defVal = default;
-        bool isDelete = Helpers.AreObjectsEqual(defVal, value);
+        bool isDelete = defVal.Equals(value);
 
         ChunkT? chunk = GetChunkAt(position, out Vector2 relativeLocation);
         if (chunk != null)
         {
             // Setting position in a chunk - easy peasy.
-            chunk.SetAt(relativeLocation, value);
+            SetAtForChunk(chunk, relativeLocation, value);
             if (!isDelete) return false;
 
             // Compact the grid if the chunk is now empty.
@@ -137,10 +143,62 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T> where ChunkT : IGridChunk<T> wher
         // Trying to delete nothing
         if (isDelete) return false;
 
-        ChunkT newChunk = (ChunkT) ChunkT.CreateChunk(ChunkSize.X);
+        // Initialize new chunk
+        ChunkT newChunk = new ChunkT();
+        T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
+        newChunk.SetRawData(newChunkData);
         _chunks.Add(chunkCoord, newChunk);
 
-        newChunk.SetAt(relativeLocation, value);
+        SetAtForChunk(newChunk, relativeLocation, value);
         return true;
+    }
+}
+
+public interface IGridChunk<T> where T : struct
+{
+    public bool IsEmpty();
+
+    public int GetNonEmptyCount();
+
+    public T[] GetRawData();
+
+    public void SetRawData(T[] data);
+}
+
+public class GenericGridChunk<T> : IGridChunk<T> where T : struct, IEquatable<T>
+{
+    protected T[] _data = Array.Empty<T>();
+
+    public bool IsEmpty()
+    {
+        T defValue = default;
+        for (int i = 0; i < _data.Length; i++)
+        {
+            T value = _data[i];
+            if (!defValue.Equals(value)) return false;
+        }
+        return true;
+    }
+
+    public int GetNonEmptyCount()
+    {
+        T defValue = default;
+        int nonEmpty = 0;
+        for (int i = 0; i < _data.Length; i++)
+        {
+            T value = _data[i];
+            if (!defValue.Equals(value)) nonEmpty++;
+        }
+        return nonEmpty;
+    }
+
+    public T[] GetRawData()
+    {
+        return _data;
+    }
+
+    public void SetRawData(T[] data)
+    {
+        _data = data;
     }
 }

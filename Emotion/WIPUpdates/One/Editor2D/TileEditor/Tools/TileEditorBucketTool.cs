@@ -50,10 +50,10 @@ public class TileEditorBucketTool : TileEditorTool
 
     private bool SpanFill_IsValid(Vector2 tilePosToCheck, TileMapTile currentTile, TileMapLayer layerToPlaceIn)
     {
-        if (!layerToPlaceIn.IsTileInBounds(tilePosToCheck)) return false;
+        if (!layerToPlaceIn.IsValidPosition(tilePosToCheck)) return false;
         if (_bucketTilesToSet.Contains(tilePosToCheck)) return false;
 
-        TileMapTile tileData = layerToPlaceIn.GetTileAt(tilePosToCheck);
+        TileMapTile tileData = layerToPlaceIn.GetAt(tilePosToCheck);
         return currentTile == tileData;
     }
 
@@ -89,7 +89,7 @@ public class TileEditorBucketTool : TileEditorTool
         TileMapTile tileToPlace = new TileMapTile(tIdToPlace, currentTilesetId);
         (Texture texture, Rectangle uv) = tileData.GetTileRenderData(tileToPlace);
 
-        TileMapTile currentTileData = currentLayer.GetTileAt(cursorPos);
+        TileMapTile currentTileData = currentLayer.GetAt(cursorPos);
         if (currentTileData == tileToPlace) return;
 
         _bucketTilesToSet.Clear();
@@ -97,7 +97,7 @@ public class TileEditorBucketTool : TileEditorTool
 
         foreach (Vector2 tilePos in _bucketTilesToSet)
         {
-            currentLayer.EditorSetTileAt(tilePos, tileToPlace);
+            currentLayer.ExpandingSetAt(tilePos, tileToPlace);
         }
     }
 
@@ -122,7 +122,7 @@ public class TileEditorBucketTool : TileEditorTool
         TileMapTile tileToPlace = new TileMapTile(tIdToPlace, currentTilesetId);
         (Texture texture, Rectangle uv) = tileData.GetTileRenderData(tileToPlace);
 
-        TileMapTile currentTileData = currentLayer.GetTileAt(cursorPos);
+        TileMapTile currentTileData = currentLayer.GetAt(cursorPos);
         if (currentTileData == tileToPlace || tileToPlace == TileMapTile.Empty)
         {
             c.RenderSprite(cursorTileWorldSpace, tileSize, Color.PrettyGreen * 0.2f);

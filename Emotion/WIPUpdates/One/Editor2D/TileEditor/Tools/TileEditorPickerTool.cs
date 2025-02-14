@@ -14,7 +14,7 @@ public class TileEditorPickerTool : TileEditorTool
 
     public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
-        TileMapTile tile = currentLayer.GetTileAt(cursorPos);
+        TileMapTile tile = currentLayer.GetAt(cursorPos);
         if (tile == TileMapTile.Empty) return;
 
         TilesetId tsId = tile.TilesetId;

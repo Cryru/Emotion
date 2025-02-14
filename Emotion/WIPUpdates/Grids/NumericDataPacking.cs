@@ -1,13 +1,22 @@
 ﻿#nullable enable
 
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Emotion.WIPUpdates.Grids;
 
 public static class NumericDataPacking
 {
-    public static T[] UnpackData<T>(ReadOnlySpan<char> data) where T : INumber<T>
+    public static T[] UnpackData<T, TNumeric>(ReadOnlySpan<char> data)
+        where T : struct
+        where TNumeric : struct, INumber<TNumeric>
     {
+#if DEBUG
+        Assert(Unsafe.SizeOf<TNumeric>() == Unsafe.SizeOf<T>());
+#endif
+
         // First pass - Count characters, including packed.
         var chars = 0;
         var lastSepIdx = 0;
@@ -31,7 +40,11 @@ public static class NumericDataPacking
         chars += charCount;
 
         // Second pass, unpack.
-        var unpackedData = new T[chars];
+        // (we support unpacking as a type that can be reinterpret cast to a numeric type)
+        T[] unpackedDataUnderlyingType = new T[chars];
+        Span<T> unpackedDataUnderlyingSpan = (Span<T>)unpackedDataUnderlyingType;
+        Span<TNumeric> unpackedData = MemoryMarshal.Cast<T, TNumeric>(unpackedDataUnderlyingSpan);
+
         var arrayPtr = 0;
         lastSepIdx = 0;
         charCount = 1;
@@ -55,8 +68,7 @@ public static class NumericDataPacking
 
                 // Get tile value.
                 ReadOnlySpan<char> sinceLast = data.Slice(lastSepIdx, i - lastSepIdx);
-                T.TryParse(sinceLast, System.Globalization.NumberStyles.Any, null, out T? value);
-                AssertNotNull(value);
+                TNumeric.TryParse(sinceLast, System.Globalization.NumberStyles.Any, CultureInfo.InvariantCulture, out TNumeric value);
 
                 for (var j = 0; j < charCount; j++)
                 {
@@ -68,22 +80,30 @@ public static class NumericDataPacking
                 lastSepIdx = i + 1;
             }
         }
-        return unpackedData;
+
+        return unpackedDataUnderlyingType;
     }
 
-    public static string PackData<T>(T[] data) where T : INumber<T>
+    public static string PackData<T, TNumeric>(Span<T> dataT)
+        where T : struct
+        where TNumeric : struct, INumber<TNumeric>
     {
-        if (data == null || data.Length == 0) return string.Empty;
+#if DEBUG
+        Assert(Unsafe.SizeOf<TNumeric>() == Unsafe.SizeOf<T>());
+#endif
 
+        if (dataT.Length == 0) return string.Empty;
+
+        Span<TNumeric> data = MemoryMarshal.Cast<T, TNumeric>(dataT);
         var b = new StringBuilder(data.Length * 2 + data.Length - 1);
 
-        T lastNumber = data[0];
+        TNumeric lastNumber = data[0];
         uint lastNumberCount = 1;
         var firstAppended = false;
         for (var i = 1; i <= data.Length; i++)
         {
             // There is an extra loop to dump last number.
-            T num = T.Zero;
+            TNumeric num = TNumeric.Zero;
             if (i != data.Length)
             {
                 num = data[i];

@@ -53,8 +53,8 @@ public class TileMapLayerRenderCache
         int chunkVersion = chunk.ChunkVersion;
         if (chunkCache.CachedVersion == chunkVersion) return;
 
-        uint[] chunkData = chunk.GetRawData();
-        int quadsNeeded = chunk.CountNonEmptyTiles();
+        TileMapTile[] chunkData = chunk.GetRawData();
+        int quadsNeeded = chunk.GetNonEmptyCount();
         int vertsNeeded = quadsNeeded * 4;
 
         if (vertsNeeded > chunkCache.VerticesData.Length)
@@ -68,17 +68,17 @@ public class TileMapLayerRenderCache
         Texture[] textureCache = chunkCache.Textures;
         Span<VertexData> vertexData = chunkCache.VerticesData;
 
-        Vector2 chunkOffset = (chunkCoord * TileMapLayer.CHUNK_SIZE2 * layer.TileSize) + layer.LayerOffset;
+        Vector2 chunkOffset = (chunkCoord * layer.ChunkSize * layer.TileSize) + layer.LayerOffset;
         Vector2 tileSize = layer.TileSize;
         Vector2 tileSizeHalf = layer.TileSize / 2f;
 
         int currentQuadWrite = 0;
         for (int i = 0; i < chunkData.Length; i++)
         {
-            TileMapTile tileData = chunkData[i];
+            ref TileMapTile tileData = ref chunkData[i];
             if (tileData == TileMapTile.Empty) continue;
 
-            Vector2 tileIdx2d = Grid.GetCoordinate2DFrom1D(i, TileMapLayer.CHUNK_SIZE2);
+            Vector2 tileIdx2d = Grid.GetCoordinate2DFrom1D(i, layer.ChunkSize);
 
             (Texture tilesetTexture, Rectangle tiUV) = tileMapData.GetTileRenderData(tileData);
             textureCache[currentQuadWrite] = tilesetTexture;
@@ -130,7 +130,7 @@ public class TileMapLayerRenderCache
         if (!layer.Visible) return cache;
         if (cache.Layer != layer) cache.Reset(layer);
 
-        Vector2 chunkWorldSize = TileMapLayer.CHUNK_SIZE * layer.TileSize;
+        Vector2 chunkWorldSize = layer.ChunkSize * layer.TileSize;
 
         Rectangle cacheAreaChunkSpace = cacheArea;
         cacheAreaChunkSpace.SnapToGrid(chunkWorldSize);

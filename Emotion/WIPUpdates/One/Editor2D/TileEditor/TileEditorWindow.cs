@@ -305,7 +305,7 @@ public sealed class TileEditorWindow : UIBaseWindow
 
         CursorTilePos = tilePos;
 
-        bool inMap = CurrentLayer.IsTilePositionValid(tilePos);
+        bool inMap = CurrentLayer.IsValidPosition(tilePos);
         string inMapText = "";
         if (!inMap) inMapText = " (Outside Map)";
 
