@@ -64,7 +64,7 @@ public partial class World2DEditor : WorldBaseEditor
         // todo: move to tile editor
         if (map?.Tiles != null)
         {
-            Rectangle clipRect = c.Camera.GetCameraFrustum();
+            Rectangle clipRect = c.Camera.GetCameraView2D();
             for (var i = 0; i < map.Tiles.Layers.Count; i++)
             {
                 Map2DTileMapLayer layer = map.Tiles.Layers[i];

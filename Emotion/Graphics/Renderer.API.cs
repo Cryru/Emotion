@@ -49,6 +49,18 @@ namespace Emotion.Graphics
             }
         }
 
+        public void RenderVertices(Span<Vector3> verts, params Color[] colors)
+        {
+            var vertCount = (uint)verts.Length;
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
+            for (var i = 0; i < verts.Length; i++)
+            {
+                vertices[i].Vertex = verts[i];
+                vertices[i].Color = i >= colors.Length ? colors.Length == 0 ? Color.WhiteUint : colors[0].ToUint() : colors[i].ToUint();
+                vertices[i].UV = Vector2.Zero;
+            }
+        }
+
         /// <summary>
         /// Render a renderable object.
         /// </summary>

@@ -135,7 +135,7 @@ public class TileEditorBucketTool : TileEditorTool
 
         // Camera culling
         CameraBase cam = c.Camera;
-        Rectangle camBound = cam.GetCameraFrustum();
+        Rectangle camBound = cam.GetCameraView2D();
         foreach (Vector2 tilePos in _bucketTilesToSet)
         {
             Vector2 worldPos = currentLayer.GetWorldPosOfTile(tilePos);

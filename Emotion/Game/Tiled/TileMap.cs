@@ -133,7 +133,7 @@ namespace Emotion.Game.Tiled
         {
             memory ??= _quadTreeQueryMemory;
             memory.Clear();
-            Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetCameraFrustum();
+            Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetCameraView2D();
             Objects.GetObjects(clipRect, memory);
             memory.Sort(ObjectSort);
             return memory;
@@ -523,7 +523,7 @@ namespace Emotion.Game.Tiled
             if (TiledMap == null || !_loaded) return;
             end = end == -1 ? TiledMap.Layers.Count : end;
 
-            Rectangle clipRect = Clip ?? composer.Camera.GetCameraFrustum();
+            Rectangle clipRect = Clip ?? composer.Camera.GetCameraView2D();
             if (renderBackground) composer.RenderSprite(clipRect, TiledMap.BackgroundColor);
 
             for (int layer = start; layer < end; layer++)

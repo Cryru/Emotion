@@ -325,20 +325,33 @@ namespace Emotion.Graphics
 
         public void RenderFrustum(Span<Vector3> corners, Color col)
         {
+            // Far plane
             RenderLine(corners[0], corners[1], col, 25);
-            RenderLine(corners[1], corners[2], col, 25);
-            RenderLine(corners[2], corners[3], col, 25);
-            RenderLine(corners[3], corners[0], col, 25);
-
             RenderLine(corners[4], corners[5], col, 15);
+
+            // Far plane x Right Plane
+            RenderLine(corners[0], corners[4], col, 5);
+
+            // Left plane
+            RenderLine(corners[1], corners[2], col, 25);
             RenderLine(corners[5], corners[6], col, 15);
+
+            // Near plane
+            RenderLine(corners[2], corners[3], col, 25);
             RenderLine(corners[6], corners[7], col, 15);
+
+            // Near plane x Left Plane
+            RenderLine(corners[2], corners[6], col, 5);
+
+            // Near Plane x Right Plane
+            RenderLine(corners[3], corners[7], col, 5);
+
+            // Right plane
+            RenderLine(corners[3], corners[0], col, 25);
             RenderLine(corners[7], corners[4], col, 15);
 
-            RenderLine(corners[0], corners[4], col, 5);
+            // Far plane X Left Plane
             RenderLine(corners[1], corners[5], col, 5);
-            RenderLine(corners[2], corners[6], col, 5);
-            RenderLine(corners[3], corners[7], col, 5);
         }
     }
 }

@@ -477,7 +477,7 @@ namespace Emotion.Graphics
             {
                 SetUseViewMatrix(true);
                 Span<Vector3> frustumCorners = stackalloc Vector3[8];
-                Camera.GetCameraFrustum3D(frustumCorners);
+                Camera.GetCameraView3D(frustumCorners);
                 RenderFrustum(frustumCorners, Color.Magenta);
             }
 
