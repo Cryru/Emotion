@@ -62,24 +62,14 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         throw new Exception("Cannot set the raw data of a chunked grid.");
     }
 
-    public Vector2 GetOrigin()
+    private Vector2 _smallestChunkCoordCache;
+    private Vector2 _largestChunkCoordCache;
+    private bool _chunkBoundsCacheValid = false;
+
+    private void CacheChunkBounds()
     {
-        Vector2 smallestChunkCoord = Vector2.Zero;
-        bool first = true;
-        foreach (var chunkPair in _chunks)
-        {
-            Vector2 coord = chunkPair.Key;
-            if (coord.X < smallestChunkCoord.X || first) smallestChunkCoord.X = coord.X;
-            if (coord.Y < smallestChunkCoord.Y || first) smallestChunkCoord.Y = coord.Y;
+        if (_chunkBoundsCacheValid) return;
 
-            first = false;
-        }
-
-        return smallestChunkCoord * ChunkSize;
-    }
-
-    public Vector2 GetSize()
-    {
         Vector2 smallestChunkCoord = Vector2.Zero;
         Vector2 largestChunkCoord = Vector2.Zero;
         bool first = true;
@@ -96,6 +86,25 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
 
         if (_chunks.Count != 0) largestChunkCoord += Vector2.One;
 
+        _smallestChunkCoordCache = smallestChunkCoord;
+        _largestChunkCoordCache = largestChunkCoord;
+        _chunkBoundsCacheValid = true;
+    }
+
+    public Vector2 GetOrigin()
+    {
+        CacheChunkBounds();
+
+        Vector2 smallestChunkCoord = _smallestChunkCoordCache;
+        return smallestChunkCoord * ChunkSize;
+    }
+
+    public Vector2 GetSize()
+    {
+        CacheChunkBounds();
+
+        Vector2 smallestChunkCoord = _smallestChunkCoordCache;
+        Vector2 largestChunkCoord = _largestChunkCoordCache;
         return (largestChunkCoord - smallestChunkCoord) * ChunkSize;
     }
 
@@ -160,6 +169,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
         newChunk.SetRawData(newChunkData);
         _chunks.Add(chunkCoord, newChunk);
+        _chunkBoundsCacheValid = false;
 
         SetAtForChunk(newChunk, relativeLocation, value);
         return true;
