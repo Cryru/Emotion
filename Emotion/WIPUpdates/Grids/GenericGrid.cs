@@ -4,7 +4,7 @@ using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.Grids;
 
-public class GenericGrid<T> : IGrid<T>, IMutableGrid<T>
+public class GenericGrid<T> : IGrid<T>, IMutableGrid<T> where T : struct
 {
     protected Vector2 _size;
     protected T[] _data;

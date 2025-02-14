@@ -70,34 +70,46 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         {
             Vector2 coord = chunkPair.Key;
             if (coord.X < smallestChunkCoord.X || first) smallestChunkCoord.X = coord.X;
-            if (coord.Y < smallestChunkCoord.Y || first) smallestChunkCoord.X = coord.X;
+            if (coord.Y < smallestChunkCoord.Y || first) smallestChunkCoord.Y = coord.Y;
 
             first = false;
         }
 
-        return smallestChunkCoord;
+        return smallestChunkCoord * ChunkSize;
     }
 
     public Vector2 GetSize()
     {
+        Vector2 smallestChunkCoord = Vector2.Zero;
         Vector2 largestChunkCoord = Vector2.Zero;
         bool first = true;
         foreach (var chunkPair in _chunks)
         {
             Vector2 coord = chunkPair.Key;
             if (coord.X > largestChunkCoord.X || first) largestChunkCoord.X = coord.X;
-            if (coord.Y > largestChunkCoord.Y || first) largestChunkCoord.X = coord.X;
+            if (coord.Y > largestChunkCoord.Y || first) largestChunkCoord.Y = coord.Y;
+            if (coord.X < smallestChunkCoord.X || first) smallestChunkCoord.X = coord.X;
+            if (coord.Y < smallestChunkCoord.Y || first) smallestChunkCoord.Y = coord.Y;
 
             first = false;
         }
 
-        return largestChunkCoord;
+        if (_chunks.Count != 0) largestChunkCoord += Vector2.One;
+
+        return (largestChunkCoord - smallestChunkCoord) * ChunkSize;
     }
 
     public bool IsValidPosition(Vector2 position)
     {
-        ChunkT? chunk = GetChunkAt(position, out Vector2 _);
-        return chunk != null;
+        var origin = GetOrigin();
+        var size = GetSize();
+        var mapRect = new Rectangle(origin, size);
+
+        // Inclusive check on the lower end
+        mapRect.Position -= Vector2.One;
+        mapRect.Size += Vector2.One;
+
+        return mapRect.Contains(position);
     }
 
     public void SetAt(Vector2 position, T value)
