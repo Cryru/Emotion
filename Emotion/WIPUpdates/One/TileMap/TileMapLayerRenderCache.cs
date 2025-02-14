@@ -50,8 +50,9 @@ public class TileMapLayerRenderCache
     private void UpdateChunkRenderCache(TileMapLayerRenderCacheChunk chunkCache, GameMapTileData tileMapData, TileMapLayer layer, TileMapChunk chunk, Vector2 chunkCoord)
     {
         // We already have the latest version of this
-        int chunkVersion = chunk.ChunkVersion;
-        if (chunkCache.CachedVersion == chunkVersion) return;
+        if (chunkCache.CachedVersion == chunk.ChunkVersion &&
+            chunkCache.CachedOpacity == layer.Opacity &&
+            chunkCache.CachedOffset == layer.LayerOffset) return;
 
         TileMapTile[] chunkData = chunk.GetRawData();
         int quadsNeeded = chunk.GetNonEmptyCount();
@@ -97,7 +98,9 @@ public class TileMapLayerRenderCache
             currentQuadWrite++;
         }
 
-        chunkCache.CachedVersion = chunkVersion;
+        chunkCache.CachedVersion = chunk.ChunkVersion;
+        chunkCache.CachedOffset = layer.LayerOffset;
+        chunkCache.CachedOpacity = layer.Opacity;
     }
 
     public void Render(RenderComposer c, Texture[]? tilesetTextures)
@@ -156,6 +159,8 @@ public class TileMapLayerRenderCache
     private class TileMapLayerRenderCacheChunk
     {
         public int CachedVersion = -1;
+        public Vector2 CachedOffset = new Vector2(float.NaN);
+        public float CachedOpacity = float.NaN;
 
         public int QuadsUsed = 0;
         public VertexData[] VerticesData = Array.Empty<VertexData>();

@@ -50,7 +50,9 @@ public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>
     {
         foreach (KeyValuePair<Vector2, TileMapChunk> chunkData in _chunks)
         {
-            yield return new Rectangle(chunkData.Key * ChunkSize * TileSize - TileSize / 2f, ChunkSize * TileSize);
+            Rectangle chunkBounds = new Rectangle(chunkData.Key * ChunkSize * TileSize - TileSize / 2f, ChunkSize * TileSize);
+            chunkBounds.Position += LayerOffset;
+            yield return chunkBounds;
         }
     }
 
