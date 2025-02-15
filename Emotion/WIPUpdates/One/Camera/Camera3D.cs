@@ -53,16 +53,6 @@ namespace Emotion.Graphics.Camera
             else
                 yaw = MathF.Atan2(lookAt.Y, lookAt.X);
 
-            // Calculate yaw (rotation around Y-axis)
-            if (lookAt.X == 0 && lookAt.Y == 0)
-            {
-                yaw = MathF.PI + MathF.Atan2(-lookAt.Y, -lookAt.X);
-            }
-            else
-            {
-                yaw = MathF.Atan2(lookAt.Y, lookAt.X);
-            }
-
             // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
             pitch = Maths.Clamp(pitch, Maths.DegreesToRadians(-89), Maths.DegreesToRadians(89));
             _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(pitch));

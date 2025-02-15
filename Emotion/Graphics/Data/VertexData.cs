@@ -90,6 +90,14 @@ namespace Emotion.Graphics.Data
             if (flipX) FlipVerticallySpriteUVs(vertices);
         }
 
+        public static void WriteDefaultQuadUV(Span<VertexData> vertices)
+        {
+            vertices[3].UV = Vector2.Zero;
+            vertices[2].UV = new Vector2(1, 0);
+            vertices[1].UV = Vector2.One;
+            vertices[0].UV = new Vector2(0, 1);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void TransformUVs(Span<VertexData> vertices, Texture texture, Rectangle uvRect)
         {

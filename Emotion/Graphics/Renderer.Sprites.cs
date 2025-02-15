@@ -176,6 +176,8 @@ namespace Emotion.Graphics
             }
 
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
+            VertexData.WriteDefaultQuadUV(vertices);
+
             vertices[0].Vertex = pointOne + delta;
             vertices[1].Vertex = pointTwo + delta;
             vertices[2].Vertex = pointTwo + deltaNeg;
@@ -185,7 +187,6 @@ namespace Emotion.Graphics
             for (var i = 0; i < vertices.Length; i++)
             {
                 vertices[i].Color = c;
-                vertices[i].UV = Vector2.Zero;
             }
         }
 
@@ -214,7 +215,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a line with an arrow at the end.
         /// </summary>
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool, RenderLineMode)" />
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, RenderLineMode)" />
         public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
             RenderLine(pointOne, pointTwo, color, thickness);
