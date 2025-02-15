@@ -63,9 +63,9 @@ public partial class World3DEditor : WorldBaseEditor
     {
         _grid?.Render(c);
 
-        c.RenderLine(new Vector3(0, 0, 10), new Vector3(short.MaxValue, 0, 10), Color.Red, snapToPixel: false);
-        c.RenderLine(new Vector3(0, 0, 10), new Vector3(0, short.MaxValue, 10), Color.Green, snapToPixel: false);
-        c.RenderLine(new Vector3(0, 0, 10), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
+        //c.RenderLine(new Vector3(0, 0, 10), new Vector3(short.MaxValue, 0, 10), Color.Red, snapToPixel: false);
+        //c.RenderLine(new Vector3(0, 0, 10), new Vector3(0, short.MaxValue, 10), Color.Green, snapToPixel: false);
+        //c.RenderLine(new Vector3(0, 0, 10), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
     }
 
     private void CreateEditorGrid()
