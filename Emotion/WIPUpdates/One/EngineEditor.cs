@@ -170,13 +170,13 @@ public static partial class EngineEditor
         
         if (MapEditorMode == MapEditorMode.ThreeDee)
         {
-            Span<Vector3> frustumCorners = new Vector3[8];
+            Span<Vector3> frustumCorners = stackalloc Vector3[8];
             gameCam.GetCameraView3D(frustumCorners);
 
-            Span<Vector3> sideA = new Vector3[4];
-            Span<Vector3> sideB = new Vector3[4];
-            Span<Vector3> sideNear = new Vector3[4];
-            Span<Vector3> sideFar = new Vector3[4];
+            Span<Vector3> sideA = stackalloc Vector3[4];
+            Span<Vector3> sideB = stackalloc Vector3[4];
+            Span<Vector3> sideNear = stackalloc Vector3[4];
+            Span<Vector3> sideFar = stackalloc Vector3[4];
 
             CameraBase.GetCameraFrustumSidePlanes(frustumCorners, sideA, sideB);
             CameraBase.GetCameraFrustumNearAndFarPlanes(frustumCorners, sideNear, sideFar);
