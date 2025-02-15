@@ -61,6 +61,17 @@ namespace Emotion.Graphics
             }
         }
 
+        public void RenderQuad(Span<Vector3> verts, Color color)
+        {
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i].Vertex = verts[i];
+                vertices[i].Color = color.ToUint();
+                vertices[i].UV = Vector2.Zero;
+            }
+        }
+
         /// <summary>
         /// Render a renderable object.
         /// </summary>

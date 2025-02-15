@@ -522,9 +522,11 @@ namespace Emotion.Common
                 Renderer.SetUseViewMatrix(true);
             }
 
+            EngineEditor.OnSceneRenderStart(Renderer);
             PerfProfiler.FrameEventStart("Scene.Draw");
             SceneManager.Draw(Renderer);
             PerfProfiler.FrameEventEnd("Scene.Draw");
+            EngineEditor.OnSceneRenderEnd(Renderer);
 
             PerfProfiler.FrameEventStart("Editor.Draw");
             EngineEditor.RenderEditor(Renderer);

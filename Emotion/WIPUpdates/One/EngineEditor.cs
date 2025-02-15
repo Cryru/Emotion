@@ -1,12 +1,17 @@
 ﻿#region Using
 
+using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
+using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Scenography;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.EditorUI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #endregion
 
@@ -56,6 +61,8 @@ public static partial class EngineEditor
         barContainer.AddChild(new EditorTopBar());
         barContainer.AddChild(new MapEditorViewMode());
 
+        SetupDebugCameraUI(barContainer);
+
         _perfText = new UIRichText
         {
             FontSize = 25,
@@ -92,9 +99,99 @@ public static partial class EngineEditor
         if (!IsOpen) return;
         RenderMapEditor(c);
 
+        c.SetUseViewMatrix(true);
+        RenderGameCameraBound(c);
+        c.SetUseViewMatrix(false);
+
         string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDCF: {PerformanceMetrics.DrawCallsLastFrame:00}";
         _perfText.Text = perfReadoutStr;
     }
+
+    public static void OnSceneRenderStart(RenderComposer c)
+    {
+        if (IsDebugCameraOn()) c.DebugSetVirtualCamera(_cameraOutsideEditor);
+    }
+
+    public static void OnSceneRenderEnd(RenderComposer c)
+    {
+        if (IsDebugCameraOn()) c.DebugSetVirtualCamera(null);
+    }
+
+    #region Debug Camera
+
+    private static bool _debugCameraOptionOn;
+
+    public static bool IsDebugCameraOn()
+    {
+        return _debugCameraOptionOn && (MapEditorMode == MapEditorMode.TwoDee || MapEditorMode == MapEditorMode.ThreeDee);
+    }
+
+    private static void SetDebugCameraOption(bool on)
+    {
+        _debugCameraOptionOn = on;
+    }
+
+    private static void SetupDebugCameraUI(UIBaseWindow barContainer)
+    {
+        var container = new ContainerVisibleInEditorMode
+        {
+            Margins = new Primitives.Rectangle(10, 5, 0, 0),
+            VisibleIn = MapEditorMode.TwoDee | MapEditorMode.ThreeDee
+        };
+        barContainer.AddChild(container);
+
+        var editorWithLabel = new EditorWithLabel(
+            "View Game Camera",
+            new BooleanEditor(),
+            _debugCameraOptionOn,
+            (newVal) => SetDebugCameraOption((bool)newVal)
+        );
+        EditorLabel label = editorWithLabel.Label;
+        label.OutlineColor = Color.Black;
+        label.OutlineSize = 2;
+        label.FontSize = 23;
+        container.AddChild(editorWithLabel);
+    }
+
+    private static void RenderGameCameraBound(RenderComposer c)
+    {
+        if (!_debugCameraOptionOn) return;
+
+        CameraBase gameCam = _cameraOutsideEditor;
+        if (gameCam == null) return;
+
+        c.SetDepthTest(false);
+        if (MapEditorMode == MapEditorMode.TwoDee || _cameraOutsideEditor is Camera2D)
+        {
+            Rectangle twoDee = gameCam.GetCameraView2D();
+            c.RenderSprite(twoDee.Position, twoDee.Size, Color.Magenta * 0.1f);
+            c.RenderOutline(twoDee.Position, twoDee.Size, Color.Magenta, 3);
+        }
+        
+        if (MapEditorMode == MapEditorMode.ThreeDee)
+        {
+            Span<Vector3> frustumCorners = new Vector3[8];
+            gameCam.GetCameraView3D(frustumCorners);
+
+            Span<Vector3> sideA = new Vector3[4];
+            Span<Vector3> sideB = new Vector3[4];
+            Span<Vector3> sideNear = new Vector3[4];
+            Span<Vector3> sideFar = new Vector3[4];
+
+            CameraBase.GetCameraFrustumSidePlanes(frustumCorners, sideA, sideB);
+            CameraBase.GetCameraFrustumNearAndFarPlanes(frustumCorners, sideNear, sideFar);
+
+            c.RenderQuad(sideA, Color.Magenta * 0.1f);
+            c.RenderQuad(sideB, Color.Magenta * 0.1f);
+            c.RenderQuad(sideNear, Color.Magenta * 0.1f);
+            c.RenderQuad(sideFar, Color.Magenta * 0.1f);
+
+            c.RenderFrustum(frustumCorners, Color.White);
+        }
+        c.SetDepthTest(true);
+    }
+
+    #endregion
 
     #region Helpers
 

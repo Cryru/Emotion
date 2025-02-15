@@ -313,5 +313,18 @@ public abstract class CameraBase : Positional, IDisposable
         sidePlaneB[3] = frustumCorners[5];
     }
 
+    public static void GetCameraFrustumNearAndFarPlanes(Span<Vector3> frustumCorners, Span<Vector3> sidePanelNear, Span<Vector3> sidePlaneFar)
+    {
+        sidePanelNear[0] = frustumCorners[0];
+        sidePanelNear[1] = frustumCorners[1];
+        sidePanelNear[2] = frustumCorners[2];
+        sidePanelNear[3] = frustumCorners[3];
+
+        sidePlaneFar[0] = frustumCorners[4];
+        sidePlaneFar[1] = frustumCorners[5];
+        sidePlaneFar[2] = frustumCorners[6];
+        sidePlaneFar[3] = frustumCorners[7];
+    }
+
     #endregion
 }

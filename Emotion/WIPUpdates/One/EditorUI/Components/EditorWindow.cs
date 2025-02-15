@@ -198,9 +198,9 @@ public class EditorWindow : UIBaseWindow
             else
                 c.RenderSprite(_topBar.Position, _topBar.Size, Color.Black * 0.5f);
 
-            c.RenderLine(_topBar.Bounds.TopLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
-            c.RenderLine(_topBar.Bounds.BottomLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopLeft.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
-            c.RenderLine(_topBar.Bounds.TopRight.ToVec3(_topBar.Z), _topBar.Bounds.BottomRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, true, RenderLineMode.Inward);
+            c.RenderLine(_topBar.Bounds.TopLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, RenderLineMode.Inward);
+            c.RenderLine(_topBar.Bounds.BottomLeft.ToVec3(_topBar.Z), _topBar.Bounds.TopLeft.ToVec3(_topBar.Z), Color.White * 0.5f, 1, RenderLineMode.Inward);
+            c.RenderLine(_topBar.Bounds.TopRight.ToVec3(_topBar.Z), _topBar.Bounds.BottomRight.ToVec3(_topBar.Z), Color.White * 0.5f, 1, RenderLineMode.Inward);
 
             // For debugging order in parent V
             //c.RenderString(_topBar.Position, Color.Red, OrderInParent.ToString(), FontAsset.GetDefaultBuiltIn().GetAtlas(35));
@@ -428,7 +428,7 @@ public class EditorWindow : UIBaseWindow
         return base.FindMouseInput(pos);
     }
 
-    private void CreateSubWindow()
+    protected void CreateSubWindow()
     {
         // Transition layout to embedded mode.
         _topBar?.Close();
@@ -442,12 +442,14 @@ public class EditorWindow : UIBaseWindow
 
         GLThread.ExecuteGLThreadAsync(() =>
         {
-            var contentSize = _contentParent.Size;
+            Vector2 contentSize = _contentParent.Size;
             _windowFB = new FrameBuffer(contentSize).WithColor();
             _hostWindow = Engine.Host.CreateSubWindow(Header, contentSize);
 
             _panelItself.Offset = Vector2.Zero;
+            _panelItself.AnchorAndParentAnchor = UIAnchor.TopLeft;
             _panelItself.SizeConstraint = _hostWindow.Size / GetScale();
+            _centered = true;
         });
     }
 

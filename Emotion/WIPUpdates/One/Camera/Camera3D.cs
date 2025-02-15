@@ -38,6 +38,13 @@ namespace Emotion.Graphics.Camera
 
         protected override void LookAtChanged(Vector3 _, Vector3 lookAt)
         {
+            // Handle the looking straight up/down locks.
+            // This happens when transitioning between 2D and 3D
+            if (lookAt == RenderComposer.Up)
+                lookAt = new Vector3(0, -0.0174523834f, 0.9998477f);
+            else if (lookAt == -RenderComposer.Up)
+                lookAt = new Vector3(0, -0.0174523834f, -0.9998477f);
+
             // Init rotation for mouse turning.
             float pitch = MathF.Asin(lookAt.Z);
             float yaw;
@@ -46,9 +53,30 @@ namespace Emotion.Graphics.Camera
             else
                 yaw = MathF.Atan2(lookAt.Y, lookAt.X);
 
+            // Calculate yaw (rotation around Y-axis)
+            if (lookAt.X == 0 && lookAt.Y == 0)
+            {
+                yaw = MathF.PI + MathF.Atan2(-lookAt.Y, -lookAt.X);
+            }
+            else
+            {
+                yaw = MathF.Atan2(lookAt.Y, lookAt.X);
+            }
+
             // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
             pitch = Maths.Clamp(pitch, Maths.DegreesToRadians(-89), Maths.DegreesToRadians(89));
             _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(pitch));
+
+#if DEBUG
+            var direction = new Vector3
+            {
+                X = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)),
+                Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)),
+                Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z))
+            };
+            direction = Vector3.Normalize(direction);
+            Engine.Log.Trace($"3D camera look at reconstruction diff: {(direction - lookAt).Length()}", "Camera3D");
+#endif
         }
 
         /// <inheritdoc />
@@ -143,8 +171,8 @@ namespace Emotion.Graphics.Camera
                 _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89); // Prevent flip.
                 var direction = new Vector3
                 {
-                    X = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
-                    Y = -MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
+                    X = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)),
+                    Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)),
                     Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z))
                 };
                 direction = Vector3.Normalize(direction);
