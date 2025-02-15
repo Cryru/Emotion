@@ -15,13 +15,15 @@ public class EditorCheckboxButton : SquareEditorButton
         get => _value;
         set
         {
-            if (_value == value) return;
+            if (_value == value && _valueSet) return;
             _value = value;
             _checkIcon.Visible = value;
+            _valueSet = true;
         }
     }
 
     private bool _value;
+    private bool _valueSet = false;
 
     private UITexture _checkIcon;
 
