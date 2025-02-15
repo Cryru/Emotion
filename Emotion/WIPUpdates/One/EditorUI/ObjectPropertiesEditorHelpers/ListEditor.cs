@@ -181,7 +181,7 @@ public class ListEditor<T> : TypeEditor where T : new() // temp generic constrai
     {
         _addButton.Enabled = _items != EMPTY_LIST;
         _deleteButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1;
-        _editButton.Enabled = _items != EMPTY_LIST && _items[_currentIndex] != null;
+        _editButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1 && _items[_currentIndex] != null;
         _moveUpButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1 && _currentIndex != 0;
         _moveDownButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1 && _currentIndex != _items.Count - 1;
     }
