@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.IO;
+using Emotion.WIPUpdates.Grids;
 
 namespace Emotion.WIPUpdates.One.TileMap;
 
@@ -17,22 +18,34 @@ public class TileMapTileset
         return Texture?.Name ?? "Textureless Tileset";
     }
 
-    public Vector2 GetTilesetSizeInTiles()
+    public Vector2 GetTilesetTextureSize()
     {
         AssetHandle<TextureAsset> handle = Texture.GetAssetHandle();
-        if (!handle.AssetLoaded) return Vector2.Zero;
+        if (!handle.AssetLoaded) return TileSize;
 
         TextureAsset? asset = handle.Asset;
-        if (asset == null || asset.Texture == null) return Vector2.Zero;
+        if (asset == null || asset.Texture == null) return TileSize;
 
-        Vector2 textureAssetSize = asset.Texture.Size;
-        Vector2 margin = Margin;
-        Vector2 spacing = Spacing;
+        return Vector2.Max(asset.Texture.Size, TileSize);
+    }
 
-        Vector2 marginLess = textureAssetSize - margin;
-        Vector2 tileSizeWithSpacing = TileSize + Spacing;
-        Vector2 sizeInTiles = (marginLess / tileSizeWithSpacing).Round();
+    public Vector2 GetCoordOfTId(TileTextureId tId)
+    {
+        Vector2 totalSize = GetTilesetTextureSize();
+        Vector2 sizeInTiles = GridHelpers.GetGridSizeInElements(totalSize, TileSize, Margin, Spacing);
 
-        return Vector2.Max(sizeInTiles, Vector2.One);
+        tId -= 1;
+        return Grid.GetCoordinate2DFrom1D(tId, sizeInTiles);
+    }
+
+    public TileTextureId GetTIdOfCoord(Vector2 coord)
+    {
+        Vector2 totalSize = GetTilesetTextureSize();
+        Vector2 sizeInTiles = GridHelpers.GetGridSizeInElements(totalSize, TileSize, Margin, Spacing);
+
+        float tileOneD = (coord.Y * sizeInTiles.X) + coord.X;
+        tileOneD += 1; // 0 is empty
+
+        return (TileTextureId)tileOneD;
     }
 }

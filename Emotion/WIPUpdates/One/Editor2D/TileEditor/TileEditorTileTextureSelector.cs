@@ -4,6 +4,7 @@
 
 using Emotion.Platform.Input;
 using Emotion.UI;
+using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.TileMap;
 using System.Linq;
@@ -32,10 +33,9 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
     private float _tilesetScale = 0.5f;
 
     private TileMapTileset? _tileset;
-    private Vector2 _tilesetSizeInTiles;
 
-    private HashSet<Vector2> _rolloverTiles = new HashSet<Vector2>();
-    private List<Vector2> _selectedTiles = new List<Vector2>();
+    private HashSet<TileTextureId> _rolloverTiles = new();
+    private List<TileTextureId> _selectedTiles = new();
 
     private Vector2? _mouseDragStartPos;
 
@@ -65,7 +65,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
 
                 if (_rolloverTiles.Count == 1 && Engine.Host.IsCtrlModifierHeld())
                 {
-                    Vector2 val = _rolloverTiles.First();
+                    TileTextureId val = _rolloverTiles.First();
                     if (_selectedTiles.Contains(val))
                         _selectedTiles.Remove(val);
                     else
@@ -118,7 +118,8 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
                 {
                     Vector2 samplePoint = new Vector2(x, y) + tileSizeHalf;
                     Vector2 rolloverCoord = TilesetCoordFromUISpace(samplePoint);
-                    _rolloverTiles.Add(rolloverCoord);
+                    TileTextureId tId = _tileset.GetTIdOfCoord(rolloverCoord);
+                    _rolloverTiles.Add(tId);
                 }
             }
         }
@@ -126,8 +127,16 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         {
             _rolloverTiles.Clear();
 
+            // Check if mouse is within the tileset
+            Vector2 textureSize = _tileset.GetTilesetTextureSize();
+            Vector2 displayScale = new Vector2(_tilesetScale) * GetScale();
+            textureSize *= displayScale;
+            Rectangle textureBounds = new Rectangle(tileSetImageOrigin2, textureSize);
+            if (!textureBounds.Contains(mousePos)) return;
+
             Vector2 rolloverCoord = TilesetCoordFromUISpace(mousePos - tileSetImageOrigin2);
-            _rolloverTiles.Add(rolloverCoord);
+            TileTextureId tId = _tileset.GetTIdOfCoord(rolloverCoord);
+            _rolloverTiles.Add(tId);
         }
     }
 
@@ -165,25 +174,6 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         return pos;
     }
 
-    private Vector2 GetTilesetCoordFromTId(TileTextureId tId)
-    {
-        if (_tileset == null) return Vector2.Zero;
-
-        tId -= 1;
-        return Grid.GetCoordinate2DFrom1D(tId, _tilesetSizeInTiles);
-    }
-
-    private TileTextureId GetTIdFromTilesetCoord(Vector2 coord)
-    {
-        if (_tileset == null) return 0;
-
-        float tilesPerRow = _tilesetSizeInTiles.X;
-        var tileOneD = (coord.Y * tilesPerRow) + coord.X;
-        tileOneD += 1; // 0 is empty
-
-        return (TileTextureId) tileOneD;
-    }
-
     protected override void RenderChildren(RenderComposer c)
     {
         List<UIBaseWindow> children = GetWindowChildren();
@@ -210,9 +200,10 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         {
             Vector3 contentPos = _content.Position;
 
-            foreach (Vector2 rolloverTileCoord in _rolloverTiles)
+            foreach (TileTextureId rolloverTileCoord in _rolloverTiles)
             {
-                Vector2 uiSpace = TilesetCoordToUISpace(rolloverTileCoord, out Vector2 tileSize);
+                Vector2 rolloverCoord = _tileset.GetCoordOfTId(rolloverTileCoord);
+                Vector2 uiSpace = TilesetCoordToUISpace(rolloverCoord, out Vector2 tileSize);
                 tileSize = tileSize.Ceiling();
 
                 c.RenderSprite(contentPos + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
@@ -220,9 +211,10 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
                 c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
             }
 
-            foreach (Vector2 selectedTileCoord in _selectedTiles)
+            foreach (TileTextureId selectedTileCoord in _selectedTiles)
             {
-                Vector2 uiSpace = TilesetCoordToUISpace(selectedTileCoord, out Vector2 tileSize);
+                Vector2 selectedCoord = _tileset.GetCoordOfTId(selectedTileCoord);
+                Vector2 uiSpace = TilesetCoordToUISpace(selectedCoord, out Vector2 tileSize);
                 tileSize = tileSize.Ceiling();
 
                 c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
@@ -244,9 +236,6 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         _content.ScrollToPos(Vector2.Zero);
         if (_tileset == null) return;
 
-        // todo: load asset, support hot reload
-        _tilesetSizeInTiles = _tileset.GetTilesetSizeInTiles();
-
         _tilesetScale = 32f / _tileset.TileSize.X;
         var textureUI = new UITexture
         {
@@ -261,22 +250,21 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
 
     public void AddTileToSelection(TileTextureId tId)
     {
-        Vector2 pos = GetTilesetCoordFromTId(tId);
-        _selectedTiles.Add(pos);
+        _selectedTiles.Add(tId);
     }
 
     public (TileTextureId, Vector2)[] GetSelectedTileTextures(out Vector2 center)
     {
         center = Vector2.Zero;
-        if (_selectedTiles.Count == 0)
+        if (_selectedTiles.Count == 0 || _tileset == null)
             return [(0, new Vector2(0))];
 
         var pattern = new (TileTextureId, Vector2)[_selectedTiles.Count];
         Vector2 originPos = Vector2.Zero;
         for (int i = 0; i < _selectedTiles.Count; i++)
         {
-            Vector2 tileCoord = _selectedTiles[i];
-            TileTextureId tId = GetTIdFromTilesetCoord(tileCoord);
+            TileTextureId tId = _selectedTiles[i];
+            Vector2 tileCoord = _tileset.GetCoordOfTId(tId);
 
             if (i == 0)
             {

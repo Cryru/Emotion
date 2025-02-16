@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.IO;
+using Emotion.WIPUpdates.Grids;
 
 namespace Emotion.WIPUpdates.One.TileMap;
 
@@ -73,24 +74,11 @@ public class GameMapTileData
         Texture tilesetTexture = _tilesetTexturesLoaded[tile.TilesetId];
         if (tilesetTexture == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
 
-        Vector2 tilesetSizeInTiles = tileset.GetTilesetSizeInTiles();
-        int widthInTiles = (int)tilesetSizeInTiles.X;
-        Vector2 tilesetTileSize = tileset.TileSize;
-
+        Vector2 tilesetSize = tileset.GetTilesetTextureSize();
         int tId = tile.TextureId - 1;
+        Rectangle uvRect = GridHelpers.GetBoxInGridAt1D(tId, tilesetSize, tileset.TileSize, tileset.Margin, tileset.Spacing);
 
-        // Get tile image properties.
-        int tiColumn = tId % widthInTiles;
-        var tiRow = (int)(tId / (float)widthInTiles);
-        var tiRect = new Rectangle(tilesetTileSize.X * tiColumn, tilesetTileSize.Y * tiRow, tilesetTileSize);
-
-        // Add margins and spacing.
-        tiRect.X += tileset.Margin.X;
-        tiRect.Y += tileset.Margin.Y;
-        tiRect.X += tileset.Spacing.X * tiColumn;
-        tiRect.Y += tileset.Spacing.Y * tiRow;
-
-        return (tilesetTexture, tiRect);
+        return (tilesetTexture, uvRect);
     }
 
     public void Render(RenderComposer c, Rectangle clipArea)
