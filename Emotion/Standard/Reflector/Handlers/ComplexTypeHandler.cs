@@ -36,7 +36,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         if (typeof(T) == typeof(Rectangle))
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
 
-        return base.GetEditor();
+        return new NestedComplexObjectEditor();
     }
 
     public ComplexTypeHandlerMember[] GetMembers()

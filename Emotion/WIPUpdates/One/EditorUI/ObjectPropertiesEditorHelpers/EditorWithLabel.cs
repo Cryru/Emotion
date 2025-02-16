@@ -40,6 +40,9 @@ public class EditorWithLabel : UIBaseWindow
         EngineEditor.RegisterForObjectChanges(parentObj, OnValueUpdated, this);
 
         OnValueUpdated();
+
+        if (editor is NestedComplexObjectEditor)
+            SetVertical();
     }
 
     public EditorWithLabel(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged)
