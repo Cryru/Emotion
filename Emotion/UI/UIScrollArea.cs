@@ -121,12 +121,22 @@ public class UIScrollArea : UIBaseWindow
 
         if (key == Key.MouseWheel)
         {
-            var currentScroll = _content.CurrentScroll;
+            bool anyScroll = false;
+
+            Vector2 currentScroll = _content.CurrentScroll;
             bool up = status == KeyState.MouseWheelScrollUp;
             if (up)
-                _content.ScrollToPos(currentScroll - new Vector2(0, 1) * Engine.DeltaTime);
+                anyScroll = _content.ScrollToPos(currentScroll - new Vector2(0, 1) * Engine.DeltaTime);
             else
-                _content.ScrollToPos(currentScroll + new Vector2(0, 1) * Engine.DeltaTime);
+                anyScroll = _content.ScrollToPos(currentScroll + new Vector2(0, 1) * Engine.DeltaTime);
+
+            // If didn't scroll - don't consume the scroll input if within another scroll area.
+            if (!anyScroll)
+            {
+                UIScrollArea? inAnotherScroll = FindParentOfType<UIScrollArea>();
+                if (inAnotherScroll != null) return true;
+            }
+
             SyncScrollbar();
 
             return false;
@@ -193,6 +203,8 @@ public class UIScrollArea : UIBaseWindow
         public bool ScrollToPos(Vector2 posToScrollTo)
         {
             posToScrollTo = Vector2.Clamp(posToScrollTo, Vector2.Zero, MaxScroll - Size);
+            if (CurrentScroll == posToScrollTo) return false;
+
             ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-posToScrollTo.X, -posToScrollTo.Y, 0);
             CurrentScroll = posToScrollTo;
 
@@ -206,10 +218,13 @@ public class UIScrollArea : UIBaseWindow
         {
             List<UIBaseWindow> children = GetWindowChildren();
 
-            c.PushModelMatrix(ScrollTranslationMatrix);
-            Rectangle? clip = c.CurrentState.ClipRect;
-            c.SetClipRect(Bounds);
+            Rectangle clipRect = Bounds.Offset(c.ModelMatrix.Translation.ToVec2());
+            Rectangle? prevClip = c.CurrentState.ClipRect;
+            if (prevClip != null)
+                clipRect = Rectangle.Clip(prevClip.Value, clipRect);
+            c.SetClipRect(clipRect);
 
+            c.PushModelMatrix(ScrollTranslationMatrix);
             // c.RenderOutline(Bounds, Color.Red);
             for (var i = 0; i < children.Count; i++)
             {
@@ -220,9 +235,9 @@ public class UIScrollArea : UIBaseWindow
 
                 child.Render(c);
             }
-
-            c.SetClipRect(clip);
             c.PopModelMatrix();
+
+            c.SetClipRect(prevClip);
         }
     }
 }

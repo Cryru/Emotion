@@ -292,6 +292,16 @@ namespace Emotion.UI
             }
         }
 
+        protected T? FindParentOfType<T>() where T : UIBaseWindow
+        {
+            UIBaseWindow? parent = Parent;
+            while (parent != null && parent is not T)
+            {
+                parent = parent.Parent;
+            }
+            return (T?) parent;
+        }
+
         public virtual void RemoveChild(UIBaseWindow child, bool evict = true)
         {
             if (Children == null) return;
