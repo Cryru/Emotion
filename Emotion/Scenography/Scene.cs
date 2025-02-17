@@ -63,7 +63,10 @@ public abstract class SceneWithMap : Scene
     {
         Status = SceneStatus.Loading;
         yield return InternalLoadSceneRoutineAsync();
-        Map ??= new GameMap();
+        Map ??= new GameMap()
+        {
+            MapFileName = "Maps/start.xml"
+        };
         yield return Map.LoadRoutine();
 
         Engine.UI.AddChild(UIParent);

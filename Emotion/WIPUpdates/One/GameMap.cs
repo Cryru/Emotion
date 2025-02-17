@@ -8,6 +8,8 @@ namespace Emotion.WIPUpdates.One;
 
 public class GameMap
 {
+    public string MapFileName = string.Empty;
+
     private List<MapObject> _objects = new();
 
     //public List<IMapGrid> Grids = new();

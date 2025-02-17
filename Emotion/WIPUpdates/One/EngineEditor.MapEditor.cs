@@ -3,9 +3,11 @@
 using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Platform.Input;
+using Emotion.Scenography;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Editor2D;
+using Emotion.WIPUpdates.One.TileMap;
 using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One;
@@ -168,5 +170,11 @@ public static partial class EngineEditor
         }
 
         return true;
+    }
+
+    public static GameMap? GetCurrentMap()
+    {
+        if (Engine.SceneManager.Current is SceneWithMap sceneWithMap) return sceneWithMap.Map;
+        return null;
     }
 }

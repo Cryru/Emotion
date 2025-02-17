@@ -11,6 +11,12 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 {
+    public string? Text
+    {
+        get => _button.Text;
+        set => _button.Text = value;
+    }
+
     private EditorButton _button;
 
     public DropdownChoiceEditor()

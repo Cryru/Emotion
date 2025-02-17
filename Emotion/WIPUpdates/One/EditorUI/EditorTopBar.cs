@@ -1,14 +1,13 @@
-﻿using Emotion.Game.Data;
+﻿#nullable enable
+
+using Emotion.Game.Data;
 using Emotion.Game.World.Editor;
 using Emotion.Platform.Implementation.Win32;
+using Emotion.Scenography;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
 
@@ -46,6 +45,8 @@ public class EditorTopBar : UISolidColor
             ParentAnchor = UIAnchor.BottomLeft
         };
         AddChild(accent);
+
+        AttachMapMenu(buttonContainer);
 
         //{
         //    EditorButton toolButton = new EditorButton("Test Tool");
@@ -90,4 +91,76 @@ public class EditorTopBar : UISolidColor
             buttonContainer.AddChild(toolButton);
         }
     }
+
+    #region Map Menu
+
+    private void AttachMapMenu(UIBaseWindow buttonContainer)
+    {
+        {
+            EditorButton toolButton = new EditorButton("Map");
+            toolButton.OnClickedProxy = (me) =>
+            {
+                UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
+
+                {
+                    EditorButton button = new EditorButton("New");
+                    button.FillX = true;
+                    button.OnClickedProxy = (_) =>
+                    {
+                        //NewFile();
+                        dropDown.Close();
+                    };
+                    dropDown.AddChild(button);
+                }
+
+                {
+                    EditorButton button = new EditorButton("Open...");
+                    button.FillX = true;
+                    button.OnClickedProxy = (_) =>
+                    {
+                        dropDown.Close();
+                    };
+                    dropDown.AddChild(button);
+                }
+
+                {
+                    EditorButton button = new EditorButton("Save");
+                    button.FillX = true;
+                    button.OnClickedProxy = (_) =>
+                    {
+                        dropDown.Close();
+                    };
+                    button.Enabled = EngineEditor.GetCurrentMap() != null;
+                    dropDown.AddChild(button);
+                }
+
+                {
+                    EditorButton button = new EditorButton("Properties");
+                    button.FillX = true;
+                    button.OnClickedProxy = (_) =>
+                    {
+                        dropDown.Close();
+
+                        GameMap? map = EngineEditor.GetCurrentMap();
+                        if (map == null) return;
+
+                        var win = new ObjectPropertyEditorWindow(map);
+                        EngineEditor.EditorRoot.AddChild(win);
+                    };
+                    button.Enabled = EngineEditor.GetCurrentMap() != null;
+                    dropDown.AddChild(button);
+                }
+
+                //{
+                //    EditorButton button = new EditorButton("Save As");
+                //    button.FillX = true;
+                //    dropDown.AddChild(button);
+                //}
+            };
+            toolButton.Enabled = Engine.SceneManager.Current is SceneWithMap;
+            buttonContainer.AddChild(toolButton);
+        }
+    }
+
+    #endregion
 }
