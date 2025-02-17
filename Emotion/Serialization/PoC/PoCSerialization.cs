@@ -35,14 +35,11 @@ public static class PoCSerialization
                 builder.Append(member.Name);
                 builder.Append("\n");
 
-                if (member.WriteValueAsStringFromComplexObject(builder, obj))
-                {
-
-                }
-                else
-                {
-
-                }
+                CanWriteMemberResult canWrite = member.CanWriteValueAsStringFromComplexObject(obj);
+                if (canWrite == CanWriteMemberResult.ValueIsNull)
+                    builder.Append("null");
+                else if (canWrite == CanWriteMemberResult.CanWrite)
+                    member.UnsafeWriteValueAsStringFromComplexObject(builder, obj);
 
                 builder.Append("\n");
             }

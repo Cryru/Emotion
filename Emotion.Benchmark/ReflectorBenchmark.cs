@@ -34,14 +34,14 @@ public class ReflectorBenchmark
     [Benchmark]
     public string ReflectorXML_ComplexWithPrimitiveMember()
     {
-        return XMLSerialize.To(_classWithNumberInstance);
+        return XMLSerialization.To(_classWithNumberInstance);
     }
 
     [Benchmark]
     public void ReflectorXML_ComplexWithPrimitiveMember_StackUTF16()
     {
         Span<char> utf16Text = stackalloc char[128];
-        int bytesWrittenUtf16 = XMLSerialize.To(_classWithNumberInstance, new XMLConfig(), utf16Text);
+        int bytesWrittenUtf16 = XMLSerialization.To(_classWithNumberInstance, new XMLConfig(), utf16Text);
         Assert.True(bytesWrittenUtf16 != -1); // Success
     }
 
@@ -49,7 +49,7 @@ public class ReflectorBenchmark
     public void ReflectorXML_ComplexWithPrimitiveMember_StackUTF8()
     {
         Span<byte> utf8Text = stackalloc byte[128];
-        int bytesWrittenUtf8 = XMLSerialize.To(_classWithNumberInstance, new XMLConfig(), utf8Text);
+        int bytesWrittenUtf8 = XMLSerialization.To(_classWithNumberInstance, new XMLConfig(), utf8Text);
         Assert.True(bytesWrittenUtf8 != -1); // Success
     }
 

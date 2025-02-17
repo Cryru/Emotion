@@ -89,7 +89,7 @@ public static class XMLSerialization
             Span<char> tagValue = readMemory.Slice(0, charsWritten);
 
             if (!typeHandler.ParseValueFromStringGeneric(tagValue, out object? resp)) return default;
-            return (T?) resp;
+            return (T?)resp;
         }
 
         return default;
@@ -178,12 +178,14 @@ public static class XMLSerialization
                 }
             }
 
+            // Opening tag with the member name
             if (!writer.WriteChar('<')) return false;
             if (!writer.WriteString(member.Name)) return false;
 
-            bool read = member.GetValueFromComplexObject(obj, out object? memberVal);
-            Assert(read, $"Couldn't read member {member.Name}");
-            if (memberVal == null)
+            CanWriteMemberResult canWrite = member.CanWriteValueAsStringFromComplexObject(obj);
+
+            // Write a self closing opening tag if null
+            if (canWrite == CanWriteMemberResult.ValueIsNull)
             {
                 if (!writer.WriteChar('/')) return false;
                 if (!writer.WriteChar('>')) return false;
@@ -192,18 +194,21 @@ public static class XMLSerialization
                 continue;
             }
 
+            // Finish opening tag
             if (!writer.WriteChar('>')) return false;
 
-            if (memberTypeHandler.CanGetOrParseValueAsString)
+            if (canWrite == CanWriteMemberResult.CanWrite)
             {
-                bool writtenMember = member.WriteValueAsStringFromComplexObject(ref writer, obj);
-                Assert(writtenMember);
+                member.UnsafeWriteValueAsStringFromComplexObject(ref writer, obj);
             }
-            else
+            else if (canWrite == CanWriteMemberResult.NonTrivialMember)
             {
                 Assert(memberTypeHandler is IGenericReflectorComplexTypeHandler);
-
                 var complexMemberHandler = (IGenericReflectorComplexTypeHandler)memberTypeHandler;
+
+                bool read = member.GetValueFromComplexObject(obj, out object? memberVal);
+                Assert(read, $"Couldn't read member {member.Name}");
+
                 WriteComplexType(complexMemberHandler, ref writer, config, memberVal, indent + config.Indentation);
 
                 if (config.Pretty)

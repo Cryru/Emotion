@@ -295,6 +295,7 @@ public static class TestExecutor
 
                     Engine.Log.Info($"    Elapsed: {timer.ElapsedMilliseconds}ms", MessageSource.Test);
                     timer.Stop();
+                    timer.Reset();
                 }
             }
 

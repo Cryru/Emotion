@@ -255,6 +255,23 @@ public class ReflectorTests
         Assert.Equal(serialized, oldSerialized);
     }
 
+    [Test]
+    public void XMLReflectorSerialization_NotEnoughRoom()
+    {
+        var obj = new TestClassWithPrimitiveMember()
+        {
+            Number = 50_000
+        };
+
+        Span<byte> utf8Text = stackalloc byte[10];
+        int bytesWrittenUtf8 = XMLSerialization.To(obj, new XMLConfig(), utf8Text);
+        Assert.True(bytesWrittenUtf8 == -1); // Success
+
+        Span<char> utf16Text = stackalloc char[10];
+        int bytesWrittenUtf16 = XMLSerialization.To(obj, new XMLConfig(), utf16Text);
+        Assert.True(bytesWrittenUtf16 == -1); // Success
+    }
+
     private static string XMLSerializationVerifyAllTypes<T>(T obj, XMLConfig? config = null)
     {
         if (config == null) config = new XMLConfig();

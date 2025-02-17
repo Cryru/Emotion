@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Emotion.Standard.OptimizedStringReadWrite;
@@ -48,26 +47,35 @@ public ref struct ValueStringWriter
             return true;
         }
 
-        System.Text.Encoding encoding;
-        Span<byte> dest;
+        if (Type == StringType.DefaultUTF16)
+        {
+            int idx = _position;
+            Span<char> span = _dataUTF16.Slice(idx);
+            if (span.Length == 0) return false;
+
+            ReadOnlySpan<char> valueAsSpan = value.AsSpan();
+            if (valueAsSpan.Length > span.Length) return false;
+
+            valueAsSpan.CopyTo(span);
+
+            _position += value.Length;
+            BytesWritten += value.Length * 2;
+            return true;
+        }
 
         if (Type == StringType.UTF8)
         {
-            encoding = System.Text.Encoding.UTF8;
-            dest = _dataUTF8.Slice(_position);
-        }
-        else // if (Type == StringType.UTF8)
-        {
-            encoding = System.Text.Encoding.Unicode;
-            dest = MemoryMarshal.Cast<char, byte>(_dataUTF16).Slice(_position);
-        }
-        if (dest.Length == 0) return false;
+            Encoding encoding = System.Text.Encoding.UTF8;
+            Span<byte> dest = _dataUTF8.Slice(_position);
+            if (dest.Length == 0) return false;
 
-        bool success = encoding.TryGetBytes(value, dest, out int bytesWritten);
-        if (!success) return false;
+            bool success = encoding.TryGetBytes(value, dest, out int bytesWritten);
+            if (!success) return false;
 
-        _position += bytesWritten;
-        BytesWritten += bytesWritten;
+            _position += bytesWritten;
+            BytesWritten += bytesWritten;
+            return true;
+        }
 
         return true;
     }
@@ -81,29 +89,32 @@ public ref struct ValueStringWriter
             return true;
         }
 
-        System.Text.Encoding encoding;
-        Span<byte> dest;
+        if (Type == StringType.DefaultUTF16)
+        {
+            if (_position == _dataUTF16.Length) return false;
+
+            _dataUTF16[_position] = value;
+            _position++;
+            BytesWritten += 2;
+            return true;
+        }
 
         if (Type == StringType.UTF8)
         {
-            encoding = System.Text.Encoding.UTF8;
-            dest = _dataUTF8.Slice(_position);
+            Encoding encoding = System.Text.Encoding.UTF8;
+            Span<byte> dest = _dataUTF8.Slice(_position);
+            if (dest.Length == 0) return false;
+
+            ReadOnlySpan<char> charAsSpan = new ReadOnlySpan<char>(ref value);
+            bool success = encoding.TryGetBytes(charAsSpan, dest, out int bytesWritten);
+            if (!success) return false;
+
+            _position += bytesWritten;
+            BytesWritten += bytesWritten;
+            return true;
         }
-        else // if (Type == StringType.UTF8)
-        {
-            encoding = System.Text.Encoding.Unicode;
-            dest = MemoryMarshal.Cast<char, byte>(_dataUTF16).Slice(_position);
-        }
-        if (dest.Length == 0) return false;
 
-        ReadOnlySpan<char> charAsSpan = new ReadOnlySpan<char>(ref value);
-        bool success = encoding.TryGetBytes(charAsSpan, dest, out int bytesWritten);
-        if (!success) return false;
-
-        _position += bytesWritten;
-        BytesWritten += bytesWritten;
-
-        return true;
+        return false;
     }
 
     public bool WriteNumber<TNumber>(TNumber number) where TNumber : INumber<TNumber>

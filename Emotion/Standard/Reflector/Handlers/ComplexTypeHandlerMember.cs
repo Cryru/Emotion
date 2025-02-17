@@ -5,6 +5,14 @@ using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
+public enum CanWriteMemberResult
+{
+    CanWrite,
+    InputError,
+    NonTrivialMember,
+    ValueIsNull,
+}
+
 public abstract class ComplexTypeHandlerMember
 {
     public Type Type { get; protected set; }
@@ -32,13 +40,15 @@ public abstract class ComplexTypeHandlerMember
     public abstract IGenericReflectorTypeHandler? GetTypeHandler();
 
     // This is the same as getting the type handler and calling WriteValueAsString, but avoids boxing.
-    public bool WriteValueAsStringFromComplexObject(StringBuilder builder, object? obj)
+    public bool UnsafeWriteValueAsStringFromComplexObject(StringBuilder builder, object? obj)
     {
         ValueStringWriter writer = new ValueStringWriter(builder);
-        return WriteValueAsStringFromComplexObject(ref writer, obj);
+        return UnsafeWriteValueAsStringFromComplexObject(ref writer, obj);
     }
 
-    public abstract bool WriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj);
+    public abstract CanWriteMemberResult CanWriteValueAsStringFromComplexObject(object? obj);
+
+    public abstract bool UnsafeWriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj);
 
     public abstract bool GetValueFromComplexObject(object obj, out object? readValue);
 
@@ -82,18 +92,29 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         return false;
     }
 
-    public override bool WriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj)
+    public override CanWriteMemberResult CanWriteValueAsStringFromComplexObject(object? obj)
+    {
+        if (obj is not ParentT parentType) return CanWriteMemberResult.InputError;
+
+        MyT? val = _getValue(parentType);
+        if (val == null) return CanWriteMemberResult.ValueIsNull;
+
+        ReflectorTypeHandlerBase<MyT>? typeHandler = GetTypeHandler();
+        if (typeHandler == null) return CanWriteMemberResult.InputError;
+        if (!typeHandler.CanGetOrParseValueAsString) return CanWriteMemberResult.NonTrivialMember;
+
+        return CanWriteMemberResult.CanWrite;
+    }
+
+    public override bool UnsafeWriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj)
     {
         if (obj is not ParentT parentType) return false;
 
         ReflectorTypeHandlerBase<MyT>? typeHandler = GetTypeHandler();
         if (typeHandler == null) return false;
-        if (!typeHandler.CanGetOrParseValueAsString) return false;
 
         MyT? val = _getValue(parentType);
-        if (val == null)
-            return writer.WriteString("null");
-        else
-            return typeHandler.WriteValueAsString(ref writer, val);
+        typeHandler.WriteValueAsString(ref writer, val);
+        return true;
     }
 }
