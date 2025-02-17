@@ -288,6 +288,7 @@ public static partial class GLTFFormat
             GLTFImage image = images[i];
             string uri = image.Uri;
 
+            uri = AssetLoader.NameToEngineName(uri);
             uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
             TextureAsset? textureAsset = Engine.AssetLoader.Get<TextureAsset>(uri, false);
             if (textureAsset != null) textureAsset.Texture.Smooth = true; // todo
