@@ -38,6 +38,13 @@ namespace Emotion.Graphics.Camera
 
         protected override void LookAtChanged(Vector3 _, Vector3 lookAt)
         {
+            // Handle the looking straight up/down locks.
+            // This happens when transitioning between 2D and 3D
+            if (lookAt == RenderComposer.Up)
+                lookAt = new Vector3(0, -0.0174523834f, 0.9998477f);
+            else if (lookAt == -RenderComposer.Up)
+                lookAt = new Vector3(0, -0.0174523834f, -0.9998477f);
+
             // Init rotation for mouse turning.
             float pitch = MathF.Asin(lookAt.Z);
             float yaw;
@@ -49,6 +56,17 @@ namespace Emotion.Graphics.Camera
             // Prevent look at facing towards or out of RenderComposer.Up (gimbal lock)
             pitch = Maths.Clamp(pitch, Maths.DegreesToRadians(-89), Maths.DegreesToRadians(89));
             _yawRollPitch = new Vector3(Maths.RadiansToDegrees(yaw), 0, Maths.RadiansToDegrees(pitch));
+
+#if DEBUG
+            var direction = new Vector3
+            {
+                X = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)),
+                Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)),
+                Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z))
+            };
+            direction = Vector3.Normalize(direction);
+            Engine.Log.Trace($"3D camera look at reconstruction diff: {(direction - lookAt).Length()}", "Camera3D");
+#endif
         }
 
         /// <inheritdoc />
@@ -143,8 +161,8 @@ namespace Emotion.Graphics.Camera
                 _yawRollPitch.Z = Maths.Clamp(_yawRollPitch.Z, -89, 89); // Prevent flip.
                 var direction = new Vector3
                 {
-                    X = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
-                    Y = -MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)),
+                    X = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.X)),
+                    Y = MathF.Cos(Maths.DegreesToRadians(_yawRollPitch.Z)) * MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.X)),
                     Z = MathF.Sin(Maths.DegreesToRadians(_yawRollPitch.Z))
                 };
                 direction = Vector3.Normalize(direction);
@@ -221,6 +239,46 @@ namespace Emotion.Graphics.Camera
         {
             Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
             return new Ray3D(Position, dir - Position);
+        }
+
+        public override Rectangle GetCameraView2D()
+        {
+            // Get frustum
+            Span<Vector3> frustumCorners = stackalloc Vector3[8];
+            GetCameraView3D(frustumCorners);
+
+            Span<Vector3> sideA = stackalloc Vector3[4];
+            Span<Vector3> sideB = stackalloc Vector3[4];
+            GetCameraFrustumSidePlanes(frustumCorners, sideA, sideB);
+
+            //Engine.Renderer.RenderVertices(sideA);
+            //Engine.Renderer.RenderVertices(sideB);
+
+            Vector2 minIntersection = new Vector2(float.MaxValue);
+            Vector2 maxIntersection = new Vector2(float.MinValue);
+            for (int i = 0; i < 3; i++)
+            {
+                Add2DPlaneIntersection(sideA[i], sideA[i + 1], ref minIntersection, ref maxIntersection);
+                Add2DPlaneIntersection(sideB[i], sideB[i + 1], ref minIntersection, ref maxIntersection);
+            }
+            Add2DPlaneIntersection(sideA[3], sideA[0], ref minIntersection, ref maxIntersection);
+            Add2DPlaneIntersection(sideB[3], sideB[0], ref minIntersection, ref maxIntersection);
+
+            if (minIntersection.X == float.MaxValue || maxIntersection.X == float.MinValue)
+                return Rectangle.Empty;
+
+            return Rectangle.FromMinMaxPoints(minIntersection, maxIntersection);
+        }
+
+        private static void Add2DPlaneIntersection(Vector3 start, Vector3 end, ref Vector2 minIntersection, ref Vector2 maxIntersection)
+        {
+            if ((start.Z <= 0 || end.Z >= 0) && (start.Z >= 0 || end.Z <= 0)) return;
+
+            float t = -start.Z / (end.Z - start.Z);
+            Vector3 intersection = Vector3.Lerp(start, end, t);
+
+            minIntersection = Vector2.Min(intersection.ToVec2(), minIntersection);
+            maxIntersection = Vector2.Max(intersection.ToVec2(), maxIntersection);
         }
     }
 }

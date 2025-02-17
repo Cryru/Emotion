@@ -2,7 +2,7 @@
 
 namespace Emotion.WIPUpdates.One.TileMap;
 
-public struct TileMapTile
+public struct TileMapTile : IEquatable<TileMapTile>
 {
     public TileTextureId TextureId;
     public TilesetId TilesetId;
@@ -31,5 +31,10 @@ public struct TileMapTile
     public static implicit operator uint(TileMapTile tile)
     {
         return ((uint)tile.TilesetId << 16) | tile.TextureId;
+    }
+
+    public bool Equals(TileMapTile other)
+    {
+        return (TextureId == other.TextureId && TilesetId == other.TilesetId);
     }
 }

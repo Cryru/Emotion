@@ -1,6 +1,4 @@
 ﻿using Emotion.Utility;
-using Emotion.WIPUpdates.One.TileMap;
-using System;
 
 namespace Emotion.Game;
 
@@ -80,6 +78,11 @@ public class Grid<T> : Grid
     protected Grid()
     {
 
+    }
+
+    public T[] GetRawData()
+    {
+        return _data;
     }
 
     public T? GetValueInTile(int x, int y)

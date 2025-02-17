@@ -1,21 +1,22 @@
-﻿using Emotion.Editor;
+﻿#nullable enable
+
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
-#nullable enable
+namespace Emotion.WIPUpdates.Grids;
 
-namespace Emotion.Game.World.Grid;
-
-public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
+public static class NumericDataPacking
 {
-    [DontShowInEditor]
-    public string DataPacked { get => PackData(_data); set => _data = UnpackData(value); }
-
-    //public int DataStride { get; set; } = -1;
-
-    #region Data Packing
-
-    protected T[] UnpackData(string data)
+    public static T[] UnpackData<T, TNumeric>(ReadOnlySpan<char> data)
+        where T : struct
+        where TNumeric : struct, INumber<TNumeric>
     {
+#if DEBUG
+        Assert(Unsafe.SizeOf<TNumeric>() == Unsafe.SizeOf<T>());
+#endif
+
         // First pass - Count characters, including packed.
         var chars = 0;
         var lastSepIdx = 0;
@@ -25,7 +26,7 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
             char c = data[i];
             if (c == 'x')
             {
-                ReadOnlySpan<char> sinceLast = data.AsSpan(lastSepIdx, i - lastSepIdx);
+                ReadOnlySpan<char> sinceLast = data.Slice(lastSepIdx, i - lastSepIdx);
                 if (int.TryParse(sinceLast, out int countPacked)) charCount = countPacked;
             }
             else if (c == ',')
@@ -39,7 +40,11 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
         chars += charCount;
 
         // Second pass, unpack.
-        var unpackedData = new T[chars];
+        // (we support unpacking as a type that can be reinterpret cast to a numeric type)
+        T[] unpackedDataUnderlyingType = new T[chars];
+        Span<T> unpackedDataUnderlyingSpan = (Span<T>)unpackedDataUnderlyingType;
+        Span<TNumeric> unpackedData = MemoryMarshal.Cast<T, TNumeric>(unpackedDataUnderlyingSpan);
+
         var arrayPtr = 0;
         lastSepIdx = 0;
         charCount = 1;
@@ -48,7 +53,7 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
             char c = data[i];
             if (c == 'x')
             {
-                ReadOnlySpan<char> sinceLast = data.AsSpan(lastSepIdx, i - lastSepIdx);
+                ReadOnlySpan<char> sinceLast = data.Slice(lastSepIdx, i - lastSepIdx);
                 if (int.TryParse(sinceLast, out int countPacked))
                 {
                     charCount = countPacked;
@@ -62,9 +67,8 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
                 if (i == data.Length - 1) i++;
 
                 // Get tile value.
-                ReadOnlySpan<char> sinceLast = data.AsSpan(lastSepIdx, i - lastSepIdx);
-                T.TryParse(sinceLast, System.Globalization.NumberStyles.Any, null, out T? value);
-                AssertNotNull(value);
+                ReadOnlySpan<char> sinceLast = data.Slice(lastSepIdx, i - lastSepIdx);
+                TNumeric.TryParse(sinceLast, System.Globalization.NumberStyles.Any, CultureInfo.InvariantCulture, out TNumeric value);
 
                 for (var j = 0; j < charCount; j++)
                 {
@@ -77,22 +81,29 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
             }
         }
 
-        return unpackedData;
+        return unpackedDataUnderlyingType;
     }
 
-    protected string PackData(T[]? data)
+    public static string PackData<T, TNumeric>(Span<T> dataT)
+        where T : struct
+        where TNumeric : struct, INumber<TNumeric>
     {
-        if (data == null || data.Length == 0) return "";
+#if DEBUG
+        Assert(Unsafe.SizeOf<TNumeric>() == Unsafe.SizeOf<T>());
+#endif
 
+        if (dataT.Length == 0) return string.Empty;
+
+        Span<TNumeric> data = MemoryMarshal.Cast<T, TNumeric>(dataT);
         var b = new StringBuilder(data.Length * 2 + data.Length - 1);
 
-        T lastNumber = data[0];
+        TNumeric lastNumber = data[0];
         uint lastNumberCount = 1;
         var firstAppended = false;
         for (var i = 1; i <= data.Length; i++)
         {
             // There is an extra loop to dump last number.
-            T num = T.Zero;
+            TNumeric num = TNumeric.Zero;
             if (i != data.Length)
             {
                 num = data[i];
@@ -104,7 +115,7 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
                 }
             }
 
-            if (firstAppended) b.Append(",");
+            if (firstAppended) b.Append(',');
             if (lastNumberCount == 1)
             {
                 // "0"
@@ -125,6 +136,4 @@ public class PackedNumericMapGrid<T> : MapGrid<T> where T : INumber<T>
 
         return b.ToString();
     }
-
-    #endregion
 }

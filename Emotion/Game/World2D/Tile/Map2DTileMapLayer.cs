@@ -3,7 +3,6 @@
 using System.Text;
 using Emotion.Common.Serialization;
 using Emotion.Editor;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #endregion
 

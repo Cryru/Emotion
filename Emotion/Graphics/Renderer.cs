@@ -10,6 +10,7 @@ using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.WIPUpdates.One.Camera;
+using Emotion.WIPUpdates.One.Tools;
 using Khronos;
 using OpenGL;
 
@@ -112,7 +113,7 @@ namespace Emotion.Graphics
         /// </summary>
         public CameraBase Camera
         {
-            get => _camera;
+            get => _virtualCamera != null ? _virtualCamera : _camera;
             set
             {
                 // Can be set in the renderer or during scene loading.
@@ -128,11 +129,6 @@ namespace Emotion.Graphics
         }
 
         private CameraBase _camera;
-
-        /// <summary>
-        /// Camera used to debug the current camera.
-        /// </summary>
-        public DebugCamera DebugCamera;
 
         /// <summary>
         /// The stack of frame buffers.
@@ -304,9 +300,6 @@ namespace Emotion.Graphics
             // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();
             UpdateCamera();
-
-            if (Engine.Configuration.DebugMode)
-                Engine.Host.OnKey.AddListener(DebugFunctionalityKeyInput);
         }
 
         #region Event Handles and Sizing
@@ -473,14 +466,6 @@ namespace Emotion.Graphics
             // Check if running on the GL Thread.
             Assert(GLThread.IsGLThread());
 
-            if (DebugCamera != null)
-            {
-                SetUseViewMatrix(true);
-                Span<Vector3> frustumCorners = stackalloc Vector3[8];
-                Camera.GetCameraFrustum3D(frustumCorners);
-                RenderFrustum(frustumCorners, Color.Magenta);
-            }
-
             RenderDebugObjects();
 
             if (Engine.Configuration.UseIntermediaryBuffer)
@@ -505,7 +490,6 @@ namespace Emotion.Graphics
         public void UpdateCamera()
         {
             Camera.Update();
-            DebugCamera?.Update();
         }
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
@@ -545,9 +529,7 @@ namespace Emotion.Graphics
         {
             bool viewMatrixEnabled = Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault();
 
-            CameraBase cameraToGetProjectionFrom = Camera;
-
-            if (DebugCamera != null) cameraToGetProjectionFrom = DebugCamera;
+            CameraBase cameraToGetProjectionFrom = _camera;
 
             Matrix4x4 projectionMatrix;
             switch (Engine.Renderer.CurrentState.ProjectionBehavior.GetValueOrDefault())
@@ -578,14 +560,7 @@ namespace Emotion.Graphics
                 return;
             }
 
-            // All the debug camera does is replace the view matrix in the shader.
-            if (DebugCamera != null)
-            {
-                CurrentState.Shader.SetUniformMatrix4("viewMatrix", DebugCamera.ViewMatrix);
-                return;
-            }
-
-            CurrentState.Shader.SetUniformMatrix4("viewMatrix", Camera.ViewMatrix);
+            CurrentState.Shader.SetUniformMatrix4("viewMatrix", _camera.ViewMatrix);
         }
 
         /// <summary>
@@ -662,29 +637,19 @@ namespace Emotion.Graphics
             }
         }
 
-        private bool DebugFunctionalityKeyInput(Key key, KeyState state)
+        private CameraBase? _virtualCamera;
+
+        /// <summary>
+        /// Set a camera to be returned by Engine.Renderer.Camera
+        /// For all of the game code this camera will be considered the current camera (culling etc)
+        /// but for internal rendering uses (such as the view matrix) the camera will be the actual current camera.
+        /// This is used for debugging the camera.
+        /// </summary>
+        public void DebugSetVirtualCamera(CameraBase? camera)
         {
-            if (state != KeyState.Down) return true;
-
-            bool ctrl = Engine.Host.IsCtrlModifierHeld();
-            if (key == Key.F1 && !ctrl) ToggleDebugCamera();
-            return true;
-        }
-
-        private void ToggleDebugCamera()
-        {
-            if (DebugCamera != null)
-            {
-                Engine.Log.Info("Debug camera turned off.", MessageSource.Debug);
-                DebugCamera.Detach();
-                DebugCamera.Dispose();
-                DebugCamera = null;
-                return;
-            }
-
-            DebugCamera = new DebugCamera(Camera.Position, Camera.LookAt, Camera.Zoom);
-            DebugCamera.Attach();
-            Engine.Log.Info("Debug camera turned on. Use WASD and the mouse to move around. Debug camera input is disabled while holding [Alt].", MessageSource.Debug);
+            _virtualCamera = camera;
+            camera?.RecreateViewMatrix();
+            camera?.RecreateProjectionMatrix();
         }
 
         #endregion

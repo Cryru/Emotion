@@ -12,9 +12,9 @@ public class TileEditorPickerTool : TileEditorTool
         HotKey = Platform.Input.Key.K;
     }
 
-    public override void ApplyTool(TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
-        TileMapTile tile = currentLayer.GetTileAt(cursorPos);
+        TileMapTile tile = currentLayer.GetAt(cursorPos);
         if (tile == TileMapTile.Empty) return;
 
         TilesetId tsId = tile.TilesetId;
@@ -40,7 +40,7 @@ public class TileEditorPickerTool : TileEditorTool
         editor.SetCurrentToolAsLastPlacingTool();
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayerGrid currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         Vector2 tileInWorld = currentLayer.GetWorldPosOfTile(cursorPos);
         Vector2 tileSize = currentLayer.TileSize;

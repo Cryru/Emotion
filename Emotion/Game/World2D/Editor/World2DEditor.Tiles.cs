@@ -174,7 +174,7 @@ public partial class World2DEditor
                     SpanFill(pos, previousTileID, layerToPlaceIn);
 
                     var cam = c.Camera;
-                    var camBound = cam.GetCameraFrustum();
+                    var camBound = cam.GetCameraView2D();
                     int tilesShown = 0;
                     foreach (var tile in _bucketTilesToSet)
                     {

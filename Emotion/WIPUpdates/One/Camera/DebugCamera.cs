@@ -12,6 +12,7 @@ public class DebugCamera : Camera3D
     public DebugCamera(Vector3 position, Vector3 lookAt, float zoom = 1) : base(position, zoom, KeyListenerType.EditorCamera)
     {
         LookAt = lookAt;
+        FarZ = 20_000;
     }
 
     protected override bool CameraKeyHandler(Key key, KeyState status)

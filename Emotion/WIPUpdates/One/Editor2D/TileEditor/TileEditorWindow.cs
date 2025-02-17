@@ -31,7 +31,7 @@ public sealed class TileEditorWindow : UIBaseWindow
 
     private HashSet<Vector2> _preciseDrawDedupe = new();
 
-    public TileMapLayerGrid? CurrentLayer { get; private set; }
+    public TileMapLayer? CurrentLayer { get; private set; }
 
     public TileMapTileset? CurrentTileset { get; private set; }
 
@@ -91,7 +91,7 @@ public sealed class TileEditorWindow : UIBaseWindow
             ComplexTypeHandlerMember? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
             if (tileData != null && layerHandler != null)
             {
-                var listEditor = new ListEditor<TileMapLayerGrid>();
+                var listEditor = new ListEditor<TileMapLayer>();
                 listEditor.OnItemSelected = SelectTileLayer;
 
                 EditorWithLabel layerEditor = new EditorWithLabel(listEditor, tileData, layerHandler);
@@ -219,11 +219,10 @@ public sealed class TileEditorWindow : UIBaseWindow
         // Render current layer bounds
         if (CurrentLayer != null)
         {
-            Vector2 tileSize = CurrentLayer.TileSize;
-
-            Vector2 renderOffset = (-CurrentLayer.RenderOffsetInTiles * tileSize) - tileSize / 2f;
-            Vector2 sizeWorldSpace = CurrentLayer.SizeInTiles * tileSize;
-            c.RenderOutline(renderOffset, sizeWorldSpace, Color.Black * 0.5f, 4 * GetScale());
+            foreach (Rectangle chunkBound in CurrentLayer.ForEachLoadedChunkBound())
+            {
+                c.RenderOutline(chunkBound, Color.Black * 0.5f, 4 * GetScale());
+            }
         }
 
         // Render cursor
@@ -273,26 +272,8 @@ public sealed class TileEditorWindow : UIBaseWindow
     {
         AssertNotNull(CurrentLayer);
 
+        // Draw as a line
         float moveSegmentLength = moveSegment.Length();
-
-        // Cause a resize of the layer by painting the min and max
-        Rectangle lineBound = Rectangle.FromMinMaxPointsChecked(moveSegment.Start, moveSegment.End);
-        lineBound.GetMinMaxPoints(out Vector2 min, out Vector2 max);
-
-        Vector2 tileMin = CurrentLayer.GetTilePosOfWorldPos(min);
-        CurrentLayer.EditorResizeToFitTile(tileMin, out bool layerBoundsChangedMin);
-
-        Vector2 tileMax = CurrentLayer.GetTilePosOfWorldPos(max);
-        CurrentLayer.EditorResizeToFitTile(tileMax, out bool layerBoundsChangedMax);
-
-        if (layerBoundsChangedMin || layerBoundsChangedMax)
-        {
-            GameMapTileData? tileData = GetCurrentMapTileData();
-            AssertNotNull(tileData);
-            tileData.EditorUpdateRenderCacheForLayer(CurrentLayer);
-        }
-
-        // Draw the line
         _preciseDrawDedupe.Clear();
         for (float i = 0; i < moveSegmentLength; i += 0.5f)
         {
@@ -324,7 +305,7 @@ public sealed class TileEditorWindow : UIBaseWindow
 
         CursorTilePos = tilePos;
 
-        bool inMap = CurrentLayer.IsPositionInMap(tilePos);
+        bool inMap = CurrentLayer.IsValidPosition(tilePos);
         string inMapText = "";
         if (!inMap) inMapText = " (Outside Map)";
 
@@ -399,15 +380,15 @@ public sealed class TileEditorWindow : UIBaseWindow
         //_layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
     }
 
-    public IEnumerable<TileMapLayerGrid> GetTileLayers()
+    public IEnumerable<TileMapLayer> GetTileLayers()
     {
         GameMapTileData? tileData = GetCurrentMapTileData();
-        if (tileData == null) return Array.Empty<TileMapLayerGrid>();
+        if (tileData == null) return Array.Empty<TileMapLayer>();
 
         return tileData.Layers;
     }
 
-    public void SelectTileLayer(TileMapLayerGrid? tileLayer)
+    public void SelectTileLayer(TileMapLayer? tileLayer)
     {
         if (tileLayer == null)
         {
@@ -417,7 +398,7 @@ public sealed class TileEditorWindow : UIBaseWindow
         }
 
         bool found = false;
-        foreach (var mapLayer in GetTileLayers())
+        foreach (TileMapLayer mapLayer in GetTileLayers())
         {
             if (mapLayer == tileLayer)
             {

@@ -1,10 +1,7 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.Network.Base;
-using Emotion.Network.ServerSide;
+﻿using Emotion.Network.Base;
 using Emotion.Utility;
 using System.Net;
 using System.Net.Sockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #nullable enable
 
@@ -155,10 +152,10 @@ public class Client : NetworkCommunicator
         OnPlayerJoinedRoom?.Invoke(info, info.UsersInside[^1]);
     }
 
-    public Action<bool> OnConnectionChanged;
-    public Action<ServerRoomInfo> OnRoomJoined;
-    public Action<ServerRoomInfo, int> OnPlayerJoinedRoom;
-    public Action<List<ServerRoomInfo>> OnRoomListReceived;
+    public Action<bool>? OnConnectionChanged;
+    public Action<ServerRoomInfo>? OnRoomJoined;
+    public Action<ServerRoomInfo, int>? OnPlayerJoinedRoom;
+    public Action<List<ServerRoomInfo>>? OnRoomListReceived;
 
     public void RequestJoinRoom(int roomId)
     {

@@ -79,7 +79,7 @@ namespace Emotion.Graphics
                 for (int i = 0; i < _lines.Count; i++)
                 {
                     var line = _lines[i];
-                    RenderLine(line.Item1, line.Item2, _defaultDbgObjectColor, 1, false);
+                    RenderLine(line.Item1, line.Item2, _defaultDbgObjectColor, 1);
                 }
         }
     }

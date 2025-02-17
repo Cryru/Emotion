@@ -226,10 +226,9 @@ public abstract class CameraBase : Positional, IDisposable
     }
 
     /// <summary>
-    /// Return a Rectangle which bounds the visible section of the game world.
+    /// Return a Rectangle which bounds the section of the game world seen by the camera.
     /// </summary>
-    /// <returns>Rectangle bounding the visible section of the world.</returns>
-    public Rectangle GetCameraFrustum()
+    public virtual Rectangle GetCameraView2D()
     {
         Vector2 start = ScreenToWorld(Vector2.Zero).ToVec2();
         return new Rectangle(
@@ -238,7 +237,11 @@ public abstract class CameraBase : Positional, IDisposable
         );
     }
 
-    public void GetCameraFrustum3D(Span<Vector3> frustumCorners)
+    /// <summary>
+    /// Fills a span (of length 8) with vertices which describe a frustum which bounds
+    /// the section of the game world seen by the camera.
+    /// </summary>
+    public void GetCameraView3D(Span<Vector3> frustumCorners)
     {
         GetCameraFrustum3D(frustumCorners, (ViewMatrix * ProjectionMatrix).Inverted());
     }
@@ -281,20 +284,46 @@ public abstract class CameraBase : Positional, IDisposable
 
     public static void GetCameraFrustum3D(Span<Vector3> frustumCorners, Matrix4x4 invCameraViewProj)
     {
-        frustumCorners[0] = new Vector3(-1.0f, 0.0f, 1.0f);
-        frustumCorners[1] = new Vector3(1.0f, 0.0f, 1.0f);
-        frustumCorners[2] = new Vector3(1.0f, 0.0f, -1.0f);
-        frustumCorners[3] = new Vector3(-1.0f, 0.0f, -1.0f);
+        frustumCorners[0] = new Vector3(-1.0f, -1.0f, 1.0f); // Bottom-left (near plane)
+        frustumCorners[1] = new Vector3(1.0f, -1.0f, 1.0f);  // Bottom-right (near plane)
+        frustumCorners[2] = new Vector3(1.0f, -1.0f, -1.0f); // Top-right (near plane)
+        frustumCorners[3] = new Vector3(-1.0f, -1.0f, -1.0f);// Top-left (near plane)
 
-        frustumCorners[4] = new Vector3(-1.0f, 1.0f, 1.0f);
-        frustumCorners[5] = new Vector3(1.0f, 1.0f, 1.0f);
-        frustumCorners[6] = new Vector3(1.0f, 1.0f, -1.0f);
-        frustumCorners[7] = new Vector3(-1.0f, 1.0f, -1.0f);
+        frustumCorners[4] = new Vector3(-1.0f, 1.0f, 1.0f);  // Bottom-left (far plane)
+        frustumCorners[5] = new Vector3(1.0f, 1.0f, 1.0f);   // Bottom-right (far plane)
+        frustumCorners[6] = new Vector3(1.0f, 1.0f, -1.0f);  // Top-right (far plane)
+        frustumCorners[7] = new Vector3(-1.0f, 1.0f, -1.0f); // Top-left (far plane)
 
         for (int i = 0; i < frustumCorners.Length; i++)
         {
             frustumCorners[i] = Maths.TransformCartesian(frustumCorners[i], invCameraViewProj);
         }
+    }
+
+    public static void GetCameraFrustumSidePlanes(Span<Vector3> frustumCorners, Span<Vector3> sidePlaneA, Span<Vector3> sidePlaneB)
+    {
+        sidePlaneA[0] = frustumCorners[0];
+        sidePlaneA[1] = frustumCorners[3];
+        sidePlaneA[2] = frustumCorners[7];
+        sidePlaneA[3] = frustumCorners[4];
+
+        sidePlaneB[0] = frustumCorners[1];
+        sidePlaneB[1] = frustumCorners[2];
+        sidePlaneB[2] = frustumCorners[6];
+        sidePlaneB[3] = frustumCorners[5];
+    }
+
+    public static void GetCameraFrustumNearAndFarPlanes(Span<Vector3> frustumCorners, Span<Vector3> sidePanelNear, Span<Vector3> sidePlaneFar)
+    {
+        sidePanelNear[0] = frustumCorners[0];
+        sidePanelNear[1] = frustumCorners[1];
+        sidePanelNear[2] = frustumCorners[2];
+        sidePanelNear[3] = frustumCorners[3];
+
+        sidePlaneFar[0] = frustumCorners[4];
+        sidePlaneFar[1] = frustumCorners[5];
+        sidePlaneFar[2] = frustumCorners[6];
+        sidePlaneFar[3] = frustumCorners[7];
     }
 
     #endregion

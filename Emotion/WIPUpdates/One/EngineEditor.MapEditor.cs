@@ -9,11 +9,12 @@ using Emotion.WIPUpdates.One.Editor2D;
 using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One;
+
 public enum MapEditorMode
 {
-    Off,
-    TwoDee,
-    ThreeDee
+    Off = 0,
+    TwoDee = 2 << 0,
+    ThreeDee = 2 << 1
 }
 
 public static partial class EngineEditor
@@ -77,12 +78,13 @@ public static partial class EngineEditor
                 DragKey = Key.MouseKeyLeft,
                 MovementSpeed = 10,
             };
+
+            SetGridSize(100);
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
         {
             _editorCamera = new Camera2D(_cameraOutsideEditor.Position, 1f)
             {
-                LookAt = _cameraOutsideEditor.LookAt,
                 MovementSpeed = 7, // todo: modify speed property in camera to make more sense (check its Update)
                 ZoomAllowed = true
             };
@@ -94,6 +96,8 @@ public static partial class EngineEditor
             EditorRoot.AddChild(bottomBar);
 
             _enableDragWithMiddleMouse = true;
+
+            SetGridSize(0);
         }
         AssertNotNull(_editorCamera);
         Engine.Renderer.Camera = _editorCamera;

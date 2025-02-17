@@ -1,4 +1,5 @@
-﻿using Emotion.WIPUpdates.One.TileMap;
+﻿using Emotion.Graphics.Camera;
+using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
 
 namespace Emotion.WIPUpdates.One;
@@ -49,8 +50,8 @@ public class GameMap
 
     public void Render(RenderComposer c)
     {
-        Rectangle clipArea = c.Camera.GetCameraFrustum();
-        TileMapData?.RenderTileLayerRange(c, clipArea);
+        Rectangle clipArea = c.Camera.GetCameraView2D();
+        TileMapData?.Render(c, clipArea);
 
         for (int i = 0; i < _objects.Count; i++)
         {

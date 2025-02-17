@@ -79,7 +79,7 @@ public class Map2D : BaseMap
     {
         if (!Initialized) return;
 
-        Rectangle clipArea = c.Camera.GetCameraFrustum();
+        Rectangle clipArea = c.Camera.GetCameraView2D();
         Tiles.RenderTileMap(c, clipArea);
 
         _objectsRenderedThisFrame = ObjectsGet(_objectsRenderedThisFrame, clipArea);

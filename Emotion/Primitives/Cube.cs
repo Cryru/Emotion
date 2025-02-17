@@ -100,7 +100,7 @@ public struct Cube
         for (var i = 0; i < _outlineEdges.Length; i++)
         {
             int[] edge = _outlineEdges[i];
-            c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, thickness, false);
+            c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, thickness);
         }
     }
 

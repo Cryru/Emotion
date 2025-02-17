@@ -4,13 +4,13 @@
         <BuildType Name="Debug" />
         <BuildType Name="Release" />
     </Configurations>
-    <Project Path="Emotion.SourceGeneration\Emotion.SourceGeneration.csproj">
+    <Project Path="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj">
 
     </Project>
-    <Project Path="Emotion\Emotion.csproj">
+    <Project Path="..\Emotion\Emotion.csproj">
         <Platform Solution="*|Win64" Project="Win64" />
     </Project>
-    <Project Path="Emotion.Benchmark\Emotion.Benchmark.csproj">
+    <Project Path="..\Emotion.Benchmark\Emotion.Benchmark.csproj">
         <Platform Project="AnyCPU" />
         <Platform Solution="*|Win64" Project="AnyCPU" />
     </Project>

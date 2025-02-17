@@ -5,9 +5,11 @@
 using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches.SpriteBatcher;
+using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Text;
 using Emotion.IO;
+using Emotion.WIPUpdates.One.Camera;
 
 #endregion
 
@@ -138,41 +140,27 @@ namespace Emotion.Graphics
         /// <param name="pointTwo">The point to end the line at.</param>
         /// <param name="color">The color of the line.</param>
         /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
-        /// <param name="snapToPixel">Whether to snap the start and ending positions to the nearest pixel.</param>
         /// <param name="renderMode">How to treat the points given.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true, RenderLineMode renderMode = RenderLineMode.Center)
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, RenderLineMode renderMode = RenderLineMode.Center)
         {
-            bool cameraWasOn = CurrentState.ViewMatrix!.Value;
-            SetUseViewMatrix(false);
-            ProjectionBehavior oldProjection = CurrentState.ProjectionBehavior!.Value;
-            SetProjectionBehavior(cameraWasOn ? ProjectionBehavior.AlwaysCameraProjection : ProjectionBehavior.AlwaysDefault2D);
+            Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
 
-            Matrix4x4 viewMatrix;
-            if (cameraWasOn)
+            Vector3 cameraPosition = _camera.Position;
+            Vector3 centerOfLine = (pointOne + pointTwo) / 2f;
+            Vector3 cameraDirection = Vector3.Normalize(cameraPosition - centerOfLine);
+
+            Vector3 normal;
+            if (_camera is Camera2D)
             {
-                viewMatrix = DebugCamera?.ViewMatrix ?? Camera.ViewMatrix;
+                normal = new Vector3(-direction.Y, direction.X, 0);
             }
             else
             {
-                viewMatrix = Matrix4x4.Identity;
+                Assert(_camera is Camera3D);
+                normal = Vector3.Cross(direction, cameraDirection);
+                normal = Vector3.Normalize(normal);
             }
 
-            if (cameraWasOn) thickness *= Camera.CalculatedScale;
-
-            pointOne = Vector3.Transform(pointOne, ModelMatrix * viewMatrix);
-            pointTwo = Vector3.Transform(pointTwo, ModelMatrix * viewMatrix);
-
-            PushModelMatrix(Matrix4x4.Identity, false);
-
-            if (snapToPixel)
-            {
-                if (thickness < 1.0f) thickness = 1.0f;
-                pointOne = pointOne.IntCastRoundXY();
-                pointTwo = pointTwo.IntCastRoundXY();
-            }
-
-            Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
-            var normal = new Vector3(-direction.Y, direction.X, 0);
             Vector3 delta = normal * (thickness / 2f);
             Vector3 deltaNeg = -delta;
 
@@ -188,6 +176,8 @@ namespace Emotion.Graphics
             }
 
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
+            VertexData.WriteDefaultQuadUV(vertices);
+
             vertices[0].Vertex = pointOne + delta;
             vertices[1].Vertex = pointTwo + delta;
             vertices[2].Vertex = pointTwo + deltaNeg;
@@ -197,18 +187,13 @@ namespace Emotion.Graphics
             for (var i = 0; i < vertices.Length; i++)
             {
                 vertices[i].Color = c;
-                vertices[i].UV = Vector2.Zero;
             }
-
-            PopModelMatrix();
-            SetUseViewMatrix(cameraWasOn);
-            SetProjectionBehavior(oldProjection);
         }
 
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool, RenderLineMode)" />
-        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f, bool snapToPixel = true)
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, RenderLineMode)" />
+        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
         {
-            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness, snapToPixel);
+            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
         }
 
         /// <summary>
@@ -230,7 +215,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a line with an arrow at the end.
         /// </summary>
-        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, bool, RenderLineMode)" />
+        /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, RenderLineMode)" />
         public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
             RenderLine(pointOne, pointTwo, color, thickness);
@@ -264,27 +249,26 @@ namespace Emotion.Graphics
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        /// <param name="snapToPixel">Whether to snap the line points to the nearest pixel.</param>
-        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1, bool snapToPixel = true)
+        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
         {
             Vector3 nn = position;
             Vector3 pn = new Vector3(position.X + size.X, position.Y, position.Z);
             Vector3 np = new Vector3(position.X, position.Y + size.Y, position.Z);
             Vector3 pp = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
 
-            RenderLine(nn, pn, color, thickness, snapToPixel, RenderLineMode.Inward);
-            RenderLine(pn, pp, color, thickness, snapToPixel, RenderLineMode.Inward);
-            RenderLine(pp, np, color, thickness, snapToPixel, RenderLineMode.Inward);
-            RenderLine(np, nn, color, thickness, snapToPixel, RenderLineMode.Inward);
+            RenderLine(nn, pn, color, thickness, RenderLineMode.Inward);
+            RenderLine(pn, pp, color, thickness, RenderLineMode.Inward);
+            RenderLine(pp, np, color, thickness, RenderLineMode.Inward);
+            RenderLine(np, nn, color, thickness, RenderLineMode.Inward);
         }
 
-        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float, bool)" />
-        public void RenderOutline(Vector2 position, Vector2 size, Color color, float thickness = 1, bool snapToPixel = true)
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
+        public void RenderOutline(Vector2 position, Vector2 size, Color color, float thickness = 1)
         {
-            RenderOutline(position.ToVec3(), size, color, thickness, snapToPixel);
+            RenderOutline(position.ToVec3(), size, color, thickness);
         }
 
-        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float, bool)" />
+        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
         public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
         {
             RenderOutline(rect.Position.ToVec3(), rect.Size, color, thickness);
@@ -325,20 +309,33 @@ namespace Emotion.Graphics
 
         public void RenderFrustum(Span<Vector3> corners, Color col)
         {
-            RenderLine(corners[0], corners[1], col, 25);
-            RenderLine(corners[1], corners[2], col, 25);
-            RenderLine(corners[2], corners[3], col, 25);
-            RenderLine(corners[3], corners[0], col, 25);
+            // Far plane
+            RenderLine(corners[0], corners[1], col, 5);
+            RenderLine(corners[4], corners[5], col, 5);
 
-            RenderLine(corners[4], corners[5], col, 15);
-            RenderLine(corners[5], corners[6], col, 15);
-            RenderLine(corners[6], corners[7], col, 15);
-            RenderLine(corners[7], corners[4], col, 15);
-
+            // Far plane x Right Plane
             RenderLine(corners[0], corners[4], col, 5);
-            RenderLine(corners[1], corners[5], col, 5);
+
+            // Left plane
+            RenderLine(corners[1], corners[2], col, 5);
+            RenderLine(corners[5], corners[6], col, 5);
+
+            // Near plane
+            RenderLine(corners[2], corners[3], col, 5);
+            RenderLine(corners[6], corners[7], col, 5);
+
+            // Near plane x Left Plane
             RenderLine(corners[2], corners[6], col, 5);
+
+            // Near Plane x Right Plane
             RenderLine(corners[3], corners[7], col, 5);
+
+            // Right plane
+            RenderLine(corners[3], corners[0], col, 5);
+            RenderLine(corners[7], corners[4], col, 5);
+
+            // Far plane X Left Plane
+            RenderLine(corners[1], corners[5], col, 5);
         }
     }
 }

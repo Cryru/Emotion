@@ -9,9 +9,9 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class EditorWithLabel : UIBaseWindow
 {
-    private TypeEditor _editor;
-    private EditorLabel _label;
+    public EditorLabel Label { get; private set; }
 
+    private TypeEditor _editor;
     private object _objectEditting;
     private ComplexTypeHandlerMember _handler;
 
@@ -25,11 +25,11 @@ public class EditorWithLabel : UIBaseWindow
         EditorLabel label = new EditorLabel
         {
             Id = "Label",
-            Margins = new Primitives.Rectangle(0, 0, 5, 0),
+            Margins = new Primitives.Rectangle(0, 0, 10, 0),
             Text = memberHandler.Name + ":"
         };
         AddChild(label);
-        _label = label;
+        Label = label;
 
         AddChild(editor);
         editor.SetCallbackOnValueChange(OnInputChanged);
@@ -42,10 +42,33 @@ public class EditorWithLabel : UIBaseWindow
         OnValueUpdated();
     }
 
+    public EditorWithLabel(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged)
+    {
+        FillY = false;
+        LayoutMode = LayoutMode.HorizontalList;
+
+        EditorLabel label = new EditorLabel
+        {
+            Id = "Label",
+            Margins = new Primitives.Rectangle(0, 0, 10, 0),
+            Text = labelText,
+        };
+        AddChild(label);
+        Label = label;
+
+        editor.SetValue(startingValue);
+        editor.SetCallbackOnValueChange(onValueChanged);
+        AddChild(editor);
+
+        _editor = null!;
+        _objectEditting = null!;
+        _handler = null!;
+    }
+
     public void SetVertical()
     {
         LayoutMode = LayoutMode.VerticalList;
-        _label.Margins = new Primitives.Rectangle(0, 0, 0, 5);
+        Label.Margins = new Primitives.Rectangle(0, 0, 0, 5);
     }
 
     private void OnInputChanged(object? newValue)

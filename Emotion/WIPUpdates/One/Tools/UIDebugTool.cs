@@ -2,6 +2,7 @@
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,15 +153,17 @@ public class UIDebugTool : EditorWindow
         //    window.InvalidateLayout();
         //};
         //buttonContainer.AddChild(bpVisualize);
+        var properties = new ObjectPropertyWindow();
+        properties.SetEditor(_debugInfo);
 
-        var properties = new GenericPropertiesEditorPanel(_debugInfo)
-        {
-            PanelMode = PanelMode.Embedded,
-            OnPropertyEdited = (propertyName, oldValue) =>
-            {
+        //var properties = new ObjectPropertyWindow(_debugInfo)
+        //{
+        //    PanelMode = PanelMode.Embedded,
+        //    OnPropertyEdited = (propertyName, oldValue) =>
+        //    {
 
-            },
-        };
+        //    },
+        //};
         container.AddChild(properties);
 
         UIController.SetUIDebugTool(this);
@@ -206,6 +209,7 @@ public class UIDebugTool : EditorWindow
         _debugInfo.LayoutMode = dbgWindow.LayoutMode;
         _debugInfo.Bounds = dbgWindow.Bounds;
         _debugInfo.ScaledPadding = dbgWindow.Paddings * dbgWindow.GetScale();
+        EngineEditor.ObjectChanged(_debugInfo);
     }
 
     private string GetWindowPath(UIBaseWindow win)

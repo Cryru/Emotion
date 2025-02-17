@@ -8,19 +8,11 @@ public interface IMapGrid
 {
     public Task LoadAsync(BaseMap map);
 
-    public void ResizeToMapSize(Vector2 mapSize);
-
     public void Render(RenderComposer c);
 }
 
 public class MapGrid<T> : Grid<T>, IMapGrid
 {
-    public string Name { get; set; } = "Untitled";
-
-    public bool AutoCenterOnMapOrigin { get; set; } = true;
-
-    public Vector2 WorldOffset { get; set; }
-
     public virtual Task LoadAsync(BaseMap map)
     {
         return Task.CompletedTask;
@@ -42,13 +34,6 @@ public class MapGrid<T> : Grid<T>, IMapGrid
     public virtual void Render(RenderComposer c)
     {
 
-    }
-
-    public void ResizeToMapSize(Vector2 mapSize)
-    {
-        Vector2 currentGridSize = SizeInTiles * TileSize;
-        if (currentGridSize.X >= mapSize.X && currentGridSize.Y >= mapSize.Y) return;
-        Resize((int) (mapSize.X / TileSize.X), (int) (mapSize.Y / TileSize.Y));
     }
 
     public Vector2 WorldToGrid(Vector3 wPos)
