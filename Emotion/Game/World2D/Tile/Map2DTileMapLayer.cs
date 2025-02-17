@@ -13,7 +13,7 @@ namespace Emotion.Game.World2D.Tile
     /// <summary>
     /// Represents a single tile layer.
     /// </summary>
-    public class Map2DTileMapLayer
+    public partial class Map2DTileMapLayer
     {
         /// <summary>
         /// The layer's name.

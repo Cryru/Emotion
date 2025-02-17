@@ -14,7 +14,7 @@ using Emotion.Graphics;
 
 namespace Emotion.Game.World2D;
 
-public class Map2D : BaseMap
+public partial class Map2D : BaseMap
 {
     /// <summary>
     /// Contains tile information, if the map has a tile map portion.

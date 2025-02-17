@@ -2,12 +2,13 @@
 
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System.Runtime.InteropServices;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
 public sealed class BooleanTypeHandler : ReflectorTypeHandlerBase<bool>
 {
+    public override string TypeName => typeof(bool).Name;
+
     public override Type Type => typeof(bool);
 
     public override bool CanGetOrParseValueAsString => true;

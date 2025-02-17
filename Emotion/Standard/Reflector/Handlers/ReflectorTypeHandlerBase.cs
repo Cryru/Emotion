@@ -8,6 +8,8 @@ namespace Emotion.Standard.Reflector.Handlers;
 
 public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 {
+    public abstract string TypeName { get; }
+
     public abstract Type Type { get; }
 
     public abstract bool CanGetOrParseValueAsString { get; }

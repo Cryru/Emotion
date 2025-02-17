@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,12 +45,12 @@ namespace Emotion.SourceGeneration
             return false;
         }
 
-        public static bool HasDontSerialize(ImmutableArray<AttributeData> attributes)
+        public static bool HasAttribute(ImmutableArray<AttributeData> attributes, string attributeClassName)
         {
-            foreach (var attribute in attributes)
+            foreach (AttributeData attribute in attributes)
             {
                 string name = attribute.AttributeClass.Name.ToString();
-                if (name == "DontSerializeAttribute")
+                if (name == attributeClassName)
                     return true;
             }
             return false;
@@ -112,14 +113,22 @@ namespace Emotion.SourceGeneration
             }
         }
 
-        public static bool IsObsolete(ImmutableArray<AttributeData> attributes)
+        public static bool IsPartial(INamedTypeSymbol symbol)
         {
-            foreach (var attribute in attributes)
+            // generally if there is more than one - it would be partial, right?
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
             {
-                string name = attribute.AttributeClass.Name.ToString();
-                if (name == "ObsoleteAttribute")
-                    return true;
+                SyntaxNode syntaxNode = syntaxReference.GetSyntax();
+                if (syntaxNode is ClassDeclarationSyntax classDeclaration)
+                {
+                    foreach (SyntaxToken modifier in classDeclaration.Modifiers)
+                    {
+                        if (modifier.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword))
+                            return true;
+                    }
+                }
             }
+
             return false;
         }
     }

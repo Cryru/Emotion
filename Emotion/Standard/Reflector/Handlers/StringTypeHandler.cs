@@ -2,12 +2,13 @@
 
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System.Text;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
 public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
 {
+    public override string TypeName => typeof(string).Name;
+
     public override Type Type => typeof(string);
 
     public override bool CanGetOrParseValueAsString => true;

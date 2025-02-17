@@ -11,7 +11,7 @@ using OpenGL;
 
 namespace Emotion.Game.Animation2D
 {
-    public class SpriteArrayFrameSource : SpriteAnimationFrameSource
+    public partial class SpriteArrayFrameSource : SpriteAnimationFrameSource
     {
         [SerializeNonPublicGetSet]
         public Rectangle[]? Frames { get; protected set; }

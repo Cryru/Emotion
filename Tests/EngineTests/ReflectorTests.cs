@@ -1,4 +1,5 @@
-﻿using Emotion.Serialization.PoC;
+﻿using Emotion.Common.Serialization;
+using Emotion.Serialization.PoC;
 using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector;
@@ -16,6 +17,21 @@ namespace Tests.EngineTests;
 public class TestClassWithPrimitiveMember
 {
     public int Number;
+}
+
+public partial class TestClassWithHiddenPrimitiveMember
+{
+    [SerializeNonPublicGetSet]
+    public int Number { get; private set; }
+
+    public TestClassWithHiddenPrimitiveMember(int number)
+    {
+        Number = number;
+    }
+
+    protected TestClassWithHiddenPrimitiveMember()
+    {
+    }
 }
 
 public class TestClassWithNestedObjectMember
@@ -158,7 +174,7 @@ public class ReflectorTests
         Assert.Equal(serialized, oldSerialized);
 
         string serializedWithoutHeader = XMLSerializationVerifyAllTypes(10, new XMLConfig() { UseXMLHeader = false });
-        Assert.Equal(serializedWithoutHeader, oldSerialized.Substring(XMLSerialization.XMLHeader.Length));
+        Assert.Equal(serializedWithoutHeader, oldSerialized.Substring(XMLSerialization.XMLHeader.Length + 1));
     }
 
     [Test]
@@ -206,7 +222,6 @@ public class ReflectorTests
         Assert.Equal(serializedNonPretty, serialized.Replace("\n", "").Replace("  ", ""));
     }
 
-    [DebugTest]
     [Test]
     public void XMLReflectorDeserialization_PrimitiveNumber()
     {
@@ -228,6 +243,16 @@ public class ReflectorTests
         string serializedWithoutNonPretty = XMLSerialization.To(55, new XMLConfig() { UseXMLHeader = false, Pretty = false });
         newDeserializedNum = XMLSerialization.From<int>(serializedWithoutNonPretty);
         Assert.Equal(newDeserializedNum, 55);
+    }
+
+    [Test]
+    public void XMLReflectorSerialization_ComplexObjectWithHiddenMember()
+    {
+        var obj = new TestClassWithHiddenPrimitiveMember(87);
+        string serialized = XMLSerializationVerifyAllTypes(obj);
+        string oldSerialized = XMLFormat.To(obj);
+
+        Assert.Equal(serialized, oldSerialized);
     }
 
     private static string XMLSerializationVerifyAllTypes<T>(T obj, XMLConfig? config = null)

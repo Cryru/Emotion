@@ -69,7 +69,7 @@ public static class XMLSerialization
         IGenericReflectorTypeHandler? typeHandler = ReflectorEngine.GetTypeHandlerByName(nextTag);
         if (typeHandler == null) return default;
 
-        if (!typeHandler.Type.IsAssignableTo(requestedType))
+        if (!typeHandler.IsTypeAssignableTo(requestedType))
         {
             Engine.Log.Warning($"Tried to deserialize into {requestedType.Name} type but the document is of type {typeHandler.Type.Name}", "XML");
             return default;

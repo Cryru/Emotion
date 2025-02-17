@@ -8,6 +8,8 @@ namespace Emotion.Standard.Reflector.Handlers;
 
 public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T> where T : unmanaged, INumber<T>
 {
+    public override string TypeName => typeof(T).Name;
+
     public override Type Type => typeof(T);
 
     public override bool CanGetOrParseValueAsString => true;

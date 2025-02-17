@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 EMOTION001 | Reflector | Error | Generator
+EMOTION002 | Reflector | Error | Generator

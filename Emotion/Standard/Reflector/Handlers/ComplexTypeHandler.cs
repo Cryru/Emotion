@@ -2,20 +2,28 @@
 
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
 public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflectorComplexTypeHandler
 {
+    public override string TypeName => _typeName;
+
     public override Type Type => typeof(T);
 
     public override bool CanGetOrParseValueAsString => false;
 
     private ComplexTypeHandlerMember[] _membersArr;
     private Dictionary<string, ComplexTypeHandlerMember> _members;
+    private Func<T>? _createNew;
+    private string _typeName;
 
-    public ComplexTypeHandler(ComplexTypeHandlerMember[] members)
+    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMember[] members)
     {
+        _createNew = createNew;
+        _typeName = typeName;
+
         _membersArr = members;
         _members = new Dictionary<string, ComplexTypeHandlerMember>();
         for (int i = 0; i < members.Length; i++)

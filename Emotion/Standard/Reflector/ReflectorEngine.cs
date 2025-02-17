@@ -17,19 +17,10 @@ public static class ReflectorEngine
         if (_typeHandlers.ContainsKey(type)) return;
         _typeHandlers.Add(type, typeHandler);
 
-        int hash = type.Name.GetStableHashCode();
+        int hash = typeHandler.TypeName.GetStableHashCode();
         if (_typeNameToType.ContainsKey(hash))
-        {
-            // todo: this shouldnt happen
-            // but it currently does due to unresolved generics.
             return;
-        }
-
         _typeNameToType.Add(hash, type);
-
-        string? fullname = type.FullName;
-        if (fullname != null)
-            _typeNameToType.Add(fullname.GetStableHashCode(), type);
     }
 
     public static IGenericReflectorTypeHandler? GetTypeHandler(Type typ)

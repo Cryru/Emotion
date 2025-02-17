@@ -8,6 +8,8 @@ namespace Emotion.Standard.Reflector.Handlers;
 
 public interface IGenericReflectorTypeHandler
 {
+    public string TypeName { get; }
+
     public Type Type { get; }
 
     /// <summary>
@@ -18,6 +20,12 @@ public interface IGenericReflectorTypeHandler
     public virtual TypeEditor? GetEditor()
     {
         return null;
+    }
+
+
+    public bool IsTypeAssignableTo(Type otherType)
+    {
+        return Type.IsAssignableTo(otherType);
     }
 
     public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
