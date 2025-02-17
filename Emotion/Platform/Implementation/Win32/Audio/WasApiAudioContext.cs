@@ -106,7 +106,7 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
         }
     }
 
-    public void OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
+    public void OnDefaultDeviceChanged(DataFlow flow, Role role, string? defaultDeviceId)
     {
         // Update default device.
         if (flow != DataFlow.Render || role != Role.Console) return;
@@ -188,15 +188,19 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
     /// Sets the specified id to be the default device.
     /// </summary>
     /// <param name="id">The id of the device to set as default.</param>
-    private void SetDefaultDevice(string id)
+    private void SetDefaultDevice(string? id)
     {
-        _devices.TryGetValue(id, out WasApiAudioDevice? defaultDevice);
-        if (defaultDevice == null)
+        WasApiAudioDevice? defaultDevice = null;
+        if (id != null)
         {
-            // Default audio device was not found in the device list - query for it.
-            defaultDevice = ParseDevice(id);
+            _devices.TryGetValue(id, out defaultDevice);
             if (defaultDevice == null)
-                Win32Platform.CheckError("Default audio device is not in device list.", true);
+            {
+                // Default audio device was not found in the device list - query for it.
+                defaultDevice = ParseDevice(id);
+                if (defaultDevice == null)
+                    Win32Platform.CheckError("Default audio device is not in device list.", true);
+            }
         }
 
         // Unset old default.
