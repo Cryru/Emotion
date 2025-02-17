@@ -29,9 +29,8 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
         return T.Zero;
     }
 
-    public override bool ParseValueAsString<TReader>(TReader reader, out T result)
+    public override bool ParseValueAsString(ReadOnlySpan<char> data, out T result)
     {
-        ReadOnlySpan<byte> data = reader.GetDataFromCurrentPosition();
         bool success = T.TryParse(data, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
         if (!success) result = T.Zero;
         return success;

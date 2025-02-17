@@ -1,10 +1,11 @@
-﻿using Emotion.Serialization.Base;
+﻿using Emotion.Serialization.PoC;
 using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.XML;
 using Emotion.Testing;
+using Emotion.Utility;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,6 +16,11 @@ namespace Tests.EngineTests;
 public class TestClassWithPrimitiveMember
 {
     public int Number;
+}
+
+public class TestClassWithNestedObjectMember
+{
+    public TestClassWithPrimitiveMember Member = new();
 }
 
 public class BaseClass
@@ -125,7 +131,7 @@ public class ReflectorTests
     [Test]
     public void BasicReflectorSerialization_PrimitiveNumber()
     {
-        string serialized = SerializationBase.Serialize(10);
+        string serialized = PoCSerialization.Serialize(10);
 
         Assert.Equal(serialized, "10");
     }
@@ -133,7 +139,7 @@ public class ReflectorTests
     [Test]
     public void BasicReflectorSerialization_ComplexType()
     {
-        string serialized = SerializationBase.Serialize(
+        string serialized = PoCSerialization.Serialize(
             new TestClassWithPrimitiveMember()
             {
                 Number = 10
@@ -146,32 +152,13 @@ public class ReflectorTests
     [Test]
     public void XMLReflectorSerialization_PrimitiveNumber()
     {
-        string serialized = XMLSerialize.To(10);
+        string serialized = XMLSerializationVerifyAllTypes(10);
         string oldSerialized = XMLFormat.To(10);
 
         Assert.Equal(serialized, oldSerialized);
 
-        string serializedWithoutHeader = XMLSerialize.To(10, new XMLConfig() { UseXMLHeader = false });
-        Assert.Equal(serializedWithoutHeader, oldSerialized.Substring(XMLSerialize.XMLHeader.Length));
-
-        {
-            Span<byte> utf8Text = stackalloc byte[64];
-            int bytesWrittenUtf8 = XMLSerialize.To(10, new XMLConfig(), utf8Text);
-            Assert.True(bytesWrittenUtf8 != -1); // Success
-
-            string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, bytesWrittenUtf8));
-            Assert.Equal(utf8String, serialized);
-        }
-
-        {
-            Span<char> utf16Text = stackalloc char[64];
-            int bytesWrittenUtf16 = XMLSerialize.To(10, new XMLConfig(), utf16Text);
-            Assert.True(bytesWrittenUtf16 != -1); // Success
-
-            Span<byte> utf16TextAsByte = MemoryMarshal.Cast<char, byte>(utf16Text);
-            string utf16String = Encoding.Unicode.GetString(utf16TextAsByte.Slice(0, bytesWrittenUtf16));
-            Assert.Equal(utf16String, serialized);
-        }
+        string serializedWithoutHeader = XMLSerializationVerifyAllTypes(10, new XMLConfig() { UseXMLHeader = false });
+        Assert.Equal(serializedWithoutHeader, oldSerialized.Substring(XMLSerialization.XMLHeader.Length));
     }
 
     [Test]
@@ -181,14 +168,77 @@ public class ReflectorTests
         {
             Number = 10
         };
-        string serialized = XMLSerialize.To(obj);
+        string serialized = XMLSerializationVerifyAllTypes(obj);
+        string oldSerialized = XMLFormat.To(obj);
+
+        Assert.Equal(serialized, oldSerialized);
+    }
+
+    [Test]
+    public void XMLReflectorSerialization_ComplexObjectWithNestedObjects()
+    {
+        var obj = new TestClassWithNestedObjectMember()
+        {
+            Member = new TestClassWithPrimitiveMember()
+            {
+                Number = 15
+            }
+        };
+        string serialized = XMLSerializationVerifyAllTypes(obj);
         string oldSerialized = XMLFormat.To(obj);
 
         Assert.Equal(serialized, oldSerialized);
 
+        obj = new TestClassWithNestedObjectMember()
         {
-            Span<byte> utf8Text = stackalloc byte[128];
-            int bytesWrittenUtf8 = XMLSerialize.To(obj, new XMLConfig(), utf8Text);
+            Member = null
+        };
+        serialized = XMLSerializationVerifyAllTypes(obj);
+        oldSerialized = XMLFormat.To(obj);
+
+        Assert.Equal(serialized, oldSerialized);
+
+        string serializedNonPretty = XMLSerialization.To(obj, new XMLConfig()
+        {
+            Pretty = false
+        });
+
+        Assert.Equal(serializedNonPretty, serialized.Replace("\n", "").Replace("  ", ""));
+    }
+
+    [DebugTest]
+    [Test]
+    public void XMLReflectorDeserialization_PrimitiveNumber()
+    {
+        string serialized = XMLSerializationVerifyAllTypes(55);
+        string oldSerialized = XMLFormat.To(55);
+
+        Assert.Equal(serialized, oldSerialized);
+
+        int oldDeserializedNum = XMLFormat.From<int>(oldSerialized);
+        Assert.Equal(oldDeserializedNum, 55);
+
+        int newDeserializedNum = XMLDeserializationVerifyAllTypes<int>(55);
+        Assert.Equal(newDeserializedNum, 55);
+
+        string serializedWithoutHeader = XMLSerialization.To(55, new XMLConfig() { UseXMLHeader = false });
+        newDeserializedNum = XMLSerialization.From<int>(serializedWithoutHeader);
+        Assert.Equal(newDeserializedNum, 55);
+
+        string serializedWithoutNonPretty = XMLSerialization.To(55, new XMLConfig() { UseXMLHeader = false, Pretty = false });
+        newDeserializedNum = XMLSerialization.From<int>(serializedWithoutNonPretty);
+        Assert.Equal(newDeserializedNum, 55);
+    }
+
+    private static string XMLSerializationVerifyAllTypes<T>(T obj, XMLConfig? config = null)
+    {
+        if (config == null) config = new XMLConfig();
+
+        string serialized = XMLSerialization.To(obj, config.Value);
+
+        {
+            Span<byte> utf8Text = stackalloc byte[256];
+            int bytesWrittenUtf8 = XMLSerialization.To(obj, config.Value, utf8Text);
             Assert.True(bytesWrittenUtf8 != -1); // Success
 
             string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, bytesWrittenUtf8));
@@ -196,13 +246,50 @@ public class ReflectorTests
         }
 
         {
-            Span<char> utf16Text = stackalloc char[128];
-            int bytesWrittenUtf16 = XMLSerialize.To(obj, new XMLConfig(), utf16Text);
+            Span<char> utf16Text = stackalloc char[256];
+            int bytesWrittenUtf16 = XMLSerialization.To(obj, config.Value, utf16Text);
             Assert.True(bytesWrittenUtf16 != -1); // Success
 
             Span<byte> utf16TextAsByte = MemoryMarshal.Cast<char, byte>(utf16Text);
             string utf16String = Encoding.Unicode.GetString(utf16TextAsByte.Slice(0, bytesWrittenUtf16));
             Assert.Equal(utf16String, serialized);
         }
+
+        return serialized;
+    }
+
+    private static T XMLDeserializationVerifyAllTypes<T>(T obj, XMLConfig? config = null)
+    {
+        if (config == null) config = new XMLConfig();
+
+        string serialized = XMLSerialization.To(obj, config.Value);
+        T deserialized = XMLSerialization.From<T>(serialized);
+
+        {
+            Span<byte> utf8Text = stackalloc byte[256];
+            int bytesWrittenUtf8 = XMLSerialization.To(obj, config.Value, utf8Text);
+            Assert.True(bytesWrittenUtf8 != -1); // Success
+
+            string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, bytesWrittenUtf8));
+            Assert.Equal(utf8String, serialized);
+
+            T deserializedUtf8 = XMLSerialization.From<T>(utf8Text);
+            Assert.True(Helpers.AreObjectsEqual(deserialized, deserializedUtf8));
+        }
+
+        {
+            Span<char> utf16Text = stackalloc char[256];
+            int bytesWrittenUtf16 = XMLSerialization.To(obj, config.Value, utf16Text);
+            Assert.True(bytesWrittenUtf16 != -1); // Success
+
+            Span<byte> utf16TextAsByte = MemoryMarshal.Cast<char, byte>(utf16Text);
+            string utf16String = Encoding.Unicode.GetString(utf16TextAsByte.Slice(0, bytesWrittenUtf16));
+            Assert.Equal(utf16String, serialized);
+
+            T deserializedUtf16 = XMLSerialization.From<T>(utf16Text);
+            Assert.True(Helpers.AreObjectsEqual(deserialized, deserializedUtf16));
+        }
+
+        return deserialized;
     }
 }

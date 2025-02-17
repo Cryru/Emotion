@@ -28,10 +28,9 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
         return val;
     }
 
-    public override bool ParseValueAsString<TReader>(TReader reader, out string result)
+    public override bool ParseValueAsString(ReadOnlySpan<char> data, out string result)
     {
-        ReadOnlySpan<byte> data = reader.GetDataFromCurrentPosition();
-        result = Encoding.UTF8.GetString(data);
+        result = new string(data);
         return true;
     }
 }

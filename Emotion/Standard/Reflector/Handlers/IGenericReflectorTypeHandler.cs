@@ -20,18 +20,18 @@ public interface IGenericReflectorTypeHandler
         return null;
     }
 
-    public bool WriteValueAsStringGeneric<T>(ref ValueStringWriter stringWriter, T? instance)
+    public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
     {
         throw new Exception("Not supported!");
     }
 
-    public bool WriteValueAsStringGeneric<T>(StringBuilder builder, T? instance)
+    public bool WriteValueAsStringGeneric<TParam>(StringBuilder builder, TParam? instance)
     {
         ValueStringWriter writer = new ValueStringWriter(builder);
-        return WriteValueAsStringGeneric<T>(ref writer, instance);
+        return WriteValueAsStringGeneric<TParam>(ref writer, instance);
     }
 
-    public bool ParseValueFromStringGeneric<TReader>(TReader reader, out object? result) where TReader : IStringReader
+    public bool ParseValueFromStringGeneric<TParam>(ReadOnlySpan<char> data, out TParam? result)
     {
         throw new Exception("Not supported!");
     }

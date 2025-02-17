@@ -4,9 +4,9 @@ using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using System.Text;
 
-namespace Emotion.Serialization.Base;
+namespace Emotion.Serialization.PoC;
 
-public static class SerializationBase
+public static class PoCSerialization
 {
     public static string Serialize<T>(T obj)
     {
@@ -44,28 +44,9 @@ public static class SerializationBase
 
                 }
 
-                //if (member.ReadValueFromComplexObject(obj, out object? readValue))
-                //{
-                //    var memberTypeHandler = member.GetTypeHandler();
-                //    if (memberTypeHandler != null && memberTypeHandler.CanGetOrParseValueAsString)
-                //    {
-                //        string valAsString = readValue == null ? "null" : memberTypeHandler.GetValueAsString(readValue);
-                //        builder.Append(valAsString);
-                //    }
-                //    else
-                //    {
-                //        builder.Append("??");
-                //    }
-                //}
-
                 builder.Append("\n");
             }
         }
-
-        //if (typeHandler != null && typeHandler.CanGetOrParseValueAsString)
-        //{
-        //    return null;
-        //}
 
         return builder.ToString();
     }

@@ -37,10 +37,21 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 
     public abstract bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance);
 
-    public bool ParseValueFromStringGeneric<TReader>(TReader reader, out object? result) where TReader : IStringReader
+    public bool ParseValueFromStringGeneric<TParam>(ReadOnlySpan<char> data, out TParam? result)
     {
-        throw new Exception("Not supported!");
+        result = default;
+
+        var success = ParseValueAsString(data, out T? resultAsType);
+        if (!success) return false;
+
+        if (resultAsType is TParam tAsParam)
+        {
+            result = tAsParam;
+            return true;
+        }
+
+        return false;
     }
 
-    public abstract bool ParseValueAsString<TReader>(TReader reader, out T? result) where TReader : IStringReader;
+    public abstract bool ParseValueAsString(ReadOnlySpan<char> data, out T? result);
 }

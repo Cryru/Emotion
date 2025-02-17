@@ -27,10 +27,8 @@ public sealed class BooleanTypeHandler : ReflectorTypeHandlerBase<bool>
         return bool.TryParse(val, out bool result);
     }
 
-    public override bool ParseValueAsString<TReader>(TReader reader, out bool result)
+    public override bool ParseValueAsString(ReadOnlySpan<char> data, out bool result)
     {
-        ReadOnlySpan<byte> data = reader.GetDataFromCurrentPosition();
-        ReadOnlySpan<char> dataAsChar = MemoryMarshal.Cast<byte, char>(data);
-        return bool.TryParse(dataAsChar, out result);
+        return bool.TryParse(data, out result);
     }
 }

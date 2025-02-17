@@ -74,7 +74,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         return null;
     }
 
-    public override bool ParseValueAsString<TReader>(TReader reader, out T? result)
+    public override bool ParseValueAsString(ReadOnlySpan<char> data, out T? result)
     {
         result = default;
         return false;

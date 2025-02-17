@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.Reflector.Handlers;
+using System.Runtime.InteropServices;
 
 namespace Emotion.Standard.Reflector;
 
@@ -8,12 +9,27 @@ public static class ReflectorEngine
 {
     private static Dictionary<Type, IGenericReflectorTypeHandler> _typeHandlers = new();
     private static Dictionary<Type, Type[]> _typeRelations = new();
+    private static Dictionary<int, Type> _typeNameToType = new();
 
     public static void RegisterTypeHandler(IGenericReflectorTypeHandler typeHandler)
     {
         Type type = typeHandler.Type;
         if (_typeHandlers.ContainsKey(type)) return;
         _typeHandlers.Add(type, typeHandler);
+
+        int hash = type.Name.GetStableHashCode();
+        if (_typeNameToType.ContainsKey(hash))
+        {
+            // todo: this shouldnt happen
+            // but it currently does due to unresolved generics.
+            return;
+        }
+
+        _typeNameToType.Add(hash, type);
+
+        string? fullname = type.FullName;
+        if (fullname != null)
+            _typeNameToType.Add(fullname.GetStableHashCode(), type);
     }
 
     public static IGenericReflectorTypeHandler? GetTypeHandler(Type typ)
@@ -25,7 +41,7 @@ public static class ReflectorEngine
     public static ReflectorTypeHandlerBase<T>? GetTypeHandler<T>()
     {
         Type typ = typeof(T);
-        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler)) return (ReflectorTypeHandlerBase<T>) handler;
+        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler)) return (ReflectorTypeHandlerBase<T>)handler;
         return null;
     }
 
@@ -36,6 +52,22 @@ public static class ReflectorEngine
             return (IGenericReflectorComplexTypeHandler)handler;
         return null;
     }
+
+    public static IGenericReflectorTypeHandler? GetTypeHandlerByName(string name)
+    {
+        return GetTypeHandlerByName(name.AsSpan());
+    }
+
+    public static IGenericReflectorTypeHandler? GetTypeHandlerByName(ReadOnlySpan<char> name)
+    {
+        ReadOnlySpan<byte> asBytes = MemoryMarshal.Cast<char, byte>(name);
+        int hash = asBytes.GetStableHashCode();
+        if (!_typeNameToType.TryGetValue(hash, out Type? typ)) return null;
+
+        return GetTypeHandler(typ);
+    }
+
+    #region Relations
 
     internal static void BuildRelations()
     {
@@ -92,4 +124,6 @@ public static class ReflectorEngine
     {
         return typ.BaseType;
     }
+
+    #endregion
 }
