@@ -337,13 +337,23 @@ public static partial class GLTFFormat
 
             // Read indices
             GLTFAccessor indexAccessor = gltfDoc.Accessors[primitive.Indices];
-            Assert(indexAccessor.ComponentType == Gl.UNSIGNED_SHORT);
             Assert(indexAccessor.Type == "SCALAR");
-
-            ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
-            ReadOnlySpan<ushort> indicesAsUshort = MemoryMarshal.Cast<byte, ushort>(indicesData.Span);
             ushort[] indices = new ushort[indexAccessor.Count];
-            indicesAsUshort.CopyTo(indices);
+
+            if (indexAccessor.ComponentType == Gl.UNSIGNED_BYTE)
+            {
+                ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
+                ReadOnlySpan<byte> indicesSpan = indicesData.Span;
+                for (int idx = 0; idx < indicesSpan.Length; idx++)
+                    indices[idx] = indicesSpan[idx];
+            }
+            else
+            {
+                Assert(indexAccessor.ComponentType == Gl.UNSIGNED_SHORT);
+                ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
+                ReadOnlySpan<ushort> indicesAsUshort = MemoryMarshal.Cast<byte, ushort>(indicesData.Span);
+                indicesAsUshort.CopyTo(indices);
+            }
 
             // Determine vertex count from largest attribute
             bool isSkinned = false;
