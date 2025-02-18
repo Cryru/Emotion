@@ -40,8 +40,10 @@ public static partial class GLTFFormat
                 // todo: ONE assetloader async
                 uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
                 OtherAsset? byteAsset = Engine.AssetLoader.Get<OtherAsset>(uri, false);
-                if (byteAsset == null) return null;
-                content = byteAsset.Content;
+                if (byteAsset == null)
+                    content = ReadOnlyMemory<byte>.Empty;
+                else
+                    content = byteAsset.Content;
             }
 
             buffer.Data = content;
