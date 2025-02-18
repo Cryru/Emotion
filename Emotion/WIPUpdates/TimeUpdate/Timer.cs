@@ -1,35 +1,17 @@
-﻿using Emotion.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable enable
+
+using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.TimeUpdate;
 
-public enum FactorMethod
-{
-    Linear,
-    Cubic,
-    Exponential,
-    Bounce
-}
-
-public enum FactorType
-{
-    In,
-    Out,
-    InOut
-}
-
 public struct Timer
 {
-    public float Duration;
-    public FactorMethod Method;
-    public FactorType Type;
+    public float Duration { get; private set; }
+    public FactorMethod Method { get; private set; }
+    public FactorType Type { get; private set; }
 
-    public bool Finished;
-    public float TimePassed;
+    public bool Finished { get; private set; }
+    public float TimePassed { get; private set; }
 
     public Timer(float milliseconds, FactorMethod method = FactorMethod.Linear, FactorType type = FactorType.In)
     {
@@ -65,7 +47,9 @@ public struct Timer
         switch (Type)
         {
             case FactorType.In:
+#pragma warning disable CS1717 // Assignment made to same variable
                 t = t;
+#pragma warning restore CS1717 // Assignment made to same variable
                 break;
             case FactorType.Out:
                 t = 1.0f - t;
@@ -104,37 +88,5 @@ public struct Timer
         }
 
         return t;
-    }
-}
-
-public static class Interpolation
-{
-    // Delta is in seconds (so ms should be delta / 1000f)
-
-    public static float SmoothLerp(float current, float target, int speed, float deltaMs)
-    {
-        float delta = deltaMs / 1000f;
-        return target + (current - target) * MathF.Exp(-speed * delta);
-    }
-
-    public static float SmoothLerpAngle(float current, float target, int speed, float delta)
-    {
-        float num = Maths.Repeat(current - target, 360f);
-        if (num > 180f)
-            num -= 360f;
-
-        return target + num * MathF.Exp(-speed * delta);
-    }
-
-    public static Vector2 SmoothLerp(Vector2 current, Vector2 target, int speed, float deltaMs)
-    {
-        float delta = deltaMs / 1000f;
-        return target + (current - target) * MathF.Exp(-speed * delta);
-    }
-
-    public static Vector3 SmoothLerp(Vector3 current, Vector3 target, int speed, float deltaMs)
-    {
-        float delta = deltaMs / 1000f;
-        return target + (current - target) * MathF.Exp(-speed * delta);
     }
 }
