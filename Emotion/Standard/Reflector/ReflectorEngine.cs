@@ -18,8 +18,7 @@ public static class ReflectorEngine
         _typeHandlers.Add(type, typeHandler);
 
         int hash = typeHandler.TypeName.GetStableHashCode();
-        if (_typeNameToType.ContainsKey(hash))
-            return;
+        if (_typeNameToType.ContainsKey(hash)) return;
         _typeNameToType.Add(hash, type);
     }
 

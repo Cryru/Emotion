@@ -19,7 +19,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Platform)'=='Default' Or '$(Platform)'=='DefaultSubProcess'">
-        <PlatformTarget>AnyCPU</PlatformTarget>
+        <PlatformTarget>x64</PlatformTarget>
         <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
     </PropertyGroup>
 

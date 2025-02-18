@@ -12,15 +12,13 @@ namespace Emotion.SourceGeneration
     {
         public static bool HasParameterlessConstructor(INamedTypeSymbol typ)
         {
-            var constructors = typ.InstanceConstructors;
+            ImmutableArray<IMethodSymbol> constructors = typ.InstanceConstructors;
             if (constructors.Length == 0) return false;
 
-            foreach (var constructor in constructors)
+            foreach (IMethodSymbol constructor in constructors)
             {
                 if (constructor.Parameters.IsEmpty)
-                {
                     return true;
-                }
             }
             return false;
         }
