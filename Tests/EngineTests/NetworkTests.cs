@@ -32,6 +32,11 @@ public class NetworkTests
 
             updateFunc();
         }
+
+        for (int i = 0; i < 3; i++)
+        {
+            updateFunc();
+        }
     }
 
     const int NETWORK_TIMEOUT = 1000;
@@ -259,10 +264,10 @@ public class NetworkTests
         client.CoroutineManager.Update(10000);
         clientHost.CoroutineManager.Update(10000);
 
-        Assert.Equal(client.CoroutineManager.GameTimeAdvanceLimit, clientHost.CoroutineManager.GameTimeAdvanceLimit);
-
         Assert.Equal(lastVec3ReceivedByHost, new Vector3(1, 2, 3));
         Assert.Equal(lastVec3ReceivedByGuest, new Vector3(1, 2, 3));
+
+        Assert.Equal(client.CoroutineManager.GameTimeAdvanceLimit, clientHost.CoroutineManager.GameTimeAdvanceLimit);
 
         ServerRoom roomServerSide = server.ActiveRooms[client.InRoom.Id - 1];
         Assert.NotNull(roomServerSide);
