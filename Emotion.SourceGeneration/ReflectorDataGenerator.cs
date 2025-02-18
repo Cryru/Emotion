@@ -340,6 +340,7 @@ namespace SourceGenerator
         public static void GenerateReflectorTypeHandlerForType(ref SourceProductionContext context, INamedTypeSymbol typ, ImmutableArray<ReflectorMemberData> members)
         {
             string fullTypName = typ.ToDisplayString();
+            string safeShortName = typ.Name.Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "");
             string safeName = fullTypName.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "");
 
             bool partialModeGeneration = IsPartial(typ);
@@ -359,11 +360,13 @@ namespace SourceGenerator
             {
                 INamespaceSymbol nameSpace = typ.ContainingNamespace;
                 sb.AppendLine($"namespace {nameSpace.ToDisplayString()};");
+                sb.AppendLine("");
                 sb.AppendLine($"public partial class {typ.Name}");
             }
             else
             {
                 sb.AppendLine($"namespace ReflectorGen;");
+                sb.AppendLine("");
                 sb.AppendLine($"public static class ReflectorData{safeName}");
             }
            
@@ -380,40 +383,40 @@ namespace SourceGenerator
 
             sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new ComplexTypeHandler<{fullTypName}>(");
             if (canBeInitialized)
-                sb.AppendLine($"         () => new {fullTypName}(),");
+                sb.AppendLine($"           () => new {fullTypName}(),");
             else
-                sb.AppendLine($"         null,");
-            sb.AppendLine($"         \"{safeName}\",");
-            sb.AppendLine($"         new ComplexTypeHandlerMember[]");
-            sb.AppendLine("           {");
+                sb.AppendLine($"           null,");
+            sb.AppendLine($"           \"{safeShortName}\",");
+            sb.AppendLine($"           new ComplexTypeHandlerMember[] {{");
 
             foreach (ReflectorMemberData memberDesc in members)
             {
                 string memberFullTypeName = memberDesc.TypeNameFull;
                 string memberName = memberDesc.MemberSymbol.Name;
 
-                sb.AppendLine($"           new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(\"{memberName}\", (p, v) => p.{memberName} = v, (p) => p.{memberName})");
-                sb.AppendLine("           {");
+                sb.AppendLine($"               new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(\"{memberName}\", (p, v) => p.{memberName} = v, (p) => p.{memberName})");
+                sb.AppendLine("               {");
 
                 // Generate attributes
                 ImmutableArray<AttributeData> memberAttributes = memberDesc.MemberSymbol.GetAttributes();
                 if (memberAttributes.Length > 0)
                 {
-                    sb.AppendLine("               Attributes = new Attribute[] {");
+                    sb.AppendLine("                   Attributes = new Attribute[] {");
                     foreach (AttributeData attribute in memberAttributes)
                     {
                         INamedTypeSymbol clazz = attribute.AttributeClass;
                         if (clazz.Name != "VertexAttributeAttribute" &&
                             clazz.Name != "DontShowInEditorAttribute") continue; // todo
 
-                        sb.AppendLine($"                   {GenerateAttributeDeclaration(attribute)},");
+                        sb.AppendLine($"                       {GenerateAttributeDeclaration(attribute)},");
                     }
-                    sb.AppendLine("               },");
+                    sb.AppendLine("                   },");
                 }
 
-                sb.AppendLine("           },");
+                sb.AppendLine("               },");
             }
-            sb.AppendLine("       }));");
+            sb.AppendLine("           }");
+            sb.AppendLine("       ));");
 
             sb.AppendLine("    }");
             sb.AppendLine("}");
