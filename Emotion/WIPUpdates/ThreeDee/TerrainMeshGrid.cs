@@ -15,17 +15,6 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {
         TileSize = tileSize;
-
-        float lastNum = Helpers.GenerateRandomNumber(1, 50);
-        for (int y = 0; y < chunkSize * 2; y++)
-        {
-            for (int x = 0; x < chunkSize * 2; x++)
-            {
-                float sample = Helpers.GenerateRandomNumber((int)(lastNum - 10), (int)(lastNum + 10));
-                lastNum = sample;
-                ExpandingSetAt(new Vector2(x, y), sample);
-            }
-        }
     }
 
     // serialization
@@ -34,6 +23,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
 
     }
 
+    // todo: 3d culling
     public void Render(RenderComposer c, Rectangle clipArea)
     {
         ResetChunksMarkedToRender();

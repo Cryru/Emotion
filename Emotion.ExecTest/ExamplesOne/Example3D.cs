@@ -4,6 +4,8 @@ using Emotion;
 using Emotion.Common;
 using Emotion.Graphics.Camera;
 using Emotion.Scenography;
+using Emotion.Utility;
+using Emotion.Utility.Noise;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.ThreeDee;
@@ -20,10 +22,25 @@ public class Example3D : SceneWithMap
         cam.LookAtPoint(Vector3.Zero);
         Engine.Renderer.Camera = cam;
 
-
         Map = new GameMap();
 
-        Map.TerrainGrid = new TerrainMeshGrid(new Vector2(100), 9);
+        TerrainMeshGrid terrain = new TerrainMeshGrid(new Vector2(50), 9);
+
+        var simplex = new SimplexNoise();
+        var simplex2 = new SimplexNoise();
+        for (int y = 0; y < terrain.ChunkSize.Y * 21; y++)
+        {
+            for (int x = 0; x < terrain.ChunkSize.X * 21; x++)
+            {
+                Vector2 pos = new Vector2(x, y);
+
+                float sample1 = simplex.Sample2D(pos / new Vector2(10)) * 150;
+                float sample2 = simplex2.Sample2D(pos) * 50;
+
+                terrain.ExpandingSetAt(pos, (sample1 + sample2) / 2f);
+            }
+        }
+        Map.TerrainGrid = terrain;
 
         var testObj = new MapObjectMesh("Test/creatures/rabbit2/rabbit2_rabbitskin2_white.gltf");
         //var testObj = new MapObjectMesh("Test/creatures/peacockmount/peacockmount_body_blue.gltf");
