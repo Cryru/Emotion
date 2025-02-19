@@ -923,6 +923,7 @@ public sealed class MeshEntityBatchRenderer
             // Material colors
             currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
             currentShader.SetUniformColor("objectTint", metaState.Tint);
+            currentShader.SetUniformInt("renderingShadowMap", -1);
 
             // Lighting
             if (light != null)

@@ -15,6 +15,12 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         ChunkSize = new Vector2(chunkSize);
     }
 
+    // serialization
+    protected ChunkedGrid()
+    {
+
+    }
+
     public Vector2 GetChunkCoordinateOfValueCoordinate(Vector2 tile)
     {
         return (tile / ChunkSize).Floor();

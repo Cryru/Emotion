@@ -1,6 +1,7 @@
 ﻿using Emotion.Graphics.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
+using Emotion.WIPUpdates.ThreeDee;
 
 namespace Emotion.WIPUpdates.One;
 
@@ -14,6 +15,7 @@ public class GameMap
 
     //public List<IMapGrid> Grids = new();
     public GameMapTileData? TileMapData;
+    public TerrainMeshGrid? TerrainGrid;
 
     public IEnumerator LoadRoutine()
     {
@@ -54,6 +56,7 @@ public class GameMap
     {
         Rectangle clipArea = c.Camera.GetCameraView2D();
         TileMapData?.Render(c, clipArea);
+        TerrainGrid?.Render(c, clipArea);
 
         for (int i = 0; i < _objects.Count; i++)
         {
