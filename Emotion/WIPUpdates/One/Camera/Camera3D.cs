@@ -205,7 +205,7 @@ namespace Emotion.Graphics.Camera
             // Reverse projection
             var clipSpace = new Vector4(x, y, 1f, 1f);
             Vector4 rayEye = Vector4.Transform(clipSpace, ProjectionMatrix.Inverted());
-            rayEye.Z = -1f;
+            rayEye.Z = 1f;
             rayEye.W = 0f;
 
             // Reverse view
