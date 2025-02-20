@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Game.World3D;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 
 #endregion
@@ -98,6 +99,47 @@ public struct Ray3D
         }
 
         return false;
+    }
+
+    public bool IntersectWithMeshLocalSpace(Mesh mesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+    {
+        collisionPoint = Vector3.Zero;
+        normal = Vector3.Zero;
+        triangleIndex = -1;
+
+        var closestDistance = float.MaxValue;
+        var intersectionFound = false;
+
+        ushort[] meshIndices = mesh.Indices;
+        VertexDataWithNormal[] vertices = mesh.VerticesONE;
+
+        for (var i = 0; i < meshIndices.Length; i += 3)
+        {
+            ushort idx1 = meshIndices[i];
+            ushort idx2 = meshIndices[i + 1];
+            ushort idx3 = meshIndices[i + 2];
+
+            Vector3 p1 = vertices[idx1].Vertex;
+            Vector3 p2 = vertices[idx2].Vertex;
+            Vector3 p3 = vertices[idx3].Vertex;
+
+            Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
+
+            if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
+
+            if (t < closestDistance)
+            {
+                IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
+                closestDistance = t;
+                normal = triangleNormal;
+                triangleIndex = i;
+                intersectionFound = true;
+            }
+        }
+
+        if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
+
+        return intersectionFound;
     }
 
     public bool IntersectWithObjectMesh(GameObject3D obj, int meshIdx, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)

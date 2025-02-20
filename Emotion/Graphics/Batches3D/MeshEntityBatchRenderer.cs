@@ -918,7 +918,17 @@ public sealed class MeshEntityBatchRenderer
                 currentShader = _meshShader;
             }
 
+            if (obj.Material.Shader != null)
+            {
+                AssetHandle<Shader.NewShaderAsset> shaderHandle = obj.Material.Shader.GetAssetHandle();
+                Shader.NewShaderAsset? asset = shaderHandle.Asset;
+                if (asset != null && asset.CompiledShader != null)
+                    currentShader = asset.CompiledShader;
+            }
+
             Engine.Renderer.SetShader(currentShader);
+
+            metaState.ApplyShaderUniforms(currentShader);
 
             // Material colors
             currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
@@ -1041,15 +1051,18 @@ public sealed class MeshEntityBatchRenderer
         return objectsPair;
     }
 
-    private GLRenderObjects? GetMeshRenderObjectOrCreateNew(Mesh mesh, bool withBones, out bool alreadyUploaded)
+    public GLRenderObjects? GetMeshRenderObjectOrCreateNew(Mesh? mesh, bool withBones, out bool alreadyUploaded)
     {
         alreadyUploaded = false;
 
         // Mesh already uploaded!
-        if (_meshToRenderObject.ContainsKey(mesh))
+        if (mesh != null)
         {
-            alreadyUploaded = true;
-            return _meshToRenderObject[mesh];
+            if (_meshToRenderObject.ContainsKey(mesh))
+            {
+                alreadyUploaded = true;
+                return _meshToRenderObject[mesh];
+            }
         }
 
         Stack<GLRenderObjects> stack = withBones ? _renderObjectsBones : _renderObjects;
@@ -1061,7 +1074,7 @@ public sealed class MeshEntityBatchRenderer
             Stack<GLRenderObjects> usedStack = withBones ? _renderObjectsBonesUsed : _renderObjectsUsed;
             usedStack.Push(obj);
 
-            _meshToRenderObject.Add(mesh, obj);
+            if (mesh != null) _meshToRenderObject.Add(mesh, obj);
             return obj;
         }
 

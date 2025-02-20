@@ -68,8 +68,7 @@ public class MeshEntityMetaState
 
     public void SetShaderParam<T>(string name, T value) where T : struct
     {
-        if (_shaderParameters == null) return;
-
+        _shaderParameters ??= new();
 
         if (_shaderParameters.ContainsKey(name))
         {

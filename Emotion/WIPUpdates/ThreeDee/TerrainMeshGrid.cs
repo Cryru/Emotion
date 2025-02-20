@@ -1,9 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Game.ThreeDee;
+using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
+using Emotion.IO;
 using Emotion.WIPUpdates.Grids;
 
 namespace Emotion.WIPUpdates.ThreeDee;
@@ -12,9 +13,17 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
 {
     public Vector2 TileSize { get; private set; }
 
+    public MeshMaterial TerrainMeshMaterial;
+
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {
         TileSize = tileSize;
+
+        TerrainMeshMaterial = new MeshMaterial()
+        {
+            Name = "TerrainChunkMaterial",
+            Shader = Engine.AssetLoader.ONE_Get<NewShaderAsset>("Shaders3D/TerrainShader.glsl")
+        };
     }
 
     // serialization
@@ -50,17 +59,78 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
             }
         }
 
+        bool editorBrushEnabled = true;
+        Vector2 brushWorldSpace = new Vector2(float.NaN);
+        if (editorBrushEnabled)
+        {
+            CameraBase camera = Engine.Renderer.Camera;
+            Ray3D mouseRay = camera.GetCameraMouseRay();
+            Vector3 mousePosWorld = mouseRay.IntersectWithPlane(RenderComposer.Up, Vector3.Zero);
+
+            if (_renderThisPass != null)
+            {
+                for (int i = 0; i < _renderThisPass.Count; i++)
+                {
+                    TerrainGridRenderCacheChunk chunkToRender = _renderThisPass[i];
+                    Mesh? mesh = chunkToRender.CachedMesh;
+                    if (mesh == null) continue;
+
+                    if (mouseRay.IntersectWithMeshLocalSpace(mesh, out Vector3 collisionPoint, out _, out _))
+                    {
+                        brushWorldSpace = collisionPoint.ToVec2();
+                        break;
+                    }
+                }
+            }
+        }
+
         if (_renderThisPass != null)
         {
+            PrepareChunkRendering(c);
+            c.CurrentState.Shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
+
             for (int i = 0; i < _renderThisPass.Count; i++)
             {
                 TerrainGridRenderCacheChunk chunkToRender = _renderThisPass[i];
-                MeshEntity? entity = chunkToRender.CachedEntity;
-                MeshEntityMetaState? entityState = chunkToRender.MetaState;
+                Mesh? mesh = chunkToRender.CachedMesh;
+                if (mesh == null) continue;
 
-                c.MeshEntityRenderer.RenderMeshEntityStandalone(entity, entityState);
+                var mem = c.RenderStream.GetStreamMemory<VertexDataWithNormal>(
+                    (uint) mesh.VerticesONE.Length,
+                    (uint) mesh.Indices.Length,
+                    Graphics.Batches.BatchMode.SequentialTriangles
+                );
+                mesh.VerticesONE.CopyTo(mem.VerticesData);
+                mesh.Indices.CopyTo(mem.IndicesData);
+
+                for (int idx = 0; idx < mem.IndicesData.Length; idx++)
+                {
+                    mem.IndicesData[i] += mem.StructIndex;
+                }
+                //c.MeshEntityRenderer.RenderMeshEntityStandalone(entity, entityState);
             }
+
+            FlushChunkRendering(c);
         }
+    }
+
+    private void PrepareChunkRendering(RenderComposer c)
+    {
+        Engine.Renderer.FlushRenderStream();
+        Engine.Renderer.SetFaceCulling(true, true);
+
+        AssetHandle<NewShaderAsset>? shaderHandle = TerrainMeshMaterial.Shader?.GetAssetHandle();
+        NewShaderAsset? asset = shaderHandle?.Asset;
+        if (asset != null && asset.CompiledShader != null)
+            c.SetShader(asset.CompiledShader);
+
+        c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
+        Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer);
+    }
+
+    private void FlushChunkRendering(RenderComposer c)
+    {
+        c.SetShader(null);
     }
 
     private List<TerrainGridRenderCacheChunk>? _renderThisPass;
@@ -90,7 +160,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
     {
         // We already have the latest version of this
         //if (chunkCache.CachedVersion == chunk.ChunkVersion) return;
-        if (chunkCache.CachedEntity != null) return;
+        if (chunkCache.CachedMesh != null) return;
 
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
@@ -106,8 +176,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        VertexData[] vertices = new VertexData[vertexCount];
-        VertexDataMesh3DExtra[] verticesExtraData = new VertexDataMesh3DExtra[vertices.Length];
+        var vertices = new VertexDataWithNormal[vertexCount];
 
         // Get data for stiching vertices
         float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
@@ -148,15 +217,13 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
 
                 Vector2 worldPos = chunkWorldOffset + (tileCoord * tileSize);
 
-                ref VertexData vData = ref vertices[vIdx];
+                ref VertexDataWithNormal vData = ref vertices[vIdx];
                 vData.Vertex = worldPos.ToVec3(heightSample);
 
                 Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
                 vData.Color = Color.Lerp(Color.Black, Color.White, (heightSample + 150) / 300f).ToUint();
                 vData.UV = Vector2.Zero;
-
-                ref VertexDataMesh3DExtra extraData = ref verticesExtraData[vIdx];
-                extraData.Normal = new Vector3(0, 0, -1);
+                vData.Normal = new Vector3(0, 0, -1);
 
                 vIdx++;
             }
@@ -183,20 +250,19 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
             indexOffset += 6;
         }
 
-        Mesh chunkMesh = new Mesh(vertices, verticesExtraData, indices);
-        chunkCache.CachedEntity = new Graphics.ThreeDee.MeshEntity()
+        Mesh chunkMesh = new Mesh(vertices, indices)
         {
             Name = $"TerrainChunk_{chunkCoord}",
-            Meshes = [chunkMesh],
+            Material = TerrainMeshMaterial
         };
-        chunkCache.MetaState = new MeshEntityMetaState(chunkCache.CachedEntity);
+
+        chunkCache.CachedMesh = chunkMesh;
     }
 
     private class TerrainGridRenderCacheChunk
     {
         public int CachedVersion = -1;
-        public MeshEntity? CachedEntity = null;
-        public MeshEntityMetaState? MetaState;
+        public Mesh? CachedMesh = null;
     }
 }
 

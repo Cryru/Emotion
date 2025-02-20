@@ -24,10 +24,10 @@ public class Example3D : SceneWithMap
 
         Map = new GameMap();
 
-        TerrainMeshGrid terrain = new TerrainMeshGrid(new Vector2(50), 9);
+        TerrainMeshGrid terrain = new TerrainMeshGrid(new Vector2(50), 16);
 
-        var simplex = new SimplexNoise();
-        var simplex2 = new SimplexNoise();
+        var simplex = new SimplexNoise(new System.Random(1337));
+        var simplex2 = new SimplexNoise(new System.Random(777));
         for (int y = 0; y < terrain.ChunkSize.Y * 21; y++)
         {
             for (int x = 0; x < terrain.ChunkSize.X * 21; x++)

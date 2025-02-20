@@ -25,10 +25,19 @@ public class Mesh
     public ushort[] Indices;
 
     public VertexData[] Vertices;
+    public VertexDataWithNormal[] VerticesONE;
     public VertexDataMesh3DExtra[] ExtraVertexData;
 
     public Mesh3DVertexDataBones[]? BoneData;
     public MeshBone[]? Bones = null;
+
+    public Mesh(VertexDataWithNormal[] verticesONE, ushort[] indices)
+    {
+        Name = DEFAULT_MESH_NAME;
+        VerticesONE = verticesONE;
+        Indices = indices;
+        Material = MeshMaterial.DefaultMaterial;
+    }
 
     public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
     {

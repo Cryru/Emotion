@@ -2,6 +2,7 @@
 
 using Emotion.Editor;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shader;
 using Emotion.IO;
 
 #endregion
@@ -22,6 +23,8 @@ namespace Emotion.Graphics.ThreeDee
         public Texture? DiffuseTexture;
 
         public bool BackFaceCulling = true;
+
+        public SerializableAssetHandle<NewShaderAsset>? Shader = null;
 
         public static MeshMaterial DefaultMaterial = new MeshMaterial
         {
