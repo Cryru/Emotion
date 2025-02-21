@@ -81,7 +81,11 @@ public static partial class EngineEditor
                 MovementSpeed = 10,
             };
 
-            SetGridSize(100);
+            GameMap? map = GetCurrentMap();
+            if (map?.TerrainGrid != null)
+                SetGridSize(map.TerrainGrid.TileSize.X);
+            else
+                SetGridSize(0);
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
         {

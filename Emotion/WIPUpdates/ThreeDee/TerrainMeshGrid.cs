@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Common.Serialization;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
@@ -13,17 +14,16 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
 {
     public Vector2 TileSize { get; private set; }
 
-    public MeshMaterial TerrainMeshMaterial;
+    [DontSerialize]
+    public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
+    {
+        Name = "TerrainChunkMaterial",
+        Shader = Engine.AssetLoader.ONE_Get<NewShaderAsset>("Shaders3D/TerrainShader.glsl")
+    };
 
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {
         TileSize = tileSize;
-
-        TerrainMeshMaterial = new MeshMaterial()
-        {
-            Name = "TerrainChunkMaterial",
-            Shader = Engine.AssetLoader.ONE_Get<NewShaderAsset>("Shaders3D/TerrainShader.glsl")
-        };
     }
 
     // serialization
@@ -105,9 +105,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
 
                 for (int idx = 0; idx < mem.IndicesData.Length; idx++)
                 {
-                    mem.IndicesData[i] += mem.StructIndex;
+                    mem.IndicesData[idx] += mem.StructIndex;
                 }
-                //c.MeshEntityRenderer.RenderMeshEntityStandalone(entity, entityState);
             }
 
             FlushChunkRendering(c);
@@ -265,4 +264,3 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
         public Mesh? CachedMesh = null;
     }
 }
-
