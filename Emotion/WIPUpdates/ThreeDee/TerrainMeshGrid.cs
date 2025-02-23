@@ -7,10 +7,11 @@ using Emotion.Graphics.Shader;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.WIPUpdates.Grids;
+using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
-public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
+public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
 {
     public Vector2 TileSize { get; private set; }
 
@@ -53,41 +54,19 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
             for (float x = min.X; x < max.X; x++)
             {
                 Vector2 chunkCoord = new Vector2(x, y);
-                GenericGridChunk<float>? chunk = GetChunk(chunkCoord);
+                VersionedGridChunk<float>? chunk = GetChunk(chunkCoord);
                 if (chunk == null) continue;
                 MarkChunkForRender(chunk, chunkCoord);
             }
         }
 
-        bool editorBrushEnabled = true;
-        Vector2 brushWorldSpace = new Vector2(float.NaN);
-        if (editorBrushEnabled)
-        {
-            CameraBase camera = Engine.Renderer.Camera;
-            Ray3D mouseRay = camera.GetCameraMouseRay();
-            Vector3 mousePosWorld = mouseRay.IntersectWithPlane(RenderComposer.Up, Vector3.Zero);
-
-            if (_renderThisPass != null)
-            {
-                for (int i = 0; i < _renderThisPass.Count; i++)
-                {
-                    TerrainGridRenderCacheChunk chunkToRender = _renderThisPass[i];
-                    Mesh? mesh = chunkToRender.CachedMesh;
-                    if (mesh == null) continue;
-
-                    if (mouseRay.IntersectWithMeshLocalSpace(mesh, out Vector3 collisionPoint, out _, out _))
-                    {
-                        brushWorldSpace = collisionPoint.ToVec2();
-                        break;
-                    }
-                }
-            }
-        }
+        Vector2 brushWorldSpace = GetEditorBrush();
 
         if (_renderThisPass != null)
         {
             PrepareChunkRendering(c);
             c.CurrentState.Shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
+            c.CurrentState.Shader.SetUniformFloat("brushRadius", _editorBrushSize);
 
             for (int i = 0; i < _renderThisPass.Count; i++)
             {
@@ -140,7 +119,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
         _renderThisPass?.Clear();
     }
 
-    private void MarkChunkForRender(GenericGridChunk<float> chunk, Vector2 chunkCoord)
+    private void MarkChunkForRender(VersionedGridChunk<float> chunk, Vector2 chunkCoord)
     {
         _renderThisPass ??= new List<TerrainGridRenderCacheChunk>(32);
 
@@ -155,19 +134,19 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
         UpdateChunkRenderCache(cachedChunk, chunk, chunkCoord);
     }
 
-    private void UpdateChunkRenderCache(TerrainGridRenderCacheChunk chunkCache, GenericGridChunk<float> chunk, Vector2 chunkCoord)
+    private void UpdateChunkRenderCache(TerrainGridRenderCacheChunk chunkCache, VersionedGridChunk<float> chunk, Vector2 chunkCoord)
     {
         // We already have the latest version of this
-        //if (chunkCache.CachedVersion == chunk.ChunkVersion) return;
+        if (chunkCache.CachedVersion == chunk.ChunkVersion) return;
         if (chunkCache.CachedMesh != null) return;
 
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
 
-        GenericGridChunk<float>? chunkLeft = GetChunk(chunkCoord + new Vector2(-1, 0));
-        GenericGridChunk<float>? chunkTop = GetChunk(chunkCoord + new Vector2(0, -1));
-        GenericGridChunk<float>? chunkDiag = GetChunk(chunkCoord + new Vector2(-1, -1));
+        VersionedGridChunk<float>? chunkLeft = GetChunk(chunkCoord + new Vector2(-1, 0));
+        VersionedGridChunk<float>? chunkTop = GetChunk(chunkCoord + new Vector2(0, -1));
+        VersionedGridChunk<float>? chunkDiag = GetChunk(chunkCoord + new Vector2(-1, -1));
 
         Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + halfTileSize;
 
@@ -257,6 +236,63 @@ public class TerrainMeshGrid : ChunkedGrid<float, GenericGridChunk<float>>
 
         chunkCache.CachedMesh = chunkMesh;
     }
+
+    #region World Space
+
+    public Vector2 GetTilePosOfWorldPos(Vector2 location)
+    {
+        location -= TileSize / 2f;
+
+        float left = MathF.Round(location.X / TileSize.X);
+        float top = MathF.Round(location.Y / TileSize.Y);
+
+        return new Vector2(left, top);
+    }
+
+    #endregion
+
+    #region Brush
+
+    private bool _editorBrush;
+    private float _editorBrushSize;
+    private Vector2 _editorBrushPosition;
+
+    public void SetEditorBrush(bool enabled, float brushSize)
+    {
+        _editorBrush = enabled;
+        _editorBrushSize = brushSize;
+    }
+
+    public Vector2 GetEditorBrushWorldPosition()
+    {
+        return _editorBrushPosition;
+    }
+
+    private Vector2 GetEditorBrush()
+    {
+        Vector2 brushPoint = Vector2.NaN;
+        if (_renderThisPass != null && _editorBrush)
+        {
+            CameraBase camera = Engine.Renderer.Camera;
+            Ray3D mouseRay = camera.GetCameraMouseRay();
+            Vector3 mousePosWorld = mouseRay.IntersectWithPlane(RenderComposer.Up, Vector3.Zero);
+
+            for (int i = 0; i < _renderThisPass.Count; i++)
+            {
+                TerrainGridRenderCacheChunk chunkToRender = _renderThisPass[i];
+                Mesh? mesh = chunkToRender.CachedMesh;
+                if (mesh == null) continue;
+
+                if (mouseRay.IntersectWithMeshLocalSpace(mesh, out Vector3 collisionPoint, out _, out _))
+                    brushPoint = collisionPoint.ToVec2();
+            }
+        }
+
+        _editorBrushPosition = brushPoint;
+        return brushPoint;
+    }
+
+    #endregion
 
     private class TerrainGridRenderCacheChunk
     {

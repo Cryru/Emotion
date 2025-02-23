@@ -48,6 +48,7 @@ public sealed class TileEditorWindow : UIBaseWindow
     public TileEditorWindow()
     {
         HandleInput = true;
+        OrderInParent = -1;
     }
 
     public override void AttachedToController(UIController controller)

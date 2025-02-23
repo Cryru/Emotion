@@ -204,7 +204,7 @@ public class MapObjectMesh : MapObject
         _scaleMatrix = Matrix4x4.CreateScale(_sizeX * entityScale, _sizeY * entityScale, _sizeZ * entityScale);
 
         Matrix4x4 rotMatrix = ignoreRotation ? Matrix4x4.Identity : _rotationMatrix;
-        return _scaleMatrix * rotMatrix * _translationMatrix * entityLocalTransform;
+        return entityLocalTransform * _scaleMatrix * rotMatrix * _translationMatrix;
     }
 
     #endregion

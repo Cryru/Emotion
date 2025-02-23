@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Common.Serialization;
+
 namespace Emotion.WIPUpdates.Grids;
 
 public class ChunkedGrid<T, ChunkT> : IGrid<T>
@@ -229,4 +231,11 @@ public class GenericGridChunk<T> : IGridChunk<T> where T : struct, IEquatable<T>
     {
         _data = data;
     }
+}
+
+public class VersionedGridChunk<T> : GenericGridChunk<T> where T : struct, IEquatable<T>
+{
+    // This is used to track runtime changes in the chunk for render cache updates
+    [DontSerialize]
+    public int ChunkVersion = 0;
 }

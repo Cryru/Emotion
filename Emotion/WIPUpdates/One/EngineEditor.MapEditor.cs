@@ -77,9 +77,12 @@ public static partial class EngineEditor
             _editorCamera = new Camera3D(pos, 1f)
             {
                 LookAt = _cameraOutsideEditor.LookAt,
-                DragKey = Key.MouseKeyLeft,
+                DragKey = Key.MouseKeyMiddle,
                 MovementSpeed = 10,
             };
+
+            var bottomBar = new Editor2DBottomBar();
+            EditorRoot.AddChild(bottomBar);
 
             GameMap? map = GetCurrentMap();
             if (map?.TerrainGrid != null)
@@ -95,10 +98,7 @@ public static partial class EngineEditor
                 ZoomAllowed = true
             };
 
-            Editor2DBottomBar bottomBar = new Editor2DBottomBar
-            {
-                Id = "BottomBar"
-            };
+            var bottomBar = new Editor2DBottomBar();
             EditorRoot.AddChild(bottomBar);
 
             _enableDragWithMiddleMouse = true;

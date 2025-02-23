@@ -1,7 +1,9 @@
-﻿using Emotion.Game.World.Editor;
+﻿using Emotion.Common.Serialization;
+using Emotion.Game.World.Editor;
 using Emotion.Game.World2D.Editor;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor;
+using Emotion.WIPUpdates.One.Editor3D.TerrainEditor;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 
@@ -9,6 +11,7 @@ using Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 
 namespace Emotion.WIPUpdates.One.Editor2D;
 
+[DontSerialize]
 public class Editor2DBottomBar : UISolidColor
 {
     private UIBaseWindow? _currentEditor;
@@ -18,6 +21,8 @@ public class Editor2DBottomBar : UISolidColor
         FillY = false;
         WindowColor = MapEditorColorPalette.BarColor;
         AnchorAndParentAnchor = UIAnchor.BottomLeft;
+
+        Id = "BottomBar";
     }
 
     public override void AttachedToController(UIController controller)
@@ -99,7 +104,22 @@ public class Editor2DBottomBar : UISolidColor
                 SpawnBackButton(this, barContent);
 
                 var editorWindow = new TileEditorWindow();
-                editorWindow.OrderInParent = -1;
+                editorWindow.SpawnBottomBarContent(this, barContent);
+                _currentEditor = editorWindow;
+
+                EngineEditor.EditorRoot.AddChild(editorWindow);
+            };
+            toolButtonList.AddChild(toolButton);
+        }
+
+        {
+            EditorButton toolButton = new EditorButton("3D Terrain Editor");
+            toolButton.OnClickedProxy = (_) =>
+            {
+                barContent.ClearChildren();
+                SpawnBackButton(this, barContent);
+
+                var editorWindow = new TerrainEditorWindow();
                 editorWindow.SpawnBottomBarContent(this, barContent);
                 _currentEditor = editorWindow;
 

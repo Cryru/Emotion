@@ -24,7 +24,7 @@ namespace Emotion.Graphics.Camera
         public Key DragKey = Key.MouseKeyLeft;
 
         // Movement
-        public float MovementSpeed = 3;
+        public float MovementSpeed = 10;
         private Vector2 _lastMousePos;
         private bool _held;
         private Vector2 _inputDirection;
