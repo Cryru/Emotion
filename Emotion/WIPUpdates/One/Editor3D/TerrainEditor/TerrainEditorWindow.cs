@@ -14,6 +14,9 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.ThreeDee;
+using System;
+using System.Numerics;
+using System.Text;
 
 namespace Emotion.WIPUpdates.One.Editor3D.TerrainEditor;
 
@@ -40,10 +43,8 @@ public sealed class TerrainEditorWindow : UIBaseWindow
     private UIBaseWindow? _bottomBarToolButtons;
     private UIRichText? _bottomText;
 
-    private DropdownChoiceEditor<TileMapTileset>? _tilesetChoose;
-
     private bool _mouseDown;
-    private float _brushSize = 50;
+    private float _brushSize = 100;
 
     public TerrainEditorWindow()
     {
@@ -88,6 +89,31 @@ public sealed class TerrainEditorWindow : UIBaseWindow
 
     public void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
     {
+        {
+            var textList = new UIBaseWindow()
+            {
+                LayoutMode = LayoutMode.HorizontalList,
+                ListSpacing = new Vector2(10, 0),
+                AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                FillY = false,
+            };
+            barContent.AddChild(textList);
+
+            var label = new EditorLabel
+            {
+                Text = "Terrain Editor",
+                WindowColor = Color.White * 0.5f
+            };
+            textList.AddChild(label);
+
+            var labelDynamic = new EditorLabel
+            {
+                Text = "",
+                AllowRenderBatch = false
+            };
+            textList.AddChild(labelDynamic);
+            _bottomText = labelDynamic;
+        }
     }
 
     #region Using Tools
@@ -111,7 +137,6 @@ public sealed class TerrainEditorWindow : UIBaseWindow
         previousPos = Engine.Renderer.Camera.ScreenToWorld(previousPos).ToVec2();
         newPos = Engine.Renderer.Camera.ScreenToWorld(newPos).ToVec2();
 
-
         GameMap? map = EngineEditor.GetCurrentMap();
         TerrainMeshGrid? terrain = map?.TerrainGrid;
         if (terrain == null) return;
@@ -119,9 +144,53 @@ public sealed class TerrainEditorWindow : UIBaseWindow
         Vector2 cursorPos = terrain.GetEditorBrushWorldPosition();
         Vector2 cursorPosInGrid = terrain.GetTilePosOfWorldPos(cursorPos);
 
+        for (int i = 0; i < _brushGrid.Length; i++)
+        {
+            BrushGrid tileInfo = _brushGrid[i];
+            float influence = tileInfo.Influence;
+            if (influence == 0) continue;
 
-        float val = terrain.GetAt(cursorPos);
-        terrain.ExpandingSetAt(cursorPos, val + 5);
+            Vector2 tileCoord = tileInfo.TileCoord;
+
+            float brushStrength = 5 * influence;
+
+            float val = terrain.GetAt(tileCoord);
+            terrain.ExpandingSetAt(tileCoord, val + brushStrength);
+        }
+
+        // Smooth
+        //float averageVal = 0;
+        //int values = 0;
+        //for (int i = 0; i < _brushGrid.Length; i++)
+        //{
+        //    BrushGrid tileInfo = _brushGrid[i];
+        //    float influence = tileInfo.Influence;
+        //    if (influence == 0) continue;
+
+        //    Vector2 tileCoord = tileInfo.TileCoord;
+
+        //    float val = terrain.GetAt(tileCoord);
+        //    averageVal += val;
+        //    values++;
+        //}
+
+        //averageVal = averageVal / values;
+        //for (int i = 0; i < _brushGrid.Length; i++)
+        //{
+        //    BrushGrid tileInfo = _brushGrid[i];
+        //    float influence = tileInfo.Influence;
+        //    if (influence == 0) continue;
+
+        //    Vector2 tileCoord = tileInfo.TileCoord;
+        //    float val = terrain.GetAt(tileCoord);
+
+        //    float brushStrength = 5 * influence;
+
+        //    float diff = averageVal - val;
+        //    float diffAbs = MathF.Abs(diff);
+        //    val += MathF.Min(diffAbs, brushStrength) * MathF.Sign(diff);
+        //    terrain.ExpandingSetAt(tileCoord, val);
+        //}
 
         //LineSegment moveSegment = new LineSegment(previousPos, newPos);
         //float moveSegmentLength = moveSegment.Length();
@@ -148,11 +217,19 @@ public sealed class TerrainEditorWindow : UIBaseWindow
         }
     }
 
+    public struct BrushGrid
+    {
+        public Vector2 TileCoord;
+        public float Influence;
+    }
+
+    private BrushGrid[] _brushGrid = Array.Empty<BrushGrid>();
+
     public void UpdateCursor()
     {
         GameMap? map = EngineEditor.GetCurrentMap();
         TerrainMeshGrid? terrain = map?.TerrainGrid;
-       
+
         if (terrain == null || !MouseInside)
         {
             if (_bottomText != null)
@@ -162,8 +239,52 @@ public sealed class TerrainEditorWindow : UIBaseWindow
 
         terrain.SetEditorBrush(true, _brushSize);
 
-        Vector2 worldSpaceMousePos = terrain.GetEditorBrushWorldPosition();
-        Vector2 tilePos = terrain.GetTilePosOfWorldPos(worldSpaceMousePos);
+        // Construct brush grid
+        Vector2 tileSize = terrain.TileSize;
+        Vector2 brushPosWorld = terrain.GetEditorBrushWorldPosition();
+
+        Rectangle brushRect = new Rectangle(0, 0, new Vector2(_brushSize * 2));
+        brushRect.Center = brushPosWorld - tileSize / 2f;
+
+        Rectangle brushRectSnapped = brushRect;
+        brushRectSnapped.SnapToGrid(tileSize);
+        brushRectSnapped.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+
+        min /= tileSize;
+        max /= tileSize;
+
+        min = min.Round();
+        max = max.Round();
+
+        int brushRectSizeY = (int)(max.Y - min.Y);
+        int brushRectSizeX = (int)(max.X - min.X);
+
+        int brushInfluenceSize = brushRectSizeX * brushRectSizeY;
+        if (brushInfluenceSize > _brushGrid.Length)
+            Array.Resize(ref _brushGrid, brushInfluenceSize);
+
+        int tile = 0;
+        for (float y = min.Y; y < max.Y; y++)
+        {
+            for (float x = min.X; x < max.X; x++)
+            {
+                Vector2 tileCoord = new Vector2(x, y);
+                Vector2 tileWorldPos = terrain.GetWorldPosOfTile(tileCoord);
+
+                float distToTile = Vector2.Distance(tileWorldPos, brushPosWorld);
+                float falloff = MathF.Exp(-MathF.Pow(distToTile, 2) / (2 * MathF.Pow(_brushSize * 0.5f, 2)));
+                falloff = MathF.Max(falloff, 0f);
+
+                _brushGrid[tile] = new BrushGrid()
+                {
+                    Influence = falloff,
+                    TileCoord = tileCoord
+                };
+                tile++;
+            }
+        }
+
+        Vector2 tilePos = terrain.GetTilePosOfWorldPos(brushPosWorld);
 
         // Correct this for .ToString() reasons
         if (tilePos.X == -0) tilePos.X = 0;

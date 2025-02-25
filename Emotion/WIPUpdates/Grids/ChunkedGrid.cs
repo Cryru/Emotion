@@ -49,6 +49,9 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         T[] data = chunk.GetRawData();
         int idx = GridHelpers.GetCoordinate1DFrom2D(position, ChunkSize);
         data[idx] = value;
+
+        if (chunk is VersionedGridChunk<T> versionedChunk)
+            versionedChunk.ChunkVersion++;
     }
 
     protected virtual T GetAtForChunk(ChunkT chunk, Vector2 position)

@@ -39,7 +39,6 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
         ResetChunksMarkedToRender();
 
         Vector2 tileSize = TileSize;
-        Vector2 halfTileSize = tileSize / 2f;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
 
         Rectangle cacheAreaChunkSpace = clipArea;
@@ -137,8 +136,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
     private void UpdateChunkRenderCache(TerrainGridRenderCacheChunk chunkCache, VersionedGridChunk<float> chunk, Vector2 chunkCoord)
     {
         // We already have the latest version of this
-        if (chunkCache.CachedVersion == chunk.ChunkVersion) return;
-        if (chunkCache.CachedMesh != null) return;
+        if (chunkCache.CachedVersion == chunk.ChunkVersion &&
+            chunkCache.CachedMesh != null) return;
 
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
@@ -148,13 +147,17 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
         VersionedGridChunk<float>? chunkTop = GetChunk(chunkCoord + new Vector2(0, -1));
         VersionedGridChunk<float>? chunkDiag = GetChunk(chunkCoord + new Vector2(-1, -1));
 
-        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + halfTileSize;
+        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + tileSize;
 
         int vertexCount = (int)(ChunkSize.X * ChunkSize.Y);
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        var vertices = new VertexDataWithNormal[vertexCount];
+        VertexDataWithNormal[] vertices;
+        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.VerticesONE.Length < vertexCount)
+            vertices = new VertexDataWithNormal[vertexCount];
+        else
+            vertices = chunkCache.CachedMesh.VerticesONE;
 
         // Get data for stiching vertices
         float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
@@ -210,8 +213,14 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
         // ChunkSize - 1 + stiching 1
         int quads = (int)(ChunkSize.X * ChunkSize.Y);
         int stride = (int)ChunkSize.X + 1;
+        int indexCount = quads * 6;
 
-        ushort[] indices = new ushort[quads * 6];
+        ushort[] indices;
+        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.Indices.Length < indexCount)
+            indices = new ushort[indexCount];
+        else
+            indices = chunkCache.CachedMesh.Indices;
+
         int indexOffset = 0;
         for (int i = 0; i < vertexCount - stride; i++)
         {
@@ -241,12 +250,18 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
 
     public Vector2 GetTilePosOfWorldPos(Vector2 location)
     {
-        location -= TileSize / 2f;
+        location -= TileSize;
 
         float left = MathF.Round(location.X / TileSize.X);
         float top = MathF.Round(location.Y / TileSize.Y);
 
         return new Vector2(left, top);
+    }
+
+    public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
+    {
+        Vector2 worldPos = (tileCoord2d * TileSize) + TileSize;
+        return worldPos;
     }
 
     #endregion
@@ -289,7 +304,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
         }
 
         _editorBrushPosition = brushPoint;
-        return brushPoint;
+        return _editorBrushPosition;
     }
 
     #endregion

@@ -56,12 +56,6 @@ public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>
         }
     }
 
-    protected override void SetAtForChunk(TileMapChunk chunk, Vector2 position, TileMapTile value)
-    {
-        base.SetAtForChunk(chunk, position, value);
-        chunk.ChunkVersion++;
-    }
-
     public Vector2 GetTilePosOfWorldPos(Vector2 location)
     {
         //location -= TileSize / 2f;
