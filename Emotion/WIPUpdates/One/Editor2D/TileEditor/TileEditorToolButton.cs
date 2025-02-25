@@ -1,5 +1,6 @@
 ﻿using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
+using Emotion.WIPUpdates.One.EditorUI.GridEditor;
 
 #nullable enable
 
@@ -7,12 +8,12 @@ namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
 
 public class TileEditorToolButton : UICallbackButton
 {
-    public TileEditorWindow Editor;
+    public GridEditorWindow Editor;
     public TileEditorTool Tool;
 
     private UISolidColor _windowBackground;
 
-    public TileEditorToolButton(TileEditorWindow editor, TileEditorTool tool)
+    public TileEditorToolButton(GridEditorWindow editor, TileEditorTool tool)
     {
         Editor = editor;
         Tool = tool;

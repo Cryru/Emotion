@@ -42,6 +42,34 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return chunk;
     }
 
+    public void InitEmptyChunksInArea(Vector2 origin, Vector2 size)
+    {
+        Rectangle areaToSpawn = new Primitives.Rectangle(origin, size);
+        areaToSpawn.SnapToGrid(ChunkSize);
+
+        areaToSpawn.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+
+        min /= ChunkSize;
+        max /= ChunkSize;
+
+        for (float y = min.Y; y < max.Y; y++)
+        {
+            for (float x = min.X; x < max.X; x++)
+            {
+                Vector2 chunkCoord = new Vector2(x, y);
+                ChunkT? existingChunk = GetChunk(chunkCoord);
+                if (existingChunk == null)
+                {
+                    ChunkT newChunk = new ChunkT();
+                    T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
+                    newChunk.SetRawData(newChunkData);
+                    _chunks.Add(chunkCoord, newChunk);
+                    _chunkBoundsCacheValid = false;
+                }
+            }
+        }
+    }
+
     #region ChunkHelpers
 
     protected virtual void SetAtForChunk(ChunkT chunk, Vector2 position, T value)

@@ -21,9 +21,7 @@ public class TileEditorEraserTool : TileEditorTool
         GameMapTileData? tileData = editor.GetCurrentMapTileData();
         if (tileData == null) return;
 
-        bool success = currentLayer.ExpandingSetAt(cursorPos, TileMapTile.Empty);
-        if (success)
-            editor.UpdateCursor();
+        currentLayer.ExpandingSetAt(cursorPos, TileMapTile.Empty);
     }
 
     public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)

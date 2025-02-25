@@ -56,9 +56,7 @@ public class TileEditorBrushTool : TileEditorTool
 
         foreach ((TileMapTile tile, Vector2 tilePos) in ForEachTileInPlacement(editor, currentLayer, cursorPos))
         {
-            bool success = currentLayer.ExpandingSetAt(tilePos, tile);
-            if (success)
-                editor.UpdateCursor();
+            currentLayer.ExpandingSetAt(tilePos, tile);
         }
     }
 

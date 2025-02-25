@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
-public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>
+public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IGridWorldSpaceTiles
 {
     public Vector2 TileSize { get; private set; }
 

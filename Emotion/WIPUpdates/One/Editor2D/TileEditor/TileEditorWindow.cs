@@ -2,65 +2,92 @@
 
 using Emotion.Common.Serialization;
 using Emotion.Game.World.Editor;
-using Emotion.Platform.Input;
 using Emotion.Scenography;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
+using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.GridEditor;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
 
 [DontSerialize]
-public sealed class TileEditorWindow : UIBaseWindow
+public sealed class TileEditorWindow : GridEditorWindow
 {
-    public static TileEditorTool[] Tools =
-    {
-        new TileEditorBrushTool(),
-        new TileEditorEraserTool(),
-        new TileEditorBucketTool(),
-        new TileEditorPickerTool()
-    };
-
-    public TileEditorTool CurrentTool = Tools[0];
-
-    public Vector2? CursorTilePos { get; private set; }
-
-    private HashSet<Vector2> _preciseDrawDedupe = new();
-
     public TileMapLayer? CurrentLayer { get; private set; }
 
     public TileMapTileset? CurrentTileset { get; private set; }
 
-    private TileEditorTool _lastUsedPlacingTool = Tools[0];
-
-    private UIBaseWindow? _bottomBarToolButtons;
-    private UIRichText? _bottomText;
-    public TileEditorTileTextureSelector TileTextureSelector = null!;
+    public TileEditorTileTextureSelector TileTextureSelector { get; private set; } = null!;
 
     private DropdownChoiceEditor<TileMapTileset>? _tilesetChoose;
 
-    private bool _mouseDown;
-
-    public TileEditorWindow()
+    public TileEditorWindow() : base()
     {
-        HandleInput = true;
-        OrderInParent = -1;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override TileEditorTool[] GetTools()
     {
-        base.AttachedToController(controller);
-
-        // temp
-        controller.SetInputFocus(this);
+        return [
+            new TileEditorBrushTool(),
+            new TileEditorEraserTool(),
+            new TileEditorBucketTool(),
+            new TileEditorPickerTool()
+        ];
     }
 
-    public void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
+    protected override void OnOpen()
     {
+        
+    }
+
+    protected override void OnClose()
+    {
+        
+    }
+
+    protected override string GetGridName()
+    {
+        return "TileMap";
+    }
+
+    protected override IGridWorldSpaceTiles? GetCurrentGrid()
+    {
+        return CurrentLayer;
+    }
+
+    protected override bool CanEdit()
+    {
+        if (CurrentTool.RequireTileSelection)
+        {
+            AssertNotNull(TileTextureSelector);
+            if (TileTextureSelector == null) return false;
+            (TileTextureId, Vector2)[] currentlySelectedTile = TileTextureSelector.GetSelectedTileTextures(out _);
+            if (currentlySelectedTile[0].Item1 == TileMapTile.Empty) return false;
+        }
+
+        return true;
+    }
+
+    protected override Vector2 UpdateCursor()
+    {
+        Vector3 worldSpaceMousePos = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
+        return CurrentLayer!.GetTilePosOfWorldPos(worldSpaceMousePos.ToVec2());
+    }
+
+    protected override void UseCurrentToolAtPosition(Vector2 tilePos)
+    {
+        CurrentTool.ApplyTool(this, CurrentLayer, tilePos);
+    }
+
+    public override void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
+    {
+        base.SpawnBottomBarContent(bar, barContent);
+
         var sidePanel = new UIBaseWindow()
         {
             Id = "TileEditorSidePanel",
@@ -140,52 +167,6 @@ public sealed class TileEditorWindow : UIBaseWindow
             sidePanel.AddChild(tilesetTileSelector);
         }
 
-        // Bottom text
-        {
-            var textList = new UIBaseWindow()
-            {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(10, 0),
-                AnchorAndParentAnchor = UIAnchor.CenterLeft,
-                FillY = false,
-            };
-            barContent.AddChild(textList);
-
-            var label = new EditorLabel
-            {
-                Text = "Tile Editor",
-                WindowColor = Color.White * 0.5f
-            };
-            textList.AddChild(label);
-
-            var labelDynamic = new EditorLabel
-            {
-                Text = "",
-                AllowRenderBatch = false
-            };
-            textList.AddChild(labelDynamic);
-            _bottomText = labelDynamic;
-        }
-
-        // Tool buttons
-        {
-            var buttonList = new UIBaseWindow()
-            {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(5, 0),
-                AnchorAndParentAnchor = UIAnchor.CenterRight,
-                Margins = new Rectangle(5, 5, 5, 5),
-            };
-            barContent.AddChild(buttonList);
-            _bottomBarToolButtons = buttonList;
-
-            for (int i = 0; i < Tools.Length; i++)
-            {
-                TileEditorTool tool = Tools[i];
-                buttonList.AddChild(new TileEditorToolButton(this, tool));
-            }
-        }
-
         // Select first tileset and layer.
         foreach (var layer in GetTileLayers())
         {
@@ -198,19 +179,6 @@ public sealed class TileEditorWindow : UIBaseWindow
             SelectTileset(tileset);
             break;
         }
-    }
-
-    private Vector2 _previousMousePos = new Vector2(-1);
-
-    public override void OnMouseMove(Vector2 mousePos)
-    {
-        UpdateCurrentTool(_previousMousePos, mousePos);
-        _previousMousePos = mousePos;
-    }
-
-    protected override bool UpdateInternal()
-    {
-        return base.UpdateInternal();
     }
 
     protected override bool RenderInternal(RenderComposer c)
@@ -236,133 +204,6 @@ public sealed class TileEditorWindow : UIBaseWindow
         c.SetUseViewMatrix(false);
 
         return base.RenderInternal(c);
-    }
-
-
-    #region Using Tools
-
-    private void UpdateCurrentTool(Vector2 previousPos, Vector2 newPos)
-    {
-        UpdateCursor();
-
-        if (!MouseInside) return;
-        if (!_mouseDown) return;
-        if (CurrentLayer == null) return;
-        if (CursorTilePos == null) return;
-
-        if (CurrentTool.RequireTileSelection)
-        {
-            AssertNotNull(TileTextureSelector);
-            if (TileTextureSelector == null) return;
-            (TileTextureId, Vector2)[] currentlySelectedTile = TileTextureSelector.GetSelectedTileTextures(out _);
-            if (currentlySelectedTile[0].Item1 == TileMapTile.Empty) return;
-        }
-
-        previousPos = Engine.Renderer.Camera.ScreenToWorld(previousPos).ToVec2();
-        newPos = Engine.Renderer.Camera.ScreenToWorld(newPos).ToVec2();
-
-        LineSegment moveSegment = new LineSegment(previousPos, newPos);
-        float moveSegmentLength = moveSegment.Length();
-        if (!CurrentTool.IsPrecisePaint || moveSegmentLength == 0)
-            CurrentTool.ApplyTool(this, CurrentLayer, CursorTilePos.Value);
-        else
-            PrecisePaintApplyTool(moveSegment);
-    }
-
-    private void PrecisePaintApplyTool(LineSegment moveSegment)
-    {
-        AssertNotNull(CurrentLayer);
-
-        // Draw as a line
-        float moveSegmentLength = moveSegment.Length();
-        _preciseDrawDedupe.Clear();
-        for (float i = 0; i < moveSegmentLength; i += 0.5f)
-        {
-            Vector2 pointAtLineSegment = moveSegment.PointOnLineAtDistance(i);
-            Vector2 tile = CurrentLayer.GetTilePosOfWorldPos(pointAtLineSegment);
-            if (!_preciseDrawDedupe.Add(tile)) continue;
-
-            CurrentTool.ApplyTool(this, CurrentLayer, tile);
-        }
-    }
-
-    public void UpdateCursor()
-    {
-        CursorTilePos = null;
-
-        if (CurrentLayer == null || !MouseInside)
-        {
-            if (_bottomText != null)
-                _bottomText.Text = "";
-            return;
-        }
-
-        Vector3 worldSpaceMousePos = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
-        Vector2 tilePos = CurrentLayer.GetTilePosOfWorldPos(worldSpaceMousePos.ToVec2());
-
-        // Correct this for .ToString() reasons
-        if (tilePos.X == -0) tilePos.X = 0;
-        if (tilePos.Y == -0) tilePos.Y = 0;
-
-        CursorTilePos = tilePos;
-
-        bool inMap = CurrentLayer.IsValidPosition(tilePos);
-        string inMapText = "";
-        if (!inMap) inMapText = " (Outside Map)";
-
-        if (_bottomText != null)
-            _bottomText.Text = $"Rollover Tile - {tilePos}{inMapText}";
-    }
-
-    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
-    {
-        if (key == Key.MouseKeyLeft)
-        {
-            _mouseDown = status == KeyState.Down;
-
-            // Instantly responsive on the mouse click event, don't wait for update
-            if (_mouseDown) UpdateCurrentTool(mousePos, mousePos);
-
-            // Clear last action to group undos by mouse clicks.
-            //if (!_mouseDown) _lastAction = null;
-        }
-
-        if (status == KeyState.Down)
-        {
-            for (int i = 0; i < Tools.Length; i++)
-            {
-                TileEditorTool tool = Tools[i];
-                if (key == tool.HotKey)
-                {
-                    SetCurrentTool(tool);
-                    break;
-                }
-            }
-        }
-
-        return base.OnKey(key, status, mousePos);
-    }
-
-    #endregion
-
-    public void SetCurrentTool(TileEditorTool currentTool)
-    {
-        CurrentTool = currentTool;
-        if (currentTool.IsPlacingTool) _lastUsedPlacingTool = CurrentTool;
-
-        if (_bottomBarToolButtons == null) return;
-        foreach (UIBaseWindow child in _bottomBarToolButtons)
-        {
-            if (child is TileEditorToolButton toolButton)
-            {
-                toolButton.UpdateStyle();
-            }
-        }
-    }
-
-    public void SetCurrentToolAsLastPlacingTool()
-    {
-        SetCurrentTool(_lastUsedPlacingTool);
     }
 
     public GameMapTileData? GetCurrentMapTileData()

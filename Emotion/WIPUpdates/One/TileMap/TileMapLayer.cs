@@ -4,7 +4,7 @@ using Emotion.WIPUpdates.Grids;
 
 namespace Emotion.WIPUpdates.One.TileMap;
 
-public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>
+public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>, IGridWorldSpaceTiles
 {
     /// <summary>
     /// The name of the layer, to be used by the editor or code.
