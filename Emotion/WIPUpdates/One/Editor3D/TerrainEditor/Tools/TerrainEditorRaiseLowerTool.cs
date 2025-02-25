@@ -24,6 +24,7 @@ public class TerrainEditorRaiseLowerTool : TerrainEditorTool
             Vector2 tileCoord = tileInfo.TileCoord;
 
             float brushStrength = 5 * influence;
+            if (Engine.Host.IsCtrlModifierHeld()) brushStrength = -brushStrength;
 
             float val = terrain.GetAt(tileCoord);
             terrain.ExpandingSetAt(tileCoord, val + brushStrength);

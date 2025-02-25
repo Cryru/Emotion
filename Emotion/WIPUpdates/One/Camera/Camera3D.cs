@@ -92,12 +92,6 @@ namespace Emotion.Graphics.Camera
         protected override bool CameraKeyHandler(Key key, KeyState status)
         {
             bool dragKey = key == DragKey;
-            if (DragKey != Key.MouseKeyLeft) // Secondary way of moving camera in editor.
-            {
-                bool leftClickWithControlOrLeftClickLetGo = key == Key.MouseKeyLeft && (Engine.Host.IsCtrlModifierHeld() || status == KeyState.Up);
-                dragKey = dragKey || leftClickWithControlOrLeftClickLetGo;
-            }
-
             if (dragKey)
             {
                 if (status == KeyState.Down)
