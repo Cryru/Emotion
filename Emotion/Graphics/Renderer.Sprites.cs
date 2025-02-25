@@ -161,6 +161,18 @@ namespace Emotion.Graphics
                 normal = Vector3.Normalize(normal);
             }
 
+            // If the size of the line is going to be less than 1 when scaled,
+            // snap it to 1 and modulate alpha
+            if (CurrentState.ViewMatrix.GetValueOrDefault())
+            {
+                float scaledThickness = thickness * _camera.CalculatedScale;
+                if (scaledThickness < 1f)
+                {
+                    thickness = 1f / _camera.CalculatedScale;
+                    color = color * scaledThickness;
+                }
+            }
+
             Vector3 delta = normal * (thickness / 2f);
             Vector3 deltaNeg = -delta;
 
