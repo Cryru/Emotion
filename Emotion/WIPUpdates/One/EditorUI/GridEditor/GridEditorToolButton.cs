@@ -1,19 +1,17 @@
 ﻿using Emotion.UI;
-using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
-using Emotion.WIPUpdates.One.EditorUI.GridEditor;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
+namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
 
-public class TileEditorToolButton : UICallbackButton
+public class GridEditorToolButton : UICallbackButton
 {
     public GridEditorWindow Editor;
-    public TileEditorTool Tool;
+    public GridEditorTool Tool;
 
     private UISolidColor _windowBackground;
 
-    public TileEditorToolButton(GridEditorWindow editor, TileEditorTool tool)
+    public GridEditorToolButton(GridEditorWindow editor, GridEditorTool tool)
     {
         Editor = editor;
         Tool = tool;
@@ -48,11 +46,11 @@ public class TileEditorToolButton : UICallbackButton
         bool isSelected = Editor.CurrentTool == Tool;
         bool isRollover = MouseInside;
         if (isSelected)
-            _windowBackground.WindowColor = TileEditorColorPalette.ToolButtonSelectedColor;
+            _windowBackground.WindowColor = GridEditorColorPalette.ToolButtonSelectedColor;
         else if (isRollover)
-            _windowBackground.WindowColor = TileEditorColorPalette.ToolButtonRolloverColor;
+            _windowBackground.WindowColor = GridEditorColorPalette.ToolButtonRolloverColor;
         else
-            _windowBackground.WindowColor = TileEditorColorPalette.ToolButtonColor;
+            _windowBackground.WindowColor = GridEditorColorPalette.ToolButtonColor;
     }
 
     public override void OnMouseEnter(Vector2 _)

@@ -5,12 +5,7 @@ using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.Editor2D;
-using Emotion.WIPUpdates.One.Editor2D.TileEditor;
-using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.TileMap;
-using Emotion.WIPUpdates.ThreeDee;
-using OpenGL;
 
 namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
 
@@ -92,19 +87,19 @@ public abstract class GridEditorWindow : UIBaseWindow
 
             for (int i = 0; i < Tools.Length; i++)
             {
-                TileEditorTool tool = Tools[i];
-                buttonList.AddChild(new TileEditorToolButton(this, tool));
+                GridEditorTool tool = Tools[i];
+                buttonList.AddChild(new GridEditorToolButton(this, tool));
             }
         }
     }
 
     #region Tools
 
-    public TileEditorTool[] Tools;
-    public TileEditorTool CurrentTool;
-    protected TileEditorTool _lastUsedPlacingTool;
+    public GridEditorTool[] Tools;
+    public GridEditorTool CurrentTool;
+    protected GridEditorTool _lastUsedPlacingTool;
 
-    public void SetCurrentTool(TileEditorTool currentTool)
+    public void SetCurrentTool(GridEditorTool currentTool)
     {
         CurrentTool = currentTool;
         if (currentTool.IsPlacingTool) _lastUsedPlacingTool = CurrentTool;
@@ -112,7 +107,7 @@ public abstract class GridEditorWindow : UIBaseWindow
         if (_bottomBarToolButtons == null) return;
         foreach (UIBaseWindow child in _bottomBarToolButtons)
         {
-            if (child is TileEditorToolButton toolButton)
+            if (child is GridEditorToolButton toolButton)
             {
                 toolButton.UpdateStyle();
             }
@@ -141,7 +136,7 @@ public abstract class GridEditorWindow : UIBaseWindow
         {
             for (int i = 0; i < Tools.Length; i++)
             {
-                TileEditorTool tool = Tools[i];
+                GridEditorTool tool = Tools[i];
                 if (key == tool.HotKey)
                 {
                     SetCurrentTool(tool);
@@ -233,7 +228,7 @@ public abstract class GridEditorWindow : UIBaseWindow
 
     #endregion
 
-    protected abstract TileEditorTool[] GetTools();
+    protected abstract GridEditorTool[] GetTools();
     protected abstract void OnOpen();
     protected abstract void OnClose();
     protected abstract string GetGridName();

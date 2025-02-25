@@ -2,7 +2,7 @@
 
 using Emotion.Common.Serialization;
 using Emotion.WIPUpdates.Grids;
-using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
+using Emotion.WIPUpdates.One.Editor3D.TerrainEditor.Tools;
 using Emotion.WIPUpdates.One.EditorUI.GridEditor;
 using Emotion.WIPUpdates.ThreeDee;
 
@@ -17,10 +17,10 @@ public sealed class TerrainEditorWindow : GridEditorWindow
     {
     }
 
-    protected override TileEditorTool[] GetTools()
+    protected override GridEditorTool[] GetTools()
     {
         return [
-            new TileEditorBrushTool()
+            new TerrainEditorRaiseLowerTool()
         ];
     }
 
@@ -119,19 +119,8 @@ public sealed class TerrainEditorWindow : GridEditorWindow
         TerrainMeshGrid? terrain = GetCurrentMapTerrain();
         AssertNotNull(terrain);
 
-        for (int i = 0; i < BrushGrid.Length; i++)
-        {
-            TerrainBrushGridItem tileInfo = BrushGrid[i];
-            float influence = tileInfo.Influence;
-            if (influence == 0) continue;
-
-            Vector2 tileCoord = tileInfo.TileCoord;
-
-            float brushStrength = 5 * influence;
-
-            float val = terrain.GetAt(tileCoord);
-            terrain.ExpandingSetAt(tileCoord, val + brushStrength);
-        }
+        if (CurrentTool is TerrainEditorTool terrainTool)
+            terrainTool.ApplyTool(this, terrain, _brushGrid);
 
         // Smooth
         //float averageVal = 0;

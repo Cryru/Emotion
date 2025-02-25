@@ -1,6 +1,6 @@
-﻿namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
+﻿namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
 
-public static class TileEditorColorPalette
+public static class GridEditorColorPalette
 {
     public static Color ToolButtonSelectedColor = new Color(210, 210, 210);
     public static Color ToolButtonColor = new Color(140, 140, 140);

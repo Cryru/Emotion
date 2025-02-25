@@ -30,7 +30,7 @@ public sealed class TileEditorWindow : GridEditorWindow
     {
     }
 
-    protected override TileEditorTool[] GetTools()
+    protected override GridEditorTool[] GetTools()
     {
         return [
             new TileEditorBrushTool(),
@@ -62,7 +62,7 @@ public sealed class TileEditorWindow : GridEditorWindow
 
     protected override bool CanEdit()
     {
-        if (CurrentTool.RequireTileSelection)
+        if (CurrentTool is TileEditorTool tileEditorTool && tileEditorTool.RequireTileSelection)
         {
             AssertNotNull(TileTextureSelector);
             if (TileTextureSelector == null) return false;
@@ -81,7 +81,8 @@ public sealed class TileEditorWindow : GridEditorWindow
 
     protected override void UseCurrentToolAtPosition(Vector2 tilePos)
     {
-        CurrentTool.ApplyTool(this, CurrentLayer, tilePos);
+        if (CurrentTool is TileEditorTool tileTool)
+            tileTool.ApplyTool(this, CurrentLayer, tilePos);
     }
 
     public override void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
@@ -197,8 +198,8 @@ public sealed class TileEditorWindow : GridEditorWindow
         // Render cursor
         if (MouseInside)
         {
-            if (CursorTilePos != null && CurrentLayer != null)
-                CurrentTool.RenderCursor(c, this, CurrentLayer, CursorTilePos.Value);
+            if (CursorTilePos != null && CurrentLayer != null && CurrentTool is TileEditorTool tileTool)
+                tileTool.RenderCursor(c, this, CurrentLayer, CursorTilePos.Value);
         }
 
         c.SetUseViewMatrix(false);

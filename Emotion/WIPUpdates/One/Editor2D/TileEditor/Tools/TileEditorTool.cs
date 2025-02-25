@@ -1,20 +1,11 @@
-﻿using Emotion.Platform.Input;
+﻿using Emotion.WIPUpdates.One.EditorUI.GridEditor;
 using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 
-public abstract class TileEditorTool
+public abstract class TileEditorTool : GridEditorTool
 {
-    public string Name { get; protected set; }
-
-    public bool IsPlacingTool { get; protected set; }
-
-    public bool IsPrecisePaint { get; protected set; }
-
     public bool RequireTileSelection { get; protected set; }
-
-
-    public Key HotKey;
 
     public abstract void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos);
 
