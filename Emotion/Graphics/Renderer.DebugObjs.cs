@@ -5,6 +5,7 @@
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
+using Emotion.Primitives;
 
 #endregion
 
@@ -27,7 +28,7 @@ namespace Emotion.Graphics
             _triangles.Add(p3);
         }
 
-        public void DbgAddPoint(Vector3 p, float radius = 1f, Color? color = null)
+        public void DbgAddPoint(Vector3 p, float radius = 50f, Color? color = null)
         {
             if (!Engine.Configuration.DebugMode) return;
 
@@ -45,6 +46,26 @@ namespace Emotion.Graphics
 
             _lines ??= new();
             _lines.Add((p, relative ? p2 + p : p2));
+        }
+
+        public void DbgAddRectangle(Rectangle rect)
+        {
+            if (!Engine.Configuration.DebugMode) return;
+
+            _lines ??= new();
+
+            Vector2 position = rect.Position;
+            Vector2 size = rect.Size;
+
+            Vector3 nn = position.ToVec3();
+            Vector3 pn = new Vector3(position.X + size.X, position.Y, 0);
+            Vector3 np = new Vector3(position.X, position.Y + size.Y, 0);
+            Vector3 pp = new Vector3(position.X + size.X, position.Y + size.Y, 0);
+
+            _lines.Add((nn, pn));
+            _lines.Add((pn, pp));
+            _lines.Add((pp, np));
+            _lines.Add((np, nn));
         }
 
         public void DbgClear()
