@@ -73,6 +73,10 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         cacheAreaChunkSpace.SnapToGrid(chunkWorldSize);
 
         cacheAreaChunkSpace.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+
+        //min -= tileSize / 2f;
+        //max += tileSize / 2f;
+
         min /= chunkWorldSize;
         max /= chunkWorldSize;
 
@@ -190,7 +194,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         // Get data for stiching vertices
         float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
         float[] dataLeft = chunkLeft?.GetRawData() ?? Array.Empty<float>();
-        float[] dataMe = chunk?.GetRawData() ?? Array.Empty<float>();
+        float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
 
         int vIdx = 0;
         for (int y = -1; y < ChunkSize.Y; y++)
@@ -265,13 +269,16 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             indexOffset += 6;
         }
 
-        Mesh chunkMesh = new Mesh(vertices, indices)
+        if (chunkCache.CachedMesh == null)
         {
-            Name = $"TerrainChunk_{chunkCoord}",
-            Material = TerrainMeshMaterial
-        };
-
-        chunkCache.CachedMesh = chunkMesh;
+            Mesh chunkMesh = new Mesh(vertices, indices)
+            {
+                Name = $"TerrainChunk_{chunkCoord}",
+                Material = TerrainMeshMaterial
+            };
+            chunkCache.CachedMesh = chunkMesh;
+        }
+        chunkCache.CachedVersion = chunk.ChunkVersion;
     }
 
     #region World Space
