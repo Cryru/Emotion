@@ -19,7 +19,7 @@ public class GLTFDocument
     public GLTFBufferView[] BufferViews { get; set; }
 
     [JsonPropertyName("images")]
-    public GLTFImage[] Images { get; set; }
+    public GLTFImage[]? Images { get; set; }
 
     [JsonPropertyName("textures")]
     public GLTFTexture[] Textures { get; set; }
@@ -34,7 +34,7 @@ public class GLTFDocument
     public GLTFMesh[] Meshes { get; set; }
 
     [JsonPropertyName("materials")]
-    public GLTFMaterial[] Materials { get; set; }
+    public GLTFMaterial[]? Materials { get; set; }
 
     [JsonPropertyName("skins")]
     public GLTFSkins[] Skins { get; set; }

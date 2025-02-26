@@ -283,7 +283,7 @@ public static partial class GLTFFormat
         }
 
         // Read images
-        GLTFImage[] images = gltfDoc.Images;
+        GLTFImage[] images = gltfDoc.Images ?? Array.Empty<GLTFImage>();
         Texture[] imagesRead = new Texture[images.Length];
         for (int i = 0; i < images.Length; i++)
         {
@@ -299,7 +299,7 @@ public static partial class GLTFFormat
         }
 
         // Read materials
-        GLTFMaterial[] gltfMaterials = gltfDoc.Materials;
+        GLTFMaterial[] gltfMaterials = gltfDoc.Materials ?? Array.Empty<GLTFMaterial>();
         MeshMaterial[] materials = new MeshMaterial[gltfMaterials.Length];
         for (int i = 0; i < gltfMaterials.Length; i++)
         {
@@ -312,7 +312,7 @@ public static partial class GLTFFormat
 
             int textureIndex = baseColorTexture.Index;
             GLTFTexture texture = gltfDoc.Textures[textureIndex];
-            GLTFImage image = gltfDoc.Images[texture.Source];
+            GLTFImage image = images[texture.Source];
             string assetPath = AssetLoader.JoinPath(rootFolder, image.Uri);
 
             Texture imageRead = imagesRead[texture.Source];
@@ -500,7 +500,7 @@ public static partial class GLTFFormat
             }
 
             int materialIndex = primitive.Material;
-            MeshMaterial material = materials[materialIndex];
+            MeshMaterial material = materials.Length > 0 ? materials[materialIndex] : MeshMaterial.DefaultMaterial;
 
             Mesh mesh = new Mesh($"Mesh {m}", vertices, verticesExtraData, indices);
             mesh.Material = material;
