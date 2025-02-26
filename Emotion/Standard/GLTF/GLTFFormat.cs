@@ -462,7 +462,7 @@ public static partial class GLTFFormat
                 }
             }
 
-            GLTFSkins[] skins = gltfDoc.Skins;
+            GLTFSkins[] skins = gltfDoc.Skins ?? Array.Empty<GLTFSkins>();
             GLTFSkins? primarySkin = skins.Length > 0 ? skins[0] : null; // Todo
             MeshBone[]? bones = null;
             if (primarySkin != null)

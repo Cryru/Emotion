@@ -37,7 +37,7 @@ public class GLTFDocument
     public GLTFMaterial[]? Materials { get; set; }
 
     [JsonPropertyName("skins")]
-    public GLTFSkins[] Skins { get; set; }
+    public GLTFSkins[]? Skins { get; set; }
 
     [JsonPropertyName("nodes")]
     public GLTFNode[] Nodes { get; set; }
