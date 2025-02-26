@@ -6,7 +6,9 @@ using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
+using System;
 using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.ThreeDee;
@@ -31,6 +33,32 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
     protected TerrainMeshGrid()
     {
 
+    }
+
+    public float GetHeightAt(Vector2 worldSpace)
+    {
+        Vector2 tilePos = worldSpace / TileSize;
+        Vector2 floorPos = tilePos.Floor();
+        Vector2 ceilPos = tilePos.Ceiling();
+
+        VersionedGridChunk<float>? chunk00 = GetChunkAt(floorPos, out Vector2 relCoord00);
+        VersionedGridChunk<float>? chunk10 = GetChunkAt(new Vector2(ceilPos.X, floorPos.Y), out Vector2 relCoord10);
+        VersionedGridChunk<float>? chunk01 = GetChunkAt(new Vector2(floorPos.X, ceilPos.Y), out Vector2 relCoord01);
+        VersionedGridChunk<float>? chunk11 = GetChunkAt(ceilPos, out Vector2 relCoord11);
+
+        float h00 = chunk00 != null ? GetAtForChunk(chunk00, relCoord00) : 0;
+        float h10 = chunk10 != null ? GetAtForChunk(chunk10, relCoord10) : 0;
+        float h01 = chunk01 != null ? GetAtForChunk(chunk01, relCoord01) : 0;
+        float h11 = chunk11 != null ? GetAtForChunk(chunk11, relCoord11) : 0;
+
+        float fracX = tilePos.X - floorPos.X;
+        float fracY = tilePos.Y - floorPos.Y;
+
+        float h0 = Maths.Lerp(h00, h10, fracX); // bottom
+        float h1 = Maths.Lerp(h01, h11, fracX); // top
+        float height = Maths.Lerp(h0, h1, fracY); // both
+
+        return height;
     }
 
     // todo: 3d culling
