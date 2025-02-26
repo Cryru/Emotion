@@ -419,7 +419,7 @@ namespace Emotion.UI
         {
             if (Children == null) return true;
 
-            Vector2 axis = Engine.Host.IsKeyPartOfAxis(key, NavigationKey);
+            Vector2 axis = Engine.Host.GetKeyAxisPartDown(key, NavigationKey);
             if (axis != Vector2.Zero)
             {
                 UIBaseWindow? newItem = null;

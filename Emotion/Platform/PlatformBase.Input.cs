@@ -302,7 +302,7 @@ namespace Emotion.Platform
         /// where that key is within the axis.
         /// This might leak key status outside of your event order.
         /// </summary>
-        public Vector2 IsKeyPartOfAxis(Key keyToCheck, Key axis)
+        public Vector2 GetKeyAxisPartDown(Key keyToCheck, Key axis)
         {
             if (!_keyToDirectionalAxis.TryGetValue(keyToCheck, out Key directionAxis)) return Vector2.Zero;
             if (axis != directionAxis && !axis.HasFlag(directionAxis)) return Vector2.Zero;

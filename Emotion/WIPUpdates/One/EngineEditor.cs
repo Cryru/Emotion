@@ -51,6 +51,8 @@ public static partial class EngineEditor
 
     public static void OpenEditor()
     {
+        Engine.Host.OnKey.BlockListenersOfType(KeyListenerType.Game);
+
         Engine.UI.AddChild(EditorRoot);
 
         UIBaseWindow barContainer = new()
@@ -80,6 +82,8 @@ public static partial class EngineEditor
 
     public static void CloseEditor()
     {
+        Engine.Host.OnKey.BlockListenersOfType(null);
+
         Engine.UI.RemoveChild(EditorRoot);
         EditorRoot.ClearChildren();
         SetMapEditorMode(MapEditorMode.Off);

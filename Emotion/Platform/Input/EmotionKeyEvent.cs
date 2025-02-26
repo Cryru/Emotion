@@ -15,7 +15,6 @@ public enum KeyListenerType : byte
     EditorUI = 2,
     Editor = 3,
     EditorCamera = 4,
-    EditorBarrier = 5, // Prevents keys from leaking into UI/Game while editor is open.
 
     UI = 6,
     Game = 7,
@@ -64,6 +63,8 @@ public class EmotionKeyEvent
             var propagate = true;
             for (int l = (int) KeyListenerType.System + 1; l < _listenerArray.Length; l++)
             {
+                if (l == _blockingType) continue;
+
                 List<EmotionKeyEventPair>? list = _listenerArray[l];
                 if (list == null) continue;
 
@@ -149,5 +150,16 @@ public class EmotionKeyEvent
                 }
             }
         }
+    }
+
+    private int _blockingType;
+
+    // Used by the editor to block game inputs while its open.
+    public void BlockListenersOfType(KeyListenerType? typ)
+    {
+        if (typ == null)
+            _blockingType = -1;
+        else
+            _blockingType = (int)typ;
     }
 }

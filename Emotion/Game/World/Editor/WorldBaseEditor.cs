@@ -87,7 +87,7 @@ public abstract partial class WorldBaseEditor
         InitializeEditorInterface();
         InitializeObjectEditor();
         EnterEditorInternal();
-        Engine.Host.OnKey.AddListener(EditorBarrierInputHandler, KeyListenerType.EditorBarrier);
+        //Engine.Host.OnKey.AddListener(EditorBarrierInputHandler, KeyListenerType.EditorBarrier);
 
         EditorOpen = true;
         if (CurrentMap != null)

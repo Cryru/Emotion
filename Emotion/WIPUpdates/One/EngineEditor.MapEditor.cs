@@ -74,7 +74,7 @@ public static partial class EngineEditor
             Vector3 pos = _cameraOutsideEditor.Position;
             if (_cameraOutsideEditor is Camera2D && pos.Z == 0) pos.Z = 550; // Put away from grid.
 
-            _editorCamera = new Camera3D(pos, 1f)
+            _editorCamera = new Camera3D(pos, 1f, KeyListenerType.EditorCamera)
             {
                 LookAt = _cameraOutsideEditor.LookAt,
                 DragKey = Key.MouseKeyMiddle,
@@ -92,7 +92,7 @@ public static partial class EngineEditor
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
         {
-            _editorCamera = new Camera2D(_cameraOutsideEditor.Position, 1f)
+            _editorCamera = new Camera2D(_cameraOutsideEditor.Position, 1f, KeyListenerType.EditorCamera)
             {
                 MovementSpeed = 7, // todo: modify speed property in camera to make more sense (check its Update)
                 ZoomAllowed = true
