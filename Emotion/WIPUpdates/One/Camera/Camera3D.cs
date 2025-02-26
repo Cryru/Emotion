@@ -25,12 +25,18 @@ namespace Emotion.Graphics.Camera
 
         // Movement
         public float MovementSpeed = 10;
-        private Vector2 _lastMousePos;
-        private bool _held;
-        private Vector2 _inputDirection;
-        private float _inputDirectionZ;
+        protected Vector2 _inputDirection;
+        protected float _inputDirectionZ;
+
+        // Mouse Movement
+        protected Vector2 _lastMousePos;
+        protected bool _mouseKeyHeld;
 
         protected Vector3 _yawRollPitch = Vector3.Zero;
+
+        // Settings
+        protected bool _invertXMouseMovement = false;
+        protected float _cameraMovementSpeed = 0.1f;
 
         public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
         {
@@ -91,19 +97,18 @@ namespace Emotion.Graphics.Camera
 
         protected override bool CameraKeyHandler(Key key, KeyState status)
         {
-            bool dragKey = key == DragKey;
-            if (dragKey)
+            if (key == DragKey)
             {
                 if (status == KeyState.Down)
                 {
                     _lastMousePos = Engine.Host.MousePosition;
-                    _held = true;
+                    _mouseKeyHeld = true;
                     return false;
                 }
 
                 if (status == KeyState.Up)
                 {
-                    _held = false;
+                    _mouseKeyHeld = false;
                     return false;
                 }
             }
@@ -144,11 +149,13 @@ namespace Emotion.Graphics.Camera
         /// <inheritdoc />
         public override void Update()
         {
-            if (_held)
+            if (_mouseKeyHeld)
             {
                 Vector2 mousePos = Engine.Host.MousePosition;
-                float xOffset = -(mousePos.X - _lastMousePos.X) * 0.1f;
-                float yOffset = (mousePos.Y - _lastMousePos.Y) * 0.1f;
+                float xOffset = -(mousePos.X - _lastMousePos.X) * _cameraMovementSpeed;
+                float yOffset = (mousePos.Y - _lastMousePos.Y) * _cameraMovementSpeed;
+
+                if (_invertXMouseMovement) xOffset = -xOffset;
 
                 _yawRollPitch.X += xOffset;
                 _yawRollPitch.Z += yOffset;
