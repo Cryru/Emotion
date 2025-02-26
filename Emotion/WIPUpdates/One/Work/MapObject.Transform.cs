@@ -349,4 +349,14 @@ public partial class MapObject
         _scaleMatrix = Matrix4x4.CreateScale(_sizeX, _sizeY, _sizeZ);
         return _scaleMatrix * _rotationMatrix * _translationMatrix;
     }
+
+    public Vector3 RotateVectorToObjectFacing(Vector3 vec)
+    {
+        return Vector3.Transform(vec, _rotationMatrix);
+    }
+
+    public Vector2 RotateVectorToObjectFacing(Vector2 vec)
+    {
+        return Vector3.Transform(vec.ToVec3(), Matrix4x4.CreateRotationZ(_rotation.Z)).ToVec2();
+    }
 }

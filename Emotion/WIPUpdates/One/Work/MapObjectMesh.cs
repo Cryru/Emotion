@@ -204,7 +204,7 @@ public class MapObjectMesh : MapObject
         _scaleMatrix = Matrix4x4.CreateScale(_sizeX * entityScale, _sizeY * entityScale, _sizeZ * entityScale);
 
         Matrix4x4 rotMatrix = ignoreRotation ? Matrix4x4.Identity : _rotationMatrix;
-        return entityLocalTransform * _scaleMatrix * rotMatrix * _translationMatrix;
+        return _scaleMatrix * rotMatrix * entityLocalTransform * _translationMatrix;
     }
 
     #endregion
@@ -257,6 +257,11 @@ public class MapObjectMesh : MapObject
         if (_boneMatricesPerMesh == null) return Array.Empty<Matrix4x4>();
         if (meshIdx >= _boneMatricesPerMesh.Length) return Array.Empty<Matrix4x4>();
         return _boneMatricesPerMesh[meshIdx];
+    }
+
+    public string GetCurrentAnimation()
+    {
+        return _currentAnimation?.Name ?? string.Empty;
     }
 
     public virtual void SetAnimation(string? name)
@@ -396,4 +401,21 @@ public class MapObjectMesh : MapObject
 
         c.PopModelMatrix();
     }
+
+    #region Helpers
+
+    public void RotateToFacePoint(Vector3 pt)
+    {
+        Vector3 forward = _entity?.Forward ?? Vector3.UnitX;
+
+        Vector3 direction = Vector3.Normalize(pt - Position);
+        float angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
+        if (float.IsNaN(angle)) angle = 0;
+
+        Vector3 rotation = Vector3.Zero;
+        rotation.Z = angle;
+        Rotation = rotation;
+    }
+
+    #endregion
 }
