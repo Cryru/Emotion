@@ -1,15 +1,10 @@
-﻿using Emotion.SourceGeneration;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net.Mime;
-using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
 using static Emotion.SourceGeneration.Helpers;
 
 namespace SourceGenerator
@@ -19,10 +14,16 @@ namespace SourceGenerator
     {
         public static int generatedTypesCount = 0;
 
+        public static Compilation CurrentCompilation = null;
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             IncrementalValueProvider<ImmutableArray<INamedTypeSymbol>> definedTypesProvider = context.CompilationProvider.Select(
-                (compilation, cancellationToken) => GetTypesDefinedInCompilationAssembly(compilation)
+                (compilation, cancellationToken) =>
+                {
+                    CurrentCompilation = compilation;
+                    return GetTypesDefinedInCompilationAssembly(compilation);
+                }
             );
 
             context.RegisterSourceOutput(definedTypesProvider, (sourceProductionContext, definedTypes) =>
@@ -134,6 +135,10 @@ namespace SourceGenerator
 
         public static bool IsReflectorBuiltInType(INamedTypeSymbol typ)
         {
+            bool isFromEmotion = typ.ContainingAssembly.Name == "Emotion";
+            bool compilingEmotion = CurrentCompilation.AssemblyName == "Emotion";
+            if (isFromEmotion && !compilingEmotion) return true;
+
             string typName = typ.ToDisplayString();
             if (typName[typName.Length - 1] == '?') typName = typName.Substring(0, typName.Length - 1);
 
@@ -232,6 +237,14 @@ namespace SourceGenerator
                 {
                     allowNonPublic = false;
                     context.ReportDiagnostic(Diagnostic.Create(_reflectorPrivateMember, typ.Locations.FirstOrDefault()));
+                }
+
+                if (allowNonPublic)
+                {
+                    IAssemblySymbol containingAssembly = typ.ContainingAssembly;
+                    Compilation compilationAssembly = CurrentCompilation;
+                    bool isFromCompilationAssembly = containingAssembly.Equals(compilationAssembly.Assembly, SymbolEqualityComparer.Default);
+                    if (!isFromCompilationAssembly) allowNonPublic = false;
                 }
 
                 if (!allowNonPublic && member.DeclaredAccessibility != Accessibility.Public) continue;

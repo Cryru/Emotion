@@ -46,6 +46,7 @@
     </ItemGroup>
     
     <ItemGroup>
+      <Compile Remove="ExamplesOne\TimerDemoScene.cs" />
       <Compile Remove="Examples\ComplexPolygonContours.cs" />
       <Compile Remove="Examples\FrameBufferSampling.cs" />
       <Compile Remove="Examples\GeneratedCurveMeshExample.cs" />
