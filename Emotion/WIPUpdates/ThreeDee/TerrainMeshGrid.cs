@@ -37,6 +37,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
 
     public float GetHeightAt(Vector2 worldSpace)
     {
+        worldSpace -= TileSize; // Stiching
+
         Vector2 tilePos = worldSpace / TileSize;
         Vector2 floorPos = tilePos.Floor();
         Vector2 ceilPos = tilePos.Ceiling();
@@ -277,6 +279,11 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 Material = TerrainMeshMaterial
             };
             chunkCache.CachedMesh = chunkMesh;
+        }
+        else
+        {
+            chunkCache.CachedMesh.VerticesONE = vertices;
+            chunkCache.CachedMesh.Indices = indices;
         }
         chunkCache.CachedVersion = chunk.ChunkVersion;
     }
