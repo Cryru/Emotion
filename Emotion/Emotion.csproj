@@ -40,8 +40,8 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64'">
         <DefineConstants>$(DefineConstants);MESA;ANGLE;MORE_IMAGE_TYPES;CSHARP_SCRIPTING</DefineConstants>
-        <IsTrimmable>False</IsTrimmable>
-        <IsAotCompatible>False</IsAotCompatible>
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64NoDepend'">
         <DefineConstants>$(DefineConstants)</DefineConstants>
@@ -221,10 +221,10 @@
       <Compile Remove="Game\World2D\SceneControl\World2DBaseScene.cs" />
       <Compile Remove="Game\World3D\SceneControl\World3DBaseScene.cs" />
       <Compile Remove="Game\World\SceneControl\WorldBaseScene.cs" />
+      <Compile Remove="IO\MeshAssetTypes\EmotionMeshAsset.cs" />
       <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
       <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
       <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-      <Compile Remove="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
     </ItemGroup>
 
     <!-- Libraries Binaries -->
@@ -286,16 +286,12 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="IO\MeshAssetTypes\Assimp\GLTF\" />
-        <Folder Include="Properties\" />
-    </ItemGroup>
-    <ItemGroup>
       <None Include="Game\World2D\SceneControl\World2DBaseScene.cs" />
       <None Include="Game\World3D\SceneControl\World3DBaseScene.cs" />
       <None Include="Game\World\SceneControl\WorldBaseScene.cs" />
+      <None Include="IO\MeshAssetTypes\EmotionMeshAsset.cs" />
       <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
       <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
       <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-      <None Include="WIPUpdates\TimeUpdate\TimerDemoScene.cs" />
     </ItemGroup>
 </Project>

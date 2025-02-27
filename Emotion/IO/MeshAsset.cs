@@ -27,16 +27,16 @@ namespace Emotion.IO
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
-            if (Name.Contains(".em3"))
-            {
-                var asset = new EmotionMeshAsset
-                {
-                    Name = Name
-                };
-                asset.Create(data);
-                Entity = asset.Entity;
-                _underlyingAsset = asset;
-            }
+            //if (Name.Contains(".em3"))
+            //{
+            //    var asset = new EmotionMeshAsset
+            //    {
+            //        Name = Name
+            //    };
+            //    asset.Create(data);
+            //    Entity = asset.Entity;
+            //    _underlyingAsset = asset;
+            //}
             // Our native support for .obj is trash
             //else if (Name.Contains(".obj"))
             //{
@@ -48,7 +48,7 @@ namespace Emotion.IO
             //    Entity = asset.Entity;
             //    _underlyingAsset = asset;
             //}
-            else if (Name.Contains(".gltf"))
+            if (Name.Contains(".gltf"))
             {
                 MeshEntity? entity = GLTFFormat.Decode(AssetLoader.GetDirectoryName(Name), data);
                 if (entity != null)

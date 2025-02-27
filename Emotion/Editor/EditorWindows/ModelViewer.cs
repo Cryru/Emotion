@@ -138,21 +138,21 @@ public class ModelViewer : EditorPanel
         };
         editorButtons.AddChild(butSprite);
 
-        var saveAsEm3Button = new EditorButton
-        {
-            Text = "Export as Em3",
-            StretchY = true,
-            StretchX = false,
-            OnClickedProxy = _ =>
-            {
-                if (_obj.Entity == null) return;
-                byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
-                Engine.AssetLoader.Save(data, $"Player/Em3Export/{_obj.Entity.Name}.em3");
-            },
-            Id = "ButtonExportEm3",
-            Enabled = false
-        };
-        editorButtons.AddChild(saveAsEm3Button);
+        //var saveAsEm3Button = new EditorButton
+        //{
+        //    Text = "Export as Em3",
+        //    StretchY = true,
+        //    StretchX = false,
+        //    OnClickedProxy = _ =>
+        //    {
+        //        if (_obj.Entity == null) return;
+        //        byte[]? data = EmotionMeshAsset.EntityToByteArray(_obj.Entity);
+        //        Engine.AssetLoader.Save(data, $"Player/Em3Export/{_obj.Entity.Name}.em3");
+        //    },
+        //    Id = "ButtonExportEm3",
+        //    Enabled = false
+        //};
+        //editorButtons.AddChild(saveAsEm3Button);
 
         var gridSizeEdit = new PropEditorNumber<float>();
         gridSizeEdit.SetValue(_grid.TileSize);

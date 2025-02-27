@@ -58,6 +58,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Include="ExamplesOne\TimerDemoScene.cs" />
       <None Include="Examples\ComplexPolygonContours.cs" />
       <None Include="Examples\FrameBufferSampling.cs" />
       <None Include="Examples\GeneratedCurveMeshExample.cs" />
