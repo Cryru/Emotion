@@ -2,8 +2,10 @@
 
 #region Using
 
+using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
+using Emotion.Utility;
 
 #endregion
 
@@ -18,7 +20,7 @@ public class MeshEntity
     public string? Name { get; set; }
     public float Scale { get; set; } = 1f;
     public Matrix4x4 LocalTransform { get; set; } = Matrix4x4.Identity;
-    public Mesh[]? Meshes { get; set; }
+    public Mesh[] Meshes { get; set; } = Array.Empty<Mesh>();
 
     public Vector3 Forward = RenderComposer.Forward;
 
@@ -26,11 +28,56 @@ public class MeshEntity
     public SkeletalAnimation[]? Animations { get; set; }
     public SkeletonAnimRigRoot? AnimationRig { get; set; }
 
+    [DontSerialize]
+    public SkeletonAnimRigNode[] AnimationRigOne { get; set; } = Array.Empty<SkeletonAnimRigNode>();
+
     // Render settings
     public bool BackFaceCulling { get; set; } = true;
 
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
+
+    public void ONE_PrepareONEData()
+    {
+        if (AnimationRig == null)
+        {
+            AnimationRigOne = Array.Empty<SkeletonAnimRigNode>();
+            return;
+        }
+
+        int count = 0;
+        Queue<SkeletonAnimRigNode> nodes = new();
+        nodes.Enqueue(AnimationRig);
+
+        while (nodes.TryDequeue(out SkeletonAnimRigNode? node))
+        {
+            count++;
+
+            for (int i = 0; i < node.Children.Length; i++)
+            {
+                nodes.Enqueue(node.Children[i]);
+            }
+        }
+
+        AnimationRigOne = new SkeletonAnimRigNode[count];
+
+        int idx = 0;
+        nodes.Enqueue(AnimationRig);
+        while (nodes.TryDequeue(out SkeletonAnimRigNode? node))
+        {
+            AnimationRigOne[idx] = node;
+            
+            for (int i = 0; i < node.Children.Length; i++)
+            {
+                SkeletonAnimRigNode child = node.Children[i];
+                child.ParentIdx = idx;
+
+                nodes.Enqueue(child);
+            }
+
+            idx++;
+        }
+    }
 
     public Mesh? GetMeshByName(string id)
     {
@@ -247,6 +294,44 @@ public class MeshEntity
         }
     }
 
+    public void UpdateAnimationRigMatrices(SkeletalAnimation? animation, float timeStamp, Matrix4x4[] matrices)
+    {
+        if (AnimationRigOne.Length == 0) return; // Non animated
+        Assert(matrices.Length == AnimationRigOne.Length);
+
+        for (var i = 0; i < AnimationRigOne.Length; i++)
+        {
+            SkeletonAnimRigNode node = AnimationRigOne[i];
+
+            Matrix4x4 currentMatrix = node.LocalTransform;
+           
+            if (animation != null)
+            {
+                if (node.DontAnimate)
+                {
+                    currentMatrix = Matrix4x4.Identity;
+                }
+                else
+                {
+                    // note: not every bone is moved by the animation
+                    SkeletonAnimChannel? channel = animation.GetMeshAnimBone(node.Name);
+                    if (channel != null)
+                        currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
+                }
+            }
+
+            Matrix4x4 parentMatrix = Matrix4x4.Identity;
+            int parentIdx = node.ParentIdx;
+            if (parentIdx != -1)
+            {
+                parentMatrix = matrices[parentIdx];
+            }
+
+            Matrix4x4 matrixForNode = currentMatrix * parentMatrix;
+            matrices[i] = matrixForNode;
+        }
+    }
+
     /// <summary>
     /// Fill a matrix tree corresponding to this entity's rig with the values
     /// in an animation at the specified timestamp.
@@ -297,6 +382,19 @@ public class MeshEntity
         }
 
         Matrix4x4 myMatrix = currentMatrix * parentMatrix;
+
+        if (node.Name == "bone_SpineLow")
+        {
+            //myMatrix *= Matrix4x4.CreateRotationY(Maths.DegreesToRadians(45));
+            bool a = true;
+        }
+
+        if (node.Name == "bone_Waist")
+        {
+            myMatrix *= Matrix4x4.CreateRotationY(Maths.DegreesToRadians(90));
+            bool a = true;
+        }
+
         for (var i = 0; i < meshes.Length; i++)
         {
             Mesh mesh = meshes[i];

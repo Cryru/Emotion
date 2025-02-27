@@ -465,7 +465,7 @@ public sealed class MeshEntityBatchRenderer
                 _shadersUsedList.Add(currentShader);
             }
 
-            Matrix4x4[]? boneMatrices = meshObj.GetBoneMatricesForMesh(m);
+            Matrix4x4[]? boneMatrices = renderState.GetBoneMatricesForMesh(m);
 
             if (objIsTransparent)
             {

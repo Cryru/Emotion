@@ -6,6 +6,7 @@ using Emotion.Game.ThreeDee;
 using Emotion.Game.World3D;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.One.Work;
 
@@ -86,28 +87,19 @@ public class MapObjectMesh : MapObject
     {
         RenderState = null;
 
-        _boneMatricesPerMesh = null;
         _currentAnimation = null;
-        _time = 0;
+        _animationTime = 0;
 
         _entity = entity;
 
         if (_entity != null)
         {
             RenderState = new MeshEntityMetaState(_entity);
-            if (_entity.Meshes != null)
-            {
-                CacheBoneMatrices();
-            }
-            else
-            {
-                _entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
-                _boundingSphereBase = baseSphere;
-                _boundingCubeBase = baseCube;
-            }
+            InitAnimation();
         }
         else
         {
+            _boneMatricesForEntityRig = Array.Empty<Matrix4x4>();
             _boundingSphereBase = new Sphere();
             _boundingCubeBase = new Cube();
         }
@@ -211,52 +203,24 @@ public class MapObjectMesh : MapObject
 
     #region Animation and Bones
 
-    protected const int MAX_BONES = 200; // Must match number in SkeletalAnim.vert
-    protected Matrix4x4[][]? _boneMatricesPerMesh;
+    protected Matrix4x4[] _boneMatricesForEntityRig;
     private SkeletalAnimation? _currentAnimation;
-    private float _time;
+    private float _animationTime;
     private string? _initSetAnimation;
 
-    protected void CacheBoneMatrices()
+    protected void InitAnimation()
     {
         AssertNotNull(_entity);
         AssertNotNull(_entity.Meshes);
 
-        // Create bone matrices for the meshes (if they have bones)
-        _boneMatricesPerMesh = new Matrix4x4[_entity.Meshes.Length][];
-
-        for (var i = 0; i < _entity.Meshes.Length; i++)
-        {
-            Mesh mesh = _entity.Meshes[i];
-            var boneCount = 1; // idx 0 is identity
-            if (mesh.Bones != null)
-            {
-                boneCount += mesh.Bones.Length;
-                if (boneCount > MAX_BONES)
-                {
-                    Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({boneCount} > {MAX_BONES}).", "3D");
-                    boneCount = MAX_BONES;
-                }
-            }
-
-            var boneMats = new Matrix4x4[boneCount];
-            boneMats[0] = Matrix4x4.Identity;
-            _boneMatricesPerMesh[i] = boneMats;
-        }
+        // Create bone matrices for the rig
+        _boneMatricesForEntityRig = new Matrix4x4[_entity.AnimationRigOne.Length];
 
         // Reset the animation.
         // This will also set the default bone matrices.
-        // This will also calculate bounds (if missing - applicable for non em3 entities).
-        // This will also calculate the vertices collisions.
+        // This will also calculate bounds
         SetAnimation(_initSetAnimation);
         _initSetAnimation = null;
-    }
-
-    public Matrix4x4[] GetBoneMatricesForMesh(int meshIdx)
-    {
-        if (_boneMatricesPerMesh == null) return Array.Empty<Matrix4x4>();
-        if (meshIdx >= _boneMatricesPerMesh.Length) return Array.Empty<Matrix4x4>();
-        return _boneMatricesPerMesh[meshIdx];
     }
 
     public string GetCurrentAnimation()
@@ -287,25 +251,34 @@ public class MapObjectMesh : MapObject
         }
 
         _currentAnimation = animInstance;
-        _time = 0; // Reset time
+        _animationTime = 0; // Reset time
 
         // todo: add some way for the entity to calculate and hold a collision mesh.
-        _entity.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, 0);
+        _entity.UpdateAnimationRigMatrices(_currentAnimation, 0, _boneMatricesForEntityRig);
         //CacheVerticesForCollision();
 
         _entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
         _boundingSphereBase = baseSphere;
         _boundingCubeBase = baseCube;
 
-        Assert(_boundingSphereBase.Radius != 0, "Bounding radius is not 0");
+        Assert(_boundingSphereBase.Radius != 0, "Entity bounds is 0 - no vertices?");
     }
 
     #endregion
 
     public override void Update(float dt)
     {
-        _time += dt;
-        _entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+        // Update current animation
+        if (_currentAnimation != null && _entity != null && RenderState != null)
+        {
+            _animationTime += dt;
+
+            float duration = _currentAnimation.Duration;
+            _entity.UpdateAnimationRigMatrices(_currentAnimation, _animationTime % duration, _boneMatricesForEntityRig);
+            if (_animationTime > duration) _animationTime -= duration;
+
+            RenderState.UpdateMeshMatrices(_boneMatricesForEntityRig);
+        }
 
         base.Update(dt);
     }
@@ -350,7 +323,7 @@ public class MapObjectMesh : MapObject
                 {
                     SkeletonAnimChannel? channel = _currentAnimation.GetMeshAnimBone(node.Name);
                     if (channel != null)
-                        currentMatrix = channel.GetMatrixAtTimestamp(_time % _currentAnimation.Duration);
+                        currentMatrix = channel.GetMatrixAtTimestamp(_animationTime % _currentAnimation.Duration);
                 }
             }
 
@@ -412,7 +385,7 @@ public class MapObjectMesh : MapObject
         float angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
         if (float.IsNaN(angle)) angle = 0;
 
-        Vector3 rotation = Vector3.Zero;
+        Vector3 rotation = Rotation;
         rotation.Z = angle;
         Rotation = rotation;
     }

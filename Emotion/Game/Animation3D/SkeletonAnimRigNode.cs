@@ -23,7 +23,8 @@ public class SkeletonAnimRigNode
 {
     public string? Name { get; set; }
     public Matrix4x4 LocalTransform;
-    public SkeletonAnimRigNode[]? Children;
+    public int ParentIdx = -1;
+    public SkeletonAnimRigNode[] Children = Array.Empty<SkeletonAnimRigNode>();
 
     // Don't evaluate this node's local transform when applying animation channels.
     public bool DontAnimate;
