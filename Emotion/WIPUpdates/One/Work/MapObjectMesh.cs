@@ -79,6 +79,8 @@ public class MapObjectMesh : MapObject
 
     protected void UnloadOldAssetHandle()
     {
+        if (_entity == null) return;
+
         AssetHandle<MeshAsset>? oldHandle = EntityAssetHandle?.GetAssetHandle();
         if (oldHandle != null)
         {
@@ -100,11 +102,17 @@ public class MapObjectMesh : MapObject
         if (_entity != null)
         {
             RenderState = new MeshEntityMetaState(_entity);
-            InitAnimation();
+
+            // Reset the animation (or set it to the one set before the entity was loaded).
+            // This will also set the default bone matrices.
+            // This will also calculate bounds
+            SetAnimation(_initSetAnimation);
+            _initSetAnimation = null;
+
+            RenderState.UpdateAnimationRigBones(_currentAnimation, 0);
         }
         else
         {
-            _boneMatricesForEntityRig = Array.Empty<Matrix4x4>();
             _boundingSphereBase = new Sphere();
             _boundingCubeBase = new Cube();
         }
@@ -208,32 +216,9 @@ public class MapObjectMesh : MapObject
 
     #region Animation and Bones
 
-    protected Matrix4x4[] _boneMatricesForEntityRig = Array.Empty<Matrix4x4>();
-    protected Matrix4x4[][] _boneMatricesForAnimationSkin = Array.Empty<Matrix4x4[]>();
     private SkeletalAnimation? _currentAnimation;
     private float _animationTime;
     private string? _initSetAnimation;
-
-    protected void InitAnimation()
-    {
-        AssertNotNull(_entity);
-        AssertNotNull(_entity.Meshes);
-
-        // Initialize bone matrices for the entity rig and animation skins.
-        _boneMatricesForEntityRig = new Matrix4x4[_entity.AnimationRigOne.Length];
-        _boneMatricesForAnimationSkin = new Matrix4x4[_entity.AnimationSkins.Length][];
-        for (int i = 0; i < _entity.AnimationSkins.Length; i++)
-        {
-            SkeletalAnimationSkin skin = _entity.AnimationSkins[i];
-            _boneMatricesForAnimationSkin[i] = new Matrix4x4[skin.Joints.Length];
-        }
-
-        // Reset the animation.
-        // This will also set the default bone matrices.
-        // This will also calculate bounds
-        SetAnimation(_initSetAnimation);
-        _initSetAnimation = null;
-    }
 
     public string GetCurrentAnimation()
     {
@@ -266,8 +251,6 @@ public class MapObjectMesh : MapObject
         _currentAnimation = animInstance;
         _animationTime = 0; // Reset time
 
-        // todo: add some way for the entity to calculate and hold a collision mesh.
-        _entity.UpdateAnimationRigMatrices(_currentAnimation, 0, _boneMatricesForEntityRig);
         //CacheVerticesForCollision();
 
         _entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
@@ -287,10 +270,8 @@ public class MapObjectMesh : MapObject
             _animationTime += dt;
 
             float duration = _currentAnimation.Duration;
-            _entity.UpdateAnimationRigMatrices(_currentAnimation, _animationTime % duration, _boneMatricesForEntityRig);
+            RenderState.UpdateAnimationRigBones(_currentAnimation, _animationTime % duration);
             if (_animationTime > duration) _animationTime -= duration;
-
-            RenderState.UpdateMeshMatrices(_boneMatricesForEntityRig);
         }
 
         base.Update(dt);
@@ -314,6 +295,7 @@ public class MapObjectMesh : MapObject
     {
         SkeletonAnimRigNode[]? rig = _entity?.AnimationRigOne;
         if (rig == null) return;
+        if (RenderState == null) return;
 
         c.SetDepthTest(false);
 
@@ -333,14 +315,14 @@ public class MapObjectMesh : MapObject
         for (int i = 0; i < rig.Length; i++)
         {
             SkeletonAnimRigNode rigNode = rig[i];
-            Matrix4x4 nodeMatrix = _boneMatricesForEntityRig[i];
+            Matrix4x4 nodeMatrix = RenderState.GetMatrixForAnimationRigNode(i);
             Vector3 bonePos = Vector3.Transform(Vector3.Zero, nodeMatrix);
 
             Vector3 parentBonePos = Vector3.Zero;
             int parent = rigNode.ParentIdx;
             if (parent == -1) continue;
 
-            Matrix4x4 parentMatrix = _boneMatricesForEntityRig[parent];
+            Matrix4x4 parentMatrix = RenderState.GetMatrixForAnimationRigNode(parent);
             parentBonePos = Vector3.Transform(Vector3.Zero, parentMatrix);
 
             float height = Vector3.Distance(parentBonePos, bonePos);

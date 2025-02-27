@@ -117,10 +117,13 @@ public static partial class GLTFFormat
                 GLTFAnimation gltfAnim = gltfDoc.Animations[i];
                 GLTFAnimationChannel[] gltfChannels = gltfAnim.Channels;
 
-                int nextChannelAlloc = 0;
-                SkeletonAnimChannel[] channels = new SkeletonAnimChannel[gltfChannels.Length];
-                float animDuration = 0;
+                // We allocate a channel for every node in the rig.
+                // Most of these will be null though. This might be a bit wasteful for giant
+                // rigs with animations that don't move many bones, but at the moment we're only concerned
+                // with look up speed.
+                SkeletonAnimChannel[] channels = new SkeletonAnimChannel[rigNodes.Length];
 
+                float animDuration = 0;
                 for (int c = 0; c < gltfChannels.Length; c++)
                 {
                     GLTFAnimationChannel gltf = gltfChannels[c];
@@ -157,21 +160,12 @@ public static partial class GLTFFormat
                     int nodeIdx = target.Node;
                     SkeletonAnimRigNode node = rigNodes[nodeIdx];
 
-                    SkeletonAnimChannel? channel = null;
-                    foreach (SkeletonAnimChannel existingChannel in channels)
-                    {
-                        if (existingChannel != null && existingChannel.Name == node.Name)
-                        {
-                            channel = existingChannel;
-                            break;
-                        }
-                    }
+                    SkeletonAnimChannel? channel = channels[nodeIdx];
                     if (channel == null)
                     {
                         channel = new SkeletonAnimChannel();
                         channel.Name = node.Name ?? string.Empty; // todo
-                        channels[nextChannelAlloc] = channel;
-                        nextChannelAlloc++;
+                        channels[nodeIdx] = channel;
                     }
 
                     string path = target.Path;
@@ -243,7 +237,6 @@ public static partial class GLTFFormat
                     }
                 }
 
-                Array.Resize(ref channels, nextChannelAlloc);
                 SkeletalAnimation anim = new SkeletalAnimation()
                 {
                     Name = gltfAnim.Name,

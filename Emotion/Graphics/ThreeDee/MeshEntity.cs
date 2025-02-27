@@ -255,39 +255,4 @@ public class MeshEntity
             }
         }
     }
-
-    public void UpdateAnimationRigMatrices(SkeletalAnimation? animation, float timeStamp, Matrix4x4[] matrices)
-    {
-        if (AnimationRigOne.Length == 0) return; // Non animated
-        Assert(matrices.Length == AnimationRigOne.Length);
-
-        for (var i = 0; i < AnimationRigOne.Length; i++)
-        {
-            SkeletonAnimRigNode node = AnimationRigOne[i];
-            Matrix4x4 currentMatrix = node.LocalTransform;
-           
-            if (animation != null)
-            {
-                if (node.DontAnimate)
-                {
-                    currentMatrix = Matrix4x4.Identity;
-                }
-                else
-                {
-                    // note: not every bone is moved by the animation
-                    SkeletonAnimChannel? channel = animation.GetMeshAnimBone(node.Name);
-                    if (channel != null)
-                        currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
-                }
-            }
-
-            Matrix4x4 parentMatrix = Matrix4x4.Identity;
-            int parentIdx = node.ParentIdx;
-            if (parentIdx != -1)
-                parentMatrix = matrices[parentIdx];
-
-            Matrix4x4 matrixForNode = currentMatrix * parentMatrix;
-            matrices[i] = matrixForNode;
-        }
-    }
 }

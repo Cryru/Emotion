@@ -87,11 +87,16 @@ public class WoWMovementController
             wasd = _character.RotateVectorToObjectFacing(wasd);
         }
 
-        Vector2 forward = new Vector2(1, 0);
+        Vector2 forward = RenderComposer.Forward.ToVec2();
         forward = _character.RotateVectorToObjectFacing(forward);
 
         bool moved = wasd != Vector2.Zero;
         bool walkingBack = Vector2.Dot(wasd, forward) < 0;
+
+        Vector2 right = RenderComposer.Right.ToVec2();
+        right = _character.RotateVectorToObjectFacing(right);
+        bool walkingRight = Vector2.Dot(wasd, right) > 0;
+        bool walkingLeft = Vector2.Dot(wasd, -right) > 0;
 
         float movementSpeed = WalkingSpeed;
         if (walkingBack) movementSpeed /= 2f;

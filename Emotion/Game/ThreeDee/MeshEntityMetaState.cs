@@ -45,6 +45,7 @@ public class MeshEntityMetaState
     public ObjectFlags? CustomObjectFlags; // used for the render flags, maybe split them?
 
     private MeshEntity _entity;
+    private Matrix4x4[] _boneMatricesForEntityRig;
     private Matrix4x4[][] _boneMatricesPerMesh;
 
     protected const int MAX_BONES = 200; // Must match number in MeshShader.vert
@@ -53,6 +54,8 @@ public class MeshEntityMetaState
     {
         _entity = entity;
         RenderMesh = new bool[entity.Meshes.Length];
+
+        _boneMatricesForEntityRig = new Matrix4x4[entity.AnimationRigOne.Length];
 
         // todo: replace this with bone matrices per animation skin when we push them to a UBO
         _boneMatricesPerMesh = new Matrix4x4[entity.Meshes.Length][];
@@ -103,22 +106,63 @@ public class MeshEntityMetaState
         return _boneMatricesPerMesh[meshIdx];
     }
 
-    public void UpdateMeshMatrices(Matrix4x4[] rigMatrices)
+    public Matrix4x4 GetMatrixForAnimationRigNode(int nodeId)
     {
-        if (_entity.AnimationSkins.Length == 0) return;
-        SkeletalAnimationSkin primarySkin = _entity.AnimationSkins[0];
+        return _boneMatricesForEntityRig[nodeId];
+    }
 
-        for (int meshIdx = 0; meshIdx < _boneMatricesPerMesh.Length; meshIdx++)
+    public void UpdateAnimationRigBones(SkeletalAnimation? animation, float timeStamp)
+    {
+        SkeletonAnimRigNode[] animRig = _entity.AnimationRigOne;
+        Matrix4x4[] animRigMatrices = _boneMatricesForEntityRig;
+        if (animRig.Length != 0)
+            Assert(animRigMatrices.Length == animRig.Length);
+
+        for (var nodeIdx = 0; nodeIdx < animRig.Length; nodeIdx++)
         {
-            Matrix4x4[] boneMatricesForMesh = _boneMatricesPerMesh[meshIdx];
+            SkeletonAnimRigNode node = animRig[nodeIdx];
+            Matrix4x4 currentMatrix = node.LocalTransform;
 
-            SkeletalAnimationSkinJoint[] joints = primarySkin.Joints;
-            for (int b = 0; b < boneMatricesForMesh.Length; b++)
+            if (animation != null)
             {
-                SkeletalAnimationSkinJoint joint = joints[b];
-                int rigBoneId = joint.RigNodeIdx;
-                Matrix4x4 matrix = rigMatrices[rigBoneId];
-                boneMatricesForMesh[b] = joint.OffsetMatrix * matrix;
+                if (node.DontAnimate)
+                {
+                    currentMatrix = Matrix4x4.Identity;
+                }
+                else
+                {
+                    // note: not every bone is moved by the animation
+                    SkeletonAnimChannel? channel = animation.GetAnimChannelForRigNode(nodeIdx);
+                    if (channel != null)
+                        currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
+                }
+            }
+
+            Matrix4x4 parentMatrix = Matrix4x4.Identity;
+            int parentIdx = node.ParentIdx;
+            if (parentIdx != -1)
+                parentMatrix = animRigMatrices[parentIdx];
+
+            Matrix4x4 matrixForNode = currentMatrix * parentMatrix;
+            animRigMatrices[nodeIdx] = matrixForNode;
+        }
+
+        if (_entity.AnimationSkins.Length > 0)
+        {
+            SkeletalAnimationSkin primarySkin = _entity.AnimationSkins[0];
+
+            for (int meshIdx = 0; meshIdx < _boneMatricesPerMesh.Length; meshIdx++)
+            {
+                Matrix4x4[] boneMatricesForMesh = _boneMatricesPerMesh[meshIdx];
+
+                SkeletalAnimationSkinJoint[] joints = primarySkin.Joints;
+                for (int b = 0; b < boneMatricesForMesh.Length; b++)
+                {
+                    SkeletalAnimationSkinJoint joint = joints[b];
+                    int rigBoneId = joint.RigNodeIdx;
+                    Matrix4x4 matrix = animRigMatrices[rigBoneId];
+                    boneMatricesForMesh[b] = joint.OffsetMatrix * matrix;
+                }
             }
         }
     }
