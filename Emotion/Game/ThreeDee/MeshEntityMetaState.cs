@@ -89,6 +89,7 @@ public class MeshEntityMetaState
                     Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({largestBoneIdUsed} > {MAX_BONES}).", "3D");
                 }
 
+                largestBoneIdUsed++; // Include this bone
                 matrices = new System.Numerics.Matrix4x4[largestBoneIdUsed];
 
                 skinToRigMapping = new int[largestBoneIdUsed];
