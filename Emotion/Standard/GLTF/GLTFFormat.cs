@@ -13,15 +13,16 @@ namespace Emotion.Standard.GLTF;
 
 public static partial class GLTFFormat
 {
+    private const string BASE64_DATA_PREFIX = "data:application/gltf-buffer;base64,";
+    private const bool MAKE_LEFT_HANDED = true;
+    private const float ANIM_TIME_SCALE = 1000; // We expect them to be in seconds, but emotion works in ms.
+
     public static MeshEntity? Decode(string rootFolder, ReadOnlyMemory<byte> fileData)
     {
         GLTFDocument? gltfDoc = JsonSerializer.Deserialize<GLTFDocument>(fileData.Span);
         if (gltfDoc == null) return null;
 
-        bool makeLeftHanded = true;
-
         // Read all byte buffers
-        const string base64DataPrefix = "data:application/gltf-buffer;base64,";
         GLTFBuffer[] buffers = gltfDoc.Buffers;
         for (int i = 0; i < buffers.Length; i++)
         {
@@ -29,10 +30,10 @@ public static partial class GLTFFormat
             string uri = buffer.Uri;
 
             ReadOnlyMemory<byte> content;
-            if (uri.StartsWith(base64DataPrefix))
+            if (uri.StartsWith(BASE64_DATA_PREFIX))
             {
-                // todo: Convert.FromBase64String that takes in a span to save on allocation here.
-                uri = uri.Replace(base64DataPrefix, "");
+                // todo: Convert.FromBase64String that takes in a span to save an allocation here.
+                uri = uri.Replace(BASE64_DATA_PREFIX, "");
                 content = new ReadOnlyMemory<byte>(Convert.FromBase64String(uri));
             }
             else
@@ -87,7 +88,7 @@ public static partial class GLTFFormat
                 if (rot != null)
                 {
                     Quaternion quart = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
-                    if (makeLeftHanded) quart.Z = -quart.Z;
+                    if (MAKE_LEFT_HANDED) quart.Z = -quart.Z;
                     rotMat = Matrix4x4.CreateFromQuaternion(quart);
                 }
 
@@ -96,7 +97,7 @@ public static partial class GLTFFormat
                 if (trans != null)
                 {
                     Vector3 pos = new Vector3(trans[0], trans[1], trans[2]);
-                    if (makeLeftHanded) pos.Z = -pos.Z;
+                    if (MAKE_LEFT_HANDED) pos.Z = -pos.Z;
                     transMat = Matrix4x4.CreateTranslation(pos);
                 }
 
@@ -137,8 +138,6 @@ public static partial class GLTFFormat
         SkeletalAnimation[]? animations = null;
         if (gltfDoc.Animations != null)
         {
-            const float ANIM_TIME_SCALE = 1000; // We except them to be in seconds, but emotion works in ms.
-
             animations = new SkeletalAnimation[gltfDoc.Animations.Length];
             for (int i = 0; i < gltfDoc.Animations.Length; i++)
             {
@@ -212,7 +211,7 @@ public static partial class GLTFFormat
                                 for (int s = 0; s < samplerData.Count; s++)
                                 {
                                     Vector4 data = samplerData.ReadElement(s);
-                                    if (makeLeftHanded)
+                                    if (MAKE_LEFT_HANDED)
                                     {
                                         data.X = -data.X;
                                         data.Y = -data.Y;
@@ -235,7 +234,7 @@ public static partial class GLTFFormat
                                 for (int s = 0; s < samplerData.Count; s++)
                                 {
                                     Vector3 data = samplerData.ReadElement(s);
-                                    if (makeLeftHanded) data.Z = -data.Z;
+                                    if (MAKE_LEFT_HANDED) data.Z = -data.Z;
 
                                     translations[s] = new MeshAnimBoneTranslation()
                                     {
@@ -330,6 +329,44 @@ public static partial class GLTFFormat
 
         // Read meshes
         GLTFMesh[] gltfMeshes = gltfDoc.Meshes;
+
+        // Dirty hack/optimization
+        // Sometimes the data is stored in a single buffer and accessed by each mesh.
+        // This is actually better than what we do (which is to have separate buffers for each mesh)
+        // and allows for all the meshes to be batched in a single draw call.
+        // The reason they are still separate meshes is probably to be able to turn off/on each one
+        // individually. Currently Emotion doesn't support having this one buffer (todo) so we should
+        // trim the single buffer into many smaller ones to avoid each mesh carrying all the data.
+        bool mappingIntoSingleBuffer = true;
+        if (gltfMeshes.Length > 0)
+        {
+            GLTFMesh firstMesh = gltfMeshes[0];
+            GLTFMeshPrimitives[] primitives = firstMesh.Primitives;
+            GLTFMeshPrimitives primitive = primitives[0];
+            Dictionary<string, int> attributes = primitive.Attributes;
+
+            for (int m = 0; m < gltfMeshes.Length; m++)
+            {
+                GLTFMesh otherMesh = gltfMeshes[m];
+                GLTFMeshPrimitives[] otherPrimitives = otherMesh.Primitives;
+                GLTFMeshPrimitives otherPrimitive = otherPrimitives[0];
+                Dictionary<string, int> otherAttributes = otherPrimitive.Attributes;
+                foreach (KeyValuePair<string, int> attribute in otherAttributes)
+                {
+                    int accessor = attribute.Value;
+
+                    bool success = attributes.TryGetValue(attribute.Key, out int firstMeshAccessor);
+                    if (!success || accessor != firstMeshAccessor)
+                    {
+                        mappingIntoSingleBuffer = false;
+                        break;
+                    }
+                }
+
+                if (!mappingIntoSingleBuffer) break;
+            }
+        }
+
         Mesh[] meshes = new Mesh[gltfMeshes.Length];
         for (int m = 0; m < gltfMeshes.Length; m++)
         {
@@ -370,6 +407,31 @@ public static partial class GLTFFormat
                     isSkinned = true;
             }
 
+            // Split buffer if mapping into single buffer
+            int vertexOffset = 0;
+            if (mappingIntoSingleBuffer)
+            {
+                Assert(indices.Length < vertexCount);
+
+                int smallestVertexUsed = vertexCount;
+                int largestVertexUsed = 0;
+                for (int i = 0; i < indices.Length; i++)
+                {
+                    ushort vIdx = indices[i];
+                    if (vIdx > largestVertexUsed) largestVertexUsed = vIdx;
+                    if (vIdx < smallestVertexUsed) smallestVertexUsed = vIdx;
+                }
+
+                vertexOffset = smallestVertexUsed;
+                vertexCount = (largestVertexUsed - smallestVertexUsed) + 1;
+
+                for (int i = 0; i < indices.Length; i++)
+                {
+                    ushort vIdx = indices[i];
+                    indices[i] -= (ushort)vertexOffset;
+                }
+            }
+
             // Initialize vertices array
             VertexData[] vertices = new VertexData[vertexCount];
             VertexDataMesh3DExtra[] verticesExtraData = new VertexDataMesh3DExtra[vertexCount];
@@ -395,10 +457,10 @@ public static partial class GLTFFormat
                             {
                                 AccessorReader<Vector3> accessorData = GetAccessorDataAsType<Vector3>(gltfDoc, accessor);
 
-                                for (int i = 0; i < accessorData.Count; i++)
+                                for (int i = 0; i < vertexCount; i++)
                                 {
-                                    Vector3 pos = accessorData.ReadElement(i);
-                                    if (makeLeftHanded) pos.Z = -pos.Z;
+                                    Vector3 pos = accessorData.ReadElement(vertexOffset + i);
+                                    if (MAKE_LEFT_HANDED) pos.Z = -pos.Z;
 
                                     if (attributeKey == "POSITION")
                                     {
@@ -418,9 +480,9 @@ public static partial class GLTFFormat
                             {
                                 AccessorReader<Vector2> accessorData = GetAccessorDataAsType<Vector2>(gltfDoc, accessor);
 
-                                for (int i = 0; i < accessorData.Count; i++)
+                                for (int i = 0; i < vertexCount; i++)
                                 {
-                                    Vector2 pos = accessorData.ReadElement(i);
+                                    Vector2 pos = accessorData.ReadElement(vertexOffset + i);
 
                                     if (attributeKey == "TEXCOORD_0")
                                     {
@@ -434,13 +496,12 @@ public static partial class GLTFFormat
                             {
                                 AccessorReader<Vector4> accessorData = GetAccessorDataAsType<Vector4>(gltfDoc, accessor);
 
-                                for (int i = 0; i < accessorData.Count; i++)
+                                for (int i = 0; i < vertexCount; i++)
                                 {
-                                    Vector4 joints = accessorData.ReadElement(i);
+                                    Vector4 joints = accessorData.ReadElement(vertexOffset + i);
 
                                     ref Mesh3DVertexDataBones vert = ref boneData[i];
                                     vert.BoneIds = joints;
-
                                 }
                                 break;
                             }
@@ -448,13 +509,12 @@ public static partial class GLTFFormat
                             {
                                 AccessorReader<Vector4> accessorData = GetAccessorDataAsType<Vector4>(gltfDoc, accessor);
 
-                                for (int i = 0; i < accessorData.Count; i++)
+                                for (int i = 0; i < vertexCount; i++)
                                 {
-                                    Vector4 weights = accessorData.ReadElement(i);
+                                    Vector4 weights = accessorData.ReadElement(vertexOffset + i);
 
                                     ref Mesh3DVertexDataBones vert = ref boneData[i];
                                     vert.BoneWeights = weights;
-
                                 }
                                 break;
                             }
@@ -479,7 +539,7 @@ public static partial class GLTFFormat
 
                     Matrix4x4 offsetMatrix = bindMatrixData.ReadElement(i);
 
-                    if (makeLeftHanded)
+                    if (MAKE_LEFT_HANDED)
                     {
                         offsetMatrix.M13 *= -1;
                         offsetMatrix.M23 *= -1;
