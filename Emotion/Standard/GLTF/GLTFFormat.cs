@@ -108,7 +108,7 @@ public static partial class GLTFFormat
         }
 
         // Read animations
-        SkeletalAnimation[]? animations = null;
+        SkeletalAnimation[] animations = Array.Empty<SkeletalAnimation>();
         if (gltfDoc.Animations != null)
         {
             animations = new SkeletalAnimation[gltfDoc.Animations.Length];
@@ -497,51 +497,52 @@ public static partial class GLTFFormat
                 }
             }
 
-            GLTFSkins[] skins = gltfDoc.Skins ?? Array.Empty<GLTFSkins>();
-            GLTFSkins? primarySkin = skins.Length > 0 ? skins[0] : null; // Todo
-            MeshBone[]? bones = null;
-            if (primarySkin != null)
-            {
-                int bindMatricesAccessorId = primarySkin.InverseBindMatrices;
-                GLTFAccessor bindMatrices = gltfDoc.Accessors[bindMatricesAccessorId];
-                AccessorReader<Matrix4x4> bindMatrixData = GetAccessorDataAsType<Matrix4x4>(gltfDoc, bindMatrices);
-
-                bones = new MeshBone[primarySkin.Joints.Length];
-                for (int i = 0; i < primarySkin.Joints.Length; i++)
-                {
-                    int jointId = primarySkin.Joints[i];
-                    SkeletonAnimRigNode joint = rigNodes[jointId];
-
-                    Matrix4x4 offsetMatrix = bindMatrixData.ReadElement(i);
-
-                    if (MAKE_LEFT_HANDED)
-                    {
-                        offsetMatrix.M13 *= -1;
-                        offsetMatrix.M23 *= -1;
-                        offsetMatrix.M43 *= -1;
-
-                        offsetMatrix.M31 *= -1;
-                        offsetMatrix.M32 *= -1;
-                        offsetMatrix.M34 *= -1;
-                    }
-
-                    bones[i] = new MeshBone()
-                    {
-                        BoneIndex = i,
-                        Name = joint.Name,
-                        OffsetMatrix = offsetMatrix
-                    };
-                }
-            }
-
             int materialIndex = primitive.Material;
             MeshMaterial material = materials.Length > 0 ? materials[materialIndex] : MeshMaterial.DefaultMaterial;
 
             Mesh mesh = new Mesh($"Mesh {m}", vertices, verticesExtraData, indices);
             mesh.Material = material;
-            mesh.Bones = bones;
             if (isSkinned) mesh.BoneData = boneData;
             meshes[m] = mesh;
+        }
+
+        GLTFSkins[] gltfSkins = gltfDoc.Skins ?? Array.Empty<GLTFSkins>();
+        SkeletalAnimationSkin[] skins = new SkeletalAnimationSkin[gltfSkins.Length];
+        for (int skinIdx = 0; skinIdx < gltfSkins.Length; skinIdx++)
+        {
+            GLTFSkins gltfSkin = gltfSkins[skinIdx];
+            SkeletalAnimationSkin skin = new SkeletalAnimationSkin();
+            skin.Name = gltfSkin.Name;
+
+            int bindMatricesAccessorId = gltfSkin.InverseBindMatrices;
+            GLTFAccessor bindMatrices = gltfDoc.Accessors[bindMatricesAccessorId];
+            AccessorReader<Matrix4x4> bindMatrixData = GetAccessorDataAsType<Matrix4x4>(gltfDoc, bindMatrices);
+
+            int[] gltfJoints = gltfSkin.Joints;
+            var joints = new SkeletalAnimationSkinJoint[gltfJoints.Length];
+            for (int jIdx = 0; jIdx < gltfJoints.Length; jIdx++)
+            {
+                ref SkeletalAnimationSkinJoint joint = ref joints[jIdx];
+                int gltfJointId = gltfJoints[jIdx];
+                joint.RigNodeIdx = gltfJointId;
+
+                Matrix4x4 offsetMatrix = bindMatrixData.ReadElement(jIdx);
+                if (MAKE_LEFT_HANDED)
+                {
+                    offsetMatrix.M13 *= -1;
+                    offsetMatrix.M23 *= -1;
+                    offsetMatrix.M43 *= -1;
+
+                    offsetMatrix.M31 *= -1;
+                    offsetMatrix.M32 *= -1;
+                    offsetMatrix.M34 *= -1;
+                }
+
+                joint.OffsetMatrix = offsetMatrix;
+            }
+
+            skin.Joints = joints;
+            skins[skinIdx] = skin;
         }
 
         MeshEntity entity = new MeshEntity()
@@ -551,6 +552,7 @@ public static partial class GLTFFormat
             Meshes = meshes,
             AnimationRigOne = rigNodes,
             Animations = animations,
+            AnimationSkins = skins
         };
 
         return entity;

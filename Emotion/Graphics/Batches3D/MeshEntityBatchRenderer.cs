@@ -305,7 +305,7 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Decide on the pipeline state for this mesh.
-            bool skinnedMesh = mesh.Bones != null;
+            bool skinnedMesh = mesh.BoneData != null;
             ShaderProgram currentShader;
             bool overwrittenShader = false;
             if (metaState.ShaderAsset != null)
@@ -442,7 +442,7 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Decide on the pipeline state for this mesh.
-            bool skinnedMesh = mesh.Bones != null;
+            bool skinnedMesh = mesh.BoneData != null;
             ShaderProgram currentShader;
             bool overwrittenShader = false;
             if (renderState.ShaderAsset != null)
@@ -616,7 +616,7 @@ public sealed class MeshEntityBatchRenderer
         for (int i = 0; i < _meshesUsedList.Count; i++)
         {
             var mesh = _meshesUsedList[i];
-            bool skinnedMesh = mesh.Bones != null;
+            bool skinnedMesh = mesh.BoneData != null;
             GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool alreadyUploaded);
             if (renderObj == null) // Impossible!
             {
@@ -723,7 +723,7 @@ public sealed class MeshEntityBatchRenderer
             Texture? diffuseTexture = mesh.Material.DiffuseTexture;
             Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-            bool skinnedMesh = mesh.Bones != null;
+            bool skinnedMesh = mesh.BoneData != null;
             GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
             AssertNotNull(renderObj);
 
@@ -786,7 +786,7 @@ public sealed class MeshEntityBatchRenderer
                 Texture? diffuseTexture = mesh.Material.DiffuseTexture;
                 Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-                bool skinnedMesh = mesh.Bones != null;
+                bool skinnedMesh = mesh.BoneData != null;
                 GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
                 AssertNotNull(renderObj);
 
@@ -903,7 +903,7 @@ public sealed class MeshEntityBatchRenderer
             // Decide which shader to use.
             //bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
             //bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
-            bool skinnedMesh = obj.Bones != null;
+            bool skinnedMesh = obj.BoneData != null;
             ShaderProgram currentShader;
             if (shaderOverride != null)
             {

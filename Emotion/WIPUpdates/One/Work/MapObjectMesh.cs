@@ -17,18 +17,16 @@ public class MapObjectMesh : MapObject
     {
         get => _entity;
     }
-
     protected MeshEntity? _entity;
 
     [DontSerialize]
     public MeshEntityMetaState? RenderState;
 
-    public string? EntityFilename;
-    protected AssetHandle<MeshAsset>? _assetHandle;
+    public SerializableAssetHandle<MeshAsset>? EntityAssetHandle;
 
     public MapObjectMesh(string? entityFile)
     {
-        EntityFilename = entityFile;
+        EntityAssetHandle = entityFile;
     }
 
     public MapObjectMesh(MeshEntity? entity)
@@ -46,8 +44,8 @@ public class MapObjectMesh : MapObject
     {
         base.Init();
 
-        if (EntityFilename != null)
-            SetEntity(EntityFilename);
+        if (EntityAssetHandle != null)
+            SetEntity(EntityAssetHandle.GetAssetHandle());
     }
 
     #region Set Entity
@@ -55,9 +53,16 @@ public class MapObjectMesh : MapObject
     public void SetEntity(string assetPath)
     {
         UnloadOldAssetHandle();
-        EntityFilename = assetPath;
-        _assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
-        _assetHandle.OnAssetLoaded += OnEntityAssetChanged;
+        AssetHandle<MeshAsset> assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
+        EntityAssetHandle = assetHandle;
+        assetHandle.OnAssetLoaded += OnEntityAssetChanged;
+    }
+
+    public void SetEntity(AssetHandle<MeshAsset> assetHandle)
+    {
+        UnloadOldAssetHandle();
+        EntityAssetHandle = assetHandle;
+        assetHandle.OnAssetLoaded += OnEntityAssetChanged;
     }
 
     protected void OnEntityAssetChanged(MeshAsset asset)
@@ -74,12 +79,12 @@ public class MapObjectMesh : MapObject
 
     protected void UnloadOldAssetHandle()
     {
-        EntityFilename = null;
-        if (_assetHandle != null)
+        AssetHandle<MeshAsset>? oldHandle = EntityAssetHandle?.GetAssetHandle();
+        if (oldHandle != null)
         {
-            _assetHandle.OnAssetLoaded -= OnEntityAssetChanged;
-            Engine.AssetLoader.RemoveReferenceFromAssetHandle(_assetHandle, this);
-            _assetHandle = null;
+            oldHandle.OnAssetLoaded -= OnEntityAssetChanged;
+            Engine.AssetLoader.RemoveReferenceFromAssetHandle(oldHandle, this);
+            EntityAssetHandle = null;
         }
     }
 
@@ -203,7 +208,8 @@ public class MapObjectMesh : MapObject
 
     #region Animation and Bones
 
-    protected Matrix4x4[] _boneMatricesForEntityRig;
+    protected Matrix4x4[] _boneMatricesForEntityRig = Array.Empty<Matrix4x4>();
+    protected Matrix4x4[][] _boneMatricesForAnimationSkin = Array.Empty<Matrix4x4[]>();
     private SkeletalAnimation? _currentAnimation;
     private float _animationTime;
     private string? _initSetAnimation;
@@ -213,8 +219,14 @@ public class MapObjectMesh : MapObject
         AssertNotNull(_entity);
         AssertNotNull(_entity.Meshes);
 
-        // Create bone matrices for the rig
+        // Initialize bone matrices for the entity rig and animation skins.
         _boneMatricesForEntityRig = new Matrix4x4[_entity.AnimationRigOne.Length];
+        _boneMatricesForAnimationSkin = new Matrix4x4[_entity.AnimationSkins.Length][];
+        for (int i = 0; i < _entity.AnimationSkins.Length; i++)
+        {
+            SkeletalAnimationSkin skin = _entity.AnimationSkins[i];
+            _boneMatricesForAnimationSkin[i] = new Matrix4x4[skin.Joints.Length];
+        }
 
         // Reset the animation.
         // This will also set the default bone matrices.
@@ -240,6 +252,7 @@ public class MapObjectMesh : MapObject
         AssertNotNull(_entity.Meshes);
 
         // Try to find the animation instance.
+        // todo: case insensitive?
         SkeletalAnimation? animInstance = null;
         if (_entity.Animations != null)
         {

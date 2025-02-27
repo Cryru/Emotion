@@ -17,20 +17,25 @@ namespace Emotion.Graphics.ThreeDee;
 /// </summary>
 public class MeshEntity
 {
-    public string? Name { get; set; }
+    public string Name { get; set; } = string.Empty;
+
     public float Scale { get; set; } = 1f;
+
     public Matrix4x4 LocalTransform { get; set; } = Matrix4x4.Identity;
+
     public Mesh[] Meshes { get; set; } = Array.Empty<Mesh>();
 
     public Vector3 Forward = RenderComposer.Forward;
 
+    public SkeletalAnimationSkin[] AnimationSkins { get; set; } = Array.Empty<SkeletalAnimationSkin>();
+
     // Animation
-    public SkeletalAnimation[]? Animations { get; set; }
+    public SkeletalAnimation[] Animations { get; set; } = Array.Empty<SkeletalAnimation>();
 
     public SkeletonAnimRigNode[] AnimationRigOne { get; set; } = Array.Empty<SkeletonAnimRigNode>();
 
     // Render settings
-    public bool BackFaceCulling { get; set; } = true;
+    public bool BackFaceCulling { get; set; } = true; // todo: move to material
 
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
@@ -137,7 +142,7 @@ public class MeshEntity
         {
             Mesh mesh = meshes[i];
             var boneCount = 1; // idx 0 is identity
-            if (mesh.Bones != null) boneCount += mesh.Bones.Length;
+            //if (mesh.Bones != null) boneCount += mesh.Bones.Length;
 
             var mats = new Matrix4x4[boneCount];
             for (int m = 0; m < boneCount; m++)
@@ -233,16 +238,16 @@ public class MeshEntity
                         Mesh3DVertexDataBones vertexData = boneData[v];
                         Vector3 vertex = meshVertices[v].Vertex;
 
-                        Vector3 vertexTransformed = Vector3.Zero;
-                        for (var w = 0; w < 4; w++)
-                        {
-                            float boneId = vertexData.BoneIds[w];
-                            float weight = vertexData.BoneWeights[w];
+                        Vector3 vertexTransformed = vertex;
+                        //for (var w = 0; w < 4; w++)
+                        //{
+                        //    float boneId = vertexData.BoneIds[w];
+                        //    float weight = vertexData.BoneWeights[w];
 
-                            Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
-                            Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
-                            vertexTransformed += thisWeightPos * weight;
-                        }
+                        //    Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
+                        //    Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
+                        //    vertexTransformed += thisWeightPos * weight;
+                        //}
 
                         yield return vertexTransformed;
                     }

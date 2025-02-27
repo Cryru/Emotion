@@ -9,26 +9,26 @@ using Emotion.IO;
 
 #nullable enable
 
-namespace Emotion.Graphics.ThreeDee
+namespace Emotion.Graphics.ThreeDee;
+
+/// <summary>
+/// Settings description of how to render a 3D object.
+/// </summary>
+public class MeshMaterial
 {
-    /// <summary>
-    /// Settings description of how to render a 3D object.
-    /// </summary>
-    public class MeshMaterial
+    public string Name = string.Empty;
+
+    public Color DiffuseColor = Color.White;
+
+    [AssetFileName<TextureAsset>] public string? DiffuseTextureName = null;
+    public Texture? DiffuseTexture;
+
+    public bool BackFaceCulling = true;
+
+    public SerializableAssetHandle<NewShaderAsset>? Shader = null;
+
+    public static MeshMaterial DefaultMaterial = new MeshMaterial
     {
-        public string Name = null!;
-        public Color DiffuseColor = Color.White; // todo: Currently unused
-
-        [AssetFileName<TextureAsset>] public string? DiffuseTextureName = null;
-        public Texture? DiffuseTexture;
-
-        public bool BackFaceCulling = true;
-
-        public SerializableAssetHandle<NewShaderAsset>? Shader = null;
-
-        public static MeshMaterial DefaultMaterial = new MeshMaterial
-        {
-            Name = "Default"
-        };
-    }
+        Name = "Default"
+    };
 }

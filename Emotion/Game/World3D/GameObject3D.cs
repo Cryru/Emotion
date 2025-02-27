@@ -177,24 +177,24 @@ public partial class GameObject3D : BaseGameObject
         // Create bone matrices for the meshes (if they have bones)
         _boneMatricesPerMesh = new Matrix4x4[_entity.Meshes.Length][];
 
-        for (var i = 0; i < _entity.Meshes.Length; i++)
-        {
-            Mesh mesh = _entity.Meshes[i];
-            var boneCount = 1; // idx 0 is identity
-            if (mesh.Bones != null)
-            {
-                boneCount += mesh.Bones.Length;
-                if (boneCount > MAX_BONES)
-                {
-                    Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({boneCount} > {MAX_BONES}).", "3D");
-                    boneCount = MAX_BONES;
-                }
-            }
+        //for (var i = 0; i < _entity.Meshes.Length; i++)
+        //{
+        //    Mesh mesh = _entity.Meshes[i];
+        //    var boneCount = 1; // idx 0 is identity
+        //    if (mesh.Bones != null)
+        //    {
+        //        boneCount += mesh.Bones.Length;
+        //        if (boneCount > MAX_BONES)
+        //        {
+        //            Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({boneCount} > {MAX_BONES}).", "3D");
+        //            boneCount = MAX_BONES;
+        //        }
+        //    }
 
-            var boneMats = new Matrix4x4[boneCount];
-            boneMats[0] = Matrix4x4.Identity;
-            _boneMatricesPerMesh[i] = boneMats;
-        }
+        //    var boneMats = new Matrix4x4[boneCount];
+        //    boneMats[0] = Matrix4x4.Identity;
+        //    _boneMatricesPerMesh[i] = boneMats;
+        //}
 
         _verticesCacheCollision = null;
 

@@ -29,7 +29,6 @@ public class Mesh
     public VertexDataMesh3DExtra[] ExtraVertexData;
 
     public Mesh3DVertexDataBones[]? BoneData;
-    public MeshBone[]? Bones = null;
 
     public Mesh(VertexDataWithNormal[] verticesONE, ushort[] indices)
     {
@@ -121,8 +120,6 @@ public class Mesh
             ExtraVertexData = m1.ExtraVertexData,
             Indices = m1.Indices,
             BoneData = m1.BoneData,
-            BoneNameCache = m1.BoneNameCache,
-            Bones = m1.Bones,
             Material = m1.Material,
             Name = m1.Name + "_Copy"
         };
@@ -136,8 +133,6 @@ public class Mesh
             ExtraVertexData = (VertexDataMesh3DExtra[]) m1.ExtraVertexData.Clone(),
             Indices = m1.Indices,
             BoneData = m1.BoneData,
-            BoneNameCache = m1.BoneNameCache,
-            Bones = m1.Bones,
             Material = m1.Material,
             Name = m1.Name + "_Copy"
         };
@@ -196,37 +191,4 @@ public class Mesh
             memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
         }
     }
-
-    #region Cache
-
-    [DontSerialize]
-    protected Dictionary<string, MeshBone>? BoneNameCache;
-
-    public MeshBone? GetMeshBoneByName(string name)
-    {
-        BuildRuntimeBoneCache();
-        if (BoneNameCache == null) return null;
-        BoneNameCache.TryGetValue(name, out MeshBone? meshBone);
-        return meshBone;
-    }
-
-    protected void BuildRuntimeBoneCache()
-    {
-        if (BoneNameCache != null) return;
-        if (Bones == null) return;
-
-        lock(this)
-        {
-            if (BoneNameCache != null) return;
-
-            BoneNameCache = new Dictionary<string, MeshBone>();
-            for (var i = 0; i < Bones.Length; i++)
-            {
-                MeshBone bone = Bones[i];
-                BoneNameCache.Add(bone.Name, bone);
-            }
-        }
-    }
-
-    #endregion
 }
