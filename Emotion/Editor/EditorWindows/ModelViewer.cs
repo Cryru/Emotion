@@ -432,10 +432,10 @@ public class ModelViewer : EditorPanel
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green);
         c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue);
 
-        if (_renderSkeleton)
-            _obj.DebugDrawSkeleton(c);
-        else
-            _obj.Render(c);
+        //if (_renderSkeleton)
+        //    _obj.DebugDrawSkeleton(c);
+        //else
+        //    _obj.Render(c);
 
         c.RenderTo(null);
 

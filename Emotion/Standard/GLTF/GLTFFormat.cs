@@ -53,28 +53,19 @@ public static partial class GLTFFormat
         // Read animation rig
         GLTFNode[] gltfRig = gltfDoc.Nodes;
         SkeletonAnimRigNode[] rigNodes = new SkeletonAnimRigNode[gltfRig.Length];
-        SkeletonAnimRigRoot? rigRoot = null;
+        for (int i = 0; i < rigNodes.Length; i++)
+        {
+            rigNodes[i] = new SkeletonAnimRigNode();
+        }
+
         for (int i = 0; i < gltfRig.Length; i++)
         {
-            if (i == 0) continue;
-
             GLTFNode gltfRigItem = gltfRig[i];
-            SkeletonAnimRigNode rigItem;
-            if (rigRoot == null)
-            {
-                rigRoot = new SkeletonAnimRigRoot();
-                rigItem = rigRoot;
-            }
-            else
-            {
-                rigItem = new SkeletonAnimRigNode();
-            }
+            SkeletonAnimRigNode thisNode = rigNodes[i];
+            thisNode.Name = gltfRigItem.Name;
 
-            rigItem.Name = gltfRigItem.Name;
-
-            if (gltfRigItem.Translation != null ||
-                gltfRigItem.Rotation != null ||
-                gltfRigItem.Scale != null)
+            bool hasLocalTransform = gltfRigItem.Translation != null || gltfRigItem.Rotation != null || gltfRigItem.Scale != null;
+            if (hasLocalTransform)
             {
                 Matrix4x4 scaleMat = Matrix4x4.Identity;
                 float[]? scale = gltfRigItem.Scale;
@@ -101,35 +92,17 @@ public static partial class GLTFFormat
                     transMat = Matrix4x4.CreateTranslation(pos);
                 }
 
-                rigItem.LocalTransform = scaleMat * rotMat * transMat;
-            }
-            else
-            {
-                rigItem.LocalTransform = Matrix4x4.Identity;
+                thisNode.LocalTransform = scaleMat * rotMat * transMat;
             }
 
-            rigNodes[i] = rigItem;
-        }
-
-        // Stitch animation rig tree
-        if (rigRoot != null)
-        {
-            for (int i = 0; i < rigNodes.Length; i++)
+            // Attach as parent to my children.
+            int[]? children = gltfRigItem.Children;
+            if (children != null)
             {
-                if (i == 0) continue;
-
-                SkeletonAnimRigNode node = rigNodes[i];
-                GLTFNode gltfNode = gltfRig[i];
-
-                if (gltfNode.Children != null)
+                for (int cIdx = 0; cIdx < children.Length; cIdx++)
                 {
-                    SkeletonAnimRigNode[] children = new SkeletonAnimRigNode[gltfNode.Children.Length];
-                    for (int ii = 0; ii < gltfNode.Children.Length; ii++)
-                    {
-                        int childIdx = gltfNode.Children[ii];
-                        children[ii] = rigNodes[childIdx];
-                    }
-                    node.Children = children;
+                    int childIdx = children[cIdx];
+                    rigNodes[childIdx].ParentIdx = i;
                 }
             }
         }
@@ -338,7 +311,7 @@ public static partial class GLTFFormat
         // individually. Currently Emotion doesn't support having this one buffer (todo) so we should
         // trim the single buffer into many smaller ones to avoid each mesh carrying all the data.
         bool mappingIntoSingleBuffer = true;
-        if (gltfMeshes.Length > 0)
+        if (gltfMeshes.Length > 1)
         {
             GLTFMesh firstMesh = gltfMeshes[0];
             GLTFMeshPrimitives[] primitives = firstMesh.Primitives;
@@ -365,6 +338,10 @@ public static partial class GLTFFormat
 
                 if (!mappingIntoSingleBuffer) break;
             }
+        }
+        else
+        {
+            mappingIntoSingleBuffer = false;
         }
 
         Mesh[] meshes = new Mesh[gltfMeshes.Length];
@@ -411,8 +388,6 @@ public static partial class GLTFFormat
             int vertexOffset = 0;
             if (mappingIntoSingleBuffer)
             {
-                Assert(indices.Length < vertexCount);
-
                 int smallestVertexUsed = vertexCount;
                 int largestVertexUsed = 0;
                 for (int i = 0; i < indices.Length; i++)
@@ -574,7 +549,7 @@ public static partial class GLTFFormat
             Name = "Unknown Entity Name",
             LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD), // Y up to Z up
             Meshes = meshes,
-            AnimationRig = rigRoot,
+            AnimationRigOne = rigNodes,
             Animations = animations,
         };
 

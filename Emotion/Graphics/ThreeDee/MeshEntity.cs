@@ -26,9 +26,7 @@ public class MeshEntity
 
     // Animation
     public SkeletalAnimation[]? Animations { get; set; }
-    public SkeletonAnimRigRoot? AnimationRig { get; set; }
 
-    [DontSerialize]
     public SkeletonAnimRigNode[] AnimationRigOne { get; set; } = Array.Empty<SkeletonAnimRigNode>();
 
     // Render settings
@@ -36,48 +34,6 @@ public class MeshEntity
 
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
-
-    public void ONE_PrepareONEData()
-    {
-        if (AnimationRig == null)
-        {
-            AnimationRigOne = Array.Empty<SkeletonAnimRigNode>();
-            return;
-        }
-
-        int count = 0;
-        Queue<SkeletonAnimRigNode> nodes = new();
-        nodes.Enqueue(AnimationRig);
-
-        while (nodes.TryDequeue(out SkeletonAnimRigNode? node))
-        {
-            count++;
-
-            for (int i = 0; i < node.Children.Length; i++)
-            {
-                nodes.Enqueue(node.Children[i]);
-            }
-        }
-
-        AnimationRigOne = new SkeletonAnimRigNode[count];
-
-        int idx = 0;
-        nodes.Enqueue(AnimationRig);
-        while (nodes.TryDequeue(out SkeletonAnimRigNode? node))
-        {
-            AnimationRigOne[idx] = node;
-            
-            for (int i = 0; i < node.Children.Length; i++)
-            {
-                SkeletonAnimRigNode child = node.Children[i];
-                child.ParentIdx = idx;
-
-                nodes.Enqueue(child);
-            }
-
-            idx++;
-        }
-    }
 
     public Mesh? GetMeshByName(string id)
     {
@@ -268,7 +224,8 @@ public class MeshEntity
 
                 for (var k = 0; k < positionFrames.Length; k++)
                 {
-                    CalculateBoneMatrices(currentAnimation, boneMatricesPerMesh, positionFrames[k].Timestamp);
+                    // todo
+                    //CalculateBoneMatrices(currentAnimation, boneMatricesPerMesh, positionFrames[k].Timestamp);
 
                     Matrix4x4[] bonesForThisMesh = boneMatricesPerMesh[i];
                     for (var v = 0; v < boneData.Length; v++)
@@ -302,7 +259,6 @@ public class MeshEntity
         for (var i = 0; i < AnimationRigOne.Length; i++)
         {
             SkeletonAnimRigNode node = AnimationRigOne[i];
-
             Matrix4x4 currentMatrix = node.LocalTransform;
            
             if (animation != null)
@@ -323,93 +279,10 @@ public class MeshEntity
             Matrix4x4 parentMatrix = Matrix4x4.Identity;
             int parentIdx = node.ParentIdx;
             if (parentIdx != -1)
-            {
                 parentMatrix = matrices[parentIdx];
-            }
 
             Matrix4x4 matrixForNode = currentMatrix * parentMatrix;
             matrices[i] = matrixForNode;
-        }
-    }
-
-    /// <summary>
-    /// Fill a matrix tree corresponding to this entity's rig with the values
-    /// in an animation at the specified timestamp.
-    /// </summary>
-    public void CalculateBoneMatrices(SkeletalAnimation? animation, Matrix4x4[][]? matrices, float timeStamp)
-    {
-        if (matrices == null) return;
-
-        SkeletonAnimRigRoot? animationRig = AnimationRig;
-        Mesh[]? meshes = Meshes;
-
-        if (animationRig == null || meshes == null) return;
-
-        // Initialize identity for all meshes matrices. (Done in GameObject3D)
-        //for (var i = 0; i < matrices.Length; i++)
-        //{
-        //    Matrix4x4[] matricesForMesh = matrices[i];
-        //    matricesForMesh[0] = Matrix4x4.Identity;
-        //}
-
-        CalculateBoneMatricesWalkTree(meshes, matrices, animation, timeStamp, animationRig, Matrix4x4.Identity);
-    }
-
-    private void CalculateBoneMatricesWalkTree(
-        Mesh[] meshes,
-        Matrix4x4[][] matrices,
-        SkeletalAnimation? currentAnimation,
-        float timeStamp,
-        SkeletonAnimRigNode node,
-        Matrix4x4 parentMatrix)
-    {
-        string nodeName = node.Name ?? "Unknown";
-
-        Matrix4x4 currentMatrix = node.LocalTransform;
-        if (currentAnimation != null)
-        {
-            if (node.DontAnimate)
-            {
-                currentMatrix = Matrix4x4.Identity;
-            }
-            else
-            {
-                // note: not every bone is moved by the animation
-                SkeletonAnimChannel? channel = currentAnimation.GetMeshAnimBone(nodeName);
-                if (channel != null)
-                    currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
-            }
-        }
-
-        Matrix4x4 myMatrix = currentMatrix * parentMatrix;
-
-        if (node.Name == "bone_SpineLow")
-        {
-            //myMatrix *= Matrix4x4.CreateRotationY(Maths.DegreesToRadians(45));
-            bool a = true;
-        }
-
-        if (node.Name == "bone_Waist")
-        {
-            myMatrix *= Matrix4x4.CreateRotationY(Maths.DegreesToRadians(90));
-            bool a = true;
-        }
-
-        for (var i = 0; i < meshes.Length; i++)
-        {
-            Mesh mesh = meshes[i];
-            MeshBone? meshBone = mesh.GetMeshBoneByName(nodeName);
-            if (meshBone == null) continue;
-
-            Matrix4x4[] myMatrices = matrices[i];
-            myMatrices[meshBone.BoneIndex] = meshBone.OffsetMatrix * myMatrix;
-        }
-
-        if (node.Children == null) return;
-        for (var i = 0; i < node.Children.Length; i++)
-        {
-            SkeletonAnimRigNode child = node.Children[i];
-            CalculateBoneMatricesWalkTree(meshes, matrices, currentAnimation, timeStamp, child, myMatrix);
         }
     }
 }

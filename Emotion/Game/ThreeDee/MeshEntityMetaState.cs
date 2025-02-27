@@ -53,7 +53,6 @@ public class MeshEntityMetaState
     public MeshEntityMetaState(MeshEntity entity)
     {
         _entity = entity;
-        entity.ONE_PrepareONEData(); // todo: ONE
         RenderMesh = new bool[entity.Meshes.Length];
 
         _boneMatricesPerMesh = new Matrix4x4[entity.Meshes.Length][];
@@ -61,7 +60,7 @@ public class MeshEntityMetaState
 
         // Build a mapping of bone indices in the skin to bone indices in the rig.
         // This will also filter out bones that are not used in the skin.
-        bool skinned = entity.AnimationRig != null;
+        bool skinned = entity.AnimationRigOne.Length > 0;
         SkeletonAnimRigNode[] flatAnimationRig = entity.AnimationRigOne;
         for (int meshIdx = 0; meshIdx < entity.Meshes.Length; meshIdx++)
         {

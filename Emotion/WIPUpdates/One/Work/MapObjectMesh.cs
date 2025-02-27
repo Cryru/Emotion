@@ -299,71 +299,60 @@ public class MapObjectMesh : MapObject
 
     public void DebugDrawSkeleton(RenderComposer c)
     {
-        SkeletonAnimRigRoot? rig = _entity?.AnimationRig;
+        SkeletonAnimRigNode[]? rig = _entity?.AnimationRigOne;
         if (rig == null) return;
 
-        var coneMeshGenerator = new CylinderMeshGenerator
+        c.SetDepthTest(false);
+
+        CylinderMeshGenerator coneMeshGenerator = new CylinderMeshGenerator
         {
             RadiusTop = 0,
             RadiusBottom = 1.25f,
             Sides = 4
         };
-        var visualizationMeshes = new List<Mesh>();
-
-        void DrawSkeleton(SkeletonAnimRigNode node, Matrix4x4 parentMatrix, Vector3 parentPos)
+        List<Mesh> visualizationMeshes = new List<Mesh>();
+        MeshMaterial skeletonVisualizationMaterial = new MeshMaterial()
         {
-            Matrix4x4 currentMatrix = node.LocalTransform;
-            if (_currentAnimation != null)
-            {
-                if (node.DontAnimate)
-                {
-                    currentMatrix = Matrix4x4.Identity;
-                }
-                else
-                {
-                    SkeletonAnimChannel? channel = _currentAnimation.GetMeshAnimBone(node.Name);
-                    if (channel != null)
-                        currentMatrix = channel.GetMatrixAtTimestamp(_animationTime % _currentAnimation.Duration);
-                }
-            }
+            Name = "Skeleton Visualization Material",
+            DiffuseColor = Color.PrettyPink
+        };
 
-            Matrix4x4 matrix = currentMatrix * parentMatrix;
-            Vector3 bonePos = Vector3.Transform(Vector3.Zero, matrix);
+        for (int i = 0; i < rig.Length; i++)
+        {
+            SkeletonAnimRigNode rigNode = rig[i];
+            Matrix4x4 nodeMatrix = _boneMatricesForEntityRig[i];
+            Vector3 bonePos = Vector3.Transform(Vector3.Zero, nodeMatrix);
 
-            if (parentPos != Vector3.Zero)
-            {
-                float height = Vector3.Distance(parentPos, bonePos);
-                coneMeshGenerator.Height = height * _sizeZ;
+            Vector3 parentBonePos = Vector3.Zero;
+            int parent = rigNode.ParentIdx;
+            if (parent == -1) continue;
 
-                // Look at params
-                Vector3 conePos = parentPos;
-                Vector3 lookTowards = bonePos;
-                Vector3 meshDefaultLook = Vector3.UnitZ;
+            Matrix4x4 parentMatrix = _boneMatricesForEntityRig[parent];
+            parentBonePos = Vector3.Transform(Vector3.Zero, parentMatrix);
 
-                // Look at
-                Vector3 dir = Vector3.Normalize(lookTowards - conePos);
-                Vector3 rotationAxis = Vector3.Cross(meshDefaultLook, dir);
-                float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
-                var rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
+            float height = Vector3.Distance(parentBonePos, bonePos);
+            if (height == 0) continue;
+            coneMeshGenerator.Height = height * _sizeZ;
 
-                Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(
-                    _scaleMatrix.Inverted() *
-                    rotationMatrix *
-                    Matrix4x4.CreateTranslation(conePos)
-                ).ColorMeshVertices(Color.PrettyPink);
-                visualizationMeshes.Add(coneMesh);
-            }
+            // Look at params
+            Vector3 conePos = parentBonePos;
+            Vector3 lookTowards = bonePos;
+            Vector3 meshDefaultLook = Vector3.UnitZ;
 
-            SkeletonAnimRigNode[]? children = node.Children;
-            if (children == null) return;
-            for (var i = 0; i < children.Length; i++)
-            {
-                SkeletonAnimRigNode child = children[i];
-                DrawSkeleton(child, matrix, bonePos);
-            }
+            // Look at
+            Vector3 dir = Vector3.Normalize(lookTowards - conePos);
+            Vector3 rotationAxis = Vector3.Cross(meshDefaultLook, dir);
+            float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
+            Matrix4x4 rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
+
+            Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(
+                   _scaleMatrix.Inverted() *
+                   rotationMatrix *
+                   Matrix4x4.CreateTranslation(conePos)
+               );
+            coneMesh.Material = skeletonVisualizationMaterial;
+            visualizationMeshes.Add(coneMesh);
         }
-
-        DrawSkeleton(rig, Matrix4x4.Identity, Vector3.Zero);
 
         c.PushModelMatrix(GetModelMatrix());
         for (var i = 0; i < visualizationMeshes.Count; i++)
@@ -371,8 +360,9 @@ public class MapObjectMesh : MapObject
             Mesh mesh = visualizationMeshes[i];
             mesh.Render(c);
         }
-
         c.PopModelMatrix();
+
+        c.SetDepthTest(true);
     }
 
     #region Helpers

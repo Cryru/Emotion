@@ -131,7 +131,7 @@ public partial class GameObject3D : BaseGameObject
         lock (this)
         {
             _time += dt;
-            _entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
+            //_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, _time % _currentAnimation?.Duration ?? 0);
         }
 
         base.UpdateInternal(dt);
@@ -231,7 +231,7 @@ public partial class GameObject3D : BaseGameObject
         _time = 0;
 
         // todo: add some way for the entity to calculate and hold a collision mesh.
-        _entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, 0);
+        //_entity?.CalculateBoneMatrices(_currentAnimation, _boneMatricesPerMesh, 0);
         CacheVerticesForCollision();
         _entity?.GetBounds(name, out _bSphereBase, out _bCubeBase);
         Assert(_bSphereBase.Radius != 0, "Bounding radius is not 0");
@@ -329,88 +329,6 @@ public partial class GameObject3D : BaseGameObject
         vert1 = meshData[v1];
         vert2 = meshData[v2];
         vert3 = meshData[v3];
-    }
-
-    #endregion
-
-    #region Debug
-
-    public void DebugDrawSkeleton(RenderComposer c)
-    {
-        SkeletonAnimRigRoot? rig = _entity?.AnimationRig;
-        if (rig == null) return;
-
-        var coneMeshGenerator = new CylinderMeshGenerator
-        {
-            RadiusTop = 0,
-            RadiusBottom = 1.25f,
-            Sides = 4
-        };
-        var visualizationMeshes = new List<Mesh>();
-
-        void DrawSkeleton(SkeletonAnimRigNode node, Matrix4x4 parentMatrix, Vector3 parentPos)
-        {
-            Matrix4x4 currentMatrix = node.LocalTransform;
-            if (_currentAnimation != null)
-            {
-                if (node.DontAnimate)
-                {
-                    currentMatrix = Matrix4x4.Identity;
-                }
-                else
-                {
-                    SkeletonAnimChannel? channel = _currentAnimation.GetMeshAnimBone(node.Name);
-                    if (channel != null)
-                        currentMatrix = channel.GetMatrixAtTimestamp(_time % _currentAnimation.Duration);
-                }
-            }
-
-            Matrix4x4 matrix = currentMatrix * parentMatrix;
-            Vector3 bonePos = Vector3.Transform(Vector3.Zero, matrix);
-
-            if (parentPos != Vector3.Zero)
-            {
-                float height = Vector3.Distance(parentPos, bonePos);
-                coneMeshGenerator.Height = height * _sizeZ;
-
-                // Look at params
-                Vector3 conePos = parentPos;
-                Vector3 lookTowards = bonePos;
-                Vector3 meshDefaultLook = Vector3.UnitZ;
-
-                // Look at
-                Vector3 dir = Vector3.Normalize(lookTowards - conePos);
-                Vector3 rotationAxis = Vector3.Cross(meshDefaultLook, dir);
-                float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
-                var rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
-
-                Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(
-                    _scaleMatrix.Inverted() *
-                    rotationMatrix *
-                    Matrix4x4.CreateTranslation(conePos)
-                ).ColorMeshVertices(Color.PrettyPink);
-                visualizationMeshes.Add(coneMesh);
-            }
-
-            SkeletonAnimRigNode[]? children = node.Children;
-            if (children == null) return;
-            for (var i = 0; i < children.Length; i++)
-            {
-                SkeletonAnimRigNode child = children[i];
-                DrawSkeleton(child, matrix, bonePos);
-            }
-        }
-
-        DrawSkeleton(rig, Matrix4x4.Identity, Vector3.Zero);
-
-        c.PushModelMatrix(GetModelMatrix());
-        for (var i = 0; i < visualizationMeshes.Count; i++)
-        {
-            Mesh mesh = visualizationMeshes[i];
-            mesh.Render(c);
-        }
-
-        c.PopModelMatrix();
     }
 
     #endregion
