@@ -64,24 +64,24 @@ public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
 
         ReadOnlyMemory<byte> data;
 
+        // Due to sharing violations we should try to hot reload this in a try-catch.
+        Engine.SuppressLogExceptions(true);
+        try
+        {
+            data = source.GetAsset(Name);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        finally
+        {
+            Engine.SuppressLogExceptions(false);
+        }
+
         // Hot reload
         if (Asset != null)
         {
-            // Due to sharing violations we should try to hot reload this in a try-catch.
-            Engine.SuppressLogExceptions(true);
-            try
-            {
-                data = source.GetAsset(Name);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            finally
-            {
-                Engine.SuppressLogExceptions(false);
-            }
-
             if (Asset is not IHotReloadableAsset reloadableAsset) return true;
 
             reloadableAsset.Reload(data);
@@ -90,7 +90,6 @@ public class AssetHandle<T> : AssetHandleBase where T : Asset, new()
             return true;
         }
 
-        data = source.GetAsset(Name);
         Asset = new T { Name = Name };
         Asset.Create(data);
         AssetLoaded = true;
