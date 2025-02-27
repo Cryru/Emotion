@@ -68,6 +68,15 @@ public class WoWCamera : Camera3D
             return false;
         }
 
+        if (key == Key.MouseWheel)
+        {
+            float zoomDir = status == KeyState.MouseWheelScrollUp ? 1 : -1;
+            Distance -= zoomDir * 100;
+            Distance = Maths.Clamp(Distance, 100, 2000);
+
+            return false;
+        }
+
         return true;
     }
 
