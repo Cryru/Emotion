@@ -148,6 +148,18 @@ namespace Emotion.IO
                 if (manifestKey.StartsWith(name)) matches.Add(manifestKey);
             }
 
+            for (int i = 0; i < _assetSources.Count; i++)
+            {
+                AssetSource assSrc = _assetSources[i];
+                bool hasIt = assSrc.HasAsset(name);
+                var manifest = assSrc.GetManifest();
+                for (int m = 0; m < manifest.Length; m++)
+                {
+                    string manifestKey = manifest[m];
+                    if (manifestKey.StartsWith(name)) matches.Add(manifestKey);
+                }
+            }
+
             return matches.ToArray();
         }
 
