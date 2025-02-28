@@ -14,6 +14,7 @@ namespace Emotion.Standard.GLTF;
 public static partial class GLTFFormat
 {
     private const string BASE64_DATA_PREFIX = "data:application/gltf-buffer;base64,";
+    private const string BASE64_DATA_PREFIX_2 = "data:application/octet-stream;base64,";
     private const bool MAKE_LEFT_HANDED = true;
     private const float ANIM_TIME_SCALE = 1000; // We expect them to be in seconds, but emotion works in ms.
 
@@ -34,6 +35,11 @@ public static partial class GLTFFormat
             {
                 // todo: Convert.FromBase64String that takes in a span to save an allocation here.
                 uri = uri.Replace(BASE64_DATA_PREFIX, "");
+                content = new ReadOnlyMemory<byte>(Convert.FromBase64String(uri));
+            }
+            else if (uri.StartsWith(BASE64_DATA_PREFIX_2))
+            {
+                uri = uri.Replace(BASE64_DATA_PREFIX_2, "");
                 content = new ReadOnlyMemory<byte>(Convert.FromBase64String(uri));
             }
             else
@@ -254,11 +260,16 @@ public static partial class GLTFFormat
         {
             GLTFImage image = images[i];
             string uri = image.Uri;
+            if (uri == null) continue;
 
             uri = AssetLoader.NameToEngineName(uri);
             uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
             TextureAsset? textureAsset = Engine.AssetLoader.Get<TextureAsset>(uri, false);
-            if (textureAsset != null) textureAsset.Texture.Smooth = true; // todo
+            if (textureAsset != null)
+            {
+                textureAsset.Texture.Smooth = true; // todo
+                textureAsset.Texture.Tile = true; // todo
+            }
 
             imagesRead[i] = textureAsset == null ? Texture.EmptyWhiteTexture : textureAsset.Texture;
         }
@@ -337,82 +348,93 @@ public static partial class GLTFFormat
             mappingIntoSingleBuffer = false;
         }
 
-        Mesh[] meshes = new Mesh[gltfMeshes.Length];
+        int meshCount = 0;
+        int currentMeshId = 0;
+        for (int i = 0; i < gltfMeshes.Length; i++)
+        {
+            GLTFMesh gltfMesh = gltfMeshes[i];
+            GLTFMeshPrimitives[] primitives = gltfMesh.Primitives;
+            meshCount += primitives.Length;
+        }
+
+        Mesh[] meshes = new Mesh[meshCount];
         for (int m = 0; m < gltfMeshes.Length; m++)
         {
             GLTFMesh gltfMesh = gltfMeshes[m];
             GLTFMeshPrimitives[] primitives = gltfMesh.Primitives;
-            GLTFMeshPrimitives primitive = primitives[0]; // ??? What does it mean to have multiple
-            Dictionary<string, int> attributes = primitive.Attributes;
 
-            // Read indices
-            GLTFAccessor indexAccessor = gltfDoc.Accessors[primitive.Indices];
-            Assert(indexAccessor.Type == "SCALAR");
-            ushort[] indices = new ushort[indexAccessor.Count];
-
-            if (indexAccessor.ComponentType == Gl.UNSIGNED_BYTE)
+            for (int p = 0; p < primitives.Length; p++) // sucks
             {
-                ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
-                ReadOnlySpan<byte> indicesSpan = indicesData.Span;
-                for (int idx = 0; idx < indicesSpan.Length; idx++)
-                    indices[idx] = indicesSpan[idx];
-            }
-            else
-            {
-                Assert(indexAccessor.ComponentType == Gl.UNSIGNED_SHORT);
-                ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
-                ReadOnlySpan<ushort> indicesAsUshort = MemoryMarshal.Cast<byte, ushort>(indicesData.Span);
-                indicesAsUshort.CopyTo(indices);
-            }
+                GLTFMeshPrimitives primitive = primitives[p];
+                Dictionary<string, int> attributes = primitive.Attributes;
 
-            // Determine vertex count from largest attribute
-            bool isSkinned = false;
-            int vertexCount = 0;
-            foreach (KeyValuePair<string, int> attribute in attributes)
-            {
-                GLTFAccessor accessor = gltfDoc.Accessors[attribute.Value];
-                vertexCount = Math.Max(vertexCount, accessor.Count);
+                // Read indices
+                GLTFAccessor indexAccessor = gltfDoc.Accessors[primitive.Indices];
+                Assert(indexAccessor.Type == "SCALAR");
+                ushort[] indices = new ushort[indexAccessor.Count];
 
-                if (attribute.Key == "JOINTS_0" || attribute.Key == "WEIGHTS_0")
-                    isSkinned = true;
-            }
-
-            // Split buffer if mapping into single buffer
-            int vertexOffset = 0;
-            if (mappingIntoSingleBuffer)
-            {
-                int smallestVertexUsed = vertexCount;
-                int largestVertexUsed = 0;
-                for (int i = 0; i < indices.Length; i++)
+                if (indexAccessor.ComponentType == Gl.UNSIGNED_BYTE)
                 {
-                    ushort vIdx = indices[i];
-                    if (vIdx > largestVertexUsed) largestVertexUsed = vIdx;
-                    if (vIdx < smallestVertexUsed) smallestVertexUsed = vIdx;
+                    ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
+                    ReadOnlySpan<byte> indicesSpan = indicesData.Span;
+                    for (int idx = 0; idx < indicesSpan.Length; idx++)
+                        indices[idx] = indicesSpan[idx];
+                }
+                else
+                {
+                    Assert(indexAccessor.ComponentType == Gl.UNSIGNED_SHORT);
+                    ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
+                    ReadOnlySpan<ushort> indicesAsUshort = MemoryMarshal.Cast<byte, ushort>(indicesData.Span);
+                    indicesAsUshort.CopyTo(indices);
                 }
 
-                vertexOffset = smallestVertexUsed;
-                vertexCount = (largestVertexUsed - smallestVertexUsed) + 1;
-
-                for (int i = 0; i < indices.Length; i++)
+                // Determine vertex count from largest attribute
+                bool isSkinned = false;
+                int vertexCount = 0;
+                foreach (KeyValuePair<string, int> attribute in attributes)
                 {
-                    ushort vIdx = indices[i];
-                    indices[i] -= (ushort)vertexOffset;
+                    GLTFAccessor accessor = gltfDoc.Accessors[attribute.Value];
+                    vertexCount = Math.Max(vertexCount, accessor.Count);
+
+                    if (attribute.Key == "JOINTS_0" || attribute.Key == "WEIGHTS_0")
+                        isSkinned = true;
                 }
-            }
 
-            // Initialize vertices array
-            VertexData[] vertices = new VertexData[vertexCount];
-            VertexDataMesh3DExtra[] verticesExtraData = new VertexDataMesh3DExtra[vertexCount];
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                ref VertexData vert = ref vertices[i];
-                vert.Color = Color.WhiteUint;
-            }
+                // Split buffer if mapping into single buffer
+                int vertexOffset = 0;
+                if (mappingIntoSingleBuffer)
+                {
+                    int smallestVertexUsed = vertexCount;
+                    int largestVertexUsed = 0;
+                    for (int i = 0; i < indices.Length; i++)
+                    {
+                        ushort vIdx = indices[i];
+                        if (vIdx > largestVertexUsed) largestVertexUsed = vIdx;
+                        if (vIdx < smallestVertexUsed) smallestVertexUsed = vIdx;
+                    }
 
-            Mesh3DVertexDataBones[]? boneData = null;
-            if (isSkinned)
-            {
-                boneData = new Mesh3DVertexDataBones[vertexCount];
+                    vertexOffset = smallestVertexUsed;
+                    vertexCount = (largestVertexUsed - smallestVertexUsed) + 1;
+
+                    for (int i = 0; i < indices.Length; i++)
+                    {
+                        ushort vIdx = indices[i];
+                        indices[i] -= (ushort)vertexOffset;
+                    }
+                }
+
+                // Initialize vertices array
+                VertexData[] vertices = new VertexData[vertexCount];
+                VertexDataMesh3DExtra[] verticesExtraData = new VertexDataMesh3DExtra[vertexCount];
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    ref VertexData vert = ref vertices[i];
+                    vert.Color = Color.WhiteUint;
+                }
+
+                Mesh3DVertexDataBones[]? boneData = null;
+                if (isSkinned)
+                    boneData = new Mesh3DVertexDataBones[vertexCount];
 
                 foreach (KeyValuePair<string, int> attribute in attributes)
                 {
@@ -488,15 +510,22 @@ public static partial class GLTFFormat
                             }
                     }
                 }
+
+                int materialIndex = primitive.Material;
+                MeshMaterial material = materials.Length > 0 ? materials[materialIndex] : MeshMaterial.DefaultMaterial;
+
+                string meshName = gltfMesh.Name;
+                if (gltfMesh.Name == string.Empty) meshName = $"Mesh {m}";
+                if (p > 0) meshName = $" - Primitive {p}";
+
+                Mesh mesh = new Mesh(meshName, vertices, verticesExtraData, indices)
+                {
+                    Material = material,
+                    BoneData = boneData
+                };
+                meshes[currentMeshId] = mesh;
+                currentMeshId++;
             }
-
-            int materialIndex = primitive.Material;
-            MeshMaterial material = materials.Length > 0 ? materials[materialIndex] : MeshMaterial.DefaultMaterial;
-
-            Mesh mesh = new Mesh($"Mesh {m}", vertices, verticesExtraData, indices);
-            mesh.Material = material;
-            if (isSkinned) mesh.BoneData = boneData;
-            meshes[m] = mesh;
         }
 
         GLTFSkins[] gltfSkins = gltfDoc.Skins ?? Array.Empty<GLTFSkins>();
@@ -540,13 +569,31 @@ public static partial class GLTFFormat
 
         MeshEntity entity = new MeshEntity()
         {
-            Name = "Unknown Entity Name",
+            Name = "Unknown Entity Name", // Overriden by MeshAsset
             LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD), // Y up to Z up
             Meshes = meshes,
-            AnimationRigOne = rigNodes,
+            AnimationRig = rigNodes,
             Animations = animations,
-            AnimationSkins = skins
+            AnimationSkins = skins,
         };
+
+        // Validate rig - no child should be prior to its parent
+        bool rigUnordered = false;
+        for (int i = 0; i < rigNodes.Length; i++)
+        {
+            SkeletonAnimRigNode rigNode = rigNodes[i];
+            if (rigNode.ParentIdx > i)
+            {
+                rigUnordered = true;
+                break;
+            }
+        }
+
+        if (rigUnordered)
+        {
+            Engine.Log.Warning($"Reordering animation rig for optimized matrix update", "GLTF");
+            MeshEntity.PostProcess_FixAnimationRigOrder(entity);
+        }
 
         return entity;
     }

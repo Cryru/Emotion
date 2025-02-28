@@ -5,6 +5,7 @@
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
+using Emotion.Standard.TopologicalSort;
 using Emotion.Utility;
 
 #endregion
@@ -32,7 +33,7 @@ public class MeshEntity
     // Animation
     public SkeletalAnimation[] Animations { get; set; } = Array.Empty<SkeletalAnimation>();
 
-    public SkeletonAnimRigNode[] AnimationRigOne { get; set; } = Array.Empty<SkeletonAnimRigNode>();
+    public SkeletonAnimRigNode[] AnimationRig { get; set; } = Array.Empty<SkeletonAnimRigNode>();
 
     // Render settings
     public bool BackFaceCulling { get; set; } = true; // todo: move to material
@@ -254,5 +255,56 @@ public class MeshEntity
                 }
             }
         }
+    }
+
+    public static void PostProcess_FixAnimationRigOrder(MeshEntity entity)
+    {
+        SkeletonAnimRigNode[] rig = entity.AnimationRig;
+
+        var nodeIds = new List<int>();
+        var dependencies = new List<(int, int)>();
+        for (int i = 0; i < entity.AnimationRig.Length; i++)
+        {
+            SkeletonAnimRigNode rigNode = entity.AnimationRig[i];
+            nodeIds.Add(i);
+
+            if (rigNode.ParentIdx != -1)
+                dependencies.Add((rigNode.ParentIdx, i));
+        }
+
+        // index is new order, value is old index
+        List<int> sorted = TopologicalSort.Sort(nodeIds, dependencies);
+
+        // Construct the new list - update parent dependencies
+        SkeletonAnimRigNode[] newRig = new SkeletonAnimRigNode[rig.Length];
+        for (int i = 0; i < newRig.Length; i++)
+        {
+            int oldRigNodeIdx = sorted[i];
+            SkeletonAnimRigNode oldRigNode = rig[oldRigNodeIdx];
+            if (oldRigNode.ParentIdx != -1)
+            {
+                int parentIdxNew = sorted.IndexOf(oldRigNode.ParentIdx);
+                Assert(parentIdxNew != -1);
+                oldRigNode.ParentIdx = parentIdxNew;
+            }
+            newRig[i] = oldRigNode;
+        }
+        entity.AnimationRig = newRig;
+
+        // Update skins
+        SkeletalAnimationSkin[] skins = entity.AnimationSkins;
+        for (int i = 0; i < skins.Length; i++)
+        {
+            SkeletalAnimationSkin skin = skins[i];
+            SkeletalAnimationSkinJoint[] joints = skin.Joints;
+            for (int j = 0; j < joints.Length; j++)
+            {
+                ref SkeletalAnimationSkinJoint joint = ref joints[j];
+                joint.RigNodeIdx = sorted.IndexOf(joint.RigNodeIdx);
+            }
+        }
+
+        // Update animation channels
+        // todo: need entity for testing
     }
 }

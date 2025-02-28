@@ -10,6 +10,9 @@ namespace Emotion.Standard.GLTF;
 
 public class GLTFMesh
 {
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
     [JsonPropertyName("primitives")]
     public GLTFMeshPrimitives[] Primitives { get; set; }
 }

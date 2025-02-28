@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
 using Emotion.Game.World;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.Standard.TopologicalSort;
 
 #endregion
 
@@ -55,27 +57,24 @@ public class MeshEntityMetaState
         _entity = entity;
         RenderMesh = new bool[entity.Meshes.Length];
 
-        _boneMatricesForEntityRig = new Matrix4x4[entity.AnimationRigOne.Length];
+        _boneMatricesForEntityRig = new Matrix4x4[entity.AnimationRig.Length];
 
         // todo: replace this with bone matrices per animation skin when we push them to a UBO
         _boneMatricesPerMesh = new Matrix4x4[entity.Meshes.Length][];
 
-        // Build a mapping of bone indices in the skin to bone indices in the rig.
-        // This will also filter out bones that are not used in the skin.
-        bool skinned = entity.AnimationRigOne.Length > 0;
-        SkeletonAnimRigNode[] flatAnimationRig = entity.AnimationRigOne;
+        // Build a mapping of which bones a mesh uses.
         for (int meshIdx = 0; meshIdx < entity.Meshes.Length; meshIdx++)
         {
             Mesh mesh = entity.Meshes[meshIdx];
             RenderMesh[meshIdx] = true;
 
             Matrix4x4[] matrices;
-            if (skinned && mesh.BoneData != null)
+            if (mesh.BoneData != null)
             {
                 int largestBoneIdUsed = 0;
                 for (int j = 0; j < mesh.BoneData.Length; j++)
                 {
-                    Graphics.Data.Mesh3DVertexDataBones data = mesh.BoneData[j];
+                    Mesh3DVertexDataBones data = mesh.BoneData[j];
                     Vector4 boneIds = data.BoneIds;
                     for (int b = 0; b < 4; b++)
                     {
@@ -113,7 +112,7 @@ public class MeshEntityMetaState
 
     public void UpdateAnimationRigBones(SkeletalAnimation? animation, float timeStamp)
     {
-        SkeletonAnimRigNode[] animRig = _entity.AnimationRigOne;
+        SkeletonAnimRigNode[] animRig = _entity.AnimationRig;
         Matrix4x4[] animRigMatrices = _boneMatricesForEntityRig;
         if (animRig.Length != 0)
             Assert(animRigMatrices.Length == animRig.Length);
@@ -154,7 +153,6 @@ public class MeshEntityMetaState
             for (int meshIdx = 0; meshIdx < _boneMatricesPerMesh.Length; meshIdx++)
             {
                 Matrix4x4[] boneMatricesForMesh = _boneMatricesPerMesh[meshIdx];
-
                 SkeletalAnimationSkinJoint[] joints = primarySkin.Joints;
                 for (int b = 0; b < boneMatricesForMesh.Length; b++)
                 {

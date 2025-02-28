@@ -293,7 +293,7 @@ public class MapObjectMesh : MapObject
 
     public void DebugDrawSkeleton(RenderComposer c)
     {
-        SkeletonAnimRigNode[]? rig = _entity?.AnimationRigOne;
+        SkeletonAnimRigNode[]? rig = _entity?.AnimationRig;
         if (rig == null) return;
         if (RenderState == null) return;
 

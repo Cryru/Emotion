@@ -1,0 +1,4 @@
+﻿This code is from: https://gist.github.com/Sup3rc4l1fr4g1l1571c3xp14l1d0c10u5/3341dba6a53d7171fe3397d13d00ee3f
+under an unknown license, with modifications by me.
+
+- Cryru
