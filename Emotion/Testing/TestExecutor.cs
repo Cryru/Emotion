@@ -167,7 +167,10 @@ public static class TestExecutor
 
 #if AUTOBUILD
         if (completed != total)
-            throw new Exception("Some tests have failed :(");
+        {
+            Engine.Log.Error($"{total - completed} tests have failed!", MessageSource.Test);
+            Environment.Exit(1);
+        }
 #endif
 
 #if !AUTOBUILD
@@ -300,6 +303,8 @@ public static class TestExecutor
             }
 
             Engine.Log.Info($"Completed {declaringType}: {completedThisClass}/{totalThisClass}!\n", MessageSource.Test);
+            if (completedThisClass != totalThisClass)
+                Engine.Log.Error($"{totalThisClass - completedThisClass} tests have failed!", MessageSource.Test);
         }
 
         report.Completed = completed;
@@ -361,6 +366,9 @@ public static class TestExecutor
 
             TestingScene.SetCurrent(null);
             Engine.Log.Info($"Completed {sceneType}: {completedThisScene}/{totalThisScene}!\n", MessageSource.Test);
+
+            if (completedThisScene != totalThisScene)
+                Engine.Log.Error($"{totalThisScene - completedThisScene} tests have failed!", MessageSource.Test);
         }
 
         report.Completed = completed;

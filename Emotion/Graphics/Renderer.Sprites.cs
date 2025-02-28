@@ -161,6 +161,8 @@ namespace Emotion.Graphics
                 normal = Vector3.Normalize(normal);
             }
 
+            if (thickness < 1f) thickness = 1f;
+
             // If the size of the line is going to be less than 1 when scaled,
             // snap it to 1 and modulate alpha
             if (CurrentState.ViewMatrix.GetValueOrDefault())
