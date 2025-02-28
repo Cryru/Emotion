@@ -132,8 +132,8 @@ public static partial class GLTFFormat
                 float animDuration = 0;
                 for (int c = 0; c < gltfChannels.Length; c++)
                 {
-                    GLTFAnimationChannel gltf = gltfChannels[c];
-                    int samplerIdx = gltf.Sampler;
+                    GLTFAnimationChannel gltfChannel = gltfChannels[c];
+                    int samplerIdx = gltfChannel.Sampler;
                     GLTFAnimationSampler sampler = gltfAnim.Samplers[samplerIdx];
 
                     bool dontInterpolate = false;
@@ -155,14 +155,16 @@ public static partial class GLTFFormat
                     AccessorReader<float> timestampData = GetAccessorDataAsType<float>(gltfDoc, timestampAccessor);
                     for (int t = 0; t < timestampData.Count; t++)
                     {
-                        float time = timestampData.ReadElement(t) * ANIM_TIME_SCALE;
-                        animDuration = MathF.Max(animDuration, time);
+                        float timestamp = timestampData.ReadElement(t) * ANIM_TIME_SCALE;
+                        if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE; // Disgusting hack for some broken models I used :P
+
+                        animDuration = MathF.Max(animDuration, timestamp);
                     }
 
                     int dataId = sampler.Output;
                     GLTFAccessor dataAccessor = gltfDoc.Accessors[dataId];
 
-                    GLTFAnimationChannel.GLTFAnimationChannelTarget target = gltf.Target;
+                    GLTFAnimationChannel.GLTFAnimationChannelTarget target = gltfChannel.Target;
                     int nodeIdx = target.Node;
                     SkeletonAnimRigNode node = rigNodes[nodeIdx];
 
@@ -190,10 +192,13 @@ public static partial class GLTFFormat
                                         data.Y = -data.Y;
                                     }
 
+                                    float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
+                                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
+
                                     rotations[s] = new MeshAnimBoneRotation()
                                     {
                                         Rotation = new Quaternion(data.X, data.Y, data.Z, data.W),
-                                        Timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE,
+                                        Timestamp = timestamp,
                                         DontInterpolate = dontInterpolate
                                     };
                                 }
@@ -208,6 +213,9 @@ public static partial class GLTFFormat
                                 {
                                     Vector3 data = samplerData.ReadElement(s);
                                     if (MAKE_LEFT_HANDED) data.Z = -data.Z;
+
+                                    float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
+                                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
 
                                     translations[s] = new MeshAnimBoneTranslation()
                                     {
@@ -226,6 +234,9 @@ public static partial class GLTFFormat
                                 for (int s = 0; s < samplerData.Count; s++)
                                 {
                                     Vector3 data = samplerData.ReadElement(s);
+
+                                    float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
+                                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
 
                                     scales[s] = new MeshAnimBoneScale()
                                     {
