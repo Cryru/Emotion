@@ -89,6 +89,9 @@ public class SkeletonAnimChannel
         if (current.DontInterpolate)
             return Matrix4x4.CreateTranslation(current.Position);
 
+        if (current.Timestamp > timestamp)
+            return Matrix4x4.Identity;
+
         int nextIndex = currentIndex + 1;
         ref MeshAnimBoneTranslation next = ref Positions[nextIndex];
 
@@ -107,6 +110,9 @@ public class SkeletonAnimChannel
         ref MeshAnimBoneRotation current = ref Rotations[currentIndex];
         if (current.DontInterpolate)
             return Matrix4x4.CreateFromQuaternion(Quaternion.Normalize(current.Rotation));
+
+        if (current.Timestamp > timestamp)
+            return Matrix4x4.Identity;
 
         int nextIndex = currentIndex + 1;
         ref MeshAnimBoneRotation next = ref Rotations[nextIndex];
@@ -128,6 +134,9 @@ public class SkeletonAnimChannel
         ref MeshAnimBoneScale current = ref Scales[currentIndex];
         if (current.DontInterpolate)
             return Matrix4x4.CreateScale(current.Scale);
+
+        if (current.Timestamp > timestamp)
+            return Matrix4x4.Identity;
 
         int nextIndex = currentIndex + 1;
         ref MeshAnimBoneScale next = ref Scales[nextIndex];

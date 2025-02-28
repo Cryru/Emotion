@@ -13,6 +13,7 @@ using AssMesh = Silk.NET.Assimp.Mesh;
 using File = Silk.NET.Assimp.File;
 using System.Text.Json;
 using Emotion.IO.MeshAssetTypes.Assimp.GLTF;
+using static Emotion.Utility.Helpers;
 
 #endregion
 
@@ -42,10 +43,9 @@ public class AssimpAsset : Asset
     protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
     {
         _thisData = data;
-        bool isGLTF = Name.Contains(".gltf");
 
         // Initialize virtual file system.
-        var thisStream = new AssimpStream("this");
+        var thisStream = new AssimpStream(Name);
         thisStream.AddMemory(_thisData);
         _loadedFiles.Add(thisStream);
 
@@ -59,33 +59,30 @@ public class AssimpAsset : Asset
         };
 
         PostProcessSteps postProcFlags = _postProcFlags;
-        if (isGLTF)
-        {
-            // Since we need to apply gltf fixups we need the vertices in the same order,
-            // lest we implement the joining ourselves (there is an attempt)
-            postProcFlags = postProcFlags.EnumRemoveFlag(PostProcessSteps.JoinIdenticalVertices);
-        }
-
-        Scene* scene = _assContext.ImportFileEx("this", (uint)postProcFlags, ref customIO);
+        Scene* scene = _assContext.ImportFileEx(Name, (uint)postProcFlags, ref customIO);
         if ((IntPtr)scene == IntPtr.Zero)
         {
             Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
             return;
         }
 
-        var isYUp = false;
-        if (scene->MMetaData != null)
-        {
-            int? upAxis = GetMetadataInt(scene->MMetaData, "UpAxis");
-            if (upAxis == 1) isYUp = true;
-        }
+        bool isYUp = true;
+        //if (scene->MMetaData != null)
+        //{
+        //    int? upAxis = GetMetadataInt(scene->MMetaData, "UpAxis");
+        //    if (upAxis == 1) isYUp = true;
+        //}
+
+        // Get the animation rig
+        Node* rootNode = scene->MRootNode;
+        SkeletonAnimRigNode[] animRig = WalkNodesForSkeleton(rootNode);
 
         // Process materials, animations, and meshes.
         var materials = new List<MeshMaterial>();
         ProcessMaterials(scene, materials);
 
         var animations = new List<SkeletalAnimation>();
-        ProcessAnimations(scene, animations);
+        ProcessAnimations(scene, animations, animRig);
 
         // Add animations from a _Animations folder.
         string myFolder = AssetLoader.GetDirectoryName(Name);
@@ -95,28 +92,25 @@ public class AssimpAsset : Asset
         {
             string asset = assetsInFolder[i];
             Scene* otherAssetScene = _assContext.ImportFileEx(asset.Replace(myFolder, ""), (uint)_postProcFlags, ref customIO);
-            if (otherAssetScene != null) ProcessAnimations(otherAssetScene, animations);
+            if (otherAssetScene != null) ProcessAnimations(otherAssetScene, animations, animRig);
         }
 
         var meshes = new List<Mesh>();
+        var skins = new List<SkeletalAnimationSkin>();
 
-        Node* rootNode = scene->MRootNode;
-        SkeletonAnimRigNode? animRigRoot = WalkNodesForSkeleton(rootNode);
-        SkeletonAnimRigRoot? animRigAsRoot = animRigRoot != null ? SkeletonAnimRigRoot.PromoteNode(animRigRoot) : null;
-
-        WalkNodesForMeshes(scene, rootNode, meshes, materials);
+        WalkNodesForMeshes(scene, rootNode, meshes, materials, skins, animRig);
 
         Entity = new MeshEntity
         {
             Name = Name,
             Meshes = meshes.ToArray(),
             Animations = animations.ToArray(),
-            AnimationRig = animRigAsRoot
+            AnimationRig = animRig,
+            AnimationSkins = skins.ToArray()
         };
 
-        // Convert to right handed Z up, if not.
-        if (isGLTF || isYUp) Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
-        if (isGLTF) ApplyGLTFFixes(data, Entity.Meshes);
+        // Convert to Z up, if not.
+        if (isYUp) Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
         // Properties
         float? scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor");
@@ -324,56 +318,75 @@ public class AssimpAsset : Asset
 
     #region Animations
 
-    protected unsafe SkeletonAnimRigNode? WalkNodesForSkeleton(Node* n)
+    protected unsafe SkeletonAnimRigNode[] WalkNodesForSkeleton(Node* root)
     {
-        if ((IntPtr)n == IntPtr.Zero) return null;
+        List<SkeletonAnimRigNode> rig = new List<SkeletonAnimRigNode>();
 
-        string nodeName = n->MName.AsString;
+        Queue<IntPtr> queue = new Queue<IntPtr>();
+        queue.Enqueue((IntPtr)root);
 
-        var myNode = new SkeletonAnimRigNode
+        while (queue.TryDequeue(out IntPtr nextNodePtr))
         {
-            Name = nodeName,
-            LocalTransform = Matrix4x4.Transpose(n->MTransformation),
-            Children = new SkeletonAnimRigNode[n->MNumChildren],
-            DontAnimate = nodeName.Contains("$AssimpFbx$")
-        };
+            Node* nodePtr = (Node*)nextNodePtr;
 
-        AssertNotNull(myNode.Children);
-        for (var i = 0; i < n->MNumChildren; i++)
-        {
-            Node* child = n->MChildren[i];
-            SkeletonAnimRigNode? childRigNode = WalkNodesForSkeleton(child);
-            if (childRigNode == null) continue;
-            myNode.Children[i] = childRigNode;
+            int parentIdx = -1;
+            IntPtr parentPtr = (IntPtr)nodePtr->MParent;
+            if (parentPtr != IntPtr.Zero)
+            {
+                string parentName = nodePtr->MParent->MName.AsString;
+                for (int r = 0; r < rig.Count; r++)
+                {
+                    var rigItem = rig[r];
+                    if (rigItem.Name == parentName)
+                    {
+                        parentIdx = r;
+                        break;
+                    }
+                }
+            }
+
+            string nodeName = nodePtr->MName.AsString;
+            var myNode = new SkeletonAnimRigNode
+            {
+                Name = nodeName,
+                LocalTransform = Matrix4x4.Transpose(nodePtr->MTransformation),
+                ParentIdx = parentIdx,
+                DontAnimate = nodeName.Contains("$AssimpFbx$")
+            };
+            rig.Add(myNode);
+
+            for (var i = 0; i < nodePtr->MNumChildren; i++)
+            {
+                Node* child = nodePtr->MChildren[i];
+                queue.Enqueue((IntPtr)child);
+            }
         }
 
-        return myNode;
+        return rig.ToArray();
     }
 
-    private unsafe void ProcessAnimations(Scene* scene, List<SkeletalAnimation> list)
+    private unsafe void ProcessAnimations(Scene* scene, List<SkeletalAnimation> list, SkeletonAnimRigNode[] animRig)
     {
         var unnamedAnimations = 0;
         for (var i = 0; i < scene->MNumAnimations; i++)
         {
             Animation* anim = scene->MAnimations[i];
 
-            var channels = new SkeletonAnimChannel[anim->MNumChannels];
             string animName = anim->MName.AsString;
             var emotionAnim = new SkeletalAnimation
             {
                 Name = string.IsNullOrEmpty(animName) ? $"UnnamedAnimation{unnamedAnimations++}" : animName,
-                AnimChannels = channels
+                AnimChannels = new SkeletonAnimChannel[animRig.Length],
+                Duration = (float)(anim->MDuration / anim->MTicksPerSecond) * 1000
             };
-
-            emotionAnim.Duration = (float)(anim->MDuration / anim->MTicksPerSecond) * 1000;
-
             list.Add(emotionAnim);
 
-            for (var j = 0; j < channels.Length; j++)
+            uint channels = anim->MNumChannels;
+            for (var j = 0; j < channels; j++)
             {
                 NodeAnim* channel = anim->MChannels[j];
 
-                var bone = new SkeletonAnimChannel
+                var emotionChannel = new SkeletonAnimChannel
                 {
                     Name = channel->MNodeName.AsString,
                     Positions = new MeshAnimBoneTranslation[channel->MNumPositionKeys],
@@ -384,7 +397,7 @@ public class AssimpAsset : Asset
                 for (var k = 0; k < channel->MNumPositionKeys; k++)
                 {
                     VectorKey val = channel->MPositionKeys[k];
-                    ref MeshAnimBoneTranslation translation = ref bone.Positions[k];
+                    ref MeshAnimBoneTranslation translation = ref emotionChannel.Positions[k];
                     translation.Position = val.MValue;
                     translation.Timestamp = (float)(val.MTime / anim->MTicksPerSecond) * 1000;
                 }
@@ -392,7 +405,7 @@ public class AssimpAsset : Asset
                 for (var k = 0; k < channel->MNumRotationKeys; k++)
                 {
                     QuatKey val = channel->MRotationKeys[k];
-                    ref MeshAnimBoneRotation rotation = ref bone.Rotations[k];
+                    ref MeshAnimBoneRotation rotation = ref emotionChannel.Rotations[k];
                     rotation.Rotation = val.MValue.AsQuaternion;
                     rotation.Timestamp = (float)(val.MTime / anim->MTicksPerSecond) * 1000;
                 }
@@ -400,12 +413,22 @@ public class AssimpAsset : Asset
                 for (var k = 0; k < channel->MNumScalingKeys; k++)
                 {
                     VectorKey val = channel->MScalingKeys[k];
-                    ref MeshAnimBoneScale scale = ref bone.Scales[k];
+                    ref MeshAnimBoneScale scale = ref emotionChannel.Scales[k];
                     scale.Scale = val.MValue;
                     scale.Timestamp = (float)(val.MTime / anim->MTicksPerSecond) * 1000;
                 }
 
-                channels[j] = bone;
+                var rigIdx = 0;
+                for (int r = 0; r < animRig.Length; r++)
+                {
+                    SkeletonAnimRigNode rigItem = animRig[r];
+                    if (rigItem.Name == emotionChannel.Name)
+                    {
+                        rigIdx = r;
+                        break;
+                    }
+                }
+                emotionAnim.AnimChannels[rigIdx] = emotionChannel;
             }
         }
     }
@@ -414,7 +437,13 @@ public class AssimpAsset : Asset
 
     #region Meshes
 
-    protected unsafe void WalkNodesForMeshes(Scene* scene, Node* n, List<Mesh> list, List<MeshMaterial> materials)
+    protected unsafe void WalkNodesForMeshes(
+        Scene* scene,
+        Node* n,
+        List<Mesh> list,
+        List<MeshMaterial> materials,
+        List<SkeletalAnimationSkin> skins,
+        SkeletonAnimRigNode[] animRig)
     {
         if ((IntPtr)n == IntPtr.Zero) return;
 
@@ -422,18 +451,18 @@ public class AssimpAsset : Asset
         {
             uint meshIdx = n->MMeshes[i];
             AssMesh* mesh = scene->MMeshes[meshIdx];
-            Mesh emotionMesh = ProcessMesh(mesh, materials);
+            Mesh emotionMesh = ProcessMesh(mesh, materials, skins, animRig);
             list.Add(emotionMesh);
         }
 
         for (var i = 0; i < n->MNumChildren; i++)
         {
             Node* child = n->MChildren[i];
-            WalkNodesForMeshes(scene, child, list, materials);
+            WalkNodesForMeshes(scene, child, list, materials, skins, animRig);
         }
     }
 
-    protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials)
+    protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials, List<SkeletalAnimationSkin> skins, SkeletonAnimRigNode[] animRig)
     {
         // Collect indices
         uint indicesCount = 0;
@@ -524,32 +553,38 @@ public class AssimpAsset : Asset
         }
         newMesh.BoneData = boneData;
 
-        // Assimp contains bones in a bone-to-vertex relationship
-        // we need to convert this to a vertex-to-bone relationship.
-        var boneToIndex = new Dictionary<string, int>();
-        boneToIndex.Add("<<RESERVED IDENTITY MATRIX>>", 0);
-        var bones = new MeshBone[m->MNumBones];
-        newMesh.Bones = bones;
+        var animationSkin = new SkeletalAnimationSkin
+        {
+            Name = $"{m->MName.AsString} Skin",
+            Joints = new SkeletalAnimationSkinJoint[m->MNumBones]
+        };
+        skins.Add(animationSkin);
+        newMesh.AnimationSkin = skins.Count - 1;
 
         for (var i = 0; i < m->MNumBones; i++)
         {
             Bone* bone = m->MBones[i];
-            var emBone = new MeshBone
-            {
-                Name = bone->MName.AsString,
-                OffsetMatrix = Matrix4x4.Transpose(bone->MOffsetMatrix)
-            };
-            bones[i] = emBone;
+            string boneName = bone->MName.AsString;
 
-            // Check if this bone has an id assigned.
-            if (!boneToIndex.TryGetValue(bone->MName.AsString, out int boneIndex))
+            int rigIdx = i;
+            for (int r = 0; r < animRig.Length; r++)
             {
-                boneIndex = boneToIndex.Count;
-                boneToIndex.Add(bone->MName.AsString, boneIndex);
+                SkeletonAnimRigNode rigItem = animRig[r];
+                if (rigItem.Name == boneName)
+                {
+                    rigIdx = r;
+                    break;
+                }
             }
 
-            emBone.BoneIndex = boneIndex;
+            SkeletalAnimationSkinJoint newSkinJoint = new SkeletalAnimationSkinJoint()
+            {
+                RigNodeIdx = rigIdx,
+                OffsetMatrix = Matrix4x4.Transpose(bone->MOffsetMatrix)
+            };
+            animationSkin.Joints[i] = newSkinJoint;
 
+            int boneIdx = i;
             for (var j = 0; j < bone->MNumWeights; j++)
             {
                 ref VertexWeight boneDef = ref bone->MWeights[j];
@@ -566,7 +601,7 @@ public class AssimpAsset : Asset
                 {
                     if (vertex.BoneIds[dim] != 0) continue;
 
-                    vertex.BoneIds[dim] = boneIndex;
+                    vertex.BoneIds[dim] = boneIdx;
                     vertex.BoneWeights[dim] = weight;
                     found = true;
                     break;
@@ -592,7 +627,7 @@ public class AssimpAsset : Asset
 
                     if (lowestWeight < weight)
                     {
-                        vertex.BoneIds[lowestWeightIdx] = boneIndex;
+                        vertex.BoneIds[lowestWeightIdx] = boneIdx;
                         vertex.BoneWeights[lowestWeightIdx] = weight + lowestWeight;
                     }
                 }
@@ -712,219 +747,5 @@ public class AssimpAsset : Asset
         }
 
         Engine.AssetLoader.Save(str.ToArray(), name, false);
-    }
-
-    // Because of https://github.com/assimp/assimp/issues/4587
-    // we need to manually determine vertex joints and weight types.
-    private void ApplyGLTFFixes(ReadOnlyMemory<byte> data, Mesh[] meshes)
-    {
-        GLTFDocument? gltfDoc = JsonSerializer.Deserialize<GLTFDocument>(data.Span);
-        if (gltfDoc == null) return;
-        if (gltfDoc.Skins == null) return;
-
-        GLTFSkins skin = gltfDoc.Skins[0]; // todo
-
-        GLTFMesh[] gltfMeshes = gltfDoc.Meshes;
-        for (var i = 0; i < gltfMeshes.Length; i++)
-        {
-            GLTFMesh gltfMesh = gltfMeshes[i];
-            GLTFMeshPrimitives[] primitives = gltfMesh.Primitives;
-            GLTFMeshPrimitives primaryPrimitive = primitives[0]; // ??
-
-            if (i == 1) break;
-
-            bool foundWeight = primaryPrimitive.Attributes.TryGetValue("WEIGHTS_0", out int weightAccessorIdx);
-            if (!foundWeight) continue;
-            bool foundJoints = primaryPrimitive.Attributes.TryGetValue("JOINTS_0", out int jointAccessorIdx);
-            if (!foundJoints) continue;
-
-            GLTFAccessor weightAccessor = gltfDoc.Accessors[weightAccessorIdx];
-            ReadOnlyMemory<byte> weightBuffer = gltfDoc.ReadGltfBuffer(Name, weightAccessor, out int weightStride);
-            int weightDataSize = weightAccessor.GetDataSize();
-
-            GLTFAccessor jointAccessor = gltfDoc.Accessors[jointAccessorIdx];
-            ReadOnlyMemory<byte> jointBuffer = gltfDoc.ReadGltfBuffer(Name, jointAccessor, out int jointStride);
-            int jointDataSize = jointAccessor.GetDataSize();
-
-            // Since vertices and indices in Assimp are in a totally different order, in order to make sure
-            // the weights and joints are set correctly, we need to actually set the whole vertices.
-            bool foundPos = primaryPrimitive.Attributes.TryGetValue("POSITION", out int positionAccessorIdx);
-            if (!foundPos) continue;
-
-            GLTFAccessor positionAccessor = gltfDoc.Accessors[positionAccessorIdx];
-            int positionDataSize = positionAccessor.GetDataSize();
-            ReadOnlyMemory<byte> positionBuffer = gltfDoc.ReadGltfBuffer(Name, positionAccessor, out int positionStride);
-
-            bool foundUv = primaryPrimitive.Attributes.TryGetValue("TEXCOORD_0", out int uvAccessorIdx);
-            if (!foundUv) continue;
-
-            GLTFAccessor uvAccessor = gltfDoc.Accessors[uvAccessorIdx];
-            int uvDataSize = uvAccessor.GetDataSize();
-            ReadOnlyMemory<byte> uvBuffer = gltfDoc.ReadGltfBuffer(Name, uvAccessor, out int uvStride);
-
-            bool foundNormal = primaryPrimitive.Attributes.TryGetValue("NORMAL", out int normalAccessorIdx);
-            if (!foundNormal) continue;
-
-            GLTFAccessor normalAccessor = gltfDoc.Accessors[uvAccessorIdx];
-            int normalDataSize = normalAccessor.GetDataSize();
-            ReadOnlyMemory<byte> normalBuffer = gltfDoc.ReadGltfBuffer(Name, normalAccessor, out int normalStride);
-
-            int indicesAccessorIdx = primaryPrimitive.Indices;
-            GLTFAccessor indicesAccessor = gltfDoc.Accessors[indicesAccessorIdx];
-            int indicesDataSize = indicesAccessor.GetDataSize();
-            ReadOnlyMemory<byte> indicesBuffer = gltfDoc.ReadGltfBuffer(Name, indicesAccessor, out int indexStride);
-
-            ushort[] indices = new ushort[indicesAccessor.Count];
-            for (int idx = 0; idx < indicesAccessor.Count; idx++)
-            {
-                ReadOnlyMemory<byte> indicesData = indicesBuffer.Slice(idx * indexStride, indicesDataSize);
-                Vector4 index = indicesAccessor.GetDataAsVec4Float(indicesData);
-
-                indices[idx] = (ushort)index[0];
-            }
-
-            Mesh assimpMesh = meshes[i];
-            if (assimpMesh.BoneData == null) continue;
-            assimpMesh.Indices = indices;
-
-            for (int v = 0; v < positionAccessor.Count; v++)
-            {
-                Vector3 position = positionAccessor.GetDataAsVec4Float(positionBuffer.Slice(v * positionStride, positionDataSize)).ToVec3();
-                if (_postProcFlags.EnumHasFlag(PostProcessSteps.MakeLeftHanded)) position.Z = -position.Z;
-
-                Vector4 uv = uvAccessor.GetDataAsVec4Float(uvBuffer.Slice(v * uvStride, uvDataSize));
-
-                Vector3 normal = normalAccessor.GetDataAsVec4Float(uvBuffer.Slice(v * normalStride, normalDataSize)).ToVec3();
-                if (_postProcFlags.EnumHasFlag(PostProcessSteps.MakeLeftHanded)) normal.Z = -normal.Z;
-
-                ref VertexData vertexData = ref assimpMesh.Vertices[v];
-                vertexData.Vertex = position;
-                vertexData.UV = new Vector2(uv.X, uv.Y);
-
-                ref VertexDataMesh3DExtra extraVertexData = ref assimpMesh.ExtraVertexData[v];
-                extraVertexData.Normal = normal;
-            }
-
-            // Implement JoinIdenticalVertices so we can assign the correct weights and joints
-            // to the vertex assimp will output.
-            //int attributeIndex = 0;
-            //bool[] isUsed = new bool[primaryPrimitive.Attributes.Count];
-            //foreach (var attrib in primaryPrimitive.Attributes)
-            //{
-            //    string attributeName = attrib.Key;
-            //    if (attributeName.StartsWith("TEXCOORD"))
-            //    {
-            //        int underScoreIdx = attributeName.IndexOf("_");
-            //        string indexText = attributeName.Substring(underScoreIdx + 1);
-            //        int texCoordIndex = int.Parse(indexText);
-
-            //        int meshMaterialIdx = gltfMesh.Material;
-            //        GLTFMaterial material = gltfDoc.Materials[meshMaterialIdx];
-            //        var pbrMaterialRoughness = material.PBRMetallicRoughness;
-            //        if (pbrMaterialRoughness != null && pbrMaterialRoughness.BaseColorTexture != null)
-            //        {
-            //            int texCoord = pbrMaterialRoughness.BaseColorTexture.Index;
-            //            isUsed[attributeIndex] = texCoordIndex == texCoord;
-            //        }
-            //        else
-            //        {
-            //            isUsed[attributeIndex] = false;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        isUsed[attributeIndex] = true;
-            //    }
-            //    attributeIndex++;
-            //}
-
-            //ReadOnlyMemory<byte>[] meshBuffers = new ReadOnlyMemory<byte>[primaryPrimitive.Attributes.Count];
-            //int[] meshBufferStrides = new int[primaryPrimitive.Attributes.Count];
-            //int[] meshBufferDataSize = new int[primaryPrimitive.Attributes.Count];
-
-            //int idx = 0;
-            //foreach (KeyValuePair<string, int> item in primaryPrimitive.Attributes)
-            //{
-            //    int accessorId = item.Value;
-            //    GLTFAccessor accessor = gltfDoc.Accessors[accessorId];
-            //    ReadOnlyMemory<byte> accessorBuffer = gltfDoc.ReadGltfBuffer(Name, accessor, out int accessorStride);
-
-            //    meshBuffers[idx] = accessorBuffer;
-            //    meshBufferStrides[idx] = accessorStride;
-            //    meshBufferDataSize[idx] = accessor.GetDataSize();
-            //    idx++;
-            //}
-
-            //HashSet<int> vertexHashes = new HashSet<int>();
-            //List<bool> isUnique = new List<bool>();
-            //for (int v = 0; v < weightAccessor.Count; v++)
-            //{
-            //    HashCode thisVertexHash = new HashCode();
-
-            //    for (int vertBufferId = 0; vertBufferId < meshBuffers.Length; vertBufferId++)
-            //    {
-            //        if (!isUsed[vertBufferId]) continue;
-
-            //        ReadOnlyMemory<byte> thisBuffer = meshBuffers[vertBufferId];
-            //        ReadOnlyMemory<byte> dataFromThisBuffer = thisBuffer.Slice(v * meshBufferStrides[vertBufferId], meshBufferDataSize[vertBufferId]);
-            //        thisVertexHash.AddBytes(dataFromThisBuffer.Span);
-            //    }
-
-            //    isUnique.Add(vertexHashes.Add(thisVertexHash.ToHashCode()));
-            //}
-            //Assert(vertexHashes.Count == assimpMesh.Vertices.Length);
-
-            for (int v = 0; v < weightAccessor.Count; v++)
-            {
-                ReadOnlyMemory<byte> weightsData = weightBuffer.Slice(v * weightStride, weightDataSize);
-                Vector4 weights = weightAccessor.GetDataAsVec4Float(weightsData);
-
-                ReadOnlyMemory<byte> jointData = jointBuffer.Slice(v * jointStride, jointDataSize);
-                Vector4 joints = jointAccessor.GetDataAsVec4Float(jointData);
-
-                // Joints and weights in GLTF use 0 both as an index and as an empty value.
-                // You can differentiate using weights, in addition in GLTF you might have
-                // joints specified which have no weight. We filter all this out to make it
-                // into a nice sequential format.
-                Vector4 jointsConverted = Vector4.Zero;
-                Vector4 weightsConverted = Vector4.Zero;
-                for (int w = 0; w < 4; w++)
-                {
-                    float weight = weights[w];
-                    if (weight == 0) continue;
-                    int jointRef = (int)joints[w];
-
-                    // Invalid file case, but handle it cuz its useful for debugging.
-                    if (jointRef >= skin.Joints.Length)
-                    {
-                        Engine.Log.Warning($"Invalid joint reference {jointRef} in {Name}", "Assimp");
-                        continue;
-                    }
-
-                    int nodeIndex = skin.Joints[jointRef];
-                    GLTFNode node = gltfDoc.Nodes[nodeIndex];
-                    string nodeName = node.Name ?? $"nodes[{nodeIndex}]";
-
-                    MeshBone? meshBone = assimpMesh.GetMeshBoneByName(nodeName);
-                    AssertNotNull(meshBone);
-                    int assimpIndex = meshBone.BoneIndex;
-
-                    // Find free index.
-                    for (int j = 0; j < 4; j++)
-                    {
-                        if (jointsConverted[j] == 0)
-                        {
-                            jointsConverted[j] = assimpIndex;
-                            weightsConverted[j] = weight;
-                            break;
-                        }
-                    }
-                }
-
-                ref Mesh3DVertexDataBones boneData = ref assimpMesh.BoneData[v];
-                boneData.BoneIds = jointsConverted;
-                boneData.BoneWeights = weightsConverted;
-            }
-        }
     }
 }

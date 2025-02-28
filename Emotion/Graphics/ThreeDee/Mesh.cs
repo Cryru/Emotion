@@ -30,6 +30,8 @@ public class Mesh
 
     public Mesh3DVertexDataBones[]? BoneData;
 
+    public int AnimationSkin = 0;
+
     public Mesh(VertexDataWithNormal[] verticesONE, ushort[] indices)
     {
         Name = DEFAULT_MESH_NAME;

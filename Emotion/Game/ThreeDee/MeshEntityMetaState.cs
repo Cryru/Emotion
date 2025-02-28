@@ -89,6 +89,14 @@ public class MeshEntityMetaState
                 }
 
                 largestBoneIdUsed++; // Include this bone
+
+                // Assimp hack
+                // Note: Models loaded by assimp have one skin per mesh and the skins are generally
+                // optimized to only include the bones used by the mesh.
+                // Should we do this for the GLTF ourselves?
+                SkeletalAnimationSkin skin = _entity.AnimationSkins[mesh.AnimationSkin];
+                if (skin.Joints.Length < largestBoneIdUsed) largestBoneIdUsed = skin.Joints.Length;
+
                 matrices = new System.Numerics.Matrix4x4[largestBoneIdUsed];
             }
             else
@@ -133,7 +141,12 @@ public class MeshEntityMetaState
                     // note: not every bone is moved by the animation
                     SkeletonAnimChannel? channel = animation.GetAnimChannelForRigNode(nodeIdx);
                     if (channel != null)
-                        currentMatrix = channel.GetMatrixAtTimestamp(timeStamp);
+                    {
+                        Matrix4x4 animMatrix = channel.GetMatrixAtTimestamp(timeStamp);
+
+                        // When before the start of the animation.
+                        if (!animMatrix.IsIdentity) currentMatrix = animMatrix;
+                    }
                 }
             }
 
@@ -148,12 +161,14 @@ public class MeshEntityMetaState
 
         if (_entity.AnimationSkins.Length > 0)
         {
-            SkeletalAnimationSkin primarySkin = _entity.AnimationSkins[0];
-
             for (int meshIdx = 0; meshIdx < _boneMatricesPerMesh.Length; meshIdx++)
             {
-                Matrix4x4[] boneMatricesForMesh = _boneMatricesPerMesh[meshIdx];
+                Mesh mesh = _entity.Meshes[meshIdx];
+                int skinIdx = mesh.AnimationSkin;
+                SkeletalAnimationSkin primarySkin = _entity.AnimationSkins[skinIdx];
                 SkeletalAnimationSkinJoint[] joints = primarySkin.Joints;
+
+                Matrix4x4[] boneMatricesForMesh = _boneMatricesPerMesh[meshIdx];
                 for (int b = 0; b < boneMatricesForMesh.Length; b++)
                 {
                     SkeletalAnimationSkinJoint joint = joints[b];
