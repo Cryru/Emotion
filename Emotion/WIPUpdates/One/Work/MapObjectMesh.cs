@@ -225,7 +225,21 @@ public class MapObjectMesh : MapObject
         return _currentAnimation?.Name ?? string.Empty;
     }
 
-    public virtual void SetAnimation(string? name)
+    public bool HasAnimation(string name)
+    {
+        if (_entity == null) return false;
+        if (_entity.Animations != null)
+        {
+            for (var i = 0; i < _entity.Animations.Length; i++)
+            {
+                SkeletalAnimation anim = _entity.Animations[i];
+                if (anim.Name == name) return true;
+            }
+        }
+        return false;
+    }
+
+    public virtual void SetAnimation(string? name, bool forceIfMissing = false)
     {
         if (!Initialized)
         {
@@ -239,7 +253,7 @@ public class MapObjectMesh : MapObject
         // Try to find the animation instance.
         // todo: case insensitive?
         SkeletalAnimation? animInstance = null;
-        if (_entity.Animations != null)
+        if (name != null && _entity.Animations != null)
         {
             for (var i = 0; i < _entity.Animations.Length; i++)
             {
@@ -247,6 +261,8 @@ public class MapObjectMesh : MapObject
                 if (anim.Name == name) animInstance = anim;
             }
         }
+        if (animInstance == null && name != null && !forceIfMissing)
+            return;
 
         _currentAnimation = animInstance;
         _animationTime = 0; // Reset time
