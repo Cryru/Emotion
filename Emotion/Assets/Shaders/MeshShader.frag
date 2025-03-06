@@ -256,6 +256,9 @@ void main()
     // Normal debug
     // objectColor = vec4(fragNormal.x, fragNormal.y, fragNormal.z, 1.0);
 
+    // UV debug
+    // objectColor = vec4(UV.x, UV.y, 0.0, 1.0);
+
 #ifdef DEBUG_WEIGHT_BONE
     // Weight debug
     objectColor = vec4(weightToColor(debugBoneWeight), 1.0);

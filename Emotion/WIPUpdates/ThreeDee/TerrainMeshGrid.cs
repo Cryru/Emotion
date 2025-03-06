@@ -238,7 +238,11 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
 
                 Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
                 vData.Color = Color.White.ToUint();//Color.Lerp(Color.Black, Color.White, (heightSample + 150) / 300f).ToUint();
-                vData.UV = new Vector2(1.0f - (x / ChunkSize.X), y / ChunkSize.Y);
+                //vData.UV = new Vector2(1.0f - (x / ChunkSize.X), 1.0f - (y / ChunkSize.Y));
+
+                Vector2 mapSize = new Vector2(533.3333f, 533.33105f);
+                vData.UV = new Vector2(1.0f - (worldPos.X / mapSize.X), 1.0f - (worldPos.Y / mapSize.Y));
+
                 vData.Normal = new Vector3(0, 0, -1);
 
                 vIdx++;

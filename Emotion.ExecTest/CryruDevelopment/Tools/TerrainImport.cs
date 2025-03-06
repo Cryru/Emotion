@@ -38,7 +38,7 @@ public class TerrainImport
         terrainEntity.GetBounds(null, out _, out cub);
 
         Vector2 terrainSize = (cub.HalfExtents * 2f).ToVec2();
-        Vector2 tileSize = new Vector2(4);
+        Vector2 tileSize = new Vector2(4.16665649f);
 
         TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, (terrainSize / tileSize).Ceiling().X);
         terrain.InitEmptyChunksInArea(Vector2.Zero, terrainSize / tileSize);
@@ -55,9 +55,9 @@ public class TerrainImport
 
         map.TerrainGrid = terrain;
 
-        //map.AddObject(new MapObjectMesh(terrainEntity)
-        //{
-        //});
+        map.AddObject(new MapObjectMesh(terrainEntity)
+        {
+        });
     }
 
     private static IEnumerator FillMapRoutine(TerrainMeshGrid terrain, Vector2 resolution, Mesh terrainMesh)
@@ -71,8 +71,11 @@ public class TerrainImport
             Vector2 emotionTilePos = (vPos2 / resolution).Floor();
             terrain.ExpandingSetAt(emotionTilePos, vertexPos.Z);
 
+            //if (i == 145) break;
+
             yield return null;
         }
+        yield break;
 
         // Interpolate holes
         Vector2[] neighbours = [
@@ -134,11 +137,13 @@ public class TerrainImport
             if (asset == null) continue;
 
             Vector3 position = new Vector3(float.Parse(props[1]), float.Parse(props[3]), float.Parse((props[2])));
-            position = position - new Vector3(17066, 17066, 0);
+            position = position - new Vector3(533.333333333f * 32, 533.333333333f * 32, 0);
+
+            // 8 - scale factor
 
             float y = position.Y;
-            position.Y = position.Y - min.Y;
             position.X = -(position.X + min.X);
+            position.Y = -(position.Y + min.Y);
             position.Z = position.Z - min.Z;
 
             Vector3 rot = new Vector3();
@@ -149,12 +154,8 @@ public class TerrainImport
                     float.Parse(props[6]),
                     0//float.Parse(props[7])
                 );
-                if (rotation.Z != 0)
-                {
-                    bool a = true;
-                }
 
-                rot = new Vector3(rotation.X, rotation.Z, rotation.Y - 270);
+                rot = new Vector3(rotation.X, rotation.Z, -(rotation.Y - 270));
             }
 
             map.AddObject(new MapObjectMesh(asset.Entity)
