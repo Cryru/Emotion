@@ -205,11 +205,11 @@ public class MapObjectMesh : MapObject
         }
 
         _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
-        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Z, _rotation.Y, _rotation.X);
+        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
         _scaleMatrix = Matrix4x4.CreateScale(_sizeX * entityScale, _sizeY * entityScale, _sizeZ * entityScale);
 
         Matrix4x4 rotMatrix = ignoreRotation ? Matrix4x4.Identity : _rotationMatrix;
-        return _scaleMatrix * rotMatrix * entityLocalTransform * _translationMatrix;
+        return entityLocalTransform * _scaleMatrix * rotMatrix * _translationMatrix;
     }
 
     #endregion
