@@ -79,6 +79,11 @@ public class MeshEntity
         _cachedBounds.Add(anim, (sphere, cube));
     }
 
+    public void ResetCachedBounds()
+    {
+        _cachedBounds.Clear();
+    }
+
     /// <summary>
     /// Returns the bounds of the entity in a specific animation.
     /// </summary>
