@@ -8,8 +8,6 @@ using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
-using System;
-using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
@@ -110,8 +108,11 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 var mem = c.RenderStream.GetStreamMemory<VertexDataWithNormal>(
                     (uint) mesh.VerticesONE.Length,
                     (uint) mesh.Indices.Length,
-                    Graphics.Batches.BatchMode.SequentialTriangles
+                    Graphics.Batches.BatchMode.SequentialTriangles,
+                    TerrainMeshMaterial.DiffuseTexture
                 );
+                if (mem.VerticesData.Length == 0) continue;
+
                 mesh.VerticesONE.CopyTo(mem.VerticesData);
                 mesh.Indices.CopyTo(mem.IndicesData);
 
@@ -236,8 +237,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 vData.Vertex = worldPos.ToVec3(heightSample);
 
                 Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
-                vData.Color = Color.Lerp(Color.Black, Color.White, (heightSample + 150) / 300f).ToUint();
-                vData.UV = Vector2.Zero;
+                vData.Color = Color.White.ToUint();//Color.Lerp(Color.Black, Color.White, (heightSample + 150) / 300f).ToUint();
+                vData.UV = new Vector2(1.0f - (x / ChunkSize.X), y / ChunkSize.Y);
                 vData.Normal = new Vector3(0, 0, -1);
 
                 vIdx++;

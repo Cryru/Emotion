@@ -138,6 +138,9 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return smallestChunkCoord * ChunkSize;
     }
 
+    /// <summary>
+    /// Get the size of the grid in value coordinates.
+    /// </summary>
     public Vector2 GetSize()
     {
         CacheChunkBounds();
