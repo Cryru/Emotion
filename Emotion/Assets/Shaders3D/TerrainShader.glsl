@@ -119,7 +119,9 @@ vec4 FragmentShaderMain()
     }
 #endif
 
-    return col;
+    vec4 textureColor = texture2D(diffuseTexture, uv);
+
+    return textureColor * col;
 }
 
 #endif

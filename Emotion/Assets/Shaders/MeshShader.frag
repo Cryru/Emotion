@@ -244,7 +244,7 @@ void main()
 
     // Calculate the color of the object.
     vec4 textureColor = getTextureColor(diffuseTexture, UV);
-    textureColor.a = 1.0; // temp
+    //textureColor.a = 1.0; // temp
 
     vec4 objectColor = textureColor * diffuseColor * vertColor;
     objectColor = ApplyColorTint(objectColor, objectTint);
