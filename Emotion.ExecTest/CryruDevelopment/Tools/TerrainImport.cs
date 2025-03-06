@@ -14,7 +14,6 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Numerics;
-using WinApi.Gdi32;
 
 namespace Emotion.ExecTest.CryruDevelopment.Tools;
 
@@ -37,7 +36,6 @@ public class TerrainImport
 
         terrainEntity.ResetCachedBounds();
         terrainEntity.GetBounds(null, out _, out cub);
-        //min = cub.Origin - cub.HalfExtents;
 
         Vector2 terrainSize = (cub.HalfExtents * 2f).ToVec2();
         Vector2 tileSize = new Vector2(4);
@@ -55,17 +53,6 @@ public class TerrainImport
         string[] lines = objectData.Content.Split("\n");
         Engine.CoroutineManagerAsync.StartCoroutine(FillMapObjects(lines, rootFolder, min, terrainEntity, map));
 
-        //for (int i = 0; i < terrainMesh.Vertices.Length; i++)
-        //{
-        //    Graphics.Data.VertexData vertex = terrainMesh.Vertices[i];
-        //    Vector3 pos = vertex.Vertex;
-
-        //    //Vector3 posNorm = (((pos - min) * 1000f).Round() / 1000f);
-        //    //Vector2 posToSet = new Vector2(posNorm.X, posNorm.Z);
-
-        //    //posToSet /= 4f;
-        //    terrain.ExpandingSetAt((new Vector2(pos.X, pos.Z) / 25f).Round(), pos.Y);
-        //}
         map.TerrainGrid = terrain;
 
         //map.AddObject(new MapObjectMesh(terrainEntity)

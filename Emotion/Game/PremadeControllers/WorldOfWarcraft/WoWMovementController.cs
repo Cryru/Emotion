@@ -10,7 +10,7 @@ namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 
 public class WoWMovementController
 {
-    public float WalkingSpeed = 0.7f; // Per millisecond
+    public float WalkingSpeed = 0.007f; // Per millisecond
 
     private MapObject? _character;
     private string? _idleAnim;
@@ -40,7 +40,7 @@ public class WoWMovementController
 
     public void SetCharacter(MapObject obj, string idleAnim, string walkAnim, string walkBackAnim, string splitBodyBone)
     {
-        _camera.SetTarget(obj, new Vector3(0, 0, 200));
+        _camera.SetTarget(obj, new Vector3(0, 0, 2));
 
         _character = obj;
         _idleAnim = idleAnim;
@@ -63,9 +63,9 @@ public class WoWMovementController
             _jumpTimer.Update(dt);
 
             if (_jumpTimer.Progress < 0.5f)
-                _character.Z += 0.4f * dt;
+                _character.Z += 0.004f * dt;
             else
-                _character.Z -= 0.4f * dt;
+                _character.Z -= 0.004f * dt;
 
             if (_jumpTimer.Finished)
             {

@@ -72,13 +72,13 @@ public static partial class EngineEditor
         if (MapEditorMode == MapEditorMode.ThreeDee)
         {
             Vector3 pos = _cameraOutsideEditor.Position;
-            if (_cameraOutsideEditor is Camera2D && pos.Z == 0) pos.Z = 550; // Put away from grid.
+            if (_cameraOutsideEditor is Camera2D && pos.Z == 0) pos.Z = 5; // Put away from grid.
 
             _editorCamera = new Camera3D(pos, 1f, KeyListenerType.EditorCamera)
             {
                 LookAt = _cameraOutsideEditor.LookAt,
                 DragKey = Key.MouseKeyMiddle,
-                MovementSpeed = 10,
+                MovementSpeed = 1f,
             };
 
             var bottomBar = new Editor2DBottomBar();

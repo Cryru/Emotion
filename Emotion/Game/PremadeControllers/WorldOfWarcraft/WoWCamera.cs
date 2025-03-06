@@ -10,7 +10,7 @@ namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 
 public class WoWCamera : Camera3D
 {
-    public float Distance = 2000;
+    public float Distance = 20;
 
     public MapObject? Target;
     public Vector3 TargetOffset;
@@ -71,8 +71,8 @@ public class WoWCamera : Camera3D
         if (key == Key.MouseWheel)
         {
             float zoomDir = status == KeyState.MouseWheelScrollUp ? 1 : -1;
-            Distance -= zoomDir * 100;
-            Distance = Maths.Clamp(Distance, 100, 2000);
+            Distance -= zoomDir;
+            Distance = Maths.Clamp(Distance, 1, 30);
 
             return false;
         }
