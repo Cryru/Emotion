@@ -40,6 +40,15 @@ public class AssimpAsset : Asset
                                               PostProcessSteps.OptimizeMeshes |
                                               PostProcessSteps.MakeLeftHanded;
 
+    private PostProcessSteps _postProcFlagsRetry = PostProcessSteps.Triangulate |
+                                                  PostProcessSteps.JoinIdenticalVertices |
+                                                  PostProcessSteps.FlipUVs |
+                                                  PostProcessSteps.SortByPrimitiveType |
+                                                  PostProcessSteps.OptimizeMeshes |
+                                                  PostProcessSteps.MakeLeftHanded;
+
+    private bool Y_TO_Z_UP = true;
+
     protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
     {
         _thisData = data;
@@ -62,8 +71,12 @@ public class AssimpAsset : Asset
         Scene* scene = _assContext.ImportFileEx(Name, (uint)postProcFlags, ref customIO);
         if ((IntPtr)scene == IntPtr.Zero)
         {
-            Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
-            return;
+            scene = _assContext.ImportFileEx(Name, (uint)_postProcFlagsRetry, ref customIO);
+            if ((IntPtr)scene == IntPtr.Zero)
+            {
+                Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
+                return;
+            }
         }
 
         bool isYUp = true;
@@ -110,7 +123,7 @@ public class AssimpAsset : Asset
         };
 
         // Convert to Z up, if not.
-        if (isYUp) Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
+        //if (isYUp) Entity.LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD);
 
         // Properties
         float? scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor");
@@ -149,7 +162,8 @@ public class AssimpAsset : Asset
         }
 
         string assetPath = AssetLoader.GetDirectoryName(Name);
-        fileName = AssetLoader.GetNonRelativePath(assetPath, fileName);
+        if (!assetPath.StartsWith(assetPath))
+            fileName = AssetLoader.GetNonRelativePath(assetPath, fileName);
         var byteAsset = Engine.AssetLoader.Get<OtherAsset>(fileName, false);
         if (byteAsset == null) return null;
 
@@ -233,7 +247,8 @@ public class AssimpAsset : Asset
                 else if (!string.IsNullOrEmpty(diffuseTextureName))
                 {
                     string assetPath = AssetLoader.GetDirectoryName(Name);
-                    assetPath = AssetLoader.GetNonRelativePath(assetPath, diffuseTextureName);
+                    string diffuseTextureNameEnginePath = AssetLoader.NameToEngineName(diffuseTextureName);
+                    assetPath = AssetLoader.GetNonRelativePath(assetPath, diffuseTextureNameEnginePath);
                     var textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath, false);
                     diffuseTexture = textureAsset?.Texture;
                 }
@@ -248,6 +263,12 @@ public class AssimpAsset : Asset
             }
 
             materialNameDuplicatePrevent.Add(materialName);
+
+            if (diffuseTexture != null)
+            {
+                diffuseTexture.Smooth = true;
+                diffuseTexture.Tile = true;
+            }
 
             var emotionMaterial = new MeshMaterial
             {
@@ -495,6 +516,14 @@ public class AssimpAsset : Asset
         for (var i = 0; i < m->MNumVertices; i++)
         {
             ref Vector3 assVertex = ref m->MVertices[i];
+
+            if (Y_TO_Z_UP)
+            {
+                float z = assVertex.Z;
+                assVertex.Z = assVertex.Y;
+                assVertex.Y = -z;
+                //assVertex.X = assVertex.X;
+            }
 
             var uv = new Vector2(0, 0);
             if ((IntPtr)m->MNumUVComponents != IntPtr.Zero && m->MNumUVComponents[0] >= 2)
