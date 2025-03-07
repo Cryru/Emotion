@@ -25,7 +25,7 @@ public class MeshMaterial
 
     public bool BackFaceCulling = true;
 
-    public SerializableAssetHandle<NewShaderAsset>? Shader = null;
+    public SerializableAsset<NewShaderAsset>? Shader = null;
 
     public static MeshMaterial DefaultMaterial = new MeshMaterial
     {

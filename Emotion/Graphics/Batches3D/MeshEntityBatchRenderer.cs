@@ -8,6 +8,7 @@ using Emotion.Game.World;
 using Emotion.Game.World3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
@@ -923,8 +924,7 @@ public sealed class MeshEntityBatchRenderer
 
             if (obj.Material.Shader != null)
             {
-                AssetHandle<Shader.NewShaderAsset> shaderHandle = obj.Material.Shader.GetAssetHandle();
-                Shader.NewShaderAsset? asset = shaderHandle.Asset;
+                NewShaderAsset? asset = obj.Material.Shader.Get();
                 if (asset != null && asset.CompiledShader != null)
                     currentShader = asset.CompiledShader;
             }

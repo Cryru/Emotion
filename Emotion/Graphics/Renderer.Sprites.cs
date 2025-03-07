@@ -95,33 +95,22 @@ namespace Emotion.Graphics
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Vector3 position, Vector2 size, Color color, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        public void RenderSprite(Vector3 position, Vector2 size, Color color, TextureAsset texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            Texture? textureUnderlying = null;
-            if (texture.AssetLoaded)
-            {
-                TextureAsset? textureAsset = texture.Asset;
-                textureUnderlying = textureAsset?.Texture;
-            }
+            Texture? textureUnderlying = texture?.Texture;
             RenderSprite(position, size, color, textureUnderlying);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Vector3 position, Vector2 size, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        public void RenderSprite(Vector3 position, Vector2 size, TextureAsset texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
             RenderSprite(position, size, Color.White, texture);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Vector3 position, AssetHandle<TextureAsset> texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        public void RenderSprite(Vector3 position, TextureAsset texture, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            Texture? textureUnderlying = null;
-            if (texture.AssetLoaded)
-            {
-                TextureAsset? textureAsset = texture.Asset;
-                textureUnderlying = textureAsset?.Texture;
-            }
-
+            Texture? textureUnderlying = texture?.Texture;
             if (textureUnderlying == null) return;
             RenderSprite(position, textureUnderlying.Size, Color.White, textureUnderlying, textureArea, flipX, flipY);
         }

@@ -1,4 +1,6 @@
-﻿using Emotion.Common;
+﻿#nullable enable
+
+using Emotion.Common;
 using Emotion.IO;
 using Emotion.Testing;
 using System.Collections;
@@ -11,13 +13,11 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF8()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/Normal.txt");
-        yield return assetHandle;
+        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/Normal.txt");
+        yield return asset;
 
-        Assert.True(assetHandle.AssetLoaded);
-
-        TextAsset asset = assetHandle.Asset;
         Assert.NotNull(asset);
+        Assert.True(asset.Loaded);
 
         string content = asset.Content;
 
@@ -29,13 +29,11 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_ANSI()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/ANSI.txt");
-        yield return assetHandle;
+        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/ANSI.txt");
+        yield return asset;
 
-        Assert.True(assetHandle.AssetLoaded);
-
-        TextAsset asset = assetHandle.Asset;
         Assert.NotNull(asset);
+        Assert.True(asset.Loaded);
 
         string content = asset.Content;
 
@@ -47,13 +45,11 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UnixLneEnding()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8_UnixLineEnding.txt");
-        yield return assetHandle;
+        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8_UnixLineEnding.txt");
+        yield return asset;
 
-        Assert.True(assetHandle.AssetLoaded);
-
-        TextAsset asset = assetHandle.Asset;
         Assert.NotNull(asset);
+        Assert.True(asset.Loaded);
 
         string content = asset.Content;
 
@@ -65,13 +61,11 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF8BOM()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8BOM.txt");
-        yield return assetHandle;
+        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8BOM.txt");
+        yield return asset;
 
-        Assert.True(assetHandle.AssetLoaded);
-
-        TextAsset asset = assetHandle.Asset;
         Assert.NotNull(asset);
+        Assert.True(asset.Loaded);
 
         string content = asset.Content;
 
@@ -83,13 +77,11 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF16BE()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF16BE.txt");
-        yield return assetHandle;
+        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF16BE.txt");
+        yield return asset;
 
-        Assert.True(assetHandle.AssetLoaded);
-
-        TextAsset asset = assetHandle.Asset;
         Assert.NotNull(asset);
+        Assert.True(asset.Loaded);
 
         string content = asset.Content;
 
@@ -101,13 +93,11 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF16LE()
     {
-        AssetHandle<TextAsset> assetHandle = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF16LE.txt");
-        yield return assetHandle;
+        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF16LE.txt");
+        yield return asset;
 
-        Assert.True(assetHandle.AssetLoaded);
-
-        TextAsset asset = assetHandle.Asset;
         Assert.NotNull(asset);
+        Assert.True(asset.Loaded);
 
         string content = asset.Content;
 

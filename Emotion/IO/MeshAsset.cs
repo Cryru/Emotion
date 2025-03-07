@@ -64,7 +64,7 @@ namespace Emotion.IO
                 {
                     Name = Name
                 };
-                asset.Create(data);
+                asset.AssetLoader_CreateLegacy(data);
                 Entity = asset.Entity;
                 _underlyingAsset = asset;
 #endif

@@ -19,12 +19,12 @@ namespace Emotion.ExecTest.ExamplesOne;
 
 public class ShaderTestScene : SceneWithMap
 {
-    private AssetHandle<NewShaderAsset> _newHandle;
+    private NewShaderAsset _shaderAsset;
 
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        _newHandle = Engine.AssetLoader.ONE_Get<NewShaderAsset>("MyShader.glsl");
-        yield return _newHandle;
+        _shaderAsset = Engine.AssetLoader.ONE_Get<NewShaderAsset>("MyShader.glsl");
+        yield return _shaderAsset;
     }
 
     public override void RenderScene(RenderComposer c)
@@ -33,7 +33,7 @@ public class ShaderTestScene : SceneWithMap
 
         c.SetUseViewMatrix(false);
 
-        c.SetShader(_newHandle.Asset.CompiledShader);
+        c.SetShader(_shaderAsset.CompiledShader);
 
         c.RenderSprite(Vector3.Zero, new Vector2(512), Color.PrettyYellow);
 

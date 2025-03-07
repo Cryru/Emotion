@@ -134,8 +134,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         Engine.Renderer.FlushRenderStream();
         Engine.Renderer.SetFaceCulling(true, true);
 
-        AssetHandle<NewShaderAsset>? shaderHandle = TerrainMeshMaterial.Shader?.GetAssetHandle();
-        NewShaderAsset? asset = shaderHandle?.Asset;
+        NewShaderAsset? asset = TerrainMeshMaterial.Shader?.Get();
         if (asset != null && asset.CompiledShader != null)
             c.SetShader(asset.CompiledShader);
 
@@ -240,7 +239,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 vData.Vertex = worldPos.ToVec3(heightSample);
 
                 Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
-                vData.Color = Color.White.ToUint();//Color.Lerp(Color.Black, Color.White, (heightSample + 150) / 300f).ToUint();
+                vData.Color = Color.Lerp(Color.Black, Color.White, (heightSample * 20) / 40).ToUint();
                 //vData.UV = new Vector2(1.0f - (x / ChunkSize.X), 1.0f - (y / ChunkSize.Y));
 
                 Vector2 mapSize = new Vector2(533.3333f, 533.33105f);

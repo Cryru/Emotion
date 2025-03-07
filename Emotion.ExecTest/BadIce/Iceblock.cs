@@ -12,7 +12,7 @@ namespace Emotion.ExecTest.BadIce;
 
 public class Iceblock : MapObjectSprite
 {
-    private AssetHandle<TextureAsset> _texture;
+    private TextureAsset _texture;
 
     public override void LoadAssets(AssetLoader assetLoader)
     {

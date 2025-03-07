@@ -7,7 +7,7 @@ namespace Emotion.WIPUpdates.One.TileMap;
 
 public class TileMapTileset
 {
-    public SerializableAssetHandle<TextureAsset> Texture = new();
+    public SerializableAsset<TextureAsset> Texture = new();
     public Vector2 Spacing;
     public Vector2 Margin;
     public Vector2 TileSize = Vector2.One;
@@ -20,11 +20,8 @@ public class TileMapTileset
 
     public Vector2 GetTilesetTextureSize()
     {
-        AssetHandle<TextureAsset> handle = Texture.GetAssetHandle();
-        if (!handle.AssetLoaded) return TileSize;
-
-        TextureAsset? asset = handle.Asset;
-        if (asset == null || asset.Texture == null) return TileSize;
+        TextureAsset? asset = Texture.Get();
+        if (asset == null || !asset.Loaded) return TileSize;
 
         return Vector2.Max(asset.Texture.Size, TileSize);
     }

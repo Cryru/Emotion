@@ -76,18 +76,18 @@ public class ObjectPropertyWindow : EditorScrollArea
                     var editorWithlabel = new EditorWithLabel(editorFromReflector, Object, member);
                     editorList.AddChild(editorWithlabel);
                 }
-                else if (memberHandler?.Type == typeof(SerializableAssetHandle<TextureAsset>))
+                else if (memberHandler?.Type == typeof(SerializableAsset<TextureAsset>))
                 {
                     AssetHandleEditor<TextureAsset> newEditor = new AssetHandleEditor<TextureAsset>();
 
-                    SerializableAssetHandle<TextureAsset> handleValue;
-                    if (member.GetValueFromComplexObject(Object, out object? memberValue) && memberValue is SerializableAssetHandle<TextureAsset> readMember)
+                    SerializableAsset<TextureAsset> handleValue;
+                    if (member.GetValueFromComplexObject(Object, out object? memberValue) && memberValue is SerializableAsset<TextureAsset> readMember)
                     {
                         handleValue = readMember;
                     }
                     else
                     {
-                        handleValue = new SerializableAssetHandle<TextureAsset>();
+                        handleValue = new SerializableAsset<TextureAsset>();
                         member.SetValueInComplexObject(Object, handleValue);
                     }
 

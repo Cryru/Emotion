@@ -10,7 +10,7 @@ namespace Emotion.WIPUpdates.One.Work;
 public class SpriteEntity
 {
     public string Name = "Unnamed Entity";
-    public SerializableAssetHandle<TextureAsset> Textures;
+    public SerializableAsset<TextureAsset> Textures;
 
     public string SourceFile;
 

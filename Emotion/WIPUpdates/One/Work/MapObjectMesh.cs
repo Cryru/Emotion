@@ -22,11 +22,11 @@ public class MapObjectMesh : MapObject
     [DontSerialize]
     public MeshEntityMetaState? RenderState;
 
-    public SerializableAssetHandle<MeshAsset>? EntityAssetHandle;
+    public SerializableAsset<MeshAsset>? EntityAsset;
 
     public MapObjectMesh(string? entityFile)
     {
-        EntityAssetHandle = entityFile;
+        EntityAsset = entityFile;
     }
 
     public MapObjectMesh(MeshEntity? entity)
@@ -44,31 +44,31 @@ public class MapObjectMesh : MapObject
     {
         base.Init();
 
-        if (EntityAssetHandle != null)
-            SetEntity(EntityAssetHandle.GetAssetHandle());
+        if (EntityAsset != null)
+            SetEntity(EntityAsset.Get());
     }
 
     #region Set Entity
 
     public void SetEntity(string assetPath)
     {
-        UnloadOldAssetHandle();
-        AssetHandle<MeshAsset> assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
-        EntityAssetHandle = assetHandle;
-        assetHandle.OnAssetLoaded += OnEntityAssetChanged;
+        MeshAsset? assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
+        SetEntity(assetHandle);
     }
 
-    public void SetEntity(AssetHandle<MeshAsset> assetHandle)
+    public void SetEntity(MeshAsset? asset)
     {
         UnloadOldAssetHandle();
-        EntityAssetHandle = assetHandle;
-        assetHandle.OnAssetLoaded += OnEntityAssetChanged;
+        EntityAsset = asset;
+
+        if (asset != null)
+            asset.OnLoaded += OnEntityAssetChanged;
     }
 
-    protected void OnEntityAssetChanged(MeshAsset asset)
+    protected void OnEntityAssetChanged(Asset asset)
     {
-        if (asset == null) return;
-        OnSetEntity(asset.Entity);
+        if (asset == null || asset is not MeshAsset meshAsset) return;
+        OnSetEntity(meshAsset.Entity);
     }
 
     public void SetEntity(MeshEntity entity)
@@ -81,12 +81,12 @@ public class MapObjectMesh : MapObject
     {
         if (_entity == null) return;
 
-        AssetHandle<MeshAsset>? oldHandle = EntityAssetHandle?.GetAssetHandle();
+        MeshAsset? oldHandle = EntityAsset?.Get();
         if (oldHandle != null)
         {
-            oldHandle.OnAssetLoaded -= OnEntityAssetChanged;
-            Engine.AssetLoader.RemoveReferenceFromAssetHandle(oldHandle, this);
-            EntityAssetHandle = null;
+            oldHandle.OnLoaded -= OnEntityAssetChanged;
+            Engine.AssetLoader.RemoveReferenceFromAsset(oldHandle, this);
+            EntityAsset = null;
         }
     }
 

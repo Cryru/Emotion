@@ -208,7 +208,7 @@ public class AssimpAsset : Asset
                 var dataAsByte = new ReadOnlySpan<byte>(assTexture->PcData, (int)assTexture->MWidth);
                 byte[] dataManaged = dataAsByte.ToArray();
                 var embeddedTexture = new TextureAsset();
-                embeddedTexture.Create(dataManaged);
+                embeddedTexture.AssetLoader_CreateLegacy(dataManaged);
                 embeddedTextures.Add(embeddedTexture.Texture);
             }
             else

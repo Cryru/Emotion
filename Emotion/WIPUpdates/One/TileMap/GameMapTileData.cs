@@ -20,20 +20,20 @@ public class GameMapTileData
         for (int i = 0; i < Tilesets.Count; i++)
         {
             TileMapTileset ts = Tilesets[i];
-            ts.Texture.GetAssetHandle(this);
+            ts.Texture.Get(this);
         }
 
         // Wait to load
         for (int i = 0; i < Tilesets.Count; i++)
         {
             TileMapTileset ts = Tilesets[i];
-            IO.AssetHandle<IO.TextureAsset> handle = ts.Texture.GetAssetHandle();
-            yield return handle;
+            TextureAsset? asset = ts.Texture.Get();
+            yield return asset;
 
             // todo: hot reload
-            if (handle.AssetLoaded && handle.Asset != null)
+            if (asset != null && asset.Loaded)
             {
-                Texture texture = handle.Asset.Texture;
+                Texture texture = asset.Texture;
                 if (ts.BilinearFilterTexture)
                     texture.Smooth = true;
 
@@ -51,8 +51,8 @@ public class GameMapTileData
         for (int i = 0; i < Tilesets.Count; i++)
         {
             TileMapTileset ts = Tilesets[i];
-            AssetHandle<TextureAsset> handle = ts.Texture.GetAssetHandle();
-            Engine.AssetLoader.RemoveReferenceFromAssetHandle(handle, this, true);
+            TextureAsset? asset = ts.Texture.Get();
+            Engine.AssetLoader.RemoveReferenceFromAsset(asset, this, true);
         }
     }
 

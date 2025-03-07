@@ -234,7 +234,7 @@ namespace Emotion.IO
 
             // Load the asset.
             asset = new T { Name = name };
-            asset.Create(data);
+            asset.AssetLoader_CreateLegacy(data);
             if (cache) _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
             PerfProfiler.ProfilerEventEnd($"Loading {name}", "Loading");
@@ -597,59 +597,59 @@ namespace Emotion.IO
             Engine.Log.Info($"Mounted asset source '{source}'", MessageSource.AssetLoader);
         }
 
-        private ConcurrentDictionary<string, AssetHandleBase> _createdAssetHandles = new ConcurrentDictionary<string, AssetHandleBase>();
-        private ConcurrentQueue<AssetHandleBase> _assetsToLoad = new ConcurrentQueue<AssetHandleBase>();
+        private ConcurrentDictionary<string, Asset> _createdAssets = new ConcurrentDictionary<string, Asset>();
+        private ConcurrentQueue<Asset> _assetsToLoad = new ConcurrentQueue<Asset>();
         private Coroutine _assetLoadRoutine = Coroutine.CompletedRoutine;
 
-        public AssetHandle<T> ONE_Get<T>(string name, object? addRefenceToObject = null) where T : Asset, new()
+        public T? ONE_Get<T>(string? name, object? addRefenceToObject = null) where T : Asset, new()
         {
-            if (string.IsNullOrEmpty(name)) return AssetHandle<T>.Empty;
+            if (string.IsNullOrEmpty(name)) return null;
 
             name = NameToEngineNameRemapped(name);
 
-            // If a handle already exists, get it.
+            // If the asset already exists, get it.
             // todo: what do we do if loaded as different types? currently this will error in the register
-            if (_createdAssetHandles.TryGetValue(name, out AssetHandleBase? handle) && handle is AssetHandle<T> handleOfType)
+            if (_createdAssets.TryGetValue(name, out Asset? loadedAsset) && loadedAsset is T assetAsType)
             {
                 if (addRefenceToObject != null)
-                    AddReferenceToAssetHandle(handleOfType, addRefenceToObject);
+                    AddReferenceToAsset(assetAsType, addRefenceToObject);
 
-                return handleOfType;
+                return assetAsType;
             }
 
-            // Create a new handle and register it.
-            AssetHandle<T> newHandle = new AssetHandle<T>(name);
-            _createdAssetHandles.TryAdd(name, newHandle);
+            // Create a new asset and register it.
+            T newAsset = new T { Name = name };
+            _createdAssets.TryAdd(name, newAsset);
 
             if (addRefenceToObject != null)
-                AddReferenceToAssetHandle(newHandle, addRefenceToObject);
+                AddReferenceToAsset(newAsset, addRefenceToObject);
 
             // Queue loading
-            _assetsToLoad.Enqueue(newHandle);
+            _assetsToLoad.Enqueue(newAsset);
 
             // Start async asset loading
             if (_assetLoadRoutine.Finished)
                 _assetLoadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetLoadRoutineAsync());
 
-            return newHandle;
+            return newAsset;
         }
 
-        public void AddReferenceToAssetHandle(AssetHandleBase handle, object referencingObject)
+        public void AddReferenceToAsset(Asset? asset, object referencingObject)
         {
-
+            if (asset == null) return;
         }
 
-        public void RemoveReferenceFromAssetHandle(AssetHandleBase handle, object referencingObject, bool deleteIfNoReferences = true)
+        public void RemoveReferenceFromAsset(Asset? asset, object referencingObject, bool deleteIfNoReferences = true)
         {
-
+            if (asset == null) return;
         }
 
         private IEnumerator AssetLoadRoutineAsync()
         {
             // todo: distribute over multiple threads
-            while (_assetsToLoad.TryDequeue(out AssetHandleBase? assetHandle))
+            while (_assetsToLoad.TryDequeue(out Asset? asset))
             {
-                string name = assetHandle.Name;
+                string name = asset.Name;
 
                 // Asset not found in any source.
                 AssetSource? source = GetSource(name);
@@ -659,9 +659,9 @@ namespace Emotion.IO
                     continue;
                 }
 
-                bool loaded = assetHandle.LoadAsset(source);
+                bool loaded = asset.AssetLoader_LoadAsset(source);
                 if (!loaded)
-                    _assetsToLoad.Enqueue(assetHandle);
+                    _assetsToLoad.Enqueue(asset);
             }
             yield break;
         }
@@ -669,13 +669,13 @@ namespace Emotion.IO
         private Coroutine _assetReloadRoutine = Coroutine.CompletedRoutine;
         private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
 
-        public bool IsAssetHandleQueued(AssetHandleBase handle)
+        public bool IsAssetQueuedForLoading(Asset asset)
         {
-            return _assetsToLoad.Contains(handle);
+            return _assetsToLoad.Contains(asset);
         }
 
         /// <summary>
-        /// Reloads any loaded asset handles with the provided name.
+        /// Reloads any loaded assets with the provided name.
         /// This is called to hot reload assets by their managing sources.
         /// 
         /// The reload sequence will eventually converge into the same code as the load sequence,
@@ -703,9 +703,9 @@ namespace Emotion.IO
                     if (nextAssetToReload == assetNameToReload) continue;
                 }
 
-                if (_createdAssetHandles.TryGetValue(assetNameToReload, out AssetHandleBase? handle))
+                if (_createdAssets.TryGetValue(assetNameToReload, out Asset? asset))
                 {
-                    _assetsToLoad.Enqueue(handle);
+                    _assetsToLoad.Enqueue(asset);
 
                     // Start async asset loading
                     if (_assetLoadRoutine.Finished)

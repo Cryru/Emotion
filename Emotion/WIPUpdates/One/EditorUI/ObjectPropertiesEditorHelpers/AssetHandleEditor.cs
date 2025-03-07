@@ -11,7 +11,7 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFileExtensionSupport, new()
 {
-    private SerializableAssetHandle<T>? _objectEditting = null;
+    private SerializableAsset<T>? _objectEditting = null;
 
     public AssetHandleEditor()
     {
@@ -82,7 +82,7 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
         textInput.Text = _objectEditting.Name;
     }
 
-    public void SetEditor(string labelText, SerializableAssetHandle<T> obj)
+    public void SetEditor(string labelText, SerializableAsset<T> obj)
     {
         EditorLabel? label = GetWindowById<EditorLabel>("Label");
         AssertNotNull(label);

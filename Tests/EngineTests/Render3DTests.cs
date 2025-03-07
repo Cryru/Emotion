@@ -20,13 +20,13 @@ public class Render3DTests : TestingScene
 
     public override IEnumerator LoadSceneRoutineAsync()
     {
-        AssetHandle<MeshAsset> meshEntityRef = Engine.AssetLoader.ONE_Get<MeshAsset>("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
+        MeshAsset? meshEntityRef = Engine.AssetLoader.ONE_Get<MeshAsset>("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
         yield return meshEntityRef;
 
-        Assert.NotNull(meshEntityRef.Asset);
-        Assert.NotNull(meshEntityRef.Asset.Entity);
+        Assert.NotNull(meshEntityRef);
+        Assert.NotNull(meshEntityRef.Entity);
 
-        _testEntity = meshEntityRef.Asset.Entity;
+        _testEntity = meshEntityRef.Entity;
 
         MapObjectMesh obj = new MapObjectMesh(_testEntity);
         obj.Size3D = new Vector3(100);

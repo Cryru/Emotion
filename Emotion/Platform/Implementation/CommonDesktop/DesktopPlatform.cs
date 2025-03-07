@@ -70,7 +70,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             return _devModeAssetFolder;
         }
 
-        public void DeveloperMode_SelectFileNative<T>(Action<AssetHandle<T>> onLoaded) where T : Asset, IAssetWithFileExtensionSupport, new()
+        public void DeveloperMode_SelectFileNative<T>(Action<T?> onLoaded) where T : Asset, IAssetWithFileExtensionSupport, new()
         {
             string selectedPath = DeveloperMode_OSSelectFileToImport<T>();
             if (string.IsNullOrEmpty(selectedPath)) return;
@@ -82,8 +82,8 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (existingAsset)
             {
                 string relativePath = Path.GetRelativePath(fullAssetPath, selectedPath);
-                AssetHandle<T> handle = Engine.AssetLoader.ONE_Get<T>(relativePath);
-                onLoaded.Invoke(handle);
+                T? asset = Engine.AssetLoader.ONE_Get<T>(relativePath);
+                onLoaded.Invoke(asset);
             }
             else
             {
