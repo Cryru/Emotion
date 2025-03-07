@@ -28,16 +28,23 @@ namespace Emotion.Graphics
             _triangles.Add(p3);
         }
 
-        public void DbgAddPoint(Vector3 p, float radius = 50f, Color? color = null)
+        public void DbgAddPoint(Vector3 p, float radius = 0.5f, Color? color = null)
         {
             if (!Engine.Configuration.DebugMode) return;
 
             color ??= _defaultDbgObjectColor;
+
             var meshGen = new SphereMeshGenerator();
-            _spheres ??= new();
-            _spheres.Add(meshGen.GenerateMesh().TransformMeshVertices(
+            var sphereMesh = meshGen.GenerateMesh().TransformMeshVertices(
                 Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
-            ).ColorMeshVertices(color.Value));
+            );
+            sphereMesh.Material = new MeshMaterial()
+            {
+                DiffuseColor = color.Value
+            };
+
+            _spheres ??= new();
+            _spheres.Add(sphereMesh);
         }
 
         public void DbgAddLine(Vector3 p, Vector3 p2, bool relative = false)
