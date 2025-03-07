@@ -65,15 +65,17 @@ namespace Emotion.Graphics.Objects
 
                 GLThread.ExecuteGLThreadAsync(() =>
                 {
+                    int smoothOption = _hasMipmap ? Gl.LINEAR_MIPMAP_LINEAR : Gl.LINEAR;
+
                     if (Engine.Renderer.Dsa)
                     {
-                        Gl.TextureParameter(Pointer, TextureParameterName.TextureMinFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                        Gl.TextureParameter(Pointer, TextureParameterName.TextureMinFilter, _smooth ? smoothOption : Gl.NEAREST);
                         Gl.TextureParameter(Pointer, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
                     }
                     else
                     {
                         EnsureBound(Pointer);
-                        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, _smooth ? smoothOption : Gl.NEAREST);
                         Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
                     }
                 });
@@ -125,6 +127,34 @@ namespace Emotion.Graphics.Objects
         private bool _tile;
         protected bool _smooth;
         private bool _smoothSet;
+
+        public bool Mipmap
+        {
+            get => _hasMipmap;
+            set
+            {
+                if (!value) return;
+
+                _hasMipmap = true;
+                _smoothSet = false;
+                Smooth = _smooth;
+
+                GLThread.ExecuteGLThreadAsync(() =>
+                {
+                    if (Engine.Renderer.Dsa)
+                    {
+                        Gl.GenerateTextureMipmap(Pointer);
+                    }
+                    else
+                    {
+                        EnsureBound(Pointer);
+                        Gl.GenerateMipmap(TextureTarget.Texture2d);
+                    }
+                });
+            }
+        }
+
+        private bool _hasMipmap;
 
         /// <summary>
         /// Create a new uninitialized texture.
@@ -255,6 +285,9 @@ namespace Emotion.Graphics.Objects
             else
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)internalFormat, (int)Size.X, (int)Size.Y, 0, (PixelFormat)pixelFormat,
                     (PixelType)pixelType, data);
+
+            if (_hasMipmap)
+                Gl.GenerateMipmap(TextureTarget.Texture2d);
 
             _smoothSet = false;
             Smooth = _smooth;
