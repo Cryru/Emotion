@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Utility;
+using System;
 
 #endregion
 
@@ -161,5 +162,26 @@ public class EmotionKeyEvent
             _blockingType = -1;
         else
             _blockingType = (int)typ;
+
+        for (var l = 1; l < _listenerArray.Length; l++)
+        {
+            if (l != _blockingType) continue; // Should it block up and down from it?
+
+            List<EmotionKeyEventPair>? list = _listenerArray[l];
+            if (list == null) continue;
+
+            for (var i = 0; i < list.Count; i++)
+            {
+                EmotionKeyEventPair listener = list[i];
+
+                // Call all downs as ups
+                for (var j = 0; j < listener.KeysDown.Length; j++)
+                {
+                    if (!listener.KeysDown[j]) continue;
+                    listener.KeysDown[j] = false;
+                    listener.Func((Key)j, KeyState.Up);
+                }
+            }
+        }
     }
 }
