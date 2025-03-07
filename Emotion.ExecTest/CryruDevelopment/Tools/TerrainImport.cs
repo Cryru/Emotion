@@ -4,15 +4,10 @@ using Emotion.Common;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Testing;
-using Emotion.Utility;
-using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.ThreeDee;
-using System;
 using System.Collections;
-using System.IO;
 using System.Numerics;
 
 namespace Emotion.ExecTest.CryruDevelopment.Tools;
@@ -38,11 +33,11 @@ public class TerrainImport
         terrainEntity.GetBounds(null, out _, out cub);
 
         Vector2 terrainSize = (cub.HalfExtents * 2f).ToVec2();
-        Vector2 tileSize = new Vector2(4.16665649f);
+        Vector2 tileSize = new Vector2(2.083332f, 2.0830078f);
 
-        TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, (terrainSize / tileSize).Ceiling().X);
+        TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, 9);
         terrain.InitEmptyChunksInArea(Vector2.Zero, terrainSize / tileSize);
-        Engine.CoroutineManagerAsync.StartCoroutine(FillMapRoutine(terrain, tileSize, terrainMesh));
+        Engine.CoroutineManagerAsync.StartCoroutine(FillMapRoutine(terrain, terrainMesh));
 
         TextureAsset? tex = Engine.AssetLoader.Get<TextureAsset>("Test/cryru/map/maps/azeroth/tex_32_48.png");
         tex.Texture.Smooth = true;
@@ -55,74 +50,54 @@ public class TerrainImport
 
         map.TerrainGrid = terrain;
 
-        map.AddObject(new MapObjectMesh(terrainEntity)
-        {
-        });
+        //map.AddObject(new MapObjectMesh(terrainEntity)
+        //{
+        //});
     }
 
-    private static IEnumerator FillMapRoutine(TerrainMeshGrid terrain, Vector2 resolution, Mesh terrainMesh)
+    private static IEnumerator FillMapRoutine(TerrainMeshGrid terrain, Mesh terrainMesh)
     {
-        var verts = terrainMesh.Vertices;
-        for (int i = 0; i < verts.Length; i++)
+        Vector2 tiles = terrain.GetSize();
+        for (int y = 0; y < tiles.Y; y++)
         {
-            Vector3 vertexPos = verts[i].Vertex;
-            Vector2 vPos2 = vertexPos.ToVec2();
-
-            Vector2 emotionTilePos = (vPos2 / resolution).Floor();
-            terrain.ExpandingSetAt(emotionTilePos, vertexPos.Z);
-
-            //if (i == 145) break;
-
-            yield return null;
-        }
-        yield break;
-
-        // Interpolate holes
-        Vector2[] neighbours = [
-            new Vector2(-1, 0),
-            new Vector2(1, 0),
-            new Vector2(0, -1),
-            new Vector2(0, 1),
-
-            new Vector2(1, 1),
-            new Vector2(-1, -1),
-            new Vector2(1, -1),
-            new Vector2(-1, 1),
-        ];
-
-        var terrainSize = terrain.GetSize();
-        for (int y = 0; y < terrainSize.Y; y++)
-        {
-            for (int x = 0; x < terrainSize.X; x++)
+            for (int x = 0; x < tiles.X; x++)
             {
-                Vector2 tileCoord = new Vector2(x, y);
-                float value = terrain.GetAt(tileCoord);
-                if (value != 0) continue;
+                var tileCoord = new Vector2(x, y);
+                var worldPos = terrain.GetWorldPosOfTile(tileCoord);
 
-                float sum = 0;
-                int values = 0;
+                float heightValue = GetHeightAtPosition(terrainMesh, worldPos);
+                terrain.SetAt(tileCoord, heightValue);
 
-                int kernelSize = 1;
-                for (int dy = -kernelSize; dy <= kernelSize; dy++)
-                {
-                    for (int dx = -kernelSize; dx <= kernelSize; dx++)
-                    {
-                        Vector2 diff = new Vector2(dx, dy);
-                        Vector2 tileToSample = tileCoord + diff;
-                        float otherVal = terrain.GetAt(tileToSample);
-                        if (otherVal != 0)
-                        {
-                            sum += otherVal;
-                            values++;
-                        }
-                    }
-                }
-                if (values == 0) continue;
-
-                float avg = sum / values;
-                terrain.SetAt(tileCoord, avg);
+                yield return null;
             }
         }
+    }
+
+    private static float GetHeightAtPosition(Mesh mesh, Vector2 position)
+    {
+        foreach (Triangle triangle in mesh.ForEachTriangle())
+        {
+            if (!triangle.IsPoint2DInTriangle(position, 0.1f)) continue;
+            return InterpolateZ(triangle, position);
+        }
+
+        return 1;
+    }
+
+    private static float InterpolateZ(Triangle triag, Vector2 point)
+    {
+        Vector2 a = new Vector2(triag.A.X, triag.A.Y);
+        Vector2 b = new Vector2(triag.B.X, triag.B.Y);
+        Vector2 c = new Vector2(triag.C.X, triag.C.Y);
+
+        // Compute barycentric coordinates
+        float denominator = (b.Y - c.Y) * (a.X - c.X) + (c.X - b.X) * (a.Y - c.Y);
+        float alpha = ((b.Y - c.Y) * (point.X - c.X) + (c.X - b.X) * (point.Y - c.Y)) / denominator;
+        float beta = ((c.Y - a.Y) * (point.X - c.X) + (a.X - c.X) * (point.Y - c.Y)) / denominator;
+        float gamma = 1.0f - alpha - beta;
+
+        // Interpolate Z value
+        return alpha * triag.A.Z + beta * triag.B.Z + gamma * triag.C.Z;
     }
 
     private static IEnumerator FillMapObjects(string[] lines, string rootFolder, Vector3 min, MeshEntity terrainEntity, GameMap map)
