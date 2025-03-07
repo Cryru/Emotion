@@ -35,7 +35,7 @@ namespace Emotion.Graphics
             color ??= _defaultDbgObjectColor;
 
             var meshGen = new SphereMeshGenerator();
-            var sphereMesh = meshGen.GenerateMesh().TransformMeshVertices(
+            Mesh sphereMesh = meshGen.GenerateMesh().TransformMeshVertices(
                 Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
             );
             sphereMesh.Material = new MeshMaterial()

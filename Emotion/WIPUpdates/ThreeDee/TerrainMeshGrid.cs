@@ -189,7 +189,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         vertexCount += stichingVertices;
 
         VertexDataWithNormal[] vertices;
-        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.VerticesONE.Length < vertexCount)
+        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.VerticesONE.Length != vertexCount)
             vertices = new VertexDataWithNormal[vertexCount];
         else
             vertices = chunkCache.CachedMesh.VerticesONE;
@@ -255,7 +255,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         int indexCount = quads * 6;
 
         ushort[] indices;
-        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.Indices.Length < indexCount)
+        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.Indices.Length != indexCount)
             indices = new ushort[indexCount];
         else
             indices = chunkCache.CachedMesh.Indices;
