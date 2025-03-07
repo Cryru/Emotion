@@ -80,6 +80,9 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         min /= chunkWorldSize;
         max /= chunkWorldSize;
 
+        min = min.Floor();
+        max = max.Ceiling();
+
         for (float y = min.Y; y < max.Y; y++)
         {
             for (float x = min.X; x < max.X; x++)

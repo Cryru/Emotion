@@ -28,7 +28,7 @@ public abstract class CameraBase : Positional, IDisposable
         }
     }
 
-    private float _farZ = 1000f;
+    private float _farZ = 500f;
 
     /// <summary>
     /// The NearZ clipping plane. All Z vertices before this wont be rendered.

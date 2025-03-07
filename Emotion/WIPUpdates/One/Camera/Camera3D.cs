@@ -248,38 +248,16 @@ namespace Emotion.Graphics.Camera
             Span<Vector3> frustumCorners = stackalloc Vector3[8];
             GetCameraView3D(frustumCorners);
 
-            Span<Vector3> sideA = stackalloc Vector3[4];
-            Span<Vector3> sideB = stackalloc Vector3[4];
-            GetCameraFrustumSidePlanes(frustumCorners, sideA, sideB);
-
-            //Engine.Renderer.RenderVertices(sideA);
-            //Engine.Renderer.RenderVertices(sideB);
-
             Vector2 minIntersection = new Vector2(float.MaxValue);
             Vector2 maxIntersection = new Vector2(float.MinValue);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < frustumCorners.Length; i++)
             {
-                Add2DPlaneIntersection(sideA[i], sideA[i + 1], ref minIntersection, ref maxIntersection);
-                Add2DPlaneIntersection(sideB[i], sideB[i + 1], ref minIntersection, ref maxIntersection);
+                Vector2 projected = frustumCorners[i].ToVec2();
+                minIntersection = Vector2.Min(projected, minIntersection);
+                maxIntersection = Vector2.Max(projected, maxIntersection);
             }
-            Add2DPlaneIntersection(sideA[3], sideA[0], ref minIntersection, ref maxIntersection);
-            Add2DPlaneIntersection(sideB[3], sideB[0], ref minIntersection, ref maxIntersection);
-
-            if (minIntersection.X == float.MaxValue || maxIntersection.X == float.MinValue)
-                return Rectangle.Empty;
 
             return Rectangle.FromMinMaxPoints(minIntersection, maxIntersection);
-        }
-
-        private static void Add2DPlaneIntersection(Vector3 start, Vector3 end, ref Vector2 minIntersection, ref Vector2 maxIntersection)
-        {
-            if ((start.Z <= 0 || end.Z >= 0) && (start.Z >= 0 || end.Z <= 0)) return;
-
-            float t = -start.Z / (end.Z - start.Z);
-            Vector3 intersection = Vector3.Lerp(start, end, t);
-
-            minIntersection = Vector2.Min(intersection.ToVec2(), minIntersection);
-            maxIntersection = Vector2.Max(intersection.ToVec2(), maxIntersection);
         }
     }
 }
