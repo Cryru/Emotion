@@ -73,6 +73,26 @@ public class Mesh
         return $"Mesh {Name}";
     }
 
+    #region Iterators
+
+    public IEnumerable<Triangle> ForEachTriangle()
+    {
+        for (int i = 0; i < Indices.Length; i += 3)
+        {
+            int i1 = Indices[i];
+            int i2 = Indices[i + 1];
+            int i3 = Indices[i + 2];
+
+            VertexData v1 = Vertices[i1];
+            VertexData v2 = Vertices[i2];
+            VertexData v3 = Vertices[i3];
+
+            yield return new Triangle(v1.Vertex, v2.Vertex, v3.Vertex);
+        }
+    }
+
+    #endregion
+
     #region Transformations
 
     public Mesh TransformMeshVertices(Matrix4x4 mat)

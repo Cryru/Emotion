@@ -1,4 +1,6 @@
-﻿namespace Emotion.Primitives;
+﻿using Emotion.Utility;
+
+namespace Emotion.Primitives;
 
 public struct Triangle
 {
@@ -21,5 +23,18 @@ public struct Triangle
         c.RenderLine(A, B, color ?? Color.White, thickness);
         c.RenderLine(B, C, color ?? Color.White, thickness);
         c.RenderLine(C, A, color ?? Color.White, thickness);
+    }
+
+    public bool IsPoint2DInTriangle(Vector2 point, float tolerance = Maths.EPSILON)
+    {
+        // Compute barycentric coordinates
+        float denominator = (B.Y - C.Y) * (A.X - C.X) + (C.X - B.X) * (A.Y - C.Y);
+        float alpha = ((B.Y - C.Y) * (point.X - C.X) + (C.X - B.X) * (point.Y - C.Y)) / denominator;
+        float beta = ((C.Y - A.Y) * (point.X - C.X) + (A.X - C.X) * (point.Y - C.Y)) / denominator;
+        float gamma = 1.0f - alpha - beta;
+
+        return alpha >= -tolerance &&
+            beta >= -tolerance &&
+            gamma >= -tolerance;
     }
 }
