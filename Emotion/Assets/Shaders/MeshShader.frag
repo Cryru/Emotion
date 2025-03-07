@@ -212,6 +212,8 @@ float Simple_GetShadowAmount(int cascadeIdx, vec3 projCoords)
     return SampleShadowMap(projCoords, cascadeIdx);
 }
 
+#define ALPHA_DISCARD (128.0 / 255.0)
+
 float GetShadowAmount()
 {
     // Determine which cascade this fragment is in
@@ -290,5 +292,5 @@ void main()
     }
 
     fragColor = vec4(finalColor.rgb, objectColor.a);
-    if (fragColor.a < 0.01)discard;
+    if (fragColor.a < ALPHA_DISCARD) discard;
 }

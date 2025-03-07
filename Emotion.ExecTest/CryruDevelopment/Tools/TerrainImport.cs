@@ -35,7 +35,7 @@ public class TerrainImport
         Vector2 terrainSize = (cub.HalfExtents * 2f).ToVec2();
         Vector2 tileSize = new Vector2(2.083332f, 2.0830078f);
 
-        TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, 9);
+        TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, 19);
         terrain.InitEmptyChunksInArea(Vector2.Zero, terrainSize / tileSize);
         Engine.CoroutineManagerAsync.StartCoroutine(FillMapRoutine(terrain, terrainMesh));
 

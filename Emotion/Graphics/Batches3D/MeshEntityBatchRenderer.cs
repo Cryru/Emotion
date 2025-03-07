@@ -834,6 +834,8 @@ public sealed class MeshEntityBatchRenderer
                     if (objectData.MetaState.CustomRenderState != null)
                         c.SetState(objectData.MetaState.CustomRenderState);
 
+                    c.SetAlphaBlend(false);
+
                     // Render geometry
                     VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
                     VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
@@ -842,6 +844,7 @@ public sealed class MeshEntityBatchRenderer
                     Gl.DrawElements(PrimitiveType.Triangles, mesh.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
 
                     c.PopModelMatrix();
+                    c.SetAlphaBlend(true);
 
                     instanceIdx = instance.NextItem;
                 }

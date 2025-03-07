@@ -79,6 +79,7 @@ public static partial class EngineEditor
                 LookAt = _cameraOutsideEditor.LookAt,
                 DragKey = Key.MouseKeyMiddle,
                 MovementSpeed = 1f,
+                FarZ = 10_000
             };
 
             var bottomBar = new Editor2DBottomBar();
