@@ -601,6 +601,9 @@ namespace Emotion.IO
         private ConcurrentQueue<Asset> _assetsToLoad = new ConcurrentQueue<Asset>();
         private Coroutine _assetLoadRoutine = Coroutine.CompletedRoutine;
 
+        [ThreadStatic]
+        private static Asset? _dependencyCheck_AssetBeingLoaded;
+
         public T? ONE_Get<T>(string? name, object? addRefenceToObject = null) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name)) return null;
@@ -620,6 +623,16 @@ namespace Emotion.IO
             // Create a new asset and register it.
             T newAsset = new T { Name = name };
             _createdAssets.TryAdd(name, newAsset);
+
+            // Check for dependencies and attach to current asset being loaded.
+            {
+                Asset? previousDependency = _dependencyCheck_AssetBeingLoaded;
+                previousDependency?.AssetLoader_AttachDependency(newAsset);
+
+                _dependencyCheck_AssetBeingLoaded = newAsset;
+                newAsset.AssetLoader_LoadDependencyAssets();
+                _dependencyCheck_AssetBeingLoaded = previousDependency;
+            }
 
             if (addRefenceToObject != null)
                 AddReferenceToAsset(newAsset, addRefenceToObject);
@@ -644,11 +657,22 @@ namespace Emotion.IO
             if (asset == null) return;
         }
 
+        public bool IsAssetQueuedForLoading(Asset asset)
+        {
+            return _assetsToLoad.Contains(asset);
+        }
+
         private IEnumerator AssetLoadRoutineAsync()
         {
             // todo: distribute over multiple threads
             while (_assetsToLoad.TryDequeue(out Asset? asset))
             {
+                if (!asset.AssetLoader_AllDependenciesLoaded())
+                {
+                    _assetsToLoad.Enqueue(asset);
+                    continue;
+                }
+
                 string name = asset.Name;
 
                 // Asset not found in any source.
@@ -668,11 +692,6 @@ namespace Emotion.IO
 
         private Coroutine _assetReloadRoutine = Coroutine.CompletedRoutine;
         private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
-
-        public bool IsAssetQueuedForLoading(Asset asset)
-        {
-            return _assetsToLoad.Contains(asset);
-        }
 
         /// <summary>
         /// Reloads any loaded assets with the provided name.

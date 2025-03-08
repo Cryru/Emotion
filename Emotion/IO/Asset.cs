@@ -72,9 +72,7 @@ namespace Emotion.IO
             // Hot reload
             if (Loaded)
             {
-                if (this is not IHotReloadableAsset reloadableAsset) return true;
-
-                reloadableAsset.Reload(data);
+                ReloadInternal(data);
                 Engine.Log.Info($"Reloaded asset '{Name}'", MessageSource.AssetLoader);
                 Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
                 return true;
@@ -102,6 +100,11 @@ namespace Emotion.IO
         }
 
         protected abstract void CreateInternal(ReadOnlyMemory<byte> data);
+
+        protected virtual void ReloadInternal(ReadOnlyMemory<byte> data)
+        {
+
+        }
 
         /// <summary>
         /// Dispose of the asset clearing any external resources it used.
@@ -131,6 +134,40 @@ namespace Emotion.IO
         public void Update()
         {
             // nop
+        }
+
+        #endregion
+
+        #region Dependencies
+
+        /// <summary>
+        /// Called by the AssetLoader and intended to be overridden.
+        /// Call Get to load dependencies here.
+        /// </summary>
+        public virtual void AssetLoader_LoadDependencyAssets()
+        {
+
+        }
+
+        private List<Asset>? _dependencies;
+
+        public void AssetLoader_AttachDependency(Asset dependantAsset)
+        {
+            _dependencies ??= new List<Asset>();
+            _dependencies.Add(dependantAsset);
+            Engine.AssetLoader.AddReferenceToAsset(dependantAsset, this);
+        }
+
+        public bool AssetLoader_AllDependenciesLoaded()
+        {
+            if (_dependencies == null) return true;
+            for (int i = 0; i < _dependencies.Count; i++)
+            {
+                Asset dependant = _dependencies[i];
+                if (!dependant.Loaded) return false;
+            }
+
+            return true;
         }
 
         #endregion

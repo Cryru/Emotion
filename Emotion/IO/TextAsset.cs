@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Emotion.IO;
 
-public class TextAsset : Asset, IHotReloadableAsset
+public class TextAsset : Asset
 {
     /// <summary>
     /// The context of the text file without any encoding mark and normalized new lines to \n
@@ -59,7 +59,7 @@ public class TextAsset : Asset, IHotReloadableAsset
         ArrayPool<char>.Shared.Return(stringDecodeMemory);
     }
 
-    public void Reload(ReadOnlyMemory<byte> data)
+    protected override void ReloadInternal(ReadOnlyMemory<byte> data)
     {
         CreateInternal(data);
     }

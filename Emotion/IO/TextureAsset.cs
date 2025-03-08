@@ -20,7 +20,7 @@ namespace Emotion.IO
     /// <summary>
     /// Represents an image. Supports all formats supported by Emotion.Standard.Image
     /// </summary>
-    public class TextureAsset : Asset, IHotReloadableAsset, IAssetWithFileExtensionSupport
+    public class TextureAsset : Asset, IAssetWithFileExtensionSupport
     {
         /// <summary>
         /// The asset's uploaded graphics texture.
@@ -31,16 +31,6 @@ namespace Emotion.IO
 
         public TextureAsset()
         {
-        }
-
-        /// <summary>
-        /// Create a fake texture asset from a texture.
-        /// </summary>
-        /// <param name="texture"></param>
-        public TextureAsset(Texture texture)
-        {
-            Texture = texture;
-            Name = $"Synthesized TextureAsset - {texture.Pointer}";
         }
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
@@ -125,7 +115,7 @@ namespace Emotion.IO
             Texture = null;
         }
 
-        public void Reload(ReadOnlyMemory<byte> data)
+        protected override void ReloadInternal(ReadOnlyMemory<byte> data)
         {
             CreateInternal(data);
         }
