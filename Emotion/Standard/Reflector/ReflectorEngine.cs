@@ -11,6 +11,12 @@ public static class ReflectorEngine
     private static Dictionary<Type, Type[]> _typeRelations = new();
     private static Dictionary<int, Type> _typeNameToType = new();
 
+    internal static void PostInit()
+    {
+        BuildRelations();
+        Engine.Log.Info($"Loaded {_typeHandlers} type handlers!", "Reflector");
+    }
+
     public static void RegisterTypeHandler(IGenericReflectorTypeHandler typeHandler)
     {
         Type type = typeHandler.Type;
@@ -59,7 +65,7 @@ public static class ReflectorEngine
 
     #region Relations
 
-    internal static void BuildRelations()
+    private static void BuildRelations()
     {
         _typeRelations.Clear();
 

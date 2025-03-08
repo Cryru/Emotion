@@ -10,6 +10,9 @@ public static class ReflectorEngineInit
 
     public static void Init()
     {
+        Engine.Log.Info("Initializing Reflector...", "Reflector");
+
+        // Setup base types
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<byte>());
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<ushort>());
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<uint>());
@@ -29,7 +32,10 @@ public static class ReflectorEngineInit
         ReflectorEngine.RegisterTypeHandler(new StringTypeHandler());
         ReflectorEngine.RegisterTypeHandler(new BooleanTypeHandler());
 
+        // All code generated handlers are attached to this event.
         OnInit?.Invoke();
-        ReflectorEngine.BuildRelations();
+
+        // Build relations and other meta.
+        ReflectorEngine.PostInit();
     }
 }
