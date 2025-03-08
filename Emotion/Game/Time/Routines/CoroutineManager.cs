@@ -39,6 +39,11 @@ public class CoroutineManager
     /// </summary>
     protected bool _eagerRoutines = true;
 
+    /// <summary>
+    /// Whether the manager supports time based waiting.
+    /// </summary>
+    public bool SupportsTime { get; protected set; }
+
     public CoroutineManager(bool eagerRoutines = true)
     {
         _eagerRoutines = eagerRoutines;

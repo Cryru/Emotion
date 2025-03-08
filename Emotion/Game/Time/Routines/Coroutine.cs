@@ -189,15 +189,15 @@ public sealed class Coroutine : IRoutineWaiter
                 CurrentWaiter_SubRoutine = Parent.StartCoroutine(subroutine);
                 break;
             // Time waiting.
-            case int timeWaiting:
+            case int timeWaiting when Parent.SupportsTime:
                 CurrentWaiter_Time = timeWaiting;
                 break;
-            case float timeWaitingF:
+            case float timeWaitingF when Parent.SupportsTime:
                 CurrentWaiter_Time = timeWaitingF;
                 break;
         }
 
-        // Yielding null means wait one tick.
+        // Yielding null means wait one tick (queue back).
         if (currentYield == null) return false;
 
         // Run more!
