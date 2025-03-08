@@ -9,7 +9,7 @@ namespace Emotion.Common
         /// <summary>
         /// The engine version.
         /// </summary>
-        public static string Version = "0.0.760+";
+        public static string Version = "0.1.000+";
 
         /// <summary>
         /// The hash of the git commit, if built from one.

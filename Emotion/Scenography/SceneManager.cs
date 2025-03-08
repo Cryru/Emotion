@@ -78,29 +78,35 @@ namespace Emotion.Scenography
         public PassiveRoutineObserver SetScene(Scene scene)
         {
             Engine.Log.Info($"Setting scene to [{scene}]", MessageSource.SceneManager);
-            Coroutine coroutine = Engine.CoroutineManagerAsync.StartCoroutine(InternalLoadSceneRoutineAsync(scene));
+            Coroutine coroutine = Engine.Jobs.Add(InternalLoadSceneRoutineAsync(scene));
             return new PassiveRoutineObserver(coroutine);
         }
 
         public PassiveRoutineObserver SetLoadingScreen(Scene loadingScene)
         {
-            Coroutine coroutine = Engine.CoroutineManagerAsync.StartCoroutine(InternalLoadLoadingScreenRoutineAsync(loadingScene));
+            Coroutine coroutine = Engine.Jobs.Add(InternalLoadLoadingScreenRoutineAsync(loadingScene));
             return new PassiveRoutineObserver(coroutine);
         }
 
         private IEnumerator InternalLoadSceneRoutineAsync(Scene scene)
         {
-            // Set the loading screen as the current scene.
-            // This will unload the previous scene as well. 
-            Coroutine swapToLoadingRoutine = Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(LoadingScreen));
-            yield return new PassiveRoutineObserver(swapToLoadingRoutine);
+            Engine.Log.Info($"Loading scene [{scene}].", MessageSource.SceneManager);
 
-            Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
+            // Set the loading screen as the current scene.
+            // This will unload the previous scene as well.
+            // We want to do this in an engine coroutine so that the scene swap
+            // happens in between updates and to avoid async troubles.
+            yield return Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(LoadingScreen));
+
             yield return scene.LoadSceneRoutineAsync();
-            Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
+
+            // We're in a loading screen - might as well wait for all assets to load :P
+            yield return Engine.AssetLoader.WaitForAllAssetsToLoadRoutine();
 
             // Swap current to new scene.
             Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(scene));
+
+            Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
         }
 
         // Ensure the scene swap happens safely while the scene isn't executing.
@@ -110,7 +116,7 @@ namespace Emotion.Scenography
             Current = scene;
             OnSceneChanged?.Invoke();
             if (oldScene != LoadingScreen)
-                Engine.CoroutineManagerAsync.StartCoroutine(oldScene.UnloadSceneRoutineAsync());
+                Engine.Jobs.Add(oldScene.UnloadSceneRoutineAsync());
 
             yield break;
         }
@@ -129,7 +135,7 @@ namespace Emotion.Scenography
             if (Current == loadingLoadingScreen)
                 Current = scene;
 
-            Engine.CoroutineManagerAsync.StartCoroutine(loadingLoadingScreen.UnloadSceneRoutineAsync());
+            Engine.Jobs.Add(loadingLoadingScreen.UnloadSceneRoutineAsync());
 
             yield break;
         }

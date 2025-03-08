@@ -2,12 +2,13 @@
 
 namespace Emotion.Game.Time.Routines;
 
-public class CoroutineManagerSleeping : CoroutineManager
+public class AsyncJobCoroutineManager : CoroutineManager
 {
     private ManualResetEventSlim _lock = new ManualResetEventSlim();
 
-    public CoroutineManagerSleeping() : base(false)
+    public AsyncJobCoroutineManager() : base(false)
     {
+        SupportsTime = false;
     }
 
     public override void Update(float timePassed = 0)

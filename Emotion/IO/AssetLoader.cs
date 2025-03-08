@@ -599,16 +599,15 @@ namespace Emotion.IO
 
         private ConcurrentDictionary<string, Asset> _createdAssets = new ConcurrentDictionary<string, Asset>();
         private ConcurrentQueue<Asset> _assetsToLoad = new ConcurrentQueue<Asset>();
-        private Coroutine _assetLoadRoutine = Coroutine.CompletedRoutine;
+        private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
+        private List<Coroutine> _loadingAssetRoutines = new List<Coroutine>(16);
 
-        [ThreadStatic]
-        private static Asset? _dependencyCheck_AssetBeingLoaded;
-
-        public T? ONE_Get<T>(string? name, object? addRefenceToObject = null) where T : Asset, new()
+        public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false) where T : Asset, new()
         {
-            if (string.IsNullOrEmpty(name)) return null;
-
-            name = NameToEngineNameRemapped(name);
+            if (string.IsNullOrEmpty(name))
+                name = string.Empty;
+            else
+                name = NameToEngineNameRemapped(name);
 
             // If the asset already exists, get it.
             // todo: what do we do if loaded as different types? currently this will error in the register
@@ -624,25 +623,18 @@ namespace Emotion.IO
             T newAsset = new T { Name = name };
             _createdAssets.TryAdd(name, newAsset);
 
-            // Check for dependencies and attach to current asset being loaded.
-            {
-                Asset? previousDependency = _dependencyCheck_AssetBeingLoaded;
-                previousDependency?.AssetLoader_AttachDependency(newAsset);
-
-                _dependencyCheck_AssetBeingLoaded = newAsset;
-                newAsset.AssetLoader_LoadDependencyAssets();
-                _dependencyCheck_AssetBeingLoaded = previousDependency;
-            }
-
             if (addRefenceToObject != null)
                 AddReferenceToAsset(newAsset, addRefenceToObject);
 
-            // Queue loading
-            _assetsToLoad.Enqueue(newAsset);
+            if (loadInline)
+            {
 
-            // Start async asset loading
-            if (_assetLoadRoutine.Finished)
-                _assetLoadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetLoadRoutineAsync());
+            }
+            else
+            {
+                // Queue the asset to be loaded
+                _assetsToLoad.Enqueue(newAsset);
+            }
 
             return newAsset;
         }
@@ -657,42 +649,6 @@ namespace Emotion.IO
             if (asset == null) return;
         }
 
-        public bool IsAssetQueuedForLoading(Asset asset)
-        {
-            return _assetsToLoad.Contains(asset);
-        }
-
-        private IEnumerator AssetLoadRoutineAsync()
-        {
-            // todo: distribute over multiple threads
-            while (_assetsToLoad.TryDequeue(out Asset? asset))
-            {
-                if (!asset.AssetLoader_AllDependenciesLoaded())
-                {
-                    _assetsToLoad.Enqueue(asset);
-                    continue;
-                }
-
-                string name = asset.Name;
-
-                // Asset not found in any source.
-                AssetSource? source = GetSource(name);
-                if (source == null)
-                {
-                    Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
-                    continue;
-                }
-
-                bool loaded = asset.AssetLoader_LoadAsset(source);
-                if (!loaded)
-                    _assetsToLoad.Enqueue(asset);
-            }
-            yield break;
-        }
-
-        private Coroutine _assetReloadRoutine = Coroutine.CompletedRoutine;
-        private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
-
         /// <summary>
         /// Reloads any loaded assets with the provided name.
         /// This is called to hot reload assets by their managing sources.
@@ -705,15 +661,14 @@ namespace Emotion.IO
             // todo: check remapping, maybe add it to NameToEngineName
             name = NameToEngineNameRemapped(name);
             _assetsToReload.Enqueue(name);
-
-            if (_assetReloadRoutine.Finished)
-                _assetReloadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetReloadRoutineAsync());
         }
 
-        private IEnumerator AssetReloadRoutineAsync()
+        public void Update()
         {
-            yield return 10;
+            // Clear finished routines
+            _loadingAssetRoutines.RemoveAll(x => x.Finished);
 
+            // Add reloads
             while (_assetsToReload.TryDequeue(out string? assetNameToReload))
             {
                 // Dedupe if next is same.
@@ -722,17 +677,57 @@ namespace Emotion.IO
                     if (nextAssetToReload == assetNameToReload) continue;
                 }
 
+                // If trying to reload a non loaded asset - we don't care.
                 if (_createdAssets.TryGetValue(assetNameToReload, out Asset? asset))
                 {
-                    _assetsToLoad.Enqueue(asset);
+                    Coroutine loadRoutine = Engine.Jobs.Add(LoadAssetRoutineAsync(asset));
+                    _loadingAssetRoutines.Add(loadRoutine);
+                }
+            }
 
-                    // Start async asset loading
-                    if (_assetLoadRoutine.Finished)
-                        _assetLoadRoutine = Engine.CoroutineManagerAsync.StartCoroutine(AssetLoadRoutineAsync());
+            // Add new assets
+            while (_assetsToLoad.TryDequeue(out Asset? asset))
+            {
+                Coroutine loadRoutine = Engine.Jobs.Add(LoadAssetRoutineAsync(asset));
+                _loadingAssetRoutines.Add(loadRoutine);
+            }
+        }
+
+        public IEnumerator WaitForAllAssetsToLoadRoutine()
+        {
+            while (true)
+            {
+                if (_assetsToLoad.Count > 0)
+                {
+                    yield return null;
+                    continue;
                 }
 
-                yield return 10;
+                if (_loadingAssetRoutines.Count > 0)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                break;
             }
+        }
+
+        private IEnumerator LoadAssetRoutineAsync(Asset asset)
+        {
+            string name = asset.Name;
+
+            // Asset not found in any source.
+            AssetSource? source = GetSource(name);
+            if (source == null)
+            {
+                Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
+                yield break;
+            }
+
+            bool loaded = asset.AssetLoader_LoadAsset(source);
+            if (!loaded)
+                _assetsToLoad.Enqueue(asset);
         }
 
         private string NameToEngineNameRemapped(string name)

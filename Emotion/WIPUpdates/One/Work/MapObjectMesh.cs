@@ -13,74 +13,75 @@ namespace Emotion.WIPUpdates.One.Work;
 public class MapObjectMesh : MapObject
 {
     [DontSerialize]
-    public MeshEntity? MeshEntity
+    public MeshEntity MeshEntity
     {
         get => _entity;
     }
-    protected MeshEntity? _entity;
+    protected MeshEntity _entity;
 
     [DontSerialize]
     public MeshEntityMetaState? RenderState;
 
     public SerializableAsset<MeshAsset>? EntityAsset;
 
-    public MapObjectMesh(string? entityFile)
+    public MapObjectMesh()
     {
-        EntityAsset = entityFile;
+        SetEntity(Cube.GetEntity());
+        AssertNotNull(_entity);
     }
 
-    public MapObjectMesh(MeshEntity? entity)
+    public MapObjectMesh(string entityFile) : this()
     {
-        SetEntity(entity ?? Cube.GetEntity());
+        SetEntity(entityFile);
     }
 
-    // serialization constructor
-    protected MapObjectMesh()
+    public MapObjectMesh(MeshEntity entity) : this()
     {
-
+        SetEntity(entity);
     }
 
     public override void Init()
     {
         base.Init();
-
-        if (EntityAsset != null)
-            SetEntity(EntityAsset.Get());
     }
 
     #region Set Entity
 
     public void SetEntity(string assetPath)
     {
-        MeshAsset? assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
+        MeshAsset assetHandle = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath, this);
         SetEntity(assetHandle);
     }
 
-    public void SetEntity(MeshAsset? asset)
+    public void SetEntity(MeshAsset asset)
     {
-        UnloadOldAssetHandle();
+        UnloadOldEntityAsset();
         EntityAsset = asset;
+        asset.OnLoaded += OnEntityAssetChanged;
 
-        if (asset != null)
-            asset.OnLoaded += OnEntityAssetChanged;
+        // Loaded inline or already loaded.
+        if (asset.Loaded)
+        {
+            if (asset.Entity != null)
+                OnSetEntity(asset.Entity);
+        }
     }
 
     protected void OnEntityAssetChanged(Asset asset)
     {
-        if (asset == null || asset is not MeshAsset meshAsset) return;
+        if (asset is not MeshAsset meshAsset) return;
+        if (meshAsset.Entity == null) return;
         OnSetEntity(meshAsset.Entity);
     }
 
     public void SetEntity(MeshEntity entity)
     {
-        UnloadOldAssetHandle();
+        UnloadOldEntityAsset();
         OnSetEntity(entity);
     }
 
-    protected void UnloadOldAssetHandle()
+    protected void UnloadOldEntityAsset()
     {
-        if (_entity == null) return;
-
         MeshAsset? oldHandle = EntityAsset?.Get();
         if (oldHandle != null)
         {
@@ -90,7 +91,7 @@ public class MapObjectMesh : MapObject
         }
     }
 
-    protected void OnSetEntity(MeshEntity? entity)
+    protected void OnSetEntity(MeshEntity entity)
     {
         RenderState = null;
 
@@ -227,7 +228,6 @@ public class MapObjectMesh : MapObject
 
     public bool HasAnimation(string name)
     {
-        if (_entity == null) return false;
         if (_entity.Animations != null)
         {
             for (var i = 0; i < _entity.Animations.Length; i++)
@@ -247,7 +247,6 @@ public class MapObjectMesh : MapObject
             return;
         }
 
-        AssertNotNull(_entity);
         AssertNotNull(_entity.Meshes);
 
         // Try to find the animation instance.

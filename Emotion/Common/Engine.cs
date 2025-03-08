@@ -12,6 +12,7 @@ using Emotion.Game.Localization;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
+using Emotion.JobSystem;
 using Emotion.Platform;
 using Emotion.Scenography;
 using Emotion.Standard.Reflector;
@@ -86,10 +87,10 @@ namespace Emotion.Common
         public static CoroutineManagerGameTime CoroutineManagerGameTime { get; private set; } = new CoroutineManagerGameTime();
 
         /// <summary>
-        /// Global coroutine manager that executes coroutines on another thread.
-        /// [Default Module]
+        /// The job system allows for running tasks (as coroutines) on other threads.
+        /// [Setup Module]
         /// </summary>
-        public static CoroutineManager CoroutineManagerAsync { get; private set; } = new CoroutineManagerSleeping();
+        public static AsyncJobManager Jobs { get; private set; }
 
         /// <summary>
         /// Global UI system.
@@ -131,12 +132,6 @@ namespace Emotion.Common
         /// </summary>
         public static uint FrameCount { get; set; }
 
-        #region Internals
-
-        private static Thread _asyncRoutineThread;
-
-        #endregion
-
         static Engine()
         {
             // This is the assembly which called this function. Should be the game.
@@ -158,26 +153,12 @@ namespace Emotion.Common
             if (Status >= EngineStatus.LightSetup) return;
             PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
 
-            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
             // If no config provided - use default.
             Configuration = configurator ?? new Configurator();
 
-            // Correct the startup directory to the directory of the executable.
-            AssetLoader.SetupGameDirectory();
-
-            Log = Configuration.Logger ?? new NetIOAsyncLogger(Configuration.DebugMode);
-            Log.Info($"Emotion V{MetaData.Version} [{MetaData.BuildConfig}] {MetaData.GitHash}", MessageSource.Engine);
-            string[] args = Configuration.GetExecutionArguments();
-            if (args.Length > 1) Log.Info($"Execution Args: {string.Join(", ", args, 1, args.Length - 1)}", MessageSource.Engine);
-            Log.Info("--------------", MessageSource.Engine);
-            Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
-            Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
-            Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
-            Log.Info($" Execution Directory: {Environment.CurrentDirectory}, Game Directory: {AssetLoader.GameDirectory}", MessageSource.Engine);
-            Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
-            Log.Info("--------------", MessageSource.Engine);
+            // Setup runtime settings and error handling.
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
             // Attach engine killer and popup to unhandled exceptions, when the debugger isn't attached.
             // This might be a bit overkill as not all unhandled exceptions are unrecoverable, but let's be pessimistically optimistic for now.
@@ -217,9 +198,26 @@ namespace Emotion.Common
             // Ensure quit is called on exit so that logs are flushed etc.
             AppDomain.CurrentDomain.ProcessExit += (_, __) => { Quit(); };
 
-            // Mount default assets. The platform should add it's own specific sources and stores.
+            // Correct the startup directory to the directory of the executable.
+            // We want to do this as soon as possible to make sure the correct one is logged,
+            // and we want to do it before the logger so that logs are in the correct folder.
+            AssetLoader.SetupGameDirectory();
+
+            Log = Configuration.Logger ?? new NetIOAsyncLogger(Configuration.DebugMode);
+            Log.Info($"Emotion V{MetaData.Version} [{MetaData.BuildConfig}] {MetaData.GitHash}", MessageSource.Engine);
+            string[] args = Configuration.GetExecutionArguments();
+            if (args.Length > 1) Log.Info($"Execution Args: {string.Join(", ", args, 1, args.Length - 1)}", MessageSource.Engine);
+            Log.Info("--------------", MessageSource.Engine);
+            Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
+            Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
+            Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
+            Log.Info($" Execution Directory: {Environment.CurrentDirectory}, Game Directory: {AssetLoader.GameDirectory}", MessageSource.Engine);
+            Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
+            Log.Info("--------------", MessageSource.Engine);
+
+            // Mount embedded engine assets.
+            // The host will add its own specific sources and stores later.
             AssetLoader = AssetLoader.CreateDefaultAssetLoader();
-            ReflectorEngineInit.Init();
 
             Status = EngineStatus.LightSetup;
 
@@ -268,6 +266,14 @@ namespace Emotion.Common
             Audio = Host.Audio;
             if (Status == EngineStatus.Stopped) return; // Errors in host initialization can cause this.
             PerfProfiler.ProfilerEventEnd("Platform Creation", "Loading");
+
+            // Setup reflector for serialization/deserialization.
+            // Doesn't really depend on anything, but good to have the host setup first.
+            ReflectorEngineInit.Init();
+
+            // Async jobs - dependant on host.
+            Jobs = new AsyncJobManager();
+            Jobs.Init();
 
             // Now that the context is created, the renderer can be created.
             Renderer = new RenderComposer();
@@ -318,23 +324,8 @@ namespace Emotion.Common
 
             Status = EngineStatus.Running;
 
-            Thread asyncRoutineThread = new Thread(() =>
-            {
-                if (Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Async Routine Thread";
-
-                var lastUpdate = DateTime.Now;
-                while (Status == EngineStatus.Running)
-                {
-                    int timePassed = DateTime.Now.Subtract(lastUpdate).Milliseconds;
-                    CoroutineManagerAsync.Update(timePassed);
-                    if (timePassed != 0) lastUpdate = DateTime.Now;
-                    Thread.Yield();
-                }
-            });
-            asyncRoutineThread.IsBackground = true;
-            asyncRoutineThread.Start();
-            _asyncRoutineThread = asyncRoutineThread;
-            CoroutineManagerAsync.StartCoroutine(entryPointAsyncRoutine());
+            // Start the entry async entry point as a job, and start the loop.
+            Jobs.Add(entryPointAsyncRoutine());
 
             if (Configuration.LoopFactory == null)
             {
@@ -477,6 +468,8 @@ namespace Emotion.Common
             TickCount++;
 
             PerformanceMetrics.TickStart();
+
+            AssetLoader.Update();
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);

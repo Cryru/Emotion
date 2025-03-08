@@ -61,16 +61,6 @@ public class CoroutineViewerTool : EditorWindow
             }
         }
 
-        var asyncCoroutines = Engine.CoroutineManagerAsync.DbgGetRunningRoutines();
-        foreach (Coroutine coroutine in asyncCoroutines)
-        {
-            if (!_coroutinesShown.Contains(coroutine))
-            {
-                newRoutines ??= new List<Coroutine>();
-                newRoutines.Add(coroutine);
-            }
-        }
-
         if (newRoutines == null) return;
 
         for (int i = 0; i < newRoutines.Count; i++)

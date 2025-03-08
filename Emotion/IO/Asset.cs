@@ -49,8 +49,6 @@ namespace Emotion.IO
         /// </summary>
         public bool AssetLoader_LoadAsset(AssetSource source)
         {
-            if (source == null) return true; // ???
-
             ReadOnlyMemory<byte> data;
 
             // Due to sharing violations we should try to hot reload this in a try-catch.
@@ -61,6 +59,8 @@ namespace Emotion.IO
             }
             catch (Exception)
             {
+                // Reschedule!
+
                 return false;
             }
             finally
@@ -75,12 +75,14 @@ namespace Emotion.IO
                 ReloadInternal(data);
                 Engine.Log.Info($"Reloaded asset '{Name}'", MessageSource.AssetLoader);
                 Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
-                return true;
             }
-
-            CreateInternal(data);
-            Loaded = true;
-            Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+            else
+            {
+                CreateInternal(data);
+                Engine.Log.Info($"Loaded asset '{Name}'", MessageSource.AssetLoader);
+                Loaded = true;
+                Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+            }
             return true;
         }
 
@@ -129,7 +131,7 @@ namespace Emotion.IO
 
         #region Routine Waiter
 
-        public bool Finished => Loaded || !Engine.AssetLoader.IsAssetQueuedForLoading(this); // if not queued we consider it non-existing at this point
+        public bool Finished => Loaded;
 
         public void Update()
         {
