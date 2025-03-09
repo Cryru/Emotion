@@ -391,7 +391,7 @@ namespace Emotion.IO
 
         #endregion
 
-        private static Dictionary<string, string> _cachedNameToEngineNameConversions = new(); // Reduce allocations
+        private static ConcurrentDictionary<string, string> _cachedNameToEngineNameConversions = new(); // Reduce allocations
 
         /// <summary>
         /// Converts the provided asset name to an engine name
@@ -403,7 +403,7 @@ namespace Emotion.IO
             if (_cachedNameToEngineNameConversions.TryGetValue(name, out string? cachedConversion)) return cachedConversion;
 
             string engineName = name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
-            _cachedNameToEngineNameConversions.Add(name, engineName);
+            _cachedNameToEngineNameConversions.TryAdd(name, engineName);
             return engineName;
         }
 
@@ -500,6 +500,8 @@ namespace Emotion.IO
         /// </summary>
         public static string GetNonRelativePath(string relativeToDirectory, string path, bool joinNonRelative = true)
         {
+            path = NameToEngineName(path);
+
             if (string.IsNullOrWhiteSpace(path)) return joinNonRelative ? relativeToDirectory : "";
 
             if (path.Length > 2 && path[0] == '.' && path[1] == '/') path = path[2..];
@@ -602,7 +604,7 @@ namespace Emotion.IO
         private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
         private List<Coroutine> _loadingAssetRoutines = new List<Coroutine>(16);
 
-        public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false) where T : Asset, new()
+        public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name))
                 name = string.Empty;
@@ -620,7 +622,7 @@ namespace Emotion.IO
             }
 
             // Create a new asset and register it.
-            T newAsset = new T { Name = name };
+            T newAsset = new T { Name = name, LoadedAsDependency = loadedAsDependency };
             _createdAssets.TryAdd(name, newAsset);
 
             if (addRefenceToObject != null)
@@ -680,7 +682,7 @@ namespace Emotion.IO
                 // If trying to reload a non loaded asset - we don't care.
                 if (_createdAssets.TryGetValue(assetNameToReload, out Asset? asset))
                 {
-                    Coroutine loadRoutine = Engine.Jobs.Add(LoadAssetRoutineAsync(asset));
+                    Coroutine loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
                     _loadingAssetRoutines.Add(loadRoutine);
                 }
             }
@@ -688,7 +690,7 @@ namespace Emotion.IO
             // Add new assets
             while (_assetsToLoad.TryDequeue(out Asset? asset))
             {
-                Coroutine loadRoutine = Engine.Jobs.Add(LoadAssetRoutineAsync(asset));
+                Coroutine loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
                 _loadingAssetRoutines.Add(loadRoutine);
             }
         }
@@ -711,23 +713,6 @@ namespace Emotion.IO
 
                 break;
             }
-        }
-
-        private IEnumerator LoadAssetRoutineAsync(Asset asset)
-        {
-            string name = asset.Name;
-
-            // Asset not found in any source.
-            AssetSource? source = GetSource(name);
-            if (source == null)
-            {
-                Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
-                yield break;
-            }
-
-            bool loaded = asset.AssetLoader_LoadAsset(source);
-            if (!loaded)
-                _assetsToLoad.Enqueue(asset);
         }
 
         private string NameToEngineNameRemapped(string name)

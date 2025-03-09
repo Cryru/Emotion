@@ -146,7 +146,10 @@ namespace Emotion.Standard.Logging
 
             string threadName = Thread.CurrentThread.Name ?? "Thread";
             if (threadName == ".NET ThreadPool Worker") threadName = "Worker";
-            _logQueue.Enqueue((type, $"{Engine.TotalTime:0} [{source}] [{threadName}/{Thread.CurrentThread.ManagedThreadId:D2}] {message}"));
+
+            int sourceLengthMax = 8;
+            int sourcePadding = source.Length < sourceLengthMax ? sourceLengthMax - source.Length : 0;
+            _logQueue.Enqueue((type, $"{Engine.TotalTime:00000} [{source}]{new string(' ', sourcePadding)} [{Thread.CurrentThread.ManagedThreadId:D2}:{threadName}] {message}"));
             _queueEvent.Set();
         }
 

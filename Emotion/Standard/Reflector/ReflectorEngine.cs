@@ -14,7 +14,7 @@ public static class ReflectorEngine
     internal static void PostInit()
     {
         BuildRelations();
-        Engine.Log.Info($"Loaded {_typeHandlers} type handlers!", "Reflector");
+        Engine.Log.Info($"Loaded {_typeHandlers.Count} type handlers!", "Reflector");
     }
 
     public static void RegisterTypeHandler(IGenericReflectorTypeHandler typeHandler)

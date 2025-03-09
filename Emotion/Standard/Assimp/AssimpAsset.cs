@@ -1,81 +1,68 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.IO;
 using Emotion.Common.Threading;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
 using Silk.NET.Assimp;
 using AssContext = Silk.NET.Assimp.Assimp;
 using AssTexture = Silk.NET.Assimp.Texture;
 using AssMesh = Silk.NET.Assimp.Mesh;
-using File = Silk.NET.Assimp.File;
-using System.Text.Json;
-using Emotion.IO.MeshAssetTypes.Assimp.GLTF;
-using static Emotion.Utility.Helpers;
+using Emotion.IO;
 
 #endregion
 
-#nullable enable
-
-namespace Emotion.IO.MeshAssetTypes.Assimp;
+namespace Emotion.Standard.Assimp;
 
 /// <summary>
-/// A 3D entity loaded using Assimp. Note that this isn't optimized and is to be used in development builds only.
-/// The data will be converted to the Em3 format at runtime.
+/// The Assimp library can ba used to load more mesh formats than Emotion natively supports.
+/// Note that this isn't optimized and is to be used in development builds only.
 /// </summary>
-public class AssimpAsset : Asset
+public static class AssimpFormat
 {
-    public MeshEntity? Entity { get; protected set; }
-
     private static AssContext _assContext = AssContext.GetApi();
-    private ReadOnlyMemory<byte> _thisData;
 
-    private PostProcessSteps _postProcFlags = PostProcessSteps.Triangulate |
-                                              PostProcessSteps.JoinIdenticalVertices |
-                                              PostProcessSteps.FlipUVs |
-                                              PostProcessSteps.SortByPrimitiveType |
-                                              PostProcessSteps.OptimizeGraph |
-                                              PostProcessSteps.OptimizeMeshes |
-                                              PostProcessSteps.MakeLeftHanded;
+    private static PostProcessSteps _postProcFlags = PostProcessSteps.Triangulate |
+                                                     PostProcessSteps.JoinIdenticalVertices |
+                                                     PostProcessSteps.FlipUVs |
+                                                     PostProcessSteps.SortByPrimitiveType |
+                                                     PostProcessSteps.OptimizeGraph |
+                                                     PostProcessSteps.OptimizeMeshes |
+                                                     PostProcessSteps.MakeLeftHanded;
 
-    private PostProcessSteps _postProcFlagsRetry = PostProcessSteps.Triangulate |
-                                                  PostProcessSteps.JoinIdenticalVertices |
-                                                  PostProcessSteps.FlipUVs |
-                                                  PostProcessSteps.SortByPrimitiveType |
-                                                  PostProcessSteps.OptimizeMeshes |
-                                                  PostProcessSteps.MakeLeftHanded;
+    private static PostProcessSteps _postProcFlagsRetry = PostProcessSteps.Triangulate |
+                                                          PostProcessSteps.JoinIdenticalVertices |
+                                                          PostProcessSteps.FlipUVs |
+                                                          PostProcessSteps.SortByPrimitiveType |
+                                                          PostProcessSteps.OptimizeMeshes |
+                                                          PostProcessSteps.MakeLeftHanded;
 
-    private bool Y_TO_Z_UP = true;
+    private const bool Y_TO_Z_UP = true;
 
-    protected override unsafe void CreateInternal(ReadOnlyMemory<byte> data)
+    public static unsafe MeshEntity? CreateEntityFromDocument(ReadOnlyMemory<byte> data, string name)
     {
-        _thisData = data;
-
         // Initialize virtual file system.
-        var thisStream = new AssimpStream(Name);
-        thisStream.AddMemory(_thisData);
-        _loadedFiles.Add(thisStream);
+        var fileSystem = new AssimpVirtualFileSystem();
+        fileSystem.AddFile(name, data);
+
+        ref FileIO nativeIO = ref fileSystem.NativeFileIO;
+
+        string sceneDirectory = AssetLoader.GetDirectoryName(name);
 
         //_assContext.EnableVerboseLogging(1);
         //_assContext.AttachLogStream(_assContext.GetPredefinedLogStream(DefaultLogStream.Stdout, ""));
 
-        var customIO = new FileIO
-        {
-            OpenProc = PfnFileOpenProc.From(OpenFileCallback),
-            CloseProc = PfnFileCloseProc.From(CloseFileCallback)
-        };
-
-        PostProcessSteps postProcFlags = _postProcFlags;
-        Scene* scene = _assContext.ImportFileEx(Name, (uint)postProcFlags, ref customIO);
+        Scene* scene = _assContext.ImportFileEx(name, (uint)_postProcFlags, ref nativeIO);
         if ((IntPtr)scene == IntPtr.Zero)
         {
-            scene = _assContext.ImportFileEx(Name, (uint)_postProcFlagsRetry, ref customIO);
+            scene = _assContext.ImportFileEx(name, (uint)_postProcFlagsRetry, ref nativeIO);
             if ((IntPtr)scene == IntPtr.Zero)
             {
                 Engine.Log.Error(_assContext.GetErrorStringS(), "Assimp");
-                return;
+                return null;
             }
         }
 
@@ -92,19 +79,19 @@ public class AssimpAsset : Asset
 
         // Process materials, animations, and meshes.
         var materials = new List<MeshMaterial>();
-        ProcessMaterials(scene, materials);
+        ProcessMaterials(sceneDirectory, scene, materials);
 
         var animations = new List<SkeletalAnimation>();
         ProcessAnimations(scene, animations, animRig);
 
         // Add animations from a _Animations folder.
-        string myFolder = AssetLoader.GetDirectoryName(Name);
-        string animFolder = AssetLoader.GetFilePathNoExtension(Name) + "_Animations/";
+        string animFolder = AssetLoader.GetFilePathNoExtension(name) + "_Animations/";
         string[] assetsInFolder = Engine.AssetLoader.GetAssetsInFolder(animFolder);
         for (var i = 0; i < assetsInFolder.Length; i++)
         {
-            string asset = assetsInFolder[i];
-            Scene* otherAssetScene = _assContext.ImportFileEx(asset.Replace(myFolder, ""), (uint)_postProcFlags, ref customIO);
+            string assetPath = assetsInFolder[i];
+            string assetPathRelative = assetPath.Replace(sceneDirectory, "");
+            Scene* otherAssetScene = _assContext.ImportFileEx(assetPathRelative, (uint)_postProcFlags, ref nativeIO);
             if (otherAssetScene != null) ProcessAnimations(otherAssetScene, animations, animRig);
         }
 
@@ -113,9 +100,8 @@ public class AssimpAsset : Asset
 
         WalkNodesForMeshes(scene, rootNode, meshes, materials, skins, animRig);
 
-        Entity = new MeshEntity
+        var entity = new MeshEntity
         {
-            Name = Name,
             Meshes = meshes.ToArray(),
             Animations = animations.ToArray(),
             AnimationRig = animRig,
@@ -128,74 +114,16 @@ public class AssimpAsset : Asset
         // Properties
         float? scaleF = GetMetadataFloat(rootNode->MMetaData, "UnitScaleFactor");
         if (scaleF != null)
-            Entity.Scale = scaleF.Value;
+            entity.Scale = scaleF.Value;
 
-        // Clear virtual file system
-        for (var i = 0; i < _loadedFiles.Count; i++)
-        {
-            AssimpStream file = _loadedFiles[i];
-            file.Dispose();
-        }
+        fileSystem.Dispose();
 
-        _loadedFiles.Clear();
-        _thisData = null;
+        return entity;
     }
-
-    #region IO
-
-    private List<AssimpStream> _loadedFiles = new();
-
-    private unsafe File* OpenFileCallback(FileIO* arg0, byte* arg1, byte* arg2)
-    {
-        string readMode = NativeHelpers.StringFromPtr((IntPtr)arg2);
-        if (readMode != "rb")
-        {
-            Engine.Log.Error("Only read-binary file mode is supported.", "Assimp");
-            return null;
-        }
-
-        string fileName = NativeHelpers.StringFromPtr((IntPtr)arg1);
-        for (var i = 0; i < _loadedFiles.Count; i++)
-        {
-            AssimpStream alreadyOpenFile = _loadedFiles[i];
-            if (alreadyOpenFile.Name == fileName) return (File*)alreadyOpenFile.Memory;
-        }
-
-        string assetPath = AssetLoader.GetDirectoryName(Name);
-        if (!assetPath.StartsWith(assetPath))
-            fileName = AssetLoader.GetNonRelativePath(assetPath, fileName);
-        var byteAsset = Engine.AssetLoader.Get<OtherAsset>(fileName, false);
-        if (byteAsset == null) return null;
-
-        var assimpStream = new AssimpStream(fileName);
-        assimpStream.AddMemory(byteAsset.Content);
-        _loadedFiles.Add(assimpStream);
-        return (File*)assimpStream.Memory;
-    }
-
-    private unsafe void CloseFileCallback(FileIO* arg0, File* arg1)
-    {
-        // When Assimp wants to close a file we'll keep it loaded
-        // but reset its position instead as it can be requested again and
-        // we want to reduce IO. At the end of the asset parsing all loaded
-        // files will be properly unloaded.
-        var filePtr = (IntPtr)arg1;
-        for (var i = 0; i < _loadedFiles.Count; i++)
-        {
-            AssimpStream file = _loadedFiles[i];
-            if (file.Memory == filePtr)
-            {
-                file.Position = 0;
-                return;
-            }
-        }
-    }
-
-    #endregion
 
     #region Materials
 
-    private unsafe void ProcessMaterials(Scene* scene, List<MeshMaterial> list)
+    private static unsafe void ProcessMaterials(string sceneDirectory, Scene* scene, List<MeshMaterial> list)
     {
         var embeddedTextures = new List<Texture>();
         for (var i = 0; i < scene->MNumTextures; i++)
@@ -207,7 +135,7 @@ public class AssimpAsset : Asset
                 // Data in embedded png
                 var dataAsByte = new ReadOnlySpan<byte>(assTexture->PcData, (int)assTexture->MWidth);
                 byte[] dataManaged = dataAsByte.ToArray();
-                var embeddedTexture = new TextureAsset();
+                TextureAsset embeddedTexture = new TextureAsset();
                 embeddedTexture.AssetLoader_CreateLegacy(dataManaged);
                 embeddedTextures.Add(embeddedTexture.Texture);
             }
@@ -246,16 +174,17 @@ public class AssimpAsset : Asset
                 }
                 else if (!string.IsNullOrEmpty(diffuseTextureName))
                 {
-                    string assetPath = AssetLoader.GetDirectoryName(Name);
                     string diffuseTextureNameEnginePath = AssetLoader.NameToEngineName(diffuseTextureName);
-                    assetPath = AssetLoader.GetNonRelativePath(assetPath, diffuseTextureNameEnginePath);
-                    var textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath, false);
+                    string assetPath = AssetLoader.GetNonRelativePath(sceneDirectory, diffuseTextureNameEnginePath);
+                    diffuseTextureName = assetPath;
+
+                    TextureAsset? textureAsset = Engine.AssetLoader.Get<TextureAsset>(assetPath);
                     diffuseTexture = textureAsset?.Texture;
                 }
             }
 
             string originalName = materialName;
-            var counter = 2;
+            int counter = 2;
             while (materialNameDuplicatePrevent.Contains(materialName))
             {
                 materialName = $"{originalName}_{counter}";
@@ -268,6 +197,7 @@ public class AssimpAsset : Asset
             {
                 diffuseTexture.Smooth = true;
                 diffuseTexture.Tile = true;
+                diffuseTexture.Mipmap = true;
             }
 
             var emotionMaterial = new MeshMaterial
@@ -339,7 +269,7 @@ public class AssimpAsset : Asset
 
     #region Animations
 
-    protected unsafe SkeletonAnimRigNode[] WalkNodesForSkeleton(Node* root)
+    private static unsafe SkeletonAnimRigNode[] WalkNodesForSkeleton(Node* root)
     {
         List<SkeletonAnimRigNode> rig = new List<SkeletonAnimRigNode>();
 
@@ -386,7 +316,7 @@ public class AssimpAsset : Asset
         return rig.ToArray();
     }
 
-    private unsafe void ProcessAnimations(Scene* scene, List<SkeletalAnimation> list, SkeletonAnimRigNode[] animRig)
+    private static unsafe void ProcessAnimations(Scene* scene, List<SkeletalAnimation> list, SkeletonAnimRigNode[] animRig)
     {
         var unnamedAnimations = 0;
         for (var i = 0; i < scene->MNumAnimations; i++)
@@ -458,13 +388,14 @@ public class AssimpAsset : Asset
 
     #region Meshes
 
-    protected unsafe void WalkNodesForMeshes(
+    private static unsafe void WalkNodesForMeshes(
         Scene* scene,
         Node* n,
         List<Mesh> list,
         List<MeshMaterial> materials,
         List<SkeletalAnimationSkin> skins,
-        SkeletonAnimRigNode[] animRig)
+        SkeletonAnimRigNode[] animRig
+    )
     {
         if ((IntPtr)n == IntPtr.Zero) return;
 
@@ -483,7 +414,12 @@ public class AssimpAsset : Asset
         }
     }
 
-    protected unsafe Mesh ProcessMesh(AssMesh* m, List<MeshMaterial> materials, List<SkeletalAnimationSkin> skins, SkeletonAnimRigNode[] animRig)
+    private static unsafe Mesh ProcessMesh(
+        AssMesh* m,
+        List<MeshMaterial> materials,
+        List<SkeletalAnimationSkin> skins,
+        SkeletonAnimRigNode[] animRig
+    )
     {
         // Collect indices
         uint indicesCount = 0;
@@ -697,7 +633,7 @@ public class AssimpAsset : Asset
 
     #endregion
 
-    private unsafe float? GetMetadataFloat(Metadata* meta, string key)
+    private static unsafe float? GetMetadataFloat(Metadata* meta, string key)
     {
         if ((IntPtr)meta == IntPtr.Zero) return null;
 
@@ -711,7 +647,7 @@ public class AssimpAsset : Asset
         return null;
     }
 
-    private unsafe int? GetMetadataInt(Metadata* meta, string key)
+    private static unsafe int? GetMetadataInt(Metadata* meta, string key)
     {
         if ((IntPtr)meta == IntPtr.Zero) return null;
 
@@ -725,11 +661,7 @@ public class AssimpAsset : Asset
         return null;
     }
 
-    protected override void DisposeInternal()
-    {
-    }
-
-    public unsafe void ExportEntity(MeshEntity entity, string formatId, string name)
+    public static unsafe void ExportEntity(MeshEntity entity, string formatId, string name)
     {
         Scene sc = new Scene();
         Node rootNode = new Node();
@@ -747,7 +679,7 @@ public class AssimpAsset : Asset
         ExportAs(&sc, formatId, name);
     }
 
-    public unsafe void ExportAs(Scene* scene, string formatId, string name)
+    public static unsafe void ExportAs(Scene* scene, string formatId, string name)
     {
         ExportDataBlob* blob = _assContext.ExportSceneToBlob(scene, formatId, (uint)_postProcFlags);
         var str = new MemoryStream();

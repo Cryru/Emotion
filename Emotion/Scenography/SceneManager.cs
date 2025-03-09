@@ -75,17 +75,15 @@ namespace Emotion.Scenography
 
         #endregion
 
-        public PassiveRoutineObserver SetScene(Scene scene)
+        public Coroutine SetScene(Scene scene)
         {
-            Engine.Log.Info($"Setting scene to [{scene}]", MessageSource.SceneManager);
-            Coroutine coroutine = Engine.Jobs.Add(InternalLoadSceneRoutineAsync(scene));
-            return new PassiveRoutineObserver(coroutine);
+            Engine.Log.Info($"Set scene: [{scene}]", MessageSource.SceneManager);
+            return Engine.Jobs.Add(InternalLoadSceneRoutineAsync(scene));
         }
 
-        public PassiveRoutineObserver SetLoadingScreen(Scene loadingScene)
+        public Coroutine SetLoadingScreen(Scene loadingScene)
         {
-            Coroutine coroutine = Engine.Jobs.Add(InternalLoadLoadingScreenRoutineAsync(loadingScene));
-            return new PassiveRoutineObserver(coroutine);
+            return Engine.Jobs.Add(InternalLoadLoadingScreenRoutineAsync(loadingScene));
         }
 
         private IEnumerator InternalLoadSceneRoutineAsync(Scene scene)

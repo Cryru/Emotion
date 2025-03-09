@@ -11,6 +11,8 @@ public class AsyncJobManager
 
     private int _nextThreadToQueueOn = 0;
 
+    private const bool SINGLE_THREAD_DEBUG_MODE = false;
+
     public void Init()
     {
         Engine.Log.Info("Initializing job system...", "Jobs");
@@ -18,6 +20,13 @@ public class AsyncJobManager
         int threadCount = 1;
         if (Environment.ProcessorCount > 2)
             threadCount = Environment.ProcessorCount - 1;
+
+        // Let's not get too greedy! :D
+        if (threadCount > 8)
+            threadCount = 8;
+
+        if (SINGLE_THREAD_DEBUG_MODE)
+            threadCount = 0;
 
         _threads = new Thread[threadCount];
         _threadRoutineManagers = new AsyncJobCoroutineManager[threadCount];
@@ -39,17 +48,19 @@ public class AsyncJobManager
 
     private void JobSystemThreadProc(int threadId, AsyncJobCoroutineManager manager)
     {
-        if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Job Thread {threadId}";
+        if (Engine.Host.NamedThreads) Thread.CurrentThread.Name ??= $"JobThread{threadId + 1}";
 
         while (Engine.Status != EngineStatus.Stopped)
         {
             manager.Update(0);
-            Thread.Yield();
         }
     }
 
     public Coroutine Add(IEnumerator routineAsync)
     {
+        if (SINGLE_THREAD_DEBUG_MODE)
+            return Engine.CoroutineManager.StartCoroutine(routineAsync);
+
         AssertNotNull(_threadRoutineManagers);
         AssertNotNull(_threads);
 

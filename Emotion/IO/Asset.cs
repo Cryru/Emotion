@@ -4,6 +4,7 @@
 
 using Emotion.Common.Serialization;
 using Emotion.Game.Time.Routines;
+using System.Xml.Linq;
 
 #endregion
 
@@ -16,9 +17,16 @@ namespace Emotion.IO
     public abstract class Asset : IRoutineWaiter
     {
         /// <summary>
-        /// The name of the asset. If loaded from the AssetLoader this is the path of the asset.
+        /// The name of the asset.
+        /// If loaded from the AssetLoader this is the engine path of the asset.
         /// </summary>
         public string Name { get; set; } = "Unknown";
+
+        /// <summary>
+        /// Whether this asset was loaded as a dependency. It could still be a
+        /// dependency if it was loaded in another way first.
+        /// </summary>
+        public bool LoadedAsDependency { get; set; }
 
         /// <summary>
         /// The byte size of the asset when loaded from the asset source.
@@ -43,47 +51,81 @@ namespace Emotion.IO
         /// </summary>
         public event Action<Asset>? OnLoaded;
 
+        protected bool _useNewLoading = false;
+
         /// <summary>
         /// Called by the asset loader on the asset loading thread(s),
         /// which performs the IO and asset creation and/or hot reloading if already loaded.
         /// </summary>
-        public bool AssetLoader_LoadAsset(AssetSource source)
+        public IEnumerator AssetLoader_LoadAsset()
         {
-            ReadOnlyMemory<byte> data;
+            // Asset not found in any source.
+            AssetSource? source = Engine.AssetLoader.GetSource(Name);
+            if (source == null)
+            {
+                Engine.Log.Warning($"Tried to load asset {Name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
+                yield break;
+            }
+
+            ReadOnlyMemory<byte> data = ReadOnlyMemory<byte>.Empty;
 
             // Due to sharing violations we should try to hot reload this in a try-catch.
             Engine.SuppressLogExceptions(true);
-            try
+            int attempts = 0;
+            while (attempts < 10)
             {
-                data = source.GetAsset(Name);
-            }
-            catch (Exception)
-            {
-                // Reschedule!
+                try
+                {
+                    data = source.GetAsset(Name);
+                    break;
+                }
+                catch (Exception)
+                {
+                    // Error, try again :(
+                }
+                finally
+                {
+                    Engine.SuppressLogExceptions(false);
+                }
 
-                return false;
+                attempts++;
             }
-            finally
-            {
-                Engine.SuppressLogExceptions(false);
-            }
+           
             ByteSize = data.Length;
 
-            // Hot reload
-            if (Loaded)
+            if (_useNewLoading)
             {
-                ReloadInternal(data);
-                Engine.Log.Info($"Reloaded asset '{Name}'", MessageSource.AssetLoader);
-                Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+                yield return Internal_LoadAssetRoutine(data);
+                if (!LoadedAsDependency)
+                {
+                    if (Loaded)
+                        Engine.Log.Info($"Reloaded asset '{Name}'{(_dependencies == null ? "" : $" ({_dependencies.Count} Dependencies)")}", MessageSource.AssetLoader);
+                    else
+                        Engine.Log.Info($"Loaded asset '{Name}'{(_dependencies == null ? "" : $" ({_dependencies.Count} Dependencies)")}", MessageSource.AssetLoader);
+                }
+                Loaded = true;
+                if (OnLoaded != null)
+                    Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
             }
             else
             {
-                CreateInternal(data);
-                Engine.Log.Info($"Loaded asset '{Name}'", MessageSource.AssetLoader);
-                Loaded = true;
-                Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+                // Hot reload
+                if (Loaded)
+                {
+                    ReloadInternal(data);
+                    if (!LoadedAsDependency) Engine.Log.Info($"Reloaded asset '{Name}'", MessageSource.AssetLoader);
+                    if (OnLoaded != null)
+                        Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+                }
+                else
+                {
+                    CreateInternal(data);
+                    if (!LoadedAsDependency) Engine.Log.Info($"Loaded asset '{Name}'", MessageSource.AssetLoader);
+                    Loaded = true;
+                    if (OnLoaded != null)
+                        Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+                }
             }
-            return true;
         }
 
         public void AssetLoader_CreateLegacy(ReadOnlyMemory<byte> data)
@@ -106,6 +148,11 @@ namespace Emotion.IO
         protected virtual void ReloadInternal(ReadOnlyMemory<byte> data)
         {
 
+        }
+
+        protected virtual IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
+        {
+            yield break;
         }
 
         /// <summary>
@@ -142,34 +189,38 @@ namespace Emotion.IO
 
         #region Dependencies
 
-        /// <summary>
-        /// Called by the AssetLoader and intended to be overridden.
-        /// Call Get to load dependencies here.
-        /// </summary>
-        public virtual void AssetLoader_LoadDependencyAssets()
-        {
-
-        }
-
         private List<Asset>? _dependencies;
 
-        public void AssetLoader_AttachDependency(Asset dependantAsset)
+        protected T LoadAssetDependency<T>(string name) where T : Asset, new()
         {
+            T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true);
+
             _dependencies ??= new List<Asset>();
             _dependencies.Add(dependantAsset);
-            Engine.AssetLoader.AddReferenceToAsset(dependantAsset, this);
+
+            return dependantAsset;
         }
 
-        public bool AssetLoader_AllDependenciesLoaded()
+        protected IEnumerator WaitAllDependenciesToLoad()
         {
-            if (_dependencies == null) return true;
-            for (int i = 0; i < _dependencies.Count; i++)
-            {
-                Asset dependant = _dependencies[i];
-                if (!dependant.Loaded) return false;
-            }
+            if (_dependencies == null) yield break;
 
-            return true;
+            while (true)
+            {
+                bool anyLoading = false;
+                for (int i = 0; i < _dependencies.Count; i++)
+                {
+                    Asset dependent = _dependencies[i];
+                    if (!dependent.Loaded)
+                    {
+                        anyLoading = true;
+                        yield return null;
+                    }
+                }
+
+                if (!anyLoading)
+                    break;
+            }
         }
 
         #endregion

@@ -64,8 +64,7 @@ public class DevModeProjectAssetSource : FileAssetSource
 
     public override bool HasAsset(string enginePath)
     {
-        string[] manifest = GetManifest();
-        return manifest.Contains(enginePath);
+        return InternalManifest.ContainsKey(enginePath);
     }
 
     public override string ToString()

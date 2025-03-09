@@ -18,11 +18,39 @@ public static partial class GLTFFormat
     private const bool MAKE_LEFT_HANDED = true;
     private const float ANIM_TIME_SCALE = 1000; // We expect them to be in seconds, but emotion works in ms.
 
-    public static MeshEntity? Decode(string rootFolder, ReadOnlyMemory<byte> fileData)
+    public static GLTFDocument? Decode(ReadOnlyMemory<byte> fileData)
     {
-        GLTFDocument? gltfDoc = JsonSerializer.Deserialize<GLTFDocument>(fileData.Span);
-        if (gltfDoc == null) return null;
+        return JsonSerializer.Deserialize<GLTFDocument>(fileData.Span);
+    }
 
+    public static IEnumerable<string> ForEachBufferDependency(GLTFDocument gltfDoc, string rootFolder)
+    {
+        GLTFBuffer[] buffers = gltfDoc.Buffers;
+        for (int i = 0; i < buffers.Length; i++)
+        {
+            GLTFBuffer buffer = buffers[i];
+            string uri = buffer.Uri;
+
+            if (!uri.StartsWith(BASE64_DATA_PREFIX) && !uri.StartsWith(BASE64_DATA_PREFIX_2))
+                yield return AssetLoader.GetNonRelativePath(rootFolder, uri);
+        }
+    }
+
+    public static IEnumerable<string> ForEachImageDependency(GLTFDocument gltfDoc, string rootFolder)
+    {
+        GLTFImage[] images = gltfDoc.Images ?? Array.Empty<GLTFImage>();
+        for (int i = 0; i < images.Length; i++)
+        {
+            GLTFImage image = images[i];
+            string uri = image.Uri;
+            if (uri == null) continue;
+
+            yield return AssetLoader.GetNonRelativePath(rootFolder, uri);
+        }
+    }
+
+    public static MeshEntity CreateEntityFromDocument(GLTFDocument gltfDoc, string rootFolder)
+    {
         // Read all byte buffers
         GLTFBuffer[] buffers = gltfDoc.Buffers;
         for (int i = 0; i < buffers.Length; i++)
@@ -30,7 +58,7 @@ public static partial class GLTFFormat
             GLTFBuffer buffer = buffers[i];
             string uri = buffer.Uri;
 
-            ReadOnlyMemory<byte> content;
+            ReadOnlyMemory<byte> content = ReadOnlyMemory<byte>.Empty;
             if (uri.StartsWith(BASE64_DATA_PREFIX))
             {
                 // todo: Convert.FromBase64String that takes in a span to save an allocation here.
@@ -44,13 +72,13 @@ public static partial class GLTFFormat
             }
             else
             {
-                // todo: ONE assetloader async
                 uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
-                OtherAsset? byteAsset = Engine.AssetLoader.Get<OtherAsset>(uri, false);
-                if (byteAsset == null)
-                    content = ReadOnlyMemory<byte>.Empty;
-                else
+                OtherAsset? byteAsset = Engine.AssetLoader.ONE_Get<OtherAsset>(uri);
+                if (byteAsset != null)
+                {
+                    Assert(byteAsset.Loaded);
                     content = byteAsset.Content;
+                }
             }
 
             buffer.Data = content;
@@ -220,7 +248,7 @@ public static partial class GLTFFormat
                                     translations[s] = new MeshAnimBoneTranslation()
                                     {
                                         Position = data,
-                                        Timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE,
+                                        Timestamp = timestamp,
                                         DontInterpolate = dontInterpolate
                                     };
                                 }
@@ -241,7 +269,7 @@ public static partial class GLTFFormat
                                     scales[s] = new MeshAnimBoneScale()
                                     {
                                         Scale = data,
-                                        Timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE,
+                                        Timestamp = timestamp,
                                         DontInterpolate = dontInterpolate
                                     };
                                 }
@@ -273,13 +301,16 @@ public static partial class GLTFFormat
             string uri = image.Uri;
             if (uri == null) continue;
 
-            uri = AssetLoader.NameToEngineName(uri);
             uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
-            TextureAsset? textureAsset = Engine.AssetLoader.Get<TextureAsset>(uri, false);
+            TextureAsset? textureAsset = Engine.AssetLoader.ONE_Get<TextureAsset>(uri);
             if (textureAsset != null)
             {
-                textureAsset.Texture.Smooth = true; // todo
-                textureAsset.Texture.Tile = true; // todo
+                Assert(textureAsset.Loaded);
+
+                // hmm?
+                textureAsset.Texture.Smooth = true;
+                textureAsset.Texture.Tile = true;
+                textureAsset.Texture.Mipmap = true;
             }
 
             imagesRead[i] = textureAsset == null ? Texture.EmptyWhiteTexture : textureAsset.Texture;
@@ -303,7 +334,6 @@ public static partial class GLTFFormat
             string assetPath = AssetLoader.JoinPath(rootFolder, image.Uri);
 
             Texture imageRead = imagesRead[texture.Source];
-
             MeshMaterial material = new MeshMaterial()
             {
                 Name = gltfMaterial.Name,
@@ -720,17 +750,17 @@ public static partial class GLTFFormat
     private static unsafe float GLTFAccessorReadComponent<TActualType>(ReadOnlyMemory<byte> data, bool normalize)
         where TActualType : unmanaged, INumber<TActualType>, IMinMaxValue<TActualType>
     {
-        var span = data.Span;
-        var spanActualType = MemoryMarshal.Cast<byte, TActualType>(span);
+        ReadOnlySpan<byte> span = data.Span;
+        ReadOnlySpan<TActualType> spanActualType = MemoryMarshal.Cast<byte, TActualType>(span);
         TActualType actualTypeValue = spanActualType[0];
 
-        float valAsFloat = (float)Convert.ChangeType(actualTypeValue, typeof(float));
+        float valAsFloat = float.CreateTruncating<TActualType>(actualTypeValue);
 
         // Cast the number to a float and divide it by its max value to normalize it.
         if (normalize && typeof(TActualType) != typeof(float))
         {
-            float valMax = (float)Convert.ChangeType(TActualType.MaxValue, typeof(float));
-            valAsFloat = valAsFloat / valMax;
+            float valMax = float.CreateTruncating<TActualType>(TActualType.MaxValue);
+            valAsFloat /= valMax;
         }
 
         return valAsFloat;

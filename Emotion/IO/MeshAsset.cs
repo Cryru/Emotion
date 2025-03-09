@@ -1,87 +1,86 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using Emotion.Graphics.ThreeDee;
-using Emotion.IO.MeshAssetTypes;
 using Emotion.Standard.GLTF;
+
 #if MORE_MESH_TYPES
-using Emotion.IO.MeshAssetTypes.Assimp;
-using System.Threading.Tasks;
+using Emotion.Standard.Assimp;
 #endif
 
 #endregion
 
-#nullable enable
+namespace Emotion.IO;
 
-namespace Emotion.IO
+/// <summary>
+/// Represents an asset containing a 3D with meshes, materials, animations, and even textures.
+/// Automatically matches to the file type and can conditionally use ASSIMP to support more formats.
+/// .em3 is recommended for release mode loading.
+/// </summary>
+public class MeshAsset : Asset
 {
-    /// <summary>
-    /// Represents an asset containing a 3D with meshes, materials, animations, and even textures.
-    /// Automatically matches to the file type and can conditionally use ASSIMP to support more formats.
-    /// .em3 is recommended for release mode loading.
-    /// </summary>
-    public class MeshAsset : Asset
+    public MeshEntity? Entity { get; protected set; }
+
+    public MeshAsset()
     {
-        public MeshEntity? Entity { get; protected set; }
+        _useNewLoading = true;
+    }
 
-        private Asset? _underlyingAsset;
+    protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
+    {
+        string directoryName = AssetLoader.GetDirectoryName(Name);
 
-        protected override void CreateInternal(ReadOnlyMemory<byte> data)
+        MeshEntity? entity = null;
+        if (Name.Contains(".gltf"))
         {
-            //if (Name.Contains(".em3"))
-            //{
-            //    var asset = new EmotionMeshAsset
-            //    {
-            //        Name = Name
-            //    };
-            //    asset.Create(data);
-            //    Entity = asset.Entity;
-            //    _underlyingAsset = asset;
-            //}
-            // Our native support for .obj is trash
-            //else if (Name.Contains(".obj"))
-            //{
-            //    var asset = new ObjMeshAsset
-            //    {
-            //        Name = Name
-            //    };
-            //    asset.Create(data);
-            //    Entity = asset.Entity;
-            //    _underlyingAsset = asset;
-            //}
-            if (Name.Contains(".gltf"))
+            GLTFDocument? gltfDoc = GLTFFormat.Decode(data);
+            if (gltfDoc != null)
             {
-                MeshEntity? entity = GLTFFormat.Decode(AssetLoader.GetDirectoryName(Name), data);
-                if (entity != null)
+                foreach (string dependencyPath in GLTFFormat.ForEachBufferDependency(gltfDoc, directoryName))
                 {
-                    entity.Name = Name;
-                    Entity = entity;
+                    LoadAssetDependency<OtherAsset>(dependencyPath);
                 }
-            }
-            else
-            {
-#if MORE_MESH_TYPES
-                var asset = new AssimpAsset
-                {
-                    Name = Name
-                };
-                asset.AssetLoader_CreateLegacy(data);
-                Entity = asset.Entity;
-                _underlyingAsset = asset;
-#endif
-            }
 
-            // Cache bounds for null animation at least to
-            // prevent loading on SetEntity.
+                foreach (string dependencyPath in GLTFFormat.ForEachImageDependency(gltfDoc, directoryName))
+                {
+                    LoadAssetDependency<TextureAsset>(dependencyPath);
+                }
+
+                yield return WaitAllDependenciesToLoad();
+
+                entity = GLTFFormat.CreateEntityFromDocument(gltfDoc, directoryName);
+            }
+        }
+#if MORE_MESH_TYPES
+        else
+        {
+            entity = AssimpFormat.CreateEntityFromDocument(data, Name);
+            if (entity != null && entity.Meshes.Length == 0)
+                entity = null;
+        }
+#endif
+
+        if (entity != null)
+        {
+            entity.Name = Name;
+            Entity = entity;
+
+            // Cache bounds for null animation at least to prevent loading on SetEntity.
             // Note that em3 loaded entity's will have all their bounds pre-calculated and loaded
             // while others will calculate their animations bounds in runtime when the animation is set.
-            // Check GameObject3D.SetAnimation and its bounds retrieval.
-            Entity?.EnsureCachedBounds(null);
+            // Check SetAnimation and its bounds retrieval.
+            entity.EnsureCachedBounds(null);
         }
+    }
 
-        protected override void DisposeInternal()
-        {
-            _underlyingAsset?.Dispose();
-            _underlyingAsset = null;
-        }
+    protected override void CreateInternal(ReadOnlyMemory<byte> data)
+    {
+
+    }
+
+    protected override void DisposeInternal()
+    {
+
     }
 }
