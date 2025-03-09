@@ -195,7 +195,7 @@
         <Compile Remove="Platform\Implementation\Android\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('MORE_MESH_TYPES'))">
-        <Compile Remove="IO\MeshAssetTypes\Assimp\**\*.cs" />
+        <Compile Remove="Standard\Assimp\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
         <Compile Remove="Game\Scripting\**\*.cs" />
@@ -282,7 +282,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
     </ItemGroup>
     <ItemGroup>
