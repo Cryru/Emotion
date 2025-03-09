@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using Emotion.Common;
+using Emotion.Common.Threading;
+using Emotion.Graphics.Objects;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -14,9 +16,11 @@ namespace Emotion.ExecTest.CryruDevelopment.Tools;
 
 public class TerrainImport
 {
-    public static void GetConverted(string path, GameMap map)
+    public static IEnumerator GetConverted(string path, GameMap map)
     {
-        MeshAsset? terrainChunk = Engine.AssetLoader.Get<MeshAsset>(path);
+        MeshAsset? terrainChunk = Engine.AssetLoader.ONE_Get<MeshAsset>(path);
+        yield return terrainChunk;
+
         MeshEntity? terrainEntity = terrainChunk.Entity;
         Mesh terrainMesh = terrainEntity.Meshes[0];
 
@@ -37,16 +41,17 @@ public class TerrainImport
 
         TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, 19);
         terrain.InitEmptyChunksInArea(Vector2.Zero, terrainSize / tileSize);
-        Engine.CoroutineManagerAsync.StartCoroutine(FillMapRoutine(terrain, terrainMesh));
+        Engine.Jobs.Add(FillMapRoutine(terrain, terrainMesh));
 
         TextureAsset? tex = Engine.AssetLoader.Get<TextureAsset>("Test/cryru/map/maps/azeroth/tex_32_48.png");
         tex.Texture.Smooth = true;
+        tex.Texture.Mipmap = true;
         terrain.TerrainMeshMaterial.DiffuseTexture = tex.Texture;
 
         var rootFolder = AssetLoader.GetDirectoryName(path);
         var objectData = Engine.AssetLoader.Get<TextAsset>("Test/cryru/map/maps/azeroth/adt_32_48_ModelPlacementInformation.csv");
         string[] lines = objectData.Content.Split("\n");
-        Engine.CoroutineManagerAsync.StartCoroutine(FillMapObjects(lines, rootFolder, min, terrainEntity, map));
+        Engine.Jobs.Add(FillMapObjects(lines, rootFolder, min, terrainEntity, map));
 
         map.TerrainGrid = terrain;
 
@@ -108,8 +113,7 @@ public class TerrainImport
             if (props.Length == 1) continue;
 
             string assetPath = AssetLoader.GetNonRelativePath(rootFolder, AssetLoader.NameToEngineName(props[0]));
-            MeshAsset? asset = Engine.AssetLoader.Get<MeshAsset>(assetPath);
-            if (asset == null) continue;
+            //MeshAsset asset = Engine.AssetLoader.ONE_Get<MeshAsset>(assetPath);
 
             Vector3 position = new Vector3(float.Parse(props[1]), float.Parse(props[3]), float.Parse((props[2])));
             position = position - new Vector3(533.333333333f * 32, 533.333333333f * 32, 0);
@@ -133,7 +137,7 @@ public class TerrainImport
                 rot = new Vector3(rotation.X, rotation.Z, -(rotation.Y - 270));
             }
 
-            map.AddObject(new MapObjectMesh(asset.Entity)
+            map.AddObject(new MapObjectMesh(assetPath)
             {
                 Position = position,
                 RotationDeg = rot
