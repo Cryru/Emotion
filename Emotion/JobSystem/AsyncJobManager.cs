@@ -25,8 +25,6 @@ public class AsyncJobManager
         if (threadCount > 8)
             threadCount = 8;
 
-        if (SINGLE_THREAD_DEBUG_MODE)
-            threadCount = 0;
 
         _threads = new Thread[threadCount];
         _threadRoutineManagers = new AsyncJobCoroutineManager[threadCount];

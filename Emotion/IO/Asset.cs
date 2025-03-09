@@ -59,6 +59,9 @@ namespace Emotion.IO
         /// </summary>
         public IEnumerator AssetLoader_LoadAsset()
         {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
             // Asset not found in any source.
             AssetSource? source = Engine.AssetLoader.GetSource(Name);
             if (source == null)
@@ -70,23 +73,32 @@ namespace Emotion.IO
             ReadOnlyMemory<byte> data = ReadOnlyMemory<byte>.Empty;
 
             // Due to sharing violations we should try to hot reload this in a try-catch.
-            Engine.SuppressLogExceptions(true);
+            //Engine.SuppressLogExceptions(true);
             int attempts = 0;
             while (attempts < 10)
             {
-                try
+                FileReadRoutineResult fileRead = source.GetAssetRoutine(Name);
+                yield return fileRead;
+
+                if (fileRead.Finished && !fileRead.Errored)
                 {
-                    data = source.GetAsset(Name);
+                    data = fileRead.FileBytes;
                     break;
                 }
-                catch (Exception)
-                {
-                    // Error, try again :(
-                }
-                finally
-                {
-                    Engine.SuppressLogExceptions(false);
-                }
+
+                //try
+                //{
+                //    data = source.GetAsset(Name);
+                //    break;
+                //}
+                //catch (Exception)
+                //{
+                //    // Error, try again :(
+                //}
+                //finally
+                //{
+                //    Engine.SuppressLogExceptions(false);
+                //}
 
                 attempts++;
             }
@@ -106,6 +118,8 @@ namespace Emotion.IO
                 Loaded = true;
                 if (OnLoaded != null)
                     Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
+
+                Engine.Log.Trace($"Loaded in {timer.ElapsedMilliseconds}", "Profiler");
             }
             else
             {

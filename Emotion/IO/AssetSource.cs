@@ -16,6 +16,8 @@ namespace Emotion.IO
         /// <returns>A byte array of the asset.</returns>
         public abstract ReadOnlyMemory<byte> GetAsset(string enginePath);
 
+        public abstract FileReadRoutineResult GetAssetRoutine(string enginePath);
+
         /// <summary>
         /// Returns the time the asset was last modified.
         /// </summary>

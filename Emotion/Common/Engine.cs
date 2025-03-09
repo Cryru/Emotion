@@ -444,6 +444,9 @@ namespace Emotion.Common
             // Add to the accumulator.
             _accumulator += deltaTime;
 
+            // Update modules that are outside the simulation tick.
+            AssetLoader.Update();
+
             // Update as many times as needed.
             byte updates = 0;
             while (_accumulator > _targetTimeFuzzyUpper)
@@ -468,8 +471,6 @@ namespace Emotion.Common
             TickCount++;
 
             PerformanceMetrics.TickStart();
-
-            AssetLoader.Update();
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);

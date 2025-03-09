@@ -68,11 +68,12 @@ namespace Emotion.IO
 
             // Read the asset from the embedded file.
             using Stream stream = Assembly.GetManifestResourceStream(embeddedPath);
+
             // Not found.
             if (stream == null)
             {
                 Engine.Log.Error($"Couldn't read asset [{enginePath}] with embedded path [{embeddedPath}].", MessageSource.AssetLoader);
-                return new byte[0];
+                return ReadOnlyMemory<byte>.Empty;
             }
 
             // Read from stream.
@@ -80,6 +81,14 @@ namespace Emotion.IO
             stream.ReadExactly(data, 0, (int) stream.Length);
 
             return data;
+        }
+
+        public override FileReadRoutineResult GetAssetRoutine(string enginePath)
+        {
+            ReadOnlyMemory<byte> resultBytes = GetAsset(enginePath);
+            var result = new FileReadRoutineResult();
+            result.SetData(resultBytes);
+            return result;
         }
 
         /// <summary>

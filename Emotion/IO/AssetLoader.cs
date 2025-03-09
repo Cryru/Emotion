@@ -630,7 +630,7 @@ namespace Emotion.IO
 
             if (loadInline)
             {
-
+                //todo
             }
             else
             {
@@ -644,11 +644,13 @@ namespace Emotion.IO
         public void AddReferenceToAsset(Asset? asset, object referencingObject)
         {
             if (asset == null) return;
+            // todo
         }
 
         public void RemoveReferenceFromAsset(Asset? asset, object referencingObject, bool deleteIfNoReferences = true)
         {
             if (asset == null) return;
+            // todo
         }
 
         /// <summary>
@@ -660,7 +662,6 @@ namespace Emotion.IO
         /// </summary>
         public void ONE_ReloadAsset(string name)
         {
-            // todo: check remapping, maybe add it to NameToEngineName
             name = NameToEngineNameRemapped(name);
             _assetsToReload.Enqueue(name);
         }

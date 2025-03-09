@@ -151,6 +151,14 @@ namespace Emotion.IO.AssetPack
             return new ReadOnlyMemory<byte>(blob).Slice(assetLocation.blobFile.Offset, assetLocation.blobFile.Length);
         }
 
+        public override FileReadRoutineResult GetAssetRoutine(string enginePath)
+        {
+            ReadOnlyMemory<byte> resultBytes = GetAsset(enginePath);
+            var result = new FileReadRoutineResult();
+            result.SetData(resultBytes);
+            return result;
+        }
+
         public override string ToString()
         {
             return $"PackedAssetSource @ {_blobDirectory}";
