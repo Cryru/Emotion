@@ -1,10 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 
 namespace Emotion.SourceGeneration
 {
@@ -123,6 +120,33 @@ namespace Emotion.SourceGeneration
                     {
                         if (modifier.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword))
                             return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool CanBeInitialized(INamedTypeSymbol typ)
+        {
+            if (typ.IsAbstract) return false;
+
+            bool isPartial = IsPartial(typ);
+
+            ImmutableArray<IMethodSymbol> constructors = typ.InstanceConstructors;
+            if (constructors.Length == 0) return false; // huh
+
+            foreach (IMethodSymbol constructor in constructors)
+            {
+                if (constructor.Parameters.IsEmpty)
+                {
+                    if (constructor.DeclaredAccessibility == Accessibility.Public)
+                    {
+                        return true;
+                    }
+                    else if (isPartial)
+                    {
+                        return true;
                     }
                 }
             }

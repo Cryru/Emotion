@@ -2,7 +2,6 @@
 
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -15,7 +14,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
     public override bool CanGetOrParseValueAsString => false;
 
     private ComplexTypeHandlerMember[] _membersArr;
-    private Dictionary<string, ComplexTypeHandlerMember> _members;
+    private Dictionary<int, ComplexTypeHandlerMember> _members;
     private Func<T>? _createNew;
     private string _typeName;
 
@@ -25,11 +24,12 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         _typeName = typeName;
 
         _membersArr = members;
-        _members = new Dictionary<string, ComplexTypeHandlerMember>();
+        _members = new Dictionary<int, ComplexTypeHandlerMember>();
         for (int i = 0; i < members.Length; i++)
         {
             ComplexTypeHandlerMember member = members[i];
-            _members.Add(member.Name, member);
+            int hash = member.Name.GetStableHashCode();
+            _members.Add(hash, member);
         }
     }
 
@@ -45,6 +45,12 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
 
         return new NestedComplexObjectEditor();
+    }
+
+    public object? CreateNew()
+    {
+        if (_createNew == null) return null;
+        return _createNew();
     }
 
     public ComplexTypeHandlerMember[] GetMembers()
@@ -78,7 +84,16 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
     public ComplexTypeHandlerMember? GetMemberByName(string name)
     {
-        if (_members.TryGetValue(name, out ComplexTypeHandlerMember? member)) return member;
+        int hash = name.GetStableHashCode();
+        if (_members.TryGetValue(hash, out ComplexTypeHandlerMember? member))
+            return member;
+        return null;
+    }
+
+    public ComplexTypeHandlerMember? GetMemberByName(int nameHash)
+    {
+        if (_members.TryGetValue(nameHash, out ComplexTypeHandlerMember? member))
+            return member;
         return null;
     }
 
