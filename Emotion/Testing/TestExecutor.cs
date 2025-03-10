@@ -238,7 +238,7 @@ public static class TestExecutor
                         try
                         {
                             Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
-                            func.Invoke(currentClassInstance, new object[] { });
+                            func.Invoke(currentClassInstance, Array.Empty<object>());
                             Interlocked.Add(ref completed, 1);
                             Interlocked.Add(ref completedThisClass, 1);
                         }
@@ -273,7 +273,7 @@ public static class TestExecutor
                     object? returnVal = null;
                     try
                     {
-                        returnVal = func.Invoke(currentClassInstance, new object[] { });
+                        returnVal = func.Invoke(currentClassInstance, Array.Empty<object>());
                     }
                     catch (Exception)
                     {
