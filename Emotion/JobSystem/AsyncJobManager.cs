@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Game.Time.Routines;
+using Emotion.Utility;
 
 namespace Emotion.JobSystem;
 
@@ -15,16 +16,15 @@ public class AsyncJobManager
 
     public void Init()
     {
+        if (SINGLE_THREAD_DEBUG_MODE)
+            return;
+
         Engine.Log.Info("Initializing job system...", "Jobs");
 
-        int threadCount = 1;
-        if (Environment.ProcessorCount > 2)
-            threadCount = Environment.ProcessorCount - 1;
+        int threadCount = Environment.ProcessorCount - 1;
 
         // Let's not get too greedy! :D
-        if (threadCount > 8)
-            threadCount = 8;
-
+        threadCount = Maths.Clamp(threadCount, 1, 8);
 
         _threads = new Thread[threadCount];
         _threadRoutineManagers = new AsyncJobCoroutineManager[threadCount];

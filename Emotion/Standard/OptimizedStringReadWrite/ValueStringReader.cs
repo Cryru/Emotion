@@ -63,6 +63,21 @@ public ref struct ValueStringReader
         return chars[1];
     }
 
+    public char PeekCurrentChar()
+    {
+        if (Type == StringType.DefaultUTF16)
+        {
+            if (_position >= _dataUTF16.Length) return '\0';
+            return _dataUTF16[_position];
+        }
+
+        // if (Type == StringType.UTF8)
+        Decoder utf8Decoder = System.Text.Encoding.UTF8.GetDecoder();
+        Span<char> chars = stackalloc char[1]; // current char
+        utf8Decoder.Convert(_dataUTF8.Slice(_utf8ByteOffset), chars, true, out int bytesUsed, out int charsRead, out bool bufferFinished);
+        return chars[0];
+    }
+
     public int ReadToNextOccuranceofChar(char c, Span<char> readChars)
     {
         char nextChar = '\0';
@@ -112,6 +127,42 @@ public ref struct ValueStringReader
         return 0;
     }
 
+    public char MoveCursorToNextOccuranceOfNotWhitespace()
+    {
+        char nextChar = '\0';
+        if (Type == StringType.DefaultUTF16)
+        {
+            while (_position < _charsTotal)
+            {
+                nextChar = _dataUTF16[_position];
+                if (!char.IsWhiteSpace(nextChar))
+                    return nextChar;
+
+                _position++;
+            }
+            return '\0';
+        }
+
+        // if (Type == StringType.UTF8)
+        Span<char> readSpan = new Span<char>(ref nextChar);
+
+        Decoder utf8Decoder = System.Text.Encoding.UTF8.GetDecoder();
+        while (_utf8ByteOffset < _dataUTF8.Length)
+        {
+            utf8Decoder.Convert(_dataUTF8.Slice(_utf8ByteOffset), readSpan, false, out int bytesUsed, out int charsRead, out bool bufferFinished);
+            if (!char.IsWhiteSpace(nextChar))
+                return nextChar;
+
+            _utf8ByteOffset += bytesUsed;
+            _position++;
+
+            if (bufferFinished || bytesUsed == 0)
+                break;
+        }
+            
+        return '\0';
+    }
+
     public bool MoveCursorToNextOccuranceOfChar(char c)
     {
         char nextChar = '\0';
@@ -144,7 +195,7 @@ public ref struct ValueStringReader
             if (bufferFinished || bytesUsed == 0)
                 break;
         }
-            
+
         return false;
     }
 }

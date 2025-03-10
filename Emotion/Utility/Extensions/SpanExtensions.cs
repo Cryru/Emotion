@@ -27,8 +27,25 @@ public static class SpanExtensions
         return result;
     }
 
+    public static int GetStableHashCode(this Span<byte> span)
+    {
+        return (int)xxHash32.ComputeHash(span, span.Length);
+    }
+
     public static int GetStableHashCode(this ReadOnlySpan<byte> span)
     {
         return (int)xxHash32.ComputeHash(span, span.Length);
+    }
+
+    public static int GetStableHashCode(this ReadOnlySpan<char> span)
+    {
+        ReadOnlySpan<byte> asBytes = MemoryMarshal.Cast<char, byte>(span);
+        return (int)xxHash32.ComputeHash(asBytes, asBytes.Length);
+    }
+
+    public static int GetStableHashCode(this Span<char> span)
+    {
+        ReadOnlySpan<byte> asBytes = MemoryMarshal.Cast<char, byte>(span);
+        return (int)xxHash32.ComputeHash(asBytes, asBytes.Length);
     }
 }
