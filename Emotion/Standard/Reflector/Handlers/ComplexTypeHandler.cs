@@ -15,6 +15,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
     private ComplexTypeHandlerMember[] _membersArr;
     private Dictionary<int, ComplexTypeHandlerMember> _members;
+    private Dictionary<int, ComplexTypeHandlerMember> _membersCaseInsensitive;
     private Func<T>? _createNew;
     private string _typeName;
 
@@ -25,11 +26,15 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
         _membersArr = members;
         _members = new Dictionary<int, ComplexTypeHandlerMember>();
+        _membersCaseInsensitive = new Dictionary<int, ComplexTypeHandlerMember>();
         for (int i = 0; i < members.Length; i++)
         {
             ComplexTypeHandlerMember member = members[i];
-            int hash = member.Name.GetStableHashCode();
-            _members.Add(hash, member);
+            string name = member.Name;
+            _members.Add(name.GetStableHashCode(), member);
+
+            string nameLower = name.ToLowerInvariant();
+            _membersCaseInsensitive.Add(nameLower.GetStableHashCode(), member);
         }
     }
 
@@ -93,6 +98,21 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
     public ComplexTypeHandlerMember? GetMemberByName(int nameHash)
     {
         if (_members.TryGetValue(nameHash, out ComplexTypeHandlerMember? member))
+            return member;
+        return null;
+    }
+
+    public ComplexTypeHandlerMember? GetMemberByNameCaseInsensitive(string name)
+    {
+        int hash = name.GetStableHashCode();
+        if (_membersCaseInsensitive.TryGetValue(hash, out ComplexTypeHandlerMember? member))
+            return member;
+        return null;
+    }
+
+    public ComplexTypeHandlerMember? GetMemberByNameCaseInsensitive(int nameHash)
+    {
+        if (_membersCaseInsensitive.TryGetValue(nameHash, out ComplexTypeHandlerMember? member))
             return member;
         return null;
     }

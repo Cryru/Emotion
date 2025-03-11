@@ -2,11 +2,14 @@
 
 #endregion
 
+using Emotion.Common.Serialization;
+
 namespace Emotion.Standard.Logging
 {
     /// <summary>
     /// Provides logging of actions.
     /// </summary>
+    [DontSerialize]
     public abstract class LoggingProvider : IDisposable
     {
         private HashSet<string> _oncePrint = new HashSet<string>();
