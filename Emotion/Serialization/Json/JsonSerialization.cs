@@ -49,7 +49,7 @@ public static class JSONSerialization
         if (complexHandler == null) return default;
 
         Type requestedType = typeof(T);
-        Span<char> readMemory = stackalloc char[512];
+        Span<char> readMemory = stackalloc char[1024];
         if (!reader.MoveCursorToNextOccuranceOfChar('{')) return default;
 
         object? result = ReadObject(ref reader, readMemory, complexHandler);
@@ -102,31 +102,15 @@ public static class JSONSerialization
 
             if (objHandler != null)
             {
-                if (nextTag.SequenceEqual("nodes"))
+                // For JSON we enforce case insensitive keys since in C# they are
+                // usually capitalized but in JSON they aren't.
+                for (int i = 0; i < nextTag.Length; i++)
                 {
-                    bool a = true;
+                    nextTag[i] = char.ToLowerInvariant(nextTag[i]);
                 }
-
-                // If the first character is lowercase (as is usually the case with JSON)
-                // attempt to get a member first by making it uppercased.
-                bool uppercased = false;
-                if (nextTag[0] > (char)90)
-                {
-                    nextTag[0] -= (char)32;
-                    uppercased = true;
-                }
-
+                
                 int tagNameHash = nextTag.GetStableHashCode();
-                member = objHandler.GetMemberByName(tagNameHash);
-
-                // Ok try to read it now lowercased
-                if (member == null && uppercased)
-                {
-                    nextTag[0] += (char)32;
-                    tagNameHash = nextTag.GetStableHashCode();
-                    member = objHandler.GetMemberByName(tagNameHash);
-                    uppercased = false;
-                }
+                member = objHandler.GetMemberByNameCaseInsensitive(tagNameHash);
             }
 
             // Go to value delim
@@ -142,23 +126,20 @@ public static class JSONSerialization
         return obj;
     }
 
-    private static bool ReadString(
+    private static object? ReadArray(
         ref ValueStringReader reader,
         Span<char> scratchMemory,
-        IGenericReflectorComplexTypeHandler? parentObjHandler
-    )
-    {
-        return true;
-    }
-
-    private static bool ReadArray(
-        ref ValueStringReader reader,
-        Span<char> scratchMemory,
-        IGenericReflectorTypeHandler? typeHandler
+        IGenericEnumerableTypeHandler? typeHandler
     )
     {
         char c = reader.ReadNextChar();
-        if (c != '[') return false;
+        if (c != '[') return null;
+
+        Type? itemType = typeHandler?.ItemType;
+        IGenericReflectorTypeHandler? itemTypeHandler = null;
+        if (itemType != null) itemTypeHandler = ReflectorEngine.GetTypeHandler(itemType);
+
+        IList? list = typeHandler?.CreateList();
 
         bool firstLoop = true;
 
@@ -178,17 +159,17 @@ public static class JSONSerialization
             {
                 reader.ReadNextChar(); // Skip comma (todo: trailing comma?)
             }
-            else 
+            else
             {
-                return false;
+                return null;
             }
             firstLoop = false;
 
-            object? readValue = ReadJSONValue(ref reader, scratchMemory, typeHandler);
-         
+            object? readValue = ReadJSONValue(ref reader, scratchMemory, itemTypeHandler);
+            list?.Add(readValue);
         }
 
-        return true;
+        return list != null ? typeHandler?.CreateNewFromList(list) : null;
     }
 
     private static object? ReadJSONValue(
@@ -209,7 +190,8 @@ public static class JSONSerialization
         // Array value opened
         else if (charAfterWhitespace == '[')
         {
-            ReadArray(ref reader, scratchMemory, typeHandlerOfHolder);
+            IGenericEnumerableTypeHandler? handler = typeHandlerOfHolder as IGenericEnumerableTypeHandler;
+            return ReadArray(ref reader, scratchMemory, handler);
         }
         // String value opened
         else if (charAfterWhitespace == '\"')
@@ -220,10 +202,11 @@ public static class JSONSerialization
 
             // todo: big strings will fuck us up :/
             Span<char> stringContent = scratchMemory.Slice(0, charsWritten);
-            bool a = true;
 
             char closing = reader.ReadNextChar();
             if (closing != '\"') return null;
+
+            return new string(stringContent);
         }
         else if (char.IsNumber(charAfterWhitespace) || charAfterWhitespace == '-')
         {
@@ -248,9 +231,9 @@ public static class JSONSerialization
                 }
             }
 
-            // In JS (which where JSON is mostly used) the number type is double.
-            if (!double.TryParse(scratchMemory.Slice(0, writeChar), out double resultVal)) resultVal = 0;
-            return resultVal;
+            object? result = null;
+            typeHandlerOfHolder?.ParseValueFromStringGeneric(scratchMemory.Slice(0, writeChar), out result);
+            return result;
         }
         else if (charAfterWhitespace == 't' || charAfterWhitespace == 'f') // true or false
         {
