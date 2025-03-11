@@ -108,7 +108,7 @@ public static class JSONSerialization
                 {
                     nextTag[i] = char.ToLowerInvariant(nextTag[i]);
                 }
-                
+
                 int tagNameHash = nextTag.GetStableHashCode();
                 member = objHandler.GetMemberByNameCaseInsensitive(tagNameHash);
             }
@@ -124,20 +124,25 @@ public static class JSONSerialization
         return obj;
     }
 
-    private static object? ReadArray(
+    private static void ReadArray(
         ref ValueStringReader reader,
         Span<char> scratchMemory,
-        IGenericEnumerableTypeHandler? typeHandler
+        IGenericEnumerableTypeHandler? typeHandler,
+        ComplexTypeHandlerMember? parentObjectMember,
+        object? parentObject
     )
     {
         char c = reader.ReadNextChar();
-        if (c != '[') return null;
+        if (c != '[') return;
 
-        Type? itemType = typeHandler?.ItemType;
+        IList? list = null;
         IGenericReflectorTypeHandler? itemTypeHandler = null;
-        if (itemType != null) itemTypeHandler = ReflectorEngine.GetTypeHandler(itemType);
-
-        IList? list = typeHandler?.CreateList();
+        if (typeHandler != null)
+        {
+            Type itemType = typeHandler.ItemType;
+            itemTypeHandler = ReflectorEngine.GetTypeHandler(itemType);
+            list = typeHandler.CreateTempListFromPool();
+        }
 
         bool firstLoop = true;
 
@@ -159,14 +164,29 @@ public static class JSONSerialization
             }
             else
             {
-                return null;
+                return;
             }
             firstLoop = false;
 
             ReadJSONValue(ref reader, scratchMemory, itemTypeHandler, null, list);
         }
 
-        return list != null ? typeHandler?.CreateNewFromList(list) : null;
+        if (list != null)
+        {
+            AssertNotNull(typeHandler);
+            object? arrayRead = typeHandler.CreateNewFromList(list);
+            AssertNotNull(arrayRead);
+
+            typeHandler.ReturnTempListToPool(list);
+
+            if (parentObject != null)
+            {
+                if (parentObject is IList parentList)
+                    parentList.Add(arrayRead);
+                else
+                    parentObjectMember?.SetValueInComplexObject(parentObject, arrayRead);
+            }
+        }
     }
 
     private static void ReadJSONValue(
@@ -198,15 +218,7 @@ public static class JSONSerialization
         else if (charAfterWhitespace == '[')
         {
             IGenericEnumerableTypeHandler? handler = typeHandlerOfHolder as IGenericEnumerableTypeHandler;
-            object? arrayRead = ReadArray(ref reader, scratchMemory, handler);
-
-            if (parentObject != null && typeHandlerOfHolder != null)
-            {
-                if (parentObject is IList parentList)
-                    parentList.Add(arrayRead);
-                else if (parentObjectMember != null)
-                    parentObjectMember.SetValueInComplexObject(parentObject, arrayRead);
-            }
+            ReadArray(ref reader, scratchMemory, handler, parentObjectMember, parentObject);
         }
         // String value opened
         else if (charAfterWhitespace == '\"')
