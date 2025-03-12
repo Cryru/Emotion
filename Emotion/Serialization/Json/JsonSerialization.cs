@@ -132,7 +132,7 @@ public static class JSONSerialization
                 // Unwind the stack
                 case JSONReadState.PostReadValue:
                     {
-                        char nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace();
+                        char nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace(true);
 
                         JSONStackEntry currentVal = stack.Peek();
                         if (currentVal.ParentIsList)
@@ -140,19 +140,19 @@ public static class JSONSerialization
                             // This is an array - go to the next item (which should be of the same type)
                             if (nextNonWhitespace == ',')
                             {
-                                reader.ReadNextChar();
-                                nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace();
-
                                 // Shortcut to reading more of the same item
-                                if (lastState == JSONReadState.ReadNumber || lastState == JSONReadState.ReadNumber)
+                                if (lastState == JSONReadState.ReadString || lastState == JSONReadState.ReadNumber)
+                                {
+                                    reader.MoveCursorToNextOccuranceOfNotWhitespace();
                                     state = lastState;
+                                }
                                 else
+                                {
                                     state = JSONReadState.DetermineNextRead;
+                                }
                             }
-                            else if (nextNonWhitespace == ']')
+                            else if (nextNonWhitespace == ']') // close array
                             {
-                                // close array
-
                                 // pop the generic item object
                                 JSONStackEntry popped = stack.Pop(); 
                                 _stackEntryPool.Return(popped);
@@ -177,7 +177,6 @@ public static class JSONSerialization
                                     }
                                 }
                                 state = JSONReadState.PostReadValue;
-                                reader.ReadNextChar(); // Skip closing bracket
                             }
                             else
                             {
@@ -188,19 +187,15 @@ public static class JSONSerialization
                         }
                         else // Object value
                         {
-                            // Read the next key value
-                            if (nextNonWhitespace == ',')
+                            if (nextNonWhitespace == ',') // Read the next key value
                             {
                                 JSONStackEntry popped = stack.Pop();
                                 _stackEntryPool.Return(popped);
 
                                 state = JSONReadState.ReadObjectKeyValue;
-                                reader.ReadNextChar(); // comma
                             }
-                            else if (nextNonWhitespace == '}')
+                            else if (nextNonWhitespace == '}') // close object
                             {
-                                // close object
-
                                 // pop the member value read last
                                 // (todo: test for empty objects '{}')
                                 JSONStackEntry popped = stack.Pop();
@@ -224,11 +219,10 @@ public static class JSONSerialization
                                 }
 
                                 state = JSONReadState.PostReadValue;
-                                reader.ReadNextChar(); // bracket
                             }
                             else
                             {
-                                // Final object
+                                // Final object (maybe?)
                                 state = JSONReadState.None;
                             }
                         }
@@ -249,22 +243,15 @@ public static class JSONSerialization
 
                         // Start reading key value pairs.
                         state = JSONReadState.ReadObjectKeyValue;
+                        reader.ReadNextChar();
                     }
                     break;
 
                 case JSONReadState.ReadObjectKeyValue:
                     {
-                        // Find next key open
-                        if (!reader.MoveCursorToNextOccuranceOfChar('\"'))
-                        {
-                            state = JSONReadState.None;
-                            break;
-                        }
-
-                        // Read key
-                        reader.ReadNextChar();
-                        int charsWritten = reader.ReadToNextOccuranceofChar('\"', scratchMemory);
-                        if (charsWritten == 0)
+                        // Read next key (by reading up to the next value separator)
+                        int charsWritten = reader.ReadUpToNextOccuranceOfChar(':', scratchMemory, true);
+                        if (charsWritten == 0 || charsWritten >= scratchMemory.Length)
                         {
                             state = JSONReadState.None;
                             break;
@@ -279,26 +266,51 @@ public static class JSONSerialization
                         ComplexTypeHandlerMember? memberHandler = null;
                         if (currentTypeHandler != null)
                         {
-                            Span<char> nextKey = scratchMemory.Slice(0, charsWritten);
-
-                            // For JSON we enforce case insensitive keys since in C# they are
-                            // usually capitalized but in JSON they aren't.
-                            for (int i = 0; i < nextKey.Length; i++)
+                            int openingQuote = -1;
+                            int length = 0;
+                            bool insideString = false;
+                            for (int i = 0; i < charsWritten; i++)
                             {
-                                nextKey[i] = char.ToLowerInvariant(nextKey[i]);
+                                char c = scratchMemory[i];
+                                if (c == '\"')
+                                {
+                                    if (!insideString)
+                                    {
+                                        openingQuote = i + 1;
+                                        insideString = true;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                if (insideString)
+                                {
+                                    // For JSON we enforce:
+                                    // - Case insensitive keys since in C# they are usually capitalized but in JSON they aren't.
+                                    // - We also enforce ASCII keys only.
+
+                                    char lower = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
+                                    scratchMemory[i] = lower;
+                                    length++;
+                                }
                             }
 
-                            int tagNameHash = nextKey.GetStableHashCode();
-                            memberHandler = currentTypeHandler.GetMemberByNameCaseInsensitive(tagNameHash);
+                            if (openingQuote != -1 && length > 1)
+                            {
+                                Span<char> nextKey = scratchMemory.Slice(openingQuote, length - 1);
+                                memberHandler = currentTypeHandler.GetMemberByNameLowerCase(nextKey);
+                            }
                         }
 
-                        // Find the value separator.
-                        if (!reader.MoveCursorToNextOccuranceOfChar(':'))
-                        {
-                            state = JSONReadState.None;
-                            break;
-                        }
-                        reader.ReadNextChar();
+                        //// Find the value separator.
+                        //if (!reader.MoveCursorToNextOccuranceOfChar(':'))
+                        //{
+                        //    state = JSONReadState.None;
+                        //    break;
+                        //}
+                        //reader.ReadNextChar();
 
                         // Read value
                         JSONStackEntry valueReadEntry = _stackEntryPool.Get();
@@ -342,37 +354,22 @@ public static class JSONSerialization
 
                 case JSONReadState.ReadString:
                     {
-                        char openingChar = reader.ReadNextChar();
-                        if (openingChar != '\"')
+                        // todo: strings larger than the scratch memory will not be read...
+                        int charsWritten = reader.ReadNextQuotedString(scratchMemory);
+                        if (charsWritten == 0 || charsWritten >= scratchMemory.Length)
                         {
                             state = JSONReadState.None;
                             break;
                         }
-
-                        int stringChars = reader.ReadToNextOccuranceofChar('\"', scratchMemory);
-                        if (stringChars == 0)
-                        {
-                            state = JSONReadState.None;
-                            break;
-                        }
-
-                        // todo: big strings will fuck us up :/
-                        Span<char> stringContent = scratchMemory.Slice(0, stringChars);
-
-                        char closing = reader.ReadNextChar();
-                        if (closing != '\"')
-                        {
-                            state = JSONReadState.None;
-                            break;
-                        }
-
-                        // Allocate string
-                        var val = new string(stringContent);
 
                         // Set value in parent (if any).
                         JSONStackEntry currentVal = stack.Peek();
                         if (currentVal.ParentObject != null && currentVal.TypeHandler != null)
                         {
+                            // Allocate string
+                            Span<char> stringContent = scratchMemory.Slice(0, charsWritten);
+                            var val = new string(stringContent);
+
                             if (currentVal.ParentIsList && currentVal.ParentObject is IList parentList)
                                 parentList.Add(val);
                             else
@@ -501,15 +498,15 @@ public static class JSONSerialization
 
             if (objHandler != null)
             {
-                // For JSON we enforce case insensitive keys since in C# they are
-                // usually capitalized but in JSON they aren't.
-                for (int i = 0; i < nextTag.Length; i++)
-                {
-                    nextTag[i] = char.ToLowerInvariant(nextTag[i]);
-                }
+                //// For JSON we enforce case insensitive keys since in C# they are
+                //// usually capitalized but in JSON they aren't.
+                //for (int i = 0; i < nextTag.Length; i++)
+                //{
+                //    nextTag[i] = char.ToLowerInvariant(nextTag[i]);
+                //}
 
-                int tagNameHash = nextTag.GetStableHashCode();
-                member = objHandler.GetMemberByNameCaseInsensitive(tagNameHash);
+                //int tagNameHash = nextTag.GetStableHashCode();
+                member = objHandler.GetMemberByNameLowerCase(nextTag);
             }
 
             // Go to value delim
