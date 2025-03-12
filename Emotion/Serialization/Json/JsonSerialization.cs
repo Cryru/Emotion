@@ -54,7 +54,10 @@ public static class JSONSerialization
 
         ReadString,
         ReadNumber,
-        ReadBoolean
+        ReadBoolean,
+
+        ReadBoolean_True,
+        ReadBoolean_False
     }
 
     private class JSONStackEntry
@@ -120,8 +123,10 @@ public static class JSONSerialization
                             state = JSONReadState.StartArray;
                         else if (nextNonWhitespace == '\"')
                             state = JSONReadState.ReadString;
-                        else if (nextNonWhitespace == 't' || nextNonWhitespace == 'f') // true or false
-                            state = JSONReadState.ReadBoolean;
+                        else if (nextNonWhitespace == 't') // true
+                            state = JSONReadState.ReadBoolean_True;
+                        else if (nextNonWhitespace == 'f') // false
+                            state = JSONReadState.ReadBoolean_False;
                         else if ((nextNonWhitespace >= '0' && nextNonWhitespace <= '9') || nextNonWhitespace == '-')
                             state = JSONReadState.ReadNumber;
                         else
@@ -243,7 +248,6 @@ public static class JSONSerialization
 
                         // Start reading key value pairs.
                         state = JSONReadState.ReadObjectKeyValue;
-                        reader.ReadNextChar();
                     }
                     break;
 
@@ -304,14 +308,6 @@ public static class JSONSerialization
                             }
                         }
 
-                        //// Find the value separator.
-                        //if (!reader.MoveCursorToNextOccuranceOfChar(':'))
-                        //{
-                        //    state = JSONReadState.None;
-                        //    break;
-                        //}
-                        //reader.ReadNextChar();
-
                         // Read value
                         JSONStackEntry valueReadEntry = _stackEntryPool.Get();
                         valueReadEntry.ParentObject = currentObject;
@@ -324,6 +320,9 @@ public static class JSONSerialization
 
                 case JSONReadState.StartArray:
                     {
+                        // Skip opening brace
+                        reader.AdvancePosition(1);
+
                         // This object was pushed into the stack by the key-value read or array read.
                         JSONStackEntry current = stack.Peek();
                         IGenericEnumerableTypeHandler? handler = current.TypeHandler as IGenericEnumerableTypeHandler;
@@ -333,9 +332,6 @@ public static class JSONSerialization
                             IList tempList = handler.CreateTempListFromPool();
                             current.CurrentObject = tempList;
                         }
-
-                        // Skip opening brace
-                        reader.ReadNextChar();
 
                         // Push a generic array member as the stack value and start reading items
                         IGenericReflectorTypeHandler? elementHandler = null;
@@ -403,12 +399,20 @@ public static class JSONSerialization
                     }
                     break;
 
-                case JSONReadState.ReadBoolean:
+                case JSONReadState.ReadBoolean_True:
+                case JSONReadState.ReadBoolean_False:
                     {
-                        reader.ReadToNextOccuranceofChar('e', scratchMemory);
-                        reader.ReadNextChar(); // next
-
-                        bool value = scratchMemory[0] == 't';
+                        bool value;
+                        if (state == JSONReadState.ReadBoolean_True)
+                        {
+                            reader.AdvancePosition(4); // t r u e
+                            value = true;
+                        }
+                        else
+                        {
+                            reader.AdvancePosition(5); // f a l s e
+                            value = false;
+                        }
 
                         JSONStackEntry current = stack.Peek();
                         object? parentObj = current.ParentObject;
