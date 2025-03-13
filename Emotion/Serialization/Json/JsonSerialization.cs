@@ -54,7 +54,6 @@ public static class JSONSerialization
 
         ReadString,
         ReadNumber,
-        ReadBoolean,
 
         ReadBoolean_True,
         ReadBoolean_False
@@ -81,6 +80,8 @@ public static class JSONSerialization
             TypeHandler = null;
         }
     }
+
+    private static char[] VALUE_SEPARATING_CHARACTERS = [']', '}', ','];
 
     private static ObjectPool<JSONStackEntry> _stackEntryPool = new ObjectPool<JSONStackEntry>((r) => r.Reset(), 10);
 
@@ -146,10 +147,14 @@ public static class JSONSerialization
                             if (nextNonWhitespace == ',')
                             {
                                 // Shortcut to reading more of the same item
-                                if (lastState == JSONReadState.ReadString || lastState == JSONReadState.ReadNumber)
+                                if (lastState == JSONReadState.ReadString)
                                 {
-                                    reader.MoveCursorToNextOccuranceOfNotWhitespace();
-                                    state = lastState;
+                                    state = JSONReadState.ReadString;
+                                }
+                                else if (lastState == JSONReadState.ReadNumber)
+                                {
+                                    //reader.MoveCursorToNextOccuranceOfNotWhitespace();
+                                    state = JSONReadState.ReadNumber;
                                 }
                                 else
                                 {
@@ -270,40 +275,24 @@ public static class JSONSerialization
                         ComplexTypeHandlerMember? memberHandler = null;
                         if (currentTypeHandler != null)
                         {
-                            int openingQuote = -1;
-                            int length = 0;
-                            bool insideString = false;
-                            for (int i = 0; i < charsWritten; i++)
+                            Span<char> writtenPart = scratchMemory.Slice(0, charsWritten);
+                            int openingQuote = writtenPart.IndexOf('\"');
+                            int closingQuote = writtenPart.LastIndexOf('\"');
+                            if (openingQuote != -1 && openingQuote != closingQuote)
                             {
-                                char c = scratchMemory[i];
-                                if (c == '\"')
-                                {
-                                    if (!insideString)
-                                    {
-                                        openingQuote = i + 1;
-                                        insideString = true;
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                if (insideString)
+                                openingQuote++;
+                                int length = closingQuote - openingQuote;
+                                Span<char> nextKey = scratchMemory.Slice(openingQuote, length);
+                                for (int i = 0; i < length; i++)
                                 {
                                     // For JSON we enforce:
                                     // - Case insensitive keys since in C# they are usually capitalized but in JSON they aren't.
                                     // - We also enforce ASCII keys only.
-
+                                    char c = nextKey[i];
                                     char lower = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
-                                    scratchMemory[i] = lower;
-                                    length++;
+                                    nextKey[i] = lower;
                                 }
-                            }
 
-                            if (openingQuote != -1 && length > 1)
-                            {
-                                Span<char> nextKey = scratchMemory.Slice(openingQuote, length - 1);
                                 memberHandler = currentTypeHandler.GetMemberByNameLowerCase(nextKey);
                             }
                         }
@@ -351,7 +340,7 @@ public static class JSONSerialization
                 case JSONReadState.ReadString:
                     {
                         // todo: strings larger than the scratch memory will not be read...
-                        int charsWritten = reader.ReadNextQuotedString(scratchMemory);
+                        int charsWritten = reader.ReadNextQuotedString(scratchMemory, true);
                         if (charsWritten == 0 || charsWritten >= scratchMemory.Length)
                         {
                             state = JSONReadState.None;
@@ -378,21 +367,24 @@ public static class JSONSerialization
 
                 case JSONReadState.ReadNumber:
                     {
+                        int charsRead = reader.ReadUpToNextOccuranceOfAnyOfChars(VALUE_SEPARATING_CHARACTERS, scratchMemory, false);
+                        if (charsRead == 0 || charsRead >= scratchMemory.Length)
+                        {
+                            state = JSONReadState.None;
+                            break;
+                        }
+
                         JSONStackEntry current = stack.Peek();
                         object? parentObj = current.ParentObject;
                         IGenericReflectorTypeHandler? handler = current.TypeHandler;
                         if (parentObj != null && handler != null)
                         {
+                            Span<char> readData = scratchMemory.Slice(0, charsRead);
+
                             if (current.ParentIsList)
-                                handler.ReadValueFromStringIntoList(ref reader, parentObj);
+                                handler.ReadValueFromStringIntoList(readData, parentObj);
                             else if (current.ObjectMember != null)
-                                handler.ReadValueFromStringIntoObjectMember(ref reader, parentObj, current.ObjectMember);
-                            else
-                                reader.ReadNumber(scratchMemory);
-                        }
-                        else
-                        {
-                            reader.ReadNumber(scratchMemory);
+                                handler.ReadValueFromStringIntoObjectMember(readData, parentObj, current.ObjectMember);
                         }
 
                         state = JSONReadState.PostReadValue;
@@ -438,240 +430,6 @@ public static class JSONSerialization
         }
 
         return resultObj;
-    }
-
-    public unsafe static T? From<T>(ref ValueStringReader reader)
-    {
-        ReflectorTypeHandlerBase<T>? typeHandler = ReflectorEngine.GetTypeHandler<T>();
-        if (typeHandler == null) return default;
-
-        IGenericReflectorComplexTypeHandler? complexHandler = typeHandler as IGenericReflectorComplexTypeHandler;
-        if (complexHandler == null) return default;
-
-        Type requestedType = typeof(T);
-        Span<char> readMemory = stackalloc char[1024];
-        if (!reader.MoveCursorToNextOccuranceOfChar('{')) return default;
-
-        object? result = ReadObject(ref reader, readMemory, complexHandler);
-        return (T?)result;
-    }
-
-    private static object? ReadObject(
-        ref ValueStringReader reader,
-        Span<char> scratchMemory,
-        IGenericReflectorComplexTypeHandler? objHandler
-    )
-    {
-        char c = reader.ReadNextChar();
-        if (c != '{') return null;
-
-        object? obj = null;
-        if (objHandler != null)
-            obj = objHandler.CreateNew();
-
-        bool firstLoop = true;
-
-        // Read key-value pairs until closing of object.
-        while (true)
-        {
-            // Go to next key-value (if any)
-            char nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace();
-            if (nextNonWhitespace == '}')
-            {
-                reader.ReadNextChar();
-                break;
-            }
-            else if (firstLoop && nextNonWhitespace == '\"')
-            {
-                // Thats fine - it's the first tag
-            }
-            else if (nextNonWhitespace != ',')
-            {
-                return null;
-            }
-            firstLoop = false;
-
-            // Start reading tag
-            if (!reader.MoveCursorToNextOccuranceOfChar('\"')) return null;
-            reader.ReadNextChar();
-            int charsWritten = reader.ReadToNextOccuranceofChar('\"', scratchMemory);
-            if (charsWritten == 0) return null;
-
-            Span<char> nextTag = scratchMemory.Slice(0, charsWritten);
-            ComplexTypeHandlerMember? member = null;
-
-            if (objHandler != null)
-            {
-                //// For JSON we enforce case insensitive keys since in C# they are
-                //// usually capitalized but in JSON they aren't.
-                //for (int i = 0; i < nextTag.Length; i++)
-                //{
-                //    nextTag[i] = char.ToLowerInvariant(nextTag[i]);
-                //}
-
-                //int tagNameHash = nextTag.GetStableHashCode();
-                member = objHandler.GetMemberByNameLowerCase(nextTag);
-            }
-
-            // Go to value delim
-            if (!reader.MoveCursorToNextOccuranceOfChar(':')) return null;
-            reader.ReadNextChar();
-
-            IGenericReflectorTypeHandler? memberHandler = member?.GetTypeHandler();
-            ReadJSONValue(ref reader, scratchMemory, memberHandler, member, obj);
-        }
-
-        return obj;
-    }
-
-    private static void ReadArray(
-        ref ValueStringReader reader,
-        Span<char> scratchMemory,
-        IGenericEnumerableTypeHandler? typeHandler,
-        ComplexTypeHandlerMember? parentObjectMember,
-        object? parentObject
-    )
-    {
-        char c = reader.ReadNextChar();
-        if (c != '[') return;
-
-        IList? list = null;
-        IGenericReflectorTypeHandler? itemTypeHandler = null;
-        if (typeHandler != null)
-        {
-            Type itemType = typeHandler.ItemType;
-            itemTypeHandler = ReflectorEngine.GetTypeHandler(itemType);
-            list = typeHandler.CreateTempListFromPool();
-        }
-
-        bool firstLoop = true;
-
-        while (true)
-        {
-            char nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace();
-            if (nextNonWhitespace == ']')
-            {
-                reader.ReadNextChar();
-                break;
-            }
-            else if (firstLoop)
-            {
-                // That's ok - it's the first one so no need for a comma
-            }
-            else if (nextNonWhitespace == ',')
-            {
-                reader.ReadNextChar(); // Skip comma (todo: trailing comma?)
-            }
-            else
-            {
-                return;
-            }
-            firstLoop = false;
-
-            ReadJSONValue(ref reader, scratchMemory, itemTypeHandler, null, list);
-        }
-
-        if (list != null)
-        {
-            AssertNotNull(typeHandler);
-            object? arrayRead = typeHandler.CreateNewFromList(list);
-            AssertNotNull(arrayRead);
-
-            typeHandler.ReturnTempListToPool(list);
-
-            if (parentObject != null)
-            {
-                if (parentObject is IList parentList)
-                    parentList.Add(arrayRead);
-                else
-                    parentObjectMember?.SetValueInComplexObject(parentObject, arrayRead);
-            }
-        }
-    }
-
-    private static void ReadJSONValue(
-        ref ValueStringReader reader,
-        Span<char> scratchMemory,
-        IGenericReflectorTypeHandler? typeHandlerOfHolder,
-        ComplexTypeHandlerMember? parentObjectMember,
-        object? parentObject
-    )
-    {
-        // Peak the next character that isnt whitespace
-        char charAfterWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace();
-
-        // Object value opened
-        if (charAfterWhitespace == '{')
-        {
-            IGenericReflectorComplexTypeHandler? handler = typeHandlerOfHolder as IGenericReflectorComplexTypeHandler;
-            object? objRead = ReadObject(ref reader, scratchMemory, handler);
-
-            if (parentObject != null && typeHandlerOfHolder != null)
-            {
-                if (parentObject is IList parentList)
-                    parentList.Add(objRead);
-                else if (parentObjectMember != null)
-                    parentObjectMember.SetValueInComplexObject(parentObject, objRead);
-            }
-        }
-        // Array value opened
-        else if (charAfterWhitespace == '[')
-        {
-            IGenericEnumerableTypeHandler? handler = typeHandlerOfHolder as IGenericEnumerableTypeHandler;
-            ReadArray(ref reader, scratchMemory, handler, parentObjectMember, parentObject);
-        }
-        // String value opened
-        else if (charAfterWhitespace == '\"')
-        {
-            reader.ReadNextChar();
-            int charsWritten = reader.ReadToNextOccuranceofChar('\"', scratchMemory);
-            if (charsWritten == 0) return;
-
-            // todo: big strings will fuck us up :/
-            Span<char> stringContent = scratchMemory.Slice(0, charsWritten);
-
-            char closing = reader.ReadNextChar();
-            if (closing != '\"') return;
-
-            string val = new string(stringContent);
-
-            if (parentObject != null && typeHandlerOfHolder != null)
-            {
-                if (parentObject is IList parentList)
-                    parentList.Add(val);
-                else if (parentObjectMember != null)
-                    parentObjectMember.SetValueInComplexObject(parentObject, val);
-            }
-        }
-        else if (char.IsNumber(charAfterWhitespace) || charAfterWhitespace == '-')
-        {
-            if (parentObject != null && typeHandlerOfHolder != null)
-            {
-                if (parentObjectMember == null)
-                    typeHandlerOfHolder.ReadValueFromStringIntoList(ref reader, parentObject);
-                else
-                    typeHandlerOfHolder.ReadValueFromStringIntoObjectMember(ref reader, parentObject, parentObjectMember);
-            }
-            else
-            {
-                reader.ReadNumber(scratchMemory);
-            }
-        }
-        else if (charAfterWhitespace == 't' || charAfterWhitespace == 'f') // true or false
-        {
-            reader.ReadToNextOccuranceofChar('e', scratchMemory);
-            reader.ReadNextChar(); // next
-
-            bool value = charAfterWhitespace == 't';
-
-            if (parentObject != null && typeHandlerOfHolder != null)
-            {
-                if (parentObject is IList parentList)
-                    parentList.Add(value);
-                else if (parentObjectMember != null)
-                    parentObjectMember.SetValueInComplexObject(parentObject, value);
-            }
-        }
     }
 
     public static string To<T>(T obj)
