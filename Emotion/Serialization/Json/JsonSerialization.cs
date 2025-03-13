@@ -58,7 +58,7 @@ public static class JSONSerialization
         ReadNumber,
 
         ReadBoolean_True,
-        ReadBoolean_False
+        ReadBoolean_False,
     }
 
     private struct JSONStackEntry
@@ -90,6 +90,7 @@ public static class JSONSerialization
 
     private static char[] VALUE_SEPARATING_CHARACTERS = [']', '}', ','];
     private static char[] WHITESPACE = [' ', '\n', '\t', '\r'];
+    private static char[] ARRAY_OPEN_CLOSE = ['[', ']'];
 
     public unsafe static T? FromStateMachine<T>(ref ValueStringReader reader)
     {
@@ -102,7 +103,7 @@ public static class JSONSerialization
         T? resultObj = complexHandler.CreateNewAsType();
 
         // Setup state machine
-        Span<char> scratchMemory = stackalloc char[1024];
+        Span<Range> splitScratchMemory = stackalloc Range[256];
 
         JSONReadState state = JSONReadState.DetermineNextRead;
         JSONReadState lastState = JSONReadState.None;
@@ -130,6 +131,7 @@ public static class JSONSerialization
                 case JSONReadState.DetermineNextRead:
                     {
                         char nextNonWhitespace = reader.ReadToNextOccuranceOfAnyExcept(WHITESPACE);
+
                         if (nextNonWhitespace == '{')
                             state = JSONReadState.StartObject;
                         else if (nextNonWhitespace == '[')
@@ -182,7 +184,7 @@ public static class JSONSerialization
                                 IGenericEnumerableTypeHandler? handler = currentStackEntry.TypeHandler as IGenericEnumerableTypeHandler;
                                 if (handler != null && tempList != null)
                                 {
-                                    object? fromList = handler.CreateNewFromList(tempList);
+                                    object fromList = handler.CreateNewFromList(tempList);
                                     handler.ReturnTempListToPool(tempList);
 
                                     // Set the new object as the parent's member
@@ -269,8 +271,8 @@ public static class JSONSerialization
                 case JSONReadState.ReadObjectKeyValue:
                     {
                         // Read next key (by reading up to the next value separator)
-                        int charsWritten = reader.ReadToNextOccuranceOf(':', scratchMemory, true);
-                        if (charsWritten == 0 || charsWritten >= scratchMemory.Length)
+                        SimpleSpanRange readRange = reader.ReadToNextOccuranceOf(':', true);
+                        if (readRange.IsInvalid)
                         {
                             state = JSONReadState.None;
                             break;
@@ -282,27 +284,21 @@ public static class JSONSerialization
 
                         // Try to get the key handler.
                         ComplexTypeHandlerMember? memberHandler = null;
+                        IGenericReflectorTypeHandler? memberTypeHandler = null;
                         if (currentTypeHandler != null)
                         {
-                            Span<char> writtenPart = scratchMemory.Slice(0, charsWritten);
+                            ReadOnlySpan<char> writtenPart = reader.GetSpanSlice(readRange);
                             int openingQuote = writtenPart.IndexOf('\"');
                             int closingQuote = writtenPart.LastIndexOf('\"');
                             if (openingQuote != -1 && openingQuote != closingQuote)
                             {
                                 openingQuote++;
                                 int length = closingQuote - openingQuote;
-                                Span<char> nextKey = scratchMemory.Slice(openingQuote, length);
-                                for (int i = 0; i < length; i++)
-                                {
-                                    // For JSON we enforce:
-                                    // - Case insensitive keys since in C# they are usually capitalized but in JSON they aren't.
-                                    // - We also enforce ASCII keys only.
-                                    char c = nextKey[i];
-                                    char lower = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
-                                    nextKey[i] = lower;
-                                }
+                                writtenPart = writtenPart.Slice(openingQuote, length);
 
-                                memberHandler = currentTypeHandler.GetMemberByNameLowerCase(nextKey);
+                                memberHandler = currentTypeHandler.GetMemberByNameLowerCase(writtenPart);
+                                memberTypeHandler = memberHandler?.GetTypeHandler();
+                                if (memberTypeHandler == null) memberHandler = null;
                             }
                         }
 
@@ -322,7 +318,7 @@ public static class JSONSerialization
                             {
                                 newHead.ParentObject = currentStackEntry.CurrentObject;
                                 newHead.ObjectMember = memberHandler;
-                                newHead.TypeHandler = memberHandler.GetTypeHandler();
+                                newHead.TypeHandler = memberTypeHandler;
                             }
                         }
                         state = JSONReadState.DetermineNextRead;
@@ -337,6 +333,69 @@ public static class JSONSerialization
                         // This object was pushed into the stack by the key-value read or array read.
                         ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
                         IGenericEnumerableTypeHandler? handler = currentStackEntry.TypeHandler as IGenericEnumerableTypeHandler;
+
+                        // Push a generic array member as the stack value and start reading items
+                        IGenericReflectorTypeHandler? elementHandler = null;
+                        if (handler?.ItemType != null)
+                            elementHandler = ReflectorEngine.GetTypeHandler(handler.ItemType);
+
+                        // ============================
+                        #region OptimizedShortcut_PrimitiveArray
+                        // We can guess the type using our member knowledge... but if the JSON wants to screw us up - it will.
+                        if (currentStackPointer != 0 && elementHandler != null && elementHandler.CanGetOrParseValueAsString)
+                        {
+                            int checkpoint = reader.GetCurrentPosition();
+
+                            SimpleSpanRange readRange = reader.ReadToNextOccuranceOfAnyOf(ARRAY_OPEN_CLOSE, true);
+                            if (readRange.IsInvalid)
+                            {
+                                state = JSONReadState.None;
+                                break;
+                            }
+
+                            ReadOnlySpan<char> span = reader.GetSpanSlice(readRange);
+                            if (span[0] != '[')
+                            {
+                                int elements = span.Split(splitScratchMemory, ',');
+                                if (elements < splitScratchMemory.Length)
+                                {
+                                    object array = handler!.CreateNewPrealloc(elements);
+                                    currentStackEntry.CurrentObject = array;
+
+                                    for (int i = 0; i < elements; i++)
+                                    {
+                                        ref Range currentSplit = ref splitScratchMemory[i];
+                                        ReadOnlySpan<char> splitSpan = span[currentSplit];
+                                        elementHandler.ReadValueFromStringIntoArray(splitSpan, array, i);
+                                    }
+
+                                    // Set the new object as the parent's member
+                                    if (currentStackEntry.ParentList != null)
+                                        currentStackEntry.ParentList.Add(array);
+                                    else if (currentStackEntry.ParentObject != null)
+                                        currentStackEntry.ObjectMember!.SetValueInComplexObject(currentStackEntry.ParentObject, array);
+
+                                    state = JSONReadState.PostReadValue;
+                                    break;
+                                }
+                                else
+                                {
+                                    // Yikes - too many elements, restore checkpoint
+                                    reader.SetPosition(checkpoint);
+                                }
+                            }
+                            else
+                            {
+                                // We failed at the optimization, and this is actually an array of arrays - :(
+                                // Restore checkpoint and read again - however keep in mind that this means the current handler is incorrect.
+                                handler = null;
+                                elementHandler = null;
+                                reader.SetPosition(checkpoint);
+                            }
+                        }
+                        #endregion
+                        // ============================
+
                         IList? tempList = null;
                         if (handler != null)
                         {
@@ -344,11 +403,6 @@ public static class JSONSerialization
                             tempList = handler.CreateTempListFromPool();
                             currentStackEntry.CurrentObject = tempList;
                         }
-
-                        // Push a generic array member as the stack value and start reading items
-                        IGenericReflectorTypeHandler? elementHandler = null;
-                        if (handler?.ItemType != null)
-                            elementHandler = ReflectorEngine.GetTypeHandler(handler.ItemType);
 
                         // Push array read value
                         {
@@ -375,9 +429,8 @@ public static class JSONSerialization
 
                 case JSONReadState.ReadString:
                     {
-                        // todo: strings larger than the scratch memory will not be read...
-                        int charsWritten = reader.ReadNextQuotedString(scratchMemory, true);
-                        if (charsWritten == 0 || charsWritten >= scratchMemory.Length)
+                        SimpleSpanRange readRange = reader.ReadNextQuotedString(true);
+                        if (readRange.IsInvalid)
                         {
                             state = JSONReadState.None;
                             break;
@@ -388,7 +441,7 @@ public static class JSONSerialization
                         if (currentStackEntry.TypeHandler != null)
                         {
                             // Allocate string
-                            Span<char> stringContent = scratchMemory.Slice(0, charsWritten);
+                            ReadOnlySpan<char> stringContent = reader.GetSpanSlice(readRange);
                             var val = new string(stringContent);
 
                             if (currentStackEntry.ParentList != null)
@@ -403,8 +456,8 @@ public static class JSONSerialization
 
                 case JSONReadState.ReadNumber:
                     {
-                        int charsRead = reader.ReadToNextOccuranceOfAnyOf(VALUE_SEPARATING_CHARACTERS, scratchMemory, false);
-                        if (charsRead == 0 || charsRead >= scratchMemory.Length)
+                        SimpleSpanRange readRange = reader.ReadToNextOccuranceOfAnyOf(VALUE_SEPARATING_CHARACTERS, false);
+                        if (readRange.IsInvalid)
                         {
                             state = JSONReadState.None;
                             break;
@@ -414,8 +467,7 @@ public static class JSONSerialization
                         IGenericReflectorTypeHandler? handler = currentStackEntry.TypeHandler;
                         if (handler != null)
                         {
-                            Span<char> readData = scratchMemory.Slice(0, charsRead);
-
+                            ReadOnlySpan<char> readData = reader.GetSpanSlice(readRange);
                             if (currentStackEntry.ParentList != null)
                                 handler.ReadValueFromStringIntoList(readData, currentStackEntry.ParentList);
                             else if (currentStackEntry.ParentObject != null)

@@ -30,14 +30,16 @@ public static class ReflectorEngine
 
     public static IGenericReflectorTypeHandler? GetTypeHandler(Type typ)
     {
-        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler)) return handler;
+        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
+            return handler;
         return null;
     }
 
     public static ReflectorTypeHandlerBase<T>? GetTypeHandler<T>()
     {
         Type typ = typeof(T);
-        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler)) return (ReflectorTypeHandlerBase<T>)handler;
+        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
+            return (ReflectorTypeHandlerBase<T>)handler;
         return null;
     }
 
