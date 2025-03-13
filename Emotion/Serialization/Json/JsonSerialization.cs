@@ -7,6 +7,8 @@ using Emotion.Standard.Reflector;
 using System.Text;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Utility;
+using System;
+using System.Buffers;
 
 namespace Emotion.Serialization.JSON;
 
@@ -59,7 +61,7 @@ public static class JSONSerialization
         ReadBoolean_False
     }
 
-    private class JSONStackEntry
+    private struct JSONStackEntry
     {
         // It is possible for both the member and the object to not be defined in the
         // C# structure while being defined inthe JSON structure.
@@ -67,23 +69,27 @@ public static class JSONSerialization
         // implicitly (ie. by reflector methods).
         public object? CurrentObject;
         public object? ParentObject;
-        public bool ParentIsList;
+        public IList? ParentList;
         public ComplexTypeHandlerMember? ObjectMember;
         public IGenericReflectorTypeHandler? TypeHandler;
+
+        // Read state
+        public bool ParentIsList;
 
         public void Reset()
         {
             CurrentObject = null;
             ParentObject = null;
-            ParentIsList = false;
+            ParentList = null;
             ObjectMember = null;
             TypeHandler = null;
+
+            ParentIsList = false;
         }
     }
 
     private static char[] VALUE_SEPARATING_CHARACTERS = [']', '}', ','];
-
-    private static ObjectPool<JSONStackEntry> _stackEntryPool = new ObjectPool<JSONStackEntry>((r) => r.Reset(), 10);
+    private static char[] WHITESPACE = [' ', '\n', '\t', '\r'];
 
     public unsafe static T? FromStateMachine<T>(ref ValueStringReader reader)
     {
@@ -100,12 +106,18 @@ public static class JSONSerialization
 
         JSONReadState state = JSONReadState.DetermineNextRead;
         JSONReadState lastState = JSONReadState.None;
-        Stack<JSONStackEntry> stack = new Stack<JSONStackEntry>();
 
-        JSONStackEntry newEntry = _stackEntryPool.Get();
-        newEntry.CurrentObject = resultObj;
-        newEntry.TypeHandler = complexHandler;
-        stack.Push(newEntry);
+        JSONStackEntry[] stack = ArrayPool<JSONStackEntry>.Shared.Rent(128);
+        int currentStackPointer = -1;
+
+        // Push current in the stack.
+        {
+            currentStackPointer++;
+            ref JSONStackEntry newHead = ref stack[currentStackPointer];
+            newHead.Reset();
+            newHead.CurrentObject = resultObj;
+            newHead.TypeHandler = complexHandler;
+        }
 
         // Start state machine!
         while (state != JSONReadState.None)
@@ -117,7 +129,7 @@ public static class JSONSerialization
                 // Determine what value to read next based on the next non-whitespace character.
                 case JSONReadState.DetermineNextRead:
                     {
-                        char nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace();
+                        char nextNonWhitespace = reader.ReadToNextOccuranceOfAnyExcept(WHITESPACE);
                         if (nextNonWhitespace == '{')
                             state = JSONReadState.StartObject;
                         else if (nextNonWhitespace == '[')
@@ -138,53 +150,46 @@ public static class JSONSerialization
                 // Unwind the stack
                 case JSONReadState.PostReadValue:
                     {
-                        char nextNonWhitespace = reader.MoveCursorToNextOccuranceOfNotWhitespace(true);
+                        char nextNonWhitespace = reader.ReadToNextOccuranceOfAnyExcept(WHITESPACE, true);
 
-                        JSONStackEntry currentVal = stack.Peek();
-                        if (currentVal.ParentIsList)
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        if (currentStackEntry.ParentIsList)
                         {
                             // This is an array - go to the next item (which should be of the same type)
                             if (nextNonWhitespace == ',')
                             {
                                 // Shortcut to reading more of the same item
-                                if (lastState == JSONReadState.ReadString)
-                                {
-                                    state = JSONReadState.ReadString;
-                                }
-                                else if (lastState == JSONReadState.ReadNumber)
-                                {
-                                    //reader.MoveCursorToNextOccuranceOfNotWhitespace();
-                                    state = JSONReadState.ReadNumber;
-                                }
+                                if (lastState == JSONReadState.ReadString || lastState == JSONReadState.ReadNumber)
+                                    state = lastState;
                                 else
-                                {
                                     state = JSONReadState.DetermineNextRead;
-                                }
                             }
                             else if (nextNonWhitespace == ']') // close array
                             {
+                                // Get the temp list from the element handler (which should be current)
+                                IList? tempList = currentStackEntry.ParentList;
+
                                 // pop the generic item object
-                                JSONStackEntry popped = stack.Pop(); 
-                                _stackEntryPool.Return(popped);
+                                currentStackPointer--;
+                                if (currentStackPointer < 0)
+                                {
+                                    state = JSONReadState.None;
+                                    break;
+                                }
 
                                 // The object value being closed
-                                JSONStackEntry current = stack.Peek();
-                                IGenericEnumerableTypeHandler? handler = current.TypeHandler as IGenericEnumerableTypeHandler;
-                                if (current.ParentObject != null && handler != null && current.CurrentObject is IList tempList)
+                                currentStackEntry = ref stack[currentStackPointer];
+                                IGenericEnumerableTypeHandler? handler = currentStackEntry.TypeHandler as IGenericEnumerableTypeHandler;
+                                if (handler != null && tempList != null)
                                 {
                                     object? fromList = handler.CreateNewFromList(tempList);
                                     handler.ReturnTempListToPool(tempList);
 
                                     // Set the new object as the parent's member
-                                    if (current.ParentIsList)
-                                    {
-                                        if (current.ParentObject is IList parentList)
-                                            parentList.Add(fromList);
-                                    }
-                                    else
-                                    {
-                                        current.ObjectMember?.SetValueInComplexObject(current.ParentObject, fromList);
-                                    }
+                                    if (currentStackEntry.ParentList != null)
+                                        currentStackEntry.ParentList.Add(fromList);
+                                    else if (currentStackEntry.ParentObject != null)
+                                        currentStackEntry.ObjectMember!.SetValueInComplexObject(currentStackEntry.ParentObject, fromList);
                                 }
                                 state = JSONReadState.PostReadValue;
                             }
@@ -199,8 +204,13 @@ public static class JSONSerialization
                         {
                             if (nextNonWhitespace == ',') // Read the next key value
                             {
-                                JSONStackEntry popped = stack.Pop();
-                                _stackEntryPool.Return(popped);
+                                // Pop the current key
+                                currentStackPointer--;
+                                if (currentStackPointer < 0)
+                                {
+                                    state = JSONReadState.None;
+                                    break;
+                                }
 
                                 state = JSONReadState.ReadObjectKeyValue;
                             }
@@ -208,24 +218,23 @@ public static class JSONSerialization
                             {
                                 // pop the member value read last
                                 // (todo: test for empty objects '{}')
-                                JSONStackEntry popped = stack.Pop();
-                                _stackEntryPool.Return(popped); 
+                                currentStackPointer--;
+                                if (currentStackPointer < 0)
+                                {
+                                    state = JSONReadState.None;
+                                    break;
+                                }
 
                                 // The object value being closed
-                                JSONStackEntry current = stack.Peek();
-                                object? closingObj = current.CurrentObject;
-                                if (current.ParentObject != null && closingObj != null)
+                                currentStackEntry = ref stack[currentStackPointer];
+                                object? closingObj = currentStackEntry.CurrentObject;
+                                if (currentStackEntry.TypeHandler != null && closingObj != null)
                                 {
                                     // Set the new object as the parent's member
-                                    if (current.ParentIsList)
-                                    {
-                                        if (current.ParentObject is IList parentList)
-                                            parentList.Add(closingObj);
-                                    }
-                                    else
-                                    {
-                                        current.ObjectMember?.SetValueInComplexObject(current.ParentObject, closingObj);
-                                    }
+                                    if (currentStackEntry.ParentList != null)
+                                        currentStackEntry.ParentList.Add(closingObj);
+                                    else if (currentStackEntry.ParentObject != null)
+                                        currentStackEntry.ObjectMember!.SetValueInComplexObject(currentStackEntry.ParentObject, closingObj);
                                 }
 
                                 state = JSONReadState.PostReadValue;
@@ -242,13 +251,14 @@ public static class JSONSerialization
                 case JSONReadState.StartObject:
                     {
                         // This object was pushed into the stack by the key-value read or array read.
-                        JSONStackEntry current = stack.Peek();
-                        if (current.ParentObject != null && current.TypeHandler != null)
+                        // CurrentObject is already initialized only for the root object case.
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        if (currentStackPointer != 0 && currentStackEntry.TypeHandler != null)
                         {
                             // Initialize object for the member object
-                            IGenericReflectorComplexTypeHandler? handler = current.TypeHandler as IGenericReflectorComplexTypeHandler;
+                            IGenericReflectorComplexTypeHandler? handler = currentStackEntry.TypeHandler as IGenericReflectorComplexTypeHandler;
                             object? newObj = handler?.CreateNew();
-                            current.CurrentObject = newObj;
+                            currentStackEntry.CurrentObject = newObj;
                         }
 
                         // Start reading key value pairs.
@@ -259,7 +269,7 @@ public static class JSONSerialization
                 case JSONReadState.ReadObjectKeyValue:
                     {
                         // Read next key (by reading up to the next value separator)
-                        int charsWritten = reader.ReadUpToNextOccuranceOfChar(':', scratchMemory, true);
+                        int charsWritten = reader.ReadToNextOccuranceOf(':', scratchMemory, true);
                         if (charsWritten == 0 || charsWritten >= scratchMemory.Length)
                         {
                             state = JSONReadState.None;
@@ -267,9 +277,8 @@ public static class JSONSerialization
                         }
 
                         // Get current object data.
-                        JSONStackEntry currentData = stack.Peek();
-                        object? currentObject = currentData.CurrentObject;
-                        IGenericReflectorComplexTypeHandler? currentTypeHandler = currentData.TypeHandler as IGenericReflectorComplexTypeHandler;
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        IGenericReflectorComplexTypeHandler? currentTypeHandler = currentStackEntry.TypeHandler as IGenericReflectorComplexTypeHandler;
 
                         // Try to get the key handler.
                         ComplexTypeHandlerMember? memberHandler = null;
@@ -297,12 +306,25 @@ public static class JSONSerialization
                             }
                         }
 
-                        // Read value
-                        JSONStackEntry valueReadEntry = _stackEntryPool.Get();
-                        valueReadEntry.ParentObject = currentObject;
-                        valueReadEntry.ObjectMember = memberHandler;
-                        valueReadEntry.TypeHandler = memberHandler?.GetTypeHandler();
-                        stack.Push(valueReadEntry);
+                        // Push key read value
+                        {
+                            currentStackPointer++;
+                            if (currentStackPointer >= stack.Length)
+                            {
+                                state = JSONReadState.None;
+                                break;
+                            }
+
+                            ref JSONStackEntry newHead = ref stack[currentStackPointer];
+                            newHead.Reset();
+
+                            if (memberHandler != null)
+                            {
+                                newHead.ParentObject = currentStackEntry.CurrentObject;
+                                newHead.ObjectMember = memberHandler;
+                                newHead.TypeHandler = memberHandler.GetTypeHandler();
+                            }
+                        }
                         state = JSONReadState.DetermineNextRead;
                     }
                     break;
@@ -313,13 +335,14 @@ public static class JSONSerialization
                         reader.AdvancePosition(1);
 
                         // This object was pushed into the stack by the key-value read or array read.
-                        JSONStackEntry current = stack.Peek();
-                        IGenericEnumerableTypeHandler? handler = current.TypeHandler as IGenericEnumerableTypeHandler;
-                        if (current.ParentObject != null && handler != null)
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        IGenericEnumerableTypeHandler? handler = currentStackEntry.TypeHandler as IGenericEnumerableTypeHandler;
+                        IList? tempList = null;
+                        if (handler != null)
                         {
                             // Initialize temporary list to write in from a typed pool to prevent boxing
-                            IList tempList = handler.CreateTempListFromPool();
-                            current.CurrentObject = tempList;
+                            tempList = handler.CreateTempListFromPool();
+                            currentStackEntry.CurrentObject = tempList;
                         }
 
                         // Push a generic array member as the stack value and start reading items
@@ -327,12 +350,25 @@ public static class JSONSerialization
                         if (handler?.ItemType != null)
                             elementHandler = ReflectorEngine.GetTypeHandler(handler.ItemType);
 
-                        // Read value
-                        JSONStackEntry genericItemEntry = _stackEntryPool.Get();
-                        genericItemEntry.ParentObject = current.CurrentObject;
-                        genericItemEntry.ParentIsList = true;
-                        genericItemEntry.TypeHandler = elementHandler;
-                        stack.Push(genericItemEntry);
+                        // Push array read value
+                        {
+                            currentStackPointer++;
+                            if (currentStackPointer >= stack.Length)
+                            {
+                                state = JSONReadState.None;
+                                break;
+                            }
+
+                            ref JSONStackEntry newHead = ref stack[currentStackPointer];
+                            newHead.Reset();
+                            newHead.ParentIsList = true;
+
+                            if (elementHandler != null)
+                            {
+                                newHead.ParentList = tempList;
+                                newHead.TypeHandler = elementHandler;
+                            }
+                        }
                         state = JSONReadState.DetermineNextRead;
                     }
                     break;
@@ -348,17 +384,17 @@ public static class JSONSerialization
                         }
 
                         // Set value in parent (if any).
-                        JSONStackEntry currentVal = stack.Peek();
-                        if (currentVal.ParentObject != null && currentVal.TypeHandler != null)
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        if (currentStackEntry.TypeHandler != null)
                         {
                             // Allocate string
                             Span<char> stringContent = scratchMemory.Slice(0, charsWritten);
                             var val = new string(stringContent);
 
-                            if (currentVal.ParentIsList && currentVal.ParentObject is IList parentList)
-                                parentList.Add(val);
-                            else
-                                currentVal.ObjectMember!.SetValueInComplexObject(currentVal.ParentObject, val);
+                            if (currentStackEntry.ParentList != null)
+                                currentStackEntry.ParentList.Add(val);
+                            else if (currentStackEntry.ParentObject != null)
+                                currentStackEntry.ObjectMember!.SetValueInComplexObject(currentStackEntry.ParentObject, val);
                         }
 
                         state = JSONReadState.PostReadValue;
@@ -367,24 +403,23 @@ public static class JSONSerialization
 
                 case JSONReadState.ReadNumber:
                     {
-                        int charsRead = reader.ReadUpToNextOccuranceOfAnyOfChars(VALUE_SEPARATING_CHARACTERS, scratchMemory, false);
+                        int charsRead = reader.ReadToNextOccuranceOfAnyOf(VALUE_SEPARATING_CHARACTERS, scratchMemory, false);
                         if (charsRead == 0 || charsRead >= scratchMemory.Length)
                         {
                             state = JSONReadState.None;
                             break;
                         }
 
-                        JSONStackEntry current = stack.Peek();
-                        object? parentObj = current.ParentObject;
-                        IGenericReflectorTypeHandler? handler = current.TypeHandler;
-                        if (parentObj != null && handler != null)
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        IGenericReflectorTypeHandler? handler = currentStackEntry.TypeHandler;
+                        if (handler != null)
                         {
                             Span<char> readData = scratchMemory.Slice(0, charsRead);
 
-                            if (current.ParentIsList)
-                                handler.ReadValueFromStringIntoList(readData, parentObj);
-                            else if (current.ObjectMember != null)
-                                handler.ReadValueFromStringIntoObjectMember(readData, parentObj, current.ObjectMember);
+                            if (currentStackEntry.ParentList != null)
+                                handler.ReadValueFromStringIntoList(readData, currentStackEntry.ParentList);
+                            else if (currentStackEntry.ParentObject != null)
+                                handler.ReadValueFromStringIntoObjectMember(readData, currentStackEntry.ParentObject, currentStackEntry.ObjectMember!);
                         }
 
                         state = JSONReadState.PostReadValue;
@@ -406,14 +441,13 @@ public static class JSONSerialization
                             value = false;
                         }
 
-                        JSONStackEntry current = stack.Peek();
-                        object? parentObj = current.ParentObject;
-                        if (parentObj != null)
+                        ref JSONStackEntry currentStackEntry = ref stack[currentStackPointer];
+                        if (currentStackEntry.TypeHandler != null)
                         {
-                            if (current.ParentIsList && parentObj is IList parentList)
-                                parentList.Add(value);
-                            else if (current.ObjectMember != null)
-                                current.ObjectMember?.SetValueInComplexObject(parentObj, value);
+                            if (currentStackEntry.ParentList != null)
+                                currentStackEntry.ParentList.Add(value);
+                            else if (currentStackEntry.ParentObject != null)
+                                currentStackEntry.ObjectMember?.SetValueInComplexObject(currentStackEntry.ParentObject, value);
                         }
 
                         state = JSONReadState.PostReadValue;
@@ -424,10 +458,7 @@ public static class JSONSerialization
             lastState = stateAtStart;
         }
 
-        while (stack.TryPop(out JSONStackEntry? storedEntry))
-        {
-            _stackEntryPool.Return(storedEntry);
-        }
+        ArrayPool<JSONStackEntry>.Shared.Return(stack);
 
         return resultObj;
     }
