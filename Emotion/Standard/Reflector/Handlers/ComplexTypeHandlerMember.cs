@@ -2,6 +2,7 @@
 
 using Emotion.Standard.OptimizedStringReadWrite;
 using System.Text;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -17,7 +18,7 @@ public abstract class ComplexTypeHandlerMember
 {
     public Type Type { get; protected set; }
 
-    public string Name { get; protected set; }
+    public string Name { get; set; }
 
     public Attribute[] Attributes = Array.Empty<Attribute>();
 
@@ -26,6 +27,8 @@ public abstract class ComplexTypeHandlerMember
         Type = memberType;
         Name = name;
     }
+
+    public abstract void PostInit();
 
     public T? HasAttribute<T>() where T : Attribute
     {
@@ -53,12 +56,25 @@ public abstract class ComplexTypeHandlerMember
     public abstract bool GetValueFromComplexObject(object obj, out object? readValue);
 
     public abstract bool SetValueInComplexObject(object obj, object? val);
+
+
 }
 
-public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
+public abstract class ComplexTypeHandlerMember<ParentT> : ComplexTypeHandlerMember
+{
+    protected ComplexTypeHandlerMember(Type memberType, string name) : base(memberType, name)
+    {
+    }
+
+    public abstract bool ParseFromJSON(ref Utf8JsonReader reader, ParentT intoObject);
+}
+
+public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember<ParentT>
 {
     protected Action<ParentT, MyT> _setValue;
     protected Func<ParentT, MyT> _getValue;
+
+    private ReflectorTypeHandlerBase<MyT>? _typeHandler;
 
     public ComplexTypeHandlerMember(string name, Action<ParentT, MyT> setValue, Func<ParentT, MyT> getValue) : base(typeof(MyT), name)
     {
@@ -66,9 +82,14 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         _getValue = getValue;
     }
 
+    public override void PostInit()
+    {
+        _typeHandler = ReflectorEngine.GetTypeHandler<MyT>();
+    }
+
     public override ReflectorTypeHandlerBase<MyT>? GetTypeHandler()
     {
-        return ReflectorEngine.GetTypeHandler<MyT>();
+        return _typeHandler;
     }
 
     public override bool GetValueFromComplexObject(object obj, out object? readValue)
@@ -90,6 +111,16 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
             return true;
         }
         return false;
+    }
+
+    public override bool ParseFromJSON(ref Utf8JsonReader reader, ParentT intoObject)
+    {
+        ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
+        if (handler == null) return false;
+
+        MyT? val = handler.ParseFromJSON(ref reader);
+        _setValue(intoObject, val);
+        return true;
     }
 
     public override CanWriteMemberResult CanWriteValueAsStringFromComplexObject(object? obj)

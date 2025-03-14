@@ -221,7 +221,7 @@ namespace Emotion.SourceGeneration
             return true;
         }
 
-        private static HashSet<string> _excludedNamespacesSubSpaces = new HashSet<string>()
+        private static string[] _excludedNamespacesSubSpaces = new string[]
         {
             "OpenGL",
             "Khronos",
@@ -239,7 +239,14 @@ namespace Emotion.SourceGeneration
 
         public static bool IsExcludedNamespace(string namespac)
         {
-            return _excludedNamespacesSubSpaces.Contains(namespac);
+            for (int i = 0; i < _excludedNamespacesSubSpaces.Length; i++)
+            {
+                string namespaceExclusion = _excludedNamespacesSubSpaces[i];
+                if (namespac.StartsWith(namespaceExclusion))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -12,6 +13,19 @@ public sealed class BooleanTypeHandler : ReflectorTypeHandlerBase<bool>
     public override Type Type => typeof(bool);
 
     public override bool CanGetOrParseValueAsString => true;
+
+    public override bool ParseFromJSON(ref Utf8JsonReader reader)
+    {
+        JsonTokenType token = reader.TokenType;
+        if (token != JsonTokenType.True && token != JsonTokenType.False)
+        {
+            if (!reader.Read())
+                return default;
+        }
+
+        Assert(reader.TokenType == JsonTokenType.True || reader.TokenType == JsonTokenType.False);
+        return reader.TokenType == JsonTokenType.True;
+    }
 
     public override TypeEditor? GetEditor()
     {

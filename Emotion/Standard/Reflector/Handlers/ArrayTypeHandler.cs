@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
-using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Utility;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -16,36 +17,66 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
 
     public Type ItemType => typeof(TItem);
 
-    public object? CreateNew()
+    public object CreateNew()
     {
         return Array.Empty<TItem>();
     }
 
-    public object? CreateNewFromList(IList list)
-    {
-        if (list is not List<TItem> listAsT) return Array.Empty<TItem>();
+    private static ObjectPool<List<TItem?>> _pool = new ObjectPool<List<TItem?>>((l) => l.Clear(), 1);
 
-        TItem[] values = new TItem[listAsT.Count];
-        for (int i = 0; i < listAsT.Count; i++)
+    public override T? ParseFromJSON(ref Utf8JsonReader reader)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
         {
-            values[i] = listAsT[i];
+            if (!reader.Read())
+                return default;
         }
-        return values;
-    }
 
-    public IList CreateList()
-    {
-        return new List<TItem>();
-    }
+        Assert(reader.TokenType == JsonTokenType.StartArray);
 
-    public override bool ParseValueAsString(ReadOnlySpan<char> data, out T? result)
-    {
-        result = default;
-        return false;
-    }
+        ReflectorTypeHandlerBase<TItem>? itemHandler = ReflectorEngine.GetTypeHandler<TItem>();
+        if (itemHandler == null)
+        {
+            if (!reader.TrySkip())
+                Assert(false, $"Failed skip in JSON parsing an object {TypeName}");
 
-    public override bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance)
-    {
-        return false;
+            return default;
+        }
+
+        List<TItem?> tempList = _pool.Get();
+        while (reader.Read())
+        {
+            JsonTokenType token = reader.TokenType;
+            if (token == JsonTokenType.StartObject || token == JsonTokenType.StartArray)
+            {
+                TItem? item = itemHandler.ParseFromJSON(ref reader);
+                tempList.Add(item);
+            }
+            else if (token == JsonTokenType.Number || token == JsonTokenType.String ||
+                token == JsonTokenType.True || token == JsonTokenType.False)
+            {
+                TItem? item = itemHandler.ParseFromJSON(ref reader);
+                tempList.Add(item);
+            }
+            else if (token == JsonTokenType.Null)
+            {
+                tempList.Add((TItem?) (object?) null);
+            }
+            else if (token == JsonTokenType.EndArray)
+            {
+                break;
+            }
+            else
+            {
+                Assert(false, $"Unknown token {token} in JSON parsing an object {TypeName}");
+            }
+        }
+
+        TItem[] values = new TItem[tempList.Count];
+        tempList.CopyTo(values, 0);
+
+        _pool.Return(tempList);
+
+        return (T?) (object?) values;
     }
 }

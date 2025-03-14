@@ -1,7 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -13,29 +14,94 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
     public override bool CanGetOrParseValueAsString => false;
 
-    private ComplexTypeHandlerMember[] _membersArr;
-    private Dictionary<int, ComplexTypeHandlerMember> _members;
-    private Dictionary<int, ComplexTypeHandlerMember> _membersCaseInsensitive;
+    private ComplexTypeHandlerMember<T>[] _membersArr;
+    private Dictionary<string, ComplexTypeHandlerMember<T>> _members;
+    private byte[][] _membersCaseInsensitive;
     private Func<T>? _createNew;
     private string _typeName;
 
-    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMember[] members)
+    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMember<T>[] members)
     {
         _createNew = createNew;
         _typeName = typeName;
 
         _membersArr = members;
-        _members = new Dictionary<int, ComplexTypeHandlerMember>();
-        _membersCaseInsensitive = new Dictionary<int, ComplexTypeHandlerMember>();
+        _members = new ();
+        _membersCaseInsensitive = new byte[members.Length][];
         for (int i = 0; i < members.Length; i++)
         {
-            ComplexTypeHandlerMember member = members[i];
-            string name = member.Name;
-            _members.Add(name.GetStableHashCode(), member);
+            ComplexTypeHandlerMember<T> member = members[i];
+            string memberName = member.Name;
 
-            string nameLower = name.ToLowerInvariant();
-            _membersCaseInsensitive.Add(nameLower.GetStableHashCode(), member);
+            _members.Add(memberName, member);
+
+            // Cache name as utf8 and with the first name uncapitalized.
+            byte[] utf8Name = Helpers.UTF8Encoder.GetBytes(memberName);
+            byte firstChar = utf8Name[0];
+            byte lower = (firstChar >= 65 && firstChar <= 90) ? (byte)(firstChar + 32) : firstChar;
+            utf8Name[0] = lower;
+            _membersCaseInsensitive[i] = utf8Name;
         }
+    }
+
+    public override T? ParseFromJSON(ref Utf8JsonReader reader)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            if (!reader.Read())
+                return default;
+        }
+
+        Assert(reader.TokenType == JsonTokenType.StartObject);
+
+        T? val = _createNew != null ? _createNew() : default;
+        if (val == null)
+        {
+            if (!reader.TrySkip())
+            {
+                Assert(false, $"Failed skip in JSON parsing an object {TypeName}");
+            }
+            return val;
+        }
+
+        while (reader.Read())
+        {
+            JsonTokenType token = reader.TokenType;
+            if (token == JsonTokenType.PropertyName)
+            {
+                ReadOnlySpan<byte> keySpan = reader.ValueSpan;
+
+                bool found = false;
+                for (int i = 0; i < _membersCaseInsensitive.Length; i++)
+                {
+                    byte[] memberNameUtf8 = _membersCaseInsensitive[i];
+                    if (keySpan.SequenceEqual(memberNameUtf8))
+                    {
+                        ComplexTypeHandlerMember<T> member = _membersArr[i];
+                        found = member.ParseFromJSON(ref reader, val);
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    if (!reader.TrySkip())
+                    {
+                        Assert(false, $"Failed skip in JSON parsing an object {TypeName}");
+                    }
+                }
+            }
+            else if (token == JsonTokenType.EndObject)
+            {
+                break;
+            }
+            else
+            {
+                Assert(false, $"Unknown token {token} in JSON parsing an object {TypeName}");
+            }
+        }
+
+        return val;
     }
 
     public override TypeEditor? GetEditor()
@@ -50,6 +116,15 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
 
         return new NestedComplexObjectEditor();
+    }
+
+    public override void PostInit()
+    {
+        for (int i = 0; i < _membersArr.Length; i++)
+        {
+            ComplexTypeHandlerMember member = _membersArr[i];
+            member.PostInit();
+        }
     }
 
     public object? CreateNew()
@@ -89,42 +164,8 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
     public ComplexTypeHandlerMember? GetMemberByName(string name)
     {
-        int hash = name.GetStableHashCode();
-        if (_members.TryGetValue(hash, out ComplexTypeHandlerMember? member))
+        if (_members.TryGetValue(name, out ComplexTypeHandlerMember<T>? member))
             return member;
         return null;
-    }
-
-    public ComplexTypeHandlerMember? GetMemberByName(int nameHash)
-    {
-        if (_members.TryGetValue(nameHash, out ComplexTypeHandlerMember? member))
-            return member;
-        return null;
-    }
-
-    public ComplexTypeHandlerMember? GetMemberByNameCaseInsensitive(string name)
-    {
-        int hash = name.GetStableHashCode();
-        if (_membersCaseInsensitive.TryGetValue(hash, out ComplexTypeHandlerMember? member))
-            return member;
-        return null;
-    }
-
-    public ComplexTypeHandlerMember? GetMemberByNameCaseInsensitive(int nameHash)
-    {
-        if (_membersCaseInsensitive.TryGetValue(nameHash, out ComplexTypeHandlerMember? member))
-            return member;
-        return null;
-    }
-
-    public override bool ParseValueAsString(ReadOnlySpan<char> data, out T? result)
-    {
-        result = default;
-        return false;
-    }
-
-    public override bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance)
-    {
-        return false;
     }
 }

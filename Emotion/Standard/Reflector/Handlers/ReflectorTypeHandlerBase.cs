@@ -3,6 +3,7 @@
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -17,6 +18,16 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
     public virtual TypeEditor? GetEditor()
     {
         return null;
+    }
+
+    public virtual void PostInit()
+    {
+        // nop
+    }
+
+    public virtual T? ParseFromJSON(ref Utf8JsonReader reader)
+    {
+        return default;
     }
 
     public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
@@ -37,7 +48,10 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
         return WriteValueAsString(ref writer, instance);
     }
 
-    public abstract bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance);
+    public virtual bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance)
+    {
+        return false;
+    }
 
     public bool ParseValueFromStringGeneric<TParam>(ReadOnlySpan<char> data, out TParam? result)
     {
@@ -55,5 +69,9 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
         return false;
     }
 
-    public abstract bool ParseValueAsString(ReadOnlySpan<char> data, out T? result);
+    public virtual bool ParseValueAsString(ReadOnlySpan<char> data, out T? result)
+    {
+        result = default;
+        return false;
+    }
 }

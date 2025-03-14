@@ -17,15 +17,28 @@ public interface IGenericReflectorTypeHandler
     /// </summary>
     public bool CanGetOrParseValueAsString { get; }
 
-    public virtual TypeEditor? GetEditor()
-    {
-        return null;
-    }
+    public TypeEditor? GetEditor();
 
+    public void PostInit();
 
     public bool IsTypeAssignableTo(Type otherType)
     {
         return Type.IsAssignableTo(otherType);
+    }
+
+    public void ReadValueFromStringIntoArray(ReadOnlySpan<char> str, object array, int idx)
+    {
+        throw new Exception("Not supported!");
+    }
+
+    public void ReadValueFromStringIntoList(ReadOnlySpan<char> str, IList list)
+    {
+        throw new Exception("Not supported!");
+    }
+
+    public void ReadValueFromStringIntoObjectMember(ReadOnlySpan<char> str, object obj, ComplexTypeHandlerMember memberHandler)
+    {
+        throw new Exception("Not supported!");
     }
 
     public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)

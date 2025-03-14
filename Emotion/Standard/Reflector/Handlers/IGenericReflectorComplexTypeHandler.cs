@@ -11,10 +11,4 @@ public interface IGenericReflectorComplexTypeHandler
     public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep();
 
     public ComplexTypeHandlerMember? GetMemberByName(string name);
-
-    public ComplexTypeHandlerMember? GetMemberByName(int nameHash);
-
-    public ComplexTypeHandlerMember? GetMemberByNameCaseInsensitive(string name);
-
-    public ComplexTypeHandlerMember? GetMemberByNameCaseInsensitive(int nameHash);
 }
