@@ -70,7 +70,7 @@ public static class PerformanceMetrics
 
         _framesPerUpdate++;
 
-        int currentSecond = DateTime.Now.Second;
+        int currentSecond = DateTime.UtcNow.Second;
         if (currentSecond != _fpsUpdateSecond)
         {
             FpsLastSecond = _frameCounterThisSecond;
