@@ -356,6 +356,8 @@ public static class Helpers
         return arr;
     }
 
+    public static readonly UTF8Encoding UTF8Encoder = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
+
     // https://en.wikipedia.org/wiki/Byte_order_mark
     private static readonly byte[] Utf16Le = { 0xFF, 0xFE };
     private static readonly byte[] Utf8Le = { 0xEF, 0xBB, 0xBF };
