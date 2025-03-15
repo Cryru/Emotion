@@ -211,7 +211,8 @@ namespace Emotion.Common
             Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
             Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
             Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
-            Log.Info($" Execution Directory: {Environment.CurrentDirectory}, Game Directory: {AssetLoader.GameDirectory}", MessageSource.Engine);
+            Log.Info($" Execution Directory: {Environment.CurrentDirectory}", MessageSource.Engine);
+            Log.Info($" Game Directory: {AssetLoader.GameDirectory}", MessageSource.Engine);
             Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
 
