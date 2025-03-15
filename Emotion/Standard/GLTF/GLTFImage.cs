@@ -1,15 +1,8 @@
-﻿#region Using
-
-using System.Text.Json.Serialization;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Standard.GLTF;
 
 public class GLTFImage
 {
-    [JsonPropertyName("uri")]
-    public string Uri { get; set; }
+    public string Uri { get; set; } = string.Empty;
 }

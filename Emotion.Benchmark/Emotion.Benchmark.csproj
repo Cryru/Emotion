@@ -19,6 +19,9 @@
     <Content Include="..\Tests\Assets\Sounds\pepsi.wav" Link="Assets\pepsi.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="..\Tests\Assets\Serialized\example.gltf" Link="Assets\example.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\camproom.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

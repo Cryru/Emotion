@@ -1,22 +1,12 @@
-﻿#region Using
-
-using System.Text.Json.Serialization;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Standard.GLTF;
 
-
 public class GLTFSkins
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("joints")]
     public int[] Joints { get; set; } = Array.Empty<int>();
 
-    [JsonPropertyName("inverseBindMatrices")]
     public int InverseBindMatrices { get; set; }
 }

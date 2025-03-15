@@ -1,27 +1,16 @@
-﻿#region Using
-
-using System.Text.Json.Serialization;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Standard.GLTF;
 
 public class GLTFNode
 {
-    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("children")]
-    public int[]? Children { get; set; }
+    public int[] Children { get; set; } = Array.Empty<int>();
 
-    [JsonPropertyName("rotation")]
-    public float[]? Rotation { get; set; }
+    public float[]? Rotation { get; set; } = null;
 
-    [JsonPropertyName("translation")]
-    public float[]? Translation { get; set; }
+    public float[]? Translation { get; set; } = null;
 
-    [JsonPropertyName("scale")]
-    public float[]? Scale { get; set; }
+    public float[]? Scale { get; set; } = null;
 }

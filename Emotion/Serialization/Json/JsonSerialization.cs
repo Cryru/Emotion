@@ -36,7 +36,7 @@ public static class JSONSerialization
             // Prevent crashing
         }
 
-        return default;
+        return val;
     }
 
     public static T? From<T>([StringSyntax(StringSyntaxAttribute.Json)] ReadOnlySpan<char> utf16str)

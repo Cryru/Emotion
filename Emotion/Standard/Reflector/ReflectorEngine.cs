@@ -14,6 +14,7 @@ public static class ReflectorEngine
     internal static void PostInit()
     {
         BuildRelations();
+        CallHandlersPostInit();
         Engine.Log.Info($"Loaded {_typeHandlers.Count} type handlers!", "Reflector");
     }
 
@@ -124,4 +125,12 @@ public static class ReflectorEngine
     }
 
     #endregion
+
+    private static void CallHandlersPostInit()
+    {
+        foreach ((Type typ, IGenericReflectorTypeHandler handler) in _typeHandlers)
+        {
+            handler.PostInit();
+        }
+    }
 }

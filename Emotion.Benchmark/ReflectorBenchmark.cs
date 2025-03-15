@@ -2,9 +2,12 @@
 
 using BenchmarkDotNet.Attributes;
 using Emotion.Common;
+using Emotion.Serialization.JSON;
 using Emotion.Serialization.XML;
+using Emotion.Standard.GLTF;
 using Emotion.Standard.XML;
 using Emotion.Testing;
+using Emotion.Utility;
 
 #endregion
 
@@ -23,12 +26,40 @@ public class ReflectorBenchmark
         Number = 10
     };
 
+    ReadOnlyMemory<byte> exampleFileData;
+    ReadOnlyMemory<char> exampleFileDataUTF16;
+
     [GlobalSetup]
     public void GlobalSetup()
     {
         Configurator config = new Configurator();
         config.HiddenWindow = true;
         Engine.StartHeadless(config);
+
+        exampleFileData = File.ReadAllBytes(Path.Join("Assets", "example.gltf"));
+
+        var encodingGuess = Helpers.GuessStringEncoding(exampleFileData.Span);
+        char[]? chars = null;
+        if (encodingGuess.EncodingName == "Unicode (UTF-8)")
+        {
+            var decoder = encodingGuess.GetDecoder();
+            int charCount = decoder.GetCharCount(exampleFileData.Span, true);
+            chars = new char[charCount];
+            decoder.GetChars(exampleFileData.Span, chars, true);
+        }
+        exampleFileDataUTF16 = chars;
+    }
+
+    [Benchmark]
+    public GLTFDocument? Serialize_Emotion_UTF16()
+    {
+        return JSONSerialization.From<GLTFDocument>(exampleFileDataUTF16.Span);
+    }
+
+    [Benchmark]
+    public GLTFDocument? Serialize_Emotion_UTF8()
+    {
+        return JSONSerialization.From<GLTFDocument>(exampleFileData.Span);
     }
 
     [Benchmark]

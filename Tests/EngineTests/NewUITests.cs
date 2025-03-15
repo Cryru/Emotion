@@ -6,17 +6,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.Text;
 using Emotion.Game.Time.Routines;
 using Emotion.Game.World.Editor;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.Testing;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.Tools;
 
 #endregion
 
-namespace Emotion.Testing.Scenarios;
+namespace Tests.EngineTests;
 
 public class NewUITests : TestingScene
 {
@@ -191,7 +193,7 @@ public class NewUITests : TestingScene
 
             UI.AddChild(win);
         }
-        
+
         yield return WaitUILayout();
         yield return VerifyScreenshot();
     }
@@ -537,7 +539,7 @@ public class NewUITests : TestingScene
             a.Text = "Text on the right";
             a.FontSize = 6;
             a.Margins = new Rectangle(0, 0, 5, 0);
-            a.TextHeightMode = Game.Text.GlyphHeightMeasurement.NoMinY;
+            a.TextHeightMode = GlyphHeightMeasurement.NoMinY;
 
             parent.AddChild(a);
         }

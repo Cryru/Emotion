@@ -1,21 +1,12 @@
-﻿#region Using
-
-using System.Text.Json.Serialization;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Standard.GLTF;
 
 public class GLTFAnimation
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("samplers")]
-    public GLTFAnimationSampler[] Samplers { get; set; }
+    public GLTFAnimationSampler[] Samplers { get; set; } = Array.Empty<GLTFAnimationSampler>();
 
-    [JsonPropertyName("channels")]
-    public GLTFAnimationChannel[] Channels { get; set; }
+    public GLTFAnimationChannel[] Channels { get; set; } = Array.Empty<GLTFAnimationChannel>();
 }

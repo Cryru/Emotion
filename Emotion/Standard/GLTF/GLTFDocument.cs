@@ -1,46 +1,28 @@
-﻿#region Using
-
-using Emotion.Standard.GLTF;
-using System.Text.Json.Serialization;
-
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Standard.GLTF;
 
 public class GLTFDocument
 {
-    [JsonPropertyName("buffers")]
-    public GLTFBuffer[] Buffers { get; set; }
+    public GLTFBuffer[] Buffers { get; set; } = Array.Empty<GLTFBuffer>();
 
-    [JsonPropertyName("bufferViews")]
-    public GLTFBufferView[] BufferViews { get; set; }
+    public GLTFBufferView[] BufferViews { get; set; } = Array.Empty<GLTFBufferView>();
 
-    [JsonPropertyName("images")]
-    public GLTFImage[]? Images { get; set; }
+    public GLTFImage[] Images { get; set; } = Array.Empty<GLTFImage>();
 
-    [JsonPropertyName("textures")]
-    public GLTFTexture[] Textures { get; set; }
+    public GLTFTexture[] Textures { get; set; } = Array.Empty<GLTFTexture>();
 
-    [JsonPropertyName("accessors")]
-    public GLTFAccessor[] Accessors { get; set; }
+    public GLTFAccessor[] Accessors { get; set; } = Array.Empty<GLTFAccessor>();
 
-    [JsonPropertyName("animations")]
-    public GLTFAnimation[] Animations { get; set; }
+    public GLTFAnimation[] Animations { get; set; } = Array.Empty<GLTFAnimation>();
 
-    [JsonPropertyName("meshes")]
-    public GLTFMesh[] Meshes { get; set; }
+    public GLTFMesh[] Meshes { get; set; } = Array.Empty<GLTFMesh>();
 
-    [JsonPropertyName("materials")]
-    public GLTFMaterial[]? Materials { get; set; }
+    public GLTFMaterial[] Materials { get; set; } = Array.Empty<GLTFMaterial>();
 
-    [JsonPropertyName("skins")]
-    public GLTFSkins[]? Skins { get; set; }
+    public GLTFSkins[] Skins { get; set; } = Array.Empty<GLTFSkins>();
 
-    [JsonPropertyName("nodes")]
-    public GLTFNode[] Nodes { get; set; }
+    public GLTFNode[] Nodes { get; set; } = Array.Empty<GLTFNode>();
 }
 
 #region OLD TEST CODE

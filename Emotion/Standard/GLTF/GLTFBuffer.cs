@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using System.Text.Json.Serialization;
+using Emotion.Common.Serialization;
 
 #endregion
 
@@ -10,12 +10,13 @@ namespace Emotion.Standard.GLTF;
 
 public class GLTFBuffer
 {
-    [JsonPropertyName("uri")]
     public string Uri { get; set; }
 
-    [JsonPropertyName("byteLength")]
     public int ByteLength { get; set; }
 
-    [JsonIgnore]
+    /// <summary>
+    /// Populated at runtime during parsing.
+    /// </summary>
+    [DontSerialize]
     public ReadOnlyMemory<byte> Data;
 }

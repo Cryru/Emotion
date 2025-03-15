@@ -223,6 +223,9 @@
         <None Update="Assets\Images\standardTif.tif">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Assets\Serialized\example.gltf">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         
         <None Update="Assets\Shaders\BrokenShader.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

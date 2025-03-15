@@ -4,8 +4,10 @@ using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.Serialization.JSON;
 using Emotion.Utility;
 using OpenGL;
+using System;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -20,7 +22,7 @@ public static partial class GLTFFormat
 
     public static GLTFDocument? Decode(ReadOnlyMemory<byte> fileData)
     {
-        return JsonSerializer.Deserialize<GLTFDocument>(fileData.Span);
+        return JSONSerialization.From<GLTFDocument>(fileData.Span);
     }
 
     public static IEnumerable<string> ForEachBufferDependency(GLTFDocument gltfDoc, string rootFolder)
@@ -43,7 +45,7 @@ public static partial class GLTFFormat
         {
             GLTFImage image = images[i];
             string uri = image.Uri;
-            if (uri == null) continue;
+            if (string.IsNullOrEmpty(uri)) continue;
 
             yield return AssetLoader.GetNonRelativePath(rootFolder, uri);
         }
@@ -130,176 +132,174 @@ public static partial class GLTFFormat
             }
 
             // Attach as parent to my children.
-            int[]? children = gltfRigItem.Children;
-            if (children != null)
+            int[] children = gltfRigItem.Children;
+            for (int cIdx = 0; cIdx < children.Length; cIdx++)
             {
-                for (int cIdx = 0; cIdx < children.Length; cIdx++)
-                {
-                    int childIdx = children[cIdx];
-                    rigNodes[childIdx].ParentIdx = i;
-                }
+                int childIdx = children[cIdx];
+                rigNodes[childIdx].ParentIdx = i;
             }
         }
 
         // Read animations
-        SkeletalAnimation[] animations = Array.Empty<SkeletalAnimation>();
-        if (gltfDoc.Animations != null)
+        GLTFAnimation[] gltfAnimation = gltfDoc.Animations;
+        SkeletalAnimation[] animations = gltfAnimation.Length > 0 ? new SkeletalAnimation[gltfAnimation.Length] : Array.Empty<SkeletalAnimation>();
+        for (int i = 0; i < gltfAnimation.Length; i++)
         {
-            animations = new SkeletalAnimation[gltfDoc.Animations.Length];
-            for (int i = 0; i < gltfDoc.Animations.Length; i++)
+            GLTFAnimation gltfAnim = gltfAnimation[i];
+            GLTFAnimationChannel[] gltfChannels = gltfAnim.Channels;
+
+            // We allocate a channel for every node in the rig.
+            // Most of these will be null though. This might be a bit wasteful for giant
+            // rigs with animations that don't move many bones, but at the moment we're only concerned
+            // with look up speed.
+            SkeletonAnimChannel[] channels = new SkeletonAnimChannel[rigNodes.Length];
+
+            float animDuration = 0;
+            for (int c = 0; c < gltfChannels.Length; c++)
             {
-                GLTFAnimation gltfAnim = gltfDoc.Animations[i];
-                GLTFAnimationChannel[] gltfChannels = gltfAnim.Channels;
+                GLTFAnimationChannel gltfChannel = gltfChannels[c];
 
-                // We allocate a channel for every node in the rig.
-                // Most of these will be null though. This might be a bit wasteful for giant
-                // rigs with animations that don't move many bones, but at the moment we're only concerned
-                // with look up speed.
-                SkeletonAnimChannel[] channels = new SkeletonAnimChannel[rigNodes.Length];
+                GLTFAnimationChannelTarget? target = gltfChannel.Target;
+                if (target == null) continue;
 
-                float animDuration = 0;
-                for (int c = 0; c < gltfChannels.Length; c++)
+                int samplerIdx = gltfChannel.Sampler;
+                GLTFAnimationSampler sampler = gltfAnim.Samplers[samplerIdx];
+
+                bool dontInterpolate = false;
+                string? interpolationMode = sampler.Interpolation;
+                switch (interpolationMode)
                 {
-                    GLTFAnimationChannel gltfChannel = gltfChannels[c];
-                    int samplerIdx = gltfChannel.Sampler;
-                    GLTFAnimationSampler sampler = gltfAnim.Samplers[samplerIdx];
-
-                    bool dontInterpolate = false;
-                    string? interpolationMode = sampler.Interpolation;
-                    switch (interpolationMode)
-                    {
-                        case "LINEAR": // Lerp
-                            break;
-                        case "STEP": // Constant value until next keyframe
-                            dontInterpolate = true;
-                            break;
-                        default:
-                            Assert(false, $"Unknown sampler interpolation type {interpolationMode} in animation {gltfAnim.Name}");
-                            break;
-                    }
-
-                    int timestampAccessorId = sampler.Input;
-                    GLTFAccessor timestampAccessor = gltfDoc.Accessors[timestampAccessorId];
-                    AccessorReader<float> timestampData = GetAccessorDataAsType<float>(gltfDoc, timestampAccessor);
-                    for (int t = 0; t < timestampData.Count; t++)
-                    {
-                        float timestamp = timestampData.ReadElement(t) * ANIM_TIME_SCALE;
-                        if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE; // Disgusting hack for some broken models I used :P
-
-                        animDuration = MathF.Max(animDuration, timestamp);
-                    }
-
-                    int dataId = sampler.Output;
-                    GLTFAccessor dataAccessor = gltfDoc.Accessors[dataId];
-
-                    GLTFAnimationChannel.GLTFAnimationChannelTarget target = gltfChannel.Target;
-                    int nodeIdx = target.Node;
-                    SkeletonAnimRigNode node = rigNodes[nodeIdx];
-
-                    SkeletonAnimChannel? channel = channels[nodeIdx];
-                    if (channel == null)
-                    {
-                        channel = new SkeletonAnimChannel();
-                        channel.Name = node.Name ?? string.Empty; // todo
-                        channels[nodeIdx] = channel;
-                    }
-
-                    string path = target.Path;
-                    switch (path)
-                    {
-                        case "rotation":
-                            {
-                                AccessorReader<Vector4> samplerData = GetAccessorDataAsType<Vector4>(gltfDoc, dataAccessor);
-                                MeshAnimBoneRotation[] rotations = new MeshAnimBoneRotation[samplerData.Count];
-                                for (int s = 0; s < samplerData.Count; s++)
-                                {
-                                    Vector4 data = samplerData.ReadElement(s);
-                                    if (MAKE_LEFT_HANDED)
-                                    {
-                                        data.X = -data.X;
-                                        data.Y = -data.Y;
-                                    }
-
-                                    float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
-                                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
-
-                                    rotations[s] = new MeshAnimBoneRotation()
-                                    {
-                                        Rotation = new Quaternion(data.X, data.Y, data.Z, data.W),
-                                        Timestamp = timestamp,
-                                        DontInterpolate = dontInterpolate
-                                    };
-                                }
-                                channel.Rotations = rotations;
-                                break;
-                            }
-                        case "translation":
-                            {
-                                AccessorReader<Vector3> samplerData = GetAccessorDataAsType<Vector3>(gltfDoc, dataAccessor);
-                                MeshAnimBoneTranslation[] translations = new MeshAnimBoneTranslation[samplerData.Count];
-                                for (int s = 0; s < samplerData.Count; s++)
-                                {
-                                    Vector3 data = samplerData.ReadElement(s);
-                                    if (MAKE_LEFT_HANDED) data.Z = -data.Z;
-
-                                    float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
-                                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
-
-                                    translations[s] = new MeshAnimBoneTranslation()
-                                    {
-                                        Position = data,
-                                        Timestamp = timestamp,
-                                        DontInterpolate = dontInterpolate
-                                    };
-                                }
-                                channel.Positions = translations;
-                                break;
-                            }
-                        case "scale":
-                            {
-                                AccessorReader<Vector3> samplerData = GetAccessorDataAsType<Vector3>(gltfDoc, dataAccessor);
-                                MeshAnimBoneScale[] scales = new MeshAnimBoneScale[samplerData.Count];
-                                for (int s = 0; s < samplerData.Count; s++)
-                                {
-                                    Vector3 data = samplerData.ReadElement(s);
-
-                                    float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
-                                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
-
-                                    scales[s] = new MeshAnimBoneScale()
-                                    {
-                                        Scale = data,
-                                        Timestamp = timestamp,
-                                        DontInterpolate = dontInterpolate
-                                    };
-                                }
-                                channel.Scales = scales;
-                                break;
-                            }
-                        default:
-                            Assert(false, $"Unknown channel path {path} in animation {gltfAnim.Name}");
-                            break;
-                    }
+                    case "LINEAR": // Lerp
+                        break;
+                    case "STEP": // Constant value until next keyframe
+                        dontInterpolate = true;
+                        break;
+                    default:
+                        Assert(false, $"Unknown sampler interpolation type {interpolationMode} in animation {gltfAnim.Name}");
+                        break;
                 }
 
-                SkeletalAnimation anim = new SkeletalAnimation()
+                int timestampAccessorId = sampler.Input;
+                GLTFAccessor timestampAccessor = gltfDoc.Accessors[timestampAccessorId];
+                AccessorReader<float> timestampData = GetAccessorDataAsType<float>(gltfDoc, timestampAccessor);
+                for (int t = 0; t < timestampData.Count; t++)
                 {
-                    Name = gltfAnim.Name,
-                    AnimChannels = channels,
-                    Duration = animDuration
-                };
-                animations[i] = anim;
+                    float timestamp = timestampData.ReadElement(t) * ANIM_TIME_SCALE;
+                    if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE; // Disgusting hack for some broken models I used :P
+
+                    animDuration = MathF.Max(animDuration, timestamp);
+                }
+
+                int dataId = sampler.Output;
+                GLTFAccessor dataAccessor = gltfDoc.Accessors[dataId];
+
+                int nodeIdx = target.Node;
+                SkeletonAnimRigNode node = rigNodes[nodeIdx];
+
+                // Check if emotion structure is initialized
+                SkeletonAnimChannel? channel = channels[nodeIdx];
+                if (channel == null)
+                {
+                    channel = new SkeletonAnimChannel();
+                    channel.Name = node.Name ?? string.Empty; // todo
+                    channels[nodeIdx] = channel;
+                }
+
+                string path = target.Path;
+                switch (path)
+                {
+                    case "rotation":
+                        {
+                            AccessorReader<Vector4> samplerData = GetAccessorDataAsType<Vector4>(gltfDoc, dataAccessor);
+                            MeshAnimBoneRotation[] rotations = new MeshAnimBoneRotation[samplerData.Count];
+                            for (int s = 0; s < samplerData.Count; s++)
+                            {
+                                Vector4 data = samplerData.ReadElement(s);
+                                if (MAKE_LEFT_HANDED)
+                                {
+                                    data.X = -data.X;
+                                    data.Y = -data.Y;
+                                }
+
+                                float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
+                                if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
+
+                                rotations[s] = new MeshAnimBoneRotation()
+                                {
+                                    Rotation = new Quaternion(data.X, data.Y, data.Z, data.W),
+                                    Timestamp = timestamp,
+                                    DontInterpolate = dontInterpolate
+                                };
+                            }
+                            channel.Rotations = rotations;
+                            break;
+                        }
+                    case "translation":
+                        {
+                            AccessorReader<Vector3> samplerData = GetAccessorDataAsType<Vector3>(gltfDoc, dataAccessor);
+                            MeshAnimBoneTranslation[] translations = new MeshAnimBoneTranslation[samplerData.Count];
+                            for (int s = 0; s < samplerData.Count; s++)
+                            {
+                                Vector3 data = samplerData.ReadElement(s);
+                                if (MAKE_LEFT_HANDED) data.Z = -data.Z;
+
+                                float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
+                                if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
+
+                                translations[s] = new MeshAnimBoneTranslation()
+                                {
+                                    Position = data,
+                                    Timestamp = timestamp,
+                                    DontInterpolate = dontInterpolate
+                                };
+                            }
+                            channel.Positions = translations;
+                            break;
+                        }
+                    case "scale":
+                        {
+                            AccessorReader<Vector3> samplerData = GetAccessorDataAsType<Vector3>(gltfDoc, dataAccessor);
+                            MeshAnimBoneScale[] scales = new MeshAnimBoneScale[samplerData.Count];
+                            for (int s = 0; s < samplerData.Count; s++)
+                            {
+                                Vector3 data = samplerData.ReadElement(s);
+
+                                float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
+                                if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
+
+                                scales[s] = new MeshAnimBoneScale()
+                                {
+                                    Scale = data,
+                                    Timestamp = timestamp,
+                                    DontInterpolate = dontInterpolate
+                                };
+                            }
+                            channel.Scales = scales;
+                            break;
+                        }
+                    default:
+                        Assert(false, $"Unknown channel path {path} in animation {gltfAnim.Name}");
+                        break;
+                }
             }
+
+            SkeletalAnimation anim = new SkeletalAnimation()
+            {
+                Name = gltfAnim.Name,
+                AnimChannels = channels,
+                Duration = animDuration
+            };
+            animations[i] = anim;
         }
 
         // Read images
-        GLTFImage[] images = gltfDoc.Images ?? Array.Empty<GLTFImage>();
-        Texture[] imagesRead = new Texture[images.Length];
+        GLTFImage[] images = gltfDoc.Images;
+        Texture[] imagesRead = images.Length > 0 ? new Texture[images.Length] : Array.Empty<Texture>();
         for (int i = 0; i < images.Length; i++)
         {
             GLTFImage image = images[i];
             string uri = image.Uri;
-            if (uri == null) continue;
+            if (string.IsNullOrEmpty(uri)) continue;
 
             uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
             TextureAsset? textureAsset = Engine.AssetLoader.ONE_Get<TextureAsset>(uri);
@@ -317,16 +317,19 @@ public static partial class GLTFFormat
         }
 
         // Read materials
-        GLTFMaterial[] gltfMaterials = gltfDoc.Materials ?? Array.Empty<GLTFMaterial>();
+        GLTFMaterial[] gltfMaterials = gltfDoc.Materials;
         MeshMaterial[] materials = new MeshMaterial[gltfMaterials.Length];
         for (int i = 0; i < gltfMaterials.Length; i++)
         {
             GLTFMaterial gltfMaterial = gltfMaterials[i];
-            GLTFMaterial.GLTFPBRMetallicRoughness pbr = gltfMaterial.PBRMetallicRoughness;
-            AssertNotNull(pbr);
+            GLTFMaterialPBR? pbr = gltfMaterial.PBRMetallicRoughness;
+            GLTFBaseColorTexture? baseColorTexture = pbr?.BaseColorTexture;
 
-            GLTFMaterial.GLTFBaseColorTexture baseColorTexture = pbr.BaseColorTexture;
-            AssertNotNull(baseColorTexture);
+            if (baseColorTexture == null)
+            {
+                materials[i] = MeshMaterial.DefaultMaterial;
+                continue;
+            }
 
             int textureIndex = baseColorTexture.Index;
             GLTFTexture texture = gltfDoc.Textures[textureIndex];
