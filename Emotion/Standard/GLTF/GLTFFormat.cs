@@ -7,9 +7,7 @@ using Emotion.IO;
 using Emotion.Serialization.JSON;
 using Emotion.Utility;
 using OpenGL;
-using System;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 
 namespace Emotion.Standard.GLTF;
 
@@ -322,7 +320,7 @@ public static partial class GLTFFormat
         for (int i = 0; i < gltfMaterials.Length; i++)
         {
             GLTFMaterial gltfMaterial = gltfMaterials[i];
-            GLTFMaterialPBR? pbr = gltfMaterial.PBRMetallicRoughness;
+            GLTFMaterialPBR? pbr = gltfMaterial.PbrMetallicRoughness;
             GLTFBaseColorTexture? baseColorTexture = pbr?.BaseColorTexture;
 
             if (baseColorTexture == null)

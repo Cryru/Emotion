@@ -19,7 +19,6 @@ namespace Tests.EngineTests;
 [Test]
 public class SerializationTests
 {
-    [DebugTest]
     [Test]
     public IEnumerator JSONReflectorSerialization_Complex_UTF8()
     {
@@ -143,8 +142,67 @@ public class SerializationTests
                 var primitiveA = aPrimitives[ii];
                 var primitiveB = bPrimitives[ii];
 
+                var attributesA = primitiveA.Attributes;
+                var attributesB = primitiveB.Attributes;
+
+                Assert.Equal(attributesA.Count, attributesB.Count);
+                foreach (var keyVal in attributesA)
+                {
+                    Assert.Equal(keyVal.Value, attributesB[keyVal.Key]);
+                }
+
                 Assert.Equal(primitiveA.Indices, primitiveB.Indices);
                 Assert.Equal(primitiveA.Material, primitiveB.Material);
+            }
+        }
+
+        var eMaterials = docEmotion.Materials;
+        var materials = docCsharp.Materials;
+        for (int i = 0; i < materials.Length; i++)
+        {
+            var a = materials[i];
+            var b = eMaterials[i];
+
+            Assert.Equal(a.Name, b.Name);
+
+            var emissiveA = a.EmissiveFactor;
+            var emissiveB = b.EmissiveFactor;
+
+            Assert.Equal(emissiveA.Length, emissiveB.Length);
+            for (int ii = 0; ii < emissiveA.Length; ii++)
+            {
+                Assert.Equal(emissiveA[ii], emissiveB[ii]);
+            }
+
+            var pbrA = a.PBRMetallicRoughness;
+            var pbrB = b.PbrMetallicRoughness;
+
+            Assert.Equal(pbrA.MetallicFactor, pbrB.MetallicFactor);
+
+            var textureA = pbrA.BaseColorTexture;
+            var textureB = pbrB.BaseColorTexture;
+
+            Assert.Equal(textureA.Index, textureB.Index);
+            Assert.Equal(textureA.TexCoord, textureB.TexCoord);
+        }
+
+        var eSkins = docEmotion.Skins;
+        var skins = docCsharp.Skins;
+        for (int i = 0; i < skins.Length; i++)
+        {
+            var a = skins[i];
+            var b = eSkins[i];
+
+            Assert.Equal(a.Name, b.Name);
+            Assert.Equal(a.InverseBindMatrices, b.InverseBindMatrices);
+
+            var jointsA = a.Joints;
+            var jointsB = b.Joints;
+
+            Assert.Equal(jointsA.Length, jointsB.Length);
+            for (int ii = 0; ii < jointsA.Length; ii++)
+            {
+                Assert.Equal(jointsA[ii], jointsB[ii]);
             }
         }
 

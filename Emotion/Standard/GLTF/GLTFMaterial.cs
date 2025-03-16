@@ -22,5 +22,7 @@ public class GLTFMaterial
 
     public float[] EmissiveFactor { get; set; } = Array.Empty<float>();
 
-    public GLTFMaterialPBR? PBRMetallicRoughness { get; set; }
+    // todo: attribute so we can name this actually PBR
+    // in the json it is PbrMetallicRoughness
+    public GLTFMaterialPBR? PbrMetallicRoughness { get; set; }
 }
