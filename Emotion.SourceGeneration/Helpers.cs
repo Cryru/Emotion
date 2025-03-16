@@ -248,5 +248,10 @@ namespace Emotion.SourceGeneration
 
             return false;
         }
+
+        public static string GetSafeName(string name)
+        {
+            return name.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "").Replace("(", "").Replace(")", "");
+        }
     }
 }

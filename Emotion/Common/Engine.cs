@@ -270,7 +270,7 @@ namespace Emotion.Common
 
             // Setup reflector for serialization/deserialization.
             // Doesn't really depend on anything, but good to have the host setup first.
-            ReflectorEngineInit.Init();
+            ReflectorEngine.Init();
 
             // Async jobs - dependant on host.
             Jobs = new AsyncJobManager();
