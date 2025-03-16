@@ -345,7 +345,8 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator TestUVMapping()
     {
-        var asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAsymmetric.png");
+        TextureAsset asset = Engine.AssetLoader.ONE_Get<TextureAsset>("Images/logoAsymmetric.png");
+        yield return asset;
 
         ToRender = (composer) =>
         {
