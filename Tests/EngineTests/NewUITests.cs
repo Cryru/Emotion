@@ -68,7 +68,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(Fill));
     }
 
     [Test]
@@ -90,7 +90,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisWithChild));
     }
 
     [Test]
@@ -113,7 +113,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeight));
     }
 
     [Test]
@@ -137,7 +137,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeightAndWidth));
     }
 
     [Test]
@@ -162,7 +162,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillNeitherAxisMinHeightAndWidth));
     }
 
     [Test]
@@ -195,7 +195,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TwoSquaresInFillY));
     }
 
     [Test]
@@ -217,7 +217,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
 
         {
             UIBaseWindow list = UI.GetWindowById("test")!;
@@ -225,7 +225,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
     }
 
     [Test]
@@ -279,7 +279,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            yield return VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -287,7 +287,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            yield return VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -296,7 +296,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            VerifyScreenshot(screenshotExtraText);
+            VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -305,7 +305,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            yield return VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
@@ -313,7 +313,7 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            yield return VerifyScreenshot(screenshotExtraText);
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
         }
     }
 
@@ -469,7 +469,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
 
         {
             UIBaseWindow list = UI.GetWindowById("list")!;
@@ -515,7 +515,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
 
         // Bar v2 (Possible only with the new UI)
         {
@@ -526,7 +526,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
 
         // Add text on the right
         {
@@ -545,7 +545,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
     }
 
     [Test]
@@ -623,7 +623,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
 
         UI.ClearChildren();
 
@@ -682,7 +682,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
 
         {
             UIBaseWindow? list = UI.GetWindowById("list");
@@ -696,7 +696,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
 
         {
             UIBaseWindow? list = UI.GetWindowById("list");
@@ -705,7 +705,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
     }
 
     [Test]
@@ -730,7 +730,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TextWithBackground));
     }
 
     [Test]
@@ -812,7 +812,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(EditorDropDownRelativeToAndOutsideParent));
     }
 
     [Test]
@@ -842,7 +842,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return VerifyScreenshot();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorBottomBar));
     }
 
     [Test]
@@ -856,7 +856,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(EditorPanelEmpty));
 
         MapEditorColorPalette.EditorButtonTextSize = oldTextSize;
     }
@@ -895,12 +895,12 @@ public class NewUITests : TestingScene
         UI.AddChild(win);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
 
         win.Paddings = new Rectangle(5, 5, 5, 5);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
 
         win.Paddings = Rectangle.Empty;
         win.LayoutMode = LayoutMode.HorizontalList;
@@ -933,12 +933,12 @@ public class NewUITests : TestingScene
         win.AddChild(c);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
 
         win.Paddings = new Rectangle(5, 5, 5, 5);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
     }
 
     [Test]
@@ -982,13 +982,13 @@ public class NewUITests : TestingScene
         UI.AddChild(win);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(BackgroundWindow));
 
         win.LayoutMode = LayoutMode.HorizontalList;
         win.InvalidateLayout();
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(BackgroundWindow));
     }
 
     [Test]
@@ -1021,7 +1021,7 @@ public class NewUITests : TestingScene
         UI.AddChild(win);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(HorizontalPanelLayout));
 
         //yield return new TestWaiterRunLoops(-1);
 
@@ -1098,12 +1098,12 @@ public class NewUITests : TestingScene
         win.AddChild(insideWin3);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OverlayWindow));
 
         insideWin.OverlayWindow = true;
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OverlayWindow));
 
         insideWin.OverlayWindow = false;
 
@@ -1119,12 +1119,12 @@ public class NewUITests : TestingScene
         UI.AddChild(relativeWin);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OverlayWindow));
 
         relativeWin.OverlayWindow = true;
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(OverlayWindow));
     }
 
     [Test]
@@ -1137,25 +1137,25 @@ public class NewUITests : TestingScene
         UI.AddChild(label);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         // Check for tag false positives
         label.Text = "<text in brackets that isnt a tag>";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         label.Text = "<word>";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         // Check color tag functionality
 
         label.Text = "The quick brown <color #00FF00>fox</> jumped over the lazy dog.";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         // Check outline tag functionality
         // (Currently text outline functionality doesn't work)
@@ -1163,43 +1163,43 @@ public class NewUITests : TestingScene
         label.Text = "The quick brown <outline #00FF00 size=5>fox</> jumped over the lazy dog.";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         // Check center tag functionality
 
         label.Text = "<center>The quick brown fox,</>\n<center> jumped over the lazy dog.</>";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         label.Text = "<center>The quick brown fox,\n jumped over the lazy dog.</>";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         // Check right tag functionality
 
         label.Text = "<right>The quick brown fox,</>\n<right> jumped over the lazy dog.</>";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         label.Text = "<right>The quick brown fox,\n jumped over the lazy dog.</>";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         // Check some edge cases
 
         label.Text = "<unclosed The quick brown fox, jumped over the lazy dog.";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
         label.Text = "</>The quick brown fox, jumped over the lazy dog.";
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
     }
 
     [Test]
@@ -1267,7 +1267,7 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(CenterAndFillWarningCheck));
 
         Assert.True(found);
     }
@@ -1290,7 +1290,7 @@ public class NewUITests : TestingScene
         parent.AddChild(scrollArea);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         var list = new UIBaseWindow()
         {
@@ -1309,18 +1309,18 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         scrollArea.ScrollTo(new Vector2(100, 100));
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         scrollArea.AutoHideScrollX = false;
         scrollArea.InvalidateLayout();
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         scrollArea.AutoHideScrollX = true;
         scrollArea.AutoHideScrollY = true;
@@ -1335,12 +1335,12 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         scrollArea.ScrollTo(new Vector2(100, 100));
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         list.Close();
         UITexture texture = new UITexture()
@@ -1351,12 +1351,12 @@ public class NewUITests : TestingScene
         scrollArea.AddChildInside(texture);
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         scrollArea.ScrollTo(new Vector2(100, 100));
 
         yield return WaitUILayout();
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         // todo: test input (scroll wheel, scroll bar dragging etc)
     }

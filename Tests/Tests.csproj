@@ -37,6 +37,8 @@
         <Compile Remove="Assets\Scripts\CustomMainArgsScript.cs" />
         <Compile Remove="Assets\Scripts\CustomMainScript.cs" />
         <Compile Remove="Assets\Scripts\MainScript.cs" />
+        <Compile Remove="Classes\ScriptingTest.cs" />
+        <Compile Remove="Classes\StandardTextTests.cs" />
         <Compile Remove="Classes\UITests.cs" />
     </ItemGroup>
 
@@ -62,13 +64,14 @@
         <None Include="Assets\Scripts\MainScript.cs">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Include="Classes\ScriptingTest.cs" />
+        <None Include="Classes\StandardTextTests.cs" />
         <None Include="Classes\UITests.cs" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\Emotion\Emotion.csproj" />
-        <ProjectReference Include="..\Legacy\Emotion.Test\Emotion.Test.csproj" />
     </ItemGroup>
 
     <ItemGroup>

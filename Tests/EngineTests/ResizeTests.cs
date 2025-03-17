@@ -39,7 +39,7 @@ public class ResizeTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ResizeTests), nameof(TestFullScale));
 
         Engine.Renderer.Camera = oldCamera;
         Engine.Host.Size = oldHostSize;
@@ -65,7 +65,7 @@ public class ResizeTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ResizeTests), nameof(TestFullScaleInteger));
 
         Engine.Renderer.Camera = oldCamera;
         Engine.Host.Size = oldHostSize;

@@ -65,25 +65,9 @@ public abstract class TestingScene : Scene
 
     private HashSet<string> _usedNamed = new();
 
-    public VerifyScreenshotResult VerifyScreenshot(string? addToScreenshotName = null, string? stackOverwrite = null)
+    public VerifyScreenshotResult VerifyScreenshot(string testClass, string fileName, string? addToScreenshotName = null)
     {
-        string fullFunctionName = stackOverwrite ?? TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
-        int lastDot = fullFunctionName.LastIndexOf('.');
-
-        string fileName = fullFunctionName;
-        if (lastDot != -1) fileName = fileName.Substring(lastDot + 1);
-        fileName = fileName.Replace("+MoveNext()", "");
-        fileName = AssetLoader.MakeStringPathSafe(fileName);
-
-        var testClass = "TestClass";
-        if (lastDot != -1)
-        {
-            int secondToLastDot = fullFunctionName.LastIndexOf('.', lastDot - 1);
-            testClass = fullFunctionName.Substring(secondToLastDot + 1, lastDot - secondToLastDot - 1);
-            testClass = testClass.Replace("+MoveNext()", "");
-        }
-
-        fileName = $"{fileName}";
+        fileName = $"{fileName}()";
         if (addToScreenshotName != null) fileName += addToScreenshotName;
         lock (_usedNamed)
         {

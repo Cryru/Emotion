@@ -91,7 +91,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
 
         // Capture starting frames.
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
         Assert.Equal(0, normalLoop.CurrentFrameIndex);
         Assert.Equal(0, noLoop.CurrentFrameIndex);
         Assert.Equal(0, normalThenReverse.CurrentFrameIndex);
@@ -102,7 +102,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
         Assert.Equal(1, normalLoop.CurrentFrameIndex);
         Assert.Equal(1, noLoop.CurrentFrameIndex);
         Assert.Equal(1, normalThenReverse.CurrentFrameIndex);
@@ -113,7 +113,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
         Assert.Equal(2, normalLoop.CurrentFrameIndex);
         Assert.Equal(2, noLoop.CurrentFrameIndex);
         Assert.Equal(2, normalThenReverse.CurrentFrameIndex);
@@ -124,7 +124,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
         Assert.Equal(3, normalLoop.CurrentFrameIndex);
         Assert.Equal(3, noLoop.CurrentFrameIndex);
         Assert.Equal(3, normalThenReverse.CurrentFrameIndex);
@@ -135,7 +135,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
         Assert.Equal(0, normalLoop.CurrentFrameIndex);
         Assert.Equal(3, noLoop.CurrentFrameIndex);
         Assert.Equal(2, normalThenReverse.CurrentFrameIndex);
@@ -146,7 +146,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
         Assert.Equal(1, normalLoop.CurrentFrameIndex);
         Assert.Equal(3, noLoop.CurrentFrameIndex);
         Assert.Equal(1, normalThenReverse.CurrentFrameIndex);
@@ -234,7 +234,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
 
         // Not it should match the starting state
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassDrawing));
 
         Assert.Equal(0, normalLoop.CurrentFrameIndex);
         Assert.Equal(0, noLoop.CurrentFrameIndex);
@@ -322,7 +322,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
 
         // Capture starting frames.
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassErrorBehavior));
         Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
         Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
         Assert.Equal(0, frameChange.CurrentFrameIndex);
@@ -331,7 +331,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassErrorBehavior));
         Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
         Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
         Assert.Equal(1, frameChange.CurrentFrameIndex);
@@ -349,7 +349,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassErrorBehavior));
         Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
         Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
         Assert.Equal(3, frameChange.CurrentFrameIndex);
@@ -367,7 +367,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassErrorBehavior));
         Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
         Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
         Assert.Equal(3, frameChange.CurrentFrameIndex);
@@ -376,7 +376,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassErrorBehavior));
         Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
         Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
         Assert.Equal(1, frameChange.CurrentFrameIndex);
@@ -385,7 +385,7 @@ public class AnimatedTextureTest : ProxyRenderTestingScene
         AdvanceAnimation(500);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(AnimatedTextureTest), nameof(AnimatedTextureClassErrorBehavior));
         Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
         Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
         Assert.Equal(2, frameChange.CurrentFrameIndex);

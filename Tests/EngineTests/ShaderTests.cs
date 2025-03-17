@@ -56,21 +56,21 @@ public class ShaderTests : ProxyRenderTestingScene
         // Change to phase 1. This is drawing with the test shader.
         shaderTest = 0;
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ShaderTests), nameof(ShaderTest));
 
         shaderTest = 1;
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ShaderTests), nameof(ShaderTest));
 
         // Change to phase 2. This is drawing with the vert missing shader.
         shaderTest = 2;
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ShaderTests), nameof(ShaderTest));
 
         // Change to phase 3. This is drawing with the frag missing shader.
         shaderTest = 3;
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ShaderTests), nameof(ShaderTest));
 
         // Cleanup
         foreach (ShaderAsset s in shaders)
@@ -105,7 +105,7 @@ public class ShaderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ShaderTests), nameof(ShaderBrokenLoad));
 
         // Even though the shader is broken, and it doesn't specify a fallback, it should load the compat shader.
         Assert.True(shader.Shader != null);
@@ -137,7 +137,7 @@ public class ShaderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(ShaderTests), nameof(ShaderFallback));
 
         // The shader should've loaded its fallback.
         Assert.True(shader.Shader != null);

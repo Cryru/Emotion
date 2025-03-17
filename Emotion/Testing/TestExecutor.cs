@@ -250,8 +250,8 @@ public static class TestExecutor
 #else
                     Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
                     func.Invoke(currentClassInstance, new object[] { });
-                    completedInTestClasses++;
-                    completedThisClass++;
+                    Interlocked.Add(ref completed, 1);
+                    Interlocked.Add(ref completedThisClass, 1);
 #endif
                 }
 

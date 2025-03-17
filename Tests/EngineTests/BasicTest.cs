@@ -32,7 +32,7 @@ public class BasicTest : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicTest), nameof(ClearColorAndBasicRender));
     }
 
     /// <summary>

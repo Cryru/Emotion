@@ -7,7 +7,7 @@ using Emotion.Audio;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
-using Emotion.Test.Helpers;
+using Emotion.Standard.Logging;
 using Emotion.Testing;
 
 #endregion
@@ -88,7 +88,7 @@ public class StandardAudioTests
                 var streamer = new AudioConverter(pepsi.Format, pepsi.SoundData);
                 var segmentConvert = new List<byte>();
                 int framesGet = new Random().Next(1, 500);
-                Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", TestRunnerLogger.TestRunnerSrc);
+                Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", MessageSource.Test);
 
                 var minutesTimeout = 2;
                 DateTime start = DateTime.Now;
@@ -103,7 +103,7 @@ public class StandardAudioTests
                     segmentConvert.AddRange(spanData.Slice(0, samplesAmount * format.SampleSize).ToArray());
                 }
 
-                if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", TestRunnerLogger.TestRunnerSrc);
+                if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", MessageSource.Test);
 
                 Assert.Equal(segmentConvert.Count, copy.Length);
                 // V No longer true due to floating point precision.
@@ -130,7 +130,7 @@ public class StandardAudioTests
 
                 var segmentConvert = new List<byte>();
                 int framesGet = new Random().Next(1, 500);
-                Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", TestRunnerLogger.TestRunnerSrc);
+                Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", MessageSource.Test);
 
                 DateTime start = DateTime.Now;
                 int playHead = 0;

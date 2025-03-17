@@ -56,7 +56,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderComposerSpriteLimit));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderComposerRandomInvalidation));
     }
 
     /// <summary>
@@ -187,7 +187,8 @@ public class BasicRenderTests : ProxyRenderTestingScene
                 yield return new TestWaiterRunLoops(1);
 
                 // Verify only on the last run of the variant.
-                if (c == drawsPerVariant - 1) VerifyScreenshot();
+                if (c == drawsPerVariant - 1)
+                    VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderStreamMultiPrimitiveBatching));
             }
         }
     }
@@ -207,7 +208,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderText));
     }
 
     /// <summary>
@@ -227,7 +228,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderRichText));
     }
 
     /// <summary>
@@ -282,7 +283,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderDepthTest));
     }
 
     [Test]
@@ -297,7 +298,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(TilemapRender));
     }
 
     /// <summary>
@@ -336,7 +337,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
          };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(TestDepthFromOtherFrameBuffer));
     }
 
     /// <summary>
@@ -372,7 +373,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(TestUVMapping));
     }
 
     /// <summary>
@@ -406,7 +407,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(FramebufferResizing));
     }
 
     /// <summary>
@@ -454,6 +455,6 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(BasicRenderTests), nameof(LineDrawing));
     }
 }

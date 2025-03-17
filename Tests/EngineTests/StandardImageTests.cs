@@ -42,7 +42,7 @@ public class StandardImageTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(StandardImageTests), nameof(DecodeBmp16));
 
         texture.Dispose();
     }
@@ -73,7 +73,7 @@ public class StandardImageTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(StandardImageTests), nameof(DecodeBmp24));
 
         texture.Dispose();
     }
@@ -104,7 +104,7 @@ public class StandardImageTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(StandardImageTests), nameof(DecodeBmp256));
 
         texture.Dispose();
     }
@@ -133,7 +133,7 @@ public class StandardImageTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(StandardImageTests), nameof(DecodePng));
 
         texture.Dispose();
     }
@@ -163,7 +163,7 @@ public class StandardImageTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot();
+        VerifyScreenshot(nameof(StandardImageTests), nameof(DecodePngInterlaced));
 
         texture.Dispose();
     }

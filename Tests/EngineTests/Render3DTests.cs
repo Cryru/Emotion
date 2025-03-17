@@ -48,7 +48,7 @@ public class Render3DTests : TestingScene
         _gameMap.Update(16);
     }
 
-    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string? stackOverwrite = null)
+    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string funcName)
     {
         var cam = Engine.Renderer.Camera;
 
@@ -56,37 +56,37 @@ public class Render3DTests : TestingScene
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(null, stackOverwrite);
+        VerifyScreenshot(nameof(Render3DTests), funcName);
 
         cam.Position = point + new Vector3(0, 0, -100);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(null, stackOverwrite);
+        VerifyScreenshot(nameof(Render3DTests), funcName);
 
         cam.Position = point + new Vector3(100, 0, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(null, stackOverwrite);
+        VerifyScreenshot(nameof(Render3DTests), funcName);
 
         cam.Position = point + new Vector3(-100, 0, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(null, stackOverwrite);
+        VerifyScreenshot(nameof(Render3DTests), funcName);
 
         cam.Position = point + new Vector3(0, 100, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(null, stackOverwrite);
+        VerifyScreenshot(nameof(Render3DTests), funcName);
 
         cam.Position = point + new Vector3(0, -100, 0);
         cam.LookAtPoint(Vector3.Zero);
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(null, stackOverwrite);
+        VerifyScreenshot(nameof(Render3DTests), funcName);
     }
 
     [Test]
@@ -96,6 +96,6 @@ public class Render3DTests : TestingScene
         Engine.Renderer.Camera = cam;
         yield return new TestWaiterRunLoops(1);
 
-        yield return ScreenshotPointFromAllSides(Vector3.Zero, TestingUtility.GetFunctionBackInStack(0));
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(WorldWith2DCamera));
     }
 }
