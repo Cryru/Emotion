@@ -408,7 +408,8 @@ public static partial class GLTFFormat
             for (int p = 0; p < primitives.Length; p++) // sucks
             {
                 GLTFMeshPrimitives primitive = primitives[p];
-                Dictionary<string, int> attributes = primitive.Attributes;
+                Dictionary<string, int>? attributes = primitive.Attributes;
+                if (attributes == null) continue;
 
                 // Read indices
                 GLTFAccessor indexAccessor = gltfDoc.Accessors[primitive.Indices];
@@ -427,6 +428,7 @@ public static partial class GLTFFormat
                     Assert(indexAccessor.ComponentType == Gl.UNSIGNED_SHORT);
                     ReadOnlyMemory<byte> indicesData = GetAccessorData(gltfDoc, indexAccessor);
                     ReadOnlySpan<ushort> indicesAsUshort = MemoryMarshal.Cast<byte, ushort>(indicesData.Span);
+                    indicesAsUshort = indicesAsUshort.Slice(0, indexAccessor.Count);
                     indicesAsUshort.CopyTo(indices);
                 }
 
@@ -460,7 +462,6 @@ public static partial class GLTFFormat
 
                     for (int i = 0; i < indices.Length; i++)
                     {
-                        ushort vIdx = indices[i];
                         indices[i] -= (ushort)vertexOffset;
                     }
                 }

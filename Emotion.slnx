@@ -19,11 +19,6 @@
         <Platform Solution="*|Android" Project="Android" />
         <Deploy Solution="*|Android" />
     </Project>
-    <Project Path="Legacy\Emotion.Test\Emotion.Test.csproj">
-        <Platform Project="x64" />
-        <Build Solution="*|Android" Project="false" />
-        <Build Solution="Release|Win64" Project="false" />
-    </Project>
     <Project Path="Tests\Tests.csproj">
         <Platform Project="Default" />
         <BuildType Solution="Autobuild|*" Project="Release" />
