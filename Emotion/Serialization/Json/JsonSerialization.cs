@@ -81,4 +81,10 @@ public static class JSONSerialization
 
         return complexHandler.ParseFromJSON(ref reader);
     }
+
+    public static string? To<T>(T obj)
+    {
+        // temp
+        return System.Text.Json.JsonSerializer.Serialize<T>(obj);
+    }
 }

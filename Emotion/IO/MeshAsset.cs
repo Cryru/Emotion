@@ -4,6 +4,8 @@
 
 using Emotion.Graphics.ThreeDee;
 using Emotion.Standard.GLTF;
+using Emotion.Serialization.JSON;
+
 
 #if MORE_MESH_TYPES
 using Emotion.Standard.Assimp;
@@ -58,6 +60,18 @@ public class MeshAsset : Asset
             entity = AssimpFormat.CreateEntityFromDocument(data, Name);
             if (entity != null && entity.Meshes.Length == 0)
                 entity = null;
+
+#if DEBUG
+            // Try to save it as GLTF
+            if (entity != null)
+            {
+                var gltfDoc = GLTFFormat.CreateDocumentFromEntity(entity);
+                string asGltfFile = JSONSerialization.To(gltfDoc);
+                string nameWithExt = AssetLoader.GetFilePathNoExtension(Name);
+                byte[] bytes = System.Text.Encoding.Default.GetBytes(asGltfFile);
+                Engine.AssetLoader.Save(bytes, nameWithExt);
+            }
+#endif
         }
 #endif
 

@@ -641,6 +641,25 @@ public static partial class GLTFFormat
         return entity;
     }
 
+    public static GLTFDocument CreateDocumentFromEntity(MeshEntity entity)
+    {
+        var doc = new GLTFDocument();
+
+        Mesh[] entityMeshes = entity.Meshes;
+        doc.Meshes = new GLTFMesh[entityMeshes.Length];
+        for (int i = 0; i < entityMeshes.Length; i++)
+        {
+            var gltfMesh = new GLTFMesh();
+            var emoMesh = entity.Meshes[i];
+
+            gltfMesh.Name = emoMesh.Name;
+
+            doc.Meshes[i] = gltfMesh;
+        }
+
+        return doc;
+    }
+
     private static ReadOnlyMemory<byte> GetAccessorData(GLTFDocument gltfDoc, GLTFAccessor accessor)
     {
         int bufferViewIdx = accessor.BufferView;
