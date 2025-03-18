@@ -163,7 +163,8 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
 
         // Add to the list.
         var dev = new WasApiAudioDevice(id, deviceName, device);
-        _devices.Add(id, dev);
+        if (!_devices.TryAdd(id, dev))
+            _devices[id] = dev;
         Engine.Log.Trace($"Detected audio device - {deviceName}", MessageSource.Win32);
 
         return dev;
@@ -179,7 +180,7 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
         int error = endpoint.GetId(out string? defaultId);
         if (error != 0)
             Win32Platform.CheckError("Couldn't retrieve the id of the default audio device.");
-        else if(defaultId != null)
+        else if (defaultId != null)
             SetDefaultDevice(defaultId);
     }
 
