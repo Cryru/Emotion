@@ -34,10 +34,8 @@ namespace Emotion.Graphics
 
             color ??= _defaultDbgObjectColor;
 
-            var meshGen = new SphereMeshGenerator();
-            Mesh sphereMesh = meshGen.GenerateMesh().TransformMeshVertices(
-                Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
-            );
+            var sp = new Sphere(p, radius);
+            Mesh sphereMesh = sp.GetEntity().Meshes[0];
             sphereMesh.Material = new MeshMaterial()
             {
                 DiffuseColor = color.Value

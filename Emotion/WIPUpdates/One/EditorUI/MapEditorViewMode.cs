@@ -195,7 +195,7 @@ public class MapEditorViewMode : UIBaseWindow
             c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3(100)));
 
             // todo: render 3d in UI
-            if (_gizmoEntity.Meshes != null)
+            if (_gizmoEntity != null)
             {
                 for (int i = 0; i < _gizmoEntity.Meshes.Length; i++)
                 {

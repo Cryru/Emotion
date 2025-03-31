@@ -27,11 +27,11 @@ public class TerrainImport
         terrainEntity.GetBounds(null, out _, out Cube cub);
         Vector3 min = cub.Origin - cub.HalfExtents;
 
-        for (int i = 0; i < terrainMesh.Vertices.Length; i++)
-        {
-            ref Graphics.Data.VertexData vertex = ref terrainMesh.Vertices[i];
-            vertex.Vertex = vertex.Vertex - min;
-        }
+        //for (int i = 0; i < terrainMesh.Vertices.Length; i++)
+        //{
+        //    ref Graphics.Data.VertexData vertex = ref terrainMesh.Vertices[i];
+        //    vertex.Vertex = vertex.Vertex - min;
+        //}
 
         terrainEntity.ResetCachedBounds();
         terrainEntity.GetBounds(null, out _, out cub);

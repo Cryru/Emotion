@@ -9,15 +9,17 @@ public struct VertexDataAllocation
 {
     public bool Allocated { get => Pointer != IntPtr.Zero; }
 
-    public IntPtr Pointer = IntPtr.Zero;
-    public int VertexCount = 0;
-    public VertexDataDescription Description;
+    public IntPtr Pointer { get; init; } = IntPtr.Zero;
+
+    public int VertexCount { get; init; } = 0;
+
+    public VertexDataDescription Format { get; init; }
 
     public VertexDataAllocation(IntPtr pointer, int vertCount, VertexDataDescription description)
     {
         Pointer = pointer;
         VertexCount = vertCount;
-        Description = description;
+        Format = description;
     }
 
     public unsafe Span<T> GetAsSpan<T>()
@@ -27,13 +29,13 @@ public struct VertexDataAllocation
 
     public IEnumerable<Vector3> ForEachVertexPosition()
     {
-        if (!Description.HasPosition) yield break;
+        if (!Format.HasPosition) yield break;
         if (!Allocated) yield break;
 
         nint vertMem = Pointer;
         Assert(vertMem != 0);
 
-        Description.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
         vertMem += byteOffset;
 
         for (int i = 0; i < VertexCount; i++)
@@ -52,13 +54,13 @@ public struct VertexDataAllocation
 
     public IEnumerable<VertexBoneData> ForEachBoneData()
     {
-        if (!Description.HasBones) yield break;
+        if (!Format.HasBones) yield break;
         if (!Allocated) yield break;
 
         nint vertMem = Pointer;
         Assert(vertMem != 0);
 
-        Description.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
+        Format.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
         vertMem += byteOffset;
 
         for (int i = 0; i < VertexCount; i++)
@@ -77,13 +79,13 @@ public struct VertexDataAllocation
 
     public unsafe Triangle GetTriangleAtIndices(ushort i1, ushort i2, ushort i3)
     {
-        if (!Description.HasPosition) return Triangle.Invalid;
+        if (!Format.HasPosition) return Triangle.Invalid;
         if (!Allocated) return Triangle.Invalid;
 
         nint vertMem = Pointer;
         Assert(vertMem != 0);
 
-        Description.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
         vertMem += byteOffset;
 
         Vector3 v1 = *(Vector3*) (vertMem + byteStride * i1);

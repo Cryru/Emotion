@@ -13,7 +13,6 @@ using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
-using Emotion.IO.MeshAssetTypes;
 using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
@@ -109,34 +108,34 @@ public class ModelViewer : EditorPanel
         };
         editorButtons.AddChild(butObj);
 
-        var butSprite = new EditorButton
-        {
-            Text = "Open Sprite Stack",
-            StretchY = true,
-            StretchX = false,
-            OnClickedProxy = _ =>
-            {
-                Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
-                {
-                    var createMapModal = new PropertyInputModal<SpriteStackCreationEnvelope>(data =>
-                    {
-                        if (data.TileSize == Vector2.Zero) return false;
+        //var butSprite = new EditorButton
+        //{
+        //    Text = "Open Sprite Stack",
+        //    StretchY = true,
+        //    StretchX = false,
+        //    OnClickedProxy = _ =>
+        //    {
+        //        Controller!.AddChild(new EditorFileExplorer<SpriteStackTexture>(asset =>
+        //        {
+        //            var createMapModal = new PropertyInputModal<SpriteStackCreationEnvelope>(data =>
+        //            {
+        //                if (data.TileSize == Vector2.Zero) return false;
 
-                        MeshEntity? entity = asset.GetSpriteStackEntity(data.TileSize);
-                        if (entity != null)
-                        {
-                            SetEntity(entity);
-                            return true;
-                        }
+        //                MeshEntity? entity = asset.GetSpriteStackEntity(data.TileSize);
+        //                if (entity != null)
+        //                {
+        //                    SetEntity(entity);
+        //                    return true;
+        //                }
 
-                        return false;
-                    }, "", "SpriteStack Entity", "Create");
+        //                return false;
+        //            }, "", "SpriteStack Entity", "Create");
 
-                    Controller!.AddChild(createMapModal);
-                }));
-            }
-        };
-        editorButtons.AddChild(butSprite);
+        //            Controller!.AddChild(createMapModal);
+        //        }));
+        //    }
+        //};
+        //editorButtons.AddChild(butSprite);
 
         //var saveAsEm3Button = new EditorButton
         //{

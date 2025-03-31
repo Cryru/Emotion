@@ -215,7 +215,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         if (cachedMesh == null)
         {
             cachedMesh = new Graphics.ThreeDee.Mesh($"TerrainChunk_{chunkCoord}", _terrainChunkIndices, TerrainMeshMaterial);
-            cachedMesh.VertexMemory.Description = VertexData_Pos_UV_Normal_Color.Descriptor;
+            cachedMesh.VertexFormat = VertexData_Pos_UV_Normal_Color.Format;
             cachedMesh.AllocateVertices(vertexCount); // todo: handle changing parameters
             chunkCache.CachedMesh = cachedMesh;
         }
