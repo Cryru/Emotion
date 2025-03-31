@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Utility;
+using System;
 using System.Text;
 
 namespace Emotion.Graphics.Data;
@@ -13,13 +14,18 @@ public struct VertexDataAllocation
 
     public int VertexCount { get; init; } = 0;
 
-    public VertexDataDescription Format { get; init; }
+    public VertexDataFormat Format { get; init; }
 
-    public VertexDataAllocation(IntPtr pointer, int vertCount, VertexDataDescription description)
+    public VertexDataAllocation(IntPtr pointer, int vertCount, VertexDataFormat description)
     {
         Pointer = pointer;
         VertexCount = vertCount;
         Format = description;
+    }
+
+    public uint GetAllocationSize()
+    {
+        return (uint) (VertexCount * Format.ElementSize);
     }
 
     public unsafe Span<T> GetAsSpan<T>()
@@ -96,9 +102,9 @@ public struct VertexDataAllocation
     }
 }
 
-public sealed class VertexDataDescription
+public sealed class VertexDataFormat
 {
-    public static VertexDataDescription Default2D = new VertexDataDescription()
+    public static VertexDataFormat Default2D = new VertexDataFormat()
         .AddVertexPosition()
         .AddUV(1)
         .AddVertexColor()
@@ -126,42 +132,42 @@ public sealed class VertexDataDescription
 
     #region Build
 
-    public VertexDataDescription AddVertexPosition()
+    public VertexDataFormat AddVertexPosition()
     {
         if (!Built)
             HasPosition = true;
         return this;
     }
 
-    public VertexDataDescription AddUV(int count)
+    public VertexDataFormat AddUV(int count)
     {
         if (!Built)
             HasUVCount += count;
         return this;
     }
 
-    public VertexDataDescription AddNormal()
+    public VertexDataFormat AddNormal()
     {
         if (!Built)
             HasNormals = true;
         return this;
     }
 
-    public VertexDataDescription AddVertexColor()
+    public VertexDataFormat AddVertexColor()
     {
         if (!Built)
             HasVertexColors = true;
         return this;
     }
 
-    public VertexDataDescription AddBoneData()
+    public VertexDataFormat AddBoneData()
     {
         if (!Built)
             HasBones = true;
         return this;
     }
 
-    public VertexDataDescription Build()
+    public VertexDataFormat Build()
     {
         if (Built) return this;
 
@@ -235,6 +241,22 @@ public sealed class VertexDataDescription
         stride = ElementSize;
     }
 
+    public void GetVertexColorsOffsetAndStride(out int offset, out int stride)
+    {
+        Assert(HasVertexColors);
+
+        int byteOffset = 0;
+        if (HasPosition) byteOffset += POSITION_SIZE;
+        for (int i = 0; i < HasUVCount; i++)
+        {
+            byteOffset += UV_SIZE;
+        }
+        if (HasNormals) byteOffset += NORMAL_SIZE;
+
+        offset = byteOffset;
+        stride = ElementSize;
+    }
+
     public void GetBoneDataOffsetAndStride(out int offset, out int stride)
     {
         Assert(HasBones);
@@ -245,6 +267,7 @@ public sealed class VertexDataDescription
         {
             byteOffset += UV_SIZE;
         }
+        if (HasNormals) byteOffset += NORMAL_SIZE;
         if (HasVertexColors) byteOffset += COLOR_SIZE;
 
         offset = byteOffset;

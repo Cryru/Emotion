@@ -444,7 +444,7 @@ public static partial class GLTFFormat
                 meshes[currentMeshId] = mesh;
                 currentMeshId++;
 
-                VertexDataDescription vertexDescription = mesh.VertexFormat;
+                VertexDataFormat vertexDescription = mesh.VertexFormat;
 
                 // Initialize the vertex data
                 bool isSkinned = false;

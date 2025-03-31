@@ -24,7 +24,7 @@ public class Mesh
 
     public MeshMaterial Material;
     public ushort[] Indices;
-    public VertexDataDescription VertexFormat = new VertexDataDescription();
+    public VertexDataFormat VertexFormat = new VertexDataFormat();
     public VertexDataAllocation VertexMemory;
 
     //public VertexData[] Vertices;
@@ -127,7 +127,7 @@ public class Mesh
     public Mesh TransformMeshVertices(Matrix4x4 mat)
     {
         // Check if verts have position
-        VertexDataDescription meshDesc = VertexFormat;
+        VertexDataFormat meshDesc = VertexFormat;
         if (!meshDesc.HasPosition) return this;
 
         // Check if allocated

@@ -2,6 +2,7 @@
 
 using System.Runtime.InteropServices;
 using Emotion.Common.Threading;
+using Emotion.Graphics.Data;
 using OpenGL;
 
 #endregion
@@ -55,9 +56,15 @@ namespace Emotion.Graphics.Objects
 
             Type = type;
             Pointer = Gl.GenBuffer();
-            EnsureBound(Pointer, Type);
+            EnsureBound(Pointer, Type); // This tells the buffer what type it is - we need it despite not uploading.
 
-            if (byteSize != 0) Upload(IntPtr.Zero, byteSize, dataUsage);
+            if (byteSize != 0)
+                Upload(IntPtr.Zero, byteSize, dataUsage);
+        }
+
+        public void Upload(VertexDataAllocation memory)
+        {
+            Upload(memory.Pointer, memory.GetAllocationSize(), BufferUsage.StaticDraw);
         }
 
         /// <summary>

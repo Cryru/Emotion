@@ -169,7 +169,7 @@ public class MeshEntity
             Mesh mesh = meshes[i];
 
             // Check if verts have position
-            VertexDataDescription meshDesc = mesh.VertexFormat;
+            VertexDataFormat meshDesc = mesh.VertexFormat;
             if (!meshDesc.HasPosition) continue;
 
             // Check if allocated

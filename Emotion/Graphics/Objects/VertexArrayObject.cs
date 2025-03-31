@@ -11,6 +11,114 @@ using OpenGL;
 
 namespace Emotion.Graphics.Objects;
 
+public class VAO
+{
+    /// <summary>
+    /// The OpenGL pointer to this VertexArrayObject.
+    /// </summary>
+    public uint Pointer { get; set; }
+
+    /// <summary>
+    /// The bound vertex array buffer.
+    /// </summary>
+    public static uint Bound;
+
+    /// <summary>
+    /// The format of vertices.
+    /// </summary>
+    public VertexDataFormat Format { get; init; }
+
+    public VAO(VertexBuffer vbo, VertexDataFormat format)
+    {
+        Format = format;
+        Assert(format.Built);
+
+        Pointer = Gl.GenVertexArray();
+        EnsureBound(Pointer);
+
+        VertexBuffer.EnsureBound(vbo.Pointer);
+        AssignVertexAttributes();
+    }
+
+    public static void EnsureBound(uint pointer)
+    {
+        Gl.BindVertexArray(pointer);
+        Bound = pointer;
+
+        // Reset the cached binding of VertexBuffers and IndexBuffers as the VAO just bound something else.
+        // This does disable the cache until the binding, but otherwise we will be binding twice.
+        VertexBuffer.Bound = uint.MaxValue;
+        IndexBuffer.Bound = uint.MaxValue;
+
+        VertexArrayObject.Bound = uint.MaxValue;
+    }
+
+    private void AssignVertexAttributes()
+    {
+        // This code needs to match the format specification (which is a single one for Emotion).
+        // If the order in the VertexDataFormat changes we need to change this too.
+        uint position = 0;
+        if (Format.HasPosition)
+        {
+            Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Vector3
+            Gl.EnableVertexAttribArray(position);
+            Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+
+            position++;
+        }
+
+        for (int i = 0; i < Format.HasUVCount; i++)
+        {
+            Format.GetUVOffsetAndStride(i, out int byteOffset, out int byteStride);
+
+            // Vector2
+            Gl.EnableVertexAttribArray(position);
+            Gl.VertexAttribPointer(position, 2, VertexAttribType.Float, false, byteStride, byteOffset);
+
+            position++;
+        }
+
+        if (Format.HasNormals)
+        {
+            Format.GetNormalOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Vector3
+            Gl.EnableVertexAttribArray(position);
+            Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+
+            position++;
+        }
+
+        if (Format.HasVertexColors)
+        {
+            Format.GetVertexColorsOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Normalized uint to vec4
+            Gl.EnableVertexAttribArray(position);
+            Gl.VertexAttribPointer(position, 4, VertexAttribType.UnsignedByte, true, byteStride, byteOffset);
+
+            position++;
+        }
+
+        if (Format.HasBones)
+        {
+            Format.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Vector4 BoneIds
+            Gl.EnableVertexAttribArray(position);
+            Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride, byteOffset);
+            position++;
+
+            // Vector4 BoneWeights
+            Gl.EnableVertexAttribArray(position);
+            Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride + sizeof(float) * 4, byteOffset);
+            position++;
+        }
+    }
+}
+
 public abstract class VertexArrayObject : IDisposable
 {
     /// <summary>
@@ -54,6 +162,8 @@ public abstract class VertexArrayObject : IDisposable
     public static void EnsureBound(VertexArrayObject vao)
     {
         // No binding cache, check https://github.com/Cryru/Emotion/issues/56
+
+        VAO.Bound = uint.MaxValue;
 
         uint ptr = vao?.Pointer ?? 0;
         Gl.BindVertexArray(ptr);

@@ -2,7 +2,7 @@
 
 public struct VertexData_Pos_UV_Normal
 {
-    public readonly static VertexDataDescription Descriptor = new VertexDataDescription()
+    public readonly static VertexDataFormat Descriptor = new VertexDataFormat()
         .AddVertexPosition()
         .AddUV(1)
         .AddNormal()

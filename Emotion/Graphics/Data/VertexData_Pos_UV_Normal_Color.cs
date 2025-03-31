@@ -5,7 +5,7 @@ namespace Emotion.Graphics.Data;
 [StructLayout(LayoutKind.Sequential)]
 public struct VertexData_Pos_UV_Normal_Color
 {
-    public readonly static VertexDataDescription Format = new VertexDataDescription()
+    public readonly static VertexDataFormat Format = new VertexDataFormat()
         .AddVertexPosition()
         .AddUV(1)
         .AddNormal()

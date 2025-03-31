@@ -5,9 +5,9 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.ThreeDee;
-using Emotion.IO;
 using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
+using OpenGL;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
@@ -64,7 +64,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
     // todo: 3d culling
     public void Render(RenderComposer c, Rectangle clipArea)
     {
-        ResetChunksMarkedToRender();
+        Engine.Renderer.FlushRenderStream();
+        RenderState prevState = c.CurrentState.Clone();
 
         Vector2 tileSize = TileSize;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
@@ -83,6 +84,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         min = min.Floor();
         max = max.Ceiling();
 
+        ResetChunksMarkedToRender();
         for (float y = min.Y; y < max.Y; y++)
         {
             for (float x = min.X; x < max.X; x++)
@@ -94,13 +96,15 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             }
         }
 
-        Vector2 brushWorldSpace = GetEditorBrush();
+        if (_terrainChunkIBO == null)
+        {
+            _terrainChunkIBO = _allocator.AllocateIBO();
+            _terrainChunkIBO.Upload(_terrainChunkIndices);
+        }
 
         if (_renderThisPass != null)
         {
             PrepareChunkRendering(c);
-            c.CurrentState.Shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
-            c.CurrentState.Shader.SetUniformFloat("brushRadius", _editorBrushSize);
 
             for (int i = 0; i < _renderThisPass.Count; i++)
             {
@@ -108,43 +112,34 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 Mesh? mesh = chunkToRender.CachedMesh;
                 if (mesh == null) continue;
 
-                // todo: Dont use the render stream, allocate vertex buffers
-                var streamMem = c.RenderStream.GetStreamMemory<VertexData_Pos_UV_Normal_Color>(
-                    (uint) mesh.VertexMemory.VertexCount,
-                    (uint) mesh.Indices.Length,
-                    Graphics.Batches.BatchMode.SequentialTriangles,
-                    TerrainMeshMaterial.DiffuseTexture);
-                if (streamMem.VerticesData.Length == 0) continue;
+                VBOAndVAO? gpuMemory = chunkToRender.GPUMemory;
+                if (gpuMemory == null) continue;
 
-                mesh.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>().CopyTo(streamMem.VerticesData);
-                mesh.Indices.CopyTo(streamMem.IndicesData);
+                VAO.EnsureBound(gpuMemory.VAO.Pointer);
+                VertexBuffer.EnsureBound(gpuMemory.VBO.Pointer);
+                IndexBuffer.EnsureBound(_terrainChunkIBO.Pointer);
 
-                for (int idx = 0; idx < streamMem.IndicesData.Length; idx++)
-                {
-                    streamMem.IndicesData[idx] += streamMem.StructIndex;
-                }
+                OpenGL.Gl.DrawElements(PrimitiveType.Triangles, _terrainChunkIndices!.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
             }
-
-            FlushChunkRendering(c);
         }
+
+        c.SetState(prevState);
     }
 
     private void PrepareChunkRendering(RenderComposer c)
     {
-        Engine.Renderer.FlushRenderStream();
-        Engine.Renderer.SetFaceCulling(true, true);
+        c.SetFaceCulling(true, true);
 
         NewShaderAsset? asset = TerrainMeshMaterial.Shader?.Get();
         if (asset != null && asset.CompiledShader != null)
+        {
             c.SetShader(asset.CompiledShader);
+            c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
+            c.CurrentState.Shader.SetUniformVector2("brushWorldSpace", GetEditorBrush());
+            c.CurrentState.Shader.SetUniformFloat("brushRadius", _editorBrushSize);
+        }
 
-        c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
         Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer);
-    }
-
-    private void FlushChunkRendering(RenderComposer c)
-    {
-        c.SetShader(null);
     }
 
     private List<TerrainGridRenderCacheChunk>? _renderThisPass;
@@ -168,9 +163,19 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         _renderThisPass.Add(cachedChunk);
 
         UpdateChunkRenderCache(cachedChunk, chunk, chunkCoord);
+
+        // Ensure data is uploaded to GPU
+        Mesh? mesh = cachedChunk.CachedMesh;
+        if (mesh != null && cachedChunk.DirtyGPU)
+        {
+            cachedChunk.GPUMemory ??= _allocator.AllocateBuffer(VertexData_Pos_UV_Normal_Color.Format);
+            cachedChunk.GPUMemory.VBO.Upload(mesh.VertexMemory);
+            cachedChunk.DirtyGPU = false;
+        }
     }
 
-    private ushort[] _terrainChunkIndices;
+    private ushort[]? _terrainChunkIndices;
+    private IndexBuffer? _terrainChunkIBO;
 
     private void UpdateChunkRenderCache(TerrainGridRenderCacheChunk chunkCache, VersionedGridChunk<float> chunk, Vector2 chunkCoord)
     {
@@ -286,6 +291,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             }
         }
 
+        chunkCache.DirtyGPU = true;
         chunkCache.CachedVersion = chunk.ChunkVersion;
     }
 
@@ -356,5 +362,56 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
     {
         public int CachedVersion = -1;
         public Mesh? CachedMesh = null;
+        public bool DirtyGPU = true;
+        public VBOAndVAO? GPUMemory;
+    }
+
+    private GPUAllocator _allocator = new GPUAllocator();
+
+    public class VBOAndVAO
+    {
+        public VertexDataFormat Format { get => VAO.Format; }
+
+        public VAO VAO;
+        public VertexBuffer VBO;
+
+        public VBOAndVAO(VertexDataFormat format)
+        {
+            VBO = new VertexBuffer(0, BufferUsage.StaticDraw);
+            VAO = new VAO(VBO, format);
+        }
+    }
+
+    public class GPUAllocator
+    {
+        private List<VBOAndVAO> _freeBuffers = new List<VBOAndVAO>();
+
+        public IndexBuffer AllocateIBO()
+        {
+            IndexBuffer indexBuffer = new IndexBuffer();
+            return indexBuffer;
+        }
+
+        public VBOAndVAO AllocateBuffer(VertexDataFormat format)
+        {
+            // todo: dictionary
+            for (int i = 0; i < _freeBuffers.Count; i++)
+            {
+                VBOAndVAO b = _freeBuffers[i];
+                if (b.Format == format)
+                {
+                    _freeBuffers.RemoveAt(i);
+                    return b;
+                }
+            }
+
+            VBOAndVAO newBuffer = new VBOAndVAO(format);
+            return newBuffer;
+        }
+
+        public void FreeBuffer(VBOAndVAO buffer)
+        {
+            _freeBuffers.Add(buffer);
+        }
     }
 }
