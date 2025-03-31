@@ -50,75 +50,116 @@ public struct Sphere
         return distanceSquared <= Radius * Radius;
     }
 
-    public static MeshEntity GetEntity()
+    public MeshEntity GetEntity(int segments = 20, int rings = 10)
     {
-        int resolution = 100; // Resolution of the sphere (higher means more detailed)
-        int vertexCount = (resolution + 1) * (resolution + 1);
-        int indexCount = 6 * resolution * resolution;
+        int numVertices = (segments + 1) * (rings + 1);
+        int numIndices = segments * rings * 6;
 
-        VertexData[] vertexData = new VertexData[vertexCount];
-        VertexDataMesh3DExtra[] extraData = new VertexDataMesh3DExtra[vertexCount];
-        ushort[] indices = new ushort[indexCount];
-
-        for (var ic = 0; ic < vertexData.Length; ic++)
+        // Generate indices
+        var indices = new ushort[numIndices];
+        var i = 0;
+        for (var r = 0; r < rings; r++)
         {
-            vertexData[ic].Color = Color.WhiteUint;
+            for (var s = 0; s < segments; s++)
+            {
+                int v1 = r * (segments + 1) + s;
+                int v2 = v1 + segments + 1;
+                int v3 = v2 + 1;
+                int v4 = v1 + 1;
+
+                indices[i++] = (ushort)v1;
+                indices[i++] = (ushort)v2;
+                indices[i++] = (ushort)v3;
+
+                indices[i++] = (ushort)v3;
+                indices[i++] = (ushort)v4;
+                indices[i++] = (ushort)v1;
+            }
         }
 
-        float step = MathF.PI * 2 / resolution;
+        var sphereMesh = new Mesh("SphereMesh", indices);
+        sphereMesh.VertexFormat = VertexData_Pos_UV_Normal.Descriptor;
+        sphereMesh.AllocateVertices(numVertices);
+        var vertices = sphereMesh.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal>();
 
-        // Generating vertices and UVs
-        for (int lat = 0; lat <= resolution; lat++)
+        float phiStep = MathF.PI / rings;
+        float thetaStep = 2.0f * MathF.PI / segments;
+
+        // Generate vertices
+        for (var r = 0; r <= rings; r++)
         {
-            for (int lon = 0; lon <= resolution; lon++)
-            {
-                int index = lat * (resolution + 1) + lon;
-                float latAngle = MathF.PI / 2 - lat * step; // Latitude
-                float lonAngle = lon * step; // Longitude
+            float phi = r * phiStep;
 
-                // Sphere vertex position
+            for (var s = 0; s <= segments; s++)
+            {
+                float theta = s * thetaStep;
+
+                float x = Radius * MathF.Sin(phi) * MathF.Cos(theta);
+                float y = Radius * MathF.Cos(phi);
+                float z = Radius * MathF.Sin(phi) * MathF.Sin(theta);
+
+                int index = r * (segments + 1) + s;
+
+                vertices[index].Position = new Vector3(x, y, z);
+                vertices[index].UV = new Vector2(s / segments, r / rings);
+                vertices[index].Normal = Vector3.Zero;
+            }
+        }
+
+        return MeshEntity.CreateFromMesh(sphereMesh);
+    }
+
+    public static MeshEntity GetEntity()
+    {
+        const int RESOLUTION = 100; // Resolution of the sphere (higher means more detailed)
+        int vertexCount = (RESOLUTION + 1) * (RESOLUTION + 1);
+        int indexCount = 6 * RESOLUTION * RESOLUTION;
+
+        // Generate indices, the sphere is made up of quads.
+        ushort[] indices = new ushort[indexCount];
+        int triIndex = 0;
+        for (int lat = 0; lat < RESOLUTION; lat++)
+        {
+            for (int lon = 0; lon < RESOLUTION; lon++)
+            {
+                int current = lat * (RESOLUTION + 1) + lon;
+                int next = current + RESOLUTION + 1;
+
+                indices[triIndex++] = (ushort)current;
+                indices[triIndex++] = (ushort)next;
+                indices[triIndex++] = (ushort)(current + 1);
+
+                indices[triIndex++] = (ushort)(current + 1);
+                indices[triIndex++] = (ushort)next;
+                indices[triIndex++] = (ushort)(next + 1);
+            }
+        }
+
+        // Generate vertices
+        Mesh sphereMesh = new Mesh("Sphere", indices);
+        sphereMesh.VertexFormat = VertexData_Pos_UV_Normal.Descriptor;
+        sphereMesh.AllocateVertices(vertexCount);
+        var vertices = sphereMesh.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal>();
+
+        float step = MathF.PI * 2 / RESOLUTION;
+        for (int lat = 0; lat <= RESOLUTION; lat++)
+        {
+            for (int lon = 0; lon <= RESOLUTION; lon++)
+            {
+                int index = lat * (RESOLUTION + 1) + lon;
+                float latAngle = MathF.PI / 2 - lat * step;
+                float lonAngle = lon * step;
+
                 float x = MathF.Cos(latAngle) * MathF.Cos(lonAngle);
                 float y = MathF.Sin(latAngle);
                 float z = MathF.Cos(latAngle) * MathF.Sin(lonAngle);
-                vertexData[index].Vertex = new Vector3(x, y, z);
 
-                // UV coordinates
-                vertexData[index].UV = new Vector2((float) lon / resolution, (float) lat / resolution);
-
-                // Normal is just the normalized position
-                extraData[index].Normal = Vector3.Normalize(new Vector3(x, y, z));
+                vertices[index].Position = new Vector3(x, y, z);
+                vertices[index].UV = new Vector2((float)lon / RESOLUTION, (float)lat / RESOLUTION);
+                vertices[index].Normal = Vector3.Normalize(new Vector3(x, y, z)); // todo
             }
         }
 
-        // Generating indices for triangles
-        int triIndex = 0;
-        for (int lat = 0; lat < resolution; lat++)
-        {
-            for (int lon = 0; lon < resolution; lon++)
-            {
-                int current = lat * (resolution + 1) + lon;
-                int next = current + resolution + 1;
-
-                indices[triIndex++] = (ushort) current;
-                indices[triIndex++] = (ushort) next;
-                indices[triIndex++] = (ushort) (current + 1);
-
-                indices[triIndex++] = (ushort) (current + 1);
-                indices[triIndex++] = (ushort) next;
-                indices[triIndex++] = (ushort) (next + 1);
-            }
-        }
-
-        // Create the sphere entity
-        return new MeshEntity
-        {
-            Name = "Sphere",
-            BackFaceCulling = true,
-            Scale = 1f,
-            Meshes = new[]
-            {
-                new Mesh(vertexData, extraData, indices)
-            }
-        };
+        return MeshEntity.CreateFromMesh(sphereMesh);
     }
 }

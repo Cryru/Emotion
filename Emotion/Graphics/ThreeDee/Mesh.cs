@@ -15,55 +15,71 @@ namespace Emotion.Graphics.ThreeDee;
 /// <summary>
 /// 3D geometry and material that makes up a 3D object.
 /// </summary>
+[DontSerialize]
 public class Mesh
 {
-    private const string DEFAULT_MESH_NAME = "Untitled";
+    private const string DEFAULT_MESH_NAME = "UntitledMesh";
 
     public string Name;
 
     public MeshMaterial Material;
     public ushort[] Indices;
+    public VertexDataDescription VertexFormat = new VertexDataDescription();
+    public VertexDataAllocation VertexMemory;
 
-    public VertexData[] Vertices;
-    public VertexDataWithNormal[] VerticesONE;
-    public VertexDataMesh3DExtra[] ExtraVertexData;
+    //public VertexData[] Vertices;
+    //public VertexDataWithNormal[] VerticesONE;
+    //public VertexDataMesh3DExtra[] ExtraVertexData;
 
-    public Mesh3DVertexDataBones[]? BoneData;
+    //public Mesh3DVertexDataBones[]? BoneData;
 
     public int AnimationSkin = 0;
 
-    public Mesh(VertexDataWithNormal[] verticesONE, ushort[] indices)
-    {
-        Name = DEFAULT_MESH_NAME;
-        VerticesONE = verticesONE;
-        Indices = indices;
-        Material = MeshMaterial.DefaultMaterial;
-    }
-
-    public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
-    {
-        Name = DEFAULT_MESH_NAME;
-        Vertices = vertices;
-        ExtraVertexData = extraData;
-        Indices = indices;
-        Material = MeshMaterial.DefaultMaterial;
-    }
-
-    public Mesh(string name, VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
+    public Mesh(string name, ushort[] indices, MeshMaterial? material = null)
     {
         Name = name;
-        Vertices = vertices;
-        ExtraVertexData = extraData;
         Indices = indices;
-        Material = MeshMaterial.DefaultMaterial;
+        Material = material ?? MeshMaterial.DefaultMaterial;
     }
+
+    public IntPtr AllocateVertices(int vertexCount)
+    {
+        VertexMemory = VertexFormat.GetAllocation(vertexCount, Name);
+        return VertexMemory.Pointer;
+    }
+
+    //public Mesh(VertexDataWithNormal[] verticesONE, ushort[] indices)
+    //{
+    //    Name = DEFAULT_MESH_NAME;
+    //    VerticesONE = verticesONE;
+    //    Indices = indices;
+    //    Material = MeshMaterial.DefaultMaterial;
+    //}
+
+    //public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
+    //{
+    //    Name = DEFAULT_MESH_NAME;
+    //    Vertices = vertices;
+    //    ExtraVertexData = extraData;
+    //    Indices = indices;
+    //    Material = MeshMaterial.DefaultMaterial;
+    //}
+
+    //public Mesh(string name, VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
+    //{
+    //    Name = name;
+    //    Vertices = vertices;
+    //    ExtraVertexData = extraData;
+    //    Indices = indices;
+    //    Material = MeshMaterial.DefaultMaterial;
+    //}
 
     // Serialization constructor.
     protected Mesh()
     {
         Name = DEFAULT_MESH_NAME;
-        Vertices = null!;
-        ExtraVertexData = null!;
+        //Vertices = null!;
+        //ExtraVertexData = null!;
         Indices = null!;
         Material = MeshMaterial.DefaultMaterial;
     }
@@ -77,17 +93,30 @@ public class Mesh
 
     public IEnumerable<Triangle> ForEachTriangle()
     {
+        if (!VertexFormat.HasPosition) yield break;
+
+        VertexDataAllocation memory = VertexMemory;
+        if (!memory.Allocated) yield break;
+
+        IntPtr pMemory = memory.Pointer;
+        VertexFormat.GetVertexPositionOffsetAndStride(out int offset, out int stride);
+
         for (int i = 0; i < Indices.Length; i += 3)
         {
             int i1 = Indices[i];
             int i2 = Indices[i + 1];
             int i3 = Indices[i + 2];
 
-            VertexData v1 = Vertices[i1];
-            VertexData v2 = Vertices[i2];
-            VertexData v3 = Vertices[i3];
+            Triangle tri;
+            unsafe
+            {
+                Vector3 pV1 = *(Vector3*)(pMemory + offset + stride * i1);
+                Vector3 pV2 = *(Vector3*)(pMemory + offset + stride * i2);
+                Vector3 pV3 = *(Vector3*)(pMemory + offset + stride * i3);
+                tri = new Triangle(pV1, pV2, pV3);
+            }
 
-            yield return new Triangle(v1.Vertex, v2.Vertex, v3.Vertex);
+            yield return tri;
         }
     }
 
@@ -97,120 +126,133 @@ public class Mesh
 
     public Mesh TransformMeshVertices(Matrix4x4 mat)
     {
-        VertexData[]? vertices = Vertices;
-        for (var i = 0; i < vertices.Length; i++)
+        // Check if verts have position
+        VertexDataDescription meshDesc = VertexFormat;
+        if (!meshDesc.HasPosition) return this;
+
+        // Check if allocated
+        VertexDataAllocation vertMemory = VertexMemory;
+        if (!vertMemory.Allocated) return this;
+
+        meshDesc.GetVertexPositionOffsetAndStride(out int offset, out int stride);
+
+        for (int v = 0; v < vertMemory.VertexCount; v++)
         {
-            ref Vector3 vertex = ref vertices[i].Vertex;
-            vertices[i].Vertex = Vector3.Transform(vertex, mat);
+            unsafe
+            {
+                Vector3* pPos = (Vector3*)(vertMemory.Pointer + offset + stride * v);
+                Vector3 pos = *pPos;
+                *pPos = Vector3.Transform(pos, mat);
+            }
         }
 
         return this;
     }
 
-    public Mesh ColorMeshVertices(Color col)
-    {
-        uint val = col.ToUint();
+    //public Mesh ColorMeshVertices(Color col)
+    //{
+    //    uint val = col.ToUint();
 
-        VertexData[]? vertices = Vertices;
-        if (vertices == null) return this;
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            ref VertexData vertex = ref vertices[i];
-            vertex.Color = val;
-        }
+    //    VertexData[]? vertices = Vertices;
+    //    if (vertices == null) return this;
+    //    for (var i = 0; i < vertices.Length; i++)
+    //    {
+    //        ref VertexData vertex = ref vertices[i];
+    //        vertex.Color = val;
+    //    }
 
-        return this;
-    }
+    //    return this;
+    //}
 
-    public Mesh SetVerticesAlpha(byte alpha)
-    {
-        VertexData[]? vertices = Vertices;
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            ref VertexData vertex = ref vertices[i];
-            vertex.Color = new Color(vertex.Color).SetAlpha(alpha).ToUint();
-        }
+    //public Mesh SetVerticesAlpha(byte alpha)
+    //{
+    //    VertexData[]? vertices = Vertices;
+    //    for (var i = 0; i < vertices.Length; i++)
+    //    {
+    //        ref VertexData vertex = ref vertices[i];
+    //        vertex.Color = new Color(vertex.Color).SetAlpha(alpha).ToUint();
+    //    }
 
-        return this;
-    }
+    //    return this;
+    //}
 
-    public static Mesh ShallowCopyMesh(Mesh m1)
-    {
-        return new Mesh()
-        {
-            Vertices = m1.Vertices,
-            ExtraVertexData = m1.ExtraVertexData,
-            Indices = m1.Indices,
-            BoneData = m1.BoneData,
-            Material = m1.Material,
-            Name = m1.Name + "_Copy"
-        };
-    }
+    //public static Mesh ShallowCopyMesh(Mesh m1)
+    //{
+    //    return new Mesh()
+    //    {
+    //        Vertices = m1.Vertices,
+    //        ExtraVertexData = m1.ExtraVertexData,
+    //        Indices = m1.Indices,
+    //        BoneData = m1.BoneData,
+    //        Material = m1.Material,
+    //        Name = m1.Name + "_Copy"
+    //    };
+    //}
 
-    public static Mesh ShallowCopyMesh_DeepCopyVertexData(Mesh m1)
-    {
-        return new Mesh()
-        {
-            Vertices = (VertexData[]) m1.Vertices.Clone(),
-            ExtraVertexData = (VertexDataMesh3DExtra[]) m1.ExtraVertexData.Clone(),
-            Indices = m1.Indices,
-            BoneData = m1.BoneData,
-            Material = m1.Material,
-            Name = m1.Name + "_Copy"
-        };
-    }
+    //public static Mesh ShallowCopyMesh_DeepCopyVertexData(Mesh m1)
+    //{
+    //    return new Mesh()
+    //    {
+    //        Vertices = (VertexData[]) m1.Vertices.Clone(),
+    //        ExtraVertexData = (VertexDataMesh3DExtra[]) m1.ExtraVertexData.Clone(),
+    //        Indices = m1.Indices,
+    //        BoneData = m1.BoneData,
+    //        Material = m1.Material,
+    //        Name = m1.Name + "_Copy"
+    //    };
+    //}
 
-    public static Mesh CombineMeshes(Mesh m1, Mesh m2, string name)
-    {
-        var m = new Mesh(
-            name,
-            new VertexData[m1.Vertices.Length + m2.Vertices.Length],
-            new VertexDataMesh3DExtra[m1.ExtraVertexData.Length + m2.ExtraVertexData.Length],
-            new ushort[m1.Indices.Length + m2.Indices.Length]);
+    //public static Mesh CombineMeshes(Mesh m1, Mesh m2, string name)
+    //{
+    //    var m = new Mesh(
+    //        name,
+    //        new VertexData[m1.Vertices.Length + m2.Vertices.Length],
+    //        new VertexDataMesh3DExtra[m1.ExtraVertexData.Length + m2.ExtraVertexData.Length],
+    //        new ushort[m1.Indices.Length + m2.Indices.Length]);
 
-        m1.Vertices.CopyTo(new Span<VertexData>(m.Vertices));
-        m2.Vertices.CopyTo(new Span<VertexData>(m.Vertices, m1.Vertices.Length, m2.Vertices.Length));
-        m1.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData));
-        m2.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData, m1.ExtraVertexData.Length, m2.ExtraVertexData.Length));
-        m1.Indices.CopyTo(new Span<ushort>(m.Indices));
-        m2.Indices.CopyTo(new Span<ushort>(m.Indices, m1.Indices.Length, m2.Indices.Length));
+    //    m1.Vertices.CopyTo(new Span<VertexData>(m.Vertices));
+    //    m2.Vertices.CopyTo(new Span<VertexData>(m.Vertices, m1.Vertices.Length, m2.Vertices.Length));
+    //    m1.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData));
+    //    m2.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData, m1.ExtraVertexData.Length, m2.ExtraVertexData.Length));
+    //    m1.Indices.CopyTo(new Span<ushort>(m.Indices));
+    //    m2.Indices.CopyTo(new Span<ushort>(m.Indices, m1.Indices.Length, m2.Indices.Length));
 
-        int vertexOffset = m1.Vertices.Length;
-        for (int i = m1.Indices.Length; i < m.Indices.Length; i++)
-        {
-            m.Indices[i] = (ushort) (m.Indices[i] + vertexOffset);
-        }
+    //    int vertexOffset = m1.Vertices.Length;
+    //    for (int i = m1.Indices.Length; i < m.Indices.Length; i++)
+    //    {
+    //        m.Indices[i] = (ushort) (m.Indices[i] + vertexOffset);
+    //    }
 
-        m.Material = m1.Material;
+    //    m.Material = m1.Material;
 
-        return m;
-    }
+    //    return m;
+    //}
 
     #endregion
 
     // deprecate?
     public void Render(RenderComposer c)
     {
-        VertexData[]? vertData = Vertices;
+        //VertexData[]? vertData = Vertices;
 
-        ushort[] indices = Indices;
-        Texture? texture = null;
-        if (Material.DiffuseTexture != null) texture = Material.DiffuseTexture;
-        StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+        //ushort[] indices = Indices;
+        //Texture? texture = null;
+        //if (Material.DiffuseTexture != null) texture = Material.DiffuseTexture;
+        //StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
 
-        vertData.CopyTo(memory.VerticesData);
-        indices.CopyTo(memory.IndicesData);
+        //vertData.CopyTo(memory.VerticesData);
+        //indices.CopyTo(memory.IndicesData);
 
-        for (int i = 0; i < memory.VerticesData.Length; i++)
-        {
-            ref VertexData vert = ref memory.VerticesData[i];
-            vert.Color = Material.DiffuseColor.ToUint();
-        }
+        //for (int i = 0; i < memory.VerticesData.Length; i++)
+        //{
+        //    ref VertexData vert = ref memory.VerticesData[i];
+        //    vert.Color = Material.DiffuseColor.ToUint();
+        //}
 
-        ushort structOffset = memory.StructIndex;
-        for (var j = 0; j < memory.IndicesData.Length; j++)
-        {
-            memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
-        }
+        //ushort structOffset = memory.StructIndex;
+        //for (var j = 0; j < memory.IndicesData.Length; j++)
+        //{
+        //    memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
+        //}
     }
 }

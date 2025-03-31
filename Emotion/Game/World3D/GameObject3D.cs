@@ -248,60 +248,60 @@ public partial class GameObject3D : BaseGameObject
 
     public void CacheVerticesForCollision(bool reuseMeshData = true)
     {
-        Mesh[]? meshes = _entity?.Meshes;
-        if (meshes == null) return;
+        //Mesh[]? meshes = _entity?.Meshes;
+        //if (meshes == null) return;
 
-        if (!reuseMeshData) _verticesCacheCollision = null;
-        _verticesCacheCollision ??= new Vector3[meshes.Length][];
-        for (var m = 0; m < meshes.Length; m++)
-        {
-            Mesh mesh = meshes[m];
-            if (mesh.BoneData == null) continue;
+        //if (!reuseMeshData) _verticesCacheCollision = null;
+        //_verticesCacheCollision ??= new Vector3[meshes.Length][];
+        //for (var m = 0; m < meshes.Length; m++)
+        //{
+        //    Mesh mesh = meshes[m];
+        //    if (mesh.BoneData == null) continue;
 
-            VertexData[] vertices = mesh.Vertices;
-            Vector3[] thisMesh;
-            if (_verticesCacheCollision[m] != null)
-            {
-                thisMesh = _verticesCacheCollision[m]!;
-            }
-            else
-            {
-                thisMesh = new Vector3[vertices.Length];
-                _verticesCacheCollision[m] = thisMesh;
-            }
+        //    VertexData[] vertices = mesh.Vertices;
+        //    Vector3[] thisMesh;
+        //    if (_verticesCacheCollision[m] != null)
+        //    {
+        //        thisMesh = _verticesCacheCollision[m]!;
+        //    }
+        //    else
+        //    {
+        //        thisMesh = new Vector3[vertices.Length];
+        //        _verticesCacheCollision[m] = thisMesh;
+        //    }
 
-            Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
-            if (boneData != null)
-            {
-                Matrix4x4[] bonesForThisMesh = _boneMatricesPerMesh![m];
+        //    Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
+        //    if (boneData != null)
+        //    {
+        //        Matrix4x4[] bonesForThisMesh = _boneMatricesPerMesh![m];
 
-                for (var vertexIdx = 0; vertexIdx < boneData.Length; vertexIdx++)
-                {
-                    ref Mesh3DVertexDataBones vertexDataBones = ref boneData[vertexIdx];
-                    ref Vector3 vertex = ref vertices[vertexIdx].Vertex;
+        //        for (var vertexIdx = 0; vertexIdx < boneData.Length; vertexIdx++)
+        //        {
+        //            ref Mesh3DVertexDataBones vertexDataBones = ref boneData[vertexIdx];
+        //            ref Vector3 vertex = ref vertices[vertexIdx].Vertex;
 
-                    Vector3 vertexTransformed = Vector3.Zero;
-                    for (var w = 0; w < 4; w++)
-                    {
-                        float boneId = vertexDataBones.BoneIds[w];
-                        float weight = vertexDataBones.BoneWeights[w];
+        //            Vector3 vertexTransformed = Vector3.Zero;
+        //            for (var w = 0; w < 4; w++)
+        //            {
+        //                float boneId = vertexDataBones.BoneIds[w];
+        //                float weight = vertexDataBones.BoneWeights[w];
 
-                        Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
-                        Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
-                        vertexTransformed += thisWeightPos * weight;
-                    }
+        //                Matrix4x4 boneMat = bonesForThisMesh[(int) boneId];
+        //                Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
+        //                vertexTransformed += thisWeightPos * weight;
+        //            }
 
-                    thisMesh[vertexIdx] = vertexTransformed;
-                }
-            }
-            else
-            {
-                for (var vertexIdx = 0; vertexIdx < vertices.Length; vertexIdx++)
-                {
-                    thisMesh[vertexIdx] = vertices[vertexIdx].Vertex;
-                }
-            }
-        }
+        //            thisMesh[vertexIdx] = vertexTransformed;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        for (var vertexIdx = 0; vertexIdx < vertices.Length; vertexIdx++)
+        //        {
+        //            thisMesh[vertexIdx] = vertices[vertexIdx].Vertex;
+        //        }
+        //    }
+        //}
     }
 
     public void GetMeshTriangleForCollision(int meshIdx, int v1, int v2, int v3, out Vector3 vert1, out Vector3 vert2, out Vector3 vert3)
@@ -310,25 +310,25 @@ public partial class GameObject3D : BaseGameObject
         vert2 = Vector3.Zero;
         vert3 = Vector3.Zero;
 
-        Mesh[]? meshes = _entity?.Meshes;
-        if (meshes == null) return;
+        //Mesh[]? meshes = _entity?.Meshes;
+        //if (meshes == null) return;
 
-        var mesh = meshes[meshIdx];
-        if (mesh.BoneData == null)
-        {
-            var vertices = mesh.Vertices;
-            vert1 = vertices[v1].Vertex;
-            vert2 = vertices[v2].Vertex;
-            vert3 = vertices[v3].Vertex;
-            return;
-        }
+        //var mesh = meshes[meshIdx];
+        //if (mesh.BoneData == null)
+        //{
+        //    var vertices = mesh.Vertices;
+        //    vert1 = vertices[v1].Vertex;
+        //    vert2 = vertices[v2].Vertex;
+        //    vert3 = vertices[v3].Vertex;
+        //    return;
+        //}
 
-        Vector3[]? meshData = _verticesCacheCollision?[meshIdx];
-        if (meshData == null) return; // todo: maybe fallback to the vertices?
+        //Vector3[]? meshData = _verticesCacheCollision?[meshIdx];
+        //if (meshData == null) return; // todo: maybe fallback to the vertices?
 
-        vert1 = meshData[v1];
-        vert2 = meshData[v2];
-        vert3 = meshData[v3];
+        //vert1 = meshData[v1];
+        //vert2 = meshData[v2];
+        //vert3 = meshData[v3];
     }
 
     #endregion

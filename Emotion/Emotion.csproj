@@ -221,10 +221,14 @@
     
     <!-- ONE Temp -->
     <ItemGroup>
+      <Compile Remove="Game\ThreeDee\SpriteStackTexture.cs" />
       <Compile Remove="Game\World2D\SceneControl\World2DBaseScene.cs" />
       <Compile Remove="Game\World3D\SceneControl\World3DBaseScene.cs" />
+      <Compile Remove="Game\World\Grid\TerrainHeightMapGrid.cs" />
       <Compile Remove="Game\World\SceneControl\WorldBaseScene.cs" />
       <Compile Remove="IO\MeshAssetTypes\EmotionMeshAsset.cs" />
+      <Compile Remove="IO\MeshAssetTypes\MtlAsset.cs" />
+      <Compile Remove="IO\MeshAssetTypes\ObjMeshAsset.cs" />
       <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
       <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
       <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
@@ -290,10 +294,14 @@
         <PackageReference Include="System.Text.Json" Version="9.0.3" />
     </ItemGroup>
     <ItemGroup>
+      <None Include="Game\ThreeDee\SpriteStackTexture.cs" />
       <None Include="Game\World2D\SceneControl\World2DBaseScene.cs" />
       <None Include="Game\World3D\SceneControl\World3DBaseScene.cs" />
+      <None Include="Game\World\Grid\TerrainHeightMapGrid.cs" />
       <None Include="Game\World\SceneControl\WorldBaseScene.cs" />
       <None Include="IO\MeshAssetTypes\EmotionMeshAsset.cs" />
+      <None Include="IO\MeshAssetTypes\MtlAsset.cs" />
+      <None Include="IO\MeshAssetTypes\ObjMeshAsset.cs" />
       <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
       <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
       <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />

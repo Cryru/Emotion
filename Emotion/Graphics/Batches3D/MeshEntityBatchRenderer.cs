@@ -306,7 +306,7 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Decide on the pipeline state for this mesh.
-            bool skinnedMesh = mesh.BoneData != null;
+            bool skinnedMesh = mesh.VertexFormat.HasBones;
             ShaderProgram currentShader;
             bool overwrittenShader = false;
             if (metaState.ShaderAsset != null)
@@ -443,7 +443,7 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Decide on the pipeline state for this mesh.
-            bool skinnedMesh = mesh.BoneData != null;
+            bool skinnedMesh = mesh.VertexFormat.HasBones;
             ShaderProgram currentShader;
             bool overwrittenShader = false;
             if (renderState.ShaderAsset != null)
@@ -617,27 +617,27 @@ public sealed class MeshEntityBatchRenderer
         for (int i = 0; i < _meshesUsedList.Count; i++)
         {
             var mesh = _meshesUsedList[i];
-            bool skinnedMesh = mesh.BoneData != null;
-            GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool alreadyUploaded);
-            if (renderObj == null) // Impossible!
-            {
-                Assert(false, "No render object?");
-                return;
-            }
+            //bool skinnedMesh = mesh.BoneData != null;
+            //GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool alreadyUploaded);
+            //if (renderObj == null) // Impossible!
+            //{
+            //    Assert(false, "No render object?");
+            //    return;
+            //}
 
-            if (!alreadyUploaded)
-            {
-                renderObj.VBO.UploadPartial(mesh.Vertices);
-                renderObj.VBOExtended.UploadPartial(mesh.ExtraVertexData);
+            //if (!alreadyUploaded)
+            //{
+            //    renderObj.VBO.UploadPartial(mesh.Vertices);
+            //    renderObj.VBOExtended.UploadPartial(mesh.ExtraVertexData);
 
-                if (skinnedMesh)
-                {
-                    AssertNotNull(renderObj.VBOBones);
-                    renderObj.VBOBones.UploadPartial(mesh.BoneData);
-                }
+            //    if (skinnedMesh)
+            //    {
+            //        AssertNotNull(renderObj.VBOBones);
+            //        renderObj.VBOBones.UploadPartial(mesh.BoneData);
+            //    }
 
-                renderObj.IBO.UploadPartial(mesh.Indices);
-            }
+            //    renderObj.IBO.UploadPartial(mesh.Indices);
+            //}
         }
 
         // Bind cascade textures as none while rendering shadow maps.
@@ -724,7 +724,7 @@ public sealed class MeshEntityBatchRenderer
             Texture? diffuseTexture = mesh.Material.DiffuseTexture;
             Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-            bool skinnedMesh = mesh.BoneData != null;
+            bool skinnedMesh = mesh.VertexFormat.HasBones != null;
             GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
             AssertNotNull(renderObj);
 
@@ -787,7 +787,7 @@ public sealed class MeshEntityBatchRenderer
                 Texture? diffuseTexture = mesh.Material.DiffuseTexture;
                 Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-                bool skinnedMesh = mesh.BoneData != null;
+                bool skinnedMesh = mesh.VertexFormat.HasBones != null;
                 GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
                 AssertNotNull(renderObj);
 
@@ -898,132 +898,132 @@ public sealed class MeshEntityBatchRenderer
             Mesh obj = meshes[i];
             if (!metaState.RenderMesh[i]) continue;
 
-            if (obj.Vertices.Length != obj.ExtraVertexData.Length)
-            {
-                Assert(false, "Invalid mesh data.");
-                continue;
-            }
+            //if (obj.Vertices.Length != obj.ExtraVertexData.Length)
+            //{
+            //    Assert(false, "Invalid mesh data.");
+            //    continue;
+            //}
 
-            // Decide which shader to use.
-            //bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+            //// Decide which shader to use.
+            ////bool receiveShadow = light != null && !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+            ////bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
+            //bool skinnedMesh = obj.BoneData != null;
+            //ShaderProgram currentShader;
+            //if (shaderOverride != null)
+            //{
+            //    currentShader = shaderOverride; // todo: can this handle the shadow map state?
+            //}
+            //else if (skinnedMesh)
+            //{
+            //    currentShader = _skinnedMeshShader;
+            //}
+            //else
+            //{
+            //    currentShader = _meshShader;
+            //}
+
+            //if (obj.Material.Shader != null)
+            //{
+            //    NewShaderAsset? asset = obj.Material.Shader.Get();
+            //    if (asset != null && asset.CompiledShader != null)
+            //        currentShader = asset.CompiledShader;
+            //}
+
+            //Engine.Renderer.SetShader(currentShader);
+
+            //metaState.ApplyShaderUniforms(currentShader);
+
+            //// Material colors
+            //currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
+            //currentShader.SetUniformColor("objectTint", metaState.Tint);
+            //currentShader.SetUniformInt("renderingShadowMap", -1);
+
+            //// Lighting
+            //if (light != null)
+            //{
+            //    currentShader.SetUniformVector3("sunDirection", Vector3.Normalize(light.SunDirection));
+            //    currentShader.SetUniformColor("ambientColor", light.AmbientLightColor);
+            //    currentShader.SetUniformFloat("ambientLightStrength", light.AmbientLightStrength);
+            //    currentShader.SetUniformFloat("diffuseStrength", light.DiffuseStrength);
+            //    currentShader.SetUniformFloat("shadowOpacity", 0f); // No shadows outside of scene
+            //}
+            //else
+            //{
+            //    currentShader.SetUniformVector3("sunDirection", LightModel.DefaultLightModel.SunDirection);
+            //    currentShader.SetUniformColor("ambientColor", Color.White);
+            //    currentShader.SetUniformFloat("ambientLightStrength", 1f);
+            //    currentShader.SetUniformFloat("diffuseStrength", 0f);
+            //    currentShader.SetUniformFloat("shadowOpacity", 0f);
+            //}
+
             //bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
-            bool skinnedMesh = obj.BoneData != null;
-            ShaderProgram currentShader;
-            if (shaderOverride != null)
-            {
-                currentShader = shaderOverride; // todo: can this handle the shadow map state?
-            }
-            else if (skinnedMesh)
-            {
-                currentShader = _skinnedMeshShader;
-            }
-            else
-            {
-                currentShader = _meshShader;
-            }
+            //bool receiveShadow = false;// !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+            //int lightMode = 0;
+            //if (!receiveAmbient) lightMode = 1;
+            //if (!receiveShadow) lightMode = 2;
+            //if (!receiveAmbient && !receiveShadow) lightMode = 3;
+            //currentShader.SetUniformInt("lightMode", lightMode);
 
-            if (obj.Material.Shader != null)
-            {
-                NewShaderAsset? asset = obj.Material.Shader.Get();
-                if (asset != null && asset.CompiledShader != null)
-                    currentShader = asset.CompiledShader;
-            }
+            ////if (_renderingShadowMap)
+            ////    currentShader.SetUniformMatrix4("lightViewProj", _renderingShadowMapCurrentLightViewProj);
 
-            Engine.Renderer.SetShader(currentShader);
+            //currentShader.SetUniformVector3("cameraPosition", Engine.Renderer.Camera.Position);
 
-            metaState.ApplyShaderUniforms(currentShader);
+            //// Upload bone matrices for skinned meshes (if not missing).
+            //if (skinnedMesh && boneMatricesPerMesh != null)
+            //{
+            //    Matrix4x4[] boneMats = boneMatricesPerMesh[i];
+            //    currentShader.SetUniformMatrix4("boneMatrices", boneMats, boneMats.Length);
+            //}
 
-            // Material colors
-            currentShader.SetUniformColor("diffuseColor", obj.Material.DiffuseColor);
-            currentShader.SetUniformColor("objectTint", metaState.Tint);
-            currentShader.SetUniformInt("renderingShadowMap", -1);
+            //// Bind textures.
+            //// 0 - Diffuse
+            //// 1-2-3-4 - ShadowMap (based on cascades)
+            //// todo: convert cascades into array texture
+            //currentShader.SetUniformInt("diffuseTexture", 0);
 
-            // Lighting
-            if (light != null)
-            {
-                currentShader.SetUniformVector3("sunDirection", Vector3.Normalize(light.SunDirection));
-                currentShader.SetUniformColor("ambientColor", light.AmbientLightColor);
-                currentShader.SetUniformFloat("ambientLightStrength", light.AmbientLightStrength);
-                currentShader.SetUniformFloat("diffuseStrength", light.DiffuseStrength);
-                currentShader.SetUniformFloat("shadowOpacity", 0f); // No shadows outside of scene
-            }
-            else
-            {
-                currentShader.SetUniformVector3("sunDirection", LightModel.DefaultLightModel.SunDirection);
-                currentShader.SetUniformColor("ambientColor", Color.White);
-                currentShader.SetUniformFloat("ambientLightStrength", 1f);
-                currentShader.SetUniformFloat("diffuseStrength", 0f);
-                currentShader.SetUniformFloat("shadowOpacity", 0f);
-            }
+            //Texture? diffuseTexture = obj.Material.DiffuseTexture;
+            //Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-            bool receiveAmbient = !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveAmbient);
-            bool receiveShadow = false;// !flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
-            int lightMode = 0;
-            if (!receiveAmbient) lightMode = 1;
-            if (!receiveShadow) lightMode = 2;
-            if (!receiveAmbient && !receiveShadow) lightMode = 3;
-            currentShader.SetUniformInt("lightMode", lightMode);
+            //currentShader.SetUniformInt("shadowMapTextureC1", 1);
+            //currentShader.SetUniformInt("shadowMapTextureC2", 2);
+            //currentShader.SetUniformInt("shadowMapTextureC3", 3);
+            //currentShader.SetUniformInt("shadowMapTextureC4", 4);
 
-            //if (_renderingShadowMap)
-            //    currentShader.SetUniformMatrix4("lightViewProj", _renderingShadowMapCurrentLightViewProj);
+            //// Cascade textures
+            //for (var j = 0; j < 4; j++)
+            //{
+            //    Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)(j + 1));
+            //}
 
-            currentShader.SetUniformVector3("cameraPosition", Engine.Renderer.Camera.Position);
+            //// Upload geometry
+            //GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(obj, skinnedMesh, out bool alreadyUploaded);
+            //if (renderObj == null) // Impossible!
+            //{
+            //    Assert(false, "RenderStream had no render object to flush with.");
+            //    return;
+            //}
 
-            // Upload bone matrices for skinned meshes (if not missing).
-            if (skinnedMesh && boneMatricesPerMesh != null)
-            {
-                Matrix4x4[] boneMats = boneMatricesPerMesh[i];
-                currentShader.SetUniformMatrix4("boneMatrices", boneMats, boneMats.Length);
-            }
+            //if (!alreadyUploaded)
+            //{
+            //    renderObj.VBO.UploadPartial(obj.Vertices);
+            //    renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
 
-            // Bind textures.
-            // 0 - Diffuse
-            // 1-2-3-4 - ShadowMap (based on cascades)
-            // todo: convert cascades into array texture
-            currentShader.SetUniformInt("diffuseTexture", 0);
+            //    if (skinnedMesh)
+            //    {
+            //        AssertNotNull(renderObj.VBOBones);
+            //        renderObj.VBOBones.UploadPartial(obj.BoneData);
+            //    }
 
-            Texture? diffuseTexture = obj.Material.DiffuseTexture;
-            Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
+            //    renderObj.IBO.UploadPartial(obj.Indices);
+            //}
 
-            currentShader.SetUniformInt("shadowMapTextureC1", 1);
-            currentShader.SetUniformInt("shadowMapTextureC2", 2);
-            currentShader.SetUniformInt("shadowMapTextureC3", 3);
-            currentShader.SetUniformInt("shadowMapTextureC4", 4);
-
-            // Cascade textures
-            for (var j = 0; j < 4; j++)
-            {
-                Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)(j + 1));
-            }
-
-            // Upload geometry
-            GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(obj, skinnedMesh, out bool alreadyUploaded);
-            if (renderObj == null) // Impossible!
-            {
-                Assert(false, "RenderStream had no render object to flush with.");
-                return;
-            }
-
-            if (!alreadyUploaded)
-            {
-                renderObj.VBO.UploadPartial(obj.Vertices);
-                renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
-
-                if (skinnedMesh)
-                {
-                    AssertNotNull(renderObj.VBOBones);
-                    renderObj.VBOBones.UploadPartial(obj.BoneData);
-                }
-
-                renderObj.IBO.UploadPartial(obj.Indices);
-            }
-
-            // Render geometry
-            VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
-            VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
-            VertexArrayObject.EnsureBound(renderObj.VAO);
-            IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
-            Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
+            //// Render geometry
+            //VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
+            //VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
+            //VertexArrayObject.EnsureBound(renderObj.VAO);
+            //IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
+            //Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
         }
 
         Engine.Renderer.SetFaceCulling(false, false);

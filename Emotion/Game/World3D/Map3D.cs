@@ -35,7 +35,7 @@ public class Map3D : BaseMap
         types.Remove(typeof(InfiniteGrid));
 
         // System
-        types.Remove(typeof(TerrainChunkObject));
+        //types.Remove(typeof(TerrainChunkObject));
 
         return types;
     }

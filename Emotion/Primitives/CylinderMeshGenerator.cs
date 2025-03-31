@@ -23,9 +23,12 @@ namespace Emotion.Primitives
         {
             Assert(Sides >= 3);
 
-            var vertices = new VertexData[Sides * 4 + (Capped ? 2 : 0)];
-            var meshData = new VertexDataMesh3DExtra[vertices.Length];
             var indices = new ushort[Sides * 6 + (Capped ? 3 * Sides * 2 : 0)];
+
+            var mesh = new Mesh(name, indices);
+            mesh.VertexFormat = VertexData_Pos_UV_Normal.Descriptor;
+            mesh.AllocateVertices(Sides * 4 + (Capped ? 2 : 0));
+            var vertices = mesh.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal>();
 
             var prevTopX = (float) (RadiusTop * Math.Cos(0));
             var prevTopY = (float) (RadiusTop * Math.Sin(0));
@@ -67,33 +70,29 @@ namespace Emotion.Primitives
                 int idxStart = i * 6;
 
                 // Add the vertices for this quad.
-                ref VertexData v1 = ref vertices[vtxStart];
-                v1.Vertex = new Vector3(prevBottomX, prevBottomY, 0);
+                ref VertexData_Pos_UV_Normal v1 = ref vertices[vtxStart];
+                v1.Position = new Vector3(prevBottomX, prevBottomY, 0);
                 v1.UV = new Vector2((float) i / Sides, 0);
-                v1.Color = Color.WhiteUint;
 
                 indices[idxStart] = (ushort) vtxStart;
 
-                ref VertexData v2 = ref vertices[vtxStart + 1];
-                v2.Vertex = new Vector3(bottomX, bottomY, 0);
+                ref VertexData_Pos_UV_Normal v2 = ref vertices[vtxStart + 1];
+                v2.Position = new Vector3(bottomX, bottomY, 0);
                 v2.UV = new Vector2((float) (i + 1) / Sides, 0);
-                v2.Color = Color.WhiteUint;
 
                 indices[idxStart + 1] = (ushort) (vtxStart + 1);
 
-                ref VertexData v3 = ref vertices[vtxStart + 2];
-                v3.Vertex = new Vector3(prevTopX, prevTopY, Height);
+                ref VertexData_Pos_UV_Normal v3 = ref vertices[vtxStart + 2];
+                v3.Position = new Vector3(prevTopX, prevTopY, Height);
                 v3.UV = new Vector2((float) i / Sides, 1);
-                v3.Color = Color.WhiteUint;
 
                 indices[idxStart + 2] = (ushort) (vtxStart + 2);
                 indices[idxStart + 3] = (ushort) (vtxStart + 2);
                 indices[idxStart + 4] = (ushort) (vtxStart + 1);
 
-                ref VertexData v6 = ref vertices[vtxStart + 3];
-                v6.Vertex = new Vector3(topX, topY, Height);
+                ref VertexData_Pos_UV_Normal v6 = ref vertices[vtxStart + 3];
+                v6.Position = new Vector3(topX, topY, Height);
                 v6.UV = new Vector2((float) (i + 1) / Sides, 1);
-                v6.Color = Color.WhiteUint;
                 indices[idxStart + 5] = (ushort) (vtxStart + 3);
 
                 // Set as previous to be used for the next quad.
@@ -105,7 +104,7 @@ namespace Emotion.Primitives
 
                 // Add normals
                 var n1 = new Vector3(bottomX, bottomY, 0);
-                meshData[vtxStart].Normal = Vector3.Normalize(n1);
+                vertices[vtxStart].Normal = Vector3.Normalize(n1);
 
                 //float n2x = topX;
                 //float n2y = topY;
@@ -117,7 +116,7 @@ namespace Emotion.Primitives
                 //normals[idxStart + 1].Normal = new Vector3(n2x, n2y, n2z);
 
                 var n2 = new Vector3(topX, topY, Height);
-                meshData[vtxStart + 1].Normal = Vector3.Normalize(n2);
+                vertices[vtxStart + 1].Normal = Vector3.Normalize(n2);
 
                 //float n3x = bottomXNext;
                 //float n3y = bottomYNext;
@@ -130,7 +129,7 @@ namespace Emotion.Primitives
 
 
                 var n3 = new Vector3(bottomXNext, bottomYNext, 0);
-                meshData[vtxStart + 2].Normal = Vector3.Normalize(n3);
+                vertices[vtxStart + 2].Normal = Vector3.Normalize(n3);
 
                 //float n4x = topXNext;
                 //float n4y = topYNext;
@@ -142,7 +141,7 @@ namespace Emotion.Primitives
                 //normals[idxStart + 3].Normal = new Vector3(n4x, n4y, n4z);
 
                 var n4 = new Vector3(topXNext, topYNext, Height);
-                meshData[vtxStart + 3].Normal = Vector3.Normalize(n4);
+                vertices[vtxStart + 3].Normal = Vector3.Normalize(n4);
             }
 
             if (Capped)
@@ -150,10 +149,9 @@ namespace Emotion.Primitives
                 int vtxStart = Sides * 4;
 
                 // Top center point
-                ref VertexData v1 = ref vertices[vtxStart];
-                v1.Vertex = new Vector3(0, 0, Height);
+                ref VertexData_Pos_UV_Normal v1 = ref vertices[vtxStart];
+                v1.Position = new Vector3(0, 0, Height);
                 v1.UV = new Vector2(0, 1); // todo
-                v1.Color = Color.WhiteUint;
 
                 // Cap on top
                 int idxStart = Sides * 6;
@@ -169,10 +167,9 @@ namespace Emotion.Primitives
                 }
 
                 // Bottom center point
-                ref VertexData v2 = ref vertices[vtxStart + 1];
-                v2.Vertex = new Vector3(0, 0, 0);
+                ref VertexData_Pos_UV_Normal v2 = ref vertices[vtxStart + 1];
+                v2.Position = new Vector3(0, 0, 0);
                 v2.UV = new Vector2(0, 0); // todo
-                v2.Color = Color.Red.ToUint();
 
                 // Cap on bottom
                 idxStart += Sides * 3;
@@ -188,7 +185,7 @@ namespace Emotion.Primitives
                 }
             }
 
-            return new Mesh(name, vertices, meshData, indices);
+            return mesh;
         }
     }
 }

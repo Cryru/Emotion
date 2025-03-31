@@ -5,6 +5,7 @@
 using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
+using Emotion.Utility;
 
 #endregion
 
@@ -111,7 +112,8 @@ public struct Ray3D
         var intersectionFound = false;
 
         ushort[] meshIndices = mesh.Indices;
-        VertexDataWithNormal[] vertices = mesh.VerticesONE;
+
+        mesh.VertexFormat.GetVertexPositionOffsetAndStride(out int posOffset, out int posStride);
 
         for (var i = 0; i < meshIndices.Length; i += 3)
         {
@@ -119,19 +121,14 @@ public struct Ray3D
             ushort idx2 = meshIndices[i + 1];
             ushort idx3 = meshIndices[i + 2];
 
-            Vector3 p1 = vertices[idx1].Vertex;
-            Vector3 p2 = vertices[idx2].Vertex;
-            Vector3 p3 = vertices[idx3].Vertex;
+            Triangle triag = mesh.VertexMemory.GetTriangleAtIndices(idx1, idx2, idx3);
 
-            Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
-
-            if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
+            if (!IntersectWithTriangle(triag, out float t)) continue;
 
             if (t < closestDistance)
             {
-                IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
                 closestDistance = t;
-                normal = triangleNormal;
+                normal = triag.Normal;
                 triangleIndex = i;
                 intersectionFound = true;
             }
@@ -147,50 +144,53 @@ public struct Ray3D
         collisionPoint = Vector3.Zero;
         normal = Vector3.Zero;
         triangleIndex = -1;
+        return false;
 
-        Mesh[]? meshes = obj.Entity?.Meshes;
-        if (meshes == null) return false;
-        Mesh mesh = meshes[meshIdx];
+        //Mesh[]? meshes = obj.Entity?.Meshes;
+        //if (meshes == null) return false;
+        //Mesh mesh = meshes[meshIdx];
 
-        var closestDistance = float.MaxValue;
-        var intersectionFound = false;
+        //var closestDistance = float.MaxValue;
+        //var intersectionFound = false;
 
-        ushort[] meshIndices = mesh.Indices;
+        //ushort[] meshIndices = mesh.Indices;
 
-        Matrix4x4 matrix = obj.GetModelMatrix();
-        for (var i = 0; i < meshIndices.Length; i += 3)
-        {
-            ushort idx1 = meshIndices[i];
-            ushort idx2 = meshIndices[i + 1];
-            ushort idx3 = meshIndices[i + 2];
+        //Matrix4x4 matrix = obj.GetModelMatrix();
+        //for (var i = 0; i < meshIndices.Length; i += 3)
+        //{
+        //    ushort idx1 = meshIndices[i];
+        //    ushort idx2 = meshIndices[i + 1];
+        //    ushort idx3 = meshIndices[i + 2];
 
-            obj.GetMeshTriangleForCollision(meshIdx, idx1, idx2, idx3, out Vector3 p1, out Vector3 p2, out Vector3 p3);
+        //    obj.GetMeshTriangleForCollision(meshIdx, idx1, idx2, idx3, out Vector3 p1, out Vector3 p2, out Vector3 p3);
 
-            p1 = Vector3.Transform(p1, matrix);
-            p2 = Vector3.Transform(p2, matrix);
-            p3 = Vector3.Transform(p3, matrix);
+        //    p1 = Vector3.Transform(p1, matrix);
+        //    p2 = Vector3.Transform(p2, matrix);
+        //    p3 = Vector3.Transform(p3, matrix);
 
-            Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
+        //    Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
 
-            if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
+        //    if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
 
-            if (t < closestDistance)
-            {
-                IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
-                closestDistance = t;
-                normal = triangleNormal;
-                triangleIndex = i;
-                intersectionFound = true;
-            }
-        }
+        //    if (t < closestDistance)
+        //    {
+        //        IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
+        //        closestDistance = t;
+        //        normal = triangleNormal;
+        //        triangleIndex = i;
+        //        intersectionFound = true;
+        //    }
+        //}
 
-        if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
+        //if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
 
-        return intersectionFound;
+        //return intersectionFound;
     }
 
-    public bool IntersectWithTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 normal, out float distance)
+    public bool IntersectWithTriangle(Triangle triag, out float distance)
     {
+        Vector3 normal = triag.Normal;
+
         // Check if the ray is parallel to the triangle
         float normalRayDot = Vector3.Dot(normal, Direction);
         if (Math.Abs(normalRayDot) < float.Epsilon)
@@ -200,26 +200,25 @@ public struct Ray3D
         }
 
         // Calculate the intersection point
-        Vector3 rayToTriangle = p1 - Start;
+        Vector3 rayToTriangle = triag.A - Start;
         distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
 
         // The intersection point is behind the ray's origin
-        if (distance < 0)
-            return false;
+        if (distance < 0) return false;
 
         // Calculate the barycentric coordinates of the intersection point
-        Vector3 edge1 = p2 - p1;
-        Vector3 edge2 = p3 - p1;
+        Vector3 edge1 = triag.B - triag.A;
+        Vector3 edge2 = triag.C - triag.A;
 
         // Calculate the area of the triangle.
         // The magnitude of the cross product is equal to twice the area of the triangle
         float triangleArea = 0.5f * Vector3.Cross(edge1, edge2).Length();
 
         // Degenerate triangle, area is too small.
-        if (triangleArea < 0.001f) return false;
+        if (triangleArea < Maths.EPSILON_BIGGER) return false;
 
         Vector3 intersectionPoint = Start + distance * Direction;
-        Vector3 c = intersectionPoint - p1;
+        Vector3 c = intersectionPoint - triag.A;
         float d00 = Vector3.Dot(edge1, edge1);
         float d01 = Vector3.Dot(edge1, edge2);
         float d11 = Vector3.Dot(edge2, edge2);

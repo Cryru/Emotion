@@ -41,6 +41,15 @@ public class MeshEntity
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
 
+    public static MeshEntity CreateFromMesh(Mesh m)
+    {
+        return new MeshEntity()
+        {
+            Name = m.Name,
+            Meshes = [m]
+        };
+    }
+
     public Mesh? GetMeshByName(string id)
     {
         if (Meshes == null) return null;
@@ -140,40 +149,60 @@ public class MeshEntity
 
     protected IEnumerator<Vector3> IterateAllMeshVertices(string animation)
     {
-        Mesh[]? meshes = Meshes;
-        if (meshes == null) yield break;
+        //var boneMatricesPerMesh = new Matrix4x4[meshes.Length][];
+        //for (var i = 0; i < meshes.Length; i++)
+        //{
+        //    Mesh mesh = meshes[i];
+        //    var boneCount = 1; // idx 0 is identity
+        //    //if (mesh.Bones != null) boneCount += mesh.Bones.Length;
 
-        var boneMatricesPerMesh = new Matrix4x4[meshes.Length][];
+        //    var mats = new Matrix4x4[boneCount];
+        //    for (int m = 0; m < boneCount; m++)
+        //    {
+        //        mats[m] = Matrix4x4.Identity;
+        //    }
+        //    boneMatricesPerMesh[i] = mats;
+        //}
+        Mesh[] meshes = Meshes;
         for (var i = 0; i < meshes.Length; i++)
         {
             Mesh mesh = meshes[i];
-            var boneCount = 1; // idx 0 is identity
-            //if (mesh.Bones != null) boneCount += mesh.Bones.Length;
 
-            var mats = new Matrix4x4[boneCount];
-            for (int m = 0; m < boneCount; m++)
+            // Check if verts have position
+            VertexDataDescription meshDesc = mesh.VertexFormat;
+            if (!meshDesc.HasPosition) continue;
+
+            // Check if allocated
+            VertexDataAllocation vertMemory = mesh.VertexMemory;
+            if (!vertMemory.Allocated) continue;
+
+            meshDesc.GetVertexPositionOffsetAndStride(out int offset, out int stride);
+
+            for (int v = 0; v < vertMemory.VertexCount; v++)
             {
-                mats[m] = Matrix4x4.Identity;
-            }
-            boneMatricesPerMesh[i] = mats;
-        }
-
-        for (var i = 0; i < meshes.Length; i++)
-        {
-            Mesh mesh = meshes[i];
-            VertexData[] meshVertices = mesh.Vertices;
-            Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
-
-            // Non animated mesh ezpz
-            if (boneData == null)
-            {
-                for (var v = 0; v < meshVertices.Length; v++)
+                Vector3 pos;
+                unsafe
                 {
-                    yield return meshVertices[v].Vertex;
+                    Vector3* pPos = (Vector3*)(vertMemory.Pointer + offset + stride * v);
+                    pos = *pPos;
                 }
-
-                continue;
+                yield return pos;
             }
+            continue;
+
+            //VertexData[] meshVertices = mesh.Vertices;
+            //Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
+
+            //// Non animated mesh ezpz
+            //if (boneData == null)
+            //{
+            //    for (var v = 0; v < meshVertices.Length; v++)
+            //    {
+            //        yield return meshVertices[v].Vertex;
+            //    }
+
+            //    continue;
+            //}
 
             // We will calculate the bone matrices by sampling keyframes and sum
             // up their bounds and get the total animated bound.
@@ -238,25 +267,25 @@ public class MeshEntity
                     // todo
                     //CalculateBoneMatrices(currentAnimation, boneMatricesPerMesh, positionFrames[k].Timestamp);
 
-                    Matrix4x4[] bonesForThisMesh = boneMatricesPerMesh[i];
-                    for (var v = 0; v < boneData.Length; v++)
-                    {
-                        Mesh3DVertexDataBones vertexData = boneData[v];
-                        Vector3 vertex = meshVertices[v].Vertex;
+                    //Matrix4x4[] bonesForThisMesh = boneMatricesPerMesh[i];
+                    //for (var v = 0; v < boneData.Length; v++)
+                    //{
+                    //Mesh3DVertexDataBones vertexData = boneData[v];
+                    //Vector3 vertex = meshVertices[v].Vertex;
 
-                        Vector3 vertexTransformed = vertex;
-                        //for (var w = 0; w < 4; w++)
-                        //{
-                        //    float boneId = vertexData.BoneIds[w];
-                        //    float weight = vertexData.BoneWeights[w];
+                    //Vector3 vertexTransformed = vertex;
+                    //for (var w = 0; w < 4; w++)
+                    //{
+                    //    float boneId = vertexData.BoneIds[w];
+                    //    float weight = vertexData.BoneWeights[w];
 
-                        //    Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
-                        //    Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
-                        //    vertexTransformed += thisWeightPos * weight;
-                        //}
+                    //    Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
+                    //    Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
+                    //    vertexTransformed += thisWeightPos * weight;
+                    //}
 
-                        yield return vertexTransformed;
-                    }
+                    //yield return vertexTransformed;
+                    //}
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 #region Using
 
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
@@ -11,6 +12,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Standard.TopologicalSort;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #endregion
 
@@ -62,33 +64,34 @@ public class MeshEntityMetaState
         // todo: replace this with bone matrices per animation skin when we push them to a UBO
         _boneMatricesPerMesh = new Matrix4x4[entity.Meshes.Length][];
 
-        // Build a mapping of which bones a mesh uses.
+        // Create per mesh data
         for (int meshIdx = 0; meshIdx < entity.Meshes.Length; meshIdx++)
         {
             Mesh mesh = entity.Meshes[meshIdx];
             RenderMesh[meshIdx] = true;
 
+            // Initialize bone matrices for this mesh.
             Matrix4x4[] matrices;
-            if (mesh.BoneData != null)
+            if (mesh.VertexFormat.HasBones)
             {
+                mesh.VertexFormat.GetBoneDataOffsetAndStride(out int boneOffset, out int boneStride);
+
                 int largestBoneIdUsed = 0;
-                for (int j = 0; j < mesh.BoneData.Length; j++)
+                foreach (VertexBoneData bone in mesh.VertexMemory.ForEachBoneData())
                 {
-                    Mesh3DVertexDataBones data = mesh.BoneData[j];
-                    Vector4 boneIds = data.BoneIds;
+                    Vector4 boneIds = bone.BoneIds;
                     for (int b = 0; b < 4; b++)
                     {
-                        int jointRef = (int) boneIds[b];
+                        int jointRef = (int)boneIds[b];
                         if (jointRef > largestBoneIdUsed) largestBoneIdUsed = jointRef;
                     }
                 }
 
+                largestBoneIdUsed++; // Include the last bone (since 0 is not a valid index)
                 if (largestBoneIdUsed > MAX_BONES)
                 {
                     Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({largestBoneIdUsed} > {MAX_BONES}).", "3D");
                 }
-
-                largestBoneIdUsed++; // Include this bone
 
                 // Assimp hack
                 // Note: Models loaded by assimp have one skin per mesh and the skins are generally

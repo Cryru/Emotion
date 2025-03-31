@@ -108,20 +108,20 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 Mesh? mesh = chunkToRender.CachedMesh;
                 if (mesh == null) continue;
 
-                var mem = c.RenderStream.GetStreamMemory<VertexDataWithNormal>(
-                    (uint) mesh.VerticesONE.Length,
+                // todo: Dont use the render stream, allocate vertex buffers
+                var streamMem = c.RenderStream.GetStreamMemory<VertexData_Pos_UV_Normal_Color>(
+                    (uint) mesh.VertexMemory.VertexCount,
                     (uint) mesh.Indices.Length,
                     Graphics.Batches.BatchMode.SequentialTriangles,
-                    TerrainMeshMaterial.DiffuseTexture
-                );
-                if (mem.VerticesData.Length == 0) continue;
+                    TerrainMeshMaterial.DiffuseTexture);
+                if (streamMem.VerticesData.Length == 0) continue;
 
-                mesh.VerticesONE.CopyTo(mem.VerticesData);
-                mesh.Indices.CopyTo(mem.IndicesData);
+                mesh.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>().CopyTo(streamMem.VerticesData);
+                mesh.Indices.CopyTo(streamMem.IndicesData);
 
-                for (int idx = 0; idx < mem.IndicesData.Length; idx++)
+                for (int idx = 0; idx < streamMem.IndicesData.Length; idx++)
                 {
-                    mem.IndicesData[idx] += mem.StructIndex;
+                    streamMem.IndicesData[idx] += streamMem.StructIndex;
                 }
             }
 
@@ -170,37 +170,72 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         UpdateChunkRenderCache(cachedChunk, chunk, chunkCoord);
     }
 
+    private ushort[] _terrainChunkIndices;
+
     private void UpdateChunkRenderCache(TerrainGridRenderCacheChunk chunkCache, VersionedGridChunk<float> chunk, Vector2 chunkCoord)
     {
         // We already have the latest version of this
         if (chunkCache.CachedVersion == chunk.ChunkVersion &&
             chunkCache.CachedMesh != null) return;
 
-        Vector2 tileSize = TileSize;
-        Vector2 halfTileSize = TileSize / 2f;
-        Vector2 chunkWorldSize = ChunkSize * tileSize;
-
-        VersionedGridChunk<float>? chunkLeft = GetChunk(chunkCoord + new Vector2(-1, 0));
-        VersionedGridChunk<float>? chunkTop = GetChunk(chunkCoord + new Vector2(0, -1));
-        VersionedGridChunk<float>? chunkDiag = GetChunk(chunkCoord + new Vector2(-1, -1));
-
-        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + tileSize;
-
         int vertexCount = (int)(ChunkSize.X * ChunkSize.Y);
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        VertexDataWithNormal[] vertices;
-        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.VerticesONE.Length != vertexCount)
-            vertices = new VertexDataWithNormal[vertexCount];
-        else
-            vertices = chunkCache.CachedMesh.VerticesONE;
+        // Create chunk index cache
+        // todo: handle changing chunk size
+        if (_terrainChunkIndices == null)
+        {
+            // ChunkSize - 1 + stiching 1
+            int quads = (int)(ChunkSize.X * ChunkSize.Y);
+            int stride = (int)ChunkSize.X + 1;
+            int indexCount = quads * 6;
 
-        // Get data for stiching vertices
+            ushort[] indices = new ushort[indexCount];
+            int indexOffset = 0;
+            for (int i = 0; i < vertexCount - stride; i++)
+            {
+                if ((i + 1) % stride == 0) continue;
+
+                indices[indexOffset + 0] = (ushort)(i + stride);
+                indices[indexOffset + 1] = (ushort)(i + stride + 1);
+                indices[indexOffset + 2] = (ushort)(i + 1);
+
+                indices[indexOffset + 3] = (ushort)(i + 1);
+                indices[indexOffset + 4] = (ushort)(i);
+                indices[indexOffset + 5] = (ushort)(i + stride);
+
+                indexOffset += 6;
+            }
+            _terrainChunkIndices = indices;
+        }
+
+        // Initialize mesh
+        Mesh? cachedMesh = chunkCache.CachedMesh;
+        if (cachedMesh == null)
+        {
+            cachedMesh = new Graphics.ThreeDee.Mesh($"TerrainChunk_{chunkCoord}", _terrainChunkIndices, TerrainMeshMaterial);
+            cachedMesh.VertexMemory.Description = VertexData_Pos_UV_Normal_Color.Descriptor;
+            cachedMesh.AllocateVertices(vertexCount); // todo: handle changing parameters
+            chunkCache.CachedMesh = cachedMesh;
+        }
+
+        // Get metrics
+        Vector2 tileSize = TileSize;
+        Vector2 halfTileSize = TileSize / 2f;
+        Vector2 chunkWorldSize = ChunkSize * tileSize;
+        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + tileSize;
+
+        // Get neighbours for stitching
+        VersionedGridChunk<float>? chunkLeft = GetChunk(chunkCoord + new Vector2(-1, 0));
+        VersionedGridChunk<float>? chunkTop = GetChunk(chunkCoord + new Vector2(0, -1));
+        VersionedGridChunk<float>? chunkDiag = GetChunk(chunkCoord + new Vector2(-1, -1));
         float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
         float[] dataLeft = chunkLeft?.GetRawData() ?? Array.Empty<float>();
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
 
+        // Fill vertices
+        Span<VertexData_Pos_UV_Normal_Color> vertices = cachedMesh.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
         int vIdx = 0;
         for (int y = -1; y < ChunkSize.Y; y++)
         {
@@ -235,8 +270,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
 
                 Vector2 worldPos = chunkWorldOffset + (tileCoord * tileSize);
 
-                ref VertexDataWithNormal vData = ref vertices[vIdx];
-                vData.Vertex = worldPos.ToVec3(heightSample);
+                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                vData.Position = worldPos.ToVec3(heightSample);
 
                 Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
                 vData.Color = Color.Lerp(Color.Black, Color.White, (heightSample * 20) / 40).ToUint();
@@ -251,47 +286,6 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             }
         }
 
-        // ChunkSize - 1 + stiching 1
-        int quads = (int)(ChunkSize.X * ChunkSize.Y);
-        int stride = (int)ChunkSize.X + 1;
-        int indexCount = quads * 6;
-
-        ushort[] indices;
-        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.Indices.Length != indexCount)
-            indices = new ushort[indexCount];
-        else
-            indices = chunkCache.CachedMesh.Indices;
-
-        int indexOffset = 0;
-        for (int i = 0; i < vertexCount - stride; i++)
-        {
-            if ((i + 1) % stride == 0) continue;
-
-            indices[indexOffset + 0] = (ushort)(i + stride);
-            indices[indexOffset + 1] = (ushort)(i + stride + 1);
-            indices[indexOffset + 2] = (ushort)(i + 1);
-
-            indices[indexOffset + 3] = (ushort)(i + 1);
-            indices[indexOffset + 4] = (ushort)(i);
-            indices[indexOffset + 5] = (ushort)(i + stride);
-
-            indexOffset += 6;
-        }
-
-        if (chunkCache.CachedMesh == null)
-        {
-            Mesh chunkMesh = new Mesh(vertices, indices)
-            {
-                Name = $"TerrainChunk_{chunkCoord}",
-                Material = TerrainMeshMaterial
-            };
-            chunkCache.CachedMesh = chunkMesh;
-        }
-        else
-        {
-            chunkCache.CachedMesh.VerticesONE = vertices;
-            chunkCache.CachedMesh.Indices = indices;
-        }
         chunkCache.CachedVersion = chunk.ChunkVersion;
     }
 
