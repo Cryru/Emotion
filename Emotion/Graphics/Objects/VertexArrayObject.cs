@@ -55,6 +55,11 @@ public class VAO
 
     private void AssignVertexAttributes()
     {
+        VertexBuffer.EnsureBound(0);
+        IndexBuffer.EnsureBound(0);
+
+        bool newMode = true;
+
         // This code needs to match the format specification (which is a single one for Emotion).
         // If the order in the VertexDataFormat changes we need to change this too.
         uint position = 0;
@@ -62,10 +67,13 @@ public class VAO
         {
             Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
 
-            // Vector3
             Gl.EnableVertexAttribArray(position);
-            Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+            if (newMode)
+                Gl.VertexAttribFormat(position, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
+            else
+                Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
 
+            Gl.VertexAttribBinding(position, 0);
             position++;
         }
 
@@ -75,8 +83,12 @@ public class VAO
 
             // Vector2
             Gl.EnableVertexAttribArray(position);
-            Gl.VertexAttribPointer(position, 2, VertexAttribType.Float, false, byteStride, byteOffset);
+            if (newMode)
+                Gl.VertexAttribFormat(position, 2, (int)VertexAttribType.Float, false, (uint)byteOffset);
+            else
+                Gl.VertexAttribPointer(position, 2, VertexAttribType.Float, false, byteStride, byteOffset);
 
+            Gl.VertexAttribBinding(position, 0);
             position++;
         }
 
@@ -86,8 +98,13 @@ public class VAO
 
             // Vector3
             Gl.EnableVertexAttribArray(position);
-            Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
 
+            if (newMode)
+                Gl.VertexAttribFormat(position, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
+            else
+                Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+
+            Gl.VertexAttribBinding(position, 0);
             position++;
         }
 
@@ -97,8 +114,13 @@ public class VAO
 
             // Normalized uint to vec4
             Gl.EnableVertexAttribArray(position);
-            Gl.VertexAttribPointer(position, 4, VertexAttribType.UnsignedByte, true, byteStride, byteOffset);
 
+            if (newMode)
+                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.UnsignedByte, true, (uint)byteOffset);
+            else
+                Gl.VertexAttribPointer(position, 4, VertexAttribType.UnsignedByte, true, byteStride, byteOffset);
+
+            Gl.VertexAttribBinding(position, 0);
             position++;
         }
 
@@ -238,7 +260,7 @@ public abstract class VertexArrayObject : IDisposable
             string fieldName = member.Name;
             nint offset = Marshal.OffsetOf(vertexType, fieldName);
             Type fieldType = vertexAttributeData.TypeOverride ?? member.Type;
-            if (fieldName == "UV") UVByteOffset = (int) offset;
+            if (fieldName == "UV") UVByteOffset = (int)offset;
 
             uint position = positionOffset + i;
             Gl.EnableVertexAttribArray(position);

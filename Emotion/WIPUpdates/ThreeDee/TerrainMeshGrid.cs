@@ -116,8 +116,10 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
                 if (gpuMemory == null) continue;
 
                 VAO.EnsureBound(gpuMemory.VAO.Pointer);
-                VertexBuffer.EnsureBound(gpuMemory.VBO.Pointer);
+                //VertexBuffer.EnsureBound(gpuMemory.VBO.Pointer);
                 IndexBuffer.EnsureBound(_terrainChunkIBO.Pointer);
+
+                Gl.BindVertexBuffer(0, gpuMemory.VBO.Pointer, IntPtr.Zero, mesh.VertexFormat.ElementSize);
 
                 OpenGL.Gl.DrawElements(PrimitiveType.Triangles, _terrainChunkIndices!.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
             }
