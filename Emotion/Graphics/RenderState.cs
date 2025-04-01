@@ -82,6 +82,8 @@ namespace Emotion.Graphics
                 SFactorA = BlendingFactor.One,
                 DFactorA = BlendingFactor.OneMinusSrcAlpha,
                 Shader = ShaderFactory.DefaultProgram,
+                FaceCulling = false,
+                FaceCullingBackFace = false,
                 ViewMatrix = true,
                 ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera
             };
@@ -103,6 +105,8 @@ namespace Emotion.Graphics
                 SFactorA = SFactorA,
                 DFactorA = DFactorA,
                 Shader = Shader,
+                FaceCulling = FaceCulling,
+                FaceCullingBackFace = FaceCullingBackFace,
                 ViewMatrix = ViewMatrix,
                 ProjectionBehavior = ProjectionBehavior
             };
