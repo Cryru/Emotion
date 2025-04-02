@@ -11,7 +11,7 @@ namespace Emotion.WIPUpdates.One.Editor3D.TerrainEditor;
 [DontSerialize]
 public sealed class TerrainEditorWindow : GridEditorWindow
 {
-    private float _brushSize = 100;
+    private float _brushSize = 10;
 
     public TerrainEditorWindow() : base()
     {

@@ -8,6 +8,8 @@ using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
+using Emotion.WIPUpdates.Rendering;
+using OpenGL;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
@@ -19,7 +21,13 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
     public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
     {
         Name = "TerrainChunkMaterial",
-        Shader = Engine.AssetLoader.ONE_Get<NewShaderAsset>("Shaders3D/TerrainShader.glsl")
+        Shader = Engine.AssetLoader.ONE_Get<NewShaderAsset>("Shaders3D/TerrainShader.glsl"),
+        State =
+        {
+            FaceCulling = true,
+            FaceCullingBackFace = true,
+            ShaderName = "Shaders3D/TerrainShader.glsl"
+        }
     };
 
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
@@ -64,7 +72,10 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
     // todo: 3d culling
     public void Render(RenderComposer c, Rectangle clipArea)
     {
-        ResetChunksMarkedToRender();
+        if (ChunkSize != _indexBufferChunkSize || _indexBuffer == null)
+            PrepareIndexBuffer();
+        AssertNotNull(_indexBuffer);
+        AssertNotNull(TerrainMeshMaterial);
 
         Vector2 tileSize = TileSize;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
@@ -83,6 +94,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         min = min.Floor();
         max = max.Ceiling();
 
+        ResetChunksMarkedToRender();
         for (float y = min.Y; y < max.Y; y++)
         {
             for (float x = min.X; x < max.X; x++)
@@ -95,43 +107,36 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         }
 
         Vector2 brushWorldSpace = GetEditorBrush();
-
         if (_renderThisPass != null)
         {
+            Engine.Renderer.FlushRenderStream();
+
+            var oldState = c.CurrentState.Clone();
+
             PrepareChunkRendering(c);
             c.CurrentState.Shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
             c.CurrentState.Shader.SetUniformFloat("brushRadius", _editorBrushSize);
+            Texture.EnsureBound(TerrainMeshMaterial.DiffuseTexture.Pointer);
 
             for (int i = 0; i < _renderThisPass.Count; i++)
             {
                 TerrainGridRenderCacheChunk chunkToRender = _renderThisPass[i];
-                Mesh? mesh = chunkToRender.CachedMesh;
-                if (mesh == null) continue;
+                GPUVertexMemory? gpuMem = chunkToRender.GPUMemory;
+                if (gpuMem == null) continue;
 
-                var mem = c.RenderStream.GetStreamMemory<VertexDataWithNormal>(
-                    (uint) mesh.VerticesONE.Length,
-                    (uint) mesh.Indices.Length,
-                    Graphics.Batches.BatchMode.SequentialTriangles,
-                    TerrainMeshMaterial.DiffuseTexture
-                );
-                if (mem.VerticesData.Length == 0) continue;
+                VertexArrayObject.EnsureBound(gpuMem.VAO);
+                IndexBuffer.EnsureBound(_indexBuffer.Pointer);
 
-                mesh.VerticesONE.CopyTo(mem.VerticesData);
-                mesh.Indices.CopyTo(mem.IndicesData);
-
-                for (int idx = 0; idx < mem.IndicesData.Length; idx++)
-                {
-                    mem.IndicesData[idx] += mem.StructIndex;
-                }
+                Gl.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
             }
 
-            FlushChunkRendering(c);
+            //c.SetShader(null);
+            c.SetState(oldState);
         }
     }
 
     private void PrepareChunkRendering(RenderComposer c)
     {
-        Engine.Renderer.FlushRenderStream();
         Engine.Renderer.SetFaceCulling(true, true);
 
         NewShaderAsset? asset = TerrainMeshMaterial.Shader?.Get();
@@ -139,16 +144,49 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             c.SetShader(asset.CompiledShader);
 
         c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
-        Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer);
-    }
-
-    private void FlushChunkRendering(RenderComposer c)
-    {
-        c.SetShader(null);
     }
 
     private List<TerrainGridRenderCacheChunk>? _renderThisPass;
     private Dictionary<Vector2, TerrainGridRenderCacheChunk> _cachedChunks = new();
+
+    private Vector2 _indexBufferChunkSize;
+    private ushort[] _indices;
+    private IndexBuffer? _indexBuffer;
+
+    private void PrepareIndexBuffer()
+    {
+        int vertexCount = (int)(ChunkSize.X * ChunkSize.Y);
+        int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
+        vertexCount += stichingVertices;
+
+        // ChunkSize - 1 + stiching 1
+        int quads = (int)(ChunkSize.X * ChunkSize.Y);
+        int stride = (int)ChunkSize.X + 1;
+        int indexCount = quads * 6;
+
+        _indexBuffer ??= new IndexBuffer();
+
+        ushort[] indices = new ushort[indexCount];
+        int indexOffset = 0;
+        for (int i = 0; i < vertexCount - stride; i++)
+        {
+            if ((i + 1) % stride == 0) continue;
+
+            indices[indexOffset + 0] = (ushort)(i + stride);
+            indices[indexOffset + 1] = (ushort)(i + stride + 1);
+            indices[indexOffset + 2] = (ushort)(i + 1);
+
+            indices[indexOffset + 3] = (ushort)(i + 1);
+            indices[indexOffset + 4] = (ushort)(i);
+            indices[indexOffset + 5] = (ushort)(i + stride);
+
+            indexOffset += 6;
+        }
+
+        _indexBuffer.Upload(indices);
+        _indexBufferChunkSize = ChunkSize;
+        _indices = indices;
+    }
 
     private void ResetChunksMarkedToRender()
     {
@@ -168,13 +206,19 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         _renderThisPass.Add(cachedChunk);
 
         UpdateChunkRenderCache(cachedChunk, chunk, chunkCoord);
+
+        if (cachedChunk.GPUMemory == null || cachedChunk.GPUDirty)
+        {
+            cachedChunk.GPUMemory ??= GPUMemoryAllocator.AllocateBuffer(cachedChunk.VertexMemory.Format);
+            cachedChunk.GPUMemory.VBO.Upload(cachedChunk.VertexMemory);
+            cachedChunk.GPUDirty = false;
+        }
     }
 
     private void UpdateChunkRenderCache(TerrainGridRenderCacheChunk chunkCache, VersionedGridChunk<float> chunk, Vector2 chunkCoord)
     {
         // We already have the latest version of this
-        if (chunkCache.CachedVersion == chunk.ChunkVersion &&
-            chunkCache.CachedMesh != null) return;
+        if (chunkCache.CachedVersion == chunk.ChunkVersion && chunkCache.VertexMemory.Allocated) return;
 
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
@@ -190,11 +234,12 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        VertexDataWithNormal[] vertices;
-        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.VerticesONE.Length != vertexCount)
-            vertices = new VertexDataWithNormal[vertexCount];
-        else
-            vertices = chunkCache.CachedMesh.VerticesONE;
+        if (!chunkCache.VertexMemory.Allocated)
+            chunkCache.VertexMemory = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal_Color.Format, vertexCount, $"TerrainChunk_{chunkCoord}");
+        else if (chunkCache.VertexMemory.VertexCount < vertexCount)
+            chunkCache.VertexMemory = VertexDataAllocation.Reallocate(ref chunkCache.VertexMemory, vertexCount);
+
+        var vertices = chunkCache.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
 
         // Get data for stiching vertices
         float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
@@ -235,8 +280,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
 
                 Vector2 worldPos = chunkWorldOffset + (tileCoord * tileSize);
 
-                ref VertexDataWithNormal vData = ref vertices[vIdx];
-                vData.Vertex = worldPos.ToVec3(heightSample);
+                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                vData.Position = worldPos.ToVec3(heightSample);
 
                 Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
                 vData.Color = Color.Lerp(Color.Black, Color.White, (heightSample * 20) / 40).ToUint();
@@ -251,47 +296,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             }
         }
 
-        // ChunkSize - 1 + stiching 1
-        int quads = (int)(ChunkSize.X * ChunkSize.Y);
-        int stride = (int)ChunkSize.X + 1;
-        int indexCount = quads * 6;
-
-        ushort[] indices;
-        if (chunkCache.CachedMesh == null || chunkCache.CachedMesh.Indices.Length != indexCount)
-            indices = new ushort[indexCount];
-        else
-            indices = chunkCache.CachedMesh.Indices;
-
-        int indexOffset = 0;
-        for (int i = 0; i < vertexCount - stride; i++)
-        {
-            if ((i + 1) % stride == 0) continue;
-
-            indices[indexOffset + 0] = (ushort)(i + stride);
-            indices[indexOffset + 1] = (ushort)(i + stride + 1);
-            indices[indexOffset + 2] = (ushort)(i + 1);
-
-            indices[indexOffset + 3] = (ushort)(i + 1);
-            indices[indexOffset + 4] = (ushort)(i);
-            indices[indexOffset + 5] = (ushort)(i + stride);
-
-            indexOffset += 6;
-        }
-
-        if (chunkCache.CachedMesh == null)
-        {
-            Mesh chunkMesh = new Mesh(vertices, indices)
-            {
-                Name = $"TerrainChunk_{chunkCoord}",
-                Material = TerrainMeshMaterial
-            };
-            chunkCache.CachedMesh = chunkMesh;
-        }
-        else
-        {
-            chunkCache.CachedMesh.VerticesONE = vertices;
-            chunkCache.CachedMesh.Indices = indices;
-        }
+        chunkCache.GPUDirty = true;
         chunkCache.CachedVersion = chunk.ChunkVersion;
     }
 
@@ -344,10 +349,10 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
             for (int i = 0; i < _renderThisPass.Count; i++)
             {
                 TerrainGridRenderCacheChunk chunkToRender = _renderThisPass[i];
-                Mesh? mesh = chunkToRender.CachedMesh;
-                if (mesh == null) continue;
+                VertexDataAllocation vertices = chunkToRender.VertexMemory;
+                if (!vertices.Allocated) continue;
 
-                if (mouseRay.IntersectWithMeshLocalSpace(mesh, out Vector3 collisionPoint, out _, out _))
+                if (mouseRay.IntersectWithVertices(_indices, vertices, out Vector3 collisionPoint, out _, out _))
                     brushPoint = collisionPoint.ToVec2();
             }
         }
@@ -361,6 +366,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, VersionedGridChunk<float>>, IG
     private class TerrainGridRenderCacheChunk
     {
         public int CachedVersion = -1;
-        public Mesh? CachedMesh = null;
+        public VertexDataAllocation VertexMemory;
+        public GPUVertexMemory? GPUMemory;
+        public bool GPUDirty = true;
     }
 }

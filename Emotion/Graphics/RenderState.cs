@@ -46,6 +46,7 @@ namespace Emotion.Graphics
         public ProjectionBehavior? ProjectionBehavior;
 
         public ShaderProgram Shader;
+        public string ShaderName;
 
         public bool Equals(RenderState otherState)
         {

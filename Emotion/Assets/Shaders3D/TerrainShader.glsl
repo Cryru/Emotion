@@ -56,11 +56,11 @@ VERTEX_ATTRIBUTE_LINE_TWO(0, Vector3, vertPos);
 VERTEX_ATTRIBUTE(1, Vector2, uv);
 VERTEX_ATTRIBUTE_LINE_TWO(1, Vector2, uv);
 
-VERTEX_ATTRIBUTE(2, Vector4, vertColor);
-VERTEX_ATTRIBUTE_LINE_TWO(2, Vector4, vertColor);
+VERTEX_ATTRIBUTE(2, Vector3, normal);
+VERTEX_ATTRIBUTE_LINE_TWO(2, Vector3, normal);
 
-VERTEX_ATTRIBUTE(3, Vector3, normal);
-VERTEX_ATTRIBUTE_LINE_TWO(3, Vector3, normal);
+VERTEX_ATTRIBUTE(3, Vector4, vertColor);
+VERTEX_ATTRIBUTE_LINE_TWO(3, Vector4, vertColor);
 
 #if VERT_SHADER
 
@@ -79,8 +79,8 @@ void VertexShaderMain()
 {
     VERTEX_ATTRIBUTE_WORK(0, Vector3, vertPos);
     VERTEX_ATTRIBUTE_WORK(1, Vector2, uv);
-    VERTEX_ATTRIBUTE_WORK(2, Vector4, vertColor);
-    VERTEX_ATTRIBUTE_WORK(3, Vector3, normal);
+    VERTEX_ATTRIBUTE_WORK(2, Vector3, normal);
+    VERTEX_ATTRIBUTE_WORK(3, Vector4, vertColor);
 
     gl_Position = VertexShaderMain_DEEP();
 }

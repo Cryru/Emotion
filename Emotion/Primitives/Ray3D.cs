@@ -5,6 +5,7 @@
 using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
+using Emotion.WIPUpdates.Rendering;
 
 #endregion
 
@@ -101,35 +102,31 @@ public struct Ray3D
         return false;
     }
 
-    public bool IntersectWithMeshLocalSpace(Mesh mesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+    public bool IntersectWithVertices(ushort[] indices, VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
     {
         collisionPoint = Vector3.Zero;
         normal = Vector3.Zero;
         triangleIndex = -1;
 
+        if (!vertices.Format.Built) return false;
+        if (!vertices.Format.HasPosition) return false;
+
         var closestDistance = float.MaxValue;
         var intersectionFound = false;
 
-        ushort[] meshIndices = mesh.Indices;
-        VertexDataWithNormal[] vertices = mesh.VerticesONE;
-
-        for (var i = 0; i < meshIndices.Length; i += 3)
+        for (var i = 0; i < indices.Length; i += 3)
         {
-            ushort idx1 = meshIndices[i];
-            ushort idx2 = meshIndices[i + 1];
-            ushort idx3 = meshIndices[i + 2];
+            ushort idx1 = indices[i];
+            ushort idx2 = indices[i + 1];
+            ushort idx3 = indices[i + 2];
 
-            Vector3 p1 = vertices[idx1].Vertex;
-            Vector3 p2 = vertices[idx2].Vertex;
-            Vector3 p3 = vertices[idx3].Vertex;
+            Triangle triangle = vertices.GetTriangleAtIndices(idx1, idx2, idx3);
+            Vector3 triangleNormal = triangle.Normal;
 
-            Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
-
-            if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
+            if (!IntersectWithTriangle(triangle.A, triangle.B, triangle.C, triangleNormal, out float t)) continue;
 
             if (t < closestDistance)
             {
-                IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
                 closestDistance = t;
                 normal = triangleNormal;
                 triangleIndex = i;
@@ -176,7 +173,6 @@ public struct Ray3D
 
             if (t < closestDistance)
             {
-                IntersectWithTriangle(p1, p2, p3, triangleNormal, out float _);
                 closestDistance = t;
                 normal = triangleNormal;
                 triangleIndex = i;

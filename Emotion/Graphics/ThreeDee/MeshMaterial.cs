@@ -21,11 +21,13 @@ public class MeshMaterial
     public Color DiffuseColor = Color.White;
 
     [AssetFileName<TextureAsset>] public string? DiffuseTextureName = null;
-    public Texture? DiffuseTexture;
+    public Texture DiffuseTexture = Texture.EmptyWhiteTexture;
 
     public bool BackFaceCulling = true;
 
     public SerializableAsset<NewShaderAsset>? Shader = null;
+
+    public RenderState State = RenderState.Default;
 
     public static MeshMaterial DefaultMaterial = new MeshMaterial
     {

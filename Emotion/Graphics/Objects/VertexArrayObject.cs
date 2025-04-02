@@ -5,6 +5,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
+using Emotion.WIPUpdates.Rendering;
 using OpenGL;
 
 #endregion
@@ -149,6 +150,161 @@ public abstract class VertexArrayObject : IDisposable
         GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteVertexArrays(ptr); });
     }
 }
+
+#pragma warning disable CS0162 // Unreachable code detected
+/// <summary>
+/// An OpenGL object representing the vertex format.
+/// Sadly is bound to a specific buffer instead of being a reusable format,
+/// unless you use new features.
+/// </summary>
+public class VertexArrayObjectFromFormat : VertexArrayObject
+{
+    /// <summary>
+    /// The Emotion format of the vertices.
+    /// </summary>
+    public VertexDataFormat Format { get; init; }
+
+    public VertexArrayObjectFromFormat(VertexDataFormat format, VertexBuffer vbo)
+    {
+        Format = format;
+        Assert(format.Built);
+
+        ByteSize = format.ElementSize;
+
+        Pointer = Gl.GenVertexArray();
+        VBO = vbo;
+
+        EnsureBound(this);
+        IndexBuffer.EnsureBound(0);
+        VertexBuffer.EnsureBound(VBO.Pointer);
+
+        SetupAttributes();
+        EnsureBound(null);
+    }
+
+    private void SetupAttributes()
+    {
+        // OpenGL 4.3 or GL_ARB_vertex_attrib_binding
+        // In this case we can reuse VAOs for multiple buffers
+        // On mobile and web we might be clear to use this due to ES 3.1 requirement from elsewhere (?)
+        const bool separateVertexAttributes = false;
+
+        if (separateVertexAttributes)
+            VertexBuffer.EnsureBound(0);
+        
+        // This code needs to match the format specification (which is a single one for Emotion).
+        // If the order in the VertexDataFormat changes we need to change this too.
+        uint position = 0;
+        if (Format.HasPosition)
+        {
+            Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+
+            Gl.EnableVertexAttribArray(position);
+            if (separateVertexAttributes)
+            {
+                Gl.VertexAttribFormat(position, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(position, 0);
+            }
+            else
+            {
+                Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+            }
+           
+            position++;
+        }
+
+        for (int i = 0; i < Format.HasUVCount; i++)
+        {
+            Format.GetUVOffsetAndStride(i, out int byteOffset, out int byteStride);
+
+            // Vector2
+            Gl.EnableVertexAttribArray(position);
+            if (separateVertexAttributes)
+            {
+                Gl.VertexAttribFormat(position, 2, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(position, 0);
+            }
+            else
+            {
+                Gl.VertexAttribPointer(position, 2, VertexAttribType.Float, false, byteStride, byteOffset);
+            }
+           
+            position++;
+        }
+
+        if (Format.HasNormals)
+        {
+            Format.GetNormalOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Vector3
+            Gl.EnableVertexAttribArray(position);
+            if (separateVertexAttributes)
+            {
+                Gl.VertexAttribFormat(position, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(position, 0);
+            }
+            else
+            {
+                Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+            }
+            
+            position++;
+        }
+
+        if (Format.HasVertexColors)
+        {
+            Format.GetVertexColorsOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Normalized uint to vec4
+            Gl.EnableVertexAttribArray(position);
+            if (separateVertexAttributes)
+            {
+                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.UnsignedByte, true, (uint)byteOffset);
+                Gl.VertexAttribBinding(position, 0);
+            }
+            else
+            {
+                Gl.VertexAttribPointer(position, 4, VertexAttribType.UnsignedByte, true, byteStride, byteOffset);
+            }
+
+            position++;
+        }
+
+        if (Format.HasBones)
+        {
+            Format.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
+
+            // Vector4 BoneIds
+            Gl.EnableVertexAttribArray(position);
+            if (separateVertexAttributes)
+            {
+                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(position, 0);
+            }
+            else
+            {
+                Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride, byteOffset);
+            }
+
+            position++;
+
+            // Vector4 BoneWeights
+            Gl.EnableVertexAttribArray(position);
+            if (separateVertexAttributes)
+            {
+                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(position, 0);
+            }
+            else
+            {
+                Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride + sizeof(float) * 4, byteOffset);
+            }
+
+            position++;
+        }
+    }
+}
+#pragma warning restore CS0162 // Unreachable code detected
 
 /// <summary>
 /// Create a vertex array object describing the vertex layout

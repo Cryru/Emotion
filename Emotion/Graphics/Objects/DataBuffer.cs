@@ -2,6 +2,7 @@
 
 using System.Runtime.InteropServices;
 using Emotion.Common.Threading;
+using Emotion.WIPUpdates.Rendering;
 using OpenGL;
 
 #endregion
@@ -58,6 +59,11 @@ namespace Emotion.Graphics.Objects
             EnsureBound(Pointer, Type);
 
             if (byteSize != 0) Upload(IntPtr.Zero, byteSize, dataUsage);
+        }
+
+        public void Upload(VertexDataAllocation memory)
+        {
+            Upload(memory.Pointer, memory.GetAllocationSize(), BufferUsage.StaticDraw);
         }
 
         /// <summary>

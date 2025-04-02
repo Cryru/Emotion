@@ -4,12 +4,19 @@ namespace Emotion.Primitives;
 
 public struct Triangle
 {
+    public static Triangle Invalid = new Triangle(Vector3.Zero, Vector3.Zero, Vector3.Zero);
+
     public Vector3 A;
     public Vector3 B;
     public Vector3 C;
 
     public LineSegment Base { get => new LineSegment(B.ToVec2(), C.ToVec2()); }
+
     public Vector3 Apex { get => A; }
+
+    public Vector3 Normal { get => Vector3.Normalize(Vector3.Cross(B - A, C - A)); }
+
+    public bool Valid { get => A != Vector3.Zero || B != Vector3.Zero || C != Vector3.Zero; }
 
     public Triangle(Vector3 a, Vector3 b, Vector3 c)
     {

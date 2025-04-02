@@ -107,6 +107,26 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Reallocate memory. If the memory was labeled it will continue to have the same label.
+        /// </summary>
+        public static IntPtr Realloc(IntPtr ptr, int size)
+        {
+            IntPtr newPtr = Marshal.ReAllocHGlobal(ptr, size);
+
+            if (_ptrToHandle.Remove(ptr, out UnmanagedMemory memory))
+            {
+                memory.Address = newPtr;
+
+                AllocatedSize = AllocatedSize - memory.Size + size;
+                memory.Size = size;
+
+                _ptrToHandle[newPtr] = memory;
+            }
+
+            return newPtr;
+        }
+
+        /// <summary>
         /// Register already allocated memory to be managed by the allocator.
         /// </summary>
         /// <param name="ptr">Pointer to the already allocated memory.</param>
