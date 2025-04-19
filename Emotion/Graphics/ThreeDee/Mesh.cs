@@ -7,6 +7,7 @@ using Emotion.Game.Animation3D;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.WIPUpdates.Rendering;
 
 #endregion
 
@@ -21,24 +22,17 @@ public class Mesh
 
     public string Name;
 
-    public MeshMaterial Material;
+    public MeshMaterial Material = MeshMaterial.DefaultMaterial;
     public ushort[] Indices;
 
     public VertexData[] Vertices;
-    public VertexDataWithNormal[] VerticesONE;
     public VertexDataMesh3DExtra[] ExtraVertexData;
-
     public Mesh3DVertexDataBones[]? BoneData;
 
     public int AnimationSkin = 0;
 
-    public Mesh(VertexDataWithNormal[] verticesONE, ushort[] indices)
-    {
-        Name = DEFAULT_MESH_NAME;
-        VerticesONE = verticesONE;
-        Indices = indices;
-        Material = MeshMaterial.DefaultMaterial;
-    }
+    public VertexDataFormat VertexFormat;
+    public VertexDataAllocation VertexAllocation;
 
     public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
     {
@@ -56,6 +50,13 @@ public class Mesh
         ExtraVertexData = extraData;
         Indices = indices;
         Material = MeshMaterial.DefaultMaterial;
+    }
+
+    public Mesh(VertexDataFormat format, VertexDataAllocation memory, ushort[] indices)
+    {
+        VertexFormat = format;
+        VertexAllocation = memory;
+        Indices = indices;
     }
 
     // Serialization constructor.

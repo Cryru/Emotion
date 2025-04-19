@@ -14,7 +14,7 @@ public struct Triangle
 
     public Vector3 Apex { get => A; }
 
-    public Vector3 Normal { get => Vector3.Normalize(Vector3.Cross(B - A, C - A)); }
+    public Vector3 Normal { get => Vector3.Normalize(Vector3.Cross(C - A, B - A)); }
 
     public bool Valid { get => A != Vector3.Zero || B != Vector3.Zero || C != Vector3.Zero; }
 

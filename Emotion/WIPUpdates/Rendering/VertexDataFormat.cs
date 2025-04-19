@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Utility;
 using System.Text;
 
 namespace Emotion.WIPUpdates.Rendering;

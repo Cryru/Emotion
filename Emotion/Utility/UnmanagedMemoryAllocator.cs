@@ -20,7 +20,6 @@ namespace Emotion.Utility
         }
 
         public static int AllocatedSize;
-        private static ConcurrentDictionary<UnmanagedMemory, bool> _allocatedMemory = new ConcurrentDictionary<UnmanagedMemory, bool>();
         private static ConcurrentDictionary<IntPtr, UnmanagedMemory> _ptrToHandle = new ConcurrentDictionary<IntPtr, UnmanagedMemory>();
         private static ConcurrentDictionary<string, UnmanagedMemory> _labeledMemory = new ConcurrentDictionary<string, UnmanagedMemory>();
 
@@ -34,7 +33,6 @@ namespace Emotion.Utility
                 Address = memoryPtr,
                 Owned = true
             };
-            _allocatedMemory.TryAdd(memoryHandle, false);
             _ptrToHandle[memoryPtr] = memoryHandle;
             return memoryPtr;
         }
@@ -56,13 +54,11 @@ namespace Emotion.Utility
         /// <returns></returns>
         public static bool Free(IntPtr ptr)
         {
-            UnmanagedMemory handle = _ptrToHandle[ptr];
-            if (handle == null) return false;
+            if (!_ptrToHandle.Remove(ptr, out UnmanagedMemory? handle)) return false;
 
             handle.Address = IntPtr.Zero;
-            _ptrToHandle[ptr] = null;
-            if (handle.Label != null) _labeledMemory.TryRemove(handle.Label, out UnmanagedMemory _);
-            _allocatedMemory.TryRemove(handle, out bool _);
+            if (handle.Label != null)
+                _labeledMemory.TryRemove(handle.Label, out UnmanagedMemory _);
 
             Marshal.FreeHGlobal(ptr);
             return true;
@@ -142,7 +138,6 @@ namespace Emotion.Utility
             };
             _ptrToHandle[ptr] = info;
             _labeledMemory[name] = info;
-            _allocatedMemory.TryAdd(info, false);
         }
 
         /// <summary>
@@ -164,9 +159,9 @@ namespace Emotion.Utility
             var dbg = new StringBuilder($"Unmanaged Allocated: {Helpers.FormatByteAmountAsString(AllocatedSize)}");
 
             bool first = true;
-            foreach (var handleKVP in _allocatedMemory)
+            foreach (KeyValuePair<nint, UnmanagedMemory> handleKVP in _ptrToHandle)
             {
-                var handle = handleKVP.Key;
+                UnmanagedMemory handle = handleKVP.Value;
                 if (first) dbg.Append("\n");
                 dbg.AppendLine($" {handle.Address} [{handle.Label}]: {Helpers.FormatByteAmountAsString(handle.Size)}");
                 first = false;

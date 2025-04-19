@@ -12,10 +12,17 @@ using Emotion.Graphics.ThreeDee;
 namespace Emotion.Primitives;
 
 /// <summary>
-/// Represents an AABB.
+/// Represents an axis aligned cube.
 /// </summary>
 public struct Cube
 {
+    public static Cube Empty { get; } = new Cube();
+
+    public bool IsEmpty
+    {
+        get => Origin == Vector3.Zero && HalfExtents == Vector3.Zero;
+    }
+
     public Vector3 Origin;
     public Vector3 HalfExtents;
 
@@ -45,6 +52,19 @@ public struct Cube
         vertices[5] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z + HalfExtents.Z);
         vertices[6] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
         vertices[7] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
+    }
+
+    public bool ContainsInclusive(Cube cube)
+    {
+        Vector3 minA = Origin - HalfExtents;
+        Vector3 maxA = Origin + HalfExtents;
+
+        Vector3 minB = cube.Origin - cube.HalfExtents;
+        Vector3 maxB = cube.Origin + cube.HalfExtents;
+
+        return (minB.X >= minA.X && maxB.X <= maxA.X) &&
+               (minB.Y >= minA.Y && maxB.Y <= maxA.Y) &&
+               (minB.Z >= minA.Z && maxB.Z <= maxA.Z);
     }
 
     public Cube Transform(Matrix4x4 mat)

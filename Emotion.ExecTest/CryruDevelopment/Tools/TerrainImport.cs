@@ -40,7 +40,7 @@ public class TerrainImport
         Vector2 tileSize = new Vector2(2.083332f, 2.0830078f);
 
         TerrainMeshGrid terrain = new TerrainMeshGrid(tileSize, 19);
-        terrain.InitEmptyChunksInArea(Vector2.Zero, terrainSize / tileSize);
+        terrain.CreateEmptyChunksInArea(Vector2.Zero, terrainSize / tileSize);
         Engine.Jobs.Add(FillMapRoutine(terrain, terrainMesh));
 
         TextureAsset? tex = Engine.AssetLoader.Get<TextureAsset>("Test/cryru/map/maps/azeroth/tex_32_48.png");

@@ -28,12 +28,17 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return (tile / ChunkSize).Floor();
     }
 
-    public ChunkT? GetChunkAt(Vector2 position, out Vector2 relativeCoord)
+    public ChunkT? GetChunkAt(Vector2 position, out Vector2 chunkCoord, out Vector2 relativeCoord)
     {
-        Vector2 chunkCoord = GetChunkCoordinateOfValueCoordinate(position);
+        chunkCoord = GetChunkCoordinateOfValueCoordinate(position);
         relativeCoord = position - chunkCoord * ChunkSize;
         _chunks.TryGetValue(chunkCoord, out ChunkT? chunk);
         return chunk;
+    }
+
+    public ChunkT? GetChunkAt(Vector2 position, out Vector2 relativeCoord)
+    {
+        return GetChunkAt(position, out Vector2 _, out relativeCoord);
     }
 
     public ChunkT? GetChunk(Vector2 chunkCoord)
@@ -42,7 +47,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return chunk;
     }
 
-    public void InitEmptyChunksInArea(Vector2 origin, Vector2 size)
+    public void CreateEmptyChunksInArea(Vector2 origin, Vector2 size)
     {
         Rectangle areaToSpawn = new Primitives.Rectangle(origin, size);
         areaToSpawn.SnapToGrid(ChunkSize);
@@ -64,6 +69,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
                     T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
                     newChunk.SetRawData(newChunkData);
                     _chunks.Add(chunkCoord, newChunk);
+                    OnChunkCreated(chunkCoord, newChunk);
                     _chunkBoundsCacheValid = false;
                 }
             }
@@ -77,9 +83,6 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         T[] data = chunk.GetRawData();
         int idx = GridHelpers.GetCoordinate1DFrom2D(position, ChunkSize);
         data[idx] = value;
-
-        if (chunk is VersionedGridChunk<T> versionedChunk)
-            versionedChunk.ChunkVersion++;
     }
 
     protected virtual T GetAtForChunk(ChunkT chunk, Vector2 position)
@@ -165,9 +168,10 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
 
     public void SetAt(Vector2 position, T value)
     {
-        ChunkT? chunk = GetChunkAt(position, out Vector2 relativeCoord);
+        ChunkT? chunk = GetChunkAt(position, out Vector2 chunkCoord, out Vector2 relativeCoord);
         if (chunk == null) return;
         SetAtForChunk(chunk, relativeCoord, value);
+        OnChunkChanged(chunkCoord, chunk);
     }
 
     public T GetAt(Vector2 position)
@@ -191,12 +195,15 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         {
             // Setting position in a chunk - easy peasy.
             SetAtForChunk(chunk, relativeLocation, value);
+            OnChunkChanged(chunkCoord, chunk);
+
             if (!isDelete) return false;
 
             // Compact the grid if the chunk is now empty.
             if (chunk.IsEmpty())
             {
                 _chunks.Remove(chunkCoord);
+                OnChunkRemoved(chunkCoord, chunk);
                 return true;
             }
 
@@ -211,11 +218,33 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
         newChunk.SetRawData(newChunkData);
         _chunks.Add(chunkCoord, newChunk);
+        OnChunkCreated(chunkCoord, newChunk);
         _chunkBoundsCacheValid = false;
 
         SetAtForChunk(newChunk, relativeLocation, value);
+        OnChunkChanged(chunkCoord, newChunk);
         return true;
     }
+
+    #region Events
+
+    protected virtual void OnChunkCreated(Vector2 chunkCoord, ChunkT newChunk)
+    {
+        // nop
+    }
+
+    protected virtual void OnChunkRemoved(Vector2 chunkCoord, ChunkT newChunk)
+    {
+        // nop
+    }
+
+    protected virtual void OnChunkChanged(Vector2 chunkCoord, ChunkT newChunk)
+    {
+        if (newChunk is VersionedGridChunk<T> versionedChunk)
+            versionedChunk.ChunkVersion++;
+    }
+
+    #endregion
 }
 
 public interface IGridChunk<T> where T : struct

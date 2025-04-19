@@ -55,6 +55,13 @@ public struct VertexDataAllocation
         return new VertexDataAllocation(newPtr, vertexCount, old.Format);
     }
 
+    public static void FreeAllocated(ref VertexDataAllocation mem)
+    {
+        if (!mem.Allocated) return;
+        mem.Allocated = false;
+        UnmanagedMemoryAllocator.Free(mem.Pointer);
+    }
+
     public uint GetAllocationSize()
     {
         return (uint)(VertexCount * Format.ElementSize);

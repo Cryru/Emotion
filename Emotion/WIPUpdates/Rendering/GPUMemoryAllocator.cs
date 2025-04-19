@@ -23,8 +23,9 @@ public static class GPUMemoryAllocator
         return newBuffer;
     }
 
-    public static void FreeBuffer(GPUVertexMemory buffer)
+    public static void FreeBuffer(GPUVertexMemory? buffer)
     {
+        if (buffer == null) return;
         _freeBuffers.Add(buffer);
     }
 }

@@ -18,6 +18,7 @@
 
 #define VERTEX_ATTRIBUTE(loc, typ, name) in typ pass_##name;
 #define VERTEX_ATTRIBUTE_LINE_TWO(loc, typ, name) typ name = pass_##name;
+#define RETURN_DEBUG_NORMAL return vec4((fragNormal + vec3(1.0)) / 2.0, 1.0);
 
 #endif
 
@@ -75,12 +76,16 @@ vec4 VertexShaderMain_DEEP()
     return projectionMatrix * viewMatrix * modelMatrix * vec4(vertPos, 1.0);
 }
 
+out vec3 fragNormal;
+
 void VertexShaderMain()
 {
     VERTEX_ATTRIBUTE_WORK(0, Vector3, vertPos);
     VERTEX_ATTRIBUTE_WORK(1, Vector2, uv);
     VERTEX_ATTRIBUTE_WORK(2, Vector3, normal);
     VERTEX_ATTRIBUTE_WORK(3, Vector4, vertColor);
+
+    fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
 
     gl_Position = VertexShaderMain_DEEP();
 }
@@ -97,12 +102,14 @@ void VertexShaderMain()
 
 uniform sampler2D diffuseTexture;
 
+in vec3 fragNormal;
+
 vec4 FragmentShaderMain()
 {
     vec4 col = vertColor;
 
 #if EDITOR_BRUSH
-    float ringThickness = 1.5;
+    float ringThickness = 0.5;
 
     float d = length(brushWorldSpace - vertPos.xy);
     float innerRadius = brushRadius - ringThickness;
@@ -120,8 +127,25 @@ vec4 FragmentShaderMain()
 #endif
 
     vec4 textureColor = texture2D(diffuseTexture, uv);
+    vec3 albedoColor = textureColor.rgb + col.rgb;
 
-    return textureColor * col;
+    vec3 lightDirection = vec3(0.2, 0.2, -1.0);
+    vec3 lightColor = vec3(0.2);
+
+     // Normalize inputs
+    vec3 N = normalize(fragNormal);               // Surface normal
+    vec3 L = normalize(-lightDirection);          // Light direction (inverted to point towards the surface)
+
+    // Diffuse lighting (Lambertian)
+    float NdotL = max(dot(N, L), 0.0);            // Cosine of the angle between the normal and light direction
+    vec3 diffuse = NdotL * albedoColor;
+
+    // Final lighting contribution
+    vec3 lighting = diffuse * lightColor;
+
+    RETURN_DEBUG_NORMAL
+
+    return vec4(lighting, 1.0);
 }
 
 #endif

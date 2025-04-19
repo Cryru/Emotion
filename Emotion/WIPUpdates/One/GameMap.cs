@@ -22,6 +22,9 @@ public class GameMap
         if (TileMapData != null)
             yield return TileMapData.InitRuntimeDataRoutine();
 
+        if (TerrainGrid != null)
+            yield return TerrainGrid.InitRuntimeDataRoutine();
+
         yield break;
     }
 
@@ -45,6 +48,8 @@ public class GameMap
 
     public void Update(float dt)
     {
+        TerrainGrid?.Update();
+
         for (int i = 0; i < _objects.Count; i++)
         {
             var obj = _objects[i];
