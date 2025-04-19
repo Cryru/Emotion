@@ -9,6 +9,7 @@ public static class ReflectorEngine
 {
     private static Dictionary<Type, IGenericReflectorTypeHandler> _typeHandlers = new();
     private static Dictionary<Type, Type[]> _typeRelations = new();
+    private static Dictionary<Type, Type[]> _typeRelationsDirect = new();
     private static Dictionary<int, Type> _typeNameToType = new();
 
     internal static void Init()
@@ -96,6 +97,13 @@ public static class ReflectorEngine
         return null;
     }
 
+    public static IGenericReflectorComplexTypeHandler? GetComplexTypeHandler(Type typ)
+    {
+        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
+            return (IGenericReflectorComplexTypeHandler)handler;
+        return null;
+    }
+
     public static IGenericReflectorTypeHandler? GetTypeHandlerByName(string name)
     {
         return GetTypeHandlerByName(name.AsSpan());
@@ -121,17 +129,27 @@ public static class ReflectorEngine
             if (handler is not IGenericReflectorComplexTypeHandler) continue;
 
             Type[]? descendants = null;
+            Type[]? descendantsDirect = null;
             foreach ((Type candidate, IGenericReflectorTypeHandler _) in _typeHandlers)
             {
                 if (handler is not IGenericReflectorComplexTypeHandler) continue;
+                if (candidate == typ) continue;
 
                 Type? baseType = candidate.BaseType;
                 if (baseType == null) continue;
 
                 bool isDescended = baseType == typ;
-                if (!isDescended)
+                if (isDescended) // Direct descendant
                 {
-                    // Deep search
+                    if (descendantsDirect == null)
+                        descendantsDirect = new Type[1];
+                    else
+                        Array.Resize(ref descendantsDirect, descendantsDirect.Length + 1);
+
+                    descendantsDirect[^1] = candidate;
+                }
+                else // If not direct descendant do a deep search up.
+                {
                     while (baseType != null)
                     {
                         baseType = baseType.BaseType;
@@ -141,9 +159,10 @@ public static class ReflectorEngine
                             break;
                         }
                     }
-                }
 
-                if (!isDescended) continue;
+                    // Deep search found nothing
+                    if (!isDescended) continue;
+                }
 
                 if (descendants == null)
                     descendants = new Type[1];
@@ -154,12 +173,14 @@ public static class ReflectorEngine
             }
 
             if (descendants != null) _typeRelations.Add(typ, descendants);
+            if (descendantsDirect != null) _typeRelationsDirect.Add(typ, descendantsDirect);
         }
     }
 
-    public static Type[] GetTypesDescendedFrom(Type typ)
+    public static Type[] GetTypesDescendedFrom(Type typ, bool directOnly = false)
     {
-        if (_typeRelations.ContainsKey(typ)) return _typeRelations[typ];
+        Dictionary<Type, Type[]> dict = directOnly ? _typeRelationsDirect : _typeRelations;
+        if (dict.TryGetValue(typ, out Type[]? value)) return value;
         return Array.Empty<Type>();
     }
 
