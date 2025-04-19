@@ -125,7 +125,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             return true;
         }
 
-        private static string DetermineDeveloperModeProjectFolder()
+        private static string? DetermineDeveloperModeProjectFolder()
         {
             string currentDirectory = AssetLoader.GameDirectory;
             DirectoryInfo? parentDir = Directory.GetParent(currentDirectory);
@@ -147,7 +147,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                     found = false;
                     foreach (FileInfo file in parentDir.EnumerateFiles())
                     {
-                        if (file.Extension == ".csproj" || file.Extension == ".sln")
+                        if (file.Extension == ".csproj" || file.Extension == ".sln" || file.Extension == ".slnx")
                         {
                             found = true;
                             break;
