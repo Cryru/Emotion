@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Emotion.SourceGeneration;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,6 +29,8 @@ namespace SourceGenerator
                 }
             );
 
+            ReflectorStaticClassGenerator.Register(context, definedTypesProvider);
+
             context.RegisterSourceOutput(definedTypesProvider, (sourceProductionContext, definedTypes) =>
             {
                 // [Step 1] Find associated types of the complex types (base types, members), element types of arrays, and so forth...
@@ -35,6 +38,7 @@ namespace SourceGenerator
                 var typeToMembers = new Dictionary<INamedTypeSymbol, ImmutableArray<ReflectorMemberData>>(SymbolEqualityComparer.Default);
                 foreach (INamedTypeSymbol type in definedTypes)
                 {
+                    if (type.IsStatic) continue;
                     AddComplexTypeAndAssociatedTypes(sourceProductionContext, type, typesToReflector, typeToMembers);
                 }
 
@@ -87,13 +91,19 @@ namespace SourceGenerator
 
                         namespaceTraverse.Enqueue(childNamespace);
                     }
-                    else if (
-                        member is INamedTypeSymbol typeSymbol &&
-                        !typeSymbol.IsStatic &&
-                        typeSymbol.ContainingAssembly.Equals(compilation.Assembly, SymbolEqualityComparer.Default)
-                    )
+                    // Check if the type is in the current assembly
+                    else if (member is INamedTypeSymbol typeSymbol && typeSymbol.ContainingAssembly.Equals(compilation.Assembly, SymbolEqualityComparer.Default))
                     {
                         result.Add(typeSymbol);
+
+                        // Add nested classes.
+                        ImmutableArray<INamedTypeSymbol> typeMembers = typeSymbol.GetTypeMembers();
+                        for (int i = 0; i < typeMembers.Length; i++)
+                        {
+                            INamedTypeSymbol nestedType = typeMembers[i];
+                            if (nestedType.DeclaredAccessibility == Accessibility.Public)
+                                result.Add(nestedType);
+                        }
                     }
                 }
             }
@@ -126,7 +136,7 @@ namespace SourceGenerator
             isEnabledByDefault: true
         );
 
-        public static ImmutableArray<ReflectorMemberData> GetReflectorableTypeMembers(SourceProductionContext context, INamedTypeSymbol typ)
+        public static ImmutableArray<ReflectorMemberData> GetReflectorableTypeMembers(SourceProductionContext context, INamedTypeSymbol typ, bool staticMode = false)
         {
             ImmutableArray<ReflectorMemberData>.Builder result = ImmutableArray.CreateBuilder<ReflectorMemberData>();
 
@@ -138,8 +148,17 @@ namespace SourceGenerator
                 // Exclude function members.
                 if (member.Kind != SymbolKind.Field && member.Kind != SymbolKind.Property) continue;
 
-                // Do we care about static members?
-                if (member.IsStatic) continue;
+                // For static complex type handlers we want only static members,
+                // for everything else we want non-static members only.
+                if (staticMode)
+                {
+                    if (!member.IsStatic) continue;
+                }
+                else
+                {
+                    if (member.IsStatic) continue;
+                }
+                
 
                 // Skip indexer properties.
                 if (memberName == "this[]") continue;
@@ -200,9 +219,11 @@ namespace SourceGenerator
                 INamedTypeSymbol namedMemberType = memberType as INamedTypeSymbol;
                 if (namedMemberType != null)
                 {
-                    // Skip type can't be serialized.
+                    // If the type was marked as non serializable, then skip it.
                     if (HasDontSerialize(namedMemberType)) continue;
 
+                    // If the type wasn't marked as non-serializable, and it cannot be serialized, then
+                    // we skip it too, but leave a warning as it should be annotated.
                     if (!IsReflectorBuiltInType(namedMemberType) && !IsReflectorableType(namedMemberType))
                     {
                         context.ReportDiagnostic(Diagnostic.Create(_reflectorMemberWarning, member.Locations.FirstOrDefault()));
@@ -415,6 +436,10 @@ namespace SourceGenerator
                 INamespaceSymbol nameSpace = typ.ContainingNamespace;
                 sb.AppendLine($"namespace {nameSpace.ToDisplayString()};");
                 sb.AppendLine("");
+
+                //if (typ.ContainingType != null)
+                //    sb.AppendLine($"public partial class {typ.ContainingType.Name}.{typ.Name}");
+                //else
                 sb.AppendLine($"public partial class {typ.Name}");
             }
             else

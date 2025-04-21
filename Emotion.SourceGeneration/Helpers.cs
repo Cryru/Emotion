@@ -46,8 +46,7 @@ namespace Emotion.SourceGeneration
         {
             foreach (AttributeData attribute in attributes)
             {
-                string name = attribute.AttributeClass.Name.ToString();
-                if (name == attributeClassName)
+                if (attribute.AttributeClass.Name.SequenceEqual(attributeClassName))
                     return true;
             }
             return false;
@@ -112,6 +111,14 @@ namespace Emotion.SourceGeneration
 
         public static bool IsPartial(INamedTypeSymbol symbol)
         {
+            INamedTypeSymbol containingType = symbol.ContainingType;
+            if (containingType != null)
+            {
+                //bool containingIsPartial = IsPartial(containingType);
+                //if (!containingIsPartial) return false;
+                return false;
+            }
+
             // generally if there is more than one - it would be partial, right?
             foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
             {

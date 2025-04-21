@@ -127,6 +127,11 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         }
     }
 
+    public bool CanCreateNew()
+    {
+        return _createNew != null;
+    }
+
     public object? CreateNew()
     {
         if (_createNew == null) return null;

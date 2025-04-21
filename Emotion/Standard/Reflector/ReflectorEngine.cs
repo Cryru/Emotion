@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.Reflector.Handlers;
+using System.Dynamic;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Standard.Reflector;
@@ -89,11 +90,11 @@ public static class ReflectorEngine
         return null;
     }
 
-    public static IGenericReflectorComplexTypeHandler? GetComplexTypeHandler<T>()
+    public static ComplexTypeHandler<T>? GetComplexTypeHandler<T>()
     {
         Type typ = typeof(T);
         if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
-            return (IGenericReflectorComplexTypeHandler)handler;
+            return (ComplexTypeHandler<T>) handler;
         return null;
     }
 
@@ -116,6 +117,27 @@ public static class ReflectorEngine
         if (!_typeNameToType.TryGetValue(hash, out Type? typ)) return null;
 
         return GetTypeHandler(typ);
+    }
+
+    public static T? CreateCopyOf<T>(T obj)
+    {
+        if (obj == null) return obj;
+
+        // todo: generate this for each complex handler
+        ComplexTypeHandler<T>? handler = GetComplexTypeHandler<T>();
+        if (handler == null || !handler.CanCreateNew()) return default;
+
+        T? newObj = (T?) handler.CreateNew();
+        if (newObj == null) return newObj;
+
+        var members = handler.GetMembersDeep();
+        foreach (var member in members)
+        {
+            if (member.GetValueFromComplexObject(obj, out object? val))
+                member.SetValueInComplexObject(newObj, val);
+        }
+
+        return newObj;
     }
 
     #region Relations
