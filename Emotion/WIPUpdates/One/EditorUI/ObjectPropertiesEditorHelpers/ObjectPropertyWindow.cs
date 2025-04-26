@@ -11,7 +11,7 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyWindow : EditorScrollArea
 {
-    public object? Object;
+    public object? ObjectBeingEdited { get; protected set; }
     protected Type? _type;
 
     public ObjectPropertyWindow()
@@ -28,10 +28,10 @@ public class ObjectPropertyWindow : EditorScrollArea
         AddChildInside(editorList);
     }
 
-    public void SetEditor(object obj)
+    public void SetEditor(object? obj)
     {
-        Object = obj;
-        _type = obj.GetType();
+        ObjectBeingEdited = obj;
+        _type = obj?.GetType();
         SpawnEditors();
     }
 
@@ -45,7 +45,7 @@ public class ObjectPropertyWindow : EditorScrollArea
         if (_type == null) return;
 
         // todo
-        if (Object == null) return;
+        if (ObjectBeingEdited == null) return;
 
         IGenericReflectorTypeHandler? typeHandler = ReflectorEngine.GetTypeHandler(_type);
 
@@ -73,7 +73,7 @@ public class ObjectPropertyWindow : EditorScrollArea
                 TypeEditor? editorFromReflector = memberHandler?.GetEditor();
                 if (editorFromReflector != null)
                 {
-                    var editorWithlabel = new EditorWithLabel(editorFromReflector, Object, member);
+                    var editorWithlabel = new EditorWithLabel(editorFromReflector, ObjectBeingEdited, member);
                     editorList.AddChild(editorWithlabel);
                 }
                 else if (memberHandler?.Type == typeof(SerializableAsset<TextureAsset>))
@@ -81,14 +81,14 @@ public class ObjectPropertyWindow : EditorScrollArea
                     AssetHandleEditor<TextureAsset> newEditor = new AssetHandleEditor<TextureAsset>();
 
                     SerializableAsset<TextureAsset> handleValue;
-                    if (member.GetValueFromComplexObject(Object, out object? memberValue) && memberValue is SerializableAsset<TextureAsset> readMember)
+                    if (member.GetValueFromComplexObject(ObjectBeingEdited, out object? memberValue) && memberValue is SerializableAsset<TextureAsset> readMember)
                     {
                         handleValue = readMember;
                     }
                     else
                     {
                         handleValue = new SerializableAsset<TextureAsset>();
-                        member.SetValueInComplexObject(Object, handleValue);
+                        member.SetValueInComplexObject(ObjectBeingEdited, handleValue);
                     }
 
                     newEditor.SetEditor(member.Name, handleValue);

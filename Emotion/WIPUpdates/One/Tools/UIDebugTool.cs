@@ -209,7 +209,7 @@ public class UIDebugTool : EditorWindow
         _debugInfo.LayoutMode = dbgWindow.LayoutMode;
         _debugInfo.Bounds = dbgWindow.Bounds;
         _debugInfo.ScaledPadding = dbgWindow.Paddings * dbgWindow.GetScale();
-        EngineEditor.ObjectChanged(_debugInfo);
+        EngineEditor.ObjectChanged(_debugInfo, ObjectChangeType.ComplexObject_PropertyChanged);
     }
 
     private string GetWindowPath(UIBaseWindow win)

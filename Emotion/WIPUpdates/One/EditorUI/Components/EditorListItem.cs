@@ -2,6 +2,7 @@
 
 using Emotion.Game.World.Editor;
 using Emotion.UI;
+using static Emotion.WIPUpdates.One.EngineEditor;
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
@@ -37,7 +38,18 @@ public class EditorListItem<T> : EditorButton
         _onClick = onClick;
 
         if (item != null)
-            EngineEditor.RegisterForObjectChanges(item, UpdateLabel, this);
+            EngineEditor.RegisterForObjectChanges(item, ObjectChangedEvent, this);
+        UpdateLabel();
+    }
+
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+        EngineEditor.UnregisterForObjectChanges(this);
+    }
+
+    private void ObjectChangedEvent(ObjectChangeType _)
+    {
         UpdateLabel();
     }
 
@@ -65,12 +77,6 @@ public class EditorListItem<T> : EditorButton
     private void UpdateLabel()
     {
         Text = Item?.ToString() ?? "<null>";
-    }
-
-    public override void DetachedFromController(UIController controller)
-    {
-        base.DetachedFromController(controller);
-        EngineEditor.UnregisterForObjectChanges(this);
     }
 
     protected override bool RenderInternal(RenderComposer c)

@@ -75,7 +75,7 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
     {
         if (_objectEditting == null) return;
 
-        EngineEditor.ObjectChanged(_objectEditting, this);
+        EngineEditor.ObjectChanged(_objectEditting, ObjectChangeType.ValueChanged, this);
 
         UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
         AssertNotNull(textInput);

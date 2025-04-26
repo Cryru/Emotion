@@ -2,18 +2,28 @@
 
 namespace Emotion.WIPUpdates.One;
 
+public enum ObjectChangeType
+{
+    ValueChanged, // Most generic, might not be needed
+    ComplexObject_PropertyChanged, // Complex object property has changed. todo: property name
+    List_NewObj, // A new item has been added to the list. todo: pass the item/index (currently it's always the last item)
+    List_ObjectRemoved, // An item has been removed from the list. todo: pass the item
+    List_Reodered, // The list has been reordered.
+    List_ObjectValueChanged // The list itself has changed, as in one of the object references/values has changed. todo: index
+}
+
 public partial class EngineEditor
 {
     private struct ObjectChangeMonitor
     {
         public object? ListeningObject;
         public object ObjectListeningTo;
-        public Action OnChange;
+        public Action<ObjectChangeType> OnChange;
     }
 
     private static Dictionary<object, List<ObjectChangeMonitor>> _objModificationTracker = new Dictionary<object, List<ObjectChangeMonitor>>();
 
-    public static void ObjectChanged(object obj, object? changedByListener = null)
+    public static void ObjectChanged(object obj, ObjectChangeType changeType, object? changedByListener = null)
     {
         if (!_objModificationTracker.TryGetValue(obj, out List<ObjectChangeMonitor>? list)) return;
 
@@ -21,7 +31,7 @@ public partial class EngineEditor
         {
             ObjectChangeMonitor monitorItem = list[i];
             if (changedByListener != null && monitorItem.ListeningObject == changedByListener) continue;
-            monitorItem.OnChange();
+            monitorItem.OnChange(changeType);
         }
     }
 
@@ -45,7 +55,7 @@ public partial class EngineEditor
             _objModificationTracker.RemoveAll((_, val) => val.Count == 0);
     }
 
-    public static void RegisterForObjectChanges(object obj, Action onChanged, object? listener = null)
+    public static void RegisterForObjectChanges(object obj, Action<ObjectChangeType> onChanged, object? listener = null)
     {
         ObjectChangeMonitor listenInstance = new ObjectChangeMonitor()
         {

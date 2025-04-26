@@ -4,6 +4,7 @@ using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using System.Reflection.Metadata;
+using static Emotion.WIPUpdates.One.EngineEditor;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -15,7 +16,7 @@ public class EditorWithLabel : UIBaseWindow
     private object _objectEditting;
     private ComplexTypeHandlerMember _handler;
 
-    public EditorWithLabel(TypeEditor editor, object parentObj, ComplexTypeHandlerMember memberHandler)
+    public EditorWithLabel(TypeEditor editor, object parentObj, ComplexTypeHandlerMember memberHandler) // via handler
     {
         Assert(editor.Parent == null, "TypeEditor shouldn't have a UI parent");
 
@@ -37,7 +38,7 @@ public class EditorWithLabel : UIBaseWindow
 
         _objectEditting = parentObj;
         _handler = memberHandler;
-        EngineEditor.RegisterForObjectChanges(parentObj, OnValueUpdated, this);
+        EngineEditor.RegisterForObjectChanges(parentObj, ObjectChangedEvent, this);
 
         OnValueUpdated();
 
@@ -45,7 +46,18 @@ public class EditorWithLabel : UIBaseWindow
             SetVertical();
     }
 
-    public EditorWithLabel(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged)
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+        EngineEditor.UnregisterForObjectChanges(this);
+    }
+
+    private void ObjectChangedEvent(ObjectChangeType _)
+    {
+        OnValueUpdated();
+    }
+
+    public EditorWithLabel(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged) // custom
     {
         FillY = false;
         LayoutMode = LayoutMode.HorizontalList;
@@ -77,7 +89,7 @@ public class EditorWithLabel : UIBaseWindow
     private void OnInputChanged(object? newValue)
     {
         _handler.SetValueInComplexObject(_objectEditting, newValue);
-        EngineEditor.ObjectChanged(_objectEditting, this);
+        EngineEditor.ObjectChanged(_objectEditting, ObjectChangeType.ValueChanged, this);
     }
 
     private void OnValueUpdated()
@@ -86,14 +98,6 @@ public class EditorWithLabel : UIBaseWindow
         if (_handler == null) return;
 
         if (_handler.GetValueFromComplexObject(_objectEditting, out object? readValue))
-        {
             _editor.SetValue(readValue);
-        }
-    }
-
-    public override void DetachedFromController(UIController controller)
-    {
-        base.DetachedFromController(controller);
-        EngineEditor.UnregisterForObjectChanges(this);
     }
 }

@@ -120,7 +120,7 @@ public sealed class TileEditorWindow : GridEditorWindow
             ComplexTypeHandlerMember? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
             if (tileData != null && layerHandler != null)
             {
-                var listEditor = new ListEditor<TileMapLayer>();
+                var listEditor = new ListEditor<TileMapLayer>(typeof(TileMapLayer));
                 listEditor.OnItemSelected = SelectTileLayer;
 
                 EditorWithLabel layerEditor = new EditorWithLabel(listEditor, tileData, layerHandler);
