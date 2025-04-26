@@ -73,7 +73,7 @@ public class DataEditorGeneric : EditorPanel
                 OnClickedProxy = _ =>
                 {
                     AssertNotNull(_selectedObject);
-                    GameDataDatabase.EditorAdapter.EditorDeleteObject(_type, _selectedObject);
+                    GameDatabase.EditorAdapter.EditorDeleteObject(_type, _selectedObject);
                     _selectedObject = null;
                     RegenerateList();
                     RegenerateSelection();

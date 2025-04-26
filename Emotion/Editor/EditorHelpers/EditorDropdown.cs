@@ -124,7 +124,7 @@ public class EditorDropDown : UIDropDown
             {
                 var ddButton = new EditorButton
                 {
-                    FillX = true,
+                    GrowX = true,
 
                     Text = item.NameFunc != null ? item.NameFunc() : item.Name,
                 };

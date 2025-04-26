@@ -52,8 +52,8 @@ public class EditorButton : UICallbackButton
 
     public EditorButton()
     {
-        FillX = false;
-        FillY = false;
+        GrowX = false;
+        GrowY = false;
         Paddings = new Rectangle(6, 3, 6, 3);
 
         _label = new EditorLabel

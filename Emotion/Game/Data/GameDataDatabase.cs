@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector;
-using static Emotion.Game.Data.GameDataDatabase;
+using static Emotion.Game.Data.GameDatabase;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
 #endregion
 
 namespace Emotion.Game.Data;
 
-public static partial class GameDataDatabase
+public static partial class GameDatabase
 {
     public static bool Initialized { get; private set; }
 

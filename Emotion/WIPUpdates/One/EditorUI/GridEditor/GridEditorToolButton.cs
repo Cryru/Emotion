@@ -16,7 +16,7 @@ public class GridEditorToolButton : UICallbackButton
         Editor = editor;
         Tool = tool;
 
-        FillX = false;
+        GrowX = false;
 
         var windowBackground = new UISolidColor
         {

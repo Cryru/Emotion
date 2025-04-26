@@ -491,9 +491,9 @@ public partial class UIBaseWindow
             {
                 case LayoutMode _ when childData.OutsideCurrentLayout:
                     {
-                        if (childWin.FillX)
+                        if (childWin.GrowX)
                             childBound = Outside_FillX(childData, childBound);
-                        if (childWin.FillY)
+                        if (childWin.GrowY)
                             childBound = Outside_FillY(childData, childBound);
                         break;
                     }
@@ -502,18 +502,18 @@ public partial class UIBaseWindow
                 case LayoutMode.HorizontalList:
                 case LayoutMode.VerticalList:
                     {
-                        if (childWin.FillX)
+                        if (childWin.GrowX)
                             childBound = List_FillX(childData, childBound);
-                        if (childWin.FillY)
+                        if (childWin.GrowY)
                             childBound = List_FillY(childData, childBound);
                         break;
                     }
 
                 case LayoutMode.Free:
                     {
-                        if (childWin.FillX)
+                        if (childWin.GrowX)
                             childBound = Free_FillX(childData, childBound);
-                        if (childWin.FillY)
+                        if (childWin.GrowY)
                             childBound = Free_FillY(childData, childBound);
                         break;
                     }

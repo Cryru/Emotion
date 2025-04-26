@@ -87,8 +87,8 @@ public class EditorPanel : UIBaseWindow
             container.StretchX = true;
             container.StretchY = true;
 
-            container.FillX = false;
-            container.FillY = false;
+            container.GrowX = false;
+            container.GrowY = false;
 
             container.MinSize = new Vector2(100, 100);
             container.MaxSize = new Vector2(500, 200);

@@ -4,7 +4,7 @@ using Emotion.Game.Data;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-using static Emotion.Game.Data.GameDataDatabase;
+using static Emotion.Game.Data.GameDatabase;
 
 namespace Emotion.WIPUpdates.One.Tools.GameDataTool;
 

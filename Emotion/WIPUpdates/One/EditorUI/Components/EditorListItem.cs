@@ -34,7 +34,7 @@ public class EditorListItem<T> : EditorButton
 
         _itemIdx = itemIdx;
         Item = item;
-        FillX = true;
+        GrowX = true;
         _onClick = onClick;
 
         if (item != null)

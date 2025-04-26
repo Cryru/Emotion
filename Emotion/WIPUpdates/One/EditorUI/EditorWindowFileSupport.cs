@@ -80,7 +80,7 @@ public partial class EditorWindowFileSupport : EditorWindow
 
             {
                 EditorButton button = new EditorButton("New");
-                button.FillX = true;
+                button.GrowX = true;
                 button.OnClickedProxy = (_) =>
                 {
                     NewFile();
@@ -91,14 +91,14 @@ public partial class EditorWindowFileSupport : EditorWindow
 
             {
                 EditorButton button = new EditorButton("Open...");
-                button.FillX = true;
+                button.GrowX = true;
                 button.OnClickedProxy = (_) => OpenFile();
                 dropDown.AddChild(button);
             }
 
             {
                 EditorButton button = new EditorButton("Save");
-                button.FillX = true;
+                button.GrowX = true;
                 button.OnClickedProxy = (_) => SaveFile();
                 dropDown.AddChild(button);
             }

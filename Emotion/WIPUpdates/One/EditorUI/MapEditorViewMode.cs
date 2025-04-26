@@ -14,8 +14,8 @@ public class MapEditorViewMode : UIBaseWindow
 {
     public MapEditorViewMode()
     {
-        FillY = false;
-        FillX = false;
+        GrowY = false;
+        GrowX = false;
         MinSizeY = 20;
         Margins = new Rectangle(0, 5, 0, 0);
     }
@@ -39,7 +39,7 @@ public class MapEditorViewMode : UIBaseWindow
             Paddings = new Rectangle(5, 5, 5, 5),
             IgnoreParentColor = true,
             WindowColor = MapEditorColorPalette.BarColor * 0.5f,
-            FillX = false,
+            GrowX = false,
 
             SetChildren = new List<UIBaseWindow>()
             {
@@ -83,8 +83,8 @@ public class MapEditorViewMode : UIBaseWindow
                 },
                 new MapEditorViewModeOrientationGizmo()
                 {
-                    FillX = false,
-                    FillY = false,
+                    GrowX = false,
+                    GrowY = false,
                     Margins = new Rectangle(0, 10, 0, 0),
                     MinSize = new Vector2(128),
                 }

@@ -115,7 +115,7 @@ public class ListEditor<T> : TypeEditor
         {
             LayoutMode = LayoutMode.HorizontalList,
             ListSpacing = new Vector2(5, 0),
-            FillY = false,
+            GrowY = false,
             OrderInParent = -1,
             Margins = new Primitives.Rectangle(0, 0, 0, 5)
         };

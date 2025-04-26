@@ -112,8 +112,8 @@ namespace Emotion.UI
 
         public UIText()
         {
-            FillX = false;
-            FillY = false;
+            GrowX = false;
+            GrowY = false;
         }
 
         protected override async Task LoadContent()

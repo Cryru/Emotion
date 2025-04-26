@@ -15,7 +15,7 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
 
     public AssetHandleEditor()
     {
-        FillY = false;
+        GrowY = false;
 
         UIBaseWindow container = new UIBaseWindow
         {

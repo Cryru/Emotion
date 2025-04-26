@@ -7,7 +7,7 @@ using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Collections.Generic;
-using static Emotion.Game.Data.GameDataDatabase;
+using static Emotion.Game.Data.GameDatabase;
 
 #nullable enable
 
@@ -65,7 +65,7 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
             IgnoreParentColor = true,
             Id = "SelectedInfo",
             LayoutMode = LayoutMode.VerticalList,
-            FillX = false,
+            GrowX = false,
             MinSize = new Vector2(50)
         };
         content.AddChild(contentRight);

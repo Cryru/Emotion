@@ -140,8 +140,8 @@ namespace Emotion.UI
 
         public UITexture()
         {
-            FillX = false;
-            FillY = false;
+            GrowX = false;
+            GrowY = false;
         }
 
         protected override async Task LoadContent()

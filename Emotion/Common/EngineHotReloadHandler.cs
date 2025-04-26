@@ -18,7 +18,7 @@ internal static class EngineHotReloadHandler
         if (updatedTypes == null) return;
 
         ReflectorEngine.OnHotReload(updatedTypes);
-        GameDataDatabase.EditorAdapter.OnHotReload(updatedTypes);
+        GameDatabase.EditorAdapter.OnHotReload(updatedTypes);
     }
 }
 

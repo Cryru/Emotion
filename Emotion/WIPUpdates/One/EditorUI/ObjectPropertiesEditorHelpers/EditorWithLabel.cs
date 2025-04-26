@@ -20,7 +20,7 @@ public class EditorWithLabel : UIBaseWindow
     {
         Assert(editor.Parent == null, "TypeEditor shouldn't have a UI parent");
 
-        FillY = false;
+        GrowY = false;
         LayoutMode = LayoutMode.HorizontalList;
 
         EditorLabel label = new EditorLabel
@@ -59,7 +59,7 @@ public class EditorWithLabel : UIBaseWindow
 
     public EditorWithLabel(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged) // custom
     {
-        FillY = false;
+        GrowY = false;
         LayoutMode = LayoutMode.HorizontalList;
 
         EditorLabel label = new EditorLabel

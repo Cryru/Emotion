@@ -44,7 +44,7 @@ namespace Emotion.Game.World.Editor
             HandleInput = true;
             StretchX = true;
             StretchY = true;
-            FillY = false;
+            GrowY = false;
             MaxSizeY = 10;
             LayoutMode = LayoutMode.HorizontalList;
             Id = "TopBar";

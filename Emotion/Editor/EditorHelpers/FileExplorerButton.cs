@@ -31,8 +31,8 @@ public class FileExplorerButton : UICallbackButton
             MinSizeY = 10,
             MinSizeX = 20,
             Visible = false,
-            FillY = false,
-            FillX = false
+            GrowY = false,
+            GrowX = false
         };
         _notch = directoryNotch;
         AddChild(directoryNotch);
@@ -64,8 +64,8 @@ public class FileExplorerButton : UICallbackButton
         MinSizeX = 150;
         MaxSizeX = 150;
 
-        FillX = false;
-        FillY = false;
+        GrowX = false;
+        GrowY = false;
     }
 
     public void SetFileName(string fileName)

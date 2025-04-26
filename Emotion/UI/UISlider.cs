@@ -82,8 +82,8 @@ namespace Emotion.UI
         public UISlider()
         {
             HandleInput = true;
-            FillX = false;
-            FillY = false;
+            GrowX = false;
+            GrowY = false;
         }
 
         public override void AttachedToController(UIController controller)

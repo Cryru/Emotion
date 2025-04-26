@@ -95,8 +95,8 @@ public class EditorWindow : UIBaseWindow
         {
             HandleInput = true,
             LayoutMode = LayoutMode.VerticalList,
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
             AnchorAndParentAnchor = UIAnchor.CenterCenter,
             Id = "PanelItself",
             SizeConstraint = _initialSize
@@ -285,8 +285,8 @@ public class EditorWindow : UIBaseWindow
             OrderInParent = 99,
             Anchor = UIAnchor.BottomRight,
             ParentAnchor = UIAnchor.BottomRight,
-            FillX = false,
-            FillY = false
+            GrowX = false,
+            GrowY = false
         };
         parent.AddChild(dragButton);
         dragButton.AddChild(dragArea);

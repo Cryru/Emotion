@@ -146,8 +146,8 @@ public class UIRichText : UIBaseWindow
 
     public UIRichText()
     {
-        FillX = false;
-        FillY = false;
+        GrowX = false;
+        GrowY = false;
         StringContext = new StringContext(InvalidateLayout);
     }
 

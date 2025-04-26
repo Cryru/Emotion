@@ -43,8 +43,8 @@ public class UITextInput2 : UIRichText
 
         AllowRenderBatch = false;
 
-        FillX = true;
-        FillY = true;
+        GrowX = true;
+        GrowY = true;
     }
 
     public override void AttachedToController(UIController controller)

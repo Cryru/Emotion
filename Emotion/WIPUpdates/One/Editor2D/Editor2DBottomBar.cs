@@ -18,7 +18,7 @@ public class Editor2DBottomBar : UISolidColor
 
     public Editor2DBottomBar()
     {
-        FillY = false;
+        GrowY = false;
         WindowColor = MapEditorColorPalette.BarColor;
         AnchorAndParentAnchor = UIAnchor.BottomLeft;
 

@@ -286,7 +286,7 @@ namespace Emotion.Common
             UI = new UISystem();
 
             // Load game data.
-            GameDataDatabase.Initialize();
+            GameDatabase.Initialize();
             LocalizationEngine.Initialize();
 
             // Debuggers

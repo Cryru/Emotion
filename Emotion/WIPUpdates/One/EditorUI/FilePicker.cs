@@ -153,8 +153,8 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
             Id = "ContainerList",
             LayoutMode = LayoutMode.HorizontalListWrap,
             ListSpacing = new Vector2(10, 10),
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
 
             MinSizeX = 1250,
             MaxSizeX = 1250,

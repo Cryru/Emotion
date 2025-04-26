@@ -69,8 +69,8 @@ public class EditorListItemButton : UICallbackButton
         _label = txt;
         AddChild(txt);
 
-        FillX = false;
-        FillY = false;
+        GrowX = false;
+        GrowY = false;
 
         StretchX = true;
         StretchY = true;

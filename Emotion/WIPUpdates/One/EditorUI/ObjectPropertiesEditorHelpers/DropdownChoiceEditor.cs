@@ -23,7 +23,7 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
     {
         var button = new EditorButton()
         {
-            FillX = true,
+            GrowX = true,
             OnClickedProxy = (_) => Clicked()
         };
         AddChild(button);
@@ -31,8 +31,8 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 
         var arrowSquare = new UIBaseWindow()
         {
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
             MinSizeY = 23,
             MinSizeX = 29,
             AnchorAndParentAnchor = UIAnchor.TopRight,

@@ -48,32 +48,32 @@ public partial class UIBaseWindow : IRenderable, IComparable<UIBaseWindow>, IEnu
     /// Whether the window should fill the available space of its parent.
     /// On by default. Doesn't apply when the parent is of a list layout.
     /// </summary>
-    public bool FillX
+    public bool GrowX
     {
-        get => _fillX;
+        get => _growX;
         set
         {
-            if (_fillX == value) return;
-            _fillX = value;
+            if (_growX == value) return;
+            _growX = value;
             InvalidateLayout();
         }
     }
 
-    private bool _fillX = true;
+    private bool _growX = true;
 
-    /// <inheritdoc cref="FillX" />
-    public bool FillY
+    /// <inheritdoc cref="GrowX" />
+    public bool GrowY
     {
-        get => _fillY;
+        get => _growY;
         set
         {
-            if (_fillY == value) return;
-            _fillY = value;
+            if (_growY == value) return;
+            _growY = value;
             InvalidateLayout();
         }
     }
 
-    private bool _fillY = true;
+    private bool _growY = true;
 
     [DontSerialize]
     public UIAnchor AnchorAndParentAnchor

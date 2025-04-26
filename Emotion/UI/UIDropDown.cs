@@ -17,8 +17,8 @@ public class UIDropDown : UIBaseWindow
         OrderInParent = 99;
         OverlayWindow = true;
 
-        FillX = false;
-        FillY = false;
+        GrowX = false;
+        GrowY = false;
     }
 
     // todo: ONE delete me
@@ -28,8 +28,8 @@ public class UIDropDown : UIBaseWindow
         HandleInput = true;
         OrderInParent = 99;
 
-        FillX = false;
-        FillY = false;
+        GrowX = false;
+        GrowY = false;
     }
 
     protected override bool RenderInternal(RenderComposer c)

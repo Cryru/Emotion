@@ -17,7 +17,7 @@ public class EditorTopBar : UISolidColor
 {
     public EditorTopBar()
     {
-        FillY = false;
+        GrowY = false;
         WindowColor = MapEditorColorPalette.BarColor;
     }
 
@@ -85,7 +85,7 @@ public class EditorTopBar : UISolidColor
                 foreach (Type typ in gameDataObjectTypes)
                 {
                     EditorButton button = new EditorButton(typ.Name);
-                    button.FillX = true;
+                    button.GrowX = true;
                     button.OnClickedProxy = (_) =>
                     {
                         EngineEditor.OpenToolWindowUnique(new GameDataEditor(typ));
@@ -117,7 +117,7 @@ public class EditorTopBar : UISolidColor
 
                 {
                     EditorButton button = new EditorButton("New");
-                    button.FillX = true;
+                    button.GrowX = true;
                     button.OnClickedProxy = (_) =>
                     {
                         //NewFile();
@@ -128,7 +128,7 @@ public class EditorTopBar : UISolidColor
 
                 {
                     EditorButton button = new EditorButton("Open...");
-                    button.FillX = true;
+                    button.GrowX = true;
                     button.OnClickedProxy = (_) =>
                     {
                         dropDown.Close();
@@ -138,7 +138,7 @@ public class EditorTopBar : UISolidColor
 
                 {
                     EditorButton button = new EditorButton("Save");
-                    button.FillX = true;
+                    button.GrowX = true;
                     button.OnClickedProxy = (_) =>
                     {
                         dropDown.Close();
@@ -149,7 +149,7 @@ public class EditorTopBar : UISolidColor
 
                 {
                     EditorButton button = new EditorButton("Properties");
-                    button.FillX = true;
+                    button.GrowX = true;
                     button.OnClickedProxy = (_) =>
                     {
                         dropDown.Close();

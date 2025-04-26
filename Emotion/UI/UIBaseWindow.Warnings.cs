@@ -29,7 +29,7 @@ public partial class UIBaseWindow
     {
         if (!AnchorsInsideParent(ParentAnchor, Anchor)) return;
 
-        if (FillY)
+        if (GrowY)
         {
             if (ParentAnchor == UIAnchor.CenterLeft || ParentAnchor == UIAnchor.CenterRight || ParentAnchor == UIAnchor.CenterCenter)
             {
@@ -37,7 +37,7 @@ public partial class UIBaseWindow
             }
         }
 
-        if (FillX)
+        if (GrowX)
         {
             if (ParentAnchor == UIAnchor.TopCenter || ParentAnchor == UIAnchor.BottomCenter || ParentAnchor == UIAnchor.CenterCenter)
             {

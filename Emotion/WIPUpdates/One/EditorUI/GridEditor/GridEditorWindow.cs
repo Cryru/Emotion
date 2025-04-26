@@ -53,7 +53,7 @@ public abstract class GridEditorWindow : UIBaseWindow
                 LayoutMode = LayoutMode.HorizontalList,
                 ListSpacing = new Vector2(10, 0),
                 AnchorAndParentAnchor = UIAnchor.CenterLeft,
-                FillY = false,
+                GrowY = false,
             };
             barContent.AddChild(textList);
 

@@ -129,7 +129,7 @@ public abstract partial class WorldBaseEditor
     {
         var bottomBar = new UISolidColor();
         bottomBar.UseNewLayoutSystem = true;
-        bottomBar.FillY = false;
+        bottomBar.GrowY = false;
         bottomBar.ScaleMode = UIScaleMode.FloatScale;
         bottomBar.WindowColor = MapEditorColorPalette.BarColor;
         bottomBar.Id = "BottomBar";
@@ -149,7 +149,7 @@ public abstract partial class WorldBaseEditor
         bottomBarLogTextContainer.ParentAnchor = UIAnchor.TopLeft;
         bottomBarLogTextContainer.LayoutMode = LayoutMode.VerticalList;
         bottomBarLogTextContainer.Id = "LogContainer";
-        bottomBarLogTextContainer.FillY = false;
+        bottomBarLogTextContainer.GrowY = false;
         bottomBar.AddChild(bottomBarLogTextContainer);
 
         return bottomBar;
@@ -278,7 +278,7 @@ public abstract partial class WorldBaseEditor
             },
         });
 
-        Type[]? dataTypes = GameDataDatabase.GetDataTypes();
+        Type[]? dataTypes = GameDatabase.GetDataTypes();
         var dataEditors = new EditorDropDownItem[dataTypes?.Length ?? 0];
         for (var i = 0; i < dataEditors.Length; i++)
         {

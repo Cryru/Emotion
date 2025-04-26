@@ -15,7 +15,7 @@ public static class LocalizationEngine
 {
     public static LocalizationOption[] GetLocalizationOptions()
     {
-        return GameDataDatabase.GetObjectsOfType<LocalizationOption>();
+        return GameDatabase.GetObjectsOfType<LocalizationOption>();
     }
 
     private const string _masterFilename = "Localization/MasterFile.csv";

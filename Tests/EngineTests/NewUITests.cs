@@ -77,7 +77,7 @@ public class NewUITests : TestingScene
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
-            win.FillY = false;
+            win.GrowY = false;
             win.Id = "test";
 
             {
@@ -99,7 +99,7 @@ public class NewUITests : TestingScene
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
-            win.FillY = false;
+            win.GrowY = false;
             win.Id = "test";
 
             {
@@ -122,7 +122,7 @@ public class NewUITests : TestingScene
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
-            win.FillY = false;
+            win.GrowY = false;
             win.Id = "test";
 
             {
@@ -146,8 +146,8 @@ public class NewUITests : TestingScene
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
-            win.FillY = false;
-            win.FillX = false;
+            win.GrowY = false;
+            win.GrowX = false;
             win.Id = "test";
 
             {
@@ -171,7 +171,7 @@ public class NewUITests : TestingScene
         {
             var win = new UISolidColor();
             win.WindowColor = Color.PrettyOrange;
-            win.FillX = false;
+            win.GrowX = false;
             win.Id = "test";
 
             {
@@ -272,8 +272,8 @@ public class NewUITests : TestingScene
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
                 list.LayoutMode = LayoutMode.VerticalList;
-                list.FillY = true;
-                list.FillX = true;
+                list.GrowY = true;
+                list.GrowX = true;
                 list.ListSpacing = Vector2.Zero;
                 screenshotExtraText = "+VerticalList";
             }
@@ -283,7 +283,7 @@ public class NewUITests : TestingScene
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
-                list.FillX = false;
+                list.GrowX = false;
             }
 
             yield return WaitUILayout();
@@ -291,8 +291,8 @@ public class NewUITests : TestingScene
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
-                list.FillY = false;
-                list.FillX = true;
+                list.GrowY = false;
+                list.GrowX = true;
             }
 
             yield return WaitUILayout();
@@ -300,8 +300,8 @@ public class NewUITests : TestingScene
 
             {
                 UIBaseWindow list = UI.GetWindowById("test")!;
-                list.FillY = false;
-                list.FillX = false;
+                list.GrowY = false;
+                list.GrowX = false;
             }
 
             yield return WaitUILayout();
@@ -442,7 +442,7 @@ public class NewUITests : TestingScene
             list.Margins = new Rectangle(3, 3, 3, 3);
             list.Id = "list";
             list.WindowColor = Color.PrettyGreen;
-            list.FillY = false;
+            list.GrowY = false;
             win.AddChild(list);
 
             {
@@ -450,7 +450,7 @@ public class NewUITests : TestingScene
                 a.WindowColor = Color.Black;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
                 a.Id = "text-bg";
-                a.FillX = false;
+                a.GrowX = false;
                 list.AddChild(a);
 
                 var text = new UIText();
@@ -498,7 +498,7 @@ public class NewUITests : TestingScene
                 a.WindowColor = Color.PrettyPink;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
                 //a.Id = "text-bg";
-                a.FillX = false;
+                a.GrowX = false;
                 list.AddChild(a);
 
                 var text = new UIText();
@@ -555,8 +555,8 @@ public class NewUITests : TestingScene
             var list = new UISolidColor
             {
                 WindowColor = Color.PrettyOrange,
-                FillX = false,
-                FillY = false,
+                GrowX = false,
+                GrowY = false,
                 LayoutMode = LayoutMode.VerticalList
             };
 
@@ -603,7 +603,7 @@ public class NewUITests : TestingScene
                 a.WindowColor = Color.PrettyPink;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
                 //a.Id = "text-bg";
-                a.FillX = false;
+                a.GrowX = false;
                 list.AddChild(a);
 
                 var text = new UIText();
@@ -614,7 +614,7 @@ public class NewUITests : TestingScene
                 text.Id = "text";
                 text.ParentAnchor = UIAnchor.CenterLeft;
                 text.Anchor = UIAnchor.CenterLeft;
-                text.FillX = false;
+                text.GrowX = false;
 
                 a.AddChild(text);
             }
@@ -637,8 +637,8 @@ public class NewUITests : TestingScene
             var dropDown = new UISolidColor
             {
                 WindowColor = Color.PrettyOrange,
-                FillX = false,
-                FillY = false
+                GrowX = false,
+                GrowY = false
             };
 
             var innerBg = new UISolidColor
@@ -662,7 +662,7 @@ public class NewUITests : TestingScene
                 var a = new UISolidColor();
                 a.WindowColor = Color.Black;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
-                a.FillX = false;
+                a.GrowX = false;
                 //a.Id = "text-bg";
                 list.AddChild(a);
 
@@ -691,7 +691,7 @@ public class NewUITests : TestingScene
             for (var i = 0; i < list.Children.Count; i++)
             {
                 UIBaseWindow child = list.Children[i];
-                child.FillX = true;
+                child.GrowX = true;
             }
         }
 
@@ -715,8 +715,8 @@ public class NewUITests : TestingScene
 
         {
             var container = new UIBaseWindow();
-            container.FillX = false;
-            container.FillY = false;
+            container.GrowX = false;
+            container.GrowY = false;
 
             var bg = new UISolidColor();
             bg.WindowColor = Color.Red * 0.5f;
@@ -742,8 +742,8 @@ public class NewUITests : TestingScene
                 WindowColor = Color.PrettyPink,
                 Paddings = new Rectangle(2, 1, 2, 1),
                 Id = "AttachToMe",
-                FillX = false,
-                FillY = false
+                GrowX = false,
+                GrowY = false
             };
             UI.AddChild(bg);
 
@@ -764,8 +764,8 @@ public class NewUITests : TestingScene
             var dropDown = new UISolidColor
             {
                 WindowColor = Color.PrettyOrange,
-                FillX = false,
-                FillY = false,
+                GrowX = false,
+                GrowY = false,
                 RelativeTo = "AttachToMe",
                 ParentAnchor = UIAnchor.BottomLeft,
                 Anchor = UIAnchor.TopLeft
@@ -792,7 +792,7 @@ public class NewUITests : TestingScene
                 var a = new UISolidColor();
                 a.WindowColor = Color.Black;
                 a.Paddings = new Rectangle(2, 1, 2, 1);
-                a.FillX = false;
+                a.GrowX = false;
                 //a.Id = "text-bg";
                 list.AddChild(a);
 
@@ -823,7 +823,7 @@ public class NewUITests : TestingScene
         {
             var bottomBar = new UISolidColor();
             bottomBar.MaxSizeY = 12;
-            bottomBar.FillY = false;
+            bottomBar.GrowY = false;
             bottomBar.WindowColor = Color.PrettyOrange;
             bottomBar.Id = "BottomBar";
             bottomBar.Anchor = UIAnchor.BottomLeft;
@@ -871,7 +871,7 @@ public class NewUITests : TestingScene
             ParentAnchor = UIAnchor.CenterCenter,
 
             MinSize = new Vector2(20, 20),
-            FillY = false,
+            GrowY = false,
 
             SetChildren = new()
             {
@@ -909,8 +909,8 @@ public class NewUITests : TestingScene
         {
             WindowColor = Color.White,
             MinSize = new Vector2(20),
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
         };
         win.AddChild(a);
 
@@ -918,8 +918,8 @@ public class NewUITests : TestingScene
         {
             WindowColor = Color.Black,
             MinSize = new Vector2(20),
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
         };
         win.AddChild(b);
 
@@ -927,8 +927,8 @@ public class NewUITests : TestingScene
         {
             WindowColor = Color.White,
             MinSize = new Vector2(20),
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
         };
         win.AddChild(c);
 
@@ -955,22 +955,22 @@ public class NewUITests : TestingScene
                 {
                     WindowColor = Color.White,
                     MinSize = new Vector2(20),
-                    FillX = false,
-                    FillY = false,
+                    GrowX = false,
+                    GrowY = false,
                 },
                 new UISolidColor()
                 {
                     WindowColor = Color.Black,
                     MinSize = new Vector2(20),
-                    FillX = false,
-                    FillY = false,
+                    GrowX = false,
+                    GrowY = false,
                 },
                 new UISolidColor()
                 {
                     WindowColor = Color.White,
                     MinSize = new Vector2(20),
-                    FillX = false,
-                    FillY = false,
+                    GrowX = false,
+                    GrowY = false,
                 },
                 new UISolidColor()
                 {
@@ -1005,14 +1005,14 @@ public class NewUITests : TestingScene
             {
                 new UISolidColor()
                 {
-                    FillX = false,
+                    GrowX = false,
                     MinSize = new Vector2(50),
                     WindowColor = Color.PrettyGreen,
                 },
                 new HorizontalPanelSeparator(),
                 new UISolidColor()
                 {
-                    FillX = false,
+                    GrowX = false,
                     MinSize = new Vector2(50),
                     WindowColor = Color.PrettyBlue,
                 },
@@ -1066,7 +1066,7 @@ public class NewUITests : TestingScene
             WindowColor = Color.Black,
             LayoutMode = LayoutMode.VerticalList,
             Paddings = new Rectangle(10, 10, 10, 10),
-            FillY = false,
+            GrowY = false,
             Id = "MainWin"
         };
         UI.AddChild(win);
@@ -1210,7 +1210,7 @@ public class NewUITests : TestingScene
             WindowColor = Color.CornflowerBlue,
 
             MinSizeY = 10,
-            FillY = false,
+            GrowY = false,
         };
         UI.AddChild(parent);
 
@@ -1230,8 +1230,8 @@ public class NewUITests : TestingScene
             MinSizeX = 10,
             MinSizeY = 10,
 
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
         };
         windowOne.AddChild(windowOneChild);
 
@@ -1242,7 +1242,7 @@ public class NewUITests : TestingScene
             ListSpacing = new Vector2(5, 0),
             Margins = new Rectangle(0, 10, 0, 0),
 
-            FillX = false
+            GrowX = false
         };
         parent.AddChild(windowTwo);
 
@@ -1253,8 +1253,8 @@ public class NewUITests : TestingScene
             MinSizeX = 200,
             MinSizeY = 200,
 
-            FillX = false,
-            FillY = false,
+            GrowX = false,
+            GrowY = false,
         };
         windowTwo.AddChild(windowTwoChild);
 
@@ -1303,7 +1303,7 @@ public class NewUITests : TestingScene
         for (int i = 0; i < 10; i++)
         {
             var editorButton = new EditorButton();
-            editorButton.FillX = true;
+            editorButton.GrowX = true;
             editorButton.Text = $"Button {i}";
             list.AddChild(editorButton);
         }
@@ -1329,7 +1329,7 @@ public class NewUITests : TestingScene
         for (int i = 0; i < 3; i++)
         {
             var editorButton = new EditorButton();
-            editorButton.FillX = true;
+            editorButton.GrowX = true;
             editorButton.Text = $"Button {i} ----------";
             list.AddChild(editorButton);
         }

@@ -29,7 +29,7 @@ using Emotion.WIPUpdates.One;
 
 namespace Emotion.Game.Data;
 
-public static partial class GameDataDatabase
+public static partial class GameDatabase
 {
     // Class used for hiding editor functions from GameDataDatabase class scope.
     public static class EditorAdapter
@@ -38,7 +38,7 @@ public static partial class GameDataDatabase
         private const string GENERATED_CODE_START = "#region Code Generated (DONT EDIT)";
         private const string GENERATED_CODE_END = "#endregion";
         private const string DEF_TYPE_ALL_DEFINITIONS = "AllDefinitions";
-        private const string DATA_TYPE_CREATE_MODEL_FUNC = "CreateModel";
+        private const string DATA_TYPE_CREATE_MODEL_FUNC = "CreateInstance";
 
         public static GameDataObject? CreateNew(Type typ)
         {
@@ -383,7 +383,7 @@ public static partial class GameDataDatabase
 
             return "using System;\n" +
                 "using Emotion.Game.Data;\n" +
-                $"using static Emotion.{nameof(Emotion.Game)}.{nameof(Emotion.Game.Data)}.{nameof(GameDataDatabase)}.{nameof(EditorAdapter)};" +
+                $"using static Emotion.{nameof(Emotion.Game)}.{nameof(Emotion.Game.Data)}.{nameof(GameDatabase)}.{nameof(EditorAdapter)};" +
                 "\n" +
                 "namespace GameData;\n" +
                 "\n" +
@@ -413,7 +413,7 @@ public static partial class GameDataDatabase
                 "\n" +
                 $"    static {defClassName}()\n" +
                 "    {\n" +
-                $"        {nameof(GameDataDatabase.EditorAdapter.RegisterGameDataDefClassAdapter)}(new {editorAdapterName}());\n" +
+                $"        {nameof(GameDatabase.EditorAdapter.RegisterGameDataDefClassAdapter)}(new {editorAdapterName}());\n" +
                 "    }\n" +
                 "\n" +
                 $"    public class {editorAdapterName} : {nameof(IGameDataDefClassAdapter)}\n" +
