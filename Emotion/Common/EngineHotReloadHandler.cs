@@ -12,6 +12,9 @@ internal static class EngineHotReloadHandler
 {
     public static void UpdateApplication(Type[]? updatedTypes)
     {
+#if AUTOBUILD
+        return;
+#endif
         if (updatedTypes == null) return;
 
         ReflectorEngine.OnHotReload(updatedTypes);
