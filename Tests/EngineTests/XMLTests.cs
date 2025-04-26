@@ -12,6 +12,7 @@ using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Testing;
+using Tests.EngineTests.XMLTestsSupport;
 
 #endregion
 
@@ -890,17 +891,6 @@ public class XMLTests
         };
         document = ToXMLForTest(overridingClassWithExclusion);
         Assert.Equal(rgx.Matches(document).Count, 0);
-    }
-
-    public class ClassWithNonPublicField
-    {
-        [SerializeNonPublicGetSet]
-        public string? Field { get; protected set; }
-
-        public void SetFieldSecretFunction(string s)
-        {
-            Field = s;
-        }
     }
 
     [Test]

@@ -48,16 +48,16 @@ public class GameDataSystemTests
         newData.Id = NEW_DATA_NAME;
         newData.StringProperty = "Yo";
         newData.NumberProperty = 1337;
-        GameDataDatabase.EditorAdapter.EditorAddObject(typeof(GameDataClassForTest), newData);
+        GameDataDatabase.EditorAdapter.SaveChanges(typeof(GameDataClassForTest), [newData]);
 
-        string[] data = GameDataDatabase.EditorAdapter.GetObjectIdsOfType(typeof(GameDataClassForTest));
+        GameDataObject[] data = GameDataDatabase.GetObjectsOfType(typeof(GameDataClassForTest));
         Assert.Equal(data.Length, 1);
-        Assert.True(data[0] == NEW_DATA_NAME);
+        Assert.True(data[0].Id == NEW_DATA_NAME);
 
-        GameDataArray<GameDataObject> objects = GameDataDatabase.GetObjectsOfType(typeof(GameDataClassForTest));
+        GameDataObject[] objects = GameDataDatabase.GetObjectsOfType(typeof(GameDataClassForTest));
         Assert.Equal(objects[0], newData);
 
-        GameDataClassForTest obj = GameDataDatabase.GetDataObject<GameDataClassForTest>(NEW_DATA_NAME);
+        GameDataClassForTest obj = GameDataDatabase.GetObject<GameDataClassForTest>(NEW_DATA_NAME);
         Assert.Equal(obj, newData);
 
         Assert.True(Directory.Exists(gameDataFolder));

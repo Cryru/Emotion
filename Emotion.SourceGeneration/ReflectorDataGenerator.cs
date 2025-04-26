@@ -132,7 +132,7 @@ namespace SourceGenerator
         private static DiagnosticDescriptor _reflectorPrivateMember = new DiagnosticDescriptor(
             id: "EMOTION002",
             title: "Reflector Member Validity Warning",
-            messageFormat: "Member is marked as 'SerializeNonPublicGetSetAttribute' but the class it is part of is not marked as 'partial'",
+            messageFormat: "Member is marked as 'SerializeNonPublicGetSetAttribute' but the class it is part of is not marked as 'partial' or is inside another class",
             category: "Reflector",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true

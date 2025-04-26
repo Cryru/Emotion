@@ -38,6 +38,7 @@ public static partial class GameDataDatabase
         private const string GENERATED_CODE_START = "#region Code Generated (DONT EDIT)";
         private const string GENERATED_CODE_END = "#endregion";
         private const string DEF_TYPE_ALL_DEFINITIONS = "AllDefinitions";
+        private const string DATA_TYPE_CREATE_MODEL_FUNC = "CreateModel";
 
         public static GameDataObject? CreateNew(Type typ)
         {
@@ -266,7 +267,7 @@ public static partial class GameDataDatabase
                 $"    public partial class {className}\n" +
                 $"    {{\n" +
                 $"        // The truth for property values of this data object.\n" +
-                $"        public static {className} CreateModel()\n" +
+                $"        public static {className} {DATA_TYPE_CREATE_MODEL_FUNC}()\n" +
                 $"        {{\n" +
                 $"            return new {className}()\n" +
                 $"            {{\n" +
@@ -373,14 +374,15 @@ public static partial class GameDataDatabase
             for (int i = 0; i < definitions.Length; i++)
             {
                 GameDataObject def = definitions[i];
-                definitionInitializations.Append($"        {def.Id} = {def.Id}_Class.CreateModel();\n");
+                definitionInitializations.Append($"        {def.Id} = {def.Id}_Class.{DATA_TYPE_CREATE_MODEL_FUNC}();\n");
             }
 
             string defClassName = GetGameDataTypeDefClassName(type);
             string dataClassName = type.FullName ?? string.Empty;
             string editorAdapterName = $"{defClassName}EditorAdapter";
 
-            return "using Emotion.Game.Data;\n" +
+            return "using System;\n" +
+                "using Emotion.Game.Data;\n" +
                 $"using static Emotion.{nameof(Emotion.Game)}.{nameof(Emotion.Game.Data)}.{nameof(GameDataDatabase)}.{nameof(EditorAdapter)};" +
                 "\n" +
                 "namespace GameData;\n" +
@@ -423,7 +425,7 @@ public static partial class GameDataDatabase
                 "\n" +
                 $"        public {nameof(GameDataObject)}[] {nameof(IGameDataDefClassAdapter.AddObject)}({nameof(GameDataObject)} gm)\n" +
                 "        {\n" +
-                $"            _allDefs = _allDefs.AddToArray(({dataClassName})gm);\n" +
+                $"            _allDefs = _allDefs.{nameof(ArrayExtensions.AddToArray)}(({dataClassName})gm);\n" +
                 $"            return _allDefs;\n" +
                 "        }\n" +
                 "\n" +
