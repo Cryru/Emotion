@@ -13,7 +13,7 @@ namespace Emotion.Game.Localization;
 
 public static class LocalizationEngine
 {
-    public static GameDataArray<LocalizationOption> GetLocalizationOptions()
+    public static LocalizationOption[] GetLocalizationOptions()
     {
         return GameDataDatabase.GetObjectsOfType<LocalizationOption>();
     }

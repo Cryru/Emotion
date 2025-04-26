@@ -12,6 +12,7 @@ using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.WIPUpdates.One.Tools.GameDataTool;
 
 #endregion
 
@@ -205,6 +206,11 @@ public static partial class EngineEditor
         {
             if (item.GetType() == tool.GetType())
             {
+                // Different types of game data editor are allowed to be open at the same time.
+                // todo: cleaner
+                if (tool is GameDataEditor tgd && item is GameDataEditor igd && tgd.GameDataType != igd.GameDataType)
+                    continue;
+
                 Engine.UI.SetInputFocus(item);
                 return;
             }

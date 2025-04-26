@@ -2,10 +2,8 @@
 
 #region Using
 
-using Emotion;
-using Emotion.Common.Serialization;
 using Emotion.Editor;
-using Emotion.IO;
+using Emotion.Standard.Reflector;
 
 #endregion
 
@@ -13,18 +11,14 @@ namespace Emotion.Game.Data;
 
 public abstract class GameDataObject : IComparable<GameDataObject>
 {
-    public string Id = "Untitled";
-
-    public string? Category;
-
-    [DontSerialize]
-    public string LoadedFromFile;
-
-    [DontSerialize]
-    public bool LoadedFromClass;
+    public string? LoadedFromModel;
 
     [DontShowInEditor]
     public int Index;
+
+    public string Id = "Untitled";
+
+    public string? Category;
 
     public int CompareTo(GameDataObject? other)
     {
@@ -32,10 +26,9 @@ public abstract class GameDataObject : IComparable<GameDataObject>
         return Math.Sign(other.Index - Index);
     }
 
-    public bool Save()
+    public virtual GameDataObject CreateCopy()
     {
-        string assetPath = GameDataDatabase.EditorAdapter.GetAssetPath(this);
-        return XMLAsset<GameDataObject>.CreateFromContent(this, assetPath).Save();
+        return ReflectorEngine.CreateCopyOf(this)!;
     }
 
     public override string ToString()

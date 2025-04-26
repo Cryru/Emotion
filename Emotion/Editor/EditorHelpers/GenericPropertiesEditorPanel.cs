@@ -183,7 +183,7 @@ public class GenericPropertiesEditorPanel : EditorPanel
                 genericArgs = fieldType.GetGenericArguments();
             }
 
-            string[] ids = GameDataDatabase.EditorAdapter.GetObjectIdsOfType(genericArgs[0]) ?? Array.Empty<string>();
+            string[] ids = Array.Empty<string>(); //GameDataDatabase.EditorAdapter.GetObjectIdsOfType(genericArgs[0]) ?? Array.Empty<string>();
             return new GameDataReferenceChoiceCombo(fieldType, ids);
         }
 

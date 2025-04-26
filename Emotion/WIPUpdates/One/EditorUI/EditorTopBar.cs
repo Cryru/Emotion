@@ -4,17 +4,14 @@ using Emotion.Game.Data;
 using Emotion.Game.World.Editor;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Scenography;
+using Emotion.Standard.Reflector;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.Tools;
+using Emotion.WIPUpdates.One.Tools.GameDataTool;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
-
-public class ExampleData : GameDataObject
-{
-}
-
 
 public class EditorTopBar : UISolidColor
 {
@@ -79,8 +76,24 @@ public class EditorTopBar : UISolidColor
         }
 
         {
-            EditorButton toolButton = new EditorButton("Game Data Test");
-            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new GameDataEditor<ExampleData>());
+            EditorButton toolButton = new EditorButton("Game Data");
+            toolButton.OnClickedProxy = (me) =>
+            {
+                UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
+
+                Type[] gameDataObjectTypes = ReflectorEngine.GetTypesDescendedFrom(typeof(GameDataObject), true);
+                foreach (Type typ in gameDataObjectTypes)
+                {
+                    EditorButton button = new EditorButton(typ.Name);
+                    button.FillX = true;
+                    button.OnClickedProxy = (_) =>
+                    {
+                        EngineEditor.OpenToolWindowUnique(new GameDataEditor(typ));
+                        Controller?.DropDown?.Close();
+                    };
+                    dropDown.AddChild(button);
+                }
+            };
             buttonContainer.AddChild(toolButton);
         }
 

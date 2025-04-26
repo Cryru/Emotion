@@ -14,6 +14,16 @@ using Emotion.Platform;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
+using WinApi.Gdi32;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
+using Emotion.Utility;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using System.Xml.Linq;
+using Emotion.Common.Serialization;
+using System.Dynamic;
+using Emotion.WIPUpdates.One;
 
 #endregion
 
@@ -24,127 +34,292 @@ public static partial class GameDataDatabase
     // Class used for hiding editor functions from GameDataDatabase class scope.
     public static class EditorAdapter
     {
-        public static bool EditorAddObject(Type type, GameDataObject obj)
-        {
-            if (!Initialized) return false;
-            AssertNotNull(_database);
+        private const string DATA_OBJECTS_PATH = "GameData"; // Project folder scoped
+        private const string GENERATED_CODE_START = "#region Code Generated (DONT EDIT)";
+        private const string GENERATED_CODE_END = "#endregion";
+        private const string DEF_TYPE_ALL_DEFINITIONS = "AllDefinitions";
 
-            GameDataCache? dataCache;
-            if (!_database.TryGetValue(type, out dataCache))
+        public static GameDataObject? CreateNew(Type typ)
+        {
+            // Editor functions dont work in release mode!
+            if (Engine.Configuration == null || !Engine.Configuration.DebugMode)
+                return null;
+
+            if (!Initialized)
+                return null;
+
+            string undefinedClass = $"Undefined{typ.Name}Class";
+            IGenericReflectorTypeHandler? handler = ReflectorEngine.GetTypeHandlerByName(undefinedClass);
+            if (handler is not IGenericReflectorComplexTypeHandler complexHandler)
+                return null;
+
+            object? newObj = complexHandler.CreateNew();
+            if (newObj == null)
+                return null;
+
+            return (GameDataObject?)newObj;
+        }
+
+        public static void SaveChanges(Type typ, List<GameDataObject> dataToSave)
+        {
+            // This game data type's folder.
+            string folder = GetGeneratedClassPathOSPath(typ);
+            Directory.CreateDirectory(folder);
+
+            bool needHotReload = false;
+            bool regenerateRegistry = false;
+            foreach (GameDataObject data in dataToSave)
             {
-                dataCache = new(type);
-                _database.Add(type, dataCache);
+                string thisDataPath = Path.Join(folder, $"{data.Id}.cs");
+                if (data.LoadedFromModel == null) // New data - generate class
+                {
+                    string classCode = GenerateGameDataClassWithShim(typ, data);
+                    File.WriteAllText(thisDataPath, classCode);
+                    needHotReload = true;
+
+                    // Add new to registry
+                    GameDataObject[] arr = GetObjectsOfType(typ);
+                    arr = arr.AddToArray(data);
+                    _definedData[typ] = arr;
+
+                    // Update def class runtime and regenerate its code.
+                    // The adapter will be missing if this is the first game data of this type,
+                    // and it has never been hot reloaded.
+                    IGameDataDefClassAdapter? defAdapter = GetGameDataDefAdapter(typ);
+                    defAdapter?.AddObject(data);
+                    regenerateRegistry = true;
+
+                    // Simulate reinstance of this type, we can't actually reinstance it
+                    // because the classes are not loaded, which is why we need a hot reload.
+                    data.LoadedFromModel = data.Id;
+                    EngineEditor.ObjectChanged(data, ObjectChangeType.ComplexObject_PropertyChanged);
+                }
+                else
+                {
+                    // Just properties have changed, or id as well.
+                    bool idHasChanged = data.LoadedFromModel != data.Id;
+                    if (idHasChanged)
+                    {
+                        string oldFile = Path.Join(folder, $"{data.LoadedFromModel}.cs");
+                        bool oldFileExists = File.Exists(oldFile);
+                        Assert(oldFileExists); // The old file should exist
+                        if (!oldFileExists)
+                            continue;
+
+                        bool newFileExists = File.Exists(thisDataPath);
+                        Assert(!newFileExists); // Id renamed to already has a generated file
+                        if (newFileExists)
+                            continue;
+
+                        File.Move(oldFile, thisDataPath);
+
+                        data.LoadedFromModel = data.Id;
+                        EngineEditor.ObjectChanged(data, ObjectChangeType.ComplexObject_PropertyChanged);
+
+                        regenerateRegistry = true;
+                        needHotReload = true;
+                    }
+
+                    bool dataFileExists = File.Exists(thisDataPath);
+                    Assert(dataFileExists);
+                    if (!dataFileExists) // This should never happen, but prevent crash
+                        continue;
+
+                    // todo: dont read the whole file into memory, use streams.
+                    string fileContent = File.ReadAllText(thisDataPath);
+                    int generatedCodeStart = fileContent.IndexOf(GENERATED_CODE_START);
+                    int generatedCodeEnd = fileContent.IndexOf(GENERATED_CODE_END, generatedCodeStart);
+
+                    bool validSegment = generatedCodeStart != -1 && generatedCodeEnd != -1;
+                    Assert(validSegment);
+                    if (!validSegment)
+                        continue;
+
+                    ReadOnlySpan<char> fileContentSpan = fileContent.AsSpan();
+                    using var writeStream = File.Open(thisDataPath, FileMode.Truncate);
+                    using var writer = new StreamWriter(writeStream);
+
+                    writer.Write(fileContentSpan.Slice(0, generatedCodeStart));
+                    writer.Write(GenerateGameDataClass(typ, data));
+                    writer.Write(fileContentSpan.Slice(generatedCodeEnd + GENERATED_CODE_END.Length));
+
+                    // Recreate the model so its up to date with the changes.
+                    GameDataObject? model = GetObject(typ, data.LoadedFromModel);
+                    ReflectorEngine.CopyProperties(data, model);
+                }
             }
 
-            string safeId = dataCache.EnsureNonDuplicatedId(obj.Id);
-            obj.Id = safeId;
-            obj.Index = dataCache.Objects.Count;
-            dataCache.Objects.Add(obj);
+            // The user needs to hot reload via visual studio.
+            // This is because new classes have been generated
+            if (needHotReload)
+            {
+                string defClass = GetGameDataTypeDefClassName(typ);
+                if (_typesNeedHotReload.IndexOf(defClass) == -1)
+                {
+                    _typesNeedHotReload.Add(defClass);
+                    OnHotReloadNeededChange?.Invoke(_typesNeedHotReload);
+                }
+            }
 
-            EditorReIndex(type);
-
-            string generatedClassPath = GetGeneratedClassPathOSPath(obj);
-            string? directory = Path.GetDirectoryName(generatedClassPath);
-            AssertNotNull(directory);
-            Directory.CreateDirectory(directory);
-
-            string classCode = GetClassGenShimCode(type, obj);
-            File.WriteAllText(generatedClassPath, classCode);
-
-            return true;
-
-            //string path = GetAssetPath(obj);
-            //obj.LoadedFromFile = path;
-
-            //// todo: maybe leave file saving to the editor :P
-            //GameDataObjectAsset asAsset = GameDataObjectAsset.CreateFromContent(obj, path);
-            //return asAsset.Save();
+            // Update registry (aka new files added)
+            if (regenerateRegistry)
+            {
+                // Resave registry file
+                string masterFile = GenerateRegistryFile(typ);
+                File.WriteAllText(Path.Join(folder, $"__Registry.cs"), masterFile);
+            }
         }
 
         public static void EditorDeleteObject(Type type, GameDataObject obj)
         {
+            // Editor functions dont work in release mode!
+            if (Engine.Configuration == null || !Engine.Configuration.DebugMode)
+                return;
+
             if (!Initialized) return;
-            AssertNotNull(_database);
+            //AssertNotNull(_database);
 
             // todo: maybe leave file saving to the editor :P
             // Delete file and asset from cache
-            string assetPath = GetAssetPath(obj);
-            Engine.AssetLoader.Destroy(assetPath);
-            DebugAssetStore.DeleteFile(assetPath);
+            //string assetPath = GetAssetPath(obj);
+            //Engine.AssetLoader.Destroy(assetPath);
+            //DebugAssetStore.DeleteFile(assetPath);
 
-            GameDataCache? dataCache;
-            if (_database.TryGetValue(type, out dataCache))
-                dataCache.Objects.Remove(obj);
-
-            EditorReIndex(type);
+            //GameDataCache? dataCache;
+            //if (_database.TryGetValue(type, out dataCache))
+            //    dataCache.Objects.Remove(obj);
         }
 
-        public static void EditorReIndex(Type type)
+        #region Hot Reload
+
+        private static List<string> _typesNeedHotReload = new List<string>();
+
+        /// <summary>
+        /// Fired when the "need for some types to be hot reloaded" changes
+        /// </summary>
+        public static event Action<List<string>>? OnHotReloadNeededChange;
+
+        internal static void OnHotReload(Type[]? typesUpdated)
         {
-            if (!Initialized) return;
-            AssertNotNull(_database);
+            if (typesUpdated == null) return;
 
-            GameDataCache? dataCache;
-            if (_database.TryGetValue(type, out dataCache))
-                dataCache.RecreateIdMap();
+            bool changes = false;
+            foreach (Type typ in typesUpdated)
+            {
+                // Check if type we care about - which are game data def classes.
+                if (!_typesNeedHotReload.Remove(typ.Name))
+                    continue;
+                changes = true;
 
-            //GenerateCode();
-            //UpdateCsProjFile();
+                // Get the def type adapter
+                IGameDataDefClassAdapter? defAdapter = GetGameDataDefAdapter(typ);
+                if (defAdapter == null)
+                {
+                    // This was the registry's first generation.
+                    IGenericReflectorComplexTypeHandler? adapterTypeHandler = ReflectorEngine.GetComplexTypeHandlerByName($"{typ.Name}EditorAdapter");
+                    if (adapterTypeHandler != null)
+                    {
+                        defAdapter = (IGameDataDefClassAdapter?) adapterTypeHandler.CreateNew();
+                        if (defAdapter != null) RegisterGameDataDefClassAdapter(defAdapter);
+                    }
+                }
+                AssertNotNull(defAdapter);
+                if (defAdapter == null) // HUH
+                    continue;
+
+                // Regenerate the static list
+                GameDataObject[] newArray = defAdapter.ReloadList();
+
+                // Update the runtime list with the new static list
+                Type gameDataType = defAdapter.GetGameDataType();
+                _definedData[gameDataType] = newArray;
+            }
+
+            if (changes)
+                OnHotReloadNeededChange?.Invoke(_typesNeedHotReload);
         }
 
-        public static string EnsureNonDuplicatedId(string name, Type type)
-        {
-            if (_database == null) return name;
-            if (_database.TryGetValue(type, out GameDataCache? cache))
-                return cache.EnsureNonDuplicatedId(name);
+        #endregion
 
-            return name;
-        }
+        #region Code Gen
 
-        public static string GetClassGenShimCode(Type type, GameDataObject obj)
+        private static string GenerateGameDataClassWithShim(Type type, GameDataObject obj)
         {
-            string className = $"{type.Name}_{obj.Id}";
-            return $"namespace GameData;\n" +
+            return $"using Emotion.Standard.Reflector;\n" +
                 $"\n" +
-                $"public static partial class {type.Name}Defs\n" +
+                $"namespace GameData;\n" +
+                $"\n" +
+                $"public static partial class {GetGameDataTypeDefClassName(type)}\n" +
                 $"{{\n" +
-                $"    public static {className} {obj.Id} = new();\n" +
+                $"    {GenerateGameDataClass(type, obj)}\n" +
                 $"\n" +
-                $"    public class {className} : {type.FullName}\n" +
                 $"    {{\n" +
-                $"        public {className}()\n" +
-                $"        {{\n" +
-                $"{GetClassGenConstructorCode(obj)}\n" +
-                $"        }}\n" +
+                $"        // Place custom code and stuff the generator won't touch here.\n" +
                 $"    }}\n" +
                 $"}}";
         }
 
-        private static string GetClassGenConstructorCode(GameDataObject obj)
+        private static string GenerateGameDataClass(Type type, GameDataObject obj)
+        {
+            string className = $"{obj.Id}_Class";
+            return $"{GENERATED_CODE_START}\n" +
+                $"    public partial class {className}\n" +
+                $"    {{\n" +
+                $"        // The truth for property values of this data object.\n" +
+                $"        public static {className} CreateModel()\n" +
+                $"        {{\n" +
+                $"            return new {className}()\n" +
+                $"            {{\n" +
+                $"{GetClassGenConstructorCode(obj)}\n" +
+                $"            }};\n" +
+                $"        }}\n" +
+                $"\n" +
+                $"        // Create a new instance of this data object.\n" +
+                $"        public override {className} {nameof(GameDataObject.CreateCopy)}()\n" +
+                $"        {{\n" +
+                $"            var newInstance = new {className}();\n" +
+                $"            {nameof(ReflectorEngine)}.{nameof(ReflectorEngine.CopyProperties)}(this, newInstance);\n" +
+                $"            return newInstance;\n" +
+                $"        }}\n" +
+                $"\n" +
+                $"        // Prevent initialization by game code\n" +
+                $"        protected {className}()\n" +
+                $"        {{\n" +
+                $"        }}\n" +
+                $"    }}\n" +
+                $"\n" +
+                $"    public partial class {className} : global::{type.FullName}\n" +
+                $"    {GENERATED_CODE_END}";
+        }
+
+        private static string GetClassGenConstructorCode(GameDataObject obj) // todo: move to serialization
         {
             StringBuilder builder = new StringBuilder();
 
             var reflectorHandler = ReflectorEngine.GetTypeHandler(obj.GetType()) as IGenericReflectorComplexTypeHandler;
             AssertNotNull(reflectorHandler);
 
-            ComplexTypeHandlerMember[]? members = reflectorHandler.GetMembers();
-            AssertNotNull(members);
-
+            IEnumerable<ComplexTypeHandlerMember> members = reflectorHandler.GetMembersDeep();
             bool first = true;
             foreach (ComplexTypeHandlerMember member in members)
             {
-                if(!first) builder.Append("\n");
+                if (!first) builder.Append('\n');
                 first = false;
-
-                builder.Append("            ");
-                builder.Append($"{member.Name} = ");
 
                 IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
                 AssertNotNull(memberHandler);
 
                 if (member.GetValueFromComplexObject(obj, out object? memberValue))
                 {
-                    if (memberValue == null)
+                    builder.Append("                ");
+                    builder.Append(member.Name);
+                    builder.Append(" = ");
+
+                    if (member.Name == nameof(GameDataObject.LoadedFromModel))
+                    {
+                        builder.Append($"\"{obj.Id}\"");
+                    }
+                    else if (memberValue == null)
                     {
                         builder.Append("null");
                     }
@@ -153,145 +328,200 @@ public static partial class GameDataDatabase
                         bool isString = memberHandler.Type == typeof(string);
 
                         if (isString)
-                            builder.Append("\"");
+                            builder.Append('\"');
 
-                        memberHandler.WriteValueAsStringGeneric(builder, memberValue);
+                        if (!memberHandler.WriteValueAsStringGeneric(builder, memberValue))
+                            builder.Append("null");
 
                         if (isString)
-                            builder.Append("\"");
+                            builder.Append('\"');
                     }
-                    
-                }
 
-                builder.Append($";");
+                    builder.Append(',');
+                }
             }
 
             return builder.ToString();
         }
 
-        public static string GetGeneratedClassPathOSPath(GameDataObject obj)
+        // todo: can this be moved to reflector?
+        // yes: we can generate editor adapters always and not have a different case for "the first time game data is created"
+        // maybe: however can we do the whole "all definitions" thing like that?
+        // yes: less code to generate here the better
+        // yes: we can get rid of the static handler and use the adapter to get the list for normal initialization too and the adapter init in hot reload
+        private static string GenerateRegistryFile(Type type)
         {
-            Type type = obj.GetType();
-            while (type.BaseType != typeof(GameDataObject))
+            GameDataObject[] definitions = GetObjectsOfType(type);
+
+            StringBuilder definitionsList = new StringBuilder(definitions.Length * 10);
+            for (int i = 0; i < definitions.Length; i++)
             {
-                if (type.BaseType == null) // Doesn't inherit GameDataObject?!?
-                {
-                    Assert(false);
-                    type = obj.GetType();
-                    break;
-                }
-                else
-                {
-                    type = type.BaseType;
-                }
+                var def = definitions[i];
+                definitionsList.Append("            ");
+                definitionsList.Append(def.Id);
+                definitionsList.Append(",\n");
             }
 
+            StringBuilder modelDeclarations = new StringBuilder(definitions.Length * 10);
+            for (int i = 0; i < definitions.Length; i++)
+            {
+                GameDataObject def = definitions[i];
+                modelDeclarations.Append($"    public static {def.Id}_Class {def.Id} {{ get; private set; }}\n");
+            }
+
+            StringBuilder definitionInitializations = new StringBuilder(definitions.Length * 10);
+            for (int i = 0; i < definitions.Length; i++)
+            {
+                GameDataObject def = definitions[i];
+                definitionInitializations.Append($"        {def.Id} = {def.Id}_Class.CreateModel();\n");
+            }
+
+            string defClassName = GetGameDataTypeDefClassName(type);
+            string dataClassName = type.FullName ?? string.Empty;
+            string editorAdapterName = $"{defClassName}EditorAdapter";
+
+            return "using Emotion.Game.Data;\n" +
+                $"using static Emotion.{nameof(Emotion.Game)}.{nameof(Emotion.Game.Data)}.{nameof(GameDataDatabase)}.{nameof(EditorAdapter)};" +
+                "\n" +
+                "namespace GameData;\n" +
+                "\n" +
+                "[System.CodeDom.Compiler.GeneratedCode(\"Emotion Game Data Generator\", \"1.0\")]\n" +
+                $"[Emotion.Standard.Reflector.{nameof(ReflectorStaticClassSupportAttribute)}]\n" +
+                $"public static partial class {defClassName}\n" +
+                "{\n" +
+                modelDeclarations +
+                "\n" +
+                $"    public static {dataClassName}[] {DEF_TYPE_ALL_DEFINITIONS}\n" +
+                "    {\n" +
+                "        get => _allDefs;\n" +
+                "        set\n" +
+                "        {\n" +
+                "        }\n" +
+                "    }\n" +
+                $"    private static {dataClassName}[] _allDefs = CreateAllDefinitions();\n" +
+                $"\n" +
+                $"    private static {dataClassName}[] CreateAllDefinitions()\n" +
+                "    {\n" +
+                definitionInitializations +
+                "\n" +
+                "        return [\n" +
+                definitionsList +
+                "        ];\n" +
+                "    }\n" +
+                "\n" +
+                $"    static {defClassName}()\n" +
+                "    {\n" +
+                $"        {nameof(GameDataDatabase.EditorAdapter.RegisterGameDataDefClassAdapter)}(new {editorAdapterName}());\n" +
+                "    }\n" +
+                "\n" +
+                $"    public class {editorAdapterName} : {nameof(IGameDataDefClassAdapter)}\n" +
+                "    {\n" +
+                $"        public Type {nameof(IGameDataDefClassAdapter.GetGameDataType)}()\n" +
+                "        {\n" +
+                $"            return typeof({dataClassName});\n" +
+                "        }\n" +
+                "\n" +
+                $"        public {nameof(GameDataObject)}[] {nameof(IGameDataDefClassAdapter.AddObject)}({nameof(GameDataObject)} gm)\n" +
+                "        {\n" +
+                $"            _allDefs = _allDefs.AddToArray(({dataClassName})gm);\n" +
+                $"            return _allDefs;\n" +
+                "        }\n" +
+                "\n" +
+                $"        public {nameof(GameDataObject)}[] {nameof(IGameDataDefClassAdapter.ReloadList)}()\n" +
+                "        {\n" +
+                $"            _allDefs = CreateAllDefinitions();\n" +
+                $"            return _allDefs;\n" +
+                "        }\n" +
+                "    }\n" +
+                "}";
+        }
+
+        #endregion
+
+        #region Helpers
+
+        public static string GetGameDataTypeDefClassName(Type gameDataType)
+        {
+            return $"{gameDataType.Name}Defs";
+        }
+
+        public static ComplexTypeHandlerMember? GetStaticAllDefinitionsMember(Type typ)
+        {
+            string defTypName = EditorAdapter.GetGameDataTypeDefClassName(typ);
+            return GetStaticAllDefinitionsMember(defTypName);
+        }
+
+        private static ComplexTypeHandlerMember? GetStaticAllDefinitionsMember(string defClassName)
+        {
+            var handler = ReflectorEngine.GetTypeHandlerByName(defClassName);
+            if (handler is StaticComplexTypeHandler staticTypeHandler)
+            {
+                ComplexTypeHandlerMember? member = staticTypeHandler.GetMemberByName(DEF_TYPE_ALL_DEFINITIONS);
+                AssertNotNull(member);
+                return member;
+            }
+            return null;
+        }
+
+        public static string EnsureNonDuplicatedId(string name, IList<GameDataObject> definitions)
+        {
+            HashSet<string> idMap = new HashSet<string>();
+            foreach (GameDataObject def in definitions)
+            {
+                idMap.Add(def.Id);
+            }
+
+            var counter = 1;
+            string originalName = name;
+            while (idMap.Contains(name)) name = originalName + "_" + counter++;
+            return name;
+        }
+
+        private static string GetGeneratedClassPathOSPath(Type typ)
+        {
             PlatformBase host = Engine.Host;
             if (host is DesktopPlatform desktopHost)
             {
                 string projectFolder = desktopHost.DeveloperMode_GetProjectFolder();
                 if (projectFolder != "")
-                    return Path.Join(projectFolder, "GameData", type.Name, obj.Id) + ".cs";
+                    return Path.Join(projectFolder, DATA_OBJECTS_PATH, typ.Name);
             }
 
             Assert(false, "Trying to get generated class path on a non-developer platform");
             return "";
         }
 
-        public static string GetAssetPath(GameDataObject obj)
-        {
-            Type type = obj.GetType();
-            while (type.BaseType != typeof(GameDataObject))
-            {
-                if (type.BaseType == null) // Doesn't inherit GameDataObject?!?
-                {
-                    Assert(false);
-                    type = obj.GetType();
-                    break;
-                }
-                else
-                {
-                    type = type.BaseType;
-                }
-            }
+        #endregion
 
-            return $"{DATA_OBJECTS_PATH}/{type.Name}/{obj.Id}.xml";
+        #region Def Class Adapter
+
+        // Will be called on game data Initialize since AllDefinitions uses the class, which will
+        // call its static constructor and cause an adapter to be added.
+
+        private static Dictionary<Type, IGameDataDefClassAdapter> _dataTypeToDefEditorAdapter = new();
+
+        public interface IGameDataDefClassAdapter
+        {
+            public Type GetGameDataType();
+
+            public GameDataObject[] AddObject(GameDataObject gm);
+
+            public GameDataObject[] ReloadList();
         }
 
-        public static void GenerateCode()
+        public static void RegisterGameDataDefClassAdapter(IGameDataDefClassAdapter adapter)
         {
-            // Don't code gen in release mode lol
-            if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
-
-            var builder = new StringBuilder();
-            builder.AppendLine("// THIS IS AN AUTO-GENERATED FILE (by GameDataDatabase.cs) TO HELP WITH INTELLISENSE");
-            builder.AppendLine("");
-            builder.AppendLine("namespace GameData");
-            builder.AppendLine("{");
-            var types = GetGameDataTypes();
-            if (types != null)
-                for (var i = 0; i < types.Length; i++)
-                {
-                    Type type = types[i];
-
-                    if (i != 0) builder.AppendLine("");
-
-                    builder.AppendLine($"	public static class {type.Name}Defs");
-                    builder.AppendLine("	{");
-                    var items = GetObjectsOfType(type);
-                    if (items != null)
-                        foreach (GameDataObject item in items)
-                        {
-                            string itemIdSafe = item.Id.Replace("-", "_");
-                            builder.AppendLine($"		public static readonly string {itemIdSafe} = \"{item.Id}\";");
-                        }
-
-                    builder.AppendLine("	}");
-                }
-
-            builder.AppendLine("}");
-
-            byte[] fileData = Encoding.UTF8.GetBytes(builder.ToString());
-            Engine.AssetLoader.Save(fileData, $"{DATA_OBJECTS_PATH}/Intellisense.cs");
+            Type type = adapter.GetGameDataType();
+            _dataTypeToDefEditorAdapter[type] = adapter;
         }
 
-        // Patch the csproj file to copy to output the data xml files.
-        public static void UpdateCsProjFile()
+        private static IGameDataDefClassAdapter? GetGameDataDefAdapter(Type typ)
         {
-            // Don't code gen in release mode lol
-            if (Engine.Configuration == null || !Engine.Configuration.DebugMode) return;
-
-            var csProjFile = EditorUtility.GetCsProjFilePath();
-            if (csProjFile == null) return; // No file
-
-            string csProjFileContents = File.ReadAllText(csProjFile);
-
-            string dataCopyString = $"      <None Update=\"Assets\\**\\*.*\">\r\n        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n      </None>";
-            if (csProjFileContents.Contains(dataCopyString)) return; // Already present
-
-            // If missing - insert it
-            int endOfProjectTag = csProjFileContents.IndexOf("</Project>");
-            if (endOfProjectTag == -1) return; // Invalid file
-
-            StringBuilder itemGroup = new StringBuilder();
-            itemGroup.AppendLine("");
-            itemGroup.AppendLine("    <ItemGroup Label=\"GameDataAutoAdded\">");
-            itemGroup.AppendLine(dataCopyString);
-            itemGroup.AppendLine("    </ItemGroup>");
-            csProjFileContents = csProjFileContents.Insert(endOfProjectTag - 1, itemGroup.ToString());
-            File.WriteAllText(csProjFile, csProjFileContents);
-        }
-
-        public static string[]? GetObjectIdsOfType(Type? type)
-        {
-            if (!Initialized) return null;
-            if (type == null) return null;
-            AssertNotNull(_database);
-
-            if (_database.TryGetValue(type, out GameDataCache? cache))
-                return cache.IdMap.Keys.ToArray();
-
+            if (_dataTypeToDefEditorAdapter.TryGetValue(typ, out IGameDataDefClassAdapter? adapter))
+                return adapter;
             return null;
         }
+
+        #endregion
     }
 }

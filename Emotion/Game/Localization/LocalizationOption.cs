@@ -6,7 +6,7 @@ using Emotion.IO;
 
 namespace Emotion.Game.Localization;
 
-public class LocalizationOption : GameDataObject
+public abstract class LocalizationOption : GameDataObject
 {
     [AssetFileName<TextAsset>]
     public string LocalizationCSVFile = string.Empty;

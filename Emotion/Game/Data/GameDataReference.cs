@@ -39,18 +39,18 @@ public class GameDataReference<T> : GameDataReference where T : GameDataObject
 
     public bool IsValid()
     {
-        return GameDataDatabase.GetDataObject<T>(Id) != null;
+        return GameDataDatabase.GetObject<T>(Id) != null;
     }
 
     public bool TryGet([NotNullWhen(true)] out T? obj)
     {
-        obj = GameDataDatabase.GetDataObject<T>(Id);
+        obj = GameDataDatabase.GetObject<T>(Id);
         return obj != null;
     }
 
     public T? GetDataObjectReferenced()
     {
-        return GameDataDatabase.GetDataObject<T>(Id);
+        return GameDataDatabase.GetObject<T>(Id);
     }
 
     public override string ToString()

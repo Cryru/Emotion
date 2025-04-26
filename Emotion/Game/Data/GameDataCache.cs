@@ -65,20 +65,20 @@ public static partial class GameDataDatabase
             return new GameDataArray<T>(Objects);
         }
 
-        public static async Task LoadGameDataAssetTask(string fileName, GameDataCache thisAssetCache)
-        {
-            GameDataObjectAsset? asset = await Engine.AssetLoader.GetAsync<GameDataObjectAsset>(fileName, false);
-            if (asset == null || asset.Content == null) return;
+        //public static async Task LoadGameDataAssetTask(string fileName, GameDataCache thisAssetCache)
+        //{
+        //    GameDataObjectAsset? asset = await Engine.AssetLoader.GetAsync<GameDataObjectAsset>(fileName, false);
+        //    if (asset == null || asset.Content == null) return;
 
-            GameDataObject gameDataObjContent = asset.Content;
-            gameDataObjContent.LoadedFromFile = asset.Name;
+        //    GameDataObject gameDataObjContent = asset.Content;
+        //    gameDataObjContent.LoadedFromFile = asset.Name;
 
-            if (thisAssetCache == null) return;
+        //    if (thisAssetCache == null) return;
 
-            lock (thisAssetCache)
-            {
-                thisAssetCache.Objects.Add(gameDataObjContent);
-            }
-        }
+        //    lock (thisAssetCache)
+        //    {
+        //        thisAssetCache.Objects.Add(gameDataObjContent);
+        //    }
+        //}
     }
 }

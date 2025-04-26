@@ -5,6 +5,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Editor.EditorHelpers;
+using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector;
 using static Emotion.Game.Data.GameDataDatabase;
 using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 
@@ -16,90 +18,24 @@ public static partial class GameDataDatabase
 {
     public static bool Initialized { get; private set; }
 
-    private static Dictionary<Type, GameDataCache>? _database;
-
-    private const string DATA_OBJECTS_PATH = "Data"; // Assets folder scoped
+    private static Dictionary<Type, GameDataObject[]> _definedData = new();
 
     public static void Initialize()
     {
+        Assert(!Initialized);
         if (Initialized) return;
 
-        _database = new Dictionary<Type, GameDataCache>();
-
-        // Load all game data assets.
-        // Direct descendants of the GameDataObject class are considered valid.
-        List<Task> loadingTasks = new();
-        List<Type>? types = EditorUtility.GetTypesWhichInherit<GameDataObject>(true, true);
-        for (var i = 0; i < types.Count; i++)
+        Type[] gameDataTypes = ReflectorEngine.GetTypesDescendedFrom(typeof(GameDataObject), true);
+        foreach (Type typ in gameDataTypes)
         {
-            Type type = types[i];
-            var cache = new GameDataCache(type);
-            AssertNotNull(cache);
-            _database.Add(type, cache);
+            ComplexTypeHandlerMember? member = EditorAdapter.GetStaticAllDefinitionsMember(typ);
+            if (member == null) continue;
 
-            string typeName = type.Name;
-            string[] files = Engine.AssetLoader.GetAssetsInFolder($"{DATA_OBJECTS_PATH}/{typeName}");
+            member.GetValueFromComplexObject(new object(), out object? val); // This is how you read from a static member lol
+            GameDataObject[]? array = val as GameDataObject[];
+            AssertNotNull(array);
 
-            for (var j = 0; j < files.Length; j++)
-            {
-                string file = files[j];
-                Task task = GameDataCache.LoadGameDataAssetTask(file, cache);
-                loadingTasks.Add(task);
-            }
-        }
-        Task.WaitAll(loadingTasks.ToArray());
-
-        // Create id map for refencing class-data merges.
-        foreach (KeyValuePair<Type, GameDataCache> cache in _database)
-        {
-            cache.Value.RecreateIdMap();
-        }
-
-        // Create data entries for class defined items.
-        // Class defined items are classes which inherit a class which inherits GameDataObject.
-        // That way data definitions can contain code.
-        for (var t = 0; t < types.Count; t++)
-        {
-            Type gameDataType = types[t];
-            GameDataCache cache = _database[gameDataType];
-
-            List<Type>? items = EditorUtility.GetTypesWhichInherit(gameDataType, true);
-            for (int i = 0; i < items.Count; i++)
-            {
-                Type itemType = items[i];
-                string classDefId = itemType.Name;
-
-                if (cache.IdMap.TryGetValue(classDefId, out int idx))
-                {
-                    GameDataObject existingItem = cache.Objects[idx];
-                    if (existingItem.GetType().IsAssignableTo(itemType))
-                    {
-                        // Data type is saved as this class type - no merge needed.
-                        continue;
-                    }
-
-                    // Data type existing but is not of class type, create new instance and copy properties.
-                    GameDataObject? newItemAsType = EditorUtility.CreateNewObjectOfType(itemType) as GameDataObject;
-                    AssertNotNull(newItemAsType);
-
-                    EditorUtility.CopyObjectProperties(existingItem, newItemAsType);
-                    newItemAsType.LoadedFromClass = true;
-                    cache.Objects[idx] = newItemAsType;
-                    continue;
-                }
-
-                GameDataObject? newItem = EditorUtility.CreateNewObjectOfType(itemType) as GameDataObject;
-                AssertNotNull(newItem);
-                newItem.Id = itemType.Name;
-                newItem.LoadedFromClass = true;
-                cache.Objects.Add(newItem);
-            }
-        }
-
-        // Rebuild the index map after class defs have been added.
-        foreach (KeyValuePair<Type, GameDataCache> cache in _database)
-        {
-            cache.Value.RecreateIdMap();
+            _definedData.Add(typ, array);
         }
 
         Initialized = true;
@@ -107,46 +43,52 @@ public static partial class GameDataDatabase
 
     #region Public API
 
-    public static GameDataArray<T> GetObjectsOfType<T>() where T : GameDataObject
+    public static GameDataObject[] GetObjectsOfType(Type typ)
     {
-        if (!Initialized) return GameDataArray<T>.Empty;
-        AssertNotNull(_database);
-
-        if (_database.TryGetValue(typeof(T), out GameDataCache? cache))
-            return cache.GetDataEnum<T>();
-
-        return GameDataArray<T>.Empty;
+        _definedData.TryGetValue(typ, out GameDataObject[]? definitions);
+        if (definitions == null)
+        {
+            // We initialize, this should happen only when hot reloading in def mode, but who knows
+            definitions = [];
+            _definedData.TryAdd(typ, definitions);
+        }
+        return definitions;
     }
 
-    public static GameDataArray<GameDataObject> GetObjectsOfType(Type? type)
+    public static T[] GetObjectsOfType<T>() where T : GameDataObject
     {
-        if (!Initialized) return GameDataArray<GameDataObject>.Empty;
-        if (type == null) return GameDataArray<GameDataObject>.Empty;
-        AssertNotNull(_database);
-
-        if (_database.TryGetValue(type, out GameDataCache? cache))
-            return cache.GetDataEnum<GameDataObject>();
-
-        return GameDataArray<GameDataObject>.Empty;
+        Type typ = typeof(T);
+        return (T[])GetObjectsOfType(typ);
     }
 
-    public static T? GetDataObject<T>(string? name) where T : GameDataObject
+    public static T? GetObject<T>(string? name) where T : GameDataObject
     {
+        Type typ = typeof(T);
+        return (T?)GetObject(typ, name);
+    }
+
+    public static GameDataObject? GetObject(Type typ, string? name)
+    {
+        Assert(Initialized);
         if (!Initialized) return null;
         if (name == null) return null;
-        AssertNotNull(_database);
 
-        if (_database.TryGetValue(typeof(T), out GameDataCache? cache))
-            return (T?)cache.GetObjectById(name);
+        // todo: hash set
+        GameDataObject[] objects = GetObjectsOfType(typ);
+        for (int i = 0; i < objects.Length; i++)
+        {
+            var obj = objects[i];
+            if (string.Equals(obj.Id, name, StringComparison.OrdinalIgnoreCase))
+                return obj;
+        }
 
         return null;
     }
 
-    public static Type[]? GetGameDataTypes()
+    public static Type[]? GetDataTypes()
     {
-        if (!Initialized) return null;
-        AssertNotNull(_database);
-        return _database.Keys.ToArray();
+        Assert(Initialized);
+        return _definedData.Keys.ToArray();
     }
 
     #endregion

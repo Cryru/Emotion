@@ -278,7 +278,7 @@ public abstract partial class WorldBaseEditor
             },
         });
 
-        Type[]? dataTypes = GameDataDatabase.GetGameDataTypes();
+        Type[]? dataTypes = GameDataDatabase.GetDataTypes();
         var dataEditors = new EditorDropDownItem[dataTypes?.Length ?? 0];
         for (var i = 0; i < dataEditors.Length; i++)
         {

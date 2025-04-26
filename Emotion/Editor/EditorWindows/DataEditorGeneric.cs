@@ -140,59 +140,59 @@ public class DataEditorGeneric : EditorPanel
         var newObj = (GameDataObject) constructor.Invoke(null);
         newObj.Id = "Untitled";
 
-        GameDataDatabase.EditorAdapter.EditorAddObject(_type, newObj);
+        //GameDataDatabase.EditorAdapter.___CreateNew(_type, newObj);
         RegenerateList();
     }
 
     private void SaveToFile(bool force = false)
     {
-        GameDataArray<GameDataObject> data = GameDataDatabase.GetObjectsOfType(_type);
-        foreach (var item in data)
-        {
-            if (!force && !_unsaved.Contains(item)) continue;
+        //GameDataArray<GameDataObject> data = GameDataDatabase.GetObjectsOfType(_type);
+        //foreach (var item in data)
+        //{
+        //    if (!force && !_unsaved.Contains(item)) continue;
 
-            string loadedFromFile = item.LoadedFromFile;
-            string newAssetPath = GameDataDatabase.EditorAdapter.GetAssetPath(item);
+        //    string loadedFromFile = item.LoadedFromFile;
+        //    string newAssetPath = GameDataDatabase.EditorAdapter.GetAssetPath(item);
 
-            // Remove the old file. (the object is resaved with the new id)
-            if (!string.IsNullOrEmpty(loadedFromFile) && loadedFromFile != newAssetPath)
-                DebugAssetStore.DeleteFile(loadedFromFile);
+        //    // Remove the old file. (the object is resaved with the new id)
+        //    if (!string.IsNullOrEmpty(loadedFromFile) && loadedFromFile != newAssetPath)
+        //        DebugAssetStore.DeleteFile(loadedFromFile);
 
-            item.LoadedFromFile = newAssetPath;
-            XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item);
-            asset.SaveAs(newAssetPath);
-        }
+        //    item.LoadedFromFile = newAssetPath;
+        //    XMLAsset<GameDataObject> asset = XMLAsset<GameDataObject>.CreateFromContent(item);
+        //    asset.SaveAs(newAssetPath);
+        //}
 
-        _unsaved.Clear();
-        RegenerateList();
+        //_unsaved.Clear();
+        //RegenerateList();
     }
 
     private void RegenerateList()
     {
-        _list.ClearChildren();
+        //_list.ClearChildren();
 
-        var data = GameDataDatabase.GetObjectsOfType(_type);
-        if (data == null) return;
+        //var data = GameDataDatabase.GetObjectsOfType(_type);
+        //if (data == null) return;
 
-        // Create buttons for each of them.
-        for (int i = 0; i < data.Length; i++)
-        {
-            var item = data[i];
-            var key = item.Id;
+        //// Create buttons for each of them.
+        //for (int i = 0; i < data.Length; i++)
+        //{
+        //    var item = data[i];
+        //    var key = item.Id;
 
-            string label = item.ToString() ?? key;
-            if (_unsaved.Contains(item)) label += " (*)";
+        //    string label = item.ToString() ?? key;
+        //    if (_unsaved.Contains(item)) label += " (*)";
 
-            var uiForItem = new EditorButton
-            {
-                StretchY = true,
-                Text = label,
-                UserData = item,
-            };
-            _list.AddChild(uiForItem);
-        }
+        //    var uiForItem = new EditorButton
+        //    {
+        //        StretchY = true,
+        //        Text = label,
+        //        UserData = item,
+        //    };
+        //    _list.AddChild(uiForItem);
+        //}
 
-        _list.SetupMouseSelection();
+        //_list.SetupMouseSelection();
     }
 
     private void RegenerateSelection()
@@ -215,9 +215,9 @@ public class DataEditorGeneric : EditorPanel
 
                 if (propertyName == "Id")
                 {
-                    string newId = GameDataDatabase.EditorAdapter.EnsureNonDuplicatedId(_selectedObject.Id, _type);
-                    _selectedObject.Id = newId;
-                    GameDataDatabase.EditorAdapter.EditorReIndex(_type);
+                    //string newId = GameDataDatabase.EditorAdapter.EnsureNonDuplicatedId(_selectedObject.Id, _type);
+                    //_selectedObject.Id = newId;
+                    //GameDataDatabase.EditorAdapter.EditorReIndex(_type);
                 }
             },
         };

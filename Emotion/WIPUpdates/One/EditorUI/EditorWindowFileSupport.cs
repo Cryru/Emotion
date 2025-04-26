@@ -14,6 +14,8 @@ public partial class EditorWindowFileSupport : EditorWindow
     private string _headerBaseText;
     protected string _currentFileName = DEFAULT_FILE_NAME;
 
+    private UIBaseWindow _unsavedChangesNotification = null!;
+
     public EditorWindowFileSupport(string title) : base(title ?? "Generic Tool")
     {
         _headerBaseText = Header;
@@ -31,6 +33,27 @@ public partial class EditorWindowFileSupport : EditorWindow
         };
         contentParent.AddChild(mainContent);
         _mainContent = mainContent;
+
+        {
+            UISolidColor changesBox = new UISolidColor()
+            {
+                Paddings = new Primitives.Rectangle(5, 5, 5, 5),
+                WindowColor = Color.PrettyRed * 0.5f,
+                Visible = false,
+                DontTakeSpaceWhenHidden = true,
+            };
+            mainContent.AddChild(changesBox);
+            _unsavedChangesNotification = changesBox;
+
+            EditorLabel changesLabel = new EditorLabel
+            {
+                Text = $"You have unsaved changes!",
+                WindowColor = Color.White,
+                FontSize = 20,
+                IgnoreParentColor = true
+            };
+            changesBox.AddChild(changesLabel);
+        }
 
         UIBaseWindow buttonList = new()
         {
@@ -99,12 +122,30 @@ public partial class EditorWindowFileSupport : EditorWindow
 
     protected virtual void SaveFile()
     {
-
+        _hasUnsavedChanges = false;
+        UnsavedChangesChanged();
     }
 
     protected virtual void OpenFile()
     {
 
+    }
+
+    #endregion
+
+    #region Changes
+
+    protected bool _hasUnsavedChanges;
+
+    protected void MarkUnsavedChanges()
+    {
+        _hasUnsavedChanges = true;
+        UnsavedChangesChanged();
+    }
+
+    protected virtual void UnsavedChangesChanged()
+    {
+        _unsavedChangesNotification.Visible = _hasUnsavedChanges;
     }
 
     #endregion
