@@ -64,15 +64,25 @@ public static class ReflectorEngine
         Engine.Log.Info($"Loaded {_typeHandlers.Count} type handlers!", "Reflector");
     }
 
+    internal static void OnHotReload(Type[] updatedTypes)
+    {
+        for (int i = 0; i < updatedTypes.Length; i++)
+        {
+            Type type = updatedTypes[i];
+#pragma warning disable IL2065 // The method has a DynamicallyAccessedMembersAttribute (which applies to the implicit 'this' parameter), but the value used for the 'this' parameter can not be statically analyzed.
+            System.Reflection.MethodInfo? methodInfo = type.GetMethod("LoadReflector", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+#pragma warning restore IL2065 // The method has a DynamicallyAccessedMembersAttribute (which applies to the implicit 'this' parameter), but the value used for the 'this' parameter can not be statically analyzed.
+            methodInfo?.Invoke(null, null);
+        }
+    }
+
     public static void RegisterTypeHandler(IGenericReflectorTypeHandler typeHandler)
     {
         Type type = typeHandler.Type;
-        if (_typeHandlers.ContainsKey(type)) return;
-        _typeHandlers.Add(type, typeHandler);
+        _typeHandlers[type] = typeHandler;
 
         int hash = typeHandler.TypeName.GetStableHashCode();
-        if (_typeNameToType.ContainsKey(hash)) return;
-        _typeNameToType.Add(hash, type);
+        _typeNameToType[hash] = type;
     }
 
     public static IGenericReflectorTypeHandler? GetTypeHandler(Type typ)
@@ -105,6 +115,15 @@ public static class ReflectorEngine
         return null;
     }
 
+    public static IGenericReflectorComplexTypeHandler? GetComplexTypeHandlerByName(string name)
+    {
+        ReadOnlySpan<byte> asBytes = MemoryMarshal.Cast<char, byte>(name);
+        int hash = asBytes.GetStableHashCode();
+        if (!_typeNameToType.TryGetValue(hash, out Type? typ)) return null;
+
+        return GetComplexTypeHandler(typ);
+    }
+
     public static IGenericReflectorTypeHandler? GetTypeHandlerByName(string name)
     {
         return GetTypeHandlerByName(name.AsSpan());
@@ -124,13 +143,13 @@ public static class ReflectorEngine
         if (obj == null) return obj;
 
         // todo: generate this for each complex handler
-        ComplexTypeHandler<T>? handler = GetComplexTypeHandler<T>();
+        IGenericReflectorComplexTypeHandler? handler = GetComplexTypeHandler(obj.GetType());
         if (handler == null || !handler.CanCreateNew()) return default;
 
         T? newObj = (T?) handler.CreateNew();
         if (newObj == null) return newObj;
 
-        var members = handler.GetMembersDeep();
+        IEnumerable<ComplexTypeHandlerMember> members = handler.GetMembersDeep();
         foreach (var member in members)
         {
             if (member.GetValueFromComplexObject(obj, out object? val))
@@ -138,6 +157,24 @@ public static class ReflectorEngine
         }
 
         return newObj;
+    }
+
+    // Generic is to ensure that both are the same type.
+    public static bool CopyProperties<T>(T from, T to)
+    {
+        if (from == null || to == null) return false;
+
+        // todo: generate this for each complex handler
+        IGenericReflectorComplexTypeHandler? handler = GetComplexTypeHandler(from.GetType());
+        if (handler == null) return false;
+
+        IEnumerable<ComplexTypeHandlerMember> members = handler.GetMembersDeep();
+        foreach (ComplexTypeHandlerMember member in members)
+        {
+            if (member.GetValueFromComplexObject(from, out object? val))
+                member.SetValueInComplexObject(to, val);
+        }
+        return true;
     }
 
     #region Relations

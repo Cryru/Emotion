@@ -29,15 +29,17 @@ namespace SourceGenerator
                 }
             );
 
-            ReflectorStaticClassGenerator.Register(context, definedTypesProvider);
-
             context.RegisterSourceOutput(definedTypesProvider, (sourceProductionContext, definedTypes) =>
             {
                 // [Step 1] Find associated types of the complex types (base types, members), element types of arrays, and so forth...
+                // These types would be from other assemblies. (todo: what if the other assembly has reflector as well?)
                 HashSet<ITypeSymbol> typesToReflector = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
                 var typeToMembers = new Dictionary<INamedTypeSymbol, ImmutableArray<ReflectorMemberData>>(SymbolEqualityComparer.Default);
                 foreach (INamedTypeSymbol type in definedTypes)
                 {
+                    GameDataEditorSupportGenerator.Run(ref sourceProductionContext, type);
+                    ReflectorStaticClassGenerator.Run(ref sourceProductionContext, type);
+
                     if (type.IsStatic) continue;
                     AddComplexTypeAndAssociatedTypes(sourceProductionContext, type, typesToReflector, typeToMembers);
                 }

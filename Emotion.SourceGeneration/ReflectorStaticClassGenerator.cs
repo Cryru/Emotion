@@ -12,31 +12,20 @@ namespace Emotion.SourceGeneration
     /// </summary>
     public static class ReflectorStaticClassGenerator
     {
-        public static void Register(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<ImmutableArray<INamedTypeSymbol>> definedTypesProvider)
+        public static void Run(ref SourceProductionContext context, INamedTypeSymbol typ)
         {
-            context.RegisterSourceOutput(definedTypesProvider, (sourceProductionContext, definedTypes) =>
-            {
-                // [Step 1] Find associated types of the complex types (base types, members), element types of arrays, and so forth...
-                foreach (INamedTypeSymbol type in definedTypes)
-                {
-                    if (!type.IsStatic) continue;
-                    if (!HasAttribute(type.GetAttributes(), "ReflectorStaticClassSupportAttribute")) continue;
+            // Filter out static types with the appropriate attribute.
+            // Get their members and generate their handlers.
+            if (!typ.IsStatic) return;
+            if (!HasAttribute(typ.GetAttributes(), "ReflectorStaticClassSupportAttribute")) return;
 
-                    ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(sourceProductionContext, type, true);
-                    GenerateHandlerForStaticComplexType(ref sourceProductionContext, type, members);
-                }
-            });
+            ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(context, typ, true);
+            GenerateHandlerForStaticComplexType(ref context, typ, members);
         }
 
         private static void GenerateHandlerForStaticComplexType(ref SourceProductionContext context, INamedTypeSymbol typ, ImmutableArray<ReflectorMemberData> members)
         {
             string fullTypName = typ.ToDisplayString();
-
-            if (fullTypName.StartsWith("System.Collections.Generic.Dictionary"))
-            {
-                GenerateHandlerForDictionary(ref context, typ);
-                return;
-            }
 
             string safeShortName = GetSafeName(typ.Name);
             string safeName = GetSafeName(fullTypName);
@@ -51,7 +40,6 @@ namespace Emotion.SourceGeneration
             sb.AppendLine("using Emotion.Standard.Reflector;");
             sb.AppendLine("using Emotion.Standard.Reflector.Handlers;");
             sb.AppendLine();
-
 
             sb.AppendLine($"namespace ReflectorGen;");
             sb.AppendLine("");
