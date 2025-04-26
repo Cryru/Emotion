@@ -12,6 +12,7 @@ public static class ReflectorEngine
     private static Dictionary<Type, Type[]> _typeRelations = new();
     private static Dictionary<Type, Type[]> _typeRelationsDirect = new();
     private static Dictionary<int, Type> _typeNameToType = new();
+    private static bool _postInitCalled = false;
 
     internal static void Init()
     {
@@ -83,6 +84,10 @@ public static class ReflectorEngine
 
         int hash = typeHandler.TypeName.GetStableHashCode();
         _typeNameToType[hash] = type;
+
+        // Late post init
+        if (_postInitCalled)
+            typeHandler.PostInit();
     }
 
     public static IGenericReflectorTypeHandler? GetTypeHandler(Type typ)
@@ -256,5 +261,6 @@ public static class ReflectorEngine
         {
             handler.PostInit();
         }
+        _postInitCalled = true;
     }
 }
