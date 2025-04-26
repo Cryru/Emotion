@@ -2,6 +2,7 @@
 
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using System.Linq;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -145,25 +146,27 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
     public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep()
     {
+        Type? baseType = Type.BaseType;
+        if (baseType != null)
+        {
+            IGenericReflectorTypeHandler? handler = ReflectorEngine.GetTypeHandler(baseType);
+            if (handler != null) // Yikes if true
+            {
+                Assert(handler is IGenericReflectorComplexTypeHandler);
+                if (handler is IGenericReflectorComplexTypeHandler complexHandler)
+                {
+                    foreach (ComplexTypeHandlerMember member in complexHandler.GetMembersDeep())
+                    {
+                        yield return member;
+                    }
+                }
+            }
+        }
+
         for (int i = 0; i < _membersArr.Length; i++)
         {
             ComplexTypeHandlerMember member = _membersArr[i];
             yield return member;
-        }
-
-        Type? baseType = Type.BaseType;
-        if (baseType == null) yield break;
-
-        IGenericReflectorTypeHandler? handler = ReflectorEngine.GetTypeHandler(baseType);
-        if (handler == null) yield break; // Yikes?
-
-        Assert(handler is IGenericReflectorComplexTypeHandler);
-        if (handler is IGenericReflectorComplexTypeHandler complexHandler)
-        {
-            foreach (ComplexTypeHandlerMember member in complexHandler.GetMembersDeep())
-            {
-                yield return member;
-            }
         }
     }
 
@@ -171,6 +174,16 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
     {
         if (_members.TryGetValue(name, out ComplexTypeHandlerMember<T>? member))
             return member;
-        return null;
+
+        // If I don't have this member, look up the inheritance.
+        Type? baseType = Type.BaseType;
+        if (baseType == null)
+            return null;
+
+        IGenericReflectorComplexTypeHandler? handler = ReflectorEngine.GetComplexTypeHandler(baseType);
+        if (handler == null)
+            return null;
+
+        return handler.GetMemberByName(name);
     }
 }

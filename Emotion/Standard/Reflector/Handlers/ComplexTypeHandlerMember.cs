@@ -69,6 +69,8 @@ public abstract class ComplexTypeHandlerMember<ParentT> : ComplexTypeHandlerMemb
     public abstract bool ParseFromJSON(ref Utf8JsonReader reader, ParentT intoObject);
 }
 
+// todo: nullable types
+// todo: static member type
 public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember<ParentT>
 {
     protected Action<ParentT, MyT> _setValue;
