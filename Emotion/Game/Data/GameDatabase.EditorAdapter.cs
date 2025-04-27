@@ -26,6 +26,7 @@ using System.Dynamic;
 using Emotion.WIPUpdates.One;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
+using Emotion.Standard.Reflector.Handlers.Base;
 
 #endregion
 
@@ -406,18 +407,18 @@ public static partial class GameDatabase
             return $"{gameDataType.Name}Defs";
         }
 
-        public static ComplexTypeHandlerMember? GetStaticAllDefinitionsMember(Type typ)
+        public static ComplexTypeHandlerMemberBase? GetStaticAllDefinitionsMember(Type typ)
         {
             string defTypName = EditorAdapter.GetGameDataTypeDefClassName(typ);
             return GetStaticAllDefinitionsMember(defTypName);
         }
 
-        private static ComplexTypeHandlerMember? GetStaticAllDefinitionsMember(string defClassName)
+        private static ComplexTypeHandlerMemberBase? GetStaticAllDefinitionsMember(string defClassName)
         {
             var handler = ReflectorEngine.GetTypeHandlerByName(defClassName);
             if (handler is StaticComplexTypeHandler staticTypeHandler)
             {
-                ComplexTypeHandlerMember? member = staticTypeHandler.GetMemberByName(DEF_TYPE_ALL_DEFINITIONS);
+                ComplexTypeHandlerMemberBase? member = staticTypeHandler.GetMemberByName(DEF_TYPE_ALL_DEFINITIONS);
                 AssertNotNull(member);
                 return member;
             }

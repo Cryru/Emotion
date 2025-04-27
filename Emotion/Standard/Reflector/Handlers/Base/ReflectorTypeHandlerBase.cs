@@ -1,10 +1,9 @@
 ﻿#nullable enable
 
-using Emotion;
+using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System.Text;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers.Base;
@@ -14,8 +13,6 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
     public abstract string TypeName { get; }
 
     public abstract Type Type { get; }
-
-    public abstract bool CanGetOrParseValueAsString { get; }
 
     public virtual TypeEditor? GetEditor()
     {
@@ -29,16 +26,39 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 
     #region Serialization Read
 
+    public ResponseT? ParseFromJSON<ResponseT>(ref Utf8JsonReader reader)
+    {
+        T? resp = ParseFromJSON(ref reader);
+        if (resp is ResponseT respT)
+            return respT;
+
+        return default;
+    }
+
     public virtual T? ParseFromJSON(ref Utf8JsonReader reader)
     {
         return default;
+    }
+
+    public ResponseT? ParseFromXML<ResponseT>(ref ValueStringReader reader)
+    {
+        T? resp = ParseFromXML(ref reader);
+        if (resp is ResponseT respT)
+            return respT;
+
+        return default;
+    }
+
+    public virtual T? ParseFromXML(ref ValueStringReader reader)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion
 
     #region Serialization Write
 
-    public virtual void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer)
+    public void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer)
     {
         if (value == null)
         {
@@ -55,50 +75,22 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 
     }
 
-    #endregion
-
-    public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
+    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
     {
-        if (instance is not T instanceAsT) return false;
-        return WriteValueAsString(ref stringWriter, instanceAsT);
-    }
-
-    public bool WriteValueAsStringGeneric<TParam>(StringBuilder builder, TParam? instance)
-    {
-        if (instance is not T instanceAsT) return false;
-        return WriteValueAsString(builder, instanceAsT);
-    }
-
-    public bool WriteValueAsString(StringBuilder builder, T? instance)
-    {
-        ValueStringWriter writer = new ValueStringWriter(builder);
-        return WriteValueAsString(ref writer, instance);
-    }
-
-    public virtual bool WriteValueAsString(ref ValueStringWriter stringWriter, T? instance)
-    {
-        return false;
-    }
-
-    public bool ParseValueFromStringGeneric<TParam>(ReadOnlySpan<char> data, out TParam? result)
-    {
-        result = default;
-
-        var success = ParseValueAsString(data, out T? resultAsType);
-        if (!success) return false;
-
-        if (resultAsType is TParam tAsParam)
+        if (value == null)
         {
-            result = tAsParam;
-            return true;
+            //writer.WriteString("null");
+            return;
         }
 
-        return false;
+        if (value is T valueAsT)
+            WriteAsXML(valueAsT, ref writer, addTypeTags, config, indent);
     }
 
-    public virtual bool ParseValueAsString(ReadOnlySpan<char> data, out T? result)
+    public virtual void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
     {
-        result = default;
-        return false;
+
     }
+
+    #endregion
 }

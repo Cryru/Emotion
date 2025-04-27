@@ -1,10 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Reflection.Metadata;
-using static Emotion.WIPUpdates.One.EngineEditor;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -14,9 +12,9 @@ public class EditorWithLabel : UIBaseWindow
 
     private TypeEditor _editor;
     private object _objectEditting;
-    private ComplexTypeHandlerMember _handler;
+    private ComplexTypeHandlerMemberBase _handler;
 
-    public EditorWithLabel(TypeEditor editor, object parentObj, ComplexTypeHandlerMember memberHandler) // via handler
+    public EditorWithLabel(TypeEditor editor, object parentObj, ComplexTypeHandlerMemberBase memberHandler) // via handler
     {
         Assert(editor.Parent == null, "TypeEditor shouldn't have a UI parent");
 

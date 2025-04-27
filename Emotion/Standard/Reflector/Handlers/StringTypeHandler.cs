@@ -13,8 +13,6 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
 
     public override Type Type => typeof(string);
 
-    public override bool CanGetOrParseValueAsString => true;
-
     #region Serialization Read
 
     public override string? ParseFromJSON(ref Utf8JsonReader reader)
@@ -44,22 +42,5 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
     public override TypeEditor? GetEditor()
     {
         return new StringEditor();
-    }
-
-    public override bool WriteValueAsString(ref ValueStringWriter stringWriter, string? instance)
-    {
-        if (instance == null) return false;
-        return stringWriter.WriteString(instance);
-    }
-
-    public object? ParseValueFromString(string val)
-    {
-        return val;
-    }
-
-    public override bool ParseValueAsString(ReadOnlySpan<char> data, out string result)
-    {
-        result = new string(data);
-        return true;
     }
 }

@@ -1,9 +1,9 @@
 ﻿#nullable enable
 
-using Emotion;
+using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System.Text;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers.Interfaces;
 
@@ -12,11 +12,6 @@ public interface IGenericReflectorTypeHandler
     public string TypeName { get; }
 
     public Type Type { get; }
-
-    /// <summary>
-    /// Whether the type handler's value can be get/set as a string.
-    /// </summary>
-    public bool CanGetOrParseValueAsString { get; }
 
     public TypeEditor? GetEditor();
 
@@ -27,40 +22,19 @@ public interface IGenericReflectorTypeHandler
         return Type.IsAssignableTo(otherType);
     }
 
+    #region Serialization Read
+
+    public T? ParseFromJSON<T>(ref Utf8JsonReader reader);
+
+    public T? ParseFromXML<T>(ref ValueStringReader reader);
+
+    #endregion
+
     #region Serialization Write
 
     public void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer);
 
+    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0);
+
     #endregion
-
-    public void ReadValueFromStringIntoArray(ReadOnlySpan<char> str, object array, int idx)
-    {
-        throw new Exception("Not supported!");
-    }
-
-    public void ReadValueFromStringIntoList(ReadOnlySpan<char> str, IList list)
-    {
-        throw new Exception("Not supported!");
-    }
-
-    public void ReadValueFromStringIntoObjectMember(ReadOnlySpan<char> str, object obj, ComplexTypeHandlerMember memberHandler)
-    {
-        throw new Exception("Not supported!");
-    }
-
-    public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
-    {
-        throw new Exception("Not supported!");
-    }
-
-    public bool WriteValueAsStringGeneric<TParam>(StringBuilder builder, TParam? instance)
-    {
-        ValueStringWriter writer = new ValueStringWriter(builder);
-        return WriteValueAsStringGeneric(ref writer, instance);
-    }
-
-    public bool ParseValueFromStringGeneric<TParam>(ReadOnlySpan<char> data, out TParam? result)
-    {
-        throw new Exception("Not supported!");
-    }
 }

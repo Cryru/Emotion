@@ -156,7 +156,7 @@ public static class ReflectorEngine
         T? newObj = (T?) handler.CreateNew();
         if (newObj == null) return newObj;
 
-        IEnumerable<ComplexTypeHandlerMember> members = handler.GetMembersDeep();
+        IEnumerable<ComplexTypeHandlerMemberBase> members = handler.GetMembersDeep();
         foreach (var member in members)
         {
             if (member.GetValueFromComplexObject(obj, out object? val))
@@ -175,8 +175,8 @@ public static class ReflectorEngine
         IGenericReflectorComplexTypeHandler? handler = GetComplexTypeHandler(from.GetType());
         if (handler == null) return false;
 
-        IEnumerable<ComplexTypeHandlerMember> members = handler.GetMembersDeep();
-        foreach (ComplexTypeHandlerMember member in members)
+        IEnumerable<ComplexTypeHandlerMemberBase> members = handler.GetMembersDeep();
+        foreach (ComplexTypeHandlerMemberBase member in members)
         {
             if (member.GetValueFromComplexObject(from, out object? val))
                 member.SetValueInComplexObject(to, val);

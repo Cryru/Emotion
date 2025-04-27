@@ -1,88 +1,27 @@
 ﻿#nullable enable
 
+using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using System.Text;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
-public enum CanWriteMemberResult
-{
-    CanWrite,
-    InputError,
-    NonTrivialMember,
-    ValueIsNull,
-}
-
-public abstract class ComplexTypeHandlerMember
-{
-    public Type Type { get; protected set; }
-
-    public string Name { get; set; }
-
-    public Attribute[] Attributes { get; set; } = Array.Empty<Attribute>();
-
-    protected ComplexTypeHandlerMember(Type memberType, string name)
-    {
-        Type = memberType;
-        Name = name;
-    }
-
-    public abstract void PostInit();
-
-    public T? HasAttribute<T>() where T : Attribute
-    {
-        for (int i = 0; i < Attributes.Length; i++)
-        {
-            var attribute = Attributes[i];
-            if (attribute is T attributeAsT) return attributeAsT;
-        }
-        return null;
-    }
-
-    public abstract IGenericReflectorTypeHandler? GetTypeHandler();
-
-    // This is the same as getting the type handler and calling WriteValueAsString, but avoids boxing.
-    public bool UnsafeWriteValueAsStringFromComplexObject(StringBuilder builder, object? obj)
-    {
-        ValueStringWriter writer = new ValueStringWriter(builder);
-        return UnsafeWriteValueAsStringFromComplexObject(ref writer, obj);
-    }
-
-    public abstract CanWriteMemberResult CanWriteValueAsStringFromComplexObject(object? obj);
-
-    public abstract bool UnsafeWriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj);
-
-    public abstract bool GetValueFromComplexObject(object obj, out object? readValue);
-
-    public abstract bool SetValueInComplexObject(object obj, object? val);
-
-    #region Serialization Read
-
-    public abstract bool ParseFromJSON<OwnerT>(ref Utf8JsonReader reader, OwnerT intoObject);
-
-    #endregion
-
-    #region Serialization Write
-
-    public abstract void WriteAsCode<OwnerT>(OwnerT ownerObject, ref ValueStringWriter writer);
-
-    #endregion
-}
-
 // todo: nullable types
 // todo: static member type
-public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
+public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBase
 {
     protected Action<ParentT, MyT?> _setValue;
     protected Func<ParentT, MyT?> _getValue;
 
     private ReflectorTypeHandlerBase<MyT>? _typeHandler;
+    private bool _isComplex;
 
-    public ComplexTypeHandlerMember(string name, Action<ParentT, MyT?> setValue, Func<ParentT, MyT?> getValue) : base(typeof(MyT), name)
+    public ComplexTypeHandlerMember(string name, Action<ParentT, MyT?> setValue, Func<ParentT, MyT?> getValue) : base(typeof(ParentT), typeof(MyT), name)
     {
+        Name = name;
+
         _setValue = setValue;
         _getValue = getValue;
     }
@@ -90,12 +29,15 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
     public override void PostInit()
     {
         _typeHandler = ReflectorEngine.GetTypeHandler<MyT>();
+        _isComplex = _typeHandler is IGenericReflectorComplexTypeHandler;
     }
 
     public override ReflectorTypeHandlerBase<MyT>? GetTypeHandler()
     {
         return _typeHandler;
     }
+
+    #region Member
 
     public override bool GetValueFromComplexObject(object obj, out object? readValue)
     {
@@ -118,9 +60,11 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         return false;
     }
 
+    #endregion
+
     #region Serialization Read
 
-    public override bool ParseFromJSON<OwnerT>(ref Utf8JsonReader reader, OwnerT intoObject)
+    public override bool ParseFromJSON<ParseIntoT>(ref Utf8JsonReader reader, ParseIntoT intoObject)
     {
         if (intoObject is not ParentT parentT)
             return false;
@@ -129,6 +73,19 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         if (handler == null) return false;
 
         MyT? val = handler.ParseFromJSON(ref reader);
+        _setValue(parentT, val);
+        return true;
+    }
+
+    public override bool ParseFromXML<ParentT1>(ref ValueStringReader reader, ParentT1 intoObject)
+    {
+        if (intoObject is not ParentT parentT)
+            return false;
+
+        ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
+        if (handler == null) return false;
+
+        MyT? val = handler.ParseFromXML(ref reader);
         _setValue(parentT, val);
         return true;
     }
@@ -146,34 +103,75 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
         if (handler == null) return;
 
         MyT? val = _getValue(parentT);
-        handler.WriteAsCode(val, ref writer);
+        handler.WriteAsCode<MyT>(val, ref writer);
+    }
+
+    public override void WriteAsXML<OwnerT>(OwnerT ownerObject, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    {
+        if (ownerObject is not ParentT parentT)
+            return;
+
+        ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
+        if (handler == null) return;
+
+        if (addTypeTags)
+        {
+            if (config.Pretty)
+            {
+                if (!writer.WriteChar('\n')) return;
+
+                for (int i = 0; i < indent; i++)
+                {
+                    if (!writer.WriteChar(' ')) return;
+                }
+            }
+        }
+
+        MyT? val = _getValue(parentT);
+
+        // If null write a closing tag
+        if (val == null)
+        {
+            if (addTypeTags)
+            {
+                if (!writer.WriteChar('<')) return;
+                if (!writer.WriteString(Name)) return;
+                if (!writer.WriteString("/>")) return;
+
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        if (addTypeTags)
+        {
+            if (!writer.WriteChar('<')) return;
+            if (!writer.WriteString(Name)) return;
+            if (!writer.WriteChar('>')) return;
+        }
+
+        handler.WriteAsXML<MyT>(val, ref writer, false, config, indent);
+
+        if (addTypeTags)
+        {
+            if (_isComplex && config.Pretty)
+            {
+                if (!writer.WriteChar('\n')) return;
+
+                for (int i = 0; i < indent; i++)
+                {
+                    if (!writer.WriteChar(' ')) return;
+                }
+            }
+
+            if (!writer.WriteString("</")) return;
+            if (!writer.WriteString(Name)) return;
+            if (!writer.WriteChar('>')) return;
+        }
     }
 
     #endregion
-
-    public override CanWriteMemberResult CanWriteValueAsStringFromComplexObject(object? obj)
-    {
-        if (obj is not ParentT parentType) return CanWriteMemberResult.InputError;
-
-        MyT? val = _getValue(parentType);
-        if (val == null) return CanWriteMemberResult.ValueIsNull;
-
-        ReflectorTypeHandlerBase<MyT>? typeHandler = GetTypeHandler();
-        if (typeHandler == null) return CanWriteMemberResult.InputError;
-        if (!typeHandler.CanGetOrParseValueAsString) return CanWriteMemberResult.NonTrivialMember;
-
-        return CanWriteMemberResult.CanWrite;
-    }
-
-    public override bool UnsafeWriteValueAsStringFromComplexObject(ref ValueStringWriter writer, object? obj)
-    {
-        if (obj is not ParentT parentType) return false;
-
-        ReflectorTypeHandlerBase<MyT>? typeHandler = GetTypeHandler();
-        if (typeHandler == null) return false;
-
-        MyT? val = _getValue(parentType);
-        typeHandler.WriteValueAsString(ref writer, val);
-        return true;
-    }
 }

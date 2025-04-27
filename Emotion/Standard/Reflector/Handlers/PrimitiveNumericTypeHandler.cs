@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
@@ -16,13 +17,16 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
 
     public override Type Type => typeof(T);
 
-    public override bool CanGetOrParseValueAsString => true;
-
     private TypeCode _typeCode;
 
     public PrimitiveNumericTypeHandler()
     {
         _typeCode = Type.GetTypeCode(Type);
+    }
+
+    public override TypeEditor? GetEditor()
+    {
+        return new NumberEditor<T>();
     }
 
     #region Serialization Read
@@ -98,6 +102,12 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
         }
     }
 
+    public override T? ParseFromXML(ref ValueStringReader reader)
+    {
+        if (!reader.MoveCursorToNextOccuranceOfChar('<')) return default;
+        return T.Zero;
+    }
+
     #endregion
 
     #region Serialization Write
@@ -107,29 +117,24 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
         writer.WriteNumber(value);
     }
 
+    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    {
+        if (addTypeTags)
+        {
+            if (!writer.WriteChar('<')) return;
+            if (!writer.WriteString(Type.Name)) return;
+            if (!writer.WriteChar('>')) return;
+        }
+
+        writer.WriteNumber(value);
+
+        if (addTypeTags)
+        {
+            if (!writer.WriteString("</")) return;
+            if (!writer.WriteString(Type.Name)) return;
+            if (!writer.WriteChar('>')) return;
+        }
+    }
+
     #endregion
-
-    public override TypeEditor? GetEditor()
-    {
-        return new NumberEditor<T>();
-    }
-
-    public override bool WriteValueAsString(ref ValueStringWriter stringWriter, T instance)
-    {
-        return stringWriter.WriteNumber(instance);
-    }
-
-    public object? ParseValueFromString(string val)
-    {
-        bool success = T.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out T result);
-        if (success) return result;
-        return T.Zero;
-    }
-
-    public override bool ParseValueAsString(ReadOnlySpan<char> data, out T result)
-    {
-        bool success = T.TryParse(data, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
-        if (!success) result = T.Zero;
-        return success;
-    }
 }

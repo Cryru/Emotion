@@ -2,7 +2,6 @@
 
 #pragma warning disable CS9080 // Use of variable in this context may expose referenced variables outside of their declaration scope
 
-using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector;
 using System.Text;
 using Emotion.Standard.OptimizedStringReadWrite;
@@ -77,24 +76,7 @@ public static class XMLSerialization
             return default;
         }
 
-        // Fast path for primitives
-        if (typeHandler.CanGetOrParseValueAsString)
-        {
-            // Read end of this tag
-            char c = reader.ReadNextChar();
-            if (c != '>') return default;
-
-            // Read value of data between tags.
-            charsWritten = reader.ReadToNextOccuranceofChar('<', readMemory);
-            if (charsWritten == 0) return default;
-
-            Span<char> tagValue = readMemory.Slice(0, charsWritten);
-
-            if (!typeHandler.ParseValueFromStringGeneric(tagValue, out object? resp)) return default;
-            return (T?)resp;
-        }
-
-        return default;
+        return typeHandler.ParseFromXML<T>(ref reader);
     }
 
     public static string To<T>(T obj)
@@ -133,102 +115,8 @@ public static class XMLSerialization
         ReflectorTypeHandlerBase<T>? typeHandler = ReflectorEngine.GetTypeHandler<T>();
         if (typeHandler == null) return -1;
 
-        if (!writer.WriteChar('<')) return -1;
-        if (!writer.WriteString(typeHandler.Type.Name)) return -1;
-        if (!writer.WriteChar('>')) return -1;
-
-        // The base type can be written as a string directly!
-        if (typeHandler.CanGetOrParseValueAsString)
-        {
-            bool written = typeHandler.WriteValueAsString(ref writer, obj);
-            if (!written) return -1;
-        }
-        else if (typeHandler is IGenericReflectorComplexTypeHandler complexTypeHandler)
-        {
-            bool written = WriteComplexType(complexTypeHandler, ref writer, config, obj, config.Indentation);
-            if (!written) return -1;
-        }
-
-        if (!writer.WriteString("</")) return -1;
-        if (!writer.WriteString(typeHandler.Type.Name)) return -1;
-        if (!writer.WriteChar('>')) return -1;
+        typeHandler.WriteAsXML(obj, ref writer, true, config, 0);
 
         return writer.BytesWritten;
-    }
-
-    private static bool WriteComplexType(IGenericReflectorComplexTypeHandler complexTypeHandler, ref ValueStringWriter writer, XMLConfig config, object? obj, int indent)
-    {
-        if (obj == null)
-        {
-            Assert(false, "Unhandled null");
-            return true;
-        }
-
-        ComplexTypeHandlerMember[] members = complexTypeHandler.GetMembers();
-        foreach (ComplexTypeHandlerMember member in members)
-        {
-            IGenericReflectorTypeHandler? memberTypeHandler = member.GetTypeHandler();
-            if (memberTypeHandler == null) continue;
-
-            if (config.Pretty)
-            {
-                if (!writer.WriteChar('\n')) return false;
-
-                for (int i = 0; i < indent; i++)
-                {
-                    if (!writer.WriteChar(' ')) return false;
-                }
-            }
-
-            // Opening tag with the member name
-            if (!writer.WriteChar('<')) return false;
-            if (!writer.WriteString(member.Name)) return false;
-
-            CanWriteMemberResult canWrite = member.CanWriteValueAsStringFromComplexObject(obj);
-
-            // Write a self closing opening tag if null
-            if (canWrite == CanWriteMemberResult.ValueIsNull)
-            {
-                if (!writer.WriteChar('/')) return false;
-                if (!writer.WriteChar('>')) return false;
-                if (config.Pretty && !writer.WriteChar('\n')) return false;
-
-                continue;
-            }
-
-            // Finish opening tag
-            if (!writer.WriteChar('>')) return false;
-
-            if (canWrite == CanWriteMemberResult.CanWrite)
-            {
-                member.UnsafeWriteValueAsStringFromComplexObject(ref writer, obj);
-            }
-            else if (canWrite == CanWriteMemberResult.NonTrivialMember)
-            {
-                Assert(memberTypeHandler is IGenericReflectorComplexTypeHandler);
-                var complexMemberHandler = (IGenericReflectorComplexTypeHandler)memberTypeHandler;
-
-                bool read = member.GetValueFromComplexObject(obj, out object? memberVal);
-                Assert(read, $"Couldn't read member {member.Name}");
-
-                WriteComplexType(complexMemberHandler, ref writer, config, memberVal, indent + config.Indentation);
-
-                if (config.Pretty)
-                {
-                    for (int i = 0; i < indent; i++)
-                    {
-                        if (!writer.WriteChar(' ')) return false;
-                    }
-                }
-            }
-
-            if (!writer.WriteString("</")) return false;
-            if (!writer.WriteString(member.Name)) return false;
-            if (!writer.WriteChar('>')) return false;
-
-            if (config.Pretty && !writer.WriteChar('\n')) return false;
-        }
-
-        return true;
     }
 }

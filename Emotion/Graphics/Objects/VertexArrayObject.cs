@@ -5,6 +5,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.WIPUpdates.Rendering;
 using OpenGL;
@@ -118,12 +119,12 @@ public abstract class VertexArrayObject : IDisposable
 
         var typeData = ReflectorEngine.GetTypeHandler(vertexType) as IGenericReflectorComplexTypeHandler;
         AssertNotNull(typeData);
-        ComplexTypeHandlerMember[] members = typeData.GetMembers();
+        ComplexTypeHandlerMemberBase[] members = typeData.GetMembers();
 
         uint positionOffset = _lastAttributePosition;
         for (uint i = 0; i < members.Length; i++)
         {
-            Standard.Reflector.Handlers.ComplexTypeHandlerMember member = members[i];
+            ComplexTypeHandlerMemberBase member = members[i];
             VertexAttributeAttribute vertexAttributeData = member.HasAttribute<VertexAttributeAttribute>();
             if (vertexAttributeData == null) continue;
 

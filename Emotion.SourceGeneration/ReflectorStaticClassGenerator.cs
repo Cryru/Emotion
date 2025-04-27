@@ -39,6 +39,7 @@ namespace Emotion.SourceGeneration
             sb.AppendLine("using System.Runtime.CompilerServices;");
             sb.AppendLine("using Emotion.Standard.Reflector;");
             sb.AppendLine("using Emotion.Standard.Reflector.Handlers;");
+            sb.AppendLine("using Emotion.Standard.Reflector.Handlers.Base;");
             sb.AppendLine();
 
             sb.AppendLine($"namespace ReflectorGen;");
@@ -54,7 +55,7 @@ namespace Emotion.SourceGeneration
             sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new StaticComplexTypeHandler(");
             sb.AppendLine($"           typeof({fullTypName}),");
             sb.AppendLine($"           \"{safeShortName}\",");
-            sb.AppendLine($"           new ComplexTypeHandlerMember[] {{");
+            sb.AppendLine($"           new ComplexTypeHandlerMemberBase[] {{");
 
             foreach (ReflectorMemberData memberDesc in members)
             {

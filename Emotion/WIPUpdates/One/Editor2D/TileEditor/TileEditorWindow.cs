@@ -5,6 +5,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Scenography;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.Grids;
@@ -118,7 +119,7 @@ public sealed class TileEditorWindow : GridEditorWindow
             //List<TileMapLayerGrid>? list = tileData?.Layers;
             //_layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
             GameMapTileData? tileData = GetCurrentMapTileData();
-            ComplexTypeHandlerMember? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
+            ComplexTypeHandlerMemberBase? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
             if (tileData != null && layerHandler != null)
             {
                 var listEditor = new ListEditor<TileMapLayer>(typeof(TileMapLayer));

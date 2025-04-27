@@ -14,8 +14,6 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
 
     public override Type Type => typeof(T);
 
-    public override bool CanGetOrParseValueAsString => false;
-
     public string ItemTypeName => ItemType.Name;
 
     public Type ItemType => typeof(TItem);

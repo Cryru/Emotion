@@ -431,6 +431,7 @@ namespace SourceGenerator
             sb.AppendLine("using System.Runtime.CompilerServices;");
             sb.AppendLine("using Emotion.Standard.Reflector;");
             sb.AppendLine("using Emotion.Standard.Reflector.Handlers;");
+            sb.AppendLine("using Emotion.Standard.Reflector.Handlers.Base;");
             sb.AppendLine();
 
             if (partialModeGeneration)
@@ -469,7 +470,7 @@ namespace SourceGenerator
                 sb.AppendLine($"           null,");
             }
             sb.AppendLine($"           \"{safeShortName}\",");
-            sb.AppendLine($"           new ComplexTypeHandlerMember[] {{");
+            sb.AppendLine($"           new ComplexTypeHandlerMemberBase[] {{");
 
             foreach (ReflectorMemberData memberDesc in members)
             {

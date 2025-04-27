@@ -1,11 +1,6 @@
 ﻿#nullable enable
 
-using Emotion;
-
-
-#nullable enable
-
-using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
 
 namespace Emotion.Standard.Reflector.Handlers.Interfaces;
 
@@ -15,9 +10,9 @@ public interface IGenericReflectorComplexTypeHandler : IGenericReflectorTypeHand
 
     public object? CreateNew();
 
-    public ComplexTypeHandlerMember[] GetMembers();
+    public ComplexTypeHandlerMemberBase[] GetMembers();
 
-    public ComplexTypeHandlerMember[] GetMembersDeep();
+    public ComplexTypeHandlerMemberBase[] GetMembersDeep();
 
-    public ComplexTypeHandlerMember? GetMemberByName(string name);
+    public ComplexTypeHandlerMemberBase? GetMemberByName(string name);
 }

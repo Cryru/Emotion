@@ -2,6 +2,7 @@
 using Emotion.IO;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
@@ -63,9 +64,9 @@ public class ObjectPropertyWindow : EditorScrollArea
 
         if (typeHandler is IGenericReflectorComplexTypeHandler complex)
         {
-            IEnumerable<ComplexTypeHandlerMember> complexTypeMembers = complex.GetMembersDeep();
+            IEnumerable<ComplexTypeHandlerMemberBase> complexTypeMembers = complex.GetMembersDeep();
 
-            foreach (ComplexTypeHandlerMember member in complexTypeMembers)
+            foreach (ComplexTypeHandlerMemberBase member in complexTypeMembers)
             {
                 if (member.HasAttribute<DontShowInEditorAttribute>() != null) continue;
 

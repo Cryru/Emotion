@@ -2,13 +2,8 @@
 
 #region Using
 
-using System.Linq;
-using System.Threading.Tasks;
-using Emotion.Editor.EditorHelpers;
-using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector;
-using static Emotion.Game.Data.GameDatabase;
-using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
+using Emotion.Standard.Reflector.Handlers.Base;
 
 #endregion
 
@@ -19,6 +14,7 @@ public static partial class GameDatabase
     public static bool Initialized { get; private set; }
 
     private static Dictionary<Type, GameDataObject[]> _definedData = new();
+    private static Type[] _dataTypes = Array.Empty<Type>();
 
     public static void Initialize()
     {
@@ -28,7 +24,7 @@ public static partial class GameDatabase
         Type[] gameDataTypes = ReflectorEngine.GetTypesDescendedFrom(typeof(GameDataObject), true);
         foreach (Type typ in gameDataTypes)
         {
-            ComplexTypeHandlerMember? member = EditorAdapter.GetStaticAllDefinitionsMember(typ);
+            ComplexTypeHandlerMemberBase? member = EditorAdapter.GetStaticAllDefinitionsMember(typ);
             if (member == null) continue;
 
             member.GetValueFromComplexObject(new object(), out object? val); // This is how you read from a static member lol
@@ -37,6 +33,7 @@ public static partial class GameDatabase
 
             _definedData.Add(typ, array);
         }
+        _dataTypes = gameDataTypes;
 
         Initialized = true;
     }
@@ -85,10 +82,10 @@ public static partial class GameDatabase
         return null;
     }
 
-    public static Type[]? GetDataTypes()
+    public static Type[] GetDataTypes()
     {
         Assert(Initialized);
-        return _definedData.Keys.ToArray();
+        return _dataTypes;
     }
 
     #endregion

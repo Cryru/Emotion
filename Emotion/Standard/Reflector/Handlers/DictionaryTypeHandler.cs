@@ -14,8 +14,6 @@ public class DictionaryTypeHandler<T, TKey, TItem> : ReflectorTypeHandlerBase<T>
 
     public override Type Type => typeof(T);
 
-    public override bool CanGetOrParseValueAsString => false;
-
     public string KeyTypeName => KeyType.Name;
 
     public Type KeyType => typeof(TKey);

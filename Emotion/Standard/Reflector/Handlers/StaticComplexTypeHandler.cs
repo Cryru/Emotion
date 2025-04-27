@@ -1,9 +1,12 @@
 ﻿#nullable enable
 
+using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -15,11 +18,11 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
 
     public bool CanGetOrParseValueAsString => false;
 
-    private ComplexTypeHandlerMember[] _membersArr;
-    private Dictionary<string, ComplexTypeHandlerMember> _members;
+    private ComplexTypeHandlerMemberBase[] _membersArr;
+    private Dictionary<string, ComplexTypeHandlerMemberBase> _members;
     private byte[][] _membersCaseInsensitive;
 
-    public StaticComplexTypeHandler(Type typ, string typeName, ComplexTypeHandlerMember[] members)
+    public StaticComplexTypeHandler(Type typ, string typeName, ComplexTypeHandlerMemberBase[] members)
     {
         Type = typ;
         TypeName = typeName;
@@ -29,7 +32,7 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
         _membersCaseInsensitive = new byte[members.Length][];
         for (int i = 0; i < members.Length; i++)
         {
-            ComplexTypeHandlerMember member = members[i];
+            ComplexTypeHandlerMemberBase member = members[i];
             string memberName = member.Name;
 
             _members.Add(memberName, member);
@@ -62,25 +65,25 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
     {
         for (int i = 0; i < _membersArr.Length; i++)
         {
-            ComplexTypeHandlerMember member = _membersArr[i];
+            ComplexTypeHandlerMemberBase member = _membersArr[i];
             member.PostInit();
         }
     }
 
-    public ComplexTypeHandlerMember[] GetMembers()
+    public ComplexTypeHandlerMemberBase[] GetMembers()
     {
         return _membersArr;
     }
 
-    public ComplexTypeHandlerMember[] GetMembersDeep()
+    public ComplexTypeHandlerMemberBase[] GetMembersDeep()
     {
         // Static types cant inherit so this is the same as members.
         return _membersArr;
     }
 
-    public ComplexTypeHandlerMember? GetMemberByName(string name)
+    public ComplexTypeHandlerMemberBase? GetMemberByName(string name)
     {
-        if (_members.TryGetValue(name, out ComplexTypeHandlerMember? member))
+        if (_members.TryGetValue(name, out ComplexTypeHandlerMemberBase? member))
             return member;
         return null;
     }
@@ -88,6 +91,21 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
     #region All Serialization (Disabled)
 
     public void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    {
+        throw new NotImplementedException();
+    }
+
+    public T? ParseFromJSON<T>(ref Utf8JsonReader reader)
+    {
+        throw new NotImplementedException();
+    }
+
+    public T? ParseFromXML<T>(ref ValueStringReader reader)
     {
         throw new NotImplementedException();
     }
