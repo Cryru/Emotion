@@ -1,11 +1,13 @@
 ﻿#nullable enable
 
+using Emotion;
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text;
 using System.Text.Json;
 
-namespace Emotion.Standard.Reflector.Handlers;
+namespace Emotion.Standard.Reflector.Handlers.Base;
 
 public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 {
@@ -25,10 +27,35 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
         // nop
     }
 
+    #region Serialization Read
+
     public virtual T? ParseFromJSON(ref Utf8JsonReader reader)
     {
         return default;
     }
+
+    #endregion
+
+    #region Serialization Write
+
+    public virtual void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer)
+    {
+        if (value == null)
+        {
+            writer.WriteString("null");
+            return;
+        }
+
+        if (value is T valueAsT)
+            WriteAsCode(valueAsT, ref writer);
+    }
+
+    public virtual void WriteAsCode(T value, ref ValueStringWriter writer)
+    {
+
+    }
+
+    #endregion
 
     public bool WriteValueAsStringGeneric<TParam>(ref ValueStringWriter stringWriter, TParam? instance)
     {

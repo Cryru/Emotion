@@ -5,6 +5,7 @@ using Emotion.Game.World.Editor;
 using Emotion.Scenography;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;

@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using System.Text;
 using System.Text.Json;
 
@@ -20,7 +22,7 @@ public abstract class ComplexTypeHandlerMember
 
     public string Name { get; set; }
 
-    public Attribute[] Attributes = Array.Empty<Attribute>();
+    public Attribute[] Attributes { get; set; } = Array.Empty<Attribute>();
 
     protected ComplexTypeHandlerMember(Type memberType, string name)
     {
@@ -57,28 +59,29 @@ public abstract class ComplexTypeHandlerMember
 
     public abstract bool SetValueInComplexObject(object obj, object? val);
 
+    #region Serialization Read
 
-}
+    public abstract bool ParseFromJSON<OwnerT>(ref Utf8JsonReader reader, OwnerT intoObject);
 
-public abstract class ComplexTypeHandlerMember<ParentT> : ComplexTypeHandlerMember
-{
-    protected ComplexTypeHandlerMember(Type memberType, string name) : base(memberType, name)
-    {
-    }
+    #endregion
 
-    public abstract bool ParseFromJSON(ref Utf8JsonReader reader, ParentT intoObject);
+    #region Serialization Write
+
+    public abstract void WriteAsCode<OwnerT>(OwnerT ownerObject, ref ValueStringWriter writer);
+
+    #endregion
 }
 
 // todo: nullable types
 // todo: static member type
-public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember<ParentT>
+public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember
 {
-    protected Action<ParentT, MyT> _setValue;
-    protected Func<ParentT, MyT> _getValue;
+    protected Action<ParentT, MyT?> _setValue;
+    protected Func<ParentT, MyT?> _getValue;
 
     private ReflectorTypeHandlerBase<MyT>? _typeHandler;
 
-    public ComplexTypeHandlerMember(string name, Action<ParentT, MyT> setValue, Func<ParentT, MyT> getValue) : base(typeof(MyT), name)
+    public ComplexTypeHandlerMember(string name, Action<ParentT, MyT?> setValue, Func<ParentT, MyT?> getValue) : base(typeof(MyT), name)
     {
         _setValue = setValue;
         _getValue = getValue;
@@ -115,15 +118,38 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMember<P
         return false;
     }
 
-    public override bool ParseFromJSON(ref Utf8JsonReader reader, ParentT intoObject)
+    #region Serialization Read
+
+    public override bool ParseFromJSON<OwnerT>(ref Utf8JsonReader reader, OwnerT intoObject)
     {
+        if (intoObject is not ParentT parentT)
+            return false;
+
         ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
         if (handler == null) return false;
 
         MyT? val = handler.ParseFromJSON(ref reader);
-        _setValue(intoObject, val);
+        _setValue(parentT, val);
         return true;
     }
+
+    #endregion
+
+    #region Serialization Write
+
+    public override void WriteAsCode<OwnerT>(OwnerT ownerObject, ref ValueStringWriter writer)
+    {
+        if (ownerObject is not ParentT parentT)
+            return;
+
+        ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
+        if (handler == null) return;
+
+        MyT? val = _getValue(parentT);
+        handler.WriteAsCode(val, ref writer);
+    }
+
+    #endregion
 
     public override CanWriteMemberResult CanWriteValueAsStringFromComplexObject(object? obj)
     {

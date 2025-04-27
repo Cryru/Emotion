@@ -1,5 +1,8 @@
 ﻿#nullable enable
 
+using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Linq;
@@ -15,13 +18,18 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
 
     public override bool CanGetOrParseValueAsString => false;
 
-    private ComplexTypeHandlerMember<T>[] _membersArr;
-    private Dictionary<string, ComplexTypeHandlerMember<T>> _members;
+    private ComplexTypeHandlerMember[] _membersArr;
+    private Dictionary<string, ComplexTypeHandlerMember> _members;
     private byte[][] _membersCaseInsensitive;
     private Func<T>? _createNew;
     private string _typeName;
 
-    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMember<T>[] members)
+    private ComplexTypeHandlerMember[] _membersArrDeep;
+    private byte[][] _membersCaseInsensitiveDeep;
+
+    private bool _postInitCalled;
+
+    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMember[] members)
     {
         _createNew = createNew;
         _typeName = typeName;
@@ -31,10 +39,19 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         _membersCaseInsensitive = new byte[members.Length][];
         for (int i = 0; i < members.Length; i++)
         {
-            ComplexTypeHandlerMember<T> member = members[i];
+            ComplexTypeHandlerMember member = members[i];
             string memberName = member.Name;
-
             _members.Add(memberName, member);
+        }
+    }
+
+    public override void PostInit()
+    {
+        for (int i = 0; i < _membersArr.Length; i++)
+        {
+            ComplexTypeHandlerMember member = _membersArr[i];
+
+            string memberName = member.Name;
 
             // Cache name as utf8 and with the first name uncapitalized.
             byte[] utf8Name = Helpers.UTF8Encoder.GetBytes(memberName);
@@ -42,8 +59,15 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             byte lower = (firstChar >= 65 && firstChar <= 90) ? (byte)(firstChar + 32) : firstChar;
             utf8Name[0] = lower;
             _membersCaseInsensitive[i] = utf8Name;
+
+            member.PostInit();
         }
+
+        // Load deep members.
+        GetMembersDeep();
     }
+
+    #region Serialization Read
 
     public override T? ParseFromJSON(ref Utf8JsonReader reader)
     {
@@ -78,7 +102,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
                     byte[] memberNameUtf8 = _membersCaseInsensitive[i];
                     if (keySpan.SequenceEqual(memberNameUtf8))
                     {
-                        ComplexTypeHandlerMember<T> member = _membersArr[i];
+                        ComplexTypeHandlerMember member = _membersArr[i];
                         found = member.ParseFromJSON(ref reader, val);
                         break;
                     }
@@ -105,6 +129,30 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         return val;
     }
 
+    #endregion
+
+    #region Serialization Write
+
+    public override void WriteAsCode(T value, ref ValueStringWriter writer)
+    {
+        writer.WriteString("{\n");
+
+        bool first = true;
+        foreach (ComplexTypeHandlerMember member in GetMembersDeep())
+        {
+            if (!first) writer.WriteString(",\n");
+            first = false;
+
+            writer.WriteString(member.Name);
+            writer.WriteString(" = ");
+            member.WriteAsCode(value, ref writer);
+        }
+
+        writer.WriteString("}");
+    }
+
+    #endregion
+
     public override TypeEditor? GetEditor()
     {
         if (typeof(T) == typeof(Vector2))
@@ -117,15 +165,6 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
 
         return new NestedComplexObjectEditor();
-    }
-
-    public override void PostInit()
-    {
-        for (int i = 0; i < _membersArr.Length; i++)
-        {
-            ComplexTypeHandlerMember member = _membersArr[i];
-            member.PostInit();
-        }
     }
 
     public bool CanCreateNew()
@@ -144,46 +183,58 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         return _membersArr;
     }
 
-    public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep()
+    public ComplexTypeHandlerMember[] GetMembersDeep()
     {
-        Type? baseType = Type.BaseType;
-        if (baseType != null)
+        if (_membersArrDeep == null) // Lazy load, but post-init will load it for everyone.
         {
-            IGenericReflectorTypeHandler? handler = ReflectorEngine.GetTypeHandler(baseType);
-            if (handler != null) // Yikes if true
+            ComplexTypeHandlerMember[] baseMembers = Array.Empty<ComplexTypeHandlerMember>();
+
+            // My deep members are my base's deep members + my members.
+            Type? baseType = Type.BaseType;
+            if (baseType != null && baseType != typeof(object) && baseType != typeof(ValueType))
             {
-                Assert(handler is IGenericReflectorComplexTypeHandler);
-                if (handler is IGenericReflectorComplexTypeHandler complexHandler)
+                IGenericReflectorComplexTypeHandler? baseHandler = ReflectorEngine.GetComplexTypeHandler(baseType);
+                //AssertNotNull(baseHandler); // No base handler but have base type?
+                if (baseHandler != null)
+                    baseMembers = baseHandler.GetMembersDeep();
+            }
+
+            if (baseMembers.Length == 0)
+            {
+                _membersArrDeep = _membersArr;
+                _membersCaseInsensitiveDeep = _membersCaseInsensitive;
+            }
+            else
+            {
+                List<ComplexTypeHandlerMember> filteredBaseMembers = new List<ComplexTypeHandlerMember>();
+
+                // Sometimes the base class has duplicate members (such as when hiding/overloading is done)
+                for (int i = 0; i < baseMembers.Length; i++)
                 {
-                    foreach (ComplexTypeHandlerMember member in complexHandler.GetMembersDeep())
-                    {
-                        yield return member;
-                    }
+                    ComplexTypeHandlerMember member = baseMembers[i];
+                    string memberName = member.Name;
+                    if (_members.TryAdd(memberName, member))
+                        filteredBaseMembers.Add(member);
                 }
+
+                for (int i = 0; i < _membersArr.Length; i++)
+                {
+                    ComplexTypeHandlerMember myMember = _membersArr[i];
+                    filteredBaseMembers.Add(myMember);
+                }
+
+                _membersArrDeep = [.. filteredBaseMembers];
+                _membersCaseInsensitiveDeep = new byte[_membersArrDeep.Length][];
             }
         }
 
-        for (int i = 0; i < _membersArr.Length; i++)
-        {
-            ComplexTypeHandlerMember member = _membersArr[i];
-            yield return member;
-        }
+        return _membersArrDeep;
     }
 
     public ComplexTypeHandlerMember? GetMemberByName(string name)
     {
-        if (_members.TryGetValue(name, out ComplexTypeHandlerMember<T>? member))
+        if (_members.TryGetValue(name, out ComplexTypeHandlerMember? member))
             return member;
-
-        // If I don't have this member, look up the inheritance.
-        Type? baseType = Type.BaseType;
-        if (baseType == null)
-            return null;
-
-        IGenericReflectorComplexTypeHandler? handler = ReflectorEngine.GetComplexTypeHandler(baseType);
-        if (handler == null)
-            return null;
-
-        return handler.GetMemberByName(name);
+        return null;
     }
 }

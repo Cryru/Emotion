@@ -1,10 +1,11 @@
 ﻿#nullable enable
 
+using Emotion;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text;
 
-namespace Emotion.Standard.Reflector.Handlers;
+namespace Emotion.Standard.Reflector.Handlers.Interfaces;
 
 public interface IGenericReflectorTypeHandler
 {
@@ -25,6 +26,12 @@ public interface IGenericReflectorTypeHandler
     {
         return Type.IsAssignableTo(otherType);
     }
+
+    #region Serialization Write
+
+    public void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer);
+
+    #endregion
 
     public void ReadValueFromStringIntoArray(ReadOnlySpan<char> str, object array, int idx)
     {
@@ -49,7 +56,7 @@ public interface IGenericReflectorTypeHandler
     public bool WriteValueAsStringGeneric<TParam>(StringBuilder builder, TParam? instance)
     {
         ValueStringWriter writer = new ValueStringWriter(builder);
-        return WriteValueAsStringGeneric<TParam>(ref writer, instance);
+        return WriteValueAsStringGeneric(ref writer, instance);
     }
 
     public bool ParseValueFromStringGeneric<TParam>(ReadOnlySpan<char> data, out TParam? result)

@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -13,11 +15,11 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
 
     public bool CanGetOrParseValueAsString => false;
 
-    private ComplexTypeHandlerMember<object>[] _membersArr;
-    private Dictionary<string, ComplexTypeHandlerMember<object>> _members;
+    private ComplexTypeHandlerMember[] _membersArr;
+    private Dictionary<string, ComplexTypeHandlerMember> _members;
     private byte[][] _membersCaseInsensitive;
 
-    public StaticComplexTypeHandler(Type typ, string typeName, ComplexTypeHandlerMember<object>[] members)
+    public StaticComplexTypeHandler(Type typ, string typeName, ComplexTypeHandlerMember[] members)
     {
         Type = typ;
         TypeName = typeName;
@@ -27,7 +29,7 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
         _membersCaseInsensitive = new byte[members.Length][];
         for (int i = 0; i < members.Length; i++)
         {
-            ComplexTypeHandlerMember<object> member = members[i];
+            ComplexTypeHandlerMember member = members[i];
             string memberName = member.Name;
 
             _members.Add(memberName, member);
@@ -70,7 +72,7 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
         return _membersArr;
     }
 
-    public IEnumerable<ComplexTypeHandlerMember> GetMembersDeep()
+    public ComplexTypeHandlerMember[] GetMembersDeep()
     {
         // Static types cant inherit so this is the same as members.
         return _membersArr;
@@ -78,8 +80,17 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
 
     public ComplexTypeHandlerMember? GetMemberByName(string name)
     {
-        if (_members.TryGetValue(name, out ComplexTypeHandlerMember<object>? member))
+        if (_members.TryGetValue(name, out ComplexTypeHandlerMember? member))
             return member;
         return null;
     }
+
+    #region All Serialization (Disabled)
+
+    public void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
 }

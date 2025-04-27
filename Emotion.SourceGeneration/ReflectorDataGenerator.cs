@@ -469,7 +469,7 @@ namespace SourceGenerator
                 sb.AppendLine($"           null,");
             }
             sb.AppendLine($"           \"{safeShortName}\",");
-            sb.AppendLine($"           new ComplexTypeHandlerMember<{fullTypName}>[] {{");
+            sb.AppendLine($"           new ComplexTypeHandlerMember[] {{");
 
             foreach (ReflectorMemberData memberDesc in members)
             {

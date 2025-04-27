@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-namespace Emotion.Standard.Reflector.Handlers;
+namespace Emotion.Standard.Reflector.Handlers.Interfaces;
 
 public interface IGenericEnumerableTypeHandler
 {

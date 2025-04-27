@@ -8,6 +8,7 @@ using Emotion.Utility;
 using System.Buffers;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
+using Emotion.Standard.Reflector.Handlers.Base;
 
 namespace Emotion.Serialization.JSON;
 

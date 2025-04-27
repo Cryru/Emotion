@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text.Json;
 
@@ -14,6 +15,8 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
 
     public override bool CanGetOrParseValueAsString => true;
 
+    #region Serialization Read
+
     public override string? ParseFromJSON(ref Utf8JsonReader reader)
     {
         if (reader.TokenType != JsonTokenType.String)
@@ -26,6 +29,17 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
 
         return reader.GetString();
     }
+
+    #endregion
+
+    #region Serialization Write
+
+    public override void WriteAsCode(string value, ref ValueStringWriter writer)
+    {
+        writer.WriteString($"\"{value}\"");
+    }
+
+    #endregion
 
     public override TypeEditor? GetEditor()
     {

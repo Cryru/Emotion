@@ -1,6 +1,6 @@
 ﻿using Emotion.Game.World.Editor;
 using Emotion.Standard.Reflector;
-using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 

@@ -24,6 +24,8 @@ using System.Xml.Linq;
 using Emotion.Common.Serialization;
 using System.Dynamic;
 using Emotion.WIPUpdates.One;
+using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 
 #endregion
 
@@ -270,9 +272,7 @@ public static partial class GameDatabase
                 $"        public static {className} {DATA_TYPE_CREATE_MODEL_FUNC}()\n" +
                 $"        {{\n" +
                 $"            return new {className}()\n" +
-                $"            {{\n" +
-                $"{GetClassGenConstructorCode(obj)}\n" +
-                $"            }};\n" +
+                $"{GetClassGenConstructorCode(obj)};\n" +
                 $"        }}\n" +
                 $"\n" +
                 $"        // Create a new instance of this data object.\n" +
@@ -295,53 +295,12 @@ public static partial class GameDatabase
 
         private static string GetClassGenConstructorCode(GameDataObject obj) // todo: move to serialization
         {
-            StringBuilder builder = new StringBuilder();
-
-            var reflectorHandler = ReflectorEngine.GetTypeHandler(obj.GetType()) as IGenericReflectorComplexTypeHandler;
+            IGenericReflectorComplexTypeHandler? reflectorHandler = ReflectorEngine.GetComplexTypeHandler(obj.GetType());
             AssertNotNull(reflectorHandler);
 
-            IEnumerable<ComplexTypeHandlerMember> members = reflectorHandler.GetMembersDeep();
-            bool first = true;
-            foreach (ComplexTypeHandlerMember member in members)
-            {
-                if (!first) builder.Append('\n');
-                first = false;
-
-                IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
-                AssertNotNull(memberHandler);
-
-                if (member.GetValueFromComplexObject(obj, out object? memberValue))
-                {
-                    builder.Append("                ");
-                    builder.Append(member.Name);
-                    builder.Append(" = ");
-
-                    if (member.Name == nameof(GameDataObject.LoadedFromModel))
-                    {
-                        builder.Append($"\"{obj.Id}\"");
-                    }
-                    else if (memberValue == null)
-                    {
-                        builder.Append("null");
-                    }
-                    else
-                    {
-                        bool isString = memberHandler.Type == typeof(string);
-
-                        if (isString)
-                            builder.Append('\"');
-
-                        if (!memberHandler.WriteValueAsStringGeneric(builder, memberValue))
-                            builder.Append("null");
-
-                        if (isString)
-                            builder.Append('\"');
-                    }
-
-                    builder.Append(',');
-                }
-            }
-
+            StringBuilder builder = new StringBuilder();
+            ValueStringWriter writer = new ValueStringWriter(builder);
+            reflectorHandler.WriteAsCode(obj, ref writer);
             return builder.ToString();
         }
 

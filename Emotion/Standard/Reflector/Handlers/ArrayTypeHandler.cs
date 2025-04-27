@@ -1,11 +1,14 @@
 ﻿#nullable enable
 
+using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Utility;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
-public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericEnumerableTypeHandler
+public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericEnumerableTypeHandler where T : IEnumerable<TItem>
 {
     public override string TypeName => $"ArrayOf{ItemType.Name}";
 
@@ -23,6 +26,8 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
     }
 
     private static ObjectPool<List<TItem?>> _pool = new ObjectPool<List<TItem?>>((l) => l.Clear(), 1);
+
+    #region Serialization Read
 
     public override T? ParseFromJSON(ref Utf8JsonReader reader)
     {
@@ -60,7 +65,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             }
             else if (token == JsonTokenType.Null)
             {
-                tempList.Add((TItem?) (object?) null);
+                tempList.Add((TItem?)(object?)null);
             }
             else if (token == JsonTokenType.EndArray)
             {
@@ -77,6 +82,36 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
 
         _pool.Return(tempList);
 
-        return (T?) (object?) values;
+        return (T?)(object?)values;
     }
+
+    #endregion
+
+    #region Serialization Write
+
+    public override void WriteAsCode(T? value, ref ValueStringWriter writer)
+    {
+        if (value == null)
+        {
+            writer.WriteString("null");
+            return;
+        }
+
+        ReflectorTypeHandlerBase<TItem>? itemHandler = ReflectorEngine.GetTypeHandler<TItem>();
+        if (itemHandler == null)
+            return;
+
+        bool first = true;
+        writer.WriteString("[\n");
+        foreach (var item in value)
+        {
+            if (!first) writer.WriteString(",\n");
+            itemHandler.WriteAsCode(item, ref writer);
+
+            first = false;
+        }
+        writer.WriteString("\n]");
+    }
+
+    #endregion
 }

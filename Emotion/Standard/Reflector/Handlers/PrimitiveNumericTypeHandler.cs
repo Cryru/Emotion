@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System;
 using System.Buffers;
@@ -23,6 +24,8 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
     {
         _typeCode = Type.GetTypeCode(Type);
     }
+
+    #region Serialization Read
 
     public override T ParseFromJSON(ref Utf8JsonReader reader)
     {
@@ -94,6 +97,17 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
                 return T.Zero;
         }
     }
+
+    #endregion
+
+    #region Serialization Write
+
+    public override void WriteAsCode(T value, ref ValueStringWriter writer)
+    {
+        writer.WriteNumber(value);
+    }
+
+    #endregion
 
     public override TypeEditor? GetEditor()
     {

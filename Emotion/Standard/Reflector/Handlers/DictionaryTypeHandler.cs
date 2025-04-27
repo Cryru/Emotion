@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -26,6 +28,8 @@ public class DictionaryTypeHandler<T, TKey, TItem> : ReflectorTypeHandlerBase<T>
     {
         return new Dictionary<TKey, TItem?>();
     }
+
+    #region Serialization Read
 
     public override T? ParseFromJSON(ref Utf8JsonReader reader)
     {
@@ -63,10 +67,10 @@ public class DictionaryTypeHandler<T, TKey, TItem> : ReflectorTypeHandlerBase<T>
 
             if (token == JsonTokenType.PropertyName)
             {
-                string key = reader.GetString();
+                string? key = reader.GetString();
                 TItem? parsed = itemHandler.ParseFromJSON(ref reader);
                 if (key != null)
-                    newDict.TryAdd((TKey) (object) key, parsed!);
+                    newDict.TryAdd((TKey)(object)key, parsed!);
             }
             else if (token == JsonTokenType.EndObject)
             {
@@ -78,6 +82,14 @@ public class DictionaryTypeHandler<T, TKey, TItem> : ReflectorTypeHandlerBase<T>
             }
         }
 
-        return (T) newDict;
+        return (T)newDict;
     }
+
+    #endregion
+
+    #region Serialization Write
+
+    // todo
+
+    #endregion
 }

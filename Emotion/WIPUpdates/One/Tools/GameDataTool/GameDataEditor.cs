@@ -2,7 +2,7 @@
 using Emotion;
 using Emotion.Game.Data;
 using Emotion.Standard.Reflector;
-using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
