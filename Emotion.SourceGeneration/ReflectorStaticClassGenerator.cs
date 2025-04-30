@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Text;
 using static SourceGenerator.Generator;
 using static Emotion.SourceGeneration.Helpers;
+using System;
 
 namespace Emotion.SourceGeneration
 {
@@ -12,15 +13,21 @@ namespace Emotion.SourceGeneration
     /// </summary>
     public static class ReflectorStaticClassGenerator
     {
-        public static void Run(ref SourceProductionContext context, INamedTypeSymbol typ)
+        public static bool Run(ref SourceProductionContext context, INamedTypeSymbol typ)
         {
-            // Filter out static types with the appropriate attribute.
-            // Get their members and generate their handlers.
-            if (!typ.IsStatic) return;
-            if (!HasAttribute(typ.GetAttributes(), "ReflectorStaticClassSupportAttribute")) return;
+            // Filter out static types from the main generator
+            if (!typ.IsStatic) return false;
 
-            ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(context, typ, true);
-            GenerateHandlerForStaticComplexType(ref context, typ, members);
+            // Static types with the attribute will have a handler for their members generated.
+            if (HasAttribute(typ.GetAttributes(), "ReflectorStaticClassSupportAttribute"))
+            {
+                Console.WriteLine($"[ReflectorV2-Static] Generating handler for {typ.ToDisplayString()}.");
+
+                ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(context, typ, true);
+                GenerateHandlerForStaticComplexType(ref context, typ, members);
+            }
+
+            return true;
         }
 
         private static void GenerateHandlerForStaticComplexType(ref SourceProductionContext context, INamedTypeSymbol typ, ImmutableArray<ReflectorMemberData> members)

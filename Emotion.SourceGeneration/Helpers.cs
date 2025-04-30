@@ -242,6 +242,7 @@ namespace Emotion.SourceGeneration
             "Emotion.Editor",
 
             "System",
+            "StbTrueTypeSharp"
         };
 
         public static bool IsExcludedNamespace(string namespac)

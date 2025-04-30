@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System;
 using System.Text;
 using static Emotion.SourceGeneration.Helpers;
 
@@ -13,6 +14,8 @@ namespace Emotion.SourceGeneration
         {
             if (typ.BaseType == null) return;
             if (typ.BaseType.Name != "GameDataObject") return;
+
+            Console.WriteLine($"[ReflectorV2-GameDataSupport] Generating supporting data for {typ.ToDisplayString()}.");
             GenerateUndefinedClassForGameData(ref context, typ);
         }
 

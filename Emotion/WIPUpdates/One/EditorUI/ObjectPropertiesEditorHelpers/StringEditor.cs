@@ -1,11 +1,5 @@
 ﻿using Emotion.Game.World.Editor;
-using Emotion.IO;
-using Emotion.Platform.Implementation.CommonDesktop;
-using Emotion.Standard.Reflector.Handlers;
 using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Globalization;
-using System.Reflection.Emit;
 
 #nullable enable
 
@@ -13,6 +7,8 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class StringEditor : TypeEditor
 {
+    private string? _text;
+
     public StringEditor()
     {
         var inputBackground = new UISolidColor
@@ -43,13 +39,17 @@ public class StringEditor : TypeEditor
         UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
         AssertNotNull(textInput);
         if (value == null)
-            textInput.Text = "<null>";
+            _text = "<null>";
         else
-            textInput.Text = (string)value;
+            _text = (string)value;
+
+        textInput.Text = _text;
     }
 
     private void OnTextInputChanged(string txt)
     {
+        if (_text == txt) return;
+        _text = txt;
         OnValueChanged(txt);
     }
 }
