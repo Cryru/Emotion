@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Threading.Tasks;
+using Emotion.Common.Input;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time;
@@ -12,7 +13,6 @@ using Emotion.Game.World2D.EditorHelpers;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
-using Emotion.Platform.Input;
 using Emotion.UI;
 
 #endregion

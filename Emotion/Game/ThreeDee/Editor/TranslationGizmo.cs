@@ -1,12 +1,12 @@
 #region Using
 
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
 using Emotion.Game.World;
 using Emotion.Game.World3D;
 using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Platform.Input;
 using Emotion.Utility;
 
 #endregion

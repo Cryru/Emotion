@@ -18,7 +18,6 @@ using Emotion.Game.World2D;
 using Emotion.Game.World3D;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
-using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
 using Emotion.Game.Data;

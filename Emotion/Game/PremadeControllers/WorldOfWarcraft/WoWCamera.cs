@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
 using Emotion;
+using Emotion.Common.Input;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.Work;
 
@@ -70,7 +70,7 @@ public class WoWCamera : Camera3D
 
         if (key == Key.MouseWheel)
         {
-            float zoomDir = status == KeyState.MouseWheelScrollUp ? 1 : -1;
+            float zoomDir = status == KeyState.Up ? 1 : -1;
             Distance -= zoomDir;
             Distance = Maths.Clamp(Distance, 1, 30);
 

@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
-using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.Editor2D;

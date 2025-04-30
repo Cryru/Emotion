@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
+using Emotion.Common.Input;
 using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
 using Emotion.Scenography;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;

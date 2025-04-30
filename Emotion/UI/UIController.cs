@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
-using Emotion.Platform.Input;
+using Emotion.Common.Input;
 
 #endregion
 

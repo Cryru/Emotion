@@ -8,7 +8,6 @@ using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
-using Emotion.Platform.Input;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Tools;
 using Khronos;

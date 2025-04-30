@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using Emotion.Platform.Input;
+using Emotion.Common.Input;
 using Emotion.Utility;
 using WinApi;
 using WinApi.User32;
@@ -191,13 +191,13 @@ namespace Emotion.Platform.Implementation.Win32
                     // (check if this is the main window too)
                     if (hWnd == _windowHandle && !IsFocused)
                     {
-                        UpdateMousePosition(new Vector2(-1));
+                        Engine.Input.ReportMouseMove(new Vector2(-1));
                         return IntPtr.Zero;
                     }
 
                     int x = NativeHelpers.LoWordS((uint)lParam);
                     int y = NativeHelpers.HiWordS((uint)lParam);
-                    UpdateMousePosition(new Vector2(x, y));
+                    Engine.Input.ReportMouseMove(new Vector2(x, y));
                     return IntPtr.Zero;
             }
 

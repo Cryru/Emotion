@@ -3,7 +3,7 @@
 #endregion
 
 #pragma warning disable 1591 // No need to document enum members here
-namespace Emotion.Platform.Input
+namespace Emotion.Common.Input
 {
     /// <summary>
     /// Input keys, forked from GLFW

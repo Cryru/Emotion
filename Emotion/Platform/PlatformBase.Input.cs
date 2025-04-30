@@ -1,8 +1,7 @@
 ﻿#region Using
 
+using Emotion.Common.Input;
 using System.Linq;
-using Emotion.Platform.Input;
-using Emotion.Utility;
 
 #endregion
 
@@ -13,18 +12,12 @@ namespace Emotion.Platform
         /// <summary>
         /// Called when a key is pressed, let go, or a held event is triggered.
         /// </summary>
-        public EmotionKeyEvent OnKey { get; } = new();
+        public EmotionKeyEvent OnKey { get => Engine.Input.OnKey; }
 
         /// <summary>
         /// Called when the mouse moves. The first vector is the old one, the second is the new position.
         /// </summary>
         public event Action<Vector2, Vector2> OnMouseMove;
-
-        /// <summary>
-        /// Called when the mouse scrolls.
-        /// </summary>
-        [Obsolete("Use OnKey(key, status) where Key == Key.MouseWheel")]
-        public event Action<float> OnMouseScroll;
 
         /// <summary>
         /// Called when text input is detected. Most of the time this is identical to OnKey, but without the state.
@@ -41,7 +34,7 @@ namespace Emotion.Platform
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
         /// Therefore it is in screen coordinates which change with the size of the Engine.Renderer.ScreenBuffer.
         /// </summary>
-        public Vector2 MousePosition { get; private set; }
+        public Vector2 MousePosition { get => Engine.Input.MousePosition; }
 
         private bool _skipTextInputThisTick;
         private bool _skipKeyInputThisTick;
@@ -65,7 +58,10 @@ namespace Emotion.Platform
             _keysIm = new bool[totalKeys];
             _keysPreviousIm = new bool[totalKeys];
 
-            SetupLegacy();
+            Engine.Input.OnMouseMove += (old, nu) =>
+            {
+                OnMouseMove(old, nu);
+            };
             OnKey.AddListener(DefaultButtonBehavior, KeyListenerType.System);
             OnFocusChanged += PreventButtonInputOnRefocus;
         }
@@ -87,7 +83,7 @@ namespace Emotion.Platform
                 Engine.Log.Trace($"Key {key} is {state}.", MessageSource.Input);
 
                 bool ctrl = IsCtrlModifierHeld();
-                if (key >= Key.F1 && key <= Key.F10 && state == Input.KeyState.Down && ctrl)
+                if (key >= Key.F1 && key <= Key.F10 && state == Common.Input.KeyState.Down && ctrl)
                 {
                     Vector2 chosenSize = _windowSizes[key - Key.F1];
                     Size = chosenSize;
@@ -97,16 +93,16 @@ namespace Emotion.Platform
 
                 switch (key)
                 {
-                    case Key.F11 when state == Input.KeyState.Down && ctrl:
+                    case Key.F11 when state == Common.Input.KeyState.Down && ctrl:
                         Size = Engine.Configuration.RenderSize * 1.999f - Vector2.One;
                         return false;
-                    case Key.Pause when state == Input.KeyState.Down:
+                    case Key.Pause when state == Common.Input.KeyState.Down:
                         PerfProfiler.ProfileNextFrame();
                         break;
                 }
             }
 
-            if (key == Key.Enter && state == Input.KeyState.Down && IsAltModifierHeld())
+            if (key == Key.Enter && state == Common.Input.KeyState.Down && IsAltModifierHeld())
             {
                 DisplayMode = DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
                 return false;
@@ -135,15 +131,6 @@ namespace Emotion.Platform
             _skipKeyInputThisTick = false;
         }
 
-        protected void UpdateMousePosition(Vector2 pos)
-        {
-            pos = WindowPointToViewportPoint(pos);
-
-            Vector2 oldPos = MousePosition;
-            MousePosition = pos;
-            OnMouseMove?.Invoke(oldPos, pos);
-        }
-
         protected void UpdateKeyStatus(Key key, bool down)
         {
             if (_skipKeyInputThisTick && down) return;
@@ -162,14 +149,14 @@ namespace Emotion.Platform
             //if (wasDown && down) OnKey.Invoke(key, KeyStatus.Held);
 
             // If it was down, but no longer is - it was let go.
-            if (wasDown && !down) OnKey.Invoke(key, Input.KeyState.Up);
+            if (wasDown && !down) Engine.Input.ReportKeyInput(key, Common.Input.KeyState.Up);
 
             // If it was up, and now is down - it was pressed.
             var downHandled = false;
-            if (!wasDown && down) downHandled = OnKey.Invoke(key, Input.KeyState.Down);
+            if (!wasDown && down) Engine.Input.ReportKeyInput(key, Common.Input.KeyState.Down);
 
             // The click was handled, disable text input in case we get an event.
-            if (down && downHandled) _skipTextInputThisTick = true;
+            //if (down && downHandled) _skipTextInputThisTick = true;
         }
 
         protected void UpdateScroll(float amount)
@@ -177,11 +164,11 @@ namespace Emotion.Platform
             if (amount != 0)
             {
                 _mouseScrollAccum += amount;
-                OnKey.Invoke(Key.MouseWheel, amount < 0 ? Input.KeyState.MouseWheelScrollDown : Input.KeyState.MouseWheelScrollUp);
+                Engine.Input.ReportKeyInput(Key.MouseWheel, amount < 0 ? Common.Input.KeyState.Down : Common.Input.KeyState.Up);
                 //UpdateKeyStatus(Key.MouseKeyWheel, amount < 0);
             }
 
-            OnMouseScroll?.Invoke(amount);
+            //OnMouseScroll?.Invoke(amount);
         }
 
         protected void UpdateTextInput(char c)
@@ -190,24 +177,6 @@ namespace Emotion.Platform
             OnTextInputAll?.Invoke(c);
             if (_skipTextInputThisTick) return;
             OnTextInput?.Invoke(c);
-        }
-
-        /// <summary>
-        /// Transforms the given point from window/screen coordinates to coordinates within the draw buffers viewport.
-        /// </summary>
-        public static Vector2 WindowPointToViewportPoint(Vector2 pos)
-        {
-            if (Engine.Renderer == null) return pos;
-
-            // Get the difference in scale.
-            float scaleX = Engine.Renderer.ScreenBuffer.Viewport.Size.X / Engine.Renderer.DrawBuffer.Size.X;
-            float scaleY = Engine.Renderer.ScreenBuffer.Viewport.Size.Y / Engine.Renderer.DrawBuffer.Size.Y;
-
-            // Calculate letterbox/pillarbox margins.
-            float marginX = Engine.Renderer.ScreenBuffer.Size.X / 2 - Engine.Renderer.ScreenBuffer.Viewport.Size.X / 2;
-            float marginY = Engine.Renderer.ScreenBuffer.Size.Y / 2 - Engine.Renderer.ScreenBuffer.Viewport.Size.Y / 2;
-
-            return new Vector2((pos.X - marginX) / scaleX, (pos.Y - marginY) / scaleY);
         }
 
         /// <summary>
@@ -417,56 +386,5 @@ namespace Emotion.Platform
         {
             return _mouseScrollThisFrame - _mouseScroll;
         }
-
-        #region Legacy
-
-        private void SetupLegacy()
-        {
-            OnKey.AddListener((key, status) =>
-            {
-#pragma warning disable 618
-                if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) OnMouseKey.Invoke((MouseKey) key, status);
-#pragma warning restore 618
-                return true;
-            }, KeyListenerType.System);
-        }
-
-        /// <summary>
-        /// Called when a mouse key is pressed or let go.
-        /// </summary>
-        [Obsolete("Please use OnKey instead of OnMouseKey")]
-        public EmotionEvent<MouseKey, KeyState> OnMouseKey { get; } = new EmotionEvent<MouseKey, KeyState>();
-
-        /// <summary>
-        /// Returns whether the specified mouse key was pressed down this tick.
-        /// </summary>
-        /// <param name="key">To mouse key to check.</param>
-        [Obsolete("Please use IsKeyDown instead of IsMouseKeyDown")]
-        public bool IsMouseKeyDown(MouseKey key)
-        {
-            return IsKeyDown((Key) key);
-        }
-
-        /// <summary>
-        /// Returns whether the key was let go this tick.
-        /// </summary>
-        /// <param name="key">The key code to check.</param>
-        [Obsolete("Please use IsKeyUp instead of IsMouseKeyUp")]
-        public bool IsMouseKeyUp(MouseKey key)
-        {
-            return IsKeyUp((Key) key);
-        }
-
-        /// <summary>
-        /// Returns whether the key is being held down this tick.
-        /// </summary>
-        /// <param name="key">The key to check.</param>
-        [Obsolete("Please use IsKeyHeld instead of IsMouseKeyHeld")]
-        public bool IsMouseKeyHeld(MouseKey key)
-        {
-            return IsKeyHeld((Key) key);
-        }
-
-        #endregion
     }
 }

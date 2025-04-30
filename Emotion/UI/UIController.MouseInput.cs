@@ -1,6 +1,4 @@
-﻿using Emotion.Platform.Input;
-
-namespace Emotion.UI;
+﻿namespace Emotion.UI;
 
 #nullable enable
 

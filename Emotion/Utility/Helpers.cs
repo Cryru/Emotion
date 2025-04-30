@@ -4,8 +4,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Emotion.Common.Input;
 using Emotion.Game.Data;
-using Emotion.Platform.Input;
 
 #endregion
 

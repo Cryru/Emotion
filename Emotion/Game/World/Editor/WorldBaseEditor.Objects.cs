@@ -5,6 +5,7 @@
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Emotion.Common.Input;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Prefab;
 using Emotion.Game.World2D;
@@ -14,7 +15,6 @@ using Emotion.Game.World3D.Editor;
 using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Platform.Implementation.Win32;
-using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.UI;

@@ -1,4 +1,5 @@
-﻿using Emotion.WIPUpdates.One.TileMap;
+﻿using Emotion.Common.Input;
+using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
 
@@ -12,7 +13,7 @@ public class TileEditorBrushTool : TileEditorTool
         IsPlacingTool = true;
         IsPrecisePaint = true;
         RequireTileSelection = true;
-        HotKey = Platform.Input.Key.B;
+        HotKey = Key.B;
     }
 
     private IEnumerable<(TileMapTile tile, Vector2 tilePos)> ForEachTileInPlacement(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorTilePos)

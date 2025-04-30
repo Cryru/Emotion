@@ -1,7 +1,7 @@
 ﻿#region Using
 
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
-using Emotion.Platform.Input;
 
 #endregion
 

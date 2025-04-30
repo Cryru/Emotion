@@ -43,6 +43,12 @@ namespace Emotion.Common
         public static LoggingProvider Log { get; private set; } = new PreSetupLogger();
 
         /// <summary>
+        /// Provides an interface for user input.
+        /// [Default Module]
+        /// </summary>
+        public static InputManager Input { get; private set; } = new InputManager();
+
+        /// <summary>
         /// Handles loading assets and storing assets.
         /// [LightSetup Module]
         /// </summary>
@@ -473,6 +479,7 @@ namespace Emotion.Common
 
             PerformanceMetrics.TickStart();
 
+            Input.FlushEventsForTick();
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);
             CoroutineManagerGameTime.Update(DeltaTime);

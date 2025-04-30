@@ -2,9 +2,9 @@
 
 #nullable enable
 
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
 using Emotion.Graphics;
-using Emotion.Platform.Input;
 using Emotion.Utility;
 
 #endregion

@@ -2,9 +2,9 @@
 
 #region Using
 
+using Emotion.Common.Input;
 using Emotion.Game.World.Editor;
 using Emotion.Graphics;
-using Emotion.Platform.Input;
 using Emotion.UI;
 
 #endregion

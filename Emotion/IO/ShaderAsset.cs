@@ -1,8 +1,8 @@
 ﻿#region Using
 
+using Emotion.Common.Input;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
-using Emotion.Platform.Input;
 
 #endregion
 

@@ -1,10 +1,10 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
 using Emotion.Game.Time.Routines;
 using Emotion.IO;
-using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 

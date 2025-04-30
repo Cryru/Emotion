@@ -2,9 +2,9 @@
 
 #nullable enable
 
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
 using Emotion.Graphics;
-using Emotion.Platform.Input;
 using Emotion.Utility;
 using System.Net.Sockets;
 
@@ -127,7 +127,7 @@ namespace Emotion.UI
 
             if (ScrollParent != null) return ScrollParent.OnKey(key, status, mousePos);
 
-            if (key == Key.MouseWheel) Value += status == KeyState.MouseWheelScrollUp ? -1 : 1;
+            if (key == Key.MouseWheel) Value += status == KeyState.Up ? -1 : 1;
 
             return base.OnKey(key, status, mousePos);
         }

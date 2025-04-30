@@ -2,8 +2,8 @@
 
 #region Using
 
+using Emotion.Common.Input;
 using Emotion.Game.World2D.Tile;
-using Emotion.Platform.Input;
 using Emotion.UI;
 using System.Linq;
 

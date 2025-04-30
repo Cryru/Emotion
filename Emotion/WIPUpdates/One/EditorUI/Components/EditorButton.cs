@@ -3,8 +3,8 @@
 #region Using
 
 using Emotion;
+using Emotion.Common.Input;
 using Emotion.Game.World.Editor;
-using Emotion.Platform.Input;
 using Emotion.UI;
 
 #endregion

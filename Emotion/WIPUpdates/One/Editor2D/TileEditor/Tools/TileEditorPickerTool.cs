@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Common.Input;
 using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
@@ -9,7 +10,7 @@ public class TileEditorPickerTool : TileEditorTool
     public TileEditorPickerTool()
     {
         Name = "TilePicker";
-        HotKey = Platform.Input.Key.K;
+        HotKey = Key.K;
     }
 
     public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)

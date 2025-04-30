@@ -1,5 +1,5 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Platform.Input;
+﻿using Emotion.Common.Input;
+using Emotion.Editor.EditorHelpers;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using System;

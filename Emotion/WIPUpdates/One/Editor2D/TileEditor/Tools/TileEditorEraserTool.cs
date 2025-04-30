@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Common.Input;
 using Emotion.WIPUpdates.One.TileMap;
 
 namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
@@ -10,7 +11,7 @@ public class TileEditorEraserTool : TileEditorTool
     {
         Name = "Eraser";
         IsPrecisePaint = true;
-        HotKey = Platform.Input.Key.R;
+        HotKey = Key.R;
     }
 
     public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)

@@ -1,14 +1,7 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Platform.Input;
-using Emotion.UI;
+﻿using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One.Tools;
 

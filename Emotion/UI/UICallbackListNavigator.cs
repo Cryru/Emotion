@@ -1,7 +1,7 @@
 ﻿#region Using
 
+using Emotion.Common.Input;
 using Emotion.Common.Serialization;
-using Emotion.Platform.Input;
 
 #endregion
 
@@ -463,7 +463,7 @@ namespace Emotion.UI
 
             if (key == Key.MouseWheel)
             {
-                bool up = status == KeyState.MouseWheelScrollUp;
+                bool up = status == KeyState.Up;
 
                 Vector2 scrollPos = _scrollPos;
                 if (up)

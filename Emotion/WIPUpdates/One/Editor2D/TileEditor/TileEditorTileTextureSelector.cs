@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.Platform.Input;
+using Emotion.Common.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.EditorUI.Components;

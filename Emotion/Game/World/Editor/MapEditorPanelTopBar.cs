@@ -1,8 +1,8 @@
 ﻿#region Using
 
+using Emotion.Common.Input;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Graphics;
-using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 

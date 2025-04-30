@@ -3,9 +3,9 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Emotion.Audio;
+using Emotion.Common.Input;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
-using Emotion.Platform.Input;
 using OpenGL;
 
 #if GLFW

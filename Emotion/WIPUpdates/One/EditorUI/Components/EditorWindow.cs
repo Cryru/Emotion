@@ -2,11 +2,11 @@
 
 #region Using
 
+using Emotion.Common.Input;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Game.World.Editor;
 using Emotion.IO;
-using Emotion.Platform.Input;
 using Emotion.UI;
 using OpenGL;
 using static Emotion.Graphics.RenderComposer;

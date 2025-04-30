@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using Emotion.Platform.Input;
+using Emotion.Common.Input;
 using Emotion.Utility;
 
 #endregion

@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Common.Input;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
 using Emotion.Utility;
 using Emotion.WIPUpdates.TimeUpdate;
 
@@ -80,7 +80,7 @@ public class Camera2D : CameraBase
 
         if (ZoomAllowed && key == Key.MouseWheel)
         {
-            float zoomDir = status == KeyState.MouseWheelScrollUp ? 1 : -1;
+            float zoomDir = status == KeyState.Up ? 1 : -1;
             _zoomDir = zoomDir;
 
             return false;

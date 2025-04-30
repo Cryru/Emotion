@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Threading.Tasks;
+using Emotion.Common.Input;
 using Emotion.Common.Threading;
 using Emotion.Editor.EditorHelpers;
 using Emotion.Editor.PropertyEditors;
@@ -14,7 +15,6 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.IO.MeshAssetTypes;
-using Emotion.Platform.Input;
 using Emotion.UI;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.Components;

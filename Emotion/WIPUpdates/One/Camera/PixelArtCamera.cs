@@ -1,5 +1,4 @@
-﻿using Emotion.Platform.Input;
-using Emotion.WIPUpdates.One.Camera;
+﻿using Emotion.WIPUpdates.One.Camera;
 
 namespace Emotion.Graphics.Camera;
 

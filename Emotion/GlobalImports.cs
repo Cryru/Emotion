@@ -8,6 +8,7 @@ global using System.Collections;
 global using System.Collections.Generic;
 
 global using Emotion.Common;
+global using Emotion.Common.Input;
 global using Emotion.Standard.Logging;
 global using Emotion.Primitives;
 global using Emotion.Testing;

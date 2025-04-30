@@ -3,12 +3,12 @@
 #region Using
 
 using System.Threading.Tasks;
+using Emotion.Common.Input;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World.SceneControl;
 using Emotion.Game.World3D.Objects;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
 
 #endregion
 

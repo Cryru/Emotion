@@ -1,4 +1,4 @@
-﻿using Emotion.Platform.Input;
+﻿using Emotion.Common.Input;
 
 namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
 

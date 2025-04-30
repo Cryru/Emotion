@@ -2,12 +2,12 @@
 
 #region Using
 
+using Emotion.Common.Input;
 using Emotion.Game.World.Editor;
 using Emotion.Game.World.SceneControl;
 using Emotion.Game.World2D.Tile;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Platform.Input;
 
 #endregion
 

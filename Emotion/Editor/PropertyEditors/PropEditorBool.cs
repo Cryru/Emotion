@@ -1,7 +1,7 @@
 ﻿#region Using
 
+using Emotion.Common.Input;
 using Emotion.Game.World.Editor;
-using Emotion.Platform.Input;
 using Emotion.Standard.XML;
 using Emotion.UI;
 

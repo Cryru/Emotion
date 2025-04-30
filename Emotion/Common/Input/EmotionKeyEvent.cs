@@ -7,43 +7,38 @@ using System;
 
 #nullable enable
 
-namespace Emotion.Platform.Input;
+namespace Emotion.Common.Input;
 
-public enum KeyListenerType : byte
-{
-    None = 0, // Dont use!
-    System = 1,
-    EditorUI = 2,
-    Editor = 3,
-    EditorCamera = 4,
-
-    UI = 6,
-    Game = 7,
-    Last
-}
-
-public class EmotionKeyEventPair
-{
-    // Holds an array of all key down states in order to ensure that each listener will
-    // always receive an "Up" after they've received a "Down" for a given key.
-    public bool[] KeysDown = null!;
-    public Func<Key, KeyState, bool> Func = null!;
-
-    public EmotionKeyEventPair()
-    {
-        // Default constructor - will be called by object pool.
-        KeysDown = new bool[(int) Key.Last];
-    }
-
-    public EmotionKeyEventPair(bool noKeyRetention)
-    {
-        // Dont create KeysDown array.
-        // Used by the System listener type.
-    }
-}
-
+/// <summary>
+/// This kind of event is used by the Engine in order to:
+/// - Ensure that a key up event will be received for each key that was pressed down for each listener.
+/// - Ensure that listeners will be called in priority order (KeyListenerType) and higher priorities (lower numbers)
+///     can stop event propagation, except for key ups which will always be propagated to listeners who received a down for that key.
+/// 
+/// This event is thread safe.
+/// </summary>
 public class EmotionKeyEvent
 {
+    private class EmotionKeyEventPair
+    {
+        // Holds an array of all key down states in order to ensure that each listener will
+        // always receive an "Up" after they've received a "Down" for a given key.
+        public bool[] KeysDown = null!;
+        public Func<Key, KeyState, bool> Func = null!;
+
+        public EmotionKeyEventPair()
+        {
+            // Default constructor - will be called by object pool.
+            KeysDown = new bool[(int)Key.Last];
+        }
+
+        public EmotionKeyEventPair(bool noKeyRetention)
+        {
+            // Dont create KeysDown array.
+            // Used by the System listener type.
+        }
+    }
+
     private ObjectPool<EmotionKeyEventPair> _pairPool = new ObjectPool<EmotionKeyEventPair>();
     private readonly List<EmotionKeyEventPair>?[] _listenerArray = new List<EmotionKeyEventPair>?[(int) KeyListenerType.Last];
 
@@ -60,34 +55,65 @@ public class EmotionKeyEvent
                     if (!listener.Func(key, status)) return true;
                 }
 
-            // Call rest of events in order.
-            var propagate = true;
-            for (int l = (int) KeyListenerType.System + 1; l < _listenerArray.Length; l++)
+            // Mouse wheel events treat up and down differently.
+            if (key != Key.MouseWheel)
+                return InvokeKeyEvents(key, status);
+            else
+                return InvokeKeyEventsMouseWheel(status);
+        }
+    }
+
+    private bool InvokeKeyEvents(Key key, KeyState status)
+    {
+        // Call rest of events in order.
+        bool isUp = status == KeyState.Up;
+        for (int l = (int)KeyListenerType.System + 1; l < _listenerArray.Length; l++)
+        {
+            if (l == _blockingType) continue;
+
+            List<EmotionKeyEventPair>? list = _listenerArray[l];
+            if (list == null) continue;
+
+            for (var i = 0; i < list.Count; i++)
             {
-                if (l == _blockingType) continue;
+                EmotionKeyEventPair listener = list[i];
+                bool listenerDown = listener.KeysDown[(int)key];
 
-                List<EmotionKeyEventPair>? list = _listenerArray[l];
-                if (list == null) continue;
+                // You won't get an up if you didn't get a down.
+                if (isUp && !listenerDown) continue;
 
-                for (var i = 0; i < list.Count; i++)
-                {
-                    EmotionKeyEventPair listener = list[i];
+                // Set new state and call listener.
+                listener.KeysDown[(int)key] = !isUp;
+                bool allowPropagation = listener.Func(key, status);
 
-                    // We want to propagate Up events regardless of what the higher priority handler
-                    // has requested, when the handler considers that key pressed. Basically if you
-                    // get a down, you will always get a up.
-                    // But you won't get an up if you didn't get a down.
-                    if (status == KeyState.Up && !listener.KeysDown[(int) key]) continue;
+                // Stop propagation if the event handler said so, and the event isn't an up.
+                // This is because we want to unpress those who received a down.
+                if (!allowPropagation && !isUp)
+                    return true;
+            }
+        }
+        return false;
+    }
 
-                    if (status == KeyState.Down || status == KeyState.Up) listener.KeysDown[(int)key] = status == KeyState.Down;
-                    bool funcPropagate = listener.Func(key, status);
+    private bool InvokeKeyEventsMouseWheel(KeyState status)
+    {
+        Key key = Key.MouseWheel;
 
-                    // Stop propagation if the event handler said so.
-                    if (!funcPropagate) propagate = false;
+        for (int l = (int)KeyListenerType.System + 1; l < _listenerArray.Length; l++)
+        {
+            if (l == _blockingType) continue;
 
-                    // If the event is not up, we can stop calling handlers.
-                    if (status != KeyState.Up && !propagate) return true;
-                }
+            List<EmotionKeyEventPair>? list = _listenerArray[l];
+            if (list == null) continue;
+
+            for (var i = 0; i < list.Count; i++)
+            {
+                EmotionKeyEventPair listener = list[i];
+
+                // if the listener said not to propagate - don't.
+                bool allowPropagation = listener.Func(key, status);
+                if (!allowPropagation)
+                    return true;
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using Emotion.Platform.Input;
+﻿using Emotion.Common.Input;
 using Emotion.Scenography;
 using Emotion.UI;
 using System;

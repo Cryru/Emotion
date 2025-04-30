@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Common.Input;
 using Emotion.Graphics.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 
@@ -12,7 +13,7 @@ public class TileEditorBucketTool : TileEditorTool
         Name = "Bucket";
         IsPlacingTool = true;
         RequireTileSelection = true;
-        HotKey = Platform.Input.Key.G;
+        HotKey = Key.G;
     }
 
     private Stack<(Vector2, TileMapTile)> _spanFillStack = new Stack<(Vector2, TileMapTile)>();

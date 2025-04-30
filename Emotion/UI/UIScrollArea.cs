@@ -1,8 +1,8 @@
 ﻿#nullable enable
 // ONE
 
+using Emotion.Common.Input;
 using Emotion.Editor.EditorHelpers;
-using Emotion.Platform.Input;
 
 namespace Emotion.UI;
 
@@ -124,7 +124,7 @@ public class UIScrollArea : UIBaseWindow
             bool anyScroll = false;
 
             Vector2 currentScroll = _content.CurrentScroll;
-            bool up = status == KeyState.MouseWheelScrollUp;
+            bool up = status == KeyState.Up;
             if (up)
                 anyScroll = _content.ScrollToPos(currentScroll - new Vector2(0, 1) * Engine.DeltaTime);
             else

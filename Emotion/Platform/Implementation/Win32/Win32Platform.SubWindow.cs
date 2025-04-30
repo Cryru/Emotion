@@ -7,7 +7,6 @@ using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32.Audio;
 using Emotion.Platform.Implementation.Win32.Wgl;
-using Emotion.Platform.Input;
 using Emotion.Utility;
 using WinApi;
 using WinApi.Kernel32;
@@ -16,6 +15,7 @@ using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 using WinApi.Gdi32;
 using static Emotion.Platform.PlatformBase;
+using Emotion.Common.Input;
 
 #nullable enable
 
