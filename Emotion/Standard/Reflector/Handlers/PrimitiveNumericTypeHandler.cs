@@ -18,10 +18,12 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
     public override Type Type => typeof(T);
 
     private TypeCode _typeCode;
+    private NumberStyles _numberStyle;
 
     public PrimitiveNumericTypeHandler()
     {
         _typeCode = Type.GetTypeCode(Type);
+        _numberStyle = _typeCode == TypeCode.Single || _typeCode == TypeCode.Double ? NumberStyles.Float : NumberStyles.Integer;
     }
 
     public override TypeEditor? GetEditor()
@@ -102,9 +104,28 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
         }
     }
 
-    public override T? ParseFromXML(ref ValueStringReader reader)
+    public override T ParseFromXML(ref ValueStringReader reader)
     {
-        if (!reader.MoveCursorToNextOccuranceOfChar('<')) return default;
+        char c = reader.ReadNextChar();
+        if (c != '>') return default;
+        
+        Span<char> readMemory = stackalloc char[128];
+        int readChars = 0;
+        
+        while (true)
+        {
+            var nextChar = reader.ReadNextChar();
+            if (nextChar == '\0' || nextChar == '<') break;
+
+            readMemory[readChars] = nextChar;
+            readChars++;
+
+            if (readChars == readMemory.Length) break;
+        }
+
+        if (T.TryParse(readMemory.Slice(0, readChars), _numberStyle, CultureInfo.InvariantCulture, out T result))
+            return result;
+
         return T.Zero;
     }
 
