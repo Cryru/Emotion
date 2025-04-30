@@ -1,12 +1,9 @@
-﻿
-using Emotion;
-using Emotion.Game.Data;
+﻿using Emotion.Game.Data;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System.Collections.Generic;
 using static Emotion.Game.Data.GameDatabase;
 
 #nullable enable
@@ -43,7 +40,7 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
         UISolidColor content = new UISolidColor
         {
             IgnoreParentColor = true,
-            MinSize = new Vector2(100),
+            MinSize = new Vector2(300),
             WindowColor = new Color(0, 0, 0, 50),
             Paddings = new Rectangle(5, 5, 5, 5),
             LayoutMode = LayoutMode.HorizontalEditorPanel
@@ -66,7 +63,7 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
             Id = "SelectedInfo",
             LayoutMode = LayoutMode.VerticalList,
             GrowX = false,
-            MinSize = new Vector2(50)
+            //MinSize = new Vector2(50)
         };
         content.AddChild(contentRight);
 

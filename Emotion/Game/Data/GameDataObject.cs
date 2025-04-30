@@ -11,6 +11,7 @@ namespace Emotion.Game.Data;
 
 public abstract class GameDataObject : IComparable<GameDataObject>
 {
+    [DontShowInEditor]
     public string? LoadedFromModel;
 
     [DontShowInEditor]
