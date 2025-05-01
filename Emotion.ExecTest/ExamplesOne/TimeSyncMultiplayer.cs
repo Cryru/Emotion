@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Common.Input;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
 using Emotion.Network.ServerSide;
 using Emotion.Network.TimeSyncMessageBroker;
-using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
 using Emotion.Standard.XML;
@@ -46,14 +46,14 @@ public class TimeSyncMultiplayer_TestObject : MapObject
         PlayerControlled = true;
     }
 
-    protected bool KeyInput(Key key, Platform.Input.KeyState status)
+    protected bool KeyInput(Key key, KeyState status)
     {
         Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
         if (keyAxisPart != Vector2.Zero)
         {
-            if (status == Platform.Input.KeyState.Down)
+            if (status == KeyState.Down)
                 _inputDirection += keyAxisPart;
-            else if (status == Platform.Input.KeyState.Up)
+            else if (status == KeyState.Up)
                 _inputDirection -= keyAxisPart;
 
             return false;
