@@ -7,7 +7,6 @@ using Android.Opengl;
 using Android.Util;
 using Android.Views;
 using Emotion.Platform.Implementation.CommonDesktop;
-using Emotion.Platform.Input;
 using Activity = Android.App.Activity;
 
 #endregion
@@ -160,17 +159,17 @@ public class AndroidHost : PlatformBase
         Vector2 pos = new Vector2(e.GetX(), e.GetY());
         if (e.Action == MotionEventActions.Move ||
             e.Action == MotionEventActions.Down)
-            UpdateMousePosition(pos);
+            Engine.Input.ReportMouseMove(pos);
 
         if (e.Action == MotionEventActions.Down)
         {
-            UpdateKeyStatus(Key.MouseKeyLeft, true);
+            Engine.Input.ReportKeyInput(Key.MouseKeyLeft, Common.Input.KeyState.Down);
         }
 
         if (e.Action == MotionEventActions.Up)
         {
-            UpdateKeyStatus(Key.MouseKeyLeft, false);
-            UpdateMousePosition(new Vector2(-1));
+            Engine.Input.ReportKeyInput(Key.MouseKeyLeft, Common.Input.KeyState.Up);
+            Engine.Input.ReportMouseMove(new Vector2(-1));
         }
 
         _prevTouch = pos;

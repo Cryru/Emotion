@@ -2,6 +2,7 @@
     <Configurations>
         <Platform Name="Win64" />
         <Platform Name="Android" />
+        <Platform Name="Web" />
         <BuildType Name="Autobuild" />
         <BuildType Name="Debug" />
         <BuildType Name="Release" />
@@ -12,17 +13,21 @@
     <Project Path="Emotion\Emotion.csproj">
         <Platform Solution="*|Android" Project="Android" />
         <Platform Solution="*|Win64" Project="Win64" />
+        <Platform Solution="*|Web" Project="Web" />
     </Project>
     <Project Path="Emotion.ExecTest\Emotion.ExecTest.csproj">
         <Platform Solution="*|Win64" Project="x64" />
         <Build Solution="Autobuild|*" Project="false" />
         <Platform Solution="*|Android" Project="Android" />
         <Deploy Solution="*|Android" />
+        <Platform Solution="*|Web" Project="Web" />
+        <Deploy Solution="*|Web" />
     </Project>
     <Project Path="Tests\Tests.csproj">
         <Platform Project="Default" />
         <BuildType Solution="Autobuild|*" Project="Release" />
         <Build Solution="*|Android" Project="false" />
+        <Build Solution="*|Web" Project="false" />
         <Build Solution="Release|Win64" Project="false" />
     </Project>
 </Solution>

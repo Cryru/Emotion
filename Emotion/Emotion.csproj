@@ -119,16 +119,22 @@
         <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
     </PropertyGroup>
             
-    <!-- Generic AnyCPU, no config -->
+    <!-- Generic AnyCPU, no config, idk if this makes any sense to have -->
     <PropertyGroup Condition="'$(Platform)'=='Other'">
         <PlatformTarget>AnyCPU</PlatformTarget>
     </PropertyGroup>
     
-    <!-- Currently doesn't work, I think? -->
+    <!-- Web -->
     <PropertyGroup Condition="'$(Platform)'=='Web'">
         <DefineConstants>$(DefineConstants);WEB</DefineConstants>
         <PlatformTarget>AnyCPU</PlatformTarget>
     </PropertyGroup>
+    <ItemGroup Condition="'$(Platform)'=='Web'">
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.3" Condition="$(DefineConstants.Contains('WEB'))" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'!='Web'">
+        <Compile Remove="Platform\Implementation\Web\**\*.cs" />
+    </ItemGroup>
 
     <!-- Github Autobuild -->
     <PropertyGroup Condition="'$(Configuration)'=='Autobuild'">
@@ -178,10 +184,6 @@
       <IsTrimmable>False</IsTrimmable>
       <IsAotCompatible>False</IsAotCompatible>
       <DebugType>embedded</DebugType>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Autobuild|Web'">
-      <IsTrimmable>False</IsTrimmable>
-      <IsAotCompatible>False</IsAotCompatible>
     </PropertyGroup>
     
     <!-- Libraries Code Include -->

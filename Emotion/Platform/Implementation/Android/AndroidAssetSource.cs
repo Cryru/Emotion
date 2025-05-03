@@ -70,4 +70,12 @@ public class AndroidAssetSource : AssetSource
     {
         return manifest;
     }
+
+    public override FileReadRoutineResult GetAssetRoutine(string enginePath)
+    {
+        ReadOnlyMemory<byte> resultBytes = GetAsset(enginePath);
+        var result = new FileReadRoutineResult();
+        result.SetData(resultBytes);
+        return result;
+    }
 }

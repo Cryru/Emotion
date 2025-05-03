@@ -1,10 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net9.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Platforms>Android;x64</Platforms>
+        <Platforms>Android;x64;Web</Platforms>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
     
@@ -22,11 +21,13 @@
         <Optimize>True</Optimize>
     </PropertyGroup>
 
+     <!-- x64 -->
     <PropertyGroup Condition="'$(Platform)'=='x64'">
         <PlatformTarget>x64</PlatformTarget>
         <StartupObject>Emotion.ExecTest.Program</StartupObject>
     </PropertyGroup>
     
+     <!-- Android -->
     <PropertyGroup Condition="'$(Platform)'=='Android'">
         <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -41,10 +42,27 @@
       <AndroidResource Include="AndroidResources\mipmap-anydpi-v26\appicon.png" />
       <AndroidResource Include="AndroidResources\values\strings.xml" />
     </ItemGroup>
-    <ItemGroup Condition="!$(DefineConstants.Contains('ANDROID'))">
+    <ItemGroup Condition="'$(Platform)'!='Android'">
         <Compile Remove="Android\**\*.cs" />
     </ItemGroup>
     
+     <!-- Web -->
+    <PropertyGroup Condition="'$(Platform)'=='Web'">
+      <PlatformTarget>AnyCPU</PlatformTarget>
+      <DefineConstants>$(DefineConstants);WEB</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(Platform)'=='Web'">
+        <Content Include="..\EmotionLogo.png" Link="wwwroot\EmotionLogo.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.3" PrivateAssets="all" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'!='Web'">
+        <Compile Remove="Web\**\*.cs" />
+    </ItemGroup>
+    
+     <!-- Temp -->
     <ItemGroup>
       <Compile Remove="ExamplesOne\TimerDemoScene.cs" />
       <Compile Remove="Examples\ComplexPolygonContours.cs" />

@@ -2,27 +2,12 @@
 
 #region Using
 
-using System.Collections;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Emotion.Editor.EditorHelpers;
-using Emotion.Game.Data;
-using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform;
-using GameDataObjectAsset = Emotion.IO.XMLAsset<Emotion.Game.Data.GameDataObject>;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
-using WinApi.Gdi32;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using Emotion.Utility;
-using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using System.Xml.Linq;
-using Emotion.Common.Serialization;
-using System.Dynamic;
 using Emotion.WIPUpdates.One;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Interfaces;

@@ -2,8 +2,8 @@
 
 using Android.App;
 using Android.Content.PM;
-using Emotion.ExecTest.ExamplesOne;
 using Emotion.Platform.Implementation.Android;
+using System;
 
 #endregion
 
