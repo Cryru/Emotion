@@ -97,7 +97,7 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
         }
     }
 
-    public void BroadcastMessageWithTime(List<ServerUser> users, int time, string method, string metadata)
+    public void BroadcastMessageWithTime(IEnumerable<ServerUser> users, int time, string method, string metadata)
     {
         Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
         int bytesWritten = 0;
@@ -121,9 +121,8 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
 
         // Send the message to all the users (this reuses the span!)
         Span<byte> sendData = spanData.Slice(0, bytesWritten);
-        for (int i = 0; i < users.Count; i++)
+        foreach (ServerUser user in users)
         {
-            ServerUser user = users[i];
             SendMessage(user, sendData);
         }
     }

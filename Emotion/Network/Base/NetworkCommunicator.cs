@@ -113,6 +113,20 @@ public class NetworkCommunicator
         PumpMessages();
     }
 
+    public void InitAutoUpdate()
+    {
+        Engine.CoroutineManager.StartCoroutine(AutoUpdateRoutine());
+    }
+
+    private IEnumerator AutoUpdateRoutine()
+    {
+        while (Engine.Status == EngineStatus.Running)
+        {
+            Update();
+            yield return null;
+        }
+    }
+
     protected virtual void UpdateInternal()
     {
 
