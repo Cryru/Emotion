@@ -69,4 +69,44 @@ public class GameMap
             obj.Render(c);
         }
     }
+
+    #region Collision
+
+    public bool CollideRayWithObjects(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint)
+    {
+        foreach (MapObject obj in ForEachObject())
+        {
+            if (obj == exclude) continue;
+
+            Rectangle bounds = obj.Bounds2D;
+            if (ray.IntersectWithRectangle(bounds, out collisionPoint))
+                return true;
+        }
+
+        collisionPoint = Vector2.Zero;
+        return false;
+    }
+
+    public bool CollideRayWithObjects<T>(Ray2D ray, out Vector2 collisionPoint) where T : MapObject
+    {
+        return CollideRayWithObjects<T>(ray, null, out collisionPoint);
+    }
+
+    public bool CollideRayWithObjects<T>(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint) where T: MapObject
+    {
+        foreach (MapObject obj in ForEachObject())
+        {
+            if (obj is not T) continue;
+            if (obj == exclude) continue;
+
+            Rectangle bounds = obj.Bounds2D;
+            if (ray.IntersectWithRectangle(bounds, out collisionPoint))
+                return true;
+        }
+
+        collisionPoint = Vector2.Zero;
+        return false;
+    }
+
+    #endregion
 }
