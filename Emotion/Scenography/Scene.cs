@@ -57,16 +57,25 @@ public abstract class SceneWithMap : Scene
         Id = "SceneRoot"
     };
 
-    public GameMap Map { get; protected set; }
+    public GameMap Map
+    {
+        get
+        {
+            if (_map == null) _map = InitDefaultMap();
+            return _map;
+        }
+        protected set
+        {
+            // unload old?
+            _map = value;
+        }
+    }
+    private GameMap _map;
 
     public override IEnumerator LoadSceneRoutineAsync()
     {
         Status = SceneStatus.Loading;
         yield return InternalLoadSceneRoutineAsync();
-        Map ??= new GameMap()
-        {
-            MapFileName = "Maps/start.xml"
-        };
         yield return Map.LoadRoutine();
 
         Engine.UI.AddChild(UIParent);
@@ -92,4 +101,16 @@ public abstract class SceneWithMap : Scene
     {
         Map.Render(c);
     }
+
+    #region Map Helpers
+
+    private static GameMap InitDefaultMap()
+    {
+        return new GameMap()
+        {
+            MapFileName = "Maps/start.xml"
+        };
+    }
+
+    #endregion
 }
