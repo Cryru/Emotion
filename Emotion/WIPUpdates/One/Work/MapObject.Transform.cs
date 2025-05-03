@@ -265,17 +265,17 @@ public partial class MapObject
     /// <summary>
     /// Is invoked when the object moves.
     /// </summary>
-    public event EventHandler? OnMove;
+    public event Action<MapObject>? OnMove;
 
     /// <summary>
     /// Is invoked when the object's scale changes.
     /// </summary>
-    public event EventHandler? OnResize;
+    public event Action<MapObject>? OnResize;
 
     /// <summary>
     /// Is invoked when the object's rotation changes.
     /// </summary>
-    public event EventHandler? OnRotate;
+    public event Action<MapObject>? OnRotate;
 
     #endregion
 
@@ -305,13 +305,13 @@ public partial class MapObject
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void Moved()
     {
-        OnMove?.Invoke(this, EventArgs.Empty);
+        OnMove?.Invoke(this);
         InvalidateModelMatrix();
     }
 
     protected virtual void Rotated() // todo: support rotation in BaseGameObject so Object2D can have it too!
     {
-        OnRotate?.Invoke(this, EventArgs.Empty);
+        OnRotate?.Invoke(this);
         InvalidateModelMatrix();
     }
 
@@ -322,7 +322,7 @@ public partial class MapObject
         Assert(!float.IsNaN(_sizeY));
         Assert(!float.IsNaN(_sizeZ));
 
-        OnResize?.Invoke(this, EventArgs.Empty);
+        OnResize?.Invoke(this);
         InvalidateModelMatrix();
     }
 
