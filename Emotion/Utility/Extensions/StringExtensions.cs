@@ -1,14 +1,11 @@
 ﻿#nullable enable
 
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace System;
 
 public static class StringExtensions
 {
-    private static MD5 _md5Hasher = MD5.Create();
-
     public static int GetStableHashCode(this string str)
     {
         ReadOnlySpan<byte> stringAsBytes = MemoryMarshal.Cast<char, byte>(str);
