@@ -1,16 +1,12 @@
-﻿using Emotion.Network.Base;
+﻿using Emotion.Common.Serialization;
+using Emotion.Network.Base;
 using Emotion.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
-using System.Threading.Tasks;
 
 #nullable enable
 
 namespace Emotion.Network.ServerSide;
 
+[DontSerialize]
 public class ServerRoom
 {
     public static ObjectPool<ServerRoom> Shared = new ObjectPool<ServerRoom>((r) => r.Reset(), 10);
@@ -20,14 +16,14 @@ public class ServerRoom
     public ServerUser? Host;
     public List<ServerUser> UsersInside = new List<ServerUser>();
 
-    public object? ServerData;
+    public IServerRoomGameplay? ServerGameplay;
 
     public void Reset()
     {
         Id = -1;
         UsersInside.Clear();
         Host = null;
-        ServerData = null;
+        ServerGameplay = null;
         Active = true;
     }
 
@@ -45,6 +41,7 @@ public class ServerRoom
         }
 
         Engine.Log.Info($"User {user.Id} joined room {Id}", server.LogTag);
+        ServerGameplay?.UserJoined(user);
     }
 
     public void UserLeave(Server server, ServerUser user)
@@ -95,7 +92,7 @@ public class ServerRoom
         ServerRoomInfo info = new ServerRoomInfo()
         {
             Id = Id,
-            HostUser = Host.Id,
+            HostUser = Host == null ? -1: Host.Id,
             UsersInside = otherUserIds
         };
         return info;

@@ -209,7 +209,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         if (_networkCom is MsgBrokerServerTimeSync server && server.ActiveRooms.Count > 0)
         {
             var firstRoom = server.ActiveRooms[0];
-            if (firstRoom.ServerData is TimeSyncedServerRoom syncRoom)
+            if (firstRoom.ServerGameplay is TimeSyncedServerRoom syncRoom)
             {
                 c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{syncRoom.CurrentGameTime}", FontAsset.GetDefaultBuiltIn().GetAtlas(35));
             }

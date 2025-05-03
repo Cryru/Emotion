@@ -18,7 +18,7 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
     {
         ServerRoom? room = sender.InRoom;
         if (room == null) return;
-        if (room.ServerData is not TimeSyncedServerRoom timeSyncRoom) return;
+        if (room.ServerGameplay is not TimeSyncedServerRoom timeSyncRoom) return;
 
         msg.AutoFree = false;
         timeSyncRoom.AddMessageForNextTick(msg);
@@ -26,10 +26,14 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
 
     protected override void RoomCreated(ServerRoom room)
     {
-        TimeSyncedServerRoom timeSyncRoomData = new TimeSyncedServerRoom(this, room);
-        room.ServerData = timeSyncRoomData;
+        if (room.ServerGameplay == null)
+        {
+            var timeSyncRoomData = new TimeSyncedServerRoom();
+            timeSyncRoomData.BindToServer(this, room);
+            room.ServerGameplay = timeSyncRoomData;
+            timeSyncRoomData.StartGameTime(CoroutineManager);
+        }
 
-        timeSyncRoomData.StartGameTime(CoroutineManager);
         base.RoomCreated(room);
     }
 
@@ -62,9 +66,11 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
         Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
         int bytesWritten = 0;
 
+        // Message type
         spanData[0] = (byte)NetworkMessageType.Generic;
         bytesWritten += sizeof(byte);
 
+        // Time
         BinaryPrimitives.WriteInt32LittleEndian(spanData.Slice(bytesWritten), time);
         bytesWritten += sizeof(int);
 
@@ -84,6 +90,37 @@ public class MsgBrokerServerTimeSync : MsgBrokerServer
         Span<byte> sendData = spanData.Slice(0, bytesWritten);
 
         // Send the message to all the users (this reuses the span!)
+        for (int i = 0; i < users.Count; i++)
+        {
+            ServerUser user = users[i];
+            SendMessage(user, sendData);
+        }
+    }
+
+    public void BroadcastMessageWithTime(List<ServerUser> users, int time, string method, string metadata)
+    {
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        int bytesWritten = 0;
+
+        // Message type
+        spanData[0] = (byte)NetworkMessageType.Generic;
+        bytesWritten += sizeof(byte);
+
+        // Time
+        BinaryPrimitives.WriteInt32LittleEndian(spanData.Slice(bytesWritten), time);
+        bytesWritten += sizeof(int);
+
+        // Check if message is too long (ASCII encoding of strings assumed)
+        if ((method.Length + metadata.Length) > spanData.Length - bytesWritten)
+        {
+            Assert(false);
+            return;
+        }
+        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), method);
+        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), metadata);
+
+        // Send the message to all the users (this reuses the span!)
+        Span<byte> sendData = spanData.Slice(0, bytesWritten);
         for (int i = 0; i < users.Count; i++)
         {
             ServerUser user = users[i];

@@ -1,16 +1,17 @@
-﻿using Emotion.Game.Time.Routines;
+﻿using Emotion.Common.Serialization;
+using Emotion.Game.Time.Routines;
 using Emotion.Network.Base;
 using Emotion.Network.ServerSide;
-using System.Collections;
 
 #nullable enable
 
 namespace Emotion.Network.TimeSyncMessageBroker;
 
-public partial class TimeSyncedServerRoom
+[DontSerialize]
+public partial class TimeSyncedServerRoom : IServerRoomGameplay
 {
-    public MsgBrokerServerTimeSync Server;
-    public ServerRoom Room;
+    public MsgBrokerServerTimeSync Server = null!;
+    public ServerRoom Room = null!;
 
     public int Errors;
 
@@ -21,9 +22,9 @@ public partial class TimeSyncedServerRoom
     private Coroutine _gameTimeRoutine = Coroutine.CompletedRoutine;
     private List<TimeHashPair> _hashPairs = new List<TimeHashPair>();
 
-    public TimeSyncedServerRoom(MsgBrokerServerTimeSync server, ServerRoom room)
+    public void BindToServer(Server server, ServerRoom room)
     {
-        Server = server;
+        Server = (server as MsgBrokerServerTimeSync)!;
         Room = room;
     }
 
@@ -82,7 +83,7 @@ public partial class TimeSyncedServerRoom
 
     public void StartGameTime(CoroutineManager coroutineManager)
     {
-        if (!_gameTimeRoutine.Finished) coroutineManager.StopCoroutine(_gameTimeRoutine);
+        if (!_gameTimeRoutine.Finished) _gameTimeRoutine.RequestStop();
 
         CurrentGameTime = 0;
 
@@ -100,7 +101,7 @@ public partial class TimeSyncedServerRoom
 
     protected IEnumerator TickRoutine()
     {
-        while (Room.Active && Room.ServerData == this)
+        while (Room.Active && Room.ServerGameplay == this)
         {
             yield return GameTimeAdvancePerTick;
 
@@ -124,10 +125,26 @@ public partial class TimeSyncedServerRoom
             }
             _messagesForNextTick.Clear();
 
+            GameplayUpdate(GameTimeAdvancePerTick);
+
             int nextTime = CurrentGameTime + GameTimeAdvancePerTick;
             Server.BroadcastAdvanceTimeMessage(Room.UsersInside, nextTime);
 
             CurrentGameTime += GameTimeAdvancePerTick;
         }
     }
+
+    #region API
+
+    protected virtual void GameplayUpdate(float dt)
+    {
+
+    }
+
+    public virtual void UserJoined(ServerUser user)
+    {
+        // This method can be used to handle users joining ongoing time sync rooms
+    }
+
+    #endregion
 }
