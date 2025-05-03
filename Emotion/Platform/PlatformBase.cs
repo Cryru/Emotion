@@ -14,6 +14,9 @@ using Emotion.Platform.Implementation.GlfwImplementation;
 #if ANDROID
 using Emotion.Platform.Implementation.Android;
 #endif
+#if WEB
+using Emotion.Platform.Implementation.Web;
+#endif
 
 #endregion
 
@@ -93,6 +96,10 @@ namespace Emotion.Platform
             // The host is initialized by the activity, and that is what
             // actually calls Engine.Setup because we want to be initialized on the GL layer.
             platform = EmotionActivity.MainActivity.Host;
+#endif
+
+#if WEB
+            platform = new WebPlatform();
 #endif
 
 #if GLFW

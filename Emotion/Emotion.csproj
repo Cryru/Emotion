@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project ToolsVersion="Current">
     <PropertyGroup>
         <OutputType>Library</OutputType>
         <TargetFramework>net9.0</TargetFramework>
@@ -20,6 +20,13 @@
          <!--You should use Emotion's deserialization anyway, but just in case you use the built in one. -->
         <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
+    
+    <!-- Conditional SDK -->
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(Platform)'!='Web'" />
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(Platform)'!='Web'" />
+    
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.BlazorWebAssembly" Condition="'$(Platform)'=='Web'" />
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.BlazorWebAssembly" Condition="'$(Platform)'=='Web'" />
     
     <ItemGroup>
         <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -128,12 +135,16 @@
     <PropertyGroup Condition="'$(Platform)'=='Web'">
         <DefineConstants>$(DefineConstants);WEB</DefineConstants>
         <PlatformTarget>AnyCPU</PlatformTarget>
+        <StaticWebAssetBasePath>Emotion</StaticWebAssetBasePath>
+        <StartupObject />
     </PropertyGroup>
     <ItemGroup Condition="'$(Platform)'=='Web'">
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.3" Condition="$(DefineConstants.Contains('WEB'))" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.3" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'!='Web'">
         <Compile Remove="Platform\Implementation\Web\**\*.cs" />
+        <Compile Remove="Platform\Implementation\Web\**\*.razor" />
     </ItemGroup>
 
     <!-- Github Autobuild -->

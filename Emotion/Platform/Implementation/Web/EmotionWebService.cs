@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace Emotion.Web;
+namespace Emotion.Platform.Implementation.Web;
 
 [DontSerialize]
 public class EmotionWebService
