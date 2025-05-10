@@ -78,6 +78,7 @@ public abstract class SceneWithMap : Scene
         yield return InternalLoadSceneRoutineAsync();
         yield return Map.LoadRoutine();
 
+        // todo: this adding is not sync
         Engine.UI.AddChild(UIParent);
         yield return new TaskRoutineWaiter(Engine.UI.PreloadUI());
 

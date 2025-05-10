@@ -74,7 +74,7 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
 public class MessageBrokerMultiplayer_TestScene : SceneWithMap
 {
     private NetworkCommunicator _networkCom = null;
-    private MsgBrokerClient _clientCom = null;
+    private Client _clientCom = null;
     private MessageBrokerMultiplayer_TestObject _myObj = null;
     private List<MessageBrokerMultiplayer_TestObject> _objects = new ();
 
@@ -92,7 +92,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
             OnClickedProxy = (_) =>
             {
                 _networkCom = Server.CreateServer<MsgBrokerServer>(1337);
-                _clientCom = Client.CreateClient<MsgBrokerClient>("127.0.0.1:1337");
+                _clientCom = Client.CreateClient<Client>("127.0.0.1:1337");
                 _clientCom.ConnectIfNotConnected();
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestHostRoom();
                 _clientCom.OnRoomJoined = OnRoomJoined;
@@ -109,7 +109,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
             OnClickedProxy = (_) =>
             {
                 string serverIp = File.ReadAllText("ip.txt");
-                _clientCom = Client.CreateClient<MsgBrokerClient>(serverIp);
+                _clientCom = Client.CreateClient<Client>(serverIp);
                 _networkCom = _clientCom;
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestRoomList();
                 _clientCom.OnRoomListReceived = (list) => _clientCom.RequestJoinRoom(list[0].Id);
@@ -221,7 +221,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
         {
             if (_clientCom != null && _myObj != null)
             {
-                _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.Position2D, _clientCom.UserId)));
+                _clientCom.SendMessageToServer("MoveObj", new Vector3(_myObj.Position2D, _clientCom.UserId));
             }
             yield return null;
         }

@@ -5,6 +5,7 @@ using Emotion.Utility;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -18,6 +19,10 @@ namespace Emotion.Network.Base;
 public class NetworkCommunicator
 {
     public ServerStatus Status;
+
+    public int BytesUploadedSec { get; protected set; }
+
+    public int BytesDownloadedSec { get; protected set; }
 
     public string Ip { get; protected set; }
 
@@ -68,7 +73,7 @@ public class NetworkCommunicator
 
     }
 
-    public void SendMessage(ReadOnlySpan<byte> data, IPEndPoint to, int msgOrderIndex)
+    public void SendMessageToIPRaw(IPEndPoint to, ReadOnlySpan<byte> data, int msgOrderIndex)
     {
         NetworkMessage newMessage = NetworkMessage.Shared.Get();
         newMessage.EncodeMessageInLocalBuffer(to, data, msgOrderIndex);
@@ -76,20 +81,19 @@ public class NetworkCommunicator
         _sendQueue.Enqueue(newMessage);
     }
 
-    public void SendMessage<T>(IPEndPoint to, NetworkMessageType msgType, T msgInfo, int msgOrderIndex)
+    public void SendMessageToIP<T>(IPEndPoint to, NetworkMessageType msgType, T msgInfo, int msgOrderIndex)
     {
-        Span<byte> data = stackalloc byte[NetworkMessage.MaxMessageContent];
-        data[0] = (byte)msgType;
+        int bytesWritten = 0;
 
-        string? metaAsString = XMLFormat.To(msgInfo);
-        int byteCount = Encoding.UTF8.GetByteCount(metaAsString);
-        MemoryMarshal.Write(data.Slice(1), byteCount);
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        spanData[0] = (byte)msgType;
+        bytesWritten += sizeof(byte);
 
-        int written = Encoding.UTF8.GetBytes(metaAsString, data.Slice(1 + sizeof(int)));
-        data = data.Slice(0, written + 1 + sizeof(int));
+        string metaAsString = XMLFormat.To(msgInfo) ?? string.Empty;
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), metaAsString);
 
         AssertNotNull(to);
-        SendMessage(data, to, msgOrderIndex);
+        SendMessageToIPRaw(to, spanData.Slice(0, bytesWritten), msgOrderIndex);
     }
 
     public void Update()
@@ -136,8 +140,9 @@ public class NetworkCommunicator
     {
         while (_sendQueue.TryDequeue(out NetworkMessage? msg))
         {
-            msg.Content.CopyTo(_sendBuffer);
-            _sendEventArgs.SetBuffer(_sendBuffer, 0, msg.Content.Length);
+            ReadOnlyMemory<byte> msgContent = msg.Content;
+            msgContent.CopyTo(_sendBuffer);
+            _sendEventArgs.SetBuffer(_sendBuffer, 0, msgContent.Length);
             _sendEventArgs.RemoteEndPoint = msg.Sender;
 
             //Engine.Log.Info($"Sent message to {msg.Sender}", LogTag);
@@ -146,36 +151,41 @@ public class NetworkCommunicator
             if (!willRaiseEvent)
                 MessageSent(_socket, _sendEventArgs);
 
+            BytesUploadedSec += msgContent.Length;
+
             NetworkMessage.Shared.Return(msg);
         }
 
-        while (_processQueue.TryDequeue(out NetworkMessage? msg))
+        while (!_bufferReceivedMessages && _processQueue.TryDequeue(out NetworkMessage? msg))
         {
             msg.Process();
             if (msg.Valid)
             {
                 //var str = Encoding.UTF8.GetString(msg.Content.Span);
                 //Engine.Log.Info($"Got message {str} from {msg.Sender}", LogTag);
-                
+
+                BytesDownloadedSec += msg.Content.Length;
                 ProcessMessageInternal(msg);
             }
 
             if (msg.AutoFree)
+            {
+                Assert(!_sendQueue.Contains(msg));
                 NetworkMessage.Shared.Return(msg);
+            }
         }
+    }
+
+    private bool _bufferReceivedMessages;
+
+    public void BufferNetworkMessages(bool enable)
+    {
+        _bufferReceivedMessages = enable;
     }
 
     protected virtual void ProcessMessageInternal(NetworkMessage msg)
     {
         // nop
-    }
-
-    public static int WriteStringToMessage(Span<byte> spanDataCur, string str)
-    {
-        int byteCount = Encoding.ASCII.GetByteCount(str);
-        BinaryPrimitives.WriteInt32LittleEndian(spanDataCur, byteCount);
-        int methodNameBytesWritten = Encoding.ASCII.GetBytes(str, spanDataCur.Slice(sizeof(int)));
-        return methodNameBytesWritten + sizeof(int);
     }
 
     public void Dispose()

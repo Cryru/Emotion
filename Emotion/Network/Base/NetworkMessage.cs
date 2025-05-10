@@ -2,6 +2,7 @@
 using Emotion.Network.ServerSide;
 using Emotion.Standard.XML;
 using Emotion.Utility;
+using System.Buffers.Binary;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
@@ -170,5 +171,13 @@ public class NetworkMessage
         var span = reader.ReadBytes(dataLength);
         data = XMLFormat.From<T>(Encoding.UTF8.GetString(span));
         return true;
+    }
+
+    public static int WriteStringToMessage(Span<byte> spanDataCur, string str)
+    {
+        int byteCount = Encoding.ASCII.GetByteCount(str);
+        BinaryPrimitives.WriteInt32LittleEndian(spanDataCur, byteCount);
+        int methodNameBytesWritten = Encoding.ASCII.GetBytes(str, spanDataCur.Slice(sizeof(int)));
+        return methodNameBytesWritten + sizeof(int);
     }
 }

@@ -1,23 +1,26 @@
 ﻿using Emotion.Game.Time.Routines;
+using Emotion.Network.ServerSide;
 using Emotion.Standard.XML;
+using System.Xml.Linq;
 
 #nullable enable
 
-namespace Emotion.Network.BasicMessageBroker;
+namespace Emotion.Network.Base;
 
-public abstract class MsgBrokerFunction
+public abstract class NetworkFunction
 {
     public abstract void Invoke(ReadOnlySpan<byte> data);
+
     public abstract void InvokeAtGameTime(CoroutineManagerGameTime timeManager, int time, ReadOnlySpan<byte> data);
 }
 
-public class MsgBrokerFunction<T> : MsgBrokerFunction
+public class NetworkFunction<T> : NetworkFunction
 {
     public string Name { get; protected set; }
 
     private Action<T> _method;
 
-    public MsgBrokerFunction(string name, Action<T> method)
+    public NetworkFunction(string name, Action<T> method)
     {
         Name = name;
         _method = method;

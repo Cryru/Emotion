@@ -17,7 +17,7 @@ public class MsgBrokerServer : Server
         {
             ServerUser userInRoom = room.UsersInside[i];
             if (userInRoom == sender) continue;
-            SendMessage(userInRoom, msg.Content.Span);
+            SendMessageRawToUser(userInRoom, msg.Content.Span);
         }
     }
 }

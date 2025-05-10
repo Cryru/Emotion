@@ -6,18 +6,19 @@ using Emotion.ExecTest.CryruDevelopment;
 using Emotion.Testing;
 using Emotion.Utility;
 using Emotion.ExecTest.ExamplesOne;
+using System.Threading.Tasks;
 #endregion
 
 namespace Emotion.ExecTest;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static Task Main(string[] args)
     {
         if (CommandLineParser.FindArgument(args, "tests", out string _))
         {
             MainTests(args);
-            return;
+            return Task.CompletedTask;
         }
 
         Engine.Start(new Configurator
@@ -25,6 +26,7 @@ public class Program
             DebugMode = true,
             HostTitle = "Example"
         }, EntryPointAsync);
+        return Task.CompletedTask;
     }
 
     private static void MainTests(string[] args)

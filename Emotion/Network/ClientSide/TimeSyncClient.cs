@@ -1,31 +1,33 @@
 ﻿using Emotion.Game.Time.Routines;
 using Emotion.Network.Base;
-using Emotion.Network.BasicMessageBroker;
-using Emotion.Network.ClientSide;
 using Emotion.Utility;
-using System;
 using System.Buffers.Binary;
-using System.Collections;
-using System.IO;
-using System.Text;
 
 #nullable enable
 
-namespace Emotion.Network.TimeSyncMessageBroker;
+namespace Emotion.Network.ClientSide;
 
-public class MsgBrokerClientTimeSync : MsgBrokerClient
+public class TimeSyncClient : Client
 {
     public CoroutineManagerGameTime CoroutineManager = Engine.CoroutineManagerGameTime;
 
     private bool _firstTimeSyncMsg = true;
 
-    public MsgBrokerClientTimeSync()
+    public TimeSyncClient()
     {
         RegisterFunction<bool>("AdvanceTime", (va) => { Assert(va); });
     }
 
     protected override void ClientProcessMessage(NetworkMessage msg, ByteReader reader)
     {
+        if (msg.MessageType == NetworkMessageType.GenericGameplay)
+        {
+            base.ClientProcessMessage(msg, reader);
+            return;
+        }
+
+        if (msg.MessageType != NetworkMessageType.GenericGameplayWithTime) return;
+
         int gameTime = reader.ReadInt32();
         if (_firstTimeSyncMsg)
         {
@@ -41,7 +43,7 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
         int methodNameLength = reader.ReadInt32();
         var methodNameBytes = reader.ReadBytes(methodNameLength);
         int methodNameHash = methodNameBytes.GetStableHashCode();
-        if (_functions.TryGetValue(methodNameHash, out MsgBrokerFunction? func))
+        if (_functions.TryGetValue(methodNameHash, out NetworkFunction? func))
         {
             var metaDataLength = reader.ReadInt32();
             var metaDataBytes = reader.ReadBytes(metaDataLength);
@@ -77,7 +79,7 @@ public class MsgBrokerClientTimeSync : MsgBrokerClient
         spanData[0] = (byte)NetworkMessageType.TimeSyncHashDebug;
 
         bytesWritten += sizeof(byte);
-        bytesWritten += WriteStringToMessage(spanData.Slice(bytesWritten), hashString);
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), hashString);
         SendMessageToServer(spanData.Slice(0, bytesWritten));
     }
 }

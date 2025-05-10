@@ -1,6 +1,8 @@
-﻿using Emotion.Network.Base;
+﻿using Emotion.Game.Time.Routines;
+using Emotion.Network.Base;
+using Emotion.Standard.XML;
 using Emotion.Utility;
-using Microsoft.VisualBasic;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -11,6 +13,10 @@ namespace Emotion.Network.ServerSide;
 
 public class Server : NetworkCommunicator
 {
+    public CoroutineManager CoroutineManager = Engine.CoroutineManager;
+
+    public bool UsersCanManageRooms { get; init; } = true;
+
     public List<ServerUser> ConnectedUsers = new List<ServerUser>();
     public List<ServerRoom> ActiveRooms = new List<ServerRoom>();
 
@@ -68,16 +74,16 @@ public class Server : NetworkCommunicator
             case NetworkMessageType.RequestConnect:
                 Msg_RequestConnect(msg);
                 break;
-            case NetworkMessageType.HostRoom when user != null:
+            case NetworkMessageType.HostRoom when user != null && UsersCanManageRooms:
                 Msg_HostRoom(user, msg, reader);
                 break;
-            case NetworkMessageType.GetRoomInfo when user != null:
+            case NetworkMessageType.GetRoomInfo when user != null && UsersCanManageRooms:
                 Msg_GetRoomInfo(user);
                 break;
-            case NetworkMessageType.GetRooms when user != null:
+            case NetworkMessageType.GetRooms when user != null && UsersCanManageRooms:
                 Msg_GetRooms(user, msg, reader);
                 break;
-            case NetworkMessageType.JoinRoom when user != null:
+            case NetworkMessageType.JoinRoom when user != null && UsersCanManageRooms:
                 Msg_JoinRoom(user, msg, reader);
                 break;
             default:
@@ -87,23 +93,160 @@ public class Server : NetworkCommunicator
         }
     }
 
+    #region Message Sending Helpers
+
+    public void SendMessageRawToUser(ServerUser user, ReadOnlySpan<byte> data)
+    {
+        AssertNotNull(user.UserIp);
+        SendMessageToIPRaw(user.UserIp, data, user.SendMessageIndex);
+        user.SendMessageIndex++;
+    }
+
+    public void SendMessageToUser(ServerUser user, NetworkMessageType shorthand)
+    {
+        Span<byte> data = stackalloc byte[1];
+        data[0] = (byte)shorthand;
+        SendMessageRawToUser(user, data);
+    }
+
+    public void SendMessageToUser<TMsg>(ServerUser user, NetworkMessageType msgType, TMsg msgInfo)
+    {
+        AssertNotNull(user.UserIp);
+        SendMessageToIP(user.UserIp, msgType, msgInfo, user.SendMessageIndex);
+        user.SendMessageIndex++;
+    }
+
+    public void SendMessageToUsersWithTime<TMsg>(IEnumerable<ServerUser> users, int time, string method, TMsg metadata) where TMsg : struct
+    {
+        string xml = XMLFormat.To<TMsg>(metadata);
+        SendMessageToUsersWithTime(users, time, method, xml);
+    }
+
+    public void SendMessageToUsersWithTime(IEnumerable<ServerUser> users, int time, string method, string metadata)
+    {
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        int bytesWritten = 0;
+
+        // Message type
+        spanData[0] = (byte)NetworkMessageType.GenericGameplayWithTime;
+        bytesWritten += sizeof(byte);
+
+        // Time
+        BinaryPrimitives.WriteInt32LittleEndian(spanData.Slice(bytesWritten), time);
+        bytesWritten += sizeof(int);
+
+        // Check if message is too long (ASCII encoding of strings assumed)
+        if ((method.Length + metadata.Length) > spanData.Length - bytesWritten)
+        {
+            Assert(false);
+            return;
+        }
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), method);
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), metadata);
+
+        // Send the message to all the users (this reuses the span!)
+        Span<byte> sendData = spanData.Slice(0, bytesWritten);
+        foreach (ServerUser user in users)
+        {
+            SendMessageRawToUser(user, sendData);
+        }
+    }
+
+    public void SendMessageToUsers<TMsg>(IEnumerable<ServerUser> users, string method, TMsg metadata) where TMsg : struct
+    {
+        string xml = XMLFormat.To<TMsg>(metadata);
+
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        int bytesWritten = 0;
+
+        // Message type
+        spanData[0] = (byte)NetworkMessageType.GenericGameplay;
+        bytesWritten += sizeof(byte);
+
+        // Check if message is too long (ASCII encoding of strings assumed)
+        if ((method.Length + xml.Length) > spanData.Length - bytesWritten)
+        {
+            Assert(false);
+            return;
+        }
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), method);
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), xml);
+
+        // Send the message to all the users (this reuses the span!)
+        Span<byte> sendData = spanData.Slice(0, bytesWritten);
+        foreach (ServerUser user in users)
+        {
+            SendMessageRawToUser(user, sendData);
+        }
+    }
+
+    public void BroadcastAdvanceTimeMessage(ServerRoom room, int time)
+    {
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        int bytesWritten = 0;
+
+        spanData[0] = (byte)NetworkMessageType.GenericGameplayWithTime; //NIY_AdvanceTime
+        bytesWritten += sizeof(byte);
+
+        BinaryPrimitives.WriteInt32LittleEndian(spanData.Slice(bytesWritten), time);
+        bytesWritten += sizeof(int);
+
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), "AdvanceTime");
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), XMLFormat.To(true));
+
+        Span<byte> sendData = spanData.Slice(0, bytesWritten);
+
+        // Send the message to all the users (this reuses the span!)
+        List<ServerUser> users = room.UsersInside;
+        foreach (ServerUser user in users)
+        {
+            SendMessageRawToUser(user, sendData);
+        }
+    }
+
+    #endregion
+
+    protected virtual void ServerProcessMessage(ServerUser sender, NetworkMessage msg, ByteReader reader)
+    {
+        // nop
+    }
+
+    #region Connection
+
     protected void Msg_RequestConnect(NetworkMessage msg)
     {
         AssertNotNull(msg.Sender);
+
+        // todo: connection challenge and encryption establish
 
         if (!IPToUser.TryGetValue(msg.Sender, out ServerUser? user))
         {
             Engine.Log.Info($"User connected - {msg.Sender}", LogTag);
 
             user = ServerUser.Shared.Get();
-            user.MyIP = msg.Sender;
+            user.UserIp = msg.Sender;
             user.Id = ConnectedUsers.Count + 1;
-            IPToUser.TryAdd(user.MyIP, user);
+            IPToUser.TryAdd(user.UserIp, user);
             ConnectedUsers.Add(user);
+            SendMessageToUser(user, NetworkMessageType.Connected, user.Id);
+            OnUserConnected(user);
         }
-
-        SendMessage(user, NetworkMessageType.Connected, user.Id);
+        else
+        {
+            Span<byte> data = stackalloc byte[1];
+            data[0] = (byte)NetworkMessageType.Error_AlreadyConnected;
+            SendMessageToIPRaw(msg.Sender, data, 1);
+        }
     }
+
+    protected virtual void OnUserConnected(ServerUser user)
+    {
+
+    }
+
+    #endregion
+
+    #region Room Management
 
     protected void Msg_HostRoom(ServerUser user, NetworkMessage msg, ByteReader reader)
     {
@@ -113,6 +256,7 @@ public class Server : NetworkCommunicator
             room.UserLeave(this, user);
             if (!room.Active)
             {
+                room.ServerGameplay = null;
                 ActiveRooms.Remove(room);
                 ServerRoom.Shared.Return(room);
             }
@@ -126,19 +270,24 @@ public class Server : NetworkCommunicator
         ActiveRooms.Add(newRoom);
 
         Engine.Log.Info($"New room created: {newRoom.Id}", LogTag);
-        RoomCreated(newRoom);
+        OnRoomCreated(newRoom);
+    }
+
+    protected virtual void OnRoomCreated(ServerRoom room)
+    {
+        // nop
     }
 
     protected void Msg_GetRoomInfo(ServerUser user)
     {
         if (user.InRoom == null)
         {
-            SendMessage(user, NetworkMessageType.NotInRoom);
+            SendMessageToUser(user, NetworkMessageType.Error_NotInRoom);
             return;
         }
 
         ServerRoom room = user.InRoom;
-        SendMessage(user, NetworkMessageType.RoomInfo, room.GetRoomInfo());
+        SendMessageToUser(user, NetworkMessageType.RoomInfo, room.GetRoomInfo());
     }
 
     protected void Msg_GetRooms(ServerUser user, NetworkMessage msg, ByteReader reader)
@@ -152,66 +301,43 @@ public class Server : NetworkCommunicator
             if (roomInfo.Count > 10) break;
         }
 
-        SendMessage(user, NetworkMessageType.RoomList, roomInfo);
+        SendMessageToUser(user, NetworkMessageType.RoomList, roomInfo);
     }
 
     protected void Msg_JoinRoom(ServerUser user, NetworkMessage msg, ByteReader reader)
     {
         if (!NetworkMessage.TryReadXMLDataFromMessage(reader, out int roomId)) return;
 
+        ServerRoom? roomToJoin = null;
+        for (int i = 0; i < ActiveRooms.Count; i++)
+        {
+            ServerRoom room = ActiveRooms[i];
+            if (room.Id == roomId)
+            {
+                roomToJoin = room;
+                break;
+            }
+        }
+        if (roomToJoin == null) return;
+        UserJoinRoom(user, roomToJoin);
+    }
+
+    protected void UserJoinRoom(ServerUser user, ServerRoom newRoom)
+    {
         if (user.InRoom != null)
         {
             ServerRoom room = user.InRoom;
             room.UserLeave(this, user);
             if (!room.Active)
             {
+                room.ServerGameplay = null;
                 ActiveRooms.Remove(room);
                 ServerRoom.Shared.Return(room);
             }
         }
 
-        for (int i = 0; i < ActiveRooms.Count; i++)
-        {
-            var room = ActiveRooms[i];
-            if (room.Id == roomId)
-            {
-                room.UserJoin(this, user);
-                break;
-            }
-        }
+        newRoom.UserJoin(this, user);
     }
 
-    public void SendMessage(ServerUser user, ReadOnlySpan<byte> data)
-    {
-        AssertNotNull(user.MyIP);
-        SendMessage(data, user.MyIP, user.SendMessageIndex);
-        user.SendMessageIndex++;
-    }
-
-    public void SendMessage(ServerUser user, NetworkMessageType shorthand)
-    {
-        Span<byte> data = stackalloc byte[1];
-        data[0] = (byte)shorthand;
-
-        AssertNotNull(user.MyIP);
-        SendMessage(data, user.MyIP, user.SendMessageIndex);
-        user.SendMessageIndex++;
-    }
-
-    public void SendMessage<T>(ServerUser user, NetworkMessageType msgType, T msgInfo)
-    {
-        AssertNotNull(user.MyIP);
-        SendMessage(user.MyIP, msgType, msgInfo, user.SendMessageIndex);
-        user.SendMessageIndex++;
-    }
-
-    protected virtual void ServerProcessMessage(ServerUser sender, NetworkMessage msg, ByteReader reader)
-    {
-        // nop
-    }
-
-    protected virtual void RoomCreated(ServerRoom room)
-    {
-        // nop
-    }
+    #endregion
 }

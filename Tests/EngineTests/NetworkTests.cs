@@ -45,8 +45,8 @@ public class NetworkTests
     public IEnumerator MsgBroker()
     {
         MsgBrokerServer server = Server.CreateServer<MsgBrokerServer>(1337);
-        MsgBrokerClient clientHost = Client.CreateClient<MsgBrokerClient>("127.0.0.1:1337");
-        MsgBrokerClient? client = null;
+        Client clientHost = Client.CreateClient<Client>("127.0.0.1:1337");
+        Client? client = null;
 
         Action updateFunc = () => { server.Update(); clientHost.Update(); client?.Update(); };
 
@@ -83,7 +83,7 @@ public class NetworkTests
         }
 
         // Make second client, and connect it.
-        client = Client.CreateClient<MsgBrokerClient>("127.0.0.1:1337");
+        client = Client.CreateClient<Client>("127.0.0.1:1337");
         client.ConnectIfNotConnected();
         yield return WaitUntilTrueOrTimeout(updateFunc, () => client.ConnectedToServer, NETWORK_TIMEOUT);
         Assert.True(client.ConnectedToServer);
@@ -140,7 +140,7 @@ public class NetworkTests
             lastVec3ReceivedByGuest = vec3;
         });
 
-        client.SendBrokerMsg("testmethod", XMLFormat.To(new Vector3(1, 2, 3)));
+        client.SendMessageToServer("testmethod", new Vector3(1, 2, 3));
 
         yield return WaitUntilTrueOrTimeout(updateFunc, () => lastVec3ReceivedByHost != Vector3.Zero, NETWORK_TIMEOUT);
 
@@ -155,10 +155,10 @@ public class NetworkTests
     [Test]
     public IEnumerator TimeSync()
     {
-        MsgBrokerServerTimeSync server = Server.CreateServer<MsgBrokerServerTimeSync>(1337);
-        MsgBrokerClientTimeSync clientHost = Client.CreateClient<MsgBrokerClientTimeSync>("127.0.0.1:1337");
+        MsgBrokerTimeSyncServer server = Server.CreateServer<MsgBrokerTimeSyncServer>(1337);
+        TimeSyncClient clientHost = Client.CreateClient<TimeSyncClient>("127.0.0.1:1337");
         clientHost.CoroutineManager = new CoroutineManagerGameTime();
-        MsgBrokerClientTimeSync? client = null;
+        TimeSyncClient? client = null;
 
         Action updateFunc = () => { server.Update(); clientHost.Update(); client?.Update(); };
 
@@ -195,7 +195,7 @@ public class NetworkTests
         }
 
         // Make second client, and connect it.
-        client = Client.CreateClient<MsgBrokerClientTimeSync>("127.0.0.1:1337");
+        client = Client.CreateClient<TimeSyncClient>("127.0.0.1:1337");
         client.CoroutineManager = new CoroutineManagerGameTime();
         client.ConnectIfNotConnected();
         yield return WaitUntilTrueOrTimeout(updateFunc, () => client.ConnectedToServer, NETWORK_TIMEOUT);
@@ -254,7 +254,7 @@ public class NetworkTests
             lastVec3ReceivedByGuest = vec3;
         });
 
-        client.SendBrokerMsg("testmethod", XMLFormat.To(new Vector3(1, 2, 3)));
+        client.SendMessageToServer("testmethod", new Vector3(1, 2, 3));
 
         yield return WaitUntilTrueOrTimeout(updateFunc, () => lastVec3ReceivedByHost != Vector3.Zero, NETWORK_TIMEOUT);
 

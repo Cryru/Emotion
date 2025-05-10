@@ -2,14 +2,16 @@
 
 #nullable enable
 
-public enum NetworkMessageType : byte
+public enum NetworkMessageType : uint
 {
     None,
-    Generic,        // Wildcard
+    GenericGameplay,         // Wildcard
+    GenericGameplayWithTime, // Wildcard for Time Sync events
 
     // Server -> Client
     Connected,      // from RequestConnect
-    NotInRoom,      // from GetRoomInfo
+    Error_AlreadyConnected, // from RequestConnect
+    Error_NotInRoom,      // from GetRoomInfo
     RoomJoined,     // from HostRoom, JoinRoom              <ServerRoomInfo>
     UserJoinedRoom, // from JoinRoom of another User        <ServerRoomInfo>
     RoomInfo,       // from GetRoomInfo                     <ServerRoomInfo>
@@ -22,7 +24,12 @@ public enum NetworkMessageType : byte
     GetRooms,
     JoinRoom,       // <int> roomId
 
-    // Specials
+    // Specials (Client -> Server)
     TimeSyncHash,        // <int> hash
-    TimeSyncHashDebug    // <string> hash
+    TimeSyncHashDebug,    // <string> hash
+
+    // Specials (Server -> Client)
+    NIY_AdvanceTime,
+
+    Last
 }

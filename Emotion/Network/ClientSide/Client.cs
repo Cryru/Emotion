@@ -1,7 +1,9 @@
 ﻿using Emotion.Network.Base;
+using Emotion.Standard.XML;
 using Emotion.Utility;
 using System.Net;
 using System.Net.Sockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #nullable enable
 
@@ -48,19 +50,27 @@ public class Client : NetworkCommunicator
         return CreateClient<T>(serverIp + ":" + serverPort);
     }
 
-    public void ConnectIfNotConnected()
-    {
-        if (ConnectedToServer) return;
+    #region Message Sending Helpers
 
-        Span<byte> reqConnect = stackalloc byte[1];
-        reqConnect[0] = (byte)NetworkMessageType.RequestConnect;
-        SendMessageToServer(reqConnect);
+    public void SendMessageToServer<TMsg>(string method, TMsg messageData) where TMsg : struct
+    {
+        Span<byte> spanData = stackalloc byte[NetworkMessage.MaxMessageContent];
+        int bytesWritten = 0;
+
+        spanData[0] = (byte)NetworkMessageType.GenericGameplay;
+        bytesWritten += sizeof(byte);
+
+        string xml = XMLFormat.To(messageData);
+
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), method);
+        bytesWritten += NetworkMessage.WriteStringToMessage(spanData.Slice(bytesWritten), xml);
+        SendMessageToServer(spanData.Slice(0, bytesWritten));
     }
 
     public void SendMessageToServer(Span<byte> data)
     {
         AssertNotNull(_serverEndPoint);
-        SendMessage(data, _serverEndPoint, SendMessageIndex);
+        SendMessageToIPRaw(_serverEndPoint, data, SendMessageIndex);
         SendMessageIndex++;
     }
 
@@ -74,9 +84,11 @@ public class Client : NetworkCommunicator
     public void SendMessageToServer<T>(NetworkMessageType msgType, T msgInfo)
     {
         AssertNotNull(_serverEndPoint);
-        SendMessage(_serverEndPoint, msgType, msgInfo, SendMessageIndex);
+        SendMessageToIP(_serverEndPoint, msgType, msgInfo, SendMessageIndex);
         SendMessageIndex++;
     }
+
+    #endregion
 
     protected override void ProcessMessageInternal(NetworkMessage msg)
     {
@@ -111,11 +123,6 @@ public class Client : NetworkCommunicator
                 ClientProcessMessage(msg, reader);
                 break;
         }
-    }
-
-    protected virtual void ClientProcessMessage(NetworkMessage msg, ByteReader reader)
-    {
-        // nop
     }
 
     protected void Msg_Connected(NetworkMessage msg, ByteReader reader)
@@ -157,6 +164,17 @@ public class Client : NetworkCommunicator
     public Action<ServerRoomInfo, int>? OnPlayerJoinedRoom;
     public Action<List<ServerRoomInfo>>? OnRoomListReceived;
 
+    #region Client Message Shorthand
+
+    public void ConnectIfNotConnected()
+    {
+        if (ConnectedToServer) return;
+
+        Span<byte> reqConnect = stackalloc byte[1];
+        reqConnect[0] = (byte)NetworkMessageType.RequestConnect;
+        SendMessageToServer(reqConnect);
+    }
+
     public void RequestJoinRoom(int roomId)
     {
         SendMessageToServer(NetworkMessageType.JoinRoom, roomId);
@@ -171,4 +189,35 @@ public class Client : NetworkCommunicator
     {
         SendMessageToServer(NetworkMessageType.HostRoom);
     }
+
+    #endregion
+
+    #region Gameplay
+
+    protected Dictionary<int, NetworkFunction> _functions = new Dictionary<int, NetworkFunction>();
+
+    public void RegisterFunction<T>(string name, Action<T> func)
+    {
+        NetworkFunction<T> funcDef = new NetworkFunction<T>(name, func);
+        _functions.Add(name.GetStableHashCodeASCII(), funcDef);
+    }
+
+    protected virtual void ClientProcessMessage(NetworkMessage msg, ByteReader reader)
+    {
+        int methodNameLength = reader.ReadInt32();
+        var methodNameBytes = reader.ReadBytes(methodNameLength);
+        var methodNameHash = methodNameBytes.GetStableHashCode();
+
+        if (_functions.TryGetValue(methodNameHash, out NetworkFunction? func))
+        {
+            var metaDataLength = reader.ReadInt32();
+            var metaDataBytes = reader.ReadBytes(metaDataLength);
+
+            // Engine.Log.Trace($"MsgBroker Invoking {methodName} with {metaData}", LogTag);
+
+            func.Invoke(metaDataBytes);
+        }
+    }
+
+    #endregion
 }

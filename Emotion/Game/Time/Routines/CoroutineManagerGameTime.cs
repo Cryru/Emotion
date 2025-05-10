@@ -31,7 +31,7 @@ public class CoroutineManagerGameTime : CoroutineManager
 
     public void ResetGameTime(float startingTime)
     {
-        Time = startingTime;
         StopAll();
+        Time = startingTime;
     }
 }

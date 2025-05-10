@@ -77,7 +77,7 @@ public class TimeSyncMultiplayer_TestObject : MapObject
 public class TimeSyncMultiplayer_TestScene : SceneWithMap
 {
     private NetworkCommunicator _networkCom = null;
-    private MsgBrokerClientTimeSync _clientCom = null;
+    private TimeSyncClient _clientCom = null;
     private TimeSyncMultiplayer_TestObject _myObj = null;
     private List<TimeSyncMultiplayer_TestObject> _objects = new();
 
@@ -94,8 +94,8 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         {
             OnClickedProxy = (_) =>
             {
-                _networkCom = Server.CreateServer<MsgBrokerServerTimeSync>(1337);
-                _clientCom = Client.CreateClient<MsgBrokerClientTimeSync>("127.0.0.1:1337");
+                _networkCom = Server.CreateServer<MsgBrokerTimeSyncServer>(1337);
+                _clientCom = Client.CreateClient<TimeSyncClient>("127.0.0.1:1337");
                 _clientCom.ConnectIfNotConnected();
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestHostRoom();
                 _clientCom.OnRoomJoined = OnRoomJoined;
@@ -110,7 +110,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             OnClickedProxy = (_) =>
             {
                 string serverIp = File.ReadAllText("ip.txt");
-                _clientCom = Client.CreateClient<MsgBrokerClientTimeSync>(serverIp);
+                _clientCom = Client.CreateClient<TimeSyncClient>(serverIp);
                 _networkCom = _clientCom;
                 _clientCom.OnConnectionChanged = (_) => _clientCom.RequestRoomList();
                 _clientCom.OnRoomListReceived = (list) => _clientCom.RequestJoinRoom(list[0].Id);
@@ -192,7 +192,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         base.UpdateScene(dt);
 
         if (_clientCom != null && _myObj != null && _myObj.DesiredPosition != Vector2.Zero)
-            _clientCom.SendBrokerMsg("MoveObj", XMLFormat.To(new Vector3(_myObj.DesiredPosition, _clientCom.UserId)));
+            _clientCom.SendMessageToServer("MoveObj", new Vector3(_myObj.DesiredPosition, _clientCom.UserId));
 
         if (_clientCom != null && _networkCom != _clientCom)
             _clientCom.Update();
@@ -206,10 +206,10 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         c.SetUseViewMatrix(false);
         c.RenderSprite(Vector3.Zero, c.CurrentTarget.Size, Color.PrettyGreen);
 
-        if (_networkCom is MsgBrokerServerTimeSync server && server.ActiveRooms.Count > 0)
+        if (_networkCom is MsgBrokerTimeSyncServer server && server.ActiveRooms.Count > 0)
         {
             var firstRoom = server.ActiveRooms[0];
-            if (firstRoom.ServerGameplay is TimeSyncedServerRoom syncRoom)
+            if (firstRoom.ServerGameplay is MsgBrokerTimeSyncGameplay syncRoom)
             {
                 c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{syncRoom.CurrentGameTime}", FontAsset.GetDefaultBuiltIn().GetAtlas(35));
             }

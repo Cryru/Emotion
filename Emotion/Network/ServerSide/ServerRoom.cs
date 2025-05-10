@@ -1,5 +1,6 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Network.Base;
+using Emotion.Network.ServerSide.Gameplay;
 using Emotion.Utility;
 
 #nullable enable
@@ -16,7 +17,7 @@ public class ServerRoom
     public ServerUser? Host;
     public List<ServerUser> UsersInside = new List<ServerUser>();
 
-    public IServerRoomGameplay? ServerGameplay;
+    public ServerRoomGameplay? ServerGameplay;
 
     public void Reset()
     {
@@ -31,17 +32,17 @@ public class ServerRoom
     {
         user.InRoom = this;
         UsersInside.Add(user);
-        server.SendMessage(user, NetworkMessageType.RoomJoined, GetRoomInfo());
+        server.SendMessageToUser(user, NetworkMessageType.RoomJoined, GetRoomInfo());
 
         for (int i = 0; i < UsersInside.Count; i++)
         {
             ServerUser otherUser = UsersInside[i];
             if (otherUser != user)
-                server.SendMessage(otherUser, NetworkMessageType.UserJoinedRoom, GetRoomInfo());
+                server.SendMessageToUser(otherUser, NetworkMessageType.UserJoinedRoom, GetRoomInfo());
         }
 
         Engine.Log.Info($"User {user.Id} joined room {Id}", server.LogTag);
-        ServerGameplay?.UserJoined(user);
+        ServerGameplay?.OnUserJoined(user);
     }
 
     public void UserLeave(Server server, ServerUser user)
