@@ -33,6 +33,16 @@ public class GameMap
         return _objects;
     }
 
+    public IEnumerable<T> ForEachObject<T>() where T : MapObject
+    {
+        // todo: convert to Ienumerable struct with lazy eval
+        foreach (MapObject obj in _objects)
+        {
+            if (obj is T objT)
+                yield return objT;
+        }
+    }
+
     public void AddObject(MapObject obj)
     {
         obj.Map = this;
