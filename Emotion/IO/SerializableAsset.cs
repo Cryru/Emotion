@@ -2,10 +2,13 @@
 
 namespace Emotion.IO;
 
-public class SerializableAsset<T> where T : Asset, new()
+public class SerializableAsset
 {
     public string? Name { get; set; }
+}
 
+public class SerializableAsset<T> : SerializableAsset where T : Asset, new()
+{
     public T? Get(object? referenceObject = null)
     {
         return Engine.AssetLoader.ONE_Get<T>(Name, referenceObject);
@@ -30,5 +33,10 @@ public class SerializableAsset<T> where T : Asset, new()
     public static implicit operator T?(SerializableAsset<T> serialized)
     {
         return serialized.Get();
+    }
+
+    public override string ToString()
+    {
+        return Name ?? "Invalid Asset";
     }
 }

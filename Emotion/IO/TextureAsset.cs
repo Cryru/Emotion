@@ -20,7 +20,7 @@ namespace Emotion.IO
     /// <summary>
     /// Represents an image. Supports all formats supported by Emotion.Standard.Image
     /// </summary>
-    public class TextureAsset : Asset, IAssetWithFileExtensionSupport
+    public class TextureAsset : Asset
     {
         /// <summary>
         /// The asset's uploaded graphics texture.
@@ -28,6 +28,11 @@ namespace Emotion.IO
         public Texture Texture { get; set; }
 
         private bool _pixelsMemoryIsRented;
+
+        static TextureAsset()
+        {
+            RegisterFileExtensionSupport<TextureAsset>([ "png", "bmp", "imgbin" ]);
+        }
 
         public TextureAsset()
         {
@@ -118,13 +123,6 @@ namespace Emotion.IO
         protected override void ReloadInternal(ReadOnlyMemory<byte> data)
         {
             CreateInternal(data);
-        }
-
-        private static string[] _extensionsSupported = { "png", "bmp", "imgbin" };
-
-        public static string[] GetFileExtensionsSupported()
-        {
-            return _extensionsSupported;
         }
     }
 }

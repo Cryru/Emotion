@@ -616,7 +616,7 @@ namespace Emotion.Platform.Implementation.Win32
             OpenFileName ofn = new OpenFileName();
             ofn.lStructSize = Marshal.SizeOf<OpenFileName>();
 
-            string[] extensions = T.GetFileExtensionsSupported();
+            string[] extensions = Asset.GetFileExtensionsSupported<T>();
             StringBuilder b = new();
             if (extensions.Length > 0)
             {

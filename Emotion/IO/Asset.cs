@@ -190,6 +190,26 @@ namespace Emotion.IO
             return Name.GetHashCode();
         }
 
+        #region File Extension Support
+
+        public static string[] GetFileExtensionsSupported<T>() where T : Asset
+        {
+            var typ = typeof(T);
+            if (_assetTypeToExtensions.TryGetValue(typ, out string[]? extensions))
+                return extensions;
+
+            return Array.Empty<string>();
+        }
+
+        protected static Dictionary<Type, string[]> _assetTypeToExtensions = new();
+
+        protected static void RegisterFileExtensionSupport<T>(string[] extensions) where T : Asset
+        {
+            _assetTypeToExtensions.Add(typeof(T), extensions);
+        }
+
+        #endregion
+
         #region Routine Waiter
 
         public bool Finished => Loaded;

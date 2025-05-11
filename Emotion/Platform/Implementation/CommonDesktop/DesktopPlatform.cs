@@ -70,7 +70,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             return _devModeAssetFolder;
         }
 
-        public void DeveloperMode_SelectFileNative<T>(Action<T?> onLoaded) where T : Asset, IAssetWithFileExtensionSupport, new()
+        public void DeveloperMode_SelectFileNative<T>(Action<T?> onLoaded) where T : Asset, new()
         {
             string selectedPath = DeveloperMode_OSSelectFileToImport<T>();
             if (string.IsNullOrEmpty(selectedPath)) return;
@@ -91,7 +91,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             }
         }
 
-        protected virtual string DeveloperMode_OSSelectFileToImport<T>() where T : Asset, IAssetWithFileExtensionSupport
+        protected virtual string DeveloperMode_OSSelectFileToImport<T>() where T : Asset
         {
             // nop
             return string.Empty;
