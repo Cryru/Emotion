@@ -7,8 +7,13 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
+public interface IListEditor
+{
+
+}
+
 // generic constraint is the item type is only for ease of use, pass object if you dont care
-public class ListEditor<TItem> : TypeEditor
+public class ListEditor<TItem> : TypeEditor, IListEditor
 {
     private static IList<TItem?> EMPTY_LIST = new List<TItem?>();
 

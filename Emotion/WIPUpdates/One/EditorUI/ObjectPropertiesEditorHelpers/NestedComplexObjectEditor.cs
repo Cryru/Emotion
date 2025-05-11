@@ -4,12 +4,17 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class NestedComplexObjectEditor : TypeEditor
+public abstract class NestedComplexObjectEditor : TypeEditor
+{
+
+}
+
+public class NestedComplexObjectEditor<T> : NestedComplexObjectEditor
 {
     private object? _value;
     private bool _open;
 
-    private ObjectPropertyWindow? _props;
+    private ComplexObjectEditor<T>? _props;
     private EditorButton _button;
 
     public NestedComplexObjectEditor()
@@ -30,12 +35,18 @@ public class NestedComplexObjectEditor : TypeEditor
 
         if (editorOpen)
         {
-            _props = new ObjectPropertyWindow()
+            _props = new ComplexObjectEditor<T>()
             {
-                ExpandY = true,
                 MaxSizeY = 200
             };
-            _props.SetEditor(_value);
+
+            var list = _props.GetWindowById<EditorScrollArea>("EditorScrollArea");
+            if (list != null)
+            {
+                list.ExpandY = true;
+            }
+
+            _props.SetValue(_value);
             AddChild(_props);
         }
         else

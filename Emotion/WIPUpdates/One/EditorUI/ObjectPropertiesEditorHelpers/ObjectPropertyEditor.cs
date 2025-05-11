@@ -6,7 +6,7 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class EditorWithLabel : UIBaseWindow
+public class ObjectPropertyEditor : UIBaseWindow
 {
     public EditorLabel Label { get; private set; }
 
@@ -14,7 +14,7 @@ public class EditorWithLabel : UIBaseWindow
     private object _objectEditting;
     private ComplexTypeHandlerMemberBase _handler;
 
-    public EditorWithLabel(TypeEditor editor, object parentObj, ComplexTypeHandlerMemberBase memberHandler) // via handler
+    public ObjectPropertyEditor(TypeEditor editor, object parentObj, ComplexTypeHandlerMemberBase memberHandler) // via handler
     {
         Assert(editor.Parent == null, "TypeEditor shouldn't have a UI parent");
 
@@ -40,7 +40,10 @@ public class EditorWithLabel : UIBaseWindow
 
         OnValueUpdated();
 
-        if (editor is NestedComplexObjectEditor)
+        if (editor is IListEditor)
+            editor.MinSizeY = 200;
+
+        if (editor is NestedComplexObjectEditor || editor is IListEditor)
             SetVertical();
     }
 
@@ -55,7 +58,7 @@ public class EditorWithLabel : UIBaseWindow
         OnValueUpdated();
     }
 
-    public EditorWithLabel(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged) // custom
+    public ObjectPropertyEditor(string labelText, TypeEditor editor, object? startingValue, Action<object?> onValueChanged) // custom edit of a property
     {
         GrowY = false;
         LayoutMode = LayoutMode.HorizontalList;

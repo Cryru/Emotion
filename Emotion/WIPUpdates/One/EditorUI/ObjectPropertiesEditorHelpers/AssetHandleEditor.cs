@@ -3,13 +3,12 @@ using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Reflection.Emit;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFileExtensionSupport, new()
+public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 {
     private SerializableAsset<T>? _objectEditting = null;
 
@@ -59,8 +58,11 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
                     winPl.DeveloperMode_SelectFileNative<T>((file) =>
                     {
                         if (_objectEditting != null)
-                            _objectEditting.Name = file.Name;
-                        OnValueUpdated();
+                        {
+                            _objectEditting.Name = file?.Name;
+                            OnValueChanged(_objectEditting);
+                            UpdateTextInput();
+                        }
                     });
                 }
 
@@ -71,23 +73,18 @@ public class AssetHandleEditor<T> : UIBaseWindow where T : Asset, IAssetWithFile
         container.AddChild(browse);
     }
 
-    private void OnValueUpdated()
+    public override void SetValue(object? value)
     {
-        if (_objectEditting == null) return;
+        if (value is SerializableAsset<T> serializedHandle)
+            _objectEditting = serializedHandle;
 
-        EngineEditor.ObjectChanged(_objectEditting, ObjectChangeType.ValueChanged, this);
-
-        UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
-        AssertNotNull(textInput);
-        textInput.Text = _objectEditting.Name;
+        UpdateTextInput();
     }
 
-    public void SetEditor(string labelText, SerializableAsset<T> obj)
+    private void UpdateTextInput()
     {
-        EditorLabel? label = GetWindowById<EditorLabel>("Label");
-        AssertNotNull(label);
-        label.Text = labelText + ":";
-
-        _objectEditting = obj;
+        UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
+        AssertNotNull(textInput);
+        textInput.Text = _objectEditting?.Name ?? string.Empty;
     }
 }

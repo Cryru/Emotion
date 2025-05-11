@@ -145,7 +145,7 @@ public static partial class EngineEditor
         };
         barContainer.AddChild(container);
 
-        var editorWithLabel = new EditorWithLabel(
+        var editorWithLabel = new ObjectPropertyEditor(
             "View Game Camera",
             new BooleanEditor(),
             _debugCameraOptionOn,

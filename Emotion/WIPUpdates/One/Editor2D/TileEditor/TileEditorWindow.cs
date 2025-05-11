@@ -125,7 +125,7 @@ public sealed class TileEditorWindow : GridEditorWindow
                 var listEditor = new ListEditor<TileMapLayer>(typeof(TileMapLayer));
                 listEditor.OnItemSelected = SelectTileLayer;
 
-                EditorWithLabel layerEditor = new EditorWithLabel(listEditor, tileData, layerHandler);
+                ObjectPropertyEditor layerEditor = new ObjectPropertyEditor(listEditor, tileData, layerHandler);
                 layerEditor.MinSizeY = 350;
                 layerEditor.MaxSizeY = 350;
                 layerEditor.SetVertical();

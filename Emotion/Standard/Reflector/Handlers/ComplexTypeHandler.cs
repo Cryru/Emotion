@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.IO;
 using Emotion.Serialization.XML;
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
@@ -11,7 +12,7 @@ using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
-public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflectorComplexTypeHandler
+public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflectorComplexTypeHandler
 {
     public override string TypeName => _typeName;
 
@@ -55,7 +56,7 @@ public sealed class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGeneri
         if (typeof(T) == typeof(Rectangle))
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
 
-        return new NestedComplexObjectEditor();
+        return new ComplexObjectEditor<T>();
     }
 
     public override void PostInit()
