@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable 0612
 // ONE
 
 using Emotion.Common.Input;
@@ -61,10 +62,20 @@ public class UIScrollArea : UIBaseWindow
         _noChildrenAddLock = true;
     }
 
+    [Obsolete("Don't call, this, call AddChildInside!")]
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
     public override void AddChild(UIBaseWindow? child)
+#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
     {
         Assert(!_noChildrenAddLock);
         base.AddChild(child);
+    }
+
+    [Obsolete("Don't call, this, call ClearChildrenInside!")]
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+    public override void ClearChildren()
+#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
+    {
     }
 
     public void AddChildInside(UIBaseWindow win)

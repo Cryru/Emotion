@@ -192,7 +192,7 @@ public partial class UIController : UIBaseWindow
     #region Dedupe Hierarchy Checker
 
     // This is to avoid infinite loops in the recursive measure, layout, update, and render functions.
-    
+
     private HashSet<UIBaseWindow> _doubleAddChecker = new HashSet<UIBaseWindow>();
 
     public bool IsWindowPresentInHierarchy(UIBaseWindow win)
@@ -462,7 +462,11 @@ public partial class UIController : UIBaseWindow
 
         if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && _myMouseFocus != null)
         {
-            _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyState.Down;
+            bool isScroll = key == Key.MouseWheel;
+            if (!isScroll)
+            {
+                _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyState.Down;
+            }
 
             if (key == Key.MouseKeyLeft && status == KeyState.Down)
             {
@@ -492,16 +496,12 @@ public partial class UIController : UIBaseWindow
             }
 
             // Testing if this is fixed.
-            // Theoretically if two clicks occur within one tick
-            // the first one removing the window, this can happen.
-            // However I don't believe Emotion will send out both click events?
-            // Not sure how the platform code handles this, in any case we don't want to
-            // call event handlers of destroyed windows, so lets return out.
-            if (status == KeyState.Down && _myMouseFocus is not UIController)
-            {
-                Assert(_myMouseFocus.Controller != null);
-                if (_myMouseFocus.Controller == null) return true;
-            }
+            // Theoretically if two clicks occur within one tick the first one removing the window, this can happen.
+            // We don't want to call event handlers of destroyed windows, so lets return out.
+            // todo: do we want to build something in the input system that prevents the
+            // same button from being pressed twice in one tick? At least for mouse buttons?
+            if (status == KeyState.Down && _myMouseFocus is not UIController && _myMouseFocus.Controller == null)
+                return true;
 
             Vector2 mousePos = Engine.Host.MousePosition;
             var current = _myMouseFocus;
