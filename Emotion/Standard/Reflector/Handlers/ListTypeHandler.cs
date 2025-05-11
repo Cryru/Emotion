@@ -3,14 +3,14 @@
 using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.Utility;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
-public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericEnumerableTypeHandler where T : IEnumerable<TItem>
+public class ListTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericEnumerableTypeHandler where T : List<TItem?>
 {
-    public override string TypeName => $"ArrayOf{ItemType.Name}";
+    public override string TypeName => $"ListOf{ItemType.Name}";
 
     public override Type Type => typeof(T);
 
@@ -20,10 +20,13 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
 
     public object CreateNew()
     {
-        return Array.Empty<TItem>();
+        return new List<TItem>();
     }
 
-    private static ObjectPool<List<TItem?>> _pool = new ObjectPool<List<TItem?>>((l) => l.Clear(), 1);
+    public override TypeEditor? GetEditor()
+    {
+        return new ListEditor<TItem>(typeof(TItem));
+    }
 
     #region Serialization Read
 
@@ -46,7 +49,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             return default;
         }
 
-        List<TItem?> tempList = _pool.Get();
+        List<TItem?> tempList = new List<TItem?>();
         while (reader.Read())
         {
             JsonTokenType token = reader.TokenType;
@@ -75,12 +78,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             }
         }
 
-        TItem[] values = new TItem[tempList.Count];
-        tempList.CopyTo(values, 0);
-
-        _pool.Return(tempList);
-
-        return (T?)(object?)values;
+        return (T?)tempList;
     }
 
     #endregion

@@ -21,45 +21,59 @@ public static class ReflectorEngine
         // Setup built in types
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<byte>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<byte[], byte>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<byte>, byte>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<ushort>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<ushort[], ushort>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<ushort>, ushort>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<uint>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<uint[], uint>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<uint>, uint>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<ulong>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<ulong[], ulong>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<ulong>, ulong>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<sbyte>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<sbyte[], sbyte>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<sbyte>, sbyte>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<short>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<short[], short>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<short>, short>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<int>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<int[], int>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<int>, int>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<long>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<long[], long>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<long>, long>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<char>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<char[], char>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<char>, char>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<float>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<float[], float>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<float>, float>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<double>());
-        ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<float[], float>());
+        ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<double[], double>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<double>, double>());
 
         ReflectorEngine.RegisterTypeHandler(new PrimitiveNumericTypeHandler<decimal>());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<decimal[], decimal>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<decimal>, decimal>());
 
         ReflectorEngine.RegisterTypeHandler(new StringTypeHandler());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<string[], string>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<string?>, string>());
 
         ReflectorEngine.RegisterTypeHandler(new BooleanTypeHandler());
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<bool[], bool>());
+        ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<bool>, bool>());
 
 
         BuildRelations();

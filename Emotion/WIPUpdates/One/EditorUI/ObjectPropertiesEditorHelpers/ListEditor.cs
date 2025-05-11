@@ -7,15 +7,15 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-// generic contstraint is only for ease of use, pass object if you dont care
-public class ListEditor<T> : TypeEditor
+// generic constraint is the item type is only for ease of use, pass object if you dont care
+public class ListEditor<TItem> : TypeEditor
 {
-    private static IList<T?> EMPTY_LIST = new List<T?>();
+    private static IList<TItem?> EMPTY_LIST = new List<TItem?>();
 
     private Type ListItemType;
     private IGenericReflectorComplexTypeHandler? _complexTypeHandler;
 
-    private IList<T?> _items = EMPTY_LIST;
+    private IList<TItem?> _items = EMPTY_LIST;
 
     private UIBaseWindow _itemList;
 
@@ -58,7 +58,7 @@ public class ListEditor<T> : TypeEditor
         }
         else
         {
-            _items = (IList<T?>)value;
+            _items = (IList<TItem?>)value;
             EngineEditor.RegisterForObjectChanges(value, (_) => RespawnItemsUI(_items), this);
         }
 
@@ -78,11 +78,11 @@ public class ListEditor<T> : TypeEditor
         _currentIndex = idx;
         ApplyItemsUISelection();
 
-        T? selectedItem = _currentIndex == -1 || _items == null ? default : _items[_currentIndex];
+        TItem? selectedItem = _currentIndex == -1 || _items == null ? default : _items[_currentIndex];
         OnItemSelected?.Invoke(selectedItem);
     }
 
-    protected void RespawnItemsUI(IList<T?>? newItems)
+    protected void RespawnItemsUI(IList<TItem?>? newItems)
     {
         _itemList.ClearChildren();
 
@@ -90,8 +90,8 @@ public class ListEditor<T> : TypeEditor
         {
             for (int i = 0; i < newItems.Count; i++)
             {
-                T? item = newItems[i];
-                var editorListItem = new EditorListItem<T>(i, item, ItemsUIOnClickSelect);
+                TItem? item = newItems[i];
+                var editorListItem = new EditorListItem<TItem>(i, item, ItemsUIOnClickSelect);
                 _itemList.AddChild(editorListItem);
             }
         }
@@ -101,7 +101,7 @@ public class ListEditor<T> : TypeEditor
 
     #region Editting
 
-    public event Action<int, T?>? OnItemRemoved;
+    public event Action<int, TItem?>? OnItemRemoved;
 
     protected SquareEditorButton _addButton;
     protected SquareEditorButton _deleteButton;
@@ -128,7 +128,7 @@ public class ListEditor<T> : TypeEditor
                 Assert(_items != EMPTY_LIST);
 
                 object? newObj = CreateNewItem();
-                T? newObjAsT = (T?)newObj;
+                TItem? newObjAsT = (TItem?)newObj;
                 if (newObjAsT == null) return;
 
                 _items.Add(newObjAsT);
@@ -147,7 +147,7 @@ public class ListEditor<T> : TypeEditor
             {
                 Assert(_items != EMPTY_LIST);
 
-                T? obj = _items[_currentIndex];
+                TItem? obj = _items[_currentIndex];
                 OnItemRemoved?.Invoke(_currentIndex, obj);
 
                 _items.RemoveAt(_currentIndex);
@@ -220,18 +220,18 @@ public class ListEditor<T> : TypeEditor
 
     #region Selection
 
-    public Action<T?>? OnItemSelected;
+    public Action<TItem?>? OnItemSelected;
 
     protected int _currentIndex = -1;
 
-    protected void ItemsUIOnClickSelect(int idx, T? item)
+    protected void ItemsUIOnClickSelect(int idx, TItem? item)
     {
         SetSelection(idx);
 
         if (_currentIndex != -1)
         {
             AssertNotNull(_items);
-            T? newSelectedItem = _items[_currentIndex];
+            TItem? newSelectedItem = _items[_currentIndex];
         }
     }
 
@@ -239,7 +239,7 @@ public class ListEditor<T> : TypeEditor
     {
         int selectedIndex = _currentIndex;
         int idx = 0;
-        foreach (EditorListItem<T> listItem in _itemList.WindowChildren())
+        foreach (EditorListItem<TItem> listItem in _itemList.WindowChildren())
         {
             listItem.Selected = selectedIndex == idx;
             idx++;

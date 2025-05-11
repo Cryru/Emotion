@@ -37,8 +37,8 @@ namespace SourceGenerator
                     // todo: associated types for statics
                     if (ReflectorStaticClassGenerator.Run(ref sourceProductionContext, type))
                         continue;
-     
-                    AddComplexTypeAndAssociatedTypes(sourceProductionContext, type, typesToReflector, typeToMembers);
+
+                    AssociatedTypesFinder.AddTypeAndAssociatedTypes(sourceProductionContext, type, typesToReflector, typeToMembers);
                 }
 
                 // [Step 2] Generate handlers for all types found
@@ -46,34 +46,24 @@ namespace SourceGenerator
                 {
                     INamedTypeSymbol typeNamed = type as INamedTypeSymbol;
 
+                    // Some types are non-named (arrays)
+                    if (ReflectorEnumerableGenerator.Run(ref sourceProductionContext, type)) continue;
+
+                    if (typeNamed == null) continue;
+
                     // Some types are either handled by other generators or have additional generation.
-                    if (typeNamed != null)
-                    {
-                        GameDataEditorSupportGenerator.Run(ref sourceProductionContext, typeNamed);
-                        if (ReflectorEnumGenerator.Run(ref sourceProductionContext, typeNamed)) continue;
-                    }
+                    GameDataEditorSupportGenerator.Run(ref sourceProductionContext, typeNamed);
+                    if (ReflectorEnumGenerator.Run(ref sourceProductionContext, typeNamed)) continue;
 
-                    if (type.TypeKind == TypeKind.Array && type is IArrayTypeSymbol arrayType)
-                    {
-                        Console.WriteLine($"[ReflectorV2-Primary] Generating array handler for {type.ToDisplayString()}.");
-                        GenerateHandlerForArrayType(ref sourceProductionContext, arrayType);
-                    }
-                    else if (typeNamed != null)
-                    {
-                        // Get member list of complex type
-                        if (!typeToMembers.TryGetValue(typeNamed, out ImmutableArray<ReflectorMemberData> members))
-                            members = GetReflectorableTypeMembers(sourceProductionContext, typeNamed);
+                    // Get member list of complex type
+                    if (!typeToMembers.TryGetValue(typeNamed, out ImmutableArray<ReflectorMemberData> members))
+                        members = GetReflectorableTypeMembers(sourceProductionContext, typeNamed);
 
-                        Console.WriteLine($"[ReflectorV2-Primary] Generating handler for {type.ToDisplayString()}.");
-                        GenerateHandlerForComplexType(ref sourceProductionContext, typeNamed, members);
-                    }
+                    Console.WriteLine($"[ReflectorV2-Primary] Generating handler for {type.ToDisplayString()}.");
+                    GenerateHandlerForComplexType(ref sourceProductionContext, typeNamed, members);
                 }
 
                 Console.WriteLine($"[ReflectorV2] Done!");
-
-                // todo: list
-                // todo: dictionary
-                // todo: generic specializations
             });
         }
 
@@ -143,6 +133,11 @@ namespace SourceGenerator
 
         public static ImmutableArray<ReflectorMemberData> GetReflectorableTypeMembers(SourceProductionContext context, INamedTypeSymbol typ, bool staticMode = false)
         {
+            // Skip members of these types.
+            var name = typ.ToDisplayString();
+            if (name.StartsWith("System.Collections.Generic.Dictionary") || name.StartsWith("System.Collections.Generic.List"))
+                return ImmutableArray<ReflectorMemberData>.Empty;
+
             ImmutableArray<ReflectorMemberData>.Builder result = ImmutableArray.CreateBuilder<ReflectorMemberData>();
 
             ImmutableArray<ISymbol> members = typ.GetMembers();
@@ -163,7 +158,7 @@ namespace SourceGenerator
                 {
                     if (member.IsStatic) continue;
                 }
-                
+
 
                 // Skip indexer properties.
                 if (memberName == "this[]") continue;
@@ -248,91 +243,6 @@ namespace SourceGenerator
             return result.ToImmutable();
         }
 
-        private void AddComplexTypeAndAssociatedTypes(SourceProductionContext context, INamedTypeSymbol typ, HashSet<ITypeSymbol> typesToProcess, Dictionary<INamedTypeSymbol, ImmutableArray<ReflectorMemberData>> typeToMembers)
-        {
-            if (!IsReflectorableType(typ)) return;
-            if (IsReflectorBuiltInType(typ)) return;
-
-            if (typ.NullableAnnotation == NullableAnnotation.Annotated)
-                typ = (INamedTypeSymbol)typ.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-
-            string name = typ.ToDisplayString();
-            if (name[name.Length - 1] == '?') return;
-
-            if (!typesToProcess.Add(typ)) return;
-
-            Console.WriteLine($"[ReflectorV2] Added type {typ.ToDisplayString()}");
-
-            // Add key and value as associations for dictionaries
-            // todo: maybe we should do this for all generic type arguments?
-            if (name.StartsWith("System.Collections.Generic.Dictionary"))
-            {
-                ImmutableArray<ITypeSymbol> keyAndValue = typ.TypeArguments;
-
-                ITypeSymbol keyType = keyAndValue[0];
-                INamedTypeSymbol keyTypeNamed = keyType as INamedTypeSymbol;
-                if (keyTypeNamed != null)
-                {
-                    Console.WriteLine($"[ReflectorV2]       Key type found {keyTypeNamed.ToDisplayString()}");
-                    AddComplexTypeAndAssociatedTypes(context, keyTypeNamed, typesToProcess, typeToMembers);
-                }
-
-                ITypeSymbol valueType = keyAndValue[1];
-                INamedTypeSymbol valueTypeNamed = valueType as INamedTypeSymbol;
-                if (valueTypeNamed != null)
-                {
-                    Console.WriteLine($"[ReflectorV2]       Value type found {valueTypeNamed.ToDisplayString()}");
-                    AddComplexTypeAndAssociatedTypes(context, valueTypeNamed, typesToProcess, typeToMembers);
-                }
-
-                return;
-            }
-
-            INamedTypeSymbol baseTyp = typ.BaseType;
-            if (baseTyp != null && !IsReflectorBuiltInType(baseTyp)) // Built-in base types are like Object and Valuetype
-            {
-                Console.WriteLine($"[ReflectorV2]       Base type found {baseTyp.ToDisplayString()}");
-                AddComplexTypeAndAssociatedTypes(context, baseTyp, typesToProcess, typeToMembers);
-            }
-
-            ImmutableArray<ReflectorMemberData> members = GetReflectorableTypeMembers(context, typ);
-            typeToMembers.Add(typ, members); // Cache this for later.
-
-            // Add member types as associations
-            foreach (ReflectorMemberData member in members)
-            {
-                ITypeSymbol memberType = member.TypeSymbol;
-                if (memberType.TypeKind == TypeKind.Array && memberType is IArrayTypeSymbol arrayType)
-                {
-                    ITypeSymbol elementType = arrayType.ElementType;
-                    INamedTypeSymbol elementNamedType = elementType as INamedTypeSymbol;
-                    if (elementNamedType != null && IsReflectorBuiltInType(elementNamedType)) continue; // Arrays of built in types are also built in
-
-                    if (typesToProcess.Add(memberType))
-                    {
-                        Console.WriteLine($"[ReflectorV2] Added type {memberType.ToDisplayString()}");
-
-                        // If the array was added - add the element too.
-                        Console.WriteLine($"[ReflectorV2]       Element type found {elementNamedType.ToDisplayString()}");
-                        AddComplexTypeAndAssociatedTypes(context, elementNamedType, typesToProcess, typeToMembers);
-                    }
-
-                    continue;
-                }
-
-                INamedTypeSymbol memberTypeNamed = memberType as INamedTypeSymbol;
-                if (memberTypeNamed != null)
-                {
-                    //Console.WriteLine($"[ReflectorV2]     Associated type found {memberType.ToDisplayString()}");
-                    AddComplexTypeAndAssociatedTypes(context, memberTypeNamed, typesToProcess, typeToMembers);
-                }
-                else
-                {
-                    Console.WriteLine($"[ReflectorV2]     Found unknown associated type {memberType.ToDisplayString()}");
-                }
-            }
-        }
-
         public static void GenerateHandlerForDictionary(ref SourceProductionContext context, INamedTypeSymbol typ)
         {
             StringBuilder sb = new StringBuilder(1024);
@@ -366,43 +276,6 @@ namespace SourceGenerator
             sb.AppendLine("    public static void LoadReflector()");
             sb.AppendLine("    {");
             sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new DictionaryTypeHandler<{fullTypName}, {keyFullName}, {valueSafeName}>());");
-            sb.AppendLine("    }");
-            sb.AppendLine("}");
-
-            context.AddSource($"RFLC.{safeNameFull}.g.cs", sb.ToString());
-        }
-
-        public static void GenerateHandlerForArrayType(ref SourceProductionContext context, IArrayTypeSymbol typ)
-        {
-            StringBuilder sb = new StringBuilder(1024);
-
-            string fullTypName = typ.ToDisplayString();
-
-            ITypeSymbol elementType = typ.ElementType;
-            string elementFullTypName = elementType.ToDisplayString();
-            string safeNameFull = "ArrayOf" + GetSafeName(elementFullTypName);
-
-            sb.AppendLine("// <auto-generated/>");
-            sb.AppendLine("// Generated by Emotion.SourceGeneration");
-            sb.AppendLine();
-            sb.AppendLine("#nullable enable");
-            sb.AppendLine();
-            sb.AppendLine("using System;");
-            sb.AppendLine("using System.Collections.Generic;");
-            sb.AppendLine("using System.Runtime.CompilerServices;");
-            sb.AppendLine("using Emotion.Standard.Reflector;");
-            sb.AppendLine("using Emotion.Standard.Reflector.Handlers;");
-            sb.AppendLine();
-            sb.AppendLine($"namespace ReflectorGen;");
-            sb.AppendLine("");
-            sb.AppendLine($"public static class ReflectorData{safeNameFull}");
-
-            sb.AppendLine("{");
-            sb.AppendLine("");
-            sb.AppendLine("    [ModuleInitializer]");
-            sb.AppendLine("    public static void LoadReflector()");
-            sb.AppendLine("    {");
-            sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<{fullTypName}, {elementFullTypName}>());");
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
