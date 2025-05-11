@@ -144,8 +144,10 @@
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'!='Web'">
         <Compile Remove="Platform\Implementation\Web\**\*.cs" />
-        <Compile Remove="Platform\Implementation\Web\**\*.razor" />
     </ItemGroup>
+    <PropertyGroup Condition="'$(Platform)'!='Web'">
+        <EnableDefaultRazorComponentItems>false</EnableDefaultRazorComponentItems>
+    </PropertyGroup>
 
     <!-- Github Autobuild -->
     <PropertyGroup Condition="'$(Configuration)'=='Autobuild'">
