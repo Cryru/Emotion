@@ -46,13 +46,15 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
             if (Engine.AssetLoader == null) return;
 
+            // Add desktop assets if not mounting developer version assets (which is the assets folder from the project folder)
+            // todo: maybe we want to differentiate this two states by making the production assets packed in some way?
             if (!Engine.Configuration.DebugMode || !DeveloperMode_InitializeAssetsFromProject())
             {
                 Engine.Log.Trace("Adding default desktop asset sources.", MessageSource.Platform);
                 Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
             }
 
-            Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
+            Engine.AssetLoader.AddStore(new FileAssetStore("Player", true));
         }
 
         #region File IO
@@ -118,7 +120,10 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
             string assetFolder = Path.Join(projectFolder, "Assets");
             _devModeAssetFolder = assetFolder;
-            Engine.AssetLoader.ONE_AddAssetSource(new DevModeProjectAssetSource(assetFolder));
+
+            var devSource = new DevModeProjectAssetSource(assetFolder);
+            Engine.AssetLoader.ONE_AddAssetSource(devSource);
+            Engine.AssetLoader.AddStore(devSource);
 
             // todo: add store
 

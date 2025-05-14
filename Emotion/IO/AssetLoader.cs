@@ -119,8 +119,8 @@ namespace Emotion.IO
             // Stores are also sources.
             AddSource(store);
 
-            _storage.TryAdd(NameToEngineName(storeCast.Folder), storeCast);
-            Engine.Log.Info($"Mounted asset store '{store}' at {storeCast.Folder}.", MessageSource.AssetLoader);
+            _storage.TryAdd(NameToEngineName(storeCast.StoreFolder), storeCast);
+            Engine.Log.Info($"Mounted asset store '{store}' at {storeCast.StoreFolder}.", MessageSource.AssetLoader);
         }
 
         #region Assets
@@ -242,6 +242,18 @@ namespace Emotion.IO
             return (T)asset;
         }
 
+        public bool SaveDevMode(string content, string name, bool backup = true)
+        {
+            if (!Engine.Configuration.DebugMode) return false;
+            return Save(content, "Assets/" + name, backup);
+        }
+
+        public bool Save(string content, string name, bool backup = true)
+        {
+            byte[] bytes = System.Text.Encoding.Default.GetBytes(content);
+            return Save(bytes, name, backup);
+        }
+
         /// <summary>
         /// Store an asset.
         /// </summary>
@@ -259,18 +271,10 @@ namespace Emotion.IO
             // Find a store which matches the name folder.
             IAssetStore? store = GetStore(name);
             if (store == null)
-                // If root path and in debug mode, save to the project assets.
-                if (!Engine.Configuration.DebugMode || !_storage.TryGetValue(NameToEngineName(DebugAssetStore.AssetDevPath), out store))
-                {
-                    if (_storage.Count == 0)
-                    {
-                        Engine.Log.Warning($"Couldn't find asset store for {name} and debug store isn't loaded.", MessageSource.AssetLoader);
-                        return false;
-                    }
-
-                    store = _storage.FirstOrDefault().Value;
-                    Engine.Log.Warning($"Tried to store asset {name} but there's no store that services that folder. Saving to debug store \"{store.Folder}\".", MessageSource.AssetLoader);
-                }
+            {
+                Engine.Log.Warning($"Couldn't find asset store for {name}.", MessageSource.AssetLoader);
+                return false;
+            }
 
             // Store the asset.
             try
@@ -315,6 +319,7 @@ namespace Emotion.IO
         /// <returns>The store which this asset would end up in, or null if none.</returns>
         public IAssetStore? GetStore(string name)
         {
+            //playe
             string folder = GetFirstDirectoryName(name);
             bool found = _storage.TryGetValue(folder, out IAssetStore? store);
             return found ? store : null;

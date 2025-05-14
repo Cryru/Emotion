@@ -10,11 +10,13 @@ using Emotion.Platform.Implementation.CommonDesktop;
 
 namespace Emotion.IO;
 
-public class DevModeProjectAssetSource : FileAssetSource
+public class DevModeProjectAssetSource : FileAssetStore
 {
+    public override string StoreFolder => "assets";
+
     private FileSystemWatcher _watcher;
 
-    public DevModeProjectAssetSource(string assetFolder) : base(assetFolder)
+    public DevModeProjectAssetSource(string assetFolder) : base(assetFolder, false)
     {
         FileSystemWatcher watcher = new FileSystemWatcher();
         watcher.Path = _folderFs;

@@ -10,8 +10,10 @@ namespace Emotion.Platform.Implementation.CommonDesktop
     /// <inheritdoc cref="FileAssetSource" />
     public class FileAssetStore : FileAssetSource, IAssetStore
     {
+        public virtual string StoreFolder => Folder.ToLower();
+
         /// <inheritdoc />
-        public FileAssetStore(string folder) : base(folder, true)
+        public FileAssetStore(string folder, bool folderInManifest) : base(folder, folderInManifest)
         {
         }
 
@@ -19,7 +21,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         public virtual void SaveAsset(byte[] data, string name, bool backup)
         {
             string filePath = EnginePathToFilePath(name);
-            filePath = filePath.Replace(_folderFs.ToLower(), _folderFs);
+            filePath = filePath.Replace(StoreFolder.ToLower(), _folderFs);
 
             if (!File.Exists(filePath))
                 // If new - add to the internal manifest.

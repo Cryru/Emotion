@@ -81,7 +81,7 @@ namespace Emotion.IO
                 Engine.Log.Warning("Couldn't find project folder!", MessageSource.Engine);
         }
 
-        public DebugAssetStore() : base(AssetDevPath)
+        public DebugAssetStore() : base(AssetDevPath, true)
         {
         }
 

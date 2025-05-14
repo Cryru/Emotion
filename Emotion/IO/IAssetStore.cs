@@ -5,7 +5,7 @@
     /// </summary>
     public interface IAssetStore
     {
-        string Folder { get; }
+        string StoreFolder { get; }
 
         /// <summary>
         /// Save an asset to the disk.
