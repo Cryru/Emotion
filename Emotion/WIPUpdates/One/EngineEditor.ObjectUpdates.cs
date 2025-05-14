@@ -72,4 +72,12 @@ public partial class EngineEditor
 
         list.Add(listenInstance);
     }
+
+    public static void RegisterForObjectChangesList(IEnumerable obj, Action<ObjectChangeType> onChanged, object? listener = null)
+    {
+        foreach (object? item in obj)
+        {
+            RegisterForObjectChanges(item, onChanged, listener);
+        }
+    }
 }
