@@ -11,6 +11,8 @@ using Emotion.Utility;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Editor.EditorHelpers;
 
 public static class EditorUtility
