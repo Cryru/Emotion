@@ -453,7 +453,7 @@ public class UITextInput2 : UIRichText
 
     private int GetSelectionIndexUnderCursor(Vector2 mousePos)
     {
-        (int selIndex, int _, float __) = _layoutEngine.GetSelectionIndexFromPosition(mousePos - Position2);
+        (int selIndex, int _, float __) = _layoutEngine.GetSelectionIndexFromPosition(mousePos - RenderBounds.Position);
         return selIndex;
     }
 
