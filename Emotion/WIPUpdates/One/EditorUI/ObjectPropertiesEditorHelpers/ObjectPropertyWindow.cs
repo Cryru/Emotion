@@ -40,6 +40,11 @@ public class ObjectPropertyWindow : UIBaseWindow
         {
             _editor = editor;
             editor.SetValue(ObjectBeingEdited);
+            editor.SetCallbackOnValueChange((obj) =>
+            {
+                if (obj == null) return;
+                EngineEditor.ObjectChanged(obj, ObjectChangeType.ValueChanged, editor);
+            });
             AddChild(editor);
         }
     }

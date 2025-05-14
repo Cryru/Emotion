@@ -4,6 +4,9 @@ using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Reflector;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using System.Reflection.Metadata;
+using System.ComponentModel;
+using System.Reflection.Emit;
 
 #nullable enable
 
@@ -18,7 +21,9 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 {
     public object? ObjectBeingEdited { get; protected set; }
     protected Type _type = typeof(T);
+
     protected Dictionary<string, TypeEditor> _memberToEditor = new();
+    protected List<(ComplexTypeHandlerMemberBase, TypeEditor)> _editors = new();
 
     private EditorScrollArea _scroll;
     private UIBaseWindow _list;
@@ -42,9 +47,20 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         _scroll.AddChildInside(_list);
     }
 
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+        EngineEditor.UnregisterForObjectChanges(this);
+    }
+
     public override void SetValue(object? obj)
     {
         ObjectBeingEdited = obj;
+
+        EngineEditor.UnregisterForObjectChanges(this);
+        if (obj != null)
+            EngineEditor.RegisterForObjectChanges(obj, (_) => RefreshAllMemberValues(), this);
+
         SpawnEditors();
     }
 
@@ -52,6 +68,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
     {
         _list.ClearChildren();
         _memberToEditor.Clear();
+        _editors.Clear();
 
         // todo
         if (ObjectBeingEdited == null) return;
@@ -70,21 +87,49 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
             TypeEditor? editor = memberHandler?.GetEditor();
             if (editor != null)
             {
-                var editorWithlabel = new ObjectPropertyEditor(editor, ObjectBeingEdited, member);
+                editor.SetCallbackOnValueChange((newValue) =>
+                {
+                    member.SetValueInComplexObject(ObjectBeingEdited, newValue);
+                    EngineEditor.ObjectChanged(ObjectBeingEdited, ObjectChangeType.ComplexObject_PropertyChanged, this);
+                    OnValueChanged(ObjectBeingEdited);
+                });
+
+                if (editor is ListEditor)
+                    editor.MinSizeY = 200;
+
+                bool verticalLabel = editor is NestedComplexObjectEditor || editor is ListEditor;
+                var editorWithlabel = TypeEditor.WrapWithLabel(member.Name + ":", editor, verticalLabel);
                 _list.AddChild(editorWithlabel);
 
                 _memberToEditor.Add(member.Name, editor);
+                _editors.Add((member, editor));
             }
             else
             {
                 _list.AddChild(new EditorLabel($"{member.Name}: [No handler for type - {member.Type.Name}]"));
             }
         }
+
+        RefreshAllMemberValues();
     }
+
+    private void RefreshAllMemberValues()
+    {
+        if (ObjectBeingEdited == null) return;
+        foreach ((ComplexTypeHandlerMemberBase member, TypeEditor editor) in _editors)
+        {
+            if (member.GetValueFromComplexObject(ObjectBeingEdited, out object? readValue))
+                editor.SetValue(readValue);
+        }
+    }
+
+    #region Public API
 
     public override TypeEditor? GetEditorForProperty(string propertyName)
     {
         _memberToEditor.TryGetValue(propertyName, out TypeEditor? val);
         return val;
     }
+
+    #endregion
 }

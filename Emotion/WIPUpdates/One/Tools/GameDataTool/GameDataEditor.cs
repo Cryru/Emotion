@@ -2,6 +2,7 @@
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using static Emotion.Game.Data.GameDatabase;
@@ -10,7 +11,7 @@ using static Emotion.Game.Data.GameDatabase;
 
 namespace Emotion.WIPUpdates.One.Tools.GameDataTool;
 
-public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor doesn't actually use the file support, just the top bar.
+public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor, ObjectPropertyWindow, object> // Passing object as edit type as we dont care about the built in file editing
 {
     public Type GameDataType { get; private set; }
     public IGenericReflectorComplexTypeHandler? TypeHandler { get; private set; }
@@ -33,43 +34,7 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
         base.AttachedToController(controller);
 
         UIBaseWindow contentParent = GetContentParent();
-
         CreateHotReloadSection(contentParent);
-
-        // Standard two-split editor
-        UISolidColor content = new UISolidColor
-        {
-            IgnoreParentColor = true,
-            MinSize = new Vector2(300),
-            WindowColor = new Color(0, 0, 0, 50),
-            Paddings = new Rectangle(5, 5, 5, 5),
-            LayoutMode = LayoutMode.HorizontalEditorPanel
-        };
-        contentParent.AddChild(content);
-
-        var list = new GameDataListEditor(this, GameDataType)
-        {
-            IgnoreParentColor = true,
-            OnItemSelected = SelectItem
-        };
-        content.AddChild(list);
-        _listEditor = list;
-
-        content.AddChild(new HorizontalPanelSeparator());
-
-        UIBaseWindow contentRight = new()
-        {
-            IgnoreParentColor = true,
-            Id = "SelectedInfo",
-            LayoutMode = LayoutMode.VerticalList,
-            GrowX = false,
-            //MinSize = new Vector2(50)
-        };
-        content.AddChild(contentRight);
-
-        var properties = new ObjectPropertyWindow();
-        contentRight.AddChild(properties);
-        _propertyEditor = properties;
 
         // Now that the UI is setup, initialize editting functionality
 
@@ -80,12 +45,31 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
             GameDataObject dataObject = gameDataOfType[i];
             EmulatedEditList.Add(dataObject.CreateCopy());
         }
-        list.SetValue(EmulatedEditList);
+        _listEditor.SetValue(EmulatedEditList);
 
         // Attach to events concerning the list (fired by the ListEditor)
         // and hot reload "need" events in order to hide/show the hot reload section.
         EngineEditor.RegisterForObjectChanges(EmulatedEditList, ListChangedEvent, this);
         EditorAdapter.OnHotReloadNeededChange += HotReloadNeededChange;
+    }
+
+    protected override GameDataListEditor GetLeftSideContent()
+    {
+        var list = new GameDataListEditor(this, GameDataType)
+        {
+            IgnoreParentColor = true,
+            OnItemSelected = SelectItem
+        };
+        _listEditor = list;
+        return list;
+    }
+
+    protected override ObjectPropertyWindow GetRightSideContent()
+    {
+        var properties = new ObjectPropertyWindow();
+        _propertyEditor = properties;
+
+        return properties;
     }
 
     public override void DetachedFromController(UIController controller)
@@ -180,7 +164,7 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
     {
         EditorButton button = new EditorButton("Save Changes")
         {
-            OnClickedProxy = (_) => SaveFile(),
+            OnClickedProxy = (_) => SaveFileClicked(),
             Enabled = false
         };
         topBar.AddChild(button);
@@ -192,7 +176,6 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
     protected override void SaveFile()
     {
         EditorAdapter.SaveChanges(GameDataType, _modifiedList);
-        base.SaveFile();
     }
 
     protected override void UnsavedChangesChanged()
@@ -210,7 +193,6 @@ public class GameDataEditor : EditorWindowFileSupport // Heads up. This editor d
         if (obj != null && _modifiedList.IndexOf(obj) == -1)
             _modifiedList.Add(obj);
     }
-
 
     #endregion
 }

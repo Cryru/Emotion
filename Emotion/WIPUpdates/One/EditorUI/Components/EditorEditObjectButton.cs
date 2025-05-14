@@ -13,16 +13,16 @@ public class EditorEditObjectButton : SquareEditorButtonWithTexture
     private object? _obj;
     private IGenericReflectorTypeHandler? _typeHandler;
 
-    private Func<object?>? _onClick;
+    private Func<object?>? _getObjectLazy;
 
     public EditorEditObjectButton(object? obj) : base("Editor/Edit.png")
     {
         SetObjectToEdit(obj);
     }
 
-    public EditorEditObjectButton(Func<object?> onClick) : base("Editor/Edit.png")
+    public EditorEditObjectButton(Func<object?> getObjectLazy) : base("Editor/Edit.png")
     {
-        _onClick = onClick;
+        _getObjectLazy = getObjectLazy;
     }
 
     private void SetObjectToEdit(object? obj)
@@ -36,9 +36,9 @@ public class EditorEditObjectButton : SquareEditorButtonWithTexture
     {
         base.OnClicked();
 
-        if (_onClick != null)
+        if (_getObjectLazy != null)
         {
-            object? obj = _onClick.Invoke();
+            object? obj = _getObjectLazy.Invoke();
             if (obj == null) return;
             SetObjectToEdit(obj);
         }

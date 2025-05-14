@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Standard.Reflector;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 
@@ -7,11 +8,16 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyEditorWindow : EditorWindow
 {
+    private ObjectPropertyWindow _editorWindow;
+
     private object _obj;
 
-    public ObjectPropertyEditorWindow(object obj, Vector2 initialPosition) : base($"Object Editor - {obj.GetType().Name}")
+    public ObjectPropertyEditorWindow(object obj, Vector2 initialPosition) : base($"Object Editor - {ReflectorEngine.GetTypeName(obj.GetType())}")
     {
         _obj = obj;
+
+        _editorWindow = new ObjectPropertyWindow();
+        _editorWindow.SetEditor(_obj);
 
         //_initialPosition = initialPosition;
         _initialSize = new Vector2(500, 300);
@@ -26,10 +32,6 @@ public class ObjectPropertyEditorWindow : EditorWindow
         base.AttachedToController(controller);
 
         UIBaseWindow contentParent = GetContentParent();
-
-        var propertyWindow = new ObjectPropertyWindow();
-        propertyWindow.MinSize = new Vector2(110);
-        propertyWindow.SetEditor(_obj);
-        contentParent.AddChild(propertyWindow);
+        contentParent.AddChild(_editorWindow);
     }
 }

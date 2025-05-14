@@ -7,13 +7,13 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public interface IListEditor
+public abstract class ListEditor : TypeEditor
 {
 
 }
 
 // generic constraint is the item type is only for ease of use, pass object if you dont care
-public class ListEditor<TItem> : TypeEditor, IListEditor
+public class ListEditor<TItem> : ListEditor
 {
     private static IList<TItem?> EMPTY_LIST = new List<TItem?>();
 
@@ -21,6 +21,7 @@ public class ListEditor<TItem> : TypeEditor, IListEditor
     private IGenericReflectorComplexTypeHandler? _complexTypeHandler;
 
     private IList<TItem?> _items = EMPTY_LIST;
+    private IList<object?> _boxedList;
 
     private UIBaseWindow _itemList;
 
@@ -60,11 +61,20 @@ public class ListEditor<TItem> : TypeEditor, IListEditor
         if (value == null)
         {
             _items = EMPTY_LIST;
+            _boxedList = null;
         }
         else
         {
             _items = (IList<TItem?>)value;
-            EngineEditor.RegisterForObjectChanges(value, (_) => RespawnItemsUI(_items), this);
+            EngineEditor.RegisterForObjectChanges(_items, (_) => RespawnItemsUI(_items), this);
+
+            // Listen to individual object changes
+            _boxedList = new List<object?>();
+            foreach (TItem? item in _items)
+            {
+                _boxedList.Add(item);
+            }
+            EngineEditor.RegisterForObjectChangesList(_boxedList, (_) => RespawnItemsUI(_items), this);
         }
 
         SetSelection(-1); // Reset selection
@@ -265,6 +275,16 @@ public class ListEditor<TItem> : TypeEditor, IListEditor
     protected virtual object? CreateNewItem()
     {
         return _complexTypeHandler?.CreateNew();
+    }
+
+    #endregion
+
+    #region API
+
+    public TItem? GetSelected()
+    {
+        if (_currentIndex == -1) return default;
+        return _items[_currentIndex];
     }
 
     #endregion

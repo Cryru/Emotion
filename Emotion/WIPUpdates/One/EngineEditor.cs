@@ -145,17 +145,8 @@ public static partial class EngineEditor
         };
         barContainer.AddChild(container);
 
-        var editorWithLabel = new ObjectPropertyEditor(
-            "View Game Camera",
-            new BooleanEditor(),
-            _debugCameraOptionOn,
-            (newVal) => SetDebugCameraOption((bool)newVal)
-        );
-        EditorLabel label = editorWithLabel.Label;
-        label.OutlineColor = Color.Black;
-        label.OutlineSize = 2;
-        label.FontSize = 23;
-        container.AddChild(editorWithLabel);
+        var viewGameCamera = TypeEditor.CreateCustomWithLabel("View Game Camera", _debugCameraOptionOn, SetDebugCameraOption, LabelStyle.MapEditor);
+        container.AddChild(viewGameCamera);
     }
 
     private static void RenderGameCameraBound(RenderComposer c)

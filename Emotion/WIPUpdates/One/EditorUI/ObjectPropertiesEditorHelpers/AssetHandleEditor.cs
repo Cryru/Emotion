@@ -52,22 +52,14 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
             Text = "...",
             OnClickedProxy = (_) =>
             {
-                var platform = Engine.Host;
-                if (platform is DesktopPlatform winPl)
+                FilePicker<T>.SelectFile(this, (file) =>
                 {
-                    winPl.DeveloperMode_SelectFileNative<T>((file) =>
-                    {
-                        if (_objectEditting != null)
-                        {
-                            _objectEditting.Name = file?.Name;
-                            OnValueChanged(_objectEditting);
-                            UpdateTextInput();
-                        }
-                    });
-                }
+                    if (_objectEditting == null) return;
 
-                //var explorer = new FilePicker<TextureAsset>((file) => NewEntity(file));
-                //Parent!.AddChild(explorer);
+                    _objectEditting.Name = file?.Name;
+                    OnValueChanged(_objectEditting);
+                    UpdateTextInput();
+                });
             }
         };
         container.AddChild(browse);

@@ -1,11 +1,16 @@
-﻿using Emotion.UI;
+﻿using Emotion.IO;
+using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.XML;
+using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.Tools;
 
-public partial class EditorWindowFileSupport : EditorWindow
+public partial class EditorWindowFileSupport<T> : EditorWindow
 {
     public const string DEFAULT_FILE_NAME = "Untitled";
 
@@ -14,11 +19,14 @@ public partial class EditorWindowFileSupport : EditorWindow
     private string _headerBaseText;
     protected string _currentFileName = DEFAULT_FILE_NAME;
 
-    private UIBaseWindow _unsavedChangesNotification = null!;
+    protected ComplexTypeHandler<T>? _typeHandler;
+    public T? ObjectBeingEdited { get; protected set; }
 
     public EditorWindowFileSupport(string title) : base(title ?? "Generic Tool")
     {
         _headerBaseText = Header;
+        if (typeof(T) != typeof(object))
+            _typeHandler = ReflectorEngine.GetComplexTypeHandler<T>();
     }
 
     public override void AttachedToController(UIController controller)
@@ -92,14 +100,23 @@ public partial class EditorWindowFileSupport : EditorWindow
             {
                 EditorButton button = new EditorButton("Open...");
                 button.GrowX = true;
-                button.OnClickedProxy = (_) => OpenFile();
+                button.OnClickedProxy = (_) =>
+                {
+                    OpenFile();
+                    Controller?.DropDown?.Close();
+                };
                 dropDown.AddChild(button);
             }
 
             {
                 EditorButton button = new EditorButton("Save");
                 button.GrowX = true;
-                button.OnClickedProxy = (_) => SaveFile();
+                button.OnClickedProxy = (_) =>
+                {
+                    SaveFileClicked();
+                    Controller?.DropDown?.Close();
+                };
+                //button.Enabled = _hasUnsavedChanges;
                 dropDown.AddChild(button);
             }
 
@@ -112,21 +129,57 @@ public partial class EditorWindowFileSupport : EditorWindow
         topBar.AddChild(fileButton);
     }
 
+    protected void SaveFileClicked()
+    {
+        SaveFile();
+        _hasUnsavedChanges = false;
+        UnsavedChangesChanged();
+    }
+
     #region API
 
-    protected virtual void NewFile()
+    protected void NewFile()
     {
+        if (_typeHandler != null)
+        {
+            ObjectBeingEdited = (T?) _typeHandler.CreateNew();
+            OnObjectBeingEditedChange(ObjectBeingEdited);
+            // todo: check if unsaved changes, prompt etc.
+        }
+
         _currentFileName = DEFAULT_FILE_NAME;
         Header = $"*{_currentFileName} - {_headerBaseText}";
     }
 
     protected virtual void SaveFile()
     {
-        _hasUnsavedChanges = false;
-        UnsavedChangesChanged();
+        // todo: promot for name aka save as
+        if (_typeHandler != null && ObjectBeingEdited != null)
+        {
+            string xml = XMLFormat.To(ObjectBeingEdited);
+            Engine.AssetLoader.SaveDevMode(xml, _currentFileName + ".xml");
+        }
     }
 
     protected virtual void OpenFile()
+    {
+        if (_typeHandler != null)
+        {
+            FilePicker<XMLAsset<T>>.SelectFile(this, (file) =>
+            {
+                if (file == null) return;
+
+                ObjectBeingEdited = file.Content;
+                _currentFileName = file.Name;
+                Header = $"*{_currentFileName} - {_headerBaseText}";
+                OnObjectBeingEditedChange(ObjectBeingEdited);
+            });
+            //string xml = XMLFormat.To(ObjectBeingEdited);
+            //Engine.AssetLoader.Save()
+        }
+    }
+
+    protected virtual void OnObjectBeingEditedChange(T? newObj)
     {
 
     }
@@ -136,6 +189,7 @@ public partial class EditorWindowFileSupport : EditorWindow
     #region Changes
 
     protected bool _hasUnsavedChanges;
+    private UIBaseWindow _unsavedChangesNotification = null!;
 
     protected void MarkUnsavedChanges()
     {

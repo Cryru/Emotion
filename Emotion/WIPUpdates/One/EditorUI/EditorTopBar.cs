@@ -10,6 +10,7 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.Tools;
 using Emotion.WIPUpdates.One.Tools.GameDataTool;
+using Emotion.WIPUpdates.One.Tools.SpriteEntityTool;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
 
@@ -59,7 +60,7 @@ public class EditorTopBar : UISolidColor
 
         {
             EditorButton toolButton = new EditorButton("Sprite Tool");
-            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new SpriteEntityTool());
+            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new SpriteEntityEditor());
             buttonContainer.AddChild(toolButton);
         }
         
@@ -71,7 +72,7 @@ public class EditorTopBar : UISolidColor
 
         {
             EditorButton toolButton = new EditorButton("UI File Tool");
-            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new EditorWindowFileSupport("test"));
+            toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new EditorWindowFileSupport<object>("test"));
             buttonContainer.AddChild(toolButton);
         }
 

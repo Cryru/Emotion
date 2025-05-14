@@ -1,8 +1,8 @@
 ﻿using Emotion.Editor.EditorHelpers;
 using Emotion.Game.Time.Routines;
 using Emotion.IO;
+using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.UI;
-using Emotion.Utility;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
@@ -189,5 +189,29 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         _onFileSelected.Invoke(asset);
         Parent?.RemoveChild(this);
         yield break;
+    }
+
+    public static void SelectFile(UIBaseWindow window, Action<T?> onLoaded)
+    {
+        var platform = Engine.Host;
+        if (platform is DesktopPlatform winPl)
+            winPl.DeveloperMode_SelectFileNative<T>(FileLoadProxy(onLoaded));
+    }
+
+    // We need these proxies to ensure that the asset is loaded before calling the callback
+    // and that the callback is called on the GLThread and not during any UI/Editor updates.
+    private static Action<T?> FileLoadProxy(Action<T?> userFunction)
+    {
+        return (file) =>
+        {
+            if (file == null) return;
+            Engine.CoroutineManager.StartCoroutine(FileLoadProxyRoutine(userFunction, file));
+        };
+    }
+
+    private static IEnumerator FileLoadProxyRoutine(Action<T?> userFunction, T file)
+    {
+        yield return file; // Wait for loading
+        userFunction(file);
     }
 }

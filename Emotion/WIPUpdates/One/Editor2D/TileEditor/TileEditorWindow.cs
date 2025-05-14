@@ -122,15 +122,15 @@ public sealed class TileEditorWindow : GridEditorWindow
             ComplexTypeHandlerMemberBase? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
             if (tileData != null && layerHandler != null)
             {
-                var listEditor = new ListEditor<TileMapLayer>(typeof(TileMapLayer));
-                listEditor.OnItemSelected = SelectTileLayer;
+                //var listEditor = new ListEditor<TileMapLayer>(typeof(TileMapLayer));
+                //listEditor.OnItemSelected = SelectTileLayer;
 
-                ObjectPropertyEditor layerEditor = new ObjectPropertyEditor(listEditor, tileData, layerHandler);
-                layerEditor.MinSizeY = 350;
-                layerEditor.MaxSizeY = 350;
-                layerEditor.SetVertical();
+                //ObjectPropertyEditor layerEditor = new ObjectPropertyEditor(listEditor, tileData, layerHandler);
+                //layerEditor.MinSizeY = 350;
+                //layerEditor.MaxSizeY = 350;
+                //layerEditor.SetVertical();
 
-                sidePanel.AddChild(layerEditor);
+                //sidePanel.AddChild(layerEditor);
             }
 
             //var layers = new EditorSelectableListWithButtons<TileMapLayerGrid>()
