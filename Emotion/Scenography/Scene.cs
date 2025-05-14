@@ -78,9 +78,8 @@ public abstract class SceneWithMap : Scene
         yield return InternalLoadSceneRoutineAsync();
         yield return Map.LoadRoutine();
 
-        // todo: this adding is not sync
-        Engine.UI.AddChild(UIParent);
-        yield return new TaskRoutineWaiter(Engine.UI.PreloadUI());
+        // todo: preload ui assets or something
+        //yield return new TaskRoutineWaiter(Engine.UI.PreloadUI());
 
         Status = SceneStatus.Loaded;
     }
@@ -88,7 +87,6 @@ public abstract class SceneWithMap : Scene
 
     public override IEnumerator UnloadSceneRoutineAsync()
     {
-        UIParent.Close();
         Status = SceneStatus.Disposed;
         yield break;
     }

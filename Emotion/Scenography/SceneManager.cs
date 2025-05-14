@@ -111,8 +111,15 @@ namespace Emotion.Scenography
         private IEnumerator SceneSwapSynchronized(Scene scene)
         {
             Scene oldScene = Current;
+            if (oldScene is SceneWithMap oldSceneWithMap)
+                oldSceneWithMap.UIParent.Close();
             Current = scene;
+            if (scene is SceneWithMap newSceneWithMap)
+                Engine.UI.AddChild(newSceneWithMap.UIParent);
+
             OnSceneChanged?.Invoke();
+
+            // Start job of cleaning up old scene.
             if (oldScene != LoadingScreen)
                 Engine.Jobs.Add(oldScene.UnloadSceneRoutineAsync());
 
