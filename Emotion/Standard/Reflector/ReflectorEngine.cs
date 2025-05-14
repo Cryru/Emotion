@@ -279,4 +279,11 @@ public static class ReflectorEngine
         }
         _postInitCalled = true;
     }
+
+    public static string GetTypeName(Type typ)
+    {
+        IGenericReflectorTypeHandler? handler = GetTypeHandler(typ);
+        if (handler == null) return typ.Name;
+        return handler.TypeName;
+    }
 }
