@@ -28,7 +28,7 @@ public class VectorEditor : TypeEditor
 
         UIBaseWindow editorContainer = new()
         {
-            LayoutMode = LayoutMode.HorizontalList
+            LayoutMode = LayoutMode.HorizontalList,
         };
         AddChild(editorContainer);
 
@@ -42,8 +42,10 @@ public class VectorEditor : TypeEditor
 
             var inputBackground = new UISolidColor
             {
-                WindowColor = Color.Black * 0.5f,
-                Paddings = new Primitives.Rectangle(5, 3, 5, 3)
+                WindowColor = Color.Black * 0.8f,
+                Paddings = new Primitives.Rectangle(5, 3, 5, 3),
+
+                Margins = new Primitives.Rectangle(0, 0, i != _componentCount - 1 ? 10 : 0, 0),
             };
             editorContainer.AddChild(inputBackground);
 
@@ -53,7 +55,7 @@ public class VectorEditor : TypeEditor
                 Id = "TextInput",
 
                 FontSize = MapEditorColorPalette.EditorButtonTextSize,
-                MinSizeX = 100,
+                MinSizeX = 50,
                 AnchorAndParentAnchor = UIAnchor.CenterLeft,
                 IgnoreParentColor = true,
 
@@ -66,7 +68,7 @@ public class VectorEditor : TypeEditor
                         _componentValues[inputIndex] = parsed;
                         WriteVectorComponents();
                     }
-                }
+                },
             };
             inputBackground.AddChild(input);
 

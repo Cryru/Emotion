@@ -20,13 +20,14 @@ public abstract class ComplexObjectEditor : TypeEditor
 public class ComplexObjectEditor<T> : ComplexObjectEditor
 {
     public object? ObjectBeingEdited { get; protected set; }
+
     protected Type _type = typeof(T);
 
     protected Dictionary<string, TypeEditor> _memberToEditor = new();
     protected List<(ComplexTypeHandlerMemberBase, TypeEditor)> _editors = new();
 
     private EditorScrollArea _scroll;
-    private UIBaseWindow _list;
+    public UIBaseWindow EditorList;
 
     public ComplexObjectEditor()
     {
@@ -37,14 +38,14 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         };
         AddChild(_scroll);
 
-        _list = new UIBaseWindow()
+        EditorList = new UIBaseWindow()
         {
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 5),
             Paddings = new Rectangle(10, 5, 10, 5),
             Id = "EditorListParent"
         };
-        _scroll.AddChildInside(_list);
+        _scroll.AddChildInside(EditorList);
     }
 
     public override void DetachedFromController(UIController controller)
@@ -66,7 +67,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
     protected void SpawnEditors()
     {
-        _list.ClearChildren();
+        EditorList.ClearChildren();
         _memberToEditor.Clear();
         _editors.Clear();
 
@@ -97,18 +98,23 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                 if (editor is ListEditor)
                     editor.MinSizeY = 200;
 
+                editor.SetParentObject(ObjectBeingEdited);
+
                 bool verticalLabel = editor is NestedComplexObjectEditor || editor is ListEditor;
                 var editorWithlabel = TypeEditor.WrapWithLabel(member.Name + ":", editor, verticalLabel);
-                _list.AddChild(editorWithlabel);
+                EditorList.AddChild(editorWithlabel);
 
                 _memberToEditor.Add(member.Name, editor);
                 _editors.Add((member, editor));
             }
             else
             {
-                _list.AddChild(new EditorLabel($"{member.Name}: [No handler for type - {member.Type.Name}]"));
+                EditorList.AddChild(new EditorLabel($"{member.Name}: [No handler for type - {member.Type.Name}]"));
             }
         }
+
+        if (ObjectBeingEdited is IObjectEditorExtendedFunctionality<T> ext)
+            ext.OnAfterEditorsSpawn(this);
 
         RefreshAllMemberValues();
     }

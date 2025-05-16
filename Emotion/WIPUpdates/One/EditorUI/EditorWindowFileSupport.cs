@@ -129,6 +129,40 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         topBar.AddChild(fileButton);
     }
 
+    protected void NewFile()
+    {
+        if (_typeHandler != null)
+        {
+            ObjectBeingEdited = (T?)_typeHandler.CreateNew();
+            if (ObjectBeingEdited != null)
+                OnObjectBeingEditedChange(ObjectBeingEdited);
+            // todo: check if unsaved changes, prompt etc.
+        }
+
+        _currentFileName = DEFAULT_FILE_NAME + ".xml";
+        UpdateHeader();
+    }
+
+    protected void OpenFile()
+    {
+        if (_typeHandler != null)
+        {
+            Action<UIBaseWindow, Action<XMLAsset<T>?>> fileOpenFunc = GetFileOpenFunction();
+            fileOpenFunc(this, (file) =>
+            {
+                if (file == null) return;
+                if (file.Content == null) return;
+
+                ObjectBeingEdited = file.Content;
+                _currentFileName = file.Name;
+                UpdateHeader();
+                OnObjectBeingEditedChange(ObjectBeingEdited);
+            });
+            //string xml = XMLFormat.To(ObjectBeingEdited);
+            //Engine.AssetLoader.Save()
+        }
+    }
+
     protected void SaveFileClicked()
     {
         SaveFile();
@@ -138,50 +172,36 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
 
     #region API
 
-    protected void NewFile()
+    // You can overwrite this to provide custom XMLAsset specializations for file open
+    protected virtual Action<UIBaseWindow, Action<XMLAsset<T>?>> GetFileOpenFunction()
     {
-        if (_typeHandler != null)
-        {
-            ObjectBeingEdited = (T?) _typeHandler.CreateNew();
-            OnObjectBeingEditedChange(ObjectBeingEdited);
-            // todo: check if unsaved changes, prompt etc.
-        }
-
-        _currentFileName = DEFAULT_FILE_NAME;
-        Header = $"*{_currentFileName} - {_headerBaseText}";
+        return FilePicker<XMLAsset<T>>.SelectFile;
     }
 
+    // You can overwrite this if you do not intend to use the built in file management, but
+    // want to use the save/unsaved changes functionality.
     protected virtual void SaveFile()
     {
         // todo: promot for name aka save as
         if (_typeHandler != null && ObjectBeingEdited != null)
         {
             string xml = XMLFormat.To(ObjectBeingEdited);
-            Engine.AssetLoader.SaveDevMode(xml, _currentFileName + ".xml");
+            Engine.AssetLoader.SaveDevMode(xml, _currentFileName);
         }
     }
 
-    protected virtual void OpenFile()
+    /// <summary>
+    /// This is called every time the "current object" changes.
+    /// Only useful if you intend to use the built in object management.
+    /// </summary>
+    protected virtual void OnObjectBeingEditedChange(T newObj)
     {
-        if (_typeHandler != null)
-        {
-            FilePicker<XMLAsset<T>>.SelectFile(this, (file) =>
-            {
-                if (file == null) return;
 
-                ObjectBeingEdited = file.Content;
-                _currentFileName = file.Name;
-                Header = $"*{_currentFileName} - {_headerBaseText}";
-                OnObjectBeingEditedChange(ObjectBeingEdited);
-            });
-            //string xml = XMLFormat.To(ObjectBeingEdited);
-            //Engine.AssetLoader.Save()
-        }
     }
 
-    protected virtual void OnObjectBeingEditedChange(T? newObj)
+    protected virtual void UpdateHeader()
     {
-
+        Header = $"{(_hasUnsavedChanges ? "*" : "")}{_currentFileName} - {_headerBaseText}";
     }
 
     #endregion
@@ -200,6 +220,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
     protected virtual void UnsavedChangesChanged()
     {
         _unsavedChangesNotification.Visible = _hasUnsavedChanges;
+        UpdateHeader();
     }
 
     #endregion

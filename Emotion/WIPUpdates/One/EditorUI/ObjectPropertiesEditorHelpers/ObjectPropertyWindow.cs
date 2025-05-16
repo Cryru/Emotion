@@ -10,12 +10,16 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 public class ObjectPropertyWindow : UIBaseWindow
 {
     public object? ObjectBeingEdited { get; protected set; }
+    public object? ParentObject { get; protected set; }
+
     protected Type? _type;
     private TypeEditor? _editor;
 
-    public void SetEditor(object? obj)
+    public void SetEditor(object? obj, object? parentObj = null)
     {
         ObjectBeingEdited = obj;
+        ParentObject = parentObj;
+
         _type = obj?.GetType();
         SpawnEditors();
     }
@@ -39,6 +43,7 @@ public class ObjectPropertyWindow : UIBaseWindow
         if (editor != null)
         {
             _editor = editor;
+            editor.SetParentObject(ParentObject);
             editor.SetValue(ObjectBeingEdited);
             editor.SetCallbackOnValueChange((obj) =>
             {

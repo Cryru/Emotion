@@ -2,6 +2,7 @@
 using Emotion.Game.Time.Routines;
 using Emotion.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Standard.Reflector;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 
@@ -21,7 +22,8 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
     private string[]? _currentBranch;
 
-    public FilePicker(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [{typeof(T).GetFriendlyName()}]")
+    public FilePicker(Action<T> onFileSelected, Func<string, bool>? fileFilter = null)
+        : base($"Select [{ReflectorEngine.GetTypeName(typeof(T))}]")
     {
         PanelMode = PanelMode.Modal;
 

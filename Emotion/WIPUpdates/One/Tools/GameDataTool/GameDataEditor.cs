@@ -5,6 +5,7 @@ using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using System;
 using static Emotion.Game.Data.GameDatabase;
 
 #nullable enable
@@ -23,7 +24,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
     public List<GameDataObject> EmulatedEditList = new List<GameDataObject>(); // List being edited by the list editor
     private List<GameDataObject> _modifiedList = new List<GameDataObject>();
 
-    public GameDataEditor(Type typ) : base($"{typ.Name} Editor")
+    public GameDataEditor(Type typ) : base($"{ReflectorEngine.GetTypeName(typ)} Editor")
     {
         GameDataType = typ;
         TypeHandler = ReflectorEngine.GetComplexTypeHandler(GameDataType);
@@ -192,6 +193,15 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         AssertNotNull(obj);
         if (obj != null && _modifiedList.IndexOf(obj) == -1)
             _modifiedList.Add(obj);
+    }
+
+    #endregion
+
+    #region Misc
+
+    protected override void UpdateHeader()
+    {
+        Header = $"{(_hasUnsavedChanges ? "*" : "")}{$"{ReflectorEngine.GetTypeName(GameDataType)} Editor"}";
     }
 
     #endregion

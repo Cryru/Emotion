@@ -17,10 +17,17 @@ public enum LabelStyle
 
 public abstract class TypeEditor : UIBaseWindow
 {
+    public object? ParentObject;
+
     [DontSerialize]
     private Action<object?>? _onValueChanged;
 
     public abstract void SetValue(object? value);
+
+    public void SetParentObject(object? parentObj)
+    {
+        ParentObject = parentObj;
+    }
 
     public void SetCallbackOnValueChange(Action<object?> onValueChanged)
     {

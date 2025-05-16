@@ -21,7 +21,7 @@ public class ListEditor<TItem> : ListEditor
     private IGenericReflectorComplexTypeHandler? _complexTypeHandler;
 
     private IList<TItem?> _items = EMPTY_LIST;
-    private IList<object?> _boxedList;
+    private IList<object?>? _boxedList;
 
     private UIBaseWindow _itemList;
 
@@ -178,7 +178,7 @@ public class ListEditor<TItem> : ListEditor
         var editButton = new EditorEditObjectButton(() =>
         {
             Assert(_items != EMPTY_LIST);
-            return _items[_currentIndex];
+            return (_items[_currentIndex], ParentObject);
         })
         {
             DontTakeSpaceWhenHidden = true
