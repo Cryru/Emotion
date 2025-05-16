@@ -2,6 +2,7 @@
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #nullable enable
 
@@ -15,15 +16,12 @@ public class SpriteEntity
     };
 
     public string Name = "Unnamed Entity";
+    public bool PixelArt;
+
     //public List<SerializableAsset<TextureAsset>> Textures = new();
     public List<SpriteAnimation> Animations = new();
 
     [DontSerialize]
     public string SourceFile = string.Empty;
-
-    public void Render(RenderComposer c)
-    {
-
-    }
 }
 

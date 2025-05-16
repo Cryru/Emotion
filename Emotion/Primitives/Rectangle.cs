@@ -1059,5 +1059,54 @@ namespace Emotion.Primitives
         }
 
         #endregion
+
+        public Vector2 GetRectangleAnchorSpot(RectangleAnchor anchor)
+        {
+            Vector2 spot = Vector2.Zero;
+
+            switch (anchor)
+            {
+                case RectangleAnchor.TopLeft:
+                case RectangleAnchor.CenterLeft:
+                case RectangleAnchor.BottomLeft:
+                    spot.X = X;
+                    break;
+
+                case RectangleAnchor.TopCenter:
+                case RectangleAnchor.CenterCenter:
+                case RectangleAnchor.BottomCenter:
+                    spot.X = X + Width / 2f;
+                    break;
+
+                case RectangleAnchor.TopRight:
+                case RectangleAnchor.CenterRight:
+                case RectangleAnchor.BottomRight:
+                    spot.X = X + Width;
+                    break;
+            }
+
+            switch (anchor)
+            {
+                case RectangleAnchor.TopLeft:
+                case RectangleAnchor.TopCenter:
+                case RectangleAnchor.TopRight:
+                    spot.Y = Y;
+                    break;
+
+                case RectangleAnchor.CenterLeft:
+                case RectangleAnchor.CenterCenter:
+                case RectangleAnchor.CenterRight:
+                    spot.Y = Y + Height / 2f;
+                    break;
+
+                case RectangleAnchor.BottomLeft:
+                case RectangleAnchor.BottomCenter:
+                case RectangleAnchor.BottomRight:
+                    spot.Y = Y + Height;
+                    break;
+            }
+
+            return spot;
+        }
     }
 }

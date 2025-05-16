@@ -13,7 +13,10 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
 {
     private UIList _list = null!;
 
-    private Texture _spriteEntityTexture;
+    private SpriteEntityMetaState? _entityMetaState;
+    private ListEditor<SpriteAnimation>? _animList;
+    private SpriteAnimation? _selectedAnim;
+    private float _animTime;
 
     public SpriteEntityEditor() : base("Sprite Entity Editor")
     {
@@ -34,6 +37,13 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
             MinSize = new Vector2(50),
             WindowColor = Color.CornflowerBlue
         };
+
+        var proxyRender = new EditorProxyRender()
+        {
+            OnRender = RenderViewport
+        };
+        viewPort.AddChild(proxyRender);
+
         return viewPort;
     }
 
@@ -50,15 +60,27 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
 
     protected override bool UpdateInternal()
     {
+        if (_animList != null)
+            _selectedAnim = _animList.GetSelected();
 
+        _animTime += Engine.DeltaTime;
+        _entityMetaState?.UpdateAnimation(_selectedAnim, _selectedAnim != null ? _animTime % _selectedAnim.Duration : 0);
         return base.UpdateInternal();
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected void RenderViewport(UIBaseWindow win, RenderComposer c)
     {
-        ObjectBeingEdited?.Render(c);
+        var center = win.Bounds.Center.ToVec3();
 
-        return base.RenderInternal(c);
+        float lineLength = 10;
+        c.RenderLine(center + new Vector3(0, lineLength, 0), center - new Vector3(0, lineLength, 0), Color.Red, 3);
+        c.RenderLine(center + new Vector3(lineLength, 0, 0), center - new Vector3(lineLength, 0, 0), Color.Red, 3);
+
+        if (ObjectBeingEdited != null)
+        {
+            AssertNotNull(_entityMetaState);
+            c.RenderEntityStandalone(ObjectBeingEdited, _entityMetaState, center, Engine.Renderer.IntScale);
+        }
     }
 
     protected override void CreateTopBarButtons(UIBaseWindow topBar)
@@ -100,15 +122,25 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
 
     protected override void OnObjectBeingEditedChange(SpriteEntity? newObj)
     {
+        EngineEditor.UnregisterForObjectChanges(this);
+        if (newObj != null)
+            EngineEditor.RegisterForObjectChanges(newObj, (_) => MarkUnsavedChanges(), this);
+
+        if (newObj != null)
+            _entityMetaState = new SpriteEntityMetaState(newObj);
+        else
+            _entityMetaState = null;
+
         ObjectPropertyWindow? entityData = _rightContent;
-        entityData?.SetEditor(newObj);
+        AssertNotNull(entityData);
+        entityData.SetEditor(newObj);
+        TypeEditor? animEditor = entityData.GetEditorForProperty(nameof(SpriteEntity.Animations));
+        if (animEditor is ListEditor<SpriteAnimation> animEdit)
+            _animList = animEdit;
+    }
+
+    protected override Action<UIBaseWindow, Action<SpriteAsset?>> GetFileOpenFunction()
+    {
+        return FilePicker<SpriteAsset>.SelectFile;
     }
 }
-
-//public class SelectTextureModal : EditorWindow
-//{
-//    public SelectTextureModal() : base("Select Texture")
-//    {
-//        PanelMode = Editor.EditorHelpers.PanelMode.Modal;
-//    }
-//}
