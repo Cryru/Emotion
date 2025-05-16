@@ -236,6 +236,18 @@ public partial class UIController : UIBaseWindow
         return EMPTY_CHILDREN_LIST;
     }
 
+    protected UIBaseWindow? GetParentRelativeRespecting(UIBaseWindow win)
+    {
+        if (win.RelativeTo != null)
+        {
+            UIBaseWindow? relativeToWin = win.GetWindowById(win.RelativeTo) ?? GetWindowById(win.RelativeTo);
+            if (relativeToWin != null)
+                return relativeToWin;
+        }
+
+        return win.Parent;
+    }
+
     protected void BuildRelativeToMapping()
     {
         _overlayWindows.Clear();
@@ -303,7 +315,7 @@ public partial class UIController : UIBaseWindow
             // Check if my window is supposed to be relative to another.
             if (thisWin.RelativeTo != null)
             {
-                UIBaseWindow? relativeToParent = GetWindowById(thisWin.RelativeTo) ?? Controller?.GetWindowById(thisWin.RelativeTo);
+                UIBaseWindow? relativeToParent = thisWin.GetWindowById(thisWin.RelativeTo) ?? GetWindowById(thisWin.RelativeTo);
                 if (relativeToParent != null)
                 {
                     bool relativeToWindowHasMapping = parentToChildren.TryGetValue(relativeToParent, out List<UIBaseWindow>? parentMapping);
@@ -470,22 +482,14 @@ public partial class UIController : UIBaseWindow
 
             if (key == Key.MouseKeyLeft && status == KeyState.Down)
             {
-                // todo: there must be a better way of consuming clicks outside yourself? (SetInputFocus param?)
-                // todo: kind of cringe that dropdowns are so heavily hardcoded into the system...
-                if (DropDown != null)
+                // We dont want dropdowns closing if trying to debug them
+                bool newFocusIsDebugWindow = _debugTool != null && _myMouseFocus.IsWithin(_debugTool);
+                if (DropDown != null && !newFocusIsDebugWindow && !_myMouseFocus.IsWithin(DropDown))
                 {
-                    UIBaseWindow? oldFocus = _inputFocusManual;
-                    UIBaseWindow newFocus = _myMouseFocus;
-                    bool newFocusIsDebugWindow = _debugTool != null && newFocus.IsWithin(_debugTool);
-
-                    bool oldFocusDropDown = oldFocus != null && oldFocus.IsWithin(DropDown);
-                    if (oldFocusDropDown && !newFocus.IsWithin(DropDown) && !newFocusIsDebugWindow)
-                    {
-                        DropDown.Close();
-                        DropDown = null;
-                        SetInputFocus(null);
-                        return false;
-                    }
+                    SetInputFocus(null);
+                    DropDown.Close();
+                    DropDown = null;
+                    return false;
                 }
 
                 // todo: there also must be a way to consume clicks inside yourself that cause you to focus
@@ -500,6 +504,8 @@ public partial class UIController : UIBaseWindow
             // We don't want to call event handlers of destroyed windows, so lets return out.
             // todo: do we want to build something in the input system that prevents the
             // same button from being pressed twice in one tick? At least for mouse buttons?
+            // todo: wouldnt the removal of the window (which was in the focus order?) cause an update of focus
+            // (unless of course it was removed by a focus event sent from within this function)
             if (status == KeyState.Down && _myMouseFocus is not UIController && _myMouseFocus.Controller == null)
                 return true;
 
@@ -523,11 +529,6 @@ public partial class UIController : UIBaseWindow
 
     public void SetInputFocus(UIBaseWindow? win)
     {
-        // todo: old code, remove?
-        //, bool searchTree = false
-        //UIBaseWindow? focusable = searchTree && win != null ? FindInputFocusable(win) : win;
-        //_inputFocusManual = focusable;
-
         // If focus is being removed (set to null) then we explicitly don't want to
         // focus the same window as before (or their tree). So we temporary remove their focus.
         var removedHandleInput = false;
@@ -599,12 +600,14 @@ public partial class UIController : UIBaseWindow
         if (stopAt == startFrom) return;
         startFrom.InputFocusChanged(focus);
 
-        UIBaseWindow? p = startFrom.Parent;
+        // We need to respect relative children here,
+        // because IsWithin respects it. Otherwise we get double focus.
+        UIBaseWindow? p = GetParentRelativeRespecting(startFrom);
         while (p != null)
         {
             if (p == stopAt) break;
             p.InputFocusChanged(focus);
-            p = p.Parent;
+            p = GetParentRelativeRespecting(p);
         }
     }
 
