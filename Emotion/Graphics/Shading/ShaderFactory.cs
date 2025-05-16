@@ -3,6 +3,7 @@
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using Emotion.Common.Threading;
 using Emotion.IO;
 using Emotion.Utility;
 using OpenGL;
@@ -14,11 +15,6 @@ namespace Emotion.Graphics.Shading
     public static class ShaderFactory
     {
         /// <summary>
-        /// The default shader.
-        /// </summary>
-        public static ShaderProgram DefaultProgram { get; private set; }
-
-        /// <summary>
         /// List of shader configurations to try to compile with.
         /// </summary>
         private static (string name, Func<string[], string[]> func)[] _shaderConfigurations =
@@ -26,28 +22,6 @@ namespace Emotion.Graphics.Shading
             ("default", DefaultCompilation),
             ("AttribLocationExtension", ExplicitAttribCompilation),
         };
-
-        /// <summary>
-        /// Create the default shader.
-        /// </summary>
-        /// <returns>The default shader, will not recreate it if it already exists.</returns>
-        public static ShaderProgram CreateDefaultShader()
-        {
-            if (DefaultProgram != null) return DefaultProgram;
-
-            var vert = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
-            var frag = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
-            if (vert == null || frag == null)
-            {
-                Engine.CriticalError(new Exception("Couldn't find default shader code."));
-                return null;
-            }
-
-            Engine.Log.Info("Creating default shader...", MessageSource.Renderer);
-            DefaultProgram = CreateShader(vert.Content, frag.Content);
-            if (DefaultProgram == null) Engine.CriticalError(new Exception("Couldn't compile default shader."));
-            return DefaultProgram;
-        }
 
         /// <summary>
         /// Create a shader.
@@ -363,6 +337,61 @@ namespace Emotion.Graphics.Shading
         #endregion
 
         #region ONE
+
+        /// <summary>
+        /// The default shader is a basic 2D shader with an alpha discard and MVP multiplied vertices.
+        /// It can also be used as a fallback shader.
+        /// </summary>
+        public static ShaderProgram DefaultProgram { get; private set; }
+
+        public static TextAsset DefaultProgram_Vert { get; private set; }
+
+        public static TextAsset DefaultProgram_Frag { get; private set; }
+
+        public static ShaderProgram Blit { get; private set; }
+
+        public static ShaderProgram BlitPremultAlpha { get; private set; }
+
+        internal static IEnumerator LoadDefaultShadersRoutineAsync()
+        {
+            TextAsset vert = Engine.AssetLoader.ONE_Get<TextAsset>("Shaders/DefaultVert.vert");
+            TextAsset frag = Engine.AssetLoader.ONE_Get<TextAsset>("Shaders/DefaultFrag.frag");
+
+            yield return vert;
+            yield return frag;
+            DefaultProgram_Vert = vert;
+            DefaultProgram_Frag = frag;
+
+            if (!vert.Loaded || !frag.Loaded)
+            {
+                Engine.CriticalError(new Exception("Couldn't find default shader code."));
+                yield break;
+            }
+
+            Engine.Log.Info("Creating default shader...", MessageSource.Renderer);
+            GLThread.ExecuteGLThread(() => // todo: execute gl thread coroutine waiter
+            {
+                DefaultProgram = CreateShader(vert.Content, frag.Content);
+            });
+            if (DefaultProgram == null)
+            {
+                Engine.CriticalError(new Exception("Couldn't compile default shader."));
+                yield break;
+            }
+
+            var blit = Engine.AssetLoader.ONE_Get<ShaderAsset>("Shaders/Blit.xml");
+            var blitPremultAlpha = Engine.AssetLoader.ONE_Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml");
+
+            yield return blit;
+            yield return blitPremultAlpha;
+
+            Blit = blit.Shader;
+            BlitPremultAlpha = blitPremultAlpha.Shader;
+
+            // We could theoretically run /kinda/ without these, right?
+            AssertNotNull(Blit);
+            AssertNotNull(BlitPremultAlpha);
+        }
 
         public static ShaderProgram CreateShaderRaw(string vertShaderSource, string fragShaderSource)
         {

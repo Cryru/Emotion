@@ -3,6 +3,7 @@
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Camera;
@@ -208,14 +209,13 @@ namespace Emotion.Graphics
 
         #endregion
 
-        /// <summary>
-        /// Is run by the engine when the main renderer is created.
-        /// </summary>
-        internal void Setup()
+        #region Initialization
+
+        internal void Initialize()
         {
             GLThread.BindThread();
 
-            Engine.Log.Info($"Created OpenGL Context {Gl.CurrentVersion}", MessageSource.Renderer);
+            Engine.Log.Info($"OpenGL Context {Gl.CurrentVersion}", MessageSource.Renderer);
             Engine.Log.Info($" Renderer: {Gl.CurrentRenderer}", MessageSource.Renderer);
             Engine.Log.Info($" Vendor: {Gl.CurrentVendor}", MessageSource.Renderer);
             Engine.Log.Info($" Shader: {Gl.CurrentShadingVersion}", MessageSource.Renderer);
@@ -269,16 +269,36 @@ namespace Emotion.Graphics
             // Create default camera. RenderState applying requires one to be set.
             Camera = new Camera2D(Vector3.Zero, 1, KeyListenerType.None);
 
-            // Create default render objects.
+            // Setup GL state.
             Vector4 c = Engine.Configuration.ClearColor.ToVec4();
-            Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
+            Gl.ClearColor((int)c.X, (int)c.Y, (int)c.Z, (int)c.W);
 
-            ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
-            if (defaultProgram == null) return;
-
+            // Initialize misc graphics objects.
             Texture.InitializeEmptyTexture();
 
-            // Create default render states.
+            // Load base assets.
+            Engine.Log.Info($"Loading system assets...", MessageSource.Renderer);
+            Coroutine loadingRoutine = Engine.Jobs.Add(ShaderFactory.LoadDefaultShadersRoutineAsync());
+
+            // Run a mini-loop until the renderer is setup.
+            // This runs only the critical systems needed to load the system assets.
+            // todo: test this on different platforms, also steam deck since there was flickering there
+            // we could create an alternate sync loading if there are problems. This is indeed a bit iffy,
+            // but we want to have the renderer ready before calling the user's entry point or running any normal loops,
+            // though we could have some sort of alternate loading loop that is set up as a "normal" loop.
+            while (!loadingRoutine.Finished)
+            {
+                Engine.Host.Update();
+                Engine.AssetLoader.Update();
+                Engine.CoroutineManager.Update(0);
+                GLThread.Run();
+            }
+            Engine.Log.Info($"System assets loaded", MessageSource.Renderer);
+
+            if (ShaderFactory.DefaultProgram == null)
+                return;
+
+            // Create default render states (depends on shaders)
             RenderState.CreateDefault();
             CurrentState = new RenderState();
             SetState(RenderState.Default);
@@ -287,19 +307,21 @@ namespace Emotion.Graphics
             BlitState.AlphaBlending = false;
             BlitState.DepthTest = false;
             BlitState.ViewMatrix = false;
-            BlitState.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml")!.Shader;
+            BlitState.Shader = ShaderFactory.Blit;
 
             BlitStatePremult = BlitState.Clone();
-            BlitStatePremult.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml")!.Shader;
+            BlitStatePremult.Shader = ShaderFactory.BlitPremultAlpha;
 
-            // Create render stream. This is used for IM-like rendering.
-            RenderStream = new RenderStreamBatch();
+            // Create render objects
+            RenderStream = new RenderStreamBatch(); // This is used for IM-like rendering.
             MeshEntityRenderer = new MeshEntityBatchRenderer();
 
             // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();
             UpdateCamera();
         }
+
+        #endregion
 
         #region Event Handles and Sizing
 

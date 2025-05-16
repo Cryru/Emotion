@@ -282,12 +282,15 @@ namespace Emotion.Common
             Jobs = new AsyncJobManager();
             Jobs.Init();
 
+            // Renderer depends on this in order to load base assets.
+            // Though the system assets should be accessible before late init, so its fine?
+            AssetLoader.LateInit();
+
             // Now that the context is created, the renderer can be created.
             Renderer = new RenderComposer();
-            Renderer.Setup();
+            Renderer.Initialize();
 
             // Now "game-mode" modules can be created.
-            AssetLoader.LateInit(); // init after host creation
             SceneManager = new SceneManager();
             UI = new UISystem();
 

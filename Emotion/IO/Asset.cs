@@ -111,15 +111,13 @@ namespace Emotion.IO
                 if (!LoadedAsDependency)
                 {
                     if (Loaded)
-                        Engine.Log.Info($"Reloaded asset '{Name}'{(_dependencies == null ? "" : $" ({_dependencies.Count} Dependencies)")}", MessageSource.AssetLoader);
+                        Engine.Log.Info($"Reloaded asset '{Name}'{(_dependencies == null ? "" : $" ({_dependencies.Count} Dependencies)")} in {timer.ElapsedMilliseconds}ms", MessageSource.AssetLoader);
                     else
-                        Engine.Log.Info($"Loaded asset '{Name}'{(_dependencies == null ? "" : $" ({_dependencies.Count} Dependencies)")}", MessageSource.AssetLoader);
+                        Engine.Log.Info($"Loaded asset '{Name}'{(_dependencies == null ? "" : $" ({_dependencies.Count} Dependencies)")} in {timer.ElapsedMilliseconds}ms", MessageSource.AssetLoader);
                 }
                 Loaded = true;
                 if (OnLoaded != null)
                     Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
-
-                Engine.Log.Trace($"Loaded in {timer.ElapsedMilliseconds}", "Profiler");
             }
             else
             {

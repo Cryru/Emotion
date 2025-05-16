@@ -1,6 +1,8 @@
 ﻿#region Using
 
 using System.Text;
+using Emotion.Graphics.ThreeDee;
+using Emotion.Standard.GLTF;
 using Emotion.Standard.XML;
 
 #endregion
@@ -30,18 +32,41 @@ public abstract class XMLAssetMarkerClass : Asset
 }
 
 /// <summary>
-/// A file in XML structure.
+/// An asset containg a xml serialized type.
 /// </summary>
-/// <typeparam name="T">The class to deserialize to.</typeparam>
 public class XMLAsset<T> : XMLAssetMarkerClass
 {
     /// <summary>
-    /// The contents of the file.
+    /// The file deserialized as its type.
     /// </summary>
     public T? Content { get; protected set; }
 
+    static XMLAsset()
+    {
+        RegisterFileExtensionSupport<XMLAsset<T>>([".xml"]);
+    }
+
+    public XMLAsset()
+    {
+        _useNewLoading = true;
+    }
+
+    protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
+    {
+        try
+        {
+            Content = XMLFormat.From<T>(data);
+        }
+        catch (Exception ex)
+        {
+            Engine.Log.Error(new Exception($"Couldn't parse XML asset of type {GetType()}!", ex));
+        }
+        yield break;
+    }
+
     protected override void CreateInternal(ReadOnlyMemory<byte> data)
     {
+        // we need to support the legacy because of RenderComposer loading default shaders.
         try
         {
             Content = XMLFormat.From<T>(data);
@@ -78,7 +103,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass
             return false;
         }
 
-        bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name, backup);
+        bool saved = Engine.AssetLoader.Save(data, name, backup);
         if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
         return saved;
     }
@@ -98,7 +123,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass
     /// <summary>
     /// Load a xml file via the asset loader, or create a new one if missing.
     /// </summary>
-    public static XMLAsset<T> LoadSaveOrCreate(string name)
+    public static XMLAsset<T> LoadOrCreate(string name)
     {
         if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<XMLAsset<T>>(name)!;
 

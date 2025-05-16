@@ -56,45 +56,14 @@ namespace Emotion.IO
         /// </summary>
         public ShaderProgram Shader { get; protected set; }
 
-        #region Debug Shader Reload
-
-        private static List<ShaderAsset> _activeShaderAssets;
-
-        static ShaderAsset()
+        protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
         {
-            if (!Engine.Configuration.DebugMode) return;
+            yield return base.Internal_LoadAssetRoutine(data);
 
-            _activeShaderAssets = new List<ShaderAsset>();
-            Engine.Host.OnKey.AddListener((k, s) =>
-            {
-                // The reload shaders shortcut is Ctrl + R
-                bool reloadShaders = k == Key.R && s == KeyState.Down && Engine.Host.IsCtrlModifierHeld();
-                if (!reloadShaders) return true;
-
-                for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)
-                {
-                    if (_activeShaderAssets[i].Disposed)
-                        _activeShaderAssets.RemoveAt(i);
-                    else
-                        _activeShaderAssets[i].ReloadShader();
-                }
-
-                return false;
-            }, KeyListenerType.System);
+            // Fallback to default.
+            Content ??= new ShaderDescription();
+            Compile();
         }
-
-        public ShaderAsset()
-        {
-            _activeShaderAssets?.Add(this);
-        }
-
-        private void ReloadShader()
-        {
-            Engine.Log.Warning($"Reloading shader {Name}...", MessageSource.Debug);
-            Compile(CompilationConstant);
-        }
-
-        #endregion
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
@@ -144,7 +113,7 @@ namespace Emotion.IO
                 if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {path}. Using default.", MessageSource.AssetLoader);
             }
 
-            vertShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
+            vertShader ??= ShaderFactory.DefaultProgram_Vert;
 
             TextAsset fragShader = null;
             if (!string.IsNullOrEmpty(Content.Frag))
@@ -154,7 +123,7 @@ namespace Emotion.IO
                 if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {path}. Using default.", MessageSource.AssetLoader);
             }
 
-            fragShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
+            fragShader ??= ShaderFactory.DefaultProgram_Frag;
 
             var shaderLogName = $"v:{vertShader!.Name}, f:{fragShader!.Name} {compileConstant}";
             Engine.Log.Info($"Loading shader {shaderLogName}...", MessageSource.AssetLoader);

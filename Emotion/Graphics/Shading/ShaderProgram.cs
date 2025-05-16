@@ -131,6 +131,7 @@ namespace Emotion.Graphics.Shading
         /// Create a new instance that is a copy of another program.
         /// This is used to prevent shaders which use fallbacks from using the same
         /// reference, which we don't want because of reloading.
+        /// todo: can be removed in ONE
         /// </summary>
         public static ShaderProgram CreateCopied(ShaderProgram other)
         {
