@@ -30,7 +30,7 @@ public class EditorFileExplorer<T> : EditorPanel where T : Asset, new()
 
     private string[]? _currentBranch;
 
-    public EditorFileExplorer(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [{typeof(T).GetFriendlyName()}]")
+    public EditorFileExplorer(Action<T> onFileSelected, Func<string, bool>? fileFilter = null) : base($"Select [type name here]")
     {
         _onFileSelected = onFileSelected;
         FileFilterFunc = fileFilter;
