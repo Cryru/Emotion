@@ -19,8 +19,15 @@ public partial class RenderComposer
         float scale = 1f
     )
     {
-        state.GetRenderData(out Texture texture, out Rectangle uv, out Vector2 anchor);
-        RenderSprite(position + (anchor.ToVec3() * scale), uv.Size * scale, texture, uv);
+        if (entity.PixelArt)
+            position = position.Round();
+
+        int partCount = state.GetPartCount();
+        for (int i = 0; i < partCount; i++)
+        {
+            state.GetRenderData(i, out Texture texture, out Rectangle uv, out Vector2 anchor);
+            RenderSprite(position + (anchor.ToVec3() * scale), uv.Size * scale, texture, uv);
+        }
     }
 
     public void RenderEntityStandalone(

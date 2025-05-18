@@ -64,7 +64,7 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
             _selectedAnim = _animList.GetSelected();
 
         _animTime += Engine.DeltaTime;
-        _entityMetaState?.UpdateAnimation(_selectedAnim, _selectedAnim != null ? _animTime % _selectedAnim.Duration : 0);
+        _entityMetaState?.UpdateAnimation(_selectedAnim, _animTime);
         return base.UpdateInternal();
     }
 

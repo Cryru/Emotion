@@ -22,7 +22,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
     public override string ToString()
     {
-        return $"Frame {TextureId} - {UV}";
+        return $"Anim Frame (Tid:{TextureId})";
     }
 
     #region Editor Functionality
