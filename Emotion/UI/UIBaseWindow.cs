@@ -7,6 +7,7 @@ using Emotion.Game.Time.Routines;
 using Emotion.IO;
 using Emotion.Standard.XML;
 using Emotion.Utility;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 #endregion
 
@@ -1306,6 +1307,19 @@ namespace Emotion.UI
             }
 
             return Visible;
+        }
+
+        public T? GetParentOfKind<T>() where T : UIBaseWindow
+        {
+            var parent = Parent;
+            while (parent != null)
+            {
+                if (parent is T parentAsT)
+                    return parentAsT;
+
+                parent = parent.Parent;
+            }
+            return null;
         }
 
         /// <summary>

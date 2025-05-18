@@ -25,17 +25,17 @@ public class ListEditor<TItem> : ListEditor
 
     private UIBaseWindow _itemList;
 
+    private ObjectPropertyWindow? _objEdit;
+
     public ListEditor(Type typ)
     {
         ListItemType = typ;
         _complexTypeHandler = ReflectorEngine.GetComplexTypeHandler(typ);
 
         LayoutMode = LayoutMode.VerticalList;
-
         SpawnEditButtons();
         AssertNotNull(_addButton);
         AssertNotNull(_deleteButton);
-        AssertNotNull(_editButton);
 
         var scrollArea = new EditorScrollArea();
         AddChild(scrollArea);
@@ -46,6 +46,14 @@ public class ListEditor<TItem> : ListEditor
             ListSpacing = new Vector2(0, 3)
         };
         scrollArea.AddChildInside(_itemList);
+    }
+
+    public override void AttachedToController(UIController controller)
+    {
+        base.AttachedToController(controller);
+
+        _objEdit = GetParentOfKind<ObjectPropertyWindow>();
+        RespawnItemsUI(_items);
     }
 
     public override void DetachedFromController(UIController controller)
@@ -99,6 +107,7 @@ public class ListEditor<TItem> : ListEditor
 
     protected void RespawnItemsUI(IList<TItem?>? newItems)
     {
+        if (Controller == null) return;
         _itemList.ClearChildren();
 
         if (newItems != null)
@@ -107,6 +116,14 @@ public class ListEditor<TItem> : ListEditor
             {
                 TItem? item = newItems[i];
                 var editorListItem = new EditorListItem<TItem>(i, item, ItemsUIOnClickSelect);
+
+                if (_objEdit != null)
+                {
+                    var editItemButton = new SquareEditorButtonWithTexture("Editor/Edit.png");
+                    editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage($"List[{i}]", item);
+                    editorListItem.AttachButton(editItemButton);
+                }
+
                 _itemList.AddChild(editorListItem);
             }
         }
@@ -120,7 +137,6 @@ public class ListEditor<TItem> : ListEditor
 
     protected SquareEditorButton _addButton;
     protected SquareEditorButton _deleteButton;
-    protected SquareEditorButton _editButton;
     protected SquareEditorButton _moveUpButton = null!;
     protected SquareEditorButton _moveDownButton = null!;
 
@@ -175,17 +191,6 @@ public class ListEditor<TItem> : ListEditor
         buttonsContainer.AddChild(deleteButton);
         _deleteButton = deleteButton;
 
-        var editButton = new EditorEditObjectButton(() =>
-        {
-            Assert(_items != EMPTY_LIST);
-            return (_items[_currentIndex], ParentObject);
-        })
-        {
-            DontTakeSpaceWhenHidden = true
-        };
-        buttonsContainer.AddChild(editButton);
-        _editButton = editButton;
-
         var moveUpButton = new SquareEditorButtonWithTexture("Editor/LittleArrow.png")
         {
             OnClickedProxy = (_) =>
@@ -226,7 +231,6 @@ public class ListEditor<TItem> : ListEditor
     {
         _addButton.Enabled = _items != EMPTY_LIST && CanCreateItems();
         _deleteButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1;
-        _editButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1 && _items[_currentIndex] != null;
         _moveUpButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1 && _currentIndex != 0;
         _moveDownButton.Enabled = _items != EMPTY_LIST && _currentIndex != -1 && _currentIndex != _items.Count - 1;
     }

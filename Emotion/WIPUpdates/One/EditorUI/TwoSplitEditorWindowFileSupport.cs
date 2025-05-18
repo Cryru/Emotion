@@ -9,7 +9,7 @@ public abstract class TwoSplitEditorWindowFileSupport<TLeft, TRight, TEditType> 
     where TLeft : UIBaseWindow
     where TRight : UIBaseWindow
 {
-    public float StartingSplit = 0.6f;
+    public float StartingSplit = 0.5f;
 
     protected TLeft? _leftContent;
     protected TRight? _rightContent;
