@@ -17,17 +17,10 @@ public enum LabelStyle
 
 public abstract class TypeEditor : UIBaseWindow
 {
-    public object? ParentObject;
-
     [DontSerialize]
     private Action<object?>? _onValueChanged;
 
-    public abstract void SetValue(object? value);
-
-    public void SetParentObject(object? parentObj)
-    {
-        ParentObject = parentObj;
-    }
+    public abstract void SetValue(string memberName, object? value);
 
     public void SetCallbackOnValueChange(Action<object?> onValueChanged)
     {
@@ -59,7 +52,7 @@ public abstract class TypeEditor : UIBaseWindow
         TypeEditor? editor = handler?.GetEditor();
         if (editor != null)
         {
-            editor.SetValue(initialValue);
+            editor.SetValue(string.Empty, initialValue);
             editor.SetCallbackOnValueChange((newVal) =>
             {
                 if (newVal is T valAsT)

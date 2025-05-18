@@ -16,7 +16,7 @@ public class BooleanEditor : TypeEditor
         AddChild(checkbox);
     }
 
-    public override void SetValue(object? value)
+    public override void SetValue(string memberName, object? value)
     {
         var input = GetWindowById<EditorCheckboxButton>("Checkbox");
         AssertNotNull(input);

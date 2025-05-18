@@ -9,8 +9,9 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyWindow : UIBaseWindow
 {
+    public string ObjectBeingEditedName { get; protected set; } = string.Empty;
+
     public object? ObjectBeingEdited { get; protected set; }
-    public object? ParentObject { get; protected set; }
 
     private TypeEditor? _editor;
 
@@ -19,7 +20,13 @@ public class ObjectPropertyWindow : UIBaseWindow
         LayoutMode = LayoutMode.VerticalList;
     }
 
-    public void SetEditor(object? obj, object? parentObj = null)
+    public override void AttachedToController(UIController controller)
+    {
+        base.AttachedToController(controller);
+        SpawnEditors();
+    }
+
+    public void SetEditor(object? obj)
     {
         _pages.Clear();
         AddEditPage("root", obj);
@@ -27,10 +34,13 @@ public class ObjectPropertyWindow : UIBaseWindow
 
     protected void SpawnEditors()
     {
+        if (Controller == null) return;
+
         if (_pages.Count > 0)
         {
-            (string pageName, object obj) top = _pages.Peek();
-            ObjectBeingEdited = top.obj;
+            (string pageName, object obj) = _pages.Peek();
+            ObjectBeingEditedName = pageName;
+            ObjectBeingEdited = obj;
         }
 
         var type = ObjectBeingEdited?.GetType();
@@ -76,8 +86,7 @@ public class ObjectPropertyWindow : UIBaseWindow
         if (editor != null)
         {
             _editor = editor;
-            editor.SetParentObject(ParentObject);
-            editor.SetValue(ObjectBeingEdited);
+            editor.SetValue(ObjectBeingEditedName, ObjectBeingEdited);
             editor.SetCallbackOnValueChange((obj) =>
             {
                 if (obj == null) return;
@@ -116,6 +125,41 @@ public class ObjectPropertyWindow : UIBaseWindow
 
         _pages.Pop();
         SpawnEditors();
+    }
+
+    public object? GetParentObjectOfObject(object obj)
+    {
+        bool nextOne = false;
+        foreach (var item in _pages)
+        {
+            if (nextOne)
+            {
+                return item.obj;
+            }
+
+            if (item.obj == obj)
+                nextOne = true;
+        }
+
+        return default;
+    }
+    public T? GetParentObjectOfObjectOfKind<T>(object obj)
+    {
+        bool nextOne = false;
+        foreach (var item in _pages)
+        {
+            if (nextOne)
+            {
+                if (item.obj is T objAsT)
+                    return objAsT;
+                continue;
+            }
+
+            if (item.obj == obj)
+                nextOne = true;
+        }
+
+        return default;
     }
 
     #endregion

@@ -17,12 +17,6 @@ public class GameDataListEditor : ListEditor<GameDataObject>
         _editor = editor;
     }
 
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
-        _editButton.SetVisible(false);
-    }
-
     protected override bool CanCreateItems()
     {
         return true;

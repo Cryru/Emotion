@@ -46,7 +46,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
             GameDataObject dataObject = gameDataOfType[i];
             EmulatedEditList.Add(dataObject.CreateCopy());
         }
-        _listEditor.SetValue(EmulatedEditList);
+        _listEditor.SetValue(string.Empty, EmulatedEditList);
 
         // Attach to events concerning the list (fired by the ListEditor)
         // and hot reload "need" events in order to hide/show the hot reload section.

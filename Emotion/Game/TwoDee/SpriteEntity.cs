@@ -20,8 +20,5 @@ public class SpriteEntity
 
     //public List<SerializableAsset<TextureAsset>> Textures = new();
     public List<SpriteAnimation> Animations = new();
-
-    [DontSerialize]
-    public string SourceFile = string.Empty;
 }
 

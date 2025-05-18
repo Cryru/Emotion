@@ -29,7 +29,11 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
     public void OnAfterEditorsSpawn(ComplexObjectEditor<SpriteAnimationFrame> editor)
     {
-        if (editor.ParentObject is not SpriteAnimation anim) return;
+        ObjectPropertyWindow? objectEditor = editor.GetParentOfKind<ObjectPropertyWindow>();
+        if (objectEditor == null) return;
+
+        SpriteAnimation? anim = objectEditor.GetParentObjectOfObjectOfKind<SpriteAnimation>(this);
+        if (anim == null) return;
 
         editor.EditorList.AddChild(new EditorLabel("==== Read Only ====")
         {
@@ -37,7 +41,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
         });
 
         VectorEditor anchorDisplay = new VectorEditor(2);
-        anchorDisplay.SetValue(new Vector2(5, 5));
+        anchorDisplay.SetValue(string.Empty, new Vector2(5, 5));
         editor.EditorList.AddChild(TypeEditor.WrapWithLabel(
             "Calculated Offset:",
             anchorDisplay
@@ -59,7 +63,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
             TextureAsset? textureAsset = textureHandle.Get();
             if (textureAsset == null) continue;
 
-            ve.SetValue(GetCalculatedAnchor(textureAsset.Texture, out _));
+            ve.SetValue(string.Empty, GetCalculatedAnchor(textureAsset.Texture, out _));
         }
 
         yield return null;

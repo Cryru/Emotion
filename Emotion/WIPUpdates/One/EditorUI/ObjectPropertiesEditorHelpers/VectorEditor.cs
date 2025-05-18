@@ -76,7 +76,7 @@ public class VectorEditor : TypeEditor
         }
     }
 
-    public override void SetValue(object? value)
+    public override void SetValue(string memberName, object? value)
     {
         _value = value ?? default;
         ReadVectorComponents();

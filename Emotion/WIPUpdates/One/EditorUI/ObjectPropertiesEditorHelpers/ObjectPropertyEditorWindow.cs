@@ -10,17 +10,13 @@ public class ObjectPropertyEditorWindow : EditorWindow
 {
     private ObjectPropertyWindow _editorWindow;
 
-    public ObjectPropertyEditorWindow(object obj, object? parentObj) : base($"Object Editor - {ReflectorEngine.GetTypeName(obj.GetType())}")
+    public ObjectPropertyEditorWindow(object obj) : base($"Object Editor - {ReflectorEngine.GetTypeName(obj.GetType())}")
     {
         _editorWindow = new ObjectPropertyWindow();
-        _editorWindow.SetEditor(obj, parentObj);
+        _editorWindow.SetEditor(obj);
 
         //_initialPosition = initialPosition;
         _initialSize = new Vector2(500, 300);
-    }
-
-    public ObjectPropertyEditorWindow(object obj) : this(obj, null)
-    {
     }
 
     public override void AttachedToController(UIController controller)

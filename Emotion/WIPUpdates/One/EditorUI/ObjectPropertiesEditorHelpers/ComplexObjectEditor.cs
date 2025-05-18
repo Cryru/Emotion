@@ -48,13 +48,19 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         _scroll.AddChildInside(EditorList);
     }
 
+    public override void AttachedToController(UIController controller)
+    {
+        base.AttachedToController(controller);
+        SpawnEditors();
+    }
+
     public override void DetachedFromController(UIController controller)
     {
         base.DetachedFromController(controller);
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
-    public override void SetValue(object? obj)
+    public override void SetValue(string memberName, object? obj)
     {
         ObjectBeingEdited = obj;
 
@@ -67,6 +73,8 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
     protected void SpawnEditors()
     {
+        if (Controller == null) return;
+
         EditorList.ClearChildren();
         _memberToEditor.Clear();
         _editors.Clear();
@@ -95,12 +103,8 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                     OnValueChanged(ObjectBeingEdited);
                 });
 
-                if (editor is ListEditor)
-                    editor.MinSizeY = 200;
-
-                editor.SetParentObject(ObjectBeingEdited);
-
-                bool verticalLabel = editor is NestedComplexObjectEditor || editor is ListEditor;
+                bool verticalLabel = editor is ComplexObjectEditor || editor is ListEditor;
+                if (verticalLabel) editor.MinSizeY = 200;
                 var editorWithlabel = TypeEditor.WrapWithLabel(member.Name + ":", editor, verticalLabel);
                 EditorList.AddChild(editorWithlabel);
 
@@ -125,7 +129,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         foreach ((ComplexTypeHandlerMemberBase member, TypeEditor editor) in _editors)
         {
             if (member.GetValueFromComplexObject(ObjectBeingEdited, out object? readValue))
-                editor.SetValue(readValue);
+                editor.SetValue(member.Name, readValue);
         }
     }
 

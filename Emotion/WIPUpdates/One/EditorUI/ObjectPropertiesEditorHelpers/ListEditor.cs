@@ -26,6 +26,7 @@ public class ListEditor<TItem> : ListEditor
     private UIBaseWindow _itemList;
 
     private ObjectPropertyWindow? _objEdit;
+    private string _memberName = string.Empty;
 
     public ListEditor(Type typ)
     {
@@ -62,17 +63,19 @@ public class ListEditor<TItem> : ListEditor
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
-    public override void SetValue(object? value)
+    public override void SetValue(string memberName, object? value)
     {
         EngineEditor.UnregisterForObjectChanges(this);
 
         if (value == null)
         {
+            _memberName = string.Empty;
             _items = EMPTY_LIST;
             _boxedList = null;
         }
         else
         {
+            _memberName = memberName;
             _items = (IList<TItem?>)value;
             EngineEditor.RegisterForObjectChanges(_items, (_) => RespawnItemsUI(_items), this);
 
@@ -119,8 +122,9 @@ public class ListEditor<TItem> : ListEditor
 
                 if (_objEdit != null)
                 {
+                    int myIdx = i;
                     var editItemButton = new SquareEditorButtonWithTexture("Editor/Edit.png");
-                    editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage($"List[{i}]", item);
+                    editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage($"{_memberName}[{myIdx}]", item);
                     editorListItem.AttachButton(editItemButton);
                 }
 
