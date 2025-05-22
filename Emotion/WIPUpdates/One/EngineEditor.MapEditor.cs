@@ -141,9 +141,6 @@ public static partial class EngineEditor
             _draggingWithMiddleMouse = mousePos;
 
             Engine.Renderer.Camera.Position2 += diff;
-
-            mousePos = camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
-            _draggingWithMiddleMouse = mousePos;
         }
     }
 

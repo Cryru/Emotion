@@ -137,7 +137,7 @@ public class AssetTest
         Assert.True(save == null);
 
         var saveFilePath = "Player/saveFile.save";
-        XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadSaveOrCreate(saveFilePath);
+        XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadOrCreate(saveFilePath);
         Assert.True(File.Exists(Path.Join(".", "Player", "savefile.save")));
         Assert.True(Engine.AssetLoader.Exists(saveFilePath));
 
