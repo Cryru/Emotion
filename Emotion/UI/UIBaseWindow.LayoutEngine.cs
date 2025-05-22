@@ -65,10 +65,12 @@ public partial class UIBaseWindow
             _listSpacing = listSpacing;
             switch (_layoutMode)
             {
+                case LayoutMode.HorizontalListWrap:
                 case LayoutMode.HorizontalList:
                 case LayoutMode.HorizontalEditorPanel:
                     _listMask = 0;
                     break;
+                case LayoutMode.VerticalListWrap:
                 case LayoutMode.VerticalList:
                     _listMask = 1;
                     break;
@@ -401,7 +403,6 @@ public partial class UIBaseWindow
 
         private void ListWrapAppend(UIBaseWindow child, Vector2 size, ref ChildData data)
         {
-            bool measurePass = _pass == UIPass.Measure;
             int listMask = _listMask;
             int reverseListMask = _listMask == 0 ? 1 : 0;
 
