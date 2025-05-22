@@ -14,6 +14,9 @@ public class Camera2D : CameraBase
     protected Vector2 _inputDirection;
 
     public bool ZoomAllowed;
+    public float MinZoom = 0.01f;
+    public float MaxZoom = 4f;
+
     protected float _zoomDir;
 
     public Camera2D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
@@ -115,9 +118,9 @@ public class Camera2D : CameraBase
 
         if (_zoomDir != 0)
         {
-            float movementSpeed = ((MovementSpeed / 10f)) * Engine.DeltaTime;
+            float movementSpeed = (MovementSpeed / 10f) * Engine.DeltaTime;
 
-            Vector2 mouseScreen = Engine.Host.MousePosition;
+            Vector2 mouseScreen = GetZoomMousePos();
             Vector2 mouseWorld = ScreenToWorld(mouseScreen).ToVec2();
 
             // Zoom is perceived as logarithmic-ish
@@ -128,7 +131,7 @@ public class Camera2D : CameraBase
             else
                 Zoom = Zoom * zoomFactorIncrease;
 
-            Zoom = Maths.Clamp(Zoom, 0.01f, 4f);
+            Zoom = Maths.Clamp(Zoom, MinZoom, MaxZoom);
             Zoom = MathF.Round(Zoom, 3);
 
             Vector2 mouseWorldAfterZoom = ScreenToWorld(mouseScreen).ToVec2();
@@ -156,5 +159,10 @@ public class Camera2D : CameraBase
         Vector3 dir = ScreenToWorld(Engine.Host.MousePosition);
         dir.Z = ushort.MaxValue;
         return new Ray3D(dir, LookAt);
+    }
+
+    protected virtual Vector2 GetZoomMousePos()
+    {
+        return Engine.Host.MousePosition;
     }
 }

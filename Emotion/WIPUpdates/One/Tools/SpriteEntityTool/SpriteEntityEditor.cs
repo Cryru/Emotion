@@ -4,12 +4,13 @@ using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.WIPUpdates.One.Tools.InterfaceTool;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.One.Tools.SpriteEntityTool;
 
-public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, ObjectPropertyWindow, SpriteEntity>
+public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, ObjectPropertyWindow, SpriteEntity>
 {
     private UIList _list = null!;
 
@@ -28,22 +29,15 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
         NewFile();
     }
 
-    protected override UISolidColor GetLeftSideContent()
+    protected override UIViewport GetLeftSideContent()
     {
-        var viewPort = new UISolidColor
+        var viewPort = new UIViewport()
         {
             IgnoreParentColor = true,
             Id = "Viewport",
-            MinSize = new Vector2(50),
+            OnRender = RenderViewport,
             WindowColor = Color.CornflowerBlue
         };
-
-        var proxyRender = new EditorProxyRender()
-        {
-            OnRender = RenderViewport
-        };
-        viewPort.AddChild(proxyRender);
-
         return viewPort;
     }
 
@@ -70,16 +64,16 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UISolidColor, 
 
     protected void RenderViewport(UIBaseWindow win, RenderComposer c)
     {
-        var center = win.Bounds.Center.ToVec3();
+        Vector3 center = (win.Size / 4f).ToVec3();
 
         float lineLength = 10;
-        c.RenderLine(center + new Vector3(0, lineLength, 0), center - new Vector3(0, lineLength, 0), Color.Red, 3);
-        c.RenderLine(center + new Vector3(lineLength, 0, 0), center - new Vector3(lineLength, 0, 0), Color.Red, 3);
+        c.RenderLine(center + new Vector3(0, lineLength, 0), center - new Vector3(0, lineLength, 0), Color.Red, 1);
+        c.RenderLine(center + new Vector3(lineLength, 0, 0), center - new Vector3(lineLength, 0, 0), Color.Red, 1);
 
         if (ObjectBeingEdited != null)
         {
             AssertNotNull(_entityMetaState);
-            c.RenderEntityStandalone(ObjectBeingEdited, _entityMetaState, center, Engine.Renderer.IntScale);
+            c.RenderEntityStandalone(ObjectBeingEdited, _entityMetaState, center, 1f);
         }
     }
 

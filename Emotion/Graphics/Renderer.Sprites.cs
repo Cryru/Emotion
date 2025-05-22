@@ -340,5 +340,20 @@ namespace Emotion.Graphics
             // Far plane X Left Plane
             RenderLine(corners[1], corners[5], col, 0.15f);
         }
+
+        public void RenderGrid(Vector3 pos, Vector2 size, Vector2 tileSize, Color color, Vector2? offset = null)
+        {
+            ShaderAsset gridShader = Engine.AssetLoader.ONE_Get<ShaderAsset>("Shaders/3DGrid.xml");
+            if (gridShader.Loaded && gridShader.Shader != null)
+            {
+                SetShader(gridShader.Shader);
+                gridShader.Shader.SetUniformVector2("squareSize", tileSize);
+                gridShader.Shader.SetUniformVector2("cameraPos", offset.HasValue ? (offset.Value / size) : Vector2.Zero);
+                gridShader.Shader.SetUniformVector2("totalSize", size);
+                gridShader.Shader.SetUniformColor("objectTint", color);
+                RenderSprite(Vector3.Zero, size, Color.White);
+                SetShader(null);
+            }
+        }
     }
 }

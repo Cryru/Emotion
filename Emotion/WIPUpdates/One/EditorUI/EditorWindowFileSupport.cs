@@ -49,6 +49,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 WindowColor = Color.PrettyRed * 0.5f,
                 Visible = false,
                 DontTakeSpaceWhenHidden = true,
+                OrderInParent = -10
             };
             mainContent.AddChild(changesBox);
             _unsavedChangesNotification = changesBox;
@@ -67,7 +68,8 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         {
             LayoutMode = LayoutMode.HorizontalList,
             Paddings = new Primitives.Rectangle(5, 5, 5, 5),
-            ListSpacing = new Vector2(5, 0)
+            ListSpacing = new Vector2(5, 0),
+            OrderInParent = -5
         };
         mainContent.AddChild(buttonList);
 
@@ -131,14 +133,13 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
 
     protected void NewFile()
     {
+        // todo: check if unsaved changes, prompt etc.
+
         if (_typeHandler != null)
         {
             ObjectBeingEdited = (T?)_typeHandler.CreateNew();
-            if (ObjectBeingEdited != null)
-                OnObjectBeingEditedChange(ObjectBeingEdited);
-            // todo: check if unsaved changes, prompt etc.
         }
-
+        SetObjectBeingEdited(ObjectBeingEdited);
         _currentFileName = DEFAULT_FILE_NAME + ".xml";
         UpdateHeader();
     }
@@ -153,10 +154,8 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 if (file == null) return;
                 if (file.Content == null) return;
 
-                ObjectBeingEdited = file.Content;
+                SetObjectBeingEdited(file.Content);
                 _currentFileName = file.Name;
-                UpdateHeader();
-                OnObjectBeingEditedChange(ObjectBeingEdited);
             });
             //string xml = XMLFormat.To(ObjectBeingEdited);
             //Engine.AssetLoader.Save()
@@ -202,6 +201,15 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
     protected virtual void UpdateHeader()
     {
         Header = $"{(_hasUnsavedChanges ? "*" : "")}{_currentFileName} - {_headerBaseText}";
+    }
+
+    protected void SetObjectBeingEdited(T? objToEdit)
+    {
+        _currentFileName = DEFAULT_FILE_NAME + ".xml";
+        ObjectBeingEdited = objToEdit;
+        UpdateHeader();
+        if (objToEdit != null)
+            OnObjectBeingEditedChange(objToEdit);
     }
 
     #endregion
