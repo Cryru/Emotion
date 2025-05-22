@@ -65,7 +65,7 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
         container.AddChild(browse);
     }
 
-    public override void SetValue(string memberName, object? value)
+    public override void SetValue(object? value)
     {
         if (value is SerializableAsset<T> serializedHandle)
             _objectEditting = serializedHandle;

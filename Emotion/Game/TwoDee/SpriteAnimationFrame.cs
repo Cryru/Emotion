@@ -41,7 +41,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
         });
 
         VectorEditor anchorDisplay = new VectorEditor(2);
-        anchorDisplay.SetValue(string.Empty, new Vector2(5, 5));
+        anchorDisplay.SetValue(new Vector2(5, 5));
         editor.EditorList.AddChild(TypeEditor.WrapWithLabel(
             "Calculated Offset:",
             anchorDisplay
@@ -63,7 +63,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
             TextureAsset? textureAsset = textureHandle.Get();
             if (textureAsset == null) continue;
 
-            ve.SetValue(string.Empty, GetCalculatedAnchor(textureAsset.Texture, out _));
+            ve.SetValue(GetCalculatedAnchor(textureAsset.Texture, out _));
         }
 
         yield return null;

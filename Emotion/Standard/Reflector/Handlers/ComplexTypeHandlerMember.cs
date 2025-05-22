@@ -12,13 +12,15 @@ namespace Emotion.Standard.Reflector.Handlers;
 // todo: static member type
 public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBase
 {
-    protected Action<ParentT, MyT?> _setValue;
+    public delegate void SetValueFunc(ref ParentT parent, MyT? value);
+
+    protected SetValueFunc _setValue;
     protected Func<ParentT, MyT?> _getValue;
 
     private ReflectorTypeHandlerBase<MyT>? _typeHandler;
     private bool _isComplex;
 
-    public ComplexTypeHandlerMember(string name, Action<ParentT, MyT?> setValue, Func<ParentT, MyT?> getValue) : base(typeof(ParentT), typeof(MyT), name)
+    public ComplexTypeHandlerMember(string name, SetValueFunc setValue, Func<ParentT, MyT?> getValue) : base(typeof(ParentT), typeof(MyT), name)
     {
         Name = name;
 
@@ -54,10 +56,20 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
     {
         if (obj is ParentT parentType && val is MyT valType)
         {
-            _setValue(parentType, valType);
+            _setValue(ref parentType, valType);
             return true;
         }
         return false;
+    }
+
+    public override object? SetValueInComplexObjectAndReturnParent(object obj, object? val)
+    {
+        if (obj is ParentT parentType && val is MyT valType)
+        {
+            _setValue(ref parentType, valType);
+            return parentType;
+        }
+        return default;
     }
 
     #endregion
@@ -73,7 +85,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         if (handler == null) return false;
 
         MyT? val = handler.ParseFromJSON(ref reader);
-        _setValue(parentT, val);
+        _setValue(ref parentT, val);
         return true;
     }
 
@@ -86,7 +98,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         if (handler == null) return false;
 
         MyT? val = handler.ParseFromXML(ref reader);
-        _setValue(parentT, val);
+        _setValue(ref parentT, val);
         return true;
     }
 

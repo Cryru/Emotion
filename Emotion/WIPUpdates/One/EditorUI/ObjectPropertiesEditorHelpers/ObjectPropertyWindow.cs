@@ -1,4 +1,5 @@
 ﻿using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
@@ -9,8 +10,6 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyWindow : UIBaseWindow
 {
-    public string ObjectBeingEditedName { get; protected set; } = string.Empty;
-
     public object? ObjectBeingEdited { get; protected set; }
 
     private TypeEditor? _editor;
@@ -28,52 +27,22 @@ public class ObjectPropertyWindow : UIBaseWindow
 
     public void SetEditor(object? obj)
     {
+        ObjectBeingEdited = obj;
         _pages.Clear();
-        AddEditPage("root", obj);
+        SpawnEditors();
     }
 
     protected void SpawnEditors()
     {
         if (Controller == null) return;
 
-        if (_pages.Count > 0)
-        {
-            (string pageName, object obj) = _pages.Peek();
-            ObjectBeingEditedName = pageName;
-            ObjectBeingEdited = obj;
-        }
-
-        var type = ObjectBeingEdited?.GetType();
-        if (type == null) return;
-
-        IGenericReflectorTypeHandler? typeHandler = ReflectorEngine.GetTypeHandler(type);
         ClearChildren();
 
-        var pagingContainer = new UIBaseWindow()
-        {
-            LayoutMode = LayoutMode.HorizontalListWrap,
-            ListSpacing = new Vector2(5, 5)
-        };
-        AddChild(pagingContainer);
+        SpawnPagingUI();
 
-        int idx = _pages.Count;
-        foreach ((string pageName, object obj) in _pages)
-        {
-            int myIdx = idx;
-            EditorButton pageLabel = new EditorButton(pageName);
-            pageLabel.OnClickedProxy = (_) =>
-            {
-                while (myIdx != _pages.Count)
-                {
-                    _pages.Pop();
-                }
-                SpawnEditors();
-            };
-            pageLabel.OrderInParent = idx;
-            idx--;
-            pagingContainer.AddChild(pageLabel);
-        }
-
+        // Editor for set object.
+        object? currentObject = GetObjectValueFromStack(int.MaxValue);
+        IGenericReflectorTypeHandler? typeHandler = currentObject == null ? null : ReflectorEngine.GetTypeHandler(currentObject.GetType());
         if (typeHandler == null)
         {
             EditorLabel label = new EditorLabel();
@@ -86,16 +55,24 @@ public class ObjectPropertyWindow : UIBaseWindow
         if (editor != null)
         {
             _editor = editor;
-            editor.SetValue(ObjectBeingEditedName, ObjectBeingEdited);
+
+            editor.SetValue(currentObject);
             editor.SetCallbackOnValueChange((obj) =>
             {
                 if (obj == null) return;
-                EngineEditor.ObjectChanged(obj, ObjectChangeType.ValueChanged, editor);
+                SetObjectValueInStack(obj);
             });
             AddChild(editor);
         }
     }
 
+    #region API
+
+    /// <summary>
+    /// Get the editor of the provided property name.
+    /// This works only if the object currently being edited is a complex type
+    /// as otherwise it doesn't have properties.
+    /// </summary>
     public TypeEditor? GetEditorForProperty(string propertyName)
     {
         if (propertyName == "this")
@@ -107,59 +84,218 @@ public class ObjectPropertyWindow : UIBaseWindow
         return null;
     }
 
-    #region Paging
-
-    private Stack<(string pageName, object obj)> _pages = new();
-
-    public void AddEditPage(string pageName, object? obj)
+    /// <summary>
+    /// Get the complex type member of the specified type editor.
+    /// This works only if the object currently being edited is a complex type
+    /// (otherwise it doesn't have members so...)
+    /// </summary>
+    public ComplexTypeHandlerMemberBase? GetMemberForEditor(TypeEditor typeEditor)
     {
-        if (obj != null)
-            _pages.Push((pageName, obj));
+        if (_editor != null && _editor is ComplexObjectEditor complexEditor)
+            return complexEditor.GetMemberForEditor(typeEditor);
 
-        SpawnEditors();
+        return null;
     }
 
-    public void PageBack()
-    {
-        if (_pages.Count <= 1) return;
-
-        _pages.Pop();
-        SpawnEditors();
-    }
-
+    /// <summary>
+    /// Returns the parent object, of the provided object within the hierarchy of the object currently being edited.
+    /// </summary>
     public object? GetParentObjectOfObject(object obj)
     {
-        bool nextOne = false;
-        foreach (var item in _pages)
-        {
-            if (nextOne)
-            {
-                return item.obj;
-            }
+        return GetParentObjectOfObjectOfKind<object>(obj);
+    }
 
-            if (item.obj == obj)
-                nextOne = true;
+    /// <summary>
+    /// Returns the parent object, that fits the requested type,
+    /// of the provided object within the hierarchy of the object currently being edited.
+    /// </summary>
+    public T? GetParentObjectOfObjectOfKind<T>(object obj)
+    {
+        if (_pagingRoot == null)
+            return default;
+
+        T? parentCandidate = default;
+        if (_pagingRoot is T rootAsT) parentCandidate = rootAsT;
+
+        object? val = _pagingRoot;
+        foreach (var entry in _pages)
+        {
+            val = entry.ResolveValue(val);
+            if (val == null) return default;
+
+            if (val is T valAsT)
+                parentCandidate = valAsT;
+
+            if (val == obj)
+                return parentCandidate;
         }
 
         return default;
     }
-    public T? GetParentObjectOfObjectOfKind<T>(object obj)
-    {
-        bool nextOne = false;
-        foreach (var item in _pages)
-        {
-            if (nextOne)
-            {
-                if (item.obj is T objAsT)
-                    return objAsT;
-                continue;
-            }
 
-            if (item.obj == obj)
-                nextOne = true;
+    #endregion
+
+    #region Paging (provides support for nested objects, and setting properties in value types)
+
+    private object? _pagingRoot => ObjectBeingEdited;
+    private List<ObjectPropertyEditorStackEntry> _pages = new List<ObjectPropertyEditorStackEntry>();
+
+    private class ObjectPropertyEditorStackEntry
+    {
+        private ComplexTypeHandlerMemberBase? _member;
+
+        private ListEditorAdapter? _listAdapter;
+        private int _listItemIndex = -1;
+
+        public ObjectPropertyEditorStackEntry(ComplexTypeHandlerMemberBase member)
+        {
+            _member = member;
         }
 
-        return default;
+        public ObjectPropertyEditorStackEntry(ListEditorAdapter listAdapter, int index)
+        {
+            _listAdapter = listAdapter;
+            _listItemIndex = index;
+        }
+
+        public string GetObjectName()
+        {
+            if (_listAdapter != null)
+                return $"{_listAdapter.GetName()}[{_listItemIndex}]";
+
+            if (_member != null)
+                return _member.Name;
+
+            return "???";
+        }
+
+        public object? ResolveValue(object parent)
+        {
+            if (_listAdapter != null)
+                return _listAdapter.GetItemAtIndex(_listItemIndex);
+
+            if (_member != null)
+            {
+                _member.GetValueFromComplexObject(parent, out object? readVal);
+                return readVal;
+            }
+
+            return null;
+        }
+
+        public object? SetValue(ref object parent, object value)
+        {
+            if (_listAdapter != null)
+            {
+                _listAdapter.SetItemAtIndex(_listItemIndex, value);
+                return null; // Lists are always stack dead ends because they're always reference types.
+            }
+
+            if (_member != null)
+                return _member.SetValueInComplexObjectAndReturnParent(parent, value);
+
+            return null;
+        }
+    }
+
+    private void SpawnPagingUI()
+    {
+        var pagingContainer = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.HorizontalListWrap,
+            ListSpacing = new Vector2(5, 5)
+        };
+        AddChild(pagingContainer);
+
+        EditorButton rootPage = new EditorButton("root");
+        rootPage.OnClickedProxy = (_) =>
+        {
+            _pages.Clear();
+            SpawnEditors();
+        };
+        pagingContainer.AddChild(rootPage);
+
+        int idx = _pages.Count - 1;
+        foreach (var entry in _pages)
+        {
+            int myIdx = idx;
+            EditorButton pageLabel = new EditorButton(entry.GetObjectName());
+            pageLabel.OnClickedProxy = (_) =>
+            {
+                for (int i = 0; i < myIdx; i++)
+                {
+                    _pages.RemoveAt(_pages.Count - 1);
+                }
+                SpawnEditors();
+            };
+            idx--;
+            pagingContainer.AddChild(pageLabel);
+        }
+
+        if (pagingContainer.Children != null)
+        {
+            UIBaseWindow lastLabel = pagingContainer.Children[^1];
+            if (lastLabel is EditorButton button)
+                button.SetActiveMode(true);
+        }
+    }
+
+    public void AddEditPage(ComplexTypeHandlerMemberBase member)
+    {
+        var newItem = new ObjectPropertyEditorStackEntry(member);
+        _pages.Add(newItem);
+        SpawnEditors();
+    }
+
+    public void AddEditPage(ListEditorAdapter listAdapter, int index)
+    {
+        var newItem = new ObjectPropertyEditorStackEntry(listAdapter, index);
+        _pages.Add(newItem);
+        SpawnEditors();
+    }
+
+
+    private object? GetObjectValueFromStack(int depth)
+    {
+        if (_pagingRoot == null)
+            return null;
+
+        object? val = _pagingRoot;
+        foreach (var entry in _pages)
+        {
+            depth--;
+            if (depth < 0) break;
+
+            val = entry.ResolveValue(val);
+            if (val == null) return null;
+        }
+
+        return val;
+    }
+
+    private void SetObjectValueInStack(object? newValue)
+    {
+        object? valObj = newValue;
+        if (valObj == null)
+            return;
+
+        if (valObj is ValueType)
+        {
+            for (int i = _pages.Count - 1; i >= 0; i--)
+            {
+                ObjectPropertyEditorStackEntry entry = _pages[i];
+                object? parentObj = GetObjectValueFromStack(i);
+                if (parentObj == null)
+                    break;
+
+                valObj = entry.SetValue(ref parentObj, valObj);
+                if (valObj == null)
+                    break;
+
+                if (valObj is not ValueType)
+                    break;
+            }
+        }
     }
 
     #endregion

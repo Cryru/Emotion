@@ -5,7 +5,6 @@ using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Reflection.Emit;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -20,7 +19,7 @@ public abstract class TypeEditor : UIBaseWindow
     [DontSerialize]
     private Action<object?>? _onValueChanged;
 
-    public abstract void SetValue(string memberName, object? value);
+    public abstract void SetValue(object? value);
 
     public void SetCallbackOnValueChange(Action<object?> onValueChanged)
     {
@@ -52,7 +51,7 @@ public abstract class TypeEditor : UIBaseWindow
         TypeEditor? editor = handler?.GetEditor();
         if (editor != null)
         {
-            editor.SetValue(string.Empty, initialValue);
+            editor.SetValue(initialValue);
             editor.SetCallbackOnValueChange((newVal) =>
             {
                 if (newVal is T valAsT)

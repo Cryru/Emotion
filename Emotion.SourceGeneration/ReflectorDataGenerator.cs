@@ -159,7 +159,6 @@ namespace SourceGenerator
                     if (member.IsStatic) continue;
                 }
 
-
                 // Skip indexer properties.
                 if (memberName == "this[]") continue;
 
@@ -359,7 +358,11 @@ namespace SourceGenerator
 
                 string memberName = memberSymbol.Name;
 
-                sb.AppendLine($"               new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(\"{memberName}\", (p, v) => p.{memberName} = v, (p) => p.{memberName})");
+                sb.AppendLine($"               new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(");
+                sb.AppendLine($"                  \"{memberName}\",");
+                sb.AppendLine($"                  (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
+                sb.AppendLine($"                  (p) => p.{memberName}");
+                sb.AppendLine($"               )");
                 sb.AppendLine("               {");
 
                 // Generate attributes

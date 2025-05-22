@@ -53,6 +53,9 @@ public abstract class ComplexTypeHandlerMemberBase
 
     public abstract bool SetValueInComplexObject(object obj, object? val);
 
+    // Needed to avoid struct boxing
+    public abstract object? SetValueInComplexObjectAndReturnParent(object obj, object? val);
+
     #endregion
 
     #region Serialization Read

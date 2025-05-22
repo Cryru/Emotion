@@ -46,7 +46,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
             GameDataObject dataObject = gameDataOfType[i];
             EmulatedEditList.Add(dataObject.CreateCopy());
         }
-        _listEditor.SetValue(string.Empty, EmulatedEditList);
+        _listEditor.SetValue(EmulatedEditList);
 
         // Attach to events concerning the list (fired by the ListEditor)
         // and hot reload "need" events in order to hide/show the hot reload section.
@@ -113,6 +113,8 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
             WindowColor = Color.PrettyOrange * 0.5f,
             Visible = _hotReloadNeeded,
             DontTakeSpaceWhenHidden = true,
+            GrowY = false,
+            OrderInParent = -1
         };
         contentParent.AddChild(hotReloadBox);
         _hotReloadBox = hotReloadBox;
@@ -151,7 +153,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
                     _propertyEditor.SetEditor(newInstance);
             }
 
-            EngineEditor.ObjectChanged(EmulatedEditList, ObjectChangeType.ValueChanged, this);
+            EngineEditor.ObjectChanged(EmulatedEditList, ObjectChangeType.List_ObjectValueChanged, this);
         }
     }
 

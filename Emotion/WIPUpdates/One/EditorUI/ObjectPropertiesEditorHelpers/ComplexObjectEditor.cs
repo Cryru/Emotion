@@ -4,9 +4,6 @@ using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Reflector;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Reflection.Metadata;
-using System.ComponentModel;
-using System.Reflection.Emit;
 
 #nullable enable
 
@@ -15,13 +12,15 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 public abstract class ComplexObjectEditor : TypeEditor
 {
     public abstract TypeEditor? GetEditorForProperty(string propertyName);
+
+    public abstract TypeEditor GetNestedEditor(ComplexTypeHandlerMemberBase member);
+
+    public abstract ComplexTypeHandlerMemberBase? GetMemberForEditor(TypeEditor typeEditor);
 }
 
 public class ComplexObjectEditor<T> : ComplexObjectEditor
 {
-    public object? ObjectBeingEdited { get; protected set; }
-
-    protected Type _type = typeof(T);
+    private T? _value;
 
     protected Dictionary<string, TypeEditor> _memberToEditor = new();
     protected List<(ComplexTypeHandlerMemberBase, TypeEditor)> _editors = new();
@@ -60,9 +59,12 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
-    public override void SetValue(string memberName, object? obj)
+    public override void SetValue(object? obj)
     {
-        ObjectBeingEdited = obj;
+        if (obj is T objAsT)
+            _value = objAsT;
+        else
+            obj = null;
 
         EngineEditor.UnregisterForObjectChanges(this);
         if (obj != null)
@@ -80,7 +82,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         _editors.Clear();
 
         // todo
-        if (ObjectBeingEdited == null) return;
+        if (_value == null) return;
 
         IGenericReflectorComplexTypeHandler? typeHandler = ReflectorEngine.GetComplexTypeHandler<T>();
         if (typeHandler == null)
@@ -92,24 +94,30 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
             if (member.HasAttribute<DontShowInEditorAttribute>() != null) continue;
 
             IGenericReflectorTypeHandler? memberHandler = member.GetTypeHandler();
-
             TypeEditor? editor = memberHandler?.GetEditor();
             if (editor != null)
             {
+                if (editor is ComplexObjectEditor complexEditor)
+                    editor = complexEditor.GetNestedEditor(member);
+
                 editor.SetCallbackOnValueChange((newValue) =>
                 {
-                    member.SetValueInComplexObject(ObjectBeingEdited, newValue);
-                    EngineEditor.ObjectChanged(ObjectBeingEdited, ObjectChangeType.ComplexObject_PropertyChanged, this);
-                    OnValueChanged(ObjectBeingEdited);
+                    _value = (T?) member.SetValueInComplexObjectAndReturnParent(_value, newValue);
+                    AssertNotNull(_value);
+                    if (_value is ValueType)
+                        OnValueChanged(_value);
+                    else
+                        EngineEditor.ObjectChanged(_value, ObjectChangeType.ComplexObject_PropertyChanged, this);
                 });
-
-                bool verticalLabel = editor is ComplexObjectEditor || editor is ListEditor;
-                if (verticalLabel) editor.MinSizeY = 200;
-                var editorWithlabel = TypeEditor.WrapWithLabel(member.Name + ":", editor, verticalLabel);
-                EditorList.AddChild(editorWithlabel);
 
                 _memberToEditor.Add(member.Name, editor);
                 _editors.Add((member, editor));
+
+                bool verticalLabel = editor is ListEditor;
+                if (verticalLabel) editor.MinSizeY = 200;
+
+                var editorWithlabel = TypeEditor.WrapWithLabel($"{member.Name}:", editor, verticalLabel);
+                EditorList.AddChild(editorWithlabel);
             }
             else
             {
@@ -117,7 +125,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
             }
         }
 
-        if (ObjectBeingEdited is IObjectEditorExtendedFunctionality<T> ext)
+        if (_value is IObjectEditorExtendedFunctionality<T> ext)
             ext.OnAfterEditorsSpawn(this);
 
         RefreshAllMemberValues();
@@ -125,11 +133,11 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
     private void RefreshAllMemberValues()
     {
-        if (ObjectBeingEdited == null) return;
+        if (_value == null) return;
         foreach ((ComplexTypeHandlerMemberBase member, TypeEditor editor) in _editors)
         {
-            if (member.GetValueFromComplexObject(ObjectBeingEdited, out object? readValue))
-                editor.SetValue(member.Name, readValue);
+            if (member.GetValueFromComplexObject(_value, out object? readValue))
+                editor.SetValue(readValue);//, _member?.Append(member));
         }
     }
 
@@ -139,6 +147,75 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
     {
         _memberToEditor.TryGetValue(propertyName, out TypeEditor? val);
         return val;
+    }
+
+    public override ComplexTypeHandlerMemberBase? GetMemberForEditor(TypeEditor typeEditor)
+    {
+        foreach ((ComplexTypeHandlerMemberBase member, TypeEditor editor) in _editors)
+        {
+            if (editor == typeEditor)
+                return member;
+        }
+        return null;
+    }
+
+    #endregion
+
+    #region Nested Editor
+
+    public class NestedComplexObjectEditor : TypeEditor
+    {
+        private EditorButton _button;
+        private ComplexTypeHandlerMemberBase _member;
+
+        public NestedComplexObjectEditor(ComplexTypeHandlerMemberBase member)
+        {
+            _member = member;
+
+            var editButton = new EditorButton()
+            {
+                GrowX = true,
+                OnClickedProxy = (_) => OpenEditor()
+            };
+            AddChild(editButton);
+            _button = editButton;
+
+            var arrowSquare = new UIBaseWindow()
+            {
+                GrowX = false,
+                GrowY = false,
+                MinSizeY = 23,
+                MinSizeX = 29,
+                AnchorAndParentAnchor = UIAnchor.TopRight,
+            };
+            AddChild(arrowSquare);
+
+            var arrowIcon = new UITexture()
+            {
+                Smooth = true,
+                TextureFile = "Editor/Edit.png",
+                ImageScale = new Vector2(0.6f),
+                Offset = new Vector2(0, 4),
+                AnchorAndParentAnchor = UIAnchor.CenterCenter
+            };
+            arrowSquare.AddChild(arrowIcon);
+        }
+
+        public override void SetValue(object? value)
+        {
+            _button.Text = value == null ? "<null>" : value.ToString();
+        }
+
+        public void OpenEditor()
+        {
+            var objEdit = GetParentOfKind<ObjectPropertyWindow>();
+            objEdit?.AddEditPage(_member);
+        }
+    }
+
+    public override TypeEditor GetNestedEditor(ComplexTypeHandlerMemberBase member)
+    {
+        return new NestedComplexObjectEditor(member);
     }
 
     #endregion

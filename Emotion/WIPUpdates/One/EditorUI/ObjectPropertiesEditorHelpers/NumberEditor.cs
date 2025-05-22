@@ -33,7 +33,7 @@ public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
         inputBackground.AddChild(input);
     }
 
-    public override void SetValue(string memberName, object? value)
+    public override void SetValue(object? value)
     {
         UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
         AssertNotNull(textInput);

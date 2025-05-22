@@ -76,7 +76,7 @@ namespace Emotion.SourceGeneration
 
                 string memberName = memberSymbol.Name;
 
-                sb.AppendLine($"               new ComplexTypeHandlerMember<object, {memberFullTypeName}>(\"{memberName}\", (p, v) => {fullTypName}.{memberName} = v, (p) => {fullTypName}.{memberName})");
+                sb.AppendLine($"               new ComplexTypeHandlerMember<object, {memberFullTypeName}>(\"{memberName}\", (ref object p, {memberFullTypeName} v) => {fullTypName}.{memberName} = v, (p) => {fullTypName}.{memberName})");
                 sb.AppendLine("               {");
 
                 // Generate attributes

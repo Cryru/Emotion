@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
@@ -9,7 +10,6 @@ namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 public abstract class ListEditor : TypeEditor
 {
-
 }
 
 // generic constraint is the item type is only for ease of use, pass object if you dont care
@@ -21,12 +21,12 @@ public class ListEditor<TItem> : ListEditor
     private IGenericReflectorComplexTypeHandler? _complexTypeHandler;
 
     private IList<TItem?> _items = EMPTY_LIST;
-    private IList<object?>? _boxedList;
 
     private UIBaseWindow _itemList;
 
+    // Communication with the object property editor
     private ObjectPropertyWindow? _objEdit;
-    private string _memberName = string.Empty;
+    private ComplexTypeHandlerMemberBase? _member;
 
     public ListEditor(Type typ)
     {
@@ -54,6 +54,7 @@ public class ListEditor<TItem> : ListEditor
         base.AttachedToController(controller);
 
         _objEdit = GetParentOfKind<ObjectPropertyWindow>();
+        _member = _objEdit?.GetMemberForEditor(this);
         RespawnItemsUI(_items);
     }
 
@@ -63,29 +64,21 @@ public class ListEditor<TItem> : ListEditor
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
-    public override void SetValue(string memberName, object? value)
+    public override void SetValue(object? value)
     {
         EngineEditor.UnregisterForObjectChanges(this);
 
         if (value == null)
         {
-            _memberName = string.Empty;
             _items = EMPTY_LIST;
-            _boxedList = null;
         }
         else
         {
-            _memberName = memberName;
             _items = (IList<TItem?>)value;
             EngineEditor.RegisterForObjectChanges(_items, (_) => RespawnItemsUI(_items), this);
 
             // Listen to individual object changes
-            _boxedList = new List<object?>();
-            foreach (TItem? item in _items)
-            {
-                _boxedList.Add(item);
-            }
-            EngineEditor.RegisterForObjectChangesList(_boxedList, (_) => RespawnItemsUI(_items), this);
+            EngineEditor.RegisterForObjectChangesList(_items, (_) => RespawnItemsUI(_items), this);
         }
 
         SetSelection(-1); // Reset selection
@@ -124,7 +117,7 @@ public class ListEditor<TItem> : ListEditor
                 {
                     int myIdx = i;
                     var editItemButton = new SquareEditorButtonWithTexture("Editor/Edit.png");
-                    editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage($"{_memberName}[{myIdx}]", item);
+                    editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage(new ListEditorAdapter<TItem>(_member, newItems), myIdx);
                     editorListItem.AttachButton(editItemButton);
                 }
 

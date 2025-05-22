@@ -52,7 +52,7 @@ public class EnumEditor<T, TNum> : TypeEditor
         arrowSquare.AddChild(arrowIcon);
     }
 
-    public override void SetValue(string memberName, object? value)
+    public override void SetValue(object? value)
     {
         if (_typeHandler == null) return;
 
