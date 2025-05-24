@@ -9,7 +9,7 @@ public class SerializableAsset
 
 public class SerializableAsset<T> : SerializableAsset where T : Asset, new()
 {
-    public T? Get(object? referenceObject = null)
+    public T Get(object? referenceObject = null)
     {
         return Engine.AssetLoader.ONE_Get<T>(Name, referenceObject);
     }
@@ -30,7 +30,7 @@ public class SerializableAsset<T> : SerializableAsset where T : Asset, new()
         return new SerializableAsset<T> { Name = asset.Name };
     }
 
-    public static implicit operator T?(SerializableAsset<T> serialized)
+    public static implicit operator T(SerializableAsset<T> serialized)
     {
         return serialized.Get();
     }
