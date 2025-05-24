@@ -17,10 +17,13 @@ public class SpriteAsset : XMLAsset<SpriteEntity>
         List<SpriteAnimation> anims = Content.Animations;
         foreach (SpriteAnimation anim in anims)
         {
-            foreach (SerializableAsset<TextureAsset> t in anim.Textures)
+            foreach (SpriteAnimationBodyPart part in anim.Parts)
             {
-                if (t.Name != null)
-                    LoadAssetDependency<TextureAsset>(t.Name);
+                foreach (SpriteAnimationFrame frame in part.Frames)
+                {
+                    if (frame.Texture.Name != null)
+                        LoadAssetDependency<TextureAsset>(frame.Texture.Name);
+                }
             }
         }
 

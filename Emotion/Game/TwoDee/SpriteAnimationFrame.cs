@@ -6,23 +6,52 @@ using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 namespace Emotion.Game.TwoDee;
 
+public class SpriteAnimationFramePoint
+{
+    public string Name = string.Empty;
+
+    public Vector2 OriginOffset;
+
+    public bool RelativeToPartOrigin = false;
+
+    public override string ToString()
+    {
+        return Name;
+    }
+}
+
 public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAnimationFrame>
 {
-    public int TextureId;
-    public Rectangle UV;
-    public RectangleAnchor AnchorSpot = RectangleAnchor.CenterCenter;
-    public Vector2 AnchorOffset;
+    public SerializableAsset<TextureAsset> Texture = new();
+    public List<SpriteAnimationFramePoint> Points = new();
 
-    public Vector2 GetCalculatedAnchor(Texture texture, out Rectangle uv)
+    public Vector2 AttachOffset;
+
+    public Rectangle UV;
+
+    public Vector2 GetCalculatedOrigin(SpriteAnimationBodyPart part)
     {
-        uv = !UV.IsEmpty ? UV : new Rectangle(0, 0, texture.Size);
-        Vector2 spot = new Rectangle(0, 0, uv.Size).GetRectangleAnchorSpot(AnchorSpot);
-        return spot - AnchorOffset;
+        Rectangle uv;
+        if (UV.IsEmpty)
+        {
+            TextureAsset texture = Texture.Get();
+            if (texture.Loaded)
+                uv = new Primitives.Rectangle(0, 0, texture.Texture.Size);
+            else
+                uv = Rectangle.Empty;
+        }
+        else
+        {
+            uv = UV;
+        }
+
+        Vector2 spot = new Rectangle(0, 0, uv.Size).GetRectangleAnchorSpot(part.AttachSpot);
+        return -spot + AttachOffset;
     }
 
     public override string ToString()
     {
-        return $"Anim Frame (Tid:{TextureId})";
+        return $"Frame {Texture.Name}";
     }
 
     #region Editor Functionality
@@ -35,6 +64,9 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
         SpriteAnimation? anim = objectEditor.GetParentObjectOfObjectOfKind<SpriteAnimation>(this);
         if (anim == null) return;
 
+        SpriteAnimationBodyPart? bodyPart = objectEditor.GetParentObjectOfObjectOfKind<SpriteAnimationBodyPart>(this);
+        if (bodyPart == null) return;
+
         editor.EditorList.AddChild(new EditorLabel("==== Read Only ====")
         {
             Margins = new Primitives.Rectangle(0, 10, 0, 0)
@@ -43,13 +75,13 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
         VectorEditor anchorDisplay = new VectorEditor(2);
         anchorDisplay.SetValue(new Vector2(5, 5));
         editor.EditorList.AddChild(TypeEditor.WrapWithLabel(
-            "Calculated Offset:",
+            "Calculated Origin:",
             anchorDisplay
         ));
-        Engine.CoroutineManager.StartCoroutine(UpdateCalculatedAnchorRoutine(anim, anchorDisplay));
+        Engine.CoroutineManager.StartCoroutine(UpdateCalculatedAnchorRoutine(bodyPart, anchorDisplay));
     }
 
-    private IEnumerator UpdateCalculatedAnchorRoutine(SpriteAnimation anim, VectorEditor ve)
+    private IEnumerator UpdateCalculatedAnchorRoutine(SpriteAnimationBodyPart part, VectorEditor ve)
     {
         yield return null;
 
@@ -57,13 +89,10 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
         {
             yield return null;
 
-            SerializableAsset<TextureAsset>? textureHandle = anim.Textures.SafelyGet(TextureId);
-            if (textureHandle == null) continue;
+            TextureAsset textureAsset = Texture.Get();
+            if (!textureAsset.Loaded) continue;
 
-            TextureAsset? textureAsset = textureHandle.Get();
-            if (textureAsset == null) continue;
-
-            ve.SetValue(GetCalculatedAnchor(textureAsset.Texture, out _));
+            ve.SetValue(GetCalculatedOrigin(part).Round());
         }
 
         yield return null;

@@ -17,7 +17,12 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
     private SpriteEntityMetaState? _entityMetaState;
     private ListEditor<SpriteAnimation>? _animList;
     private SpriteAnimation? _selectedAnim;
+
     private float _animTime;
+    private TypeEditor? _animTimeEditor;
+
+    private bool _paused;
+    private EditorButton? _pauseButton;
 
     public SpriteEntityEditor() : base("Sprite Entity Editor")
     {
@@ -27,6 +32,30 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
     {
         base.AttachedToController(controller);
         NewFile();
+
+        var contentParent = GetContentParent();
+
+        var animationControlButtons = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.HorizontalList,
+            ListSpacing = new Vector2(5, 0),
+            GrowY = false,
+            OrderInParent = -1
+        };
+        contentParent.AddChild(animationControlButtons);
+
+        var playPause = new EditorButton("Pause");
+        playPause.OnClickedProxy = (_) => TogglePauseAnimation();
+        animationControlButtons.AddChild(playPause);
+        _pauseButton = playPause;
+
+        var animTime = TypeEditor.CreateCustomWithLabel("Animation Time", _animTime, (v) =>
+        {
+            _animTime = v;
+            if (!_paused) TogglePauseAnimation();
+        });
+        animationControlButtons.AddChild(animTime);
+        _animTimeEditor = animTime.GetWindowById<TypeEditor>("Editor");
     }
 
     protected override UIViewport GetLeftSideContent()
@@ -57,18 +86,30 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
         if (_animList != null)
             _selectedAnim = _animList.GetSelected();
 
-        _animTime += Engine.DeltaTime;
-        _entityMetaState?.UpdateAnimation(_selectedAnim, _animTime);
+        if (_selectedAnim != null)
+        {
+            if (!_paused)
+            {
+                _animTime += Engine.DeltaTime;
+                _animTime = _animTime % _selectedAnim.TotalDuration;
+                _animTimeEditor?.SetValue(_animTime);
+            }
+
+            _entityMetaState?.UpdateAnimation(_selectedAnim, _animTime);
+        }
+
         return base.UpdateInternal();
     }
 
     protected void RenderViewport(UIBaseWindow win, RenderComposer c)
     {
         Vector3 center = (win.Size / 4f).ToVec3();
+        center = center.Round();
 
-        float lineLength = 10;
-        c.RenderLine(center + new Vector3(0, lineLength, 0), center - new Vector3(0, lineLength, 0), Color.Red, 1);
-        c.RenderLine(center + new Vector3(lineLength, 0, 0), center - new Vector3(lineLength, 0, 0), Color.Red, 1);
+        const float lineLength = 10;
+        c.RenderSprite(center - new Vector3(0, lineLength, 0), new Vector2(1, lineLength * 2f), Color.Red);
+        c.RenderSprite(center - new Vector3(lineLength, 0, 0), new Vector2(lineLength * 2f, 1), Color.Red);
+        c.RenderSprite(center, new Vector2(1f, 1f), Color.PrettyYellow);
 
         if (ObjectBeingEdited != null)
         {
@@ -137,4 +178,16 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
     {
         return FilePicker<SpriteAsset>.SelectFile;
     }
+
+    #region Controls
+
+    private void TogglePauseAnimation()
+    {
+        _paused = !_paused;
+
+        if (_pauseButton != null)
+            _pauseButton.Text = _paused ? "Play" : "Pause";
+    }
+
+    #endregion
 }
