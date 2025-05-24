@@ -298,5 +298,23 @@ public class ObjectPropertyWindow : UIBaseWindow
         }
     }
 
+    public void ThrowObjectPropertyChangedThroughStack()
+    {
+        if (_pagingRoot == null)
+            return;
+
+        EngineEditor.ObjectChanged(_pagingRoot, ObjectChangeType.ComplexObject_PropertyChanged, this);
+
+        object? val = _pagingRoot;
+        foreach (var entry in _pages)
+        {
+            val = entry.ResolveValue(val);
+            if (val == null) return;
+
+            if (val is not ValueType)
+                EngineEditor.ObjectChanged(val, ObjectChangeType.ComplexObject_PropertyChanged, this);
+        }
+    }
+
     #endregion
 }

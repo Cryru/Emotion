@@ -51,6 +51,7 @@ public abstract class TypeEditor : UIBaseWindow
         TypeEditor? editor = handler?.GetEditor();
         if (editor != null)
         {
+            editor.Id = "Editor";
             editor.SetValue(initialValue);
             editor.SetCallbackOnValueChange((newVal) =>
             {

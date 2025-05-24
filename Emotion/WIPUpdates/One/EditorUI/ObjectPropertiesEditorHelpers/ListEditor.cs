@@ -113,11 +113,24 @@ public class ListEditor<TItem> : ListEditor
                 TItem? item = newItems[i];
                 var editorListItem = new EditorListItem<TItem>(i, item, ItemsUIOnClickSelect);
 
-                if (_objEdit != null)
+                if (item != null)
                 {
-                    int myIdx = i;
                     var editItemButton = new SquareEditorButtonWithTexture("Editor/Edit.png");
-                    editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage(new ListEditorAdapter<TItem>(_member, newItems), myIdx);
+                    if (_objEdit != null)
+                    {
+                        int myIdx = i;
+                        editItemButton.OnClickedProxy = (_) => _objEdit.AddEditPage(new ListEditorAdapter<TItem>(_member, newItems), myIdx);
+                    }
+                    else
+                    {
+                        // todo: value type-like stack?
+                        // todo: array support?
+                        editItemButton.OnClickedProxy = (_) =>
+                        {
+                            var editorWindow = new ObjectPropertyEditorWindow(item);
+                            EngineEditor.EditorRoot.AddChild(editorWindow);
+                        };
+                    }
                     editorListItem.AttachButton(editItemButton);
                 }
 

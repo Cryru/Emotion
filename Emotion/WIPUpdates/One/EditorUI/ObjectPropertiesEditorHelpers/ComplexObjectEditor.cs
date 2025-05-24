@@ -28,6 +28,9 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
     private EditorScrollArea _scroll;
     public UIBaseWindow EditorList;
 
+    // Communication with the object property editor
+    private ObjectPropertyWindow? _objEdit;
+
     public ComplexObjectEditor()
     {
         _scroll = new EditorScrollArea()
@@ -51,6 +54,8 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
     {
         base.AttachedToController(controller);
         SpawnEditors();
+
+        _objEdit = GetParentOfKind<ObjectPropertyWindow>();
     }
 
     public override void DetachedFromController(UIController controller)
@@ -102,12 +107,20 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
                 editor.SetCallbackOnValueChange((newValue) =>
                 {
-                    _value = (T?) member.SetValueInComplexObjectAndReturnParent(_value, newValue);
-                    AssertNotNull(_value);
                     if (_value is ValueType)
+                    {
+                        _value = (T?)member.SetValueInComplexObjectAndReturnParent(_value, newValue);
+                        AssertNotNull(_value);
                         OnValueChanged(_value);
+                    }
                     else
-                        EngineEditor.ObjectChanged(_value, ObjectChangeType.ComplexObject_PropertyChanged, this);
+                    {
+                        member.SetValueInComplexObject(_value, newValue);
+                        if(_objEdit != null)
+                            _objEdit.ThrowObjectPropertyChangedThroughStack();
+                        else
+                            EngineEditor.ObjectChanged(_value, ObjectChangeType.ComplexObject_PropertyChanged, this);
+                    }
                 });
 
                 _memberToEditor.Add(member.Name, editor);
