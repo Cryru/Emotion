@@ -15,7 +15,6 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
     private UIList _list = null!;
 
     private SpriteEntityMetaState? _entityMetaState;
-    private ListEditor<SpriteAnimation>? _animList;
     private SpriteAnimation? _selectedAnim;
 
     private float _animTime;
@@ -83,8 +82,12 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
 
     protected override bool UpdateInternal()
     {
-        if (_animList != null)
-            _selectedAnim = _animList.GetSelected();
+        if (_rightContent != null)
+        {
+            TypeEditor? animEditor = _rightContent.GetEditorForProperty(nameof(SpriteEntity.Animations));
+            if (animEditor is ListEditor<SpriteAnimation> animEdit)
+                _selectedAnim = animEdit.GetSelected();
+        }
 
         if (_selectedAnim != null)
         {
@@ -165,13 +168,11 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
             _entityMetaState = new SpriteEntityMetaState(newObj);
         else
             _entityMetaState = null;
+        _selectedAnim = null;
 
         ObjectPropertyWindow? entityData = _rightContent;
         AssertNotNull(entityData);
         entityData.SetEditor(newObj);
-        TypeEditor? animEditor = entityData.GetEditorForProperty(nameof(SpriteEntity.Animations));
-        if (animEditor is ListEditor<SpriteAnimation> animEdit)
-            _animList = animEdit;
     }
 
     protected override Action<UIBaseWindow, Action<SpriteAsset?>> GetFileOpenFunction()

@@ -223,7 +223,12 @@ namespace Emotion.IO
 
         private List<Asset>? _dependencies;
 
-        protected T LoadAssetDependency<T>(string name) where T : Asset, new()
+        protected T LoadAssetDependency<T>(SerializableAsset<T> serialized) where T : Asset, new()
+        {
+            return LoadAssetDependency<T>(serialized.Name);
+        }
+
+        protected T LoadAssetDependency<T>(string? name) where T : Asset, new()
         {
             T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true);
 

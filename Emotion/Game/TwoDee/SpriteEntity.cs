@@ -1,10 +1,4 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.Game.Animation3D;
-using Emotion.Graphics.ThreeDee;
-using Emotion.IO;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Game.TwoDee;
 

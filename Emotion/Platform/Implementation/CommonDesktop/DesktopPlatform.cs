@@ -84,7 +84,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (existingAsset)
             {
                 string relativePath = Path.GetRelativePath(fullAssetPath, selectedPath);
-                T? asset = Engine.AssetLoader.ONE_Get<T>(relativePath);
+                T? asset = Engine.AssetLoader.ONE_Get<T>(relativePath, null, false, false, true);
                 onLoaded.Invoke(asset);
             }
             else

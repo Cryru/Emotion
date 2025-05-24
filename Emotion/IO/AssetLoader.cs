@@ -609,7 +609,7 @@ namespace Emotion.IO
         private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
         private List<Coroutine> _loadingAssetRoutines = new List<Coroutine>(16);
 
-        public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false) where T : Asset, new()
+        public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name))
                 name = string.Empty;
@@ -617,18 +617,25 @@ namespace Emotion.IO
                 name = NameToEngineNameRemapped(name);
 
             // If the asset already exists, get it.
-            // todo: what do we do if loaded as different types? currently this will error in the register
-            if (_createdAssets.TryGetValue(name, out Asset? loadedAsset) && loadedAsset is T assetAsType)
+            if (!noCache && _createdAssets.TryGetValue(name, out Asset? loadedAsset))
             {
-                if (addRefenceToObject != null)
-                    AddReferenceToAsset(assetAsType, addRefenceToObject);
+                // If the asset loaded is of the same type as requested, then get it.
+                if (loadedAsset is T assetAsType)
+                {
+                    if (addRefenceToObject != null)
+                        AddReferenceToAsset(assetAsType, addRefenceToObject);
 
-                return assetAsType;
+                    return assetAsType;
+                }
+                // If a different type, we turn off the cache for this get.
+                // todo: what should be done actually
+                noCache = true;
             }
 
             // Create a new asset and register it.
             T newAsset = new T { Name = name, LoadedAsDependency = loadedAsDependency };
-            _createdAssets.TryAdd(name, newAsset);
+            if (!noCache)
+                _createdAssets.TryAdd(name, newAsset);
 
             if (addRefenceToObject != null)
                 AddReferenceToAsset(newAsset, addRefenceToObject);

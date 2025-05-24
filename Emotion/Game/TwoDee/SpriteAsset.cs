@@ -21,8 +21,7 @@ public class SpriteAsset : XMLAsset<SpriteEntity>
             {
                 foreach (SpriteAnimationFrame frame in part.Frames)
                 {
-                    if (frame.Texture.Name != null)
-                        LoadAssetDependency<TextureAsset>(frame.Texture.Name);
+                    LoadAssetDependency<TextureAsset>(frame.Texture);
                 }
             }
         }

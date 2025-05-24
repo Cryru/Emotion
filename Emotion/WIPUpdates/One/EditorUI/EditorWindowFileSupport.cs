@@ -136,12 +136,8 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         // todo: check if unsaved changes, prompt etc.
 
         if (_typeHandler != null)
-        {
             ObjectBeingEdited = (T?)_typeHandler.CreateNew();
-        }
         SetObjectBeingEdited(ObjectBeingEdited);
-        _currentFileName = DEFAULT_FILE_NAME + ".xml";
-        UpdateHeader();
     }
 
     protected void OpenFile()
@@ -155,7 +151,9 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 if (file.Content == null) return;
 
                 SetObjectBeingEdited(file.Content);
+
                 _currentFileName = file.Name;
+                UpdateHeader();
             });
             //string xml = XMLFormat.To(ObjectBeingEdited);
             //Engine.AssetLoader.Save()
@@ -205,7 +203,10 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
 
     protected void SetObjectBeingEdited(T? objToEdit)
     {
-        _currentFileName = DEFAULT_FILE_NAME + ".xml";
+        _hasUnsavedChanges = false;
+        UnsavedChangesChanged();
+
+        _currentFileName = DEFAULT_FILE_NAME + ".xml"; // Open should set the file name after
         ObjectBeingEdited = objToEdit;
         UpdateHeader();
         if (objToEdit != null)
