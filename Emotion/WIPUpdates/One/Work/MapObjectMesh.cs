@@ -135,9 +135,9 @@ public class MapObjectMesh : MapObject
     /// Axis aligned cube that encompasses the whole object.
     /// If the mesh is animated the AABB encompasses all keyframes of the animation.
     /// </summary>
-    public Cube Bounds3D;
+    public Cube BoundingCube;
 
-    public override Rectangle Bounds2D
+    public override Rectangle BoundingRect
     {
         get
         {
@@ -207,7 +207,7 @@ public class MapObjectMesh : MapObject
 
         _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
         _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
-        _scaleMatrix = Matrix4x4.CreateScale(_sizeX * entityScale, _sizeY * entityScale, _sizeZ * entityScale);
+        _scaleMatrix = Matrix4x4.CreateScale(_scaleX * entityScale, _scaleY * entityScale, _scaleZ * entityScale);
 
         Matrix4x4 rotMatrix = ignoreRotation ? Matrix4x4.Identity : _rotationMatrix;
         return entityLocalTransform * _scaleMatrix * rotMatrix * _translationMatrix;
@@ -271,6 +271,7 @@ public class MapObjectMesh : MapObject
         _entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
         _boundingSphereBase = baseSphere;
         _boundingCubeBase = baseCube;
+        InvalidateModelMatrix();
 
         Assert(_boundingSphereBase.Radius != 0, "Entity bounds is 0 - no vertices?");
     }
@@ -342,7 +343,7 @@ public class MapObjectMesh : MapObject
 
             float height = Vector3.Distance(parentBonePos, bonePos);
             if (height == 0) continue;
-            coneMeshGenerator.Height = height * _sizeZ;
+            coneMeshGenerator.Height = height * _scaleZ;
 
             // Look at params
             Vector3 conePos = parentBonePos;

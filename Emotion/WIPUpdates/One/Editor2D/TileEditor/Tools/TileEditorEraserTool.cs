@@ -31,7 +31,7 @@ public class TileEditorEraserTool : TileEditorTool
         Vector2 tileSize = currentLayer.TileSize;
 
         c.RenderSprite(tileInWorld.ToVec3(), tileSize, Color.PrettyPink * 0.2f);
-        c.RenderOutline(tileInWorld.ToVec3(), tileSize, Color.PrettyPink, 3f * editor.GetScale());
+        c.RenderRectOutline(tileInWorld.ToVec3(), tileSize, Color.PrettyPink, 3f * editor.GetScale());
     }
 }
 

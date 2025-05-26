@@ -47,7 +47,7 @@ public class TileEditorPickerTool : TileEditorTool
         Vector2 tileSize = currentLayer.TileSize;
 
         c.RenderSprite(tileInWorld.ToVec3(), tileSize, Color.PrettyOrange * 0.2f);
-        c.RenderOutline(tileInWorld.ToVec3(), tileSize, Color.PrettyOrange, 3f * editor.GetScale());
+        c.RenderRectOutline(tileInWorld.ToVec3(), tileSize, Color.PrettyOrange, 3f * editor.GetScale());
     }
 }
 

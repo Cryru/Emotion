@@ -188,7 +188,7 @@ public class EditorWindow : UIBaseWindow
         c.RenderSprite(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.BarColor * 0.8f);
 
         if (_panelMode != PanelMode.SubWindow)
-            c.RenderOutline(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
+            c.RenderRectOutline(_panelInner.Position, _panelInner.Size, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
 
         if (_topBar != null)
         {

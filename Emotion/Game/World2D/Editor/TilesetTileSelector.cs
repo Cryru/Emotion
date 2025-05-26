@@ -205,8 +205,8 @@ public sealed class TilesetTileSelector : UIScrollArea
                 Vector2 uiSpace = TilesetCoordToUISpace(rolloverCoord, out Vector2 tileSize);
 
                 c.RenderSprite(Position + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
-                c.RenderOutline(Position + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
-                c.RenderOutline(Position + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
+                c.RenderRectOutline(Position + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
+                c.RenderRectOutline(Position + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
             }
 
             for (int i = 0; i < SelectedTiles.Count; i++)
@@ -216,8 +216,8 @@ public sealed class TilesetTileSelector : UIScrollArea
                 Vector2 selectedCoord = TidToTilesetCoord(selectedTileId);
                 Vector2 uiSpace = TilesetCoordToUISpace(selectedCoord, out Vector2 tileSize);
 
-                c.RenderOutline(Position + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
-                c.RenderOutline(Position + uiSpace.ToVec3(), tileSize, Color.White, 1f);
+                c.RenderRectOutline(Position + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
+                c.RenderRectOutline(Position + uiSpace.ToVec3(), tileSize, Color.White, 1f);
             }
         }
 

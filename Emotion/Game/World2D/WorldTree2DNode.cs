@@ -72,7 +72,7 @@ namespace Emotion.Game.World2D
 
         public void RenderDebug(RenderComposer c)
         {
-            c.RenderOutline(Bounds, Color.Blue);
+            c.RenderRectOutline(Bounds, Color.Blue);
             if (ChildNodes == null) return;
             for (var i = 0; i < ChildNodes.Length; i++)
             {

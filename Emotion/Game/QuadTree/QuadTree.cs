@@ -137,7 +137,7 @@ namespace Emotion.Game.QuadTree
             treeTraverse.Enqueue(this);
             while (treeTraverse.TryDequeue(out QuadTreeNode<T> quadTree))
             {
-                c.RenderOutline(quadTree.QuadRect, color);
+                c.RenderRectOutline(quadTree.QuadRect, color);
 
                 if (quadTree.TopLeftChild == null) continue;
                 treeTraverse.Enqueue(quadTree.TopLeftChild);

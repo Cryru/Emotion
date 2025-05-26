@@ -252,7 +252,7 @@ namespace Emotion.Graphics
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
+        public void RenderRectOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
         {
             Vector3 nn = position;
             Vector3 pn = new Vector3(position.X + size.X, position.Y, position.Z);
@@ -265,16 +265,16 @@ namespace Emotion.Graphics
             RenderLine(np, nn, color, thickness, RenderLineMode.Inward);
         }
 
-        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
-        public void RenderOutline(Vector2 position, Vector2 size, Color color, float thickness = 1)
+        /// <inheritdoc cref="RenderRectOutline(Vector3, Vector2, Color, float)" />
+        public void RenderRectOutline(Vector2 position, Vector2 size, Color color, float thickness = 1)
         {
-            RenderOutline(position.ToVec3(), size, color, thickness);
+            RenderRectOutline(position.ToVec3(), size, color, thickness);
         }
 
-        /// <inheritdoc cref="RenderOutline(Vector3, Vector2, Color, float)" />
-        public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
+        /// <inheritdoc cref="RenderRectOutline(Vector3, Vector2, Color, float)" />
+        public void RenderRectOutline(Rectangle rect, Color color, float thickness = 1)
         {
-            RenderOutline(rect.Position.ToVec3(), rect.Size, color, thickness);
+            RenderRectOutline(rect.Position.ToVec3(), rect.Size, color, thickness);
         }
 
         /// <summary>

@@ -79,7 +79,7 @@ public class TileEditorBrushTool : TileEditorTool
             }
 
             c.RenderSprite(worldPos, tileSize, Color.Blue * 0.2f);
-            c.RenderOutline(worldPos, tileSize, Color.PrettyBlue, 3f * editor.GetScale());
+            c.RenderRectOutline(worldPos, tileSize, Color.PrettyBlue, 3f * editor.GetScale());
         }
     }
 }

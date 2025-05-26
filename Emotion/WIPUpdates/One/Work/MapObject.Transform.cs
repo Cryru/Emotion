@@ -69,12 +69,12 @@ public partial class MapObject
     [DontSerialize]
     public float SizeX
     {
-        get => _sizeX;
+        get => _scaleX;
         set
         {
-            if (_sizeX == value) return;
+            if (_scaleX == value) return;
 
-            _sizeX = value;
+            _scaleX = value;
             Resized();
         }
     }
@@ -85,12 +85,12 @@ public partial class MapObject
     [DontSerialize]
     public float SizeY
     {
-        get => _sizeY;
+        get => _scaleY;
         set
         {
-            if (_sizeY == value) return;
+            if (_scaleY == value) return;
 
-            _sizeY = value;
+            _scaleY = value;
             Resized();
         }
     }
@@ -101,12 +101,12 @@ public partial class MapObject
     [DontSerialize]
     public float SizeZ
     {
-        get => _sizeZ;
+        get => _scaleZ;
         set
         {
-            if (_sizeZ == value) return;
+            if (_scaleZ == value) return;
 
-            _sizeZ = value;
+            _scaleZ = value;
             Resized();
         }
     }
@@ -186,15 +186,15 @@ public partial class MapObject
     /// <summary>
     /// The scale of the 2D object
     /// </summary>
-    public Vector2 Size2D
+    public Vector2 Scale2D
     {
-        get => new Vector2(_sizeX, _sizeY);
+        get => new Vector2(_scaleX, _scaleY);
         set
         {
-            if (_sizeX == value.X && _sizeY == value.Y) return;
+            if (_scaleX == value.X && _scaleY == value.Y) return;
 
-            _sizeX = value.X;
-            _sizeY = value.Y;
+            _scaleX = value.X;
+            _scaleY = value.Y;
             Resized();
         }
     }
@@ -202,16 +202,16 @@ public partial class MapObject
     /// <summary>
     /// The scale of the 3D object
     /// </summary>
-    public Vector3 Size3D
+    public Vector3 Scale3D
     {
-        get => new Vector3(_sizeX, _sizeY, _sizeZ);
+        get => new Vector3(_scaleX, _scaleY, _scaleZ);
         set
         {
-            if (_sizeX == value.X && _sizeY == value.Y && _sizeZ == value.Z) return;
+            if (_scaleX == value.X && _scaleY == value.Y && _scaleZ == value.Z) return;
 
-            _sizeX = value.X;
-            _sizeY = value.Y;
-            _sizeZ = value.Z;
+            _scaleX = value.X;
+            _scaleY = value.Y;
+            _scaleZ = value.Z;
             Resized();
         }
     }
@@ -224,13 +224,13 @@ public partial class MapObject
     /// The center of the object's bounds.
     /// </summary>
     [DontSerialize]
-    public Vector2 Center2D
+    public Vector2 BoundingRectCenter
     {
-        get => Bounds2D.Center;
+        get => BoundingRect.Center;
         set
         {
-            _x = value.X - _sizeX / 2;
-            _y = value.Y - _sizeY / 2;
+            _x = value.X - _scaleX / 2;
+            _y = value.Y - _scaleY / 2;
 
             Moved();
         }
@@ -240,18 +240,18 @@ public partial class MapObject
     /// Rectangle that encompasses the object.
     /// </summary>
     [DontSerialize]
-    public virtual Rectangle Bounds2D
+    public virtual Rectangle BoundingRect
     {
         get
         {
-            return new Rectangle(_x, _y, _sizeX, _sizeY);
+            return new Rectangle(_x, _y, _scaleX, _scaleY);
         }
         set
         {
             _x = value.X;
             _y = value.Y;
-            _sizeX = value.Width;
-            _sizeY = value.Height;
+            _scaleX = value.Width;
+            _scaleY = value.Height;
 
             Moved();
             Resized();
@@ -284,9 +284,9 @@ public partial class MapObject
     protected float _x;
     protected float _y;
     protected float _z;
-    protected float _sizeX = 1;
-    protected float _sizeY = 1;
-    protected float _sizeZ = 1;
+    protected float _scaleX = 1;
+    protected float _scaleY = 1;
+    protected float _scaleZ = 1;
     protected Vector3 _rotation;
 
     #endregion
@@ -318,9 +318,9 @@ public partial class MapObject
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void Resized()
     {
-        Assert(!float.IsNaN(_sizeX));
-        Assert(!float.IsNaN(_sizeY));
-        Assert(!float.IsNaN(_sizeZ));
+        Assert(!float.IsNaN(_scaleX));
+        Assert(!float.IsNaN(_scaleY));
+        Assert(!float.IsNaN(_scaleZ));
 
         OnResize?.Invoke(this);
         InvalidateModelMatrix();
@@ -346,7 +346,7 @@ public partial class MapObject
     {
         _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
         _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
-        _scaleMatrix = Matrix4x4.CreateScale(_sizeX, _sizeY, _sizeZ);
+        _scaleMatrix = Matrix4x4.CreateScale(_scaleX, _scaleY, _scaleZ);
         return _scaleMatrix * _rotationMatrix * _translationMatrix;
     }
 

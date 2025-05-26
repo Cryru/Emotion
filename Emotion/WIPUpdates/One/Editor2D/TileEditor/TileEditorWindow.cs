@@ -193,7 +193,7 @@ public sealed class TileEditorWindow : GridEditorWindow
         {
             foreach (Rectangle chunkBound in CurrentLayer.ForEachLoadedChunkBound())
             {
-                c.RenderOutline(chunkBound, Color.Black * 0.5f, 4 * GetScale());
+                c.RenderRectOutline(chunkBound, Color.Black * 0.5f, 4 * GetScale());
             }
         }
 

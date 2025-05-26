@@ -56,7 +56,7 @@ public partial class World2DEditor
                 c.RenderSprite(bound, Color.Magenta * 0.2f);
             }
 
-            c.RenderOutline(bound, Color.White * 0.4f);
+            c.RenderRectOutline(bound, Color.White * 0.4f);
         }
     }
 }

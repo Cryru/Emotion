@@ -15,8 +15,7 @@ public partial class RenderComposer
     public void RenderEntityStandalone(
         SpriteEntity entity,
         SpriteEntityMetaState state,
-        Vector3 position,
-        float scale = 1f
+        Vector3 position
     )
     {
         if (entity.PixelArt)
@@ -26,7 +25,7 @@ public partial class RenderComposer
         for (int i = 0; i < partCount; i++)
         {
             state.GetRenderData(i, out Texture texture, out Rectangle uv, out Vector2 anchor);
-            RenderSprite(position + (anchor.ToVec3() * scale), uv.Size * scale, texture, uv);
+            RenderSprite(position + anchor.ToVec3(), uv.Size, Color.White, texture, uv);
         }
     }
 

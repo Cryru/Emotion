@@ -156,7 +156,7 @@ public class EditorPanel : UIBaseWindow
         if (PanelMode == PanelMode.Modal) c.RenderSprite(Bounds, Color.Black * 0.7f);
 
         c.RenderSprite(_container.Bounds, MapEditorColorPalette.BarColor * 0.8f);
-        c.RenderOutline(_container.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
+        c.RenderRectOutline(_container.Bounds, MapEditorColorPalette.ActiveButtonColor * 0.9f, 2);
         return base.RenderInternal(c);
     }
 

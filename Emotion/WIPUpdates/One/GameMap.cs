@@ -88,7 +88,7 @@ public class GameMap
         {
             if (obj == exclude) continue;
 
-            Rectangle bounds = obj.Bounds2D;
+            Rectangle bounds = obj.BoundingRect;
             if (ray.IntersectWithRectangle(bounds, out collisionPoint))
                 return true;
         }
@@ -109,7 +109,7 @@ public class GameMap
             if (obj is not T) continue;
             if (obj == exclude) continue;
 
-            Rectangle bounds = obj.Bounds2D;
+            Rectangle bounds = obj.BoundingRect;
             if (ray.IntersectWithRectangle(bounds, out collisionPoint))
                 return true;
         }

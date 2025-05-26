@@ -32,6 +32,6 @@ public class SquareEditorButton : EditorButton
         base.AfterRenderChildren(c);
 
         if (ShowOutline)
-            c.RenderOutline(Bounds, Color.White * 0.5f, 1 * GetScale());
+            c.RenderRectOutline(Bounds, Color.White * 0.5f, 1 * GetScale());
     }
 }

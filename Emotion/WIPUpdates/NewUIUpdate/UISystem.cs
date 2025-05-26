@@ -71,7 +71,7 @@ public class UISystem : UIController
         if (_debugInspectMode && _debugWindowsUnderMouse!.Count > 0)
         {
             var windowUnderMouse = _debugWindowsUnderMouse[^1];
-            c.RenderOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
+            c.RenderRectOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
         }
     }
 

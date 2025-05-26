@@ -161,7 +161,7 @@ public static partial class EngineEditor
         {
             Rectangle twoDee = gameCam.GetCameraView2D();
             c.RenderSprite(twoDee.Position, twoDee.Size, Color.Magenta * 0.1f);
-            c.RenderOutline(twoDee.Position, twoDee.Size, Color.Magenta, 3);
+            c.RenderRectOutline(twoDee.Position, twoDee.Size, Color.Magenta, 3);
         }
         
         if (MapEditorMode == MapEditorMode.ThreeDee)

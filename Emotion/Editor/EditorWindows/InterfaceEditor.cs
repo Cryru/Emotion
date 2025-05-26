@@ -167,7 +167,7 @@ public class InterfaceEditor : EditorPanel
         if (_inspecting && _windowsUnderMouse.Count > 0)
         {
             var windowUnderMouse = _windowsUnderMouse[^1];
-            c.RenderOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
+            c.RenderRectOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
         }
 
         if (_inspecting) return false;

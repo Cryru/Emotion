@@ -127,7 +127,7 @@ public class TileEditorBucketTool : TileEditorTool
         if (currentTileData == tileToPlace || tileToPlace == TileMapTile.Empty)
         {
             c.RenderSprite(cursorTileWorldSpace, tileSize, Color.PrettyGreen * 0.2f);
-            c.RenderOutline(cursorTileWorldSpace, tileSize, Color.Green, 3f * editor.GetScale());
+            c.RenderRectOutline(cursorTileWorldSpace, tileSize, Color.Green, 3f * editor.GetScale());
             return;
         }
 
@@ -147,7 +147,7 @@ public class TileEditorBucketTool : TileEditorTool
             c.RenderSprite(drawRect, Color.Blue * 0.2f);
         }
 
-        c.RenderOutline(cursorTileWorldSpace.ToVec3(), tileSize, Color.Green, 3f * editor.GetScale());
+        c.RenderRectOutline(cursorTileWorldSpace.ToVec3(), tileSize, Color.Green, 3f * editor.GetScale());
     }
 }
 

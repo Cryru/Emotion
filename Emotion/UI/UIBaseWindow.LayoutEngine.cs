@@ -659,7 +659,7 @@ public partial class UIBaseWindow
 
             for (int i = 0; i < _children.Count; i++)
             {
-                c.RenderOutline(_children[i].Child.Bounds, Color.Red * 0.2f, 2f);
+                c.RenderRectOutline(_children[i].Child.Bounds, Color.Red * 0.2f, 2f);
             }
         }
     }

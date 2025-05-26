@@ -13,7 +13,7 @@ public class EditorScrollArea : UIScrollArea
     }
     protected override bool RenderInternal(RenderComposer c)
     {
-        c.RenderOutline(Bounds, MapEditorColorPalette.ButtonColor, 3 * GetScale());
+        c.RenderRectOutline(Bounds, MapEditorColorPalette.ButtonColor, 3 * GetScale());
         return base.RenderInternal(c);
     }
 }

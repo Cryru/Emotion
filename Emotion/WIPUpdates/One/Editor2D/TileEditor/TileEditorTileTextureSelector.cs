@@ -207,8 +207,8 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
                 tileSize = tileSize.Ceiling();
 
                 c.RenderSprite(contentPos + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
-                c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
-                c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
+                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
+                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
             }
 
             foreach (TileTextureId selectedTileCoord in _selectedTiles)
@@ -217,8 +217,8 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
                 Vector2 uiSpace = TilesetCoordToUISpace(selectedCoord, out Vector2 tileSize);
                 tileSize = tileSize.Ceiling();
 
-                c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
-                c.RenderOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White, 1f);
+                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
+                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White, 1f);
             }
         }
 
