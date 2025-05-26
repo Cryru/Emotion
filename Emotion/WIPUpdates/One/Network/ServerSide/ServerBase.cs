@@ -144,6 +144,7 @@ public abstract class ServerBase<TRoomType> : ServerBase
 
         RemovePlayerFromRoom(user); // Remove from old room
         newRoom.UserJoin(user);
+        user.InRoom = newRoom;
     }
 
     public void RemovePlayerFromRoom(ServerPlayer<TRoomType> user)
