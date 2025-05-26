@@ -10,7 +10,7 @@ namespace Emotion.Game.WorldTwoDee;
 public class MapObjectSprite : MapObject
 {
     [DontSerialize]
-    public SpriteEntity SpriteEntity
+    public SpriteEntity Entity
     {
         get => _entity;
     }
@@ -87,8 +87,8 @@ public class MapObjectSprite : MapObject
     {
         RenderState = null;
 
-        //_currentAnimation = null;
-        //_animationTime = 0;
+        _currentAnimation = null;
+        _animationTime = 0;
 
         _entity = entity;
 
@@ -99,18 +99,55 @@ public class MapObjectSprite : MapObject
             // Reset the animation (or set it to the one set before the entity was loaded).
             // This will also set the default bone matrices.
             // This will also calculate bounds
-            //SetAnimation(_initSetAnimation);
-            //_initSetAnimation = null;
+            SetAnimation(_initSetAnimation);
+            _initSetAnimation = null;
 
-            //RenderState.UpdateAnimationRigBones(_currentAnimation, 0);
+            RenderState.UpdateAnimation(_currentAnimation, 0);
         }
         else
         {
-            //_boundingSphereBase = new Sphere();
-            //_boundingCubeBase = new Cube();
+            _boundingRectangleBase = new Rectangle(0, 0, 1, 1);
         }
 
         InvalidateModelMatrix();
+    }
+
+    #endregion
+
+    #region Transform
+
+    public override Rectangle BoundingRect
+    {
+        get
+        {
+            return GetBoundingRectangle();
+        }
+        set
+        {
+            Position2D = value.Center; // ?
+            Assert(false, "Settings bounds on a sprite entity object? What should happen?");
+        }
+    }
+
+    protected Rectangle _boundingRectangle;
+    protected Rectangle _boundingRectangleBase;
+    protected bool _dirtyBounds = true;
+
+    public Rectangle GetBoundingRectangle()
+    {
+        if (_dirtyBounds)
+        {
+            _boundingRectangle = Rectangle.Transform(_boundingRectangleBase, GetModelMatrix());
+            _dirtyBounds = false;
+        }
+
+        return _boundingRectangle;
+    }
+
+    protected override void InvalidateModelMatrix()
+    {
+        base.InvalidateModelMatrix();
+        _dirtyBounds = true;
     }
 
     #endregion
@@ -150,12 +187,19 @@ public class MapObjectSprite : MapObject
         // Try to find the animation instance.
         // todo: case insensitive?
         SpriteAnimation? animInstance = null;
-        if (name != null && _entity.Animations != null)
+        if (_entity.Animations != null)
         {
-            for (var i = 0; i < _entity.Animations.Count; i++)
+            // Default to first animation
+            if (_entity.Animations.Count > 0)
+                animInstance = _entity.Animations[0];
+
+            if (name != null)
             {
-                SpriteAnimation anim = _entity.Animations[i];
-                if (anim.Name == name) animInstance = anim;
+                for (var i = 0; i < _entity.Animations.Count; i++)
+                {
+                    SpriteAnimation anim = _entity.Animations[i];
+                    if (anim.Name == name) animInstance = anim;
+                }
             }
         }
         if (animInstance == null && name != null && !forceIfMissing)
@@ -164,13 +208,18 @@ public class MapObjectSprite : MapObject
         _currentAnimation = animInstance;
         _animationTime = 0; // Reset time
 
-        //CacheVerticesForCollision();
+        _entity.GetBounds(_currentAnimation, out Rectangle baseRect);
+        _boundingRectangleBase = baseRect;
+        Assert(baseRect.Size.X != 0 && baseRect.Size.Y != 0, "Entity bounds is 0?");
+        InvalidateModelMatrix();
+    }
 
-        //_entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
-        //_boundingSphereBase = baseSphere;
-        //_boundingCubeBase = baseCube;
-
-        //Assert(_boundingSphereBase.Radius != 0, "Entity bounds is 0 - no vertices?");
+    protected override Matrix4x4 UpdateModelMatrix()
+    {
+        _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
+        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
+        _scaleMatrix = Matrix4x4.CreateScale(_scaleX, _scaleY, _scaleZ);
+        return _scaleMatrix * _rotationMatrix * _translationMatrix;
     }
 
     #endregion
@@ -181,10 +230,7 @@ public class MapObjectSprite : MapObject
         if (_currentAnimation != null && _entity != null && RenderState != null)
         {
             _animationTime += dt;
-
-            //float duration = _currentAnimation.Duration;
-            //RenderState.UpdateAnimationRigBones(_currentAnimation, _animationTime % duration);
-            //if (_animationTime > duration) _animationTime -= duration;
+            RenderState.UpdateAnimation(_currentAnimation, _animationTime);
         }
 
         base.Update(dt);
@@ -192,13 +238,11 @@ public class MapObjectSprite : MapObject
 
     public override void Render(RenderComposer c)
     {
-        if (_entity != null && RenderState != null)
+        if (RenderState != null)
         {
-            //c.MeshEntityRenderer.EnsureAssetsLoaded();
-
-            //c.MeshEntityRenderer.StartScene(c);
-            //c.MeshEntityRenderer.SubmitObjectForRendering(this, _entity, RenderState);
-            //c.MeshEntityRenderer.EndScene(c, LightModel.DefaultLightModel);
+            c.PushModelMatrix(GetModelMatrix());
+            c.RenderEntityStandalone(Entity, RenderState, Vector3.Zero);
+            c.PopModelMatrix();
         }
 
         base.Render(c);

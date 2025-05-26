@@ -36,6 +36,9 @@ public class ObjectPropertyWindow : UIBaseWindow
     {
         if (Controller == null) return;
 
+        // todo: check if value type or array without a value changed - in that case we want to display an error since
+        // the object changes have nowhere to be propagated to.
+
         ClearChildren();
 
         SpawnPagingUI();

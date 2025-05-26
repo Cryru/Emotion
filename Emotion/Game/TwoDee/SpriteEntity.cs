@@ -12,7 +12,22 @@ public class SpriteEntity
     public string Name = "Unnamed Entity";
     public bool PixelArt;
 
-    //public List<SerializableAsset<TextureAsset>> Textures = new();
     public List<SpriteAnimation> Animations = new();
+
+    public void GetBounds(SpriteAnimation? animation, out Rectangle baseRect)
+    {
+        baseRect = new Primitives.Rectangle(0, 0, 1, 1);
+        if (animation == null) return;
+
+        foreach (SpriteAnimationBodyPart part in animation.ForEachPart())
+        {
+            if (part.AttachToPoint != "origin") continue;
+            foreach (SpriteAnimationFrame frame in part.Frames)
+            {
+                Rectangle frameRect = frame.GetBoundingRect(part);
+                baseRect = Rectangle.Union(baseRect, frameRect);
+            }
+        }
+    }
 }
 

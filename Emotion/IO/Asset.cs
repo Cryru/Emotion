@@ -230,7 +230,7 @@ namespace Emotion.IO
 
         protected T LoadAssetDependency<T>(string? name) where T : Asset, new()
         {
-            T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true);
+            T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true, false);
 
             _dependencies ??= new List<Asset>();
             _dependencies.Add(dependantAsset);

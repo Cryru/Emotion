@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Utility;
@@ -975,41 +976,11 @@ namespace Emotion.Primitives
         /// </summary>
         public static Rectangle Transform(Rectangle rect, Matrix4x4 matrix)
         {
-            Vector2 p1 = Vector2.Transform(rect.TopLeft, matrix);
-            Vector2 p2 = Vector2.Transform(rect.TopRight, matrix);
-            Vector2 p3 = Vector2.Transform(rect.BottomRight, matrix);
-            Vector2 p4 = Vector2.Transform(rect.BottomLeft, matrix);
+            rect.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+            Vector2 transMin = Vector2.Transform(min, matrix);
+            Vector2 transMax = Vector2.Transform(max, matrix);
 
-            unsafe
-            {
-                Vector2** vertices = stackalloc Vector2*[4]
-                {
-                    &p1,
-                    &p2,
-                    &p3,
-                    &p4
-                };
-
-                var minX = float.MaxValue;
-                var maxX = float.MinValue;
-                var minY = float.MaxValue;
-                var maxY = float.MinValue;
-
-                for (var i = 0; i < 4; i++)
-                {
-                    float x = vertices[i]->X;
-                    float y = vertices[i]->Y;
-                    minX = Math.Min(minX, x);
-                    maxX = Math.Max(maxX, x);
-                    minY = Math.Min(minY, y);
-                    maxY = Math.Max(maxY, y);
-                }
-
-                float width = maxX - minX;
-                float height = maxY - minY;
-
-                return new Rectangle(minX, minY, width, height);
-            }
+            return Rectangle.FromMinMaxPointsChecked(transMin, transMax);
         }
 
         #endregion

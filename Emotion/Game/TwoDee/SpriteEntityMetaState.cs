@@ -15,22 +15,31 @@ public class SpriteEntityMetaState
     }
 
     private SpriteAnimation? _animation;
+    private float _totalAnimDuration;
+    private float _totalAnimDurationSegment;
     private Dictionary<int, Vector2> _points = new();
     private List<PartRuntimeData> _parts = new();
 
-    public void UpdateAnimation(SpriteAnimation? animation, float timeStamp)
+    public float GetCurrentAnimationTime()
+    {
+        return _totalAnimDurationSegment;
+    }
+
+    public void UpdateAnimation(SpriteAnimation? animation, float currentTime, bool forceRecalculate = false)
     {
         // Check if changing animation
-        if (_animation != animation)
+        if (_animation != animation || forceRecalculate)
         {
             _animation = animation;
             _parts.Clear();
             _points.Clear();
+            _totalAnimDuration = 1;
+            _totalAnimDurationSegment = 1;
 
-            if (animation != null)
+            if (_animation != null)
             {
                 // Initialize animation runtime cache
-                foreach (SpriteAnimationBodyPart part in animation.ForEachPart())
+                foreach (SpriteAnimationBodyPart part in _animation.ForEachPart())
                 {
                     int pointAttachIdx = -1;
                     string pointAttach = part.AttachToPoint;
@@ -39,22 +48,43 @@ public class SpriteEntityMetaState
 
                     _parts.Add((part, pointAttachIdx, null, Vector2.Zero));
                 }
+
+                _totalAnimDuration = _animation.TotalDuration;
+                _totalAnimDurationSegment = _totalAnimDuration;
+
+                if (_animation.LoopType == Animation.AnimationLoopType.NormalThenReverse)
+                    // -2 frames since we dont want to repeat first and last when switching directions
+                    _totalAnimDuration = (_totalAnimDuration * 2f) - (_animation.TimeBetweenFrames * 2f);
             }
         }
+
         if (_animation == null)
             return;
+
+        float currentAnimTime = currentTime % _totalAnimDuration;
+
+        // NormalThenReverse handling
+        if (currentAnimTime >= _totalAnimDurationSegment)
+            currentAnimTime = _totalAnimDurationSegment - (currentAnimTime - _totalAnimDurationSegment + _animation.TimeBetweenFrames + 1);
 
         // Assign current frames for all parts
         for (int i = 0; i < _parts.Count; i++)
         {
             PartRuntimeData item = _parts[i];
 
-            SpriteAnimationFrame? frame = GetFrameAtTimestamp(item.part, timeStamp);
+            SpriteAnimationFrame? frame = GetFrameAtTimestamp(_animation, item.part, currentAnimTime);
             item.currentFrame = frame;
 
             if (frame != null)
             {
                 item.anchor = frame.GetCalculatedOrigin(item.part);
+
+                //bool flipX = false;
+                //if (Entity.PixelArt)
+                //    if (flipX)
+                //        item.anchor = item.anchor.Ceiling();
+                //    else
+                //        item.anchor = item.anchor.Floor();
                 if (Entity.PixelArt)
                     item.anchor = item.anchor.Round();
 
@@ -81,28 +111,18 @@ public class SpriteEntityMetaState
         }
     }
 
-    private SpriteAnimationFrame? GetFrameAtTimestamp(SpriteAnimationBodyPart part, float time)
+    private SpriteAnimationFrame? GetFrameAtTimestamp(SpriteAnimation animation, SpriteAnimationBodyPart part, float time)
     {
         if (part.Frames.Count == 0)
             return null;
 
-        float timeBetweenFrames = part.TimeBetweenFrames;
+        float timeBetweenFrames = animation.TimeBetweenFrames;
         if (timeBetweenFrames == 0)
             return part.Frames[0];
 
-        float timeInAnim = time % part.Duration;
-        float currentTime = 0;
-        for (int i = 0; i < part.Frames.Count; i++)
-        {
-            currentTime += timeBetweenFrames;
-            if (currentTime > timeInAnim)
-            {
-                SpriteAnimationFrame frame = part.Frames[i];
-                return frame;
-            }
-        }
-
-        return null;
+        int currentFrame = (int)(time / animation.TimeBetweenFrames);
+        int frameIdx = currentFrame % part.Frames.Count;
+        return part.Frames[frameIdx];
     }
 
     public int GetPartCount()
@@ -121,10 +141,10 @@ public class SpriteEntityMetaState
             return;
 
         TextureAsset textureAsset = partData.currentFrame.Texture.Get();
-        if(textureAsset.Loaded)
+        if (textureAsset.Loaded)
             texture = textureAsset.Texture;
 
         anchorOffset = partData.anchor;
-        uv = partData.currentFrame.UV.IsEmpty ? new Primitives.Rectangle(0, 0,texture.Size) : partData.currentFrame.UV;
+        uv = partData.currentFrame.UV.IsEmpty ? new Primitives.Rectangle(0, 0, texture.Size) : partData.currentFrame.UV;
     }
 }

@@ -46,7 +46,32 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
         }
 
         Vector2 spot = new Rectangle(0, 0, uv.Size).GetRectangleAnchorSpot(part.AttachSpot);
+        //if (flipX) attachOffset.X = -attachOffset.X;
         return -spot + AttachOffset;
+    }
+
+    public Rectangle GetBoundingRect(SpriteAnimationBodyPart part)
+    {
+        Vector2 size;
+        if (UV.IsEmpty)
+        {
+            TextureAsset texture = Texture.Get();
+            if (texture.Loaded)
+                size = texture.Texture.Size;
+            else
+                size = Vector2.One;
+        }
+        else
+        {
+            size = UV.Size;
+        }
+
+        Vector2 origin = new Rectangle(0, 0, size).GetRectangleAnchorSpot(part.AttachSpot);
+        origin = -origin + AttachOffset;
+
+        Rectangle r = new Primitives.Rectangle(0, 0, size);
+        r.Position += origin;
+        return r;
     }
 
     public override string ToString()
@@ -92,7 +117,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
             TextureAsset textureAsset = Texture.Get();
             if (!textureAsset.Loaded) continue;
 
-            ve.SetValue(GetCalculatedOrigin(part).Round());
+            ve.SetValue(GetCalculatedOrigin(part));
         }
 
         yield return null;

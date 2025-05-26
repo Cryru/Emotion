@@ -1,4 +1,5 @@
-﻿using Emotion.IO;
+﻿using Emotion.Game.Animation;
+using Emotion.IO;
 
 namespace Emotion.Game.TwoDee;
 
@@ -11,15 +12,9 @@ public class SpriteAnimationBodyPart
     public RectangleAnchor AttachSpot = RectangleAnchor.CenterCenter;
     public string AttachToPoint = "origin";
 
-    public int TimeBetweenFrames = 500;
     public List<SpriteAnimationFrame> Frames = new List<SpriteAnimationFrame>();
 
     public bool Visible = true;
-
-    public float Duration
-    {
-        get => Frames.Count * TimeBetweenFrames;
-    }
 
     public override string ToString()
     {
@@ -38,20 +33,23 @@ public class SpriteAnimation
             float myDuration = 1;
             foreach (SpriteAnimationBodyPart part in Parts)
             {
-                if (part.Duration > myDuration)
-                    myDuration = part.Duration;
+                float partDuration = part.Frames.Count * TimeBetweenFrames;
+                if (partDuration > myDuration)
+                    myDuration = partDuration;
             }
             return myDuration;
         }
     }
+    public int TimeBetweenFrames = 500;
 
+    public AnimationLoopType LoopType = AnimationLoopType.Normal;
     public List<SpriteAnimationBodyPart> Parts = new List<SpriteAnimationBodyPart>();
 
     public IEnumerable<SpriteAnimationBodyPart> ForEachPart()
     {
         for (int i = 0; i < Parts.Count; i++)
         {
-            var part = Parts[i];
+            SpriteAnimationBodyPart part = Parts[i];
             yield return part;
         }
     }
