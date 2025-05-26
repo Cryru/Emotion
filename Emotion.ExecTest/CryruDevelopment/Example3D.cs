@@ -87,7 +87,7 @@ public class Example3D : SceneWithMap
     public void AddObject(string file, Vector3 pos)
     {
         var testObj = new MapObjectMesh(file);
-        testObj.Size3D = new Vector3(1);
+        testObj.Scale3D = new Vector3(1);
         testObj.Position = pos;
         testObj.SetAnimation("Stand [4]");
         testObj.SetAnimation("Stand (ID 0 variation 0)");

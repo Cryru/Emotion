@@ -1343,6 +1343,7 @@ public class NewUITests : TestingScene
         VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
         list.Close();
+        scrollArea.ScrollTo(new Vector2(0, 0));
         UITexture texture = new UITexture()
         {
             TextureFile = "Images/logoAlpha.png",

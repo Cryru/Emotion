@@ -37,7 +37,7 @@ public class TimeSyncMultiplayer_TestObject : MapObject
 
     public TimeSyncMultiplayer_TestObject()
     {
-        Size2D = new Vector2(20);
+        Scale2D = new Vector2(20);
     }
 
     public void AttachInput()
@@ -70,7 +70,7 @@ public class TimeSyncMultiplayer_TestObject : MapObject
 
     public override void Render(RenderComposer c)
     {
-        c.RenderSprite(Position, Size2D, Color);
+        c.RenderSprite(Position, Scale2D, Color);
     }
 }
 

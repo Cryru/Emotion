@@ -29,7 +29,7 @@ public class Render3DTests : TestingScene
         _testEntity = meshEntityRef.Entity;
 
         MapObjectMesh obj = new MapObjectMesh(_testEntity);
-        obj.Size3D = new Vector3(100);
+        obj.Scale3D = new Vector3(100);
 
         _gameMap = new GameMap();
         _gameMap.AddObject(obj);
