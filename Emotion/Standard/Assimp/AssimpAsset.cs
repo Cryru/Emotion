@@ -484,7 +484,14 @@ public static class AssimpFormat
 
             if ((IntPtr)m->MNormals != IntPtr.Zero)
             {
-                ref Vector3 normal = ref m->MNormals[i];
+                Vector3 normal = m->MNormals[i];
+
+                if (Y_TO_Z_UP)
+                {
+                    (normal.Z, normal.Y) = (normal.Y, -normal.Z);
+                    (normal.X, normal.Y) = (normal.Y, normal.X);
+                }
+
                 meshData[i] = new VertexDataMesh3DExtra
                 {
                     Normal = normal
@@ -494,7 +501,7 @@ public static class AssimpFormat
             {
                 meshData[i] = new VertexDataMesh3DExtra
                 {
-                    Normal = RenderComposer.Forward
+                    Normal = RenderComposer.Up
                 };
             }
         }
