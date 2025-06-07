@@ -208,6 +208,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
     }
 
     private void UpdateChunkVertices(Vector2 chunkCoord, TerrainGridChunkRuntimeCache renderCache)
+    private void UpdateChunkVertices(Vector2 chunkCoord, TerrainGridChunkRuntimeCache renderCache, bool propagate = true)
     {
         TerrainMeshGridChunk chunk = renderCache.Chunk;
 
@@ -239,6 +240,67 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
         float[] dataLeft = chunkLeft?.GetRawData() ?? Array.Empty<float>();
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
+
+        // Get data around for stitching vertices
+        Vector2 leftChunkCoord = chunkCoord + new Vector2(-1, 0);
+        VersionedGridChunk<float>? chunkLeft = GetChunk(leftChunkCoord);
+        float[] dataLeft = chunkLeft?.GetRawData() ?? Array.Empty<float>();
+
+        Vector2 topChunkCoord = chunkCoord + new Vector2(0, -1);
+        VersionedGridChunk<float>? chunkTop = GetChunk(topChunkCoord);
+        float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
+
+        Vector2 topLeftChunkCoord = chunkCoord + new Vector2(-1, -1);
+        VersionedGridChunk<float>? chunkTopLeft = GetChunk(topLeftChunkCoord);
+        float[] dataTopLeft = chunkTopLeft?.GetRawData() ?? Array.Empty<float>();
+
+        // Propagate changes to stitching chunks
+        if (propagate)
+        {
+            TerrainGridChunkRuntimeCache? chunkCache;
+
+            Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
+            if (_chunkRuntimeData.TryGetValue(rightChunkCoord, out chunkCache))
+            {
+                chunkCache.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(rightChunkCoord, chunkCache, false);
+            }
+
+            Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
+            if (_chunkRuntimeData.TryGetValue(bottomChunkCoord, out chunkCache))
+            {
+                chunkCache.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(bottomChunkCoord, chunkCache, false);
+            }
+
+            Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
+            if (_chunkRuntimeData.TryGetValue(bottomRightChunkCoord, out chunkCache))
+            {
+                chunkCache.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(bottomRightChunkCoord, chunkCache, false);
+            }
+
+            // For normals
+            if (_chunkRuntimeData.TryGetValue(leftChunkCoord, out chunkCache))
+            {
+                chunkCache.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(leftChunkCoord, chunkCache, false);
+            }
+
+            Vector2 bottomLeftCoord = chunkCoord + new Vector2(-1, 1);
+            if (_chunkRuntimeData.TryGetValue(bottomLeftCoord, out chunkCache))
+            {
+                chunkCache.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(bottomLeftCoord, chunkCache, false);
+            }
+
+            Vector2 topLeftCoord = chunkCoord + new Vector2(-1, -1);
+            if (_chunkRuntimeData.TryGetValue(topLeftCoord, out chunkCache))
+            {
+                chunkCache.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(topLeftCoord, chunkCache, false);
+            }
+        }
 
         int vIdx = 0;
         for (int y = -1; y < ChunkSize.Y; y++)
