@@ -40,7 +40,7 @@ public static partial class EngineEditor
 
     private static CameraBase? _cameraOutsideEditor;
     private static CameraBase? _editorCamera;
-    private static InfiniteGrid? _grid;
+    private static Vector2 _gridTileSize;
 
     private static bool _enableDragWithMiddleMouse;
     private static Vector2? _draggingWithMiddleMouse;
@@ -56,17 +56,6 @@ public static partial class EngineEditor
         bottomBarCurrent?.Close();
 
         _enableDragWithMiddleMouse = false;
-
-        if (_grid == null)
-        {
-            var grid = new InfiniteGrid
-            {
-                TileSize = 0,
-                Tint = Color.White.SetAlpha(125)
-            };
-            _grid = grid;
-            Task.Run(grid.LoadAssetsAsync);
-        }
 
         _cameraOutsideEditor = Engine.Renderer.Camera;
         if (MapEditorMode == MapEditorMode.ThreeDee)
@@ -87,9 +76,9 @@ public static partial class EngineEditor
 
             GameMap? map = GetCurrentMap();
             if (map?.TerrainGrid != null)
-                SetGridSize(map.TerrainGrid.TileSize.X);
+                SetGridSize(map.TerrainGrid.TileSize);
             else
-                SetGridSize(0);
+                SetGridSize(Vector2.Zero);
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
         {
@@ -104,7 +93,7 @@ public static partial class EngineEditor
 
             _enableDragWithMiddleMouse = true;
 
-            SetGridSize(0);
+            SetGridSize(Vector2.Zero);
         }
         AssertNotNull(_editorCamera);
         Engine.Renderer.Camera = _editorCamera;
@@ -130,7 +119,6 @@ public static partial class EngineEditor
     private static void UpdateMapEditor()
     {
         if (MapEditorMode == MapEditorMode.Off) return;
-        _grid?.Update(Engine.DeltaTime);
 
         if (_draggingWithMiddleMouse.HasValue)
         {
@@ -147,14 +135,15 @@ public static partial class EngineEditor
     private static void RenderMapEditor(RenderComposer c)
     {
         if (MapEditorMode == MapEditorMode.Off) return;
-        _grid?.Render(c);
+
+        Rectangle grid = new Primitives.Rectangle(0, 0, 10_000, 10_000);
+        grid.Center = c.Camera.Position2;
+        c.RenderGrid(grid.PositionZ(0.1f), grid.Size, _gridTileSize, Color.White.SetAlpha(125), c.Camera.Position2);
     }
 
-    public static void SetGridSize(float size)
+    public static void SetGridSize(Vector2 size)
     {
-        if (_grid == null) return;
-        _grid.TileSize = size;
-        _grid.Offset = Vector2.Zero;
+        _gridTileSize = size;
     }
 
     private static bool InputHandler(Key key, KeyState state)

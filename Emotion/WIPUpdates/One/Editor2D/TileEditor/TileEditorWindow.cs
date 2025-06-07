@@ -238,7 +238,7 @@ public sealed class TileEditorWindow : GridEditorWindow
         if (tileLayer == null)
         {
             CurrentLayer = null;
-            EngineEditor.SetGridSize(0);
+            EngineEditor.SetGridSize(Vector2.Zero);
             return;
         }
 
@@ -253,7 +253,7 @@ public sealed class TileEditorWindow : GridEditorWindow
         }
         Assert(found, "Currently selected tile layer doesn't exist in the current map.");
 
-        EngineEditor.SetGridSize(tileLayer.TileSize.X);
+        EngineEditor.SetGridSize(tileLayer.TileSize);
         CurrentLayer = tileLayer;
 
         TileLayersChanged();

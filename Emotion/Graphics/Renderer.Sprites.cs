@@ -351,7 +351,7 @@ namespace Emotion.Graphics
                 gridShader.Shader.SetUniformVector2("cameraPos", offset.HasValue ? (offset.Value / size) : Vector2.Zero);
                 gridShader.Shader.SetUniformVector2("totalSize", size);
                 gridShader.Shader.SetUniformColor("objectTint", color);
-                RenderSprite(Vector3.Zero, size, Color.White);
+                RenderSprite(pos, size, Color.White);
                 SetShader(null);
             }
         }
