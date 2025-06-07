@@ -1,0 +1,17 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Win64" />
+        <Platform Name="Android" />
+    </Configurations>
+    <Project Path="..\EmotionONE\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj">
+    </Project>
+    <Project Path="..\EmotionONE\Emotion\Emotion.csproj">
+        <Platform Solution="*|Android" Project="Android" />
+        <Platform Solution="*|Win64" Project="Win64" />
+    </Project>
+    <Project Path="Game/Game.csproj">
+        <Platform Solution="*|Android" Project="Android" />
+        <Platform Solution="*|Win64" Project="x64" />
+        <Deploy Solution="Debug|Win64" />
+    </Project>
+</Solution>

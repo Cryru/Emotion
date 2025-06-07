@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Platforms>Android;x64</Platforms>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <Nullable>enable</Nullable>
+
+        <!--You should use Emotion's deserialization anyway, but just in case you use the built in one. -->
+        <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\EmotionONE\Emotion\Emotion.csproj" />
+        <ProjectReference Include="..\..\EmotionONE\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="UI\" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+
+    <!-- Windows 64 bit -->
+    <PropertyGroup Condition="'$(Platform)'=='Win64'">
+        <PlatformTarget>x64</PlatformTarget>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible>True</IsAotCompatible>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win64'">
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win64'">
+    </PropertyGroup>
+
+    <!-- Windows 32 bit -->
+    <PropertyGroup Condition="'$(Platform)'=='Win32'">
+        <PlatformTarget>x86</PlatformTarget>
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible>True</IsAotCompatible>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    </PropertyGroup>
+
+    <!-- Android -->
+    <PropertyGroup Condition="'$(Platform)'=='Android'">
+        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <TargetFramework>net9.0-android</TargetFramework>
+        <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
+        <Debugger>Xamarin</Debugger>
+
+        <DebugType>embedded</DebugType>
+        <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+
+        <IsTrimmable>False</IsTrimmable>
+        <IsAotCompatible>False</IsAotCompatible>
+    </PropertyGroup>
+</Project>

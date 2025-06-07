@@ -1,0 +1,15 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Win64" />
+        <BuildType Name="Debug" />
+        <BuildType Name="Release" />
+    </Configurations>
+    <Project Path="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj">
+    </Project>
+    <Project Path="..\Emotion\Emotion.csproj">
+        <Platform Solution="*|Win64" Project="Win64" />
+    </Project>
+    <Project Path="Emotion.AutomationMechanism.csproj">
+        <Platform Solution="*|Win64" Project="x64" />
+    </Project>
+</Solution>

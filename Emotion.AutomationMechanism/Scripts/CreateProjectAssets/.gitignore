@@ -38,19 +38,6 @@ TestResults
 # Nuget
 packages/*
 *.nupkg
-EmotionCore/Emotion.targets
-Emotion.ExecTest/Assets/test/*
-
-# Soul
-Logs
-
-# Emotion Games
-HealerGame
-ElectricSleep
-MoS
-DetectiveGame
-LLZ
-SM
 
 # Other
 *.DotSettings.user

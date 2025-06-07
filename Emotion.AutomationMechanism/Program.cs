@@ -13,11 +13,13 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 using Emotion.Standard.Image.PNG;
 
+#nullable enable
+
 namespace Emotion.AutomationMechanism;
 
 public static class EmaSystem
 {
-    public static string[] Args;
+    public static string[] Args = Array.Empty<string>();
     public static bool ConsoleMode = false;
     public static string WorkingDirectory;
     public static string ExeDirectory;
@@ -37,12 +39,11 @@ public static class EmaSystem
         Configurator config = new Configurator();
         config.HiddenWindow = true;
         config.DebugMode = true;
-        config.Logger = new NetIOAsyncLogger(true, "Logs");
+        config.Logger = new NetIOAsyncLogger(true);
         if (!CommandLineParser.FindArgument(args, "debug", out string _))
             config.Logger.FilterAddSourceToShow("EMA");
-        Engine.Setup(config);
-        Engine.CoroutineManager.StartCoroutine(RunCommandsRoutine());
-        Engine.Run();
+
+        Engine.Start(config, () => RunCommandsRoutine());
     }
 
     private static IEnumerator RunCommandsRoutine()
@@ -74,6 +75,8 @@ public static class EmaSystem
             }
             else if (ConsoleMode)
             {
+                TestScript.Pepegich();
+
                 Engine.Log.Info("Input Command:", "EMA");
                 string? input = Console.ReadLine();
 
@@ -124,8 +127,17 @@ public static class EmaSystem
             }
 
             object result = await CSharpScript.EvaluateAsync(text, options);
-            Engine.Log.Info("Output:", "EMA");
-            Engine.Log.Info(XMLFormat.To(result), "EMA");
+            if (result is Coroutine coroutine)
+            {
+                while (!coroutine.Finished)
+                {
+                    await Task.Delay(1);
+                }
+            }
+            else
+            {
+                Engine.Log.Info(XMLFormat.To(result), "EMA");
+            }
         }
         catch (Exception e)
         {
