@@ -146,6 +146,20 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
             }
 
             c.SetState(oldState);
+
+            // Draw arrows for normals
+            //foreach (TerrainGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            //{
+            //    VertexDataAllocation vertices = chunkToRender.VertexMemory;
+            //    Span<VertexData_Pos_UV_Normal_Color> verticesSpan = vertices.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
+            //    for (int i = 0; i < verticesSpan.Length; i++)
+            //    {
+            //        ref VertexData_Pos_UV_Normal_Color vert = ref verticesSpan[i];
+            //        if (vert.Normal == RenderComposer.Up) continue;
+
+            //        c.RenderLine(vert.Position, vert.Position + vert.Normal * 0.5f, Color.Red, 0.05f);
+            //    }
+            //}
         }
 
         _octTree.RenderDebug(c);
@@ -207,7 +221,8 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         renderCache.BoundsVersion = chunk.ChunkVersion;
     }
 
-    private void UpdateChunkVertices(Vector2 chunkCoord, TerrainGridChunkRuntimeCache renderCache)
+    private const bool HEIGHT_BASED_VERTEX_NORMALS = true;
+
     private void UpdateChunkVertices(Vector2 chunkCoord, TerrainGridChunkRuntimeCache renderCache, bool propagate = true)
     {
         TerrainMeshGridChunk chunk = renderCache.Chunk;
@@ -218,10 +233,6 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
-
-        VersionedGridChunk<float>? chunkLeft = GetChunk(chunkCoord + new Vector2(-1, 0));
-        VersionedGridChunk<float>? chunkTop = GetChunk(chunkCoord + new Vector2(0, -1));
-        VersionedGridChunk<float>? chunkDiag = GetChunk(chunkCoord + new Vector2(-1, -1));
 
         Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + tileSize;
 
@@ -236,9 +247,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
 
         var vertices = renderCache.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
 
-        // Get data for stiching vertices
-        float[] dataTop = chunkTop?.GetRawData() ?? Array.Empty<float>();
-        float[] dataLeft = chunkLeft?.GetRawData() ?? Array.Empty<float>();
+        // Get my data
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
 
         // Get data around for stitching vertices
@@ -309,76 +318,242 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
             {
                 Vector2 tileCoord = new Vector2(x, y);
 
-                float heightSample = 0;
-                if (x == -1 && y == -1)
-                {
-                    if (chunkDiag != null)
-                    {
-                        float[] data = chunkDiag.GetRawData();
-                        heightSample = data[^1];
-                    }
-                }
-                else if (y == -1)
-                {
-                    int dataOffset = (int)((ChunkSize.Y - 1) * ChunkSize.X) + (x);
-                    heightSample = dataTop.Length == 0 ? 0 : dataTop[dataOffset];
-                }
-                else if (x == -1)
-                {
-                    int dataOffset = (int)((y * ChunkSize.X) + ChunkSize.X - 1);
-                    heightSample = dataLeft.Length == 0 ? 0 : dataLeft[dataOffset];
-                }
-                else
-                {
-                    int dataOffset = GridHelpers.GetCoordinate1DFrom2D(tileCoord, ChunkSize);
-                    heightSample = dataMe[dataOffset];
-                }
-
+                float heightSample = SampleHeightMap(ChunkSize, x, y, dataMe, dataTopLeft, dataTop, dataLeft);
                 Vector2 worldPos = chunkWorldOffset + (tileCoord * tileSize);
 
                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                vData.Normal = Vector3.Zero;
                 vData.Position = worldPos.ToVec3(heightSample);
+                vData.Normal = Vector3.Zero;
 
-                Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
+                //Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
                 vData.Color = Color.WhiteUint;// Color.Lerp(Color.Black, Color.White, (heightSample * 20) / 280).ToUint();
                 //vData.UV = new Vector2(1.0f - (x / ChunkSize.X), 1.0f - (y / ChunkSize.Y));
 
                 Vector2 mapSize = new Vector2(533.3333f, 533.33105f);
                 vData.UV = new Vector2(1.0f - (worldPos.X / mapSize.X), 1.0f - (worldPos.Y / mapSize.Y));
 
-                
-
                 vIdx++;
             }
         }
 
-        // Calculate vertex normals
-        for (int i = 0; i < _indices.Length; i += 3)
+        // Generate vertex normals
+        if (HEIGHT_BASED_VERTEX_NORMALS)
         {
-            int index0 = _indices[i];
-            int index1 = _indices[i + 1];
-            int index2 = _indices[i + 2];
+            float[] dataTopRight = GetChunk(chunkCoord + new Vector2(1, -1))?.GetRawData() ?? Array.Empty<float>();
+            float[] dataBottomLeft = GetChunk(chunkCoord + new Vector2(-1, 1))?.GetRawData() ?? Array.Empty<float>();
+            float[] dataBottomRight = GetChunk(chunkCoord + new Vector2(1, 1))?.GetRawData() ?? Array.Empty<float>();
 
-            ref VertexData_Pos_UV_Normal_Color v0 = ref vertices[index0];
-            ref VertexData_Pos_UV_Normal_Color v1 = ref vertices[index1];
-            ref VertexData_Pos_UV_Normal_Color v2 = ref vertices[index2];
+            float[] dataRight = GetChunk(chunkCoord + new Vector2(1, 0))?.GetRawData() ?? Array.Empty<float>();
+            float[] dataBottom = GetChunk(chunkCoord + new Vector2(0, 1))?.GetRawData() ?? Array.Empty<float>();
 
-            var tri = new Triangle(v0.Position, v1.Position, v2.Position);
-            Vector3 normal = tri.Normal;
+            vIdx = 0;
+            for (int y = -1; y < ChunkSize.Y; y++)
+            {
+                for (int x = -1; x < ChunkSize.X; x++)
+                {
+                    Vector2 tilePos = new Vector2(x, y);
+                    ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
 
-            v0.Normal += normal;
-            v1.Normal += normal;
-            v2.Normal += normal;
-        }
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[i];
-            vData.Normal = Vector3.Normalize(vData.Normal);
+                    // Blur normals using a box blur
+                    // Each normal sample is also determined from the height of surrounding heights.
+                    float blurKernel = 1; // 3-9 is a good range, use only odd numbers
+
+                    if (blurKernel == 1)
+                    {
+                        Vector3 normalAtSample = SampleNormalMap(
+                            tileSize,
+                            ChunkSize,
+                            (int)tilePos.X,
+                            (int)tilePos.Y,
+                            dataMe: dataMe,
+
+                            dataTopLeft,
+                            dataTop,
+                            dataLeft,
+                            dataBottomLeft,
+                            dataBottom,
+                            dataRight,
+                            dataTopRight,
+                            dataBottomRight
+                        );
+
+                        vData.Normal = Vector3.Normalize(normalAtSample);
+                    }
+                    else
+                    {
+                        // todo: 3 for low, 5 for medium, 7 for high
+                        float range = (blurKernel - 1) / 2f;
+                        float ratio = 1f / (blurKernel * blurKernel);
+                        Vector3 accum = Vector3.Zero;
+                        for (float sY = -range; sY <= range; sY++)
+                        {
+                            for (float sX = -range; sX <= range; sX++)
+                            {
+                                Vector2 samplePos = tilePos + new Vector2(sY, sX);
+                                var normalAtSample = SampleNormalMap(
+                                    tileSize,
+                                    ChunkSize,
+                                    (int)samplePos.X,
+                                    (int)samplePos.Y,
+                                    dataMe: dataMe,
+
+                                    dataTopLeft,
+                                    dataTop,
+                                    dataLeft,
+                                    dataBottomLeft,
+                                    dataBottom,
+                                    dataRight,
+                                    dataTopRight,
+                                    dataBottomRight
+                                );
+                                accum += normalAtSample * ratio;
+                            }
+                        }
+
+                        vData.Normal = Vector3.Normalize(accum);
+                    }
+
+                    vIdx++;
+                }
+            }
         }
 
         renderCache.GPUDirty = true;
         renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
+    }
+
+    private static Vector2[] _heightSamplePattern =
+{
+        new Vector2(-1,  0),
+        new Vector2( 1,  0),
+
+        new Vector2( 0, -1),
+        new Vector2( 0,  1),
+
+        new Vector2( 0,  0),
+    };
+    private static float[] _samplesAroundReusableStorage = new float[_heightSamplePattern.Length];
+
+    private static Vector3 SampleNormalMap(
+        Vector2 tileSize,
+        Vector2 chunkSize,
+        int x,
+        int y,
+        float[] dataMe,
+
+        float[] dataTopLeft,
+        float[] dataTop,
+        float[] dataLeft,
+        float[]? dataBottomLeft,
+        float[]? dataBottom,
+        float[]? dataRight,
+        float[]? dataTopRight,
+        float[]? dataBottomRight
+    )
+    {
+        float[] heightSamples = _samplesAroundReusableStorage;
+        for (int i = 0; i < _heightSamplePattern.Length; i++)
+        {
+            Vector2 sampleOffset = _heightSamplePattern[i];
+            float heightSample = SampleHeightMap(
+                chunkSize,
+                (int)(x + sampleOffset.X),
+                (int)(y + sampleOffset.Y),
+                dataMe: dataMe,
+
+                dataTopLeft,
+                dataTop,
+                dataLeft,
+                dataBottomLeft,
+                dataBottom,
+                dataRight,
+                dataTopRight,
+                dataBottomRight
+            );
+
+            heightSamples[i] = heightSample;
+        }
+
+        float left = heightSamples[0];
+        float right = heightSamples[1];
+        float up = heightSamples[2];
+        float down = heightSamples[3];
+        float me = heightSamples[4];
+
+        float dzdx = (right - left) / (2.0f * tileSize.X);
+        float dzdy = (down - up) / (2.0f * tileSize.X);
+        Vector3 normal = new Vector3(-dzdx, -dzdy, 1.0f);
+        return Vector3.Normalize(normal);
+    }
+
+    private static float SampleHeightMap(
+            Vector2 chunkSize,
+            int relativeX,
+            int relativeY,
+            float[] dataMe,
+
+            // Needed for stiching
+            float[] dataTopLeft,
+            float[] dataTop,
+            float[] dataLeft,
+
+            // Used for normal sampling
+            float[]? dataBottomLeft = null,
+            float[]? dataBottom = null,
+            float[]? dataRight = null,
+            float[]? dataTopRight = null,
+            float[]? dataBottomRight = null
+        )
+    {
+        int chunkCoordX = relativeX < 0 ? -1 : ((relativeX >= chunkSize.X) ? 1 : 0);
+        int chunkCoordY = relativeY < 0 ? -1 : ((relativeY >= chunkSize.Y) ? 1 : 0);
+
+        float[]? array = null;
+        int x = relativeX;
+        int y = relativeY;
+        if (chunkCoordX == 0 && chunkCoordY == 0)
+        {
+            array = dataMe;
+        }
+        else
+        {
+            if (chunkCoordX == -1)
+                x = (int)(chunkSize.X + relativeX);
+            else if (chunkCoordX == 1)
+                x = (int)(relativeX - chunkSize.X);
+
+            if (chunkCoordY == -1)
+                y = (int)(chunkSize.Y + relativeY);
+            else if (chunkCoordY == 1)
+                y = (int)(relativeY - chunkSize.Y);
+
+            if (chunkCoordX == -1 && chunkCoordY == -1)
+                array = dataTopLeft;
+            else if (chunkCoordX == -1 && chunkCoordY == 0)
+                array = dataLeft;
+            else if (chunkCoordX == -1 && chunkCoordY == 1)
+                array = dataBottomLeft;
+
+            else if (chunkCoordX == 0 && chunkCoordY == -1)
+                array = dataTop;
+            //else if (chunkCoordX == 0 && chunkCoordY == 0)
+            //    array = dataMe;
+            else if (chunkCoordX == 0 && chunkCoordY == 1)
+                array = dataBottom;
+
+            else if (chunkCoordX == 1 && chunkCoordY == -1)
+                array = dataTopRight;
+            else if (chunkCoordX == 1 && chunkCoordY == 0)
+                array = dataRight;
+            else if (chunkCoordX == 1 && chunkCoordY == 1)
+                array = dataBottomRight;
+        }
+
+        if (array == null || array.Length == 0)
+            return 0;
+
+        int dataOffset = GridHelpers.GetCoordinate1DFrom2D(new Vector2(x, y), chunkSize);
+        return array[dataOffset];
     }
 
     #endregion
@@ -406,19 +581,40 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
 
         ushort[] indices = new ushort[indexCount];
         int indexOffset = 0;
+        bool flipX = false;
         for (int i = 0; i < vertexCount - stride; i++)
         {
-            if ((i + 1) % stride == 0) continue;
+            if ((i + 1) % stride == 0)
+            {
+                // New line - flip the x so that it forms a star
+                //flipX = !flipX;
+                continue;
+            }
 
-            indices[indexOffset + 0] = (ushort)(i + stride);
-            indices[indexOffset + 1] = (ushort)(i + stride + 1);
-            indices[indexOffset + 2] = (ushort)(i + 1);
+            if (flipX)
+            {
+                indices[indexOffset + 0] = (ushort)(i + stride);
+                indices[indexOffset + 1] = (ushort)(i + stride + 1);
+                indices[indexOffset + 2] = (ushort)(i + 1);
 
-            indices[indexOffset + 3] = (ushort)(i + 1);
-            indices[indexOffset + 4] = (ushort)(i);
-            indices[indexOffset + 5] = (ushort)(i + stride);
+                indices[indexOffset + 3] = (ushort)(i + 1);
+                indices[indexOffset + 4] = (ushort)(i);
+                indices[indexOffset + 5] = (ushort)(i + stride);
+            }
+            else
+            {
+                indices[indexOffset + 0] = (ushort)(i + stride);
+                indices[indexOffset + 1] = (ushort)(i + stride + 1);
+                indices[indexOffset + 2] = (ushort)(i);
+
+                indices[indexOffset + 3] = (ushort)(i);
+                indices[indexOffset + 4] = (ushort)(i + stride + 1);
+                indices[indexOffset + 5] = (ushort)(i + 1);
+            }
 
             indexOffset += 6;
+
+            //flipX = !flipX;
         }
 
         _indexBuffer.Upload(indices);

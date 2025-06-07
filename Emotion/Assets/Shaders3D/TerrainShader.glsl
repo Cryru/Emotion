@@ -40,6 +40,11 @@
 #define BLUE vec4(0.0, 0.0, 1.0, 1.0)
 #define COLOR_OPAQUE(col) vec4(col, col, col, 1.0)
 
+float saturate(in float value)
+{
+    return clamp(value, 0.0, 1.0);
+}
+
 // -----------------------------
 RENDER_STATE
 
@@ -76,6 +81,7 @@ vec4 VertexShaderMain_DEEP()
     return projectionMatrix * viewMatrix * modelMatrix * vec4(vertPos, 1.0);
 }
 
+out vec3 fragPosition;
 out vec3 fragNormal;
 
 void VertexShaderMain()
@@ -85,6 +91,7 @@ void VertexShaderMain()
     VERTEX_ATTRIBUTE_WORK(2, Vector3, normal);
     VERTEX_ATTRIBUTE_WORK(3, Vector4, vertColor);
 
+    fragPosition = vec3(modelMatrix * vec4(vertPos, 1.0));
     fragNormal = normalize(mat3(transpose(inverse(modelMatrix))) * normal);
 
     gl_Position = VertexShaderMain_DEEP();
@@ -101,12 +108,33 @@ void VertexShaderMain()
 #endif
 
 uniform sampler2D diffuseTexture;
+uniform vec3 cameraPosition;
 
+in vec3 fragPosition;
 in vec3 fragNormal;
 
 vec4 FragmentShaderMain()
 {
     vec4 col = vertColor;
+
+    vec4 textureColor = texture2D(diffuseTexture, uv);
+    vec3 albedo = textureColor.rgb * col.rgb;
+
+    vec3 lightDirection = normalize(vec3(0.0, 0.5, 1.0));
+    vec3 lightColor = vec3(0.3);
+
+    float ambient = 0.0;
+
+    // Calculate the diffuse light factor
+    vec3 flattenedNormal = mix(fragNormal, vec3(0.0, 0.0, 1.0), 0.2);
+
+    float NdotL = dot(flattenedNormal, lightDirection);
+    float diffuse = max(NdotL, 0.01);
+    diffuse = saturate(diffuse + ambient);
+
+    // Combine light and terrain color
+    vec3 finalColor = albedo * diffuse;
+    // finalColor = gammaCorrect(finalColor);
 
 #if EDITOR_BRUSH
     float ringThickness = 0.5;
@@ -122,30 +150,13 @@ vec4 FragmentShaderMain()
         float aaInner = smoothstep(innerRadius, innerRadius + aaStrength, d);
         float aaOuter = 1.0 - smoothstep(outerRadius - aaStrength, outerRadius, d);
         float alpha = min(aaInner, aaOuter);
-        col = mix(col, brushColor, alpha);
+        finalColor = mix(finalColor, brushColor.rgb, alpha);
     }
 #endif
 
-    vec4 textureColor = texture2D(diffuseTexture, uv);
-    vec3 albedoColor = textureColor.rgb + col.rgb;
+    // RETURN_DEBUG_NORMAL
 
-    vec3 lightDirection = vec3(0.2, 0.2, -1.0);
-    vec3 lightColor = vec3(0.2);
-
-     // Normalize inputs
-    vec3 N = normalize(fragNormal);               // Surface normal
-    vec3 L = normalize(-lightDirection);          // Light direction (inverted to point towards the surface)
-
-    // Diffuse lighting (Lambertian)
-    float NdotL = max(dot(N, L), 0.0);            // Cosine of the angle between the normal and light direction
-    vec3 diffuse = NdotL * albedoColor;
-
-    // Final lighting contribution
-    vec3 lighting = diffuse * lightColor;
-
-    RETURN_DEBUG_NORMAL
-
-    return vec4(lighting, 1.0);
+    return vec4(finalColor, 1.0);
 }
 
 #endif
