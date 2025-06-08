@@ -35,8 +35,8 @@ public class Example3D : SceneWithMap
         TerrainMeshGrid terrain = new TerrainMeshGrid(new Vector2(5), 32);
         terrain.CreateEmptyChunksInArea(new Vector2(-50), new Vector2(100));
 
-        var simplex = new SimplexNoise(new Random(1337));
-        var simplex2 = new SimplexNoise(new Random(777));
+        var simplex = new SimplexNoise(1337);
+        var simplex2 = new SimplexNoise(777);
         for (int y = 0; y < terrain.ChunkSize.Y * 10; y++)
         {
             for (int x = 0; x < terrain.ChunkSize.X * 10; x++)

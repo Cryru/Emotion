@@ -57,7 +57,8 @@ If you're distributing code using this project include the "LICENSE THIRD-PARTY"
 | .Net Core | MIT | Runtime | Nuget
 | System.Numerics | MIT | Data structures and hardware intrinsics | Nuget
 | [xxhash (pure C# implementation)](https://github.com/uranium62/xxHash) | MIT | Hashing data
-| [Icaria Noise](https://github.com/krubbles/Icaria-Noise) | MIT | Noise generatin
+| [Icaria Noise](https://github.com/krubbles/Icaria-Noise) | MIT | Perlin Noise
+| [Fast Noise Lite](https://github.com/Auburn/FastNoiseLite) | MIT | Simplex Noise
 | Forks
 | [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Platform/Implementation/Win32/Native
 | [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Platform/OpenGL
