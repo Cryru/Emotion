@@ -411,6 +411,7 @@ namespace Emotion.Primitives
         public static readonly Color PrettyRed = new Color("#EF6262");
         public static readonly Color PrettyBlue = new Color("#39B5E0");
         public static readonly Color PrettyGreen = new Color("#A4BE7B");
+        public static readonly Color PrettyBrown = new Color("#693b10");
 
         #endregion
 
