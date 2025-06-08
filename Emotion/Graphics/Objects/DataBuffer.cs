@@ -74,11 +74,16 @@ namespace Emotion.Graphics.Objects
         /// <param name="usage">What the buffer will be used for.</param>
         public void Upload<T>(T[] data, BufferUsage usage = BufferUsage.StreamDraw)
         {
+            Upload(data, data.Length, usage);
+        }
+
+        public void Upload<T>(T[] data, int indexCount, BufferUsage usage = BufferUsage.StreamDraw)
+        {
             // Finish mapping - if it was.
             FinishMapping();
 
             int byteSize = Marshal.SizeOf(data[0]);
-            Size = (uint) (data.Length * byteSize);
+            Size = (uint)(indexCount * byteSize);
 
             if (Engine.Renderer.Dsa)
             {
@@ -122,8 +127,8 @@ namespace Emotion.Graphics.Objects
             FinishMapping();
 
             int byteSize = Marshal.SizeOf(data[0]);
-            var offsetPtr = (IntPtr) offset;
-            var partSize = (uint) (data.Length * byteSize);
+            var offsetPtr = (IntPtr)offset;
+            var partSize = (uint)(data.Length * byteSize);
 
             if (offset > Size || offset + partSize > Size)
             {
@@ -138,7 +143,7 @@ namespace Emotion.Graphics.Objects
             {
                 fixed (void* bPtr = &data[0])
                 {
-                    Gl.BufferSubData(Type, offsetPtr, partSize, (nint) bPtr);
+                    Gl.BufferSubData(Type, offsetPtr, partSize, (nint)bPtr);
                 }
             }
         }
@@ -151,7 +156,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="offset">The offset to upload to.</param>
         public void UploadPartial(IntPtr data, uint size, uint offset = 0)
         {
-            var offsetPtr = (IntPtr) offset;
+            var offsetPtr = (IntPtr)offset;
 
             if (Engine.Renderer.Dsa)
             {
@@ -190,15 +195,15 @@ namespace Emotion.Graphics.Objects
 
             if (Engine.Renderer.Dsa)
             {
-                _mappingPtr = (byte*) Gl.MapNamedBufferRange(Pointer, byteOffset, length, mask);
+                _mappingPtr = (byte*)Gl.MapNamedBufferRange(Pointer, byteOffset, length, mask);
             }
             else
             {
                 EnsureBound(Pointer, Type);
-                _mappingPtr = (byte*) Gl.MapBufferRange(Type, byteOffset, length, mask);
+                _mappingPtr = (byte*)Gl.MapBufferRange(Type, byteOffset, length, mask);
             }
 
-            if ((IntPtr) _mappingPtr == IntPtr.Zero)
+            if ((IntPtr)_mappingPtr == IntPtr.Zero)
             {
                 Engine.Log.Warning("Couldn't start mapping buffer. Expect a crash.", MessageSource.GL);
                 Assert(false);
@@ -217,7 +222,7 @@ namespace Emotion.Graphics.Objects
         /// <returns>A mapper used to map data in the buffer.</returns>
         public unsafe Span<T> CreateMapper<T>(int offset = 0, int length = -1)
         {
-            if (length == -1) length = (int) (Size - offset);
+            if (length == -1) length = (int)(Size - offset);
             if (offset + length > Size)
             {
                 Assert(false);
@@ -253,7 +258,7 @@ namespace Emotion.Graphics.Objects
         {
             if (!Mapping) return;
 
-            _mappingPtr = (byte*) IntPtr.Zero;
+            _mappingPtr = (byte*)IntPtr.Zero;
 
             if (Engine.Renderer.Dsa)
             {
