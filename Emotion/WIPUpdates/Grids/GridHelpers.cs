@@ -19,6 +19,29 @@ public static class GridHelpers
         return (int)(left + size.X * top);
     }
 
+    public static Vector3 GetCoordinate3DFrom1D(int oneD, Vector3 size)
+    {
+        int width = (int)size.X;
+        int height = (int)size.Z;
+
+        int x = oneD % width;
+        int y = (oneD / width) % height;
+        int z = oneD / (width * height);
+
+        return new Vector3(x, y, z);
+    }
+
+    public static int GetCoordinate1DFrom3D(Vector3 threeD, Vector3 size)
+    {
+        int left = (int)threeD.X;
+        int top = (int)threeD.Y;
+        int depth = (int)threeD.Z;
+
+        float zWaferSize = (size.X * size.Y);
+
+        return (int) ((left + size.X * top) + (zWaferSize * depth));
+    }
+
     public static Vector2 GetGridSizeInElements(Vector2 totalSize, Vector2 elementSize, Vector2 margin, Vector2 spacing)
     {
         Vector2 totalSizeMarginless = totalSize - margin;

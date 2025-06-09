@@ -5,37 +5,21 @@ using Emotion.Common.Threading;
 using Emotion.Game.OctTree;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Shader;
+using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.Rendering;
 using OpenGL;
+using System.Buffers;
 using TerrainMeshGridChunk = Emotion.WIPUpdates.Grids.VersionedGridChunk<float>;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
-public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWorldSpaceTiles
+public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk>
 {
-    public bool Initialized { get; private set; }
-
-    public Vector2 TileSize { get; private set; }
-
-    [DontSerialize]
-    public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
+    public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {
-        Name = "TerrainChunkMaterial",
-        Shader = Engine.AssetLoader.ONE_Get<NewShaderAsset>("Shaders3D/TerrainShader.glsl"),
-        State =
-        {
-            FaceCulling = true,
-            FaceCullingBackFace = true,
-            ShaderName = "Shaders3D/TerrainShader.glsl"
-        }
-    };
-
-    public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
-    {
-        TileSize = tileSize;
     }
 
     // serialization
@@ -44,186 +28,48 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
 
     }
 
-    public void Update()
-    {
-        // Chunk bounds are considered "eventually consistent" with the data.
-        // This is to decrease the performance hit of large edits.
-        foreach (KeyValuePair<Vector2, TerrainGridChunkRuntimeCache> item in _chunkRuntimeData)
-        {
-            UpdateChunkBounds(item.Key, item.Value);
-        }
-    }
-
     #region Rendering
 
-    private List<TerrainGridChunkRuntimeCache> _renderThisPass = new(32);
-
-    private void MarkChunkForRender(Vector2 chunkCoord, TerrainMeshGridChunk chunk)
-    {
-        if (!_chunkRuntimeData.TryGetValue(chunkCoord, out TerrainGridChunkRuntimeCache? renderCache)) return;
-
-        UpdateChunkVertices(chunkCoord, renderCache);
-        Assert(renderCache.VertexMemory.Allocated);
-
-        // todo: deallocate at some point?
-        if (renderCache.GPUMemory == null || renderCache.GPUDirty)
-        {
-            renderCache.GPUMemory ??= GPUMemoryAllocator.AllocateBuffer(renderCache.VertexMemory.Format);
-            renderCache.GPUMemory.VBO.Upload(renderCache.VertexMemory);
-            renderCache.GPUDirty = false;
-        }
-
-        _renderThisPass.Add(renderCache);
-    }
-
-    // todo: 3d culling
-    public void Render(RenderComposer c, Rectangle clipArea)
+    public override void Render(RenderComposer c, Rectangle clipArea)
     {
         if (ChunkSize != _indexBufferChunkSize || _indexBuffer == null)
             PrepareIndexBuffer();
 
-        // These are static-ish.
-        // todo: make them static?
-        AssertNotNull(_indexBuffer);
-        AssertNotNull(TerrainMeshMaterial);
+        base.Render(c, clipArea);
+    }
 
-        Vector2 tileSize = TileSize;
-        Vector2 chunkWorldSize = ChunkSize * tileSize;
-
-        Rectangle cacheAreaChunkSpace = clipArea;
-        cacheAreaChunkSpace.SnapToGrid(chunkWorldSize);
-
-        cacheAreaChunkSpace.GetMinMaxPoints(out Vector2 min, out Vector2 max);
-
-        //min -= tileSize / 2f;
-        //max += tileSize / 2f;
-
-        min /= chunkWorldSize;
-        max /= chunkWorldSize;
-
-        min = min.Floor();
-        max = max.Ceiling();
-
-        // Pick chunks to render this pass.
-        _renderThisPass.Clear();
-        for (float y = min.Y; y < max.Y; y++)
+    [DontSerialize]
+    public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
+    {
+        Name = "TerrainChunkMaterial",
+        Shader = "Shaders3D/TerrainShader.glsl",
+        State =
         {
-            for (float x = min.X; x < max.X; x++)
-            {
-                Vector2 chunkCoord = new Vector2(x, y);
-                TerrainMeshGridChunk? chunk = GetChunk(chunkCoord);
-                if (chunk == null) continue;
-                MarkChunkForRender(chunkCoord, chunk);
-            }
+            FaceCulling = true,
+            FaceCullingBackFace = true,
+            ShaderName = "Shaders3D/TerrainShader.glsl"
         }
+    };
 
+    protected override MeshMaterial GetMeshMaterial()
+    {
+        return TerrainMeshMaterial;
+    }
+
+    protected override void SetupShaderState(ShaderProgram shader)
+    {
         Vector2 brushWorldSpace = GetEditorBrush();
-        if (_renderThisPass.Count > 0)
-        {
-            Engine.Renderer.FlushRenderStream();
-
-            RenderState oldState = c.CurrentState.Clone();
-
-            Engine.Renderer.SetFaceCulling(true, true);
-            NewShaderAsset? asset = TerrainMeshMaterial.Shader?.Get();
-            if (asset != null && asset.CompiledShader != null)
-                c.SetShader(asset.CompiledShader);
-
-            c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
-            c.CurrentState.Shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
-            c.CurrentState.Shader.SetUniformFloat("brushRadius", _editorBrushSize);
-            Texture.EnsureBound(TerrainMeshMaterial.DiffuseTexture.Pointer);
-
-            foreach (TerrainGridChunkRuntimeCache chunkToRender in _renderThisPass)
-            {
-                GPUVertexMemory? gpuMem = chunkToRender.GPUMemory;
-                if (gpuMem == null) continue;
-
-                VertexArrayObject.EnsureBound(gpuMem.VAO);
-                IndexBuffer.EnsureBound(_indexBuffer.Pointer);
-
-                Gl.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
-            }
-
-            c.SetState(oldState);
-
-            // Draw arrows for normals
-            //foreach (TerrainGridChunkRuntimeCache chunkToRender in _renderThisPass)
-            //{
-            //    VertexDataAllocation vertices = chunkToRender.VertexMemory;
-            //    Span<VertexData_Pos_UV_Normal_Color> verticesSpan = vertices.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
-            //    for (int i = 0; i < verticesSpan.Length; i++)
-            //    {
-            //        ref VertexData_Pos_UV_Normal_Color vert = ref verticesSpan[i];
-            //        if (vert.Normal == RenderComposer.Up) continue;
-
-            //        c.RenderLine(vert.Position, vert.Position + vert.Normal * 0.5f, Color.Red, 0.05f);
-            //    }
-            //}
-        }
-
-        _octTree.RenderDebug(c);
+        shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
+        shader.SetUniformFloat("brushRadius", _editorBrushSize);
     }
 
     #endregion
 
-    #region Chunk Vertices
-
-    private OctTree<TerrainGridChunkRuntimeCache> _octTree = new();
-    private Dictionary<Vector2, TerrainGridChunkRuntimeCache> _chunkRuntimeData = new();
-
-    public IEnumerator InitRuntimeDataRoutine()
-    {
-        Initialized = true;
-        foreach (KeyValuePair<Vector2, TerrainMeshGridChunk> item in _chunks)
-        {
-            OnChunkCreated(item.Key, item.Value);
-        }
-        
-        // Create bounds.
-        Update();
-
-        yield break;
-    }
-
-    // These events should only really trigger in the editor or if some game is dynamically editing the terrain.
-
-    protected override void OnChunkCreated(Vector2 chunkCoord, TerrainMeshGridChunk newChunk)
-    {
-        base.OnChunkCreated(chunkCoord, newChunk);
-        if (!Initialized) return;
-
-        var renderCache = new TerrainGridChunkRuntimeCache(newChunk);
-        _chunkRuntimeData.Add(chunkCoord, renderCache);
-    }
-
-    protected override void OnChunkRemoved(Vector2 chunkCoord, TerrainMeshGridChunk newChunk)
-    {
-        base.OnChunkRemoved(chunkCoord, newChunk);
-        if (!Initialized) return;
-
-        // Free resources
-        if (_chunkRuntimeData.Remove(chunkCoord, out TerrainGridChunkRuntimeCache? renderCache))
-        {
-            _octTree.Remove(renderCache);
-            VertexDataAllocation.FreeAllocated(ref renderCache.VertexMemory);
-            GPUMemoryAllocator.FreeBuffer(renderCache.GPUMemory);
-        }
-    }
-
-    private void UpdateChunkBounds(Vector2 chunkCoord, TerrainGridChunkRuntimeCache renderCache)
-    {
-        TerrainMeshGridChunk chunk = renderCache.Chunk;
-
-        if (renderCache.BoundsVersion != chunk.ChunkVersion) return;
-
-        _octTree.Update(renderCache);
-        renderCache.BoundsVersion = chunk.ChunkVersion;
-    }
+    #region Rendering - Mesh Generation
 
     private const bool HEIGHT_BASED_VERTEX_NORMALS = true;
 
-    private void UpdateChunkVertices(Vector2 chunkCoord, TerrainGridChunkRuntimeCache renderCache, bool propagate = true)
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, MeshGridChunkRuntimeCache renderCache, bool propagate = true)
     {
         TerrainMeshGridChunk chunk = renderCache.Chunk;
 
@@ -240,12 +86,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        if (!renderCache.VertexMemory.Allocated)
-            renderCache.VertexMemory = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal_Color.Format, vertexCount, $"TerrainChunk_{chunkCoord}");
-        else if (renderCache.VertexMemory.VertexCount < vertexCount)
-            renderCache.VertexMemory = VertexDataAllocation.Reallocate(ref renderCache.VertexMemory, vertexCount);
-
-        var vertices = renderCache.VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
+        Span<VertexData_Pos_UV_Normal_Color> vertices = renderCache.EnsureVertexMemoryAndGetSpan(chunkCoord, vertexCount);
 
         // Get my data
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
@@ -266,7 +107,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         // Propagate changes to stitching chunks
         if (propagate)
         {
-            TerrainGridChunkRuntimeCache? chunkCache;
+            MeshGridChunkRuntimeCache? chunkCache;
 
             Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
             if (_chunkRuntimeData.TryGetValue(rightChunkCoord, out chunkCache))
@@ -418,8 +259,12 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
             }
         }
 
+        AssertNotNull(_indexBuffer);
+
         renderCache.GPUDirty = true;
         renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
+        renderCache.IndicesUsed = _indicesLength;
+        renderCache.IndexBuffer = _indexBuffer;
     }
 
     private static Vector2[] _heightSamplePattern =
@@ -486,7 +331,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         return Vector3.Normalize(normal);
     }
 
-    private static float SampleHeightMap(
+    protected static float SampleHeightMap(
             Vector2 chunkSize,
             int relativeX,
             int relativeY,
@@ -560,11 +405,15 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
 
     #region Rendering - Index Buffer
 
-    private Vector2 _indexBufferChunkSize;
-    private ushort[] _indices;
-    private IndexBuffer? _indexBuffer;
+    // One index buffer is used for all chunks, and they are all the same length.
 
-    private void PrepareIndexBuffer()
+    protected ushort[]? _indices; // Collision only
+
+    protected Vector2 _indexBufferChunkSize;
+    protected int _indicesLength;
+    protected IndexBuffer? _indexBuffer;
+
+    protected void PrepareIndexBuffer()
     {
         Assert(GLThread.IsGLThread());
 
@@ -580,6 +429,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         _indexBuffer ??= new IndexBuffer();
 
         ushort[] indices = new ushort[indexCount];
+
         int indexOffset = 0;
         bool flipX = false;
         for (int i = 0; i < vertexCount - stride; i++)
@@ -617,8 +467,11 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
             //flipX = !flipX;
         }
 
-        _indexBuffer.Upload(indices);
+        _indexBuffer.Upload(indices, indexCount);
         _indexBufferChunkSize = ChunkSize;
+        _indicesLength = indexCount;
+
+        // Used for collision
         _indices = indices;
     }
 
@@ -626,7 +479,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
 
     #region World Space Helpers
 
-    public float GetHeightAt(Vector2 worldSpace)
+    public override float GetHeightAt(Vector2 worldSpace)
     {
         worldSpace -= TileSize; // Stiching
 
@@ -652,22 +505,6 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
         float height = Maths.Lerp(h0, h1, fracY); // both
 
         return height;
-    }
-
-    public Vector2 GetTilePosOfWorldPos(Vector2 location)
-    {
-        location -= TileSize;
-
-        float left = MathF.Round(location.X / TileSize.X);
-        float top = MathF.Round(location.Y / TileSize.Y);
-
-        return new Vector2(left, top);
-    }
-
-    public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
-    {
-        Vector2 worldPos = (tileCoord2d * TileSize) + TileSize;
-        return worldPos;
     }
 
     #endregion
@@ -698,7 +535,7 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
             Ray3D mouseRay = camera.GetCameraMouseRay();
             Vector3 mousePosWorld = mouseRay.IntersectWithPlane(RenderComposer.Up, Vector3.Zero);
 
-            foreach (TerrainGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
             {
                 VertexDataAllocation vertices = chunkToRender.VertexMemory;
                 if (!vertices.Allocated) continue;
@@ -713,28 +550,4 @@ public class TerrainMeshGrid : ChunkedGrid<float, TerrainMeshGridChunk>, IGridWo
     }
 
     #endregion
-
-    private class TerrainGridChunkRuntimeCache : IOctTreeStorable
-    {
-        public TerrainMeshGridChunk Chunk;
-
-        public int VerticesGeneratedForVersion = -1;
-        public VertexDataAllocation VertexMemory;
-
-        public GPUVertexMemory? GPUMemory;
-        public bool GPUDirty = true;
-
-        public int BoundsVersion = -1;
-        public Cube Bounds;
-
-        public TerrainGridChunkRuntimeCache(TerrainMeshGridChunk chunk)
-        {
-            Chunk = chunk;
-        }
-
-        public Cube GetOctTreeBound()
-        {
-            return Bounds;
-        }
-    }
 }

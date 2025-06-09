@@ -1,4 +1,5 @@
-﻿using Emotion.Graphics.Camera;
+﻿using Emotion.Common.Serialization;
+using Emotion.Graphics.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.ThreeDee;
@@ -15,7 +16,9 @@ public class GameMap
 
     //public List<IMapGrid> Grids = new();
     public GameMapTileData? TileMapData;
-    public TerrainMeshGrid? TerrainGrid;
+
+    [DontSerialize] // todo: investigate
+    public ITerrainGrid3D? TerrainGrid;
 
     public IEnumerator LoadRoutine()
     {
@@ -58,7 +61,7 @@ public class GameMap
 
     public void Update(float dt)
     {
-        TerrainGrid?.Update();
+        TerrainGrid?.Update(dt);
 
         for (int i = 0; i < _objects.Count; i++)
         {

@@ -65,9 +65,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
                 ChunkT? existingChunk = GetChunk(chunkCoord);
                 if (existingChunk == null)
                 {
-                    ChunkT newChunk = new ChunkT();
-                    T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
-                    newChunk.SetRawData(newChunkData);
+                    ChunkT newChunk = InitializeNewChunk();
                     _chunks.Add(chunkCoord, newChunk);
                     OnChunkCreated(chunkCoord, newChunk);
                     _chunkBoundsCacheValid = false;
@@ -77,6 +75,15 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
     }
 
     #region ChunkHelpers
+
+    protected virtual ChunkT InitializeNewChunk()
+    {
+        ChunkT newChunk = new ChunkT();
+        T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
+        newChunk.SetRawData(newChunkData);
+
+        return newChunk;
+    }
 
     protected virtual void SetAtForChunk(ChunkT chunk, Vector2 position, T value)
     {
@@ -106,7 +113,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
 
     private Vector2 _smallestChunkCoordCache;
     private Vector2 _largestChunkCoordCache;
-    private bool _chunkBoundsCacheValid = false;
+    protected bool _chunkBoundsCacheValid = false;
 
     private void CacheChunkBounds()
     {
@@ -214,9 +221,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         if (isDelete) return false;
 
         // Initialize new chunk
-        ChunkT newChunk = new ChunkT();
-        T[] newChunkData = new T[(int)(ChunkSize.X * ChunkSize.Y)];
-        newChunk.SetRawData(newChunkData);
+        ChunkT newChunk = InitializeNewChunk();
         _chunks.Add(chunkCoord, newChunk);
         OnChunkCreated(chunkCoord, newChunk);
         _chunkBoundsCacheValid = false;
