@@ -605,6 +605,23 @@ namespace Emotion.Platform.Implementation.Win32
             return _keyCodes[index];
         }
 
+        public override void SetMousePos(Vector2 mousePos)
+        {
+            User32.SetCursorPos((int) mousePos.X, (int) mousePos.Y);
+        }
+
+        private bool _visible = true;
+
+        public override void SetHideCursor(bool hide)
+        {
+            bool shouldBeVisible = !hide;
+            if (_visible != shouldBeVisible)
+            {
+                User32.ShowCursor(shouldBeVisible);
+                _visible = shouldBeVisible;
+            }
+        }
+
         #endregion
 
         #region File Helpers

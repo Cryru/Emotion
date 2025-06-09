@@ -52,6 +52,7 @@ public static partial class EngineEditor
 
     public static void OpenEditor()
     {
+        Engine.Input.SuppressMouseFirstPersonMode(true, "Editor");
         Engine.Host.OnKey.BlockListenersOfType(KeyListenerType.Game);
 
         Engine.UI.AddChild(EditorRoot);
@@ -83,6 +84,7 @@ public static partial class EngineEditor
 
     public static void CloseEditor()
     {
+        Engine.Input.SuppressMouseFirstPersonMode(false, "Editor");
         Engine.Host.OnKey.BlockListenersOfType(null);
 
         Engine.UI.RemoveChild(EditorRoot);

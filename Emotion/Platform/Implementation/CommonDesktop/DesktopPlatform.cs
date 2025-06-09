@@ -360,5 +360,15 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 // todo: figure out how to do AMD
             }
         }
+
+        public virtual void SetMousePos(Vector2 mousePos)
+        {
+            // nop
+        }
+
+        public virtual void SetHideCursor(bool hide)
+        {
+            // nop
+        }
     }
 }

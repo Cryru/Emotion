@@ -482,7 +482,7 @@ namespace Emotion.Common
 
             PerformanceMetrics.TickStart();
 
-            Input.FlushEventsForTick();
+            Input.Update();
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
             CoroutineManager.Update(DeltaTime);
             CoroutineManagerGameTime.Update(DeltaTime);

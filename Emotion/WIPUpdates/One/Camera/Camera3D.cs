@@ -149,11 +149,18 @@ namespace Emotion.Graphics.Camera
         /// <inheritdoc />
         public override void Update()
         {
-            if (_mouseKeyHeld)
+            bool firstPersonMode = Engine.Input.IsMouseFirstPersonMode();
+            if (_mouseKeyHeld || firstPersonMode)
             {
                 Vector2 mousePos = Engine.Host.MousePosition;
-                float xOffset = -(mousePos.X - _lastMousePos.X) * _cameraMovementSpeed;
+                float xOffset = (mousePos.X - _lastMousePos.X) * _cameraMovementSpeed;
                 float yOffset = (mousePos.Y - _lastMousePos.Y) * _cameraMovementSpeed;
+
+                // Non scientific
+                if (firstPersonMode)
+                    yOffset = -yOffset;
+                else
+                    xOffset = -xOffset;
 
                 if (_invertXMouseMovement) xOffset = -xOffset;
 
@@ -168,7 +175,7 @@ namespace Emotion.Graphics.Camera
                 };
                 direction = Vector3.Normalize(direction);
                 _lookAt = direction;
-                _lastMousePos = mousePos;
+                _lastMousePos = firstPersonMode ? Engine.Renderer.ScreenBuffer.Viewport.Center : mousePos;
 
                 RecreateViewMatrix();
             }

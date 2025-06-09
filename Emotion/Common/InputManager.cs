@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Common.Input;
+using Emotion.Platform.Implementation.CommonDesktop;
 
 namespace Emotion.Common;
 
@@ -66,7 +67,7 @@ public class InputManager
         _eventsThisTick++;
     }
 
-    public void FlushEventsForTick()
+    private void FlushEventsForTick()
     {
         for (int i = 0; i < _eventsThisTick; i++)
         {
@@ -126,4 +127,56 @@ public class InputManager
 
         return new Vector2((pos.X - marginX) / scaleX, (pos.Y - marginY) / scaleY);
     }
+
+    public void Update()
+    {
+        FlushEventsForTick();
+        UpdateFirstPersonMode();
+    }
+
+    #region First Person Mode
+
+    private ReasonStack _firstPersonModeEnable = new ReasonStack();
+    private ReasonStack _firstPersonModeDisable = new ReasonStack();
+
+    public void SetMouseFirstPersonMode(bool on, string reason = "Default")
+    {
+        if (on)
+            _firstPersonModeEnable.AddReason(reason);
+        else
+            _firstPersonModeEnable.RemoveReason(reason);
+    }
+
+    public void SuppressMouseFirstPersonMode(bool on, string reason = "Default")
+    {
+        if (on)
+            _firstPersonModeDisable.AddReason(reason);
+        else
+            _firstPersonModeDisable.RemoveReason(reason);
+    }
+
+    public bool IsMouseFirstPersonMode()
+    {
+        return !_firstPersonModeDisable.AnyReason() && _firstPersonModeEnable.AnyReason();
+    }
+
+    private void UpdateFirstPersonMode()
+    {
+        // todo: implement for other platforms
+        DesktopPlatform? host = Engine.Host as DesktopPlatform;
+        if (host == null) return;
+        if (!host.IsFocused) return;
+
+        if (!IsMouseFirstPersonMode())
+        {
+            host.SetHideCursor(false);
+            return;
+        }
+
+        Vector2 center = host.Position + Engine.Renderer.ScreenBuffer.Viewport.Center;
+        host.SetMousePos(center);
+        host.SetHideCursor(true);
+    }
+
+    #endregion
 }
