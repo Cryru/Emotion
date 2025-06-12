@@ -157,30 +157,31 @@ public struct Cube
 
             // Cube - 36 vertices, 12 triangles, 6 sides
             // Cube - 36 indices, 8 vertices, 6 quads
-            vertexData[0].Vertex = new Vector3(-1, -1, 1);
-            vertexData[1].Vertex = new Vector3(1, -1, 1);
-            vertexData[2].Vertex = new Vector3(1, 1, 1);
-            vertexData[3].Vertex = new Vector3(-1, 1, 1);
+            vertexData[0].Vertex = new Vector3(-0.5f, 0.5f, 0.5f);
+            vertexData[1].Vertex = new Vector3(0.5f, 0.5f, 0.5f);
+            vertexData[2].Vertex = new Vector3(0.5f, -0.5f, 0.5f);
+            vertexData[3].Vertex = new Vector3(-0.5f, -0.5f, 0.5f);
 
-            vertexData[4].Vertex = new Vector3(-1, -1, -1);
-            vertexData[5].Vertex = new Vector3(1, -1, -1);
-            vertexData[6].Vertex = new Vector3(1, 1, -1);
-            vertexData[7].Vertex = new Vector3(-1, 1, -1);
+            vertexData[4].Vertex = new Vector3(-0.5f, 0.5f, -0.5f);
+            vertexData[5].Vertex = new Vector3(0.5f, 0.5f, -0.5f);
+            vertexData[6].Vertex = new Vector3(0.5f, -0.5f, -0.5f);
+            vertexData[7].Vertex = new Vector3(-0.5f, -0.5f, -0.5f);
 
-            vertexData[0].UV = new Vector2(0, 0);
-            vertexData[1].UV = new Vector2(0.5f, 0);
-            vertexData[2].UV = new Vector2(0.5f, 0.5f);
-            vertexData[3].UV = new Vector2(0, 0.5f);
+            vertexData[0].UV = new Vector2(0, 0.5f);
+            vertexData[1].UV = new Vector2(0.5f, 0.5f);
+            vertexData[2].UV = new Vector2(0.5f, 0);
+            vertexData[3].UV = new Vector2(0, 0);
 
-            vertexData[4].UV = new Vector2(0, 0);
-            vertexData[5].UV = new Vector2(0.5f, 0);
-            vertexData[6].UV = new Vector2(0.5f, 0.5f);
-            vertexData[7].UV = new Vector2(0, 0.5f);
+            vertexData[4].UV = new Vector2(0, 0.5f);
+            vertexData[5].UV = new Vector2(0.5f, 0.5f);
+            vertexData[6].UV = new Vector2(0.5f, 0);
+            vertexData[7].UV = new Vector2(0, 0);
 
             extraData[0].Normal = new Vector3(0, 0, 1);
             extraData[1].Normal = new Vector3(0, 0, 1);
             extraData[2].Normal = new Vector3(0, 0, 1);
             extraData[3].Normal = new Vector3(0, 0, 1);
+
             extraData[4].Normal = new Vector3(0, 0, -1);
             extraData[5].Normal = new Vector3(0, 0, -1);
             extraData[6].Normal = new Vector3(0, 0, -1);
