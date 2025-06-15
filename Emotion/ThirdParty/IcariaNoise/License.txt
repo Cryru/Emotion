@@ -1,5 +1,8 @@
 ﻿https://github.com/krubbles/Icaria-Noise/tree/main?tab=MIT-1-ov-file#readme
 
+Code is from: https://github.com/krubbles/Icaria-Noise
+Commit: 3a33ddc03e4b7a18f326206a77881f0f98246184
+
 MIT License
 
 Copyright (c) 2023 krubbles

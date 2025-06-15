@@ -1,7 +1,7 @@
 ﻿https://github.com/Auburn/FastNoiseLite?tab=MIT-1-ov-file#readme
 
-Code is from:
-    https://github.com/Auburn/FastNoiseLite/blob/master/CSharp/FastNoiseLite.cs
+Code is from: https://github.com/Auburn/FastNoiseLite/blob/master/CSharp/FastNoiseLite.cs
+Commit: 582f7cf21065a48ee1c3cf62048831bbaa4581c5
 
 MIT License
 
