@@ -60,7 +60,7 @@ public class OctTreeNode<T> where T : IOctTreeStorable
         for (var i = 0; i < _childNodes.Length; i++)
         {
             OctTreeNode<T> node = _childNodes[i];
-            if (node.Bounds.ContainsInclusive(bounds))
+            if (node.Bounds.Intersects(bounds))
                 return node.GetNodeForBounds(bounds);
         }
 
