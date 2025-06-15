@@ -16,6 +16,7 @@ namespace Emotion.Graphics
         private List<Vector3>? _triangles;
         private List<Mesh>? _spheres;
         private List<(Vector3, Vector3)>? _lines;
+        private List<Cube>? _cubes;
 
         private static Color _defaultDbgObjectColor = Color.Green * 0.5f;
 
@@ -45,6 +46,14 @@ namespace Emotion.Graphics
 
             _spheres ??= new();
             _spheres.Add(sphereMesh);
+        }
+
+        public void DbgAddCube(Cube cube)
+        {
+            if (!Engine.Configuration.DebugMode) return;
+
+            _cubes ??= new();
+            _cubes.Add(cube);
         }
 
         public void DbgAddLine(Vector3 p, Vector3 p2, bool relative = false)
@@ -80,6 +89,7 @@ namespace Emotion.Graphics
             _triangles?.Clear();
             _spheres?.Clear();
             _lines?.Clear();
+            _cubes?.Clear();
         }
 
         public void RenderDebugObjects()
@@ -97,17 +107,24 @@ namespace Emotion.Graphics
                 }
             }
 
-            if (_spheres != null && _spheres.Count > 0)
+            if (_spheres != null)
                 for (var i = 0; i < _spheres.Count; i++)
                 {
                     _spheres[i].Render(this);
                 }
 
-            if (_lines != null && _lines.Count > 0)
+            if (_lines != null)
                 for (int i = 0; i < _lines.Count; i++)
                 {
                     var line = _lines[i];
                     RenderLine(line.Item1, line.Item2, _defaultDbgObjectColor, 1);
+                }
+
+            if (_cubes != null)
+                for (int i = 0; i < _cubes.Count; i++)
+                {
+                    var cube = _cubes[i];
+                    cube.RenderOutline(this, _defaultDbgObjectColor, 0.05f);
                 }
         }
     }
