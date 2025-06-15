@@ -480,6 +480,17 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
     #region World Space Helpers
 
+    public override Vector2 GetTilePosOfWorldPos(Vector2 location)
+    {
+        location -= TileSize; // Stiching vertex
+        return base.GetTilePosOfWorldPos(location);
+    }
+
+    public override Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
+    {
+        return base.GetWorldPosOfTile(tileCoord2d) + TileSize;
+    }
+
     public override float GetHeightAt(Vector2 worldSpace)
     {
         worldSpace -= TileSize; // Stiching

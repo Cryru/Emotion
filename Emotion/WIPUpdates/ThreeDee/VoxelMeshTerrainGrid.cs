@@ -126,7 +126,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                 return z;
         }
 
-        return 0;
+        return -1;
     }
 
     #endregion
@@ -188,7 +188,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         Vector3 tileSize3D = tileSize.ToVec3(tileSize.X);
         Vector2 chunkWorldSize = ChunkSize * tileSize;
 
-        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize);// + tileSize;
+        Vector2 chunkWorldOffset = chunkCoord * chunkWorldSize;
 
         // Get my data
         uint[] dataMe = chunk.GetRawData() ?? Array.Empty<uint>();
@@ -446,15 +446,10 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
             {
                 Vector2 tileCoord = new Vector2(x, y);
                 Vector2 tileOrigin = chunkWorldOffset + (tileCoord * tileSize);
-                float height = GetHeightAt(tileOrigin);
-                float heightWorldSpace = (height + 1) * TileSize3D.Z;
+                float z = GetHeightAt(tileOrigin);
+                if (z == -1) continue;
 
-                renderCache.Colliders.Add(
-                    Cube.FromCenterAndSize(
-                        tileOrigin.ToVec3(heightWorldSpace / 2f - TileSize3D.Z / 2f),
-                        new Vector3(TileSize3D.X, TileSize3D.Y, heightWorldSpace)
-                    )
-                );
+                renderCache.Colliders.Add(new Cube(tileOrigin.ToVec3(z), TileSize3D / 2f));
             }
         }
 
@@ -466,8 +461,11 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         renderCache.GPUDirty = true;
         renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
 
-        Vector3 chunkSize3 = (ChunkSize3D * TileSize3D);
-        renderCache.Bounds = Cube.FromCenterAndSize(chunkWorldOffset.ToVec3() + chunkSize3 / 2f + TileSize3D / 2f, chunkSize3 + TileSize3D);
+        Vector3 chunkSizeWorld3 = ChunkSize3D * TileSize3D;
+        renderCache.Bounds = Cube.FromCenterAndSize(
+            (chunkWorldOffset.ToVec3() + chunkSizeWorld3 / 2f) - TileSize3D / 2f,
+            chunkSizeWorld3
+        );
     }
 
     [DontSerialize]

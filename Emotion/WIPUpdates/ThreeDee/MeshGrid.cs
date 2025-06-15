@@ -3,10 +3,12 @@ using Emotion.Game.OctTree;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
+using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.Rendering;
 using OpenGL;
+using System;
 using System.Diagnostics.Metrics;
 
 namespace Emotion.WIPUpdates.ThreeDee;
@@ -36,19 +38,17 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     #region API
 
-    public Vector2 GetTilePosOfWorldPos(Vector2 location)
+    public virtual Vector2 GetTilePosOfWorldPos(Vector2 location)
     {
-        location -= TileSize;
-
         float left = MathF.Round(location.X / TileSize.X);
         float top = MathF.Round(location.Y / TileSize.Y);
 
         return new Vector2(left, top);
     }
 
-    public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
+    public virtual Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
     {
-        Vector2 worldPos = (tileCoord2d * TileSize) + TileSize;
+        Vector2 worldPos = (tileCoord2d * TileSize);
         return worldPos;
     }
 
@@ -72,9 +72,7 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
             VertexDataAllocation vertices = chunkCache.VertexMemory;
             if (!vertices.Allocated) continue;
             if (chunkCache.Bounds.IsEmpty) continue;
-            //if (!chunkCache.Bounds.Intersects(cube)) continue;
-
-            //Engine.Renderer.DbgAddCube(chunkCache.Bounds);
+            if (!chunkCache.Bounds.Intersects(cube)) continue;
 
             if (chunkCache.Colliders != null)
             {
@@ -104,88 +102,92 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     public Vector3 SweepCube(Cube cube, Vector3 movement)
     {
-        Engine.Renderer.DbgClear();
-        float tFirst = 1.0f;
+        Cube cubeMoved = cube;
+        cubeMoved.Origin += movement;
+        Cube sweepBound = cube.Union(cubeMoved);
+
         (Vector3 aMin, Vector3 aMax) = cube.GetMinMax();
-        Vector3 safeMovement = movement;
+
+        float earliestHit = 1f;
+
         foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
         {
             MeshGridChunkRuntimeCache chunkCache = item.Value;
-            VertexDataAllocation vertices = chunkCache.VertexMemory;
-            if (!vertices.Allocated) continue;
             if (chunkCache.Bounds.IsEmpty) continue;
+            if (!chunkCache.Bounds.Intersects(sweepBound)) continue;
+
             if (chunkCache.Colliders == null) continue; // todo: vertices based chunks? triangle collision
 
             foreach (Cube other in chunkCache.Colliders)
             {
                 (Vector3 bMin, Vector3 bMax) = other.GetMinMax();
 
+                float tEntry = 0f;
+                float tExit = 1f;
 
-
-
-                for (int axis = 0; axis < 3; ++axis)
+                // For each axis, compute entry and exit times
+                for (int i = 0; i < 3; i++)
                 {
-                    float aMinA = aMin[axis];
-                    float aMaxA = aMax[axis];
-                    float bMinA = bMin[axis];
-                    float bMaxA = bMax[axis];
-                    float v = movement[axis];
+                    float aMinI = aMin[i], aMaxI = aMax[i];
+                    float bMinI = bMin[i], bMaxI = bMax[i];
+                    float moveForAxis = movement[i];
 
-                    if (v != 0.0f)
+                    if (moveForAxis == 0f)
                     {
-                        float invV = 1.0f / v;
-                        float tEnter = (bMinA - aMaxA) * invV;
-                        float tExit = (bMaxA - aMinA) * invV;
-
-                        if (tEnter > tExit) (tEnter, tExit) = (tExit, tEnter);
-
-                        if (tEnter >= 0.0f && tEnter <= 1.0f)
+                        // If already separated, a hit is not possible
+                        if (aMaxI < bMinI || aMinI > bMaxI)
                         {
-                            Engine.Renderer.DbgAddCube(other);
-                            // Limit the movement along this axis
-                            safeMovement[axis] = v * tEnter;
+                            tEntry = 1f;
+                            tExit = 0f;
+                            break;
                         }
+                        // already overlapping despite no move :/
                     }
+                    else
+                    {
+                        // Compute entry and exit distances
+                        float invEntry, invExit;
+                        if (moveForAxis > 0f)
+                        {
+                            invEntry = bMinI - aMaxI;
+                            invExit = bMaxI - aMinI;
+                        }
+                        else
+                        {
+                            invEntry = bMaxI - aMinI;
+                            invExit = bMinI - aMaxI;
+                        }
 
-                    //if (v == 0.0f)
-                    //{
-                    //    // If no movement on this axis, but gaps exist, skip
-                    //    if (aMaxA <= bMinA || aMinA >= bMaxA)
-                    //    {
-                    //        tEnter = 1.0f; tExit = 0.0f;
-                    //        break;
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    // Compute entry and exit times on this axis
-                    //    float invV = 1.0f / v;
-                    //    float t1 = (bMinA - aMaxA) * invV;
-                    //    float t2 = (bMaxA - aMinA) * invV;
-                    //    float tAxisEnter = MathF.Min(t1, t2);
-                    //    float tAxisExit = MathF.Max(t1, t2);
+                        float entryI = invEntry / moveForAxis;
+                        float exitI = invExit / moveForAxis;
 
-                    //    tEnter = MathF.Max(tEnter, tAxisEnter);
-                    //    tExit = MathF.Min(tExit, tAxisExit);
+                        // Entry must be before exit
+                        if (entryI > exitI)
+                            (entryI, exitI) = (exitI, entryI);
 
-                    //    // No overlap on this axis during movement
-                    //    if (tEnter > tExit) break;
-                    //}
+                        // Latest entry, earliest exit
+                        tEntry = Math.Max(tEntry, entryI);
+                        tExit = Math.Min(tExit, exitI);
+
+                        // No overlap possible
+                        if (tEntry > tExit) break;
+                    }
                 }
 
-                // If collision occurs within [0,1]
-                //if (tEnter <= tExit && tEnter < tFirst && tEnter >= 0.0f)
-                //{
-                //    tFirst = tEnter;
-                //}
+                // If entry is smaller (or equal) to exit and its within 0,1 then we have a collision
+                if (tEntry <= tExit && tEntry >= 0f && tEntry < earliestHit)
+                    earliestHit = tEntry;
             }
         }
 
-        // Clamp to [0,1]
-        if (tFirst < 0.0f) tFirst = 0.0f;
-        if (tFirst > 1.0f) tFirst = 1.0f;
-
-        return safeMovement;
+        // Small epsilon so that we're not exactly wall to wall
+        // as that could block us on the other axes
+        if (earliestHit < ITerrainGrid3D.SWEEP_EPSILON)
+            earliestHit = 0f;
+        else
+            earliestHit -= ITerrainGrid3D.SWEEP_EPSILON;
+       
+        return movement * earliestHit;
     }
 
     #endregion

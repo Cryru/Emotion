@@ -33,6 +33,23 @@ public struct Cube
         HalfExtents = halfExtent;
     }
 
+    public Cube Union(Cube other)
+    {
+        if (IsEmpty) return other;
+        if (other.IsEmpty) return this;
+
+        (Vector3 minA, Vector3 maxA) = GetMinMax();
+        (Vector3 minB, Vector3 maxB) = other.GetMinMax();
+
+        Vector3 unionMin = Vector3.Min(minA, minB);
+        Vector3 unionMax = Vector3.Max(maxA, maxB);
+
+        Vector3 newOrigin = (unionMin + unionMax) / 2;
+        Vector3 newHalfExtents = (unionMax - unionMin) / 2;
+
+        return new Cube { Origin = newOrigin, HalfExtents = newHalfExtents };
+    }
+
     public (Vector3, Vector3) GetMinMax()
     {
         return (Origin - HalfExtents, Origin + HalfExtents);

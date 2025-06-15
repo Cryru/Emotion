@@ -2,6 +2,9 @@
 
 public interface ITerrainGrid3D
 {
+
+    public const float SWEEP_EPSILON = 0.001f;
+
     public Vector2 TileSize { get; }
 
     public IEnumerator InitRuntimeDataRoutine();
