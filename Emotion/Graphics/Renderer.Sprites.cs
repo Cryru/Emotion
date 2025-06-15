@@ -134,10 +134,6 @@ namespace Emotion.Graphics
         {
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
 
-            Vector3 cameraPosition = _camera.Position;
-            Vector3 centerOfLine = (pointOne + pointTwo) / 2f;
-            Vector3 cameraDirection = Vector3.Normalize(cameraPosition - centerOfLine);
-
             Vector3 normal;
             if (_camera is Camera2D)
             {
@@ -157,11 +153,20 @@ namespace Emotion.Graphics
                     }
                 }
             }
-            else
+            else if (_camera is Camera3D && (CurrentState.ViewMatrix ?? false))
             {
                 Assert(_camera is Camera3D);
+
+                Vector3 cameraPosition = _camera.Position;
+                Vector3 centerOfLine = (pointOne + pointTwo) / 2f;
+                Vector3 cameraDirection = Vector3.Normalize(cameraPosition - centerOfLine);
+
                 normal = Vector3.Cross(direction, cameraDirection);
                 normal = Vector3.Normalize(normal);
+            }
+            else
+            {
+                normal = new Vector3(-direction.Y, direction.X, 0);
             }
 
             Vector3 delta = normal * (thickness / 2f);
