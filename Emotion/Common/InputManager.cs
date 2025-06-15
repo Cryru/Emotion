@@ -157,6 +157,8 @@ public class InputManager
 
     public bool IsMouseFirstPersonMode()
     {
+        if (!Engine.Host.IsFocused) return false;
+
         return !_firstPersonModeDisable.AnyReason() && _firstPersonModeEnable.AnyReason();
     }
 
