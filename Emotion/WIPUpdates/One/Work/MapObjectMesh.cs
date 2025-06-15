@@ -129,13 +129,19 @@ public class MapObjectMesh : MapObject
     /// Sphere that encompasses the whole object.
     /// If the mesh is animated the sphere encompasses all keyframes of the animation.
     /// </summary>
-    public Sphere BoundingSphere;
+    public Sphere BoundingSphere
+    {
+        get => GetBoundingSphere();
+    }
 
     /// <summary>
     /// Axis aligned cube that encompasses the whole object.
     /// If the mesh is animated the AABB encompasses all keyframes of the animation.
     /// </summary>
-    public Cube BoundingCube;
+    public Cube BoundingCube
+    {
+        get => GetBoundingCube();
+    }
 
     public override Rectangle BoundingRect
     {
@@ -241,7 +247,7 @@ public class MapObjectMesh : MapObject
 
     public virtual void SetAnimation(string? name, bool forceIfMissing = false)
     {
-        if (!Initialized)
+        if (_entity == null)
         {
             _initSetAnimation = name;
             return;
