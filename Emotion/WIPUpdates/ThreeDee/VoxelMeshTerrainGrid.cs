@@ -1,16 +1,19 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
+using Emotion.Game.World2D;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.WIPUpdates.Grids;
+using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.Rendering;
+using System;
 using VoxelMeshGridChunk = Emotion.WIPUpdates.Grids.VersionedGridChunk<uint>;
 
 #nullable enable
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
-public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk>
+public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 {
     public Vector3 TileSize3D { get; init; }
 
@@ -132,8 +135,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk>
 
     // One index buffer is used for all chunks, and they are all the same length.
 
-    protected ushort[]? _indices; // Collision only
-
+    protected uint[]? _indices; // Collision only
     protected Vector2 _indexBufferChunkSize;
     protected int _indicesLength;
     protected IndexBuffer? _indexBuffer;
@@ -151,6 +153,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk>
         uint[] indices = new uint[indexCount];
         IndexBuffer.FillQuadIndices<uint>(indices, 0);
         _indexBuffer.Upload(indices);
+        _indices = indices;
         _indexBufferChunkSize = ChunkSize;
         _indicesLength = indexCount;
     }
@@ -185,7 +188,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk>
         Vector3 tileSize3D = tileSize.ToVec3(tileSize.X);
         Vector2 chunkWorldSize = ChunkSize * tileSize;
 
-        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize) + tileSize;
+        Vector2 chunkWorldOffset = (chunkCoord * chunkWorldSize);// + tileSize;
 
         // Get my data
         uint[] dataMe = chunk.GetRawData() ?? Array.Empty<uint>();
@@ -434,10 +437,37 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk>
             }
         }
 
-        renderCache.IndexBuffer = _indexBuffer;
-        renderCache.IndicesUsed = (int)((vIdx / 4f) * 6f);
+        // Update colliders
+        renderCache.Colliders ??= new List<Cube>();
+        renderCache.Colliders.Clear();
+        for (int y = 0; y < ChunkSize.Y; y++)
+        {
+            for (int x = 0; x < ChunkSize.X; x++)
+            {
+                Vector2 tileCoord = new Vector2(x, y);
+                Vector2 tileOrigin = chunkWorldOffset + (tileCoord * tileSize);
+                float height = GetHeightAt(tileOrigin);
+                float heightWorldSpace = (height + 1) * TileSize3D.Z;
+
+                renderCache.Colliders.Add(
+                    Cube.FromCenterAndSize(
+                        tileOrigin.ToVec3(heightWorldSpace / 2f - TileSize3D.Z / 2f),
+                        new Vector3(TileSize3D.X, TileSize3D.Y, heightWorldSpace)
+                    )
+                );
+            }
+        }
+
+        // The indices used are the same for all chunks, just the length is different
+        AssertNotNull(_indices);
+        AssertNotNull(_indexBuffer);
+        renderCache.SetIndices(_indices, _indexBuffer, (int)(vIdx / 4f * 6f));
+
         renderCache.GPUDirty = true;
         renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
+
+        Vector3 chunkSize3 = (ChunkSize3D * TileSize3D);
+        renderCache.Bounds = Cube.FromCenterAndSize(chunkWorldOffset.ToVec3() + chunkSize3 / 2f + TileSize3D / 2f, chunkSize3 + TileSize3D);
     }
 
     [DontSerialize]

@@ -4,16 +4,19 @@ using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.WIPUpdates.Grids;
+using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.Rendering;
 using OpenGL;
+using System.Diagnostics.Metrics;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
 #nullable enable
 
-public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
+public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
     where ChunkT : VersionedGridChunk<T>, new()
     where T : struct, IEquatable<T>
+    where IndexT : INumber<IndexT>
 {
     public bool Initialized { get; private set; }
 
@@ -61,6 +64,130 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
 
     public abstract float GetHeightAt(Vector2 worldSpace);
 
+    public bool CollideWithCube<TUserData>(Cube cube, Func<Cube, TUserData, bool> onIntersect, TUserData userData)
+    {
+        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        {
+            MeshGridChunkRuntimeCache chunkCache = item.Value;
+            VertexDataAllocation vertices = chunkCache.VertexMemory;
+            if (!vertices.Allocated) continue;
+            if (chunkCache.Bounds.IsEmpty) continue;
+            //if (!chunkCache.Bounds.Intersects(cube)) continue;
+
+            //Engine.Renderer.DbgAddCube(chunkCache.Bounds);
+
+            if (chunkCache.Colliders != null)
+            {
+                for (int i = 0; i < chunkCache.Colliders.Count; i++)
+                {
+                    Cube collider = chunkCache.Colliders[i];
+                    if (cube.Intersects(collider))
+                    {
+                        bool stopChecks = onIntersect(collider, userData);
+                        if (stopChecks)
+                            return true;
+                    }
+                }
+            }
+            else
+            {
+                IndexT[]? indices = chunkCache.CPUIndexBuffer;
+                if (indices == null) continue;
+
+                if (cube.IntersectWithVertices(indices, chunkCache.IndicesUsed, vertices, out Vector3 collisionPoint, out Vector3 normal, out _))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Vector3 SweepCube(Cube cube, Vector3 movement)
+    {
+        Engine.Renderer.DbgClear();
+        float tFirst = 1.0f;
+        (Vector3 aMin, Vector3 aMax) = cube.GetMinMax();
+        Vector3 safeMovement = movement;
+        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        {
+            MeshGridChunkRuntimeCache chunkCache = item.Value;
+            VertexDataAllocation vertices = chunkCache.VertexMemory;
+            if (!vertices.Allocated) continue;
+            if (chunkCache.Bounds.IsEmpty) continue;
+            if (chunkCache.Colliders == null) continue; // todo: vertices based chunks? triangle collision
+
+            foreach (Cube other in chunkCache.Colliders)
+            {
+                (Vector3 bMin, Vector3 bMax) = other.GetMinMax();
+
+
+
+
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    float aMinA = aMin[axis];
+                    float aMaxA = aMax[axis];
+                    float bMinA = bMin[axis];
+                    float bMaxA = bMax[axis];
+                    float v = movement[axis];
+
+                    if (v != 0.0f)
+                    {
+                        float invV = 1.0f / v;
+                        float tEnter = (bMinA - aMaxA) * invV;
+                        float tExit = (bMaxA - aMinA) * invV;
+
+                        if (tEnter > tExit) (tEnter, tExit) = (tExit, tEnter);
+
+                        if (tEnter >= 0.0f && tEnter <= 1.0f)
+                        {
+                            Engine.Renderer.DbgAddCube(other);
+                            // Limit the movement along this axis
+                            safeMovement[axis] = v * tEnter;
+                        }
+                    }
+
+                    //if (v == 0.0f)
+                    //{
+                    //    // If no movement on this axis, but gaps exist, skip
+                    //    if (aMaxA <= bMinA || aMinA >= bMaxA)
+                    //    {
+                    //        tEnter = 1.0f; tExit = 0.0f;
+                    //        break;
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    // Compute entry and exit times on this axis
+                    //    float invV = 1.0f / v;
+                    //    float t1 = (bMinA - aMaxA) * invV;
+                    //    float t2 = (bMaxA - aMinA) * invV;
+                    //    float tAxisEnter = MathF.Min(t1, t2);
+                    //    float tAxisExit = MathF.Max(t1, t2);
+
+                    //    tEnter = MathF.Max(tEnter, tAxisEnter);
+                    //    tExit = MathF.Min(tExit, tAxisExit);
+
+                    //    // No overlap on this axis during movement
+                    //    if (tEnter > tExit) break;
+                    //}
+                }
+
+                // If collision occurs within [0,1]
+                //if (tEnter <= tExit && tEnter < tFirst && tEnter >= 0.0f)
+                //{
+                //    tFirst = tEnter;
+                //}
+            }
+        }
+
+        // Clamp to [0,1]
+        if (tFirst < 0.0f) tFirst = 0.0f;
+        if (tFirst > 1.0f) tFirst = 1.0f;
+
+        return safeMovement;
+    }
+
     #endregion
 
     #region Rendering
@@ -75,10 +202,10 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
         Assert(renderCache.VertexMemory.Allocated);
 
         // todo: deallocate at some point?
-        if (renderCache.GPUMemory == null || renderCache.GPUDirty)
+        if (renderCache.GPUVertexMemory == null || renderCache.GPUDirty)
         {
-            renderCache.GPUMemory ??= GPUMemoryAllocator.AllocateBuffer(renderCache.VertexMemory.Format);
-            renderCache.GPUMemory.VBO.Upload(renderCache.VertexMemory);
+            renderCache.GPUVertexMemory ??= GPUMemoryAllocator.AllocateBuffer(renderCache.VertexMemory.Format);
+            renderCache.GPUVertexMemory.VBO.Upload(renderCache.VertexMemory);
             renderCache.GPUDirty = false;
         }
 
@@ -116,7 +243,7 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
                 MarkChunkForRender(chunkCoord, chunk);
             }
         }
-       
+
         if (_renderThisPass.Count > 0)
         {
             Engine.Renderer.FlushRenderStream();
@@ -140,7 +267,7 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
                 IndexBuffer? indexBuffer = chunkToRender.IndexBuffer;
                 if (indexBuffer == null) continue;
 
-                GPUVertexMemory? gpuMem = chunkToRender.GPUMemory;
+                GPUVertexMemory? gpuMem = chunkToRender.GPUVertexMemory;
                 if (gpuMem == null) continue;
 
                 VertexArrayObject.EnsureBound(gpuMem.VAO);
@@ -151,6 +278,16 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
             }
 
             c.SetState(oldState);
+
+            // Draw colliders
+            //foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            //{
+            //    if (chunkToRender.Colliders == null) continue;
+            //    foreach (var collider in chunkToRender.Colliders)
+            //    {
+            //        collider.RenderOutline(c, Color.Blue);
+            //    }
+            //}
 
             // Draw arrows for normals
             //foreach (TerrainGridChunkRuntimeCache chunkToRender in _renderThisPass)
@@ -212,7 +349,7 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
         {
             _octTree.Remove(renderCache);
             VertexDataAllocation.FreeAllocated(ref renderCache.VertexMemory);
-            GPUMemoryAllocator.FreeBuffer(renderCache.GPUMemory);
+            GPUMemoryAllocator.FreeBuffer(renderCache.GPUVertexMemory);
         }
     }
 
@@ -240,19 +377,36 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
     protected class MeshGridChunkRuntimeCache : IOctTreeStorable
     {
         public VersionedGridChunk<T> Chunk;
+        public bool GPUDirty = true;
+
+        #region Vertices
 
         public int VerticesGeneratedForVersion = -1;
         public VertexDataAllocation VertexMemory;
-        public int IndicesUsed = -1;
+        public GPUVertexMemory? GPUVertexMemory;
 
-        public GPUVertexMemory? GPUMemory;
-        public bool GPUDirty = true;
+        #endregion
+
+        #region Bounds
 
         public int BoundsVersion = -1;
         public Cube Bounds;
 
-        public IndexBuffer? IndexBuffer;
-        public int IndexCount;
+        #endregion
+
+        #region Indices
+
+        public IndexT[]? CPUIndexBuffer { get; private set; } // todo: index allocation type
+        public IndexBuffer? IndexBuffer { get; private set; }
+        public int IndicesUsed { get; private set; } = -1;
+
+        #endregion
+
+        #region Collision
+
+        public List<Cube>? Colliders; // todo: collider type
+
+        #endregion
 
         public MeshGridChunkRuntimeCache(VersionedGridChunk<T> chunk)
         {
@@ -267,6 +421,13 @@ public abstract class MeshGrid<T, ChunkT> : ChunkedGrid<T, ChunkT>, IGridWorldSp
                 VertexMemory = VertexDataAllocation.Reallocate(ref VertexMemory, vertexCount);
 
             return VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
+        }
+
+        public void SetIndices(IndexT[] cpuIndices, IndexBuffer gpuIndices, int indexCount)
+        {
+            CPUIndexBuffer = cpuIndices;
+            IndexBuffer = gpuIndices;
+            IndicesUsed = indexCount;
         }
 
         public Cube GetOctTreeBound()

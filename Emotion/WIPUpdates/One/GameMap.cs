@@ -1,5 +1,4 @@
 ﻿using Emotion.Common.Serialization;
-using Emotion.Graphics.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.ThreeDee;
@@ -8,7 +7,7 @@ namespace Emotion.WIPUpdates.One;
 
 #nullable enable
 
-public class GameMap
+public class GameMap : IDisposable
 {
     public string MapFileName = string.Empty;
 
@@ -83,6 +82,11 @@ public class GameMap
         }
     }
 
+    public void Dispose()
+    {
+
+    }
+
     #region Collision
 
     public bool CollideRayWithObjects(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint)
@@ -105,7 +109,7 @@ public class GameMap
         return CollideRayWithObjects<T>(ray, null, out collisionPoint);
     }
 
-    public bool CollideRayWithObjects<T>(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint) where T: MapObject
+    public bool CollideRayWithObjects<T>(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint) where T : MapObject
     {
         foreach (MapObject obj in ForEachObject())
         {
@@ -119,6 +123,31 @@ public class GameMap
 
         collisionPoint = Vector2.Zero;
         return false;
+    }
+
+    public bool CollideWithCube<TUserData>(Cube cube, MapObject? exclude, Func<Cube, TUserData, bool> onIntersect, TUserData userData)
+    {
+        if (TerrainGrid != null)
+        {
+            if (TerrainGrid.CollideWithCube(cube, onIntersect, userData))
+                return true;
+        }
+
+        // todo: objects
+
+        return false;
+    }
+
+    public Vector3 SweepCube(Cube cube, Vector3 movement, MapObject? exclude)
+    {
+        if (TerrainGrid != null)
+        {
+            movement = TerrainGrid.SweepCube(cube, movement);
+        }
+
+        // todo: objects
+
+        return movement;
     }
 
     #endregion

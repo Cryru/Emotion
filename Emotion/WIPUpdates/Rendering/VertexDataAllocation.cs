@@ -122,7 +122,82 @@ public struct VertexDataAllocation
         }
     }
 
-    public unsafe Triangle GetTriangleAtIndices(ushort i1, ushort i2, ushort i3)
+    public unsafe IEnumerable<Triangle> ForEachTriangle<TIndex>(TIndex[] indices, int indexCount)
+        where TIndex : INumber<TIndex>
+    {
+        if (!Format.HasPosition) yield break;
+        if (!Allocated) yield break;
+
+        nint vertMem = Pointer;
+        Assert(vertMem != 0);
+
+        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        vertMem += byteOffset;
+
+        Triangle tri;
+        if (indices is uint[] indexUint)
+        {
+            for (int i = 0; i < indexCount; i += 3)
+            {
+                uint idx1 = indexUint[i];
+                uint idx2 = indexUint[i + 1];
+                uint idx3 = indexUint[i + 2];
+
+                unsafe
+                {
+                    Vector3 v1 = *(Vector3*)(vertMem + byteStride * idx1);
+                    Vector3 v2 = *(Vector3*)(vertMem + byteStride * idx2);
+                    Vector3 v3 = *(Vector3*)(vertMem + byteStride * idx3);
+                    tri = new Triangle(v1, v2, v3);
+                }
+
+                yield return tri;
+            }
+        }
+        else if (indices is ushort[] indexUshort)
+        {
+            for (int i = 0; i < indexCount; i += 3)
+            {
+                ushort idx1 = indexUshort[i];
+                ushort idx2 = indexUshort[i + 1];
+                ushort idx3 = indexUshort[i + 2];
+
+                unsafe
+                {
+                    Vector3 v1 = *(Vector3*)(vertMem + byteStride * idx1);
+                    Vector3 v2 = *(Vector3*)(vertMem + byteStride * idx2);
+                    Vector3 v3 = *(Vector3*)(vertMem + byteStride * idx3);
+                    tri = new Triangle(v1, v2, v3);
+                }
+
+                yield return tri;
+            }
+        }
+
+        // Fully generic
+        for (int i = 0; i < indexCount; i += 3)
+        {
+            TIndex idx1 = indices[i];
+            TIndex idx2 = indices[i + 1];
+            TIndex idx3 = indices[i + 2];
+
+            uint idx1AsInt = uint.CreateTruncating(idx1);
+            uint idx2AsInt = uint.CreateTruncating(idx2);
+            uint idx3AsInt = uint.CreateTruncating(idx3);
+
+            unsafe
+            {
+                Vector3 v1 = *(Vector3*)(vertMem + byteStride * idx1AsInt);
+                Vector3 v2 = *(Vector3*)(vertMem + byteStride * idx2AsInt);
+                Vector3 v3 = *(Vector3*)(vertMem + byteStride * idx3AsInt);
+                tri = new Triangle(v1, v2, v3);
+            }
+
+            yield return tri;
+        }
+    }
+
+    public unsafe Triangle GetTriangleAtIndices<TIndex>(TIndex i1, TIndex i2, TIndex i3) where TIndex : INumber<TIndex>
     {
         if (!Format.HasPosition) return Triangle.Invalid;
         if (!Allocated) return Triangle.Invalid;
@@ -133,9 +208,13 @@ public struct VertexDataAllocation
         Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
         vertMem += byteOffset;
 
-        Vector3 v1 = *(Vector3*)(vertMem + byteStride * i1);
-        Vector3 v2 = *(Vector3*)(vertMem + byteStride * i2);
-        Vector3 v3 = *(Vector3*)(vertMem + byteStride * i3);
+        uint idx1AsInt = uint.CreateTruncating(i1);
+        uint idx2AsInt = uint.CreateTruncating(i2);
+        uint idx3AsInt = uint.CreateTruncating(i3);
+
+        Vector3 v1 = *(Vector3*)(vertMem + byteStride * idx1AsInt);
+        Vector3 v2 = *(Vector3*)(vertMem + byteStride * idx2AsInt);
+        Vector3 v3 = *(Vector3*)(vertMem + byteStride * idx3AsInt);
 
         return new Triangle(v1, v2, v3);
     }

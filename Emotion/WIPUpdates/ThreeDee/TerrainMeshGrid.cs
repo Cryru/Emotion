@@ -16,7 +16,7 @@ using TerrainMeshGridChunk = Emotion.WIPUpdates.Grids.VersionedGridChunk<float>;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
-public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk>
+public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>
 {
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {
@@ -259,12 +259,13 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk>
             }
         }
 
+        // The indices used are the same for all chunks
+        AssertNotNull(_indices);
         AssertNotNull(_indexBuffer);
+        renderCache.SetIndices(_indices, _indexBuffer, _indicesLength);
 
         renderCache.GPUDirty = true;
         renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
-        renderCache.IndicesUsed = _indicesLength;
-        renderCache.IndexBuffer = _indexBuffer;
     }
 
     private static Vector2[] _heightSamplePattern =
@@ -540,7 +541,10 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk>
                 VertexDataAllocation vertices = chunkToRender.VertexMemory;
                 if (!vertices.Allocated) continue;
 
-                if (mouseRay.IntersectWithVertices(_indices, vertices, out Vector3 collisionPoint, out _, out _))
+                ushort[]? indices = chunkToRender.CPUIndexBuffer;
+                if (indices == null) continue;
+
+                if (mouseRay.IntersectWithVertices(indices, vertices, out Vector3 collisionPoint, out _, out _))
                     brushPoint = collisionPoint.ToVec2();
             }
         }

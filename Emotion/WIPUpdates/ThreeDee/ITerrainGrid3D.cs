@@ -11,4 +11,12 @@ public interface ITerrainGrid3D
     public void Update(float dt);
 
     public void Render(RenderComposer c, Rectangle clipRect);
+
+    #region Collision
+
+    public bool CollideWithCube<TUserData>(Cube cube, Func<Cube, TUserData, bool> onIntersect, TUserData userData);
+
+    public Vector3 SweepCube(Cube cube, Vector3 movement);
+
+    #endregion
 }
