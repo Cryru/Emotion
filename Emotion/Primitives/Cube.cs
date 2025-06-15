@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Emotion.Graphics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
+using Emotion.WIPUpdates.Rendering;
 
 #endregion
 
@@ -32,6 +33,16 @@ public struct Cube
         HalfExtents = halfExtent;
     }
 
+    public (Vector3, Vector3) GetMinMax()
+    {
+        return (Origin - HalfExtents, Origin + HalfExtents);
+    }
+
+    public static Cube FromCenterAndSize(Vector3 origin, Vector3 size)
+    {
+        return new Cube(origin, size / 2f);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector3[] GetVertices()
     {
@@ -54,13 +65,21 @@ public struct Cube
         vertices[7] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
     }
 
+    public bool Intersects(Cube cube)
+    {
+        (Vector3 minA, Vector3 maxA) = GetMinMax();
+        (Vector3 minB, Vector3 maxB) = cube.GetMinMax();
+
+        bool intersectsX = minA.X <= maxB.X && maxA.X >= minB.X;
+        bool intersectsY = minA.Y <= maxB.Y && maxA.Y >= minB.Y;
+        bool intersectsZ = minA.Z <= maxB.Z && maxA.Z >= minB.Z;
+        return intersectsX && intersectsY && intersectsZ;
+    }
+
     public bool ContainsInclusive(Cube cube)
     {
-        Vector3 minA = Origin - HalfExtents;
-        Vector3 maxA = Origin + HalfExtents;
-
-        Vector3 minB = cube.Origin - cube.HalfExtents;
-        Vector3 maxB = cube.Origin + cube.HalfExtents;
+        (Vector3 minA, Vector3 maxA) = GetMinMax();
+        (Vector3 minB, Vector3 maxB) = cube.GetMinMax();
 
         return (minB.X >= minA.X && maxB.X <= maxA.X) &&
                (minB.Y >= minA.Y && maxB.Y <= maxA.Y) &&
@@ -97,6 +116,148 @@ public struct Cube
         return new Cube(center, halfExtent);
     }
 
+    public bool IntersectWithVertices<TIndex>(TIndex[] indices, int indexCount, VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+        where TIndex : INumber<TIndex>
+    {
+        collisionPoint = Vector3.Zero;
+        normal = Vector3.Zero;
+        triangleIndex = -1;
+
+        if (!vertices.Format.Built) return false;
+        if (!vertices.Format.HasPosition) return false;
+
+        var closestDistance = float.MaxValue;
+        var intersectionFound = false;
+
+        foreach (Triangle triangle in vertices.ForEachTriangle(indices, indexCount))
+        {
+            if (Intersects(triangle))
+                return true;
+        }
+        
+
+        //for (var i = 0; i < indexCount; i += 3)
+        //{
+        //    TIndex idx1 = indices[i];
+        //    TIndex idx2 = indices[i + 1];
+        //    TIndex idx3 = indices[i + 2];
+
+        //    Triangle triangle = vertices.GetTriangleAtIndices(idx1, idx2, idx3);
+        //    Vector3 triangleNormal = triangle.Normal;
+
+        //    //if (!IntersectWithTriangle(triangle.A, triangle.B, triangle.C, triangleNormal, out float t)) continue;
+
+        //    //if (t < closestDistance)
+        //    //{
+        //    //    closestDistance = t;
+        //    //    normal = triangleNormal;
+        //    //    triangleIndex = i;
+        //    //    intersectionFound = true;
+        //    //}
+        //}
+
+        //if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
+
+        return intersectionFound;
+    }
+
+    #region Cube-Triangle Intersection
+
+    public bool Intersects(Triangle tri)
+    {
+        Vector3 cubeOrigin = Origin;
+        Vector3 cubeHalfSize = HalfExtents;
+
+        // Move triangle to box's local space
+        Vector3 tv0 = tri.A - cubeOrigin;
+        Vector3 tv1 = tri.B - cubeOrigin;
+        Vector3 tv2 = tri.C - cubeOrigin;
+
+        // Compute triangle edges
+        Vector3 e0 = tv1 - tv0;
+        Vector3 e1 = tv2 - tv1;
+        Vector3 e2 = tv0 - tv2;
+
+        float[] min = { 0, 0, 0 }, max = { 0, 0, 0 };
+        Vector3[] verts = { tv0, tv1, tv2 };
+
+        // 1) Test overlap in the box's x‐, y‐, and z‐axes
+        for (int i = 0; i < 3; i++)
+        {
+            float v0i = verts[0][i];
+            float v1i = verts[1][i];
+            float v2i = verts[2][i];
+            min[i] = Math.Min(v0i, Math.Min(v1i, v2i));
+            max[i] = Math.Max(v0i, Math.Max(v1i, v2i));
+            if (min[i] > cubeHalfSize[i] || max[i] < -cubeHalfSize[i])
+                return false;
+        }
+
+        // 2) Test the triangle normal axis
+        Vector3 normal = Vector3.Cross(e0, e1);
+        if (!PlaneBoxOverlap(normal, tv0, cubeHalfSize))
+            return false;
+
+        // 3) Test the 9 axes given by cross products of edges and box axes
+        Vector3[] edges = { e0, e1, e2 };
+        for (int i = 0; i < 3; i++)                 // box axes
+            for (int j = 0; j < 3; j++)             // tri edges
+            {
+                Vector3 axis = Vector3.Cross(edges[j], GetUnitAxis(i));
+                if (axis.LengthSquared() < 1e-8f)   // skip near‐zero axes
+                    continue;
+
+                // Project triangle onto axis
+                float minT = float.MaxValue, maxT = float.MinValue;
+                for (int k = 0; k < 3; k++)
+                {
+                    float proj = Vector3.Dot(verts[k], axis);
+                    minT = Math.Min(minT, proj);
+                    maxT = Math.Max(maxT, proj);
+                }
+
+                // Project box onto axis (radius = sum of extents * |axis component|)
+                float r =
+                    cubeHalfSize[(i + 1) % 3] * Math.Abs(axis[(i + 2) % 3]) +
+                    cubeHalfSize[(i + 2) % 3] * Math.Abs(axis[(i + 1) % 3]);
+
+                if (minT > r || maxT < -r)
+                    return false;
+            }
+
+        return true;
+    }
+
+    //  test if triangle plane overlaps the box
+    private static bool PlaneBoxOverlap(Vector3 normal, Vector3 vert, Vector3 maxBox)
+    {
+        // Compute box extents in direction of plane normal
+        Vector3 v = new Vector3(
+            normal.X > 0 ? maxBox.X : -maxBox.X,
+            normal.Y > 0 ? maxBox.Y : -maxBox.Y,
+            normal.Z > 0 ? maxBox.Z : -maxBox.Z);
+
+        float d1 = Vector3.Dot(normal, vert + v);
+        float d2 = Vector3.Dot(normal, vert - v);
+
+        // If both d1 and d2 have the same sign, no overlap
+        return d1 * d2 <= 0;
+    }
+
+    private static Vector3 GetUnitAxis(int index)
+    {
+        switch (index)
+        {
+            case 0: return new Vector3(1, 0, 0);
+            case 1: return new Vector3(0, 1, 0);
+            default: return new Vector3(0, 0, 1);
+        }
+    }
+
+    #endregion
+
+    #region Render Outline
+
     private static int[][] _outlineEdges =
     {
         new[] {0, 1}, // Bottom face
@@ -113,7 +274,7 @@ public struct Cube
         new[] {3, 7}
     };
 
-    public void RenderOutline(RenderComposer c, Color? color = null, float thickness = 1f)
+    public void RenderOutline(RenderComposer c, Color? color = null, float thickness = 0.1f)
     {
         Span<Vector3> vertices = stackalloc Vector3[8];
         GetVertices(vertices);
@@ -123,6 +284,10 @@ public struct Cube
             c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, thickness);
         }
     }
+
+    #endregion
+
+    #region Unit Entity
 
     private static MeshEntity? _unitCubeEntity;
     private static object _unitCubeCreationLock = new object();
@@ -249,4 +414,6 @@ public struct Cube
 
         return _unitCubeEntity;
     }
+
+    #endregion
 }
