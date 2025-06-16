@@ -1,15 +1,15 @@
-﻿using Emotion.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Emotion.Common.Serialization;
+using Emotion.UI;
+
+#nullable enable
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
+[DontSerialize]
 public class ContainerVisibleInEditorMode : UIBaseWindow
 {
     public MapEditorMode VisibleIn = MapEditorMode.Off | MapEditorMode.TwoDee | MapEditorMode.ThreeDee;
+    public Action<MapEditorMode>? OnModeChanged;
 
     public override void AttachedToController(UIController controller)
     {
@@ -29,5 +29,6 @@ public class ContainerVisibleInEditorMode : UIBaseWindow
     private void UpdateVisibility(MapEditorMode currentMode)
     {
         Visible = VisibleIn.EnumHasFlag(currentMode);
+        OnModeChanged?.Invoke(currentMode);
     }
 }

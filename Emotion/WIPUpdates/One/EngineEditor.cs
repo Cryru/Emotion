@@ -8,6 +8,7 @@ using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Scenography;
 using Emotion.UI;
+using Emotion.Utility;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
@@ -138,17 +139,48 @@ public static partial class EngineEditor
         _debugCameraOptionOn = on;
     }
 
+    private static void SetDebugCameraSpeed(float speed)
+    {
+        speed = Maths.Clamp(speed, 0, 20);
+
+        if (_editorCamera is Camera2D cam2D)
+            cam2D.MovementSpeed = speed;
+        else if (_editorCamera is Camera3D cam3D)
+            cam3D.MovementSpeed = speed;
+    }
+
+    private static float GetDebugCameraSpeed()
+    {
+        return _editorCamera is Camera2D cam2D ? cam2D.MovementSpeed : (_editorCamera is Camera3D cam3D ? cam3D.MovementSpeed : 0f);
+    }
+
     private static void SetupDebugCameraUI(UIBaseWindow barContainer)
     {
         var container = new ContainerVisibleInEditorMode
         {
             Margins = new Primitives.Rectangle(10, 5, 0, 0),
-            VisibleIn = MapEditorMode.TwoDee | MapEditorMode.ThreeDee
+            VisibleIn = MapEditorMode.TwoDee | MapEditorMode.ThreeDee,
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 5)
         };
         barContainer.AddChild(container);
 
-        var viewGameCamera = TypeEditor.CreateCustomWithLabel("View Game Camera", _debugCameraOptionOn, SetDebugCameraOption, LabelStyle.MapEditor);
+        UIBaseWindow viewGameCamera = TypeEditor.CreateCustomWithLabel("View Game Camera", _debugCameraOptionOn, SetDebugCameraOption, LabelStyle.MapEditor);
+
+        UIBaseWindow cameraSpeed = TypeEditor.CreateCustomWithLabel("Camera Speed", (float) 0, SetDebugCameraSpeed, LabelStyle.MapEditor);
+        cameraSpeed.MaxSizeX = 220;
+
+        container.OnModeChanged = (_) =>
+        {
+            // The speed changes when the camera changes, so we need to update it on mode changed.
+            float currentSpeed = GetDebugCameraSpeed();
+            var camSpeedTypeEditor = cameraSpeed.GetWindowById<TypeEditor>("Editor");
+            if (camSpeedTypeEditor != null)
+                camSpeedTypeEditor.SetValue(currentSpeed);
+        };
+
         container.AddChild(viewGameCamera);
+        container.AddChild(cameraSpeed);
     }
 
     private static void RenderGameCameraBound(RenderComposer c)
