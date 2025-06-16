@@ -28,17 +28,17 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return (tile / ChunkSize).Floor();
     }
 
-    public ChunkT? GetChunkAt(Vector2 position, out Vector2 chunkCoord, out Vector2 relativeCoord)
+    public ChunkT? GetChunkAt(Vector2 tileCoordinate, out Vector2 chunkCoord, out Vector2 tileRelativeCoord)
     {
-        chunkCoord = GetChunkCoordinateOfValueCoordinate(position);
-        relativeCoord = position - chunkCoord * ChunkSize;
+        chunkCoord = GetChunkCoordinateOfValueCoordinate(tileCoordinate);
+        tileRelativeCoord = tileCoordinate - chunkCoord * ChunkSize;
         _chunks.TryGetValue(chunkCoord, out ChunkT? chunk);
         return chunk;
     }
 
-    public ChunkT? GetChunkAt(Vector2 position, out Vector2 relativeCoord)
+    public ChunkT? GetChunkAt(Vector2 tileCoordinate, out Vector2 tileRelativeCoord)
     {
-        return GetChunkAt(position, out Vector2 _, out relativeCoord);
+        return GetChunkAt(tileCoordinate, out Vector2 _, out tileRelativeCoord);
     }
 
     public ChunkT? GetChunk(Vector2 chunkCoord)

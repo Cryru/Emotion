@@ -117,7 +117,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
     public override float GetHeightAt(Vector2 worldSpace)
     {
-        VoxelMeshGridChunk? chunk = GetChunkAt(worldSpace, out Vector2 relativeCoord);
+        Vector2 tilePos = GetTilePosOfWorldPos(worldSpace);
+        VoxelMeshGridChunk? chunk = GetChunkAt(tilePos, out Vector2 relativeCoord);
         if (chunk == null) return 0;
         for (int z = (int)ChunkSize3D.Z - 1; z >= 0; z--)
         {
@@ -127,6 +128,20 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         }
 
         return -1;
+    }
+
+    public Vector3 GetTilePos3DOfWorldPos(Vector3 location)
+    {
+        float left = MathF.Round(location.X / TileSize.X);
+        float top = MathF.Round(location.Y / TileSize.Y);
+        float depth = MathF.Round(location.Z / TileSize3D.Z);
+
+        return new Vector3(left, top, depth);
+    }
+
+    public Cube GetCubeOfTilePos(Vector3 tilePos)
+    {
+        return new Cube(tilePos * TileSize3D, TileSize3D / 2f);
     }
 
     #endregion
