@@ -64,6 +64,10 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     public abstract float GetHeightAt(Vector2 worldSpace);
 
+    #endregion
+
+    #region Collision
+
     public bool CollideWithCube<TUserData>(Cube cube, Func<Cube, TUserData, bool> onIntersect, TUserData userData)
     {
         foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
@@ -135,7 +139,7 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
                     if (moveForAxis == 0f)
                     {
                         // If already separated, a hit is not possible
-                        if (aMaxI < bMinI || aMinI > bMaxI)
+                        if (aMaxI <= bMinI || aMinI >= bMaxI)
                         {
                             tEntry = 1f;
                             tExit = 0f;
@@ -145,6 +149,14 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
                     }
                     else
                     {
+                        // Equal, but moving apart
+                        if ((aMaxI == bMinI && moveForAxis < 0f) || (aMinI == bMaxI && moveForAxis > 0f))
+                        {
+                            tEntry = 1f;
+                            tExit = 0f;
+                            break;
+                        }
+
                         // Compute entry and exit distances
                         float invEntry, invExit;
                         if (moveForAxis > 0f)
@@ -180,14 +192,40 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
             }
         }
 
-        // Small epsilon so that we're not exactly wall to wall
-        // as that could block us on the other axes
-        if (earliestHit < ITerrainGrid3D.SWEEP_EPSILON)
-            earliestHit = 0f;
-        else
-            earliestHit -= ITerrainGrid3D.SWEEP_EPSILON;
-       
         return movement * earliestHit;
+    }
+
+    public bool CollideRay(Ray3D ray, out Vector3 collisionPoint)
+    {
+        collisionPoint = Vector3.Zero;
+
+        Vector3 closestIntersection = Vector3.Zero;
+        float closestIntersectionDist = float.PositiveInfinity;
+
+        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        {
+            MeshGridChunkRuntimeCache chunkCache = item.Value;
+            if (chunkCache.Bounds.IsEmpty) continue;
+            if (!ray.IntersectWithCube(chunkCache.Bounds, out Vector3 _)) continue;
+
+            if (chunkCache.Colliders == null) continue; // todo: vertices based chunks? triangle collision
+
+            foreach (Cube other in chunkCache.Colliders)
+            {
+                if (ray.IntersectWithCube(other, out Vector3 colPoint))
+                {
+                    float dist = Vector3.Distance(colPoint, ray.Start);
+                    if (dist < closestIntersectionDist)
+                    {
+                        closestIntersection = colPoint;
+                        closestIntersectionDist = dist;
+                    }
+                }
+            }
+        }
+
+        collisionPoint = closestIntersection;
+        return closestIntersectionDist != float.PositiveInfinity;
     }
 
     #endregion
