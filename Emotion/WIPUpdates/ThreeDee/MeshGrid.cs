@@ -104,7 +104,29 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
         return false;
     }
 
-    public Vector3 SweepCube(Cube cube, Vector3 movement)
+    public Vector3 SweepCube(Cube moverCube, Vector3 movement)
+    {
+        // Sweep in all axes separetely for best results.
+        Vector3 moveAmount = movement;
+        for (int i = 0; i < 3; i++)
+        {
+            int axis = i;
+
+            float moveInThisDir = moveAmount[axis];
+            if (moveInThisDir == 0) continue;
+
+            Vector3 movementVector = Vector3.Zero;
+            movementVector[axis] = moveInThisDir;
+
+            Vector3 asCollision = SweepCubeInternal(moverCube, movementVector);
+            moveAmount[axis] = asCollision[axis];
+            moverCube.Origin[axis] += asCollision[axis];
+        }
+
+        return moveAmount;
+    }
+
+    private Vector3 SweepCubeInternal(Cube cube, Vector3 movement)
     {
         Cube cubeMoved = cube;
         cubeMoved.Origin += movement;
