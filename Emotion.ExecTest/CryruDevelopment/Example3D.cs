@@ -21,9 +21,6 @@ namespace Emotion.ExecTest.CryruDevelopment;
 
 public class Example3D : SceneWithMap
 {
-    private MapObjectMesh _person;
-    private WoWMovementController _movementController;
-
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
         //var cam = new Camera3D(new Vector3(210, 500, 400));
@@ -52,8 +49,6 @@ public class Example3D : SceneWithMap
 
         Map.TerrainGrid = terrain;
 
-        //yield return TerrainImport.GetConverted("Test/cryru/map/maps/azeroth/adt_32_48.obj", Map);
-
         //AddObject("Test/humanmalewarriorlight/humanmalewarriorlight_skin01.gltf", new Vector3(100, 100, 0));
         //AddObject("Test/male/humanmale.gltf", new Vector3(300, 100, 0));
         //AddObject("Test/malehd/humanmale_hd.gltf", new Vector3(500, 100, 0));
@@ -67,20 +62,6 @@ public class Example3D : SceneWithMap
         //AddObject("Test/old ref/bear.fbx", new Vector3(500, 100, 0));
         //AddObject("Test/astroboy/astroBoy_walk_Maya.dae", new Vector3(100, 300, 0));
 
-        //var testObj = new MapObjectMesh("Test/malehdtextured/humanmale_hd.gltf");
-        //testObj.Position = new Vector3(385, 130, 28);
-        //Map.AddObject(testObj);
-        //_person = testObj;
-
-        //_movementController = new WoWMovementController();
-        //_movementController.Attach();
-        //_movementController.SetCharacter(_person,
-        //    "Stand (ID 0 variation 0)",
-        //    "Run (ID 5 variation 0)",
-        //    "Walkbackwards (ID 13 variation 0)",
-        //    "bone_Waist"
-        //);
-
         yield break;
     }
 
@@ -92,12 +73,6 @@ public class Example3D : SceneWithMap
         testObj.SetAnimation("Stand [4]");
         testObj.SetAnimation("Stand (ID 0 variation 0)");
         Map.AddObject(testObj);
-    }
-
-    public override void UpdateScene(float dt)
-    {
-        base.UpdateScene(dt);
-        _movementController?.Update(dt);
     }
 
     public override void RenderScene(RenderComposer c)
