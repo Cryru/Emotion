@@ -126,9 +126,10 @@ public static partial class EngineEditor
 
             Vector2 mousePos = camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
             Vector2 diff = _draggingWithMiddleMouse.Value - mousePos;
-            _draggingWithMiddleMouse = mousePos;
-
             Engine.Renderer.Camera.Position2 += diff;
+
+            // Moving the camera could have moved the pos it points to, so record the new pos so we dont jitter.
+            _draggingWithMiddleMouse = camera.ScreenToWorld(Engine.Host.MousePosition).ToVec2();
         }
     }
 
