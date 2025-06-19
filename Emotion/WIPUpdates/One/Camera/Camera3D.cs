@@ -2,6 +2,7 @@
 
 using Emotion.Common.Input;
 using Emotion.Utility;
+using Emotion.WIPUpdates.One;
 
 #endregion
 
@@ -253,7 +254,8 @@ namespace Emotion.Graphics.Camera
         {
             // Get frustum
             Span<Vector3> frustumCorners = stackalloc Vector3[8];
-            GetCameraView3D(frustumCorners);
+            Frustum frustum = GetCameraView3D();
+            frustum.GetCorners(frustumCorners);
 
             Vector2 minIntersection = new Vector2(float.MaxValue);
             Vector2 maxIntersection = new Vector2(float.MinValue);

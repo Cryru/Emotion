@@ -9,6 +9,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Text;
 using Emotion.IO;
+using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Camera;
 
 #endregion
@@ -313,37 +314,6 @@ namespace Emotion.Graphics
             }
 
             atlas.FinishDrawing(this);
-        }
-
-        public void RenderFrustum(Span<Vector3> corners, Color col)
-        {
-            // Far plane
-            RenderLine(corners[0], corners[1], col, 0.15f);
-            RenderLine(corners[4], corners[5], col, 0.15f);
-
-            // Far plane x Right Plane
-            RenderLine(corners[0], corners[4], col, 0.15f);
-
-            // Left plane
-            RenderLine(corners[1], corners[2], col, 0.15f);
-            RenderLine(corners[5], corners[6], col, 0.15f);
-
-            // Near plane
-            RenderLine(corners[2], corners[3], col, 0.15f);
-            RenderLine(corners[6], corners[7], col, 0.15f);
-
-            // Near plane x Left Plane
-            RenderLine(corners[2], corners[6], col, 0.15f);
-
-            // Near Plane x Right Plane
-            RenderLine(corners[3], corners[7], col, 0.15f);
-
-            // Right plane
-            RenderLine(corners[3], corners[0], col, 0.15f);
-            RenderLine(corners[7], corners[4], col, 0.15f);
-
-            // Far plane X Left Plane
-            RenderLine(corners[1], corners[5], col, 0.15f);
         }
 
         public void RenderGrid(Vector3 pos, Vector2 size, Vector2 tileSize, Color color, Vector2? offset = null)

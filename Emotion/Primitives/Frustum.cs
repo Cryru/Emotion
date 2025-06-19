@@ -84,4 +84,135 @@ public struct Frustum
 
         return true; // Sphere is entirely in front of all planes (inside)
     }
+
+    public bool IntersectsOrContainsCube(Cube cube)
+    {
+        (Vector3 min, Vector3 max) = cube.GetMinMax();
+
+        Span<Plane> planes = new Plane[] { Top, Bottom, Left, Right, Near, Far };
+        foreach (Plane plane in planes)
+        {
+            Vector3 positiveVertex = new Vector3(
+                plane.Normal.X >= 0 ? max.X : min.X,
+                plane.Normal.Y >= 0 ? max.Y : min.Y,
+                plane.Normal.Z >= 0 ? max.Z : min.Z
+            );
+
+            Vector3 negativeVertex = new Vector3(
+                plane.Normal.X >= 0 ? min.X : max.X,
+                plane.Normal.Y >= 0 ? min.Y : max.Y,
+                plane.Normal.Z >= 0 ? min.Z : max.Z
+            );
+
+            if (Plane.DotCoordinate(plane, positiveVertex) < 0)
+                return false;
+        }
+
+        return true;
+    }
+
+    #region Get Corners
+
+    public void GetCorners(Span<Vector3> fillCorners)
+    {
+        fillCorners[0] = PlaneIntersection(Far, Bottom, Left);  // Bottom-left (near plane)
+        fillCorners[1] = PlaneIntersection(Far, Bottom, Right); // Bottom-right (near plane)
+        fillCorners[2] = PlaneIntersection(Near, Bottom, Right);// Top-left (near plane)
+        fillCorners[3] = PlaneIntersection(Near, Bottom, Left); // Top-right (near plane)
+
+        fillCorners[4] = PlaneIntersection(Far, Top, Left);     // Bottom-left (far plane)
+        fillCorners[5] = PlaneIntersection(Far, Top, Right);    // Bottom-right (far plane)
+        fillCorners[6] = PlaneIntersection(Near, Top, Right);   // Top-right (far plane)
+        fillCorners[7] = PlaneIntersection(Near, Top, Left);    // Top-left (far plane)
+    }
+
+    // Helper to find the intersection point of three planes
+    private Vector3 PlaneIntersection(Plane p1, Plane p2, Plane p3)
+    {
+        Vector3 normal1 = p1.Normal;
+        Vector3 normal2 = p2.Normal;
+        Vector3 normal3 = p3.Normal;
+        float dot = Vector3.Dot(normal1, Vector3.Cross(normal2, normal3));
+
+        Vector3 point = (-p1.D * Vector3.Cross(normal2, normal3) -
+                         p2.D * Vector3.Cross(normal3, normal1) -
+                         p3.D * Vector3.Cross(normal1, normal2)) / dot;
+
+        return point;
+    }
+
+    public static void GetCameraFrustumSidePlanes(Span<Vector3> frustumCorners, Span<Vector3> sidePlaneA, Span<Vector3> sidePlaneB)
+    {
+        sidePlaneA[0] = frustumCorners[0];
+        sidePlaneA[1] = frustumCorners[3];
+        sidePlaneA[2] = frustumCorners[7];
+        sidePlaneA[3] = frustumCorners[4];
+
+        sidePlaneB[0] = frustumCorners[1];
+        sidePlaneB[1] = frustumCorners[2];
+        sidePlaneB[2] = frustumCorners[6];
+        sidePlaneB[3] = frustumCorners[5];
+    }
+
+    public static void GetCameraFrustumNearAndFarPlanes(Span<Vector3> frustumCorners, Span<Vector3> sidePanelNear, Span<Vector3> sidePlaneFar)
+    {
+        sidePanelNear[0] = frustumCorners[0];
+        sidePanelNear[1] = frustumCorners[1];
+        sidePanelNear[2] = frustumCorners[2];
+        sidePanelNear[3] = frustumCorners[3];
+
+        sidePlaneFar[0] = frustumCorners[4];
+        sidePlaneFar[1] = frustumCorners[5];
+        sidePlaneFar[2] = frustumCorners[6];
+        sidePlaneFar[3] = frustumCorners[7];
+    }
+
+    #endregion
+
+    public void Render(RenderComposer c, Color colOutline, Color colFill)
+    {
+        Span<Vector3> corners = stackalloc Vector3[8];
+        GetCorners(corners);
+
+        Span<Vector3> sideA = stackalloc Vector3[4];
+        Span<Vector3> sideB = stackalloc Vector3[4];
+        Span<Vector3> sideNear = stackalloc Vector3[4];
+        Span<Vector3> sideFar = stackalloc Vector3[4];
+
+        Frustum.GetCameraFrustumSidePlanes(corners, sideA, sideB);
+        Frustum.GetCameraFrustumNearAndFarPlanes(corners, sideNear, sideFar);
+
+        c.RenderQuad(sideA, colFill);
+        c.RenderQuad(sideB, colFill);
+        c.RenderQuad(sideNear, colFill);
+        c.RenderQuad(sideFar, colFill);
+
+        // Far plane
+        c.RenderLine(corners[0], corners[1], colOutline, 0.15f);
+        c.RenderLine(corners[4], corners[5], colOutline, 0.15f);
+
+        // Far plane x Right Plane
+        c.RenderLine(corners[0], corners[4], colOutline, 0.15f);
+
+        // Left plane
+        c.RenderLine(corners[1], corners[2], colOutline, 0.15f);
+        c.RenderLine(corners[5], corners[6], colOutline, 0.15f);
+
+        // Near plane
+        c.RenderLine(corners[2], corners[3], colOutline, 0.15f);
+        c.RenderLine(corners[6], corners[7], colOutline, 0.15f);
+
+        // Near plane x Left Plane
+        c.RenderLine(corners[2], corners[6], colOutline, 0.15f);
+
+        // Near Plane x Right Plane
+        c.RenderLine(corners[3], corners[7], colOutline, 0.15f);
+
+        // Right plane
+        c.RenderLine(corners[3], corners[0], colOutline, 0.15f);
+        c.RenderLine(corners[7], corners[4], colOutline, 0.15f);
+
+        // Far plane X Left Plane
+        c.RenderLine(corners[1], corners[5], colOutline, 0.15f);
+    }
 }

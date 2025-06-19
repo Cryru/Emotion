@@ -73,7 +73,9 @@ public class GameMap : IDisposable
     {
         Rectangle clipArea = c.Camera.GetCameraView2D();
         TileMapData?.Render(c, clipArea);
-        TerrainGrid?.Render(c, clipArea);
+
+        Frustum frustum = c.Camera.GetCameraView3D();
+        TerrainGrid?.Render(c, frustum);
 
         for (int i = 0; i < _objects.Count; i++)
         {
