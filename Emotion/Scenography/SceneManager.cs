@@ -4,6 +4,7 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 
@@ -92,8 +93,9 @@ namespace Emotion.Scenography
 
             // Set the loading screen as the current scene.
             // This will unload the previous scene as well.
-            // We want to do this in an engine coroutine so that the scene swap
-            // happens in between updates and to avoid async troubles.
+
+            // We want to do this in a coroutine so that the scene swap
+            // happens in between updates (on the main thread) and to avoid async troubles.
             yield return Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(LoadingScreen));
 
             yield return scene.LoadSceneRoutineAsync();
@@ -110,6 +112,10 @@ namespace Emotion.Scenography
         // Ensure the scene swap happens safely while the scene isn't executing.
         private IEnumerator SceneSwapSynchronized(Scene scene)
         {
+            // yield once to avoid eager routines running us another thread
+            yield return null;
+            Assert(GLThread.IsGLThread());
+
             Scene oldScene = Current;
             if (oldScene is SceneWithMap oldSceneWithMap)
                 oldSceneWithMap.UIParent.Close();
