@@ -18,14 +18,19 @@ public class WoWMovementController
     private string? _splitBodyBone;
     private string? _walkBackAnim;
 
+    private WoWCamera _camera = new WoWCamera(Vector3.Zero);
+
     private Vector2 _input;
     private bool _leftClickHeld;
     private bool _rightClickHeld;
 
-    private WoWCamera _camera = new WoWCamera(Vector3.Zero);
+    private bool _inAir = true;
+    private bool _jumpHeld = false;
+    private float _velocityZ;
 
-    private bool _jumping = false;
-    private After _jumpTimer = new After(750);
+    private float _jumpVelocity = 0.0126000009f;
+    private float _gravityPerMs = -4.26666629E-05f;
+    private float _airTimeMaxPosiveVelMod = 0.6f;
 
     public void Attach()
     {
@@ -57,25 +62,20 @@ public class WoWMovementController
         if (map == null) return;
         if (map.TerrainGrid == null) return;
 
-        // Super cringe basic jump that doesn't do anything
-        if (_jumping)
+        // Add gravity
+        _velocityZ += _gravityPerMs * dt;
+
+        if (_jumpHeld && !_inAir)
         {
-            _jumpTimer.Update(dt);
-
-            if (_jumpTimer.Progress < 0.5f)
-                _character.Z += 0.004f * dt;
-            else
-                _character.Z -= 0.004f * dt;
-
-            if (_jumpTimer.Finished)
-            {
-                _jumping = false;
-
-                float height = map.TerrainGrid.GetHeightAt(_character.Position2D);
-                _character.Z = height;
-            }
+            _velocityZ += _jumpVelocity;
+            _inAir = true;
         }
-       
+
+        // Gather movement
+        Vector3 moveRequest = Vector3.Zero;
+        moveRequest.Z += MathF.Min(_velocityZ, _jumpVelocity * _airTimeMaxPosiveVelMod) * dt;
+
+        // Input
         Vector2 wasd = _input;
         if (_rightClickHeld && _leftClickHeld)
             wasd = new Vector2(0, -1);
@@ -87,6 +87,7 @@ public class WoWMovementController
             wasd = _character.RotateVectorToObjectFacing(wasd);
         }
 
+        // Move in the look direction
         Vector2 forward = RenderComposer.Forward.ToVec2();
         forward = _character.RotateVectorToObjectFacing(forward);
 
@@ -101,14 +102,32 @@ public class WoWMovementController
         float movementSpeed = WalkingSpeed;
         if (walkingBack) movementSpeed /= 2f;
 
-        _character.Position += (wasd * movementSpeed * dt).ToVec3();
+        moveRequest += (wasd * movementSpeed * dt).ToVec3();
 
-        if (moved && !_jumping)
+        // Check for collision
+        if (moveRequest.Z != 0 && (_inAir || moved))
         {
+            float height = map.TerrainGrid.GetHeightAt(_character.Position2D);
+            if (_character.Z + moveRequest.Z < height)
+            {
+                moveRequest.Z = 0;
+                _inAir = false;
+            }
+        }
+
+        // Add move
+        _character.Position += moveRequest;
+
+        // Move along the terrain height
+        if (!_inAir)
+        {
+            _velocityZ = 0;
+
             float height = map.TerrainGrid.GetHeightAt(_character.Position2D);
             _character.Z = height;
         }
 
+        // Update look
         if (_character is MapObjectMesh meshObj)
         {
             if (_rightClickHeld)
@@ -116,10 +135,6 @@ public class WoWMovementController
                 CameraBase camera = Engine.Renderer.Camera;
                 Vector3 lookAtPos = camera.LookAt;
                 meshObj.RotateToFacePoint(_character.Position + lookAtPos);
-            }
-            else if (moved)
-            {
-                //animatedObj.RotateToFacePoint(_character.Position + wasd.ToVec3() * 5);
             }
 
             string? animToSet = moved ? _walkAnim : _idleAnim;
@@ -143,10 +158,9 @@ public class WoWMovementController
             return false;
         }
 
-        if (key == Key.Space && status == KeyState.Down)
+        if (key == Key.Space)
         {
-            _jumping = true;
-            _jumpTimer.Restart();
+            _jumpHeld = status == KeyState.Down;
             return false;
         }
 
