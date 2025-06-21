@@ -36,8 +36,14 @@ namespace Emotion.IO
         public int ByteSize { get; set; }
 
         /// <summary>
-        /// Whether the asset is loaded. If this is false it means the
-        /// AssetLoader is still processing it.
+        /// Whether the asset is processed by the AssetLoader. If this is false its thread
+        /// has either not ran yet or is running currently.
+        /// This being true doesn't guarantee the asset is valid, check Loaded for that.
+        /// </summary>
+        public bool Processed { get; protected set; }
+
+        /// <summary>
+        /// Whether the asset is loaded - meaning its in a usable state.
         /// </summary>
         public bool Loaded { get; protected set; }
 
@@ -67,6 +73,7 @@ namespace Emotion.IO
             if (source == null)
             {
                 Engine.Log.Warning($"Tried to load asset {Name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
+                Processed = true;
                 yield break;
             }
 
@@ -138,11 +145,14 @@ namespace Emotion.IO
                         Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
                 }
             }
+
+            Processed = true;
         }
 
         public void AssetLoader_CreateLegacy(ReadOnlyMemory<byte> data)
         {
             Loaded = true;
+            Processed = true;
             CreateInternal(data);
             Engine.CoroutineManager.StartCoroutine(ExecuteAssetLoadedEventsRoutine());
         }
@@ -248,7 +258,7 @@ namespace Emotion.IO
                 for (int i = 0; i < _dependencies.Count; i++)
                 {
                     Asset dependent = _dependencies[i];
-                    if (!dependent.Loaded)
+                    if (!dependent.Processed)
                     {
                         anyLoading = true;
                         yield return null;

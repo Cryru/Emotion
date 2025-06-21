@@ -27,11 +27,11 @@ public class GameMapTileData
         for (int i = 0; i < Tilesets.Count; i++)
         {
             TileMapTileset ts = Tilesets[i];
-            TextureAsset? asset = ts.Texture.Get();
+            TextureAsset asset = ts.Texture.Get();
             yield return asset;
 
             // todo: hot reload
-            if (asset != null && asset.Loaded)
+            if (asset.Loaded)
             {
                 Texture texture = asset.Texture;
                 if (ts.BilinearFilterTexture)

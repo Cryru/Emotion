@@ -20,9 +20,8 @@ public class TileMapTileset
 
     public Vector2 GetTilesetTextureSize()
     {
-        TextureAsset? asset = Texture.Get();
-        if (asset == null || !asset.Loaded) return TileSize;
-
+        TextureAsset asset = Texture.Get();
+        if (!asset.Loaded) return TileSize;
         return Vector2.Max(asset.Texture.Size, TileSize);
     }
 
