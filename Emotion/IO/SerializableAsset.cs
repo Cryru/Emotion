@@ -4,7 +4,7 @@ namespace Emotion.IO;
 
 public class SerializableAsset
 {
-    public string? Name { get; set; }
+    public string? Name { get; protected set; }
 }
 
 public class SerializableAsset<T> : SerializableAsset where T : Asset, new()

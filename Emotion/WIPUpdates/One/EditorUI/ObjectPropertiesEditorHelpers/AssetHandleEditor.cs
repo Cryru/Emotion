@@ -56,7 +56,8 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
                 {
                     if (_objectEditting == null) return;
 
-                    _objectEditting.Name = file?.Name;
+                    // Create a new handle, we treat these as immutable
+                    _objectEditting = file?.Name;
                     OnValueChanged(_objectEditting);
                     UpdateTextInput();
                 });
