@@ -97,6 +97,12 @@ public struct JSONArrayIndexOrName
         if (idx == null) return default;
         return new JSONArrayIndexOrName(idx.Value);
     }
+
+    public static implicit operator int(JSONArrayIndexOrName indexOrName)
+    {
+        if (!indexOrName.IsIndex) return 0;
+        return indexOrName.ReferenceAsIndex;
+    }
 }
 
 public class JSONIndexOrNameHandler : ReflectorTypeHandlerBase<JSONArrayIndexOrName>
