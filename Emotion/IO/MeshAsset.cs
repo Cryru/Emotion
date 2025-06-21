@@ -66,10 +66,10 @@ public class MeshAsset : Asset
             if (entity != null)
             {
                 var gltfDoc = GLTFFormat.CreateDocumentFromEntity(entity);
-                string asGltfFile = JSONSerialization.To(gltfDoc);
-                string nameWithExt = AssetLoader.GetFilePathNoExtension(Name);
-                byte[] bytes = System.Text.Encoding.Default.GetBytes(asGltfFile);
-                Engine.AssetLoader.Save(bytes, nameWithExt);
+                //string asGltfFile = JSONSerialization.To(gltfDoc);
+                //string nameWithExt = AssetLoader.GetFilePathNoExtension(Name);
+                //byte[] bytes = System.Text.Encoding.Default.GetBytes(asGltfFile);
+                //Engine.AssetLoader.Save(bytes, nameWithExt);
             }
 #endif
         }
