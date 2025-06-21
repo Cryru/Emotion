@@ -330,10 +330,10 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
             c.SetState(oldState);
 
             // Draw bounds
-            foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
-            {
-                chunkToRender.Bounds.RenderOutline(c);
-            }
+            //foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            //{
+            //    chunkToRender.Bounds.RenderOutline(c);
+            //}
 
             // Draw colliders
             //foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)

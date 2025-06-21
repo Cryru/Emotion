@@ -13,13 +13,36 @@ namespace Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 public class MapObjectEditorWindow : UIBaseWindow
 {
     public MapObject? SelectedObject;
+    public MapObject? MouseoverObject;
 
     private EditorLabel _bottomText = null!;
+    private TranslationGizmo? _moveGizmo;
 
     public MapObjectEditorWindow()
     {
         HandleInput = true;
         OrderInParent = -1;
+    }
+
+    public override void AttachedToController(UIController controller)
+    {
+        base.AttachedToController(controller);
+
+        _moveGizmo = new TranslationGizmo();
+
+        GameMap? map = EngineEditor.GetCurrentMap();
+        map?.AddObject(_moveGizmo);
+    }
+
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+
+        if (_moveGizmo != null)
+        {
+            _moveGizmo.RemoveFromMap();
+            _moveGizmo = null;
+        }
     }
 
     public void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
@@ -56,10 +79,17 @@ public class MapObjectEditorWindow : UIBaseWindow
     {
         if (key == Key.MouseKeyLeft && status == KeyState.Down)
         {
-            if (SelectedObject != null)
+            if (MouseoverObject != null)
             {
-                var editor = new ObjectPropertyEditorWindow(SelectedObject);
-                EngineEditor.EditorRoot.AddChild(editor);
+                if (MouseoverObject == SelectedObject)
+                {
+                    var editor = new ObjectPropertyEditorWindow(SelectedObject);
+                    EngineEditor.EditorRoot.AddChild(editor);
+                }
+                else
+                {
+                    SelectedObject = MouseoverObject;
+                }
             }
         }
 
@@ -73,6 +103,16 @@ public class MapObjectEditorWindow : UIBaseWindow
 
     protected override bool RenderInternal(RenderComposer c)
     {
+        if (MouseoverObject != null)
+        {
+            c.SetUseViewMatrix(true);
+
+            Cube bound = MouseoverObject.BoundingCube;
+            bound.RenderOutline(c, Color.PrettyOrange, 0.05f);
+
+            c.SetUseViewMatrix(false);
+        }
+
         if (SelectedObject != null)
         {
             c.SetUseViewMatrix(true);
@@ -94,7 +134,7 @@ public class MapObjectEditorWindow : UIBaseWindow
         CameraBase cam = Engine.Renderer.Camera;
         Ray3D ray = cam.GetCameraMouseRay();
         map.CollideWithRayFirst(ray, out MapObject? hit);
-        SelectedObject = hit;
+        MouseoverObject = hit;
 
         if (hit == null)
             _bottomText.Text = $"No object under mouse";
@@ -104,5 +144,12 @@ public class MapObjectEditorWindow : UIBaseWindow
             _bottomText.Text = $"Mouseover: {nameof(MapObjectSprite)} - {spriteObj.Entity.Name}";
         else
             _bottomText.Text = $"Mouseover: {hit}";
+    }
+
+    private void SelectObject(MapObject obj)
+    {
+        SelectedObject = obj;
+
+
     }
 }
