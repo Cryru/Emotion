@@ -1,12 +1,16 @@
 ﻿#nullable enable
 
+using Emotion.Serialization.JSON;
+
 namespace Emotion.Standard.GLTF;
 
-public class GLTFAccessor
+public class GLTFAccessor : IJSONIndexOrNameReferencable
 {
+    public string? JSON_NAMED_ARRAY_ID { get; set; }
+
     public string Name { get; set; } = string.Empty;
 
-    public int BufferView { get; set; }
+    public JSONArrayIndexOrName BufferView { get; set; }
 
     public int ComponentType { get; set; }
 

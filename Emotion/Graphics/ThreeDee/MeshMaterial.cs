@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Emotion.Editor;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shader;
 using Emotion.IO;
 

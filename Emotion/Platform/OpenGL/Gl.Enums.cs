@@ -10260,6 +10260,8 @@ namespace OpenGL
     /// </summary>
     public enum TextureMagFilter
     {
+        Invalid = 0,
+
         /// <summary>
         /// Strongly typed for value GL_LINEAR.
         /// </summary>
@@ -11126,6 +11128,8 @@ namespace OpenGL
     /// </summary>
     public enum TextureWrapMode
     {
+        Invalid,
+
         /// <summary>
         /// Strongly typed for value GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER_ARB, GL_CLAMP_TO_BORDER_NV, GL_CLAMP_TO_BORDER_SGIS.
         /// </summary>

@@ -2,8 +2,17 @@
 
 namespace Emotion.Standard.GLTF;
 
+public class GLTFAssetMeta
+{
+    public bool LeftHanded { get; set; }
+
+    public bool InvertUVVertical { get; set; }
+}
+
 public class GLTFDocument
 {
+    public GLTFAssetMeta? Asset { get; set; }
+
     public GLTFBuffer[] Buffers { get; set; } = Array.Empty<GLTFBuffer>();
 
     public GLTFBufferView[] BufferViews { get; set; } = Array.Empty<GLTFBufferView>();
@@ -23,6 +32,8 @@ public class GLTFDocument
     public GLTFSkins[] Skins { get; set; } = Array.Empty<GLTFSkins>();
 
     public GLTFNode[] Nodes { get; set; } = Array.Empty<GLTFNode>();
+
+    public GLTFTextureSampler[] Samplers { get; set; } = Array.Empty<GLTFTextureSampler>();
 }
 
 #region OLD TEST CODE

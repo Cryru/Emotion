@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common.Serialization;
+using Emotion.Serialization.JSON;
 
 #endregion
 
@@ -8,9 +9,11 @@ using Emotion.Common.Serialization;
 
 namespace Emotion.Standard.GLTF;
 
-public class GLTFBuffer
+public class GLTFBuffer : IJSONIndexOrNameReferencable
 {
-    public string Uri { get; set; }
+    public string? JSON_NAMED_ARRAY_ID { get; set; }
+
+    public string Uri { get; set; } = string.Empty;
 
     public int ByteLength { get; set; }
 

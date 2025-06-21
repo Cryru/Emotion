@@ -15,7 +15,6 @@ public static partial class GLTFFormat
 {
     private const string BASE64_DATA_PREFIX = "data:application/gltf-buffer;base64,";
     private const string BASE64_DATA_PREFIX_2 = "data:application/octet-stream;base64,";
-    private const bool MAKE_LEFT_HANDED = true;
     private const float ANIM_TIME_SCALE = 1000; // We expect them to be in seconds, but emotion works in ms.
 
     public static GLTFDocument? Decode(ReadOnlyMemory<byte> fileData)
@@ -29,7 +28,8 @@ public static partial class GLTFFormat
         for (int i = 0; i < buffers.Length; i++)
         {
             GLTFBuffer buffer = buffers[i];
-            string uri = buffer.Uri;
+            string? uri = buffer.Uri;
+            if (string.IsNullOrEmpty(uri)) continue;
 
             if (!uri.StartsWith(BASE64_DATA_PREFIX) && !uri.StartsWith(BASE64_DATA_PREFIX_2))
                 yield return AssetLoader.GetNonRelativePath(rootFolder, uri);
@@ -51,6 +51,13 @@ public static partial class GLTFFormat
 
     public static MeshEntity CreateEntityFromDocument(GLTFDocument gltfDoc, string rootFolder)
     {
+        bool makeLeftHanded = true; // GLTF assets are by default right-handed, but Emotion is left-handed
+        bool invertUVVertical = false; // OpenGL goes [0:1] up while DirectX goes [0:1]
+        if (gltfDoc.Asset != null && gltfDoc.Asset.LeftHanded)
+            makeLeftHanded = false;
+        if (gltfDoc.Asset != null && gltfDoc.Asset.InvertUVVertical)
+            invertUVVertical = true;
+
         // Read all byte buffers
         GLTFBuffer[] buffers = gltfDoc.Buffers;
         for (int i = 0; i < buffers.Length; i++)
@@ -73,12 +80,10 @@ public static partial class GLTFFormat
             else
             {
                 uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
-                OtherAsset? byteAsset = Engine.AssetLoader.ONE_Get<OtherAsset>(uri);
-                if (byteAsset != null)
-                {
-                    Assert(byteAsset.Loaded);
+                OtherAsset byteAsset = Engine.AssetLoader.ONE_Get<OtherAsset>(uri);
+                Assert(byteAsset.Processed); // We expect it to be already requested via dependencies
+                if (byteAsset.Loaded)
                     content = byteAsset.Content;
-                }
             }
 
             buffer.Data = content;
@@ -113,7 +118,7 @@ public static partial class GLTFFormat
                 if (rot != null)
                 {
                     Quaternion quart = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
-                    if (MAKE_LEFT_HANDED) quart.Z = -quart.Z;
+                    if (makeLeftHanded) quart.Z = -quart.Z;
                     rotMat = Matrix4x4.CreateFromQuaternion(quart);
                 }
 
@@ -122,7 +127,7 @@ public static partial class GLTFFormat
                 if (trans != null)
                 {
                     Vector3 pos = new Vector3(trans[0], trans[1], trans[2]);
-                    if (MAKE_LEFT_HANDED) pos.Z = -pos.Z;
+                    if (makeLeftHanded) pos.Z = -pos.Z;
                     transMat = Matrix4x4.CreateTranslation(pos);
                 }
 
@@ -213,7 +218,7 @@ public static partial class GLTFFormat
                             for (int s = 0; s < samplerData.Count; s++)
                             {
                                 Vector4 data = samplerData.ReadElement(s);
-                                if (MAKE_LEFT_HANDED)
+                                if (makeLeftHanded)
                                 {
                                     data.X = -data.X;
                                     data.Y = -data.Y;
@@ -239,7 +244,7 @@ public static partial class GLTFFormat
                             for (int s = 0; s < samplerData.Count; s++)
                             {
                                 Vector3 data = samplerData.ReadElement(s);
-                                if (MAKE_LEFT_HANDED) data.Z = -data.Z;
+                                if (makeLeftHanded) data.Z = -data.Z;
 
                                 float timestamp = timestampData.ReadElement(s) * ANIM_TIME_SCALE;
                                 if (timestamp > 100_000) timestamp /= ANIM_TIME_SCALE;
@@ -292,6 +297,7 @@ public static partial class GLTFFormat
 
         // Read images
         GLTFImage[] images = gltfDoc.Images;
+        GLTFTextureSampler[] samplers = gltfDoc.Samplers;
         Texture[] imagesRead = images.Length > 0 ? new Texture[images.Length] : Array.Empty<Texture>();
         for (int i = 0; i < images.Length; i++)
         {
@@ -300,18 +306,17 @@ public static partial class GLTFFormat
             if (string.IsNullOrEmpty(uri)) continue;
 
             uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
-            TextureAsset? textureAsset = Engine.AssetLoader.ONE_Get<TextureAsset>(uri);
-            if (textureAsset != null)
+            TextureAsset textureAsset = Engine.AssetLoader.ONE_Get<TextureAsset>(uri);
+            Assert(textureAsset.Processed); // We expect it to be already requested via dependencies
+            if (textureAsset.Loaded)
             {
-                Assert(textureAsset.Loaded);
-
                 // hmm?
                 textureAsset.Texture.Smooth = true;
                 textureAsset.Texture.Tile = true;
                 textureAsset.Texture.Mipmap = true;
             }
 
-            imagesRead[i] = textureAsset == null ? Texture.EmptyWhiteTexture : textureAsset.Texture;
+            imagesRead[i] = textureAsset.Loaded ? textureAsset.Texture : Texture.EmptyWhiteTexture;
         }
 
         // Read materials
@@ -320,28 +325,53 @@ public static partial class GLTFFormat
         for (int i = 0; i < gltfMaterials.Length; i++)
         {
             GLTFMaterial gltfMaterial = gltfMaterials[i];
-            GLTFMaterialPBR? pbr = gltfMaterial.PbrMetallicRoughness;
-            GLTFBaseColorTexture? baseColorTexture = pbr?.BaseColorTexture;
 
-            if (baseColorTexture == null)
+            Color diffuseColor = Color.White;
+            GLTFTexture? gltfDiffuseTexture = null;
+            if (gltfMaterial.PbrMetallicRoughness != null)
             {
-                materials[i] = MeshMaterial.DefaultMaterial;
-                continue;
+                GLTFMaterialPBR pbr = gltfMaterial.PbrMetallicRoughness;
+                GLTFBaseColorTexture? baseColorTexture = pbr.BaseColorTexture;
+                if (baseColorTexture != null)
+                {
+                    int textureIndex = baseColorTexture.Index;
+                    gltfDiffuseTexture = gltfDoc.Textures[textureIndex];
+                }
+            }
+            else if (gltfMaterial.Values != null)
+            {
+                var pbr = gltfMaterial.Values;
+                if (pbr.Diffuse.IsArray) // is color
+                    diffuseColor = pbr.DiffuseColor;
+                else // is reference to texture
+                    gltfDiffuseTexture = pbr.Diffuse.ReferenceAsNameOrArray.GetReferenced(gltfDoc.Textures);
             }
 
-            int textureIndex = baseColorTexture.Index;
-            GLTFTexture texture = gltfDoc.Textures[textureIndex];
-            GLTFImage image = images[texture.Source];
-            string assetPath = AssetLoader.JoinPath(rootFolder, image.Uri);
+            Texture? diffuseTexture = null;
+            GLTFImage? image = gltfDiffuseTexture?.Source.GetReferenced(images);
+            if (image != null)
+            {
+                int imageIndex = images.IndexOf(image);
+                diffuseTexture = imageIndex == -1 ? null : imagesRead[imageIndex];
+            }
 
-            Texture imageRead = imagesRead[texture.Source];
+            GLTFTextureSampler? sampler = gltfDiffuseTexture?.Sampler.GetReferenced(samplers);
+            if (sampler != null && diffuseTexture != null)
+            {
+                if (sampler.WrapT == TextureWrapMode.Repeat && sampler.WrapS == TextureWrapMode.Repeat)
+                    diffuseTexture.Tile = true;
+
+                if (sampler.MagFilter == TextureMagFilter.Linear && sampler.MinFilter == TextureMagFilter.Linear)
+                    diffuseTexture.Smooth = true;
+            }
+
             MeshMaterial material = new MeshMaterial()
             {
                 Name = gltfMaterial.Name,
-                DiffuseColor = Color.White,
+                DiffuseColor = diffuseColor,
 
-                DiffuseTexture = imageRead,
-                DiffuseTextureName = assetPath,
+                DiffuseTexture = diffuseTexture ?? Texture.EmptyWhiteTexture,
+                DiffuseTextureName = image == null ? null : AssetLoader.JoinPath(rootFolder, image.Uri),
             };
             materials[i] = material;
         }
@@ -362,27 +392,30 @@ public static partial class GLTFFormat
             GLTFMesh firstMesh = gltfMeshes[0];
             GLTFMeshPrimitives[] primitives = firstMesh.Primitives;
             GLTFMeshPrimitives primitive = primitives[0];
-            Dictionary<string, int> attributes = primitive.Attributes;
-
-            for (int m = 0; m < gltfMeshes.Length; m++)
+            Dictionary<string, JSONArrayIndexOrName>? attributes = primitive.Attributes;
+            if (attributes != null)
             {
-                GLTFMesh otherMesh = gltfMeshes[m];
-                GLTFMeshPrimitives[] otherPrimitives = otherMesh.Primitives;
-                GLTFMeshPrimitives otherPrimitive = otherPrimitives[0];
-                Dictionary<string, int> otherAttributes = otherPrimitive.Attributes;
-                foreach (KeyValuePair<string, int> attribute in otherAttributes)
+                for (int m = 0; m < gltfMeshes.Length; m++)
                 {
-                    int accessor = attribute.Value;
+                    GLTFMesh otherMesh = gltfMeshes[m];
+                    GLTFMeshPrimitives[] otherPrimitives = otherMesh.Primitives;
+                    GLTFMeshPrimitives otherPrimitive = otherPrimitives[0];
+                    Dictionary<string, JSONArrayIndexOrName>? otherAttributes = otherPrimitive.Attributes;
+                    if (otherAttributes == null) continue;
 
-                    bool success = attributes.TryGetValue(attribute.Key, out int firstMeshAccessor);
-                    if (!success || accessor != firstMeshAccessor)
+                    foreach (KeyValuePair<string, JSONArrayIndexOrName> attribute in otherAttributes)
                     {
-                        mappingIntoSingleBuffer = false;
-                        break;
+                        JSONArrayIndexOrName accessor = attribute.Value;
+                        bool success = attributes.TryGetValue(attribute.Key, out JSONArrayIndexOrName firstMeshAccessor);
+                        if (!success || accessor != firstMeshAccessor)
+                        {
+                            mappingIntoSingleBuffer = false;
+                            break;
+                        }
                     }
-                }
 
-                if (!mappingIntoSingleBuffer) break;
+                    if (!mappingIntoSingleBuffer) break;
+                }
             }
         }
         else
@@ -408,11 +441,13 @@ public static partial class GLTFFormat
             for (int p = 0; p < primitives.Length; p++) // sucks
             {
                 GLTFMeshPrimitives primitive = primitives[p];
-                Dictionary<string, int>? attributes = primitive.Attributes;
+                Dictionary<string, JSONArrayIndexOrName>? attributes = primitive.Attributes;
                 if (attributes == null) continue;
 
                 // Read indices
-                GLTFAccessor indexAccessor = gltfDoc.Accessors[primitive.Indices];
+                GLTFAccessor? indexAccessor = primitive.Indices.GetReferenced(gltfDoc.Accessors);
+                if (indexAccessor == null) continue;
+
                 Assert(indexAccessor.Type == "SCALAR");
                 ushort[] indices = new ushort[indexAccessor.Count];
 
@@ -432,12 +467,14 @@ public static partial class GLTFFormat
                     indicesAsUshort.CopyTo(indices);
                 }
 
-                // Determine vertex count from largest attribute
+                // Determine vertex count from largest attribute, and whether we're expecting bones.
                 bool isSkinned = false;
                 int vertexCount = 0;
-                foreach (KeyValuePair<string, int> attribute in attributes)
+                foreach (KeyValuePair<string, JSONArrayIndexOrName> attribute in attributes)
                 {
-                    GLTFAccessor accessor = gltfDoc.Accessors[attribute.Value];
+                    GLTFAccessor? accessor = attribute.Value.GetReferenced(gltfDoc.Accessors);
+                    if (accessor == null) continue;
+
                     vertexCount = Math.Max(vertexCount, accessor.Count);
 
                     if (attribute.Key == "JOINTS_0" || attribute.Key == "WEIGHTS_0")
@@ -479,9 +516,11 @@ public static partial class GLTFFormat
                 if (isSkinned)
                     boneData = new Mesh3DVertexDataBones[vertexCount];
 
-                foreach (KeyValuePair<string, int> attribute in attributes)
+                foreach (KeyValuePair<string, JSONArrayIndexOrName> attribute in attributes)
                 {
-                    GLTFAccessor accessor = gltfDoc.Accessors[attribute.Value];
+                    GLTFAccessor? accessor = attribute.Value.GetReferenced(gltfDoc.Accessors);
+                    if (accessor == null) continue;
+
                     string attributeKey = attribute.Key;
                     switch (attributeKey)
                     {
@@ -493,7 +532,7 @@ public static partial class GLTFFormat
                                 for (int i = 0; i < vertexCount; i++)
                                 {
                                     Vector3 pos = accessorData.ReadElement(vertexOffset + i);
-                                    if (MAKE_LEFT_HANDED) pos.Z = -pos.Z;
+                                    if (makeLeftHanded) pos.Z = -pos.Z;
 
                                     if (attributeKey == "POSITION")
                                     {
@@ -517,6 +556,9 @@ public static partial class GLTFFormat
                                 {
                                     Vector2 pos = accessorData.ReadElement(vertexOffset + i);
 
+                                    if (invertUVVertical)
+                                        pos.Y = -pos.Y;
+
                                     if (attributeKey == "TEXCOORD_0")
                                     {
                                         ref VertexData vert = ref vertices[i];
@@ -525,8 +567,10 @@ public static partial class GLTFFormat
                                 }
                                 break;
                             }
-                        case "JOINTS_0":
+                        case "JOINTS_0" when isSkinned:
                             {
+                                AssertNotNull(boneData);
+
                                 AccessorReader<Vector4> accessorData = GetAccessorDataAsType<Vector4>(gltfDoc, accessor);
 
                                 for (int i = 0; i < vertexCount; i++)
@@ -538,8 +582,10 @@ public static partial class GLTFFormat
                                 }
                                 break;
                             }
-                        case "WEIGHTS_0":
+                        case "WEIGHTS_0" when isSkinned:
                             {
+                                AssertNotNull(boneData);
+
                                 AccessorReader<Vector4> accessorData = GetAccessorDataAsType<Vector4>(gltfDoc, accessor);
 
                                 for (int i = 0; i < vertexCount; i++)
@@ -554,8 +600,15 @@ public static partial class GLTFFormat
                     }
                 }
 
-                int materialIndex = primitive.Material;
-                MeshMaterial material = materials.Length > 0 ? materials[materialIndex] : MeshMaterial.DefaultMaterial;
+                MeshMaterial material = MeshMaterial.DefaultMaterial;
+                if (primitive.Material.Valid)
+                {
+                    GLTFMaterial? gltfMaterial = primitive.Material.GetReferenced(gltfMaterials);
+                    int materialIndex = gltfMaterials.IndexOf(gltfMaterial);
+                    MeshMaterial? materialSet = materialIndex == -1 ? null : materials[materialIndex];
+                    if (materialSet != null)
+                        material = materialSet;
+                }
 
                 string meshName = gltfMesh.Name;
                 if (gltfMesh.Name == string.Empty) meshName = $"Mesh {m}";
@@ -592,7 +645,7 @@ public static partial class GLTFFormat
                 joint.RigNodeIdx = gltfJointId;
 
                 Matrix4x4 offsetMatrix = bindMatrixData.ReadElement(jIdx);
-                if (MAKE_LEFT_HANDED)
+                if (makeLeftHanded)
                 {
                     offsetMatrix.M13 *= -1;
                     offsetMatrix.M23 *= -1;
@@ -613,7 +666,7 @@ public static partial class GLTFFormat
         MeshEntity entity = new MeshEntity()
         {
             Name = "Unknown Entity Name", // Overriden by MeshAsset
-            LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD), // Y up to Z up
+            LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD), // Y up to Z up since GLTF is Y up
             Meshes = meshes,
             AnimationRig = rigNodes,
             Animations = animations,
@@ -644,6 +697,10 @@ public static partial class GLTFFormat
     public static GLTFDocument CreateDocumentFromEntity(MeshEntity entity)
     {
         var doc = new GLTFDocument();
+        doc.Asset = new GLTFAssetMeta()
+        {
+            LeftHanded = true
+        };
 
         Mesh[] entityMeshes = entity.Meshes;
         doc.Meshes = new GLTFMesh[entityMeshes.Length];
@@ -662,12 +719,13 @@ public static partial class GLTFFormat
 
     private static ReadOnlyMemory<byte> GetAccessorData(GLTFDocument gltfDoc, GLTFAccessor accessor)
     {
-        int bufferViewIdx = accessor.BufferView;
-        GLTFBufferView bufferView = gltfDoc.BufferViews[bufferViewIdx];
-        int bufferIdx = bufferView.Buffer;
-        GLTFBuffer buffer = gltfDoc.Buffers[bufferIdx];
-        ReadOnlyMemory<byte> data = buffer.Data;
+        GLTFBufferView? bufferView = accessor.BufferView.GetReferenced(gltfDoc.BufferViews);
+        if (bufferView == null) return default;
 
+        GLTFBuffer? buffer = bufferView.Buffer.GetReferenced(gltfDoc.Buffers);
+        if (buffer == null) return default;
+
+        ReadOnlyMemory<byte> data = buffer.Data;
         return data.Slice(bufferView.ByteOffset, bufferView.ByteLength).Slice(accessor.ByteOffset);
     }
 
@@ -679,11 +737,9 @@ public static partial class GLTFFormat
         // Type mismatch
         if (accessorType != requestedType) return AccessorReader<T>.Empty;
 
-        int bufferViewIdx = accessor.BufferView;
-        GLTFBufferView bufferView = gltfDoc.BufferViews[bufferViewIdx];
-
-        int bufferIdx = bufferView.Buffer;
-        GLTFBuffer buffer = gltfDoc.Buffers[bufferIdx];
+        GLTFBufferView? bufferView = accessor.BufferView.GetReferenced(gltfDoc.BufferViews);
+        GLTFBuffer? buffer = bufferView?.Buffer.GetReferenced(gltfDoc.Buffers);
+        if (buffer == null) return AccessorReader<T>.Empty;
 
         ReadOnlyMemory<byte> data = buffer.Data;
         ReadOnlyMemory<byte> dataInView = data.Slice(bufferView.ByteOffset, bufferView.ByteLength).Slice(accessor.ByteOffset);
