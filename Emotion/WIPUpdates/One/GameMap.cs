@@ -1,4 +1,5 @@
 ﻿using Emotion.Common.Serialization;
+using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.ThreeDee;
@@ -97,10 +98,25 @@ public partial class GameMap : IDisposable
         Frustum frustum = c.Camera.GetCameraView3D();
         TerrainGrid?.Render(c, frustum);
 
-        for (int i = 0; i < _objects.Count; i++)
+        // todo: octree
+        bool cameraIs2D = c.Camera is Camera2D;
+        if (cameraIs2D)
         {
-            var obj = _objects[i];
-            obj.Render(c);
+            for (int i = 0; i < _objects.Count; i++)
+            {
+                MapObject obj = _objects[i];
+                if (!obj.BoundingRect.Intersects(clipArea)) continue;
+                obj.Render(c);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < _objects.Count; i++)
+            {
+                MapObject obj = _objects[i];
+                if (!frustum.IntersectsOrContainsCube(obj.BoundingCube)) continue;
+                obj.Render(c);
+            }
         }
     }
 
