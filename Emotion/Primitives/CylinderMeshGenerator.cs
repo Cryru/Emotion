@@ -103,46 +103,17 @@ namespace Emotion.Primitives
                 prevBottomX = bottomX;
                 prevBottomY = bottomY;
 
-                // Add normals
-                var n1 = new Vector3(bottomX, bottomY, 0);
-                meshData[vtxStart].Normal = Vector3.Normalize(n1);
+                // 1) Compute one normal per slice
+                float midAngle = (i + 0.5f) * step;
+                float cx = MathF.Cos(midAngle), sy = MathF.Sin(midAngle);
+                float slopeZ = (RadiusBottom - RadiusTop) / Height;
+                var rawNormal = new Vector3(cx, sy, slopeZ);
+                var sliceNormal = Vector3.Normalize(rawNormal);
 
-                //float n2x = topX;
-                //float n2y = topY;
-                //float n2z = Height;
-                //var n2Length = (float)Math.Sqrt(n2x * n2x + n2y * n2y + n2z * n2z);
-                //n2x /= n2Length;
-                //n2y /= n2Length;
-                //n2z /= n2Length;
-                //normals[idxStart + 1].Normal = new Vector3(n2x, n2y, n2z);
-
-                var n2 = new Vector3(topX, topY, Height);
-                meshData[vtxStart + 1].Normal = Vector3.Normalize(n2);
-
-                //float n3x = bottomXNext;
-                //float n3y = bottomYNext;
-                //float n3z = 0;
-                //var n3Length = (float)Math.Sqrt(n3x * n3x + n3y * n3y + n3z * n3z);
-                //n3x /= n3Length;
-                //n3y /= n3Length;
-                //n3z /= n3Length;
-                //normals[idxStart + 2].Normal = new Vector3(n3x, n3y, n3z);
-
-
-                var n3 = new Vector3(bottomXNext, bottomYNext, 0);
-                meshData[vtxStart + 2].Normal = Vector3.Normalize(n3);
-
-                //float n4x = topXNext;
-                //float n4y = topYNext;
-                //float n4z = Height;
-                //var n4Length = (float)Math.Sqrt(n4x * n4x + n4y * n4y + n4z * n4z);
-                //n4x /= n4Length;
-                //n4y /= n4Length;
-                //n4z /= n4Length;
-                //normals[idxStart + 3].Normal = new Vector3(n4x, n4y, n4z);
-
-                var n4 = new Vector3(topXNext, topYNext, Height);
-                meshData[vtxStart + 3].Normal = Vector3.Normalize(n4);
+                for (int k = 0; k < 4; k++)
+                {
+                    meshData[vtxStart + k].Normal = sliceNormal;
+                }
             }
 
             if (Capped)
