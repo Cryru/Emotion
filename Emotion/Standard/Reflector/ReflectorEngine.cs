@@ -1,9 +1,9 @@
 ﻿#nullable enable
 
+using Emotion.Serialization.JSON;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using System.Dynamic;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Standard.Reflector;
@@ -75,6 +75,9 @@ public static class ReflectorEngine
         ReflectorEngine.RegisterTypeHandler(new ArrayTypeHandler<bool[], bool>());
         ReflectorEngine.RegisterTypeHandler(new ListTypeHandler<List<bool>, bool>());
 
+        // todo: custom handler attribute
+        ReflectorEngine.RegisterTypeHandler(new JSONIndexOrNameHandler());
+        ReflectorEngine.RegisterTypeHandler(new JSONArrayIndexOrNameOrArrayOfFloatsHandler());
 
         BuildRelations();
         CallHandlersPostInit();

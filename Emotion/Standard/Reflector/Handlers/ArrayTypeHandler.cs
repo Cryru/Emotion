@@ -29,13 +29,16 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
 
     public override T? ParseFromJSON(ref Utf8JsonReader reader)
     {
-        if (reader.TokenType != JsonTokenType.StartArray)
+        if (reader.TokenType != JsonTokenType.StartArray && reader.TokenType != JsonTokenType.StartObject)
         {
             if (!reader.Read())
                 return default;
         }
 
-        Assert(reader.TokenType == JsonTokenType.StartArray);
+        // We can parse objects as an array, sometimes this is encountered in the JSON world xd
+        bool isObject = reader.TokenType == JsonTokenType.StartObject;
+        JsonTokenType expectedEnd = !isObject ? JsonTokenType.EndArray : JsonTokenType.EndObject;
+        Assert(reader.TokenType == JsonTokenType.StartArray || isObject);
 
         ReflectorTypeHandlerBase<TItem>? itemHandler = ReflectorEngine.GetTypeHandler<TItem>();
         if (itemHandler == null)
@@ -46,6 +49,14 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             return default;
         }
 
+        ComplexTypeHandlerMemberBase? objectArrayIdMember = null;
+        string? objectArrayCurrentItemId = null;
+        if (isObject && itemHandler is IGenericReflectorComplexTypeHandler complexHandler)
+        {
+            objectArrayIdMember = complexHandler.GetMemberByName("JSON_NAMED_ARRAY_ID");
+            Assert(objectArrayIdMember == null || objectArrayIdMember.Type == typeof(string));
+        }
+
         List<TItem?> tempList = _pool.Get();
         while (reader.Read())
         {
@@ -53,6 +64,14 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             if (token == JsonTokenType.StartObject || token == JsonTokenType.StartArray)
             {
                 TItem? item = itemHandler.ParseFromJSON(ref reader);
+
+                // If we are an object array, assign the id.
+                if (item != null && objectArrayIdMember != null)
+                {
+                    objectArrayIdMember.SetValueInComplexObject(item, objectArrayCurrentItemId);
+                    objectArrayCurrentItemId = null;
+                }
+
                 tempList.Add(item);
             }
             else if (token == JsonTokenType.Number || token == JsonTokenType.String ||
@@ -65,7 +84,12 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             {
                 tempList.Add((TItem?)(object?)null);
             }
-            else if (token == JsonTokenType.EndArray)
+            else if (token == JsonTokenType.PropertyName && isObject)
+            {
+                if (objectArrayIdMember != null)
+                    objectArrayCurrentItemId = reader.GetString();
+            }
+            else if (token == expectedEnd)
             {
                 break;
             }

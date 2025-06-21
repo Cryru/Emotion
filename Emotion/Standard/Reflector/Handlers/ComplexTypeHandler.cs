@@ -107,6 +107,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
                     byte[] memberNameUtf8 = _membersCaseInsensitiveDeep[i];
                     if (keySpan.SequenceEqual(memberNameUtf8))
                     {
+                        AssertNotNull(_membersArrDeep);
                         ComplexTypeHandlerMemberBase member = _membersArrDeep[i];
                         found = member.ParseFromJSON(ref reader, val);
                         break;
