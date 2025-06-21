@@ -7,7 +7,7 @@ namespace Emotion.WIPUpdates.One;
 
 #nullable enable
 
-public class GameMap : IDisposable
+public partial class GameMap : IDisposable
 {
     public string MapFileName = string.Empty;
 
@@ -30,33 +30,43 @@ public class GameMap : IDisposable
         yield break;
     }
 
-    public List<MapObject> ForEachObject()
-    {
-        return _objects;
-    }
-
-    public IEnumerable<T> ForEachObject<T>() where T : MapObject
-    {
-        // todo: convert to Ienumerable struct with lazy eval
-        foreach (MapObject obj in _objects)
-        {
-            if (obj is T objT)
-                yield return objT;
-        }
-    }
+    #region Object Management
 
     public void AddObject(MapObject obj)
     {
         obj.Map = this;
         _objects.Add(obj);
-        obj.LoadAssets(Engine.AssetLoader);
         obj.Init();
+
+        _octTree.Add(obj);
+        obj.OnMove += OnObjectMoved;
+        obj.OnResize += OnObjectMoved;
+        obj.OnRotate += OnObjectMoved;
     }
 
-    public void AddAndInitObject(MapObject obj)
+    public IEnumerator AddAndInitObject(MapObject obj)
     {
         AddObject(obj);
+
+        yield break;
     }
+
+    public void RemoveObject(MapObject obj)
+    {
+        obj.OnMove -= OnObjectMoved;
+        obj.OnResize -= OnObjectMoved;
+        obj.OnRotate -= OnObjectMoved;
+        _octTree.Remove(obj);
+        _objects.Remove(obj);
+        obj.Done();
+    }
+
+    private void OnObjectMoved(MapObject obj)
+    {
+        _octTree.Update(obj);
+    }
+
+    #endregion
 
     public void Update(float dt)
     {
@@ -88,69 +98,4 @@ public class GameMap : IDisposable
     {
 
     }
-
-    #region Collision
-
-    public bool CollideRayWithObjects(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint)
-    {
-        foreach (MapObject obj in ForEachObject())
-        {
-            if (obj == exclude) continue;
-
-            Rectangle bounds = obj.BoundingRect;
-            if (ray.IntersectWithRectangle(bounds, out collisionPoint))
-                return true;
-        }
-
-        collisionPoint = Vector2.Zero;
-        return false;
-    }
-
-    public bool CollideRayWithObjects<T>(Ray2D ray, out Vector2 collisionPoint) where T : MapObject
-    {
-        return CollideRayWithObjects<T>(ray, null, out collisionPoint);
-    }
-
-    public bool CollideRayWithObjects<T>(Ray2D ray, MapObject? exclude, out Vector2 collisionPoint) where T : MapObject
-    {
-        foreach (MapObject obj in ForEachObject())
-        {
-            if (obj is not T) continue;
-            if (obj == exclude) continue;
-
-            Rectangle bounds = obj.BoundingRect;
-            if (ray.IntersectWithRectangle(bounds, out collisionPoint))
-                return true;
-        }
-
-        collisionPoint = Vector2.Zero;
-        return false;
-    }
-
-    public bool CollideWithCube<TUserData>(Cube cube, MapObject? exclude, Func<Cube, TUserData, bool> onIntersect, TUserData userData)
-    {
-        if (TerrainGrid != null)
-        {
-            if (TerrainGrid.CollideWithCube(cube, onIntersect, userData))
-                return true;
-        }
-
-        // todo: objects
-
-        return false;
-    }
-
-    public Vector3 SweepCube(Cube cube, Vector3 movement, MapObject? exclude)
-    {
-        if (TerrainGrid != null)
-        {
-            movement = TerrainGrid.SweepCube(cube, movement);
-        }
-
-        // todo: objects
-
-        return movement;
-    }
-
-    #endregion
 }

@@ -2,12 +2,13 @@
 
 using Emotion.Common.Serialization;
 using Emotion.Editor;
+using Emotion.Game.OctTree;
 using Emotion.Utility;
 using System.Runtime.CompilerServices;
 
 namespace Emotion.WIPUpdates.One.Work;
 
-public partial class MapObject
+public partial class MapObject : IOctTreeStorable
 {
     #region Properties
 
@@ -59,15 +60,13 @@ public partial class MapObject
         }
     }
 
-    public float Width { get => SizeX; set => SizeX = value; }
 
-    public float Height { get => SizeY; set => SizeY = value; }
 
     /// <summary>
     /// /// The scale of the object in the x axis.
     /// </summary>
     [DontSerialize]
-    public float SizeX
+    public float ScaleX
     {
         get => _scaleX;
         set
@@ -83,7 +82,7 @@ public partial class MapObject
     /// The scale of the object in the y axis.
     /// </summary>
     [DontSerialize]
-    public float SizeY
+    public float ScaleY
     {
         get => _scaleY;
         set
@@ -99,7 +98,7 @@ public partial class MapObject
     /// The scale of the object in the z axis. (height)
     /// </summary>
     [DontSerialize]
-    public float SizeZ
+    public float ScaleZ
     {
         get => _scaleZ;
         set
@@ -184,22 +183,6 @@ public partial class MapObject
     }
 
     /// <summary>
-    /// The scale of the 2D object
-    /// </summary>
-    public Vector2 Scale2D
-    {
-        get => new Vector2(_scaleX, _scaleY);
-        set
-        {
-            if (_scaleX == value.X && _scaleY == value.Y) return;
-
-            _scaleX = value.X;
-            _scaleY = value.Y;
-            Resized();
-        }
-    }
-
-    /// <summary>
     /// The scale of the 3D object
     /// </summary>
     public Vector3 Scale3D
@@ -221,41 +204,20 @@ public partial class MapObject
     #region Bounds
 
     /// <summary>
-    /// The center of the object's bounds.
-    /// </summary>
-    [DontSerialize]
-    public Vector2 BoundingRectCenter
-    {
-        get => BoundingRect.Center;
-        set
-        {
-            _x = value.X - _scaleX / 2;
-            _y = value.Y - _scaleY / 2;
-
-            Moved();
-        }
-    }
-
-    /// <summary>
     /// Rectangle that encompasses the object.
     /// </summary>
     [DontSerialize]
     public virtual Rectangle BoundingRect
     {
-        get
-        {
-            return new Rectangle(_x, _y, _scaleX, _scaleY);
-        }
-        set
-        {
-            _x = value.X;
-            _y = value.Y;
-            _scaleX = value.Width;
-            _scaleY = value.Height;
+        get => new Primitives.Rectangle(0, 0, 1, 1);
+    }
 
-            Moved();
-            Resized();
-        }
+    /// <summary>
+    /// An axis aligned 3D cube that encompasses the object.
+    /// </summary>
+    public virtual Cube BoundingCube
+    {
+        get => new Cube(Vector3.Zero, Vector3.One / 2f);
     }
 
     #endregion
@@ -359,4 +321,13 @@ public partial class MapObject
     {
         return Vector3.Transform(vec.ToVec3(), Matrix4x4.CreateRotationZ(_rotation.Z)).ToVec2();
     }
+
+    #region Interfaces
+
+    public Cube GetOctTreeBound()
+    {
+        return BoundingCube;
+    }
+
+    #endregion
 }

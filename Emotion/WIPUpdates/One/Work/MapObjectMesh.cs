@@ -62,8 +62,8 @@ public class MapObjectMesh : MapObject
         // Loaded inline or already loaded.
         if (asset.Loaded)
         {
-            if (asset.Entity != null)
-                OnSetEntity(asset.Entity);
+            AssertNotNull(asset.Entity);
+            OnSetEntity(asset.Entity);
         }
     }
 
@@ -138,7 +138,7 @@ public class MapObjectMesh : MapObject
     /// Axis aligned cube that encompasses the whole object.
     /// If the mesh is animated the AABB encompasses all keyframes of the animation.
     /// </summary>
-    public Cube BoundingCube
+    public override Cube BoundingCube
     {
         get => GetBoundingCube();
     }
@@ -154,18 +154,13 @@ public class MapObjectMesh : MapObject
             r.Center = boundingCube.Origin.ToVec2();
             return r;
         }
-        set
-        {
-            Position2D = value.Center; // ?
-            Assert(false, "Settings Bounds2D on a 3D object? Not sure what should happen");
-        }
     }
 
     protected Sphere _boundingSphere;
     protected Sphere _boundingSphereBase;
     protected bool _dirtyBoundingSphere = true;
 
-    public Sphere GetBoundingSphere()
+    private Sphere GetBoundingSphere()
     {
         if (_dirtyBoundingSphere)
         {
@@ -180,7 +175,7 @@ public class MapObjectMesh : MapObject
     protected Cube _boundingCubeBase;
     protected bool _dirtyBoundingCube = true;
 
-    public Cube GetBoundingCube()
+    private Cube GetBoundingCube()
     {
         if (_dirtyBoundingCube)
         {
@@ -308,6 +303,22 @@ public class MapObjectMesh : MapObject
             c.MeshEntityRenderer.StartScene(c);
             c.MeshEntityRenderer.SubmitObjectForRendering(this, _entity, RenderState);
             c.MeshEntityRenderer.EndScene(c, LightModel.DefaultLightModel);
+
+            // Temp normal visualization code
+            // ignore :)
+            //int maxNormal = 1000;
+            //var firstMesh = _entity.Meshes[0];
+            //var verts = firstMesh.Vertices;
+            //var vertData = firstMesh.ExtraVertexData;
+            //for (int i = 0; i < verts.Length; i++)
+            //{
+            //    Graphics.Data.VertexData vert = verts[i];
+            //    Graphics.Data.VertexDataMesh3DExtra extraData = vertData[i];
+            //    Vector3 norm = extraData.Normal;
+            //    c.RenderLine(vert.Vertex, vert.Vertex + norm * 2.5f, Color.Red, 0.05f);
+
+            //    if (i > maxNormal) break;
+            //}
         }
 
         base.Render(c);

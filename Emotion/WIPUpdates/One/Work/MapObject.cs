@@ -1,10 +1,5 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.IO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 #nullable enable
 
@@ -18,14 +13,14 @@ public partial class MapObject
     [DontSerialize]
     public bool Initialized = false;
 
-    public virtual void LoadAssets(AssetLoader assetLoader)
-    {
-
-    }
-
     public virtual void Init()
     {
         Initialized = true;
+    }
+
+    public virtual void Done()
+    {
+
     }
 
     public virtual void Update(float dt)

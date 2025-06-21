@@ -7,7 +7,7 @@ using Emotion.WIPUpdates.One.Work;
 
 namespace Emotion.Game.WorldTwoDee;
 
-public class MapObjectSprite : MapObject
+public class MapObjectSprite : MapObject2D
 {
     [DontSerialize]
     public SpriteEntity Entity
@@ -118,22 +118,14 @@ public class MapObjectSprite : MapObject
 
     public override Rectangle BoundingRect
     {
-        get
-        {
-            return GetBoundingRectangle();
-        }
-        set
-        {
-            Position2D = value.Center; // ?
-            Assert(false, "Settings bounds on a sprite entity object? What should happen?");
-        }
+        get => GetBoundingRectangle();
     }
 
     protected Rectangle _boundingRectangle;
     protected Rectangle _boundingRectangleBase;
     protected bool _dirtyBounds = true;
 
-    public Rectangle GetBoundingRectangle()
+    private Rectangle GetBoundingRectangle()
     {
         if (_dirtyBounds)
         {
