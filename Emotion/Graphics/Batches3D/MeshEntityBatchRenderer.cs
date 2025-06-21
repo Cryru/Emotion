@@ -1144,10 +1144,10 @@ public sealed class MeshEntityBatchRenderer
         var cameraProjection = Matrix4x4.CreatePerspectiveFieldOfView(Maths.DegreesToRadians(fov), aspectRatio, cascade.NearClip, cascade.FarClip);
 
         Matrix4x4 cameraView = c.Camera.ViewMatrix;
-        var cameraViewProjInv = (cameraView * cameraProjection).Inverted();
 
         Span<Vector3> corners = stackalloc Vector3[8];
-        CameraBase.GetCameraFrustum3D(corners, cameraViewProjInv);
+        var frustum = new Frustum(cameraView * cameraProjection);
+        frustum.GetCorners(corners);
 
         // Calculate the centroid of the view frustum slice
         Vector3 frustumCenter = Vector3.Zero;

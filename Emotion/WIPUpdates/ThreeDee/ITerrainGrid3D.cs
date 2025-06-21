@@ -10,7 +10,7 @@ public interface ITerrainGrid3D
 
     public void Update(float dt);
 
-    public void Render(RenderComposer c, Rectangle clipRect);
+    public void Render(RenderComposer c, Frustum frustum);
 
     #region Collision
 

@@ -33,6 +33,23 @@ public struct Cube
         HalfExtents = halfExtent;
     }
 
+    public static Cube FromCenterAndSize(Vector3 origin, Vector3 size)
+    {
+        return new Cube(origin, size / 2f);
+    }
+
+    public static Cube FromMinAndMax(Vector3 min, Vector3 max)
+    {
+        Vector3 origin = (min + max) / 2f;
+        Vector3 halfExtents = (max - min) / 2f;
+        return new Cube(origin, halfExtents);
+    }
+
+    public (Vector3, Vector3) GetMinMax()
+    {
+        return (Origin - HalfExtents, Origin + HalfExtents);
+    }
+
     public Cube Union(Cube other)
     {
         if (IsEmpty) return other;
@@ -48,16 +65,6 @@ public struct Cube
         Vector3 newHalfExtents = (unionMax - unionMin) / 2;
 
         return new Cube { Origin = newOrigin, HalfExtents = newHalfExtents };
-    }
-
-    public (Vector3, Vector3) GetMinMax()
-    {
-        return (Origin - HalfExtents, Origin + HalfExtents);
-    }
-
-    public static Cube FromCenterAndSize(Vector3 origin, Vector3 size)
-    {
-        return new Cube(origin, size / 2f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

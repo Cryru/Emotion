@@ -30,12 +30,12 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
     #region Rendering
 
-    public override void Render(RenderComposer c, Rectangle clipArea)
+    public override void Render(RenderComposer c, Frustum frustum)
     {
         if (ChunkSize != _indexBufferChunkSize || _indexBuffer == null)
             PrepareIndexBuffer();
 
-        base.Render(c, clipArea);
+        base.Render(c, frustum);
     }
 
     [DontSerialize]
@@ -152,6 +152,9 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
             }
         }
 
+        Vector3 min = Vector3.Zero;
+        Vector3 max = Vector3.Zero;
+
         int vIdx = 0;
         for (int y = -1; y < ChunkSize.Y; y++)
         {
@@ -172,6 +175,17 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
                 Vector2 mapSize = new Vector2(533.3333f, 533.33105f);
                 vData.UV = new Vector2(1.0f - (worldPos.X / mapSize.X), 1.0f - (worldPos.Y / mapSize.Y));
+
+                if (vIdx == 0)
+                {
+                    min = vData.Position;
+                    max = vData.Position;
+                }
+                else
+                {
+                    min = Vector3.Min(min, vData.Position);
+                    max = Vector3.Max(max, vData.Position);
+                }
 
                 vIdx++;
             }
@@ -266,6 +280,8 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
         renderCache.GPUDirty = true;
         renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
+
+        renderCache.Bounds = Cube.FromMinAndMax(min, max);
     }
 
     private static Vector2[] _heightSamplePattern =

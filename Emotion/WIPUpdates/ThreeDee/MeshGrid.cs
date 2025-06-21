@@ -54,12 +54,7 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     public void Update(float dt)
     {
-        // Chunk bounds are considered "eventually consistent" with the data.
-        // This is to decrease the performance hit of large edits.
-        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
-        {
-            UpdateChunkBounds(item.Key, item.Value);
-        }
+
     }
 
     public abstract float GetHeightAt(Vector2 worldSpace);
@@ -275,35 +270,28 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
     }
 
     // todo: 3d culling
-    public virtual void Render(RenderComposer c, Rectangle clipArea)
+    public virtual void Render(RenderComposer c, Frustum frustum)
     {
         Vector2 tileSize = TileSize;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
 
-        Rectangle cacheAreaChunkSpace = clipArea;
-        cacheAreaChunkSpace.SnapToGrid(chunkWorldSize);
-        cacheAreaChunkSpace.GetMinMaxPoints(out Vector2 min, out Vector2 max);
-
-        //min -= tileSize / 2f;
-        //max += tileSize / 2f;
-
-        min /= chunkWorldSize;
-        max /= chunkWorldSize;
-
-        min = min.Floor();
-        max = max.Ceiling();
-
         // Pick chunks to render this pass.
         _renderThisPass.Clear();
-        for (float y = min.Y; y < max.Y; y++)
+        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
         {
-            for (float x = min.X; x < max.X; x++)
+            Vector2 chunkCoord = item.Key;
+            MeshGridChunkRuntimeCache chunkCache = item.Value;
+            Cube bounds = chunkCache.Bounds;
+
+            // If bounds not created, create them!
+            if (bounds.IsEmpty)
             {
-                Vector2 chunkCoord = new Vector2(x, y);
-                ChunkT? chunk = GetChunk(chunkCoord);
-                if (chunk == null) continue;
-                MarkChunkForRender(chunkCoord, chunk);
+                UpdateChunkVertices(chunkCoord, item.Value);
+                continue;
             }
+
+            if (frustum.IntersectsOrContainsCube(bounds))
+                MarkChunkForRender(chunkCoord, chunkCache.Chunk);
         }
 
         if (_renderThisPass.Count > 0)
@@ -341,6 +329,12 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
             c.SetState(oldState);
 
+            // Draw bounds
+            foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            {
+                chunkToRender.Bounds.RenderOutline(c);
+            }
+
             // Draw colliders
             //foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
             //{
@@ -365,15 +359,12 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
             //    }
             //}
         }
-
-        _octTree.RenderDebug(c);
     }
 
     #endregion
 
     #region Chunk Mesh Management
 
-    private OctTree<MeshGridChunkRuntimeCache> _octTree = new();
     protected Dictionary<Vector2, MeshGridChunkRuntimeCache> _chunkRuntimeData = new();
 
     public IEnumerator InitRuntimeDataRoutine()
@@ -409,20 +400,9 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
         // Free resources
         if (_chunkRuntimeData.Remove(chunkCoord, out MeshGridChunkRuntimeCache? renderCache))
         {
-            _octTree.Remove(renderCache);
             VertexDataAllocation.FreeAllocated(ref renderCache.VertexMemory);
             GPUMemoryAllocator.FreeBuffer(renderCache.GPUVertexMemory);
         }
-    }
-
-    private void UpdateChunkBounds(Vector2 chunkCoord, MeshGridChunkRuntimeCache renderCache)
-    {
-        VersionedGridChunk<T> chunk = renderCache.Chunk;
-
-        if (renderCache.BoundsVersion != chunk.ChunkVersion) return;
-
-        _octTree.Update(renderCache);
-        renderCache.BoundsVersion = chunk.ChunkVersion;
     }
 
     protected abstract void UpdateChunkVertices(Vector2 chunkCoord, MeshGridChunkRuntimeCache renderCache, bool propagate = true);
@@ -438,7 +418,7 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     protected class MeshGridChunkRuntimeCache : IOctTreeStorable
     {
-        public VersionedGridChunk<T> Chunk;
+        public ChunkT Chunk;
         public bool GPUDirty = true;
 
         #region Vertices
@@ -451,7 +431,6 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
         #region Bounds
 
-        public int BoundsVersion = -1;
         public Cube Bounds;
 
         #endregion
@@ -470,7 +449,7 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
         #endregion
 
-        public MeshGridChunkRuntimeCache(VersionedGridChunk<T> chunk)
+        public MeshGridChunkRuntimeCache(ChunkT chunk)
         {
             Chunk = chunk;
         }

@@ -183,12 +183,12 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         shader.SetUniformFloat("brushRadius", 0);
     }
 
-    public override void Render(RenderComposer c, Rectangle clipArea)
+    public override void Render(RenderComposer c, Frustum frustum)
     {
         if (ChunkSize != _indexBufferChunkSize || _indexBuffer == null)
             PrepareIndexBuffer();
 
-        base.Render(c, clipArea);
+        base.Render(c, frustum);
     }
 
     protected virtual bool IsEmpty(uint tileData)

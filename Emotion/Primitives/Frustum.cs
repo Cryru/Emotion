@@ -88,26 +88,19 @@ public struct Frustum
     public bool IntersectsOrContainsCube(Cube cube)
     {
         (Vector3 min, Vector3 max) = cube.GetMinMax();
-
-        Span<Plane> planes = new Plane[] { Top, Bottom, Left, Right, Near, Far };
-        foreach (Plane plane in planes)
+        Span<Plane> planes = stackalloc Plane[] { Top, Bottom, Left, Right, Near, Far };
+        for (int i = 0; i < planes.Length; i++)
         {
+            Plane plane = planes[i];
             Vector3 positiveVertex = new Vector3(
                 plane.Normal.X >= 0 ? max.X : min.X,
                 plane.Normal.Y >= 0 ? max.Y : min.Y,
                 plane.Normal.Z >= 0 ? max.Z : min.Z
             );
 
-            Vector3 negativeVertex = new Vector3(
-                plane.Normal.X >= 0 ? min.X : max.X,
-                plane.Normal.Y >= 0 ? min.Y : max.Y,
-                plane.Normal.Z >= 0 ? min.Z : max.Z
-            );
-
             if (Plane.DotCoordinate(plane, positiveVertex) < 0)
                 return false;
         }
-
         return true;
     }
 
