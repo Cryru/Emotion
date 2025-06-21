@@ -304,6 +304,17 @@ public partial class MapObject : IOctTreeStorable
         return _modelMatrix;
     }
 
+    public virtual Matrix4x4 GetModelMatrixRotation()
+    {
+        if (_modelMatrixDirty)
+        {
+            _modelMatrix = UpdateModelMatrix();
+            _modelMatrixDirty = false;
+        }
+
+        return _rotationMatrix;
+    }
+
     protected virtual Matrix4x4 UpdateModelMatrix()
     {
         _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);

@@ -7,8 +7,6 @@ using Emotion.Scenography;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Editor2D;
-using Emotion.WIPUpdates.One.TileMap;
-using System.Threading.Tasks;
 
 namespace Emotion.WIPUpdates.One;
 

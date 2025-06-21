@@ -58,11 +58,23 @@ public partial class GameMap
         {
             if (obj == exclude) continue;
 
-            Cube bounds = obj.BoundingCube;
-            if (ray.IntersectWithCube(bounds, out collisionPoint))
+            if (obj is MapObjectMesh meshObject)
             {
-                hit = obj;
-                return true;
+                // Object vertices check for mesh objects.
+                if (ray.IntersectWithObject(meshObject, out _, out collisionPoint, out _, out _))
+                {
+                    hit = obj;
+                    return true;
+                }
+            }
+            else
+            {
+                Cube bounds = obj.BoundingCube;
+                if (ray.IntersectWithCube(bounds, out collisionPoint))
+                {
+                    hit = obj;
+                    return true;
+                }
             }
         }
 

@@ -13,11 +13,19 @@ public partial class MapObject
     [DontSerialize]
     public bool Initialized = false;
 
+    /// <summary>
+    /// Called by the map when object is initialized
+    /// todo: friend class adapter
+    /// </summary>
     public virtual void Init()
     {
         Initialized = true;
     }
 
+    /// <summary>
+    /// Called by the map when the object is removed/destroyed
+    /// todo: friend class adapter
+    /// </summary>
     public virtual void Done()
     {
 
@@ -31,5 +39,11 @@ public partial class MapObject
     public virtual void Render(RenderComposer c)
     {
 
+    }
+
+    public void RemoveFromMap()
+    {
+        if (Map == null) return;
+        Map.RemoveObject(this);
     }
 }
