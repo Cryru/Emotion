@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
 using Emotion.Common.Serialization;
+using Emotion.Editor;
 using Emotion.Game.Animation3D;
 using Emotion.Game.ThreeDee;
 using Emotion.Game.World3D;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
-using Emotion.Utility;
 
 namespace Emotion.WIPUpdates.One.Work;
 
@@ -22,7 +22,29 @@ public class MapObjectMesh : MapObject
     [DontSerialize]
     public MeshEntityMetaState? RenderState;
 
+    [DontShowInEditor]
     public SerializableAsset<MeshAsset>? EntityAsset;
+
+    // Functionality for setting entities via the editor
+    [DontSerializeButShowInEditor]
+    public SerializableAsset<MeshAsset>? EditorEntityView
+    {
+        get => EntityAsset;
+        set
+        {
+            if (Initialized)
+            {
+                if (value == null || value.Name == null)
+                    SetEntity(Cube.GetEntity());
+                else
+                    SetEntity(value.Name);
+            }
+            else
+            {
+                EntityAsset = value;
+            }
+        }
+    }
 
     public MapObjectMesh()
     {

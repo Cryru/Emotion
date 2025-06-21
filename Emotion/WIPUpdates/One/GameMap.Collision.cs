@@ -53,6 +53,7 @@ public partial class GameMap
 
     public bool CollideWithRayFirst(Ray3D ray, MapObject? exclude, out MapObject? hit, out Vector3 collisionPoint)
     {
+        // todo: oct-tree
         foreach (MapObject obj in ForEachObject())
         {
             if (obj == exclude) continue;

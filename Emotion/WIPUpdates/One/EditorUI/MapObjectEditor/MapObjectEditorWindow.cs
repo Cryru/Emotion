@@ -1,11 +1,10 @@
-﻿using Emotion.UI;
+﻿using Emotion.Game.WorldTwoDee;
+using Emotion.Graphics.Camera;
+using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D;
 using Emotion.WIPUpdates.One.EditorUI.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.WIPUpdates.One.Work;
 
 #nullable enable
 
@@ -13,11 +12,14 @@ namespace Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 
 public class MapObjectEditorWindow : UIBaseWindow
 {
+    public MapObject? SelectedObject;
+
     private EditorLabel _bottomText = null!;
 
     public MapObjectEditorWindow()
     {
-
+        HandleInput = true;
+        OrderInParent = -1;
     }
 
     public void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
@@ -35,7 +37,7 @@ public class MapObjectEditorWindow : UIBaseWindow
 
             var label = new EditorLabel
             {
-                Text = "Objects",
+                Text = "Object Editor",
                 WindowColor = Color.White * 0.5f
             };
             textList.AddChild(label);
@@ -48,5 +50,59 @@ public class MapObjectEditorWindow : UIBaseWindow
             textList.AddChild(labelDynamic);
             _bottomText = labelDynamic;
         }
+    }
+
+    public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
+    {
+        if (key == Key.MouseKeyLeft && status == KeyState.Down)
+        {
+            if (SelectedObject != null)
+            {
+                var editor = new ObjectPropertyEditorWindow(SelectedObject);
+                EngineEditor.EditorRoot.AddChild(editor);
+            }
+        }
+
+        return base.OnKey(key, status, mousePos);
+    }
+
+    public override void OnMouseMove(Vector2 mousePos)
+    {
+        UpdateSelection();
+    }
+
+    protected override bool RenderInternal(RenderComposer c)
+    {
+        if (SelectedObject != null)
+        {
+            c.SetUseViewMatrix(true);
+
+            Cube bound = SelectedObject.BoundingCube;
+            bound.RenderOutline(c, Color.PrettyYellow, 0.05f);
+
+            c.SetUseViewMatrix(false);
+        }
+
+        return base.RenderInternal(c);
+    }
+
+    private void UpdateSelection()
+    {
+        GameMap? map = EngineEditor.GetCurrentMap();
+        if (map == null) return;
+
+        CameraBase cam = Engine.Renderer.Camera;
+        Ray3D ray = cam.GetCameraMouseRay();
+        map.CollideWithRayFirst(ray, out MapObject? hit);
+        SelectedObject = hit;
+
+        if (hit == null)
+            _bottomText.Text = $"No object under mouse";
+        else if (hit is MapObjectMesh meshObj)
+            _bottomText.Text = $"Mouseover: {nameof(MapObjectMesh)} - {meshObj.MeshEntity.Name}";
+        else if (hit is MapObjectSprite spriteObj)
+            _bottomText.Text = $"Mouseover: {nameof(MapObjectSprite)} - {spriteObj.Entity.Name}";
+        else
+            _bottomText.Text = $"Mouseover: {hit}";
     }
 }

@@ -32,13 +32,15 @@ public class OctTreeNode<T> where T : IOctTreeStorable
 
     public OctTreeNode<T> _InternalAdd(Cube bounds, T item)
     {
+        return this;
+
         _items ??= new List<T>();
         if (_items.Count + 1 > Capacity && _childNodes == null && MaxDepth > 0)
         {
             //float halfWidth = Bounds.Width / 2;
             //float halfHeight = Bounds.Height / 2;
 
-            _childNodes = new OctTreeNode<T>[8];
+            //_childNodes = new OctTreeNode<T>[8];
             //_childNodes[0] = new OctTreeNode<T>(this, new Rectangle(Bounds.X, Bounds.Y, halfWidth, halfHeight), Capacity, MaxDepth - 1);
             //_childNodes[1] = new OctTreeNode<T>(this, new Rectangle(Bounds.X + halfWidth, Bounds.Y, halfWidth, halfHeight), Capacity, MaxDepth - 1);
             //_childNodes[2] = new OctTreeNode<T>(this, new Rectangle(Bounds.X, Bounds.Y + halfHeight, halfWidth, halfHeight), Capacity, MaxDepth - 1);

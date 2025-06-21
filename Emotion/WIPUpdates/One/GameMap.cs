@@ -38,10 +38,13 @@ public partial class GameMap : IDisposable
         _objects.Add(obj);
         obj.Init();
 
-        _octTree.Add(obj);
-        obj.OnMove += OnObjectMoved;
-        obj.OnResize += OnObjectMoved;
-        obj.OnRotate += OnObjectMoved;
+        lock (_octTree)
+        {
+            _octTree.Add(obj);
+            obj.OnMove += OnObjectMoved;
+            obj.OnResize += OnObjectMoved;
+            obj.OnRotate += OnObjectMoved;
+        }
     }
 
     public IEnumerator AddAndInitObject(MapObject obj)
@@ -53,17 +56,24 @@ public partial class GameMap : IDisposable
 
     public void RemoveObject(MapObject obj)
     {
-        obj.OnMove -= OnObjectMoved;
-        obj.OnResize -= OnObjectMoved;
-        obj.OnRotate -= OnObjectMoved;
-        _octTree.Remove(obj);
+        lock (_octTree)
+        {
+            obj.OnMove -= OnObjectMoved;
+            obj.OnResize -= OnObjectMoved;
+            obj.OnRotate -= OnObjectMoved;
+            _octTree.Remove(obj);
+        }
+
         _objects.Remove(obj);
         obj.Done();
     }
 
     private void OnObjectMoved(MapObject obj)
     {
-        _octTree.Update(obj);
+        lock (_octTree)
+        {
+            _octTree.Update(obj);
+        }
     }
 
     #endregion

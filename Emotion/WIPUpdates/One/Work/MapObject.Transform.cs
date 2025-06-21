@@ -130,7 +130,7 @@ public partial class MapObject : IOctTreeStorable
     /// <summary>
     /// The rotation of the transform in decimal degrees.
     /// </summary>
-    [DontSerialize]
+    [DontSerializeButShowInEditor]
     public Vector3 RotationDeg
     {
         get => new Vector3(Maths.RadiansToDegrees(_rotation.X), Maths.RadiansToDegrees(_rotation.Y), Maths.RadiansToDegrees(_rotation.Z));
