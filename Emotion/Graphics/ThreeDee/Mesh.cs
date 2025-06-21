@@ -105,6 +105,16 @@ public class Mesh
             vertices[i].Vertex = Vector3.Transform(vertex, mat);
         }
 
+        VertexDataMesh3DExtra[] extraData = ExtraVertexData;
+        if (extraData != null)
+        {
+            for (var i = 0; i < extraData.Length; i++)
+            {
+                ref Vector3 vertex = ref extraData[i].Normal;
+                extraData[i].Normal = Vector3.TransformNormal(vertex, mat);
+            }
+        }
+
         return this;
     }
 

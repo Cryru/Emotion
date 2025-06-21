@@ -163,7 +163,7 @@ public sealed class MeshEntityBatchRenderer
                 Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
                 BufferAttachment = Buffer.DepthStencilAttachment;
             }
-            
+
             BufferAttachment.Smooth = true;
 
             Texture.EnsureBound(BufferAttachment.Pointer);
@@ -427,6 +427,15 @@ public sealed class MeshEntityBatchRenderer
         objectInstance.DistanceToCamera = distanceToCamera;
 
         bool objIsTransparent = false;// obj.IsTransparent();
+        for (int m = 0; m < meshes.Length; m++)
+        {
+            var mesh = meshes[m];
+            if (mesh.Material.DiffuseColor.A != 255)
+            {
+                objIsTransparent = true;
+
+            }
+        }
 
         // Register all meshes in this entity.
         for (int m = 0; m < meshes.Length; m++)

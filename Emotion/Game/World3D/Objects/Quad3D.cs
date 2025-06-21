@@ -41,7 +41,7 @@ public class Quad3D : GameObject3D
 
     #region Static Entity
 
-    public static MeshEntity? QuadEntity
+    public static MeshEntity QuadEntity
     {
         get
         {
