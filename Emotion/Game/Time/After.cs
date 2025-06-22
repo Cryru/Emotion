@@ -20,7 +20,9 @@ namespace Emotion.Game.Time
         protected Action _function;
 
 #if DEBUG
-        private string _dbgTimerId;
+        private readonly string _dbgTimerId;
+#endif
+#if DEBUG_STACKS
         private float _dbgLastUpdate;
         private string _dbgLastUpdateStack;
 #endif

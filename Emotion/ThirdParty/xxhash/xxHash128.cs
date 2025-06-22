@@ -129,7 +129,7 @@ namespace Standart.Hash.xxHash
         /// <returns>hash</returns>
         public static unsafe byte[] ComputeHashBytes(ReadOnlySpan<byte> data, int length, ulong seed = 0)
         {
-            Debug.Assert(data != null);
+            Debug.Assert(!data.IsEmpty);
             Debug.Assert(length >= 0);
             Debug.Assert(length <= data.Length);
 

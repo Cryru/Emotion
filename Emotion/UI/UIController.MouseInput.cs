@@ -16,9 +16,6 @@ public partial class UIController
     public static UIRollover? CurrentRollover { get; private set; }
 
     private UIBaseWindow? _myMouseFocus; // The mouse focus of this controller in particular.
-    private static uint _thisTick; // The index of the current tick. Used to dedupe calls to update since every controller will call it.
-    private bool _calledUpdateLastTick; // Has this particular controller called update this tick. Used to determine if the controller is being updated.
-    private bool _calledUpdateTickBeforeLast;
 
     public static void RemoveCurrentRollover()
     {
@@ -28,8 +25,6 @@ public partial class UIController
 
     protected virtual void UpdateMouseFocus()
     {
-        _calledUpdateLastTick = true;
-
         if (Engine.Host.HostPaused || !ChildrenHandleInput || !Visible)
         {
             SetControllerMouseFocus(null);
