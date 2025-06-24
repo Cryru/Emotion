@@ -53,6 +53,7 @@ namespace SourceGenerator
 
                     // Some types are either handled by other generators or have additional generation.
                     GameDataEditorSupportGenerator.Run(ref sourceProductionContext, typeNamed);
+                    StructPerMemberHelpersGenerator.Run(ref sourceProductionContext, typeNamed);
                     if (ReflectorEnumGenerator.Run(ref sourceProductionContext, typeNamed)) continue;
 
                     // Get member list of complex type
