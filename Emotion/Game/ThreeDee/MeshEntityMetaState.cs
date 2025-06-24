@@ -24,6 +24,8 @@ namespace Emotion.Game.ThreeDee;
 [DontSerialize]
 public class MeshEntityMetaState
 {
+    public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
+
     /// <summary>
     /// Whether the mesh index should be rendered.
     /// </summary>
@@ -55,6 +57,8 @@ public class MeshEntityMetaState
     public MeshEntityMetaState(MeshEntity entity)
     {
         _entity = entity;
+        ModelMatrix = entity.LocalTransform;
+
         RenderMesh = new bool[entity.Meshes.Length];
 
         _boneMatricesForEntityRig = new Matrix4x4[entity.AnimationRig.Length];

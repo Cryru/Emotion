@@ -1,4 +1,5 @@
 ﻿using Emotion.Common.Serialization;
+using Emotion.Game.World3D;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 using Emotion.WIPUpdates.One.Work;
@@ -19,6 +20,8 @@ public partial class GameMap : IDisposable
 
     [DontSerialize] // todo: investigate
     public ITerrainGrid3D? TerrainGrid;
+
+    public LightModel LightModel = LightModel.DefaultLightModel;
 
     public IEnumerator LoadRoutine()
     {
