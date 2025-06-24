@@ -96,8 +96,8 @@ public abstract class CameraBase : Positional, IDisposable
         get => _viewMatrix;
         set
         {
+            OnBeforeMatricesChange();
             _viewMatrix = value;
-            MatricesChanged();
         }
     }
 
@@ -109,8 +109,8 @@ public abstract class CameraBase : Positional, IDisposable
         get => _projectionMatrix;
         set
         {
+            OnBeforeMatricesChange();
             _projectionMatrix = value;
-            MatricesChanged();
         }
     }
 
@@ -194,7 +194,7 @@ public abstract class CameraBase : Positional, IDisposable
     /// <summary>
     /// Notify the renderer that the matrix has changed, causing a state change.
     /// </summary>
-    protected void MatricesChanged()
+    protected void OnBeforeMatricesChange()
     {
         if (!Engine.Renderer.InFrame || Engine.Renderer.Camera != this || !GLThread.IsGLThread()) return;
         Engine.Renderer.FlushRenderStream();
