@@ -5,8 +5,6 @@ using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Standard.Reflector;
 using OpenGL;
-using static Silk.NET.Core.Native.WinString;
-using System.Xml.Linq;
 
 #endregion
 
