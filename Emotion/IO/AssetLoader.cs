@@ -642,7 +642,7 @@ namespace Emotion.IO
 
             if (loadInline)
             {
-                //todo
+                Coroutine.RunInline(newAsset.AssetLoader_LoadAsset());
             }
             else
             {

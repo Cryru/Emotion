@@ -210,6 +210,19 @@ public sealed class Coroutine : IRoutineWaiter
         Status = CoroutineStatus.RequestStop;
     }
 
+    public static void RunInline(IEnumerator routine)
+    {
+        while (routine.MoveNext())
+        {
+            object current = routine.Current;
+            if (current != null && current is IRoutineWaiter waiter)
+            {
+                while (!waiter.Finished)
+                    waiter.Update();
+            }
+        }
+    }
+
     public string DebugCoroutineCreationStack = string.Empty;
 #if DEBUG
 
