@@ -1,9 +1,9 @@
 ﻿// 1. uniform reflection
 // 2. vertex shader main deep
-// 3. vertex attribute passing and reflection
-// 4. shader derivatives
-// 5. material def reflection
-// 6. includes
+// 3. includes
+// 4. vertex attribute passing and reflection
+// 5. shader derivatives
+// 6. material def reflection
 // ----------- Common.h
 
 #if VERT_SHADER
