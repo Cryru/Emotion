@@ -505,6 +505,7 @@ namespace Emotion.Graphics
 
             RenderStream.DoTasks(this);
             MeshEntityRenderer.DoTasks();
+            GPUMemoryAllocator.ProcessFreed();
             InFrame = false;
         }
 
