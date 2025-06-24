@@ -559,7 +559,6 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
     public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
     {
         Name = "TerrainChunkMaterial",
-        Shader = "Shaders3D/TerrainShader.glsl",
         State =
         {
             FaceCulling = true,

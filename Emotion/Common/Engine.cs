@@ -7,6 +7,7 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Emotion.Audio;
+using Emotion.Common.Threading;
 using Emotion.Game.Data;
 using Emotion.Game.Localization;
 using Emotion.Game.Time.Routines;
@@ -497,6 +498,13 @@ namespace Emotion.Common
 
         private static void RunFrame()
         {
+            if (!Renderer.ReadyToRender)
+            {
+                GLThread.Run();
+                Host.Context.SwapBuffers();
+                return;
+            }
+
             FrameCount++;
             PerfProfiler.FrameStart();
 

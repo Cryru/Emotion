@@ -250,7 +250,7 @@ namespace Emotion.Graphics
             if (alphaBlend)
             {
                 Gl.Enable(EnableCap.Blend);
-                Gl.BlendFuncSeparate(CurrentState.SFactorRgb!.Value, CurrentState.DFactorRgb!.Value, CurrentState.SFactorA!.Value, CurrentState.DFactorA!.Value);
+                Gl.BlendFuncSeparate(CurrentState.SFactorRgb, CurrentState.DFactorRgb, CurrentState.SFactorA, CurrentState.DFactorA);
             }
             else
             {
@@ -285,7 +285,7 @@ namespace Emotion.Graphics
         public void SetDefaultAlphaBlendType()
         {
             var defaultState = RenderState.Default;
-            SetAlphaBlendType(defaultState.SFactorRgb!.Value, defaultState.DFactorRgb!.Value, defaultState.SFactorA!.Value, defaultState.DFactorA!.Value);
+            SetAlphaBlendType(defaultState.SFactorRgb, defaultState.DFactorRgb, defaultState.SFactorA, defaultState.DFactorA);
         }
 
         /// <summary>
@@ -402,39 +402,48 @@ namespace Emotion.Graphics
 
             // Check which state changes should apply, by checking which were set and which differ from the current.
             PerfProfiler.FrameEventStart("Depth/Stencil/Blend Set");
-            if (newState.DepthTest != null && (force || newState.DepthTest != currentState.DepthTest)) SetDepthTest((bool) newState.DepthTest);
-            if (newState.StencilTest != null && (force || newState.StencilTest != currentState.StencilTest)) SetStencilTest((bool) newState.StencilTest);
-            if ((newState.SFactorRgb != null && newState.SFactorRgb != currentState.SFactorRgb) ||
-                (newState.DFactorRgb != null && newState.DFactorRgb != currentState.DFactorRgb) ||
-                (newState.SFactorA != null && newState.SFactorA != currentState.SFactorA) ||
-                (newState.DFactorA != null && newState.DFactorA != currentState.DFactorA))
-                SetAlphaBlendType(
-                    newState.SFactorRgb ?? currentState.SFactorRgb!.Value,
-                    newState.DFactorRgb ?? currentState.DFactorRgb!.Value,
-                    newState.SFactorA ?? currentState.SFactorA!.Value,
-                    newState.DFactorA ?? currentState.DFactorA!.Value);
-            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != currentState.AlphaBlending)) SetAlphaBlend((bool) newState.AlphaBlending);
+
+            if (force || newState.DepthTest != currentState.DepthTest)
+                SetDepthTest(newState.DepthTest);
+
+            if (force || newState.StencilTest != currentState.StencilTest)
+                SetStencilTest(newState.StencilTest);
+
+            if ((newState.SFactorRgb != currentState.SFactorRgb) ||
+                (newState.DFactorRgb != currentState.DFactorRgb) ||
+                (newState.SFactorA != currentState.SFactorA) ||
+                (newState.DFactorA != currentState.DFactorA))
+                SetAlphaBlendType(newState.SFactorRgb, newState.DFactorRgb, newState.SFactorA, newState.DFactorA);
+
+            if (force || newState.AlphaBlending != currentState.AlphaBlending)
+                SetAlphaBlend(newState.AlphaBlending);
+
             PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
 
             PerfProfiler.FrameEventStart("ShaderSet");
-            if (newState.Shader != null && (force || newState.Shader != currentState.Shader))
+
+            if (newState.ShaderName != null)
+                newState.Shader = RenderState.ResolveFromName(newState.ShaderName);
+
+            if (force || newState.Shader != currentState.Shader)
                 SetShader(newState.Shader);
+
             PerfProfiler.FrameEventEnd("ShaderSet");
 
             PerfProfiler.FrameEventStart("View/Clip Set");
-            if (force || (newState.ViewMatrix != null && newState.ViewMatrix != currentState.ViewMatrix))
-                SetUseViewMatrix((bool) newState.ViewMatrix);
-            if (force || (newState.ProjectionBehavior != null && newState.ProjectionBehavior != currentState.ProjectionBehavior))
-                SetProjectionBehavior((ProjectionBehavior) newState.ProjectionBehavior);
-            if (force || newState.ClipRect != currentState.ClipRect) SetClipRect(newState.ClipRect);
-            if (
-                    (newState.FaceCulling != null || newState.FaceCullingBackFace != null) &&
-                    (force || newState.FaceCulling != currentState.FaceCulling || newState.FaceCullingBackFace != currentState.FaceCullingBackFace)
-                )
-                SetFaceCulling(
-                    newState.FaceCulling ?? currentState.FaceCulling.Value, 
-                    newState.FaceCullingBackFace ?? currentState.FaceCullingBackFace.Value
-                );
+
+            if (force || newState.ViewMatrix != currentState.ViewMatrix)
+                SetUseViewMatrix(newState.ViewMatrix);
+
+            if (force || newState.ProjectionBehavior != currentState.ProjectionBehavior)
+                SetProjectionBehavior(newState.ProjectionBehavior);
+
+            if (force || newState.ClipRect != currentState.ClipRect)
+                SetClipRect(newState.ClipRect);
+
+            if (force || newState.FaceCulling != currentState.FaceCulling || newState.FaceCullingBackFace != currentState.FaceCullingBackFace)
+                SetFaceCulling(newState.FaceCulling, newState.FaceCullingBackFace);
+
             PerfProfiler.FrameEventEnd("View/Clip Set");
         }
 

@@ -42,7 +42,6 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
     public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
     {
         Name = "TerrainChunkMaterial",
-        Shader = "Shaders3D/TerrainShader.glsl",
         State =
         {
             FaceCulling = true,

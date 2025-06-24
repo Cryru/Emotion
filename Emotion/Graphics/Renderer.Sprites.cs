@@ -144,7 +144,7 @@ namespace Emotion.Graphics
 
                 // If the size of the line is going to be less than 1 when scaled,
                 // snap it to 1 and modulate alpha
-                if (CurrentState.ViewMatrix.GetValueOrDefault())
+                if (CurrentState.ViewMatrix)
                 {
                     float scaledThickness = thickness * _camera.CalculatedScale;
                     if (scaledThickness < 1f)
@@ -154,7 +154,7 @@ namespace Emotion.Graphics
                     }
                 }
             }
-            else if (_camera is Camera3D && (CurrentState.ViewMatrix ?? false))
+            else if (_camera is Camera3D && CurrentState.ViewMatrix)
             {
                 Assert(_camera is Camera3D);
 

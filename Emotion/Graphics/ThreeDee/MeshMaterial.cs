@@ -24,11 +24,14 @@ public class MeshMaterial
 
     public Texture DiffuseTexture = Texture.EmptyWhiteTexture;
 
-    public bool BackFaceCulling = true;
-
-    public SerializableAsset<NewShaderAsset>? Shader = null;
-
     public RenderState State = RenderState.Default;
+
+    public MeshMaterial()
+    {
+        State = RenderState.Default;
+        //State.ShaderName = "Shaders3D/MeshShader.glsl";
+        State.ShaderName = "Shaders/MeshShader.xml";
+    }
 
     public static MeshMaterial DefaultMaterial = new MeshMaterial
     {

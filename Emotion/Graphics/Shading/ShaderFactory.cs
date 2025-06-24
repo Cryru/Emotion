@@ -354,6 +354,8 @@ namespace Emotion.Graphics.Shading
 
         internal static IEnumerator LoadDefaultShadersRoutineAsync()
         {
+            Engine.Log.Info($"Loading default shaders...", MessageSource.Renderer);
+
             TextAsset vert = Engine.AssetLoader.ONE_Get<TextAsset>("Shaders/DefaultVert.vert");
             TextAsset frag = Engine.AssetLoader.ONE_Get<TextAsset>("Shaders/DefaultFrag.frag");
 
@@ -368,7 +370,7 @@ namespace Emotion.Graphics.Shading
                 yield break;
             }
 
-            Engine.Log.Info("Creating default shader...", MessageSource.Renderer);
+            Engine.Log.Info("Compiling default shaders...", MessageSource.Renderer);
             GLThread.ExecuteGLThread(() => // todo: execute gl thread coroutine waiter
             {
                 DefaultProgram = CreateShader(vert.Content, frag.Content);
@@ -391,6 +393,8 @@ namespace Emotion.Graphics.Shading
             // We could theoretically run /kinda/ without these, right?
             AssertNotNull(Blit);
             AssertNotNull(BlitPremultAlpha);
+
+            Engine.Log.Info($"Default shaders created!", MessageSource.Renderer);
         }
 
         public static ShaderProgram CreateShaderRaw(string vertShaderSource, string fragShaderSource)

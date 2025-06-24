@@ -143,7 +143,10 @@ public class TranslationGizmo : MapObjectMesh
             {
                 Name = "Material-Plane-Z",
                 DiffuseColor = Color.Blue,
-                BackFaceCulling = false
+                State =
+                {
+                    FaceCulling = false
+                }
             };
             Mesh meshZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
             meshZPlane.TransformMeshVertices(

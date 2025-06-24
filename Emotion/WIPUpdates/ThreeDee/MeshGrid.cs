@@ -300,13 +300,8 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
             RenderState oldState = c.CurrentState.Clone();
 
-            Engine.Renderer.SetFaceCulling(true, true);
-
             MeshMaterial material = GetMeshMaterial();
-            NewShaderAsset? asset = material.Shader?.Get();
-            if (asset != null && asset.CompiledShader != null)
-                c.SetShader(asset.CompiledShader);
-
+            c.SetState(material.State);
             c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
             Texture.EnsureBound(material.DiffuseTexture.Pointer);
 

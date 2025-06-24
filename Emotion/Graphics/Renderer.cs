@@ -11,6 +11,7 @@ using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.Tools;
+using Emotion.WIPUpdates.Rendering;
 using Khronos;
 using OpenGL;
 
@@ -277,40 +278,19 @@ namespace Emotion.Graphics
             Texture.InitializeEmptyTexture();
 
             // Load base assets.
-            Engine.Log.Info($"Loading system assets...", MessageSource.Renderer);
-            Coroutine loadingRoutine = Engine.Jobs.Add(ShaderFactory.LoadDefaultShadersRoutineAsync());
-
-            // Run a mini-loop until the renderer is setup.
-            // This runs only the critical systems needed to load the system assets.
-            // todo: test this on different platforms, also steam deck since there was flickering there
-            // we could create an alternate sync loading if there are problems. This is indeed a bit iffy,
-            // but we want to have the renderer ready before calling the user's entry point or running any normal loops,
-            // though we could have some sort of alternate loading loop that is set up as a "normal" loop.
-            while (!loadingRoutine.Finished)
-            {
-                Engine.Host.Update();
-                Engine.AssetLoader.Update();
-                Engine.CoroutineManager.Update(0);
-                GLThread.Run();
-            }
-            Engine.Log.Info($"System assets loaded", MessageSource.Renderer);
-
-            if (ShaderFactory.DefaultProgram == null)
-                return;
+            Coroutine loadingRoutine = Engine.Jobs.Add(InitializeSystemAssetsRoutineAsync());
 
             // Create default render states (depends on shaders)
-            RenderState.CreateDefault();
             CurrentState = new RenderState();
-            SetState(RenderState.Default);
 
-            BlitState = RenderState.Default.Clone();
+            BlitState = RenderState.Default;
             BlitState.AlphaBlending = false;
             BlitState.DepthTest = false;
             BlitState.ViewMatrix = false;
-            BlitState.Shader = ShaderFactory.Blit;
+            BlitState.ShaderName = "Shaders/Blit.xml";
 
-            BlitStatePremult = BlitState.Clone();
-            BlitStatePremult.Shader = ShaderFactory.BlitPremultAlpha;
+            BlitStatePremult = BlitState;
+            BlitStatePremult.ShaderName = "Shaders/BlitPremultAlpha.xml";
 
             // Create render objects
             RenderStream = new RenderStreamBatch(); // This is used for IM-like rendering.
@@ -319,6 +299,25 @@ namespace Emotion.Graphics
             // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();
             UpdateCamera();
+
+            _systemAssetsLoading = loadingRoutine;
+        }
+
+        #endregion
+
+        #region System Loading
+
+        /// <summary>
+        /// Whether the renderer is fully initialized.
+        /// </summary>
+        public bool ReadyToRender { get => _systemAssetsLoading != null && _systemAssetsLoading.Finished; }
+
+        private Coroutine? _systemAssetsLoading;
+
+        private IEnumerator InitializeSystemAssetsRoutineAsync()
+        {
+            yield return ShaderFactory.LoadDefaultShadersRoutineAsync();
+            RenderState.Default.Shader = ShaderFactory.DefaultProgram;
         }
 
         #endregion
@@ -451,10 +450,9 @@ namespace Emotion.Graphics
             GLThread.Run();
             PerfProfiler.FrameEventEnd("GLThread.Run");
 
-            // Reset to the default state.
-            PerfProfiler.FrameEventStart("DefaultStateSet");
+            // Reset to the default state
+            // In compatibility mode dont carry over any state from the last frame as some drivers dont like it
             SetState(RenderState.Default, true);
-            PerfProfiler.FrameEventEnd("DefaultStateSet");
 
             // Clear the screen.
             PerfProfiler.FrameEventStart("Clear");
@@ -472,7 +470,10 @@ namespace Emotion.Graphics
 
             // Check if a render target was forgotten.
             if (_bufferStack.Count > 1)
-                Assert(false);
+            {
+                Engine.Log.Warning($"A framebuffer was left bound from the last frame!", MessageSource.Renderer, true);
+                while (_bufferStack.Count > 1) _bufferStack.Pop();
+            }
 
             return this;
         }
@@ -522,7 +523,7 @@ namespace Emotion.Graphics
         public void SyncShader()
         {
             ShaderProgram currentShader = CurrentState.Shader;
-            if (CurrentState.Shader == null) return;
+            if (currentShader == null) return; // Before default shader is created
             PerfProfiler.FrameEventStart("ShaderSync");
 
             SyncModelMatrix();
@@ -549,40 +550,35 @@ namespace Emotion.Graphics
         /// </summary>
         private void SyncViewMatrix()
         {
-            bool viewMatrixEnabled = Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault();
-
-            CameraBase cameraToGetProjectionFrom = _camera;
+            bool viewMatrixEnabled = Engine.Renderer.CurrentState.ViewMatrix;
 
             Matrix4x4 projectionMatrix;
-            switch (Engine.Renderer.CurrentState.ProjectionBehavior.GetValueOrDefault())
+            switch (Engine.Renderer.CurrentState.ProjectionBehavior)
             {
                 default:
                 case ProjectionBehavior.AlwaysCameraProjection:
                 case ProjectionBehavior.AutoCamera when viewMatrixEnabled:
-                    projectionMatrix = cameraToGetProjectionFrom.ProjectionMatrix;
+                    projectionMatrix = _camera.ProjectionMatrix;
                     break;
                 case ProjectionBehavior.AlwaysDefault2D:
                 case ProjectionBehavior.AutoCamera: // when !viewMatrixEnabled:
                     projectionMatrix = CameraBase.GetDefault2DProjection();
                     break;
             }
-
             CurrentState.Shader.SetUniformMatrix4("projectionMatrix", projectionMatrix);
 
             // Check if the view matrix is off.
-            if (!Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault())
+            Matrix4x4 viewMatrix = _camera.ViewMatrix;
+            if (!Engine.Renderer.CurrentState.ViewMatrix)
             {
                 // Same as in Camera2D as the default "no view" view is a 2D view.
                 // Keep that code in sync :)
-                Matrix4x4 noProjectionView =
+                viewMatrix =
                     Matrix4x4.CreateScale(new Vector3(1, -1, 1)) *
                     Matrix4x4.CreateLookAtLeftHanded(Vector3.Zero, new Vector3(0, 0, -1), Up2D);
-
-                CurrentState.Shader.SetUniformMatrix4("viewMatrix", noProjectionView);
-                return;
             }
 
-            CurrentState.Shader.SetUniformMatrix4("viewMatrix", _camera.ViewMatrix);
+            CurrentState.Shader.SetUniformMatrix4("viewMatrix", viewMatrix);
         }
 
         /// <summary>

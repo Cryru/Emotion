@@ -931,10 +931,10 @@ public sealed class MeshEntityBatchRenderer
                 currentShader = _meshShader;
             }
 
-            if (obj.Material.Shader != null)
+            if (obj.Material.State.ShaderName != "")
             {
-                NewShaderAsset? asset = obj.Material.Shader.Get();
-                if (asset != null && asset.CompiledShader != null)
+                var asset = Engine.AssetLoader.ONE_Get<NewShaderAsset>(obj.Material.State.ShaderName);
+                if (asset.Finished)
                     currentShader = asset.CompiledShader;
             }
 
