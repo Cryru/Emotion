@@ -10,6 +10,8 @@ using OpenGL;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Graphics.Shading
 {
     public static class ShaderFactory
@@ -30,7 +32,7 @@ namespace Emotion.Graphics.Shading
         /// <param name="fragShaderSource">The source code of the fragment shader.</param>
         /// <param name="compileConstant">Additional shader compilation constants</param>
         /// <returns>A compiled and linked shader program.</returns>
-        public static ShaderProgram CreateShader(string vertShaderSource, string fragShaderSource, string compileConstant = null)
+        public static ShaderProgram? CreateShader(string vertShaderSource, string fragShaderSource, string? compileConstant = null)
         {
             List<ShaderUniform> uniformDefaults = null;
             if (Gl.CurrentShadingVersion.GLES) uniformDefaults = new List<ShaderUniform>();
@@ -169,11 +171,11 @@ namespace Emotion.Graphics.Shading
         /// <param name="uniformDefaults">The list to fill with found shader defaults when running under GLES</param>
         /// <param name="compileConstant">Compilation constant to add.</param>
         /// <returns>The preprocessed shader code.</returns>
-        private static string[] Preprocess(string[] source, List<ShaderUniform> uniformDefaults = null, string compileConstant = null)
+        private static string[] Preprocess(string[] source, List<ShaderUniform>? uniformDefaults = null, string? compileConstant = null)
         {
             bool es = Gl.CurrentShadingVersion.GLES;
             var code = new List<string>(source);
-            if (code.Count == 0 || string.IsNullOrEmpty(code[0])) return null;
+            if (code.Count == 0 || string.IsNullOrEmpty(code[0])) return Array.Empty<string>();
 
             // Version string is required to be first.
             code[0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}";
@@ -223,7 +225,7 @@ namespace Emotion.Graphics.Shading
                                 type = leftPart[uniformDeclTokens[1]].Trim().ToString();
                                 name = leftPart[uniformDeclTokens[2]].Trim().ToString();
                             }
-                            else if(nameAndTypeTokens == 4)
+                            else if (nameAndTypeTokens == 4)
                             {
                                 // 0 is uniform
                                 // 1 is type qualifier
@@ -233,7 +235,7 @@ namespace Emotion.Graphics.Shading
                                 type = leftPart[uniformDeclTokens[2]].Trim().ToString();
                                 name = leftPart[uniformDeclTokens[3]].Trim().ToString();
                             }
-  
+
                             code[i] = $"uniform {typeQualifier} {type} {name};";
                             uniformDefaults.Add(new ShaderUniform(name, type, value));
                         }
@@ -342,15 +344,15 @@ namespace Emotion.Graphics.Shading
         /// The default shader is a basic 2D shader with an alpha discard and MVP multiplied vertices.
         /// It can also be used as a fallback shader.
         /// </summary>
-        public static ShaderProgram DefaultProgram { get; private set; }
+        public static ShaderProgram DefaultProgram { get; private set; } = new ShaderProgram("im sure");
 
-        public static TextAsset DefaultProgram_Vert { get; private set; }
+        public static TextAsset? DefaultProgram_Vert { get; private set; }
 
-        public static TextAsset DefaultProgram_Frag { get; private set; }
+        public static TextAsset? DefaultProgram_Frag { get; private set; }
 
-        public static ShaderProgram Blit { get; private set; }
+        public static ShaderProgram Blit { get; private set; } = new ShaderProgram("im sure");
 
-        public static ShaderProgram BlitPremultAlpha { get; private set; }
+        public static ShaderProgram BlitPremultAlpha { get; private set; } = new ShaderProgram("im sure");
 
         internal static IEnumerator LoadDefaultShadersRoutineAsync()
         {
@@ -373,9 +375,10 @@ namespace Emotion.Graphics.Shading
             Engine.Log.Info("Compiling default shaders...", MessageSource.Renderer);
             GLThread.ExecuteGLThread(() => // todo: execute gl thread coroutine waiter
             {
-                DefaultProgram = CreateShader(vert.Content, frag.Content);
+                ShaderProgram? defaultShaderProgram = CreateShader(vert.Content, frag.Content);
+                DefaultProgram.CopyFrom(defaultShaderProgram);
             });
-            if (DefaultProgram == null)
+            if (DefaultProgram.Pointer == 0)
             {
                 Engine.CriticalError(new Exception("Couldn't compile default shader."));
                 yield break;
@@ -387,17 +390,17 @@ namespace Emotion.Graphics.Shading
             yield return blit;
             yield return blitPremultAlpha;
 
-            Blit = blit.Shader;
-            BlitPremultAlpha = blitPremultAlpha.Shader;
+            Blit.CopyFrom(blit.Shader);
+            BlitPremultAlpha.CopyFrom(blitPremultAlpha.Shader);
 
             // We could theoretically run /kinda/ without these, right?
-            AssertNotNull(Blit);
-            AssertNotNull(BlitPremultAlpha);
+            Assert(Blit.Pointer != 0);
+            Assert(BlitPremultAlpha.Pointer != 0);
 
             Engine.Log.Info($"Default shaders created!", MessageSource.Renderer);
         }
 
-        public static ShaderProgram CreateShaderRaw(string vertShaderSource, string fragShaderSource)
+        public static ShaderProgram? CreateShaderRaw(string vertShaderSource, string fragShaderSource)
         {
             uint vertShader = Gl.CreateShader(ShaderType.VertexShader);
             bool vertCompiled = TryCompileRaw(vertShaderSource, vertShader);
@@ -416,7 +419,7 @@ namespace Emotion.Graphics.Shading
             }
 
             // Link into a program and add meta data in debug mode.
-            var newShader = ShaderProgram.CreateFromShaders(vertShader, fragShader);
+            ShaderProgram newShader = ShaderProgram.CreateFromShaders(vertShader, fragShader);
             if (Engine.Configuration.DebugMode)
             {
                 newShader.DebugFragSource = fragShaderSource;

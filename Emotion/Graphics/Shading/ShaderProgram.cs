@@ -81,6 +81,11 @@ namespace Emotion.Graphics.Shading
         {
         }
 
+        internal ShaderProgram(string are_you_sure)
+        {
+
+        }
+
         /// <summary>
         /// Create a shader program by linking compiled shaders.
         /// </summary>
@@ -316,8 +321,7 @@ namespace Emotion.Graphics.Shading
         /// Copy the properties of a shader program into this one.
         /// Used for maintaining the shader reference when reloading shaders.
         /// </summary>
-        /// <param name="otherProgram"></param>
-        public void CopyFrom(ShaderProgram otherProgram)
+        public void CopyFrom(ShaderProgram? otherProgram)
         {
             if (otherProgram == null)
             {

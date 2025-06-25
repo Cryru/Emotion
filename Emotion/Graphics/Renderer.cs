@@ -317,7 +317,7 @@ namespace Emotion.Graphics
         private IEnumerator InitializeSystemAssetsRoutineAsync()
         {
             yield return ShaderFactory.LoadDefaultShadersRoutineAsync();
-            RenderState.Default.Shader = ShaderFactory.DefaultProgram;
+            AssertEqual(RenderState.Default.Shader, ShaderFactory.DefaultProgram);
         }
 
         #endregion
