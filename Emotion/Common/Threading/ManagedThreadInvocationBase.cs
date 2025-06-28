@@ -7,7 +7,7 @@ using Emotion.Utility;
 
 namespace Emotion.Common.Threading
 {
-    public class ManagedThreadInvocationBase
+    public class ManagedThreadInvocationBase : ThreadExecutionWaitToken
     {
         private static ObjectPool<ManualResetEventSlim> _resetEventPool = new ObjectPool<ManualResetEventSlim>();
         private ManualResetEventSlim _signal;
@@ -20,6 +20,7 @@ namespace Emotion.Common.Threading
         public virtual void Run()
         {
             _signal.Set();
+            Trigger();
         }
 
         public void Wait()
@@ -66,6 +67,22 @@ namespace Emotion.Common.Threading
         public override void Run()
         {
             Result = Action(Arg1);
+            base.Run();
+        }
+    }
+
+    public class ManagedThreadInvocation : ManagedThreadInvocationBase
+    {
+        public Action Action;
+
+        public ManagedThreadInvocation(Action action)
+        {
+            Action = action;
+        }
+
+        public override void Run()
+        {
+            Action();
             base.Run();
         }
     }

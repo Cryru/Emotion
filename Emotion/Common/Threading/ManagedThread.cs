@@ -153,20 +153,36 @@ namespace Emotion.Common.Threading
         /// <summary>
         /// Execute a function on the managed thread without blocking.
         /// </summary>
-        public void ExecuteOnThreadAsync<T>(Action<T> action, T arg1)
+        public ThreadExecutionWaitToken ExecuteOnThreadAsync(Action action)
+        {
+            // Run straight away if on the managed thread.
+            if (IsManagedThread())
+            {
+                action();
+                return ThreadExecutionWaitToken.FinishedByDefault;
+            }
+
+            var invocation = new ManagedThreadInvocation(action);
+            _invocationQueue.Enqueue(invocation);
+            return invocation;
+        }
+
+        /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />
+        public ThreadExecutionWaitToken ExecuteOnThreadAsync<T>(Action<T> action, T arg1)
         {
             // Run straight away if on the managed thread.
             if (IsManagedThread())
             {
                 action(arg1);
-                return;
+                return ThreadExecutionWaitToken.FinishedByDefault;
             }
 
             var invocation = new ManagedThreadInvocation<T>(action, arg1);
             _invocationQueue.Enqueue(invocation);
+            return invocation;
         }
 
-        /// <inheritdoc cref="ExecuteOnThreadAsync{T}(Action{T}, T)" />
+        /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />
         public void ExecuteOnThreadAsync<T, T2>(Action<T, T2> action, T arg1, T2 arg2)
         {
             // Run straight away if on the managed thread.
@@ -180,7 +196,7 @@ namespace Emotion.Common.Threading
             _invocationQueue.Enqueue(invocation);
         }
 
-        /// <inheritdoc cref="ExecuteOnThread{T}(Func{T})" />
+        /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />
         public T ExecuteOnThread<T, T1>(Func<T1, T> action, T1 arg1)
         {
             // Run straight away if on the managed thread.
@@ -192,7 +208,7 @@ namespace Emotion.Common.Threading
             return invocation.Result;
         }
 
-        /// <inheritdoc cref="ExecuteOnThread{T}(Func{T})" />
+        /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />
         public T ExecuteOnThread<T, T1, T2>(Func<T1, T2, T> action, T1 arg1, T2 arg2)
         {
             // Run straight away if on the managed thread.
@@ -204,7 +220,7 @@ namespace Emotion.Common.Threading
             return invocation.Result;
         }
 
-        /// <inheritdoc cref="ExecuteOnThread{T}(Func{T})" />
+        /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />
         public T ExecuteOnThread<T, T1, T2, T3>(Func<T1, T2, T3, T> action, T1 arg1, T2 arg2, T3 arg3)
         {
             // Run straight away if on the managed thread.

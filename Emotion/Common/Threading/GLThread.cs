@@ -102,12 +102,17 @@ namespace Emotion.Common.Threading
             return _threadManager.ExecuteOnThread(action);
         }
 
+        public static ThreadExecutionWaitToken ExecuteOnGLThreadAsync(Action action)
+        {
+            return _threadManager.ExecuteOnThreadAsync(action);
+        }
+
         /// <summary>
         /// Execute the action on the GL thread without blocking.
         /// </summary>
-        public static void ExecuteOnGLThreadAsync<T1>(Action<T1> action, T1 arg1)
+        public static ThreadExecutionWaitToken ExecuteOnGLThreadAsync<T1>(Action<T1> action, T1 arg1)
         {
-            _threadManager.ExecuteOnThreadAsync(action, arg1);
+            return _threadManager.ExecuteOnThreadAsync(action, arg1);
         }
 
         /// <inheritdoc cref="ExecuteOnGLThreadAsync{T}(Action{T}, T)" />
