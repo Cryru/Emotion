@@ -47,6 +47,9 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     public VertexDataAllocation VertexMemory;
 
     [DontSerialize]
+    public uint VerticesUsed;
+
+    [DontSerialize]
     public GPUVertexMemory? GPUVertexMemory;
 
     #endregion

@@ -59,7 +59,7 @@ public class ChunkStreamVisualizer : EditorWindow
         foreach (var item in _grid.DebugOnly_StreamableGridForEachChunk())
         {
             Vector2 chunkCoord = item.Item1;
-            Vector2 chunkPosWorld = (chunkCoord * chunkSize) - new Vector2(2, 2);
+            Vector2 chunkPosWorld = (chunkCoord * chunkSize);
             IStreamableGridChunk chunk = item.Item2;
 
             ChunkState chunkState = chunk.State;
@@ -82,7 +82,7 @@ public class ChunkStreamVisualizer : EditorWindow
             loaded++;
         }
 
-        c.RenderGrid(-new Vector2(10_000, 10_000).ToVec3(), new Vector2(20_000, 20_000), chunkSize, Color.Black);
+        c.RenderGrid(-(chunkSize * 100).ToVec3(), chunkSize * 200, chunkSize, Color.Black, chunkSize / 2f + Vector2.One / 2f);
 
         ChunkStreamManager streamer = _grid.ChunkStreamManager;
         int rangeSim = streamer.SimulationRange;

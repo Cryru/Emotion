@@ -1,14 +1,12 @@
 ﻿using Emotion.Common.Serialization;
-using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
+using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.Rendering;
 using Emotion.WIPUpdates.ThreeDee.GridStreaming;
 using Emotion.WIPUpdates.ThreeDee.MeshGridStreaming;
 using OpenGL;
-using System.Numerics;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
@@ -30,7 +28,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         TileSize = tileSize;
 
         int factor = (int)MathF.Max(tileSize.Y, tileSize.X);
-        ChunkStreamManager = new ChunkStreamManager(256 * factor, 256 * factor);
+        ChunkStreamManager = new ChunkStreamManager(512 * factor, 512 * factor);
     }
 
     public virtual IEnumerator InitRuntimeDataRoutine()
@@ -63,6 +61,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasMesh);
         foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
+            ChunkT chunk = item.Value;
             UpdateChunkVertices(item.Key, item.Value);
         }
     }
@@ -262,14 +261,12 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     #region Rendering
 
-    protected int _maxChunksUploadAtOnce = 5;
+    protected int _maxChunksUploadAtOnce = 20;
     protected List<ChunkT> _renderThisPass = new(32);
 
     // todo: 3d culling
     public virtual void Render(RenderComposer c, Frustum frustum)
     {
-        _maxChunksUploadAtOnce = 10;
-
         // Gather chunks to render this pass.
         int chunksUploaded = 0;
         _renderThisPass.Clear();
@@ -291,7 +288,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
             if (chunk.GPUDirty && chunksUploaded < _maxChunksUploadAtOnce)
             {
                 chunksUploaded++;
-                chunk.GPUVertexMemory.VBO.Upload(chunk.VertexMemory, (uint) chunk.IndicesUsed);
+                chunk.GPUVertexMemory.VBO.Upload(chunk.VertexMemory, chunk.VerticesUsed);
                 chunk.GPUDirty = false;
             }
 

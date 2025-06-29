@@ -4,7 +4,12 @@ using Emotion.Common.Serialization;
 
 namespace Emotion.WIPUpdates.Grids;
 
-public class ChunkedGrid<T, ChunkT> : IGrid<T>
+public interface IChunkedGrid
+{
+    public Vector2 GetChunkCoordinateOfValueCoordinate(Vector2 tile);
+}
+
+public class ChunkedGrid<T, ChunkT> : IChunkedGrid, IGrid<T>
     where ChunkT : IGridChunk<T>, new()
     where T : struct, IEquatable<T>
 {

@@ -12,6 +12,10 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 {
     #region StreamAPI
 
+    public int StreamingMaxMeshCreationsAtOnce = 10;
+
+    private int _meshCreationsRunning;
+
     private Dictionary<ChunkState, Dictionary<Vector2, ChunkT>> _chunksLoaded = new();
 
     private Dictionary<Vector2, ChunkT> GetChunksInState(ChunkState state)
@@ -58,9 +62,17 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         if (isPromotion)
         {
             if (newState == ChunkState.HasMesh)
+            {
+                if (_meshCreationsRunning >= StreamingMaxMeshCreationsAtOnce)
+                    return;
+                _meshCreationsRunning++;
+
                 chunk.StatePromotionRoutine = Engine.Jobs.Add(ChunkCreateMeshRoutineAsync(chunkCoord, chunk));
+            }
             else if (newState == ChunkState.HasGPUData)
+            {
                 chunk.StatePromotionRoutine = Engine.Jobs.Add(ChunkCreateGPUMemoryRoutineAsync(chunkCoord, chunk));
+            }
         }
         else // Demotions are instant
         {
@@ -129,6 +141,8 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
         // Create mesh
         UpdateChunkVertices(chunkCoord, chunk);
+
+        Interlocked.Decrement(ref _meshCreationsRunning);
 
         yield return Engine.CoroutineManager.StartCoroutine(ChunkPromoteStateSwapSynchronizeRoutine(chunkCoord, chunk, ChunkState.HasMesh));
     }

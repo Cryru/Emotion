@@ -6,6 +6,7 @@ using Emotion.UI;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.One.Editor2D;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.ThreeDee.GridStreaming;
 
 namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
 
@@ -185,8 +186,14 @@ public abstract class GridEditorWindow : UIBaseWindow
             string inMapText = "";
             if (!inMap) inMapText = " (Outside Map)";
 
+            string currentTileText;
+            if (currentGrid is IChunkedGrid chunkedGrid)
+                currentTileText = $"{currentTile} (Chunk: {chunkedGrid.GetChunkCoordinateOfValueCoordinate(currentTile)})";
+            else
+                currentTileText = $"{currentTile}";
+
             if (_bottomText != null)
-                _bottomText.Text = $"Rollover Tile - {currentTile}{inMapText}";
+                _bottomText.Text = $"Rollover Tile - {currentTileText}{inMapText}";
         }
 
         if (!MouseInside) return;

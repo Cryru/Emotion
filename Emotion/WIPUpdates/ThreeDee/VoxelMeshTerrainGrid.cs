@@ -189,23 +189,9 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         return tileData == 0;
     }
 
-    protected override void UpdateChunkVertices(Vector2 chunkCoord, VoxelMeshGridChunk chunk, bool propagate = true)
+    private int RunChunkMeshGeneration(Vector2 chunkWorldOffset, uint[] dataMe, Span<VertexData_Pos_UV_Normal_Color> vertices, Vector3 tileSize3D)
     {
-        // We already have the latest version of this
-        if (chunk.VerticesGeneratedForVersion == chunk.ChunkVersion && chunk.VertexMemory.Allocated) return;
-
-        Vector2 tileSize = TileSize;
-        Vector2 halfTileSize = TileSize / 2f;
-        Vector3 tileSize3D = tileSize.ToVec3(tileSize.X);
-        Vector2 chunkWorldSize = ChunkSize * tileSize;
-
-        Vector2 chunkWorldOffset = chunkCoord * chunkWorldSize;
-
-        // Get my data
-        uint[] dataMe = chunk.GetRawData() ?? Array.Empty<uint>();
-
-        int vertexCount = (int)(dataMe.Length * 24);
-        var vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, vertexCount);
+        Vector3 halfSize = tileSize3D / 2f;
 
         int vIdx = 0;
         for (int z = 0; z < ChunkSize3D.Z; z++)
@@ -221,299 +207,364 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     if (IsEmpty(sample)) continue;
 
                     Vector3 worldPos = chunkWorldOffset.ToVec3() + (tileCoord * tileSize3D);
-                    Vector3 halfSize = tileSize3D / 2f;
 
                     // Top (Z+)
-                    bool shouldDrawTopFace = z == ChunkSize3D.Z - 1;
-                    if (!shouldDrawTopFace)
+                    bool makeTopFace = z == ChunkSize3D.Z - 1;
+                    if (!makeTopFace)
                     {
                         Vector3 topTileCoordinates = new Vector3(x, y, z + 1);
                         int topCoord = GridHelpers.GetCoordinate1DFrom3D(topTileCoordinates, ChunkSize3D);
                         uint topSample = dataMe[topCoord];
-                        shouldDrawTopFace = IsEmpty(topSample);
+                        makeTopFace = IsEmpty(topSample);
 
                     }
-                    if (shouldDrawTopFace)
+                    if (makeTopFace)
                     {
+                        if (vertices.IsEmpty)
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
-                            vData.Normal = RenderComposer.Up;
-                            vData.Color = Color.PrettyGreen.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            vIdx += 4;
                         }
-
+                        else
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
-                            vData.Normal = RenderComposer.Up;
-                            vData.Color = Color.PrettyGreen.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
+                                vData.Normal = RenderComposer.Up;
+                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
-                            vData.Normal = RenderComposer.Up;
-                            vData.Color = Color.PrettyGreen.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
+                                vData.Normal = RenderComposer.Up;
+                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
-                            vData.Normal = RenderComposer.Up;
-                            vData.Color = Color.PrettyGreen.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
+                                vData.Normal = RenderComposer.Up;
+                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
+
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
+                                vData.Normal = RenderComposer.Up;
+                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
                         }
                     }
 
                     // Bottom (Z-)
-                    bool shouldDrawBottonFace = z == 0;
-                    if (!shouldDrawBottonFace)
+                    bool makeBottomFace = z == 0;
+                    if (!makeBottomFace)
                     {
                         Vector3 bottomTileCoordinates = new Vector3(x, y, z - 1);
                         int bottomCoord = GridHelpers.GetCoordinate1DFrom3D(bottomTileCoordinates, ChunkSize3D);
                         uint bottomSample = dataMe[bottomCoord];
-                        shouldDrawBottonFace = IsEmpty(bottomSample);
+                        makeBottomFace = IsEmpty(bottomSample);
                     }
-                    if (shouldDrawBottonFace)
+                    if (makeBottomFace)
                     {
+                        if (vertices.IsEmpty)
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
-                            vData.Normal = -RenderComposer.Up;
-                            vData.Color = Color.WhiteUint;
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            vIdx += 4;
                         }
-
+                        else
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
-                            vData.Normal = -RenderComposer.Up;
-                            vData.Color = Color.WhiteUint;
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
+                                vData.Normal = -RenderComposer.Up;
+                                vData.Color = Color.WhiteUint;
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
-                            vData.Normal = -RenderComposer.Up;
-                            vData.Color = Color.WhiteUint;
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
+                                vData.Normal = -RenderComposer.Up;
+                                vData.Color = Color.WhiteUint;
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
-                            vData.Normal = -RenderComposer.Up;
-                            vData.Color = Color.WhiteUint;
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
+                                vData.Normal = -RenderComposer.Up;
+                                vData.Color = Color.WhiteUint;
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
+
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
+                                vData.Normal = -RenderComposer.Up;
+                                vData.Color = Color.WhiteUint;
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
                         }
                     }
 
                     // Back (X-)
-                    bool shouldDrawBackFace = x == 0;
-                    if (!shouldDrawBackFace)
+                    bool makeBackface = x == 0;
+                    if (!makeBackface)
                     {
                         Vector3 backTileCoordinates = new Vector3(x - 1, y, z);
                         int backCoord = GridHelpers.GetCoordinate1DFrom3D(backTileCoordinates, ChunkSize3D);
                         uint backSample = dataMe[backCoord];
-                        shouldDrawBackFace = IsEmpty(backSample);
+                        makeBackface = IsEmpty(backSample);
                     }
-                    if (shouldDrawBackFace)
+                    if (makeBackface)
                     {
+                        if (vertices.IsEmpty)
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
-                            vData.Normal = -RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            vIdx += 4;
                         }
-
+                        else
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
-                            vData.Normal = -RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
+                                vData.Normal = -RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
-                            vData.Normal = -RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
+                                vData.Normal = -RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
-                            vData.Normal = -RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
+                                vData.Normal = -RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
+
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
+                                vData.Normal = -RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
                         }
                     }
 
                     // Front (X+)
-                    bool shouldDrawFrontFace = x == ChunkSize.X - 1;
-                    if (!shouldDrawFrontFace)
+                    bool makeFrontFace = x == ChunkSize.X - 1;
+                    if (!makeFrontFace)
                     {
                         Vector3 frontTileCoordinates = new Vector3(x + 1, y, z);
                         int frontCoord = GridHelpers.GetCoordinate1DFrom3D(frontTileCoordinates, ChunkSize3D);
                         uint frontSample = dataMe[frontCoord];
-                        shouldDrawFrontFace = IsEmpty(frontSample);
+                        makeFrontFace = IsEmpty(frontSample);
                     }
-                    if (shouldDrawFrontFace)
+                    if (makeFrontFace)
                     {
+                        if (vertices.IsEmpty)
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
-                            vData.Normal = RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            vIdx += 4;
                         }
-
+                        else
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
-                            vData.Normal = RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
+                                vData.Normal = RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
-                            vData.Normal = RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
+                                vData.Normal = RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
-                            vData.Normal = RenderComposer.Forward;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
+                                vData.Normal = RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
+
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
+                                vData.Normal = RenderComposer.Forward;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
                         }
                     }
 
                     // Left (Y-)
-                    bool shouldDrawLeftFace = y == 0;
-                    if (!shouldDrawLeftFace)
+                    bool makeLeftFace = y == 0;
+                    if (!makeLeftFace)
                     {
                         Vector3 leftTileCoordinates = new Vector3(x, y - 1, z);
                         int leftCoord = GridHelpers.GetCoordinate1DFrom3D(leftTileCoordinates, ChunkSize3D);
                         uint leftSample = dataMe[leftCoord];
-                        shouldDrawLeftFace = IsEmpty(leftSample);
+                        makeLeftFace = IsEmpty(leftSample);
                     }
-                    if (shouldDrawLeftFace)
+                    if (makeLeftFace)
                     {
+                        if (vertices.IsEmpty)
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
-                            vData.Normal = -RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            vIdx += 4;
                         }
-
+                        else
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
-                            vData.Normal = -RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
+                                vData.Normal = -RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
-                            vData.Normal = -RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
+                                vData.Normal = -RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
-                            vData.Normal = -RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
+                                vData.Normal = -RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
+
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
+                                vData.Normal = -RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
                         }
                     }
 
                     // Right (Y+)
-                    bool shouldDrawRightFace = y == ChunkSize.Y - 1;
-                    if (!shouldDrawRightFace)
+                    bool makeRightFace = y == ChunkSize.Y - 1;
+                    if (!makeRightFace)
                     {
                         Vector3 rightTileCoordinates = new Vector3(x, y + 1, z);
                         int rightCoord = GridHelpers.GetCoordinate1DFrom3D(rightTileCoordinates, ChunkSize3D);
                         uint rightSample = dataMe[rightCoord];
-                        shouldDrawRightFace = IsEmpty(rightSample);
+                        makeRightFace = IsEmpty(rightSample);
                     }
-                    if (shouldDrawRightFace)
+                    if (makeRightFace)
                     {
+                        if (vertices.IsEmpty)
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
-                            vData.Normal = RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            vIdx += 4;
                         }
-
+                        else
                         {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
-                            vData.Normal = RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
+                                vData.Normal = RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
-                            vData.Normal = RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
-                        }
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
+                                vData.Normal = RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
 
-                        {
-                            ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                            vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
-                            vData.Normal = RenderComposer.Right;
-                            vData.Color = Color.PrettyBrown.ToUint();
-                            vData.UV = new Vector2(0, 0);
-                            vIdx++;
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
+                                vData.Normal = RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
+
+                            {
+                                ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
+                                vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
+                                vData.Normal = RenderComposer.Right;
+                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.UV = new Vector2(0, 0);
+                                vIdx++;
+                            }
                         }
                     }
                 }
             }
         }
+
+        return vIdx;
+    }
+
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, VoxelMeshGridChunk chunk, bool propagate = true)
+    {
+        // We already have the latest version of this
+        if (chunk.VerticesGeneratedForVersion == chunk.ChunkVersion && chunk.VertexMemory.Allocated) return;
+
+        Vector2 tileSize = TileSize;
+        Vector3 tileSize3D = TileSize3D;
+        Vector3 halfTileSize3D = tileSize3D / 2f;
+
+        Vector2 chunkWorldSize = ChunkSize * tileSize;
+        Vector2 chunkWorldOffset = chunkCoord * chunkWorldSize;
+
+        // Get my data
+        uint[] dataMe = chunk.GetRawData() ?? Array.Empty<uint>();
+
+        int verticesToAllocate = RunChunkMeshGeneration(chunkWorldOffset, dataMe, Span<VertexData_Pos_UV_Normal_Color>.Empty, tileSize3D);
+        verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000;
+        Span<VertexData_Pos_UV_Normal_Color> vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, verticesToAllocate);
+
+        int verticesUsed = RunChunkMeshGeneration(chunkWorldOffset, dataMe, vertices, tileSize3D);
 
         // Update colliders
         chunk.Colliders ??= new List<Cube>();
@@ -527,21 +578,22 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                 float z = GetHeightAt(tileOrigin);
                 if (z == -1) continue;
 
-                chunk.Colliders.Add(new Cube(tileOrigin.ToVec3(z), TileSize3D / 2f));
+                chunk.Colliders.Add(new Cube(tileOrigin.ToVec3(z), halfTileSize3D));
             }
         }
 
         // The indices used are the same for all chunks, just the length is different
         AssertNotNull(_indices);
         AssertNotNull(_indexBuffer);
-        chunk.SetIndices(_indices, _indexBuffer, (int)(vIdx / 4f * 6f));
+        chunk.SetIndices(_indices, _indexBuffer, (int)(verticesUsed / 4f * 6f));
 
         chunk.GPUDirty = true;
         chunk.VerticesGeneratedForVersion = chunk.ChunkVersion;
+        chunk.VerticesUsed = (uint)verticesUsed;
 
-        Vector3 chunkSizeWorld3 = ChunkSize3D * TileSize3D;
+        Vector3 chunkSizeWorld3 = ChunkSize3D * tileSize3D;
         chunk.Bounds = Cube.FromCenterAndSize(
-            (chunkWorldOffset.ToVec3() + chunkSizeWorld3 / 2f) - TileSize3D / 2f,
+            (chunkWorldOffset.ToVec3() + chunkSizeWorld3 / 2f) - halfTileSize3D,
             chunkSizeWorld3
         );
     }
