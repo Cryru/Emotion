@@ -6,6 +6,8 @@ namespace Emotion.WIPUpdates.Rendering;
 
 public struct VertexDataAllocation
 {
+    public static VertexDataAllocation Empty = new();
+
     public bool Allocated { get; set; }
 
     public IntPtr Pointer { get; init; } = IntPtr.Zero;

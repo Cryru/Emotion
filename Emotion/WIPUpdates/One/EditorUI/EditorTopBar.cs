@@ -9,9 +9,11 @@ using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.Tools;
+using Emotion.WIPUpdates.One.Tools.ChunkStreamVisualizer;
 using Emotion.WIPUpdates.One.Tools.GameDataTool;
 using Emotion.WIPUpdates.One.Tools.InterfaceTool;
 using Emotion.WIPUpdates.One.Tools.SpriteEntityTool;
+using Emotion.WIPUpdates.ThreeDee.GridStreaming;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
 
@@ -64,7 +66,7 @@ public class EditorTopBar : UISolidColor
             toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new SpriteEntityEditor());
             buttonContainer.AddChild(toolButton);
         }
-        
+
         {
             EditorButton toolButton = new EditorButton("UI Debug Tool");
             toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new UIDebugTool());
@@ -95,6 +97,18 @@ public class EditorTopBar : UISolidColor
                     };
                     dropDown.AddChild(button);
                 }
+            };
+            buttonContainer.AddChild(toolButton);
+        }
+
+        {
+            EditorButton toolButton = new EditorButton("Chunk Stream Visualizer");
+            toolButton.OnClickedProxy = (_) =>
+            {
+                GameMap? currentMap = EngineEditor.GetCurrentMap();
+                if (currentMap == null || currentMap.TerrainGrid == null) return;
+                if (currentMap.TerrainGrid is IStreamableGrid streamGrid)
+                    EngineEditor.OpenToolWindowUnique(new ChunkStreamVisualizer(streamGrid));
             };
             buttonContainer.AddChild(toolButton);
         }

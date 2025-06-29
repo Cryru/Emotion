@@ -66,6 +66,11 @@ namespace Emotion.Graphics.Objects
             Upload(memory.Pointer, memory.GetAllocationSize(), BufferUsage.StaticDraw);
         }
 
+        public void Upload(VertexDataAllocation memory, uint vertexCount)
+        {
+            Upload(memory.Pointer, (uint)(vertexCount * memory.Format.ElementSize), BufferUsage.StaticDraw);
+        }
+
         /// <summary>
         /// Upload data to the buffer.
         /// </summary>

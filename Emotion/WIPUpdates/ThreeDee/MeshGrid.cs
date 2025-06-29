@@ -1,22 +1,22 @@
 ﻿using Emotion.Common.Serialization;
-using Emotion.Game.OctTree;
-using Emotion.Graphics.Shader;
+using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
-using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.Rendering;
+using Emotion.WIPUpdates.ThreeDee.GridStreaming;
+using Emotion.WIPUpdates.ThreeDee.MeshGridStreaming;
 using OpenGL;
-using System;
-using System.Diagnostics.Metrics;
+using System.Numerics;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
 #nullable enable
 
-public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
-    where ChunkT : VersionedGridChunk<T>, new()
+[DontSerialize]
+public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, IStreamableGrid
+    where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
     where T : struct, IEquatable<T>
     where IndexT : INumber<IndexT>
 {
@@ -28,12 +28,15 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
     public MeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {
         TileSize = tileSize;
+
+        int factor = (int)MathF.Max(tileSize.Y, tileSize.X);
+        ChunkStreamManager = new ChunkStreamManager(256 * factor, 256 * factor);
     }
 
-    // serialization
-    protected MeshGrid()
+    public virtual IEnumerator InitRuntimeDataRoutine()
     {
-
+        Initialized = true;
+        yield break;
     }
 
     #region API
@@ -54,7 +57,14 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     public void Update(float dt)
     {
+        ChunkStreamManager.Update(this);
 
+        // Update chunk meshes (if any changes)
+        Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasMesh);
+        foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
+        {
+            UpdateChunkVertices(item.Key, item.Value);
+        }
     }
 
     public abstract float GetHeightAt(Vector2 worldSpace);
@@ -65,19 +75,20 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     public bool CollideWithCube<TUserData>(Cube cube, Func<Cube, TUserData, bool> onIntersect, TUserData userData)
     {
-        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasMesh);
+        foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
-            MeshGridChunkRuntimeCache chunkCache = item.Value;
-            VertexDataAllocation vertices = chunkCache.VertexMemory;
+            ChunkT chunk = item.Value;
+            VertexDataAllocation vertices = chunk.VertexMemory;
             if (!vertices.Allocated) continue;
-            if (chunkCache.Bounds.IsEmpty) continue;
-            if (!chunkCache.Bounds.Intersects(cube)) continue;
+            if (chunk.Bounds.IsEmpty) continue;
+            if (!chunk.Bounds.Intersects(cube)) continue;
 
-            if (chunkCache.Colliders != null)
+            if (chunk.Colliders != null)
             {
-                for (int i = 0; i < chunkCache.Colliders.Count; i++)
+                for (int i = 0; i < chunk.Colliders.Count; i++)
                 {
-                    Cube collider = chunkCache.Colliders[i];
+                    Cube collider = chunk.Colliders[i];
                     if (cube.Intersects(collider))
                     {
                         bool stopChecks = onIntersect(collider, userData);
@@ -88,10 +99,10 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
             }
             else
             {
-                IndexT[]? indices = chunkCache.CPUIndexBuffer;
+                IndexT[]? indices = chunk.CPUIndexBuffer;
                 if (indices == null) continue;
 
-                if (cube.IntersectWithVertices(indices, chunkCache.IndicesUsed, vertices, out Vector3 collisionPoint, out Vector3 normal, out _))
+                if (cube.IntersectWithVertices(indices, chunk.IndicesUsed, vertices, out Vector3 collisionPoint, out Vector3 normal, out _))
                     return true;
             }
         }
@@ -131,15 +142,16 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
         float earliestHit = 1f;
 
-        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasMesh);
+        foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
-            MeshGridChunkRuntimeCache chunkCache = item.Value;
-            if (chunkCache.Bounds.IsEmpty) continue;
-            if (!chunkCache.Bounds.Intersects(sweepBound)) continue;
+            ChunkT chunk = item.Value;
+            if (chunk.Bounds.IsEmpty) continue;
+            if (!chunk.Bounds.Intersects(sweepBound)) continue;
 
-            if (chunkCache.Colliders == null) continue; // todo: vertices based chunks? triangle collision
+            if (chunk.Colliders == null) continue; // todo: vertices based chunks? triangle collision
 
-            foreach (Cube other in chunkCache.Colliders)
+            foreach (Cube other in chunk.Colliders)
             {
                 (Vector3 bMin, Vector3 bMax) = other.GetMinMax();
 
@@ -219,15 +231,16 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
         Vector3 closestIntersection = Vector3.Zero;
         float closestIntersectionDist = float.PositiveInfinity;
 
-        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasMesh);
+        foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
-            MeshGridChunkRuntimeCache chunkCache = item.Value;
-            if (chunkCache.Bounds.IsEmpty) continue;
-            if (!ray.IntersectWithCube(chunkCache.Bounds, out Vector3 _)) continue;
+            ChunkT chunk = item.Value;
+            if (chunk.Bounds.IsEmpty) continue;
+            if (!ray.IntersectWithCube(chunk.Bounds, out Vector3 _)) continue;
 
-            if (chunkCache.Colliders == null) continue; // todo: vertices based chunks? triangle collision
+            if (chunk.Colliders == null) continue; // todo: vertices based chunks? triangle collision
 
-            foreach (Cube other in chunkCache.Colliders)
+            foreach (Cube other in chunk.Colliders)
             {
                 if (ray.IntersectWithCube(other, out Vector3 colPoint))
                 {
@@ -249,49 +262,46 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     #region Rendering
 
-    protected List<MeshGridChunkRuntimeCache> _renderThisPass = new(32);
-
-    private void MarkChunkForRender(Vector2 chunkCoord, ChunkT chunk)
-    {
-        if (!_chunkRuntimeData.TryGetValue(chunkCoord, out MeshGridChunkRuntimeCache? renderCache)) return;
-
-        UpdateChunkVertices(chunkCoord, renderCache);
-        Assert(renderCache.VertexMemory.Allocated);
-
-        // todo: deallocate at some point?
-        if (renderCache.GPUVertexMemory == null || renderCache.GPUDirty)
-        {
-            renderCache.GPUVertexMemory ??= GPUMemoryAllocator.AllocateBuffer(renderCache.VertexMemory.Format);
-            renderCache.GPUVertexMemory.VBO.Upload(renderCache.VertexMemory);
-            renderCache.GPUDirty = false;
-        }
-
-        _renderThisPass.Add(renderCache);
-    }
+    protected int _maxChunksUploadAtOnce = 5;
+    protected List<ChunkT> _renderThisPass = new(32);
 
     // todo: 3d culling
     public virtual void Render(RenderComposer c, Frustum frustum)
     {
-        Vector2 tileSize = TileSize;
-        Vector2 chunkWorldSize = ChunkSize * tileSize;
+        _maxChunksUploadAtOnce = 10;
 
-        // Pick chunks to render this pass.
+        // Gather chunks to render this pass.
+        int chunksUploaded = 0;
         _renderThisPass.Clear();
-        foreach (KeyValuePair<Vector2, MeshGridChunkRuntimeCache> item in _chunkRuntimeData)
+        Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasGPUData);
+        foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
-            Vector2 chunkCoord = item.Key;
-            MeshGridChunkRuntimeCache chunkCache = item.Value;
-            Cube bounds = chunkCache.Bounds;
+            ChunkT chunk = item.Value;
 
-            // If bounds not created, create them!
-            if (bounds.IsEmpty)
+            // Assert that the chunk is really in this state.
+            Assert(chunk.GPUVertexMemory != null);
+            if (chunk.GPUVertexMemory == null) continue;
+
+            Assert(chunk.VertexMemory.Allocated);
+            if (!chunk.VertexMemory.Allocated) continue;
+
+            // Upload new data, if dirty (should we do this as a GL task?)
+            // We do this regardless if the chunk is visible to ensure theres no
+            // lag when the player turns around.
+            if (chunk.GPUDirty && chunksUploaded < _maxChunksUploadAtOnce)
             {
-                UpdateChunkVertices(chunkCoord, item.Value);
-                continue;
+                chunksUploaded++;
+                chunk.GPUVertexMemory.VBO.Upload(chunk.VertexMemory, (uint) chunk.IndicesUsed);
+                chunk.GPUDirty = false;
             }
 
+            // Frustum cull
+            Cube bounds = chunk.Bounds;
+            Assert(!bounds.IsEmpty);
             if (frustum.IntersectsOrContainsCube(bounds))
-                MarkChunkForRender(chunkCoord, chunkCache.Chunk);
+            {
+                _renderThisPass.Add(chunk);
+            }
         }
 
         if (_renderThisPass.Count > 0)
@@ -307,13 +317,14 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
             SetupShaderState(c.CurrentState.Shader);
 
-            foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            foreach (ChunkT chunkToRender in _renderThisPass)
             {
                 IndexBuffer? indexBuffer = chunkToRender.IndexBuffer;
                 if (indexBuffer == null) continue;
 
                 GPUVertexMemory? gpuMem = chunkToRender.GPUVertexMemory;
                 if (gpuMem == null) continue;
+                if (chunkToRender.GPUDirty) continue;
 
                 VertexArrayObject.EnsureBound(gpuMem.VAO);
                 IndexBuffer.EnsureBound(indexBuffer.Pointer);
@@ -358,49 +369,25 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
 
     #endregion
 
-    #region Chunk Mesh Management
+    #region Protected API
 
-    protected Dictionary<Vector2, MeshGridChunkRuntimeCache> _chunkRuntimeData = new();
-
-    public IEnumerator InitRuntimeDataRoutine()
-    {
-        Initialized = true;
-        foreach (KeyValuePair<Vector2, ChunkT> item in _chunks)
-        {
-            OnChunkCreated(item.Key, item.Value);
-        }
-
-        // Create bounds.
-        Update(0);
-
-        yield break;
-    }
+    [DontSerialize]
+    public ChunkStreamManager ChunkStreamManager { get; set; }
 
     // These events should only really trigger in the editor or if some game is dynamically editing the terrain.
-
-    protected override void OnChunkCreated(Vector2 chunkCoord, ChunkT newChunk)
-    {
-        base.OnChunkCreated(chunkCoord, newChunk);
-        if (!Initialized) return;
-
-        var renderCache = new MeshGridChunkRuntimeCache(newChunk);
-        _chunkRuntimeData.Add(chunkCoord, renderCache);
-    }
 
     protected override void OnChunkRemoved(Vector2 chunkCoord, ChunkT newChunk)
     {
         base.OnChunkRemoved(chunkCoord, newChunk);
         if (!Initialized) return;
 
-        // Free resources
-        if (_chunkRuntimeData.Remove(chunkCoord, out MeshGridChunkRuntimeCache? renderCache))
-        {
-            VertexDataAllocation.FreeAllocated(ref renderCache.VertexMemory);
-            GPUMemoryAllocator.FreeBuffer(renderCache.GPUVertexMemory);
-        }
+        // todo: demote chunk to data only before freeing
+        RemoveChunkFromLoadedList(chunkCoord);
+        VertexDataAllocation.FreeAllocated(ref newChunk.VertexMemory);
+        GPUMemoryAllocator.FreeBuffer(newChunk.GPUVertexMemory);
     }
 
-    protected abstract void UpdateChunkVertices(Vector2 chunkCoord, MeshGridChunkRuntimeCache renderCache, bool propagate = true);
+    protected abstract void UpdateChunkVertices(Vector2 chunkCoord, ChunkT chunk, bool propagate = true);
 
     protected abstract MeshMaterial GetMeshMaterial();
 
@@ -410,65 +397,4 @@ public abstract class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGri
     }
 
     #endregion
-
-    protected class MeshGridChunkRuntimeCache : IOctTreeStorable
-    {
-        public ChunkT Chunk;
-        public bool GPUDirty = true;
-
-        #region Vertices
-
-        public int VerticesGeneratedForVersion = -1;
-        public VertexDataAllocation VertexMemory;
-        public GPUVertexMemory? GPUVertexMemory;
-
-        #endregion
-
-        #region Bounds
-
-        public Cube Bounds;
-
-        #endregion
-
-        #region Indices
-
-        public IndexT[]? CPUIndexBuffer { get; private set; } // todo: index allocation type
-        public IndexBuffer? IndexBuffer { get; private set; }
-        public int IndicesUsed { get; private set; } = -1;
-
-        #endregion
-
-        #region Collision
-
-        public List<Cube>? Colliders; // todo: collider type
-
-        #endregion
-
-        public MeshGridChunkRuntimeCache(ChunkT chunk)
-        {
-            Chunk = chunk;
-        }
-
-        public Span<VertexData_Pos_UV_Normal_Color> EnsureVertexMemoryAndGetSpan(Vector2 chunkCoord, int vertexCount)
-        {
-            if (!VertexMemory.Allocated)
-                VertexMemory = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal_Color.Format, vertexCount, $"TerrainChunk_{chunkCoord}");
-            else if (VertexMemory.VertexCount < vertexCount)
-                VertexMemory = VertexDataAllocation.Reallocate(ref VertexMemory, vertexCount);
-
-            return VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
-        }
-
-        public void SetIndices(IndexT[] cpuIndices, IndexBuffer gpuIndices, int indexCount)
-        {
-            CPUIndexBuffer = cpuIndices;
-            IndexBuffer = gpuIndices;
-            IndicesUsed = indexCount;
-        }
-
-        public Cube GetOctTreeBound()
-        {
-            return Bounds;
-        }
-    }
 }

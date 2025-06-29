@@ -2,17 +2,13 @@
 
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
-using Emotion.Game.OctTree;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.Rendering;
-using OpenGL;
-using System.Buffers;
-using TerrainMeshGridChunk = Emotion.WIPUpdates.Grids.VersionedGridChunk<float>;
+using TerrainMeshGridChunk = Emotion.WIPUpdates.ThreeDee.MeshGridStreaming.MeshGridStreamableChunk<float, ushort>;
 
 namespace Emotion.WIPUpdates.ThreeDee;
 
@@ -22,21 +18,13 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
     {
     }
 
-    // serialization
-    protected TerrainMeshGrid()
+    public override IEnumerator InitRuntimeDataRoutine()
     {
-
+        yield return GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
+        yield return base.InitRuntimeDataRoutine();
     }
 
     #region Rendering
-
-    public override void Render(RenderComposer c, Frustum frustum)
-    {
-        if (ChunkSize != _indexBufferChunkSize || _indexBuffer == null)
-            PrepareIndexBuffer();
-
-        base.Render(c, frustum);
-    }
 
     [DontSerialize]
     public MeshMaterial TerrainMeshMaterial = new MeshMaterial()
@@ -68,12 +56,10 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
     private const bool HEIGHT_BASED_VERTEX_NORMALS = true;
 
-    protected override void UpdateChunkVertices(Vector2 chunkCoord, MeshGridChunkRuntimeCache renderCache, bool propagate = true)
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, TerrainMeshGridChunk chunk, bool propagate = true)
     {
-        TerrainMeshGridChunk chunk = renderCache.Chunk;
-
         // We already have the latest version of this
-        if (renderCache.VerticesGeneratedForVersion == chunk.ChunkVersion && renderCache.VertexMemory.Allocated) return;
+        if (chunk.VerticesGeneratedForVersion == chunk.ChunkVersion && chunk.VertexMemory.Allocated) return;
 
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
@@ -85,14 +71,14 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        Span<VertexData_Pos_UV_Normal_Color> vertices = renderCache.EnsureVertexMemoryAndGetSpan(chunkCoord, vertexCount);
+        Span<VertexData_Pos_UV_Normal_Color> vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, vertexCount);
 
         // Get my data
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
 
         // Get data around for stitching vertices
         Vector2 leftChunkCoord = chunkCoord + new Vector2(-1, 0);
-        VersionedGridChunk<float>? chunkLeft = GetChunk(leftChunkCoord);
+        TerrainMeshGridChunk? chunkLeft = GetChunk(leftChunkCoord);
         float[] dataLeft = chunkLeft?.GetRawData() ?? Array.Empty<float>();
 
         Vector2 topChunkCoord = chunkCoord + new Vector2(0, -1);
@@ -106,48 +92,53 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         // Propagate changes to stitching chunks
         if (propagate)
         {
-            MeshGridChunkRuntimeCache? chunkCache;
+            TerrainMeshGridChunk? stitchChunk;
 
             Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
-            if (_chunkRuntimeData.TryGetValue(rightChunkCoord, out chunkCache))
+            stitchChunk = GetChunkAt(rightChunkCoord, out _);
+            if (stitchChunk != null && stitchChunk.State >= GridStreaming.ChunkState.HasMesh)
             {
-                chunkCache.VerticesGeneratedForVersion++;
-                UpdateChunkVertices(rightChunkCoord, chunkCache, false);
+                stitchChunk.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(rightChunkCoord, stitchChunk, false);
             }
 
             Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
-            if (_chunkRuntimeData.TryGetValue(bottomChunkCoord, out chunkCache))
+            stitchChunk = GetChunkAt(bottomChunkCoord, out _);
+            if (stitchChunk != null && stitchChunk.State >= GridStreaming.ChunkState.HasMesh)
             {
-                chunkCache.VerticesGeneratedForVersion++;
-                UpdateChunkVertices(bottomChunkCoord, chunkCache, false);
+                stitchChunk.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(bottomChunkCoord, stitchChunk, false);
             }
 
             Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
-            if (_chunkRuntimeData.TryGetValue(bottomRightChunkCoord, out chunkCache))
+            stitchChunk = GetChunkAt(bottomRightChunkCoord, out _);
+            if (stitchChunk != null && stitchChunk.State >= GridStreaming.ChunkState.HasMesh)
             {
-                chunkCache.VerticesGeneratedForVersion++;
-                UpdateChunkVertices(bottomRightChunkCoord, chunkCache, false);
+                stitchChunk.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(bottomRightChunkCoord, stitchChunk, false);
             }
 
             // For normals
-            if (_chunkRuntimeData.TryGetValue(leftChunkCoord, out chunkCache))
+            if (chunkLeft != null && chunkLeft.State >= GridStreaming.ChunkState.HasMesh)
             {
-                chunkCache.VerticesGeneratedForVersion++;
-                UpdateChunkVertices(leftChunkCoord, chunkCache, false);
+                chunkLeft.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(leftChunkCoord, chunkLeft, false);
             }
 
             Vector2 bottomLeftCoord = chunkCoord + new Vector2(-1, 1);
-            if (_chunkRuntimeData.TryGetValue(bottomLeftCoord, out chunkCache))
+            stitchChunk = GetChunkAt(bottomLeftCoord, out _);
+            if (stitchChunk != null && stitchChunk.State >= GridStreaming.ChunkState.HasMesh)
             {
-                chunkCache.VerticesGeneratedForVersion++;
-                UpdateChunkVertices(bottomLeftCoord, chunkCache, false);
+                stitchChunk.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(bottomLeftCoord, stitchChunk, false);
             }
 
             Vector2 topLeftCoord = chunkCoord + new Vector2(-1, -1);
-            if (_chunkRuntimeData.TryGetValue(topLeftCoord, out chunkCache))
+            stitchChunk = GetChunkAt(topLeftCoord, out _);
+            if (stitchChunk != null && stitchChunk.State >= GridStreaming.ChunkState.HasMesh)
             {
-                chunkCache.VerticesGeneratedForVersion++;
-                UpdateChunkVertices(topLeftCoord, chunkCache, false);
+                stitchChunk.VerticesGeneratedForVersion++;
+                UpdateChunkVertices(topLeftCoord, stitchChunk, false);
             }
         }
 
@@ -166,7 +157,7 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                 vData.Position = worldPos.ToVec3(heightSample);
-                vData.Normal = Vector3.Zero;
+                vData.Normal = RenderComposer.Up;// Vector3.Zero;
 
                 //Vector2 percent = (tileCoord + Vector2.One) / (ChunkSize + Vector2.One);
                 vData.Color = Color.WhiteUint;// Color.Lerp(Color.Black, Color.White, (heightSample * 20) / 280).ToUint();
@@ -191,7 +182,7 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         }
 
         // Generate vertex normals
-        if (HEIGHT_BASED_VERTEX_NORMALS)
+        if (HEIGHT_BASED_VERTEX_NORMALS && false)
         {
             float[] dataTopRight = GetChunk(chunkCoord + new Vector2(1, -1))?.GetRawData() ?? Array.Empty<float>();
             float[] dataBottomLeft = GetChunk(chunkCoord + new Vector2(-1, 1))?.GetRawData() ?? Array.Empty<float>();
@@ -275,12 +266,12 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         // The indices used are the same for all chunks
         AssertNotNull(_indices);
         AssertNotNull(_indexBuffer);
-        renderCache.SetIndices(_indices, _indexBuffer, _indicesLength);
+        chunk.SetIndices(_indices, _indexBuffer, _indicesLength);
 
-        renderCache.GPUDirty = true;
-        renderCache.VerticesGeneratedForVersion = chunk.ChunkVersion;
+        chunk.GPUDirty = true;
+        chunk.VerticesGeneratedForVersion = chunk.ChunkVersion;
 
-        renderCache.Bounds = Cube.FromMinAndMax(min, max);
+        chunk.Bounds = Cube.FromMinAndMax(min, max);
     }
 
     private static Vector2[] _heightSamplePattern =
@@ -423,9 +414,7 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
     // One index buffer is used for all chunks, and they are all the same length.
 
-    protected ushort[]? _indices; // Collision only
-
-    protected Vector2 _indexBufferChunkSize;
+    protected ushort[]? _indices; // Collision only;
     protected int _indicesLength;
     protected IndexBuffer? _indexBuffer;
 
@@ -484,7 +473,6 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         }
 
         _indexBuffer.Upload(indices, indexCount);
-        _indexBufferChunkSize = ChunkSize;
         _indicesLength = indexCount;
 
         // Used for collision
@@ -562,7 +550,7 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
             Ray3D mouseRay = camera.GetCameraMouseRay();
             Vector3 mousePosWorld = mouseRay.IntersectWithPlane(RenderComposer.Up, Vector3.Zero);
 
-            foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
+            foreach (TerrainMeshGridChunk chunkToRender in _renderThisPass)
             {
                 VertexDataAllocation vertices = chunkToRender.VertexMemory;
                 if (!vertices.Allocated) continue;

@@ -5,6 +5,8 @@ using Emotion.Game.Time;
 using Emotion.Graphics.Camera;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
+using Emotion.WIPUpdates.ThreeDee;
+using Emotion.WIPUpdates.ThreeDee.MeshGridStreaming;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 
@@ -60,7 +62,17 @@ public class WoWMovementController
 
         GameMap? map = _character.Map;
         if (map == null) return;
-        if (map.TerrainGrid == null) return;
+
+        TerrainMeshGrid? terrain = map.TerrainGrid as TerrainMeshGrid;
+        if (terrain == null) return;
+
+        Vector2 myPos = _character.Position2D;
+        Vector2 tile = terrain.GetTilePosOfWorldPos(myPos);
+        MeshGridStreamableChunk<float, ushort>? chunk = terrain.GetChunkAt(tile, out Vector2 _);
+        if (chunk == null || !chunk.CanBeSimulated)
+        {
+            return;
+        }
 
         // Add gravity
         _velocityZ += _gravityPerMs * dt;
@@ -107,7 +119,7 @@ public class WoWMovementController
         // Check for collision
         if (moveRequest.Z != 0 && (_inAir || moved))
         {
-            float height = map.TerrainGrid.GetHeightAt(_character.Position2D);
+            float height = terrain.GetHeightAt(_character.Position2D);
             if (_character.Z + moveRequest.Z < height)
             {
                 moveRequest.Z = 0;

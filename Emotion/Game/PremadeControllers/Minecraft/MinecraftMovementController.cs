@@ -1,9 +1,11 @@
-﻿using Emotion.Common.Input;
-using Emotion.Graphics.Camera;
+﻿using Emotion.Graphics.Camera;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.ThreeDee;
+using Emotion.WIPUpdates.ThreeDee.MeshGridStreaming;
+
+#nullable enable
 
 namespace Game.Controller;
 
@@ -60,6 +62,15 @@ public class MinecraftMovementController
 
         VoxelMeshTerrainGrid? voxelTerrain = map.TerrainGrid as VoxelMeshTerrainGrid;
         if (voxelTerrain == null) return;
+
+        Vector2 myPos = _character.Position2D;
+        Vector2 tile = voxelTerrain.GetTilePosOfWorldPos(myPos);
+        MeshGridStreamableChunk<uint, uint>? chunk = voxelTerrain.GetChunkAt(tile, out Vector2 _);
+        if (chunk == null || !chunk.CanBeSimulated)
+        {
+            TilePosOfCursor = Vector3.NaN;
+            return;
+        }
 
         // Add gravity
         _velocityZ += _gravityPerMs * dt;
