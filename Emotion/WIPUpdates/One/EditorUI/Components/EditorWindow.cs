@@ -362,9 +362,9 @@ public class EditorWindow : UIBaseWindow
 
         if (Engine.Host.SupportsSubWindows() && AllowSubWindow)
         {
-            var subWindowButton = new EditorButton
+            var subWindowButton = new SquareEditorButtonWithTexture("Editor/SubWindow.png", 17)
             {
-                Text = "Sub",
+                IconColor = new Primitives.Color(70, 70, 70),
                 Id = "SubWindowButton",
                 NormalColor = Color.PrettyYellow * 0.75f,
                 RolloverColor = Color.PrettyYellow,
@@ -373,13 +373,13 @@ public class EditorWindow : UIBaseWindow
             topBarButtonList.AddChild(subWindowButton);
         }
 
-        var closeButton = new EditorButton
+        var closeButton = new SquareEditorButtonWithTexture("Editor/Close.png", 17)
         {
-            Text = "X",
+            IconColor = new Primitives.Color(70, 70, 70),
             Id = "CloseButton",
             NormalColor = Color.PrettyRed * 0.75f,
             RolloverColor = Color.PrettyRed,
-            OnClickedProxy = _ => { Close(); }
+            OnClickedProxy = _ => Close()
         };
         topBarButtonList.AddChild(closeButton);
     }
