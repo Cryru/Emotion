@@ -306,7 +306,7 @@ public class ObjectPropertyWindow : UIBaseWindow
         if (_pagingRoot == null)
             return;
 
-        EngineEditor.ObjectChanged(_pagingRoot, ObjectChangeType.ComplexObject_PropertyChanged, this);
+        EngineEditor.ReportChange_NoInfo(_pagingRoot, this);
 
         object? val = _pagingRoot;
         foreach (var entry in _pages)
@@ -315,7 +315,7 @@ public class ObjectPropertyWindow : UIBaseWindow
             if (val == null) return;
 
             if (val is not ValueType)
-                EngineEditor.ObjectChanged(val, ObjectChangeType.ComplexObject_PropertyChanged, this);
+                EngineEditor.ReportChange_NoInfo(val, this);
         }
     }
 

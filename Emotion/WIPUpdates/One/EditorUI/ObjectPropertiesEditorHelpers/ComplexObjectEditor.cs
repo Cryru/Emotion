@@ -119,7 +119,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                         if(_objEdit != null)
                             _objEdit.ThrowObjectPropertyChangedThroughStack();
                         else
-                            EngineEditor.ObjectChanged(_value, ObjectChangeType.ComplexObject_PropertyChanged, this);
+                            EngineEditor.ReportChange_ObjectProperty(_value, member.Name, _value, newValue, this);
                     }
                 });
 

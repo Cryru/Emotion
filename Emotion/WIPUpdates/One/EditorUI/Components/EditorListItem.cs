@@ -2,7 +2,6 @@
 
 using Emotion.Game.World.Editor;
 using Emotion.UI;
-using static Emotion.WIPUpdates.One.EngineEditor;
 
 namespace Emotion.WIPUpdates.One.EditorUI.Components;
 
@@ -11,6 +10,18 @@ public class EditorListItem<T> : EditorButton
     public Color SelectedColor = MapEditorColorPalette.ButtonColor;
 
     public T? Item { get; protected set; }
+
+    public string LabelSuffix
+    {
+        get => _labelSuffix;
+        set
+        {
+            _labelSuffix = value;
+            UpdateLabel();
+        }
+    }
+
+    private string _labelSuffix = string.Empty;
 
     public bool Selected
     {
@@ -48,7 +59,7 @@ public class EditorListItem<T> : EditorButton
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
-    private void ObjectChangedEvent(ObjectChangeType _)
+    private void ObjectChangedEvent(ObjectChangeEvent _)
     {
         UpdateLabel();
     }
@@ -68,7 +79,7 @@ public class EditorListItem<T> : EditorButton
 
             _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
         }
-       
+
         button.ParentAnchor = UI.UIAnchor.CenterRight;
         button.Anchor = UI.UIAnchor.CenterRight;
         _buttonList.AddChild(button);
@@ -76,7 +87,7 @@ public class EditorListItem<T> : EditorButton
 
     private void UpdateLabel()
     {
-        Text = Item?.ToString() ?? "<null>";
+        Text = (Item?.ToString() ?? "<null>") + LabelSuffix;
     }
 
     protected override bool RenderInternal(RenderComposer c)

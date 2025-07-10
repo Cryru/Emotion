@@ -2,15 +2,37 @@
 
 namespace Emotion.WIPUpdates.One;
 
-public enum ObjectChangeType
+
+public class ObjectChangeEvent // Generic change, no info
 {
-    ValueChanged, // Most generic, might not be needed
-    ComplexObject_PropertyChanged, // Complex object property has changed. todo: property name
-    List_NewObj, // A new item has been added to the list. todo: pass the item/index (currently it's always the last item)
-    List_ObjectRemoved, // An item has been removed from the list. todo: pass the item
-    List_Reodered, // The list has been reordered.
-    List_ObjectValueChanged // The list itself has changed, as in one of the object references/values has changed. todo: index
+
 }
+
+public class PropertyChangedEvent(string memberName, object? oldValue, object? newValue) : ObjectChangeEvent
+{
+    public string MemberName { get => memberName; }
+
+    public object? OldValue { get => oldValue; }
+
+    public object? NewValue { get => newValue; }
+}
+
+public class ListChangedEvent(ListChangedEvent.ChangeType type, object? item, int itemIndex) : ObjectChangeEvent
+{
+    public ListChangedEvent.ChangeType Type { get => type; }
+
+    public object? Item { get => item; }
+
+    public int ItemIndex { get => itemIndex; }
+
+    public enum ChangeType
+    {
+        Add,
+        Delete,
+        Move
+    }
+}
+
 
 public partial class EngineEditor
 {
@@ -18,12 +40,37 @@ public partial class EngineEditor
     {
         public object? ListeningObject;
         public object ObjectListeningTo;
-        public Action<ObjectChangeType> OnChange;
+        public Action<ObjectChangeEvent> OnChange;
     }
 
     private static Dictionary<object, List<ObjectChangeMonitor>> _objModificationTracker = new Dictionary<object, List<ObjectChangeMonitor>>();
 
-    public static void ObjectChanged(object obj, ObjectChangeType changeType, object? changedByListener = null)
+    public static void ReportChange_ObjectProperty(object obj, string memberName, object? oldValue, object? newValue, object? changedByListener = null)
+    {
+        SendObjectChangeEvent(obj, new PropertyChangedEvent(memberName, oldValue, newValue), changedByListener);
+    }
+
+    public static void ReportChange_NoInfo(object obj, object? changedByListener = null)
+    {
+        SendObjectChangeEvent(obj, new ObjectChangeEvent(), changedByListener);
+    }
+
+    public static void ReportChange_ListItemRemoved(object list, object? deletedItem, int deletedItemIndex, object? changedByListener = null)
+    {
+        SendObjectChangeEvent(list, new ListChangedEvent(ListChangedEvent.ChangeType.Delete, deletedItem, deletedItemIndex), changedByListener);
+    }
+
+    public static void ReportChange_ListItemAdded(object list, object? item, int itemIndex, object? changedByListener = null)
+    {
+        SendObjectChangeEvent(list, new ListChangedEvent(ListChangedEvent.ChangeType.Add, item, itemIndex), changedByListener);
+    }
+
+    public static void ReportChange_ListItemMoved(object list, object? item, int itemIndex, object? changedByListener = null)
+    {
+        SendObjectChangeEvent(list, new ListChangedEvent(ListChangedEvent.ChangeType.Move, item, itemIndex), changedByListener);
+    }
+
+    private static void SendObjectChangeEvent(object obj, ObjectChangeEvent eventObject, object? changedByListener = null)
     {
         if (!_objModificationTracker.TryGetValue(obj, out List<ObjectChangeMonitor>? list)) return;
 
@@ -31,7 +78,7 @@ public partial class EngineEditor
         {
             ObjectChangeMonitor monitorItem = list[i];
             if (changedByListener != null && monitorItem.ListeningObject == changedByListener) continue;
-            monitorItem.OnChange(changeType);
+            monitorItem.OnChange(eventObject);
         }
     }
 
@@ -55,7 +102,7 @@ public partial class EngineEditor
             _objModificationTracker.RemoveAll((_, val) => val.Count == 0);
     }
 
-    public static void RegisterForObjectChanges(object obj, Action<ObjectChangeType> onChanged, object? listener = null)
+    public static void RegisterForObjectChanges(object obj, Action<ObjectChangeEvent> onChanged, object? listener = null)
     {
         ObjectChangeMonitor listenInstance = new ObjectChangeMonitor()
         {
@@ -73,7 +120,7 @@ public partial class EngineEditor
         list.Add(listenInstance);
     }
 
-    public static void RegisterForObjectChangesList(IEnumerable obj, Action<ObjectChangeType> onChanged, object? listener = null)
+    public static void RegisterForObjectChangesList(IEnumerable obj, Action<ObjectChangeEvent> onChanged, object? listener = null)
     {
         foreach (object? item in obj)
         {
