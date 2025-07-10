@@ -9,7 +9,9 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
 {
     public UITexture Texture { get; private set; }
 
-    public SquareEditorButtonWithTexture(string texturePath) : base()
+    public Color IconColor = MapEditorColorPalette.TextColor;
+
+    public SquareEditorButtonWithTexture(string texturePath, int size = 24) : base()
     {
         ShowOutline = false;
 
@@ -17,7 +19,7 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
         {
             TextureFile = texturePath,
             Smooth = true,
-            RenderSize = new Vector2(24),
+            RenderSize = new Vector2(size),
             AnchorAndParentAnchor = UIAnchor.CenterCenter,
             IgnoreParentColor = true
         };
@@ -28,6 +30,6 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
     protected override void RecalculateButtonColor()
     {
         base.RecalculateButtonColor();
-        Texture.WindowColor = Enabled ? MapEditorColorPalette.TextColor : MapEditorColorPalette.TextColor * 0.5f;
+        Texture.WindowColor = Enabled ? IconColor : IconColor * 0.5f;
     }
 }
