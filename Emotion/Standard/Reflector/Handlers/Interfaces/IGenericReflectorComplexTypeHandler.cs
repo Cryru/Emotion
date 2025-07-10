@@ -6,10 +6,6 @@ namespace Emotion.Standard.Reflector.Handlers.Interfaces;
 
 public interface IGenericReflectorComplexTypeHandler : IGenericReflectorTypeHandler
 {
-    public bool CanCreateNew();
-
-    public object? CreateNew();
-
     public ComplexTypeHandlerMemberBase[] GetMembers();
 
     public ComplexTypeHandlerMemberBase[] GetMembersDeep();

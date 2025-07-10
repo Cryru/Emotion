@@ -24,6 +24,16 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
         // nop
     }
 
+    public virtual bool CanCreateNew()
+    {
+        return true;
+    }
+
+    public virtual object? CreateNew()
+    {
+        return default(T);
+    }
+
     #region Serialization Read
 
     public ResponseT? ParseFromJSON<ResponseT>(ref Utf8JsonReader reader)

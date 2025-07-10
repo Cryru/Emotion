@@ -186,12 +186,12 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     #endregion
 
-    public bool CanCreateNew()
+    public override bool CanCreateNew()
     {
         return _createNew != null;
     }
 
-    public object? CreateNew()
+    public override object? CreateNew()
     {
         if (_createNew == null) return null;
         return _createNew();

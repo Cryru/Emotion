@@ -5,6 +5,7 @@ using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -15,12 +16,15 @@ public abstract class ListEditor : TypeEditor
 // generic constraint is the item type is only for ease of use, pass object if you dont care
 public class ListEditor<TItem> : ListEditor
 {
+    public bool AllowObjectEditting { get; set; } = true;
+
     private static IList<TItem?> EMPTY_LIST = new List<TItem?>();
 
     private Type ListItemType;
-    private IGenericReflectorComplexTypeHandler? _complexTypeHandler;
+    private IGenericReflectorTypeHandler? _itemTypeHandler;
+    private bool _inlineEditor = false;
 
-    private IList<TItem?> _items = EMPTY_LIST;
+    protected IList<TItem?> _items = EMPTY_LIST;
 
     private UIBaseWindow _itemList;
 
@@ -31,7 +35,8 @@ public class ListEditor<TItem> : ListEditor
     public ListEditor(Type typ)
     {
         ListItemType = typ;
-        _complexTypeHandler = ReflectorEngine.GetComplexTypeHandler(typ);
+        _itemTypeHandler = ReflectorEngine.GetTypeHandler(typ);
+        _inlineEditor = _itemTypeHandler != null && _itemTypeHandler is not IGenericReflectorComplexTypeHandler;
 
         LayoutMode = LayoutMode.VerticalList;
         SpawnEditButtons();
@@ -41,10 +46,11 @@ public class ListEditor<TItem> : ListEditor
         var scrollArea = new EditorScrollArea();
         AddChild(scrollArea);
 
-        _itemList = new UIBaseWindow()
+        _itemList = new UIOverlayWindowParent()
         {
             LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 3)
+            ListSpacing = new Vector2(0, 3),
+            NoClip = true
         };
         scrollArea.AddChildInside(_itemList);
     }
@@ -95,7 +101,7 @@ public class ListEditor<TItem> : ListEditor
             idx = 0;
 
         _currentIndex = idx;
-        ApplyItemsUISelection();
+        UpdateUI();
 
         TItem? selectedItem = _currentIndex == -1 || _items == null ? default : _items[_currentIndex];
         OnItemSelected?.Invoke(selectedItem);
@@ -106,14 +112,42 @@ public class ListEditor<TItem> : ListEditor
         if (Controller == null) return;
         _itemList.ClearChildren();
 
-        if (newItems != null)
+        if (newItems == null) goto end;
+
+        for (int i = 0; i < newItems.Count; i++)
         {
-            for (int i = 0; i < newItems.Count; i++)
+            TItem? item = newItems[i];
+
+            if (_inlineEditor)
             {
-                TItem? item = newItems[i];
+                int iConst = i;
+
+                AssertNotNull(_itemTypeHandler);
+                TypeEditor? editor = _itemTypeHandler.GetEditor();
+                if (editor == null) continue;
+
+                editor.SetValue(item);
+                editor.SetCallbackOnValueChange((newVal) =>
+                {
+                    if (newVal is TItem valAsT)
+                        newItems[iConst] = valAsT;
+                    OnValueChanged(newItems);
+                });
+
+                UIBaseWindow container = new()
+                {
+                    GrowY = false,
+                    //MinSizeY = 50,
+                };
+                container.AddChild(editor);
+
+                _itemList.AddChild(container);
+            }
+            else
+            {
                 var editorListItem = new EditorListItem<TItem>(i, item, ItemsUIOnClickSelect);
 
-                if (item != null)
+                if (item != null && AllowObjectEditting)
                 {
                     var editItemButton = new SquareEditorButtonWithTexture("Editor/Edit.png");
                     if (_objEdit != null)
@@ -138,12 +172,13 @@ public class ListEditor<TItem> : ListEditor
             }
         }
 
-        ApplyItemsUISelection();
+end:
+        UpdateUI();
     }
 
     #region Editting
 
-    public event Action<int, TItem?>? OnItemRemoved;
+    //public event Action<int, TItem?>? OnItemRemoved;
 
     protected SquareEditorButton _addButton;
     protected SquareEditorButton _deleteButton;
@@ -173,7 +208,8 @@ public class ListEditor<TItem> : ListEditor
                 if (newObjAsT == null) return;
 
                 _items.Add(newObjAsT);
-                EngineEditor.ObjectChanged(_items, ObjectChangeType.List_NewObj, this);
+                EngineEditor.ReportChange_ListItemAdded(_items, newObjAsT, _items.Count, this);
+                OnValueChanged(_items);
 
                 RespawnItemsUI(_items);
                 SetSelection(_items.IndexOf(newObjAsT)); // Select the new item, we get index as event might have sorted
@@ -189,13 +225,16 @@ public class ListEditor<TItem> : ListEditor
                 Assert(_items != EMPTY_LIST);
 
                 TItem? obj = _items[_currentIndex];
-                OnItemRemoved?.Invoke(_currentIndex, obj);
+                //OnItemRemoved?.Invoke(_currentIndex, obj);
 
                 _items.RemoveAt(_currentIndex);
+                int deletedIndex = _currentIndex;
+
                 if (_currentIndex > _items.Count - 1)
                     _currentIndex = _items.Count - 1;
                 RespawnItemsUI(_items);
-                EngineEditor.ObjectChanged(_items, ObjectChangeType.List_ObjectRemoved, this);
+                EngineEditor.ReportChange_ListItemRemoved(_items, obj, deletedIndex, this);
+                OnValueChanged(_items);
             }
         };
         buttonsContainer.AddChild(deleteButton);
@@ -211,7 +250,7 @@ public class ListEditor<TItem> : ListEditor
                 (_items[_currentIndex], _items[idxPrev]) = (_items[idxPrev], _items[_currentIndex]);
                 _currentIndex = idxPrev;
                 RespawnItemsUI(_items);
-                EngineEditor.ObjectChanged(_items, ObjectChangeType.List_Reodered, this);
+                EngineEditor.ReportChange_ListItemMoved(_items, _items[_currentIndex], _currentIndex, this);
             }
         };
         moveUpButton.Texture.SetRotation(180);
@@ -228,7 +267,7 @@ public class ListEditor<TItem> : ListEditor
                 (_items[_currentIndex], _items[idxNext]) = (_items[idxNext], _items[_currentIndex]);
                 _currentIndex = idxNext;
                 RespawnItemsUI(_items);
-                EngineEditor.ObjectChanged(_items, ObjectChangeType.List_Reodered, this);
+                EngineEditor.ReportChange_ListItemMoved(_items, _items[_currentIndex], _currentIndex, this);
             }
         };
         buttonsContainer.AddChild(moveDownButton);
@@ -264,14 +303,16 @@ public class ListEditor<TItem> : ListEditor
         }
     }
 
-    protected void ApplyItemsUISelection()
+    protected void UpdateUI()
     {
-        int selectedIndex = _currentIndex;
-        int idx = 0;
-        foreach (EditorListItem<TItem> listItem in _itemList.WindowChildren())
+        if (!_inlineEditor)
         {
-            listItem.Selected = selectedIndex == idx;
-            idx++;
+            int idx = 0;
+            foreach (EditorListItem<TItem> listItem in _itemList.WindowChildren())
+            {
+                UpdateListItemUI(idx, listItem);
+                idx++;
+            }
         }
 
         UpdateButtonStates();
@@ -283,12 +324,17 @@ public class ListEditor<TItem> : ListEditor
 
     protected virtual bool CanCreateItems()
     {
-        return _complexTypeHandler?.CanCreateNew() == true;
+        return _itemTypeHandler?.CanCreateNew() == true;
     }
 
     protected virtual object? CreateNewItem()
     {
-        return _complexTypeHandler?.CreateNew();
+        return _itemTypeHandler?.CreateNew();
+    }
+
+    protected virtual void UpdateListItemUI(int idx, EditorListItem<TItem> itemUI)
+    {
+        itemUI.Selected = _currentIndex == idx;
     }
 
     #endregion

@@ -22,6 +22,10 @@ public interface IGenericReflectorTypeHandler
         return Type.IsAssignableTo(otherType);
     }
 
+    public bool CanCreateNew();
+
+    public object? CreateNew();
+
     #region Serialization Read
 
     public T? ParseFromJSON<T>(ref Utf8JsonReader reader);

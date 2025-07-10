@@ -136,6 +136,7 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
     public override void WriteAsCode(T value, ref ValueStringWriter writer)
     {
         writer.WriteNumber(value);
+        if (Type == typeof(float)) writer.WriteChar('f');
     }
 
     public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)

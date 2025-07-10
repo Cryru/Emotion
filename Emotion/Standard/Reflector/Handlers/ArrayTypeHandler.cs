@@ -18,7 +18,12 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
 
     public Type ItemType => typeof(TItem);
 
-    public object CreateNew()
+    public override bool CanCreateNew()
+    {
+        return true;
+    }
+
+    public override object CreateNew()
     {
         return Array.Empty<TItem>();
     }
