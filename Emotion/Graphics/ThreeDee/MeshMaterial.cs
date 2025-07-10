@@ -37,4 +37,16 @@ public class MeshMaterial
     {
         Name = "Default"
     };
+
+    public Texture GetDiffuseTexture()
+    {
+        if (DiffuseTextureName != null)
+        {
+            TextureAsset texture = Engine.AssetLoader.ONE_Get<TextureAsset>(DiffuseTextureName);
+            if (texture.Loaded)
+                return texture.Texture;
+        }
+
+        return DiffuseTexture;
+    }
 }
