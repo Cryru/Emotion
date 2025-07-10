@@ -62,6 +62,8 @@ public static partial class GameDatabase
                 string thisDataPath = Path.Join(folder, $"{data.Id}.cs");
                 if (data.LoadedFromModel == null) // New data - generate class
                 {
+                    data.LoadedFromModel = data.Id;
+
                     string classCode = GenerateGameDataClassWithShim(typ, data);
                     File.WriteAllText(thisDataPath, classCode);
                     needHotReload = true;
@@ -77,15 +79,13 @@ public static partial class GameDatabase
                     IGameDataDefClassAdapter? defAdapter = GetGameDataDefAdapter(typ);
                     defAdapter?.AddObject(data);
                     regenerateRegistry = true;
-
-                    // Simulate reinstance of this type, we can't actually reinstance it
-                    // because the classes are not loaded, which is why we need a hot reload.
-                    data.LoadedFromModel = data.Id;
-                    EngineEditor.ObjectChanged(data, ObjectChangeType.ComplexObject_PropertyChanged);
+                    
+                    EngineEditor.ReportChange_ObjectProperty(data, nameof(GameDataObject.LoadedFromModel), null, data.Id);
                 }
                 else
                 {
                     // Just properties have changed, or id as well.
+                    string oldLoadedFromModel = data.LoadedFromModel;
                     bool idHasChanged = data.LoadedFromModel != data.Id;
                     if (idHasChanged)
                     {
@@ -103,7 +103,7 @@ public static partial class GameDatabase
                         File.Move(oldFile, thisDataPath);
 
                         data.LoadedFromModel = data.Id;
-                        EngineEditor.ObjectChanged(data, ObjectChangeType.ComplexObject_PropertyChanged);
+                        EngineEditor.ReportChange_ObjectProperty(data, nameof(GameDataObject.LoadedFromModel), oldLoadedFromModel, data.Id);
 
                         regenerateRegistry = true;
                         needHotReload = true;
@@ -133,7 +133,8 @@ public static partial class GameDatabase
                     writer.Write(fileContentSpan.Slice(generatedCodeEnd + GENERATED_CODE_END.Length));
 
                     // Recreate the model so its up to date with the changes.
-                    GameDataObject? model = GetObject(typ, data.LoadedFromModel);
+                    // (use the old "loaded from model" value since its not updated yet.
+                    GameDataObject? model = GetObject(typ, oldLoadedFromModel);
                     ReflectorEngine.CopyProperties(data, model);
                 }
             }
@@ -159,13 +160,57 @@ public static partial class GameDatabase
             }
         }
 
-        public static void EditorDeleteObject(Type type, GameDataObject obj)
+        public static void EditorDeleteObject(Type typ, GameDataObject data)
         {
             // Editor functions dont work in release mode!
             if (Engine.Configuration == null || !Engine.Configuration.DebugMode)
                 return;
-
             if (!Initialized) return;
+
+            string folder = GetGeneratedClassPathOSPath(typ);
+            string thisDataPath = Path.Join(folder, $"{data.LoadedFromModel}.cs");
+            bool fileExists = File.Exists(thisDataPath);
+            if (!fileExists) return;
+
+            // Update the loaded object array
+            GameDataObject[] objects = GetObjectsOfType(typ);
+            int index = -1;
+            for (int i = 0; i < objects.Length; i++)
+            {
+                GameDataObject? obj = objects[i];
+                if (obj.Id == data.LoadedFromModel)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1) return;
+            GameDataObject[] newArray = objects.RemoveFromArray(index);
+            _definedData[typ] = newArray;
+
+            string deletedFolder = Path.Join(folder, "___Deleted");
+            Directory.CreateDirectory(deletedFolder);
+
+            string deletedFilePath = Path.Join(deletedFolder, $"{data.LoadedFromModel}.txt");
+            int ii = 1;
+            while (File.Exists(deletedFilePath))
+            {
+                deletedFilePath = Path.Join(deletedFolder, $"{data.LoadedFromModel}_{ii}.txt");
+                ii++;
+            }
+            File.Move(thisDataPath, deletedFilePath);
+
+            // Regenerate the registry file
+            string masterFile = GenerateRegistryFile(typ);
+            File.WriteAllText(Path.Join(folder, $"__Registry.cs"), masterFile);
+
+            string defClass = GetGameDataTypeDefClassName(typ);
+            if (_typesNeedHotReload.IndexOf(defClass) == -1)
+            {
+                _typesNeedHotReload.Add(defClass);
+                OnHotReloadNeededChange?.Invoke(_typesNeedHotReload);
+            }
+
             //AssertNotNull(_database);
 
             // todo: maybe leave file saving to the editor :P
@@ -187,7 +232,7 @@ public static partial class GameDatabase
         /// Fired when the "need for some types to be hot reloaded" changes
         /// </summary>
         public static event Action<List<string>>? OnHotReloadNeededChange;
-
+        
         internal static void OnHotReload(Type[]? typesUpdated)
         {
             if (typesUpdated == null) return;

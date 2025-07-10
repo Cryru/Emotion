@@ -218,7 +218,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
     #region Changes
 
     protected bool _hasUnsavedChanges;
-    private UIBaseWindow _unsavedChangesNotification = null!;
+    protected UIBaseWindow _unsavedChangesNotification = null!;
 
     protected void MarkUnsavedChanges()
     {

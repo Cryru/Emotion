@@ -2,6 +2,7 @@
 
 using Emotion.Game.Data;
 using Emotion.UI;
+using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
 using static Emotion.Game.Data.GameDatabase;
@@ -31,5 +32,17 @@ public class GameDataListEditor : ListEditor<GameDataObject>
         newItem.Index = _editor.EmulatedEditList.Count;
 
         return newItem;
+    }
+
+    public void UpdatePendingChangesForItems()
+    {
+        UpdateUI();
+    }
+
+    protected override void UpdateListItemUI(int idx, EditorListItem<GameDataObject> itemUI)
+    {
+        base.UpdateListItemUI(idx, itemUI);
+        if (itemUI.Item == null) return;
+        itemUI.LabelSuffix = _editor.IsObjectModified(itemUI.Item) ? "*" : string.Empty;
     }
 }
