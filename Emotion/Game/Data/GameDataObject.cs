@@ -19,7 +19,7 @@ public abstract class GameDataObject : IComparable<GameDataObject>
 
     public string Id = "Untitled";
 
-    public string? Category;
+    public virtual string? Category { get; set; }
 
     public int CompareTo(GameDataObject? other)
     {

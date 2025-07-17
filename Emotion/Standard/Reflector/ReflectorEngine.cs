@@ -84,6 +84,8 @@ public static class ReflectorEngine
         Engine.Log.Info($"Loaded {_typeHandlers.Count} type handlers!", "Reflector");
     }
 
+    public static event Action<Type> TypeHotReloaded;
+
     internal static void OnHotReload(Type[] updatedTypes)
     {
         for (int i = 0; i < updatedTypes.Length; i++)
@@ -93,6 +95,7 @@ public static class ReflectorEngine
             System.Reflection.MethodInfo? methodInfo = type.GetMethod("LoadReflector", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
 #pragma warning restore IL2065 // The method has a DynamicallyAccessedMembersAttribute (which applies to the implicit 'this' parameter), but the value used for the 'this' parameter can not be statically analyzed.
             methodInfo?.Invoke(null, null);
+            TypeHotReloaded?.Invoke(type);
         }
     }
 

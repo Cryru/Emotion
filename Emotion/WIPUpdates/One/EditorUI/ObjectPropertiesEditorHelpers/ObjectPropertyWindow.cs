@@ -23,6 +23,22 @@ public class ObjectPropertyWindow : UIBaseWindow
     {
         base.AttachedToController(controller);
         SpawnEditors();
+
+        ReflectorEngine.TypeHotReloaded += OnHotReload;
+    }
+
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+
+        ReflectorEngine.TypeHotReloaded -= OnHotReload;
+    }
+
+    private void OnHotReload(Type t)
+    {
+        // Refresh
+        if (ObjectBeingEdited != null)
+            SetEditor(ObjectBeingEdited);
     }
 
     public void SetEditor(object? obj)
@@ -49,7 +65,7 @@ public class ObjectPropertyWindow : UIBaseWindow
         if (typeHandler == null)
         {
             EditorLabel label = new EditorLabel();
-            label.Text = $"The object attempting to be edited is non-editable.";
+            label.Text = $"The object attempting to be edited is non-editable,\nor no object was provided..";
             AddChild(label);
             return;
         }

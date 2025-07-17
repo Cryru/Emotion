@@ -180,6 +180,7 @@ public class EditorWindow : UIBaseWindow
                 _panelItself.InvalidateLayout();
             }
             c.RenderToAndClear(_windowFB);
+            c.RenderSprite(Position, Size, Color.CornflowerBlue);
         }
 
         if (PanelMode == PanelMode.Modal)

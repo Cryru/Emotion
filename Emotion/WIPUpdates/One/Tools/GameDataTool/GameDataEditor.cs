@@ -64,7 +64,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         {
             AllowObjectEditting = false,
             IgnoreParentColor = true,
-            OnItemSelected = SelectItem
+            OnItemSelected = SetEditItem
         };
         _listEditor = list;
         return list;
@@ -86,7 +86,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         EngineEditor.UnregisterForObjectChanges(_propertyEditorListener);
     }
 
-    private void SelectItem(GameDataObject? selectedGameData)
+    private void SetEditItem(GameDataObject? selectedGameData)
     {
         EngineEditor.UnregisterForObjectChanges(_propertyEditorListener);
         if (selectedGameData != null)
@@ -106,6 +106,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         {
             case ListChangedEvent.ChangeType.Delete:
                 _deletedList.Add(itemAsGameData);
+                SetEditItem(_listEditor.GetSelected());
                 break;
             case ListChangedEvent.ChangeType.Add:
                 _modifiedList.Add(itemAsGameData);
@@ -228,7 +229,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
                 EmulatedEditList[i] = newInstance;
 
                 if (_propertyEditor.ObjectBeingEdited == currentItem)
-                    SelectItem(newInstance);
+                    SetEditItem(newInstance);
             }
 
             EngineEditor.ReportChange_NoInfo(EmulatedEditList, this);
@@ -354,9 +355,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
     #endregion
 }
 
-// Deleting items
 // ListEditor inline editor should move delete and arrow key buttons to the item container since there is no selection then
 // Having the dropdown open on enum editor should keep the item highlighted
 // Statistics - square
 // Changing data ids does not update registry (couldnt reproduce)
-// Sometimes the selection is wrong (as in the editor thinks it has one thing select and the list another) (maybe after new item/delete?)

@@ -234,7 +234,7 @@ namespace Emotion.Common
 
         /// <summary>
         /// Start the engine with the specified config, calling the passing in coroutine as soon as
-        /// the engine is setup, on the CoroutineManagerAsync thread.
+        /// the engine is setup async on another thread.
         /// </summary>
         public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
         {

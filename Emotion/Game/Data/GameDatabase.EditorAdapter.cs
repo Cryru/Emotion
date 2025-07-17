@@ -210,18 +210,6 @@ public static partial class GameDatabase
                 _typesNeedHotReload.Add(defClass);
                 OnHotReloadNeededChange?.Invoke(_typesNeedHotReload);
             }
-
-            //AssertNotNull(_database);
-
-            // todo: maybe leave file saving to the editor :P
-            // Delete file and asset from cache
-            //string assetPath = GetAssetPath(obj);
-            //Engine.AssetLoader.Destroy(assetPath);
-            //DebugAssetStore.DeleteFile(assetPath);
-
-            //GameDataCache? dataCache;
-            //if (_database.TryGetValue(type, out dataCache))
-            //    dataCache.Objects.Remove(obj);
         }
 
         #region Hot Reload
