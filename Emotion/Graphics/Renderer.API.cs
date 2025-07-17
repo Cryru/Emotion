@@ -368,7 +368,6 @@ namespace Emotion.Graphics
             FlushRenderStream();
             shader ??= ShaderFactory.DefaultProgram;
             ShaderProgram.EnsureBound(shader.Pointer);
-            shader.ClearUniformCache();
 
             RenderState currentState = CurrentState;
             currentState.Shader = shader;
