@@ -297,20 +297,20 @@ namespace Emotion.Graphics.Batches
 
             PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
 
-            // Remap UVs to be within the atlas, if using the atlas.
-            if (_currentTexture == _atlas?.AtlasPointer)
-                _atlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
-            else if (_currentTexture == _smoothAtlas?.AtlasPointer)
-                _smoothAtlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
-
             if (_vertexPostProcFunc != null && CurrentVertexType == typeof(VertexData))
             {
-                Span<VertexData> data = new Span<VertexData>((void*)_backingBuffer, (int) (mappedBytes / structByteSize));
+                Span<VertexData> data = new Span<VertexData>((void*)_backingBuffer, (int)(mappedBytes / structByteSize));
                 for (int i = 0; i < data.Length; i++)
                 {
                     _vertexPostProcFunc(ref data[i], i, _vertexPostProcFuncUserData);
                 }
             }
+
+            // Remap UVs to be within the atlas, if using the atlas.
+            if (_currentTexture == _atlas?.AtlasPointer)
+                _atlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
+            else if (_currentTexture == _smoothAtlas?.AtlasPointer)
+                _smoothAtlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
 
             // Avoid allocations
             if (renderObj.VBO.Size < mappedBytes)
