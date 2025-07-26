@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using Emotion.IO;
+using Emotion.Graphics.Assets;
 using OpenGL;
 
 #endregion
@@ -14,10 +14,10 @@ namespace Emotion.Game.Effects
     {
         public byte[] PaletteMap;
 
-        protected override void UploadTexture(Vector2 size, byte[] bgraPixels, bool flipped, PixelFormat format)
+        protected override void UploadTexture(Vector2 size, byte[] bgraPixels, bool flipped, PixelFormat format, bool rentedMemory)
         {
             PaletteMap = GeneratePaletteMap(bgraPixels, format, out _);
-            base.UploadTexture(size, bgraPixels, flipped, format);
+            base.UploadTexture(size, bgraPixels, flipped, format, rentedMemory);
         }
 
         /// <summary>

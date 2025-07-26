@@ -3,9 +3,9 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.IO;
 using Emotion.Utility;
 
 #endregion

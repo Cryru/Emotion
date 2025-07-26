@@ -1,8 +1,8 @@
 ﻿#region Using
 
 using Emotion.Editor;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Shader;
-using Emotion.IO;
 
 #endregion
 

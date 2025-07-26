@@ -7,6 +7,8 @@ namespace Emotion.IO;
 
 public sealed class FileReadRoutineResult : IRoutineWaiter
 {
+    public static FileReadRoutineResult GenericErrored = new FileReadRoutineResult() { Errored = true };
+
     public bool Errored { get; private set; }
 
     public bool Finished { get; private set; }

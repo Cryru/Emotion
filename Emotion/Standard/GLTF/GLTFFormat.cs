@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Game.Animation3D;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
@@ -313,7 +314,7 @@ public static partial class GLTFFormat
                 // hmm?
                 textureAsset.Texture.Smooth = true;
                 textureAsset.Texture.Tile = true;
-                textureAsset.Texture.Mipmap = true;
+                textureAsset.Texture.CreateMipMaps();
             }
 
             imagesRead[i] = textureAsset.Loaded ? textureAsset.Texture : Texture.EmptyWhiteTexture;

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Game.QuadTree;
 using Emotion.Graphics;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;

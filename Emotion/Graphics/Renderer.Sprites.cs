@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Game.Text;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches.SpriteBatcher;
 using Emotion.Graphics.Camera;

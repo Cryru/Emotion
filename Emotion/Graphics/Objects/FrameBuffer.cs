@@ -370,7 +370,7 @@ namespace Emotion.Graphics.Objects
             Bound = pointer;
 
             // Some drivers invalidate bound textures if they are framebuffer textures once the framebuffer changes.
-            Texture.Bound[0] = 0;
+            TextureObjectBase.Bound[TextureTarget.Texture2d][0] = 0;
         }
 
         /// <summary>

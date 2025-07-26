@@ -517,9 +517,13 @@ namespace Emotion.Common
                 IndexBuffer.Bound = 0;
                 VertexArrayObject.Bound = 0;
                 ShaderProgram.Bound = 0;
-                for (var i = 0; i < Texture.Bound.Length; i++)
+                foreach (KeyValuePair<OpenGL.TextureTarget, uint[]> boundPair in TextureObjectBase.Bound)
                 {
-                    Texture.Bound[i] = 0;
+                    uint[] bound = boundPair.Value;
+                    for (int i = 0; i < bound.Length; i++)
+                    {
+                        bound[i] = 0;
+                    }
                 }
             }
 

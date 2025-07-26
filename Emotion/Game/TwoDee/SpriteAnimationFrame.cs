@@ -1,4 +1,5 @@
-﻿using Emotion.IO;
+﻿using Emotion.Graphics.Assets;
+using Emotion.IO;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 

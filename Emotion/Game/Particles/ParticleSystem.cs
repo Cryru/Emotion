@@ -1,6 +1,6 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Game.Particles.ParticleShape;
-using Emotion.IO;
+using Emotion.Graphics.Assets;
 using Emotion.Utility;
 
 namespace Emotion.Game.Particles

@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.IO;
+using Emotion.Graphics.Assets;
 using PartRuntimeData = (Emotion.Game.TwoDee.SpriteAnimationBodyPart part, int relativeTo, Emotion.Game.TwoDee.SpriteAnimationFrame? currentFrame, System.Numerics.Vector2 anchor);
 
 namespace Emotion.Game.TwoDee;

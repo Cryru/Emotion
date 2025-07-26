@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation2D;
 using Emotion.Graphics;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Utility;

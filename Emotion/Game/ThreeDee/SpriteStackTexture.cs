@@ -1,9 +1,9 @@
 ﻿#region Using
 
 using Emotion.Game.Animation2D;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.ThreeDee;
-using Emotion.IO;
 using Emotion.Utility;
 using OpenGL;
 
@@ -248,11 +248,11 @@ namespace Emotion.Game.ThreeDee
             return filledPixelCount;
         }
 
-        protected override void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat format)
+        protected override void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat format, bool rentedMemory)
         {
             _textureData = pixels;
             _textureDataFormat = format;
-            base.UploadTexture(size, pixels, flipped, format);
+            base.UploadTexture(size, pixels, flipped, format, rentedMemory);
         }
     }
 }

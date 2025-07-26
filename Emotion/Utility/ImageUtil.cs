@@ -227,8 +227,6 @@ namespace Emotion.Utility
         /// clipped.
         /// </param>
         /// <returns>The resulting byte array. Is never null.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="bytes" /> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="bits" /> is greater or equals than zero.</exception>
         public static Span<byte> ToArrayByBitsLength(Span<byte> bytes, int bits, bool relativeValue = true)
         {
             if (bits >= 8) return bytes;
@@ -293,6 +291,46 @@ namespace Emotion.Utility
             }
 
             return result;
+        }
+
+        public static byte[] RotateSquareInPlace(byte[] pixels, int pixelBytes, int width, int times)
+        {
+            if (pixels == null) return null;
+
+            times = (times % 4 + 4) % 4;
+            if (times == 0) return pixels; // No rotation needed
+
+            for (int t = 0; t < times; t++)
+            {
+                for (int layer = 0; layer < width / 2; layer++)
+                {
+                    int first = layer;
+                    int last = width - 1 - layer;
+
+                    for (int i = first; i < last; i++)
+                    {
+                        int offset = i - first;
+
+                        // Indices of 4-way rotation
+                        int top = (first * width + i) * pixelBytes;
+                        int left = ((last - offset) * width + first) * pixelBytes;
+                        int bottom = (last * width + (last - offset)) * pixelBytes;
+                        int right = (i * width + last) * pixelBytes;
+
+                        // Save top
+                        for (int b = 0; b < pixelBytes; b++)
+                        {
+                            byte temp = pixels[top + b];
+                            pixels[top + b] = pixels[left + b];
+                            pixels[left + b] = pixels[bottom + b];
+                            pixels[bottom + b] = pixels[right + b];
+                            pixels[right + b] = temp;
+                        }
+                    }
+                }
+            }
+
+            return pixels;
         }
     }
 }

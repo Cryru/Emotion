@@ -87,7 +87,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The maximum textures that can be bound at the same time.
         /// </summary>
-        public int TextureArrayLimit { get; private set; } = -1;
+        public int TextureBindLimit { get; private set; } = -1;
 
         #endregion
 
@@ -224,12 +224,12 @@ namespace Emotion.Graphics
             // Set flags.
             CompatibilityMode = Gl.SoftwareRenderer || Engine.Configuration.RendererCompatMode;
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
-            TextureArrayLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 16 : Gl.CurrentLimits.MaxTextureImageUnits;
+            TextureBindLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 16 : Gl.CurrentLimits.MaxTextureImageUnits;
 
             Engine.Log.Info($" Flags: " +
                             $"{(CompatibilityMode ? "Compat, " : "")}" +
                             $"{(Dsa ? "Dsa, " : "")}" +
-                            $"Textures[{TextureArrayLimit}]", MessageSource.Renderer);
+                            $"Textures[{TextureBindLimit}]", MessageSource.Renderer);
 
             // Attach callback if debug mode is enabled.
             bool hasDebugSupport = Gl.CurrentExtensions.DebugOutput_ARB || (Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3);

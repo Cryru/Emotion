@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.IO;
+using Emotion.Graphics.Assets;
 using Emotion.WIPUpdates.Grids;
 
 namespace Emotion.WIPUpdates.One.TileMap;

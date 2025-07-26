@@ -12,6 +12,16 @@ using Emotion.WIPUpdates.Rendering;
 
 namespace Emotion.Primitives;
 
+public enum CubeFace
+{
+    PositiveX,
+    NegativeX,
+    PositiveY,
+    NegativeY,
+    PositiveZ,
+    NegativeZ
+}
+
 /// <summary>
 /// Represents an axis aligned cube.
 /// </summary>

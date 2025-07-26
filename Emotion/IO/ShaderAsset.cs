@@ -188,5 +188,7 @@ namespace Emotion.IO
         {
             if (!IsFallback) Shader.Dispose();
         }
+
+        public static ShaderProgram DefaultProgram { get => ShaderFactory.DefaultProgram; }
     }
 }

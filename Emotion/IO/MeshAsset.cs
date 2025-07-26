@@ -5,6 +5,8 @@
 using Emotion.Graphics.ThreeDee;
 using Emotion.Standard.GLTF;
 using Emotion.Serialization.JSON;
+using Emotion.Graphics.Assets;
+
 
 
 #if MORE_MESH_TYPES

@@ -238,9 +238,9 @@ namespace Emotion.IO
             return LoadAssetDependency<T>(serialized.Name);
         }
 
-        protected T LoadAssetDependency<T>(string? name) where T : Asset, new()
+        protected T LoadAssetDependency<T>(string? name, bool cachedLoad = true) where T : Asset, new()
         {
-            T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true, false);
+            T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true, !cachedLoad);
 
             _dependencies ??= new List<Asset>();
             _dependencies.Add(dependantAsset);

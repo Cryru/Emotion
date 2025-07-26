@@ -3,7 +3,8 @@
 using System.Threading.Tasks;
 using Emotion.Editor;
 using Emotion.Graphics;
-using Emotion.IO;
+using Emotion.Graphics.Assets;
+
 
 #endregion
 

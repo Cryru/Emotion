@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common.Threading;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Standard.Image.PNG;

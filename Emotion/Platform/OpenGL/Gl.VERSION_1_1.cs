@@ -1290,6 +1290,14 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
+        public unsafe static void DeleteTexture(uint texturePointer)
+        {
+            Assert(Delegates.pglDeleteTextures != null, "pglDeleteTextures not implemented");
+            Delegates.pglDeleteTextures(1, &texturePointer);
+
+            DebugCheckErrors(null);
+        }
+
         /// <summary>
         ///     <para>
         ///     [GL4|GLES3.2] glGenTextures: generate texture names

@@ -3512,6 +3512,8 @@ namespace OpenGL
     /// </summary>
     public enum GetPName
     {
+        Invalid = 0,
+
         /// <summary>
         /// Strongly typed for value GL_ACTIVE_TEXTURE.
         /// </summary>
@@ -10575,6 +10577,8 @@ namespace OpenGL
     /// </summary>
     public enum TextureTarget
     {
+        Invalid = 0,
+
         /// <summary>
         /// Strongly typed for value GL_PROXY_TEXTURE_1D, GL_PROXY_TEXTURE_1D_EXT.
         /// </summary>

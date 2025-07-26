@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Text.RegularExpressions;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.ThreeDee;
 using Emotion.Utility;
 

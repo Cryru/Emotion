@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Graphics.Assets;
 using Emotion.IO;
 using Emotion.WIPUpdates.Grids;
 

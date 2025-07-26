@@ -12,6 +12,7 @@ using AssContext = Silk.NET.Assimp.Assimp;
 using AssTexture = Silk.NET.Assimp.Texture;
 using AssMesh = Silk.NET.Assimp.Mesh;
 using Emotion.IO;
+using Emotion.Graphics.Assets;
 
 #endregion
 
@@ -197,7 +198,7 @@ public static class AssimpFormat
             {
                 diffuseTexture.Smooth = true;
                 diffuseTexture.Tile = true;
-                diffuseTexture.Mipmap = true;
+                diffuseTexture.CreateMipMaps();
             }
 
             var emotionMaterial = new MeshMaterial
@@ -205,7 +206,7 @@ public static class AssimpFormat
                 Name = materialName,
                 DiffuseColor = diffColor,
                 DiffuseTextureName = diffuseTextureName,
-                DiffuseTexture = diffuseTexture
+                DiffuseTexture = diffuseTexture ?? Texture.EmptyWhiteTexture
             };
 
             list.Add(emotionMaterial);

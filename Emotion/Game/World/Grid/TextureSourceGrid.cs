@@ -1,6 +1,6 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Editor;
-using Emotion.IO;
+using Emotion.Graphics.Assets;
 using Emotion.Utility;
 using OpenGL;
 using System.Threading.Tasks;
@@ -34,7 +34,7 @@ public class TextureSourceGrid : MapGrid<byte>
         public Vector2 Size;
         public byte[]? PixelData;
 
-        protected override void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat)
+        protected override void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat, bool rentedMemory)
         {
             Size = size;
 

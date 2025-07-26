@@ -1,4 +1,5 @@
 ﻿
+using Emotion.Graphics.Assets;
 using Emotion.IO;
 
 namespace Emotion.Game.TwoDee;
