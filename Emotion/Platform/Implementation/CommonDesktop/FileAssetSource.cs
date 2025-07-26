@@ -1,10 +1,10 @@
 ﻿#region Using
 
+using Emotion.IO;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Emotion.IO;
 
 #endregion
 
@@ -82,23 +82,30 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <inheritdoc />
         public override FileReadRoutineResult GetAssetRoutine(string enginePath)
         {
-            var result = new FileReadRoutineResult();
-
+            
             // Convert to file path.
             bool found = InternalManifest.TryGetValue(enginePath, out string filePath);
 
             // Not found in manifest
             if (!found || !File.Exists(filePath))
             {
+                var result = new FileReadRoutineResult();
                 result.SetData(ReadOnlyMemory<byte>.Empty);
                 return result;
             }
 
-            // Read asynchrnously.
-            Task<byte[]> task = File.ReadAllBytesAsync(filePath);
-            result.SetAsyncTask(task);
-
-            return result;
+            // Read asynchronously.
+            try
+            {
+                var result = new FileReadRoutineResult();
+                Task<byte[]> task = File.ReadAllBytesAsync(filePath);
+                result.SetAsyncTask(task);
+                return result;
+            }
+            catch (Exception _)
+            {
+                return FileReadRoutineResult.GenericErrored;
+            }
         }
 
         /// <inheritdoc />

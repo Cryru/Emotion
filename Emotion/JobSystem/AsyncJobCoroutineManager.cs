@@ -4,10 +4,13 @@ namespace Emotion.Game.Time.Routines;
 
 public class AsyncJobCoroutineManager : CoroutineManager
 {
+    public int ThreadId;
+
     private ManualResetEventSlim _lock = new ManualResetEventSlim();
 
-    public AsyncJobCoroutineManager() : base(false)
+    public AsyncJobCoroutineManager(int threadId) : base(false)
     {
+        ThreadId = threadId;
         SupportsTime = false;
     }
 

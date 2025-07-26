@@ -31,21 +31,26 @@ public class AsyncJobManager
 
         for (int i = 0; i < threadCount; i++)
         {
-            AsyncJobCoroutineManager manager = new AsyncJobCoroutineManager();
+            AsyncJobCoroutineManager manager = new AsyncJobCoroutineManager(i);
             _threadRoutineManagers[i] = manager;
 
-            int threadId = i;
-            Thread thread = new Thread(() => JobSystemThreadProc(threadId, manager));
-            thread.IsBackground = true;
-            thread.Start();
+            Thread thread = new(JobSystemThreadProc)
+            {
+                IsBackground = true
+            };
+            thread.Start(manager);
             _threads[i] = thread;
         }
 
         Engine.Log.Info($"Started {threadCount} threads.", "Jobs");
     }
 
-    private void JobSystemThreadProc(int threadId, AsyncJobCoroutineManager manager)
+    private static void JobSystemThreadProc(object? managerObject)
     {
+        var manager = managerObject as AsyncJobCoroutineManager;
+        if (manager == null) return;
+
+        int threadId = manager.ThreadId;
         if (Engine.Host.NamedThreads) Thread.CurrentThread.Name ??= $"JobThread{threadId + 1}";
 
         while (Engine.Status != EngineStatus.Stopped)
