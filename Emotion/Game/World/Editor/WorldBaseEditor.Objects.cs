@@ -122,7 +122,7 @@ public abstract partial class WorldBaseEditor
                     if (_selectedObject is GameObject3D selected3D)
                     {
                         Cube cube = selected3D.Bounds3D;
-                        if (mouseRay.IntersectWithCube(cube, out Vector3 _))
+                        if (mouseRay.IntersectWithCube(cube, out Vector3 _, out Vector3 __))
                             results.Add(_selectedObject);
                     }
 

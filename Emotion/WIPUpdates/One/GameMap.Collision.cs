@@ -70,7 +70,7 @@ public partial class GameMap
             else
             {
                 Cube bounds = obj.BoundingCube;
-                if (ray.IntersectWithCube(bounds, out collisionPoint))
+                if (ray.IntersectWithCube(bounds, out collisionPoint, out Vector3 _))
                 {
                     hit = obj;
                     return true;
