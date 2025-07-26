@@ -1,6 +1,8 @@
-﻿namespace Emotion.WIPUpdates.ThreeDee;
+﻿using Emotion.WIPUpdates.Grids;
 
-public interface ITerrainGrid3D
+namespace Emotion.WIPUpdates.ThreeDee;
+
+public interface ITerrainGrid3D : IGridWorldSpaceTiles
 {
     public Vector2 TileSize { get; }
 
@@ -13,6 +15,8 @@ public interface ITerrainGrid3D
     public void Update(float dt);
 
     public void Render(RenderComposer c, Frustum frustum);
+
+    public bool IsTileInBounds(Vector2 tile);
 
     #region Collision
 

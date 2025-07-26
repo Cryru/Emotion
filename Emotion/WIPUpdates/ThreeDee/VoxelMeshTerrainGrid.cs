@@ -552,6 +552,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
         Vector2 tileSize = TileSize;
         Vector3 tileSize3D = TileSize3D;
+        Vector2 halfTileSize = tileSize / 2f;
         Vector3 halfTileSize3D = tileSize3D / 2f;
 
         Vector2 chunkWorldSize = ChunkSize * tileSize;
@@ -561,12 +562,15 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         uint[] dataMe = chunk.GetRawData() ?? Array.Empty<uint>();
 
         int verticesToAllocate = RunChunkMeshGeneration(chunkWorldOffset, dataMe, Span<VertexData_Pos_UV_Normal_Color>.Empty, tileSize3D);
-        verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000;
+        verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000; // Round to thousandth
         Span<VertexData_Pos_UV_Normal_Color> vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, verticesToAllocate);
 
         int verticesUsed = RunChunkMeshGeneration(chunkWorldOffset, dataMe, vertices, tileSize3D);
 
         // Update colliders
+        // todo: if our voxels are just cubes we can simulate collisions by just using
+        // the chunk data instead of building actual cube meshes, though this way we encode
+        // where the checks are needed as opposed to some structure to allow ray skipping
         chunk.Colliders ??= new List<Cube>();
         chunk.Colliders.Clear();
         for (int y = 0; y < ChunkSize.Y; y++)
@@ -575,10 +579,39 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
             {
                 Vector2 tileCoord = new Vector2(x, y);
                 Vector2 tileOrigin = chunkWorldOffset + (tileCoord * tileSize);
-                float z = GetHeightAt(tileOrigin);
-                if (z == -1) continue;
 
-                chunk.Colliders.Add(new Cube(tileOrigin.ToVec3(z), halfTileSize3D));
+                int columnStartZ = -1;
+                for (int z = (int)ChunkSize3D.Z - 1; z >= -1; z--)
+                {
+                    bool isEmpty;
+                    if (z == -1)
+                    {
+                        isEmpty = true;
+                    }
+                    else
+                    {
+                        uint val = GetAtForChunk(chunk, tileCoord.ToVec3(z));
+                        isEmpty = IsEmpty(val);
+                    }
+
+                    bool columnStarted = columnStartZ != -1;
+                    if (isEmpty && columnStarted)
+                    {
+                        int columnSize = columnStartZ - z;
+                        float columnStartWorldSpace = columnStartZ * tileSize3D.Z;
+                        float columnSizeWorldSpace = (columnSize * tileSize3D.Z);
+
+                        chunk.Colliders.Add(
+                            new Cube(tileOrigin.ToVec3(columnStartWorldSpace - columnSizeWorldSpace / 2f + halfTileSize3D.Z), halfTileSize.ToVec3(columnSizeWorldSpace / 2f))
+                        );
+
+                        columnStartZ = -1;
+                    }
+                    else if (!isEmpty && !columnStarted)
+                    {
+                        columnStartZ = z;
+                    }
+                }
             }
         }
 

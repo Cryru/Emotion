@@ -424,4 +424,10 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     }
 
     #endregion
+
+    public bool IsTileInBounds(Vector2 tile)
+    {
+        ChunkT? chunk = GetChunkAt(tile, out Vector2 _);
+        return chunk != null && chunk.CanBeSimulated;
+    }
 }

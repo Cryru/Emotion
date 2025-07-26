@@ -15,6 +15,10 @@ public class MinecraftMovementController
 
     public Vector3 TilePosOfCursor { get; protected set; } = Vector3.NaN;
 
+    public Vector3 PlacementPosCursor { get; protected set; } = Vector3.NaN;
+
+    public float CursorReach = 4f;
+
     private MapObject? _character;
     private Vector2 _input;
 
@@ -22,7 +26,8 @@ public class MinecraftMovementController
     {
         NearZ = 0.005f,
         FarZ = 200,
-        FieldOfView = 90
+        FieldOfView = 90,
+        DragKey = Key.World2 // Remove
     };
 
     private bool _inAir = true;
@@ -39,12 +44,48 @@ public class MinecraftMovementController
         Engine.Renderer.Camera = _camera;
         _camera.LookAt = RenderComposer.Forward;
         Engine.Input.SetMouseFirstPersonMode(true, nameof(MinecraftMovementController));
+
+        EngineEditor.AddEditorVisualization(this, "View Character Bounds", (c) =>
+        {
+            if (_character == null) return;
+            Cube characterCube = _character.BoundingCube;
+            characterCube.RenderOutline(c, Color.PrettyOrange, 0.01f);
+        });
+        EngineEditor.AddEditorVisualization(this, "View Placement Cursor", (c) =>
+        {
+            if (_character == null) return;
+
+            GameMap? map = _character.Map;
+            VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
+            if (voxelTerrain == null) return;
+
+            Vector3 placement = PlacementPosCursor;
+            if (placement != Vector3.NaN)
+            {
+                Cube selectedCube = voxelTerrain.GetCubeOfTilePos(placement);
+                selectedCube.RenderOutline(c, Color.White * 0.5f, 0.07f);
+            }
+        });
+        EngineEditor.AddEditorVisualizationText(this, () =>
+        {
+            if (_character == null) return string.Empty;
+
+            GameMap? map = _character.Map;
+            VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
+            if (voxelTerrain == null) return string.Empty;
+
+            var characterPos = _character.Position;
+            var characterTilePos = voxelTerrain.GetTilePos3DOfWorldPos(characterPos);
+            voxelTerrain.GetChunkAt(characterTilePos.ToVec2(), out Vector2 chunkCoord, out Vector2 tileRelativeCoord);
+            return $"Player@ {characterTilePos} (Chunk: {chunkCoord}, Relative: {tileRelativeCoord})\nCursor@ {TilePosOfCursor}";
+        });
     }
 
-    public void Dettach()
+    public void Detach()
     {
         Engine.Host.OnKey.RemoveListener(KeyHandler);
         Engine.Input.SetMouseFirstPersonMode(false, nameof(MinecraftMovementController));
+        EngineEditor.RemoveEditorVisualizations(this);
     }
 
     public void SetCharacter(MapObject obj)
@@ -57,18 +98,15 @@ public class MinecraftMovementController
         if (_character == null) return;
 
         GameMap? map = _character.Map;
-        if (map == null) return;
-        if (map.TerrainGrid == null) return;
-
-        VoxelMeshTerrainGrid? voxelTerrain = map.TerrainGrid as VoxelMeshTerrainGrid;
-        if (voxelTerrain == null) return;
+        ITerrainGrid3D? terrain = map?.TerrainGrid;
+        if (terrain == null) return;
 
         Vector2 myPos = _character.Position2D;
-        Vector2 tile = voxelTerrain.GetTilePosOfWorldPos(myPos);
-        MeshGridStreamableChunk<uint, uint>? chunk = voxelTerrain.GetChunkAt(tile, out Vector2 _);
-        if (chunk == null || !chunk.CanBeSimulated)
+        Vector2 tile = terrain.GetTilePosOfWorldPos(myPos);
+        if (!terrain.IsTileInBounds(tile))
         {
             TilePosOfCursor = Vector3.NaN;
+            PlacementPosCursor = TilePosOfCursor;
             return;
         }
 
@@ -104,21 +142,43 @@ public class MinecraftMovementController
         Vector3 safeMovement = GetSafeMovementCharacter(moveRequest);
 
         // Check if in the air
-        if (moveRequest.Z != 0)
-            _inAir = !Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON);
-        if (!_inAir && _velocityZ < 0)
-            _velocityZ = 0;
-        
+        if (moveRequest.Z < 0 || moveRequest.Z == 0) // Moving down
+        {
+            _inAir = !Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON); // Hit ground
+            if (!_inAir)
+                _velocityZ = 0; // Kill velocity.
+        }
+        else if (moveRequest.Z > 0) // Moving up (jumping)
+        {
+            bool hitCeiling = Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON);
+            if (hitCeiling)
+                _velocityZ = 0; // Kill upwards velocity.
+        }
+
         _character.Position += safeMovement;
         if (_character.Z < 0) _character.Z = 0;
-        _camera.Position = _character.Position + new Vector3(0, 0, voxelTerrain.TileSize3D.Z * 1.5f);
+
+        Cube playerCube = _character.BoundingCube;
+        _camera.Position = playerCube.Origin + new Vector3(0, 0, playerCube.HalfExtents.Z - 0.1f);
 
         // Find cube pointing at
-        Ray3D mouseRay = _camera.GetCameraMouseRay();
-        if (voxelTerrain.CollideRay(mouseRay, out Vector3 collision))
-            TilePosOfCursor = voxelTerrain.GetTilePos3DOfWorldPos(collision + mouseRay.Direction * 0.01f);
-        else
+        bool set = false;
+        VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
+        if (voxelTerrain != null)
+        {
+            Ray3D mouseRay = _camera.GetCameraMouseRay();
+            if (voxelTerrain.CollideRay(mouseRay, out Vector3 collision, out Vector3 surfaceNormal) && Vector3.Distance(_character.Position, collision) < CursorReach)
+            {
+                TilePosOfCursor = voxelTerrain.GetTilePos3DOfWorldPos(collision + mouseRay.Direction * 0.01f);
+                PlacementPosCursor = voxelTerrain.GetTilePos3DOfWorldPos(collision + surfaceNormal * 0.01f);
+                set = true;
+            }
+        }
+        if (!set)
+        {
             TilePosOfCursor = Vector3.NaN;
+            PlacementPosCursor = TilePosOfCursor;
+        }
     }
 
     private bool KeyHandler(Key key, KeyState status)
