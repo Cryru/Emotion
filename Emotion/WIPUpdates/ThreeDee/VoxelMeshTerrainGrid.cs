@@ -1,7 +1,9 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
+using Emotion.IO;
 using Emotion.WIPUpdates.Grids;
 using Emotion.WIPUpdates.Rendering;
 using VoxelMeshGridChunk = Emotion.WIPUpdates.ThreeDee.MeshGridStreaming.MeshGridStreamableChunk<uint, uint>;
@@ -24,8 +26,19 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
     public override IEnumerator InitRuntimeDataRoutine()
     {
-        yield return GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
+        List<Asset> assets = new List<Asset>();
+        if (TerrainMeshMaterial.DiffuseTextureName != null)
+            assets.Add(Engine.AssetLoader.ONE_Get<TextureAsset>(TerrainMeshMaterial.DiffuseTextureName));
+
+        ThreadExecutionWaitToken indexBufferTask = GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
         yield return base.InitRuntimeDataRoutine();
+
+        yield return indexBufferTask;
+
+        for (int i = 0; i < assets.Count; i++)
+        {
+            yield return assets[i];
+        }
     }
 
     protected override VoxelMeshGridChunk InitializeNewChunk()
@@ -189,8 +202,19 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         return tileData == 0;
     }
 
+    protected virtual void SetVoxelFaceUV(
+        CubeFace face, Span<VertexData_Pos_UV_Normal_Color> vertices,
+        int coord1D, uint voxelId,
+        uint topSample, uint leftSample, uint rightsample,
+        uint frontSample, uint backSample, uint bottomSample
+    )
+    {
+
+    }
+
     private int RunChunkMeshGeneration(Vector2 chunkWorldOffset, uint[] dataMe, Span<VertexData_Pos_UV_Normal_Color> vertices, Vector3 tileSize3D)
     {
+        bool justCount = vertices.IsEmpty;
         Vector3 halfSize = tileSize3D / 2f;
 
         int vIdx = 0;
@@ -203,24 +227,23 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     Vector3 tileCoord = new Vector3(x, y, z);
 
                     int dataCoord = GridHelpers.GetCoordinate1DFrom3D(tileCoord, ChunkSize3D);
-                    uint sample = dataMe[dataCoord];
-                    if (IsEmpty(sample)) continue;
+                    uint voxelId = dataMe[dataCoord];
+                    if (IsEmpty(voxelId)) continue;
 
                     Vector3 worldPos = chunkWorldOffset.ToVec3() + (tileCoord * tileSize3D);
 
-                    // Top (Z+)
-                    bool makeTopFace = z == ChunkSize3D.Z - 1;
-                    if (!makeTopFace)
+                    uint topSample = 0;
+                    if (z != ChunkSize3D.Z - 1)
                     {
                         Vector3 topTileCoordinates = new Vector3(x, y, z + 1);
                         int topCoord = GridHelpers.GetCoordinate1DFrom3D(topTileCoordinates, ChunkSize3D);
-                        uint topSample = dataMe[topCoord];
-                        makeTopFace = IsEmpty(topSample);
-
+                        topSample = dataMe[topCoord];
                     }
-                    if (makeTopFace)
+
+                    // Top (Z+)
+                    if (IsEmpty(topSample))
                     {
-                        if (vertices.IsEmpty)
+                        if (justCount)
                         {
                             vIdx += 4;
                         }
@@ -230,7 +253,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
                                 vData.Normal = RenderComposer.Up;
-                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -239,7 +262,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
                                 vData.Normal = RenderComposer.Up;
-                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -248,7 +271,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
                                 vData.Normal = RenderComposer.Up;
-                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -257,10 +280,15 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
                                 vData.Normal = RenderComposer.Up;
-                                vData.Color = Color.PrettyGreen.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
+
+                            SetVoxelFaceUV(
+                                CubeFace.PositiveZ, vertices.Slice(vIdx - 4), dataCoord, voxelId,
+                                topSample, 0, 0, 0, 0, 0
+                            );
                         }
                     }
 
@@ -275,7 +303,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     }
                     if (makeBottomFace)
                     {
-                        if (vertices.IsEmpty)
+                        if (justCount)
                         {
                             vIdx += 4;
                         }
@@ -316,6 +344,12 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
+
+
+                            SetVoxelFaceUV(
+                                CubeFace.NegativeZ, vertices.Slice(vIdx - 4), dataCoord, voxelId,
+                                topSample, 0, 0, 0, 0, 0
+                            );
                         }
                     }
 
@@ -330,7 +364,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     }
                     if (makeBackface)
                     {
-                        if (vertices.IsEmpty)
+                        if (justCount)
                         {
                             vIdx += 4;
                         }
@@ -340,7 +374,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
                                 vData.Normal = -RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -349,7 +383,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
                                 vData.Normal = -RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -358,7 +392,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
                                 vData.Normal = -RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -367,10 +401,15 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
                                 vData.Normal = -RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
+
+                            SetVoxelFaceUV(
+                                CubeFace.NegativeX, vertices.Slice(vIdx - 4), dataCoord, voxelId,
+                                topSample, 0, 0, 0, 0, 0
+                            );
                         }
                     }
 
@@ -385,7 +424,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     }
                     if (makeFrontFace)
                     {
-                        if (vertices.IsEmpty)
+                        if (justCount)
                         {
                             vIdx += 4;
                         }
@@ -395,7 +434,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
                                 vData.Normal = RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -404,7 +443,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
                                 vData.Normal = RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -413,7 +452,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
                                 vData.Normal = RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -422,10 +461,15 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
                                 vData.Normal = RenderComposer.Forward;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
+
+                            SetVoxelFaceUV(
+                                CubeFace.PositiveX, vertices.Slice(vIdx - 4), dataCoord, voxelId,
+                                topSample, 0, 0, 0, 0, 0
+                            );
                         }
                     }
 
@@ -440,7 +484,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     }
                     if (makeLeftFace)
                     {
-                        if (vertices.IsEmpty)
+                        if (justCount)
                         {
                             vIdx += 4;
                         }
@@ -450,7 +494,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, -1, 1));
                                 vData.Normal = -RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -459,7 +503,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, -1, 1));
                                 vData.Normal = -RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -468,7 +512,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, -1, -1));
                                 vData.Normal = -RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -477,10 +521,15 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, -1, -1));
                                 vData.Normal = -RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
+
+                            SetVoxelFaceUV(
+                                CubeFace.NegativeY, vertices.Slice(vIdx - 4), dataCoord, voxelId,
+                                topSample, 0, 0, 0, 0, 0
+                            );
                         }
                     }
 
@@ -495,7 +544,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     }
                     if (makeRightFace)
                     {
-                        if (vertices.IsEmpty)
+                        if (justCount)
                         {
                             vIdx += 4;
                         }
@@ -505,7 +554,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, 1, 1));
                                 vData.Normal = RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -514,7 +563,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, 1, 1));
                                 vData.Normal = RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -523,7 +572,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(-1, 1, -1));
                                 vData.Normal = RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
@@ -532,10 +581,15 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
                                 vData.Position = worldPos + (halfSize * new Vector3(1, 1, -1));
                                 vData.Normal = RenderComposer.Right;
-                                vData.Color = Color.PrettyBrown.ToUint();
+                                vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
                                 vIdx++;
                             }
+
+                            SetVoxelFaceUV(
+                                CubeFace.PositiveY, vertices.Slice(vIdx - 4), dataCoord, voxelId,
+                                topSample, 0, 0, 0, 0, 0
+                            );
                         }
                     }
                 }
