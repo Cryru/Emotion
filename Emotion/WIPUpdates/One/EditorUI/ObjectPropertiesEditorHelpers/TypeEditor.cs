@@ -8,12 +8,6 @@ using Emotion.WIPUpdates.One.EditorUI.Components;
 
 namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-public enum LabelStyle
-{
-    NormalEditor,
-    MapEditor
-}
-
 public abstract class TypeEditor : UIBaseWindow
 {
     [DontSerialize]
@@ -39,12 +33,9 @@ public abstract class TypeEditor : UIBaseWindow
             LayoutMode = LayoutMode.HorizontalList
         };
 
-        EditorLabel label = new EditorLabel
-        {
-            Id = "Label",
-            Margins = new Primitives.Rectangle(0, 0, 10, 0),
-            Text = labelText,
-        };
+        EditorLabel label = EditorLabel.GetLabel(style, labelText);
+        label.Id = "Label";
+        label.Margins = new Primitives.Rectangle(0, 0, 10, 0);
         container.AddChild(label);
 
         ReflectorTypeHandlerBase<T>? handler = ReflectorEngine.GetTypeHandler<T>();
@@ -59,15 +50,6 @@ public abstract class TypeEditor : UIBaseWindow
                     valueChanged(valAsT);
             });
             container.AddChild(editor);
-        }
-
-        switch (style)
-        {
-            case LabelStyle.MapEditor:
-                label.OutlineColor = Color.Black;
-                label.OutlineSize = 2;
-                label.FontSize = 23;
-                break;
         }
 
         return container;

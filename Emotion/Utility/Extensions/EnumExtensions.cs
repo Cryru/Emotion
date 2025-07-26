@@ -17,6 +17,8 @@ public static class EnumExtensions
 
     public unsafe static bool EnumHasFlag<TEnum>(this TEnum lhs, TEnum rhs) where TEnum : unmanaged, Enum
     {
+        // Note that if both lhs and rhs are 0 this will return false
+
         switch (sizeof(TEnum))
         {
             case 1:

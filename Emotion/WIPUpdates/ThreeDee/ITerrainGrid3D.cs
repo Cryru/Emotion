@@ -6,6 +6,8 @@ public interface ITerrainGrid3D
 
     public IEnumerator InitRuntimeDataRoutine();
 
+    public void UnloadRuntimeData();
+
     public float GetHeightAt(Vector2 worldSpace);
 
     public void Update(float dt);

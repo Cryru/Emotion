@@ -28,7 +28,7 @@ public class ContainerVisibleInEditorMode : UIBaseWindow
 
     private void UpdateVisibility(MapEditorMode currentMode)
     {
-        Visible = VisibleIn.EnumHasFlag(currentMode);
+        Visible = VisibleIn == currentMode || VisibleIn.EnumHasFlag(currentMode);
         OnModeChanged?.Invoke(currentMode);
     }
 }

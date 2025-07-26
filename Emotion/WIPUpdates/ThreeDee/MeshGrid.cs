@@ -33,8 +33,14 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     public virtual IEnumerator InitRuntimeDataRoutine()
     {
+        SetupDebugVisualizations();
         Initialized = true;
         yield break;
+    }
+
+    public virtual void UnloadRuntimeData()
+    {
+        EngineEditor.RemoveEditorVisualizations(this);
     }
 
     #region API
@@ -223,9 +229,10 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         return movement * earliestHit;
     }
 
-    public bool CollideRay(Ray3D ray, out Vector3 collisionPoint)
+    public bool CollideRay(Ray3D ray, out Vector3 collisionPoint, out Vector3 surfaceNormal)
     {
         collisionPoint = Vector3.Zero;
+        surfaceNormal = Vector3.Zero;
 
         Vector3 closestIntersection = Vector3.Zero;
         float closestIntersectionDist = float.PositiveInfinity;
@@ -235,19 +242,20 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         {
             ChunkT chunk = item.Value;
             if (chunk.Bounds.IsEmpty) continue;
-            if (!ray.IntersectWithCube(chunk.Bounds, out Vector3 _)) continue;
+            if (!ray.IntersectWithCube(chunk.Bounds, out Vector3 _, out Vector3 __)) continue;
 
             if (chunk.Colliders == null) continue; // todo: vertices based chunks? triangle collision
 
             foreach (Cube other in chunk.Colliders)
             {
-                if (ray.IntersectWithCube(other, out Vector3 colPoint))
+                if (ray.IntersectWithCube(other, out Vector3 colPoint, out Vector3 colSurfaceNormal))
                 {
                     float dist = Vector3.Distance(colPoint, ray.Start);
                     if (dist < closestIntersectionDist)
                     {
                         closestIntersection = colPoint;
                         closestIntersectionDist = dist;
+                        surfaceNormal = colSurfaceNormal;
                     }
                 }
             }
@@ -333,36 +341,6 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
             }
 
             c.SetState(oldState);
-
-            // Draw bounds
-            //foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
-            //{
-            //    chunkToRender.Bounds.RenderOutline(c);
-            //}
-
-            // Draw colliders
-            //foreach (MeshGridChunkRuntimeCache chunkToRender in _renderThisPass)
-            //{
-            //    if (chunkToRender.Colliders == null) continue;
-            //    foreach (var collider in chunkToRender.Colliders)
-            //    {
-            //        collider.RenderOutline(c, Color.Blue);
-            //    }
-            //}
-
-            // Draw arrows for normals
-            //foreach (TerrainGridChunkRuntimeCache chunkToRender in _renderThisPass)
-            //{
-            //    VertexDataAllocation vertices = chunkToRender.VertexMemory;
-            //    Span<VertexData_Pos_UV_Normal_Color> verticesSpan = vertices.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
-            //    for (int i = 0; i < verticesSpan.Length; i++)
-            //    {
-            //        ref VertexData_Pos_UV_Normal_Color vert = ref verticesSpan[i];
-            //        if (vert.Normal == RenderComposer.Up) continue;
-
-            //        c.RenderLine(vert.Position, vert.Position + vert.Normal * 0.5f, Color.Red, 0.05f);
-            //    }
-            //}
         }
     }
 
@@ -393,6 +371,56 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     protected virtual void SetupShaderState(ShaderProgram shader)
     {
         // nop
+    }
+
+    #endregion
+
+    #region Debug
+
+    protected virtual void SetupDebugVisualizations()
+    {
+        EngineEditor.AddEditorVisualization(this, "View Chunk Boundaries", (c) =>
+        {
+            foreach (ChunkT chunkToRender in _renderThisPass)
+            {
+                chunkToRender.Bounds.RenderOutline(c);
+            }
+        });
+
+        EngineEditor.AddEditorVisualization(this, "View Chunk Colliders", (c) =>
+        {
+            Vector3 cameraPos = c.Camera.Position;
+            foreach (ChunkT chunkToRender in _renderThisPass)
+            {
+                if (chunkToRender.Colliders == null) continue;
+                foreach (var collider in chunkToRender.Colliders)
+                {
+                    if (Vector2.Distance(cameraPos.ToVec2(), collider.Origin.ToVec2()) > 10f) continue;
+
+                    collider.RenderOutline(c, Color.Blue);
+                }
+            }
+        });
+
+        EngineEditor.AddEditorVisualization(this, "View Tile Vertex Normals", (c) =>
+        {
+            Vector2 cameraPos = c.Camera.Position.ToVec2();
+
+            foreach (ChunkT chunkToRender in _renderThisPass)
+            {
+                if (Vector2.Distance(chunkToRender.Bounds.Origin.ToVec2(), cameraPos) > 15f) continue;
+
+                VertexDataAllocation vertices = chunkToRender.VertexMemory;
+                Span<VertexData_Pos_UV_Normal_Color> verticesSpan = vertices.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
+                for (int i = 0; i < verticesSpan.Length; i++)
+                {
+                    ref VertexData_Pos_UV_Normal_Color vert = ref verticesSpan[i];
+                    if (vert.Normal == RenderComposer.Up) continue;
+
+                    c.RenderLine(vert.Position, vert.Position + vert.Normal * 0.5f, Color.Red, 0.05f);
+                }
+            }
+        });
     }
 
     #endregion

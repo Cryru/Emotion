@@ -125,6 +125,7 @@ public partial class GameMap : IDisposable
 
     public void Dispose()
     {
-
+        TileMapData?.UnloadRuntimeData();
+        TerrainGrid?.UnloadRuntimeData();
     }
 }

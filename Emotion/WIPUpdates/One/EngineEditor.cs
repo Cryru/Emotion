@@ -14,18 +14,22 @@ using Emotion.WIPUpdates.One.EditorUI;
 using Emotion.WIPUpdates.One.EditorUI.Components;
 using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.WIPUpdates.One.Tools.GameDataTool;
+using System;
+using System.Text;
+using System.Xml.Linq;
 
 #endregion
 
 namespace Emotion.WIPUpdates.One;
 
+#nullable enable
 public static partial class EngineEditor
 {
     public static bool IsOpen { get; private set; }
 
-    public static UIBaseWindow EditorRoot;
+    public static UIBaseWindow EditorRoot = null!;
 
-    private static UIRichText _perfText;
+    private static UIRichText _perfText = null!;
 
     public static void Attach()
     {
@@ -67,6 +71,7 @@ public static partial class EngineEditor
         barContainer.AddChild(new MapEditorViewMode());
 
         SetupDebugCameraUI(barContainer);
+        SetupGameEditorVisualizations(barContainer);
 
         _perfText = new UIRichText
         {
@@ -104,6 +109,8 @@ public static partial class EngineEditor
 
     public static void RenderEditor(RenderComposer c)
     {
+        RenderEditorVisualizations(c);
+
         if (!IsOpen) return;
         RenderMapEditor(c);
 
@@ -165,11 +172,13 @@ public static partial class EngineEditor
         };
         barContainer.AddChild(container);
 
+        // View game camera
         UIBaseWindow viewGameCamera = TypeEditor.CreateCustomWithLabel("View Game Camera", _debugCameraOptionOn, SetDebugCameraOption, LabelStyle.MapEditor);
+        container.AddChild(viewGameCamera);
 
+        // Camera speed
         UIBaseWindow cameraSpeed = TypeEditor.CreateCustomWithLabel("Camera Speed", (float) 0, SetDebugCameraSpeed, LabelStyle.MapEditor);
         cameraSpeed.MaxSizeX = 220;
-
         container.OnModeChanged = (_) =>
         {
             // The speed changes when the camera changes, so we need to update it on mode changed.
@@ -178,8 +187,6 @@ public static partial class EngineEditor
             if (camSpeedTypeEditor != null)
                 camSpeedTypeEditor.SetValue(currentSpeed);
         };
-
-        container.AddChild(viewGameCamera);
         container.AddChild(cameraSpeed);
     }
 
@@ -187,7 +194,7 @@ public static partial class EngineEditor
     {
         if (!_debugCameraOptionOn) return;
 
-        CameraBase gameCam = _cameraOutsideEditor;
+        CameraBase? gameCam = _cameraOutsideEditor;
         if (gameCam == null) return;
 
         c.SetDepthTest(false);
@@ -204,6 +211,114 @@ public static partial class EngineEditor
             frustum.Render(c, Color.White, Color.Magenta * 0.1f);
         }
         c.SetDepthTest(true);
+    }
+
+    #endregion
+
+    #region Game Debug Hooks
+
+    private class EditorVisualization
+    {
+        public object OwningObject;
+        public string Name;
+        public Action<RenderComposer> Function;
+        public bool Enabled;
+    }
+
+    private class EditorVisualizationText
+    {
+        public object OwningObject;
+        public Func<string> GetText;
+    }
+
+    private static List<EditorVisualization> _editorVisualization = new();
+    private static List<EditorVisualizationText> _editorTextVisualization = new();
+    private static EditorLabel? _textVisualization;
+
+    public static void AddEditorVisualization(object owningObject, string name, Action<RenderComposer> func)
+    {
+        _editorVisualization.Add(new EditorVisualization()
+        {
+            OwningObject = owningObject,
+            Name = name,
+            Function = func
+        });
+    }
+
+    public static void AddEditorVisualizationText(object owningObject, Func<string> getText)
+    {
+        _editorTextVisualization.Add(new EditorVisualizationText()
+        {
+            OwningObject = owningObject,
+            GetText = getText
+        });
+    }
+
+    public static void RemoveEditorVisualizations(object owningObject)
+    {
+        _editorVisualization.RemoveAll(x => x.OwningObject == owningObject);
+    }
+
+    private static void RenderEditorVisualizations(RenderComposer c)
+    {
+        // We render these visualizations regardless if the editor is open.
+        foreach (EditorVisualization visualization in _editorVisualization)
+        {
+            if (!visualization.Enabled) continue;
+            visualization.Function(c);
+        }
+
+        // This is really bad allocation wise, but its for debug so whatever
+        if (_textVisualization != null && IsOpen && MapEditorMode == MapEditorMode.Off)
+        {
+            StringBuilder b = new StringBuilder();
+            foreach (var visualization in _editorTextVisualization)
+            {
+                b.AppendLine(visualization.GetText());
+            }
+            _textVisualization.Text = b.ToString();
+        }
+    }
+
+    private static void SetupGameEditorVisualizations(UIBaseWindow barContainer)
+    {
+        UIBaseWindow? oldContainer = barContainer.GetWindowById("GameEditorVisualizations");
+        oldContainer?.Close();
+
+        var container = new UIBaseWindow
+        {
+            Id = "GameEditorVisualizations",
+            Margins = new Primitives.Rectangle(10, 15, 0, 0),
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 5)
+        };
+        barContainer.AddChild(container);
+
+        var textVisualizationContainer = new ContainerVisibleInEditorMode
+        {
+            VisibleIn = MapEditorMode.Off
+        };
+        container.AddChild(textVisualizationContainer);
+        EditorLabel textVisualization = EditorLabel.GetLabel(LabelStyle.MapEditor, "");
+        textVisualizationContainer.AddChild(textVisualization);
+        _textVisualization = textVisualization;
+
+        object? lastOwningObject = null;
+        foreach (EditorVisualization visualization in _editorVisualization)
+        {
+            // Assumes items with the same owning object follow each other.
+            object owningObject = visualization.OwningObject;
+            if (owningObject != lastOwningObject)
+            {
+                var objSeparator = EditorLabel.GetLabel(LabelStyle.MapEditor, owningObject.ToString() + "\n-------------");
+                objSeparator.Margins = new Primitives.Rectangle(0, lastOwningObject != null ? 30 : 0, 0, 0);
+                container.AddChild(objSeparator);
+                lastOwningObject = owningObject;
+            }
+
+            UIBaseWindow visualizationCheckbox = TypeEditor.CreateCustomWithLabel(visualization.Name, visualization.Enabled, (val) => visualization.Enabled = val, LabelStyle.MapEditor);
+            container.AddChild(visualizationCheckbox);
+        }
     }
 
     #endregion
