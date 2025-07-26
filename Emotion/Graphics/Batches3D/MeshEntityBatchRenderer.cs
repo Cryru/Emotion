@@ -841,10 +841,10 @@ public sealed class MeshEntityBatchRenderer
 
                     c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
 
+                    c.SetAlphaBlend(false);
+
                     if (objectData.MetaState.CustomRenderState != null)
                         c.SetState(objectData.MetaState.CustomRenderState);
-
-                    c.SetAlphaBlend(false);
 
                     // Render geometry
                     VertexBuffer.EnsureBound(renderObj.VBO.Pointer);

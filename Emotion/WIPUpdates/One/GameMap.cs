@@ -108,7 +108,7 @@ public partial class GameMap : IDisposable
             for (int i = 0; i < _objects.Count; i++)
             {
                 MapObject obj = _objects[i];
-                if (!obj.BoundingRect.Intersects(clipArea)) continue;
+                if (!obj.AlwaysRender && !obj.BoundingRect.Intersects(clipArea)) continue;
                 obj.Render(c);
             }
         }
@@ -117,7 +117,7 @@ public partial class GameMap : IDisposable
             for (int i = 0; i < _objects.Count; i++)
             {
                 MapObject obj = _objects[i];
-                if (!frustum.IntersectsOrContainsCube(obj.BoundingCube)) continue;
+                if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.BoundingCube)) continue;
                 obj.Render(c);
             }
         }

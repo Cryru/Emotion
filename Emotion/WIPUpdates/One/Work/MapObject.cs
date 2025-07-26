@@ -7,6 +7,9 @@ namespace Emotion.WIPUpdates.One.Work;
 
 public partial class MapObject
 {
+    // todo: flags
+    public bool AlwaysRender;
+
     [DontSerialize]
     public GameMap? Map;
 
