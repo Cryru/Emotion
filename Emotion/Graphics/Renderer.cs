@@ -640,6 +640,8 @@ namespace Emotion.Graphics
 
             // NVidia drivers love to spam the debug log with how your buffers will be mapped in the system heap.
             if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("SYSTEM HEAP")) return;
+            if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("will use VIDEO memory")) return;
+            if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("Based on the usage hint and actual usage")) return;
 
             switch (severity)
             {
