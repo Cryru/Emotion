@@ -191,7 +191,7 @@ namespace Emotion.Platform.Implementation.Win32
                     // (check if this is the main window too)
                     if (hWnd == _windowHandle && !IsFocused)
                     {
-                        Engine.Input.ReportMouseMove(new Vector2(-1));
+                        //Engine.Input.ReportMouseMove(new Vector2(-1));
                         return IntPtr.Zero;
                     }
 
