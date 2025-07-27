@@ -77,7 +77,6 @@
       <Compile Remove="Examples\PackingDisplay.cs" />
       <Compile Remove="Examples\Pathfinding.cs" />
       <Compile Remove="Examples\PngSuiteExample.cs" />
-      <Compile Remove="Examples\RopeSim.cs" />
       <Compile Remove="Examples\TextRenderers.cs" />
     </ItemGroup>
 
@@ -89,7 +88,6 @@
       <None Include="Examples\PackingDisplay.cs" />
       <None Include="Examples\Pathfinding.cs" />
       <None Include="Examples\PngSuiteExample.cs" />
-      <None Include="Examples\RopeSim.cs" />
       <None Include="Examples\TextRenderers.cs" />
     </ItemGroup>
 
