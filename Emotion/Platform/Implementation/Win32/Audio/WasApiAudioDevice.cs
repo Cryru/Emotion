@@ -31,19 +31,30 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// Late initialization for the WasApi backend's representation of this device.
         /// Todo: Catch and handle all the possible COM exceptions here :/
         /// </summary>
-        public WasApiLayerContext CreateLayerContext(out uint bufferSize)
+        public WasApiLayerContext? CreateLayerContext(out uint bufferSize)
         {
+            bufferSize = 0;
+
             var context = new WasApiLayerContext(this);
 
             // Activate the device.
             int error = ComHandle.Activate(ref IdAudioClient, ClsCtx.ALL, IntPtr.Zero, out IAudioClient audioClient);
-            if (error != 0) Win32Platform.CheckError($"Couldn't activate audio device of name {Name}.", true);
+            if (error != 0)
+            {
+                Engine.Log.Error($"Couldn't activate audio device of name {Name}.", MessageSource.WasApi);
+                return null;
+            }
 
             context.AudioClient = audioClient;
 
             // Get device format.
             error = audioClient.GetMixFormat(out IntPtr deviceFormat);
-            if (error != 0) Win32Platform.CheckError($"Couldn't detect the mix format of the audio client of {Name}.", true);
+            if (error != 0)
+            {
+                Engine.Log.Error($"Couldn't detect the mix format of the audio client of {Name}.", MessageSource.WasApi);
+                return null;
+            }
+
             WaveFormat audioClientFormat = Marshal.PtrToStructure<WaveFormat>(deviceFormat);
             if (audioClientFormat.ExtraSize >= 22)
             {
@@ -57,13 +68,26 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             long ticks = TimeSpan.FromMilliseconds(AudioContext.BackendBufferExpectedAhead).Ticks;
             error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, ticks, 0, deviceFormat, Guid.Empty);
-            if (error != 0) Win32Platform.CheckError($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", true);
+            if (error != 0)
+            {
+                Engine.Log.Error($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", MessageSource.WasApi);
+                return null;
+            }
 
             error = audioClient.GetBufferSize(out bufferSize);
-            if (error != 0) Win32Platform.CheckError($"Couldn't get device {Name} buffer size.", true);
+            if (error != 0)
+            {
+                Engine.Log.Error($"Couldn't get device {Name} buffer size.", MessageSource.WasApi);
+                return null;
+            }
 
             error = audioClient.GetService(IdAudioRenderClient, out IAudioRenderClient audioRenderClient);
-            if (error != 0) Win32Platform.CheckError($"Couldn't get the audio render client for device {Name}.", true);
+            if (error != 0)
+            {
+                Engine.Log.Error($"Couldn't get the audio render client for device {Name}.", MessageSource.WasApi);
+                return null;
+            }
+
             context.RenderClient = audioRenderClient;
 
             return context;

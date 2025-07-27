@@ -91,15 +91,12 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// <summary>
         /// Set the audio device the layer will output into.
         /// </summary>
-        public void SetDevice(WasApiAudioDevice device)
+        public void SetDevice(WasApiAudioDevice? device)
         {
-            if (device == null)
-            {
-                _layerContext = null;
-                return;
-            }
+            uint bufferSize = 9;
+            _layerContext = device?.CreateLayerContext(out bufferSize);
+            if (_layerContext == null) return;
 
-            _layerContext = device.CreateLayerContext(out uint bufferSize);
             _bufferLengthInFrames = (int) bufferSize;
         }
     }
