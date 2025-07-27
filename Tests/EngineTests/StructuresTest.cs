@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Emotion.Game.QuadTree;
 using Emotion.Primitives;
 using Emotion.Testing;
+using Tests.EngineTests.XMLTestsSupport;
 
 #endregion
 

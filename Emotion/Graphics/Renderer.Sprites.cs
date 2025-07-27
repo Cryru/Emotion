@@ -55,12 +55,6 @@ namespace Emotion.Graphics
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
-        public void RenderSprite(Transform transform, Color color, Texture? texture = null, Rectangle? textureArea = null)
-        {
-            RenderSprite(transform.Position, transform.Size, color, texture, textureArea);
-        }
-
-        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
         public void RenderSprite(Rectangle rect, Color color, Texture? texture = null, Rectangle? textureArea = null)
         {
             RenderSprite(rect.Position.ToVec3(), rect.Size, color, texture, textureArea);

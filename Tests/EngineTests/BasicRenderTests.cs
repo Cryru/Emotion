@@ -5,8 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Game.Text;
-using Emotion.Game.Tiled;
 using Emotion.Graphics;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Objects;
@@ -213,26 +211,6 @@ public class BasicRenderTests : ProxyRenderTestingScene
     }
 
     /// <summary>
-    /// Tests the rendering of RichText. This also tests batch caching.
-    /// </summary>
-    [Test]
-    public IEnumerator RenderRichText()
-    {
-        var asset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
-        var testRich = new RichText(new Vector3(20, 20, 0), new Vector2(100, 100), asset.GetAtlas(20));
-        testRich.SetText("The quick brown fox jumps over the <color=255-0-0>lazy</> dog.\n123456789!@#$%^&*(0");
-
-        ToRender = (composer) =>
-        {
-            composer.SetUseViewMatrix(false);
-            composer.Render(testRich);
-        };
-
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderRichText));
-    }
-
-    /// <summary>
     /// Tests the ordering of items drawn by the composer by drawing at different Z coordinates and how the result overlaps.
     /// </summary>
     [Test]
@@ -285,21 +263,6 @@ public class BasicRenderTests : ProxyRenderTestingScene
 
         yield return new TestWaiterRunLoops(1);
         VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderDepthTest));
-    }
-
-    [Test]
-    public IEnumerator TilemapRender()
-    {
-        var tileMap = new TileMap<TransformRenderable>("Tilemap/DeepForest.tmx");
-
-        ToRender = (composer) =>
-        {
-            composer.SetUseViewMatrix(false);
-            composer.Render(tileMap);
-        };
-
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(TilemapRender));
     }
 
     /// <summary>

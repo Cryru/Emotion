@@ -1,14 +1,18 @@
 ﻿#region Using
 
+using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
 using Emotion.Editor;
 using Emotion.Game.QuadTree;
+using Emotion.Primitives;
+using Emotion.Testing;
 using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Primitives
+namespace Tests.EngineTests.XMLTestsSupport
 {
     /// <summary>
     /// An object with a position and size.
@@ -269,8 +273,8 @@ namespace Emotion.Primitives
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void Resized()
         {
-            Assert(!float.IsNaN(Width));
-            Assert(!float.IsNaN(Height));
+            Assert.False(float.IsNaN(Width));
+            Assert.False(float.IsNaN(Height));
             OnResize?.Invoke(this, EventArgs.Empty);
         }
 

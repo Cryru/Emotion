@@ -1,9 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Common.Input;
 using Emotion.Platform.Implementation.CommonDesktop;
 
-namespace Emotion.Common;
+namespace Emotion.Common.Input;
 
 public class InputManager
 {

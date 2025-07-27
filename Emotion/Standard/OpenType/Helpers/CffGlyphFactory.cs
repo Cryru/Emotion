@@ -1,6 +1,7 @@
 ﻿#region Using
 
-using Emotion.Utility;
+using Emotion.ThirdParty.cubic2quad;
+
 
 #endregion
 

@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using Emotion.Utility;
+using Emotion.WIPUpdates.Grids;
 
 #endregion
 
@@ -17,13 +18,13 @@ namespace Emotion.Game.AStar
         private Dictionary<int, AStarNode> _cache;
         private List<AStarNode> _neighbors = new List<AStarNode>();
 
-        protected PathingGrid _pathingGrid;
+        protected IGrid _pathingGrid;
 
         /// <summary>
         /// Create a new A* path.
         /// </summary>
         /// <param name="pathingGrid">The aStarGrid the path is on.</param>
-        public AStarContext(PathingGrid pathingGrid)
+        public AStarContext(IGrid pathingGrid)
         {
             _pathingGrid = pathingGrid;
             _openSet = new HashSet<AStarNode>();
@@ -194,8 +195,6 @@ namespace Emotion.Game.AStar
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected AStarNode CreateNodeFromIfValid(int x, int y)
         {
-            if (!_pathingGrid.IsWalkable(x, y)) return null;
-
             int hashCode = Maths.GetCantorPair(x, y);
             if (_cache.TryGetValue(hashCode, out AStarNode node)) return node;
             var newNode = new AStarNode(x, y);
@@ -211,10 +210,11 @@ namespace Emotion.Game.AStar
             int x = current.X;
             int y = current.Y;
 
-            bool hasLeft = x > 0 && x <= _pathingGrid.Width - 1;
-            bool hasRight = x >= 0 && x < _pathingGrid.Width - 1;
-            bool hasTop = y > 0 && y <= _pathingGrid.Height - 1;
-            bool hasBottom = y >= 0 && y < _pathingGrid.Height - 1;
+            Vector2 gridSize = _pathingGrid.GetSize();
+            bool hasLeft = x > 0 && x <= gridSize.X - 1;
+            bool hasRight = x >= 0 && x < gridSize.X - 1;
+            bool hasTop = y > 0 && y <= gridSize.Y - 1;
+            bool hasBottom = y >= 0 && y < gridSize.Y - 1;
 
             // Check for left.
             if (hasLeft)
@@ -280,24 +280,6 @@ namespace Emotion.Game.AStar
         }
 
         #endregion
-
-        /// <summary>
-        /// Find a path between two world space coordinates.
-        /// </summary>
-        public List<Vector2> FindPathWorldSpace(Vector2 start, Vector2 end, bool diagonalMovement = false)
-        {
-            Vector2 halfTile = _pathingGrid.PathGridTileSize / 2;
-            start = _pathingGrid.WorldToPathTile(start);
-            end = _pathingGrid.WorldToPathTile(end);
-
-            List<Vector2> path = FindPath(start, end, diagonalMovement);
-            for (var i = 0; i < path.Count; i++)
-            {
-                path[i] = path[i] * _pathingGrid.PathGridTileSize + halfTile;
-            }
-
-            return path;
-        }
 
         /// <summary>
         /// Returns debugging information about the current state of the AStar context.

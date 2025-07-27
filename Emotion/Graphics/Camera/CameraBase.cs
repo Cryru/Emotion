@@ -1,9 +1,11 @@
 ﻿#region Using
 
 using Emotion.Common.Input;
+using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Primitives;
 using Emotion.Utility;
+using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -12,8 +14,106 @@ namespace Emotion.Graphics.Camera;
 /// <summary>
 /// The basis for a camera object.
 /// </summary>
-public abstract class CameraBase : Positional, IDisposable
+public abstract class CameraBase : IDisposable
 {
+    #region Position and Movement
+
+    public Vector3 Position
+    {
+        get => new Vector3(_x, _y, _z);
+        set
+        {
+            if (_x == value.X && _y == value.Y && _z == value.Z) return;
+
+            _x = value.X;
+            _y = value.Y;
+            _z = value.Z;
+
+            Moved();
+        }
+    }
+
+    [DontSerialize]
+    public Vector2 Position2
+    {
+        get => new Vector2(_x, _y);
+        set
+        {
+            if (_x == value.X && _y == value.Y) return;
+
+            _x = value.X;
+            _y = value.Y;
+
+            Moved();
+        }
+    }
+
+    /// <summary>
+    /// The location of the object on the X-axis.
+    /// </summary>
+    [DontSerialize]
+    public float X
+    {
+        get => _x;
+        set
+        {
+            if (_x == value) return;
+
+            _x = value;
+            Moved();
+        }
+    }
+
+    /// <summary>
+    /// The location of the object on the Y-axis.
+    /// </summary>
+    [DontSerialize]
+    public float Y
+    {
+        get => _y;
+        set
+        {
+            if (_y == value) return;
+
+            _y = value;
+            Moved();
+        }
+    }
+
+    /// <summary>
+    /// The location of the object on the Z-axis.
+    /// </summary>
+    [DontSerialize]
+    public float Z
+    {
+        get => _z;
+        set
+        {
+            if (_z == value) return;
+
+            _z = value;
+            Moved();
+        }
+    }
+
+    protected float _x;
+    protected float _y;
+    protected float _z;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected virtual void Moved()
+    {
+        RecreateViewMatrix();
+        OnMove?.Invoke(this);
+    }
+
+    /// <summary>
+    /// Is invoked when the position is changed.
+    /// </summary>
+    public event Action<CameraBase> OnMove;
+
+    #endregion
+
     #region Properties
 
     /// <summary>
@@ -130,7 +230,6 @@ public abstract class CameraBase : Positional, IDisposable
         LookAtChanged(Vector3.Zero, _lookAt);
         RecreateViewMatrix();
         RecreateProjectionMatrix();
-        OnMove += (s, e) => { RecreateViewMatrix(); };
     }
 
     /// <summary>
