@@ -183,6 +183,22 @@ public partial class MapObject : IOctTreeStorable
     }
 
     /// <summary>
+    /// The scale of the object in two dimensions (missing z)
+    /// </summary>
+    public Vector2 Scale2D
+    {
+        get => new Vector2(_scaleX, _scaleY);
+        set
+        {
+            if (_scaleX == value.X && _scaleY == value.Y) return;
+
+            _scaleX = value.X;
+            _scaleY = value.Y;
+            Resized();
+        }
+    }
+
+    /// <summary>
     /// The scale of the 3D object
     /// </summary>
     public Vector3 Scale3D

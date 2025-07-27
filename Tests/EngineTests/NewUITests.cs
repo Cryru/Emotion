@@ -851,7 +851,7 @@ public class NewUITests : TestingScene
         int oldTextSize = MapEditorColorPalette.EditorButtonTextSize;
         MapEditorColorPalette.EditorButtonTextSize = 9;
         {
-            var editorPanel = new EditorPanel("Test");
+            var editorPanel = new EditorWindow("Test");
             UI.AddChild(editorPanel);
         }
 

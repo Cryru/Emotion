@@ -5,12 +5,10 @@
 using System.Threading.Tasks;
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
-using Emotion.Game.World;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
-using Emotion.Standard.TopologicalSort;
 
 #endregion
 
@@ -46,7 +44,6 @@ public class MeshEntityMetaState
     private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
 
     public RenderState? CustomRenderState;
-    public ObjectFlags? CustomObjectFlags; // used for the render flags, maybe split them?
 
     private MeshEntity _entity;
     private Matrix4x4[] _boneMatricesForEntityRig;

@@ -2,9 +2,7 @@
 
 #region Using
 
-using Emotion.Game.World3D;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.ThreeDee;
 using Emotion.WIPUpdates.One.Work;
 using Emotion.WIPUpdates.Rendering;
 
@@ -39,68 +37,6 @@ public struct Ray3D
 
         float distance = Vector3.Dot(planeNormal, planePoint - Start) / dot;
         return Start + distance * Direction;
-    }
-
-    /// <summary>
-    /// Returns whether the ray intersects the specified GameObject3D.
-    /// Animated objects will be intersected according to the state of their vertices at their last
-    /// CacheVerticesForCollision call. Keep in mind that applying the animation is slow.
-    /// </summary>
-    public bool IntersectWithObject(GameObject3D obj, out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
-    {
-        collidedMesh = null;
-        collisionPoint = Vector3.Zero;
-        normal = Vector3.Zero;
-        triangleIndex = -1;
-
-        Mesh[]? meshes = obj.Entity?.Meshes;
-        if (meshes == null) return false;
-
-        Sphere boundSphere = obj.BoundingSphere;
-        if (!IntersectWithSphere(boundSphere, out Vector3 _, out Vector3 _)) return false;
-
-        // Used when closest == true
-        float closestDist = float.MaxValue;
-        Vector3 closestNormal = Vector3.Zero;
-        Vector3 closestCollisionPoint = Vector3.Zero;
-        int closestTriangleIndex = 0;
-
-        for (var i = 0; i < meshes.Length; i++)
-        {
-            Mesh mesh = meshes[i];
-            if (IntersectWithObjectMesh(obj, i, out collisionPoint, out normal, out triangleIndex))
-            {
-                if (closest)
-                {
-                    float distance = Vector3.Distance(Start, collisionPoint);
-                    if (closestDist == float.MaxValue || distance < closestDist)
-                    {
-                        closestDist = distance;
-                        collidedMesh = mesh;
-
-                        closestCollisionPoint = collisionPoint;
-                        closestNormal = normal;
-                        closestTriangleIndex = triangleIndex;
-                    }
-                }
-                else
-                {
-                    collidedMesh = mesh;
-                    return true;
-                }
-            }
-        }
-
-        if (closest && collidedMesh != null)
-        {
-            collisionPoint = closestCollisionPoint;
-            normal = closestNormal;
-            triangleIndex = closestTriangleIndex;
-
-            return true;
-        }
-
-        return false;
     }
 
     public bool IntersectWithObject(MapObjectMesh obj, out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
@@ -238,52 +174,6 @@ public struct Ray3D
             {
                 closestDistance = t;
                 normal = tri.Normal;
-                triangleIndex = i;
-                intersectionFound = true;
-            }
-        }
-
-        if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
-
-        return intersectionFound;
-    }
-
-    public bool IntersectWithObjectMesh(GameObject3D obj, int meshIdx, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
-    {
-        collisionPoint = Vector3.Zero;
-        normal = Vector3.Zero;
-        triangleIndex = -1;
-
-        Mesh[]? meshes = obj.Entity?.Meshes;
-        if (meshes == null) return false;
-        Mesh mesh = meshes[meshIdx];
-
-        var closestDistance = float.MaxValue;
-        var intersectionFound = false;
-
-        ushort[] meshIndices = mesh.Indices;
-
-        Matrix4x4 matrix = obj.GetModelMatrix();
-        for (var i = 0; i < meshIndices.Length; i += 3)
-        {
-            ushort idx1 = meshIndices[i];
-            ushort idx2 = meshIndices[i + 1];
-            ushort idx3 = meshIndices[i + 2];
-
-            obj.GetMeshTriangleForCollision(meshIdx, idx1, idx2, idx3, out Vector3 p1, out Vector3 p2, out Vector3 p3);
-
-            p1 = Vector3.Transform(p1, matrix);
-            p2 = Vector3.Transform(p2, matrix);
-            p3 = Vector3.Transform(p3, matrix);
-
-            Vector3 triangleNormal = Vector3.Normalize(Vector3.Cross(p2 - p1, p3 - p1));
-
-            if (!IntersectWithTriangle(p1, p2, p3, triangleNormal, out float t)) continue;
-
-            if (t < closestDistance)
-            {
-                closestDistance = t;
-                normal = triangleNormal;
                 triangleIndex = i;
                 intersectionFound = true;
             }

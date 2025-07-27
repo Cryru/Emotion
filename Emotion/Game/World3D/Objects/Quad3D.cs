@@ -15,30 +15,8 @@ namespace Emotion.Game.World3D.Objects;
 /// <summary>
 /// A plane facing the Z axis, with the origin in the middle.
 /// </summary>
-public class Quad3D : GameObject3D
+public class Quad3D
 {
-    public Texture? Texture = null;
-
-    public Quad3D()
-    {
-        Size3D = new Vector3(10);
-        ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
-    }
-
-    public override Task LoadAssetsAsync()
-    {
-        Entity = QuadEntity;
-        ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
-
-        return base.LoadAssetsAsync();
-    }
-
-    protected override void Resized()
-    {
-        base.Resized();
-        _sizeZ = 1;
-    }
-
     #region Static Entity
 
     public static MeshEntity QuadEntity

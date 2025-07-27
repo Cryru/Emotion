@@ -8,6 +8,7 @@ using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Game.Tiled;
 using Emotion.Graphics;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;

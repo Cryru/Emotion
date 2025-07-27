@@ -4,6 +4,7 @@ using System.Collections;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Animation;
+using Emotion.Graphics.Assets;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Testing;

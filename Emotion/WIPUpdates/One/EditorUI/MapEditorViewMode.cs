@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
-using Emotion.Game.ThreeDee.Editor;
 using Emotion.Game.World.Editor;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 
 namespace Emotion.WIPUpdates.One.EditorUI;
 

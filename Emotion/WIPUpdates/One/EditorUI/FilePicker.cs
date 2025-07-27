@@ -41,7 +41,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
     private void GenerateUIForCurrentBranch()
     {
-        MapEditorLabel? currentPathLabel = GetWindowById<MapEditorLabel>("CurrentPathLabel");
+        EditorLabel? currentPathLabel = GetWindowById<EditorLabel>("CurrentPathLabel");
         if (currentPathLabel != null)
             currentPathLabel.Text = $"@: Assets{(_currentBranch != null ? $"/{string.Join("/", _currentBranch)}/" : "")}";
 
@@ -144,7 +144,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         };
         contentParent.AddChild(container);
 
-        MapEditorLabel label = new MapEditorLabel("Loading")
+        EditorLabel label = new EditorLabel("Loading")
         {
             Id = "CurrentPathLabel",
         };

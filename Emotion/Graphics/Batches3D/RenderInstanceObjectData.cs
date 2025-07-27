@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion.Game.ThreeDee;
-using Emotion.Game.World;
 
 #endregion
 
@@ -17,7 +16,6 @@ public unsafe struct RenderInstanceObjectData
     public MeshEntityMetaState MetaState;
     public Matrix4x4 ModelMatrix;
     public float DistanceToCamera;
-    public ObjectFlags Flags;
 
     public fixed bool FrustumCulling[MeshEntityBatchRenderer.CASCADE_COUNT + 1];
     public Sphere FrustumCullingSphere;

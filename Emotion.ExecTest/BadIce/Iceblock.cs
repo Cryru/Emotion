@@ -1,5 +1,6 @@
 ﻿using Emotion.Game.WorldTwoDee;
 using Emotion.Graphics;
+using Emotion.Graphics.Assets;
 using Emotion.IO;
 using Emotion.WIPUpdates.One.Work;
 using System;
@@ -15,12 +16,12 @@ public class Iceblock : MapObjectSprite
 {
     private TextureAsset _texture;
 
-    public override void LoadAssets(AssetLoader assetLoader)
-    {
-        _texture = assetLoader.ONE_Get<TextureAsset>("Test/bad_ice/iceblock.png");
+    //public override void LoadAssets(AssetLoader assetLoader)
+    //{
+    //    _texture = assetLoader.ONE_Get<TextureAsset>("Test/bad_ice/iceblock.png");
 
-        base.LoadAssets(assetLoader);
-    }
+    //    base.LoadAssets(assetLoader);
+    //}
 
     public override void Render(RenderComposer c)
     {

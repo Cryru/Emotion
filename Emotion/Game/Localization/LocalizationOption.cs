@@ -8,8 +8,7 @@ namespace Emotion.Game.Localization;
 
 public abstract class LocalizationOption : GameDataObject
 {
-    [AssetFileName<TextAsset>]
-    public string LocalizationCSVFile = string.Empty;
+    public SerializableAsset<TextAsset> LocalizationCSVFile = string.Empty;
 }
 
 public class DefaultLanguage : LocalizationOption

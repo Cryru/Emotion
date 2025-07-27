@@ -1,9 +1,6 @@
 #region Using
 
-using Emotion.Common.Input;
 using Emotion.Common.Serialization;
-using Emotion.Game.World;
-using Emotion.Game.World3D;
 using Emotion.Game.World3D.Objects;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.ThreeDee;
@@ -30,7 +27,7 @@ public class TranslationGizmo : MapObjectMesh
     /// <summary>
     /// The object the gizmo is currently affecting.
     /// </summary>
-    public BaseGameObject? Target { get; protected set; }
+    public MapObject? Target { get; protected set; }
 
     public Mesh XAxis { get; protected set; }
 
@@ -40,8 +37,8 @@ public class TranslationGizmo : MapObjectMesh
 
     public Mesh ZPlane { get; protected set; }
 
-    public Action<BaseGameObject, Vector3, Vector3>? TargetMoved;
-    public Action<BaseGameObject>? TargetStartMoving;
+    public Action<MapObject, Vector3, Vector3>? TargetMoved;
+    public Action<MapObject>? TargetStartMoving;
 
     protected bool _startMovingEventFired;
 
@@ -206,7 +203,7 @@ public class TranslationGizmo : MapObjectMesh
         return true;
     }
 
-    public void SetTarget(BaseGameObject? target)
+    public void SetTarget(MapObject? target)
     {
         Target = target;
         if (target != null)
@@ -215,7 +212,7 @@ public class TranslationGizmo : MapObjectMesh
 
             float height = 35;
             float targetHeight = 35;
-            if (Target is GameObject3D g3D)
+            if (Target is MapObjectMesh g3D)
             {
                 targetHeight = g3D.BoundingSphere.Radius / 2f;
                 targetHeight = Math.Max(targetHeight, 5f);

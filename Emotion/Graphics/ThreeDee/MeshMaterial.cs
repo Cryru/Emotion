@@ -3,6 +3,7 @@
 using Emotion.Editor;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Shader;
+using Emotion.IO;
 
 #endregion
 
@@ -19,8 +20,7 @@ public class MeshMaterial
 
     public Color DiffuseColor = Color.White;
 
-    [AssetFileName<TextureAsset>]
-    public string? DiffuseTextureName = null;
+    public SerializableAsset<TextureAsset>? DiffuseTextureName = null;
 
     public Texture DiffuseTexture = Texture.EmptyWhiteTexture;
 

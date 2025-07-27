@@ -1,6 +1,5 @@
 ﻿using Emotion.Common.Serialization;
 using Emotion.Game.World.Editor;
-using Emotion.Game.World2D.Editor;
 using Emotion.UI;
 using Emotion.WIPUpdates.One.Editor2D.TileEditor;
 using Emotion.WIPUpdates.One.Editor3D.TerrainEditor;

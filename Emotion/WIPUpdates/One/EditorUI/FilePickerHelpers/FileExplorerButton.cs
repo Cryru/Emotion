@@ -122,15 +122,15 @@ public class FileExplorerButton : UICallbackButton
 #endif
            )
         {
-            var obj3DPreview = new UIMeshEntityWindow
-            {
-                AssetPath = _fileName,
-                Async = true,
-                ParentAnchor = UIAnchor.CenterCenter,
-                Anchor = UIAnchor.CenterCenter
-            };
+            //var obj3DPreview = new UIMeshEntityWindow
+            //{
+            //    AssetPath = _fileName,
+            //    Async = true,
+            //    ParentAnchor = UIAnchor.CenterCenter,
+            //    Anchor = UIAnchor.CenterCenter
+            //};
 
-            return obj3DPreview;
+            //return obj3DPreview;
         }
 
         if (_extension == ".png" || _extension  == ".bmp" || _extension == ".eib")

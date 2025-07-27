@@ -27,6 +27,14 @@ public class EditorWindowContent : UIBaseWindow
     }
 }
 
+public enum PanelMode
+{
+    Default,
+    Modal,
+    Embedded,
+    SubWindow
+}
+
 public class EditorWindow : UIBaseWindow
 {
     public string Header

@@ -23,6 +23,7 @@ using Emotion.WIPUpdates.One.Work;
 #endregion
 
 namespace Emotion.ExecTest;
+
 public class MessageBrokerMultiplayer_TestObject : MapObject
 {
     public int PlayerId;

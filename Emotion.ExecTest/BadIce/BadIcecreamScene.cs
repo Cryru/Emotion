@@ -1,11 +1,8 @@
 ﻿using Emotion.Common;
-using Emotion.Game.World2D.Tile;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Primitives;
 using Emotion.Scenography;
 using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Camera;
 using Emotion.WIPUpdates.One.TileMap;
 using System.Collections;
 using System.Numerics;

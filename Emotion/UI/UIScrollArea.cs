@@ -1,8 +1,8 @@
 ﻿#nullable enable
+
 #pragma warning disable 0612
 // ONE
 
-using Emotion.Common.Input;
 using Emotion.Editor.EditorHelpers;
 
 namespace Emotion.UI;
