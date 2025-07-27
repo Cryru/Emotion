@@ -1,12 +1,13 @@
 ﻿#nullable enable
 
 using Emotion.Common.Input;
+using Emotion.Game.Terrain;
+using Emotion.Game.Terrain.MeshGridStreaming;
 using Emotion.Game.Time;
 using Emotion.Graphics.Camera;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
-using Emotion.WIPUpdates.ThreeDee;
-using Emotion.WIPUpdates.ThreeDee.MeshGridStreaming;
+using Emotion.World.ThreeDee;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 

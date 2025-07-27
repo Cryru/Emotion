@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Game.Routines;
+
 namespace Emotion.Game.Time.Routines;
 
 public class AsyncJobCoroutineManager : CoroutineManager

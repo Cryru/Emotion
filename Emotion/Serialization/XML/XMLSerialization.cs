@@ -4,9 +4,9 @@
 
 using Emotion.Standard.Reflector;
 using System.Text;
-using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Utility.OptimizedStringReadWrite;
 
 namespace Emotion.Serialization.XML;
 

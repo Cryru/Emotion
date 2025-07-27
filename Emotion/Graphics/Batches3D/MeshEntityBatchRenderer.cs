@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion.Common.Threading;
-using Emotion.Game.ThreeDee;
 using Emotion.Game.World3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
@@ -12,7 +11,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Graphics.ThreeDee;
 using Emotion.IO;
 using Emotion.Utility;
-using Emotion.WIPUpdates.One.Work;
+using Emotion.World.ThreeDee;
 using OpenGL;
 
 #endregion

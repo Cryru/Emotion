@@ -1,5 +1,5 @@
-﻿using Emotion.Standard.OptimizedStringReadWrite;
-using Emotion.Testing;
+﻿using Emotion.Testing;
+using Emotion.Utility.OptimizedStringReadWrite;
 using System;
 
 namespace Tests.EngineTests;

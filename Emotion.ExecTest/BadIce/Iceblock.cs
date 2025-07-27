@@ -1,14 +1,7 @@
-﻿using Emotion.Game.WorldTwoDee;
-using Emotion.Graphics;
+﻿using Emotion.Graphics;
 using Emotion.Graphics.Assets;
-using Emotion.IO;
-using Emotion.WIPUpdates.One.Work;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Emotion.World.TwoDee;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Emotion.ExecTest.BadIce;
 

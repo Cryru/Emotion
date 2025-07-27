@@ -1,8 +1,9 @@
-﻿using Emotion.Graphics.Camera;
+﻿using Emotion.Game.Terrain;
+using Emotion.Graphics.Camera;
 using Emotion.Utility;
 using Emotion.WIPUpdates.One;
 using Emotion.WIPUpdates.One.Work;
-using Emotion.WIPUpdates.ThreeDee;
+using Emotion.World.ThreeDee;
 
 #nullable enable
 

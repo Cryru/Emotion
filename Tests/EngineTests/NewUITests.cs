@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Editor.EditorHelpers;
+using Emotion.Game.Routines;
 using Emotion.Game.Text;
 using Emotion.Game.Time.Routines;
 using Emotion.Game.World.Editor;
@@ -848,8 +849,8 @@ public class NewUITests : TestingScene
     [Test]
     public IEnumerator EditorPanelEmpty()
     {
-        int oldTextSize = MapEditorColorPalette.EditorButtonTextSize;
-        MapEditorColorPalette.EditorButtonTextSize = 9;
+        int oldTextSize = EditorColorPalette.EditorButtonTextSize;
+        EditorColorPalette.EditorButtonTextSize = 9;
         {
             var editorPanel = new EditorWindow("Test");
             UI.AddChild(editorPanel);
@@ -858,7 +859,7 @@ public class NewUITests : TestingScene
         yield return WaitUILayout();
         VerifyScreenshot(nameof(NewUITests), nameof(EditorPanelEmpty));
 
-        MapEditorColorPalette.EditorButtonTextSize = oldTextSize;
+        EditorColorPalette.EditorButtonTextSize = oldTextSize;
     }
 
     [Test]

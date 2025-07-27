@@ -1,11 +1,11 @@
 ﻿#nullable enable
 
+using Emotion.Game.Terrain;
 using Emotion.Graphics;
 using Emotion.Scenography;
 using Emotion.Utility.Noise;
 using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Work;
-using Emotion.WIPUpdates.ThreeDee;
+using Emotion.World.ThreeDee;
 using System.Collections;
 using System.Numerics;
 

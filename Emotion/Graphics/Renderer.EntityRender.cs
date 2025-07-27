@@ -1,6 +1,6 @@
-﻿using Emotion.Game.ThreeDee;
-using Emotion.Game.TwoDee;
-using Emotion.Graphics.ThreeDee;
+﻿using Emotion.Graphics.ThreeDee;
+using Emotion.Graphics.TwoDee;
+using Emotion.World.ThreeDee;
 
 #nullable enable
 

@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Emotion.Game.Routines;
+
 
 // Subprocess functionality
 #if CSHARP_SCRIPTING

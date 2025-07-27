@@ -9,9 +9,9 @@ using Emotion.Platform;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.WIPUpdates.One;
-using Emotion.Standard.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Utility.OptimizedStringReadWrite;
 
 #endregion
 

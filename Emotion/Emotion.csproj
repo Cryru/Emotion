@@ -44,7 +44,7 @@
 
     <!-- Windows 64 bit -->
      <PropertyGroup Condition="'$(Platform)'=='Win64'">
-        <DefineConstants>$(DefineConstants);WIN64;MORE_MESH_TYPES</DefineConstants>
+        <DefineConstants>$(DefineConstants);WIN64</DefineConstants>
         <PlatformTarget>x64</PlatformTarget>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     </PropertyGroup>
@@ -231,25 +231,6 @@
         <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\openal32.so" />
         <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" />
     </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="Game\ThreeDee\Editor\**" />
-      <Compile Remove="Game\World2D\**" />
-      <Compile Remove="Game\World3D\SceneControl\**" />
-      <EmbeddedResource Remove="Game\ThreeDee\Editor\**" />
-      <EmbeddedResource Remove="Game\World2D\**" />
-      <EmbeddedResource Remove="Game\World3D\SceneControl\**" />
-      <None Remove="Game\ThreeDee\Editor\**" />
-      <None Remove="Game\World2D\**" />
-      <None Remove="Game\World3D\SceneControl\**" />
-    </ItemGroup>
-    
-    <!-- ONE Temp -->
-    <ItemGroup>
-      <Compile Remove="IO\MeshAssetTypes\EmotionMeshAsset.cs" />
-      <Compile Remove="Testing\Templates\EmptyTestSceneTemplate.cs" />
-      <Compile Remove="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
-      <Compile Remove="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
-    </ItemGroup>
 
     <!-- Libraries Binaries -->
     <ItemGroup>
@@ -309,11 +290,5 @@
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
         <PackageReference Include="System.Text.Json" Version="9.0.3" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="IO\MeshAssetTypes\EmotionMeshAsset.cs" />
-      <None Include="Testing\Templates\EmptyTestSceneTemplate.cs" />
-      <None Include="WIPUpdates\NewUIUpdate\UIUpdateDemoScene.cs" />
-      <None Include="WIPUpdates\TextUpdate\TextUpdateDemoScene.cs" />
     </ItemGroup>
 </Project>

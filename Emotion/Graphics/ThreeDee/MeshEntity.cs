@@ -5,7 +5,7 @@
 using Emotion.Common.Serialization;
 using Emotion.Game.Animation3D;
 using Emotion.Graphics.Data;
-using Emotion.Standard.TopologicalSort;
+using Emotion.ThirdParty.TopologicalSort;
 using Emotion.Utility;
 
 #endregion

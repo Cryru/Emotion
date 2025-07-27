@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common.Threading;
-using Emotion.Game.Time.Routines;
+using Emotion.Game.Routines;
 using Emotion.Graphics;
 
 // ReSharper disable PossibleUnintendedReferenceComparison
