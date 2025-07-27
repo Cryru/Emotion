@@ -163,8 +163,7 @@ public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
 
         // Add to the list.
         var dev = new WasApiAudioDevice(id, deviceName, device);
-        if (!_devices.TryAdd(id, dev))
-            _devices[id] = dev;
+        _devices.TryAdd(id, dev);
         Engine.Log.Trace($"Detected audio device - {deviceName}", MessageSource.Win32);
 
         return dev;
