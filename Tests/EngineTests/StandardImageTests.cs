@@ -5,8 +5,8 @@ using System.IO;
 using System.Numerics;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using Emotion.Standard.Image.BMP;
-using Emotion.Standard.Image.PNG;
+using Emotion.Standard.Parsers.Image.BMP;
+using Emotion.Standard.Parsers.Image.PNG;
 using Emotion.Testing;
 using OpenGL;
 
@@ -123,10 +123,8 @@ public class StandardImageTests : ProxyRenderTestingScene
 
         ToRender = (composer) =>
         {
-            texture = new Texture(
-                fileHeader.Size,
-                decodedPixelData,
-                fileHeader.PixelFormat);
+            texture = new Texture();
+            texture.Upload(fileHeader.Size, decodedPixelData, fileHeader.PixelFormat);
 
             composer.SetUseViewMatrix(false);
             composer.RenderSprite(Vector3.Zero, fileHeader.Size, Color.White, texture);
@@ -153,10 +151,8 @@ public class StandardImageTests : ProxyRenderTestingScene
 
         ToRender = (composer) =>
         {
-            texture = new Texture(
-                fileHeader.Size,
-                decodedPixelData,
-                fileHeader.PixelFormat);
+            texture = new Texture();
+            texture.Upload(fileHeader.Size, decodedPixelData, fileHeader.PixelFormat);
 
             composer.SetUseViewMatrix(false);
             composer.RenderSprite(Vector3.Zero, fileHeader.Size, Color.White, texture);

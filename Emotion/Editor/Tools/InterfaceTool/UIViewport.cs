@@ -1,11 +1,10 @@
-﻿using Emotion.IO;
-using Emotion.Utility;
-using Emotion.WIPUpdates.One.Camera;
-using Emotion.WIPUpdates.One.EditorUI.Components;
+﻿using Emotion.Core.Systems.Input;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Graphics.Camera;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.Tools.InterfaceTool;
+namespace Emotion.Editor.Tools.InterfaceTool;
 
 public class UIViewport : EditorProxyRender
 {
@@ -91,7 +90,7 @@ public class UIViewport : EditorProxyRender
         return base.UpdateInternal();
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         c.RenderSprite(Position, Size, _calculatedColor);
         var oldClip = c.CurrentState.ClipRect;

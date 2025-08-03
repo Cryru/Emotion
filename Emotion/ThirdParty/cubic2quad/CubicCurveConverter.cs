@@ -1,6 +1,4 @@
-﻿using Emotion.Utility;
-
-namespace Emotion.ThirdParty.cubic2quad;
+﻿namespace Emotion.ThirdParty.cubic2quad;
 
 /// <summary>
 /// Converts cubic curved to quadratic curves.

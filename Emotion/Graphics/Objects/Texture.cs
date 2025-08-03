@@ -1,8 +1,8 @@
-﻿#region Using
+﻿#nullable enable
 
-using Emotion.Common.Serialization;
-using Emotion.Common.Threading;
-using Emotion.Utility;
+#region Using
+
+using Emotion.Core.Utility.Threading;
 using OpenGL;
 
 #endregion
@@ -44,8 +44,6 @@ public class Texture : TextureObjectBase
 
     protected Texture(Vector2 size)
     {
-        Size = size;
-
 #if DEBUG
         AllTextures.Add(this);
         CreationStack = Environment.StackTrace;

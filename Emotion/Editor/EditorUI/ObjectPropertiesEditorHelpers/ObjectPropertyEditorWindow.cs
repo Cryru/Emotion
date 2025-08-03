@@ -1,10 +1,10 @@
 ﻿#nullable enable
 
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyEditorWindow : EditorWindow
 {

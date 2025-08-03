@@ -1,8 +1,8 @@
 ﻿#region Using
 
 using System.Collections.Generic;
-using Emotion.Game.QuadTree;
 using Emotion.Primitives;
+using Emotion.Primitives.DataStructures.QuadTree;
 using Emotion.Testing;
 using Tests.EngineTests.XMLTestsSupport;
 

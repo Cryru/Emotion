@@ -27,6 +27,13 @@ namespace Emotion.SourceGeneration
                 if (IsReflectorBuiltInType(namedTypProcessable)) return;
             }
 
+            INamespaceSymbol nameSpace = typ.ContainingNamespace;
+            if (nameSpace != null)
+            {
+                string displayStr = nameSpace.ToDisplayString();
+                if (IsExcludedNamespace(displayStr)) return;
+            }
+
             // todo: gotta figure out what to do with nullables
             if (typ.NullableAnnotation == NullableAnnotation.Annotated)
                 typ = typ.WithNullableAnnotation(NullableAnnotation.NotAnnotated);

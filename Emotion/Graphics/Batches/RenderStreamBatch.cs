@@ -4,650 +4,648 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Graphics.Batches3D;
+using Emotion.Core.Utility.Profiling;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
-using Emotion.Utility;
+using Emotion.Standard.Memory;
 using OpenGL;
 
 #endregion
 
-namespace Emotion.Graphics.Batches
+namespace Emotion.Graphics.Batches;
+
+public unsafe class RenderStreamBatch
 {
-    public unsafe class RenderStreamBatch
+    protected uint _structCapacity;
+    protected uint _indexByteSize;
+
+    /// <summary>
+    /// The current batch mode of the stream. This determines the primitives drawing mode.
+    /// </summary>
+    public BatchMode BatchMode { get; protected set; } = BatchMode.Quad;
+
+    /// <summary>
+    /// The data type of the vertices currently being mapped.
+    /// </summary>
+    public Type CurrentVertexType { get; protected set; } = typeof(VertexData);
+
+    private Func<GLRenderObjects>? CurrentVertexTypeCreateObjectMethod;
+
+    // Performance cache for GetStreamMemory
+    private uint _currentVertexTypeByteSize = (uint) VertexData.SizeInBytes;
+
+    /// <summary>
+    /// Whether anything is mapped to the stream.
+    /// </summary>
+    public bool AnythingMapped
     {
-        protected uint _structCapacity;
-        protected uint _indexByteSize;
+        get => _backingBufferOffset != 0;
+    }
 
-        /// <summary>
-        /// The current batch mode of the stream. This determines the primitives drawing mode.
-        /// </summary>
-        public BatchMode BatchMode { get; protected set; } = BatchMode.Quad;
+    #region MultiDraw
 
-        /// <summary>
-        /// The data type of the vertices currently being mapped.
-        /// </summary>
-        public Type CurrentVertexType { get; protected set; } = typeof(VertexData);
+    protected int[][] _batchableLengths = new int[2][];
+    protected int _batchableLengthUtilization;
 
-        private Func<GLRenderObjects>? CurrentVertexTypeCreateObjectMethod;
+    #endregion
 
-        // Performance cache for GetStreamMemory
-        private uint _currentVertexTypeByteSize = (uint) VertexData.SizeInBytes;
+    #region Texturing
 
-        /// <summary>
-        /// Whether anything is mapped to the stream.
-        /// </summary>
-        public bool AnythingMapped
+    protected uint _currentTexture;
+    public TextureAtlas? _atlas;
+    public TextureAtlas? _smoothAtlas;
+
+    #endregion
+
+    #region Mapping Memory
+
+    protected IntPtr _backingBuffer;
+    protected uint _backingBufferSize;
+    protected uint _backingBufferOffset;
+
+    protected uint _backingSizeLeft
+    {
+        get => _backingBufferSize - _backingBufferOffset;
+    }
+
+    protected ushort _vertexIndex;
+
+    protected IntPtr _backingIndexBuffer;
+    protected uint _backingIndexBufferSize;
+    protected uint _backingIndexOffset;
+
+    protected uint _backingIndexSizeLeft
+    {
+        get => _backingIndexBufferSize - _backingIndexOffset;
+    }
+
+    #endregion
+
+    #region GL Objects
+
+    // todo: these could be shared by render batches that share vertex layout.
+    // implying that there would be more than one batch lol
+    protected class GLRenderObjects
+    {
+        public VertexBuffer VBO;
+        public IndexBuffer IBO;
+        public VertexArrayObject VAO;
+
+        public GLRenderObjects(VertexBuffer vbo, IndexBuffer ibo, VertexArrayObject vao)
         {
-            get => _backingBufferOffset != 0;
+            VBO = vbo;
+            IBO = ibo;
+            VAO = vao;
+        }
+    }
+
+    protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjects = new();
+    protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjectsUsed = new();
+
+    #endregion
+
+    public RenderStreamBatch(bool useAtlas = true)
+    {
+        _indexByteSize = sizeof(ushort);
+
+        _structCapacity = ushort.MaxValue / 3;
+
+        const int defaultStructSize = 32;
+        uint bufferSizeBytes = defaultStructSize * ushort.MaxValue;
+
+        _backingBufferSize = bufferSizeBytes;
+        _backingBuffer = UnmanagedMemoryAllocator.MemAlloc((int) _backingBufferSize);
+        _backingIndexBufferSize = _indexByteSize * _structCapacity * 6;
+        _backingIndexBuffer = UnmanagedMemoryAllocator.MemAlloc((int) _backingIndexBufferSize);
+
+        // Arbitrary chosen number.
+        // The number of objects we'll need can vary greatly, and there is no
+        // reliable way to determine how many the driver can create.
+        // Godspeed.
+        for (var i = 0; i < 16; i++)
+        {
+            CreateRenderObject<VertexData>();
         }
 
-        #region MultiDraw
-
-        protected int[][] _batchableLengths = new int[2][];
-        protected int _batchableLengthUtilization;
-
-        #endregion
-
-        #region Texturing
-
-        protected uint _currentTexture;
-        public TextureAtlas? _atlas;
-        public TextureAtlas? _smoothAtlas;
-
-        #endregion
-
-        #region Mapping Memory
-
-        protected IntPtr _backingBuffer;
-        protected uint _backingBufferSize;
-        protected uint _backingBufferOffset;
-
-        protected uint _backingSizeLeft
+        for (var i = 0; i < _batchableLengths.Length; i++)
         {
-            get => _backingBufferSize - _backingBufferOffset;
+            _batchableLengths[i] = new int[1];
         }
 
-        protected ushort _vertexIndex;
-
-        protected IntPtr _backingIndexBuffer;
-        protected uint _backingIndexBufferSize;
-        protected uint _backingIndexOffset;
-
-        protected uint _backingIndexSizeLeft
+        if (useAtlas)
         {
-            get => _backingIndexBufferSize - _backingIndexOffset;
+            _atlas = new TextureAtlas();
+            _smoothAtlas = new TextureAtlas(true);
+            _currentTexture = _atlas.AtlasPointer;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public StreamData<VertexData> GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture? texture = null)
+    {
+        return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texture);
+    }
+
+    public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, Texture? texture = null) where T : struct
+    {
+        Type type = typeof(T);
+        uint vertexTypeByteSize = _currentVertexTypeByteSize;
+        if (CurrentVertexType != type) vertexTypeByteSize = (uint) Marshal.SizeOf<T>();
+
+        uint vBytesNeeded = structCount * vertexTypeByteSize;
+        uint iBytesNeeded = indexCount * _indexByteSize;
+
+        // This request can never be serviced, as it itself is larger that an empty buffer.
+        if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
+
+        if (CurrentVertexType != type)
+        {
+            if (AnythingMapped) FlushRender();
+            EnsureRenderObjectsOfType<T>();
+            _currentVertexTypeByteSize = vertexTypeByteSize;
+            CurrentVertexType = type;
+            CurrentVertexTypeCreateObjectMethod = CreateRenderObject<T>;
         }
 
-        #endregion
-
-        #region GL Objects
-
-        // todo: these could be shared by render batches that share vertex layout.
-        // implying that there would be more than one batch lol
-        protected class GLRenderObjects
+        // Check if the request can be served, if not - flush the buffers.
+        bool gotStructs = _backingSizeLeft >= vBytesNeeded && _vertexIndex + structCount + indexCount <= ushort.MaxValue;
+        bool gotIndices = _backingIndexSizeLeft >= iBytesNeeded;
+        if (!gotStructs || !gotIndices)
         {
-            public VertexBuffer VBO;
-            public IndexBuffer IBO;
-            public VertexArrayObject VAO;
+            if (AnythingMapped) FlushRender();
 
-            public GLRenderObjects(VertexBuffer vbo, IndexBuffer ibo, VertexArrayObject vao)
+            // Should have enough size now.
+            Assert(_backingSizeLeft >= vBytesNeeded);
+            Assert(_backingIndexSizeLeft >= iBytesNeeded);
+        }
+
+        // Batch type logic.
+        if (batchMode != BatchMode && AnythingMapped) FlushRender();
+        BatchMode = batchMode;
+
+        texture ??= Texture.EmptyWhiteTexture;
+        uint texturePointer = texture.Pointer;
+
+        // Texture atlas logic
+        bool batchedTexture = false;
+        if (_atlas != null)
+        {
+            AssertNotNull(_atlas);
+            AssertNotNull(_smoothAtlas);
+
+            // Optimization for batching empty textures into the smooth atlas too.
+            if (texture == Texture.EmptyWhiteTexture && _currentTexture == _smoothAtlas.AtlasPointer)
             {
-                VBO = vbo;
-                IBO = ibo;
-                VAO = vao;
+                texture = Texture.Smooth_EmptyWhiteTexture;
+                texturePointer = texture.Pointer;
+            }
+
+            if (texture.Smooth && _smoothAtlas.TryBatchTexture(texture))
+            {
+                texturePointer = _smoothAtlas.AtlasPointer;
+                batchedTexture = true;
+            }
+            else if (!texture.Smooth && _atlas.TryBatchTexture(texture))
+            {
+                texturePointer = _atlas.AtlasPointer;
+                batchedTexture = true;
             }
         }
 
-        protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjects = new();
-        protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjectsUsed = new();
-
-        #endregion
-
-        public RenderStreamBatch(bool useAtlas = true)
+        // If the texture is changing, flush old data.
+        if (texturePointer != _currentTexture)
         {
-            _indexByteSize = sizeof(ushort);
-
-            _structCapacity = ushort.MaxValue / 3;
-
-            const int defaultStructSize = 32;
-            uint bufferSizeBytes = defaultStructSize * ushort.MaxValue;
-
-            _backingBufferSize = bufferSizeBytes;
-            _backingBuffer = UnmanagedMemoryAllocator.MemAlloc((int) _backingBufferSize);
-            _backingIndexBufferSize = _indexByteSize * _structCapacity * 6;
-            _backingIndexBuffer = UnmanagedMemoryAllocator.MemAlloc((int) _backingIndexBufferSize);
-
-            // Arbitrary chosen number.
-            // The number of objects we'll need can vary greatly, and there is no
-            // reliable way to determine how many the driver can create.
-            // Godspeed.
-            for (var i = 0; i < 16; i++)
-            {
-                CreateRenderObject<VertexData>();
-            }
-
-            for (var i = 0; i < _batchableLengths.Length; i++)
-            {
-                _batchableLengths[i] = new int[1];
-            }
-
-            if (useAtlas)
-            {
-                _atlas = new TextureAtlas();
-                _smoothAtlas = new TextureAtlas(true);
-                _currentTexture = _atlas.AtlasPointer;
-            }
+            if (AnythingMapped) FlushRender();
+            _currentTexture = texturePointer;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StreamData<VertexData> GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture? texture = null)
+        // Mark memory area as used.
+        uint vOffset = _backingBufferOffset;
+        uint iOffset = _backingIndexOffset;
+        _backingBufferOffset += vBytesNeeded;
+        _backingIndexOffset += iBytesNeeded;
+
+        // ReSharper disable PossibleNullReferenceException
+        Assert(_backingBuffer != IntPtr.Zero);
+        Assert(_backingIndexBuffer != IntPtr.Zero);
+        var verticesData = new Span<T>(&((byte*) _backingBuffer)[vOffset], (int) structCount);
+        var indicesData = new Span<ushort>(&((byte*) _backingIndexBuffer)[iOffset], (int) indexCount);
+        // ReSharper enable PossibleNullReferenceException
+
+        ushort index = _vertexIndex;
+        _vertexIndex = (ushort) (_vertexIndex + structCount);
+
+        // Some batch modes cannot be used with draw elements.
+        // For them record where the memory request started and its length.
+        // 1 request = 1 mesh
+        if (BatchMode == BatchMode.TriangleFan)
         {
-            return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texture);
-        }
-
-        public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, Texture? texture = null) where T : struct
-        {
-            Type type = typeof(T);
-            uint vertexTypeByteSize = _currentVertexTypeByteSize;
-            if (CurrentVertexType != type) vertexTypeByteSize = (uint) Marshal.SizeOf<T>();
-
-            uint vBytesNeeded = structCount * vertexTypeByteSize;
-            uint iBytesNeeded = indexCount * _indexByteSize;
-
-            // This request can never be serviced, as it itself is larger that an empty buffer.
-            if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
-
-            if (CurrentVertexType != type)
-            {
-                if (AnythingMapped) FlushRender();
-                EnsureRenderObjectsOfType<T>();
-                _currentVertexTypeByteSize = vertexTypeByteSize;
-                CurrentVertexType = type;
-                CurrentVertexTypeCreateObjectMethod = CreateRenderObject<T>;
-            }
-
-            // Check if the request can be served, if not - flush the buffers.
-            bool gotStructs = _backingSizeLeft >= vBytesNeeded && _vertexIndex + structCount + indexCount <= ushort.MaxValue;
-            bool gotIndices = _backingIndexSizeLeft >= iBytesNeeded;
-            if (!gotStructs || !gotIndices)
-            {
-                if (AnythingMapped) FlushRender();
-
-                // Should have enough size now.
-                Assert(_backingSizeLeft >= vBytesNeeded);
-                Assert(_backingIndexSizeLeft >= iBytesNeeded);
-            }
-
-            // Batch type logic.
-            if (batchMode != BatchMode && AnythingMapped) FlushRender();
-            BatchMode = batchMode;
-
-            texture ??= Texture.EmptyWhiteTexture;
-            uint texturePointer = texture.Pointer;
-
-            // Texture atlas logic
-            bool batchedTexture = false;
-            if (_atlas != null)
-            {
-                AssertNotNull(_atlas);
-                AssertNotNull(_smoothAtlas);
-
-                // Optimization for batching empty textures into the smooth atlas too.
-                if (texture == Texture.EmptyWhiteTexture && _currentTexture == _smoothAtlas.AtlasPointer)
+            // Not enough size - extend.
+            if (_batchableLengthUtilization + 1 >= _batchableLengths[0].Length)
+                for (var i = 0; i < _batchableLengths.Length; i++)
                 {
-                    texture = Texture.Smooth_EmptyWhiteTexture;
-                    texturePointer = texture.Pointer;
+                    Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
                 }
 
-                if (texture.Smooth && _smoothAtlas.TryBatchTexture(texture))
-                {
-                    texturePointer = _smoothAtlas.AtlasPointer;
-                    batchedTexture = true;
-                }
-                else if (!texture.Smooth && _atlas.TryBatchTexture(texture))
-                {
-                    texturePointer = _atlas.AtlasPointer;
-                    batchedTexture = true;
-                }
-            }
-
-            // If the texture is changing, flush old data.
-            if (texturePointer != _currentTexture)
-            {
-                if (AnythingMapped) FlushRender();
-                _currentTexture = texturePointer;
-            }
-
-            // Mark memory area as used.
-            uint vOffset = _backingBufferOffset;
-            uint iOffset = _backingIndexOffset;
-            _backingBufferOffset += vBytesNeeded;
-            _backingIndexOffset += iBytesNeeded;
-
-            // ReSharper disable PossibleNullReferenceException
-            Assert(_backingBuffer != IntPtr.Zero);
-            Assert(_backingIndexBuffer != IntPtr.Zero);
-            var verticesData = new Span<T>(&((byte*) _backingBuffer)[vOffset], (int) structCount);
-            var indicesData = new Span<ushort>(&((byte*) _backingIndexBuffer)[iOffset], (int) indexCount);
-            // ReSharper enable PossibleNullReferenceException
-
-            ushort index = _vertexIndex;
-            _vertexIndex = (ushort) (_vertexIndex + structCount);
-
-            // Some batch modes cannot be used with draw elements.
-            // For them record where the memory request started and its length.
-            // 1 request = 1 mesh
-            if (BatchMode == BatchMode.TriangleFan)
-            {
-                // Not enough size - extend.
-                if (_batchableLengthUtilization + 1 >= _batchableLengths[0].Length)
-                    for (var i = 0; i < _batchableLengths.Length; i++)
-                    {
-                        Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
-                    }
-
-                _batchableLengths[0][_batchableLengthUtilization] = index;
-                _batchableLengths[1][_batchableLengthUtilization] = (int) indexCount;
-                _batchableLengthUtilization++;
-            }
-
-            // If using the texture atlas, record the mapping.
-            // This needs to happen after any potential flushes.
-            if (batchedTexture)
-            {
-                AssertNotNull(_atlas);
-                AssertNotNull(_smoothAtlas);
-
-                var structsMappedInCurrentMapping = (int) (vOffset / vertexTypeByteSize);
-                var upToStructNow = (int) (structsMappedInCurrentMapping + structCount);
-                if (_currentTexture == _atlas.AtlasPointer) _atlas.RecordTextureMapping(texture, upToStructNow);
-                else if (_currentTexture == _smoothAtlas.AtlasPointer) _smoothAtlas.RecordTextureMapping(texture, upToStructNow);
-            }
-
-            return new StreamData<T>
-            {
-                VerticesData = verticesData,
-                IndicesData = indicesData,
-                StructIndex = index
-            };
+            _batchableLengths[0][_batchableLengthUtilization] = index;
+            _batchableLengths[1][_batchableLengthUtilization] = (int) indexCount;
+            _batchableLengthUtilization++;
         }
 
-        public bool AttemptToBatchVirtualTexture(VirtualTextureAtlasTexture virtualTexture)
+        // If using the texture atlas, record the mapping.
+        // This needs to happen after any potential flushes.
+        if (batchedTexture)
         {
-            if (_smoothAtlas == null) return false;
-            return _smoothAtlas.TryBatchTexture(virtualTexture);
+            AssertNotNull(_atlas);
+            AssertNotNull(_smoothAtlas);
+
+            var structsMappedInCurrentMapping = (int) (vOffset / vertexTypeByteSize);
+            var upToStructNow = (int) (structsMappedInCurrentMapping + structCount);
+            if (_currentTexture == _atlas.AtlasPointer) _atlas.RecordTextureMapping(texture, upToStructNow);
+            else if (_currentTexture == _smoothAtlas.AtlasPointer) _smoothAtlas.RecordTextureMapping(texture, upToStructNow);
         }
 
-        public void FlushRender()
+        return new StreamData<T>
         {
-            Assert(AnythingMapped);
+            VerticesData = verticesData,
+            IndicesData = indicesData,
+            StructIndex = index
+        };
+    }
 
-            uint mappedBytes = _backingBufferOffset;
-            uint mappedBytesIndices = _backingIndexOffset;
+    public bool AttemptToBatchVirtualTexture(VirtualTextureAtlasTexture virtualTexture)
+    {
+        if (_smoothAtlas == null) return false;
+        return _smoothAtlas.TryBatchTexture(virtualTexture);
+    }
 
-            GLRenderObjects? renderObj = GetFreeRenderObjectOfCurrentVertexType();
-            if (renderObj == null) // Impossible!
+    public void FlushRender()
+    {
+        Assert(AnythingMapped);
+
+        uint mappedBytes = _backingBufferOffset;
+        uint mappedBytesIndices = _backingIndexOffset;
+
+        GLRenderObjects? renderObj = GetFreeRenderObjectOfCurrentVertexType();
+        if (renderObj == null) // Impossible!
+        {
+            Assert(false, "RenderStream had no render object to flush with.");
+            return;
+        }
+
+        var structByteSize = (uint) renderObj.VAO.ByteSize;
+
+        PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+
+        if (_vertexPostProcFunc != null && CurrentVertexType == typeof(VertexData))
+        {
+            Span<VertexData> data = new Span<VertexData>((void*)_backingBuffer, (int)(mappedBytes / structByteSize));
+            for (int i = 0; i < data.Length; i++)
             {
-                Assert(false, "RenderStream had no render object to flush with.");
-                return;
+                _vertexPostProcFunc(ref data[i], i, _vertexPostProcFuncUserData);
             }
+        }
 
-            var structByteSize = (uint) renderObj.VAO.ByteSize;
+        // Remap UVs to be within the atlas, if using the atlas.
+        if (_currentTexture == _atlas?.AtlasPointer)
+            _atlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
+        else if (_currentTexture == _smoothAtlas?.AtlasPointer)
+            _smoothAtlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
 
-            PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+        // Avoid allocations
+        if (renderObj.VBO.Size < mappedBytes)
+            renderObj.VBO.Upload(_backingBuffer, mappedBytes);
+        else
+            renderObj.VBO.UploadPartial(_backingBuffer, mappedBytes);
 
-            if (_vertexPostProcFunc != null && CurrentVertexType == typeof(VertexData))
-            {
-                Span<VertexData> data = new Span<VertexData>((void*)_backingBuffer, (int)(mappedBytes / structByteSize));
-                for (int i = 0; i < data.Length; i++)
+        if (renderObj.IBO.Size < mappedBytesIndices)
+            renderObj.IBO.Upload(_backingIndexBuffer, mappedBytesIndices);
+        else
+            renderObj.IBO.UploadPartial(_backingIndexBuffer, mappedBytesIndices);
+
+        // Bind GL state.
+        Texture.EnsureBound(_currentTexture);
+        VertexArrayObject.EnsureBound(renderObj.VAO);
+        IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
+
+        // Draw with the appropriate state.
+        PrimitiveType primitiveType = BatchMode switch
+        {
+            BatchMode.Quad => PrimitiveType.Triangles,
+            BatchMode.SequentialTriangles => PrimitiveType.Triangles,
+            BatchMode.TriangleFan => PrimitiveType.TriangleFan,
+            _ => PrimitiveType.Triangles
+        };
+        if (BatchMode == BatchMode.TriangleFan)
+        {
+            if (Gl.CurrentVersion.GLES)
+                for (var i = 0; i < _batchableLengthUtilization; i++)
                 {
-                    _vertexPostProcFunc(ref data[i], i, _vertexPostProcFuncUserData);
+                    Gl.DrawArrays(primitiveType, _batchableLengths[0][i], _batchableLengths[1][i]);
                 }
-            }
-
-            // Remap UVs to be within the atlas, if using the atlas.
-            if (_currentTexture == _atlas?.AtlasPointer)
-                _atlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
-            else if (_currentTexture == _smoothAtlas?.AtlasPointer)
-                _smoothAtlas.RemapBatchUVs(_backingBuffer, mappedBytes, structByteSize, renderObj.VAO.UVByteOffset);
-
-            // Avoid allocations
-            if (renderObj.VBO.Size < mappedBytes)
-                renderObj.VBO.Upload(_backingBuffer, mappedBytes);
             else
-                renderObj.VBO.UploadPartial(_backingBuffer, mappedBytes);
+                Gl.MultiDrawArrays(primitiveType, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
 
-            if (renderObj.IBO.Size < mappedBytesIndices)
-                renderObj.IBO.Upload(_backingIndexBuffer, mappedBytesIndices);
-            else
-                renderObj.IBO.UploadPartial(_backingIndexBuffer, mappedBytesIndices);
-
-            // Bind GL state.
-            Texture.EnsureBound(_currentTexture);
-            VertexArrayObject.EnsureBound(renderObj.VAO);
-            IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
-
-            // Draw with the appropriate state.
-            PrimitiveType primitiveType = BatchMode switch
-            {
-                BatchMode.Quad => PrimitiveType.Triangles,
-                BatchMode.SequentialTriangles => PrimitiveType.Triangles,
-                BatchMode.TriangleFan => PrimitiveType.TriangleFan,
-                _ => PrimitiveType.Triangles
-            };
-            if (BatchMode == BatchMode.TriangleFan)
-            {
-                if (Gl.CurrentVersion.GLES)
-                    for (var i = 0; i < _batchableLengthUtilization; i++)
-                    {
-                        Gl.DrawArrays(primitiveType, _batchableLengths[0][i], _batchableLengths[1][i]);
-                    }
-                else
-                    Gl.MultiDrawArrays(primitiveType, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
-
-                _batchableLengthUtilization = 0;
-            }
-            else
-            {
-                var count = (int) (mappedBytesIndices / _indexByteSize);
-                Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, IntPtr.Zero);
-            }
-
-            PerfProfiler.FrameEventEnd("Stream Render");
-
-            _vertexIndex = 0;
-            _backingBufferOffset = 0;
-            _backingIndexOffset = 0;
-
-            // Reset texture mapping, if using it.
-            _atlas?.ResetMapping();
-            _smoothAtlas?.ResetMapping();
+            _batchableLengthUtilization = 0;
+        }
+        else
+        {
+            var count = (int) (mappedBytesIndices / _indexByteSize);
+            Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, IntPtr.Zero);
         }
 
-        public void DoTasks(RenderComposer c)
-        {
-            _atlas?.Update(c);
-            _smoothAtlas?.Update(c);
+        PerfProfiler.FrameEventEnd("Stream Render");
 
-            // Funnel used objects back into the usable pool.
-            foreach (KeyValuePair<Type, Stack<GLRenderObjects>> usedStackPair in _renderObjectsUsed)
-            {
-                Stack<GLRenderObjects> usableStack = _renderObjects[usedStackPair.Key];
-                Stack<GLRenderObjects> usedStack = usedStackPair.Value;
-                while (usedStack.Count > 0) usableStack.Push(usedStack.Pop());
-            }
+        _vertexIndex = 0;
+        _backingBufferOffset = 0;
+        _backingIndexOffset = 0;
+
+        // Reset texture mapping, if using it.
+        _atlas?.ResetMapping();
+        _smoothAtlas?.ResetMapping();
+    }
+
+    public void DoTasks(Renderer c)
+    {
+        _atlas?.Update(c);
+        _smoothAtlas?.Update(c);
+
+        // Funnel used objects back into the usable pool.
+        foreach (KeyValuePair<Type, Stack<GLRenderObjects>> usedStackPair in _renderObjectsUsed)
+        {
+            Stack<GLRenderObjects> usableStack = _renderObjects[usedStackPair.Key];
+            Stack<GLRenderObjects> usedStack = usedStackPair.Value;
+            while (usedStack.Count > 0) usableStack.Push(usedStack.Pop());
+        }
+    }
+
+    #region GL Render Objects
+
+    protected GLRenderObjects CreateRenderObject<T>() where T : struct
+    {
+        var vbo = new VertexBuffer(0, BufferUsage.StreamDraw);
+        var ibo = new IndexBuffer(0, BufferUsage.StreamDraw);
+        var vao = new VertexArrayObject<T>(vbo, ibo);
+
+        var objectsPair = new GLRenderObjects(vbo, ibo, vao);
+
+        Type vertexType = typeof(T);
+        if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
+        {
+            renderObjsOfType = new Stack<GLRenderObjects>();
+            _renderObjects.Add(vertexType, renderObjsOfType);
+
+            var usedStack = new Stack<GLRenderObjects>();
+            _renderObjectsUsed.Add(vertexType, usedStack);
         }
 
-        #region GL Render Objects
+        renderObjsOfType.Push(objectsPair);
+        return objectsPair;
+    }
 
-        protected GLRenderObjects CreateRenderObject<T>() where T : struct
+    protected void EnsureRenderObjectsOfType<T>() where T : struct
+    {
+        var type = typeof(T);
+        if (!_renderObjects.ContainsKey(type)) CreateRenderObject<T>();
+    }
+
+    // According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
+    // in the pipeline references the buffer object, regardless of whether it concerns the region
+    // being updated. Nvidia and AMD gracefully handle this, but Intel GPUs will silently fail to
+    // render some triangles.
+    //
+    // Because of this we cannot reuse buffers in the same frame, regardless of how small of a draw there is,
+    // and fencing is a lot slower than just allocating a bunch.
+    protected GLRenderObjects? GetFreeRenderObjectOfCurrentVertexType()
+    {
+        Type vertexType = CurrentVertexType;
+        if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
         {
-            var vbo = new VertexBuffer(0, BufferUsage.StreamDraw);
-            var ibo = new IndexBuffer(0, BufferUsage.StreamDraw);
-            var vao = new VertexArrayObject<T>(vbo, ibo);
-
-            var objectsPair = new GLRenderObjects(vbo, ibo, vao);
-
-            Type vertexType = typeof(T);
-            if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
-            {
-                renderObjsOfType = new Stack<GLRenderObjects>();
-                _renderObjects.Add(vertexType, renderObjsOfType);
-
-                var usedStack = new Stack<GLRenderObjects>();
-                _renderObjectsUsed.Add(vertexType, usedStack);
-            }
-
-            renderObjsOfType.Push(objectsPair);
-            return objectsPair;
-        }
-
-        protected void EnsureRenderObjectsOfType<T>() where T : struct
-        {
-            var type = typeof(T);
-            if (!_renderObjects.ContainsKey(type)) CreateRenderObject<T>();
-        }
-
-        // According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
-        // in the pipeline references the buffer object, regardless of whether it concerns the region
-        // being updated. Nvidia and AMD gracefully handle this, but Intel GPUs will silently fail to
-        // render some triangles.
-        //
-        // Because of this we cannot reuse buffers in the same frame, regardless of how small of a draw there is,
-        // and fencing is a lot slower than just allocating a bunch.
-        protected GLRenderObjects? GetFreeRenderObjectOfCurrentVertexType()
-        {
-            Type vertexType = CurrentVertexType;
-            if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
-            {
-                Assert(false, $"No render object of vertex type {vertexType.Name}");
-                return null;
-            }
-
-            if (renderObjsOfType.Count == 0)
-            {
-                if (CurrentVertexTypeCreateObjectMethod == null)
-                    CreateRenderObject<VertexData>();
-                else
-                    CurrentVertexTypeCreateObjectMethod();
-            }
-
-            if (renderObjsOfType.Count > 0)
-            {
-                GLRenderObjects obj = renderObjsOfType.Pop();
-                Stack<GLRenderObjects> usedStack = _renderObjectsUsed[vertexType];
-                usedStack.Push(obj);
-                return obj;
-            }
-
-            Assert(false, "No free render object for stream!?");
+            Assert(false, $"No render object of vertex type {vertexType.Name}");
             return null;
         }
 
-        #endregion
-
-        #region Helpers and Overloads
-
-        /// <summary>
-        /// Get stream memory and automatically map indices depending on the batch mode.
-        /// </summary>
-        public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, Texture? texture = null) where T : struct
+        if (renderObjsOfType.Count == 0)
         {
-            uint indexCount = 0;
-            switch (batchMode)
-            {
-                case BatchMode.Quad:
-                    indexCount = structCount / 4 * 6;
-                    break;
-                case BatchMode.TriangleFan:
-                case BatchMode.SequentialTriangles:
-                    indexCount = structCount;
-                    break;
-            }
-
-            StreamData<T> streamData = GetStreamMemory<T>(structCount, indexCount, batchMode, texture);
-            Span<ushort> indicesSpan = streamData.IndicesData;
-            ushort offset = streamData.StructIndex;
-            switch (batchMode)
-            {
-                case BatchMode.Quad:
-                    IndexBuffer.FillQuadIndices(indicesSpan, offset);
-                    break;
-                case BatchMode.TriangleFan:
-                case BatchMode.SequentialTriangles:
-                    for (ushort i = 0; i < indicesSpan.Length; i++)
-                    {
-                        indicesSpan[i] = (ushort) (offset + i);
-                    }
-
-                    break;
-            }
-
-            return streamData.VerticesData;
+            if (CurrentVertexTypeCreateObjectMethod == null)
+                CreateRenderObject<VertexData>();
+            else
+                CurrentVertexTypeCreateObjectMethod();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<VertexData> GetStreamMemory(uint structCount, BatchMode batchMode, Texture? texture = null)
+        if (renderObjsOfType.Count > 0)
         {
-            return GetStreamMemory<VertexData>(structCount, batchMode, texture);
+            GLRenderObjects obj = renderObjsOfType.Pop();
+            Stack<GLRenderObjects> usedStack = _renderObjectsUsed[vertexType];
+            usedStack.Push(obj);
+            return obj;
         }
 
-        #endregion
+        Assert(false, "No free render object for stream!?");
+        return null;
+    }
 
-        public delegate void VertexPostProcessingFunc(ref VertexData vertex, int vIdx, object? userData);
+    #endregion
 
-        private VertexPostProcessingFunc? _vertexPostProcFunc = null;
-        private object? _vertexPostProcFuncUserData = null;
+    #region Helpers and Overloads
 
-        /// <summary>
-        /// Sets a function to be called for flushed vertices.
-        /// </summary>
-        public void SetVerticesPostProcessing(VertexPostProcessingFunc? func, object? userData = null)
+    /// <summary>
+    /// Get stream memory and automatically map indices depending on the batch mode.
+    /// </summary>
+    public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, Texture? texture = null) where T : struct
+    {
+        uint indexCount = 0;
+        switch (batchMode)
+        {
+            case BatchMode.Quad:
+                indexCount = structCount / 4 * 6;
+                break;
+            case BatchMode.TriangleFan:
+            case BatchMode.SequentialTriangles:
+                indexCount = structCount;
+                break;
+        }
+
+        StreamData<T> streamData = GetStreamMemory<T>(structCount, indexCount, batchMode, texture);
+        Span<ushort> indicesSpan = streamData.IndicesData;
+        ushort offset = streamData.StructIndex;
+        switch (batchMode)
+        {
+            case BatchMode.Quad:
+                IndexBuffer.FillQuadIndices(indicesSpan, offset);
+                break;
+            case BatchMode.TriangleFan:
+            case BatchMode.SequentialTriangles:
+                for (ushort i = 0; i < indicesSpan.Length; i++)
+                {
+                    indicesSpan[i] = (ushort) (offset + i);
+                }
+
+                break;
+        }
+
+        return streamData.VerticesData;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<VertexData> GetStreamMemory(uint structCount, BatchMode batchMode, Texture? texture = null)
+    {
+        return GetStreamMemory<VertexData>(structCount, batchMode, texture);
+    }
+
+    #endregion
+
+    public delegate void VertexPostProcessingFunc(ref VertexData vertex, int vIdx, object? userData);
+
+    private VertexPostProcessingFunc? _vertexPostProcFunc = null;
+    private object? _vertexPostProcFuncUserData = null;
+
+    /// <summary>
+    /// Sets a function to be called for flushed vertices.
+    /// </summary>
+    public void SetVerticesPostProcessing(VertexPostProcessingFunc? func, object? userData = null)
+    {
+        if (AnythingMapped) FlushRender();
+        _vertexPostProcFunc = func;
+        _vertexPostProcFuncUserData = func == null ? null : userData;
+    }
+
+    public bool HasVerticesPostProcessingFunction()
+    {
+        return _vertexPostProcFunc != null;
+    }
+
+    #region ONE
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<VertexData> GetStreamMemory(uint structCount, BatchMode batchMode, uint texturePtr)
+    {
+        return GetStreamMemory<VertexData>(structCount, batchMode, texturePtr);
+    }
+
+    public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, uint texturePtr) where T : struct
+    {
+        uint indexCount = 0;
+        switch (batchMode)
+        {
+            case BatchMode.Quad:
+                indexCount = structCount / 4 * 6;
+                break;
+            case BatchMode.TriangleFan:
+            case BatchMode.SequentialTriangles:
+                indexCount = structCount;
+                break;
+        }
+
+        StreamData<T> streamData = GetStreamMemory<T>(structCount, indexCount, batchMode, texturePtr);
+        Span<ushort> indicesSpan = streamData.IndicesData;
+        ushort offset = streamData.StructIndex;
+        switch (batchMode)
+        {
+            case BatchMode.Quad:
+                IndexBuffer.FillQuadIndices(indicesSpan, offset);
+                break;
+            case BatchMode.TriangleFan:
+            case BatchMode.SequentialTriangles:
+                for (ushort i = 0; i < indicesSpan.Length; i++)
+                {
+                    indicesSpan[i] = (ushort)(offset + i);
+                }
+
+                break;
+        }
+
+        return streamData.VerticesData;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public StreamData<VertexData> GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, uint texturePointer)
+    {
+        return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texturePointer);
+    }
+
+    public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, uint texturePointer) where T : struct
+    {
+        Type type = typeof(T);
+        uint vertexTypeByteSize = _currentVertexTypeByteSize;
+        if (CurrentVertexType != type) vertexTypeByteSize = (uint)Marshal.SizeOf<T>();
+
+        uint vBytesNeeded = structCount * vertexTypeByteSize;
+        uint iBytesNeeded = indexCount * _indexByteSize;
+
+        // This request can never be serviced, as it itself is larger that an empty buffer.
+        if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
+
+        if (CurrentVertexType != type)
         {
             if (AnythingMapped) FlushRender();
-            _vertexPostProcFunc = func;
-            _vertexPostProcFuncUserData = func == null ? null : userData;
+            EnsureRenderObjectsOfType<T>();
+            _currentVertexTypeByteSize = vertexTypeByteSize;
+            CurrentVertexType = type;
         }
 
-        public bool HasVerticesPostProcessingFunction()
+        // Check if the request can be served, if not - flush the buffers.
+        bool gotStructs = _backingSizeLeft >= vBytesNeeded && _vertexIndex + structCount + indexCount <= ushort.MaxValue;
+        bool gotIndices = _backingIndexSizeLeft >= iBytesNeeded;
+        if (!gotStructs || !gotIndices)
         {
-            return _vertexPostProcFunc != null;
+            if (AnythingMapped) FlushRender();
+
+            // Should have enough size now.
+            Assert(_backingSizeLeft >= vBytesNeeded);
+            Assert(_backingIndexSizeLeft >= iBytesNeeded);
         }
 
-        #region ONE
+        // Batch type logic.
+        if (batchMode != BatchMode && AnythingMapped) FlushRender();
+        BatchMode = batchMode;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<VertexData> GetStreamMemory(uint structCount, BatchMode batchMode, uint texturePtr)
+        // If the texture is changing, flush old data.
+        if (texturePointer != _currentTexture)
         {
-            return GetStreamMemory<VertexData>(structCount, batchMode, texturePtr);
+            if (AnythingMapped) FlushRender();
+            _currentTexture = texturePointer;
         }
 
-        public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, uint texturePtr) where T : struct
+        // Mark memory area as used.
+        uint vOffset = _backingBufferOffset;
+        uint iOffset = _backingIndexOffset;
+        _backingBufferOffset += vBytesNeeded;
+        _backingIndexOffset += iBytesNeeded;
+
+        // ReSharper disable PossibleNullReferenceException
+        Assert(_backingBuffer != IntPtr.Zero);
+        Assert(_backingIndexBuffer != IntPtr.Zero);
+        var verticesData = new Span<T>(&((byte*)_backingBuffer)[vOffset], (int)structCount);
+        var indicesData = new Span<ushort>(&((byte*)_backingIndexBuffer)[iOffset], (int)indexCount);
+        // ReSharper enable PossibleNullReferenceException
+
+        ushort index = _vertexIndex;
+        _vertexIndex = (ushort)(_vertexIndex + structCount);
+
+        // Some batch modes cannot be used with draw elements.
+        // For them record where the memory request started and its length.
+        // 1 request = 1 mesh
+        if (BatchMode == BatchMode.TriangleFan)
         {
-            uint indexCount = 0;
-            switch (batchMode)
-            {
-                case BatchMode.Quad:
-                    indexCount = structCount / 4 * 6;
-                    break;
-                case BatchMode.TriangleFan:
-                case BatchMode.SequentialTriangles:
-                    indexCount = structCount;
-                    break;
-            }
+            // Not enough size - extend.
+            if (_batchableLengthUtilization + 1 >= _batchableLengths[0].Length)
+                for (var i = 0; i < _batchableLengths.Length; i++)
+                {
+                    Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
+                }
 
-            StreamData<T> streamData = GetStreamMemory<T>(structCount, indexCount, batchMode, texturePtr);
-            Span<ushort> indicesSpan = streamData.IndicesData;
-            ushort offset = streamData.StructIndex;
-            switch (batchMode)
-            {
-                case BatchMode.Quad:
-                    IndexBuffer.FillQuadIndices(indicesSpan, offset);
-                    break;
-                case BatchMode.TriangleFan:
-                case BatchMode.SequentialTriangles:
-                    for (ushort i = 0; i < indicesSpan.Length; i++)
-                    {
-                        indicesSpan[i] = (ushort)(offset + i);
-                    }
-
-                    break;
-            }
-
-            return streamData.VerticesData;
+            _batchableLengths[0][_batchableLengthUtilization] = index;
+            _batchableLengths[1][_batchableLengthUtilization] = (int)indexCount;
+            _batchableLengthUtilization++;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StreamData<VertexData> GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, uint texturePointer)
+        return new StreamData<T>
         {
-            return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texturePointer);
-        }
-
-        public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, uint texturePointer) where T : struct
-        {
-            Type type = typeof(T);
-            uint vertexTypeByteSize = _currentVertexTypeByteSize;
-            if (CurrentVertexType != type) vertexTypeByteSize = (uint)Marshal.SizeOf<T>();
-
-            uint vBytesNeeded = structCount * vertexTypeByteSize;
-            uint iBytesNeeded = indexCount * _indexByteSize;
-
-            // This request can never be serviced, as it itself is larger that an empty buffer.
-            if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
-
-            if (CurrentVertexType != type)
-            {
-                if (AnythingMapped) FlushRender();
-                EnsureRenderObjectsOfType<T>();
-                _currentVertexTypeByteSize = vertexTypeByteSize;
-                CurrentVertexType = type;
-            }
-
-            // Check if the request can be served, if not - flush the buffers.
-            bool gotStructs = _backingSizeLeft >= vBytesNeeded && _vertexIndex + structCount + indexCount <= ushort.MaxValue;
-            bool gotIndices = _backingIndexSizeLeft >= iBytesNeeded;
-            if (!gotStructs || !gotIndices)
-            {
-                if (AnythingMapped) FlushRender();
-
-                // Should have enough size now.
-                Assert(_backingSizeLeft >= vBytesNeeded);
-                Assert(_backingIndexSizeLeft >= iBytesNeeded);
-            }
-
-            // Batch type logic.
-            if (batchMode != BatchMode && AnythingMapped) FlushRender();
-            BatchMode = batchMode;
-
-            // If the texture is changing, flush old data.
-            if (texturePointer != _currentTexture)
-            {
-                if (AnythingMapped) FlushRender();
-                _currentTexture = texturePointer;
-            }
-
-            // Mark memory area as used.
-            uint vOffset = _backingBufferOffset;
-            uint iOffset = _backingIndexOffset;
-            _backingBufferOffset += vBytesNeeded;
-            _backingIndexOffset += iBytesNeeded;
-
-            // ReSharper disable PossibleNullReferenceException
-            Assert(_backingBuffer != IntPtr.Zero);
-            Assert(_backingIndexBuffer != IntPtr.Zero);
-            var verticesData = new Span<T>(&((byte*)_backingBuffer)[vOffset], (int)structCount);
-            var indicesData = new Span<ushort>(&((byte*)_backingIndexBuffer)[iOffset], (int)indexCount);
-            // ReSharper enable PossibleNullReferenceException
-
-            ushort index = _vertexIndex;
-            _vertexIndex = (ushort)(_vertexIndex + structCount);
-
-            // Some batch modes cannot be used with draw elements.
-            // For them record where the memory request started and its length.
-            // 1 request = 1 mesh
-            if (BatchMode == BatchMode.TriangleFan)
-            {
-                // Not enough size - extend.
-                if (_batchableLengthUtilization + 1 >= _batchableLengths[0].Length)
-                    for (var i = 0; i < _batchableLengths.Length; i++)
-                    {
-                        Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
-                    }
-
-                _batchableLengths[0][_batchableLengthUtilization] = index;
-                _batchableLengths[1][_batchableLengthUtilization] = (int)indexCount;
-                _batchableLengthUtilization++;
-            }
-
-            return new StreamData<T>
-            {
-                VerticesData = verticesData,
-                IndicesData = indicesData,
-                StructIndex = index
-            };
-        }
-
-        #endregion
+            VerticesData = verticesData,
+            IndicesData = indicesData,
+            StructIndex = index
+        };
     }
+
+    #endregion
 }

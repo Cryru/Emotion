@@ -1,9 +1,8 @@
 ﻿using Emotion.Network.Base;
-using Emotion.Standard.XML;
-using Emotion.Utility;
+using Emotion.Standard.DataStructures;
+using Emotion.Standard.Parsers.XML;
 using System.Net;
 using System.Net.Sockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #nullable enable
 

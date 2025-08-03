@@ -2,17 +2,11 @@
 
 #region Using
 
-using System.Collections;
 using System.IO;
-using System.Threading;
-using Emotion.Common.Threading;
-using Emotion.Game.Time.Routines;
-using Emotion.Graphics;
-using Emotion.Graphics.Objects;
-using Emotion.IO;
-using Emotion.Scenography;
-using Emotion.Standard.Image.PNG;
-using Emotion.Utility;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Systems.Logging;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Standard.Parsers.Image.PNG;
 using OpenGL;
 
 #endregion
@@ -37,7 +31,7 @@ public abstract class TestingScene : Scene
 
     }
 
-    public override void RenderScene(RenderComposer composer)
+    public override void RenderScene(Renderer composer)
     {
         _screenShotBuffer ??= new FrameBuffer(composer.DrawBuffer.Size).WithColor().WithDepth();
         if (_screenShotBuffer.Size != composer.DrawBuffer.Size) _screenShotBuffer.Resize(composer.DrawBuffer.Size, true);
@@ -152,7 +146,7 @@ public abstract class TestingScene : Scene
     }
 
     protected abstract void TestUpdate();
-    protected abstract void TestDraw(RenderComposer c);
+    protected abstract void TestDraw(Renderer c);
 
     // Loop waiter
     private TestWaiterRunLoops? _loopWaiter;

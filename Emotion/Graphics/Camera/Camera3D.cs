@@ -1,8 +1,7 @@
 ﻿#region Using
 
-using Emotion.Common.Input;
-using Emotion.Utility;
-using Emotion.WIPUpdates.One;
+using Emotion.Core.Systems.Input;
+
 
 #endregion
 
@@ -47,9 +46,9 @@ namespace Emotion.Graphics.Camera
         {
             // Handle the looking straight up/down locks.
             // This happens when transitioning between 2D and 3D
-            if (lookAt == RenderComposer.Up)
+            if (lookAt == Renderer.Up)
                 lookAt = new Vector3(0, -0.0174523834f, 0.9998477f);
-            else if (lookAt == -RenderComposer.Up)
+            else if (lookAt == -Renderer.Up)
                 lookAt = new Vector3(0, -0.0174523834f, -0.9998477f);
 
             // Init rotation for mouse turning.
@@ -91,7 +90,7 @@ namespace Emotion.Graphics.Camera
         /// <inheritdoc />
         public override void RecreateProjectionMatrix()
         {
-            RenderComposer renderer = Engine.Renderer;
+            Renderer renderer = Engine.Renderer;
             float aspectRatio = renderer.CurrentTarget.Size.X / renderer.CurrentTarget.Size.Y;
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
         }
@@ -191,7 +190,7 @@ namespace Emotion.Graphics.Camera
                 movementStraightBack.Z = 0;
                 movementStraightBack = Vector3.Normalize(movementStraightBack) * len;
 
-                Vector3 movementUpDown = RenderComposer.Up * _inputDirectionZ;
+                Vector3 movementUpDown = Renderer.Up * _inputDirectionZ;
                 Vector3 movementSide = -Vector3.Normalize(Vector3.Cross(_lookAt, worldUp)) * _inputDirection.X;
                 if (!float.IsNaN(movementStraightBack.X)) Position += movementStraightBack * MovementSpeed;
                 if (!float.IsNaN(movementUpDown.X)) Position += movementUpDown * MovementSpeed;

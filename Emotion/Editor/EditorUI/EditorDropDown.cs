@@ -1,9 +1,8 @@
-﻿using Emotion.Game.World.Editor;
-using Emotion.UI;
+﻿using Emotion.Game.Systems.UI;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.Tools;
+namespace Emotion.Editor.EditorUI;
 
 public class EditorDropDown : UIDropDown
 {
@@ -41,7 +40,7 @@ public class EditorDropDown : UIDropDown
         base.Layout(pos, size);
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         c.RenderSprite(Position, Size, EditorColorPalette.BarColor);
         c.RenderRectOutline(Position, Size, EditorColorPalette.ActiveButtonColor, 3 * GetScale());
@@ -51,9 +50,9 @@ public class EditorDropDown : UIDropDown
 
     public static EditorDropDown OpenListDropdown(UIBaseWindow spawningWindow)
     {
-        Emotion.WIPUpdates.One.Tools.EditorDropDown dropDown = new(spawningWindow)
+        EditorDropDown dropDown = new(spawningWindow)
         {
-            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
+            Paddings = new Rectangle(5, 5, 5, 5),
             Anchor = UIAnchor.TopLeft,
             ParentAnchor = UIAnchor.BottomLeft,
         };

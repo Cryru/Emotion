@@ -1,12 +1,11 @@
-﻿using Emotion.Game.World.Editor;
-using Emotion.IO;
-using Emotion.Platform.Implementation.CommonDesktop;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
+﻿using Emotion.Core.Systems.IO;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 {
@@ -25,14 +24,14 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
         EditorLabel label = new EditorLabel
         {
             Id = "Label",
-            Margins = new Primitives.Rectangle(0, 0, 5, 0)
+            Margins = new Rectangle(0, 0, 5, 0)
         };
         container.AddChild(label);
 
         var inputBackground = new UISolidColor
         {
             WindowColor = Color.Black * 0.5f,
-            Paddings = new Primitives.Rectangle(5, 3, 5, 3)
+            Paddings = new Rectangle(5, 3, 5, 3)
         };
         container.AddChild(inputBackground);
 

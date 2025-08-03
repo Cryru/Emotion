@@ -1,9 +1,7 @@
-﻿using Emotion.Common.Serialization;
+﻿#nullable enable
+
 using Emotion.Network.Base;
 using Emotion.Network.ServerSide.Gameplay;
-using Emotion.Utility;
-
-#nullable enable
 
 namespace Emotion.Network.ServerSide;
 

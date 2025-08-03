@@ -1,6 +1,7 @@
 ﻿#region Using
 
-using Emotion.Graphics.Objects;
+using Emotion.Core.Utility;
+
 
 #endregion
 

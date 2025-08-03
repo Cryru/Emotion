@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
-using Emotion.Common;
-using Emotion.IO;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
 using Emotion.Testing;
 using System.Collections;
 

@@ -1,9 +1,11 @@
-﻿using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+﻿#nullable enable
+
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.Systems.UI;
 using System.Text;
 
-namespace Emotion.WIPUpdates.One.Tools;
+namespace Emotion.Editor.Tools;
 
 public class UIWindowDebugInfo
 {
@@ -18,7 +20,7 @@ public class UIWindowDebugInfo
 public class UIDebugTool : EditorWindow
 {
     private UIWindowDebugInfo _debugInfo;
-    private UIBaseWindow? _debuggingWindow;
+    private UIBaseWindow _debuggingWindow;
 
     public UIDebugTool() : base("UI Debug Tool")
     {
@@ -237,7 +239,7 @@ public class UIDebugTool : EditorWindow
         return pathBuild.ToString();
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         return base.RenderInternal(c);
     }

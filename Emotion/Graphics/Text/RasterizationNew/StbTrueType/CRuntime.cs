@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Hebron.Runtime
+namespace StbTrueTypeSharp
 {
     internal static unsafe class CRuntime
     {
@@ -35,7 +35,7 @@ namespace Hebron.Runtime
             if (a == null)
                 return;
 
-            var ptr = new IntPtr(a);
+            var ptr = new nint(a);
             Marshal.FreeHGlobal(ptr);
             MemoryStats.Freed();
         }
@@ -125,7 +125,7 @@ namespace Hebron.Runtime
 
         public static uint _lrotl(uint x, int y)
         {
-            return (x << y) | (x >> (32 - y));
+            return x << y | x >> 32 - y;
         }
 
         public static void* realloc(void* a, long newSize)
@@ -133,8 +133,8 @@ namespace Hebron.Runtime
             if (a == null)
                 return malloc(newSize);
 
-            var ptr = new IntPtr(a);
-            var result = Marshal.ReAllocHGlobal(ptr, new IntPtr(newSize));
+            var ptr = new nint(a);
+            var result = Marshal.ReAllocHGlobal(ptr, new nint(newSize));
 
             return result.ToPointer();
         }

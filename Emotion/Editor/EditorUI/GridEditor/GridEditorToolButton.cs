@@ -1,8 +1,8 @@
-﻿using Emotion.UI;
+﻿using Emotion.Game.Systems.UI;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
+namespace Emotion.Editor.EditorUI.GridEditor;
 
 public class GridEditorToolButton : UICallbackButton
 {

@@ -4,15 +4,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Common;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Systems.Logging;
 using Emotion.Graphics;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Objects;
-using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Standard.Logging;
+using Emotion.Standard;
+using Emotion.Standard.Extensions;
 using Emotion.Testing;
-using Emotion.Utility;
 
 #endregion
 
@@ -114,7 +115,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator RenderStreamMultiPrimitiveBatching()
     {
-        var drawVariants = new List<Action<RenderComposer, Vector3>>
+        var drawVariants = new List<Action<Renderer, Vector3>>
         {
             // Quads
             (c, loc) =>

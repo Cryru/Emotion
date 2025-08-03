@@ -1,6 +1,6 @@
-﻿using Emotion.Common.Threading;
+﻿using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Shading;
-using Emotion.IO;
 using OpenGL;
 using System.Text;
 

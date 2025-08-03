@@ -3,12 +3,12 @@
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using Emotion.Common.Serialization;
 using Emotion.Editor;
-using Emotion.Game.QuadTree;
 using Emotion.Primitives;
+using Emotion.Primitives.DataStructures.QuadTree;
+using Emotion.Standard;
+using Emotion.Standard.Serialization;
 using Emotion.Testing;
-using Emotion.Utility;
 
 #endregion
 

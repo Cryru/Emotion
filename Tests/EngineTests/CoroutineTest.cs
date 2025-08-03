@@ -2,7 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using Emotion.Game.Routines;
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Testing;
 
 // ReSharper disable AccessToModifiedClosure

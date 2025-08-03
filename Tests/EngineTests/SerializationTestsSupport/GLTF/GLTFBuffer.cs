@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using Emotion.Common.Serialization;
 using System.Text.Json.Serialization;
 
 #endregion

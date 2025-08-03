@@ -1,15 +1,8 @@
-﻿using Emotion.UI;
-using Emotion.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Base;
+namespace Emotion.Editor.EditorUI.Base;
 
  public abstract class ArrayEditorBase<T> : UIBaseWindow
 {

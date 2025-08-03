@@ -1,12 +1,10 @@
 // ReSharper disable InconsistentNaming
 
-using System;
+using Emotion.ThirdParty.xxhash;
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Standart.Hash.xxHash

@@ -2,9 +2,9 @@
 
 #region Using
 
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Shading;
-using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
+using Emotion.Standard.Memory;
 
 #endregion
 

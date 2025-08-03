@@ -1,6 +1,6 @@
-﻿using Emotion.Common.Input;
+﻿using Emotion.Core.Systems.Input;
 
-namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
+namespace Emotion.Editor.EditorUI.GridEditor;
 
 public class GridEditorTool
 {

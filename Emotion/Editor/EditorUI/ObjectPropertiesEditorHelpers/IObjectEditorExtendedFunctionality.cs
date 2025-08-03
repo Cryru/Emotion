@@ -1,4 +1,4 @@
-﻿namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+﻿namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public interface IObjectEditorExtendedFunctionality<T>
 {

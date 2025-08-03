@@ -1,13 +1,12 @@
-﻿using Emotion.Game.Routines;
+﻿#nullable enable
+
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Network.Base;
-using Emotion.Standard.XML;
-using Emotion.Utility;
+using Emotion.Standard.Parsers.XML;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-
-#nullable enable
 
 namespace Emotion.Network.ServerSide;
 

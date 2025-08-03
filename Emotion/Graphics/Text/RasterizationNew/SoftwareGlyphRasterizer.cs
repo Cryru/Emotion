@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.Standard.OpenType;
+using Emotion.Standard.Parsers.OpenType;
 using StbTrueTypeSharp;
 
 #endregion

@@ -5,13 +5,11 @@
 using System;
 using System.Collections;
 using System.Numerics;
-using System.Threading.Tasks;
-using Emotion.Game.Routines;
-using Emotion.Game.Time.Routines;
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Game.Systems.UI;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Testing;
-using Emotion.UI;
 
 #endregion
 
@@ -34,7 +32,7 @@ public class UITests : TestingScene
         UI.Update();
     }
 
-    protected override void TestDraw(RenderComposer c)
+    protected override void TestDraw(Renderer c)
     {
         c.SetUseViewMatrix(false);
         UI.Render(c);

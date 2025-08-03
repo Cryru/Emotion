@@ -1,15 +1,14 @@
-﻿using Emotion.Common;
+﻿#nullable enable
+
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
+using Emotion.Game.World;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.ThreeDee;
-using Emotion.IO;
 using Emotion.Testing;
-using Emotion.WIPUpdates.One;
-using Emotion.World.ThreeDee;
 using System.Collections;
 using System.Numerics;
-
-#nullable enable
 
 namespace Tests.EngineTests;
 
@@ -38,7 +37,7 @@ public class Render3DTests : TestingScene
         yield return base.LoadSceneRoutineAsync();
     }
 
-    protected override void TestDraw(RenderComposer c)
+    protected override void TestDraw(Renderer c)
     {
         _gameMap.Render(c);
     }

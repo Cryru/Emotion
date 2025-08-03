@@ -3,7 +3,7 @@
 #region Using
 
 using Emotion.Graphics.Shading;
-using Emotion.Utility;
+using Emotion.Standard.Memory;
 
 #endregion
 

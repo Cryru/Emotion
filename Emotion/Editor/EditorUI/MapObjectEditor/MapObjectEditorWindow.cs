@@ -1,15 +1,15 @@
-﻿using Emotion.Graphics.Camera;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.Editor2D;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using Emotion.WIPUpdates.One.Work;
-using Emotion.World.ThreeDee;
-using Emotion.World.TwoDee;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Editor.Editor2D;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World;
+using Emotion.Game.World.ThreeDee;
+using Emotion.Game.World.TwoDee;
+using Emotion.Graphics.Camera;
 
-namespace Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
+namespace Emotion.Editor.EditorUI.MapObjectEditor;
 
 public class MapObjectEditorWindow : UIBaseWindow
 {
@@ -60,15 +60,15 @@ public class MapObjectEditorWindow : UIBaseWindow
             barContent.AddChild(textList);
 
             var label = new EditorLabel
+            ("Object Editor")
             {
-                Text = "Object Editor",
                 WindowColor = Color.White * 0.5f
             };
             textList.AddChild(label);
 
             var labelDynamic = new EditorLabel
+            ("")
             {
-                Text = "",
                 AllowRenderBatch = false
             };
             textList.AddChild(labelDynamic);
@@ -102,7 +102,7 @@ public class MapObjectEditorWindow : UIBaseWindow
         UpdateSelection();
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         if (MouseoverObject != null)
         {

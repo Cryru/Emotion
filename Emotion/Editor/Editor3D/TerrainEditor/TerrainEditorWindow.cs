@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
-using Emotion.Game.Terrain;
-using Emotion.WIPUpdates.Grids;
-using Emotion.WIPUpdates.One.Editor3D.TerrainEditor.Tools;
-using Emotion.WIPUpdates.One.EditorUI.GridEditor;
+using Emotion.Editor.Editor3D.TerrainEditor.Tools;
+using Emotion.Editor.EditorUI.GridEditor;
+using Emotion.World.Terrain;
+using Emotion.Primitives.Grids;
+using Emotion.Game.World;
 
-namespace Emotion.WIPUpdates.One.Editor3D.TerrainEditor;
+namespace Emotion.Editor.Editor3D.TerrainEditor;
 
 [DontSerialize]
 public sealed class TerrainEditorWindow : GridEditorWindow

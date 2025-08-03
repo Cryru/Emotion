@@ -1,18 +1,19 @@
 ﻿#nullable enable
 
-using Emotion.Serialization.XML;
-using Emotion.Standard.XML;
 using System.Runtime.InteropServices;
 using System.Text;
 using System;
 using Tests.EngineTests.SerializationTestsSupport;
 using Emotion.Testing;
-using Emotion.Serialization.JSON;
 using System.Text.Json;
 using System.Collections;
-using Emotion.Common;
-using Emotion.IO;
-using Emotion.Utility;
+using Emotion.Standard;
+using Emotion.Standard.Parsers.XML;
+using Emotion.Standard.Serialization.XML;
+using Emotion.Standard.Parsers.GLTF;
+using Emotion.Standard.Serialization.Json;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
 
 namespace Tests.EngineTests;
 
@@ -27,7 +28,7 @@ public class SerializationTests
         Assert.True(asset.Loaded);
 
         ReadOnlyMemory<byte> testFile = asset.Content;
-        var docEmotion = JSONSerialization.From<Emotion.Standard.GLTF.GLTFDocument>(testFile.Span);
+        var docEmotion = JSONSerialization.From<GLTFDocument>(testFile.Span);
         var docCsharp = JsonSerializer.Deserialize<SerializationTestsSupport.GLTF.GLTFDocument>(testFile.Span); // Reference
 
         var eBuffers = docEmotion.Buffers;

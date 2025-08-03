@@ -1,10 +1,8 @@
 ﻿#region Using
 
-using System.Threading;
-
 #endregion
 
-namespace Hebron.Runtime
+namespace StbTrueTypeSharp
 {
     internal static class MemoryStats
     {

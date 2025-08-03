@@ -1,6 +1,6 @@
-﻿using Emotion.Common;
+﻿using Emotion.Core;
+using Emotion.Primitives.Grids;
 using Emotion.Testing;
-using Emotion.WIPUpdates.Grids;
 using System.Numerics;
 using System.Text;
 

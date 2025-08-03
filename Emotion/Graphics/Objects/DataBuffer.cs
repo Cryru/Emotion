@@ -1,346 +1,348 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Runtime.InteropServices;
-using Emotion.Common.Threading;
-using Emotion.WIPUpdates.Rendering;
+using Emotion.Core.Systems.Logging;
+using Emotion.Core.Utility.Threading;
+using Emotion.Graphics.Data;
 using OpenGL;
 
 #endregion
 
-namespace Emotion.Graphics.Objects
+namespace Emotion.Graphics.Objects;
+
+/// <summary>
+/// Represents an OpenGL buffer.
+/// </summary>
+public class DataBuffer : IDisposable
 {
     /// <summary>
-    /// Represents an OpenGL buffer.
+    /// The bound buffers of each type.
     /// </summary>
-    public class DataBuffer : IDisposable
+    public static Dictionary<BufferTarget, uint> Bound = new Dictionary<BufferTarget, uint>();
+
+    static DataBuffer()
     {
-        /// <summary>
-        /// The bound buffers of each type.
-        /// </summary>
-        public static Dictionary<BufferTarget, uint> Bound = new Dictionary<BufferTarget, uint>();
-
-        static DataBuffer()
+        // Create bound dictionary with all types.
+        var possibleTypes = Enum.GetValues<BufferTarget>();
+        foreach (BufferTarget type in possibleTypes)
         {
-            // Create bound dictionary with all types.
-            var possibleTypes = Enum.GetValues<BufferTarget>();
-            foreach (BufferTarget type in possibleTypes)
-            {
-                Bound[type] = 0;
-            }
+            Bound[type] = 0;
         }
+    }
 
-        /// <summary>
-        /// The OpenGL pointer to this DataBuffer.
-        /// </summary>
-        public uint Pointer { get; set; }
+    /// <summary>
+    /// The OpenGL pointer to this DataBuffer.
+    /// </summary>
+    public uint Pointer { get; set; }
 
-        /// <summary>
-        /// The type of data buffer.
-        /// </summary>
-        public BufferTarget Type { get; set; }
+    /// <summary>
+    /// The type of data buffer.
+    /// </summary>
+    public BufferTarget Type { get; set; }
 
-        /// <summary>
-        /// The size of the buffer, in bytes.
-        /// </summary>
-        public uint Size { get; set; }
+    /// <summary>
+    /// The size of the buffer, in bytes.
+    /// </summary>
+    public uint Size { get; set; }
 
-        /// <summary>
-        /// Create a new data buffer.
-        /// </summary>
-        /// <param name="type">The type of buffer to create.</param>
-        /// <param name="byteSize">The size of the buffer in bytes. This is optional and can be set later with an upload.</param>
-        /// <param name="dataUsage">The usage for the data. Only matters if a size is specified.</param>
-        public DataBuffer(BufferTarget type, uint byteSize = 0, BufferUsage dataUsage = BufferUsage.StreamDraw)
+    /// <summary>
+    /// Create a new data buffer.
+    /// </summary>
+    /// <param name="type">The type of buffer to create.</param>
+    /// <param name="byteSize">The size of the buffer in bytes. This is optional and can be set later with an upload.</param>
+    /// <param name="dataUsage">The usage for the data. Only matters if a size is specified.</param>
+    public DataBuffer(BufferTarget type, uint byteSize = 0, BufferUsage dataUsage = BufferUsage.StreamDraw)
+    {
+        Assert(GLThread.IsGLThread());
+
+        Type = type;
+        Pointer = Gl.GenBuffer();
+        EnsureBound(Pointer, Type);
+
+        if (byteSize != 0) Upload(IntPtr.Zero, byteSize, dataUsage);
+    }
+
+    public void Upload(VertexDataAllocation memory)
+    {
+        Upload(memory.Pointer, memory.GetAllocationSize(), BufferUsage.StaticDraw);
+    }
+
+    public void Upload(VertexDataAllocation memory, uint vertexCount)
+    {
+        Upload(memory.Pointer, (uint)(vertexCount * memory.Format.ElementSize), BufferUsage.StaticDraw);
+    }
+
+    /// <summary>
+    /// Upload data to the buffer.
+    /// </summary>
+    /// <typeparam name="T">The type of data to upload.</typeparam>
+    /// <param name="data">The data itself.</param>
+    /// <param name="usage">What the buffer will be used for.</param>
+    public void Upload<T>(T[] data, BufferUsage usage = BufferUsage.StreamDraw)
+    {
+        Upload(data, data.Length, usage);
+    }
+
+    public void Upload<T>(T[] data, int indexCount, BufferUsage usage = BufferUsage.StreamDraw)
+    {
+        // Finish mapping - if it was.
+        FinishMapping();
+
+        int byteSize = Marshal.SizeOf(data[0]);
+        Size = (uint)(indexCount * byteSize);
+
+        if (Engine.Renderer.Dsa)
         {
-            Assert(GLThread.IsGLThread());
-
-            Type = type;
-            Pointer = Gl.GenBuffer();
+            Gl.NamedBufferData(Pointer, Size, data, usage);
+        }
+        else
+        {
             EnsureBound(Pointer, Type);
-
-            if (byteSize != 0) Upload(IntPtr.Zero, byteSize, dataUsage);
+            Gl.BufferData(Type, Size, data, usage);
         }
+    }
 
-        public void Upload(VertexDataAllocation memory)
+    /// <summary>
+    /// Upload data to the buffer.
+    /// </summary>
+    /// <param name="data">A pointer to the data.</param>
+    /// <param name="byteSize">The data's size in bytes.</param>
+    /// <param name="usage">What the buffer will be used for.</param>
+    public void Upload(IntPtr data, uint byteSize, BufferUsage usage = BufferUsage.StreamDraw)
+    {
+        // Finish mapping - if it was.
+        FinishMapping();
+
+        Size = byteSize;
+
+        if (Engine.Renderer.Dsa)
         {
-            Upload(memory.Pointer, memory.GetAllocationSize(), BufferUsage.StaticDraw);
+            Gl.NamedBufferData(Pointer, Size, data, usage);
         }
-
-        public void Upload(VertexDataAllocation memory, uint vertexCount)
+        else
         {
-            Upload(memory.Pointer, (uint)(vertexCount * memory.Format.ElementSize), BufferUsage.StaticDraw);
-        }
-
-        /// <summary>
-        /// Upload data to the buffer.
-        /// </summary>
-        /// <typeparam name="T">The type of data to upload.</typeparam>
-        /// <param name="data">The data itself.</param>
-        /// <param name="usage">What the buffer will be used for.</param>
-        public void Upload<T>(T[] data, BufferUsage usage = BufferUsage.StreamDraw)
-        {
-            Upload(data, data.Length, usage);
-        }
-
-        public void Upload<T>(T[] data, int indexCount, BufferUsage usage = BufferUsage.StreamDraw)
-        {
-            // Finish mapping - if it was.
-            FinishMapping();
-
-            int byteSize = Marshal.SizeOf(data[0]);
-            Size = (uint)(indexCount * byteSize);
-
-            if (Engine.Renderer.Dsa)
-            {
-                Gl.NamedBufferData(Pointer, Size, data, usage);
-            }
-            else
-            {
-                EnsureBound(Pointer, Type);
-                Gl.BufferData(Type, Size, data, usage);
-            }
-        }
-
-        /// <summary>
-        /// Upload data to the buffer.
-        /// </summary>
-        /// <param name="data">A pointer to the data.</param>
-        /// <param name="byteSize">The data's size in bytes.</param>
-        /// <param name="usage">What the buffer will be used for.</param>
-        public void Upload(IntPtr data, uint byteSize, BufferUsage usage = BufferUsage.StreamDraw)
-        {
-            // Finish mapping - if it was.
-            FinishMapping();
-
-            Size = byteSize;
-
-            if (Engine.Renderer.Dsa)
-            {
-                Gl.NamedBufferData(Pointer, Size, data, usage);
-            }
-            else
-            {
-                EnsureBound(Pointer, Type);
-                Gl.BufferData(Type, Size, data, usage);
-            }
-        }
-
-        /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)" />
-        public void UploadPartial<T>(T[] data, uint offset = 0) where T : unmanaged
-        {
-            // Finish mapping - if it was.
-            FinishMapping();
-
-            int byteSize = Marshal.SizeOf(data[0]);
-            var offsetPtr = (IntPtr)offset;
-            var partSize = (uint)(data.Length * byteSize);
-
-            if (offset > Size || offset + partSize > Size)
-            {
-                Engine.Log.Warning("Tried to map buffer out of range.", MessageSource.GL);
-                Assert(false);
-                return;
-            }
-
             EnsureBound(Pointer, Type);
-
-            unsafe
-            {
-                fixed (void* bPtr = &data[0])
-                {
-                    Gl.BufferSubData(Type, offsetPtr, partSize, (nint)bPtr);
-                }
-            }
+            Gl.BufferData(Type, Size, data, usage);
         }
+    }
 
-        /// <summary>
-        /// Upload partial data to the buffer.
-        /// </summary>
-        /// <param name="data">The data to upload.</param>
-        /// <param name="size">The data's size in bytes.</param>
-        /// <param name="offset">The offset to upload to.</param>
-        public void UploadPartial(IntPtr data, uint size, uint offset = 0)
+    /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)" />
+    public void UploadPartial<T>(T[] data, uint offset = 0) where T : unmanaged
+    {
+        // Finish mapping - if it was.
+        FinishMapping();
+
+        int byteSize = Marshal.SizeOf(data[0]);
+        var offsetPtr = (IntPtr)offset;
+        var partSize = (uint)(data.Length * byteSize);
+
+        if (offset > Size || offset + partSize > Size)
         {
-            var offsetPtr = (IntPtr)offset;
-
-            if (Engine.Renderer.Dsa)
-            {
-                Gl.NamedBufferSubData(Pointer, offsetPtr, size, data);
-            }
-            else
-            {
-                EnsureBound(Pointer, Type);
-                Gl.BufferSubData(Type, offsetPtr, size, data);
-            }
+            Engine.Log.Warning("Tried to map buffer out of range.", MessageSource.GL);
+            Assert(false);
+            return;
         }
 
-        #region Mapping
+        EnsureBound(Pointer, Type);
 
-        public bool Mapping { get; protected set; }
-        protected unsafe byte* _mappingPtr;
-
-        /// <summary>
-        /// Start mapping the memory of the buffer.
-        /// </summary>
-        public unsafe void StartMapping(int byteOffset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
+        unsafe
         {
-            if (Mapping)
+            fixed (void* bPtr = &data[0])
             {
-                Engine.Log.Warning("Tried to start mapping a buffer which is already mapping.", MessageSource.GL);
-                return;
+                Gl.BufferSubData(Type, offsetPtr, partSize, (nint)bPtr);
             }
-
-            if (Size == 0)
-            {
-                Engine.Log.Warning("Tried to start mapping a buffer with no memory.", MessageSource.GL);
-                return;
-            }
-
-            if (length == 0) length = Size;
-
-            if (Engine.Renderer.Dsa)
-            {
-                _mappingPtr = (byte*)Gl.MapNamedBufferRange(Pointer, byteOffset, length, mask);
-            }
-            else
-            {
-                EnsureBound(Pointer, Type);
-                _mappingPtr = (byte*)Gl.MapBufferRange(Type, byteOffset, length, mask);
-            }
-
-            if ((IntPtr)_mappingPtr == IntPtr.Zero)
-            {
-                Engine.Log.Warning("Couldn't start mapping buffer. Expect a crash.", MessageSource.GL);
-                Assert(false);
-            }
-
-            Mapping = true;
         }
+    }
 
-        /// <summary>
-        /// Get a portion of the buffer's memory as a <see cref="System.Span{T}" />, allowing you to map data
-        /// of that type. When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
-        /// </summary>
-        /// <typeparam name="T">The type of mapper to create.</typeparam>
-        /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>
-        /// <param name="length">Length for the mapping region. Set to -1 to map to the end of the buffer - in bytes.</param>
-        /// <returns>A mapper used to map data in the buffer.</returns>
-        public unsafe Span<T> CreateMapper<T>(int offset = 0, int length = -1)
+    /// <summary>
+    /// Upload partial data to the buffer.
+    /// </summary>
+    /// <param name="data">The data to upload.</param>
+    /// <param name="size">The data's size in bytes.</param>
+    /// <param name="offset">The offset to upload to.</param>
+    public void UploadPartial(IntPtr data, uint size, uint offset = 0)
+    {
+        var offsetPtr = (IntPtr)offset;
+
+        if (Engine.Renderer.Dsa)
         {
-            if (length == -1) length = (int)(Size - offset);
-            if (offset + length > Size)
-            {
-                Assert(false);
-                return null;
-            }
-
-            if (!Mapping) StartMapping();
-            if (!Mapping) return null;
-
-            var mapper = new Span<T>(&_mappingPtr[offset], length / Marshal.SizeOf<T>());
-            return mapper;
+            Gl.NamedBufferSubData(Pointer, offsetPtr, size, data);
         }
-
-        /// <summary>
-        /// Get a portion of the buffer's memory as pointer to it, allowing you to map data.
-        /// When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
-        /// </summary>
-        /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>
-        /// <param name="length">The length to map in bytes.</param>
-        /// <param name="mask">The mapping access params.</param>
-        /// <returns>A mapper used to map data in the buffer.</returns>
-        public unsafe byte* CreateUnsafeMapper(int offset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
+        else
         {
-            if (!Mapping) StartMapping(offset, length, mask);
-            return !Mapping ? null : _mappingPtr;
+            EnsureBound(Pointer, Type);
+            Gl.BufferSubData(Type, offsetPtr, size, data);
         }
+    }
 
-        /// <summary>
-        /// Finish mapping the buffer, flushing data to the GPU.
-        /// If the buffer wasn't mapping to begin with - nothing happens.
-        /// </summary>
-        public unsafe void FinishMapping()
+    #region Mapping
+
+    public bool Mapping { get; protected set; }
+    protected unsafe byte* _mappingPtr;
+
+    /// <summary>
+    /// Start mapping the memory of the buffer.
+    /// </summary>
+    public unsafe void StartMapping(int byteOffset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
+    {
+        if (Mapping)
         {
-            if (!Mapping) return;
-
-            _mappingPtr = (byte*)IntPtr.Zero;
-
-            if (Engine.Renderer.Dsa)
-            {
-                bool success = Gl.UnmapNamedBuffer(Pointer);
-                if (!success) Engine.Log.Error($"UnmapNamedBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
-            }
-            else
-            {
-                EnsureBound(Pointer, Type);
-                bool success = Gl.UnmapBuffer(Type);
-                if (!success) Engine.Log.Error($"UnmapBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
-            }
-
-            Mapping = false;
+            Engine.Log.Warning("Tried to start mapping a buffer which is already mapping.", MessageSource.GL);
+            return;
         }
 
-        /// <summary>
-        /// Flush a part of the buffer data being mapped.
-        /// Requires for the mapper to have been created with "BufferAccessMask.MapFlushExplicitBit"
-        /// </summary>
-        /// <param name="offset">The starting byte range to flush from.</param>
-        /// <param name="length">The length of the range to flush.</param>
-        public void FinishMappingRange(int offset, uint length)
+        if (Size == 0)
         {
-            if (!Mapping) return;
-
-            if (Engine.Renderer.Dsa)
-            {
-                Gl.FlushMappedNamedBufferRange(Pointer, offset, length);
-            }
-            else
-            {
-                EnsureBound(Pointer, Type);
-                Gl.FlushMappedBufferRange(Type, offset, length);
-            }
+            Engine.Log.Warning("Tried to start mapping a buffer with no memory.", MessageSource.GL);
+            return;
         }
 
-        #endregion
+        if (length == 0) length = Size;
 
-        #region Cleanup
-
-        public void Dispose()
+        if (Engine.Renderer.Dsa)
         {
-            uint ptr = Pointer;
-            Pointer = 0;
-
-            if (Engine.Host == null) return;
-            if (Bound[Type] == ptr) Bound[Type] = 0;
-
-            GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteBuffers(ptr); });
+            _mappingPtr = (byte*)Gl.MapNamedBufferRange(Pointer, byteOffset, length, mask);
         }
-
-        #endregion
-
-        /// <summary>
-        /// Ensures the provided pointer is the currently bound data buffer of the provided type.
-        /// </summary>
-        /// <param name="pointer">The pointer to ensure is bound.</param>
-        /// <param name="type">The type of data buffer to ensure is bound.</param>
-        public static void EnsureBound(uint pointer, BufferTarget type)
+        else
         {
-            // Check if it is already bound.
-            if (Bound[type] == pointer)
-            {
-                // If in debug mode, verify this with OpenGL.
-                if (!Engine.Configuration.GlDebugMode) return;
-
-                bool foundBindingName = Enum.TryParse($"{type}Binding", true, out GetPName bindingName);
-                if (!foundBindingName) Engine.Log.Warning($"Couldn't find binding name for data buffer of type {type}", MessageSource.GL);
-                Gl.Get(bindingName, out int actualBound);
-                if (actualBound != pointer)
-                    Engine.Log.Error($"Assumed bound data buffer of type {type} was {pointer} but it was {actualBound}.", MessageSource.GL);
-                return;
-            }
-
-            Gl.BindBuffer(type, pointer);
-            Bound[type] = pointer;
+            EnsureBound(Pointer, Type);
+            _mappingPtr = (byte*)Gl.MapBufferRange(Type, byteOffset, length, mask);
         }
+
+        if ((IntPtr)_mappingPtr == IntPtr.Zero)
+        {
+            Engine.Log.Warning("Couldn't start mapping buffer. Expect a crash.", MessageSource.GL);
+            Assert(false);
+        }
+
+        Mapping = true;
+    }
+
+    /// <summary>
+    /// Get a portion of the buffer's memory as a <see cref="System.Span{T}" />, allowing you to map data
+    /// of that type. When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
+    /// </summary>
+    /// <typeparam name="T">The type of mapper to create.</typeparam>
+    /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>
+    /// <param name="length">Length for the mapping region. Set to -1 to map to the end of the buffer - in bytes.</param>
+    /// <returns>A mapper used to map data in the buffer.</returns>
+    public unsafe Span<T> CreateMapper<T>(int offset = 0, int length = -1)
+    {
+        if (length == -1) length = (int)(Size - offset);
+        if (offset + length > Size)
+        {
+            Assert(false);
+            return null;
+        }
+
+        if (!Mapping) StartMapping();
+        if (!Mapping) return null;
+
+        var mapper = new Span<T>(&_mappingPtr[offset], length / Marshal.SizeOf<T>());
+        return mapper;
+    }
+
+    /// <summary>
+    /// Get a portion of the buffer's memory as pointer to it, allowing you to map data.
+    /// When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
+    /// </summary>
+    /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>
+    /// <param name="length">The length to map in bytes.</param>
+    /// <param name="mask">The mapping access params.</param>
+    /// <returns>A mapper used to map data in the buffer.</returns>
+    public unsafe byte* CreateUnsafeMapper(int offset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
+    {
+        if (!Mapping) StartMapping(offset, length, mask);
+        return !Mapping ? null : _mappingPtr;
+    }
+
+    /// <summary>
+    /// Finish mapping the buffer, flushing data to the GPU.
+    /// If the buffer wasn't mapping to begin with - nothing happens.
+    /// </summary>
+    public unsafe void FinishMapping()
+    {
+        if (!Mapping) return;
+
+        _mappingPtr = (byte*)IntPtr.Zero;
+
+        if (Engine.Renderer.Dsa)
+        {
+            bool success = Gl.UnmapNamedBuffer(Pointer);
+            if (!success) Engine.Log.Error($"UnmapNamedBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
+        }
+        else
+        {
+            EnsureBound(Pointer, Type);
+            bool success = Gl.UnmapBuffer(Type);
+            if (!success) Engine.Log.Error($"UnmapBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
+        }
+
+        Mapping = false;
+    }
+
+    /// <summary>
+    /// Flush a part of the buffer data being mapped.
+    /// Requires for the mapper to have been created with "BufferAccessMask.MapFlushExplicitBit"
+    /// </summary>
+    /// <param name="offset">The starting byte range to flush from.</param>
+    /// <param name="length">The length of the range to flush.</param>
+    public void FinishMappingRange(int offset, uint length)
+    {
+        if (!Mapping) return;
+
+        if (Engine.Renderer.Dsa)
+        {
+            Gl.FlushMappedNamedBufferRange(Pointer, offset, length);
+        }
+        else
+        {
+            EnsureBound(Pointer, Type);
+            Gl.FlushMappedBufferRange(Type, offset, length);
+        }
+    }
+
+    #endregion
+
+    #region Cleanup
+
+    public void Dispose()
+    {
+        uint ptr = Pointer;
+        Pointer = 0;
+
+        if (Engine.Host == null) return;
+        if (Bound[Type] == ptr) Bound[Type] = 0;
+
+        GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteBuffers(ptr); });
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Ensures the provided pointer is the currently bound data buffer of the provided type.
+    /// </summary>
+    /// <param name="pointer">The pointer to ensure is bound.</param>
+    /// <param name="type">The type of data buffer to ensure is bound.</param>
+    public static void EnsureBound(uint pointer, BufferTarget type)
+    {
+        // Check if it is already bound.
+        if (Bound[type] == pointer)
+        {
+            // If in debug mode, verify this with OpenGL.
+            if (!Engine.Configuration.GlDebugMode) return;
+
+            bool foundBindingName = Enum.TryParse($"{type}Binding", true, out GetPName bindingName);
+            if (!foundBindingName) Engine.Log.Warning($"Couldn't find binding name for data buffer of type {type}", MessageSource.GL);
+            Gl.Get(bindingName, out int actualBound);
+            if (actualBound != pointer)
+                Engine.Log.Error($"Assumed bound data buffer of type {type} was {pointer} but it was {actualBound}.", MessageSource.GL);
+            return;
+        }
+
+        Gl.BindBuffer(type, pointer);
+        Bound[type] = pointer;
     }
 }

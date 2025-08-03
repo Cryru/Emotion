@@ -1,11 +1,10 @@
 ﻿#region Using
 
-using Emotion.Game.World.Editor;
-using Emotion.UI;
+using Emotion.Game.Systems.UI;
 
 #endregion
 
-namespace Emotion.Editor.EditorHelpers;
+namespace Emotion.Editor.EditorUI;
 
 #nullable enable
 
@@ -21,7 +20,7 @@ public class EditorScrollBar : UIScrollbar
         MaxSizeX = 15;
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         base.RenderInternal(c);
 
@@ -53,7 +52,7 @@ public class EditorScrollBarHorizontal : UIScrollbar
         Horizontal = true;
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         base.RenderInternal(c);
 

@@ -1,14 +1,12 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.Game.World.Editor;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.Editor2D.TileEditor;
-using Emotion.WIPUpdates.One.Editor3D.TerrainEditor;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Editor.Editor2D.TileEditor;
+using Emotion.Editor.Editor3D.TerrainEditor;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.MapObjectEditor;
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.Editor2D;
+namespace Emotion.Editor.Editor2D;
 
 [DontSerialize]
 public class Editor2DBottomBar : UISolidColor

@@ -1,8 +1,8 @@
-﻿using Emotion.Network.Base;
+﻿#nullable enable
+
+using Emotion.Network.Base;
 using Emotion.Network.ServerSide;
 using Emotion.Network.ServerSide.Gameplay;
-
-#nullable enable
 
 namespace Emotion.Network.ServerAuthoritative;
 
@@ -18,7 +18,7 @@ public class AuthoritativeTimeSyncGameplay : ServerTimeSyncRoomGameplay
 
     protected override void OnGameplayMessageReceived(ServerUser sender, NetworkMessage msg)
     {
-        Utility.ByteReader? reader = msg.GetContentReader();
+        ByteReader? reader = msg.GetContentReader();
         if (reader == null) return;
 
         reader.ReadByte(); // message type

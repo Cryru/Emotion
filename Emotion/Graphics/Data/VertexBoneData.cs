@@ -1,4 +1,4 @@
-﻿namespace Emotion.WIPUpdates.Rendering;
+﻿namespace Emotion.Graphics.Data;
 
 public struct VertexBoneData
 {

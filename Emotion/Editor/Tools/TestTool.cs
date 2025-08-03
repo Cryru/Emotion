@@ -1,12 +1,6 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Emotion.Editor.EditorUI.Components;
 
-namespace Emotion.WIPUpdates.One.Tools;
+namespace Emotion.Editor.Tools;
 
 public class TestTool : EditorWindow
 {

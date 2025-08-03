@@ -1,7 +1,7 @@
 ﻿#region Using
 
-using Emotion.Common.Input;
-using Emotion.Utility;
+using Emotion.Core.Systems.Input;
+
 
 #endregion
 

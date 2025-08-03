@@ -1,11 +1,9 @@
 ﻿#nullable enable
 
-using Emotion.Common.Input;
-using Emotion.Game.Time;
-using Emotion.Graphics.Camera;
-using Emotion.Utility;
+using Emotion.Core.Systems.Input;
+using Emotion.Core.Utility.Time;
 
-namespace Emotion.WIPUpdates.One.Camera;
+namespace Emotion.Graphics.Camera;
 
 public class Camera2D : CameraBase
 {
@@ -97,8 +95,8 @@ public class Camera2D : CameraBase
     {
         if (_inputDirection != Vector2.Zero)
         {
-            float movementSpeed = (MovementSpeed / 10f) * Engine.DeltaTime;
-            float movementSpeedZoomScale = ((MovementSpeed / Zoom) / 10f) * Engine.DeltaTime;
+            float movementSpeed = MovementSpeed / 10f * Engine.DeltaTime;
+            float movementSpeedZoomScale = MovementSpeed / Zoom / 10f * Engine.DeltaTime;
             movementSpeed = Interpolation.SmoothLerp(movementSpeed, movementSpeedZoomScale, 10, Engine.DeltaTime);
 
             Vector3 worldUp = GetCameraWorldUp();
@@ -118,13 +116,13 @@ public class Camera2D : CameraBase
 
         if (_zoomDir != 0)
         {
-            float movementSpeed = (MovementSpeed / 10f) * Engine.DeltaTime;
+            float movementSpeed = MovementSpeed / 10f * Engine.DeltaTime;
 
             Vector2 mouseScreen = GetZoomMousePos();
             Vector2 mouseWorld = ScreenToWorld(mouseScreen).ToVec2();
 
             // Zoom is perceived as logarithmic-ish
-            float zoomFactorIncrease = 1.0f + ((movementSpeed / 100f) * MathF.Abs(_zoomDir));
+            float zoomFactorIncrease = 1.0f + movementSpeed / 100f * MathF.Abs(_zoomDir);
 
             if (_zoomDir < 0)
                 Zoom = Zoom / zoomFactorIncrease;

@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System.Linq;
-using Emotion.Standard.OpenType;
+using Emotion.Standard.Parsers.OpenType;
 
 #endregion
 

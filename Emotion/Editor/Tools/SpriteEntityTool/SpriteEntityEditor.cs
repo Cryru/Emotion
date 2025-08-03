@@ -1,14 +1,13 @@
-﻿using Emotion.Graphics.TwoDee;
-using Emotion.IO;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using Emotion.WIPUpdates.One.Tools.InterfaceTool;
+﻿using Emotion.Editor.EditorUI;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Editor.Tools.InterfaceTool;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World.TwoDee;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.Tools.SpriteEntityTool;
+namespace Emotion.Editor.Tools.SpriteEntityTool;
 
 public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, ObjectPropertyWindow, SpriteEntity>
 {
@@ -104,7 +103,7 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
         return base.UpdateInternal();
     }
 
-    protected void RenderViewport(UIBaseWindow win, RenderComposer c)
+    protected void RenderViewport(UIBaseWindow win, Renderer c)
     {
         Vector3 center = (win.Size / 4f).ToVec3();
         center = center.Round();

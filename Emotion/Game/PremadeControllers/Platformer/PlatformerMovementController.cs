@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Work;
+using Emotion.Game.World;
 
 namespace Emotion.Game.PremadeControllers.Platformer;
 

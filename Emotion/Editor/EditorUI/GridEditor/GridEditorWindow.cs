@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
-using Emotion.UI;
-using Emotion.WIPUpdates.Grids;
-using Emotion.WIPUpdates.One.Editor2D;
-using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.Editor.Editor2D;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
+using Emotion.Primitives.Grids;
 
-namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
+namespace Emotion.Editor.EditorUI.GridEditor;
 
 [DontSerialize]
 public abstract class GridEditorWindow : UIBaseWindow
@@ -56,16 +56,14 @@ public abstract class GridEditorWindow : UIBaseWindow
             };
             barContent.AddChild(textList);
 
-            var label = new EditorLabel
+            var label = new EditorLabel($"{GetGridName()} Editor")
             {
-                Text = $"{GetGridName()} Editor",
                 WindowColor = Color.White * 0.5f
             };
             textList.AddChild(label);
 
-            var labelDynamic = new EditorLabel
+            var labelDynamic = new EditorLabel("")
             {
-                Text = "",
                 AllowRenderBatch = false
             };
             textList.AddChild(labelDynamic);

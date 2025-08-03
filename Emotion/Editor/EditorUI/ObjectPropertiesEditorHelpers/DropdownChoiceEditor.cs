@@ -1,13 +1,10 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World.Editor;
-using Emotion.UI;
-using Emotion.Utility;
-using Emotion.WIPUpdates.One.EditorUI.Base;
-using Emotion.WIPUpdates.One.EditorUI.Components;
+﻿using Emotion.Editor.EditorUI.Base;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
 {
@@ -54,7 +51,7 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
     {
         if (_items == null) return;
 
-        Emotion.WIPUpdates.One.Tools.EditorDropDown dropDown = Emotion.WIPUpdates.One.Tools.EditorDropDown.OpenListDropdown(this);
+        EditorDropDown dropDown = EditorDropDown.OpenListDropdown(this);
         //dropDown.ClampToSpawningWindowWidth = true;
         dropDown.MaxSizeY = 300;
         dropDown.ParentAnchor = UIAnchor.BottomRight;
@@ -86,7 +83,7 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
         _button.Text = "<empty>";
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         return base.RenderInternal(c);
     }

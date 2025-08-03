@@ -1,13 +1,12 @@
-﻿using Emotion.Editor;
-using Emotion.Standard.Reflector.Handlers.Base;
+﻿#nullable enable
+
+using Emotion.Game.Systems.UI;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
+using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
-#nullable enable
-
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public abstract class ComplexObjectEditor : TypeEditor
 {
@@ -129,7 +128,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                 bool verticalLabel = editor is ListEditor;
                 if (verticalLabel) editor.MinSizeY = 200;
 
-                var editorWithlabel = TypeEditor.WrapWithLabel($"{member.Name}:", editor, verticalLabel);
+                var editorWithlabel = WrapWithLabel($"{member.Name}:", editor, verticalLabel);
                 EditorList.AddChild(editorWithlabel);
             }
             else

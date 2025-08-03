@@ -1,12 +1,10 @@
 ﻿#region Using
 
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Emotion.Common;
-using Emotion.IO;
-using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Core;
+using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Core.Systems.IO;
 using Emotion.Testing;
 
 #endregion

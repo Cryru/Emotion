@@ -1,9 +1,8 @@
-﻿using Emotion.Common.Serialization;
+﻿#nullable enable
+
 using Emotion.Network.Base;
 using Emotion.Network.ServerSide;
 using Emotion.Network.ServerSide.Gameplay;
-
-#nullable enable
 
 namespace Emotion.Network.TimeSyncMessageBroker;
 
@@ -70,7 +69,7 @@ public partial class MsgBrokerTimeSyncGameplay : ServerTimeSyncRoomGameplay
 
     private void AddHashMessage(ServerUser sender, NetworkMessage msg)
     {
-        Utility.ByteReader reader = msg.GetContentReader()!;
+        ByteReader reader = msg.GetContentReader()!;
         reader.ReadByte(); // message type.
 
         int hash;

@@ -1,14 +1,12 @@
 ﻿#region Using
 
 using System.IO;
-using System.Threading.Tasks;
-using Emotion.Game.World.Editor;
-using Emotion.IO;
-using Emotion.UI;
+using Emotion.Core.Systems.IO;
+using Emotion.Game.Systems.UI;
 
 #endregion
 
-namespace Emotion.Editor.EditorHelpers;
+namespace Emotion.Editor.EditorUI.FilePickerHelpers;
 
 #nullable enable
 
@@ -55,7 +53,7 @@ public class FileExplorerButton : UICallbackButton
             Id = "buttonText",
             FontSize = EditorColorPalette.EditorButtonTextSize - 2,
             IgnoreParentColor = true,
-            Margins = new Primitives.Rectangle(0, 5, 0, 0),
+            Margins = new Rectangle(0, 5, 0, 0),
             MaxSizeX = 140
         };
         _label = txt;

@@ -1,25 +1,24 @@
-using System;
-using System.Diagnostics;
+using Standart.Hash.xxHash;
 using System.Runtime.CompilerServices;
 
-namespace Standart.Hash.xxHash
+namespace Emotion.ThirdParty.xxhash
 {
     public static class Utils
     {
         public static Guid ToGuid(this uint128 value)
         {
-            var a = (Int32) (value.low64);
-            var b = (Int16) (value.low64 >> 32);
-            var c = (Int16) (value.low64 >> 48);
+            var a = (int) value.low64;
+            var b = (short) (value.low64 >> 32);
+            var c = (short) (value.low64 >> 48);
             
-            var d = (Byte) (value.high64);
-            var e = (Byte) (value.high64 >> 8);
-            var f = (Byte) (value.high64 >> 16);
-            var g = (Byte) (value.high64 >> 24);
-            var h = (Byte) (value.high64 >> 32);
-            var i = (Byte) (value.high64 >> 40);
-            var j = (Byte) (value.high64 >> 48);
-            var k = (Byte) (value.high64 >> 56);
+            var d = (byte) value.high64;
+            var e = (byte) (value.high64 >> 8);
+            var f = (byte) (value.high64 >> 16);
+            var g = (byte) (value.high64 >> 24);
+            var h = (byte) (value.high64 >> 32);
+            var i = (byte) (value.high64 >> 40);
+            var j = (byte) (value.high64 >> 48);
+            var k = (byte) (value.high64 >> 56);
             
             return new Guid(a, b, c, d, e, f,g, h, i, j, k);
         }
@@ -36,13 +35,13 @@ namespace Standart.Hash.xxHash
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static unsafe void BlockCopy(byte[] src, int srcOffset, byte[] dst, int dstOffset, int count)
         {
-            Debug.Assert(src != null);
-            Debug.Assert(dst != null);
-            Debug.Assert(srcOffset >= 0 && srcOffset < src.Length);
-            Debug.Assert(dstOffset >= 0 && dstOffset < dst.Length);
-            Debug.Assert(count >= 0);
-            Debug.Assert(count + srcOffset <= src.Length);
-            Debug.Assert(count + dstOffset <= dst.Length);
+            Assert(src != null);
+            Assert(dst != null);
+            Assert(srcOffset >= 0 && srcOffset < src.Length);
+            Assert(dstOffset >= 0 && dstOffset < dst.Length);
+            Assert(count >= 0);
+            Assert(count + srcOffset <= src.Length);
+            Assert(count + dstOffset <= dst.Length);
                       
             fixed (byte* pSrc = &src[srcOffset])
             fixed (byte* pDst = &dst[dstOffset])

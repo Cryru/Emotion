@@ -1,12 +1,11 @@
 ﻿using System.Collections;
 using System.Numerics;
-using Emotion.Common;
-using Emotion.Game.Particles;
-using Emotion.Game.Particles.ParticleShape;
+using Emotion.Core;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Game.Systems.Particles;
+using Emotion.Game.Systems.Particles.ParticleShape;
 using Emotion.Graphics;
 using Emotion.Primitives;
-using Emotion.Scenography;
-using Emotion.Utility;
 
 namespace Emotion.ExecTest.ExamplesOne;
 
@@ -75,7 +74,7 @@ public class ParticlesTestScene : SceneWithMap
         FireParticleSystem.Position = Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition);
     }
 
-    public override void RenderScene(RenderComposer c)
+    public override void RenderScene(Renderer c)
     {
         base.RenderScene(c);
 

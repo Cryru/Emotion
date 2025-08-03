@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Standard.Image.PNG;
-using Emotion.Utility;
+using Emotion.Standard;
+using Emotion.Standard.Parsers.Image.PNG;
 
 #endregion
 

@@ -2,6 +2,8 @@
 
 #endregion
 
+using Emotion.Core.Systems.Logging;
+
 namespace Emotion.Graphics.Shading
 {
     /// <summary>

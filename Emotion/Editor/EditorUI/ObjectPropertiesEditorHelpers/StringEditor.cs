@@ -1,9 +1,9 @@
-﻿using Emotion.Game.World.Editor;
-using Emotion.UI;
+﻿using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class StringEditor : TypeEditor
 {
@@ -14,7 +14,7 @@ public class StringEditor : TypeEditor
         var inputBackground = new UISolidColor
         {
             WindowColor = Color.Black * 0.5f,
-            Paddings = new Primitives.Rectangle(5, 3, 5, 3)
+            Paddings = new Rectangle(5, 3, 5, 3)
         };
         AddChild(inputBackground);
 

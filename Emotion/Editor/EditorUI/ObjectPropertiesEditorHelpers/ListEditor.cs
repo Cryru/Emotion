@@ -1,13 +1,12 @@
 ﻿#nullable enable
 
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public abstract class ListEditor : TypeEditor
 {
@@ -193,7 +192,7 @@ end:
             ListSpacing = new Vector2(5, 0),
             GrowY = false,
             OrderInParent = -1,
-            Margins = new Primitives.Rectangle(0, 0, 0, 5)
+            Margins = new Rectangle(0, 0, 0, 5)
         };
         AddChild(buttonsContainer);
 

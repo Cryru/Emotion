@@ -1,9 +1,8 @@
-﻿using Emotion.UI;
-using Emotion.WIPUpdates.One.Tools;
+﻿using Emotion.Game.Systems.UI;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI;
+namespace Emotion.Editor.EditorUI;
 
 public abstract class TwoSplitEditorWindowFileSupport<TLeft, TRight, TEditType> : EditorWindowFileSupport<TEditType>
     where TLeft : UIBaseWindow
@@ -39,7 +38,7 @@ public abstract class TwoSplitEditorWindowFileSupport<TLeft, TRight, TEditType> 
         var contentPanel = new UIBaseWindow
         {
             MinSize = new Vector2(100),
-            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
+            Paddings = new Rectangle(5, 5, 5, 5),
             LayoutMode = LayoutMode.HorizontalEditorPanel
         };
         content.AddChild(contentPanel);

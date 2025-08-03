@@ -2,23 +2,21 @@
 
 #region Using
 
-using Emotion.Game.Text;
+using Emotion.Core.Systems.IO;
+using Emotion.Game.Systems.UI.Text;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Batches.SpriteBatcher;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Text;
-using Emotion.IO;
-using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Camera;
 
 #endregion
 
 namespace Emotion.Graphics
 {
     // Command routines for sprites (and sprite-like) which use the RenderComposer.
-    public sealed partial class RenderComposer
+    public sealed partial class Renderer
     {
         private bool _spriteBatcherEnabled;
         private RenderSpriteBatch _batcher = new RenderSpriteBatch();

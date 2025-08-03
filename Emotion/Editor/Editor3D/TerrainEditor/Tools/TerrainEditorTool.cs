@@ -1,10 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Game.Terrain;
-using Emotion.WIPUpdates.One.EditorUI.GridEditor;
-using static Emotion.WIPUpdates.One.Editor3D.TerrainEditor.TerrainEditorWindow;
+using Emotion.Editor.EditorUI.GridEditor;
+using Emotion.World.Terrain;
+using static Emotion.Editor.Editor3D.TerrainEditor.TerrainEditorWindow;
 
-namespace Emotion.WIPUpdates.One.Editor3D.TerrainEditor.Tools;
+namespace Emotion.Editor.Editor3D.TerrainEditor.Tools;
 
 public abstract class TerrainEditorTool : GridEditorTool
 {

@@ -1,8 +1,7 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
-using Emotion.Common.Threading;
-using Emotion.Utility;
+using Emotion.Core.Systems.Logging;
+using Emotion.Core.Utility.Threading;
 using OpenGL;
 
 namespace Emotion.Graphics.Objects;
@@ -95,7 +94,7 @@ public abstract class TextureObjectBase : IDisposable
     /// <summary>
     /// The source format in which the texture's pixels were uploaded.
     /// </summary>
-    public PixelFormat PixelFormat { get; protected set; }
+    public PixelFormat PixelFormat { get; protected set; } = PixelFormat.Rgba;
 
     /// <summary>
     /// The source pixel type of the texture's pixels.

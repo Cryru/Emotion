@@ -1,11 +1,6 @@
 ﻿#nullable enable
 
-#region Using
-
-using Emotion.Game.Routines;
-
-
-#endregion
+using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Testing;
 

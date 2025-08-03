@@ -1,12 +1,12 @@
-﻿using Emotion.Game.Terrain.GridStreaming;
-using Emotion.IO;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.Tools.InterfaceTool;
+﻿#nullable enable
 
-namespace Emotion.WIPUpdates.One.Tools.ChunkStreamVisualizer;
+using Emotion.Core.Systems.IO;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.Tools.InterfaceTool;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World.Terrain.GridStreaming;
 
-#nullable enable
+namespace Emotion.Editor.Tools.ChunkStreamVisualizer;
 
 public class ChunkStreamVisualizer : EditorWindow
 {
@@ -49,7 +49,7 @@ public class ChunkStreamVisualizer : EditorWindow
         return stateColor;
     }
 
-    protected void RenderChunkStreamData(UIBaseWindow viewport, RenderComposer c)
+    protected void RenderChunkStreamData(UIBaseWindow viewport, Renderer c)
     {
         int renderable = 0;
         int simulated = 0;
@@ -59,7 +59,7 @@ public class ChunkStreamVisualizer : EditorWindow
         foreach (var item in _grid.DebugOnly_StreamableGridForEachChunk())
         {
             Vector2 chunkCoord = item.Item1;
-            Vector2 chunkPosWorld = (chunkCoord * chunkSize);
+            Vector2 chunkPosWorld = chunkCoord * chunkSize;
             IStreamableGridChunk chunk = item.Item2;
 
             ChunkState chunkState = chunk.State;

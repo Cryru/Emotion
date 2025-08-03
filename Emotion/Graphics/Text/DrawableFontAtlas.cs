@@ -1,9 +1,8 @@
 ﻿#region Using
 
-using Emotion.Common.Threading;
-using Emotion.Graphics.Objects;
-using Emotion.Standard.OpenType;
-using Emotion.Utility;
+using Emotion.Core.Utility;
+using Emotion.Core.Utility.Threading;
+using Emotion.Standard.Parsers.OpenType;
 
 #endregion
 
@@ -122,17 +121,17 @@ namespace Emotion.Graphics.Text
             if (renderGlyphs != null) GLThread.ExecuteOnGLThreadAsync(AddGlyphsToAtlas, renderGlyphs);
         }
 
-        public virtual void SetupDrawing(RenderComposer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
+        public virtual void SetupDrawing(Renderer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
         {
             if (text == null) return;
             CacheGlyphs(text);
         }
 
-        public virtual void DrawGlyph(RenderComposer c, DrawableGlyph g, Vector3 pos, Color color)
+        public virtual void DrawGlyph(Renderer c, DrawableGlyph g, Vector3 pos, Color color)
         {
         }
 
-        public virtual void FinishDrawing(RenderComposer c)
+        public virtual void FinishDrawing(Renderer c)
         {
         }
 

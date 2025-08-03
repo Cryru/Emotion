@@ -1,4 +1,6 @@
-﻿using Emotion.Network.Base;
+﻿#nullable enable
+
+using Emotion.Network.Base;
 
 namespace Emotion.Network.ServerSide.Gameplay;
 

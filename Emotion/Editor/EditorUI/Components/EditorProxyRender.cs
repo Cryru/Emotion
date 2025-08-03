@@ -1,16 +1,15 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.UI;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 [DontSerialize]
 public class EditorProxyRender : UIBaseWindow
 {
-    public Action<UIBaseWindow, RenderComposer>? OnRender;
+    public Action<UIBaseWindow, Renderer>? OnRender;
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         OnRender?.Invoke(this, c);
         return base.RenderInternal(c);

@@ -1,4 +1,6 @@
-﻿namespace Emotion.Primitives;
+﻿#nullable enable
+
+namespace Emotion.Primitives;
 
 public struct Ellipse
 {
@@ -20,10 +22,10 @@ public struct Ellipse
         float radiusXSquared = RadiusX * RadiusX;
         float radiusYSquared = RadiusY * RadiusY;
 
-        return (distanceXSquared / radiusXSquared) + (distanceYSquared / radiusYSquared) <= 1;
+        return distanceXSquared / radiusXSquared + distanceYSquared / radiusYSquared <= 1;
     }
 
-    public void RenderDebug(RenderComposer c, Color col)
+    public void RenderDebug(Renderer c, Color col)
     {
         c.RenderEllipse(new Vector3(X, Y, 0), new Vector2(RadiusX, RadiusY), col, true);
     }

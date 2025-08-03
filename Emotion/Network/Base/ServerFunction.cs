@@ -1,5 +1,6 @@
 ﻿using Emotion.Network.ServerSide;
-using Emotion.Standard.XML;
+using Emotion.Standard.Parsers.XML;
+
 
 #nullable enable
 

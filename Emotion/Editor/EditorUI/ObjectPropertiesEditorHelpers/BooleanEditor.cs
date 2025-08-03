@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.WIPUpdates.One.EditorUI.Components;
+using Emotion.Editor.EditorUI.Components;
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class BooleanEditor : TypeEditor
 {

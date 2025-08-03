@@ -1,6 +1,5 @@
-﻿using Emotion.Graphics.ThreeDee;
-using Emotion.Graphics.TwoDee;
-using Emotion.World.ThreeDee;
+﻿using Emotion.Game.World.ThreeDee;
+using Emotion.Game.World.TwoDee;
 
 #nullable enable
 
@@ -10,7 +9,7 @@ namespace Emotion.Graphics;
 // When rendering objects in a map they will be batched and processed, this is used for
 // editors, UI, or other special cases.
 
-public partial class RenderComposer
+public partial class Renderer
 {
     public void RenderEntityStandalone(
         SpriteEntity entity,

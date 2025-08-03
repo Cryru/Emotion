@@ -1,11 +1,11 @@
 ﻿#nullable enable
 
-using Emotion.Game.Terrain;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Game.World.Terrain;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics;
-using Emotion.Scenography;
-using Emotion.Utility.Noise;
-using Emotion.WIPUpdates.One;
-using Emotion.World.ThreeDee;
+using Emotion.Standard.Noise;
+using Emotion.Game.World;
 using System.Collections;
 using System.Numerics;
 
@@ -67,7 +67,7 @@ public class Example3D : SceneWithMap
         Map.AddObject(testObj);
     }
 
-    public override void RenderScene(RenderComposer c)
+    public override void RenderScene(Renderer c)
     {
         base.RenderScene(c);
     }

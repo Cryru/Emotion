@@ -1,9 +1,9 @@
-﻿using Emotion.Common;
+﻿using Emotion.Core;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Game.World.TileMap;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
-using Emotion.Scenography;
-using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.TileMap;
+using Emotion.Game.World;
 using System.Collections;
 using System.Numerics;
 
@@ -30,7 +30,7 @@ public class BadIcecreamScene : SceneWithMap
         yield break;
     }
 
-    public override void RenderScene(RenderComposer c)
+    public override void RenderScene(Renderer c)
     {
         base.RenderScene(c);
     }

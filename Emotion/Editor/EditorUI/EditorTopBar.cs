@@ -1,21 +1,20 @@
 ﻿#nullable enable
 
-using Emotion.Game.Data;
-using Emotion.Game.Terrain.GridStreaming;
-using Emotion.Game.World.Editor;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Editor.Tools;
+using Emotion.Editor.Tools.ChunkStreamVisualizer;
+using Emotion.Editor.Tools.GameDataTool;
+using Emotion.Editor.Tools.InterfaceTool;
+using Emotion.Editor.Tools.SpriteEntityTool;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World;
+using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Platform.Implementation.Win32;
-using Emotion.Scenography;
 using Emotion.Standard.Reflector;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using Emotion.WIPUpdates.One.Tools;
-using Emotion.WIPUpdates.One.Tools.ChunkStreamVisualizer;
-using Emotion.WIPUpdates.One.Tools.GameDataTool;
-using Emotion.WIPUpdates.One.Tools.InterfaceTool;
-using Emotion.WIPUpdates.One.Tools.SpriteEntityTool;
 
-namespace Emotion.WIPUpdates.One.EditorUI;
+namespace Emotion.Editor.EditorUI;
 
 public class EditorTopBar : UISolidColor
 {

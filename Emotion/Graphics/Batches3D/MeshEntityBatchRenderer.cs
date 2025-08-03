@@ -2,16 +2,14 @@
 
 #region Using
 
-using Emotion.Common.Threading;
-using Emotion.Game.World3D;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Threading;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
-using Emotion.Graphics.ThreeDee;
-using Emotion.IO;
-using Emotion.Utility;
-using Emotion.World.ThreeDee;
+using Emotion.Standard.Memory;
 using OpenGL;
 
 #endregion
@@ -218,7 +216,7 @@ public sealed class MeshEntityBatchRenderer
         _assetsLoaded = true;
     }
 
-    public void StartScene(RenderComposer c)
+    public void StartScene(Renderer c)
     {
         c.FlushRenderStream();
 
@@ -397,7 +395,7 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    public unsafe void EndScene(RenderComposer c, LightModel light)
+    public unsafe void EndScene(Renderer c, LightModel light)
     {
         _inScene = false;
         _renderCounter++;
@@ -545,7 +543,7 @@ public sealed class MeshEntityBatchRenderer
         RenderSceneFull(c);
     }
 
-    private void RenderSceneFull(RenderComposer c)
+    private void RenderSceneFull(Renderer c)
     {
         RenderMainPass(c, _mainPassShaderGroups);
 
@@ -566,7 +564,7 @@ public sealed class MeshEntityBatchRenderer
         RenderTransparentObjects(c);
     }
 
-    private void RenderTransparentObjects(RenderComposer c)
+    private void RenderTransparentObjects(Renderer c)
     {
         if (_meshDataPoolTransparent.Length == 0) return;
 
@@ -624,7 +622,7 @@ public sealed class MeshEntityBatchRenderer
         c.SetFaceCulling(false, false);
     }
 
-    private unsafe void RenderMainPass(RenderComposer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
+    private unsafe void RenderMainPass(Renderer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
     {
         if (groupsInPass.Length == 0) return;
 
@@ -993,7 +991,7 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    private void CalculateShadowMapCascadeMatrix(RenderComposer c, ShadowCascadeData cascade, LightModel light)
+    private void CalculateShadowMapCascadeMatrix(Renderer c, ShadowCascadeData cascade, LightModel light)
     {
         float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
 
@@ -1023,7 +1021,7 @@ public sealed class MeshEntityBatchRenderer
 
         Vector3 sunDirection = Vector3.Normalize(light.SunDirection);
 
-        Matrix4x4 lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, sunDirection, RenderComposer.Up);
+        Matrix4x4 lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, sunDirection, Renderer.Up);
         lookAt = texelScalar * lookAt;
         Matrix4x4 lookAtInv = lookAt.Inverted();
 

@@ -8,7 +8,7 @@ using Emotion.Graphics.Data;
 namespace Emotion.Graphics
 {
     // todo: move this to primitives?
-    public sealed partial class RenderComposer
+    public sealed partial class Renderer
     {
         /// <summary>
         /// Generate a quadratic curve mesh within the render stream. Returns the memory gotten.
@@ -36,6 +36,7 @@ namespace Emotion.Graphics
             Span<VertexData> memory = RenderStream.GetStreamMemory((uint) (resolution + 1), BatchMode.TriangleFan);
             memory[0].Vertex = Vector3.Lerp(start, end, 0.5f);
 
+            Vector3 pen = start;
             for (var i = 0; i < resolution; i++)
             {
                 float length = i == resolution - 1 ? 1.0f : incr * i;
@@ -47,9 +48,31 @@ namespace Emotion.Graphics
                 memory[i + 1].Vertex = curveP;
                 memory[i + 1].UV = Vector2.Zero;
                 memory[i + 1].Color = Color.WhiteUint;
+
+
+                pen = curveP;
             }
 
             return memory;
+        }
+
+        public void RenderQuadraticBezier(Vector3 start, Vector3 end, Vector3 ctrlP1, Color color, int resolution = 12, float thickness = 1f)
+        {
+            float incr = 1.0f / (resolution - 1); // Points are denser around curve, so t values work fine.
+
+            Vector3 pen = start;
+            for (var i = 0; i < resolution; i++)
+            {
+                float length = i == resolution - 1 ? 1.0f : incr * i;
+
+                // De Casteljau's algorithm
+                Vector3 sC = Vector3.Lerp(start, ctrlP1, length);
+                Vector3 cE = Vector3.Lerp(ctrlP1, end, length);
+                Vector3 curveP = Vector3.Lerp(sC, cE, length);
+
+                RenderLine(pen, curveP, color);
+                pen = curveP;
+            }
         }
 
         /// <summary>

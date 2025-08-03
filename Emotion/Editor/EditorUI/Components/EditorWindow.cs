@@ -2,19 +2,16 @@
 
 #region Using
 
-using Emotion.Common.Input;
-using Emotion.Common.Threading;
-using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World.Editor;
-using Emotion.IO;
-using Emotion.UI;
+using Emotion.Core.Systems.Input;
+using Emotion.Core.Utility.Threading;
+using Emotion.Game.Systems.UI;
 using OpenGL;
-using static Emotion.Graphics.RenderComposer;
-using static Emotion.Platform.PlatformBase;
+using static Emotion.Core.Platform.PlatformBase;
+using static Emotion.Graphics.Renderer;
 
 #endregion
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorWindowContent : UIBaseWindow
 {
@@ -175,7 +172,7 @@ public class EditorWindow : UIBaseWindow
         }
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         // If rendering to another window, make its context current.
         if (_hostWindow != null && _hostWindow.IsOpen)
@@ -218,7 +215,7 @@ public class EditorWindow : UIBaseWindow
         return base.RenderInternal(c);
     }
 
-    protected override void AfterRenderChildren(RenderComposer c)
+    protected override void AfterRenderChildren(Renderer c)
     {
         base.AfterRenderChildren(c);
 
@@ -274,8 +271,8 @@ public class EditorWindow : UIBaseWindow
     {
         // todo: move to panel property
 
-        var dragAreaColor = new Primitives.Color(180, 180, 180);
-        var dragAreaActive = new Primitives.Color(240, 240, 240);
+        var dragAreaColor = new Color(180, 180, 180);
+        var dragAreaActive = new Color(240, 240, 240);
 
         UITexture dragArea = new UITexture
         {
@@ -373,7 +370,7 @@ public class EditorWindow : UIBaseWindow
         {
             var subWindowButton = new SquareEditorButtonWithTexture("Editor/SubWindow.png", 17)
             {
-                IconColor = new Primitives.Color(70, 70, 70),
+                IconColor = new Color(70, 70, 70),
                 Id = "SubWindowButton",
                 NormalColor = Color.PrettyYellow * 0.75f,
                 RolloverColor = Color.PrettyYellow,
@@ -384,7 +381,7 @@ public class EditorWindow : UIBaseWindow
 
         var closeButton = new SquareEditorButtonWithTexture("Editor/Close.png", 17)
         {
-            IconColor = new Primitives.Color(70, 70, 70),
+            IconColor = new Color(70, 70, 70),
             Id = "CloseButton",
             NormalColor = Color.PrettyRed * 0.75f,
             RolloverColor = Color.PrettyRed,
@@ -462,7 +459,7 @@ public class EditorWindow : UIBaseWindow
         });
     }
 
-    private void FlushToOwnWindow(RenderComposer c)
+    private void FlushToOwnWindow(Renderer c)
     {
         AssertNotNull(_hostWindow);
         AssertNotNull(_windowFB);

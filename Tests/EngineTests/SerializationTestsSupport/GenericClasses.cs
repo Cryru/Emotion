@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
+using Emotion.Standard.Serialization;
 
 namespace Tests.EngineTests.SerializationTestsSupport;
 

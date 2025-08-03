@@ -1,7 +1,6 @@
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Diagnostics;
+using Emotion.ThirdParty.xxhash;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

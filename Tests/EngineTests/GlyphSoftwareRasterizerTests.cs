@@ -6,14 +6,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Threading.Tasks;
-using Emotion.Common;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
 using Emotion.Graphics;
 using Emotion.Graphics.Text.RasterizationNew;
-using Emotion.IO;
-using Emotion.Standard.OpenType;
+using Emotion.Standard.Memory;
+using Emotion.Standard.Parsers.OpenType;
 using Emotion.Testing;
-using Emotion.Utility;
 using static StbTrueTypeSharp.StbTrueType;
 
 #endregion
@@ -39,7 +38,7 @@ public class GlyphSoftwareRasterizerTests : TestingScene
     {
     }
 
-    protected override void TestDraw(RenderComposer c)
+    protected override void TestDraw(Renderer c)
     {
     }
 

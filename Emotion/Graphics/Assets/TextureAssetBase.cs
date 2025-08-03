@@ -1,8 +1,10 @@
-﻿using Emotion.Game.Routines;
-using Emotion.IO;
-using Emotion.Standard.Image.BMP;
-using Emotion.Standard.Image.ImgBin;
-using Emotion.Standard.Image.PNG;
+﻿#nullable enable
+
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Standard.Parsers.Image.BMP;
+using Emotion.Standard.Parsers.Image.ImgBin;
+using Emotion.Standard.Parsers.Image.PNG;
 using OpenGL;
 
 #if MORE_IMAGE_TYPES
@@ -12,8 +14,6 @@ using SixLabors.ImageSharp.PixelFormats;
 #endif
 
 namespace Emotion.Graphics.Assets;
-
-#nullable enable
 
 public abstract class TextureAssetBase<TTexture> : Asset where TTexture : IDisposable
 {

@@ -1,11 +1,11 @@
 ﻿#nullable enable
 
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using Emotion.WIPUpdates.One.EditorUI;
-using Emotion.UI2;
+using Emotion.Game.Systems.UI;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Editor.EditorUI;
+using Emotion.Game.Systems.UI2;
 
-namespace Emotion.WIPUpdates.One.Tools.InterfaceTool;
+namespace Emotion.Editor.Tools.InterfaceTool;
 
 public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectPropertyWindow, O_UIBaseWindow>
 {
@@ -91,7 +91,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
         return objProps;
     }
 
-    protected void RenderViewport(UIBaseWindow win, RenderComposer c)
+    protected void RenderViewport(UIBaseWindow win, Renderer c)
     {
         c.RenderSprite(Vector3.Zero, new Vector2(1920, 1080), Color.White * 0.25f);
 

@@ -1,4 +1,4 @@
-﻿namespace Emotion.Game.World.Editor
+﻿namespace Emotion.Editor
 {
     public static class EditorColorPalette
     {

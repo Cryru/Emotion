@@ -3,10 +3,8 @@
 #region Using
 
 using System.Runtime.CompilerServices;
-using Emotion.Graphics;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.ThreeDee;
-using Emotion.WIPUpdates.Rendering;
 
 #endregion
 
@@ -115,9 +113,9 @@ public struct Cube
         (Vector3 minA, Vector3 maxA) = GetMinMax();
         (Vector3 minB, Vector3 maxB) = cube.GetMinMax();
 
-        return (minB.X >= minA.X && maxB.X <= maxA.X) &&
-               (minB.Y >= minA.Y && maxB.Y <= maxA.Y) &&
-               (minB.Z >= minA.Z && maxB.Z <= maxA.Z);
+        return minB.X >= minA.X && maxB.X <= maxA.X &&
+               minB.Y >= minA.Y && maxB.Y <= maxA.Y &&
+               minB.Z >= minA.Z && maxB.Z <= maxA.Z;
     }
 
     public Cube Transform(Matrix4x4 mat)
@@ -308,7 +306,7 @@ public struct Cube
         new[] {3, 7}
     };
 
-    public void RenderOutline(RenderComposer c, Color? color = null, float thickness = 0.1f)
+    public void RenderOutline(Renderer c, Color? color = null, float thickness = 0.1f)
     {
         Span<Vector3> vertices = stackalloc Vector3[8];
         GetVertices(vertices);

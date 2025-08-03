@@ -4,21 +4,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using Emotion.Common;
-using Emotion.Common.Input;
+using Emotion.Core;
+using Emotion.Core.Systems.Input;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 using Emotion.Graphics;
-using Emotion.IO;
 using Emotion.Network.Base;
 using Emotion.Network.BasicMessageBroker;
 using Emotion.Network.ClientSide;
 using Emotion.Network.ServerSide;
 using Emotion.Primitives;
-using Emotion.Scenography;
-using Emotion.Standard.XML;
-using Emotion.UI;
-using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.Work;
+using Emotion.Standard.Extensions;
+using Emotion.Game.World;
 
 #endregion
 
@@ -66,7 +65,7 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
             Position2D += _inputDirection * 0.1f * dt;
     }
 
-    public override void Render(RenderComposer c)
+    public override void Render(Renderer c)
     {
         c.RenderSprite(Position, Scale2D, Color);
     }
@@ -205,7 +204,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
             _networkCom.Update();
     }
 
-    public override void RenderScene(RenderComposer c)
+    public override void RenderScene(Renderer c)
     {
         c.SetUseViewMatrix(false);
         c.RenderSprite(Vector3.Zero, c.CurrentTarget.Size, Color.PrettyGreen);

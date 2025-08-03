@@ -1,6 +1,6 @@
-﻿using Emotion.Graphics;
+﻿using Emotion.Game.World.TwoDee;
+using Emotion.Graphics;
 using Emotion.Graphics.Assets;
-using Emotion.World.TwoDee;
 using System.Numerics;
 
 namespace Emotion.ExecTest.BadIce;
@@ -16,7 +16,7 @@ public class Iceblock : MapObjectSprite
     //    base.LoadAssets(assetLoader);
     //}
 
-    public override void Render(RenderComposer c)
+    public override void Render(Renderer c)
     {
         c.RenderSprite(Vector3.Zero, _texture);
     }

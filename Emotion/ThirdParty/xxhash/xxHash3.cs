@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Standart.Hash.xxHash

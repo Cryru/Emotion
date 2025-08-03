@@ -1,6 +1,6 @@
-﻿using Emotion.Network.ServerSide;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Network.ServerSide;
 
 namespace Emotion.Network.TimeSyncMessageBroker;
 

@@ -2,7 +2,7 @@
 
 using System.Text;
 
-namespace Emotion.WIPUpdates.Rendering;
+namespace Emotion.Graphics.Data;
 
 public sealed class VertexDataFormat
 {

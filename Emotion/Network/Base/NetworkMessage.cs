@@ -1,7 +1,5 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.Network.ServerSide;
-using Emotion.Standard.XML;
-using Emotion.Utility;
+﻿using Emotion.Standard.DataStructures;
+using Emotion.Standard.Parsers.XML;
 using System.Buffers.Binary;
 using System.IO;
 using System.Net;

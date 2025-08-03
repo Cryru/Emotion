@@ -1,11 +1,11 @@
 ﻿#nullable enable
 
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class EnumEditor<T, TNum> : TypeEditor
     where T : Enum
@@ -17,7 +17,7 @@ public class EnumEditor<T, TNum> : TypeEditor
     private T[]? _items;
     private int _currentIndex;
 
-    private Emotion.WIPUpdates.One.Tools.EditorDropDown? _dropDown;
+    private EditorDropDown? _dropDown;
 
     public EnumEditor()
     {
@@ -84,7 +84,7 @@ public class EnumEditor<T, TNum> : TypeEditor
     {
         if (_items == null) return;
 
-        var dropDown = Emotion.WIPUpdates.One.Tools.EditorDropDown.OpenListDropdown(this);
+        var dropDown = EditorDropDown.OpenListDropdown(this);
         dropDown.MaxSizeY = 300;
         dropDown.ParentAnchor = UIAnchor.BottomRight;
         dropDown.Anchor = UIAnchor.TopRight;

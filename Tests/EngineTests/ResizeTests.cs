@@ -2,7 +2,7 @@
 
 using System.Collections;
 using System.Numerics;
-using Emotion.Common;
+using Emotion.Core;
 using Emotion.Graphics.Camera;
 using Emotion.Primitives;
 using Emotion.Testing;

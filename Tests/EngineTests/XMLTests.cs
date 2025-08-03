@@ -6,11 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Numerics;
 using System.Text.RegularExpressions;
-using Emotion.Common;
-using Emotion.Common.Serialization;
-using Emotion.IO;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
 using Emotion.Primitives;
-using Emotion.Standard.XML;
+using Emotion.Standard.Parsers.XML;
+using Emotion.Standard.Serialization;
 using Emotion.Testing;
 using Tests.EngineTests.XMLTestsSupport;
 

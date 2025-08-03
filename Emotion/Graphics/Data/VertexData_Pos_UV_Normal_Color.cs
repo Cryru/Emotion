@@ -1,4 +1,4 @@
-﻿namespace Emotion.WIPUpdates.Rendering;
+﻿namespace Emotion.Graphics.Data;
 
 public struct VertexData_Pos_UV_Normal_Color
 {

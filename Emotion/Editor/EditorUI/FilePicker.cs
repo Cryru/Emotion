@@ -1,15 +1,15 @@
-﻿using Emotion.Editor.EditorHelpers;
-using Emotion.Game.Routines;
-using Emotion.Game.Time.Routines;
-using Emotion.IO;
-using Emotion.Platform.Implementation.CommonDesktop;
+﻿#nullable enable
+
+using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.FilePickerHelpers;
+using Emotion.Game.Systems.UI;
+using Emotion.Primitives.DataStructures;
 using Emotion.Standard.Reflector;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
-#nullable enable
-
-namespace Emotion.WIPUpdates.One.EditorUI;
+namespace Emotion.Editor.EditorUI;
 
 public class FilePicker<T> : EditorWindow where T : Asset, new()
 {
@@ -17,7 +17,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
     public Func<string, bool>? FileFilterFunc;
 
     private Action<T> _onFileSelected;
-    private Tree<string, string> _fileSystem;
+    private NTree<string, string> _fileSystem;
 
     private Coroutine _loadingRoutine = Coroutine.CompletedRoutine;
 
@@ -46,7 +46,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         if (currentPathLabel != null)
             currentPathLabel.Text = $"@: Assets{(_currentBranch != null ? $"/{string.Join("/", _currentBranch)}/" : "")}";
 
-        Tree<string, string>? branch = _currentBranch == null ? _fileSystem : _fileSystem.GetBranchFromPath(_currentBranch);
+        NTree<string, string>? branch = _currentBranch == null ? _fileSystem : _fileSystem.GetBranchFromPath(_currentBranch);
 
         UIBaseWindow? list = GetWindowById("ContainerList");
         list?.ClearChildren();
@@ -70,7 +70,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
             // Put in other branches
             for (var i = 0; i < branch.Branches.Count; i++)
             {
-                Tree<string, string>? subBranch = branch.Branches[i];
+                NTree<string, string>? subBranch = branch.Branches[i];
 
                 var button = new FileExplorerButton
                 {
@@ -198,7 +198,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
     {
         var platform = Engine.Host;
         if (platform is DesktopPlatform winPl)
-            winPl.DeveloperMode_SelectFileNative<T>(FileLoadProxy(onLoaded));
+            winPl.DeveloperMode_SelectFileNative(FileLoadProxy(onLoaded));
     }
 
     // We need these proxies to ensure that the asset is loaded before calling the callback

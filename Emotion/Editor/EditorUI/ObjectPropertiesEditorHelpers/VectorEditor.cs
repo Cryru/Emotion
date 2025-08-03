@@ -1,11 +1,11 @@
-﻿using Emotion.Game.World.Editor;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
+﻿#nullable enable
+
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 using System.Globalization;
 
-#nullable enable
-
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class VectorEditor : TypeEditor
 {
@@ -36,16 +36,16 @@ public class VectorEditor : TypeEditor
         {
             var label = new EditorLabel(_componentNames[i])
             {
-                Margins = new Primitives.Rectangle(0, 0, 5, 0)
+                Margins = new Rectangle(0, 0, 5, 0)
             };
             editorContainer.AddChild(label);
 
             var inputBackground = new UISolidColor
             {
                 WindowColor = Color.Black * 0.8f,
-                Paddings = new Primitives.Rectangle(5, 3, 5, 3),
+                Paddings = new Rectangle(5, 3, 5, 3),
 
-                Margins = new Primitives.Rectangle(0, 0, i != _componentCount - 1 ? 10 : 0, 0),
+                Margins = new Rectangle(0, 0, i != _componentCount - 1 ? 10 : 0, 0),
             };
             editorContainer.AddChild(inputBackground);
 

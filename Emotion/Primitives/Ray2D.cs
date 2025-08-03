@@ -1,6 +1,4 @@
-﻿#region Using
-
-#endregion
+﻿#nullable enable
 
 namespace Emotion.Primitives;
 

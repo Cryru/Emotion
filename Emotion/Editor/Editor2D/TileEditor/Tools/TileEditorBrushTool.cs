@@ -1,9 +1,9 @@
-﻿using Emotion.Common.Input;
-using Emotion.WIPUpdates.One.TileMap;
+﻿#nullable enable
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
+using Emotion.Core.Systems.Input;
+using Emotion.Game.World.TileMap;
 
-#nullable enable
+namespace Emotion.Editor.Editor2D.TileEditor.Tools;
 
 public class TileEditorBrushTool : TileEditorTool
 {
@@ -61,7 +61,7 @@ public class TileEditorBrushTool : TileEditorTool
         }
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(Renderer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         Vector2 tileSize = currentLayer.TileSize;
 

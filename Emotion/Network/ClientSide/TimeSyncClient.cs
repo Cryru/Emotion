@@ -1,6 +1,6 @@
-﻿using Emotion.Game.Routines;
+﻿using Emotion.Core.Utility.Coroutines;
 using Emotion.Network.Base;
-using Emotion.Utility;
+using Emotion.Standard.DataStructures;
 using System.Buffers.Binary;
 
 #nullable enable

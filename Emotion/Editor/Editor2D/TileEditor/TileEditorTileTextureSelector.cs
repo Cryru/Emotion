@@ -2,16 +2,15 @@
 
 #region Using
 
-using Emotion.Common.Input;
-using Emotion.UI;
-using Emotion.WIPUpdates.Grids;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.TileMap;
+using Emotion.Core.Systems.Input;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World.TileMap;
 using System.Linq;
 
 #endregion
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
+namespace Emotion.Editor.Editor2D.TileEditor;
 
 public sealed class TileEditorTileTextureSelector : EditorScrollArea
 {
@@ -174,7 +173,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         return pos;
     }
 
-    protected override void RenderChildren(RenderComposer c)
+    protected override void RenderChildren(Renderer c)
     {
         List<UIBaseWindow> children = GetWindowChildren();
         for (var i = 0; i < children.Count; i++)
@@ -190,7 +189,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         }
     }
 
-    private void AfterContentRendered(RenderComposer c)
+    private void AfterContentRendered(Renderer c)
     {
         c.PushModelMatrix(_content.ScrollTranslationMatrix);
         Rectangle? clip = c.CurrentState.ClipRect;

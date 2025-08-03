@@ -1,4 +1,4 @@
-﻿using Emotion.Utility;
+﻿#nullable enable
 
 namespace Emotion.Primitives;
 
@@ -25,7 +25,7 @@ public struct Triangle
         C = c;
     }
 
-    public void RenderOutline(RenderComposer c, Color? color = null, float thickness = 1)
+    public void RenderOutline(Renderer c, Color? color = null, float thickness = 1)
     {
         c.RenderLine(A, B, color ?? Color.White, thickness);
         c.RenderLine(B, C, color ?? Color.White, thickness);

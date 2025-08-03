@@ -1,10 +1,8 @@
 ﻿#nullable enable
 
-using Emotion;
 using Emotion.Network.Base;
 using Emotion.Network.ServerSide;
 using Emotion.Network.ServerSide.Gameplay;
-using Emotion.Utility;
 
 namespace Emotion.Network.ServerAuthoritative;
 

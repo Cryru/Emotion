@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
-using Emotion.Scenography;
-using Emotion.WIPUpdates.One;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Game.World;
 using System.Collections;
 
 namespace Emotion.ExecTest.ExamplesOne;

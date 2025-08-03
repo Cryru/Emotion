@@ -1,9 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Game.World.Editor;
-using Emotion.UI;
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorListItem<T> : EditorButton
 {
@@ -80,8 +79,8 @@ public class EditorListItem<T> : EditorButton
             _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
         }
 
-        button.ParentAnchor = UI.UIAnchor.CenterRight;
-        button.Anchor = UI.UIAnchor.CenterRight;
+        button.ParentAnchor = UIAnchor.CenterRight;
+        button.Anchor = UIAnchor.CenterRight;
         _buttonList.AddChild(button);
     }
 
@@ -90,7 +89,7 @@ public class EditorListItem<T> : EditorButton
         Text = (Item?.ToString() ?? "<null>") + LabelSuffix;
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         c.RenderSprite(Position, Size, _calculatedColor);
         return true;

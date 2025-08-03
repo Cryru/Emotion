@@ -1,11 +1,10 @@
-﻿using Emotion.Game.Routines;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using System.Collections;
+﻿using Emotion.Core.Utility.Coroutines;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.Tools;
+namespace Emotion.Editor.Tools;
 
 public class CoroutineViewerTool : EditorWindow
 {

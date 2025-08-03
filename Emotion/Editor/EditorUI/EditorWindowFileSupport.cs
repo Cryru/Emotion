@@ -1,14 +1,13 @@
-﻿using Emotion.IO;
+﻿using Emotion.Core.Systems.IO;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Standard.Parsers.XML;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
-using Emotion.Standard.XML;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.Tools;
+namespace Emotion.Editor.EditorUI;
 
 public partial class EditorWindowFileSupport<T> : EditorWindow
 {
@@ -45,7 +44,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         {
             UISolidColor changesBox = new UISolidColor()
             {
-                Paddings = new Primitives.Rectangle(5, 5, 5, 5),
+                Paddings = new Rectangle(5, 5, 5, 5),
                 WindowColor = Color.PrettyRed * 0.5f,
                 Visible = false,
                 DontTakeSpaceWhenHidden = true,
@@ -67,7 +66,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         UIBaseWindow buttonList = new()
         {
             LayoutMode = LayoutMode.HorizontalList,
-            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
+            Paddings = new Rectangle(5, 5, 5, 5),
             ListSpacing = new Vector2(5, 0),
             OrderInParent = -5
         };

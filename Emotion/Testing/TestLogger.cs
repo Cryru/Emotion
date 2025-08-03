@@ -1,45 +1,47 @@
-﻿#region Using
+﻿#nullable enable
 
+#region Using
+
+using Emotion.Core.Systems.Logging;
 using System.IO;
 
 #endregion
 
-namespace Emotion.Testing
+namespace Emotion.Testing;
+
+public class TestLogger : NetIOAsyncLogger
 {
-    public class TestLogger : NetIOAsyncLogger
+    public TestLogger(string folder) : base(false, folder)
     {
-        public TestLogger(string folder) : base(false, folder)
-        {
-        }
+    }
 
-        protected override string GenerateLogName()
-        {
-            return $"{_logFolder}{Path.DirectorySeparatorChar}TestLog";
-        }
+    protected override string GenerateLogName()
+    {
+        return $"{_logFolder}{Path.DirectorySeparatorChar}TestLog";
+    }
 
-        public override void Log(MessageType type, string source, string message)
+    public override void Log(MessageType type, string source, string message)
+    {
+        if (source == MessageSource.Test || type == MessageType.Error || type == MessageType.Warning)
         {
-            if (source == MessageSource.Test || type == MessageType.Error || type == MessageType.Warning)
+            if (type == MessageType.Error)
             {
-                if (type == MessageType.Error)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(message);
-                    Console.ResetColor();
-                }
-                else if (type == MessageType.Warning)
-                {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine(message);
-                    Console.ResetColor();
-                }
-                else
-                {
-                    Console.WriteLine(message);
-                }
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(message);
+                Console.ResetColor();
             }
-
-            base.Log(type, source, message);
+            else if (type == MessageType.Warning)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine(message);
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.WriteLine(message);
+            }
         }
+
+        base.Log(type, source, message);
     }
 }

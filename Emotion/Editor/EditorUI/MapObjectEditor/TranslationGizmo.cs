@@ -1,17 +1,15 @@
+#nullable enable
+
 #region Using
 
-using Emotion.Common.Serialization;
+using Emotion.Game.World;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
-using Emotion.WIPUpdates.One.Work;
-using Emotion.World.ThreeDee;
+using Emotion.Standard.MeshGenerators;
 
 #endregion
 
-#nullable enable
-
-namespace Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
+namespace Emotion.Editor.EditorUI.MapObjectEditor;
 
 [DontSerialize]
 public class TranslationGizmo : MapObjectMesh
@@ -289,11 +287,11 @@ public class TranslationGizmo : MapObjectMesh
         {
             Vector3 axis = Vector3.Zero;
             if (_meshMouseover.Name == "X")
-                axis = RenderComposer.XAxis;
+                axis = Graphics.Renderer.XAxis;
             else if (_meshMouseover.Name == "Y")
-                axis = RenderComposer.YAxis;
+                axis = Graphics.Renderer.YAxis;
             else if (_meshMouseover.Name == "Z")
-                axis = RenderComposer.ZAxis;
+                axis = Graphics.Renderer.ZAxis;
 
             // Find plane that contains the axis and faces the camera.
             Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);

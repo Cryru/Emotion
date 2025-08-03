@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
-using Emotion;
-using Emotion.WIPUpdates.Rendering;
+using Emotion.Graphics.Data;
 using OpenGL;
 
 namespace Emotion.Graphics.Memory;

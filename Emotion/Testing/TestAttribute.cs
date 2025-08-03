@@ -1,10 +1,11 @@
-﻿namespace Emotion.Testing
-{
-    public class TestAttribute : Attribute
-    {
-    }
+﻿#nullable enable
 
-    public class TestClassRunParallel : Attribute
-    {
-    }
+namespace Emotion.Testing;
+
+public class TestAttribute : Attribute
+{
+}
+
+public class TestClassRunParallel : Attribute
+{
 }

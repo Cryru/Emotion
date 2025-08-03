@@ -1,15 +1,10 @@
-﻿using Emotion.Common.Serialization;
+﻿using Emotion.Core;
 using Emotion.Network.ServerSide;
-using Emotion.Standard.XML;
-using Emotion.Utility;
-using System.Buffers.Binary;
+using Emotion.Standard.Parsers.XML;
 using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 
 #nullable enable
 
@@ -124,7 +119,7 @@ public class NetworkCommunicator
 
     private IEnumerator AutoUpdateRoutine()
     {
-        while (Engine.Status == EngineStatus.Running)
+        while (Engine.Status == EngineState.Running)
         {
             Update();
             yield return null;

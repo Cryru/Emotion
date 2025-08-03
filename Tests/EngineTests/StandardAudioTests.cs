@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Emotion.Audio;
-using Emotion.Common;
-using Emotion.IO;
-using Emotion.Standard.Audio;
-using Emotion.Standard.Logging;
+using Emotion.Core;
+using Emotion.Core.Systems.Audio;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Systems.Logging;
 using Emotion.Testing;
 
 #endregion
@@ -45,13 +44,13 @@ public class StandardAudioTests
         var copy = new byte[pepsiByteSize];
         CopyToByteBuffer(pepsi, copy);
 
-        AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(8, false, 2, 44100), ref copy);
+        AudioHelpers.ConvertFormat(pepsi.Format, new AudioFormat(8, false, 2, 44100), ref copy);
         Assert.Equal(copy.Length, pepsiByteSize / 4); // Same number of samples as sample rate is the same, but bps is 4 times less
 
         copy = new byte[pepsiByteSize];
         CopyToByteBuffer(pepsi, copy);
 
-        AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, false, 2, 48000), ref copy);
+        AudioHelpers.ConvertFormat(pepsi.Format, new AudioFormat(16, false, 2, 48000), ref copy);
         float ratio = 48000f / pepsi.Format.SampleRate;
         Assert.Equal(copy.Length, pepsiByteSize / 2 * ratio); // divide by 2 because 16bps
 
@@ -61,7 +60,7 @@ public class StandardAudioTests
         copy = new byte[moneyByteSize];
         CopyToByteBuffer(money, copy);
 
-        AudioUtil.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true. (and invalid here)
+        AudioHelpers.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true. (and invalid here)
         ratio = 48000f / money.Format.SampleRate;
         Assert.Equal(copy.Length, (int)(moneyByteSize * ratio)); // multiplied by 2 because going from mono to stereo, bps is twice less though
     }
@@ -78,7 +77,7 @@ public class StandardAudioTests
         var format = new AudioFormat(32, true, 2, 48000);
         var copy = new byte[pepsi.SoundData.Length * 4];
         CopyToByteBuffer(pepsi, copy);
-        AudioUtil.ConvertFormat(pepsi.Format, format, ref copy);
+        AudioHelpers.ConvertFormat(pepsi.Format, format, ref copy);
 
         var testTasks = new List<Task>();
         for (var io = 0; io < 5; io++)
@@ -120,7 +119,7 @@ public class StandardAudioTests
         var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
         copy = new byte[money.SoundData.Length * 4];
         CopyToByteBuffer(money, copy);
-        AudioUtil.ConvertFormat(money.Format, format, ref copy);
+        AudioHelpers.ConvertFormat(money.Format, format, ref copy);
 
         for (var io = 0; io < 5; io++)
         {
@@ -182,7 +181,7 @@ public class StandardAudioTests
     {
         for (var i = 0; i < src.SoundData.Length; i++)
         {
-            AudioUtil.SetSampleAsFloat(i, src.SoundData[i], dst, src.Format);
+            AudioHelpers.SetSampleAsFloat(i, src.SoundData[i], dst, src.Format);
         }
     }
 }
@@ -199,7 +198,7 @@ public static class TestsExtensions
         int samplesGotten = framesGotten * format.Channels;
         for (var i = 0; i < samplesGotten; i++)
         {
-            AudioUtil.SetSampleAsFloat(i, conversionBuffer[i], buffer, format);
+            AudioHelpers.SetSampleAsFloat(i, conversionBuffer[i], buffer, format);
         }
 
         return samplesGotten;

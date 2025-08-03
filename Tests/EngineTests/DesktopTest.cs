@@ -3,11 +3,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Emotion.Common;
+using Emotion.Core;
+using Emotion.Core.Platform;
+using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Platform;
-using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Testing;
 
 #endregion
@@ -27,7 +26,7 @@ public class DesktopTest
         Vector2 startingPos = plat.Position;
 
         var deskPlat = (DesktopPlatform)plat;
-        Monitor primaryMonitor = deskPlat.Monitors[0];
+        MonitorScreen primaryMonitor = deskPlat.Monitors[0];
         Assert.True(primaryMonitor != null);
         Assert.True(plat.Context != null);
         Assert.Equal(plat.Size, Engine.Configuration.HostSize);

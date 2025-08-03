@@ -1,28 +1,22 @@
-﻿#region Using
+﻿#nullable enable
 
-using Emotion.Common.Input;
-using Emotion.Common.Threading;
-using Emotion.Editor.EditorHelpers;
-using Emotion.Game.World.Editor;
+#region Using
+
+using Emotion.Core.Systems.Input;
+using Emotion.Core.Utility.Profiling;
+using Emotion.Editor.EditorUI;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Editor.Tools.GameDataTool;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 using Emotion.Graphics.Camera;
-using Emotion.IO;
-using Emotion.Scenography;
-using Emotion.UI;
-using Emotion.Utility;
-using Emotion.WIPUpdates.One.Camera;
-using Emotion.WIPUpdates.One.EditorUI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using Emotion.WIPUpdates.One.Tools.GameDataTool;
-using System;
 using System.Text;
-using System.Xml.Linq;
 
 #endregion
 
-namespace Emotion.WIPUpdates.One;
+namespace Emotion.Editor;
 
-#nullable enable
 public static partial class EngineEditor
 {
     public static bool IsOpen { get; private set; }
@@ -107,7 +101,7 @@ public static partial class EngineEditor
         UpdateMapEditor();
     }
 
-    public static void RenderEditor(RenderComposer c)
+    public static void RenderEditor(Renderer c)
     {
         RenderEditorVisualizations(c);
 
@@ -122,12 +116,12 @@ public static partial class EngineEditor
         _perfText.Text = perfReadoutStr;
     }
 
-    public static void OnSceneRenderStart(RenderComposer c)
+    public static void OnSceneRenderStart(Renderer c)
     {
         if (IsDebugCameraOn()) c.DebugSetVirtualCamera(_cameraOutsideEditor);
     }
 
-    public static void OnSceneRenderEnd(RenderComposer c)
+    public static void OnSceneRenderEnd(Renderer c)
     {
         if (IsDebugCameraOn()) c.DebugSetVirtualCamera(null);
     }
@@ -190,7 +184,7 @@ public static partial class EngineEditor
         container.AddChild(cameraSpeed);
     }
 
-    private static void RenderGameCameraBound(RenderComposer c)
+    private static void RenderGameCameraBound(Renderer c)
     {
         if (!_debugCameraOptionOn) return;
 
@@ -221,7 +215,7 @@ public static partial class EngineEditor
     {
         public object OwningObject;
         public string Name;
-        public Action<RenderComposer> Function;
+        public Action<Renderer> Function;
         public bool Enabled;
     }
 
@@ -235,7 +229,7 @@ public static partial class EngineEditor
     private static List<EditorVisualizationText> _editorTextVisualization = new();
     private static EditorLabel? _textVisualization;
 
-    public static void AddEditorVisualization(object owningObject, string name, Action<RenderComposer> func)
+    public static void AddEditorVisualization(object owningObject, string name, Action<Renderer> func)
     {
         _editorVisualization.Add(new EditorVisualization()
         {
@@ -259,7 +253,7 @@ public static partial class EngineEditor
         _editorVisualization.RemoveAll(x => x.OwningObject == owningObject);
     }
 
-    private static void RenderEditorVisualizations(RenderComposer c)
+    private static void RenderEditorVisualizations(Renderer c)
     {
         // We render these visualizations regardless if the editor is open.
         foreach (EditorVisualization visualization in _editorVisualization)

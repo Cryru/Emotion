@@ -143,8 +143,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.3" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'!='Web'">
-        <Compile Remove="Platform\Implementation\Web\**\*.cs" />
-        <None Remove="Platform\Implementation\Web\**\*.razor" />
+        <Compile Remove="Core\Platform\Implementation\Web\**\*.cs" />
+        <None Remove="Core\Platform\Implementation\Web\**\*.razor" />
     </ItemGroup>
 
     <!-- Github Autobuild -->
@@ -199,22 +199,22 @@
     
     <!-- Libraries Code Include -->
     <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
-        <Compile Remove="Platform\Implementation\OpenAL\**\*.cs" />
+        <Compile Remove="Core\Platform\Implementation\OpenAL\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('GLFW'))">
-        <Compile Remove="Platform\Implementation\GlfwImplementation\**\*.cs" />
+        <Compile Remove="Core\Platform\Implementation\GlfwImplementation\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('ANGLE'))">
-        <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
+        <Compile Remove="Core\Platform\Implementation\EglAngle\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('ANDROID'))">
-        <Compile Remove="Platform\Implementation\Android\**\*.cs" />
+        <Compile Remove="Core\Platform\Implementation\Android\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('MORE_MESH_TYPES'))">
-        <Compile Remove="Standard\Assimp\**\*.cs" />
+        <Compile Remove="Standard\Parsers\Assimp\**\*.cs" />
     </ItemGroup>
     <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
-        <Compile Remove="Game\Scripting\**\*.cs" />
+        <Compile Remove="Core\Systems\Scripting\**\*.cs" />
     </ItemGroup>
     
     <ItemGroup>

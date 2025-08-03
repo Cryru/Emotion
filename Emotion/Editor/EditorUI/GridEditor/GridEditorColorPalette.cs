@@ -1,4 +1,4 @@
-﻿namespace Emotion.WIPUpdates.One.EditorUI.GridEditor;
+﻿namespace Emotion.Editor.EditorUI.GridEditor;
 
 public static class GridEditorColorPalette
 {

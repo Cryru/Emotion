@@ -1,9 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
 using Emotion.Standard.Reflector.Handlers.Base;
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 [DontSerialize]
 public abstract class ListEditorAdapter

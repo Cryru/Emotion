@@ -2,10 +2,8 @@
 
 #region Using
 
-using Emotion;
-using Emotion.Graphics.Shading;
-using Emotion.Graphics.ThreeDee;
-using Emotion.Utility;
+using Emotion.Game.World.ThreeDee;
+using Emotion.Standard.Memory;
 
 #endregion
 

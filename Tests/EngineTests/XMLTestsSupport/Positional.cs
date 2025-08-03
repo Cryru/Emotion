@@ -1,9 +1,9 @@
 ﻿#region Using
 
+using Emotion.Standard.Serialization;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using Emotion.Common.Serialization;
 
 #endregion
 

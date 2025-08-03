@@ -1,12 +1,11 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public abstract class TypeEditor : UIBaseWindow
 {
@@ -35,7 +34,7 @@ public abstract class TypeEditor : UIBaseWindow
 
         EditorLabel label = EditorLabel.GetLabel(style, labelText);
         label.Id = "Label";
-        label.Margins = new Primitives.Rectangle(0, 0, 10, 0);
+        label.Margins = new Rectangle(0, 0, 10, 0);
         container.AddChild(label);
 
         ReflectorTypeHandlerBase<T>? handler = ReflectorEngine.GetTypeHandler<T>();
@@ -66,7 +65,7 @@ public abstract class TypeEditor : UIBaseWindow
         EditorLabel label = new EditorLabel
         {
             Id = "Label",
-            Margins = new Primitives.Rectangle(0, 0, 10, 0),
+            Margins = new Rectangle(0, 0, 10, 0),
             Text = labelText,
         };
         container.AddChild(label);
@@ -75,7 +74,7 @@ public abstract class TypeEditor : UIBaseWindow
         if (vertical)
         {
             container.LayoutMode = LayoutMode.VerticalList;
-            label.Margins = new Primitives.Rectangle(0, 0, 0, 5);
+            label.Margins = new Rectangle(0, 0, 0, 5);
         }
 
         return container;

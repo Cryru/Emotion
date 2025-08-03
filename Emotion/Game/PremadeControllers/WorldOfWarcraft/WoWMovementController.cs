@@ -1,13 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Common.Input;
-using Emotion.Game.Terrain;
-using Emotion.Game.Terrain.MeshGridStreaming;
-using Emotion.Game.Time;
+using Emotion.Game.World;
+using Emotion.Game.World.Terrain;
+using Emotion.Game.World.Terrain.MeshGridStreaming;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
-using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Work;
-using Emotion.World.ThreeDee;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 
@@ -101,13 +98,13 @@ public class WoWMovementController
         }
 
         // Move in the look direction
-        Vector2 forward = RenderComposer.Forward.ToVec2();
+        Vector2 forward = Renderer.Forward.ToVec2();
         forward = _character.RotateVectorToObjectFacing(forward);
 
         bool moved = wasd != Vector2.Zero;
         bool walkingBack = Vector2.Dot(wasd, forward) < 0;
 
-        Vector2 right = RenderComposer.Right.ToVec2();
+        Vector2 right = Renderer.Right.ToVec2();
         right = _character.RotateVectorToObjectFacing(right);
         bool walkingRight = Vector2.Dot(wasd, right) > 0;
         bool walkingLeft = Vector2.Dot(wasd, -right) > 0;

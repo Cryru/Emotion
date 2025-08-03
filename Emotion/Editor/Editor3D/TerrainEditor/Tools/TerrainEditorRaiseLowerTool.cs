@@ -1,8 +1,9 @@
-﻿using Emotion.Common.Input;
-using Emotion.Game.Terrain;
-using static Emotion.WIPUpdates.One.Editor3D.TerrainEditor.TerrainEditorWindow;
+﻿#nullable enable
 
-namespace Emotion.WIPUpdates.One.Editor3D.TerrainEditor.Tools;
+using Emotion.World.Terrain;
+using static Emotion.Editor.Editor3D.TerrainEditor.TerrainEditorWindow;
+
+namespace Emotion.Editor.Editor3D.TerrainEditor.Tools;
 
 public class TerrainEditorRaiseLowerTool : TerrainEditorTool
 {

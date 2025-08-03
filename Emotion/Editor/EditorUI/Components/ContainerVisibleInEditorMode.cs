@@ -1,9 +1,8 @@
-﻿using Emotion.Common.Serialization;
-using Emotion.UI;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 [DontSerialize]
 public class ContainerVisibleInEditorMode : UIBaseWindow

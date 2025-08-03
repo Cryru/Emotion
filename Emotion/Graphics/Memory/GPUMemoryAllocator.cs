@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
-using Emotion;
-using Emotion.WIPUpdates.Rendering;
+using Emotion.Graphics.Data;
+using OpenGL;
 
 namespace Emotion.Graphics.Memory;
 
@@ -81,7 +81,7 @@ public static class GPUMemoryAllocator
             }
         }
 
-        var newIbo = new IndexBuffer(0, OpenGL.BufferUsage.StreamDraw);
+        var newIbo = new IndexBuffer(0, BufferUsage.StreamDraw);
         return newIbo;
     }
 

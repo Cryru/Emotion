@@ -1,19 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Emotion.Common;
-using Emotion.Common.Threading;
+using Emotion.Core;
+using Emotion.Core.Systems.Scenography;
 using Emotion.Graphics;
 using Emotion.Graphics.Shader;
-using Emotion.Graphics.Shading;
-using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Scenography;
-using OpenGL;
 
 namespace Emotion.ExecTest.ExamplesOne;
 
@@ -27,7 +18,7 @@ public class ShaderTestScene : SceneWithMap
         yield return _shaderAsset;
     }
 
-    public override void RenderScene(RenderComposer c)
+    public override void RenderScene(Renderer c)
     {
         base.RenderScene(c);
 

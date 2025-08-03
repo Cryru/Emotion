@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Utility;
+using Emotion.Standard.Memory;
 
-namespace Emotion.WIPUpdates.Rendering;
+namespace Emotion.Graphics.Data;
 
 public struct VertexDataAllocation
 {
@@ -10,15 +10,15 @@ public struct VertexDataAllocation
 
     public bool Allocated { get; set; }
 
-    public IntPtr Pointer { get; init; } = IntPtr.Zero;
+    public nint Pointer { get; init; } = nint.Zero;
 
     public int VertexCount { get; init; } = 0;
 
     public VertexDataFormat Format { get; init; }
 
-    public VertexDataAllocation(IntPtr pointer, int vertCount, VertexDataFormat description)
+    public VertexDataAllocation(nint pointer, int vertCount, VertexDataFormat description)
     {
-        Allocated = pointer != IntPtr.Zero;
+        Allocated = pointer != nint.Zero;
         Pointer = pointer;
         VertexCount = vertCount;
         Format = description;
@@ -32,7 +32,7 @@ public struct VertexDataAllocation
             return new VertexDataAllocation(0, 0, format);
         }
 
-        IntPtr allocated = IntPtr.Zero;
+        nint allocated = nint.Zero;
         int byteSize = format.ElementSize * vertexCount;
         if (byteSize > 0)
         {

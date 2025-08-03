@@ -1,19 +1,16 @@
-﻿using Emotion.Game.Data;
-using Emotion.Game.World.Editor;
+﻿#nullable enable
+
+using Emotion.Editor.EditorUI;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using System;
 using System.Text;
-using static Emotion.Game.Data.GameDatabase;
+using static Emotion.Game.Systems.GameData.GameDatabase;
 
-#nullable enable
-
-namespace Emotion.WIPUpdates.One.Tools.GameDataTool;
+namespace Emotion.Editor.Tools.GameDataTool;
 
 public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor, ObjectPropertyWindow, object> // Passing object as edit type as we dont care about the built in file editing
 {
@@ -147,7 +144,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
                 GrowX = false,
                 GrowY = false,
                 WindowColor = Color.PrettyOrange,
-                Paddings = new Primitives.Rectangle(1, 1, 1, 1),
+                Paddings = new Rectangle(1, 1, 1, 1),
                 Visible = _hotReloadNeeded
             };
             topBar.AddChild(hotReloadContainer);
@@ -164,9 +161,9 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
             SquareEditorButtonWithTexture hotReloadButton = new("Editor/HotReload.png")
             {
                 Scale = new Vector2(0.75f),
-                NormalColor = new Primitives.Color(31, 31, 31),
-                RolloverColor = new Primitives.Color(31, 31, 31),
-                Paddings = new Primitives.Rectangle(4, 4, 4, 4),
+                NormalColor = new Color(31, 31, 31),
+                RolloverColor = new Color(31, 31, 31),
+                Paddings = new Rectangle(4, 4, 4, 4),
 
                 OnMouseEnterProxy = (_) => hotReloadButtonHighlight.Visible = true,
                 OnMouseLeaveProxy = (_) => hotReloadButtonHighlight.Visible = false,
@@ -177,13 +174,13 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
                     {
                         Anchor = UIAnchor.TopRight,
                         ParentAnchor = UIAnchor.BottomRight,
-                        Margins = new Primitives.Rectangle(5, 5, 0, 5)
+                        Margins = new Rectangle(5, 5, 0, 5)
                     };
 
                     var color = new UISolidColor()
                     {
                         WindowColor = EditorColorPalette.BarColor * 0.75f,
-                        Paddings = new Primitives.Rectangle(8, 5, 8, 5),
+                        Paddings = new Rectangle(8, 5, 8, 5),
                         MaxSizeX = 400
                     };
                     rollover.AddChild(color);

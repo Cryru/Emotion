@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.UI;
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class SquareEditorButton : EditorButton
 {
@@ -10,7 +10,7 @@ public class SquareEditorButton : EditorButton
 
     public SquareEditorButton() : base()
     {
-        Paddings = new Primitives.Rectangle(3, 3, 3, 3);
+        Paddings = new Rectangle(3, 3, 3, 3);
         MinSizeX = 30;
         MinSizeY = 30;
         _label.AnchorAndParentAnchor = UIAnchor.CenterCenter;
@@ -18,13 +18,13 @@ public class SquareEditorButton : EditorButton
 
     public SquareEditorButton(string name) : base(name)
     {
-        Paddings = new Primitives.Rectangle(3, 3, 3, 3);
+        Paddings = new Rectangle(3, 3, 3, 3);
         MinSizeX = 30;
         MinSizeY = 30;
         _label.AnchorAndParentAnchor = UIAnchor.CenterCenter;
     }
 
-    protected override void AfterRenderChildren(RenderComposer c)
+    protected override void AfterRenderChildren(Renderer c)
     {
         base.AfterRenderChildren(c);
 

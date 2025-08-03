@@ -3,12 +3,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Common;
-using Emotion.Common.Input;
+using Emotion.Core;
+using Emotion.Core.Systems.Input;
+using Emotion.Core.Systems.Scenography;
 using Emotion.Game.RopeSim;
 using Emotion.Graphics;
 using Emotion.Primitives;
-using Emotion.Scenography;
+using Emotion.Standard.Extensions;
 
 #endregion
 
@@ -128,7 +129,7 @@ public class RopeSim : Scene
         if (_run) RopeSimSystem.Simulate2D(_points, _connections, new Vector2(0, 0.01f) * Engine.DeltaTime);
     }
 
-    public override void RenderScene(RenderComposer composer)
+    public override void RenderScene(Renderer composer)
     {
         composer.SetUseViewMatrix(false);
         composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);

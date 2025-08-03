@@ -1,19 +1,12 @@
-﻿#region Using
-
-using System;
-using Emotion.Graphics;
-
-#endregion
-
-#nullable enable
+﻿#nullable enable
 
 namespace Emotion.Testing;
 
 public class ProxyRenderTestingScene : TestingScene
 {
-    public Action<RenderComposer>? ToRender;
+    public Action<Renderer>? ToRender;
 
-    protected override void TestDraw(RenderComposer c)
+    protected override void TestDraw(Renderer c)
     {
         ToRender?.Invoke(c);
     }

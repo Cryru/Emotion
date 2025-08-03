@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.Scenography;
+using Emotion.Editor.Editor2D;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World;
 using Emotion.Graphics.Camera;
-using Emotion.Scenography;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.Camera;
-using Emotion.WIPUpdates.One.Editor2D;
 
-namespace Emotion.WIPUpdates.One;
+namespace Emotion.Editor;
 
 public enum MapEditorMode
 {
@@ -129,7 +129,7 @@ public static partial class EngineEditor
         }
     }
 
-    private static void RenderMapEditor(RenderComposer c)
+    private static void RenderMapEditor(Renderer c)
     {
         if (MapEditorMode == MapEditorMode.Off) return;
 

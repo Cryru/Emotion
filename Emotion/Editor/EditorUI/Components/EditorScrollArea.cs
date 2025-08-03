@@ -1,17 +1,16 @@
-﻿using Emotion.Game.World.Editor;
-using Emotion.UI;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorScrollArea : UIScrollArea
 {
     public EditorScrollArea()
     {
-        Paddings = new Primitives.Rectangle(5, 5, 5, 5);
+        Paddings = new Rectangle(5, 5, 5, 5);
     }
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         c.RenderRectOutline(Bounds, EditorColorPalette.ButtonColor, 3 * GetScale());
         return base.RenderInternal(c);

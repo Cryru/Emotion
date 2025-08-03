@@ -1,17 +1,17 @@
 ﻿#region Using
 
 using System.Runtime.CompilerServices;
+using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
-using Emotion.IO;
 
 #endregion
 
 namespace Emotion.Graphics
 {
     // Advanced routines, and routines using base functions to be used along with shaders and such.
-    public sealed partial class RenderComposer
+    public sealed partial class Renderer
     {
         /// <summary>
         /// Render a circle outline.

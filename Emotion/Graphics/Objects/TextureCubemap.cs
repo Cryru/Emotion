@@ -1,5 +1,6 @@
-﻿
-using Emotion.Common.Threading;
+﻿#nullable enable
+
+using Emotion.Core.Utility.Threading;
 using OpenGL;
 
 namespace Emotion.Graphics.Objects;

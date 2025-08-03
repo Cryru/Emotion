@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using OpenGL;
+
 namespace Emotion.Graphics.Batches;
 
 /// <summary>
@@ -12,8 +14,8 @@ public class VirtualTextureAtlasTexture : Texture
 
     public VirtualTextureAtlasTexture() : base(EmptyWhiteTexture.Pointer)
     {
-        PixelFormat = OpenGL.PixelFormat.Rgba;
-        PixelType = OpenGL.PixelType.UnsignedByte;
+        PixelFormat = PixelFormat.Rgba;
+        PixelType = PixelType.UnsignedByte;
         _smooth = true;
     }
 
@@ -27,19 +29,19 @@ public class VirtualTextureAtlasTexture : Texture
         Version++;
     }
 
-    public virtual void VirtualTextureRenderToBatch(RenderComposer c, Vector2 offset)
+    public virtual void VirtualTextureRenderToBatch(Renderer c, Vector2 offset)
     {
 
     }
 
-    public void StartVirtualTextureRender(RenderComposer c, Vector2 sizeRequired)
+    public void StartVirtualTextureRender(Renderer c, Vector2 sizeRequired)
     {
         _virtualTextureAlphaBlendBuffer ??= new FrameBuffer(sizeRequired).WithColor();
         _virtualTextureAlphaBlendBuffer.Resize(sizeRequired, true);
         c.RenderToAndClear(_virtualTextureAlphaBlendBuffer);
     }
 
-    public Texture EndVirtualTextureRender(RenderComposer c)
+    public Texture EndVirtualTextureRender(Renderer c)
     {
         c.RenderTo(null);
         return _virtualTextureAlphaBlendBuffer!.ColorAttachment;

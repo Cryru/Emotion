@@ -1,16 +1,15 @@
-﻿#region Using
+﻿#nullable enable
 
-using System.Linq;
+#region Using
+
+using Emotion.Core.Systems.Logging;
+using Emotion.Core.Utility;
+using Emotion.Core.Utility.Profiling;
 using Emotion.Graphics.Data;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
-using Emotion.Platform.Debugger;
-using Emotion.Utility;
 using OpenGL;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.Graphics.Batches;
 
@@ -233,7 +232,7 @@ public class TextureAtlas : Packing.PackingResumableState
     /// Update the atlas, making sure all textures within are drawn to the internal texture, and
     /// that unused textures are vacated. For the atlases used by the RenderStream this happens at the end of each frame.
     /// </summary>
-    public void Update(RenderComposer c)
+    public void Update(Renderer c)
     {
         UpdateTextureUsage();
         DrawTextureAtlas(c);
@@ -329,7 +328,7 @@ public class TextureAtlas : Packing.PackingResumableState
         }
     }
 
-    protected void DrawTextureAtlas(RenderComposer c)
+    protected void DrawTextureAtlas(Renderer c)
     {
         if (!_haveDirtyTextures) return;
 

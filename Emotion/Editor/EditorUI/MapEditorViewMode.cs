@@ -1,14 +1,12 @@
 ﻿#nullable enable
 
-using Emotion.Game.World.Editor;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.MapObjectEditor;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.ThreeDee;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.Camera;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.MapObjectEditor;
 
-namespace Emotion.WIPUpdates.One.EditorUI;
+namespace Emotion.Editor.EditorUI;
 
 public class MapEditorViewMode : UIBaseWindow
 {
@@ -173,7 +171,7 @@ public class MapEditorViewMode : UIBaseWindow
             base.AttachedToController(controller);
         }
 
-        protected override bool RenderInternal(RenderComposer c)
+        protected override bool RenderInternal(Renderer c)
         {
             //c.SetUseViewMatrix(true);
             //c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);

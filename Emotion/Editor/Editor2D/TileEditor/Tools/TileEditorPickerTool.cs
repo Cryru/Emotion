@@ -1,9 +1,9 @@
 ﻿#nullable enable
 
-using Emotion.Common.Input;
-using Emotion.WIPUpdates.One.TileMap;
+using Emotion.Core.Systems.Input;
+using Emotion.Game.World.TileMap;
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
+namespace Emotion.Editor.Editor2D.TileEditor.Tools;
 
 public class TileEditorPickerTool : TileEditorTool
 {
@@ -41,7 +41,7 @@ public class TileEditorPickerTool : TileEditorTool
         editor.SetCurrentToolAsLastPlacingTool();
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(Renderer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         Vector2 tileInWorld = currentLayer.GetWorldPosOfTile(cursorPos);
         Vector2 tileSize = currentLayer.TileSize;

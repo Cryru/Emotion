@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections;
-using Emotion.Common;
+using Emotion.Core;
 using Emotion.Graphics.Objects;
 using Emotion.Testing;
 using OpenGL;
@@ -18,7 +18,7 @@ public class BasicTest : ProxyRenderTestingScene
     {
         Assert.True(Engine.Host != null);
         Assert.True(Engine.Renderer != null);
-        Assert.True(Engine.Status == EngineStatus.Running);
+        Assert.True(Engine.Status == EngineState.Running);
 
         yield break;
     }

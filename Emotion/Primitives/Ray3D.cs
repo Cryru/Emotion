@@ -2,9 +2,8 @@
 
 #region Using
 
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Data;
-using Emotion.WIPUpdates.Rendering;
-using Emotion.World.ThreeDee;
 
 #endregion
 

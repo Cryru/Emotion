@@ -1,10 +1,11 @@
-﻿using Emotion.Common;
-using Emotion.Game.Data;
-using Emotion.Platform;
-using Emotion.Platform.Implementation.CommonDesktop;
+﻿using Emotion.Core;
+using Emotion.Core.Platform;
+using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Game.Systems.GameData;
 using Emotion.Testing;
 using System.Collections;
 using System.IO;
+
 namespace Tests.EngineTests;
 
 public class GameDataClassForTest : GameDataObject

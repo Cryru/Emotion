@@ -1,10 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Common.Input;
+using Emotion.Core.Systems.Input;
+using Emotion.Game.World.TileMap;
 using Emotion.Graphics.Camera;
-using Emotion.WIPUpdates.One.TileMap;
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
+namespace Emotion.Editor.Editor2D.TileEditor.Tools;
 
 public class TileEditorBucketTool : TileEditorTool
 {
@@ -102,7 +102,7 @@ public class TileEditorBucketTool : TileEditorTool
         }
     }
 
-    public override void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
+    public override void RenderCursor(Renderer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;

@@ -1,13 +1,12 @@
-﻿using Emotion.Game.Terrain;
+﻿#nullable enable
+
+using Emotion.Editor;
+using Emotion.Game.World;
+using Emotion.Game.World.Terrain;
+using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
-using Emotion.Utility;
-using Emotion.WIPUpdates.One;
-using Emotion.WIPUpdates.One.Work;
-using Emotion.World.ThreeDee;
 
-#nullable enable
-
-namespace Game.Controller;
+namespace Emotion.Game.PremadeControllers.Minecraft;
 
 public class MinecraftMovementController
 {
@@ -42,7 +41,7 @@ public class MinecraftMovementController
     {
         Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Game);
         Engine.Renderer.Camera = _camera;
-        _camera.LookAt = RenderComposer.Forward;
+        _camera.LookAt = Renderer.Forward;
         Engine.Input.SetMouseFirstPersonMode(true, nameof(MinecraftMovementController));
 
         EngineEditor.AddEditorVisualization(this, "View Character Bounds", (c) =>
@@ -133,7 +132,7 @@ public class MinecraftMovementController
         Vector2 forward = _camera.LookAt.ToVec2();
         forward = forward.SafeNormalize();
         Vector2 right = forward.Perpendicular();
-        wasd = (forward * wasd.Y) + (right * wasd.X);
+        wasd = forward * wasd.Y + right * wasd.X;
 
         float movementSpeed = WalkingSpeed;
         moveRequest += (wasd * movementSpeed * dt).ToVec3();

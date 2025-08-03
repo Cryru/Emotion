@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -10,7 +8,7 @@ namespace Emotion.SourceGeneration
     {
         public static void Run(ref SourceProductionContext context, INamedTypeSymbol typ)
         {
-            if (!Helpers.HasAttribute(typ.GetAttributes(), "ReflectorGenerateStructPerMemberHelpers"))
+            if (!Helpers.HasAttribute(typ.GetAttributes(), "ReflectorGenerateStructPerMemberHelpersAttribute"))
                 return;
 
             GeneratePerMemberHelpers(ref context, typ);

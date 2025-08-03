@@ -1,20 +1,18 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
-using Emotion.Game.World.Editor;
-using Emotion.Scenography;
+using Emotion.Core.Systems.Scenography;
+using Emotion.Editor.Editor2D.TileEditor.Tools;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.GridEditor;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World.TileMap;
+using Emotion.Primitives.Grids;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.UI;
-using Emotion.WIPUpdates.Grids;
-using Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.GridEditor;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
-using Emotion.WIPUpdates.One.TileMap;
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor;
+namespace Emotion.Editor.Editor2D.TileEditor;
 
 [DontSerialize]
 public sealed class TileEditorWindow : GridEditorWindow
@@ -183,7 +181,7 @@ public sealed class TileEditorWindow : GridEditorWindow
         }
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         c.SetUseViewMatrix(true);
 

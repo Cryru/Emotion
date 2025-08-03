@@ -2,14 +2,12 @@
 
 #region Using
 
-using Emotion;
-using Emotion.Common.Input;
-using Emotion.Game.World.Editor;
-using Emotion.UI;
+using Emotion.Core.Systems.Input;
+using Emotion.Game.Systems.UI;
 
 #endregion
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorButton : UICallbackButton
 {
@@ -73,7 +71,7 @@ public class EditorButton : UICallbackButton
         RecalculateButtonColor();
     }
 
-    protected override bool RenderInternal(RenderComposer c)
+    protected override bool RenderInternal(Renderer c)
     {
         c.RenderSprite(Position, Size, _calculatedColor);
         return base.RenderInternal(c);

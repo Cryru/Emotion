@@ -1,10 +1,10 @@
-﻿using Emotion.Standard.Reflector;
+﻿#nullable enable
+
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
 
-#nullable enable
-
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorEditObjectButton : SquareEditorButtonWithTexture
 {

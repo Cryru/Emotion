@@ -1,6 +1,4 @@
-﻿using Emotion.Utility;
-
-namespace Emotion.ThirdParty.FastNoiseLite;
+﻿namespace Emotion.ThirdParty.FastNoiseLite;
 
 #nullable enable
 

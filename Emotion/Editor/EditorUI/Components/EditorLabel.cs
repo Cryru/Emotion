@@ -1,9 +1,9 @@
 ﻿#nullable enable
 
-using Emotion.Game.World.Editor;
-using Emotion.UI;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public enum LabelStyle
 {

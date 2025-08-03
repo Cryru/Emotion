@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
-namespace Emotion.WIPUpdates.One;
-
+namespace Emotion.Editor;
 
 public class ObjectChangeEvent // Generic change, no info
 {

@@ -5,17 +5,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Editor.EditorHelpers;
-using Emotion.Game.Routines;
-using Emotion.Game.Text;
-using Emotion.Game.Time.Routines;
-using Emotion.Game.World.Editor;
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Editor;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.Text;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Testing;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.Tools;
 
 #endregion
 
@@ -37,7 +35,7 @@ public class NewUITests : TestingScene
         UI.Update();
     }
 
-    protected override void TestDraw(RenderComposer c)
+    protected override void TestDraw(Renderer c)
     {
         c.SetUseViewMatrix(false);
         UI.Render(c);

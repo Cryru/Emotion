@@ -1,12 +1,11 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Diagnostics.CodeAnalysis;
 using Emotion.Platform.Implementation.Win32;
-using Emotion.Utility;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.Testing;
 

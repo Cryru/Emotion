@@ -1,4 +1,6 @@
-﻿namespace Emotion.Primitives;
+﻿#nullable enable
+
+namespace Emotion.Primitives;
 
 public struct Frustum
 {
@@ -162,7 +164,7 @@ public struct Frustum
 
     #endregion
 
-    public void Render(RenderComposer c, Color colOutline, Color colFill)
+    public void Render(Renderer c, Color colOutline, Color colFill)
     {
         Span<Vector3> corners = stackalloc Vector3[8];
         GetCorners(corners);
@@ -172,8 +174,8 @@ public struct Frustum
         Span<Vector3> sideNear = stackalloc Vector3[4];
         Span<Vector3> sideFar = stackalloc Vector3[4];
 
-        Frustum.GetCameraFrustumSidePlanes(corners, sideA, sideB);
-        Frustum.GetCameraFrustumNearAndFarPlanes(corners, sideNear, sideFar);
+        GetCameraFrustumSidePlanes(corners, sideA, sideB);
+        GetCameraFrustumNearAndFarPlanes(corners, sideNear, sideFar);
 
         c.RenderQuad(sideA, colFill);
         c.RenderQuad(sideB, colFill);

@@ -235,9 +235,9 @@ namespace Emotion.SourceGeneration
             "WinApi",
             "Standart.Hash",
 
-            "Emotion.Platform",
-            "Emotion.Common",
-            "Emotion.Audio",
+            "Emotion.Core",
+            "Emotion.Core.Platform",
+            "Emotion.Core.Systems.Audio",
             "Emotion.Standard.Reflector",
             "Emotion.Editor",
 

@@ -1,9 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Common.Serialization;
-using Emotion.UI;
+using Emotion.Game.Systems.UI;
 
-namespace Emotion.WIPUpdates.One.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorCheckboxButton : SquareEditorButton
 {

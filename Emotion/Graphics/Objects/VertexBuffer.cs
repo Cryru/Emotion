@@ -1,36 +1,33 @@
-﻿#region Using
+﻿#nullable enable
 
 using OpenGL;
 
-#endregion
+namespace Emotion.Graphics.Objects;
 
-namespace Emotion.Graphics.Objects
+/// <summary>
+/// A buffer holding vertex data.
+/// </summary>
+public sealed class VertexBuffer : DataBuffer
 {
     /// <summary>
-    /// A buffer holding vertex data.
+    /// The bound index buffer.
     /// </summary>
-    public sealed class VertexBuffer : DataBuffer
+    public new static uint Bound
     {
-        /// <summary>
-        /// The bound index buffer.
-        /// </summary>
-        public new static uint Bound
-        {
-            get => DataBuffer.Bound[BufferTarget.ArrayBuffer];
-            set => DataBuffer.Bound[BufferTarget.ArrayBuffer] = value;
-        }
+        get => DataBuffer.Bound[BufferTarget.ArrayBuffer];
+        set => DataBuffer.Bound[BufferTarget.ArrayBuffer] = value;
+    }
 
-        public VertexBuffer(uint byteSize = 0, BufferUsage usage = BufferUsage.DynamicDraw) : base(BufferTarget.ArrayBuffer, byteSize, usage)
-        {
-        }
+    public VertexBuffer(uint byteSize = 0, BufferUsage usage = BufferUsage.DynamicDraw) : base(BufferTarget.ArrayBuffer, byteSize, usage)
+    {
+    }
 
-        /// <summary>
-        /// Ensures the provided pointer is the currently bound vertex buffer.
-        /// </summary>
-        /// <param name="pointer">The pointer to ensure is bound.</param>
-        public static void EnsureBound(uint pointer)
-        {
-            EnsureBound(pointer, BufferTarget.ArrayBuffer);
-        }
+    /// <summary>
+    /// Ensures the provided pointer is the currently bound vertex buffer.
+    /// </summary>
+    /// <param name="pointer">The pointer to ensure is bound.</param>
+    public static void EnsureBound(uint pointer)
+    {
+        EnsureBound(pointer, BufferTarget.ArrayBuffer);
     }
 }

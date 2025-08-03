@@ -1,10 +1,7 @@
 ﻿#region Using
 
-using Emotion.Common.Input;
-using Emotion.Common.Serialization;
-using Emotion.Common.Threading;
-using Emotion.Primitives;
-using Emotion.Utility;
+using Emotion.Core.Systems.Input;
+using Emotion.Core.Utility.Threading;
 using System.Runtime.CompilerServices;
 
 #endregion
@@ -311,9 +308,9 @@ public abstract class CameraBase : IDisposable
 
     public Vector3 GetCameraWorldUp()
     {
-        Vector3 worldUp = RenderComposer.Up;
-        if (MathF.Abs(Vector3.Dot(_lookAt, RenderComposer.Up)) == 1f)
-            worldUp = RenderComposer.Up2D;
+        Vector3 worldUp = Renderer.Up;
+        if (MathF.Abs(Vector3.Dot(_lookAt, Renderer.Up)) == 1f)
+            worldUp = Renderer.Up2D;
         return worldUp;
     }
 
@@ -374,7 +371,7 @@ public abstract class CameraBase : IDisposable
         if (nearZ == 1337) nearZ = NearZDefault2DProjection;
         if (farZ == 1337) farZ = FarZDefault2DProjection;
 
-        RenderComposer renderer = Engine.Renderer;
+        Renderer renderer = Engine.Renderer;
         return Matrix4x4.CreateOrthographicOffCenterLeftHanded(0, renderer.CurrentTarget.Size.X, renderer.CurrentTarget.Size.Y, 0, nearZ, farZ);
     }
 

@@ -1,12 +1,12 @@
-﻿using Emotion.Standard.Reflector;
+﻿using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
 
 #nullable enable
 
-namespace Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class ObjectPropertyWindow : UIBaseWindow
 {

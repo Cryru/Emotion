@@ -1,13 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Game.Data;
-using Emotion.UI;
-using Emotion.WIPUpdates.One.EditorUI.Components;
-using Emotion.WIPUpdates.One.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using static Emotion.Game.Systems.GameData.GameDatabase;
 
-using static Emotion.Game.Data.GameDatabase;
-
-namespace Emotion.WIPUpdates.One.Tools.GameDataTool;
+namespace Emotion.Editor.Tools.GameDataTool;
 
 public class GameDataListEditor : ListEditor<GameDataObject>
 {

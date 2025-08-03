@@ -1,7 +1,9 @@
-﻿using Emotion.WIPUpdates.One.EditorUI.GridEditor;
-using Emotion.WIPUpdates.One.TileMap;
+﻿#nullable enable
 
-namespace Emotion.WIPUpdates.One.Editor2D.TileEditor.Tools;
+using Emotion.Editor.EditorUI.GridEditor;
+using Emotion.Game.World.TileMap;
+
+namespace Emotion.Editor.Editor2D.TileEditor.Tools;
 
 public abstract class TileEditorTool : GridEditorTool
 {
@@ -9,5 +11,5 @@ public abstract class TileEditorTool : GridEditorTool
 
     public abstract void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos);
 
-    public abstract void RenderCursor(RenderComposer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos);
+    public abstract void RenderCursor(Renderer c, TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos);
 }
