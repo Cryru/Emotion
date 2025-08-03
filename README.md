@@ -21,11 +21,7 @@ A roguelike deckbuilder for Windows and Linux, with an Android version built but
 
 The version this game was built on is kept in the "EtA" branch.
 
-## Documentation
-
-Check out the "Tests" project for examples, the comments in code, and the [Emotion Examples project](https://github.com/Cryru/EmotionExamples) to learn more about how to use the engine. Proper documentation is a longterm goal.
-
-## Requirements for Developers and Players:
+## Target Hardware:
 
 - OpenGL 3.0 or higher supported hardware
   - Or DirectX 11 if ANGLE is enabled
@@ -44,27 +40,31 @@ That's it.
 
 ## Developing and Building
 
-It is recommended you develop with a cloned version of the Emotion repo linking Emotion.csproj in your solution. This way you have the most control over your code.
-Using nuget packages, prebuilt dlls, and any other ways of linking Emotion is not supported.
+It is recommended you develop with a cloned version of the Emotion repo linking 'Emotion.csproj' and 'Emotion.SourceGeneration' in your solution. This way you have the most control over your code.
 
-## Projects Used
+## Credits and Dependencies
 
-This includes dependencies and projects which were used for research references.
-If you're distributing code using this project include the "LICENSE THIRD-PARTY" file from the repository.
+By default Emotion has no external dependencies, any third party code is copy-pasted and statically compiled inside the project.
+Note: All third-party code used is also modified in some way, so updating it to newer versions isnt very straight forward.
+
+Include the "LICENSE THIRD-PARTY" file from the repository in your exe when distributing.
+
+### Dependencies
 
 | Library | License | Used For | Inclusion |
 | -- | -- | -- | -- |
 | .Net Core | MIT | Runtime | Nuget
 | System.Numerics | MIT | Data structures and hardware intrinsics | Nuget
-| [xxhash (pure C# implementation)](https://github.com/uranium62/xxHash) | MIT | Hashing data
-| [Icaria Noise](https://github.com/krubbles/Icaria-Noise) | MIT | Perlin Noise
-| [Fast Noise Lite](https://github.com/Auburn/FastNoiseLite) | MIT | Simplex Noise
-| Forks
-| [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Platform/Implementation/Win32/Native
-| [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Platform/OpenGL
+| [xxhash (pure C# implementation)](https://github.com/uranium62/xxHash) | MIT | Hashing data | ThirdParty/xxhash
+| [Icaria Noise](https://github.com/krubbles/Icaria-Noise) | MIT | Perlin Noise | ThirdParty/IcariaNoise
+| [Fast Noise Lite](https://github.com/Auburn/FastNoiseLite) | MIT | Simplex Noise | ThirdParty/FastNoiseLite
+| [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | @ Emotion.Core.Platform.Implementation.Win32.Native
+| [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | ThirdParty/OpenGL
 | [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) & [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp) | MIT & GPL3 | Font Rendering Option and Comparison | Referenced by Tests @ Tests/StbTrueType and Graphics/Text/StbGlyphRenderer
-| [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Uses custom XML and engine integration @ Standard/TMX
-| Optional
+| [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Uses custom XML and engine integration @ Emotion.Standard.Parsers.TMX
+
+### Optional Dependencies
+
 | [Roslyn/Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn) | MIT | Runtime C# Script Compilation | Emotion.Plugins.CSharpScripting
 | [CimGui](https://github.com/cimgui/cimgui) & [CimGui.Net](https://github.com/mellinoe/ImGui.NET) | MIT | Developer UI | Emotion.Plugins.ImGuiNet, Precompiled for Mac64, Linux64, and Win64
 | [ANGLE](https://github.com/google/angle) | Google License | Compatibility | Precompiled for Win32 and Win64, Add "ANGLE" symbol
@@ -74,7 +74,9 @@ If you're distributing code using this project include the "LICENSE THIRD-PARTY"
 | [Assimp](https://github.com/assimp/assimp) & [AssimpNet](https://github.com/assimp/assimp-net) | Modified BSD | Reading FBX files | The Emotion build tool
 | [Assimp (Engine)](https://github.com/assimp/assimp) & [Silk.NET.Assimp](https://github.com/dotnet/Silk.NET/pkgs/nuget/Silk.NET.Assimp) | Modified BSD & MIT | 3D Model preview and conversion | Add "ASSIMP" symbol
 | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) | Six Labors Split License | Developer loading and conversion of unsupported image types such as "jpg" | Add "MORE_IMAGE_TYPES" symbol
-| References
+
+### Used as References and Research
+
 | [McGill Engineering](http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Samples.html) | X | Hardening WAV and Audio Implementation | None
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
 | [OpenType.JS](https://opentype.js.org/) | X | Font Parsing Reference | None
