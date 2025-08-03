@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using static Emotion.SourceGeneration.Helpers;
 
@@ -390,7 +391,7 @@ namespace SourceGenerator
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            context.AddSource($"RFLC.{safeName}.g.cs", sb.ToString());
+            context.AddSource($"RFLC.{CalculateHash(safeName)}.g.cs", sb.ToString());
         }
 
         public static void WriteFileHeader(StringBuilder sb)
