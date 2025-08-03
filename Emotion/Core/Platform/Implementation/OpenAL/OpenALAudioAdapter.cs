@@ -3,7 +3,7 @@
 #region Using
 
 using Emotion.Core.Systems.Audio;
-using Emotion.Platform.Implementation.OpenAL;
+using Emotion.Core.Platform.Implementation.OpenAL;
 using OpenAL;
 
 #endregion

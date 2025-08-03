@@ -5,7 +5,7 @@ using User32 = Emotion.Core.Platform.Implementation.Win32.Native.User32.User32;
 using Gdi32 = Emotion.Core.Platform.Implementation.Win32.Native.Gdi32.Gdi32;
 using DwmApi = Emotion.Core.Platform.Implementation.Win32.Native.DwmApi.DwmApi;
 using Kernel32 = Emotion.Core.Platform.Implementation.Win32.Native.Kernel32.Kernel32;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Core.Platform;
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Platform.Implementation.Win32.Native.Core;

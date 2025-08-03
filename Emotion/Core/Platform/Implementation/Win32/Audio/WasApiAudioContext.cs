@@ -6,7 +6,7 @@ using Emotion.Core.Platform.Implementation.Win32.Native.COM;
 using Emotion.Core.Platform.Implementation.Win32.Native.WasAPI;
 using Emotion.Core.Systems.Audio;
 using Emotion.Core.Systems.Logging;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 
 #endregion
 

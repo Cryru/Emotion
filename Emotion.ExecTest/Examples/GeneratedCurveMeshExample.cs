@@ -7,7 +7,7 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.Platform.Input;
+using Emotion.Core.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
 

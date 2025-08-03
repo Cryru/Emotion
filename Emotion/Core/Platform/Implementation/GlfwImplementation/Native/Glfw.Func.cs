@@ -421,7 +421,7 @@ public static partial class Glfw
     ///     <para>
     ///     This function sets hints for the next call to
     ///     <see
-    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     ///     . The hints, once set, retain their values
     ///     until changed by a call to <see cref="WindowHint(Hint, int)" /> or
     ///     <see cref="DefaultWindowHints" />, or until the library is terminated.
@@ -431,7 +431,7 @@ public static partial class Glfw
     ///     If you set hints to invalid values this will instead be reported by the next call
     ///     to
     ///     <see
-    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     ///     .
     ///     </para>
     /// </summary>
@@ -447,7 +447,7 @@ public static partial class Glfw
     ///     <para>
     ///     This function sets hints for the next call to
     ///     <see
-    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     ///     . The hints, once set, retain their values
     ///     until changed by a call to <see cref="WindowHint(Hint, int)" /> or
     ///     <see cref="DefaultWindowHints" />, or until the library is terminated.
@@ -457,7 +457,7 @@ public static partial class Glfw
     ///     If you set hints to invalid values this will instead be reported by the next call
     ///     to
     ///     <see
-    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     ///     .
     ///     </para>
     /// </summary>
@@ -476,7 +476,7 @@ public static partial class Glfw
     ///     <para>
     ///     This function sets hints for the next call to
     ///     <see
-    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     ///     . The hints, once set, retain their values
     ///     until changed by a call to <see cref="WindowHint(Hint, int)" /> or
     ///     <see cref="DefaultWindowHints" />, or until the library is terminated.
@@ -486,7 +486,7 @@ public static partial class Glfw
     ///     If you set hints to invalid values this will instead be reported by the next call
     ///     to
     ///     <see
-    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///         cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     ///     .
     ///     </para>
     /// </summary>
@@ -650,9 +650,9 @@ public static partial class Glfw
     /// </summary>
     /// <param name="window">The window to destroy.</param>
     /// <seealso
-    ///     cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///     cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     /// <seealso
-    ///     cref="CreateWindow(int,int,string,System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
+    ///     cref="CreateWindow(int,int,string,System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Monitor},System.Nullable{Emotion.Core.Platform.Implementation.GlfwImplementation.Native.Glfw.Window})" />
     [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwDestroyWindow")]
     [SuppressUnmanagedCodeSecurity]
     public static extern void DestroyWindow([MarshalAs(UnmanagedType.Struct)] Window window);

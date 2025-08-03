@@ -10,7 +10,7 @@ using Emotion.Core.Systems.Logging;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Win32;
+namespace Emotion.Core.Platform.Implementation.Win32;
 
 public partial class Win32Platform
 {

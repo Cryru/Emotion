@@ -229,7 +229,7 @@ public class EmotionSDF3DrawableFontAtlas : DrawableFontAtlas
             _intermediateBufferTwo.Resize(sdfBaseAtlas, true);
         _intermediateBufferTwo.ColorAttachment.Smooth = false;
 
-        // Emotion.Platform.Debugger.RenderDoc.StartCapture();
+        // Emotion.Core.Platform.Debugger.RenderDoc.StartCapture();
 
         Renderer composer = Engine.Renderer;
         RenderState prevState = composer.CurrentState.Clone();
@@ -291,7 +291,7 @@ public class EmotionSDF3DrawableFontAtlas : DrawableFontAtlas
         composer.PopModelMatrix();
         composer.SetState(prevState);
 
-        // Emotion.Platform.Debugger.RenderDoc.EndCapture();
+        // Emotion.Core.Platform.Debugger.RenderDoc.EndCapture();
 
         // Invert UVs along the Y axis, this is to fix the texture inversion from above.
         for (var i = 0; i < glyphsMissingReferences.Count; i++)

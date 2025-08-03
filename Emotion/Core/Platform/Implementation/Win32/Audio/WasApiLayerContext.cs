@@ -4,7 +4,7 @@
 
 using Emotion.Core.Platform.Implementation.Win32.Native.WasAPI;
 using Emotion.Core.Systems.Audio;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 #endregion
 
 namespace Emotion.Core.Platform.Implementation.Win32.Audio;

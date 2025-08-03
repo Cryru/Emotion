@@ -5,7 +5,7 @@ using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
-using Emotion.Platform.Input;
+using Emotion.Core.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
 using OpenGL;

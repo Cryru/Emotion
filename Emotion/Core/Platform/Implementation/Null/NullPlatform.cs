@@ -3,7 +3,7 @@
 using Emotion;
 using Emotion.Core;
 using Emotion.Core.Platform;
-using Emotion.Platform;
+using Emotion.Core.Platform;
 
 namespace Emotion.Core.Platform.Implementation.Null;
 

@@ -9,7 +9,7 @@ using Emotion.Core.Platform.Implementation.Win32.Native.User32;
 using Emotion.Core.Platform.Implementation.Win32.Native.Kernel32;
 using static Emotion.Core.Platform.PlatformBase;
 
-namespace Emotion.Platform.Implementation.Win32;
+namespace Emotion.Core.Platform.Implementation.Win32;
 
 public partial class Win32Platform
 {

@@ -5,7 +5,7 @@
 using Emotion.Core.Platform;
 using Emotion.Core.Systems.Audio;
 using Emotion.Core.Systems.Logging;
-using Emotion.Platform;
+using Emotion.Core.Platform;
 
 #endregion
 

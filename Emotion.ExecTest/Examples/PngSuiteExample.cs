@@ -4,7 +4,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Platform.Input;
+using Emotion.Core.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Scenography;
 using Emotion.Utility;

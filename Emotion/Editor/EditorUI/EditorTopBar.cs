@@ -11,7 +11,7 @@ using Emotion.Editor.Tools.SpriteEntityTool;
 using Emotion.Game.Systems.UI;
 using Emotion.Game.World;
 using Emotion.Game.World.Terrain.GridStreaming;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Standard.Reflector;
 
 namespace Emotion.Editor.EditorUI;

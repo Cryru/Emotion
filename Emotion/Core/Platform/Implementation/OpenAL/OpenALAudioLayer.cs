@@ -8,7 +8,7 @@ using OpenAL;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.OpenAL;
+namespace Emotion.Core.Platform.Implementation.OpenAL;
 
 public sealed class OpenALAudioLayer : AudioLayer
 {

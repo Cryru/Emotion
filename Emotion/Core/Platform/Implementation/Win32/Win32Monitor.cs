@@ -3,7 +3,7 @@
 #region Using
 
 using System.Runtime.InteropServices;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Core.Platform.Implementation.Win32.Native;
 using Emotion.Core.Platform.Implementation.Win32.Native.Gdi32;
 using Emotion.Core.Platform.Implementation.Win32.Native.ShCore;

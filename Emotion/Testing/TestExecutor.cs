@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,7 +32,7 @@ using Emotion.Core.Platform;
 
 // Subprocess functionality
 #if CSHARP_SCRIPTING
-using Emotion.Platform;
+using Emotion.Core.Platform;
 
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;

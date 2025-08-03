@@ -6,7 +6,7 @@ using OpenGL;
 using User32 = Emotion.Core.Platform.Implementation.Win32.Native.User32.User32;
 using Gdi32 = Emotion.Core.Platform.Implementation.Win32.Native.Gdi32.Gdi32;
 using DwmApi = Emotion.Core.Platform.Implementation.Win32.Native.DwmApi.DwmApi;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Platform.Implementation.Win32.Native.Core;
 using Emotion.Core.Platform.Implementation.Win32.Native.Gdi32;

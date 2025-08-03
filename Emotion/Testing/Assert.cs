@@ -3,7 +3,7 @@
 #region Using
 
 using System.Diagnostics.CodeAnalysis;
-using Emotion.Platform.Implementation.Win32;
+using Emotion.Core.Platform.Implementation.Win32;
 
 #endregion
 
