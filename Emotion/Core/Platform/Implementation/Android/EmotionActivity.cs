@@ -5,13 +5,14 @@
 using Android.Content.Res;
 using Android.OS;
 using Android.Views;
-using Emotion.Common;
+using Emotion.Core.Platform.Implementation.Android;
 using Activity = Android.App.Activity;
 
 #endregion
 
 namespace Emotion.Platform.Implementation.Android;
 
+[DontSerialize]
 public abstract class EmotionActivity : Activity
 {
     public static EmotionActivity? MainActivity;

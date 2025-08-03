@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Editor.EditorUI.GridEditor;
-using Emotion.World.Terrain;
+using Emotion.Game.World.Terrain;
 using static Emotion.Editor.Editor3D.TerrainEditor.TerrainEditorWindow;
 
 namespace Emotion.Editor.Editor3D.TerrainEditor.Tools;

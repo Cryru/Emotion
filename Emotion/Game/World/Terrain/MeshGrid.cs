@@ -11,7 +11,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
 using OpenGL;
 
-namespace Emotion.World.Terrain;
+namespace Emotion.Game.World.Terrain;
 
 [DontSerialize]
 public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, IStreamableGrid

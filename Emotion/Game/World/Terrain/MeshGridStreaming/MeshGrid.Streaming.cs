@@ -6,7 +6,7 @@ using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
 using Emotion.Standard.DataStructures;
 
-namespace Emotion.World.Terrain;
+namespace Emotion.Game.World.Terrain;
 
 public abstract partial class MeshGrid<T, ChunkT, IndexT>
 {

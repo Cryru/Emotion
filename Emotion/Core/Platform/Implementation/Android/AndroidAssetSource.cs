@@ -1,12 +1,14 @@
-﻿#region Using
+﻿#nullable enable
 
-using Emotion.IO;
+#region Using
+
+using Emotion.Core.Systems.IO;
 using System.IO;
 using Activity = Android.App.Activity;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Android;
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public class AndroidAssetSource : AssetSource
 {

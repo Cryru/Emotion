@@ -1,8 +1,9 @@
+#nullable enable
+
 #region Using
 
-using Emotion.Common;
-using Emotion.Platform;
-using Emotion.Standard.Logging;
+using Emotion.Core.Platform;
+using Emotion.Core.Platform.Implementation.Android;
 
 #endregion
 

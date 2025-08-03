@@ -7,7 +7,7 @@ using Emotion.Graphics.Assets;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
-using Emotion.World.Terrain;
+using Emotion.Game.World.Terrain;
 using OpenGL;
 using VoxelMeshGridChunk = Emotion.Game.World.Terrain.MeshGridStreaming.MeshGridStreamableChunk<uint, uint>;
 

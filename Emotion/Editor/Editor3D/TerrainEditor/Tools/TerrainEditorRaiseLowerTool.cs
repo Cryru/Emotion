@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.World.Terrain;
+using Emotion.Game.World.Terrain;
 using static Emotion.Editor.Editor3D.TerrainEditor.TerrainEditorWindow;
 
 namespace Emotion.Editor.Editor3D.TerrainEditor.Tools;

@@ -1,10 +1,11 @@
-﻿namespace Emotion.Core.Systems.Logging
+﻿#nullable enable
+
+namespace Emotion.Core.Systems.Logging;
+
+public enum MessageType
 {
-    public enum MessageType
-    {
-        Trace,
-        Info,
-        Warning,
-        Error
-    }
+    Trace,
+    Info,
+    Warning,
+    Error
 }

@@ -1,3 +1,5 @@
+#nullable enable
+
 #region Using
 
 using System.Runtime.InteropServices;
@@ -6,12 +8,13 @@ using Android.Graphics;
 using Android.Opengl;
 using Android.Util;
 using Android.Views;
-using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Platform.Implementation.Android;
 using Activity = Android.App.Activity;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Android;
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public class AndroidHost : PlatformBase
 {
@@ -81,7 +84,7 @@ public class AndroidHost : PlatformBase
         };
 
         Engine.AssetLoader.AddSource(new AndroidAssetSource(_activity));
-        Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
+        Engine.AssetLoader.AddStore(new FileAssetStore("Player", true));
     }
 
     public override void DisplayMessageBox(string message)
@@ -163,12 +166,12 @@ public class AndroidHost : PlatformBase
 
         if (e.Action == MotionEventActions.Down)
         {
-            Engine.Input.ReportKeyInput(Key.MouseKeyLeft, Common.Input.KeyState.Down);
+            Engine.Input.ReportKeyInput(Key.MouseKeyLeft, Systems.Input.KeyState.Down);
         }
 
         if (e.Action == MotionEventActions.Up)
         {
-            Engine.Input.ReportKeyInput(Key.MouseKeyLeft, Common.Input.KeyState.Up);
+            Engine.Input.ReportKeyInput(Key.MouseKeyLeft, Systems.Input.KeyState.Up);
             Engine.Input.ReportMouseMove(new Vector2(-1));
         }
 

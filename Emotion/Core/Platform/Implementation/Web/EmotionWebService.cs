@@ -1,13 +1,8 @@
-#region Using
-
-using Emotion.Common.Serialization;
-using System.Threading.Tasks;
-
-#endregion
-
 #nullable enable
 
-namespace Emotion.Platform.Implementation.Web;
+using System.Threading.Tasks;
+
+namespace Emotion.Core.Platform.Implementation.Web;
 
 [DontSerialize]
 public class EmotionWebService

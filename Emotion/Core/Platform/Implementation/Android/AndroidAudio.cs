@@ -1,12 +1,9 @@
-﻿using Emotion.Audio;
-using Emotion.Platform;
-using Emotion.Standard.Logging;
-using System.Runtime.InteropServices;
-using Emotion.Testing;
-using Emotion.Common;
-using Emotion.Standard.Audio;
+﻿#nullable enable
 
-namespace Emotion.Platform.Implementation.Android;
+using Emotion.Core.Systems.Audio;
+using System.Runtime.InteropServices;
+
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public unsafe class AndroidAudioLayerBuffer
 {

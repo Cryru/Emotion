@@ -1,7 +1,8 @@
+#nullable enable
+
 #region Using
 
-using Emotion.Common.Serialization;
-using Emotion.Platform.Implementation.Web.Razor;
+using Emotion.Core.Platform.Implementation.Web.Razor;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
@@ -9,16 +10,14 @@ using System.Net.Http;
 
 #endregion
 
-#nullable enable
-
-namespace Emotion.Platform.Implementation.Web;
+namespace Emotion.Core.Platform.Implementation.Web;
 
 [DontSerialize]
 public class WebPlatform : PlatformBase
 {
     public override WindowState WindowState
     {
-        get => Emotion.Platform.WindowState.Normal;
+        get => WindowState.Normal;
         set
         {
         }

@@ -51,6 +51,8 @@ public abstract class TextureAssetBase<TTexture> : Asset where TTexture : IDispo
         out bool rentedMemory
     )
     {
+        pixels = Array.Empty<byte>();
+        size = Vector2.Zero;
         flipped = false;
         format = PixelFormat.Unknown;
         rentedMemory = false;

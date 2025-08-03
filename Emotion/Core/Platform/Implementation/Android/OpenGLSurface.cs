@@ -1,3 +1,5 @@
+#nullable enable
+
 #region Using
 
 using Android.Content;
@@ -6,7 +8,7 @@ using Android.Views;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Android;
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public class OpenGLSurface : GLSurfaceView
 {

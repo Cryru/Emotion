@@ -1,4 +1,6 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -6,7 +8,7 @@ using System.Security;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Android;
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public static class AndroidEglNative
 {

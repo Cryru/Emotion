@@ -9,7 +9,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
 using TerrainMeshGridChunk = Emotion.Game.World.Terrain.MeshGridStreaming.MeshGridStreamableChunk<float, ushort>;
 
-namespace Emotion.World.Terrain;
+namespace Emotion.Game.World.Terrain;
 
 public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>
 {

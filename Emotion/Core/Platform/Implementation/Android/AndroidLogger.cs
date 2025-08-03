@@ -1,4 +1,6 @@
-﻿namespace Emotion.Platform.Implementation.Android;
+﻿#nullable enable
+
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public class AndroidLogger : LoggingProvider
 {

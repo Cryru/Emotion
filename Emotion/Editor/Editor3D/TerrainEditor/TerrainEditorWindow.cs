@@ -2,7 +2,7 @@
 
 using Emotion.Editor.Editor3D.TerrainEditor.Tools;
 using Emotion.Editor.EditorUI.GridEditor;
-using Emotion.World.Terrain;
+using Emotion.Game.World.Terrain;
 using Emotion.Primitives.Grids;
 using Emotion.Game.World;
 

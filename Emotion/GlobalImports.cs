@@ -9,6 +9,7 @@ global using System.Collections.Generic;
 
 global using Emotion.Core;
 global using Emotion.Core.Systems.Input;
+global using Emotion.Core.Systems.Logging;
 global using Emotion.Standard;
 global using Emotion.Standard.DataStructures;
 global using Emotion.Standard.Extensions;
