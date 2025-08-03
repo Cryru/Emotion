@@ -65,6 +65,8 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 
 ### Optional Dependencies
 
+| Library | License | Used For | Inclusion |
+| -- | -- | -- | -- |
 | [Roslyn/Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn) | MIT | Runtime C# Script Compilation | Emotion.Plugins.CSharpScripting
 | [CimGui](https://github.com/cimgui/cimgui) & [CimGui.Net](https://github.com/mellinoe/ImGui.NET) | MIT | Developer UI | Emotion.Plugins.ImGuiNet, Precompiled for Mac64, Linux64, and Win64
 | [ANGLE](https://github.com/google/angle) | Google License | Compatibility | Precompiled for Win32 and Win64, Add "ANGLE" symbol
@@ -77,6 +79,8 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 
 ### Used as References and Research
 
+| Library | License | Used For | Inclusion |
+| -- | -- | -- | -- |
 | [McGill Engineering](http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Samples.html) | X | Hardening WAV and Audio Implementation | None
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
 | [OpenType.JS](https://opentype.js.org/) | X | Font Parsing Reference | None
