@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Core.Platform.Implementation.Win32.Native.User32;
 using Emotion.Core.Systems.IO;
-using Emotion.Core.Systems.Logging;
 
 #endregion
 

@@ -9,7 +9,6 @@ using System.Text;
 using Emotion.Core.Platform;
 using Emotion.Core.Systems.Audio;
 using Emotion.Core.Systems.IO;
-using Emotion.Core.Systems.Logging;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Platform.Implementation.Win32.Audio;
 using Emotion.Core.Platform.Implementation.Win32.Native;
@@ -24,7 +23,7 @@ using Emotion.Core.Platform.Implementation.EglAngle;
 #endif
 
 #if OpenAL
-using Emotion.Platform.Implementation.OpenAL;
+using Emotion.Core.Platform.Implementation.OpenAL;
 #endif
 
 #endregion

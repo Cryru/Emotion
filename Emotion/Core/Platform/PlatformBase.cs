@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Emotion.Core.Platform.Implementation.Null;
 using Emotion.Core.Systems.Audio;
-using Emotion.Core.Systems.Logging;
 using Emotion.Platform.Implementation.Win32;
 using OpenGL;
 

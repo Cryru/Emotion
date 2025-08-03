@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Core.Platform.Implementation.CommonDesktop;
-using Emotion.Core.Systems.Logging;
 
 namespace Emotion.Core.Systems.Input;
 

@@ -1,39 +1,35 @@
-﻿#region Using
+﻿#nullable enable
 
-using System;
-using Emotion.Platform.Implementation.GlfwImplementation.Native;
+using Emotion.Core.Platform.Implementation.GlfwImplementation.Native;
 
-#endregion
+namespace Emotion.Core.Platform.Implementation.GlfwImplementation;
 
-namespace Emotion.Platform.Implementation.GlfwImplementation
+public class GlfwGraphicsContext : GraphicsContext
 {
-    public class GlfwGraphicsContext : GraphicsContext
+    private Glfw.Window _win;
+
+    public GlfwGraphicsContext(Glfw.Window window)
     {
-        private Glfw.Window _win;
+        _win = window;
+    }
 
-        public GlfwGraphicsContext(Glfw.Window window)
-        {
-            _win = window;
-        }
+    protected override void SetSwapIntervalPlatform(int interval)
+    {
+        Glfw.SwapInterval(interval);
+    }
 
-        protected override void SetSwapIntervalPlatform(int interval)
-        {
-            Glfw.SwapInterval(interval);
-        }
+    public override void MakeCurrent()
+    {
+        Glfw.MakeContextCurrent(_win);
+    }
 
-        public override void MakeCurrent()
-        {
-            Glfw.MakeContextCurrent(_win);
-        }
+    public override void SwapBuffers()
+    {
+        Glfw.SwapBuffers(_win);
+    }
 
-        public override void SwapBuffers()
-        {
-            Glfw.SwapBuffers(_win);
-        }
-
-        public override IntPtr GetProcAddress(string func)
-        {
-            return Glfw.GetProcAddress(func);
-        }
+    public override IntPtr GetProcAddress(string func)
+    {
+        return Glfw.GetProcAddress(func);
     }
 }

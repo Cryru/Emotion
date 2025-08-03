@@ -1,14 +1,13 @@
-﻿using System.Numerics;
+﻿#nullable enable
 
-namespace Emotion.Platform.Implementation.GlfwImplementation
+namespace Emotion.Core.Platform.Implementation.GlfwImplementation;
+
+public class GlfwMonitor : MonitorScreen
 {
-    public class GlfwMonitor : Monitor
+    public GlfwMonitor(Vector2 position, Vector2 size)
     {
-        public GlfwMonitor(Vector2 position, Vector2 size)
-        {
-            Position = position;
-            Width = (int) size.X;
-            Height = (int) size.Y;
-        }
+        Position = position;
+        Width = (int) size.X;
+        Height = (int) size.Y;
     }
 }
