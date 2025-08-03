@@ -10,7 +10,7 @@ using Activity = Android.App.Activity;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Android;
+namespace Emotion.Core.Platform.Implementation.Android;
 
 [DontSerialize]
 public abstract class EmotionActivity : Activity

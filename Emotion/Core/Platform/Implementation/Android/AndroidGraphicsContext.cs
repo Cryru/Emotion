@@ -7,7 +7,7 @@ using Emotion.Core.Platform.Implementation.Android;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Android;
+namespace Emotion.Core.Platform.Implementation.Android;
 
 public unsafe class AndroidGraphicsContext : GraphicsContext
 {

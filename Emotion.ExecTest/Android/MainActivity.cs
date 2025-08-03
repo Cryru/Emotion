@@ -2,7 +2,7 @@
 
 using Android.App;
 using Android.Content.PM;
-using Emotion.Platform.Implementation.Android;
+using Emotion.Core.Platform.Implementation.Android;
 using System;
 
 #endregion

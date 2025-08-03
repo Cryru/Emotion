@@ -3,7 +3,6 @@
 #region Using
 
 using Android.Opengl;
-using Emotion.Platform.Implementation.Android;
 using Javax.Microedition.Khronos.Opengles;
 using EGLConfig = Javax.Microedition.Khronos.Egl.EGLConfig;
 using Object = Java.Lang.Object;

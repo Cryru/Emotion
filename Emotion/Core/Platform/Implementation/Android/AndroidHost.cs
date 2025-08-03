@@ -9,7 +9,6 @@ using Android.Opengl;
 using Android.Util;
 using Android.Views;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
-using Emotion.Platform.Implementation.Android;
 using Activity = Android.App.Activity;
 
 #endregion
