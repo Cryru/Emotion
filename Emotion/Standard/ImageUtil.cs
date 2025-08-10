@@ -57,11 +57,11 @@ public static class ImageUtil
     /// <param name="pixels">The pixels to convert.</param>
     /// <param name="inPlace">Whether to perform the conversion in place, or create a new byte array.</param>
     /// <returns></returns>
-    public static byte[] BgraToRgba(byte[] pixels, bool inPlace = true)
+    public static Span<byte> BgraToRgba(Span<byte> pixels, bool inPlace = true)
     {
-        if (pixels == null) return null;
+        if (pixels.IsEmpty) return pixels;
 
-        byte[] output = inPlace ? pixels : new byte[pixels.Length];
+        Span<byte> output = inPlace ? pixels : new byte[pixels.Length];
         for (var p = 0; p < pixels.Length; p += 4)
         {
             byte r = pixels[p + 2];
@@ -82,11 +82,11 @@ public static class ImageUtil
     /// <param name="pixels">The pixels to convert.</param>
     /// <param name="inPlace">Whether to perform the conversion in place, or create a new byte array.</param>
     /// <returns></returns>
-    public static byte[] BgrToRgb(byte[] pixels, bool inPlace = true)
+    public static Span<byte> BgrToRgb(Span<byte> pixels, bool inPlace = true)
     {
-        if (pixels == null) return null;
+        if (pixels.IsEmpty) return null;
 
-        byte[] output = inPlace ? pixels : new byte[pixels.Length];
+        Span<byte> output = inPlace ? pixels : new byte[pixels.Length];
         for (var p = 0; p < pixels.Length; p += 3)
         {
             byte r = pixels[p + 2];

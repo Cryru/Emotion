@@ -131,7 +131,7 @@ public abstract class TextureObjectBase : IDisposable
 
     #region Uploading
 
-    protected void PrepareForUpload(byte[] data, ref PixelFormat pixelFormat, ref InternalFormat internalFormat)
+    protected void PrepareForUpload(Span<byte> data, ref PixelFormat pixelFormat, ref InternalFormat internalFormat)
     {
         if (Gl.CurrentVersion.GLES)
         {

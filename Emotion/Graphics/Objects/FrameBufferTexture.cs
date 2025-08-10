@@ -44,7 +44,7 @@ public class FrameBufferTexture : Texture
         FrameBuffer = parent;
     }
 
-    public override void Upload(Vector2 size, byte[] data, PixelFormat? pixelFormat = null, InternalFormat? internalFormat = null, PixelType? pixelType = null)
+    public override void Upload(Vector2 size, Span<byte> data, PixelFormat? pixelFormat = null, InternalFormat? internalFormat = null, PixelType? pixelType = null)
     {
         if (RenderBufferPtr != 0)
         {

@@ -97,7 +97,7 @@ public class Texture : TextureObjectBase
     /// Uploads data to the texture. If no data is specified the texture is just resized.
     /// This will reset the texture matrix.
     /// </summary>
-    public virtual void Upload(Vector2 size, byte[] data, PixelFormat? pixelFormatSet = null, InternalFormat? internalFormatSet = null, PixelType? pixelTypeSet = null)
+    public virtual void Upload(Vector2 size, Span<byte> data, PixelFormat? pixelFormatSet = null, InternalFormat? internalFormatSet = null, PixelType? pixelTypeSet = null)
     {
         PixelFormat pixelFormat = pixelFormatSet ?? PixelFormat;
         PixelFormat = pixelFormat;
@@ -111,13 +111,7 @@ public class Texture : TextureObjectBase
         Size = size;
 
         PrepareForUpload(data, ref pixelFormat, ref internalFormat);
-        if (data == null)
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, internalFormat, (int)size.X, (int)size.Y, 0, pixelFormat,
-                pixelType, IntPtr.Zero);
-        else
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, internalFormat, (int)size.X, (int)size.Y, 0, pixelFormat,
-                pixelType, data);
-
+        Gl.TexImage2D(TextureTarget.Texture2d, 0, internalFormat, (int)size.X, (int)size.Y, 0, pixelFormat, pixelType, data);
         PostUpload();
     }
 

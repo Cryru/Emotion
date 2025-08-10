@@ -2917,16 +2917,17 @@ public partial class Gl
     [RequiredByFeature("GL_VERSION_1_0")]
     [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
     [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-    public static void TexImage2D(TextureTarget target, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat format, PixelType type, object data)
+    public unsafe static void TexImage2D(TextureTarget target, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat format, PixelType type, Span<byte> data)
     {
-        GCHandle pin_pixels = GCHandle.Alloc(data, GCHandleType.Pinned);
-        try
+        if (data.IsEmpty)
         {
-            TexImage2D(target, level, internalFormat, width, height, border, format, type, pin_pixels.AddrOfPinnedObject());
+            TexImage2D(target, level, internalFormat, width, height, border, format, type, IntPtr.Zero);
+            return;
         }
-        finally
+
+        fixed (byte* pData = &data[0])
         {
-            pin_pixels.Free();
+            TexImage2D(target, level, internalFormat, width, height, border, format, type, (IntPtr) pData);
         }
     }
 
