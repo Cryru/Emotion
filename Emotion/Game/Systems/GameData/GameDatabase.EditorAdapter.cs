@@ -360,7 +360,8 @@ public static partial class GameDatabase
             string editorAdapterName = $"{defClassName}EditorAdapter";
 
             return "using System;\n" +
-                "using Emotion.Game.Data;\n" +
+                "using Emotion.Game.Systems.GameData;\n" +
+                "using Emotion.Standard.Extensions;\n" +
                 $"using static Emotion.{nameof(Emotion.Game)}.{nameof(Emotion.Game.Systems)}.{nameof(Emotion.Game.Systems.GameData)}.{nameof(GameDatabase)}.{nameof(EditorAdapter)};" +
                 "\n" +
                 "namespace GameData;\n" +
