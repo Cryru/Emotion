@@ -211,8 +211,25 @@ namespace Emotion.SourceGeneration
             return false;
         }
 
+        private static string[] _skipTypesIn = new string[]
+        {
+            "Emotion.Core"
+        };
+
         public static bool IsReflectorableType(INamedTypeSymbol typ)
         {
+            INamespaceSymbol namespac = typ.ContainingNamespace;
+            if (namespac != null)
+            {
+                string namespaceName = namespac.ToDisplayString();
+                for (int i = 0; i < _skipTypesIn.Length; i++)
+                {
+                    string namespaceExclusion = _skipTypesIn[i];
+                    if (namespaceName == namespaceExclusion)
+                        return false;
+                }
+            }
+
             if (!HasParameterlessConstructor(typ)) return false;
             if (HasDontSerialize(typ)) return false;
             //if (typ.IsAbstract) return false;
@@ -236,7 +253,6 @@ namespace Emotion.SourceGeneration
             "WinApi",
             "Standart.Hash",
 
-            "Emotion.Core",
             "Emotion.Core.Platform",
             "Emotion.Core.Systems.Audio",
             "Emotion.Standard.Reflector",
