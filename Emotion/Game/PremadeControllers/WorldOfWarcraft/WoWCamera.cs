@@ -9,7 +9,7 @@ public class WoWCamera : Camera3D
 {
     public float Distance = 20;
 
-    public MapObject? Target;
+    public GameObject? Target;
     public Vector3 TargetOffset;
 
     private bool _mouseHeldLeft = false;
@@ -21,13 +21,13 @@ public class WoWCamera : Camera3D
         _cameraMovementSpeed = 0.15f;
     }
 
-    public void SetTarget(MapObject? target, Vector3 targetOffset)
+    public void SetTarget(GameObject? target, Vector3 targetOffset)
     {
         Target = target;
         TargetOffset = targetOffset;
         if (target != null)
         {
-            LookAtPoint(target.Position);
+            LookAtPoint(target.Position3D);
             _yawRollPitch = new Vector3(180, 0, 45);
         }
     }
@@ -91,7 +91,7 @@ public class WoWCamera : Camera3D
             };
             direction = Vector3.Normalize(direction);
 
-            Vector3 focusPosition = Target.Position + TargetOffset;
+            Vector3 focusPosition = Target.Position3D + TargetOffset;
 
             Position = focusPosition + direction * Distance;
             _lookAt = Vector3.Normalize(focusPosition - Position);

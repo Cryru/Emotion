@@ -4,6 +4,7 @@ using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Game.World.Terrain;
+using Emotion.Game.World.Components;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 
@@ -11,7 +12,7 @@ public class WoWMovementController
 {
     public float WalkingSpeed = 0.007f; // Per millisecond
 
-    private MapObject? _character;
+    private GameObject? _character;
     private string? _idleAnim;
     private string? _walkAnim;
     private string? _splitBodyBone;
@@ -42,7 +43,7 @@ public class WoWMovementController
         Engine.Host.OnKey.RemoveListener(KeyHandler);
     }
 
-    public void SetCharacter(MapObject obj, string idleAnim, string walkAnim, string walkBackAnim, string splitBodyBone)
+    public void SetCharacter(GameObject obj, string idleAnim, string walkAnim, string walkBackAnim, string splitBodyBone)
     {
         _camera.SetTarget(obj, new Vector3(0, 0, 2));
 
@@ -125,7 +126,7 @@ public class WoWMovementController
         }
 
         // Add move
-        _character.Position += moveRequest;
+        _character.Position3D += moveRequest;
 
         // Move along the terrain height
         if (!_inAir)
@@ -137,23 +138,23 @@ public class WoWMovementController
         }
 
         // Update look
-        if (_character is MapObjectMesh meshObj)
+        if (_rightClickHeld)
         {
-            if (_rightClickHeld)
-            {
-                CameraBase camera = Engine.Renderer.Camera;
-                Vector3 lookAtPos = camera.LookAt;
-                meshObj.RotateToFacePoint(_character.Position + lookAtPos);
-            }
+            CameraBase camera = Engine.Renderer.Camera;
+            Vector3 lookAtPos = camera.LookAt;
+            _character.RotateToFacePoint(_character.Position3D + lookAtPos);
+        }
 
-            string? animToSet = moved ? _walkAnim : _idleAnim;
+        string? animToSet = moved ? _walkAnim : _idleAnim;
 
-            //if (wasd.X < 0) animToSet = _strafeLeftAnim;
-            //if (wasd.X > 0) animToSet = _strafeRightAnim;
-            if (walkingBack) animToSet = _walkBackAnim;
+        //if (wasd.X < 0) animToSet = _strafeLeftAnim;
+        //if (wasd.X > 0) animToSet = _strafeRightAnim;
+        if (walkingBack) animToSet = _walkBackAnim;
 
-            if (animToSet != null && animToSet != meshObj.GetCurrentAnimation())
-                meshObj.SetAnimation(animToSet);
+        if (animToSet != null && _character.GetComponent<MeshComponent>(out MeshComponent? meshComponent))
+        {
+            if (animToSet != meshComponent.GetCurrentAnimation())
+                meshComponent.SetAnimation(animToSet);
         }
     }
 

@@ -5,16 +5,18 @@ using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Game.Systems.UI;
 using Emotion.Game.World;
+using Emotion.Game.World.Components;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TwoDee;
 using Emotion.Graphics.Camera;
+using System.Xml.Linq;
 
 namespace Emotion.Editor.EditorUI.MapObjectEditor;
 
 public class MapObjectEditorWindow : UIBaseWindow
 {
-    public MapObject? SelectedObject;
-    public MapObject? MouseoverObject;
+    public GameObject? SelectedObject;
+    public GameObject? MouseoverObject;
 
     private EditorLabel _bottomText = null!;
     private TranslationGizmo? _moveGizmo;
@@ -108,7 +110,7 @@ public class MapObjectEditorWindow : UIBaseWindow
         {
             c.SetUseViewMatrix(true);
 
-            Cube bound = MouseoverObject.BoundingCube;
+            Cube bound = MouseoverObject.GetBoundingCube();
             bound.RenderOutline(c, Color.PrettyOrange, 0.05f);
 
             c.SetUseViewMatrix(false);
@@ -118,7 +120,7 @@ public class MapObjectEditorWindow : UIBaseWindow
         {
             c.SetUseViewMatrix(true);
 
-            Cube bound = SelectedObject.BoundingCube;
+            Cube bound = SelectedObject.GetBoundingCube();
             bound.RenderOutline(c, Color.PrettyYellow, 0.05f);
 
             c.SetUseViewMatrix(false);
@@ -134,20 +136,20 @@ public class MapObjectEditorWindow : UIBaseWindow
 
         CameraBase cam = Engine.Renderer.Camera;
         Ray3D ray = cam.GetCameraMouseRay();
-        map.CollideWithRayFirst(ray, out MapObject? hit);
+        map.CollideWithRayFirst(ray, out GameObject? hit);
         MouseoverObject = hit;
 
         if (hit == null)
             _bottomText.Text = $"No object under mouse";
-        else if (hit is MapObjectMesh meshObj)
-            _bottomText.Text = $"Mouseover: {nameof(MapObjectMesh)} - {meshObj.MeshEntity.Name}";
+        else if (hit.GetComponent<MeshComponent>(out MeshComponent? component))
+            _bottomText.Text = $"Mouseover: {hit.Name} - {component.Entity.Name}";
         else if (hit is MapObjectSprite spriteObj)
             _bottomText.Text = $"Mouseover: {nameof(MapObjectSprite)} - {spriteObj.Entity.Name}";
         else
-            _bottomText.Text = $"Mouseover: {hit}";
+            _bottomText.Text = $"Mouseover: {hit.Name}";
     }
 
-    private void SelectObject(MapObject obj)
+    private void SelectObject(GameObject obj)
     {
         SelectedObject = obj;
 

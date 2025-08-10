@@ -8,7 +8,7 @@ public class PlatformerMovementController
 {
     public float WalkingSpeed = 0.2f; // Per millisecond
 
-    private MapObject? _character;
+    private GameObject? _character;
 
     private float _input;
 
@@ -22,7 +22,7 @@ public class PlatformerMovementController
         Engine.Host.OnKey.RemoveListener(KeyHandler);
     }
 
-    public void SetCharacter(MapObject obj)
+    public void SetCharacter(GameObject obj)
     {
         _character = obj;
     }

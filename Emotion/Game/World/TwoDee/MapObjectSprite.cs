@@ -115,16 +115,11 @@ public class MapObjectSprite : MapObject2D
 
     #region Transform
 
-    public override Rectangle BoundingRect
-    {
-        get => GetBoundingRectangle();
-    }
-
     protected Rectangle _boundingRectangle;
     protected Rectangle _boundingRectangleBase;
     protected bool _dirtyBounds = true;
 
-    private Rectangle GetBoundingRectangle()
+    public override Rectangle GetBoundingRect()
     {
         if (_dirtyBounds)
         {
@@ -135,11 +130,11 @@ public class MapObjectSprite : MapObject2D
         return _boundingRectangle;
     }
 
-    protected override void InvalidateModelMatrix()
-    {
-        base.InvalidateModelMatrix();
-        _dirtyBounds = true;
-    }
+    //protected override void InvalidateModelMatrix()
+    //{
+    //    base.InvalidateModelMatrix();
+    //    _dirtyBounds = true;
+    //}
 
     #endregion
 
@@ -169,7 +164,7 @@ public class MapObjectSprite : MapObject2D
 
     public virtual void SetAnimation(string? name, bool forceIfMissing = false)
     {
-        if (!Initialized)
+        if (State != GameObjectState.Initialized)
         {
             _initSetAnimation = name;
             return;
@@ -203,14 +198,6 @@ public class MapObjectSprite : MapObject2D
         _boundingRectangleBase = baseRect;
         Assert(baseRect.Size.X != 0 && baseRect.Size.Y != 0, "Entity bounds is 0?");
         InvalidateModelMatrix();
-    }
-
-    protected override Matrix4x4 UpdateModelMatrix()
-    {
-        _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
-        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
-        _scaleMatrix = Matrix4x4.CreateScale(_scaleX, _scaleY, _scaleZ);
-        return _scaleMatrix * _rotationMatrix * _translationMatrix;
     }
 
     #endregion

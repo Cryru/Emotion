@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Game.World.Components;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Data;
 
@@ -38,17 +39,18 @@ public struct Ray3D
         return Start + distance * Direction;
     }
 
-    public bool IntersectWithObject(MapObjectMesh obj, out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
+    public bool IntersectWithObject(GameObject obj, MeshComponent meshComponent,
+        out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
     {
         collidedMesh = null;
         collisionPoint = Vector3.Zero;
         normal = Vector3.Zero;
         triangleIndex = -1;
 
-        Mesh[] meshes = obj.MeshEntity.Meshes;
+        Mesh[] meshes = meshComponent.Entity.Meshes;
         if (meshes == null) return false;
 
-        Sphere boundSphere = obj.BoundingSphere;
+        Sphere boundSphere = obj.GetBoundingSphere();
         if (!IntersectWithSphere(boundSphere, out Vector3 _, out Vector3 _)) return false;
 
         // Used when closest == true
@@ -60,7 +62,7 @@ public struct Ray3D
         for (var i = 0; i < meshes.Length; i++)
         {
             Mesh mesh = meshes[i];
-            if (IntersectWithObjectMesh(obj, i, out collisionPoint, out normal, out triangleIndex))
+            if (IntersectWithObjectMesh(obj, meshComponent, i, out collisionPoint, out normal, out triangleIndex))
             {
                 if (closest)
                 {
@@ -132,13 +134,14 @@ public struct Ray3D
         return intersectionFound;
     }
 
-    private bool IntersectWithObjectMesh(MapObjectMesh obj, int meshIdx, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+    private bool IntersectWithObjectMesh(GameObject obj, MeshComponent meshComponent,
+        int meshIdx, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
     {
         collisionPoint = Vector3.Zero;
         normal = Vector3.Zero;
         triangleIndex = -1;
 
-        Mesh[] meshes = obj.MeshEntity.Meshes;
+        Mesh[] meshes = meshComponent.Entity.Meshes;
         Mesh mesh = meshes[meshIdx];
 
         var closestDistance = float.MaxValue;

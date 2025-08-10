@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Game.World;
+using Emotion.Game.World.Components;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Standard.MeshGenerators;
@@ -12,7 +13,7 @@ using Emotion.Standard.MeshGenerators;
 namespace Emotion.Editor.EditorUI.MapObjectEditor;
 
 [DontSerialize]
-public class TranslationGizmo : MapObjectMesh
+public class TranslationGizmo : GameObject
 {
     public int Alpha = 200;
     //public int SnapSize = 50;
@@ -25,7 +26,7 @@ public class TranslationGizmo : MapObjectMesh
     /// <summary>
     /// The object the gizmo is currently affecting.
     /// </summary>
-    public MapObject? Target { get; protected set; }
+    public GameObject? Target { get; protected set; }
 
     public Mesh XAxis { get; protected set; }
 
@@ -35,8 +36,8 @@ public class TranslationGizmo : MapObjectMesh
 
     public Mesh ZPlane { get; protected set; }
 
-    public Action<MapObject, Vector3, Vector3>? TargetMoved;
-    public Action<MapObject>? TargetStartMoving;
+    public Action<GameObject, Vector3, Vector3>? TargetMoved;
+    public Action<GameObject>? TargetStartMoving;
 
     protected bool _startMovingEventFired;
 
@@ -62,7 +63,10 @@ public class TranslationGizmo : MapObjectMesh
         //    mesh.Material.DiffuseColor = mesh.Material.DiffuseColor.SetAlpha(100);
         //}
 
-        SetEntity(translationGizmoEntity);
+        var meshComponent = new MeshComponent(translationGizmoEntity);
+        AddComponent(meshComponent);
+
+        //SetEntity(translationGizmoEntity);
         //RenderState.CustomRenderState
         //RenderState.CustomObjectFlags
         Scale3D = new Vector3(0.1f);
@@ -184,9 +188,9 @@ public class TranslationGizmo : MapObjectMesh
             if (_meshMouseover != null && status == KeyState.Down)
             {
                 _dragPointStart = GetPointAlongPlane();
-                _positionMoveStart = Position;
-                _virtualPos = Position;
-                _dragPointStartAbsolute = Position;
+                _positionMoveStart = Position3D;
+                _virtualPos = Position3D;
+                _dragPointStartAbsolute = Position3D;
                 return false;
             }
 
@@ -201,21 +205,18 @@ public class TranslationGizmo : MapObjectMesh
         return true;
     }
 
-    public void SetTarget(MapObject? target)
+    public void SetTarget(GameObject? target)
     {
         Target = target;
         if (target != null)
         {
-            Position = target.Position;
+            Position3D = target.Position3D;
 
             float height = 35;
             float targetHeight = 35;
-            if (Target is MapObjectMesh g3D)
-            {
-                targetHeight = g3D.BoundingSphere.Radius / 2f;
-                targetHeight = Math.Max(targetHeight, 5f);
-                targetHeight = Math.Min(targetHeight, 300f);
-            }
+            targetHeight = target.GetBoundingSphere().Radius / 2f;
+            targetHeight = Math.Max(targetHeight, 5f);
+            targetHeight = Math.Min(targetHeight, 300f);
 
             float scale = targetHeight / height;
             Scale3D = new Vector3(scale);
@@ -234,7 +235,7 @@ public class TranslationGizmo : MapObjectMesh
         if (_dragPointStart == Vector3.Zero)
         {
             Ray3D ray = camera.GetCameraMouseRay();
-            ray.IntersectWithObject(this, out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _, true);
+            ray.IntersectWithObject(this, this.GetComponent<MeshComponent>(), out Mesh? collidedMesh, out Vector3 _, out Vector3 _, out int _, true);
 
             if (_meshMouseover != collidedMesh)
             {
@@ -253,10 +254,10 @@ public class TranslationGizmo : MapObjectMesh
             _dragPointStart = newPoint;
 
             Vector3 targetPos = _virtualPos;
-            Position = _virtualPos;
+            Position3D = _virtualPos;
             if (Target != null)
             {
-                Target.Position = targetPos;
+                Target.Position3D = targetPos;
                 TargetMoved?.Invoke(Target, _dragPointStartAbsolute, targetPos);
 
                 if (!_startMovingEventFired && change != Vector3.Zero)
@@ -268,7 +269,7 @@ public class TranslationGizmo : MapObjectMesh
         }
 
         if (Target != null && _dragPointStart == Vector3.Zero)
-            Position = Target.Position;
+            Position3D = Target.Position3D;
     }
 
     private Vector3 GetPointAlongPlane()
@@ -281,7 +282,7 @@ public class TranslationGizmo : MapObjectMesh
         Vector3 intersection;
         if (_meshMouseover.Name == "Z-Plane")
         {
-            intersection = ray.IntersectWithPlane(new Vector3(0, 0, 1), Position);
+            intersection = ray.IntersectWithPlane(new Vector3(0, 0, 1), Position3D);
         }
         else
         {
@@ -294,14 +295,14 @@ public class TranslationGizmo : MapObjectMesh
                 axis = Graphics.Renderer.ZAxis;
 
             // Find plane that contains the axis and faces the camera.
-            Vector3 planeTangent = Vector3.Cross(axis, Position - camera.Position);
+            Vector3 planeTangent = Vector3.Cross(axis, Position3D - camera.Position);
             Vector3 planeNormal = Vector3.Cross(axis, planeTangent);
             planeNormal = planeNormal.SafeNormalize();
 
-            intersection = ray.IntersectWithPlane(planeNormal, Position);
+            intersection = ray.IntersectWithPlane(planeNormal, Position3D);
 
             // Limit movement along axis
-            intersection = Position + axis * Vector3.Dot(intersection - Position, axis);
+            intersection = Position3D + axis * Vector3.Dot(intersection - Position3D, axis);
         }
 
         return intersection;

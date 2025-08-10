@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Game.Systems.UI;
-using Emotion.Game.World;
 
 namespace Emotion.Core.Systems.Scenography;
 
@@ -35,7 +34,7 @@ public abstract class Scene
 
     }
 
-    public virtual void RenderScene(Renderer c)
+    public virtual void RenderScene(Renderer r)
     {
 
     }
@@ -68,7 +67,7 @@ public abstract class SceneWithMap : Scene
     {
         Status = SceneStatus.Loading;
         yield return InternalLoadSceneRoutineAsync();
-        yield return Map.LoadRoutine();
+        yield return Map.InitRoutine();
 
         // todo: preload ui assets or something
         //yield return new TaskRoutineWaiter(Engine.UI.PreloadUI());
@@ -88,9 +87,9 @@ public abstract class SceneWithMap : Scene
         Map.Update(dt);
     }
 
-    public override void RenderScene(Renderer c)
+    public override void RenderScene(Renderer r)
     {
-        Map.Render(c);
+        Map.Render(r);
     }
 
     #region Map Helpers

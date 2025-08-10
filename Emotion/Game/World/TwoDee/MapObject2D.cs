@@ -2,7 +2,7 @@
 
 namespace Emotion.Game.World.TwoDee;
 
-public class MapObject2D : MapObject
+public class MapObject2D : GameObject
 {
     #region Transform
 
@@ -16,7 +16,7 @@ public class MapObject2D : MapObject
     [DontSerialize]
     public Vector2 BoundingRectCenter
     {
-        get => BoundingRect.Center;
+        get => GetBoundingRect().Center;
         set
         {
             _x = value.X - _scaleX / 2;
@@ -26,15 +26,14 @@ public class MapObject2D : MapObject
         }
     }
 
-    [DontSerialize]
-    public override Rectangle BoundingRect
+    public override Rectangle GetBoundingRect()
     {
-        get => new Rectangle(_x, _y, _scaleX, _scaleY);
+        return new Rectangle(_x, _y, _scaleX, _scaleY);
     }
 
-    public override Cube BoundingCube
+    public override Cube GetBoundingCube()
     {
-        get => new Cube(BoundingRect.Center.ToVec3(Z), new Vector3(_scaleX / 2f, _scaleY / 2f, 0.5f));
+        return new Cube(GetBoundingRect().Center.ToVec3(Z), new Vector3(_scaleX / 2f, _scaleY / 2f, 0.5f));
     }
 
     public void SetBoundingRect(Rectangle rect)

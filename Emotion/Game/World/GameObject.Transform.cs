@@ -1,13 +1,17 @@
 ﻿#nullable enable
 
 using Emotion.Editor;
+using Emotion.Game.World.Components;
 using Emotion.Primitives.DataStructures.OctTree;
 using System.Runtime.CompilerServices;
 
 namespace Emotion.Game.World;
 
-public partial class MapObject : IOctTreeStorable
+public partial class GameObject : IOctTreeStorable
 {
+    [DontSerialize]
+    private IGameObjectTransformProvider _transformProvider = new DefaultGameObjectTransformProvider();
+
     #region Properties
 
     /// <summary>
@@ -141,13 +145,13 @@ public partial class MapObject : IOctTreeStorable
 
     #endregion
 
-    #region Derived Properties
+    #region Higher Order Properties
 
     /// <summary>
     /// The position within 3D space.
     /// This is the property that is serialized.
     /// </summary>
-    public Vector3 Position
+    public Vector3 Position3D
     {
         get => new Vector3(_x, _y, _z);
         set
@@ -218,20 +222,27 @@ public partial class MapObject : IOctTreeStorable
     #region Bounds
 
     /// <summary>
-    /// Rectangle that encompasses the object.
+    /// An axis aligned 2D rectangle that encompasses the object.
     /// </summary>
-    [DontSerialize]
-    public virtual Rectangle BoundingRect
+    public virtual Rectangle GetBoundingRect()
     {
-        get => new Primitives.Rectangle(0, 0, 1, 1);
+        return _transformProvider.GetBoundingRect(this);
     }
 
     /// <summary>
     /// An axis aligned 3D cube that encompasses the object.
     /// </summary>
-    public virtual Cube BoundingCube
+    public virtual Cube GetBoundingCube()
     {
-        get => new Cube(Vector3.Zero, Vector3.One / 2f);
+        return _transformProvider.GetBoundingCube(this);
+    }
+
+    /// <summary>
+    /// Returns the sphere that encompasses the object.
+    /// </summary>
+    public virtual Sphere GetBoundingSphere()
+    {
+        return _transformProvider.GetBoundingSphere(this);
     }
 
     #endregion
@@ -241,17 +252,17 @@ public partial class MapObject : IOctTreeStorable
     /// <summary>
     /// Is invoked when the object moves.
     /// </summary>
-    public event Action<MapObject>? OnMove;
+    public event Action<GameObject>? OnMove;
 
     /// <summary>
     /// Is invoked when the object's scale changes.
     /// </summary>
-    public event Action<MapObject>? OnResize;
+    public event Action<GameObject>? OnResize;
 
     /// <summary>
     /// Is invoked when the object's rotation changes.
     /// </summary>
-    public event Action<MapObject>? OnRotate;
+    public event Action<GameObject>? OnRotate;
 
     #endregion
 
@@ -275,6 +286,55 @@ public partial class MapObject : IOctTreeStorable
     protected Matrix4x4 _rotationMatrix;
     protected Matrix4x4 _scaleMatrix;
     protected Matrix4x4 _translationMatrix;
+
+    public virtual Matrix4x4 GetModelMatrix(bool ignoreRotation = false)
+    {
+        if (_modelMatrixDirty)
+        {
+            _modelMatrix = CalculateModelMatrix();
+            _modelMatrixDirty = false;
+        }
+
+        return _modelMatrix;
+    }
+
+    public Matrix4x4 GetModelMatrixScale()
+    {
+        if (_modelMatrixDirty)
+        {
+            _modelMatrix = CalculateModelMatrix();
+            _modelMatrixDirty = false;
+        }
+
+        return _scaleMatrix;
+    }
+
+    public Matrix4x4 GetModelMatrixRotation()
+    {
+        if (_modelMatrixDirty)
+        {
+            _modelMatrix = CalculateModelMatrix();
+            _modelMatrixDirty = false;
+        }
+
+        return _rotationMatrix;
+    }
+
+    public Matrix4x4 GetModelMatrixTranslation()
+    {
+        if (_modelMatrixDirty)
+        {
+            _modelMatrix = CalculateModelMatrix();
+            _modelMatrixDirty = false;
+        }
+
+        return _translationMatrix;
+    }
+
+    protected Matrix4x4 CalculateModelMatrix()
+    {
+        return _transformProvider.CalculateModelMatrix(this, out _scaleMatrix, out _rotationMatrix, out _translationMatrix);
+    }
 
     #endregion
 
@@ -302,40 +362,13 @@ public partial class MapObject : IOctTreeStorable
         InvalidateModelMatrix();
     }
 
-    protected virtual void InvalidateModelMatrix()
+    public void InvalidateModelMatrix()
     {
+        _transformProvider.OnModelMatrixInvalidated();
         _modelMatrixDirty = true;
     }
 
-    public virtual Matrix4x4 GetModelMatrix(bool ignoreRotation = false)
-    {
-        if (_modelMatrixDirty)
-        {
-            _modelMatrix = UpdateModelMatrix();
-            _modelMatrixDirty = false;
-        }
-
-        return _modelMatrix;
-    }
-
-    public virtual Matrix4x4 GetModelMatrixRotation()
-    {
-        if (_modelMatrixDirty)
-        {
-            _modelMatrix = UpdateModelMatrix();
-            _modelMatrixDirty = false;
-        }
-
-        return _rotationMatrix;
-    }
-
-    protected virtual Matrix4x4 UpdateModelMatrix()
-    {
-        _translationMatrix = Matrix4x4.CreateTranslation(_x, _y, _z);
-        _rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(_rotation.Y, _rotation.X, _rotation.Z);
-        _scaleMatrix = Matrix4x4.CreateScale(_scaleX, _scaleY, _scaleZ);
-        return _scaleMatrix * _rotationMatrix * _translationMatrix;
-    }
+    #region Helpers
 
     public Vector3 RotateVectorToObjectFacing(Vector3 vec)
     {
@@ -347,11 +380,31 @@ public partial class MapObject : IOctTreeStorable
         return Vector3.Transform(vec.ToVec3(), Matrix4x4.CreateRotationZ(_rotation.Z)).ToVec2();
     }
 
+    public Vector3 GetForwardModelSpace()
+    {
+        return _transformProvider.GetForwardModelSpace(); 
+    }
+
+    public void RotateToFacePoint(Vector3 pt)
+    {
+        Vector3 forward = GetForwardModelSpace();
+
+        Vector3 direction = Vector3.Normalize(pt - Position3D);
+        float angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
+        if (float.IsNaN(angle)) angle = 0;
+
+        Vector3 rotation = Rotation;
+        rotation.Z = angle;
+        Rotation = rotation;
+    }
+
+    #endregion
+
     #region Interfaces
 
     public Cube GetOctTreeBound()
     {
-        return BoundingCube;
+        return GetBoundingCube();
     }
 
     #endregion

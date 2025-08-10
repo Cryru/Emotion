@@ -18,7 +18,7 @@ public class MinecraftMovementController
 
     public float CursorReach = 4f;
 
-    private MapObject? _character;
+    private GameObject? _character;
     private Vector2 _input;
 
     private Camera3D _camera = new Camera3D(Vector3.Zero)
@@ -47,7 +47,7 @@ public class MinecraftMovementController
         EngineEditor.AddEditorVisualization(this, "View Character Bounds", (c) =>
         {
             if (_character == null) return;
-            Cube characterCube = _character.BoundingCube;
+            Cube characterCube = _character.GetBoundingCube();
             characterCube.RenderOutline(c, Color.PrettyOrange, 0.01f);
         });
         EngineEditor.AddEditorVisualization(this, "View Placement Cursor", (c) =>
@@ -73,7 +73,7 @@ public class MinecraftMovementController
             VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
             if (voxelTerrain == null) return string.Empty;
 
-            var characterPos = _character.Position;
+            var characterPos = _character.Position3D;
             var characterTilePos = voxelTerrain.GetTilePos3DOfWorldPos(characterPos);
             voxelTerrain.GetChunkAt(characterTilePos.ToVec2(), out Vector2 chunkCoord, out Vector2 tileRelativeCoord);
             return $"Player@ {characterTilePos} (Chunk: {chunkCoord}, Relative: {tileRelativeCoord})\nCursor@ {TilePosOfCursor}";
@@ -87,7 +87,7 @@ public class MinecraftMovementController
         EngineEditor.RemoveEditorVisualizations(this);
     }
 
-    public void SetCharacter(MapObject obj)
+    public void SetCharacter(GameObject obj)
     {
         _character = obj;
     }
@@ -154,10 +154,10 @@ public class MinecraftMovementController
                 _velocityZ = 0; // Kill upwards velocity.
         }
 
-        _character.Position += safeMovement;
+        _character.Position3D += safeMovement;
         if (_character.Z < 0) _character.Z = 0;
 
-        Cube playerCube = _character.BoundingCube;
+        Cube playerCube = _character.GetBoundingCube();
         _camera.Position = playerCube.Origin + new Vector3(0, 0, playerCube.HalfExtents.Z - 0.1f);
 
         // Find cube pointing at
@@ -166,7 +166,7 @@ public class MinecraftMovementController
         if (voxelTerrain != null)
         {
             Ray3D mouseRay = _camera.GetCameraMouseRay();
-            if (voxelTerrain.CollideRay(mouseRay, out Vector3 collision, out Vector3 surfaceNormal) && Vector3.Distance(_character.Position, collision) < CursorReach)
+            if (voxelTerrain.CollideRay(mouseRay, out Vector3 collision, out Vector3 surfaceNormal) && Vector3.Distance(_character.Position3D, collision) < CursorReach)
             {
                 TilePosOfCursor = voxelTerrain.GetTilePos3DOfWorldPos(collision + mouseRay.Direction * 0.01f);
                 PlacementPosCursor = voxelTerrain.GetTilePos3DOfWorldPos(collision + surfaceNormal * 0.01f);
@@ -211,9 +211,7 @@ public class MinecraftMovementController
         GameMap? map = _character.Map;
         if (map == null) return Vector3.Zero;
 
-        if (_character is not MapObjectMesh meshObj) return Vector3.Zero;
-
-        Cube moverCube = meshObj.BoundingCube;
-        return map.SweepCube(moverCube, moveAmount, meshObj);
+        Cube moverCube = _character.GetBoundingCube();
+        return map.SweepCube(moverCube, moveAmount, _character);
     }
 }

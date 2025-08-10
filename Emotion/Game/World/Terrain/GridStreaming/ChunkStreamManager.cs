@@ -16,7 +16,7 @@ public class ChunkStreamManager
     /// </summary>
     public int RenderRange { get; init; }
 
-    private List<MapObject> _streamActors = new();
+    private List<GameObject> _streamActors = new();
 
     private HashSet<Vector2> _chunksTouched = new HashSet<Vector2>(256);
     private Dictionary<Vector2, ChunkState> _chunkRequestState = new(64);
@@ -30,7 +30,7 @@ public class ChunkStreamManager
         RenderRange = renderRange;
     }
 
-    public void AddStreamActor(MapObject actor)
+    public void AddStreamActor(GameObject actor)
     {
         lock (_streamActors)
         {
@@ -38,7 +38,7 @@ public class ChunkStreamManager
         }
     }
 
-    public void RemoveStreamActor(MapObject actor)
+    public void RemoveStreamActor(GameObject actor)
     {
         lock (_streamActors)
         {
@@ -50,7 +50,7 @@ public class ChunkStreamManager
     {
         lock (_streamActors)
         {
-            foreach (MapObject actor in _streamActors)
+            foreach (GameObject actor in _streamActors)
             {
                 yield return actor.Position2D;
             }
@@ -67,7 +67,7 @@ public class ChunkStreamManager
 
         lock (_streamActors)
         {
-            foreach (MapObject actor in _streamActors)
+            foreach (GameObject actor in _streamActors)
                 PromoteChunksAround(grid, actor.Position2D, SimulationRange, RenderRange);
         }
 

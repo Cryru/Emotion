@@ -4,6 +4,7 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.World.Components;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
@@ -250,7 +251,7 @@ public sealed class MeshEntityBatchRenderer
     }
 
     // flatten the hierarchy
-    public void SubmitObjectForRendering(MapObjectMesh meshObj, MeshEntity entity, MeshEntityMetaState renderState)
+    public void SubmitObjectForRendering(MeshComponent meshComponent, MeshEntity entity, MeshEntityMetaState renderState)
     {
         if (!_inScene) return;
 
@@ -264,7 +265,7 @@ public sealed class MeshEntityBatchRenderer
         Mesh[]? meshes = entity.Meshes;
         if (meshes == null) return;
 
-        Matrix4x4 objModelMatrix = meshObj.GetModelMatrix();
+        Matrix4x4 objModelMatrix = renderState.ModelMatrix;
 
         // Objects can contain multiple meshes and they will refer to this.
         ref RenderInstanceObjectData objectInstance = ref _objectDataPool.Allocate(out int indexOfThisObjectData);
