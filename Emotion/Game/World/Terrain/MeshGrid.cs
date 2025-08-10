@@ -28,7 +28,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     {
         TileSize = tileSize;
 
-        if (ChunkStreamManager != null)
+        if (ChunkStreamManager == null)
         {
             int factor = (int)MathF.Max(tileSize.Y, tileSize.X);
             ChunkStreamManager = new ChunkStreamManager(512 * factor, 512 * factor);
