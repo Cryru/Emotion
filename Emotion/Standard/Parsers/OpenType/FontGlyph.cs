@@ -50,6 +50,10 @@ public class FontGlyph
     public float AdvanceWidth;
     public float LeftSideBearing;
 
+    public float ONE_Width { get => Max.X - Min.X; }
+    public float ONE_Height { get => Max.Y - Min.Y; }
+    public float TopSideBearing { get => Max.Y; }
+
     public Vector2 Min;
     public Vector2 Max;
 
