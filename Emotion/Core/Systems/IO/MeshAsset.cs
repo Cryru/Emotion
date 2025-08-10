@@ -8,7 +8,7 @@ using Emotion.Game.World.ThreeDee;
 using Emotion.Standard.Parsers.GLTF;
 
 #if MORE_MESH_TYPES
-using Emotion.Standard.Assimp;
+using Emotion.Standard.Parsers.Assimp;
 #endif
 
 #endregion
@@ -20,7 +20,7 @@ namespace Emotion.Core.Systems.IO;
 /// Automatically matches to the file type and can conditionally use ASSIMP to support more formats.
 /// .em3 is recommended for release mode loading.
 /// </summary>
-public class MeshAsset : Asset
+public class MeshAsset : Asset, IAssetContainingObject<MeshEntity>
 {
     public MeshEntity? Entity { get; protected set; }
 
@@ -34,7 +34,7 @@ public class MeshAsset : Asset
         string directoryName = AssetLoader.GetDirectoryName(Name);
 
         MeshEntity? entity = null;
-        if (Name.Contains(".gltf"))
+        if (Name.EndsWith(".gltf"))
         {
             GLTFDocument? gltfDoc = GLTFFormat.Decode(data);
             if (gltfDoc != null)
@@ -96,5 +96,10 @@ public class MeshAsset : Asset
     protected override void DisposeInternal()
     {
 
+    }
+
+    public MeshEntity? GetObject()
+    {
+        return Entity;
     }
 }

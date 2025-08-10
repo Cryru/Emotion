@@ -2,6 +2,8 @@
 
 #region Using
 
+using Emotion.Standard.Memory;
+using Silk.NET.Assimp;
 using System.IO;
 using System.Runtime.InteropServices;
 using File = Silk.NET.Assimp.File;

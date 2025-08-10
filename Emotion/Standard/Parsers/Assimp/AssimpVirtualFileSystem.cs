@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
+using Silk.NET.Assimp;
 
 namespace Emotion.Standard.Parsers.Assimp;
 

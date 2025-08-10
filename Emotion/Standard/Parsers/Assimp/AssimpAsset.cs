@@ -10,6 +10,11 @@ using AssMesh = Silk.NET.Assimp.Mesh;
 using Emotion.Graphics.Assets;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Core.Systems.IO;
+using Silk.NET.Assimp;
+using Emotion.Game.Systems.Animation.ThreeDee;
+using Texture = Emotion.Graphics.Objects.Texture;
+using Emotion.Core.Utility.Threading;
+using Mesh = Emotion.Game.World.ThreeDee.Mesh;
 
 #endregion
 
@@ -499,7 +504,7 @@ public static class AssimpFormat
             {
                 meshData[i] = new VertexDataMesh3DExtra
                 {
-                    Normal = RenderComposer.Up
+                    Normal = Renderer.Up
                 };
             }
         }
