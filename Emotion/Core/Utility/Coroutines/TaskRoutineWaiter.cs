@@ -1,31 +1,28 @@
-﻿#region Using
+﻿#nullable enable
 
 using System.Threading.Tasks;
 
-#endregion
+namespace Emotion.Core.Utility.Coroutines;
 
-namespace Emotion.Core.Utility.Coroutines
+/// <summary>
+/// Used to wait for a task in a coroutine continuously.
+/// Better used for shorter running tasks.
+/// </summary>
+public class TaskRoutineWaiter : IRoutineWaiter
 {
-    /// <summary>
-    /// Used to wait for a task in a coroutine continuously.
-    /// Better used for shorter running tasks.
-    /// </summary>
-    public class TaskRoutineWaiter : IRoutineWaiter
+    public bool Finished
     {
-        public bool Finished
-        {
-            get => _task.IsCompleted;
-        }
+        get => _task.IsCompleted;
+    }
 
-        private readonly Task _task;
+    private readonly Task _task;
 
-        public TaskRoutineWaiter(Task task)
-        {
-            _task = task;
-        }
+    public TaskRoutineWaiter(Task task)
+    {
+        _task = task;
+    }
 
-        public void Update()
-        {
-        }
+    public void Update()
+    {
     }
 }

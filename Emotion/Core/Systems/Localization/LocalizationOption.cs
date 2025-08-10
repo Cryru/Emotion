@@ -1,7 +1,6 @@
-﻿using Emotion.Core.Systems.IO;
-using Emotion.Game.Systems.GameData;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Core.Systems.IO;
 
 namespace Emotion.Core.Systems.Localization;
 

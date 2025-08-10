@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion;
-
 namespace Emotion.Core.Utility.Coroutines;
 
 /// <summary>

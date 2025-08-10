@@ -1,86 +1,85 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using System.Net.Sockets;
 using System.Text;
 
 #endregion
 
-#nullable enable
+namespace Emotion.Core.Systems.Logging;
 
-namespace Emotion.Core.Systems.Logging
+/// <summary>
+/// A network logger which logs remotely using UDP. Supports www.papertrailapp.com
+/// </summary>
+public sealed class UDPNetworkLogger : LoggingProvider
 {
+    private string _hostName;
+    private int _port;
+    private string _userId;
+    private UdpClient _udpClient;
+    private bool _disposed;
+
     /// <summary>
-    /// A network logger which logs remotely using UDP. Supports www.papertrailapp.com
+    /// Create a network logger, with the provided remote host.
     /// </summary>
-    public sealed class UDPNetworkLogger : LoggingProvider
+    /// <param name="host">The host to connect to.</param>
+    /// <param name="port">The port.</param>
+    /// <param name="userId">The unique id of the user.</param>
+    public UDPNetworkLogger(string host, int port, string userId)
     {
-        private string _hostName;
-        private int _port;
-        private string _userId;
-        private UdpClient _udpClient;
-        private bool _disposed;
-
-        /// <summary>
-        /// Create a network logger, with the provided remote host.
-        /// </summary>
-        /// <param name="host">The host to connect to.</param>
-        /// <param name="port">The port.</param>
-        /// <param name="userId">The unique id of the user.</param>
-        public UDPNetworkLogger(string host, int port, string userId)
-        {
-            _udpClient = new UdpClient();
-            _hostName = host;
-            _port = port;
-            _userId = userId;
-        }
-
-        /// <inheritdoc />
-        public override void Log(MessageType type, string source, string message)
-        {
-            Send(type, source, $"[{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}");
-        }
-
-        /// <inheritdoc />
-        public override void Dispose()
-        {
-            _udpClient.Dispose();
-            _disposed = true;
-        }
-
-        #region Networking
-
-        /// <summary>
-        /// Send the log to the remote host.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        /// <param name="sender">The sender of the message.</param>
-        /// <param name="message">The message itself.</param>
-        /// <return>Whether the message was sent. (Doesn't mean it was received.)</return>
-        private bool Send(MessageType logLevel, string sender, string message)
-        {
-            if (_disposed)
-                return false;
-
-            // Check if no host or port are configured.
-            if (string.IsNullOrWhiteSpace(_hostName) || _port == 0)
-                return false;
-
-            var dateTime = DateTime.UtcNow.ToString("s");
-            message = $"<{16 * 8 + (int) logLevel}>{dateTime} {_userId} {logLevel} {sender} {message}";
-            byte[] bytes = Encoding.UTF8.GetBytes(message);
-            
-            try
-            {
-                _udpClient.SendAsync(bytes, bytes.Length, _hostName, _port);
-            }
-            catch (Exception)
-            {
-                // nop
-            }
-            
-            return true;
-        }
-
-        #endregion
+        _udpClient = new UdpClient();
+        _hostName = host;
+        _port = port;
+        _userId = userId;
     }
+
+    /// <inheritdoc />
+    public override void Log(MessageType type, string source, string message)
+    {
+        Send(type, source, $"[{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}");
+    }
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        _udpClient.Dispose();
+        _disposed = true;
+    }
+
+    #region Networking
+
+    /// <summary>
+    /// Send the log to the remote host.
+    /// </summary>
+    /// <param name="logLevel">The log level.</param>
+    /// <param name="sender">The sender of the message.</param>
+    /// <param name="message">The message itself.</param>
+    /// <return>Whether the message was sent. (Doesn't mean it was received.)</return>
+    private bool Send(MessageType logLevel, string sender, string message)
+    {
+        if (_disposed)
+            return false;
+
+        // Check if no host or port are configured.
+        if (string.IsNullOrWhiteSpace(_hostName) || _port == 0)
+            return false;
+
+        var dateTime = DateTime.UtcNow.ToString("s");
+        message = $"<{16 * 8 + (int) logLevel}>{dateTime} {_userId} {logLevel} {sender} {message}";
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        
+        try
+        {
+            _udpClient.SendAsync(bytes, bytes.Length, _hostName, _port);
+        }
+        catch (Exception)
+        {
+            // nop
+        }
+        
+        return true;
+    }
+
+    #endregion
 }

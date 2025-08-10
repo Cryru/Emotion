@@ -1,28 +1,25 @@
-﻿#region Using
+﻿#nullable enable
 
-#endregion
+namespace Emotion.Core.Systems.Scenography;
 
-namespace Emotion.Core.Systems.Scenography
+/// <inheritdoc />
+/// <summary>
+/// The default loading scene.
+/// </summary>
+public class DefaultLoadingScene : Scene
 {
-    /// <inheritdoc />
-    /// <summary>
-    /// The default loading scene.
-    /// </summary>
-    public class DefaultLoadingScene : Scene
+    public override IEnumerator LoadSceneRoutineAsync()
     {
-        public override IEnumerator LoadSceneRoutineAsync()
-        {
-            yield break;
-        }
+        yield break;
+    }
 
-        public override void UpdateScene(float dt)
-        {
+    public override void UpdateScene(float dt)
+    {
 
-        }
+    }
 
-        public override void RenderScene(Renderer c)
-        {
-            
-        }
+    public override void RenderScene(Renderer c)
+    {
+        
     }
 }

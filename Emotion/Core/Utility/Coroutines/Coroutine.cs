@@ -1,22 +1,8 @@
-﻿#region Using
-
-
-
-
-
-
-
-
-
-
+﻿#nullable enable
 
 #if DEBUG
 using System.Reflection;
 #endif
-
-#endregion
-
-#nullable enable
 
 namespace Emotion.Core.Utility.Coroutines;
 

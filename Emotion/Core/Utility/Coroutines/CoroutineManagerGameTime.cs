@@ -1,4 +1,6 @@
-﻿namespace Emotion.Core.Utility.Coroutines;
+﻿#nullable enable
+
+namespace Emotion.Core.Utility.Coroutines;
 
 public class CoroutineManagerGameTime : CoroutineManager
 {

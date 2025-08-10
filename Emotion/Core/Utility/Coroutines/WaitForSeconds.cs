@@ -1,4 +1,6 @@
-﻿using Emotion.Core.Utility.Time;
+﻿#nullable enable
+
+using Emotion.Core.Utility.Time;
 
 namespace Emotion.Core.Utility.Coroutines
 {
