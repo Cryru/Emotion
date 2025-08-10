@@ -257,13 +257,30 @@ namespace Emotion.SourceGeneration
             "Emotion.Core.Systems.Audio",
             "Emotion.Standard.Reflector",
             "Emotion.Editor",
+            "Emotion.Testing",
 
             "System",
-            "StbTrueTypeSharp"
+            "StbTrueTypeSharp",
+            "NewStbTrueTypeSharp"
         };
 
-        public static bool IsExcludedNamespace(string namespac)
+        private static string[] _allowNamespacesWhenReferenced = new string[]
         {
+            "System",
+        };
+
+        public static bool IsExcludedNamespace(string namespac, bool isMember = false)
+        {
+            if (isMember)
+            {
+                for (int i = 0; i < _allowNamespacesWhenReferenced.Length; i++)
+                {
+                    string namespaceAllowMember = _allowNamespacesWhenReferenced[i];
+                    if (namespac.StartsWith(namespaceAllowMember))
+                        return false;
+                }
+            }
+
             for (int i = 0; i < _excludedNamespacesSubSpaces.Length; i++)
             {
                 string namespaceExclusion = _excludedNamespacesSubSpaces[i];
@@ -273,6 +290,7 @@ namespace Emotion.SourceGeneration
 
             return false;
         }
+
 
         public static string GetSafeName(string name)
         {

@@ -31,7 +31,7 @@ namespace Emotion.SourceGeneration
             if (nameSpace != null)
             {
                 string displayStr = nameSpace.ToDisplayString();
-                if (IsExcludedNamespace(displayStr)) return;
+                if (IsExcludedNamespace(displayStr, true)) return;
             }
 
             // todo: gotta figure out what to do with nullables
