@@ -14,25 +14,16 @@ namespace Tests.EngineTests;
 
 public class Render3DTests : TestingScene
 {
-    private MeshEntity _testEntity = null!;
     private GameMap _gameMap = null!;
 
     public override IEnumerator LoadSceneRoutineAsync()
     {
-        MeshAsset? meshEntityRef = Engine.AssetLoader.ONE_Get<MeshAsset>("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
-        yield return meshEntityRef;
-
-        Assert.NotNull(meshEntityRef);
-        Assert.NotNull(meshEntityRef.Entity);
-
-        _testEntity = meshEntityRef.Entity;
-
-        MapObjectMesh obj = new MapObjectMesh(_testEntity);
+        GameObject obj = GameObject.NewMeshObject("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
         obj.Scale3D = new Vector3(100);
 
         _gameMap = new GameMap();
         _gameMap.AddObject(obj);
-        yield return _gameMap.LoadRoutine();
+        yield return _gameMap.InitRoutine();
 
         yield return base.LoadSceneRoutineAsync();
     }
