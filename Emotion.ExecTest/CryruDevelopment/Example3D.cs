@@ -8,6 +8,7 @@ using Emotion.Standard.Noise;
 using Emotion.Game.World;
 using System.Collections;
 using System.Numerics;
+using Emotion.Game.World.Components;
 
 namespace Emotion.ExecTest.CryruDevelopment;
 
@@ -59,16 +60,14 @@ public class Example3D : SceneWithMap
 
     public void AddObject(string file, Vector3 pos)
     {
-        var testObj = new MapObjectMesh(file);
+        var testObj = new GameObject();
         testObj.Scale3D = new Vector3(1);
-        testObj.Position = pos;
-        testObj.SetAnimation("Stand [4]");
-        testObj.SetAnimation("Stand (ID 0 variation 0)");
-        Map.AddObject(testObj);
-    }
+        testObj.Position3D = pos;
 
-    public override void RenderScene(Renderer c)
-    {
-        base.RenderScene(c);
+        MeshComponent meshComponent = testObj.AddComponent(new MeshComponent(file));
+        meshComponent.SetAnimation("Stand [4]");
+        meshComponent.SetAnimation("Stand (ID 0 variation 0)");
+
+        Map.AddObject(testObj);
     }
 }

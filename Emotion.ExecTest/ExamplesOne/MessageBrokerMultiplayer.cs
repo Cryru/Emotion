@@ -23,7 +23,7 @@ using Emotion.Game.World;
 
 namespace Emotion.ExecTest;
 
-public class MessageBrokerMultiplayer_TestObject : MapObject
+public class MessageBrokerMultiplayer_TestObject : GameObject
 {
     public int PlayerId;
 
@@ -67,7 +67,7 @@ public class MessageBrokerMultiplayer_TestObject : MapObject
 
     public override void Render(Renderer c)
     {
-        c.RenderSprite(Position, Scale2D, Color);
+        c.RenderSprite(Position3D, Scale2D, Color);
     }
 }
 

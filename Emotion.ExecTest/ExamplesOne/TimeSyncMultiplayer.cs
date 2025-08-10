@@ -23,7 +23,7 @@ using Emotion.Game.World;
 
 namespace Emotion.ExecTest;
 
-public class TimeSyncMultiplayer_TestObject : MapObject
+public class TimeSyncMultiplayer_TestObject : GameObject
 {
     public Vector2 DesiredPosition;
     public int PlayerId;
@@ -68,7 +68,7 @@ public class TimeSyncMultiplayer_TestObject : MapObject
 
     public override void Render(Renderer c)
     {
-        c.RenderSprite(Position, Scale2D, Color);
+        c.RenderSprite(Position3D, Scale2D, Color);
     }
 }
 
@@ -235,7 +235,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             {
                 obj.Position2D = Vector2.Lerp(obj.Position2D, pos.ToVec2(), 0.5f);
 
-                var hsh = (obj.Position.Round().ToString() + Engine.CurrentGameTime.ToString()).GetStableHashCode();
+                var hsh = (obj.Position3D.Round().ToString() + Engine.CurrentGameTime.ToString()).GetStableHashCode();
                 _clientCom.SendTimeSyncHash(hsh);
                 break;
             }
