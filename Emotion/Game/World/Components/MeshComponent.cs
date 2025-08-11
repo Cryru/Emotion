@@ -80,6 +80,9 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider
         _entity = entity ?? Cube.GetEntity();
         _componentInitialized = true;
 
+        if (Object.Name == GameObject.DEFAULT_OBJECT_NAME)
+            Object.Name = _entity.Name;
+
         RenderState = new MeshEntityMetaState(_entity);
 
         _currentAnimation = null;

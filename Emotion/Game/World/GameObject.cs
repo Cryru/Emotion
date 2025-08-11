@@ -16,10 +16,12 @@ public enum GameObjectState
 
 public partial class GameObject
 {
+    public const string DEFAULT_OBJECT_NAME = "Unnamed Object";
+
     /// <summary>
     /// User-friendly name of the object. Doesn't have to be unique.
     /// </summary>
-    public string Name = "Unnamed Object";
+    public string Name = DEFAULT_OBJECT_NAME;
 
     public GameMap? Map { get => _adapter?.Map; }
 
@@ -166,6 +168,7 @@ public partial class GameObject
     public static GameObject NewMeshObject(string entityFile)
     {
         var gameObject = new GameObject();
+        gameObject.Name = entityFile;
         gameObject.AddComponent<MeshComponent>(new MeshComponent(entityFile));
         return gameObject;
     }
