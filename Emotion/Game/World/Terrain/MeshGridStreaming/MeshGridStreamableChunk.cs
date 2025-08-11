@@ -12,7 +12,37 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     where T : struct, IEquatable<T>
     where IndexT : INumber<IndexT>
 {
-    public bool CanBeSimulated { get => State >= ChunkState.HasMesh; }
+    #region DEBUG
+
+    [DontSerialize]
+    public int DEBUG_UpdateVerticesThreadCount = 0;
+
+    #endregion
+
+    /// <summary>
+    /// Used by the streaming logic, dont set manually.
+    /// </summary>
+    [DontSerialize]
+    public bool Busy { get; set; }
+
+    /// <summary>
+    /// Used by streaming logic, dont set manually
+    /// </summary>
+    [DontSerialize]
+    public ChunkState ChangeToState { get; set; }
+
+    public bool CanBeSimulated
+    {
+        get
+        {
+            if (VerticesGeneratedForVersion != -1)
+            {
+                Assert(State >= ChunkState.HasMesh);
+                return true;
+            }
+            return false;
+        }
+    }
 
     [DontSerialize]
     public ChunkState State { get; set; } = ChunkState.DataOnly;
@@ -30,13 +60,7 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     }
 
     [DontSerialize]
-    public bool LoadingStatePromotion { get => !StatePromotionRoutine.Finished; }
-
-    [DontSerialize]
-    public Coroutine StatePromotionRoutine { get; set; } = Coroutine.CompletedRoutine;
-
-    [DontSerialize]
-    public bool GPUDirty = true;
+    public int GPUUploadedVersion = -1;
 
     #region Vertices
 

@@ -70,8 +70,8 @@ public class ChunkStreamVisualizer : EditorWindow
             Color colorIs = GetChunkColorFromState(stateItThinksItsIn);
             c.RenderSprite(chunkPosWorld.ToVec3(0) + new Vector3(chunkSize.X / 2f, 0, 0), new Vector2(chunkSize.X / 2f, chunkSize.Y), colorIs);
 
-            if (chunk.LoadingStatePromotion)
-                c.RenderRectOutline(chunkPosWorld, chunkSize, Color.Blue);
+            if (chunk.Busy)
+                c.RenderSprite(chunkPosWorld, chunkSize, Color.Blue * 0.5f);
 
             if (chunkState == ChunkState.HasGPUData)
                 renderable++;
@@ -90,8 +90,9 @@ public class ChunkStreamVisualizer : EditorWindow
         foreach (Vector2 actorPos in streamer.DebugOnly_ForEachStreamActorPos())
         {
             c.RenderCircle(actorPos.ToVec3(), 5, Color.Magenta);
-            c.RenderCircleOutline(actorPos.ToVec3(), rangeSim, Color.Pink, true);
-            c.RenderCircleOutline(actorPos.ToVec3(), rangeRender, Color.Magenta, true);
+            c.RenderCircleOutline(actorPos.ToVec3(), rangeSim, Color.Yellow, true);
+            c.RenderCircleOutline(actorPos.ToVec3(), rangeSim * 2f, Color.Red, true);
+            c.RenderCircleOutline(actorPos.ToVec3(), rangeRender, Color.Green, true);
         }
 
         c.RenderString(Vector3.Zero, Color.Black, $"Renderable: {renderable}\nSimulated: {simulated}\nLoaded: {loaded}", FontAsset.GetDefaultBuiltIn().GetAtlas(15));

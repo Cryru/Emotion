@@ -1,5 +1,8 @@
 ﻿#nullable enable
 
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Core.Utility.Threading;
+using Emotion.Core.Utility.Time;
 using Emotion.Editor;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.Terrain.GridStreaming;
@@ -10,6 +13,7 @@ using Emotion.Graphics.Memory;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
 using OpenGL;
+using System.Collections.Concurrent;
 
 namespace Emotion.Game.World.Terrain;
 
@@ -65,18 +69,103 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     public void Update(float dt)
     {
+        if (!Initialized) return;
         ChunkStreamManager.Update(this);
-
-        // Update chunk meshes (if any changes)
-        Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasMesh);
-        foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
-        {
-            ChunkT chunk = item.Value;
-            UpdateChunkVertices(item.Key, item.Value);
-        }
+        ProcessChunkUpdateMeshQueue();
     }
 
     public abstract float GetHeightAt(Vector2 worldSpace);
+
+    #endregion
+
+    #region Chunk Update API
+
+    private HashSet<Vector2> _updateChunks = new HashSet<Vector2>(64);
+    private Queue<Vector2> _queuedUpdateChunks = new Queue<Vector2>(64);
+    private Queue<Vector2> _queuedUpdateChunksBB = new Queue<Vector2>(64);
+    private Lock _chunkUpdateLock = new();
+
+    protected override void OnChunkChanged(Vector2 chunkCoord, ChunkT newChunk)
+    {
+        base.OnChunkChanged(chunkCoord, newChunk);
+        RequestChunkMeshUpdate(chunkCoord, newChunk);
+    }
+
+    protected void UpdateDependentChunk(Vector2 chunkCoord, ChunkT newChunk)
+    {
+        RequestChunkMeshUpdate(chunkCoord, newChunk);
+    }
+
+    public void RequestChunkMeshUpdate(Vector2 chunkCoord, ChunkT newChunk)
+    {
+        lock (_chunkUpdateLock)
+        {
+            if (_updateChunks.Add(chunkCoord))
+                _queuedUpdateChunks.Enqueue(chunkCoord);
+        }
+    }
+
+    private IEnumerator UpdateChunkMeshRoutine(Vector2 chunkCoord, ChunkT chunk)
+    {
+        Assert(chunk.Busy);
+
+        yield return CheckStreamingStateChange(chunkCoord, chunk);
+
+        if (chunk.State >= ChunkState.HasMesh)
+        {
+            UpdateChunkVertices(chunkCoord, chunk);
+        }
+        
+        if (chunk.State >= ChunkState.HasGPUData)
+        {
+            yield return GLThread.ExecuteOnGLThreadAsync(static (chunk) =>
+            {
+                // Assert that the chunk is really in this state.
+                Assert(chunk.GPUVertexMemory != null);
+                if (chunk.GPUVertexMemory == null) return;
+
+                Assert(chunk.VertexMemory.Allocated);
+                if (!chunk.VertexMemory.Allocated) return;
+
+                chunk.GPUVertexMemory.VBO.Upload(chunk.VertexMemory, chunk.VerticesUsed);
+                chunk.GPUUploadedVersion = chunk.VerticesGeneratedForVersion;
+            }, chunk);
+        }
+        chunk.Busy = false;
+    }
+
+    private void ProcessChunkUpdateMeshQueue()
+    {
+        lock (_chunkUpdateLock)
+        {
+            Assert(_queuedUpdateChunksBB.Count == 0);
+
+            while (_queuedUpdateChunks.TryDequeue(out Vector2 chunkCoord))
+            {
+                ChunkT? chunk = GetChunk(chunkCoord);
+                if (chunk == null)
+                {
+                    _updateChunks.Remove(chunkCoord);
+                    continue;
+                }
+
+                if (chunk.Busy)
+                {
+                    // Queue back
+                    _queuedUpdateChunksBB.Enqueue(chunkCoord);
+                    continue;
+                }
+
+                chunk.Busy = true;
+                Engine.Jobs.Add(UpdateChunkMeshRoutine(chunkCoord, chunk));
+                _updateChunks.Remove(chunkCoord);
+            }
+
+            (_queuedUpdateChunks, _queuedUpdateChunksBB) = (_queuedUpdateChunksBB, _queuedUpdateChunks);
+            Assert(_queuedUpdateChunksBB.Count == 0);
+            _queuedUpdateChunksBB.Clear();
+        }
+    }
 
     #endregion
 
@@ -273,43 +362,24 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     #region Rendering
 
-    protected int _maxChunksUploadAtOnce = 20;
     protected List<ChunkT> _renderThisPass = new(32);
 
-    // todo: 3d culling
     public virtual void Render(Renderer c, Frustum frustum)
     {
         // Gather chunks to render this pass.
-        int chunksUploaded = 0;
         _renderThisPass.Clear();
         Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasGPUData);
         foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
             ChunkT chunk = item.Value;
-
-            // Assert that the chunk is really in this state.
-            Assert(chunk.GPUVertexMemory != null);
-            if (chunk.GPUVertexMemory == null) continue;
-
-            Assert(chunk.VertexMemory.Allocated);
-            if (!chunk.VertexMemory.Allocated) continue;
-
-            // Upload new data, if dirty (should we do this as a GL task?)
-            // We do this regardless if the chunk is visible to ensure theres no
-            // lag when the player turns around.
-            if (chunk.GPUDirty && chunksUploaded < _maxChunksUploadAtOnce)
+            if (chunk.GPUUploadedVersion != -1)
             {
-                chunksUploaded++;
-                chunk.GPUVertexMemory.VBO.Upload(chunk.VertexMemory, chunk.VerticesUsed);
-                chunk.GPUDirty = false;
-            }
-
-            // Frustum cull
-            Cube bounds = chunk.Bounds;
-            Assert(!bounds.IsEmpty);
-            if (frustum.IntersectsOrContainsCube(bounds))
-            {
-                _renderThisPass.Add(chunk);
+                Cube bounds = chunk.Bounds;
+                Assert(!bounds.IsEmpty);
+                if (frustum.IntersectsOrContainsCube(bounds)) // Frustum cull
+                {
+                    _renderThisPass.Add(chunk);
+                }
             }
         }
 
@@ -335,7 +405,6 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
                 GPUVertexMemory? gpuMem = chunkToRender.GPUVertexMemory;
                 if (gpuMem == null) continue;
-                if (chunkToRender.GPUDirty) continue;
 
                 VertexArrayObject.EnsureBound(gpuMem.VAO);
                 IndexBuffer.EnsureBound(indexBuffer.Pointer);
@@ -368,7 +437,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         GPUMemoryAllocator.FreeBuffer(newChunk.GPUVertexMemory);
     }
 
-    protected abstract void UpdateChunkVertices(Vector2 chunkCoord, ChunkT chunk, bool propagate = true);
+    protected abstract void UpdateChunkVertices(Vector2 chunkCoord, ChunkT chunk);
 
     protected abstract MeshMaterial GetMeshMaterial();
 

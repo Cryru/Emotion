@@ -55,11 +55,15 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
     private const bool HEIGHT_BASED_VERTEX_NORMALS = true;
 
-    protected override void UpdateChunkVertices(Vector2 chunkCoord, TerrainMeshGridChunk chunk, bool propagate = true)
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, TerrainMeshGridChunk chunk)
     {
-        // We already have the latest version of this
-        // If propagate is false we assume that we want to force a rebuild due to neighbours
-        if (chunk.VerticesGeneratedForVersion == chunk.ChunkVersion && chunk.VertexMemory.Allocated && propagate) return;
+#if DEBUG
+        Interlocked.Increment(ref chunk.DEBUG_UpdateVerticesThreadCount);
+        Assert(chunk.DEBUG_UpdateVerticesThreadCount == 1);
+#endif
+
+        int chunkVersionUpdateTo = chunk.ChunkVersion;
+        bool propagate = chunkVersionUpdateTo != chunk.VerticesGeneratedForVersion;
 
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
@@ -89,52 +93,53 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         TerrainMeshGridChunk? chunkTopLeft = GetChunk(topLeftChunkCoord);
         float[] dataTopLeft = chunkTopLeft?.GetRawData() ?? Array.Empty<float>();
 
-        // Propagate changes to stitching chunks
+        // Propagate data changes to stitching chunks.
+        // Note: Chunks shouldnt read from each other's vertices, just data.
         if (propagate)
         {
             TerrainMeshGridChunk? stitchChunk;
 
             // For normals
             if (chunkTopLeft != null && chunkTopLeft.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(topLeftChunkCoord, chunkTopLeft, false);
+                UpdateDependentChunk(topLeftChunkCoord, chunkTopLeft);
 
             // For normals
             if (chunkTop != null && chunkTop.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(topChunkCoord, chunkTop, false);
+                UpdateDependentChunk(topChunkCoord, chunkTop);
 
             // For normals
             Vector2 topRightCoord = chunkCoord + new Vector2(1, -1);
             stitchChunk = GetChunk(topRightCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(topRightCoord, stitchChunk, false);
+                UpdateDependentChunk(topRightCoord, stitchChunk);
 
             // For normals
             if (chunkLeft != null && chunkLeft.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(leftChunkCoord, chunkLeft, false);
+                UpdateDependentChunk(leftChunkCoord, chunkLeft);
 
             // For stitching
             Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
             stitchChunk = GetChunk(rightChunkCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(rightChunkCoord, stitchChunk, false);
+                UpdateDependentChunk(rightChunkCoord, stitchChunk);
 
             // For normals
             Vector2 bottomLeftCoord = chunkCoord + new Vector2(-1, 1);
             stitchChunk = GetChunk(bottomLeftCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(bottomLeftCoord, stitchChunk, false);
+                UpdateDependentChunk(bottomLeftCoord, stitchChunk);
 
             // For stitching
             Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
             stitchChunk = GetChunk(bottomChunkCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(bottomChunkCoord, stitchChunk, false);
+                UpdateDependentChunk(bottomChunkCoord, stitchChunk);
 
             // For stitching
             Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
             stitchChunk = GetChunk(bottomRightChunkCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateChunkVertices(bottomRightChunkCoord, stitchChunk, false);
+                UpdateDependentChunk(bottomRightChunkCoord, stitchChunk);
         }
 
         Vector3 min = Vector3.Zero;
@@ -263,12 +268,14 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         AssertNotNull(_indices);
         AssertNotNull(_indexBuffer);
         chunk.SetIndices(_indices, _indexBuffer, _indicesLength);
-
-        chunk.GPUDirty = true;
         chunk.VerticesUsed = verticesGenerated;
-        chunk.VerticesGeneratedForVersion = chunk.ChunkVersion;
-
         chunk.Bounds = Cube.FromMinAndMax(min, max);
+        chunk.VerticesGeneratedForVersion = chunkVersionUpdateTo;
+
+#if DEBUG
+        Interlocked.Decrement(ref chunk.DEBUG_UpdateVerticesThreadCount);
+        Assert(chunk.DEBUG_UpdateVerticesThreadCount == 0);
+#endif
     }
 
     private static Vector2[] _heightSamplePattern =

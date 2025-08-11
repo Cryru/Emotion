@@ -600,11 +600,10 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         return vIdx;
     }
 
-    protected override void UpdateChunkVertices(Vector2 chunkCoord, VoxelMeshGridChunk chunk, bool propagate = true)
-    {
-        // We already have the latest version of this
-        if (chunk.VerticesGeneratedForVersion == chunk.ChunkVersion && chunk.VertexMemory.Allocated) return;
+    private ObjectPool<List<Cube>> _colliderPool = new ObjectPool<List<Cube>>();
 
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, VoxelMeshGridChunk chunk)
+    {
         Vector2 tileSize = TileSize;
         Vector3 tileSize3D = TileSize3D;
         Vector2 halfTileSize = tileSize / 2f;
@@ -626,8 +625,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         // todo: if our voxels are just cubes we can simulate collisions by just using
         // the chunk data instead of building actual cube meshes, though this way we encode
         // where the checks are needed as opposed to some structure to allow ray skipping
-        chunk.Colliders ??= new List<Cube>();
-        chunk.Colliders.Clear();
+        List<Cube> colliders = _colliderPool.Get();
+        colliders.Clear();
         for (int y = 0; y < ChunkSize.Y; y++)
         {
             for (int x = 0; x < ChunkSize.X; x++)
@@ -656,7 +655,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                         float columnStartWorldSpace = columnStartZ * tileSize3D.Z;
                         float columnSizeWorldSpace = columnSize * tileSize3D.Z;
 
-                        chunk.Colliders.Add(
+                        colliders.Add(
                             new Cube(tileOrigin.ToVec3(columnStartWorldSpace - columnSizeWorldSpace / 2f + halfTileSize3D.Z), halfTileSize.ToVec3(columnSizeWorldSpace / 2f))
                         );
 
@@ -670,20 +669,24 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
             }
         }
 
+        List<Cube>? oldColliders = chunk.Colliders;
+        chunk.Colliders = colliders;
+        if (oldColliders != null)
+            _colliderPool.Return(oldColliders);
+
         // The indices used are the same for all chunks, just the length is different
         AssertNotNull(_indices);
         AssertNotNull(_indexBuffer);
         chunk.SetIndices(_indices, _indexBuffer, (int)(verticesUsed / 4f * 6f));
-
-        chunk.GPUDirty = true;
-        chunk.VerticesGeneratedForVersion = chunk.ChunkVersion;
-        chunk.VerticesUsed = (uint)verticesUsed;
 
         Vector3 chunkSizeWorld3 = ChunkSize3D * tileSize3D;
         chunk.Bounds = Cube.FromCenterAndSize(
             chunkWorldOffset.ToVec3() + chunkSizeWorld3 / 2f - halfTileSize3D,
             chunkSizeWorld3
         );
+
+        chunk.VerticesUsed = (uint)verticesUsed;
+        chunk.VerticesGeneratedForVersion = chunk.ChunkVersion;
     }
 
     [DontSerialize]

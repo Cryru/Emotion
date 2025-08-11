@@ -1,20 +1,16 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.Input;
 using Emotion.Core.Utility.Threading;
 using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
-using Emotion.Standard.DataStructures;
 
 namespace Emotion.Game.World.Terrain;
 
 public abstract partial class MeshGrid<T, ChunkT, IndexT>
 {
-    #region StreamAPI
-
-    public int StreamingMaxMeshCreationsAtOnce = 10;
-
-    private int _meshCreationsRunning;
+    #region Streaming API
 
     private Dictionary<ChunkState, Dictionary<Vector2, ChunkT>> _chunksLoaded = new();
 
@@ -33,15 +29,45 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         return chunks;
     }
 
-    public void StreamingChunkSetState(Vector2 chunkCoord, ChunkState newState)
+    public void ResolveChunkStateRequests(List<ChunkStreamRequest> requestState, HashSet<Vector2> touchedChunks)
     {
         // Not because we require GL, but because we want to make deallocations happen outside of updates.
         Assert(GLThread.IsGLThread());
 
+        lock (_chunkUpdateLock)
+        {
+            // Process new requests
+            foreach (ChunkStreamRequest request in requestState)
+            {
+                Vector2 coord = request.ChunkCoord;
+                ChunkState newState = request.State;
+                StreamingChunkSetState(coord, newState);
+            }
+
+            // Demote all untouched chunks
+            foreach (KeyValuePair<Vector2, ChunkT> item in _chunks)
+            {
+                Vector2 chunkCoord = item.Key;
+
+                ChunkT chunk = item.Value;
+                if (touchedChunks.Contains(chunkCoord)) continue;
+
+                ChunkState oneLevelDown = chunk.State - 1;
+                if (oneLevelDown < 0) continue;
+                StreamingChunkSetState(chunkCoord, oneLevelDown);
+            }
+        }
+    }
+
+    private void StreamingChunkSetState(Vector2 chunkCoord, ChunkState newState)
+    {
         ChunkT? chunk = GetChunk(chunkCoord);
-        AssertNotNull(chunk);
-        if (chunk == null)
+        if (chunk == null && newState == ChunkState.DataOnly)
+        {
+            StreamingGenerateChunk(chunkCoord);
             return;
+        }
+        AssertNotNull(chunk);
 
         ChunkState chunkState = chunk.State;
         Assert(chunkState != newState);
@@ -54,45 +80,39 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         if (diff != 1)
             return;
 
-        Assert(!chunk.LoadingStatePromotion);
-        if (chunk.LoadingStatePromotion)
-            return;
+        if (chunk.Busy) return;
+        chunk.ChangeToState = newState;
+        RequestChunkMeshUpdate(chunkCoord, chunk);
+    }
+
+    private IEnumerator CheckStreamingStateChange(Vector2 chunkCoord, ChunkT chunk)
+    {
+        ChunkState chunkState = chunk.State;
+        ChunkState newState = chunk.ChangeToState;
+        if (chunkState == newState) yield break;
 
         bool isPromotion = chunkState < newState;
         if (isPromotion)
         {
             if (newState == ChunkState.HasMesh)
             {
-                if (_meshCreationsRunning >= StreamingMaxMeshCreationsAtOnce)
-                    return;
-                _meshCreationsRunning++;
-
-                chunk.StatePromotionRoutine = Engine.Jobs.Add(ChunkCreateMeshRoutineAsync(chunkCoord, chunk));
+                yield return Engine.CoroutineManager.StartCoroutine(PromoteChunkToHasMesh(chunkCoord, chunk));
             }
             else if (newState == ChunkState.HasGPUData)
             {
-                chunk.StatePromotionRoutine = Engine.Jobs.Add(ChunkCreateGPUMemoryRoutineAsync(chunkCoord, chunk));
+                yield return Engine.CoroutineManager.StartCoroutine(PromoteChunkToHasGPU(chunkCoord, chunk));
             }
         }
-        else // Demotions are instant
+        else
         {
-            DemoteChunkInternal(chunkCoord, chunk);
-        }
-    }
-
-    public void StreamingDemoteAllUntouchedChunks(HashSet<Vector2> touchedChunks)
-    {
-        // Not because we require GL, but because we want to make deallocations happen outside of updates.
-        Assert(GLThread.IsGLThread());
-
-        foreach (KeyValuePair<Vector2, ChunkT> item in _chunks)
-        {
-            Vector2 chunkCoord = item.Key;
-
-            ChunkT chunk = item.Value;
-            if (chunk.LoadingStatePromotion) continue;
-            if (touchedChunks.Contains(chunkCoord)) continue;
-            DemoteChunkInternal(chunkCoord, chunk);
+            if (newState == ChunkState.HasMesh)
+            {
+                yield return Engine.CoroutineManager.StartCoroutine(DemoteChunkFromGPUData(chunkCoord, chunk));
+            }
+            else if (newState == ChunkState.DataOnly)
+            {
+                yield return Engine.CoroutineManager.StartCoroutine(DemoteChunkFromHasMesh(chunkCoord, chunk));
+            }
         }
     }
 
@@ -125,8 +145,10 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
     private ObjectPool<VertexDataAllocation> _meshDataAllocations = new ObjectPool<VertexDataAllocation>();
     private ObjectPoolManual<GPUVertexMemory> _gpuDataAllocations = new ObjectPoolManual<GPUVertexMemory>(() => null!);
 
-    private IEnumerator ChunkCreateMeshRoutineAsync(Vector2 chunkCoord, ChunkT chunk)
+    private IEnumerator PromoteChunkToHasMesh(Vector2 chunkCoord, ChunkT chunk)
     {
+        yield return null; // Eager routine prevention
+
         Assert(!chunk.VertexMemory.Allocated);
         if (chunk.VertexMemory.Allocated)
             VertexDataAllocation.FreeAllocated(ref chunk.VertexMemory);
@@ -139,16 +161,17 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         Assert(chunk.VerticesGeneratedForVersion == -1);
         chunk.VerticesGeneratedForVersion = -1;
 
-        // Create mesh
-        UpdateChunkVertices(chunkCoord, chunk);
+        Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(ChunkState.HasMesh);
+        listForNewState.Add(chunkCoord, chunk);
+        chunk.State = ChunkState.HasMesh;
 
-        Interlocked.Decrement(ref _meshCreationsRunning);
-
-        yield return Engine.CoroutineManager.StartCoroutine(ChunkPromoteStateSwapSynchronizeRoutine(chunkCoord, chunk, ChunkState.HasMesh));
+        RequestChunkMeshUpdate(chunkCoord, chunk);
     }
 
-    private IEnumerator ChunkCreateGPUMemoryRoutineAsync(Vector2 chunkCoord, ChunkT chunk)
+    private IEnumerator PromoteChunkToHasGPU(Vector2 chunkCoord, ChunkT chunk)
     {
+        yield return null; // Eager routine prevention
+
         Assert(chunk.GPUVertexMemory == null);
         if (chunk.GPUVertexMemory != null)
             GPUMemoryAllocator.FreeBuffer(chunk.GPUVertexMemory);
@@ -167,17 +190,14 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
             chunk.GPUVertexMemory = newGpuMemory;
         }
 
-        chunk.GPUDirty = true;
-        yield return Engine.CoroutineManager.StartCoroutine(ChunkPromoteStateSwapSynchronizeRoutine(chunkCoord, chunk, ChunkState.HasGPUData));
-    }
+        Assert(chunk.GPUUploadedVersion == -1);
+        chunk.GPUUploadedVersion = -1;
 
-    private IEnumerator ChunkPromoteStateSwapSynchronizeRoutine(Vector2 chunkCoord, ChunkT chunk, ChunkState newState)
-    {
-        yield return null; // Eager routine prevention
-
-        Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(newState);
+        Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(ChunkState.HasGPUData);
         listForNewState.Add(chunkCoord, chunk);
-        chunk.State = newState;
+        chunk.State = ChunkState.HasGPUData;
+
+        RequestChunkMeshUpdate(chunkCoord, chunk);
     }
 
     public virtual void StreamingGenerateChunk(Vector2 chunkCoord)
@@ -189,47 +209,32 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     #region Demotion and Deallocation Logic
 
-    private void DemoteChunkInternal(Vector2 chunkCoord, ChunkT chunk)
+    private IEnumerator DemoteChunkFromGPUData(Vector2 chunkCoord, ChunkT chunk)
     {
-        ChunkState oneLevelDown = (chunk.State - 1);
-        if (oneLevelDown < 0) return;
+        yield return null; // Eager routine prevention
 
-        if (oneLevelDown == ChunkState.HasMesh)
-        {
-            Assert(chunk.State == ChunkState.HasGPUData);
-            DemoteChunkFromGPUData(chunkCoord, chunk);
-        }
-        else if (oneLevelDown == ChunkState.DataOnly)
-        {
-            Assert(chunk.State == ChunkState.HasMesh);
-            DemoteChunkFromHasMesh(chunkCoord, chunk);
-        }
-    }
-
-    private void DemoteChunkFromGPUData(Vector2 chunkCoord, ChunkT chunk)
-    {
         GPUVertexMemory? gpuData = chunk.GPUVertexMemory;
         _gpuDataAllocations.Return(gpuData!);
         chunk.GPUVertexMemory = null;
+        chunk.GPUUploadedVersion = -1;
 
-        ChunkDemoteStateSynchronize(chunkCoord, chunk, ChunkState.HasGPUData, ChunkState.HasMesh);
+        Dictionary<Vector2, ChunkT> listForOldState = GetChunksInState(ChunkState.HasGPUData);
+        listForOldState.Remove(chunkCoord);
+        chunk.State = ChunkState.HasMesh;
     }
 
-    private void DemoteChunkFromHasMesh(Vector2 chunkCoord, ChunkT chunk)
+    private IEnumerator DemoteChunkFromHasMesh(Vector2 chunkCoord, ChunkT chunk)
     {
+        yield return null; // Eager routine prevention
+
         VertexDataAllocation memory = chunk.VertexMemory;
         _meshDataAllocations.Return(memory);
         chunk.VertexMemory = VertexDataAllocation.Empty;
         chunk.VerticesGeneratedForVersion = -1;
 
-        ChunkDemoteStateSynchronize(chunkCoord, chunk, ChunkState.HasMesh, ChunkState.DataOnly);
-    }
-
-    private void ChunkDemoteStateSynchronize(Vector2 chunkCoord, ChunkT chunk, ChunkState fromState, ChunkState toState)
-    {
-        Dictionary<Vector2, ChunkT> listForOldState = GetChunksInState(fromState);
+        Dictionary<Vector2, ChunkT> listForOldState = GetChunksInState(ChunkState.HasMesh);
         listForOldState.Remove(chunkCoord);
-        chunk.State = toState;
+        chunk.State = ChunkState.DataOnly;
     }
 
     #endregion

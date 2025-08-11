@@ -10,9 +10,7 @@ public interface IStreamableGrid
 
     public IStreamableGridChunk GetChunk(Vector2 chunkCoord);
 
-    public void StreamingChunkSetState(Vector2 chunkCoord, ChunkState newState);
-
-    public void StreamingDemoteAllUntouchedChunks(HashSet<Vector2> touchedChunks);
+    public void ResolveChunkStateRequests(List<ChunkStreamRequest> requestState, HashSet<Vector2> touchedChunks);
 
     public void StreamingGenerateChunk(Vector2 chunkCoord);
 

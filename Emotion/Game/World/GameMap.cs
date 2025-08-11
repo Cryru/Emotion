@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.World.Components;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.ThreeDee;
@@ -149,22 +150,32 @@ public partial class GameMap : IDisposable
 
     #endregion
 
+    private Coroutine _loadNewObjectsRoutine = Coroutine.CompletedRoutine;
+
     public void Update(float dt)
     {
         TerrainGrid?.Update(dt);
 
-        for (int i = 0; i < _objects.Count; i++)
+        if (_loadNewObjectsRoutine.Finished)
         {
-            var obj = _objects[i];
-            obj.Update(dt);
+            _loadNewObjectsRoutine = Engine.Jobs.Add(LoadPendingObjectsRoutine());
         }
 
-        for (int i = 0; i < _objects.Count; i++)
+        lock (_objects)
         {
-            GameObject obj = _objects[i];
-            MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
-            if (meshComponent != null)
-                meshComponent.Update(dt);
+            for (int i = 0; i < _objects.Count; i++)
+            {
+                var obj = _objects[i];
+                obj.Update(dt);
+            }
+
+            for (int i = 0; i < _objects.Count; i++)
+            {
+                GameObject obj = _objects[i];
+                MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
+                if (meshComponent != null)
+                    meshComponent.Update(dt);
+            }
         }
     }
 
@@ -180,27 +191,33 @@ public partial class GameMap : IDisposable
         bool cameraIs2D = r.Camera is Camera2D;
         if (cameraIs2D)
         {
-            for (int i = 0; i < _objects.Count; i++)
+            lock (_objects)
             {
-                GameObject obj = _objects[i];
-                MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
-                if (meshComponent != null)
+                for (int i = 0; i < _objects.Count; i++)
                 {
-                    if (!meshComponent.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
-                    meshComponent.Render(r);
+                    GameObject obj = _objects[i];
+                    MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
+                    if (meshComponent != null)
+                    {
+                        if (!meshComponent.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
+                        meshComponent.Render(r);
+                    }
                 }
             }
         }
         else
         {
-            for (int i = 0; i < _objects.Count; i++)
+            lock (_objects)
             {
-                GameObject obj = _objects[i];
-                MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
-                if (meshComponent != null)
+                for (int i = 0; i < _objects.Count; i++)
                 {
-                    if (!meshComponent.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
-                    meshComponent.Render(r);
+                    GameObject obj = _objects[i];
+                    MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
+                    if (meshComponent != null)
+                    {
+                        if (!meshComponent.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
+                        meshComponent.Render(r);
+                    }
                 }
             }
         }
