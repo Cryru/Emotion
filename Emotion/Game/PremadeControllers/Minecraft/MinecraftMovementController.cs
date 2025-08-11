@@ -143,13 +143,13 @@ public class MinecraftMovementController
         // Check if in the air
         if (moveRequest.Z < 0 || moveRequest.Z == 0) // Moving down
         {
-            _inAir = !Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON); // Hit ground
+            _inAir = !Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON_BIGGER); // Hit ground
             if (!_inAir)
                 _velocityZ = 0; // Kill velocity.
         }
         else if (moveRequest.Z > 0) // Moving up (jumping)
         {
-            bool hitCeiling = Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON);
+            bool hitCeiling = Maths.Approximately(safeMovement.Z, 0, Maths.EPSILON_BIGGER);
             if (hitCeiling)
                 _velocityZ = 0; // Kill upwards velocity.
         }
