@@ -7,6 +7,7 @@ namespace Emotion.Core.Systems.IO;
 public enum AssetOrObjectReferenceType
 {
     None = 0,
+    NoneDeleted,
     Asset,
     AssetName,
     Object
@@ -45,7 +46,7 @@ public class AssetOrObjectReference<TAsset, TObject>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValid()
     {
-        return _type != AssetOrObjectReferenceType.None;
+        return _type != AssetOrObjectReferenceType.None && _type != AssetOrObjectReferenceType.NoneDeleted;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -64,6 +65,8 @@ public class AssetOrObjectReference<TAsset, TObject>
             Engine.AssetLoader.RemoveReferenceFromAsset(_asset, _owningObject);
             _owningObject = null;
             _onAssetChanged = null;
+
+            _type = AssetOrObjectReferenceType.NoneDeleted;
         }
     }
 
