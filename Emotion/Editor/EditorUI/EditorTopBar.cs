@@ -113,6 +113,15 @@ public class EditorTopBar : UISolidColor
         }
 
         {
+            EditorButton toolButton = new EditorButton("Job System Visualizer");
+            toolButton.OnClickedProxy = (_) =>
+            {
+                EngineEditor.OpenToolWindowUnique(new JobSystemVisualizer());
+            };
+            buttonContainer.AddChild(toolButton);
+        }
+
+        {
             EditorButton toolButton = new EditorButton("Open Folder");
             toolButton.OnClickedProxy = (_) => Process.Start("explorer.exe", ".");
             toolButton.Enabled = Engine.Host is Win32Platform;

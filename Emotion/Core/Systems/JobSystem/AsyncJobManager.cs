@@ -6,6 +6,10 @@ namespace Emotion.Core.Systems.JobSystem;
 
 public class AsyncJobManager
 {
+    public const int MANY_JOBS = 10;
+
+    public int ThreadCount { get => _threads?.Length ?? 0; }
+
     private Thread[]? _threads;
     private AsyncJobCoroutineManager[]? _threadRoutineManagers;
 
@@ -67,11 +71,30 @@ public class AsyncJobManager
         AssertNotNull(_threads);
 
         AsyncJobCoroutineManager manager = _threadRoutineManagers[_nextThreadToQueueOn];
+
+        // Try to schedule on another thread if this one is too busy.
+        if (manager.Count > MANY_JOBS)
+        {
+            int start = _nextThreadToQueueOn;
+            for (int i = 1; i < _threadRoutineManagers.Length; i++)
+            {
+                AsyncJobCoroutineManager nextManager = _threadRoutineManagers[(start + i) % _threads.Length];
+                if (nextManager.Count < MANY_JOBS)
+                    manager = nextManager;
+            }
+        }
+
         Coroutine newRoutine = manager.StartCoroutine(routineAsync);
 
         _nextThreadToQueueOn++;
         _nextThreadToQueueOn = _nextThreadToQueueOn % _threads.Length;
 
         return newRoutine;
+    }
+
+    public int DebugOnly_GetThreadJobAmount(int threadId)
+    {
+        if (_threadRoutineManagers == null) return -1;
+        return _threadRoutineManagers[threadId].Count;
     }
 }
