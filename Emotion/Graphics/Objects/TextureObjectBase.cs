@@ -89,7 +89,7 @@ public abstract class TextureObjectBase : IDisposable
     /// <summary>
     /// The format in which the texture is stored internally - this is the format shader should expect to work with.
     /// </summary>
-    public InternalFormat InternalFormat { get; protected set; }
+    public InternalFormat InternalFormat { get; protected set; } = InternalFormat.Rgba;
 
     /// <summary>
     /// The source format in which the texture's pixels were uploaded.
