@@ -236,4 +236,17 @@ public sealed class Coroutine : IRoutineWaiter
         return (int) (stateField.GetValue(_routine) ?? 1);
     }
 #endif
+
+    public static Coroutine? CombineRoutines(Coroutine? a, Coroutine? b)
+    {
+        if (a == null) return b;
+        if (b == null) return a;
+        return Engine.CoroutineManager.StartCoroutine(CombineRoutineWaitRoutine(a, b));
+    }
+
+    private static IEnumerator CombineRoutineWaitRoutine(Coroutine a, Coroutine b)
+    {
+        yield return a;
+        yield return b;
+    }
 }

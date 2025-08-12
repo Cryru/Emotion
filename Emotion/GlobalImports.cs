@@ -29,4 +29,8 @@ global using MathF = System.MathF;
 global using Color = Emotion.Primitives.Color;
 global using Rectangle = Emotion.Primitives.Rectangle;
 
+global using MeshReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Core.Systems.IO.MeshAsset, Emotion.Game.World.ThreeDee.MeshEntity>;
+global using TextureReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Graphics.Assets.TextureAsset, Emotion.Graphics.Objects.Texture>;
+global using CubeMapTextureReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Graphics.Assets.TextureCubemapAsset, Emotion.Graphics.Objects.TextureCubemap>;
+
 #endregion

@@ -15,12 +15,18 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Emotion.Graphics.Assets;
 
-public abstract class TextureAssetBase<TTexture> : Asset where TTexture : IDisposable
+public abstract class TextureAssetBase<TTexture> : Asset, IAssetContainingObject<TTexture>
+    where TTexture : IDisposable
 {
     /// <summary>
     /// The asset's uploaded graphics texture.
     /// </summary>
     public TTexture? Texture { get; set; }
+
+    public TTexture? GetObject()
+    {
+        return Texture;
+    }
 
     protected TextureAssetBase()
     {

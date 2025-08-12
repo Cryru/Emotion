@@ -4,7 +4,6 @@ using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Standard.MeshGenerators;
-using MeshReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Core.Systems.IO.MeshAsset, Emotion.Game.World.ThreeDee.MeshEntity>;
 
 namespace Emotion.Game.World.Components;
 
@@ -33,14 +32,15 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider
 
     }
 
-    public Coroutine? Init(GameObject obj)
+    public virtual Coroutine? Init(GameObject obj)
     {
         Object = obj;
         return SetEntity(_entityRef);
     }
 
-    public void Done(GameObject obj)
+    public virtual void Done(GameObject obj)
     {
+        _entityRef.Cleanup();
     }
 
     #region Entity Setting
@@ -74,7 +74,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider
         oldEntity.Cleanup();
     }
 
-    private void OnEntityChanged()
+    protected virtual void OnEntityChanged()
     {
         MeshEntity? entity = _entityRef.GetObject();
         _entity = entity ?? Cube.GetEntity();
@@ -250,7 +250,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider
         }
     }
 
-    public void Render(Renderer r)
+    public virtual void Render(Renderer r)
     {
         r.MeshEntityRenderer.EnsureAssetsLoaded();
 

@@ -173,5 +173,13 @@ public partial class GameObject
         return gameObject;
     }
 
+    public static GameObject CreateSkyBox(string textureFile)
+    {
+        var gameObject = new GameObject();
+        gameObject.Name = "Skybox";
+        gameObject.AddComponent<SkyBoxComponent>(new SkyBoxComponent(textureFile));
+        return gameObject;
+    }
+
     #endregion
 }

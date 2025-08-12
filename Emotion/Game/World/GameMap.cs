@@ -212,7 +212,7 @@ public partial class GameMap : IDisposable
                 for (int i = 0; i < _objects.Count; i++)
                 {
                     GameObject obj = _objects[i];
-                    MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
+                    MeshComponent? meshComponent = obj.GetComponent<MeshComponent>() ?? obj.GetComponent<SkyBoxComponent>();
                     if (meshComponent != null)
                     {
                         if (!meshComponent.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
