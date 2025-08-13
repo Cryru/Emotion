@@ -4,10 +4,10 @@ using Emotion.Editor;
 
 namespace Emotion.Game.World.Terrain.GridStreaming;
 
-public struct ChunkStreamRequest(Vector2 chunkCoord, float dist, ChunkState state)
+public struct ChunkStreamRequest(Vector2 chunkCoord, float distance, ChunkState state)
 {
     public Vector2 ChunkCoord = chunkCoord;
-    public float Distance = dist;
+    public float Distance = distance;
     public ChunkState State = state;
 }
 
@@ -62,10 +62,10 @@ public class ChunkStreamManager
             {
                 yield return actor.Position2D;
             }
-        }
 
-        if (EngineEditor.IsOpen || _streamActors.Count == 0)
-            yield return Engine.Renderer.Camera.Position2;
+            if (EngineEditor.IsOpen || _streamActors.Count == 0)
+                yield return Engine.Renderer.Camera.Position2;
+        }
     }
 
     public void Update(IStreamableGrid grid)
@@ -74,14 +74,18 @@ public class ChunkStreamManager
         _chunkRequests.Clear();
         _chunkRequestDedupe.Clear();
 
+        bool anyStreamActors = false;
         lock (_streamActors)
         {
             foreach (GameObject actor in _streamActors)
+            {
                 PromoteChunksAround(grid, actor.Position2D, SimulationRange, RenderRange);
+                anyStreamActors = true;
+            }
         }
 
         // If no actors, just load around camera (also in the editor)
-        if (EngineEditor.IsOpen || _streamActors.Count == 0)
+        if (EngineEditor.IsOpen || !anyStreamActors)
             PromoteChunksAround(grid, Engine.Renderer.Camera.Position2, SimulationRange, RenderRange);
 
         _chunkRequests.Sort(static (a, b) => MathF.Sign(a.Distance - b.Distance));
@@ -134,14 +138,7 @@ public class ChunkStreamManager
                 chunkCoord = chunkCoord.Round();
                 IStreamableGridChunk? chunk = grid.GetChunk(chunkCoord);
 
-                if (chunk != null)
-                {
-                    // Chunk is loading something, don't bother it.
-                    if (chunk.Busy)
-                        continue;
-
-                    _chunksTouched.Add(chunkCoord);
-                }
+                _chunksTouched.Add(chunkCoord);
 
                 Vector2 tileCenter = new Vector2(x, y) + half;
                 float distanceSq = Vector2.DistanceSquared(tileCenter, pos);
