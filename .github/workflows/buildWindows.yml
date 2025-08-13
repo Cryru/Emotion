@@ -28,11 +28,3 @@ jobs:
       with:
         name: Test Result Artifact
         path: Tests\bin\Default\Release\net9.0\TestResults
-    - name: Publish Nuget
-      if: github.ref == 'refs/heads/master'
-      env:
-        NUGET_KEY: ${{ secrets.NUGET_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        dotnet tool install -g dotnet-script
-        dotnet script PublishNuget.cs
