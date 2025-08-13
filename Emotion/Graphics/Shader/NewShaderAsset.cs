@@ -1,4 +1,6 @@
-﻿using Emotion.Core.Systems.IO;
+﻿#nullable enable
+
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Shading;
 using OpenGL;
@@ -6,12 +8,29 @@ using System.Text;
 
 namespace Emotion.Graphics.Shader;
 
-public class NewShaderAsset : TextAsset
+public class NewShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
 {
-    public ShaderProgram CompiledShader;
+    public ShaderProgram? CompiledShader;
+
+    public ShaderProgram? GetObject()
+    {
+        return CompiledShader;
+    }
 
     protected override void CreateInternal(ReadOnlyMemory<byte> data)
     {
+        // Old shader asset compatibility
+        if (Name.Contains(".xml"))
+        {
+            ShaderProgram? oldLegacyShader = CompiledShader;
+            var oldAsset = new ShaderAsset();
+            oldAsset.AssetLoader_CreateLegacy(data);
+            CompiledShader = oldAsset.Shader;
+            oldLegacyShader?.Dispose();
+
+            return;
+        }
+
         base.CreateInternal(data);
 
         // Content <- The content of our file :)
@@ -33,7 +52,9 @@ public class NewShaderAsset : TextAsset
         fragmentShader.Append("\nout vec4 fragColor;\n");
         fragmentShader.Append("void main()\n{\nfragColor = FragmentShaderMain();\n}");
 
-        CompiledShader?.Dispose();
-        CompiledShader = GLThread.ExecuteGLThread(ShaderFactory.CreateShaderRaw, vertexShader.ToString(), fragmentShader.ToString());
+        ShaderProgram? newShader = GLThread.ExecuteGLThread(ShaderFactory.CreateShaderRaw, vertexShader.ToString(), fragmentShader.ToString());
+        ShaderProgram? oldShader = CompiledShader;
+        CompiledShader = newShader;
+        oldShader?.Dispose(); // When hot reloading we need to destroy the previous shader
     }
 }

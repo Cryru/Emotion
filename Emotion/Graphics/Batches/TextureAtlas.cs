@@ -136,7 +136,7 @@ public class TextureAtlas : Packing.PackingResumableState
         if (texture.Tile || texture.Smooth != _fbo.Texture.Smooth) return false;
 
         // Don't cache if not default shader, because getTextureSize will not work correctly.
-        if (Engine.Renderer.CurrentState.Shader != ShaderFactory.DefaultProgram && !Engine.Renderer.CurrentState.Shader.AllowTextureBatch) return false;
+        if (Engine.Renderer.CurrentShader != ShaderFactory.DefaultProgram && !Engine.Renderer.CurrentShader.AllowTextureBatch) return false;
 
         // Check if we have a record of this texture since it seems eligible.
         // If not create meta data for it.

@@ -47,7 +47,7 @@ public class SkyBoxComponent : MeshComponent
         MeshEntityMetaState renderState = RenderState!;
         renderState.CustomRenderState = new RenderState()
         {
-            ShaderName = "Shaders3D/SkyboxShader.glsl",
+            Shader = "Shaders3D/SkyboxShader.glsl",
             AlphaBlending = true
         };
     }

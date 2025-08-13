@@ -54,8 +54,7 @@ public partial struct RenderState
     public bool ViewMatrix = true;
     public ProjectionBehavior ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera;
 
-    public ShaderProgram Shader = ShaderFactory.DefaultProgram;
-    public string? ShaderName = null;
+    public ShaderReference Shader = ShaderReference.Invalid;
 
     public RenderState()
     {

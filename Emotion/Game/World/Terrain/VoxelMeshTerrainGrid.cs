@@ -697,7 +697,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         {
             FaceCulling = true,
             FaceCullingBackFace = true,
-            ShaderName = "Shaders3D/TerrainShader.glsl"
+            Shader = "Shaders3D/TerrainShader.glsl"
         }
     };
 

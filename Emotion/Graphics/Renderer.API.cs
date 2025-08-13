@@ -311,7 +311,7 @@ public sealed partial class Renderer
     /// Set the current shader.
     /// </summary>
     /// <param name="shader">The shader to set as current.</param>
-    public ShaderProgram SetShader(ShaderProgram shader = null)
+    public ShaderProgram SetShader(ShaderProgram? shader = null)
     {
         FlushRenderStream();
         shader ??= ShaderFactory.DefaultProgram;
@@ -320,9 +320,19 @@ public sealed partial class Renderer
         RenderState currentState = CurrentState;
         currentState.Shader = shader;
         CurrentState = currentState;
+        CurrentShader = shader;
         SyncShader();
 
         return shader;
+    }
+
+    public ShaderProgram SetShader(ShaderReference shader)
+    {
+        ShaderProgram? program = null;
+        if (shader.IsValid())
+            program = shader.GetObject();
+
+        return SetShader(program);
     }
 
     /// <summary>
@@ -416,11 +426,10 @@ public sealed partial class Renderer
 
         PerfProfiler.FrameEventStart("ShaderSet");
 
-        if (newState.ShaderName != null)
-            newState.Shader = RenderState.ResolveFromName(newState.ShaderName);
-
-        if (force || newState.Shader != currentState.Shader)
-            SetShader(newState.Shader);
+        ShaderReference newShader = newState.Shader;
+        ShaderReference currentShader = currentState.Shader;
+        if (force || newShader != currentShader)
+            SetShader(newShader);
 
         PerfProfiler.FrameEventEnd("ShaderSet");
 

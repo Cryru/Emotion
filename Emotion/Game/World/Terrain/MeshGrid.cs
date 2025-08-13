@@ -391,12 +391,12 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
             MeshMaterial material = GetMeshMaterial();
             c.SetState(material.State);
-            c.CurrentState.Shader.SetUniformInt("diffuseTexture", 0);
+            c.CurrentShader.SetUniformInt("diffuseTexture", 0);
 
             Texture diffuseTexture = material.GetDiffuseTexture();
             Texture.EnsureBound(diffuseTexture.Pointer);
 
-            SetupShaderState(c.CurrentState.Shader);
+            SetupShaderState(c.CurrentShader);
 
             foreach (ChunkT chunkToRender in _renderThisPass)
             {

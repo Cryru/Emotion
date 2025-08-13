@@ -780,14 +780,9 @@ public sealed class MeshEntityBatchRenderer
                 currentShader = _meshShader;
             }
 
-            if (obj.Material.State.ShaderName != "")
-            {
-                var asset = Engine.AssetLoader.ONE_Get<NewShaderAsset>(obj.Material.State.ShaderName);
-                if (asset.Finished)
-                    currentShader = asset.CompiledShader;
-            }
-
-            Engine.Renderer.SetShader(currentShader);
+            ShaderReference materialShader = obj.Material.State.Shader;
+            if (materialShader.IsValid())
+                currentShader = Engine.Renderer.SetShader(materialShader);
 
             metaState.ApplyShaderUniforms(currentShader);
 

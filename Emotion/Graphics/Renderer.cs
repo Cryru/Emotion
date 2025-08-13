@@ -108,7 +108,7 @@ public sealed partial class Renderer
     /// <summary>
     /// A representation of the screen's frame buffer.
     /// </summary>
-    public FrameBuffer ScreenBuffer { get; private set; }
+    public FrameBuffer ScreenBuffer { get; private set; } = null!;
 
     /// <summary>
     /// The camera active in the scene.
@@ -150,7 +150,7 @@ public sealed partial class Renderer
     /// <summary>
     /// The frame buffer rendering is done to, before it is flushed to the screen buffer.
     /// </summary>
-    public FrameBuffer DrawBuffer { get; private set; }
+    public FrameBuffer DrawBuffer { get; private set; } = null!;
 
     /// <summary>
     /// A render state for merging two buffers.
@@ -177,11 +177,16 @@ public sealed partial class Renderer
     public RenderState CurrentState { get; private set; }
 
     /// <summary>
+    /// The current shader program (note that CurrentState.Shader is a reference to this).
+    /// </summary>
+    public ShaderProgram CurrentShader { get; private set; } = null!;
+
+    /// <summary>
     /// The current frame buffer.
     /// </summary>
-    public FrameBuffer? CurrentTarget
+    public FrameBuffer CurrentTarget
     {
-        get => _bufferStack.Count == 0 ? null : _bufferStack.Peek();
+        get => _bufferStack.Count == 0 ? DrawBuffer : _bufferStack.Peek();
     }
 
     /// <summary>
@@ -288,10 +293,10 @@ public sealed partial class Renderer
         BlitState.AlphaBlending = false;
         BlitState.DepthTest = false;
         BlitState.ViewMatrix = false;
-        BlitState.ShaderName = "Shaders/Blit.xml";
+        BlitState.Shader = "Shaders/Blit.xml";
 
         BlitStatePremult = BlitState;
-        BlitStatePremult.ShaderName = "Shaders/BlitPremultAlpha.xml";
+        BlitStatePremult.Shader = "Shaders/BlitPremultAlpha.xml";
 
         // Create render objects
         RenderStream = new RenderStreamBatch(); // This is used for IM-like rendering.
@@ -318,7 +323,6 @@ public sealed partial class Renderer
     private IEnumerator InitializeSystemAssetsRoutineAsync()
     {
         yield return ShaderFactory.LoadDefaultShadersRoutineAsync();
-        AssertEqual(RenderState.Default.Shader, ShaderFactory.DefaultProgram);
     }
 
     #endregion
@@ -523,7 +527,7 @@ public sealed partial class Renderer
     /// </summary>
     public void SyncShader()
     {
-        ShaderProgram currentShader = CurrentState.Shader;
+        ShaderProgram currentShader = CurrentShader;
         if (currentShader == null) return; // Before default shader is created
         PerfProfiler.FrameEventStart("ShaderSync");
 
@@ -542,7 +546,7 @@ public sealed partial class Renderer
     /// </summary>
     private void SyncModelMatrix()
     {
-        CurrentState.Shader.SetUniformMatrix4("modelMatrix", ModelMatrix);
+        CurrentShader.SetUniformMatrix4("modelMatrix", ModelMatrix);
     }
 
     /// <summary>
@@ -566,7 +570,7 @@ public sealed partial class Renderer
                 projectionMatrix = CameraBase.GetDefault2DProjection();
                 break;
         }
-        CurrentState.Shader.SetUniformMatrix4("projectionMatrix", projectionMatrix);
+        CurrentShader.SetUniformMatrix4("projectionMatrix", projectionMatrix);
 
         // Check if the view matrix is off.
         Matrix4x4 viewMatrix = _camera.ViewMatrix;
@@ -579,7 +583,7 @@ public sealed partial class Renderer
                 Matrix4x4.CreateLookAtLeftHanded(Vector3.Zero, new Vector3(0, 0, -1), Up2D);
         }
 
-        CurrentState.Shader.SetUniformMatrix4("viewMatrix", viewMatrix);
+        CurrentShader.SetUniformMatrix4("viewMatrix", viewMatrix);
     }
 
     /// <summary>

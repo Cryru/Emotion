@@ -28,7 +28,7 @@ public class MeshMaterial
     {
         State = RenderState.Default;
         //State.ShaderName = "Shaders3D/MeshShader.glsl";
-        State.ShaderName = "Shaders/MeshShader.xml";
+        State.Shader = "Shaders/MeshShader.xml";
     }
 
     public static MeshMaterial DefaultMaterial = new MeshMaterial

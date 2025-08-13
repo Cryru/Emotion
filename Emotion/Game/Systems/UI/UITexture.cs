@@ -203,7 +203,7 @@ public class UITexture : UISolidColor
 
     protected override bool RenderInternal(Renderer c)
     {
-        ShaderProgram prevShader = c.CurrentState.Shader;
+        ShaderProgram prevShader = c.CurrentShader;
         if (ShaderAsset != null)
         {
             c.SetShader(ShaderAsset.Shader);
