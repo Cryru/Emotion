@@ -786,7 +786,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
         _alphaTweenTimer = tween;
         _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, Visible == val ? null : val));
-        return new PassiveRoutineObserver(_alphaTweenRoutine);
+        return _alphaTweenRoutine;
     }
 
     protected virtual void CalculateColor()

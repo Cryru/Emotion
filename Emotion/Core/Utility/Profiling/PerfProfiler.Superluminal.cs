@@ -1,4 +1,6 @@
-﻿#if Superluminal
+﻿#nullable enable
+
+#if Superluminal
 #region Using
 
 using System;

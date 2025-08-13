@@ -1,18 +1,19 @@
-﻿namespace Emotion.Core.Utility.Coroutines
+﻿#nullable enable
+
+namespace Emotion.Core.Utility.Coroutines;
+
+/// <summary>
+/// A coroutine wait handle.
+/// </summary>
+public interface IRoutineWaiter
 {
     /// <summary>
-    /// A coroutine wait handle.
+    /// Whether the waiter has finished waiting, and the routine can proceed.
     /// </summary>
-    public interface IRoutineWaiter
-    {
-        /// <summary>
-        /// Whether the waiter has finished waiting, and the routine can proceed.
-        /// </summary>
-        bool Finished { get; }
+    bool Finished { get; }
 
-        /// <summary>
-        /// Runs an update tick on the waiter, must be ran in order for it to finish.
-        /// </summary>
-        void Update();
-    }
+    /// <summary>
+    /// Runs an update tick on the waiter, must be ran in order for it to finish.
+    /// </summary>
+    void Update();
 }
