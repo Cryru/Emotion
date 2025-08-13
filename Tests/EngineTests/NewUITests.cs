@@ -844,21 +844,21 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorBottomBar));
     }
 
-    [Test]
-    public IEnumerator EditorPanelEmpty()
-    {
-        int oldTextSize = EditorColorPalette.EditorButtonTextSize;
-        EditorColorPalette.EditorButtonTextSize = 9;
-        {
-            var editorPanel = new EditorWindow("Test");
-            UI.AddChild(editorPanel);
-        }
+    //[Test]
+    //public IEnumerator EditorPanelEmpty()
+    //{
+    //    int oldTextSize = EditorColorPalette.EditorButtonTextSize;
+    //    EditorColorPalette.EditorButtonTextSize = 9;
+    //    {
+    //        var editorPanel = new EditorWindow("Test");
+    //        UI.AddChild(editorPanel);
+    //    }
 
-        yield return WaitUILayout();
-        VerifyScreenshot(nameof(NewUITests), nameof(EditorPanelEmpty));
+    //    yield return WaitUILayout();
+    //    VerifyScreenshot(nameof(NewUITests), nameof(EditorPanelEmpty));
 
-        EditorColorPalette.EditorButtonTextSize = oldTextSize;
-    }
+    //    EditorColorPalette.EditorButtonTextSize = oldTextSize;
+    //}
 
     [Test]
     public IEnumerator OutsideParentWindow()

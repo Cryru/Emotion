@@ -135,7 +135,6 @@ public abstract class TestingScene : Scene
         derivationPercent *= 100;
         Engine.Log.Info($"    Derivation is {derivationPercent}%", MessageSource.Test);
 
-       
         if (derivationPercent > TestExecutor.PixelDerivationTolerance)
         {
             Engine.Log.Error($"    - Image derivation for {fileName} is too high!", MessageSource.Test);
