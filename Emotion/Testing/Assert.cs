@@ -104,20 +104,25 @@ public static class Assert
 
         if (_ignoredAsserts.Contains(assertId)) return;
 
+        Engine.Input.SuppressMouseFirstPersonMode(true, "Assert");
+
         var assertResponse = AssertMessageBoxResponse.Break;
-        if (Engine.Host is Win32Platform winPlatform) assertResponse = winPlatform.OpenAssertMessageBox(assertText);
+        if (Engine.Host is Win32Platform winPlatform)
+            assertResponse = winPlatform.OpenAssertMessageBox(assertText);
 
         switch (assertResponse)
         {
             case AssertMessageBoxResponse.IgnoreCurrent:
-                return;
+                break;
             case AssertMessageBoxResponse.IgnoreAll:
                 _ignoredAsserts.Add(assertId);
-                return;
+                break;
             case AssertMessageBoxResponse.Break:
                 Debugger.Break();
-                return;
+                break;
         }
+
+        Engine.Input.SuppressMouseFirstPersonMode(false, "Assert");
 #else
 		Engine.Log.Warning(msg, "ASSERT_FAILED");
 #endif
