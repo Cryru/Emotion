@@ -210,14 +210,16 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     public Vector3 SweepCube(Cube moverCube, Vector3 movement)
     {
-        // Sweep in all axes separetely for best results.
+        // We sort the movement by magnitude
+        VectorExtensions.SortComponents(movement, out Vector3 _, out Vector3 moveRemap);
+
+        // Sweep in all axes separately for best results.
         Vector3 moveAmount = movement;
         for (int i = 0; i < 3; i++)
         {
-            int axis = i;
-
-            float moveInThisDir = moveAmount[axis];
-            if (moveInThisDir == 0) continue;
+            int axis = (int)moveRemap[i];
+            float moveInThisDir = movement[axis];
+            if (Maths.Approximately(moveInThisDir, 0)) continue;
 
             Vector3 movementVector = Vector3.Zero;
             movementVector[axis] = moveInThisDir;
@@ -266,7 +268,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
                     if (moveForAxis == 0f)
                     {
                         // If already separated, a hit is not possible
-                        if (aMaxI <= bMinI || aMinI >= bMaxI)
+                        if (aMaxI < bMinI || aMinI > bMaxI || Maths.Approximately(aMaxI, bMinI) || Maths.Approximately(aMinI, bMaxI))
                         {
                             tEntry = 1f;
                             tExit = 0f;
@@ -277,7 +279,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
                     else
                     {
                         // Equal, but moving apart
-                        if ((aMaxI == bMinI && moveForAxis < 0f) || (aMinI == bMaxI && moveForAxis > 0f))
+                        if ((Maths.Approximately(aMaxI, bMinI) && moveForAxis < 0f) || (Maths.Approximately(aMinI, bMaxI) && moveForAxis > 0f))
                         {
                             tEntry = 1f;
                             tExit = 0f;

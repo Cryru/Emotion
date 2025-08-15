@@ -321,4 +321,42 @@ public static class VectorExtensions
     {
         return v.SafeNormalize();
     }
+
+    public static void SortComponents(Vector3 v, out Vector3 sorted, out Vector3 remap)
+    {
+        // Values
+        float a = v.X, b = v.Y, c = v.Z;
+        // Indices
+        float ia = 0f, ib = 1f, ic = 2f;
+
+        // First sort a and b
+        float minAB = MathF.Min(a, b);
+        float maxAB = MathF.Max(a, b);
+        float idxMinAB = (a < b) ? ia : ib;
+        float idxMaxAB = (a < b) ? ib : ia;
+
+        a = maxAB; ia = idxMaxAB;
+        b = minAB; ib = idxMinAB;
+
+        // Sort a and c
+        float minAC = MathF.Min(a, c);
+        float maxAC = MathF.Max(a, c);
+        float idxMinAC = (a < c) ? ia : ic;
+        float idxMaxAC = (a < c) ? ic : ia;
+
+        a = maxAC; ia = idxMaxAC;
+        c = minAC; ic = idxMinAC;
+
+        // Sort b and c
+        float minBC = MathF.Min(b, c);
+        float maxBC = MathF.Max(b, c);
+        float idxMinBC = (b < c) ? ib : ic;
+        float idxMaxBC = (b < c) ? ic : ib;
+
+        b = maxBC; ib = idxMaxBC;
+        c = minBC; ic = idxMinBC;
+
+        sorted = new Vector3(a, b, c);
+        remap = new Vector3(ia, ib, ic);
+    }
 }
