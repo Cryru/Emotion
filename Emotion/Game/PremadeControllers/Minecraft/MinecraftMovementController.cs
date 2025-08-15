@@ -29,6 +29,8 @@ public class MinecraftMovementController
         DragKey = Key.World2 // Remove
     };
 
+    public float CameraFarZ { get => _camera.FarZ; set => _camera.FarZ = value; }
+
     private bool _inAir = true;
     private bool _jumpHeld = false;
     private float _velocityZ;
@@ -92,6 +94,13 @@ public class MinecraftMovementController
         _character = obj;
     }
 
+    private void AlignCamera()
+    {
+        AssertNotNull(_character);
+        Cube playerCube = _character.GetBoundingCube();
+        _camera.Position = playerCube.Origin + new Vector3(0, 0, playerCube.HalfExtents.Z - 0.1f);
+    }
+
     public void Update(float dt)
     {
         if (_character == null) return;
@@ -104,6 +113,8 @@ public class MinecraftMovementController
         Vector2 tile = terrain.GetTilePosOfWorldPos(myPos);
         if (!terrain.IsTileInBounds(tile))
         {
+            AlignCamera();
+
             TilePosOfCursor = Vector3.NaN;
             PlacementPosCursor = TilePosOfCursor;
             return;
@@ -157,8 +168,7 @@ public class MinecraftMovementController
         _character.Position3D += safeMovement;
         if (_character.Z < 0) _character.Z = 0;
 
-        Cube playerCube = _character.GetBoundingCube();
-        _camera.Position = playerCube.Origin + new Vector3(0, 0, playerCube.HalfExtents.Z - 0.1f);
+        AlignCamera();
 
         // Find cube pointing at
         bool set = false;
