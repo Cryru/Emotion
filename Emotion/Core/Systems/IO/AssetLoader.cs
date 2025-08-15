@@ -606,7 +606,7 @@ public class AssetLoader
         Engine.Log.Info($"Mounted asset source '{source}'", MessageSource.AssetLoader);
     }
 
-    private ConcurrentDictionary<string, Asset> _createdAssets = new ConcurrentDictionary<string, Asset>();
+    private ConcurrentDictionary<int, Asset> _createdAssets = new ConcurrentDictionary<int, Asset>();
     private ConcurrentQueue<Asset> _assetsToLoad = new ConcurrentQueue<Asset>();
     private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
     private List<Coroutine> _loadingAssetRoutines = new List<Coroutine>(16);
@@ -619,25 +619,19 @@ public class AssetLoader
             name = NameToEngineNameRemapped(name);
 
         // If the asset already exists, get it.
-        if (!noCache && _createdAssets.TryGetValue(name, out Asset? loadedAsset))
+        int assetCacheHash = NameToAssetCacheHash(name, typeof(T));
+        if (!noCache && _createdAssets.TryGetValue(assetCacheHash, out Asset? loadedAsset))
         {
-            // If the asset loaded is of the same type as requested, then get it.
-            if (loadedAsset is T assetAsType)
-            {
-                if (addRefenceToObject != null)
-                    AddReferenceToAsset(assetAsType, addRefenceToObject);
+            if (addRefenceToObject != null)
+                AddReferenceToAsset(loadedAsset, addRefenceToObject);
 
-                return assetAsType;
-            }
-            // If a different type, we turn off the cache for this get.
-            // todo: what should be done actually
-            noCache = true;
+            return (T) loadedAsset;
         }
 
         // Create a new asset and register it.
         T newAsset = new T { Name = name, LoadedAsDependency = loadedAsDependency };
         if (!noCache)
-            _createdAssets.TryAdd(name, newAsset);
+            _createdAssets.TryAdd(assetCacheHash, newAsset);
 
         if (addRefenceToObject != null)
             AddReferenceToAsset(newAsset, addRefenceToObject);
@@ -694,11 +688,16 @@ public class AssetLoader
                 if (nextAssetToReload == assetNameToReload) continue;
             }
 
-            // If trying to reload a non loaded asset - we don't care.
-            if (_createdAssets.TryGetValue(assetNameToReload, out Asset? asset))
+            // Reload loaded assets with the name.
+            // Since this is editor/debug code we don't care that this would
+            // be slow and copy the list (ConcurrentDictionary enum).
+            foreach ((int _, Asset asset) in _createdAssets)
             {
-                Coroutine loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
-                _loadingAssetRoutines.Add(loadRoutine);
+                if (asset.Name == assetNameToReload)
+                {
+                    Coroutine loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
+                    _loadingAssetRoutines.Add(loadRoutine);
+                }
             }
         }
 
@@ -737,6 +736,13 @@ public class AssetLoader
         if (_assetRemap != null && _assetRemap.TryGetValue(engineName, out string? remappedName))
             return remappedName;
         return engineName;
+    }
+
+    private int NameToAssetCacheHash(string name, Type type)
+    {
+        int hash1 = name.GetStableHashCodeASCII();
+        int hash2 = type.GetHashCode();
+        return Maths.GetCantorPair(hash1, hash2);
     }
 
     #endregion
