@@ -112,10 +112,10 @@ public class SceneManager
 
         Scene oldScene = Current;
         if (oldScene is SceneWithMap oldSceneWithMap)
-            oldSceneWithMap.UIParent.Close();
+            oldSceneWithMap.SceneUI.Close();
         Current = scene;
         if (scene is SceneWithMap newSceneWithMap)
-            Engine.UI.AddChild(newSceneWithMap.UIParent);
+            Engine.UI.AddChild(newSceneWithMap.SceneUI);
 
         OnSceneChanged?.Invoke();
 

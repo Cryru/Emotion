@@ -43,7 +43,7 @@ public abstract class Scene
 [DontSerialize]
 public abstract class SceneWithMap : Scene
 {
-    public UIBaseWindow UIParent { get; } = new()
+    public UIBaseWindow SceneUI { get; } = new()
     {
         Id = "SceneRoot"
     };

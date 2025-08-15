@@ -85,7 +85,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
 
         UIBaseWindow buttonList = new UIBaseWindow();
         buttonList.LayoutMode = LayoutMode.HorizontalList;
-        UIParent.AddChild(buttonList);
+        SceneUI.AddChild(buttonList);
 
         buttonList.AddChild(new EditorButton("Host")
         {
