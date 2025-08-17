@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Threading;
-using Emotion.Game.World.Terrain.GridStreaming;
+using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
@@ -101,45 +101,45 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
 
             // For normals
             if (chunkTopLeft != null && chunkTopLeft.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(topLeftChunkCoord, chunkTopLeft);
+                RequestChunkMeshUpdate(topLeftChunkCoord, chunkTopLeft);
 
             // For normals
             if (chunkTop != null && chunkTop.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(topChunkCoord, chunkTop);
+                RequestChunkMeshUpdate(topChunkCoord, chunkTop);
 
             // For normals
             Vector2 topRightCoord = chunkCoord + new Vector2(1, -1);
             stitchChunk = GetChunk(topRightCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(topRightCoord, stitchChunk);
+                RequestChunkMeshUpdate(topRightCoord, stitchChunk);
 
             // For normals
             if (chunkLeft != null && chunkLeft.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(leftChunkCoord, chunkLeft);
+                RequestChunkMeshUpdate(leftChunkCoord, chunkLeft);
 
             // For stitching
             Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
             stitchChunk = GetChunk(rightChunkCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(rightChunkCoord, stitchChunk);
+                RequestChunkMeshUpdate(rightChunkCoord, stitchChunk);
 
             // For normals
             Vector2 bottomLeftCoord = chunkCoord + new Vector2(-1, 1);
             stitchChunk = GetChunk(bottomLeftCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(bottomLeftCoord, stitchChunk);
+                RequestChunkMeshUpdate(bottomLeftCoord, stitchChunk);
 
             // For stitching
             Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
             stitchChunk = GetChunk(bottomChunkCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(bottomChunkCoord, stitchChunk);
+                RequestChunkMeshUpdate(bottomChunkCoord, stitchChunk);
 
             // For stitching
             Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
             stitchChunk = GetChunk(bottomRightChunkCoord);
             if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                UpdateDependentChunk(bottomRightChunkCoord, stitchChunk);
+                RequestChunkMeshUpdate(bottomRightChunkCoord, stitchChunk);
         }
 
         Vector3 min = Vector3.Zero;

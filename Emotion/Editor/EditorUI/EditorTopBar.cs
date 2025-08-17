@@ -105,9 +105,8 @@ public class EditorTopBar : UISolidColor
             toolButton.OnClickedProxy = (_) =>
             {
                 GameMap? currentMap = EngineEditor.GetCurrentMap();
-                if (currentMap == null || currentMap.TerrainGrid == null) return;
-                if (currentMap.TerrainGrid is IStreamableGrid streamGrid)
-                    EngineEditor.OpenToolWindowUnique(new ChunkStreamVisualizer(streamGrid));
+                if (currentMap?.TerrainGrid != null)
+                    EngineEditor.OpenToolWindowUnique(new ChunkStreamVisualizer(currentMap.TerrainGrid));
             };
             buttonContainer.AddChild(toolButton);
         }

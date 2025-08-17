@@ -1,11 +1,7 @@
 ﻿#nullable enable
 
-using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
-using Emotion.Core.Utility.Time;
 using Emotion.Editor;
-using Emotion.Game.World.Terrain;
-using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Data;
@@ -13,12 +9,11 @@ using Emotion.Graphics.Memory;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
 using OpenGL;
-using System.Collections.Concurrent;
 
 namespace Emotion.Game.World.Terrain;
 
 [DontSerialize]
-public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, IStreamableGrid
+public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
     where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
     where T : struct, IEquatable<T>
     where IndexT : INumber<IndexT>
@@ -32,11 +27,14 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     {
         TileSize = tileSize;
 
-        if (ChunkStreamManager == null)
+        if (SimulationRange == 0 || RenderRange == 0)
         {
             int factor = (int)MathF.Max(tileSize.Y, tileSize.X);
-            ChunkStreamManager = new ChunkStreamManager(512 * factor, 512 * factor);
+            SimulationRange = 512 * factor;
+            RenderRange = 512 * factor;
         }
+        if (SimulationRange < RenderRange)
+            SimulationRange = RenderRange;
     }
 
     public virtual IEnumerator InitRuntimeDataRoutine()
@@ -70,102 +68,11 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     public void Update(float dt)
     {
         if (!Initialized) return;
-        ChunkStreamManager.Update(this);
-        ProcessChunkUpdateMeshQueue();
+        TickChunkStateUpdates(dt);
+        TickChunkMeshUpdates();
     }
 
     public abstract float GetHeightAt(Vector2 worldSpace);
-
-    #endregion
-
-    #region Chunk Update API
-
-    private HashSet<Vector2> _updateChunks = new HashSet<Vector2>(64);
-    private Queue<Vector2> _queuedUpdateChunks = new Queue<Vector2>(64);
-    private Queue<Vector2> _queuedUpdateChunksBB = new Queue<Vector2>(64);
-    private Lock _chunkUpdateLock = new();
-
-    protected override void OnChunkChanged(Vector2 chunkCoord, ChunkT newChunk)
-    {
-        base.OnChunkChanged(chunkCoord, newChunk);
-        RequestChunkMeshUpdate(chunkCoord, newChunk);
-    }
-
-    protected void UpdateDependentChunk(Vector2 chunkCoord, ChunkT newChunk)
-    {
-        RequestChunkMeshUpdate(chunkCoord, newChunk);
-    }
-
-    public void RequestChunkMeshUpdate(Vector2 chunkCoord, ChunkT newChunk)
-    {
-        lock (_chunkUpdateLock)
-        {
-            if (_updateChunks.Add(chunkCoord))
-                _queuedUpdateChunks.Enqueue(chunkCoord);
-        }
-    }
-
-    private IEnumerator UpdateChunkMeshRoutine(Vector2 chunkCoord, ChunkT chunk)
-    {
-        Assert(chunk.Busy);
-
-        yield return CheckStreamingStateChange(chunkCoord, chunk);
-
-        if (chunk.State >= ChunkState.HasMesh)
-        {
-            UpdateChunkVertices(chunkCoord, chunk);
-        }
-        
-        if (chunk.State >= ChunkState.HasGPUData)
-        {
-            yield return GLThread.ExecuteOnGLThreadAsync(static (chunk) =>
-            {
-                // Assert that the chunk is really in this state.
-                Assert(chunk.GPUVertexMemory != null);
-                if (chunk.GPUVertexMemory == null) return;
-
-                Assert(chunk.VertexMemory.Allocated);
-                if (!chunk.VertexMemory.Allocated) return;
-
-                chunk.GPUVertexMemory.VBO.Upload(chunk.VertexMemory, chunk.VerticesUsed);
-                chunk.GPUUploadedVersion = chunk.VerticesGeneratedForVersion;
-            }, chunk);
-        }
-        chunk.Busy = false;
-    }
-
-    private void ProcessChunkUpdateMeshQueue()
-    {
-        lock (_chunkUpdateLock)
-        {
-            Assert(_queuedUpdateChunksBB.Count == 0);
-
-            while (_queuedUpdateChunks.TryDequeue(out Vector2 chunkCoord))
-            {
-                ChunkT? chunk = GetChunk(chunkCoord);
-                if (chunk == null)
-                {
-                    _updateChunks.Remove(chunkCoord);
-                    continue;
-                }
-
-                if (chunk.Busy)
-                {
-                    // Queue back
-                    _queuedUpdateChunksBB.Enqueue(chunkCoord);
-                    continue;
-                }
-
-                chunk.Busy = true;
-                Engine.Jobs.Add(UpdateChunkMeshRoutine(chunkCoord, chunk));
-                _updateChunks.Remove(chunkCoord);
-            }
-
-            (_queuedUpdateChunks, _queuedUpdateChunksBB) = (_queuedUpdateChunksBB, _queuedUpdateChunks);
-            Assert(_queuedUpdateChunksBB.Count == 0);
-            _queuedUpdateChunksBB.Clear();
-        }
-    }
 
     #endregion
 
@@ -422,9 +329,6 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     #endregion
 
     #region Protected API
-
-    [DontSerialize]
-    public ChunkStreamManager ChunkStreamManager { get; set; }
 
     // These events should only really trigger in the editor or if some game is dynamically editing the terrain.
 

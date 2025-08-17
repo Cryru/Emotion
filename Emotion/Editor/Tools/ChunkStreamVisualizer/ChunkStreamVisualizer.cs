@@ -4,15 +4,17 @@ using Emotion.Core.Systems.IO;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.Tools.InterfaceTool;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.World.Terrain;
 using Emotion.Game.World.Terrain.GridStreaming;
+using Emotion.Game.World.Terrain.MeshGridStreaming;
 
 namespace Emotion.Editor.Tools.ChunkStreamVisualizer;
 
 public class ChunkStreamVisualizer : EditorWindow
 {
-    private IStreamableGrid _grid;
+    private ITerrainGrid3D _grid;
 
-    public ChunkStreamVisualizer(IStreamableGrid grid) : base("Chunk Stream Visualizer")
+    public ChunkStreamVisualizer(ITerrainGrid3D grid) : base("Chunk Stream Visualizer")
     {
         _grid = grid;
     }
@@ -56,7 +58,7 @@ public class ChunkStreamVisualizer : EditorWindow
         int loaded = 0;
 
         Vector2 chunkSize = (_grid.ChunkSize * _grid.TileSize).Round();
-        foreach (var item in _grid.DebugOnly_StreamableGridForEachChunk())
+        foreach (var item in _grid.DebugOnly_ForEachStreamableChunk())
         {
             Vector2 chunkCoord = item.Item1;
             Vector2 chunkPosWorld = chunkCoord * chunkSize;
@@ -70,6 +72,8 @@ public class ChunkStreamVisualizer : EditorWindow
             Color colorIs = GetChunkColorFromState(stateItThinksItsIn);
             c.RenderSprite(chunkPosWorld.ToVec3(0) + new Vector3(chunkSize.X / 2f, 0, 0), new Vector2(chunkSize.X / 2f, chunkSize.Y), colorIs);
 
+            if (chunk.AwaitingUpdate)
+                c.RenderSprite(chunkPosWorld, chunkSize, Color.Blue * 0.5f);
             if (chunk.Busy)
                 c.RenderSprite(chunkPosWorld, chunkSize, Color.Blue * 0.5f);
 
@@ -84,14 +88,12 @@ public class ChunkStreamVisualizer : EditorWindow
 
         c.RenderGrid(-(chunkSize * 100).ToVec3(), chunkSize * 200, chunkSize, Color.Black, chunkSize / 2f + Vector2.One / 2f);
 
-        ChunkStreamManager streamer = _grid.ChunkStreamManager;
-        int rangeSim = streamer.SimulationRange;
-        int rangeRender = streamer.RenderRange;
-        foreach (Vector2 actorPos in streamer.DebugOnly_ForEachStreamActorPos())
+        int rangeSim = _grid.SimulationRange;
+        int rangeRender = _grid.RenderRange;
+        foreach (Vector2 actorPos in _grid.DebugOnly_ForEachStreamActorPos())
         {
             c.RenderCircle(actorPos.ToVec3(), 5, Color.Magenta);
             c.RenderCircleOutline(actorPos.ToVec3(), rangeSim, Color.Yellow, true);
-            c.RenderCircleOutline(actorPos.ToVec3(), rangeSim * 2f, Color.Red, true);
             c.RenderCircleOutline(actorPos.ToVec3(), rangeRender, Color.Green, true);
         }
 

@@ -25,9 +25,7 @@ public class AsyncJobManager
         Engine.Log.Info("Initializing job system...", "Jobs");
 
         int threadCount = Environment.ProcessorCount - 1;
-
-        // Let's not get too greedy! :D
-        threadCount = Maths.Clamp(threadCount, 1, 8);
+        threadCount = Math.Max(threadCount, 1);
 
         _threads = new Thread[threadCount];
         _threadRoutineManagers = new AsyncJobCoroutineManager[threadCount];

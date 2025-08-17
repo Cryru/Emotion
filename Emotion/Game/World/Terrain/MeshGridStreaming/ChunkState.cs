@@ -1,4 +1,4 @@
-﻿namespace Emotion.Game.World.Terrain.GridStreaming;
+﻿namespace Emotion.Game.World.Terrain.MeshGridStreaming;
 
 public enum ChunkState
 {

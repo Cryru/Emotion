@@ -25,11 +25,20 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     [DontSerialize]
     public bool Busy { get; set; }
 
-    /// <summary>
-    /// Used by streaming logic, dont set manually
-    /// </summary>
     [DontSerialize]
-    public ChunkState ChangeToState { get; set; }
+    public bool AwaitingUpdate
+    {
+        get
+        {
+            if (State == ChunkState.HasGPUData)
+                return GPUUploadedVersion != ChunkVersion;
+
+            if (State == ChunkState.HasMesh)
+                return VerticesGeneratedForVersion != ChunkVersion;
+
+            return false;
+        }
+    }
 
     public bool CanBeSimulated
     {
