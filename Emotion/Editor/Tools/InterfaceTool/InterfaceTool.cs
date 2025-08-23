@@ -19,7 +19,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
         NewFile();
         SetObjectBeingEdited(new O_UIBaseWindow()
         {
-            Properties =
+            Visuals =
             {
                 Color = Color.Blue
             },
@@ -40,7 +40,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                         MinSize = new Vector2(20, 20)
                     },
 
-                    Properties = {
+                    Visuals = {
                         Color = Color.PrettyPink
                     }
                 },
@@ -52,17 +52,18 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                         GrowY = true
                     },
 
-                    Properties = {
+                    Visuals = {
                         Color = Color.PrettyYellow
                     }
                 },
                 new O_UIBaseWindow() {
                     Layout =
                     {
-                        MinSize = new Vector2(50, 20)
+                        MinSize = new Vector2(50, 20),
+                        GrowX = true,
                     },
 
-                    Properties = {
+                    Visuals = {
                         Color = Color.PrettyBlue
                     }
                 }
