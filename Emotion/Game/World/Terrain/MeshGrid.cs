@@ -70,6 +70,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         if (!Initialized) return;
         TickChunkStateUpdates(dt);
         TickChunkMeshUpdates();
+        UpdateInternal(dt);
     }
 
     public abstract float GetHeightAt(Vector2 worldSpace);
@@ -330,7 +331,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     #region Protected API
 
-    // These events should only really trigger in the editor or if some game is dynamically editing the terrain.
+    // These events should only trigger in the editor or if some game is dynamically editing the terrain.
 
     protected override void OnChunkRemoved(Vector2 chunkCoord, ChunkT newChunk)
     {
@@ -350,6 +351,11 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     protected virtual void SetupShaderState(ShaderProgram shader)
     {
         // nop
+    }
+
+    protected virtual void UpdateInternal(float dt)
+    {
+
     }
 
     #endregion

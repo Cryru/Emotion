@@ -2,18 +2,25 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
-using Emotion.Game.World.Terrain;
 using OpenGL;
-using VoxelMeshGridChunk = Emotion.Game.World.Terrain.MeshGridStreaming.MeshGridStreamableChunk<uint, uint>;
 
 namespace Emotion.Game.World.Terrain;
 
-public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
+public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint>
+{
+    public VoxelMeshTerrainGrid(Vector3 tileSize, float chunkHeight, float chunkSize) : base(tileSize, chunkHeight, chunkSize)
+    {
+    }
+}
+
+public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChunk<TData, uint>, uint>
+    where TData : struct, IEquatable<TData>
 {
     public Vector3 TileSize3D { get; init; }
 
@@ -42,10 +49,10 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         }
     }
 
-    protected override VoxelMeshGridChunk InitializeNewChunk()
+    protected override MeshGridStreamableChunk<TData, uint> InitializeNewChunk()
     {
-        VoxelMeshGridChunk newChunk = new VoxelMeshGridChunk();
-        uint[] newChunkData = new uint[(int)(ChunkSize3D.X * ChunkSize3D.Y * ChunkSize3D.Z)];
+        var newChunk = new MeshGridStreamableChunk<TData, uint>();
+        var newChunkData = new TData[(int)(ChunkSize3D.X * ChunkSize3D.Y * ChunkSize3D.Z)];
         newChunk.SetRawData(newChunkData);
 
         return newChunk;
@@ -53,36 +60,36 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
     #region 3D Grid Helpers
 
-    protected void SetAtForChunk(VoxelMeshGridChunk chunk, Vector3 position, uint value)
+    protected void SetAtForChunk(MeshGridStreamableChunk<TData, uint> chunk, Vector3 position, TData value)
     {
-        uint[] data = chunk.GetRawData();
+        TData[] data = chunk.GetRawData();
         int idx = GridHelpers.GetCoordinate1DFrom3D(position, ChunkSize3D);
         data[idx] = value;
     }
 
-    protected uint GetAtForChunk(VoxelMeshGridChunk chunk, Vector3 position)
+    protected TData GetAtForChunk(MeshGridStreamableChunk<TData, uint> chunk, Vector3 position)
     {
-        uint[] data = chunk.GetRawData();
+        TData[] data = chunk.GetRawData();
         int idx = GridHelpers.GetCoordinate1DFrom3D(position, ChunkSize3D);
         return data[idx];
     }
 
-    public void SetAt(Vector3 position, uint value)
+    public void SetAt(Vector3 position, TData value)
     {
-        VoxelMeshGridChunk? chunk = GetChunkAt(position.ToVec2(), out Vector2 chunkCoord, out Vector2 relativeCoord);
+        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(position.ToVec2(), out Vector2 chunkCoord, out Vector2 relativeCoord);
         if (chunk == null) return;
         SetAtForChunk(chunk, relativeCoord.ToVec3(position.Z), value);
         OnChunkChanged(chunkCoord, chunk);
     }
 
-    public uint GetAt(Vector3 position)
+    public TData GetAt(Vector3 position)
     {
-        VoxelMeshGridChunk? chunk = GetChunkAt(position.ToVec2(), out Vector2 relativeCoord);
+        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(position.ToVec2(), out Vector2 relativeCoord);
         if (chunk == null) return default;
         return GetAtForChunk(chunk, relativeCoord.ToVec3(position.Z));
     }
 
-    public bool ExpandingSetAt(Vector3 position, uint value)
+    public bool ExpandingSetAt(Vector3 position, TData value)
     {
         Assert(position == position.Floor());
         if (position.Z >= ChunkSize3D.Z)
@@ -94,7 +101,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         uint defVal = default;
         bool isDelete = defVal.Equals(value);
 
-        VoxelMeshGridChunk? chunk = GetChunkAt(pos2D, out Vector2 relativeLocation);
+        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(pos2D, out Vector2 relativeLocation);
         if (chunk != null)
         {
             // Setting position in a chunk - easy peasy.
@@ -118,7 +125,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         if (isDelete) return false;
 
         // Initialize new chunk
-        VoxelMeshGridChunk newChunk = InitializeNewChunk();
+        MeshGridStreamableChunk<TData, uint> newChunk = InitializeNewChunk();
         _chunks.Add(chunkCoord, newChunk);
         OnChunkCreated(chunkCoord, newChunk);
         _chunkBoundsCacheValid = false;
@@ -135,12 +142,12 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
     public override float GetHeightAt(Vector2 worldSpace)
     {
         Vector2 tilePos = GetTilePosOfWorldPos(worldSpace);
-        VoxelMeshGridChunk? chunk = GetChunkAt(tilePos, out Vector2 relativeCoord);
+        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(tilePos, out Vector2 relativeCoord);
         if (chunk == null) return 0;
         for (int z = (int)ChunkSize3D.Z - 1; z >= 0; z--)
         {
-            uint val = GetAtForChunk(chunk, relativeCoord.ToVec3(z));
-            if (val != 0)
+            TData val = GetAtForChunk(chunk, relativeCoord.ToVec3(z));
+            if (!IsEmpty(val))
                 return z;
         }
 
@@ -190,6 +197,30 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
     #endregion
 
+    #region Gameplay Customization
+
+    protected virtual float GetVoxelHeight(Vector2 chunkCoord, MeshGridStreamableChunk<TData, uint> chunk, Vector3 inChunkTilePos, int oneDTilePos, TData tileData)
+    {
+        return 1f;
+    }
+
+    protected virtual bool IsEmpty(TData tileData)
+    {
+        return tileData is 0;
+    }
+
+    public virtual bool IsInteractive(TData tileData)
+    {
+        return !IsEmpty(tileData);
+    }
+
+    protected virtual bool IsVoxelTransparent(TData tileData)
+    {
+        return false;
+    }
+
+    #endregion
+
     #region Rendering
 
     protected override void SetupShaderState(ShaderProgram shader)
@@ -198,22 +229,17 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         shader.SetUniformFloat("brushRadius", 0);
     }
 
-    protected virtual bool IsEmpty(uint tileData)
-    {
-        return tileData == 0;
-    }
-
     protected virtual void SetVoxelFaceUV(
         CubeFace face, Span<VertexData_Pos_UV_Normal_Color> vertices,
-        int coord1D, uint voxelId,
-        uint topSample, uint leftSample, uint rightsample,
-        uint frontSample, uint backSample, uint bottomSample
+        int coord1D, TData voxelData,
+        TData topSample, TData leftSample, TData rightsample,
+        TData frontSample, TData backSample, TData bottomSample
     )
     {
 
     }
 
-    private int RunChunkMeshGeneration(Vector2 chunkWorldOffset, uint[] dataMe, Span<VertexData_Pos_UV_Normal_Color> vertices, Vector3 tileSize3D)
+    private int RunChunkMeshGeneration(Vector2 chunkCoord, MeshGridStreamableChunk<TData, uint> chunk, Vector2 chunkWorldOffset, TData[] dataMe, Span<VertexData_Pos_UV_Normal_Color> vertices, Vector3 tileSize3D)
     {
         bool justCount = vertices.IsEmpty;
         Vector3 halfSize = tileSize3D / 2f;
@@ -228,21 +254,27 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     Vector3 tileCoord = new Vector3(x, y, z);
 
                     int dataCoord = GridHelpers.GetCoordinate1DFrom3D(tileCoord, ChunkSize3D);
-                    uint voxelId = dataMe[dataCoord];
-                    if (IsEmpty(voxelId)) continue;
+                    TData voxelData = dataMe[dataCoord];
+                    if (IsEmpty(voxelData)) continue;
 
                     Vector3 worldPos = chunkWorldOffset.ToVec3() + tileCoord * tileSize3D;
 
-                    uint topSample = 0;
+                    float voxelHeight = GetVoxelHeight(chunkCoord, chunk, tileCoord, dataCoord, voxelData);
+                    if (voxelHeight != -1)
+                    {
+                        voxelHeight = Maths.Map(voxelHeight, 0f, 1f, -1f, 1f);
+                        voxelHeight = MathF.Max(voxelHeight, -0.99f);
+                    }
+
+                    // Top (Z+)
+                    TData topSample = default;
                     if (z != ChunkSize3D.Z - 1)
                     {
                         Vector3 topTileCoordinates = new Vector3(x, y, z + 1);
                         int topCoord = GridHelpers.GetCoordinate1DFrom3D(topTileCoordinates, ChunkSize3D);
                         topSample = dataMe[topCoord];
                     }
-
-                    // Top (Z+)
-                    if (IsEmpty(topSample))
+                    if (IsEmpty(topSample) || IsVoxelTransparent(topSample))
                     {
                         if (justCount)
                         {
@@ -252,7 +284,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                         {
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(-1, 1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(-1, 1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Up;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -261,7 +293,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(1, 1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(1, 1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Up;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -270,7 +302,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(1, -1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(1, -1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Up;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -279,7 +311,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(-1, -1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(-1, -1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Up;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -287,8 +319,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                             }
 
                             SetVoxelFaceUV(
-                                CubeFace.PositiveZ, vertices.Slice(vIdx - 4), dataCoord, voxelId,
-                                topSample, 0, 0, 0, 0, 0
+                                CubeFace.PositiveZ, vertices.Slice(vIdx - 4), dataCoord, voxelData,
+                                topSample, default, default, default, default, default
                             );
                         }
                     }
@@ -299,8 +331,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     {
                         Vector3 bottomTileCoordinates = new Vector3(x, y, z - 1);
                         int bottomCoord = GridHelpers.GetCoordinate1DFrom3D(bottomTileCoordinates, ChunkSize3D);
-                        uint bottomSample = dataMe[bottomCoord];
-                        makeBottomFace = IsEmpty(bottomSample);
+                        TData bottomSample = dataMe[bottomCoord];
+                        makeBottomFace = IsEmpty(bottomSample) || IsVoxelTransparent(bottomSample);
                     }
                     if (makeBottomFace)
                     {
@@ -348,8 +380,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
 
                             SetVoxelFaceUV(
-                                CubeFace.NegativeZ, vertices.Slice(vIdx - 4), dataCoord, voxelId,
-                                topSample, 0, 0, 0, 0, 0
+                                CubeFace.NegativeZ, vertices.Slice(vIdx - 4), dataCoord, voxelData,
+                                topSample, default, default, default, default, default
                             );
                         }
                     }
@@ -360,8 +392,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     {
                         Vector3 backTileCoordinates = new Vector3(x - 1, y, z);
                         int backCoord = GridHelpers.GetCoordinate1DFrom3D(backTileCoordinates, ChunkSize3D);
-                        uint backSample = dataMe[backCoord];
-                        makeBackface = IsEmpty(backSample);
+                        TData backSample = dataMe[backCoord];
+                        makeBackface = IsEmpty(backSample) || IsVoxelTransparent(backSample);
                     }
                     if (makeBackface)
                     {
@@ -373,7 +405,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                         {
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(-1, 1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(-1, 1, voxelHeight);
                                 vData.Normal = -Graphics.Renderer.Forward;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -382,7 +414,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(-1, -1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(-1, -1, voxelHeight);
                                 vData.Normal = -Graphics.Renderer.Forward;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -408,8 +440,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                             }
 
                             SetVoxelFaceUV(
-                                CubeFace.NegativeX, vertices.Slice(vIdx - 4), dataCoord, voxelId,
-                                topSample, 0, 0, 0, 0, 0
+                                CubeFace.NegativeX, vertices.Slice(vIdx - 4), dataCoord, voxelData,
+                                topSample, default, default, default, default, default
                             );
                         }
                     }
@@ -420,8 +452,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     {
                         Vector3 frontTileCoordinates = new Vector3(x + 1, y, z);
                         int frontCoord = GridHelpers.GetCoordinate1DFrom3D(frontTileCoordinates, ChunkSize3D);
-                        uint frontSample = dataMe[frontCoord];
-                        makeFrontFace = IsEmpty(frontSample);
+                        TData frontSample = dataMe[frontCoord];
+                        makeFrontFace = IsEmpty(frontSample) || IsVoxelTransparent(frontSample);
                     }
                     if (makeFrontFace)
                     {
@@ -433,7 +465,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                         {
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(1, -1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(1, -1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Forward;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -442,7 +474,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(1, 1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(1, 1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Forward;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -468,8 +500,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                             }
 
                             SetVoxelFaceUV(
-                                CubeFace.PositiveX, vertices.Slice(vIdx - 4), dataCoord, voxelId,
-                                topSample, 0, 0, 0, 0, 0
+                                CubeFace.PositiveX, vertices.Slice(vIdx - 4), dataCoord, voxelData,
+                                topSample, default, default, default, default, default
                             );
                         }
                     }
@@ -480,8 +512,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     {
                         Vector3 leftTileCoordinates = new Vector3(x, y - 1, z);
                         int leftCoord = GridHelpers.GetCoordinate1DFrom3D(leftTileCoordinates, ChunkSize3D);
-                        uint leftSample = dataMe[leftCoord];
-                        makeLeftFace = IsEmpty(leftSample);
+                        TData leftSample = dataMe[leftCoord];
+                        makeLeftFace = IsEmpty(leftSample) || IsVoxelTransparent(leftSample);
                     }
                     if (makeLeftFace)
                     {
@@ -493,7 +525,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                         {
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(-1, -1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(-1, -1, voxelHeight);
                                 vData.Normal = -Graphics.Renderer.Right;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -502,7 +534,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(1, -1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(1, -1, voxelHeight);
                                 vData.Normal = -Graphics.Renderer.Right;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -528,8 +560,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                             }
 
                             SetVoxelFaceUV(
-                                CubeFace.NegativeY, vertices.Slice(vIdx - 4), dataCoord, voxelId,
-                                topSample, 0, 0, 0, 0, 0
+                                CubeFace.NegativeY, vertices.Slice(vIdx - 4), dataCoord, voxelData,
+                                topSample, default, default, default, default, default
                             );
                         }
                     }
@@ -540,8 +572,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                     {
                         Vector3 rightTileCoordinates = new Vector3(x, y + 1, z);
                         int rightCoord = GridHelpers.GetCoordinate1DFrom3D(rightTileCoordinates, ChunkSize3D);
-                        uint rightSample = dataMe[rightCoord];
-                        makeRightFace = IsEmpty(rightSample);
+                        TData rightSample = dataMe[rightCoord];
+                        makeRightFace = IsEmpty(rightSample) || IsVoxelTransparent(rightSample);
                     }
                     if (makeRightFace)
                     {
@@ -553,7 +585,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                         {
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(1, 1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(1, 1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Right;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -562,7 +594,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                             {
                                 ref VertexData_Pos_UV_Normal_Color vData = ref vertices[vIdx];
-                                vData.Position = worldPos + halfSize * new Vector3(-1, 1, 1);
+                                vData.Position = worldPos + halfSize * new Vector3(-1, 1, voxelHeight);
                                 vData.Normal = Graphics.Renderer.Right;
                                 vData.Color = Color.WhiteUint;
                                 vData.UV = new Vector2(0, 0);
@@ -588,8 +620,8 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                             }
 
                             SetVoxelFaceUV(
-                                CubeFace.PositiveY, vertices.Slice(vIdx - 4), dataCoord, voxelId,
-                                topSample, 0, 0, 0, 0, 0
+                                CubeFace.PositiveY, vertices.Slice(vIdx - 4), dataCoord, voxelData,
+                                topSample, default, default, default, default, default
                             );
                         }
                     }
@@ -602,7 +634,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
     private ObjectPool<List<Cube>> _colliderPool = new ObjectPool<List<Cube>>();
 
-    protected override void UpdateChunkVertices(Vector2 chunkCoord, VoxelMeshGridChunk chunk)
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, MeshGridStreamableChunk<TData, uint> chunk)
     {
         Vector2 tileSize = TileSize;
         Vector3 tileSize3D = TileSize3D;
@@ -613,13 +645,13 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
         Vector2 chunkWorldOffset = chunkCoord * chunkWorldSize;
 
         // Get my data
-        uint[] dataMe = chunk.GetRawData() ?? Array.Empty<uint>();
+        TData[] dataMe = chunk.GetRawData() ?? Array.Empty<TData>();
 
-        int verticesToAllocate = RunChunkMeshGeneration(chunkWorldOffset, dataMe, Span<VertexData_Pos_UV_Normal_Color>.Empty, tileSize3D);
+        int verticesToAllocate = RunChunkMeshGeneration(chunkCoord, chunk, chunkWorldOffset, dataMe, Span<VertexData_Pos_UV_Normal_Color>.Empty, tileSize3D);
         verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000; // Round to thousandth
         Span<VertexData_Pos_UV_Normal_Color> vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, verticesToAllocate);
 
-        int verticesUsed = RunChunkMeshGeneration(chunkWorldOffset, dataMe, vertices, tileSize3D);
+        int verticesUsed = RunChunkMeshGeneration(chunkCoord, chunk, chunkWorldOffset, dataMe, vertices, tileSize3D);
 
         // Update colliders
         // todo: if our voxels are just cubes we can simulate collisions by just using
@@ -637,19 +669,19 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
                 int columnStartZ = -1;
                 for (int z = (int)ChunkSize3D.Z - 1; z >= -1; z--)
                 {
-                    bool isEmpty;
+                    bool walkThrough;
                     if (z == -1)
                     {
-                        isEmpty = true;
+                        walkThrough = true;
                     }
                     else
                     {
-                        uint val = GetAtForChunk(chunk, tileCoord.ToVec3(z));
-                        isEmpty = IsEmpty(val);
+                        TData val = GetAtForChunk(chunk, tileCoord.ToVec3(z));
+                        walkThrough = !IsInteractive(val);
                     }
 
                     bool columnStarted = columnStartZ != -1;
-                    if (isEmpty && columnStarted)
+                    if (walkThrough && columnStarted)
                     {
                         int columnSize = columnStartZ - z;
                         float columnStartWorldSpace = columnStartZ * tileSize3D.Z;
@@ -661,7 +693,7 @@ public class VoxelMeshTerrainGrid : MeshGrid<uint, VoxelMeshGridChunk, uint>
 
                         columnStartZ = -1;
                     }
-                    else if (!isEmpty && !columnStarted)
+                    else if (!walkThrough && !columnStarted)
                     {
                         columnStartZ = z;
                     }
