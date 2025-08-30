@@ -11,6 +11,11 @@ public class TextureCubemapAsset : TextureAssetBase<TextureCubemap>
 {
     private OtherAsset?[] _sides = new OtherAsset[5];
 
+    protected override TextureCubemap InitializeTextureObject()
+    {
+        return TextureCubemap.NonGLThreadInitialize();
+    }
+
     protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
     {
         string name = Name;
@@ -28,8 +33,8 @@ public class TextureCubemapAsset : TextureAssetBase<TextureCubemap>
             yield break;
         }
 
-        Texture = TextureCubemap.NonGLThreadInitialize(size.X);
-        Texture.SetFormat(format, InternalFormat.Rgba, PixelType.UnsignedByte);
+        Texture = TextureCubemap.NonGLThreadInitialize();
+        Texture.SetFormat((int) size.X, format, InternalFormat.Rgba, PixelType.UnsignedByte);
 
         // todo: not sure why these rotations are needed, is something wrong with out cube?
         ImageUtil.RotateSquareInPlace(pixels, Gl.PixelFormatToComponentCount(format) * 1, (int)size.X, 3);

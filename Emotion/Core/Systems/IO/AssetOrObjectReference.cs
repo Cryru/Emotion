@@ -14,6 +14,8 @@ public enum AssetOrObjectReferenceType
 }
 public interface IAssetContainingObject<TObject>
 {
+    public bool Finished { get; }
+
     public TObject? GetObject();
 }
 

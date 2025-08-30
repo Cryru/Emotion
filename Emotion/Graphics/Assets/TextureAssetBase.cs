@@ -21,7 +21,7 @@ public abstract class TextureAssetBase<TTexture> : Asset, IAssetContainingObject
     /// <summary>
     /// The asset's uploaded graphics texture.
     /// </summary>
-    public TTexture? Texture { get; set; }
+    public TTexture Texture { get; set; }
 
     public TTexture? GetObject()
     {
@@ -31,7 +31,10 @@ public abstract class TextureAssetBase<TTexture> : Asset, IAssetContainingObject
     protected TextureAssetBase()
     {
         _useNewLoading = true;
+        Texture = InitializeTextureObject();
     }
+
+    protected abstract TTexture InitializeTextureObject();
 
     protected override void CreateInternal(ReadOnlyMemory<byte> data)
     {

@@ -44,6 +44,8 @@ public class Texture : TextureObjectBase
 
     protected Texture(Vector2 size)
     {
+        Size = size;
+
 #if DEBUG
         AllTextures.Add(this);
         CreationStack = Environment.StackTrace;
@@ -58,9 +60,9 @@ public class Texture : TextureObjectBase
 #endif
     }
 
-    public static Texture NonGLThreadInitialize(Vector2 size)
+    public static Texture NonGLThreadInitialize()
     {
-        var t = new Texture(size)
+        var t = new Texture(EmptyWhiteTexture.Size)
         {
             Pointer = EmptyWhiteTexture.Pointer,
             InternalFormat = InternalFormat.Rgba,

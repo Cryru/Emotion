@@ -20,7 +20,7 @@ public class TextureCubemap : TextureObjectBase
 
     protected override TextureTarget _textureTarget => TextureTarget.TextureCubeMap;
 
-    public TextureCubemap() : this(0)
+    public TextureCubemap() : this(Vector2.Zero)
     {
         Assert(GLThread.IsGLThread());
         Pointer = Gl.GenTexture();
@@ -31,9 +31,9 @@ public class TextureCubemap : TextureObjectBase
         Pointer = pointer;
     }
 
-    protected TextureCubemap(float size)
+    protected TextureCubemap(Vector2 size)
     {
-        Size = new Vector2(size);
+        Size = size;
 
 #if DEBUG
         AllTextures.Add(this);
@@ -49,9 +49,9 @@ public class TextureCubemap : TextureObjectBase
 #endif
     }
 
-    public static TextureCubemap NonGLThreadInitialize(float size)
+    public static TextureCubemap NonGLThreadInitialize()
     {
-        return new TextureCubemap(size);
+        return new TextureCubemap(Vector2.Zero);
     }
 
     public static void NonGLThreadInitializedCreatePointer(TextureCubemap t)
@@ -59,8 +59,9 @@ public class TextureCubemap : TextureObjectBase
         t.Pointer = Gl.GenTexture();
     }
 
-    public void SetFormat(PixelFormat pixelFormat, InternalFormat internalFormat, PixelType pixelType)
+    public void SetFormat(int size, PixelFormat pixelFormat, InternalFormat internalFormat, PixelType pixelType)
     {
+        Size = new Vector2(size);
         PixelFormat = pixelFormat;
         InternalFormat = internalFormat;
         PixelType = pixelType;

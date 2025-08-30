@@ -40,6 +40,9 @@ public abstract class TextureObjectBase : IDisposable
             _smooth = value;
             _smoothSet = true;
 
+            // Texture was deleted or not uploaded yet, if it will be uploaded the smooth value set will be applied then.
+            if (Pointer == 0) return;
+
             GLThread.ExecuteGLThreadAsync(() =>
             {
                 int smoothOption = HasMipmaps ? Gl.LINEAR_MIPMAP_LINEAR : Gl.LINEAR;
