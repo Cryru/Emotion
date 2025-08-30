@@ -12,7 +12,7 @@ public static class Maths
     /// <summary>
     /// The natural logarithmic base.
     /// </summary>
-    public const float E = (float) Math.E;
+    public const float E = (float)Math.E;
 
     /// <summary>
     /// Logarithm of 10E.
@@ -27,22 +27,22 @@ public static class Maths
     /// <summary>
     /// The mathematical constant Pi.
     /// </summary>
-    public const float PI = (float) Math.PI;
+    public const float PI = (float)Math.PI;
 
     /// <summary>
     /// The mathematical constant Pi - divided by two.
     /// </summary>
-    public const float PI_OVER2 = (float) (Math.PI / 2.0);
+    public const float PI_OVER2 = (float)(Math.PI / 2.0);
 
     /// <summary>
     /// The mathematical constant Pi - divided by four.
     /// </summary>
-    public const float PI_OVER4 = (float) (Math.PI / 4.0);
+    public const float PI_OVER4 = (float)(Math.PI / 4.0);
 
     /// <summary>
     /// The mathematical constant Pi - multiplied by two.
     /// </summary>
-    public const float TWO_PI = (float) (Math.PI * 2.0);
+    public const float TWO_PI = (float)(Math.PI * 2.0);
 
     /// <summary>
     /// The mathematical constant Pi - as a double.
@@ -121,6 +121,45 @@ public static class Maths
     /// </summary>
     public static Vector2[] CardinalDirectionsAndDiagonals2D = CardinalDirections2D.JoinArrays(Diagonals2D);
 
+
+    public static Vector3[] AllDirections3D =
+    {
+        new Vector3(-1, -1, 0),
+        new Vector3(0, -1, 0),
+        new Vector3(1, -1, 0),
+
+        new Vector3(-1, 0, 0),
+        new Vector3(1, 0, 0),
+
+        new Vector3(-1, 1, 0),
+        new Vector3(0, 1, 0),
+        new Vector3(1, 1, 0),
+
+        new Vector3(0, 0, -1),
+        new Vector3(-1, -1, -1),
+        new Vector3(0, -1, -1),
+        new Vector3(1, -1, -1),
+
+        new Vector3(-1, 0, -1),
+        new Vector3(1, 0, -1),
+
+        new Vector3(-1, 1, -1),
+        new Vector3(0, 1, -1),
+        new Vector3(1, 1, -1),
+
+        new Vector3(0, 0, 1),
+        new Vector3(-1, -1, 1),
+        new Vector3(0, -1, 1),
+        new Vector3(1, -1, 1),
+
+        new Vector3(-1, 0, 1),
+        new Vector3(1, 0, 1),
+
+        new Vector3(-1, 1, 1),
+        new Vector3(0, 1, 1),
+        new Vector3(1, 1, 1),
+    };
+
     /// <summary>
     /// Ceiling round the float to the nearest int value above y. note that this only works for values in the range of short.
     /// </summary>
@@ -129,7 +168,7 @@ public static class Maths
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int FastCeilToInt(float y)
     {
-        return 32768 - (int) (32768f - y);
+        return 32768 - (int)(32768f - y);
     }
 
     /// <summary>
@@ -141,7 +180,7 @@ public static class Maths
     public static int FastFloorToInt(float x)
     {
         // We shift to guaranteed positive before casting then shift back after
-        return (int) (x + 32768f) - 32768;
+        return (int)(x + 32768f) - 32768;
     }
 
     /// <summary>
@@ -347,7 +386,7 @@ public static class Maths
             _ => (2 * v1 - 2 * v2 + t2 + t1) * sCubed + (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared + t1 * s + v1
         };
 
-        return (float) result;
+        return (float)result;
     }
 
     /// <summary>
@@ -360,7 +399,7 @@ public static class Maths
         // Internally using doubles not to lose precision
         double amountSquared = amount * amount;
         double amountCubed = amountSquared * amount;
-        return (float) (0.5 * (2.0 * value2 +
+        return (float)(0.5 * (2.0 * value2 +
                                (value3 - value1) * amount +
                                (2.0 * value1 - 5.0 * value2 + 4.0 * value3 - value4) * amountSquared +
                                (3.0 * value2 - value1 - 3.0 * value3 + value4) * amountCubed));

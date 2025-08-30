@@ -397,6 +397,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
     private Queue<Vector2> _queuedUpdateChunks = new Queue<Vector2>(64);
     private Queue<Vector2> _queuedUpdateChunksBB = new Queue<Vector2>(64);
 
+    private HashSet<Vector2> _updateChunksHighPriority = new HashSet<Vector2>(64);
     private Queue<Vector2> _queuedUpdateChunksPriority = new Queue<Vector2>(64);
     private Queue<Vector2> _queuedUpdateChunksPriorityBB = new Queue<Vector2>(64);
     private Lock _chunkUpdateLock = new();
@@ -416,12 +417,18 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
     {
         lock (_chunkUpdateLock)
         {
-            if (_updateChunks.Add(chunkCoord))
+            if (highPriority)
             {
-                if (highPriority)
+                if (_updateChunksHighPriority.Add(chunkCoord))
+                {
                     _queuedUpdateChunksPriority.Enqueue(chunkCoord);
-                else
-                    _queuedUpdateChunks.Enqueue(chunkCoord);
+                    _updateChunks.Remove(chunkCoord);
+                }
+            }
+            else
+            {
+                if (_updateChunksHighPriority.Contains(chunkCoord)) return;
+                if (_updateChunks.Add(chunkCoord)) _queuedUpdateChunks.Enqueue(chunkCoord);
             }
         }
     }
@@ -484,6 +491,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
                 if (chunk == null || chunk.State == ChunkState.DataOnly)
                 {
                     _updateChunks.Remove(chunkCoord);
+                    _updateChunksHighPriority.Remove(chunkCoord);
                     continue; // huh?
                 }
 
@@ -491,6 +499,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
                 if (newRoutine != null)
                 {
                     _updateChunks.Remove(chunkCoord);
+                    _updateChunksHighPriority.Remove(chunkCoord);
                     updateRoutines[i] = newRoutine;
                     break;
                 }
@@ -548,8 +557,10 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     private Dictionary<ChunkState, Dictionary<Vector2, ChunkT>> _chunksLoaded = new();
 
-    private Dictionary<Vector2, ChunkT> GetChunksInState(ChunkState state)
+    public Dictionary<Vector2, ChunkT> GetChunksInState(ChunkState state)
     {
+        Assert(GLThread.IsGLThread());
+
         _chunksLoaded.TryGetValue(state, out Dictionary<Vector2, ChunkT>? chunks);
         if (chunks == null)
         {

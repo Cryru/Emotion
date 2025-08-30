@@ -21,12 +21,12 @@ public static class GridHelpers
 
     public static Vector3 GetCoordinate3DFrom1D(int oneD, Vector3 size)
     {
-        int width = (int)size.X;
-        int height = (int)size.Z;
+        int left = (int)size.X;
+        int top = (int)size.Y;
 
-        int x = oneD % width;
-        int y = oneD / width % height;
-        int z = oneD / (width * height);
+        int x = oneD % left;
+        int y = (oneD / left) % top;
+        int z = oneD / (left * top);
 
         return new Vector3(x, y, z);
     }
@@ -53,11 +53,30 @@ public static class GridHelpers
     public static Rectangle GetBoxInGridAt1D(int oneD, Vector2 totalSize, Vector2 elementSize, Vector2 margin, Vector2 spacing)
     {
         Vector2 sizeInElements = GetGridSizeInElements(totalSize, elementSize, margin, spacing);
+        if (sizeInElements == Vector2.Zero) return Rectangle.Empty;
 
         // Get the element needed
         Vector2 pos = GetCoordinate2DFrom1D(oneD, sizeInElements);
         int column = (int) pos.X;
         int row = (int) pos.Y;
+        return new Rectangle(
+            elementSize.X * column + margin.X + spacing.X * (column + 1),
+            elementSize.Y * row + margin.Y + spacing.Y * (row + 1),
+            elementSize
+        );
+    }
+
+    public static Rectangle GetBoxInGridAtProgress(float progress, Vector2 totalSize, Vector2 elementSize, Vector2 margin, Vector2 spacing)
+    {
+        Vector2 sizeInElements = GetGridSizeInElements(totalSize, elementSize, margin, spacing);
+        if (sizeInElements == Vector2.Zero) return Rectangle.Empty;
+
+        // Interpolate to find the current frame.
+        int oneD = (int)Maths.Lerp(0, sizeInElements.X * sizeInElements.Y, progress);
+
+        Vector2 pos = GetCoordinate2DFrom1D(oneD, sizeInElements);
+        int column = (int)pos.X;
+        int row = (int)pos.Y;
         return new Rectangle(
             elementSize.X * column + margin.X + spacing.X * (column + 1),
             elementSize.Y * row + margin.Y + spacing.Y * (row + 1),
