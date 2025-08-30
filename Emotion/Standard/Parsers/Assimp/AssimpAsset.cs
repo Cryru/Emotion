@@ -148,11 +148,11 @@ public static class AssimpFormat
                 var dataAsByte = new ReadOnlySpan<byte>(assTexture->PcData, (int)(assTexture->MWidth * assTexture->MHeight * 4));
 
                 byte[] dataManaged = dataAsByte.ToArray();
-                Texture? embeddedTexture = Texture.NonGLThreadInitialize(new Vector2(assTexture->MWidth, assTexture->MHeight));
+                Texture? embeddedTexture = Texture.NonGLThreadInitialize();
                 GLThread.ExecuteGLThreadAsync(() =>
                 {
                     Texture.NonGLThreadInitializedCreatePointer(embeddedTexture);
-                    embeddedTexture.Upload(embeddedTexture.Size, dataManaged);
+                    embeddedTexture.Upload(new Vector2(assTexture->MWidth, assTexture->MHeight), dataManaged);
                 });
                 embeddedTextures.Add(embeddedTexture);
             }
