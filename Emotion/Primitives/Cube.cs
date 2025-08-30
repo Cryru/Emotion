@@ -2,9 +2,13 @@
 
 #region Using
 
-using System.Runtime.CompilerServices;
+using Emotion.Core.Systems.IO;
 using Emotion.Game.World.ThreeDee;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
+using OpenGL;
+using System;
+using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -87,14 +91,56 @@ public struct Cube
     public void GetVertices(Span<Vector3> vertices)
     {
         Assert(vertices.Length >= 8);
-        vertices[0] = new Vector3(Origin.X - HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z - HalfExtents.Z);
-        vertices[1] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z - HalfExtents.Z);
-        vertices[2] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z - HalfExtents.Z);
-        vertices[3] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z - HalfExtents.Z);
-        vertices[4] = new Vector3(Origin.X - HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z + HalfExtents.Z);
-        vertices[5] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z + HalfExtents.Z);
-        vertices[6] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
-        vertices[7] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z);
+        vertices[0] = new Vector3(Origin.X - HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z - HalfExtents.Z); // 0 - - -
+        vertices[1] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z - HalfExtents.Z); // 1 + - -
+        vertices[2] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z - HalfExtents.Z); // 2 - + -
+        vertices[3] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z - HalfExtents.Z); // 3 + + -
+        vertices[4] = new Vector3(Origin.X - HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z + HalfExtents.Z); // 4 - - +
+        vertices[5] = new Vector3(Origin.X + HalfExtents.X, Origin.Y - HalfExtents.Y, Origin.Z + HalfExtents.Z); // 5 + - +
+        vertices[6] = new Vector3(Origin.X - HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z); // 6 - + +
+        vertices[7] = new Vector3(Origin.X + HalfExtents.X, Origin.Y + HalfExtents.Y, Origin.Z + HalfExtents.Z); // 7 + + +
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void GetFaceIndices(Span<int> indices)
+    {
+        Assert(indices.Length == 24);
+
+        // Top (Z+)
+        indices[0] = 6;
+        indices[1] = 7;
+        indices[2] = 5;
+        indices[3] = 4;
+
+        // Bottom (Z-)
+        indices[4] = 0;
+        indices[5] = 1;
+        indices[6] = 3;
+        indices[7] = 2;
+
+        // Back (X-)
+        indices[8] = 0;
+        indices[9] = 2;
+        indices[10] = 6;
+        indices[11] = 4;
+
+        // Front (X+)
+        indices[12] = 3;
+        indices[13] = 1;
+        indices[14] = 5;
+        indices[15] = 7;
+
+        // Left (Y-)
+        indices[16] = 1;
+        indices[17] = 0;
+        indices[18] = 4;
+        indices[19] = 5;
+
+        // Right (Y+)
+        indices[20] = 2;
+        indices[21] = 3;
+        indices[22] = 7;
+        indices[23] = 6;
     }
 
     public bool Intersects(Cube cube)
@@ -315,6 +361,59 @@ public struct Cube
             int[] edge = _outlineEdges[i];
             c.RenderLine(vertices[edge[0]], vertices[edge[1]], color ?? Color.White, thickness);
         }
+    }
+
+    #endregion
+
+    #region RenderStream Textures
+
+    public void RenderSpriteOnFaces(Renderer r, Color color, IAssetContainingObject<Texture> textureAsset, Rectangle? textureArea = null)
+    {
+        if (!textureAsset.Finished) return;
+
+        Texture? texture = textureAsset.GetObject();
+        RenderSpriteOnFaces(r, color, texture ?? Texture.EmptyWhiteTexture, textureArea);
+    }
+
+    public void RenderSpriteOnFaces(Renderer r, Color color, Texture texture, Rectangle? textureArea = null)
+    {
+        Cube theCube = this;
+
+        Span<Vector3> baseVertices = stackalloc Vector3[8];
+        GetVertices(baseVertices);
+
+        Span<int> faceIndices = stackalloc int[24];
+        GetFaceIndices(faceIndices);
+
+        Rectangle uv = textureArea ?? new Rectangle(0, 0, texture.Size);
+
+        int faces = faceIndices.Length / 4;
+        int faceVertexIndices = faces * 6;
+
+        StreamData<VertexData> memory = r.RenderStream.GetStreamMemory((uint)faceIndices.Length, (uint)faceVertexIndices, BatchMode.SequentialTriangles, texture);
+
+        for (int i = 0; i < faces; i++)
+        {
+            int faceIndicesStart = i * 4;
+            Span<int> thisFace = faceIndices.Slice(faceIndicesStart, 4);
+            Span<VertexData> streamVertices = memory.VerticesData.Slice(faceIndicesStart, 4);
+
+            for (int v = 0; v < 4; v++)
+            {
+                ref VertexData vert = ref streamVertices[v];
+                vert.Vertex = baseVertices[thisFace[v]];
+                vert.Color = color.ToUint();
+            }
+            VertexData.TransformUVs(streamVertices, texture, uv);
+
+            int streamIndicesStart = i * 6;
+            Span<ushort> streamIndices = memory.IndicesData.Slice(streamIndicesStart, 6);
+            IndexBuffer.FillQuadIndices(streamIndices, faceIndicesStart);
+        }
+
+        // Copy indices
+        for (int i = 0; i < memory.IndicesData.Length; i++)
+            memory.IndicesData[i] = (ushort) (memory.StructIndex + memory.IndicesData[i]);
     }
 
     #endregion
