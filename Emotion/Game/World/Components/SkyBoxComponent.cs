@@ -38,6 +38,8 @@ public class SkyBoxComponent : MeshComponent
 
     private void OnTextureChanged(TextureCubemap? texture)
     {
+        if (texture != null) // todo: component property?
+            texture.Smooth = true;
         _texture = texture;
     }
 

@@ -224,4 +224,9 @@ public class MinecraftMovementController
         Cube moverCube = _character.GetBoundingCube();
         return map.SweepCube(moverCube, moveAmount, _character);
     }
+
+    public bool IsTilePosOfCursorValid()
+    {
+        return TilePosOfCursor != Vector3.NaN;
+    }
 }
