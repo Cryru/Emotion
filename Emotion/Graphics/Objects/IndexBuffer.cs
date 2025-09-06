@@ -24,9 +24,22 @@ public sealed class IndexBuffer : DataBuffer
     /// </summary>
     public DrawElementsType DataType { get; init; }
 
+    /// <summary>
+    /// The size of elements in bytes.
+    /// </summary>
+    public int DataTypeSize { get; init; }
+
     public IndexBuffer(DrawElementsType dataType, uint byteSize = 0, BufferUsage usage = BufferUsage.StaticDraw) : base(BufferTarget.ElementArrayBuffer, byteSize, usage)
     {
         DataType = dataType;
+        DataTypeSize = dataType switch
+        {
+            DrawElementsType.UnsignedByte => 1,
+            DrawElementsType.UnsignedInt => 4,
+            DrawElementsType.UnsignedShort => 2,
+            _ => 0
+        };
+        Assert(DataTypeSize > 0);
     }
 
     public IndexBuffer(uint byteSize = 0, BufferUsage usage = BufferUsage.StaticDraw) : this(DrawElementsType.UnsignedShort, byteSize, usage)

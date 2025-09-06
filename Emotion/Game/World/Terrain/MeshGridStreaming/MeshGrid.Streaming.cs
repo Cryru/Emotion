@@ -641,6 +641,16 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         RequestChunkMeshUpdate(chunkCoord, chunk);
     }
 
+    protected Span<VertexData_Pos_UV_Normal_Color> ResizeVertexMemoryAndGetSpan(ref VertexDataAllocation vertexMemory, Vector2 chunkCoord, int vertexCount)
+    {
+        Assert(vertexMemory.Allocated);
+
+        if (vertexMemory.VertexCount < vertexCount)
+            vertexMemory = VertexDataAllocation.Reallocate(ref vertexMemory, vertexCount);
+
+        return vertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
+    }
+
     #endregion
 
     #region Demotion and Deallocation Logic

@@ -404,7 +404,7 @@ public struct Cube
                 vert.Vertex = baseVertices[thisFace[v]];
                 vert.Color = color.ToUint();
             }
-            VertexData.TransformUVs(streamVertices, texture, uv);
+            VertexData.TransformUVs(streamVertices, texture.Size, uv);
 
             int streamIndicesStart = i * 6;
             Span<ushort> streamIndices = memory.IndicesData.Slice(streamIndicesStart, 6);

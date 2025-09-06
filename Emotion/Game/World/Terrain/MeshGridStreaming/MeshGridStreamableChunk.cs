@@ -105,6 +105,9 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     [DontSerialize]
     public int IndicesUsed { get; private set; } = -1;
 
+    [DontSerialize]
+    public int TransparentIndicesUsed { get; set; }
+
     #endregion
 
     #region Collision
@@ -113,16 +116,6 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     public List<Cube>? Colliders; // todo: collider type
 
     #endregion
-
-    public Span<VertexData_Pos_UV_Normal_Color> ResizeVertexMemoryAndGetSpan(Vector2 chunkCoord, int vertexCount)
-    {
-        Assert(VertexMemory.Allocated);
-
-        if (VertexMemory.VertexCount < vertexCount)
-            VertexMemory = VertexDataAllocation.Reallocate(ref VertexMemory, vertexCount);
-
-        return VertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
-    }
 
     public void SetIndices(IndexT[] cpuIndices, IndexBuffer gpuIndices, int indexCount)
     {

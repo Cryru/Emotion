@@ -297,6 +297,8 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         {
             Engine.Renderer.FlushRenderStream();
 
+            bool transparentPass = false;
+
             RenderState oldState = c.CurrentState.Clone();
 
             MeshMaterial material = GetMeshMaterial();
@@ -321,6 +323,27 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
                 int indices = chunkToRender.IndicesUsed;
                 Gl.DrawElements(PrimitiveType.Triangles, indices, indexBuffer.DataType, IntPtr.Zero);
+
+                if (chunkToRender.TransparentIndicesUsed != 0) transparentPass = true;
+            }
+
+            if (transparentPass)
+            {
+                foreach (ChunkT chunkToRender in _renderThisPass)
+                {
+                    IndexBuffer? indexBuffer = chunkToRender.IndexBuffer;
+                    if (indexBuffer == null) continue;
+
+                    GPUVertexMemory? gpuMem = chunkToRender.GPUVertexMemory;
+                    if (gpuMem == null) continue;
+
+                    VertexArrayObject.EnsureBound(gpuMem.VAO);
+                    IndexBuffer.EnsureBound(indexBuffer.Pointer);
+
+                    int indices = chunkToRender.TransparentIndicesUsed;
+                    IntPtr indexOffset = (IntPtr)chunkToRender.IndicesUsed * indexBuffer.DataTypeSize;
+                    Gl.DrawElements(PrimitiveType.Triangles, indices, indexBuffer.DataType, indexOffset);
+                }
             }
 
             c.SetState(oldState);

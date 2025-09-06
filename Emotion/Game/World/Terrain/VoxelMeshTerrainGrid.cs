@@ -144,9 +144,14 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         Vector2 tilePos = GetTilePosOfWorldPos(worldSpace);
         MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(tilePos, out Vector2 relativeCoord);
         if (chunk == null) return 0;
+        return GetHeightAtChunk(chunk, relativeCoord);
+    }
+
+    public float GetHeightAtChunk(MeshGridStreamableChunk<TData, uint>? chunk, Vector2 tilePos)
+    {
         for (int z = (int)ChunkSize3D.Z - 1; z >= 0; z--)
         {
-            TData val = GetAtForChunk(chunk, relativeCoord.ToVec3(z));
+            TData val = GetAtForChunk(chunk, tilePos.ToVec3(z));
             if (!IsEmpty(val))
                 return z;
         }
@@ -239,11 +244,24 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     }
 
-    private int RunChunkMeshGeneration(Vector2 chunkCoord, MeshGridStreamableChunk<TData, uint> chunk, Vector2 chunkWorldOffset, TData[] dataMe, Span<VertexData_Pos_UV_Normal_Color> vertices, Vector3 tileSize3D)
+    private int RunChunkMeshGeneration(
+        Vector2 chunkCoord,
+        MeshGridStreamableChunk<TData, uint> chunk,
+        Vector2 chunkWorldOffset,
+        TData[] dataMe,
+        Span<VertexData_Pos_UV_Normal_Color> vertices,
+        Vector3 tileSize3D,
+
+        bool isTransparentPass,
+        out bool hasTransparent
+    )
     {
+        hasTransparent = false;
+
         bool justCount = vertices.IsEmpty;
         Vector3 halfSize = tileSize3D / 2f;
 
+        int oneDCoord = 0;
         int vIdx = 0;
         for (int z = 0; z < ChunkSize3D.Z; z++)
         {
@@ -253,9 +271,24 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                 {
                     Vector3 tileCoord = new Vector3(x, y, z);
 
-                    int dataCoord = GridHelpers.GetCoordinate1DFrom3D(tileCoord, ChunkSize3D);
+                    int dataCoord = oneDCoord; // optimized - GridHelpers.GetCoordinate1DFrom3D(tileCoord, ChunkSize3D);
+                    oneDCoord++;
+
                     TData voxelData = dataMe[dataCoord];
                     if (IsEmpty(voxelData)) continue;
+
+                    bool transparentVoxel = IsVoxelTransparent(voxelData);
+                    if (transparentVoxel)
+                    {
+                        hasTransparent = true;
+                        if (!isTransparentPass && !justCount)
+                            continue;
+                    }
+                    else
+                    {
+                        if (isTransparentPass)
+                            continue;
+                    }
 
                     Vector3 worldPos = chunkWorldOffset.ToVec3() + tileCoord * tileSize3D;
 
@@ -647,11 +680,42 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         // Get my data
         TData[] dataMe = chunk.GetRawData() ?? Array.Empty<TData>();
 
-        int verticesToAllocate = RunChunkMeshGeneration(chunkCoord, chunk, chunkWorldOffset, dataMe, Span<VertexData_Pos_UV_Normal_Color>.Empty, tileSize3D);
-        verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000; // Round to thousandth
-        Span<VertexData_Pos_UV_Normal_Color> vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, verticesToAllocate);
+        // Count vertices and re-allocate memory if needed
+        int verticesToAllocate = RunChunkMeshGeneration(
+            chunkCoord,
+            chunk,
+            chunkWorldOffset,
+            dataMe,
+            Span<VertexData_Pos_UV_Normal_Color>.Empty,
+            tileSize3D,
 
-        int verticesUsed = RunChunkMeshGeneration(chunkCoord, chunk, chunkWorldOffset, dataMe, vertices, tileSize3D);
+            false,
+            out bool hasTransparent
+        );
+
+        verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000; // Round to thousandth so that reallocation is not too often
+        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, verticesToAllocate);
+        int verticesUsed = RunChunkMeshGeneration(chunkCoord, chunk, chunkWorldOffset, dataMe, vertices, tileSize3D, false, out bool _);
+
+        // Append transparent vertices
+        int nonTransparentVertices = verticesUsed;
+        int transparentVertices = 0;
+        int transparentVerticesStart = verticesUsed;
+        if (hasTransparent)
+        {
+            transparentVertices = RunChunkMeshGeneration(
+               chunkCoord,
+               chunk,
+               chunkWorldOffset,
+               dataMe,
+               vertices.Slice(verticesUsed),
+               tileSize3D,
+
+               true,
+               out bool _
+            );
+            verticesUsed += transparentVertices;
+        }
 
         // Update colliders
         // todo: if our voxels are just cubes we can simulate collisions by just using
@@ -709,7 +773,14 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         // The indices used are the same for all chunks, just the length is different
         AssertNotNull(_indices);
         AssertNotNull(_indexBuffer);
-        chunk.SetIndices(_indices, _indexBuffer, (int)(verticesUsed / 4f * 6f));
+
+        int indicesUsed = (int)(nonTransparentVertices / 4f * 6f);
+        chunk.SetIndices(_indices, _indexBuffer, indicesUsed);
+
+        if (hasTransparent)
+            chunk.TransparentIndicesUsed = (int)(transparentVertices / 4f * 6f);
+        else
+            chunk.TransparentIndicesUsed = 0;
 
         Vector3 chunkSizeWorld3 = ChunkSize3D * tileSize3D;
         chunk.Bounds = Cube.FromCenterAndSize(

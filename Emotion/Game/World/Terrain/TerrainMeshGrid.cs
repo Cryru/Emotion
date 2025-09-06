@@ -75,7 +75,7 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        Span<VertexData_Pos_UV_Normal_Color> vertices = chunk.ResizeVertexMemoryAndGetSpan(chunkCoord, vertexCount);
+        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, vertexCount);
 
         // Get my data
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();
