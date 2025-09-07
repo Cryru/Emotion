@@ -256,6 +256,17 @@ public struct Color
         );
     }
 
+    public static Color LerpHSL(Color value1, Color value2, float amount)
+    {
+        (int h, int s, int l) hsl1 = RGBToHSL(value1.AsRGBTuple());
+        (int h, int s, int l) hsl2 = RGBToHSL(value2.AsRGBTuple());
+
+        int newH = (int)Maths.Lerp(hsl1.h, hsl2.h, amount);
+        int newS = (int)Maths.Lerp(hsl1.s, hsl2.s, amount);
+        int newL = (int)Maths.Lerp(hsl1.l, hsl2.l, amount);
+        return new Color(new HSL(newH, newS, newL));
+    }
+
     /// <summary>
     /// Multiply <see cref="Color" /> by value.
     /// </summary>
