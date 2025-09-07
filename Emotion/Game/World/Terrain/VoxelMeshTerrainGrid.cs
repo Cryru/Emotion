@@ -12,15 +12,17 @@ using OpenGL;
 
 namespace Emotion.Game.World.Terrain;
 
-public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint>
+public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint, MeshGridStreamableChunk<uint, uint>, uint>
 {
     public VoxelMeshTerrainGrid(Vector3 tileSize, float chunkHeight, float chunkSize) : base(tileSize, chunkHeight, chunkSize)
     {
     }
 }
 
-public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChunk<TData, uint>, uint>
+public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChunk, TIndex>
     where TData : struct, IEquatable<TData>
+    where TChunk : MeshGridStreamableChunk<TData, TIndex>, new()
+    where TIndex : unmanaged, INumber<TIndex>
 {
     public Vector3 TileSize3D { get; init; }
 
@@ -49,9 +51,9 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         }
     }
 
-    protected override MeshGridStreamableChunk<TData, uint> InitializeNewChunk()
+    protected override TChunk InitializeNewChunk()
     {
-        var newChunk = new MeshGridStreamableChunk<TData, uint>();
+        var newChunk = new TChunk();
         var newChunkData = new TData[(int)(ChunkSize3D.X * ChunkSize3D.Y * ChunkSize3D.Z)];
         newChunk.SetRawData(newChunkData);
 
@@ -60,14 +62,14 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     #region 3D Grid Helpers
 
-    protected void SetAtForChunk(MeshGridStreamableChunk<TData, uint> chunk, Vector3 position, TData value)
+    protected void SetAtForChunk(TChunk chunk, Vector3 position, TData value)
     {
         TData[] data = chunk.GetRawData();
         int idx = GridHelpers.GetCoordinate1DFrom3D(position, ChunkSize3D);
         data[idx] = value;
     }
 
-    protected TData GetAtForChunk(MeshGridStreamableChunk<TData, uint> chunk, Vector3 position)
+    protected TData GetAtForChunk(TChunk chunk, Vector3 position)
     {
         TData[] data = chunk.GetRawData();
         int idx = GridHelpers.GetCoordinate1DFrom3D(position, ChunkSize3D);
@@ -76,7 +78,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     public void SetAt(Vector3 position, TData value)
     {
-        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(position.ToVec2(), out Vector2 chunkCoord, out Vector2 relativeCoord);
+        TChunk? chunk = GetChunkAt(position.ToVec2(), out Vector2 chunkCoord, out Vector2 relativeCoord);
         if (chunk == null) return;
         SetAtForChunk(chunk, relativeCoord.ToVec3(position.Z), value);
         OnChunkChanged(chunkCoord, chunk);
@@ -84,7 +86,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     public TData GetAt(Vector3 position)
     {
-        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(position.ToVec2(), out Vector2 relativeCoord);
+        TChunk? chunk = GetChunkAt(position.ToVec2(), out Vector2 relativeCoord);
         if (chunk == null) return default;
         return GetAtForChunk(chunk, relativeCoord.ToVec3(position.Z));
     }
@@ -101,7 +103,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         uint defVal = default;
         bool isDelete = defVal.Equals(value);
 
-        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(pos2D, out Vector2 relativeLocation);
+        TChunk? chunk = GetChunkAt(pos2D, out Vector2 relativeLocation);
         if (chunk != null)
         {
             // Setting position in a chunk - easy peasy.
@@ -125,7 +127,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         if (isDelete) return false;
 
         // Initialize new chunk
-        MeshGridStreamableChunk<TData, uint> newChunk = InitializeNewChunk();
+        TChunk newChunk = InitializeNewChunk();
         _chunks.Add(chunkCoord, newChunk);
         OnChunkCreated(chunkCoord, newChunk);
         _chunkBoundsCacheValid = false;
@@ -142,12 +144,12 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
     public override float GetHeightAt(Vector2 worldSpace)
     {
         Vector2 tilePos = GetTilePosOfWorldPos(worldSpace);
-        MeshGridStreamableChunk<TData, uint>? chunk = GetChunkAt(tilePos, out Vector2 relativeCoord);
+        TChunk? chunk = GetChunkAt(tilePos, out Vector2 relativeCoord);
         if (chunk == null) return 0;
         return GetHeightAtChunk(chunk, relativeCoord);
     }
 
-    public float GetHeightAtChunk(MeshGridStreamableChunk<TData, uint>? chunk, Vector2 tilePos)
+    public float GetHeightAtChunk(TChunk? chunk, Vector2 tilePos)
     {
         for (int z = (int)ChunkSize3D.Z - 1; z >= 0; z--)
         {
@@ -168,7 +170,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
         return new Vector3(left, top, depth);
     }
 
-    public Cube GetCubeOfTilePos(Vector3 tilePos)
+    public Cube GetVoxelBoundsOfTile(Vector3 tilePos)
     {
         return new Cube(tilePos * TileSize3D, TileSize3D / 2f);
     }
@@ -179,7 +181,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     // One index buffer is used for all chunks, and they are all the same length.
 
-    protected uint[]? _indices; // Collision only
+    protected TIndex[]? _indices; // Collision only
     protected int _indicesLength;
     protected IndexBuffer? _indexBuffer;
 
@@ -193,8 +195,8 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
         _indexBuffer ??= new IndexBuffer(DrawElementsType.UnsignedInt);
 
-        uint[] indices = new uint[indexCount];
-        IndexBuffer.FillQuadIndices<uint>(indices, 0);
+        TIndex[] indices = new TIndex[indexCount];
+        IndexBuffer.FillQuadIndices<TIndex>(indices, 0);
         _indexBuffer.Upload(indices);
         _indices = indices;
         _indicesLength = indexCount;
@@ -204,7 +206,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     #region Gameplay Customization
 
-    protected virtual float GetVoxelHeight(Vector2 chunkCoord, MeshGridStreamableChunk<TData, uint> chunk, Vector3 inChunkTilePos, int oneDTilePos, TData tileData)
+    protected virtual float GetVoxelHeight(Vector2 chunkCoord, TChunk chunk, Vector3 inChunkTilePos, int oneDTilePos, TData tileData)
     {
         return 1f;
     }
@@ -235,6 +237,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
     }
 
     protected virtual void SetVoxelFaceUV(
+        Vector2 chunkCoord,
         CubeFace face, Span<VertexData_Pos_UV_Normal_Color> vertices,
         int coord1D, TData voxelData,
         TData topSample, TData leftSample, TData rightsample,
@@ -246,7 +249,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     private int RunChunkMeshGeneration(
         Vector2 chunkCoord,
-        MeshGridStreamableChunk<TData, uint> chunk,
+        TChunk chunk,
         Vector2 chunkWorldOffset,
         TData[] dataMe,
         Span<VertexData_Pos_UV_Normal_Color> vertices,
@@ -352,6 +355,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                             }
 
                             SetVoxelFaceUV(
+                                chunkCoord,
                                 CubeFace.PositiveZ, vertices.Slice(vIdx - 4), dataCoord, voxelData,
                                 topSample, default, default, default, default, default
                             );
@@ -411,8 +415,8 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                                 vIdx++;
                             }
 
-
                             SetVoxelFaceUV(
+                                chunkCoord,
                                 CubeFace.NegativeZ, vertices.Slice(vIdx - 4), dataCoord, voxelData,
                                 topSample, default, default, default, default, default
                             );
@@ -473,6 +477,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                             }
 
                             SetVoxelFaceUV(
+                                chunkCoord,
                                 CubeFace.NegativeX, vertices.Slice(vIdx - 4), dataCoord, voxelData,
                                 topSample, default, default, default, default, default
                             );
@@ -533,6 +538,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                             }
 
                             SetVoxelFaceUV(
+                                chunkCoord,
                                 CubeFace.PositiveX, vertices.Slice(vIdx - 4), dataCoord, voxelData,
                                 topSample, default, default, default, default, default
                             );
@@ -593,6 +599,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                             }
 
                             SetVoxelFaceUV(
+                                chunkCoord,
                                 CubeFace.NegativeY, vertices.Slice(vIdx - 4), dataCoord, voxelData,
                                 topSample, default, default, default, default, default
                             );
@@ -653,6 +660,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
                             }
 
                             SetVoxelFaceUV(
+                                chunkCoord,
                                 CubeFace.PositiveY, vertices.Slice(vIdx - 4), dataCoord, voxelData,
                                 topSample, default, default, default, default, default
                             );
@@ -667,7 +675,7 @@ public class VoxelMeshTerrainGrid<TData> : MeshGrid<TData, MeshGridStreamableChu
 
     private ObjectPool<List<Cube>> _colliderPool = new ObjectPool<List<Cube>>();
 
-    protected override void UpdateChunkVertices(Vector2 chunkCoord, MeshGridStreamableChunk<TData, uint> chunk)
+    protected override void UpdateChunkVertices(Vector2 chunkCoord, TChunk chunk)
     {
         Vector2 tileSize = TileSize;
         Vector3 tileSize3D = TileSize3D;

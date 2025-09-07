@@ -274,7 +274,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     protected List<ChunkT> _renderThisPass = new(32);
 
-    public virtual void Render(Renderer c, Frustum frustum)
+    public virtual void Render(Renderer r, Frustum frustum)
     {
         // Gather chunks to render this pass.
         _renderThisPass.Clear();
@@ -299,16 +299,16 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
             bool transparentPass = false;
 
-            RenderState oldState = c.CurrentState.Clone();
+            RenderState oldState = r.CurrentState.Clone();
 
             MeshMaterial material = GetMeshMaterial();
-            c.SetState(material.State);
-            c.CurrentShader.SetUniformInt("diffuseTexture", 0);
+            r.SetState(material.State);
+            r.CurrentShader.SetUniformInt("diffuseTexture", 0);
 
             Texture diffuseTexture = material.GetDiffuseTexture();
             Texture.EnsureBound(diffuseTexture.Pointer);
 
-            SetupShaderState(c.CurrentShader);
+            SetupShaderState(r.CurrentShader);
 
             foreach (ChunkT chunkToRender in _renderThisPass)
             {
@@ -346,7 +346,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
                 }
             }
 
-            c.SetState(oldState);
+            r.SetState(oldState);
         }
     }
 

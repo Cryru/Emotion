@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using OpenGL;
+using System.Runtime.InteropServices;
 
 namespace Emotion.Graphics.Objects;
 
@@ -70,8 +71,14 @@ public sealed class IndexBuffer : DataBuffer
         }
     }
 
-    public static void FillQuadIndices<T>(Span<T> indices, uint offset) where T : INumber<T>
+    public static void FillQuadIndices<T>(Span<T> indices, uint offset) where T : unmanaged, INumber<T>
     {
+        if (typeof(T) == typeof(ushort)) // If T is ushort will it call the overload instead
+        {
+            FillQuadIndices(MemoryMarshal.Cast<T, ushort>(indices), offset);
+            return;
+        }
+
         for (var i = 0; i < indices.Length; i += 6)
         {
             indices[i] =     T.CreateTruncating<uint>(offset + 0);
