@@ -4,6 +4,11 @@
 
 #nullable enable
 
+using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
+
 namespace Emotion.Standard.Extensions;
 
 public static class EnumExtensions
@@ -73,5 +78,12 @@ public static class EnumExtensions
         }
 
         return lhs;
+    }
+
+    public static IEnumerable<T> ReflectorGetValues<T>() where T : Enum
+    {
+        ReflectorTypeHandlerBase<T>? typeHandler = ReflectorEngine.GetTypeHandler<T>();
+        if (typeHandler is not IReflectorEnumHandler<T> enumHandler) return Array.Empty<T>();
+        return enumHandler.GetValues();
     }
 }

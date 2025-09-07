@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
-public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorEnumHandler
+public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorEnumHandler<T>
     where T : Enum
     where TNum : INumber<TNum>
 {
@@ -107,14 +107,14 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
 
     public string GetValueName(T value)
     {
-        _itemToString.TryGetValue(value, out string valName);
+        _itemToString.TryGetValue(value, out string? valName);
         valName ??= string.Empty;
         return valName;
     }
 
     public string GetValueName(object value)
     {
-        if (value is T valAsT && _itemToString.TryGetValue(valAsT, out string valName))
+        if (value is T valAsT && _itemToString.TryGetValue(valAsT, out string? valName))
             return valName;
         return string.Empty;
     }

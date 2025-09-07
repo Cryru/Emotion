@@ -16,3 +16,9 @@ public interface IReflectorEnumHandler
 
     public bool TryParse<TUnderlyingNumeric>(TUnderlyingNumeric numeric, out object result) where TUnderlyingNumeric : INumber<TUnderlyingNumeric>;
 }
+
+public interface IReflectorEnumHandler<T> : IReflectorEnumHandler
+    where T : Enum
+{
+    public T[] GetValues();
+}
